@@ -1,0 +1,13 @@
+# motel amqp config
+
+production:
+  broker: 127.0.0.1
+  port: 5672
+
+development:
+  broker: 127.0.0.1
+  port: 5672
+
+test:
+  broker: 127.0.0.1
+  port: 5672

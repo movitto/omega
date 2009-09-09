@@ -1,0 +1,11 @@
+# motel project todo list
+
+- TODOs, FIXMEs, XXXs in the code; more docs / tests
+- make messages module more language agnostic, eg try not 
+  to use ruby Marshal
+- add location_server varchar field to locations table
+  permitting automatic remote child location retreival
+- a path based movement strategy
+- 'join points' which associate multiple locations together
+- a qmf interface
+- collision and proximity events / callbacks

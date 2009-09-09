@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+#
+# locs       startup script for locs
+#
+# chkconfig: - 97 03
+# description: location server processes and handles requests
+#  for motel managed entities
+
+[ -r /etc/sysconfig/locs ] && . /etc/sysconfig/locs
+
+LOCS_PROG=/usr/sbin/locs
+LOCS_LOCKFILE=/var/lock/sys/locs
+
+. /etc/init.d/functions
+
+start() {
+    echo -n "Starting locs: "
+    $LOCS_PROG
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ] && touch $LOCS_LOCKFILE ; then
+	echo_success
+	echo
+    else
+	echo_failure
+	echo
+    fi
+}
+
+stop() {
+    echo -n "Shutting down locs: "
+    killproc $LOCS_PROG -9
+    if [ $RETVAL -eq 0 ] && rm -f $LOCS_LOCKFILE ; then
+	echo_success
+	echo
+    else
+	echo_failure
+	echo
+    fi
+}
+
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart)
+	stop
+	start
+	;;
+    reload)
+        ;;
+    force-reload)
+        restart
+        ;;
+    status)
+	status $LOCS_PROG
+	RETVAL=$?
+	;;
+    *)
+      echo "Usage: locs {start|stop|restart|status}"
+      exit 1
+  ;;
+esac
+
+exit $RETVAL

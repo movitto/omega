@@ -1,0 +1,13 @@
+# when running client / server
+export MOTEL_DB_CONF=`pwd`/conf/database.yml
+export MOTEL_AMQP_CONF=`pwd`/conf/amqp.yml
+
+# testing things out manually:
+ENV['MOTEL_ENV']="test"
+ENV['MOTEL_DB_CONF']   ||= File.dirname(__FILE__) + '/conf/database.yml'
+ENV['MOTEL_AMQP_CONF'] ||= File.dirname(__FILE__) + '/conf/amqp.yml'
+require 'lib/motel/environment'
+require 'lib/motel'
+include Motel
+include Motel::Models
+
