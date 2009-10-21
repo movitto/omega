@@ -107,7 +107,6 @@ def main()
     schema_file = ENV['MOTEL_SCHEMA_FILE'] if schema_file.nil?
     db_conf     = ENV['MOTEL_DB_CONF']     if db_conf.nil?
 
-puts "#{request_target} #{location} #{schema_file} #{db_conf}"
     if request_target.nil? || location[:id].nil? || schema_file.nil? || db_conf.nil? ||
        request_target == :update && location[:x].nil? && location[:y].nil? && location[:z].nil? && location[:parent_id].nil? && movement_strategy_type.nil? && movement_strategy_encoded.nil?
          puts opts
@@ -133,7 +132,7 @@ puts "#{request_target} #{location} #{schema_file} #{db_conf}"
                             :location => location,
                             :movement_stratgy_type => movement_strategy_type
 
-    if request_target == :update
+    if request_target == :subscribe
       client.on_location_received = lambda { |loc|
          puts "location received:"
          puts "#{loc}"

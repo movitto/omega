@@ -58,7 +58,7 @@ class Location < ActiveRecord::Base
 
    # convert location to a string
    def to_s
-     "id:#{id}; parent_id:#{parent_id}; x:#{x}; y#{y}; z#{z}; " +
+     "id:#{id}; parent_id:#{parent_id}; parent: #{parent.nil? ? "nil" : "notnil"}; x:#{x}; y#{y}; z#{z}; " +
      "movement_strategy:#{movement_strategy.to_s}; children:#{locations.join(",")}"
    end
 

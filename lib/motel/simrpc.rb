@@ -132,6 +132,10 @@ class Client
     }
   end
 
+  def join
+     @simrpc_node.join
+  end
+
   # perform a motel request, with the specified params
   #   * :request_target => [:get, :register, :save, :update] specify request to send to server, this argument must be present
   #   * :location => <Location instance> - location to send to server, requires an id for all operations

@@ -1,7 +1,7 @@
 <!-- The motel simrpc schema definition -->
 <schema>
 
-  <class name="MovementStrategy" desc="paramaterized algorithm which a location is moved">
+  <class name="MovementStrategy" desc="paramaterized algorithm through which a location is moved">
     <member name="id" type="int" desc="MovementStrategy identifier" ignore_null="true" />
     <member name="type" type="str" desc="MovementStrategy type"/>
     <member name="step_delay" type="float" desc="MovementStrategy movement delay"/>
@@ -26,6 +26,7 @@
     <member name="x"  type="int" desc="x coordinate"/>
     <member name="y"  type="int" desc="y coordinate"/>
     <member name="z"  type="int" desc="z coordinate"/>
+    <member name="parent_id" type="int" desc="location id of parent, null if this is a root location" ignore_null="true" />
     <member name="parent"    type="obj" associated="Location" desc="parent location"/>
     <member name="children"  type="array" associated="Location" desc="children locations"/>
     <member name="movement_strategy" type="obj" associated="MovementStrategy" desc="associated movement strategy"/>
