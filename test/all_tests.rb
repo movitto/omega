@@ -15,6 +15,5 @@ require 'test/location_test'
 require 'test/movement_strategy_test'
 require 'test/runner_test'
 require 'test/loader_test'
-require 'test/qpid_test'
-require 'test/messages_test'
+require 'test/simrpc_test'
 #Dir['**/*_test.rb'].each { |test_case| require test_case }

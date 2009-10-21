@@ -1,0 +1,64 @@
+<!-- The motel simrpc schema definition -->
+<schema>
+
+  <class name="MovementStrategy" desc="paramaterized algorithm which a location is moved">
+    <member name="id" type="int" desc="MovementStrategy identifier" ignore_null="true" />
+    <member name="type" type="str" desc="MovementStrategy type"/>
+    <member name="step_delay" type="float" desc="MovementStrategy movement delay"/>
+    <member name="speed" type="float" desc="Speed which location is moving" />
+    <member name="direction_vector_x" type="float" desc="x component of Linear direction vector" />
+    <member name="direction_vector_y" type="float" desc="y component of Linear direction vector" />
+    <member name="direction_vector_z" type="float" desc="z component of Linear direction vector" />
+    <member name="relative_to" type="float" desc="how location is relative to its parent" />
+    <member name="eccentricity" type="float" desc="eccentricity of elliptical orbit" />
+    <member name="semi_latus_rectum" type="float" desc="semi latus rectum of elliptical orbit" />
+    <member name="direction_major_x" type="float" desc="x component of Elliptical Major direction vector" />
+    <member name="direction_major_y" type="float" desc="y component of Elliptical Major direction vector" />
+    <member name="direction_major_z" type="float" desc="z component of Elliptical Major direction vector" />
+    <member name="direction_minor_x" type="float" desc="x component of Elliptical Minor direction vector" />
+    <member name="direction_minor_y" type="float" desc="y component of Elliptical Minor direction vector" />
+    <member name="direction_minor_z" type="float" desc="z component of Elliptical Minor direction vector" />
+    <!-- TODO add other parameters, for all movement strategy type -->
+  </class>
+
+  <class name="Location" desc="location in 3d space w/ coordiantes & movement strategy">
+    <member name="id" type="int" desc="Location identifier" ignore_null="true" />
+    <member name="x"  type="int" desc="x coordinate"/>
+    <member name="y"  type="int" desc="y coordinate"/>
+    <member name="z"  type="int" desc="z coordinate"/>
+    <member name="parent"    type="obj" associated="Location" desc="parent location"/>
+    <member name="children"  type="array" associated="Location" desc="children locations"/>
+    <member name="movement_strategy" type="obj" associated="MovementStrategy" desc="associated movement strategy"/>
+
+  </class>
+
+  <method name="get_location" desc="get location from specified id">
+    <param name="location_id" type="int" desc="Location identifier"/>
+    <return_value name="location" type="obj" associated="Location" desc="Location corresponding to id or nil"/>
+  </method>
+
+  <method name="register_location" desc="load & register location w/ specified id">
+    <param name="location_id" type="int" desc="Location identifier"/>
+    <return_value name="success" type="bool" desc="bool success"/>
+  </method>
+
+  <method name="save_location" desc="save running location w/ specified id">
+    <param name="location_id" type="int" desc="Location identifier"/>
+    <return_value name="success" type="bool" desc="bool success"/>
+  </method>
+
+  <method name="update_location" desc="update running location w/ new location sharing the same id">
+    <param name="location" type="obj" associated="Location" desc="Location with new attributes and identifier of location to update"/>
+    <return_value name="success" type="bool" desc="bool success"/>
+  </method>
+
+  <method name="subscribe_to_location" desc="subscribe simrpc endpoint to updates to location of the specified id via the location_moved method">
+    <param name="location_id" type="int" desc="Location identifier"/>
+    <param name="node_id" type="str" desc="Node identifier which to update of location movements"/>
+    <return_value name="success" type="bool" desc="bool success"/>
+  </method>
+
+  <method name="location_moved" desc="inform simrpc endpoint that location was moved">
+    <param name="location" type="obj" associated="Location" desc="Location that was moved with new coordinates and original id"/>
+  </method>
+</schema>

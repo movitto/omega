@@ -8,8 +8,6 @@ lib = File.dirname(__FILE__)
 require lib + '/motel/environment'
 require lib + '/motel/runner'
 require lib + '/motel/loader'
-require lib + '/motel/qpid'
-require lib + '/motel/messages'
-require lib + '/motel/network'
+require lib + '/motel/simrpc'
 
 Dir[lib + '/motel/models/*.rb'].each { |model| require model }

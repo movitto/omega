@@ -8,6 +8,7 @@
 task :environment do
   ENV['MOTEL_DB_CONF']   ||= File.dirname(__FILE__) + '/conf/database.yml'
   ENV['MOTEL_AMQP_CONF'] ||= File.dirname(__FILE__) + '/conf/amqp.yml'
+  ENV['MOTEL_SIMRPC_SCHEMA'] ||= File.dirname(__FILE__) + '/conf/motel-schema.xml'
   require 'lib/motel/environment'
 end
 
@@ -37,10 +38,10 @@ task(:test => [:test_env, :environment]) do
    require 'test/all_tests'
 end
 
-task :rdoc do  
-  desc "Create RDoc documentation"  
-  system "rdoc --title 'Motel documentation' lib/"  
-end  
+task :rdoc do
+  desc "Create RDoc documentation"
+  system "rdoc --title 'Motel documentation' lib/"
+end
 
 task :create_gem do
   desc "Create a new gem"

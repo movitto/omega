@@ -37,7 +37,8 @@ class RunnerTest < Test::Unit::TestCase
      child2.id = 3
 
       # test the runner
-      runner = Runner.new
+      runner = Runner.get
+      runner.clear
       runner.run parent
 
       # make sure callback is invoked

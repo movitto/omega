@@ -70,9 +70,30 @@ end
 
 
 # A Runner manages groups of LocationRunner instances
+# Restricts use to a single instance, obtained via the
+# 'get' method
 class Runner
+
+ private
   
+  # Default class constructor
+  # private as runner should be accessed through singleton 'get' method
+  def initialize
+     # set to true to terminate the runner
+     @terminate = false
+
+     # locations is a list of instances of LocationRunner to manage
+     @location_runners    = []
+     @runners_lock = Mutex.new
+  end
+
  public
+
+  # singleton getter
+  def self.get
+    @@singleton_instance = Runner.new if !defined? @@singleton_instance || @@singleton_instance.nil?
+    return @@singleton_instance
+  end
 
   attr_reader :location_runners
 
@@ -82,14 +103,9 @@ class Runner
      @location_runners.collect { |runner| runner.location }
   end
 
-  # Default class constructor
-  def initialize
-     # set to true to terminate the runner
-     @terminate = false
-
-     # locations is a list of instances of LocationRunner to manage
-     @location_runners    = []
-     @runners_lock = Mutex.new
+  # clear all location_runners
+  def clear
+     @location_runners.clear
   end
 
   # Terminate all run cycles, stopping all location movements.

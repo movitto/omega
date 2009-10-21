@@ -19,28 +19,27 @@ class Loader
   end
 
   # Static member to load all locations that match a specified 
-  # condition (ala activerecord) and create and return a Runner 
+  # condition (ala activerecord) and add it to the singleton Runner
   # instance  (or use the optional one passed in), using it to run 
   # the locations. 
-  def self.Load(conditions = 'parent_id IS NULL', runner = Runner.new)
+  def self.Load(conditions = 'parent_id IS NULL')
      locations = Location.find(:all, :conditions => conditions)
      return nil if locations.size == 0
 
      locations.each { |location|
-       run_location(runner, location)
+       run_location(location)
      }
-
-     return runner
+     return locations.size
   end
 
  private
 
   # Static internal helper method that adds a location and 
-  # all its children to the specified runner.
-  def self.run_location(runner, location)
-    runner.run location
+  # all its children to the Runner
+  def self.run_location(location)
+    Runner.get.run location
     location.children.each { |child|
-       run_location runner, child
+       run_location child
     }
   end
 

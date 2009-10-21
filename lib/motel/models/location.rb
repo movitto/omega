@@ -24,6 +24,7 @@ class Location < ActiveRecord::Base
    alias :parent    :location
    alias :parent=   :location=
    alias :children  :locations
+   alias :children=  :locations=
 
    # default to the stopped movement strategy if not set on validation
    before_validation :default_movement_strategy

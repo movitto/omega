@@ -28,9 +28,9 @@ class LoaderTest < Test::Unit::TestCase
      child1.save!
      child2.save!
 
-     runner = Loader.Load
-     assert_equal Location.find(:all).size, runner.location_runners.size
-     runner.location_runners.each { |runner|
+     Loader.Load
+     assert_equal Location.find(:all).size, Runner.get.location_runners.size
+     Runner.get.location_runners.each { |runner|
          assert !runner.run_thread.nil?
      }
   end
