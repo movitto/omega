@@ -6,10 +6,9 @@
 #task :default => :test
 
 task :environment do
-  ENV['MOTEL_DB_CONF']   ||= File.dirname(__FILE__) + '/conf/database.yml'
-  ENV['MOTEL_AMQP_CONF'] ||= File.dirname(__FILE__) + '/conf/amqp.yml'
-  ENV['MOTEL_SIMRPC_SCHEMA'] ||= File.dirname(__FILE__) + '/conf/motel-schema.xml'
-  require 'lib/motel/environment'
+  require 'lib/motel/conf'
+  Conf.setup(:db_conf     => File.dirname(__FILE__) + '/conf/database.yml',
+             :schema_file => File.dirname(__FILE__) + '/conf/motel-schema.xml')
 end
 
 namespace :db do
@@ -28,13 +27,12 @@ namespace :db do
   end
 end
 
-task(:test_env) do
-   desc "Set Test Environment"
-   ENV['MOTEL_ENV']="test"
-end
-
-task(:test => [:test_env, :environment]) do
+task(:test) do
    desc "Run tests"
+   require 'lib/motel/conf'
+   Motel::Conf.setup(:db_conf    => File.dirname(__FILE__) + '/conf/database.yml',
+                    :schema_file => File.dirname(__FILE__) + '/conf/motel-schema.xml',
+                    :env         => "test")
    require 'test/all_tests'
 end
 

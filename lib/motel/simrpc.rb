@@ -10,41 +10,58 @@ module Motel
 # Motel::Server defines a server endpoint which manages locations
 # and responds to simrpc requests
 class Server
-  def initialize(args)
+  def initialize(args = {})
     # load and start the default location set
     Loader.Load
 
     # create a simprc node
     @simrpc_node = Simrpc::Node.new(:id => "location-server", 
-                                     :schema_file => args[:schema_file])
+                                    :schema_file => args[:schema_file])
 
     # register handlers for the various motel simrpc methods
     @simrpc_node.handle_method("get_location") { |location_id|
-       $logger.info "received get location #{location_id} request"
-       loc = Runner.get.locations.find { |loc| loc.id == location_id }
-       $logger.info "get location #{location_id} request returning #{loc}"
+       Logger.info "received get location #{location_id} request"
+       loc = nil
+       begin
+         loc = Runner.get.locations.find { |loc| loc.id == location_id }
+       rescue Exception => e
+         Logger.warn "get location #{location_id} failed w/ exception #{e}"
+       end
+       Logger.info "get location #{location_id} request returning #{loc}"
        loc
     }
 
     @simrpc_node.handle_method("register_location") { |location_id|
-       $logger.info "received register location #{location_id} request"
-       num_locations = Loader.Load "id = #{location_id}"
-       success = (num_locations == 1)
-       $logger.info "register location #{location_id} request returning #{success}"
+       Logger.info "received register location #{location_id} request"
+       success = true
+       begin
+         num_locations = Loader.Load "id = #{location_id}"
+         success = (num_locations == 1)
+       rescue Exception => e
+         Logger.warn "register location #{location_id} failed w/ exception #{e}"
+         success = false
+       end
+       Logger.info "register location #{location_id} request returning #{success}"
        success
     }
 
     @simrpc_node.handle_method("save_location") { |location_id|
-       $logger.info "received save location #{location_id} request"
-       loc = Runner.get.locations.find { |loc| loc.id == location_id }
-       loc.save! unless loc.nil?
-       success = !loc.nil?
-       $logger.info "save location #{location_id} request returning #{success}"
+       Logger.info "received save location #{location_id} request"
+       success = true
+       begin
+         loc = Runner.get.locations.find { |loc| loc.id == location_id }
+         loc.save! unless loc.nil?
+         success = !loc.nil?
+       rescue Exception => e
+         Logger.warn "save location #{location_id} failed w/ exception #{e}"
+         success = false
+       end
+       Logger.info "save location #{location_id} request returning #{success}"
        success
     }
 
     @simrpc_node.handle_method("update_location") { |location|
-       $logger.info "received update location #{location.id} request"
+       Logger.info "received update location #{location.id} request"
        success = true
        if location.nil?
          success = false
@@ -53,28 +70,28 @@ class Server
          begin
            unless location.movement_strategy.nil?
              if rloc.movement_strategy.type == location.movement_strategy.type
-               $logger.info "updating location #{location.id}'s movement strategy with #{location.movement_strategy.to_h}"
+               Logger.info "updating location #{location.id}'s movement strategy with #{location.movement_strategy.to_h}"
                rloc.movement_strategy.update_attributes! location.movement_strategy.to_h
              else
-               $logger.info "setting location #{location.id}'s movement strategy"
+               Logger.info "setting location #{location.id}'s movement strategy"
                location.movement_strategy.save!
                rloc.movement_strategy = location.movement_strategy
                rloc.save!
              end
            end
-           $logger.info "update location #{location.id} with #{location.to_h}"
+           Logger.info "update location #{location.id} with #{location.to_h}"
            rloc.update_attributes!(location.to_h)
          rescue Exception => e
-           $logger.warn "update location #{location.id} failed w/ exception #{e}"
+           Logger.warn "update location #{location.id} failed w/ exception #{e}"
            success = false
          end
        end
-       $logger.info "update location #{location.id} returning #{success}"
+       Logger.info "update location #{location.id} returning #{success}"
        success
     }
 
     @simrpc_node.handle_method("subscribe_to_location") { |location_id, client_id|
-       $logger.info "subscribe client #{client_id} to location #{location_id}  request received"
+       Logger.info "subscribe client #{client_id} to location #{location_id}  request received"
        loc = Runner.get.locations.find { |loc| loc.id == location_id  }
        success = true
        if loc.nil? 
@@ -85,13 +102,13 @@ class Server
            @simrpc_node.send_method("location_moved", client_id, location)
          }
        end
-       $logger.info "subscribe client #{client_id} to location #{location_id}  returning  #{success}"
+       Logger.info "subscribe client #{client_id} to location #{location_id}  returning  #{success}"
        success
     }
   end
 
   def join
-     # FIXME
+     @simrpc_node.join
   end
 end
 

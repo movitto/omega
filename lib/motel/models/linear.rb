@@ -39,11 +39,11 @@ class Linear < MovementStrategy
    # Motel::Models::MovementStrategy::move
    def move(location, elapsed_seconds)
      unless valid?
-       $logger.warn "linear movement strategy not valid, not proceeding with move"
+       Logger.warn "linear movement strategy not valid, not proceeding with move"
        return
      end
 
-     $logger.debug "moving location #{location.to_s} via linear movement strategy"
+     Logger.debug "moving location #{location.to_s} via linear movement strategy"
 
      # calculate distance and update x,y,z accordingly
      distance = speed * elapsed_seconds
@@ -52,7 +52,7 @@ class Linear < MovementStrategy
      location.y += distance * direction_vector_y
      location.z += distance * direction_vector_z
 
-     $logger.debug "moved location #{location} via linear movement strategy"
+     Logger.debug "moved location #{location} via linear movement strategy"
    end
 
    # convert non-nil linear movement strategy attributes to a hash

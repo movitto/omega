@@ -1,6 +1,6 @@
 # when running client / server
 export MOTEL_DB_CONF=`pwd`/conf/database.yml
-export MOTEL_AMQP_CONF=`pwd`/conf/amqp.yml
+export MOTEL_SCHEMA_FILE=`pwd`/conf/motel-schema.xml
 
 # testing things out manually:
 ENV['MOTEL_ENV']="test"

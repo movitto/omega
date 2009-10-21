@@ -19,7 +19,7 @@ class LocationRunner
      @terminate = false
      @location  = location
      @location_lock = Mutex.new
-     $logger.info " running location " + location.to_s
+     Logger.info " running location " + location.to_s
 
      # TODO at some point use a thread pool approach
      @run_thread = Thread.new { run_move_cycle(location) }
@@ -50,7 +50,7 @@ class LocationRunner
 
      # run until we are instructed not to
      until(@terminate) do
-        $logger.debug "runner invoking move on location " + location.to_s + " via " + location.movement_strategy.type.to_s + " movement strategy"
+        Logger.debug "runner invoking move on location " + location.to_s + " via " + location.movement_strategy.type.to_s + " movement strategy"
 
         ## perform the actual move
         location.movement_strategy.move location, start_time - Time.now

@@ -5,7 +5,7 @@
 
 lib = File.dirname(__FILE__)
 
-require lib + '/motel/environment'
+require lib + '/motel/conf'
 require lib + '/motel/runner'
 require lib + '/motel/loader'
 require lib + '/motel/simrpc'

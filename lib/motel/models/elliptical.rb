@@ -116,18 +116,18 @@ class Elliptical < MovementStrategy
    def move(location, elapsed_seconds)
       # make sure this movement strategy is valid
       unless valid?
-         $logger.warn "elliptical movement strategy not valid, not proceeding with move"
+         Logger.warn "elliptical movement strategy not valid, not proceeding with move"
          return
       end
 
       # make sure location is on ellipse
       unless location_valid? location
          cx,cy,cz = closest_coordinates location
-         $logger.warn "location #{location} not on ellipse, the closest location is #{cl}, not proceeding with move"
+         Logger.warn "location #{location} not on ellipse, the closest location is #{cl}, not proceeding with move"
          return
       end
 
-     $logger.debug "moving location #{location} via elliptical movement strategy"
+     Logger.debug "moving location #{location} via elliptical movement strategy"
 
      # calculate distance moved and update x,y,z accordingly
      distance = speed * elapsed_seconds
@@ -137,7 +137,7 @@ class Elliptical < MovementStrategy
      location.y = nY
      location.z = nZ
 
-     $logger.debug "moved location #{location} via elliptical movement strategy"
+     Logger.debug "moved location #{location} via elliptical movement strategy"
    end
 
   private
