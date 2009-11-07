@@ -63,9 +63,9 @@ def main()
   Conf.setup(:schema_file => schema_file,
              :db_conf     => db_conf,
              :env         => "production",
-             :log_level   => ::Logger::INFO) # FATAL ERROR WARN INFO DEBUG
+             :log_level   => ::Logger::FATAL) # FATAL ERROR WARN INFO DEBUG
 
-  server = Server.new
+  server = Server.new :schema_file => Conf.schema_file
   server.join
 end
 

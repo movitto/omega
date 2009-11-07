@@ -6,13 +6,19 @@
 class SimrpcTest < Test::Unit::TestCase
   def setup
     # setup simrpc endpoints
-    @server = Server.new :schema_file => ENV['MOTEL_SIMRPC_SCHEMA']
-    @client = Client.new :schema_file => ENV['MOTEL_SIMRPC_SCHEMA']
+    @server = Server.new :schema_file => Conf.schema_file
+    @client = Client.new :schema_file => Conf.schema_file
+
+    # in reality associated class would be something other than a movement strategy
+    # like a car or city or something, but this is convenient since its already in our db
+    @associated = Stopped.new :step_delay => 5
+    @associated.save!
 
     # setup a location for subsequent use
     @parent = Location.new :movement_strategy => MovementStrategy.stopped
     #@parent.save!
-    @location = Location.new :parent => @parent, :x => 150, :y => 300, :z => 600
+    @location = Location.new :parent => @parent, :x => 150, :y => 300, :z => 600,
+                             :entity => @associated
     @location.save!
     @location_id = @location.id
   end
@@ -38,6 +44,8 @@ class SimrpcTest < Test::Unit::TestCase
      assert_equal 150, loc.x
      assert_equal 300, loc.y
      assert_equal 600, loc.z
+     assert_equal 5, loc.entity.step_delay
+     assert_equal Stopped, loc.entity.class
 
      loc = @client.request :request_target => :get, :location => @location
      assert !loc.nil?

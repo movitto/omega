@@ -47,7 +47,8 @@ class MovementStrategy < ActiveRecord::Base
 
    # retreive the 'stopped' movement strategy
    def self.stopped
-     MovementStrategy.find(:first, :conditions => "type = 'Stopped'")
+     ms = MovementStrategy.find(:first, :conditions => "type = 'Stopped'")
+     ms.nil? ? Stopped.new(:step_delay => 5) : ms
    end
 
    # return subclass corresponding to specified strategy type

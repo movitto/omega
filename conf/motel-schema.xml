@@ -18,7 +18,7 @@
     <member name="direction_minor_x" type="float" desc="x component of Elliptical Minor direction vector" />
     <member name="direction_minor_y" type="float" desc="y component of Elliptical Minor direction vector" />
     <member name="direction_minor_z" type="float" desc="z component of Elliptical Minor direction vector" />
-    <!-- TODO add other parameters, for all movement strategy type -->
+    <!-- TODO add other parameters, for all movement strategy types -->
   </class>
 
   <class name="Location" desc="location in 3d space w/ coordiantes & movement strategy">
@@ -30,7 +30,8 @@
     <member name="parent"    type="obj" associated="Location" desc="parent location"/>
     <member name="children"  type="array" associated="Location" desc="children locations"/>
     <member name="movement_strategy" type="obj" associated="MovementStrategy" desc="associated movement strategy"/>
-
+    <member name="entity_id" type="int" desc="id of entity represented by this location" />
+    <member name="entity_type" type="str" desc="type of entity represented by this location" />
   </class>
 
   <method name="get_location" desc="get location from specified id">

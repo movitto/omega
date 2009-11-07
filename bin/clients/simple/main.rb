@@ -127,7 +127,7 @@ def main()
                             :z => location[:z]
     location.id = lid
 
-    client = Client.new
+    client = Client.new :schema_file => Conf.schema_file
     result = client.request :request_target => request_target,
                             :location => location,
                             :movement_stratgy_type => movement_strategy_type

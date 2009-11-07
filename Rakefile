@@ -7,32 +7,34 @@
 
 task :environment do
   require 'lib/motel/conf'
-  Conf.setup(:db_conf     => File.dirname(__FILE__) + '/conf/database.yml',
-             :schema_file => File.dirname(__FILE__) + '/conf/motel-schema.xml')
+  Motel::Conf.setup(:db_conf       => File.dirname(__FILE__) + '/conf/database.yml',
+                    :db_migrations => File.dirname(__FILE__) + '/db/migrate/',
+                    :schema_file   => File.dirname(__FILE__) + '/conf/motel-schema.xml')
+end
+
+task :test_environment do
+   require 'lib/motel/conf'
+   Motel::Conf.setup(:db_conf       => File.dirname(__FILE__) + '/conf/database.yml',
+                    :db_migrations => File.dirname(__FILE__) + '/db/migrate/',
+                    :schema_file   => File.dirname(__FILE__) + '/conf/motel-schema.xml',
+                    :env               => "test")
 end
 
 namespace :db do
-  desc "Migrate the database"
-
   task(:migrate => :environment) do
-    ActiveRecord::Base.logger = Logger.new(STDOUT)
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migrator.migrate("db/migrate")
+    desc "Migrate the database"
+    Motel::Conf.migrate_db
   end
 
   task(:rollback => :environment) do
-    ActiveRecord::Base.logger = Logger.new(STDOUT)
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migrator.rollback("db/migrate")
+    desc "Rollback the database"
+    Motel::Conf.rollback_db
   end
 end
 
-task(:test) do
+task(:test => :test_environment) do
    desc "Run tests"
-   require 'lib/motel/conf'
-   Motel::Conf.setup(:db_conf    => File.dirname(__FILE__) + '/conf/database.yml',
-                    :schema_file => File.dirname(__FILE__) + '/conf/motel-schema.xml',
-                    :env         => "test")
+   Motel::Conf.migrate_db
    require 'test/all_tests'
 end
 
@@ -48,8 +50,8 @@ end
 
 task :dist do
   desc "Create a source tarball"
-  system "mkdir ruby-motel-0.1.0 && \
-          cp -R conf/ bin/ db/ lib/ test/ ruby-motel-0.1.0/ && \
-          tar czvf motel.tgz ruby-motel-0.1.0 && \
-          rm -rf ruby-motel-0.1.0"
+  system "mkdir ruby-motel-0.2.0 && \
+          cp -R conf/ bin/ db/ lib/ test/ ruby-motel-0.2.0/ && \
+          tar czvf motel.tgz ruby-motel-0.2.0 && \
+          rm -rf ruby-motel-0.2.0"
 end

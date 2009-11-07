@@ -22,6 +22,7 @@ production:
   username: motel
   password: motel
   host: localhost
+  pool: 20
 
 development:
   adapter: postgresql
@@ -29,6 +30,7 @@ development:
   username: motel
   password: motel
   host: localhost
+  pool: 20
 
 test:
   adapter: postgresql
@@ -36,3 +38,4 @@ test:
   username: motel
   password: motel
   host: localhost
+  pool: 20

@@ -14,9 +14,11 @@ class Server
     # load and start the default location set
     Loader.Load
 
+    simrpc_args = args
+    simrpc_args[:id] = "location-server"
+
     # create a simprc node
-    @simrpc_node = Simrpc::Node.new(:id => "location-server", 
-                                    :schema_file => args[:schema_file])
+    @simrpc_node = Simrpc::Node.new(simrpc_args)
 
     # register handlers for the various motel simrpc methods
     @simrpc_node.handle_method("get_location") { |location_id|
@@ -24,6 +26,9 @@ class Server
        loc = nil
        begin
          loc = Runner.get.locations.find { |loc| loc.id == location_id }
+         # FIXME traverse all of loc's descendants, and if remote location
+         # server is specified, send request to get child location, swapping
+         # it in for the one thats there
        rescue Exception => e
          Logger.warn "get location #{location_id} failed w/ exception #{e}"
        end
@@ -37,6 +42,9 @@ class Server
        begin
          num_locations = Loader.Load "id = #{location_id}"
          success = (num_locations == 1)
+         # FIXME get location just registered, traverse all descendants,
+         # and if remote location server is specified, send request to
+         # register child location
        rescue Exception => e
          Logger.warn "register location #{location_id} failed w/ exception #{e}"
          success = false

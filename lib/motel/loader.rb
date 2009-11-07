@@ -20,8 +20,7 @@ class Loader
 
   # Static member to load all locations that match a specified 
   # condition (ala activerecord) and add it to the singleton Runner
-  # instance  (or use the optional one passed in), using it to run 
-  # the locations. 
+  # instance using it to run the locations.
   def self.Load(conditions = 'parent_id IS NULL')
      locations = Location.find(:all, :conditions => conditions)
      return nil if locations.size == 0

@@ -51,6 +51,41 @@ class LocationTest < Test::Unit::TestCase
     assert_equal 42 - 93,  child.total_z
   end
 
+  def test_location_root
+    greatgrandparent = Location.new
+    grandparent = Location.new :parent => greatgrandparent
+    parent = Location.new :parent => grandparent
+    child = Location.new :parent => parent
+
+    assert_equal greatgrandparent, greatgrandparent.root
+    assert_equal greatgrandparent, grandparent.root
+    assert_equal greatgrandparent, parent.root
+    assert_equal greatgrandparent, child.root
+  end
+
+  def test_traverse_location_descendants
+    greatgrandparent = Location.new
+    grandparent = Location.new
+    greatgrandparent.children.push grandparent
+    grampy   = Location.new
+    greatgrandparent.children.push grampy
+    parent = Location.new
+    grandparent.children.push parent
+    parent2 = Location.new
+    grandparent.children.push parent2
+    child1 = Location.new
+    parent.children.push child1
+    child2 = Location.new
+    parent.children.push child2
+
+    i = 0
+    greatgrandparent.traverse_descendants { |desc|
+      i += 1
+    }
+
+    assert_equal 6, i
+  end
+
   # TODO the to_from_string test was written for an old implemenation of Location.to_s, update
   #def test_location_to_from_string
   #  fl = Location.new({:x => 145})

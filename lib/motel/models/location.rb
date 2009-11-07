@@ -21,15 +21,35 @@ class Location < ActiveRecord::Base
 
    belongs_to :movement_strategy
 
+   # a generic association which this location can belong to
+   belongs_to :entity, :polymorphic => true
+   #validates_presense_of [ :entity_type, :entity_id ]
+
+   # FIXME add optional remote_location_server field
+
    alias :parent    :location
    alias :parent=   :location=
    alias :children  :locations
    alias :children=  :locations=
 
+   # return this location's root location
+   def root
+     return self if parent.nil?
+     return parent.root
+   end
+
+   # traverse all chilren recursively, calling block for each
+   def traverse_descendants(&bl)
+      children.each { |child|
+         bl.call child
+         child.traverse_descendants &bl
+      }
+   end
+
    # default to the stopped movement strategy if not set on validation
    before_validation :default_movement_strategy
    def default_movement_strategy
-      self.movement_strategy = MovementStrategy.stopped if movement_strategy.nil?
+      self.movement_strategy = MovementStrategy.stopped if self.movement_strategy.nil?
    end
 
    public
@@ -58,8 +78,8 @@ class Location < ActiveRecord::Base
 
    # convert location to a string
    def to_s
-     "id:#{id}; parent_id:#{parent_id}; parent: #{parent.nil? ? "nil" : "notnil"}; x:#{x}; y#{y}; z#{z}; " +
-     "movement_strategy:#{movement_strategy.to_s}; children:#{locations.join(",")}"
+     "id:#{id}; parent_id:#{parent_id}; parent: #{parent.nil? ? "nil" : "notnil"}; entity type: #{entity_type}; x:#{x}; y:#{y}; z:#{z}; " +
+     "movement_strategy:#{movement_strategy.to_s}; children:#{locations.size}"
    end
 
    # return sum of the x values of this location and all its parents,
@@ -82,6 +102,7 @@ class Location < ActiveRecord::Base
      return 0 if location.nil?
      return location.total_z + z
    end
+
 end
 
 end # module Models
