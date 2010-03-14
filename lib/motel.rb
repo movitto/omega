@@ -1,13 +1,17 @@
 # include all motel modules
 #
-# Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
-# See COPYING for the License of this software
+# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 lib = File.dirname(__FILE__)
 
-require lib + '/motel/conf'
+require lib + '/motel/exceptions'
 require lib + '/motel/runner'
-require lib + '/motel/loader'
 require lib + '/motel/simrpc'
 
-Dir[lib + '/motel/models/*.rb'].each { |model| require model }
+require lib + '/motel/dsl'
+
+require lib + '/motel/location'
+require lib + '/motel/movement_strategy'
+
+Dir[lib + '/motel/movement_strategies/*.rb'].each { |model| require model }

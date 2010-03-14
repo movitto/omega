@@ -2,10 +2,43 @@
 #
 # Things that don't fit elsewhere
 #
-# Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
-# See COPYING for the License of this software
+# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+# include logger dependencies
+require 'logger'
 
 module Motel
+
+# Logger helper class
+class Logger
+  private
+    def self._instantiate_logger
+       unless defined? @@logger
+         # FIXME need configurable log_level, out-stream
+         @@log_level = ::Logger::FATAL
+         @@logger = ::Logger.new(STDOUT)
+         @@logger.level = @@log_level
+       end 
+    end 
+
+  public
+
+    def self.method_missing(method_id, *args)
+       _instantiate_logger
+       @@logger.send(method_id, args)
+    end 
+
+    def self.logger
+       _instantiate_logger
+       @@logger
+    end
+
+    def self.log_level=(level)
+      @@log_level = level
+    end
+end
+
 
 # generate a random id
 def gen_uuid
@@ -43,12 +76,3 @@ class Float
      return (self * 10 ** precision).round.to_f / (10 ** precision)
   end
 end
-
-# try to find key equal to method, returning value if found
-#class Hash  
-#  def method_missing(method, *params)  
-#    method = method.to_sym  
-#    return self[method] if self.keys.collect{ |k| k.to_sym }.include?(method)  
-#    super  
-#  end  
-#end

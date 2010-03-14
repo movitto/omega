@@ -5,34 +5,30 @@
 #
 # Flags: (see below)
 #
-# make sure to set MOTEL_DB_CONFIG and MOTEL_AMQP_CONFIG
-# in the ENV before running this
-#
-# Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
-# See COPYING for the License of this software
+# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 CURRENT_DIR=File.dirname(__FILE__)
-#$: << File.expand_path(CURRENT_DIR + "/../../../lib")
+$: << File.expand_path(CURRENT_DIR + "/../../../lib")
 
 require 'rubygems'
 require 'optparse'
 require 'motel'
 
 include Motel
-include Motel::Models
+include Motel::MovementStrategies
 
 ######################
 
+# TODO movement strategy support
 
 def main()
     # command line parameters
-    schema_file = db_conf = nil
+    schema_file = nil
     location = {:parent_id => nil,
                 :x => nil,
                 :y => nil,
                 :z => nil}
-    movement_strategy_type    = nil
-    movement_strategy_encoded = nil
     request_target = nil
 
     # setup cmd line options
@@ -47,26 +43,20 @@ def main()
       opts.on("-s", "--schema [path]", "Motel Schema File") do |path|
          schema_file = path
       end
-      opts.on("-d", "--db-conf [path]", "Motel DB Conf File") do |path|
-         db_conf = path
-      end
 
       opts.separator ""
       opts.separator "Commands:"
       opts.on("-g", "--get", "get location specified by id")do
-        request_target = :get
+        request_target = :get_location
       end
-      opts.on("-r", "--register", "register location specified by id")do
-        request_target = :register
-      end
-      opts.on("-a", "--save", "save location specified by id")do
-        request_target = :save
+      opts.on("-c", "--create", "create location w/ id")do
+        request_target = :create_location
       end
       opts.on("-u", "--update", "update location specified by id w/ specified options")do
-        request_target = :update
+        request_target = :update_location
       end
       opts.on("-b", "--subscribe", "subscribe to updates to location specified by id")do
-        request_target = :subscribe
+        request_target = :subscribe_to_location
       end
 
       opts.separator ""
@@ -86,12 +76,6 @@ def main()
       opts.on("-z", "--zcoordinate [coordinate]", "Target location z coordinate") do |z|
         location[:z] = z
       end
-      opts.on("-m", "--movement-strategy [type]", "Target movement strategy type") do |m|
-        movement_strategy_type = m
-      end
-      opts.on("-e", "--strategy-encoded [encoded]", "Encoded movement strategy") do |m|
-        movement_strategy_encoded = m
-      end
 
     end
 
@@ -104,35 +88,36 @@ def main()
       exit
     end
 
-    schema_file = ENV['MOTEL_SCHEMA_FILE'] if schema_file.nil?
-    db_conf     = ENV['MOTEL_DB_CONF']     if db_conf.nil?
-
-    if request_target.nil? || location[:id].nil? || schema_file.nil? || db_conf.nil? ||
-       request_target == :update && location[:x].nil? && location[:y].nil? && location[:z].nil? && location[:parent_id].nil? && movement_strategy_type.nil? && movement_strategy_encoded.nil?
+    if request_target.nil? || location[:id].nil? || schema_file.nil? ||
+       request_target == :update && location[:x].nil? && location[:y].nil? && location[:z].nil? && location[:parent_id].nil?
          puts opts
-         puts "must specify schema & db configs, a command to perform, a location id, and other required options"
+         puts "must specify schema, a command to perform, a location id, and other required options"
          exit
     end
 
-    Conf.setup(:schema_file => schema_file,
-               :db_conf     => db_conf,
-               :env         => "production",
-               :log_level   => ::Logger::DEBUG) # FATAL ERROR WARN INFO DEBUG
-
-
     lid = location[:id]
-    location = Location.new :parent_id => location[:parent_id],
-                            :x => location[:x],
-                            :y => location[:y],
-                            :z => location[:z]
-    location.id = lid
+    location = Motel::Location.new :id => location[:id],
+                                   :parent_id => location[:parent_id],
+                                   :x => location[:x],
+                                   :y => location[:y],
+                                   :z => location[:z]
+    args = []
+    case(request_target)
+    when :get_location
+      args.push location.id
+    when :create_location
+      args.push location.id
+    when :update_location
+      args.push location
+    when :subscribe_to_location
+      args.push location.id
+    end
 
-    client = Client.new :schema_file => Conf.schema_file
-    result = client.request :request_target => request_target,
-                            :location => location,
-                            :movement_stratgy_type => movement_strategy_type
+    # FIXME need configurable amqp broker ip/port
+    client = Motel::Client.new :schema_file => schema_file
+    result = client.request request_target, *args
 
-    if request_target == :subscribe
+    if request_target == :subscribe_to_location
       client.on_location_received = lambda { |loc|
          puts "location received:"
          puts "#{loc}"

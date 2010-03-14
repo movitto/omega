@@ -5,31 +5,26 @@
 #
 # Flags:
 #  -h --help
-#  -s --schema
-#  -d --db-config
+#  -s --simrpc-schema
 #
-# make sure to specify schema/db config or
-# set MOTEL_DB_CONFIG and MOTEL_SCHEMA_FILE
-# in the ENV before running this
-#
-# Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
-# See COPYING for the License of this software
+# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 CURRENT_DIR=File.dirname(__FILE__)
-#$: << File.expand_path(CURRENT_DIR + "/../../lib")
+$: << File.expand_path(CURRENT_DIR + "/../../lib")
 
 require 'rubygems'
 require 'optparse'
 require 'motel'
 
 include Motel
-include Motel::Models
+include Motel::MovementStrategies
 
 ######################
 
 
 def main()
-  schema_file = db_conf = nil
+  schema_file = nil
 
   # setup cmd line options
   opts = OptionParser.new do |opts|
@@ -37,11 +32,8 @@ def main()
        puts opts
        exit
     end
-    opts.on("-s", "--schema [path]", "Motel Schema File") do |path|
+    opts.on("-s", "--simrpc-schema [path]", "Motel Simrpc Schema File") do |path|
        schema_file = path
-    end
-    opts.on("-d", "--db-conf [path]", "Motel DB Conf File") do |path|
-       db_conf = path
     end
   end
 
@@ -53,20 +45,17 @@ def main()
     exit
   end
 
-  schema_file = ENV['MOTEL_SCHEMA_FILE'] if schema_file.nil?
-  db_conf     = ENV['MOTEL_DB_CONF']     if db_conf.nil?
-  if schema_file.nil? || db_conf.nil?
-    puts "both schema and db config needed"
-    exit
+  if schema_file.nil? || ! File.exists?(schema_file)
+     puts "motel simrpc schema file required"
+     exit
   end
 
-  Conf.setup(:schema_file => schema_file,
-             :db_conf     => db_conf,
-             :env         => "production",
-             :log_level   => ::Logger::FATAL) # FATAL ERROR WARN INFO DEBUG
+  # start location runner
+  Motel::Runner.instance.start :async => true
 
-  server = Server.new :schema_file => Conf.schema_file
-  server.join
+  # start listening for requests / block
+  # FIXME need configurable amqp broker ip/port
+  server = Motel::Server.new(:schema_file => schema_file).join
 end
 
 main()

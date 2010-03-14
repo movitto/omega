@@ -2,133 +2,119 @@
 # and is responsible for managing locations and moving them according to
 # their corresponding movement_strategies
 #
-# Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
-# See COPYING for the License of this software
+# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'singleton'
+require 'motel/thread_pool'
 
 module Motel
 
-# A LocationRunner runs a Location by moving it via
-# its associated MovementStrategy.
-class LocationRunner
-   attr_reader :location
-   attr_reader :run_thread
-
-   def initialize(location)
-     return if location.nil? || location.id.nil? || location.class != Location
-
-     @terminate = false
-     @location  = location
-     @location_lock = Mutex.new
-     Logger.info " running location " + location.to_s
-
-     # TODO at some point use a thread pool approach
-     @run_thread = Thread.new { run_move_cycle(location) }
-   end
-
-   # Terminate run cycle, stopping location movement.
-   # After this the runner cannot be used again
-   def terminate
-      @terminate = true
-      @location_lock.synchronize{
-        unless run_thread.nil?
-          @run_thread.join
-          @run_thread = nil
-        end
-      }
-   end
-
- private
-
-  # Launched in a seperate thread, run_move_cycle 
-  # runs a location according to its associated 
-  # movement strategy with a specified delay between
-  # runs. Terminated when the Runner.terminate 
-  # method is invoked
-  def run_move_cycle(location)
-     # track the time between runs
-     start_time = Time.now 
-
-     # run until we are instructed not to
-     until(@terminate) do
-        Logger.debug "runner invoking move on location " + location.to_s + " via " + location.movement_strategy.type.to_s + " movement strategy"
-
-        ## perform the actual move
-        location.movement_strategy.move location, start_time - Time.now
-        start_time = Time.now 
-
-        # TODO see if we've actually moved b4 invoking callbacks
-        location.movement_strategy.movement_callbacks.each { |callback|
-           callback.call(location)
-        }
-
-        ## delay as long as the strategy tells us to
-        sleep location.movement_strategy.step_delay
-     end
-  end
-
-end
-
-
-# A Runner manages groups of LocationRunner instances
-# Restricts use to a single instance, obtained via the
-# 'get' method
+# Motel::Runner is a singleton class/object which acts as the primary
+# mechanism to run locations in the system. It contains a thread pool
+# which contains a specified number of threads which to move the managed
+# locations in accordance to their location strategies.
 class Runner
+  include Singleton
 
- private
-  
-  # Default class constructor
-  # private as runner should be accessed through singleton 'get' method
-  def initialize
-     # set to true to terminate the runner
-     @terminate = false
+  # locations being managed
+  attr_accessor :locations
 
-     # locations is a list of instances of LocationRunner to manage
-     @location_runners    = []
-     @runners_lock = Mutex.new
+  # for testing purposes
+  attr_reader :thread_pool, :terminate, :run_thread
+
+  def initialize(args = {})
+    @terminate = false
+    @locations = []
+    @locations_lock = Mutex.new
+
+    @run_thread = nil
+    @run_delay  = 2 # FIXME scale delay (only needed if locations is empty or has very few simple elements)
   end
 
- public
-
-  # singleton getter
-  def self.get
-    @@singleton_instance = Runner.new if !defined? @@singleton_instance || @@singleton_instance.nil?
-    return @@singleton_instance
-  end
-
-  attr_reader :location_runners
-
-  # helper method, return all locations associated w/ runners
-  def locations
-     [] if @location_runners.nil? || @location_runners.size == 0
-     @location_runners.collect { |runner| runner.location }
-  end
-
-  # clear all location_runners
+  # Empty the list of locations being managed/tracked
   def clear
-     @location_runners.clear
+    @locations_lock.synchronize { 
+      @locations.clear
+    }
   end
 
-  # Terminate all run cycles, stopping all location movements.
-  # After this the runner cannot be used again
-  def terminate
-     @terminate = true
-     @runners_lock.synchronize{
-        @location_runners.each { |runner|
-          runner.terminate
-        }
-     }
-  end
-
-  # Run a location using this runner. If the location
-  # is already being run by this runner, do nothing.
-  # A new thread will be launched to run the actual move cycle
+  # add location to runner to be managed, after this is called, the location's 
+  # movement strategy's move method will be invoked periodically
   def run(location)
-     @runners_lock.synchronize{
-        unless @location_runners.find { |l| l.location.id == location.id}
-          @location_runners.push LocationRunner.new(location)
-        end
-     }
+    @locations_lock.synchronize { 
+      Logger.debug "adding location #{location.id} to run queue"
+      @locations.push location
+    }
   end
+
+  # Start moving the locations. If :async => true is passed in, this will immediately
+  # return, else this will block until stop is called.
+  def start(args = {})
+    num_threads = 5
+    num_threads = args[:num_threads] if args.has_key? :num_threads
+    @terminate = false
+    @thread_pool = ThreadPool.new(num_threads)
+
+    if args.has_key?(:async) && args[:async]
+      Logger.debug "starting async motel runner"
+      @run_thread = Thread.new { run_cycle }
+    else
+      Logger.debug "starting motel runner"
+      run_cycle
+    end
+
+  end
+
+  # Stop locations movement
+  def stop
+    Logger.debug "stopping motel runner"
+    @terminate = true
+    @thread_pool.shutdown
+    join
+    Logger.debug "motel runner stopped"
+  end
+
+  # Block until runner is shutdown before returning
+  def join
+    @run_thread.join unless @run_thread.nil?
+    @run_thread = nil
+  end
+
+  private
+
+    # Internal helper method performing main runner operations
+    def run_cycle
+      # track time between runs
+      start_time = Time.now
+
+      until @terminate
+        # copy locations into temp 2nd array so we're not holding up lock on locations array
+        tlocations = []
+        @locations_lock.synchronize {
+          @locations.each { |loc| tlocations.push loc }
+        }
+
+        tlocations.each { |loc|
+          @thread_pool.dispatch(loc) { |loc|
+            Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
+
+            loc.movement_strategy.move loc, start_time - Time.now
+            start_time = Time.now
+
+            # TODO see if loc coordinates changed b4 doing this
+            loc.movement_callbacks.each { |callback|
+                callback.call(loc)
+            }
+
+            ## delay as long as the strategy tells us to
+            sleep loc.movement_strategy.step_delay
+          }
+        }
+
+        sleep @run_delay
+      end
+    end
 
 end
 

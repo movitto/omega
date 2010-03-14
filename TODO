@@ -1,11 +1,9 @@
 # motel project todo list
 
 - TODOs, FIXMEs, XXXs in the code; more docs / tests
-- make messages module more language agnostic, eg try not 
-  to use ruby Marshal
-- add location_server varchar field to locations table
-  permitting automatic remote child location retreival
+- 3d live location client
+- boundaries / collisions / proximity / other events - callbacks
 - a path based movement strategy
 - 'join points' which associate multiple locations together
+- add remote location server support, automatically working w/ location heirarchies
 - a qmf interface
-- collision and proximity events / callbacks
