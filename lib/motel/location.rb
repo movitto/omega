@@ -27,6 +27,10 @@ class Location
    # array of callbacks to be invoked on movement
    attr_accessor :movement_callbacks
 
+   # TODO proximity callbacks, association between foreign location id,
+   # proximity distance (radius of sphere around location) and callable
+   # handler to be invoked when locations are within proximity
+
    # a generic association which this location can belong to
    attr_accessor :entity
 

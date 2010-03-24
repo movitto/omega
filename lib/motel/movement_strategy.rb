@@ -17,7 +17,7 @@ class MovementStrategy
       @step_delay = 5
       @movement_callbacks = []
 
-      @step_delay = args[:step_delay] if args.has_key? :step_delay
+      @step_delay = args[:step_delay] if args.has_key?(:step_delay) && !args[:step_delay].nil?
    end
 
    # default movement strategy is to do nothing

@@ -20,8 +20,6 @@ include Motel::MovementStrategies
 
 ######################
 
-# TODO movement strategy support
-
 def main()
     # command line parameters
     schema_file = nil
@@ -29,6 +27,21 @@ def main()
                 :x => nil,
                 :y => nil,
                 :z => nil}
+    movement_strategy_type = nil
+    movement_strategy = { :step_delay => nil,
+                          :speed => nil,
+                          :direction_vector_x => nil,
+                          :direction_vector_y => nil,
+                          :direction_vector_z => nil,
+                          :relative_to => nil,
+                          :eccentricity => nil,
+                          :semi_latus_rectum => nil,
+                          :direction_major_x => nil,
+                          :direction_major_y => nil,
+                          :direction_major_z => nil,
+                          :direction_minor_x => nil,
+                          :direction_minor_y => nil,
+                          :direction_minor_z => nil}
     request_target = nil
 
     # setup cmd line options
@@ -60,7 +73,7 @@ def main()
       end
 
       opts.separator ""
-      opts.separator "Options:"
+      opts.separator "Location Options:"
       opts.on("-i", "--id [location_id]", "Target location id") do |id|
         location[:id] = id
       end
@@ -77,6 +90,54 @@ def main()
         location[:z] = z
       end
 
+      opts.separator ""
+      opts.separator "Movement Strategy Options:"
+      opts.on("--movement-strategy-type [type]", "Movement strategy type") do |type|
+        movement_strategy_type = type
+      end
+      opts.on("--step-delay [delay]", "Movement strategy step delay") do |delay|
+        movement_strategy[:step_delay] = delay.to_f
+      end
+      opts.on("--speed [speed]", "Movement strategy speed") do |speed|
+        movement_strategy[:speed] = speed.to_f
+      end
+      opts.on("--direction-vector-x [x]", "Linear movement strategy direction vector x coordinate") do |x|
+        movement_strategy[:direction_vector_x] = x.to_f
+      end
+      opts.on("--direction-vector-y [y]", "Linear movement strategy direction vector y coordinate") do |y|
+        movement_strategy[:direction_vector_y] = y.to_f
+      end
+      opts.on("--direction-vector-z [z]", "Linear movement strategy direction vector z coordinate") do |z|
+        movement_strategy[:direction_vector_z] = z.to_f
+      end
+      opts.on("--relative-to [relative]", "Elliptical movement strategy relative to") do |relative|
+        movement_strategy[:relative_to] = relative
+      end
+      opts.on("--eccentricity [e]", "Elliptical movement strategy eccentricity") do |e|
+        movement_strategy[:eccentricity] = e
+      end
+      opts.on("--semi-latus-rectum [l]", "Elliptical movement strategy semi-latus-rectum") do |l|
+        movement_strategy[:semi_latus_rectum] = l
+      end
+      opts.on("--direction-major-x [x]", "Elliptical movement strategy major direction vector x coordinate") do |x|
+        movement_strategy[:direction_major_x] = x.to_f
+      end
+      opts.on("--direction-major-y [y]", "Elliptical movement strategy major direction vector y coordinate") do |y|
+        movement_strategy[:direction_major_y] = y.to_f
+      end
+      opts.on("--direction-major-z [z]", "Elliptical movement strategy major direction vector z coordinate") do |z|
+        movement_strategy[:direction_major_z] = z.to_f
+      end
+      opts.on("--direction-minor-x [x]", "Elliptical movement strategy minor direction vector x coordinate") do |x|
+        movement_strategy[:direction_minor_x] = x.to_f
+      end
+      opts.on("--direction-minor-y [y]", "Elliptical movement strategy minor direction vector y coordinate") do |y|
+        movement_strategy[:direction_minor_y] = y.to_f
+      end
+      opts.on("--direction-minor-z [z]", "Elliptical movement strategy minor direction vector z coordinate") do |z|
+        movement_strategy[:direction_minor_z] = z.to_f
+      end
+
     end
 
     # parse cmd line
@@ -88,8 +149,8 @@ def main()
       exit
     end
 
-    if request_target.nil? || location[:id].nil? || schema_file.nil? ||
-       request_target == :update && location[:x].nil? && location[:y].nil? && location[:z].nil? && location[:parent_id].nil?
+    if request_target.nil? || location[:id].nil? || schema_file.nil? #||
+       #request_target == :update && location[:x].nil? && location[:y].nil? && location[:z].nil? && location[:parent_id].nil?
          puts opts
          puts "must specify schema, a command to perform, a location id, and other required options"
          exit
@@ -101,6 +162,12 @@ def main()
                                    :x => location[:x],
                                    :y => location[:y],
                                    :z => location[:z]
+
+    unless movement_strategy_type.nil?
+      movement_strategy = movement_strategy_type.camelize.constantize.new movement_strategy
+      location.movement_strategy = movement_strategy
+    end
+
     args = []
     case(request_target)
     when :get_location

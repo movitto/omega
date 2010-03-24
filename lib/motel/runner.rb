@@ -18,6 +18,7 @@ class Runner
   include Singleton
 
   # locations being managed
+  # TODO use ruby tree to store locations w/ heirarchy
   attr_accessor :locations
 
   # for testing purposes
@@ -99,7 +100,7 @@ class Runner
           @thread_pool.dispatch(loc) { |loc|
             Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
 
-            loc.movement_strategy.move loc, start_time - Time.now
+            loc.movement_strategy.move loc, Time.now - start_time
             start_time = Time.now
 
             # TODO see if loc coordinates changed b4 doing this

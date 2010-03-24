@@ -23,6 +23,7 @@ class Linear < MovementStrategy
      @direction_vector_y   = args[:direction_vector_y] if args.has_key? :direction_vector_y
      @direction_vector_z   = args[:direction_vector_z] if args.has_key? :direction_vector_z
      @speed                = args[:speed] if args.has_key? :speed
+     super(args)
 
      # normalize direction vector
      @direction_vector_x, @direction_vector_y, @direction_vector_z =

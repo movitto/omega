@@ -46,6 +46,7 @@ class Elliptical < MovementStrategy
      @direction_minor_x   = 0 if @direction_minor_x.nil?
      @direction_minor_y   = 1 if @direction_minor_y.nil?
      @direction_minor_z   = 0 if @direction_minor_z.nil?
+     super(args)
 
      @direction_major_x, @direction_major_y, @direction_major_z = 
          normalize(@direction_major_x, @direction_major_y, @direction_major_z)

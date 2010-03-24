@@ -4,10 +4,11 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 lib = File.dirname(__FILE__)
+$: << lib + '/motel/'
 
 require lib + '/motel/exceptions'
 require lib + '/motel/runner'
-require lib + '/motel/simrpc'
+require lib + '/motel/simrpc_adapter'
 
 require lib + '/motel/dsl'
 
