@@ -27,6 +27,8 @@ class Location
    # array of callbacks to be invoked on movement
    attr_accessor :movement_callbacks
 
+   # TODO verify that every location has an id (autogenerate if not set)
+
    # TODO proximity callbacks, association between foreign location id,
    # proximity distance (radius of sphere around location) and callable
    # handler to be invoked when locations are within proximity

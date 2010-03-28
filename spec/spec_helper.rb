@@ -18,6 +18,7 @@ class TestMovementStrategy < MovementStrategy
 
    def initialize
      @times_moved = 0
+     @step_delay = 1
    end
 
    def move(loc, elapsed_time)

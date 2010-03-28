@@ -47,6 +47,7 @@ describe "Motel::Simrpc" do
 
   it "should permit receiving location updates" do
     # start the runner here, to actual move location / process callbacks
+    Runner.instance.clear
     Runner.instance.start :async => true
 
     # create the location

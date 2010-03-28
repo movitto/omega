@@ -16,7 +16,7 @@ describe "Motel::dsl" do
 
     # use dsl to connect to server and issue a few requests
     connect :schema_file => SIMRPC_SPEC do |client|
-       location_id = 100
+       location_id = 500
        client.create_location(location_id).should be(true)
        loc = client.get_location(location_id)
        loc.should_not be_nil

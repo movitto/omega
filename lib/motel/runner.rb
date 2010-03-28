@@ -6,7 +6,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'singleton'
-require 'motel/thread_pool'
 
 module Motel
 
@@ -17,45 +16,60 @@ module Motel
 class Runner
   include Singleton
 
-  # locations being managed
-  # TODO use ruby tree to store locations w/ heirarchy
-  attr_accessor :locations
-
-  # for testing purposes
-  attr_reader :thread_pool, :terminate, :run_thread
+  # For testing purposes
+  attr_reader :terminate, :run_thread
 
   def initialize(args = {})
+    # is set to true upon runner termination
     @terminate = false
-    @locations = []
-    @locations_lock = Mutex.new
+
+    # TODO use ruby tree to store locations w/ heirarchy
+    # management queues, locations to be scheduled and locations to be run
+    @schedule_queue = []
+    @run_queue = []
+
+
+    # locks protecting queues from concurrent access and conditions indicating queues have items
+    @schedule_lock  = Mutex.new
+    @run_lock       = Mutex.new
+    @schedule_cv    = ConditionVariable.new
+    @run_cv         = ConditionVariable.new
 
     @run_thread = nil
-    @run_delay  = 2 # FIXME scale delay (only needed if locations is empty or has very few simple elements)
   end
+
+  # Return complete list of locations being managed/tracked
+  def locations
+    # need conccurrent protection here, or copy the elements into another array and return that?
+    @schedule_queue + @run_queue
+  end
+
 
   # Empty the list of locations being managed/tracked
   def clear
-    @locations_lock.synchronize { 
-      @locations.clear
-    }
+    @schedule_lock.synchronize {
+      @run_lock.synchronize {
+        @schedule_queue.clear
+        @run_queue.clear
+    }}
   end
 
-  # add location to runner to be managed, after this is called, the location's 
+  # Add location to runner to be managed, after this is called, the location's
   # movement strategy's move method will be invoked periodically
   def run(location)
-    @locations_lock.synchronize { 
-      Logger.debug "adding location #{location.id} to run queue"
-      @locations.push location
+    @schedule_lock.synchronize {
+      Logger.debug "adding location #{location.id} to runner queue"
+      @schedule_queue.push location
+      @schedule_cv.signal
     }
   end
 
   # Start moving the locations. If :async => true is passed in, this will immediately
   # return, else this will block until stop is called.
   def start(args = {})
-    num_threads = 5
-    num_threads = args[:num_threads] if args.has_key? :num_threads
+    @num_threads = 5
+    @num_threads = args[:num_threads] if args.has_key? :num_threads
     @terminate = false
-    @thread_pool = ThreadPool.new(num_threads)
 
     if args.has_key?(:async) && args[:async]
       Logger.debug "starting async motel runner"
@@ -71,7 +85,12 @@ class Runner
   def stop
     Logger.debug "stopping motel runner"
     @terminate = true
-    @thread_pool.shutdown
+    @schedule_lock.synchronize {
+      @schedule_cv.signal
+    }
+    @run_lock.synchronize {
+      @run_cv.signal
+    }
     join
     Logger.debug "motel runner stopped"
   end
@@ -86,35 +105,88 @@ class Runner
 
     # Internal helper method performing main runner operations
     def run_cycle
-      # track time between runs
-      start_time = Time.now
+      # location ids which are currently being run -> their run timestamp
+      location_timestamps = {}
 
+      # scheduler thread, to add locations to the run queue
+      scheduler = Thread.new {
+        until @terminate
+          tqueue       = []
+          locs_to_run  = []
+          empty_queue  = true
+          min_delay    = nil
+
+          @schedule_lock.synchronize {
+            # if no locations are to be scheduled, block until there are
+            @schedule_cv.wait(@schedule_lock) if @schedule_queue.empty?
+            @schedule_queue.each { |l| tqueue << l }
+          }
+
+          # run through each location to be scheduled to run, see which ones are due
+          tqueue.each { |loc|
+            location_timestamps[loc.id] = Time.now unless location_timestamps.has_key?(loc.id)
+            locs_to_run << loc if loc.movement_strategy.step_delay < Time.now - location_timestamps[loc.id]
+          }
+
+          # add those the the run queue, signal runner to start operations if blocking
+          @schedule_lock.synchronize {
+            @run_lock.synchronize{
+              locs_to_run.each { |loc| @run_queue << loc ; @schedule_queue.delete(loc) }
+              empty_queue = (@schedule_queue.size == 0)
+              @run_cv.signal unless locs_to_run.empty?
+            }
+          }
+
+          # if there are locations still to be scheduled, sleep for the smallest step_delay
+          unless empty_queue
+            # we use locations instead of @schedule_queue here since a when the scheduler is
+            # sleeping a loc w/ a smaller step_delay may complete running and be added back to the scheduler
+            min_delay= locations.sort { |a,b| 
+              a.movement_strategy.step_delay <=> b.movement_strategy.step_delay 
+            }.first.movement_strategy.step_delay
+            sleep min_delay
+          end
+        end
+      }
+
+      # until we are told to stop
       until @terminate
-        # copy locations into temp 2nd array so we're not holding up lock on locations array
-        tlocations = []
-        @locations_lock.synchronize {
-          @locations.each { |loc| tlocations.push loc }
+        locs_to_schedule = []
+        tqueue           = []
+
+        @run_lock.synchronize{
+          # wait until we have locations to run
+          @run_cv.wait(@run_lock) if @run_queue.empty?
+          @run_queue.each { |l| tqueue << l }
         }
 
-        tlocations.each { |loc|
-          @thread_pool.dispatch(loc) { |loc|
-            Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
+        # run through each location to be run, perform actual movement, invoke callbacks
+        tqueue.each { |loc|
+          Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
 
-            loc.movement_strategy.move loc, Time.now - start_time
-            start_time = Time.now
+          elapsed = Time.now - location_timestamps[loc.id]
+          loc.movement_strategy.move loc, elapsed 
+          location_timestamps[loc.id] = Time.now
 
-            # TODO see if loc coordinates changed b4 doing this
-            loc.movement_callbacks.each { |callback|
-                callback.call(loc)
-            }
+          # TODO see if loc coordinates changed b4 doing this
+          # TODO invoke these async so as not to hold up the runner
+          loc.movement_callbacks.each { |callback|
+            callback.call(loc)
+          }
 
-            ## delay as long as the strategy tells us to
-            sleep loc.movement_strategy.step_delay
+          locs_to_schedule << loc
+        }
+
+        # add locations back to schedule queue
+        @run_lock.synchronize{
+          @schedule_lock.synchronize{
+            locs_to_schedule.each { |loc| @schedule_queue << loc ; @run_queue.delete(loc) }
+            @schedule_cv.signal unless locs_to_schedule.empty?
           }
         }
-
-        sleep @run_delay
       end
+
+      scheduler.join
     end
 
 end
