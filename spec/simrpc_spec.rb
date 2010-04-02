@@ -73,6 +73,8 @@ describe "Motel::Simrpc" do
 
     ## subscribe to updates
     @client.subscribe_to_location(location_id).should be(true)
+    Runner.instance.locations.first.movement_callbacks.size.should == 1
+    Runner.instance.locations.first.movement_callbacks[0].class.should == Callbacks::Movement
 
     ## delay briefly allowing for updates
     sleep 5

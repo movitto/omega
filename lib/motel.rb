@@ -7,6 +7,7 @@ lib = File.dirname(__FILE__)
 $: << lib + '/motel/'
 
 require lib + '/motel/exceptions'
+require lib + '/motel/callbacks'
 require lib + '/motel/runner'
 require lib + '/motel/simrpc_adapter'
 

@@ -27,11 +27,10 @@ class Location
    # array of callbacks to be invoked on movement
    attr_accessor :movement_callbacks
 
-   # TODO verify that every location has an id (autogenerate if not set)
+   # Array of callbacks to be invoked on proximity
+   attr_accessor :proximity_callbacks
 
-   # TODO proximity callbacks, association between foreign location id,
-   # proximity distance (radius of sphere around location) and callable
-   # handler to be invoked when locations are within proximity
+   # TODO verify that every location has an id (autogenerate if not set)
 
    # a generic association which this location can belong to
    attr_accessor :entity
@@ -40,6 +39,7 @@ class Location
       # default to the stopped movement strategy
       @movement_strategy = MovementStrategies::Stopped.instance
       @movement_callbacks = []
+      @proximity_callbacks = []
       @children = []
 
       @id = args[:id] if args.has_key? :id

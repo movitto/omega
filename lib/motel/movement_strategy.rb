@@ -15,7 +15,6 @@ class MovementStrategy
    
    def initialize(args = {})
       @step_delay = 5
-      @movement_callbacks = []
 
       @step_delay = args[:step_delay] if args.has_key?(:step_delay) && !args[:step_delay].nil?
    end

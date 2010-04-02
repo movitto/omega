@@ -73,10 +73,11 @@ class Server
        if loc.nil? 
          success = false
        else
-         loc.movement_callbacks.push lambda { |location|
+         callback = Callbacks::Movement.new :handler => lambda { |location|
            # send location to client
            @simrpc_node.send_method("location_moved", client_id, location)
          }
+         loc.movement_callbacks.push callback
        end
        Logger.info "subscribe client #{client_id} to location #{location_id}  returning  #{success}"
        success

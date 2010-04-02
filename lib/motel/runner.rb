@@ -164,14 +164,21 @@ class Runner
         tqueue.each { |loc|
           Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
 
+          # store the old location coordinates for comparison after the movement
+          old_coords = [loc.x, loc.y, loc.z]
+
           elapsed = Time.now - location_timestamps[loc.id]
           loc.movement_strategy.move loc, elapsed 
           location_timestamps[loc.id] = Time.now
 
-          # TODO see if loc coordinates changed b4 doing this
           # TODO invoke these async so as not to hold up the runner
           loc.movement_callbacks.each { |callback|
-            callback.call(loc)
+            # FIXME this isn't going to work as nicely as we want it since old_coords is reset every iteration,
+            # need to store old_coords in the callback itself (updated when the callback handler method is invoked)
+            callback.invoke(loc, *old_coords)
+          }
+          loc.proximity_callbacks.each { |callback|
+            callback.invoke(loc)
           }
 
           locs_to_schedule << loc

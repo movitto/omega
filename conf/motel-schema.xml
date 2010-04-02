@@ -60,6 +60,7 @@
 
   <!-- TODO delete_location -->
 
+  <!-- TODO split into subscribe_to_location_[movement|proximity] methods w/ appropriate params -->
   <method name="subscribe_to_location" desc="subscribe simrpc endpoint to updates to location of the specified id via the location_moved method">
     <param name="location_id" type="int" desc="Location identifier"/>
     <param name="node_id" type="str" desc="Node identifier which to update of location movements"/>
@@ -68,5 +69,8 @@
 
   <method name="location_moved" desc="inform simrpc endpoint that location was moved">
     <param name="location" type="obj" associated="Location" desc="Location that was moved with new coordinates and original id"/>
+    <!-- TODO distance moved (x,y,z) params -->
   </method>
+
+  <!-- TODO location_proximity method w/ two locations as params -->
 </schema>
