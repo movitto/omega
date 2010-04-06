@@ -19,6 +19,7 @@ class Base
     @handler = args[:handler] if args.has_key?(:handler)
   end
 
+  # FIXME XXX this should be *args instead of args = [] (remove [] around super calls below)
   def invoke(args = [])
     handler.call *args
   end
@@ -49,12 +50,12 @@ class Movement < Base
 
   # Calculate distance between location and old coordinates, invoke handler w/ location if minimums are true
   def invoke(new_location, old_x, old_y, old_z)
-     dx = (new_location.x - old_x).abs 
-     dy = (new_location.y - old_y).abs 
-     dz = (new_location.z - old_z).abs 
-     d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 3)
+     dx = new_location.x - old_x
+     dy = new_location.y - old_y
+     dz = new_location.z - old_z
+     d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-     super(new_location) if d >= @min_distance && dx >= @min_x && dy >= @min_y && dz >= @min_z
+     super([new_location, d, dx, dy, dz]) if d >= @min_distance && dx.abs >= @min_x && dy.abs >= @min_y && dz.abs >= @min_z
   end
 end # class Movement
 
@@ -91,9 +92,9 @@ class Proximity < Base
      dx = (location.x - to_location.x).abs 
      dy = (location.y - to_location.y).abs 
      dz = (location.z - to_location.z).abs 
-     d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 3)
+     d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-     super(location) if d <= @max_distance && dx <= @max_x && dy <= @max_y && dz <= @max_z
+     super([location, to_location]) if (d <= @max_distance) || (dx <= @max_x && dy <= @max_y && dz <= @max_z)
   end
 end # class Proximity
 

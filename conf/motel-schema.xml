@@ -48,6 +48,7 @@
     <return_value name="location" type="obj" associated="Location" desc="Location corresponding to id or nil"/>
   </method>
 
+  <!-- FIXME this should take a full location object to create -->
   <method name="create_location" desc="create new location w/ specified id">
     <param name="location_id" type="int" desc="Location identifier"/>
     <return_value name="success" type="bool" desc="bool success"/>
@@ -60,17 +61,37 @@
 
   <!-- TODO delete_location -->
 
-  <!-- TODO split into subscribe_to_location_[movement|proximity] methods w/ appropriate params -->
-  <method name="subscribe_to_location" desc="subscribe simrpc endpoint to updates to location of the specified id via the location_moved method">
-    <param name="location_id" type="int" desc="Location identifier"/>
+  <method name="subscribe_to_location_movement" desc="subscribe simrpc endpoint to location movement updates">
     <param name="node_id" type="str" desc="Node identifier which to update of location movements"/>
+    <param name="location_id" type="int" desc="Location identifier"/>
+    <param name="min_distance" type="float" default="0" desc="Min distance the location needs to have moved before notifying node"/>
+    <param name="min_x" type="float" default="0" desc="Min x-axis-distance the location needs to have moved before notifying node"/>
+    <param name="min_y" type="float" default="0" desc="Min y-axis-distance the location needs to have moved before notifying node"/>
+    <param name="min_z" type="float" default="0" desc="Min z-axis-distance the location needs to have moved before notifying node"/>
+    <return_value name="success" type="bool" desc="bool success"/>
+  </method>
+
+  <method name="subscribe_to_locations_proximity" desc="subscribe simrpc endpoint to location proximity events">
+    <param name="node_id" type="str" desc="Node identifier which to update of location movements"/>
+    <param name="location_id1" type="int" desc="First location identifier"/>
+    <param name="location_id2" type="int" desc="Second location identifier"/>
+    <param name="max_distance" type="float" default="0" desc="Max distance the locations need to be apart before notifying node"/>
+    <param name="max_x" type="float" default="0" desc="Max x-axis-distance the locations need to be apart before notifying node"/>
+    <param name="max_y" type="float" default="0" desc="Max y-axis-distance the locations need to be apart before notifying node"/>
+    <param name="max_z" type="float" default="0" desc="Max z-axis-distance the locations need to be apart before notifying node"/>
     <return_value name="success" type="bool" desc="bool success"/>
   </method>
 
   <method name="location_moved" desc="inform simrpc endpoint that location was moved">
     <param name="location" type="obj" associated="Location" desc="Location that was moved with new coordinates and original id"/>
-    <!-- TODO distance moved (x,y,z) params -->
+    <param name="distance" type="float" desc="Total distance location moved"/>
+    <param name="x_distance" type="float" desc="Distance location moved along the x axis"/>
+    <param name="y_distance" type="float" desc="Distance location moved along the y axis"/>
+    <param name="z_distance" type="float" desc="Distance location moved along the z axis"/>
   </method>
 
-  <!-- TODO location_proximity method w/ two locations as params -->
+  <method name="locations_proximity" desc="inform simrpc endpoint of location proximity event">
+    <param name="location1" type="obj" associated="Location" desc="First location in proximity"/>
+    <param name="location2" type="obj" associated="Location" desc="Second location in proximity"/>
+  </method>
 </schema>

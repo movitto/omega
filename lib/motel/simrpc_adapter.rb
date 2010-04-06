@@ -66,20 +66,40 @@ class Server
        success
     }
 
-    @simrpc_node.handle_method("subscribe_to_location") { |location_id, client_id|
-       Logger.info "subscribe client #{client_id} to location #{location_id}  request received"
+    @simrpc_node.handle_method("subscribe_to_location_movement") { |client_id, location_id, min_distance, min_x, min_y, min_z|
+       Logger.info "subscribe client #{client_id} to location #{location_id} movement request received"
        loc = Runner.instance.locations.find { |loc| loc.id == location_id  }
        success = true
        if loc.nil? 
          success = false
        else
-         callback = Callbacks::Movement.new :handler => lambda { |location|
+         callback = Callbacks::Movement.new :min_distance => min_distance, :min_x => min_x, :min_y => min_y, :min_z => min_z,
+                                            :handler => lambda { |location, d, dx, dy, dz|
            # send location to client
-           @simrpc_node.send_method("location_moved", client_id, location)
+           @simrpc_node.send_method("location_moved", client_id, location, d, dx, dy, dz)
          }
          loc.movement_callbacks.push callback
        end
-       Logger.info "subscribe client #{client_id} to location #{location_id}  returning  #{success}"
+       Logger.info "subscribe client #{client_id} to location #{location_id} movement returning  #{success}"
+       success
+    }
+
+    @simrpc_node.handle_method("subscribe_to_locations_proximity") { |client_id, location1_id, location2_id, max_distance, max_x, max_y, max_z|
+       Logger.info "subscribe client #{client_id} to location #{location1_id}/#{location2_id} proximity request received"
+       loc1 = Runner.instance.locations.find { |loc| loc.id == location1_id  }
+       loc2 = Runner.instance.locations.find { |loc| loc.id == location2_id  }
+       success = true
+       if loc1.nil? || loc2.nil?
+         success = false
+       else
+         callback = Callbacks::Proximity.new :to_location => loc2, :max_distance => max_distance, :max_x => max_x, :max_y => max_y, :max_z => max_z,
+                                            :handler => lambda { |location1, location2|
+           # send locations to client
+           @simrpc_node.send_method("locations_proximity", client_id, location1, location2)
+         }
+         loc1.proximity_callbacks.push callback
+       end
+       Logger.info "subscribe client #{client_id} to location #{location1_id}/#{location2_id} proximity request returning  #{success}"
        success
     }
   end
@@ -92,9 +112,11 @@ end
 # Client defines a client endpoint that performs
 # a request against a Motel Server
 class Client
-  # should be a callable object that takes a location to be
-  # invoked when the server sends a location to the client
-  attr_writer :on_location_received
+  # Set to a callable object that will take a location and distance moved
+  attr_writer :on_location_moved
+
+  # Set to a callable object that will take two locations
+  attr_writer :on_locations_proximity
 
   # Initialize the client with various args, all of which are passed onto Simrpc::Node constructor
   def initialize(args = {})
@@ -115,16 +137,27 @@ class Client
   # pass simrpc method requests right onto the simrpc node
   def method_missing(method_id, *args)
      # special case for subsscribe_to_location, 
-     if method_id == :subscribe_to_location
+     if method_id == :subscribe_to_location_movement
         # add simrpc node id onto args list
-        args.push @simrpc_node.id
+        args.unshift @simrpc_node.id
 
         # handle location updates from the server, & issue subscribe request
-        @simrpc_node.handle_method("location_moved") { |location| 
+        @simrpc_node.handle_method("location_moved") { |location, d, dx, dy, dz| 
            Logger.info "location #{location.id} moved"
-           @on_location_received.call(location) unless @on_location_received.nil?
+           @on_location_moved.call(location, d, dx, dy, dz) unless @on_location_moved.nil?
+        }
+
+     elsif method_id == :subscribe_to_locations_proximity
+        # add simrpc node id onto args list
+        args.unshift @simrpc_node.id
+
+        # handle location proximity events from the server, & issue subscribe request
+        @simrpc_node.handle_method("locations_proximity") { |location1, location2|
+           Logger.info "location #{location1.id}/#{location2.id} proximity"
+           @on_locations_proximity.call(location1, location2) unless @on_locations_proximity.nil?
         }
      end
+
      @simrpc_node.method_missing(method_id, *args)
   end
 end

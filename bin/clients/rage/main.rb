@@ -66,8 +66,8 @@ def main()
     mesh = resource :type => :mesh, :uri => mesh_file
 
     client = Motel::Client.new :schema_file => schema_file
-    result = client.request :subscribe_to_location, location_id
-    client.on_location_received = lambda { |loc|
+    result = client.request :subscribe_to_location_movement, location_id
+    client.on_location_moved = lambda { |loc, d, dx, dy, dz|
       mesh.show_at :x => loc.x, :y => loc.y, :z => loc.z
     }
 

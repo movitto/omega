@@ -27,6 +27,7 @@ def main()
                 :x => nil,
                 :y => nil,
                 :z => nil}
+    other_location_id = nil
     movement_strategy_type = nil
     movement_strategy = { :step_delay => nil,
                           :speed => nil,
@@ -68,14 +69,20 @@ def main()
       opts.on("-u", "--update", "update location specified by id w/ specified options")do
         request_target = :update_location
       end
-      opts.on("-b", "--subscribe", "subscribe to updates to location specified by id")do
-        request_target = :subscribe_to_location
+      opts.on("-m", "--subscribe-to-movement", "subscribe to movement updates to location specified by id")do
+        request_target = :subscribe_to_location_movement
+      end
+      opts.on("-r", "--subscribe-to-proximity", "subscribe to locations proximity events")do
+        request_target = :subscribe_to_locations_proximity
       end
 
       opts.separator ""
       opts.separator "Location Options:"
       opts.on("-i", "--id [location_id]", "Target location id") do |id|
         location[:id] = id
+      end
+      opts.on("-o", "--other-id [location_id]", "Second location id for actions that require it") do |id|
+        other_location_id = id
       end
       opts.on("-p", "--parent-id [location_id]", "Target parent location id") do |id|
         location[:parent_id] = id
@@ -176,18 +183,27 @@ def main()
       args.push location.id
     when :update_location
       args.push location
-    when :subscribe_to_location
+    when :subscribe_to_location_movement
       args.push location.id
+    when :subscribe_to_locations_proximity
+      args.push location.id, other_location_id
     end
 
     # FIXME need configurable amqp broker ip/port
     client = Motel::Client.new :schema_file => schema_file
     result = client.request request_target, *args
 
-    if request_target == :subscribe_to_location
-      client.on_location_received = lambda { |loc|
-         puts "location received:"
+    if request_target == :subscribe_to_location_movement
+      client.on_location_moved = lambda { |loc|
+         puts "location moved:"
          puts "#{loc}"
+      }
+      client.join
+
+    elsif request_target == :subscribe_to_locations_proximity
+      client.on_locations_proximity = lambda { |loc1, loc2|
+         puts "locations proximity:"
+         puts "#{loc1}/#{loc2}"
       }
       client.join
     end
