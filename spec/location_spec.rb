@@ -25,13 +25,6 @@ describe Location do
      location.movement_strategy.should == ms
   end
 
-  it "should default to origin coordinates" do
-     loc = Location.new
-     loc.x.should == 0
-     loc.y.should == 0
-     loc.z.should == 0
-  end
-
   it "should be updatable given another location to copy" do
      p1 = Location.new
      p2 = Location.new
@@ -40,8 +33,8 @@ describe Location do
      new  = Location.new :x => 5, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
      orig.update(new)
      orig.x.should be(5)
-     orig.y.should be(0)
-     orig.y.should be(0)
+     orig.y.should == 2
+     orig.z.should be_nil
      orig.movement_strategy.should == "foomoney"
      orig.parent_id.should be(10)
      orig.parent.should be(p2)

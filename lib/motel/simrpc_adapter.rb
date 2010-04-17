@@ -37,7 +37,9 @@ class Server
        Logger.info "received create location #{location_id} request"
        success = true
        begin
-         Runner.instance.run Location.new(:id => location_id)
+         # TODO take complete location object to create
+         # TODO verify that every location has an id and coordinates (autogenerate here if not set)
+         Runner.instance.run Location.new(:id => location_id, :x => 0, :y => 0, :z => 0)
          # TODO decendants support w/ remote option (create additional locations on other servers)
        rescue Exception => e
          Logger.warn "create location #{location_id} failed w/ exception #{e}"
@@ -55,6 +57,7 @@ class Server
        else
          rloc = Runner.instance.locations.find { |loc| loc.id == location.id  }
          begin
+           # FIXME this should halt location movement, update location, then start it again
            Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
            rloc.update(location)
          rescue Exception => e

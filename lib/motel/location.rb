@@ -7,6 +7,8 @@ require 'motel/movement_strategy'
 
 module Motel
 
+# FIXME Motel locations need concurrent access protection, add here (?)
+
 # A Location defines an optional parent location and the x,y,z
 # cartesian  coordinates of the location relative to that parent.
 # If parent is not specified x,y,z are ignored and this location
@@ -30,8 +32,6 @@ class Location
    # Array of callbacks to be invoked on proximity
    attr_accessor :proximity_callbacks
 
-   # TODO verify that every location has an id (autogenerate if not set)
-
    # a generic association which this location can belong to
    attr_accessor :entity
 
@@ -42,6 +42,10 @@ class Location
       @proximity_callbacks = []
       @children = []
 
+      @x = nil
+      @y = nil
+      @z = nil
+
       @id = args[:id] if args.has_key? :id
       @parent_id = args[:parent_id] if args.has_key? :parent_id
       @x = args[:x] if args.has_key? :x
@@ -50,10 +54,6 @@ class Location
       @parent = args[:parent] if args.has_key? :parent
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
       @movement_strategy = args[:movement_strategy] if args.has_key? :movement_strategy
-
-      @x = 0 if @x.nil?
-      @y = 0 if @y.nil?
-      @z = 0 if @z.nil?
    end
 
    # update this location's attributes to match other's set attributes
