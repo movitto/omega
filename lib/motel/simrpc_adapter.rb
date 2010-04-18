@@ -33,20 +33,24 @@ class Server
        loc
     }
 
-    @simrpc_node.handle_method("create_location") { |location_id|
-       Logger.info "received create location #{location_id} request"
-       success = true
+    @simrpc_node.handle_method("create_location") { |location|
+       Logger.info "received create location request"
+       location = Location.new if location.nil?
+       ret = location
        begin
-         # TODO take complete location object to create
-         # TODO verify that every location has an id and coordinates (autogenerate here if not set)
-         Runner.instance.run Location.new(:id => location_id, :x => 0, :y => 0, :z => 0)
+         location.x = 0 if location.x.nil?
+         location.y = 0 if location.y.nil?
+         location.z = 0 if location.z.nil?
+
          # TODO decendants support w/ remote option (create additional locations on other servers)
+         Runner.instance.run location
+
        rescue Exception => e
-         Logger.warn "create location #{location_id} failed w/ exception #{e}"
-         success = false
+         Logger.warn "create location failed w/ exception #{e}"
+         ret = nil
        end
-       Logger.info "create location #{location_id} request returning #{success}"
-       success
+       Logger.info "create location request created and returning #{ret.id}"
+       ret
     }
 
     @simrpc_node.handle_method("update_location") { |location|

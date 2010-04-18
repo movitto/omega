@@ -16,11 +16,11 @@ describe "Motel::dsl" do
 
     # use dsl to connect to server and issue a few requests
     connect :schema_file => SIMRPC_SPEC do |client|
-       location_id = 500
-       client.create_location(location_id).should be(true)
-       loc = client.get_location(location_id)
-       loc.should_not be_nil
-       loc.id.should be(location_id)
+       loc = Location.new :id => 500
+       client.create_location(loc).id.should == loc.id
+       loc2 = client.get_location(loc.id)
+       loc2.should_not be_nil
+       loc2.id.should be(loc.id)
     end
   end
 

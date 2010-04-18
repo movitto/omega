@@ -58,10 +58,23 @@ class Runner
   # movement strategy's move method will be invoked periodically
   def run(location)
     @schedule_lock.synchronize {
+      # autogenerate location.id if nil
+      if location.id.nil?
+        @run_lock.synchronize {
+          i = 1
+          until false
+            break if @schedule_queue.find { |l| l.id == i }.nil? && @run_queue.find { |l| l.id == i }.nil?
+            i += 1
+          end
+          location.id = i
+        }
+      end
+
       Logger.debug "adding location #{location.id} to runner queue"
       @schedule_queue.push location
       @schedule_cv.signal
     }
+    return location
   end
 
   # Start moving the locations. If :async => true is passed in, this will immediately

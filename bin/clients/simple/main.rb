@@ -180,7 +180,7 @@ def main()
     when :get_location
       args.push location.id
     when :create_location
-      args.push location.id
+      args.push location
     when :update_location
       args.push location
     when :subscribe_to_location_movement

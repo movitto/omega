@@ -48,10 +48,9 @@
     <return_value name="location" type="obj" associated="Location" desc="Location corresponding to id or nil"/>
   </method>
 
-  <!-- FIXME this should take a full location object to create -->
-  <method name="create_location" desc="create new location w/ specified id">
-    <param name="location_id" type="int" desc="Location identifier"/>
-    <return_value name="success" type="bool" desc="bool success"/>
+  <method name="create_location" desc="create new location">
+    <param name="location" type="obj" associated="Location" desc="Location to create"/>
+    <return_value name="location" type="obj" associated="Location" desc="Location create or nil"/>
   </method>
 
   <method name="update_location" desc="update running location w/ new location sharing the same id">

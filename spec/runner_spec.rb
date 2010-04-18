@@ -42,4 +42,18 @@ describe Runner do
     loc2.movement_strategy.times_moved.should be > 0
   end
 
+  it "should set id on managed location to be run if missing" do
+    loc1 = Location.new :id => 1, :movement_strategy => TestMovementStrategy.new
+    loc3 = Location.new :id => 3, :movement_strategy => TestMovementStrategy.new
+    Runner.instance.clear
+    Runner.instance.run loc1
+    Runner.instance.run loc3
+    Runner.instance.locations.size.should == 2
+
+    loc2 = Location.new :movement_strategy => TestMovementStrategy.new
+    loc2a = Runner.instance.run loc2
+    loc2.id.should == 2
+    Runner.instance.locations.size.should == 3
+  end
+
 end
