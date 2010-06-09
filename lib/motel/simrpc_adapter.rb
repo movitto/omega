@@ -61,9 +61,23 @@ class Server
        else
          rloc = Runner.instance.locations.find { |loc| loc.id == location.id  }
          begin
+           # store the old location coordinates for comparison after the movement
+           old_coords = [location.x, location.y, location.z]
+
+           # FIXME XXX big problem/bug here, client must always specify location.movement_strategy, else location constructor will set it to stopped
            # FIXME this should halt location movement, update location, then start it again
            Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
            rloc.update(location)
+
+           # FIXME trigger location movement & proximity callbacks (make sure to keep these in sync w/ those invoked the the runner)
+           # right now we can't do this because a single simrpc node can't handle multiple sent message response, see FIXME XXX in lib/simrpc/node.rb
+           #rloc.movement_callbacks.each { |callback|
+           #  callback.invoke(rloc, *old_coords)
+           #}
+           #rloc.proximity_callbacks.each { |callback|
+           #  callback.invoke(rloc)
+           #}
+
          rescue Exception => e
            Logger.warn "update location #{location.id} failed w/ exception #{e}"
            success = false

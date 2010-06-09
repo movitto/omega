@@ -10,7 +10,11 @@ module Motel
 
 module Callbacks
 
-# Base Motel callback interface, provides access to invocable handler 
+# TODO implement callbacks via callback conditions, optional conditions
+# which may be added to a callback which all or some must be true to
+# invoke callback (eg min movement, max proximity, min time passed, etc)
+
+# Base Motel callback interface, provides access to invocable handler
 class Base
   # Accessor which will be invoked upon callback event
   attr_accessor :handler
@@ -23,7 +27,7 @@ class Base
   def invoke(args = [])
     handler.call *args
   end
-  
+
 end
 
 # Invoked upon specified minimum location movement
@@ -45,17 +49,32 @@ class Movement < Base
     @min_y = args[:min_y] if args.has_key?(:min_y)
     @min_z = args[:min_z] if args.has_key?(:min_z)
 
+    # store original coordinates internally,
+    # until minimum distances are satified
+    # and callback is invoked, then clear
+    @orig_x = @orig_y = @orig_z = nil
+
     super(args)
   end
 
   # Calculate distance between location and old coordinates, invoke handler w/ location if minimums are true
   def invoke(new_location, old_x, old_y, old_z)
-     dx = new_location.x - old_x
-     dy = new_location.y - old_y
-     dz = new_location.z - old_z
+     # unless original coordinates is nil, ignore old coordinates passed in
+     if @orig_x.nil?
+       @orig_x = old_x
+       @orig_y = old_y
+       @orig_z = old_z
+     end
+
+     dx = new_location.x - @orig_x
+     dy = new_location.y - @orig_y
+     dz = new_location.z - @orig_z
      d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-     super([new_location, d, dx, dy, dz]) if d >= @min_distance && dx.abs >= @min_x && dy.abs >= @min_y && dz.abs >= @min_z
+     if d >= @min_distance && dx.abs >= @min_x && dy.abs >= @min_y && dz.abs >= @min_z
+       super([new_location, d, dx, dy, dz])
+       @orig_x = @orig_y = @orig_z = nil
+     end
   end
 end # class Movement
 
@@ -89,9 +108,9 @@ class Proximity < Base
   # Calculate distance between specified location and stored one,
   # invoke handler w/ specified location if they are within proximity
   def invoke(location)
-     dx = (location.x - to_location.x).abs 
-     dy = (location.y - to_location.y).abs 
-     dz = (location.z - to_location.z).abs 
+     dx = (location.x - to_location.x).abs
+     dy = (location.y - to_location.y).abs
+     dz = (location.z - to_location.z).abs
      d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
      super([location, to_location]) if (d <= @max_distance) || (dx <= @max_x && dy <= @max_y && dz <= @max_z)

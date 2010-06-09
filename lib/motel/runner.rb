@@ -185,9 +185,8 @@ class Runner
           location_timestamps[loc.id] = Time.now
 
           # TODO invoke these async so as not to hold up the runner
+          # make sure to keep these in sync w/ those invoked in the simrpc adapter "update_location" handler
           loc.movement_callbacks.each { |callback|
-            # FIXME this isn't going to work as nicely as we want it since old_coords is reset every iteration,
-            # need to store old_coords in the callback itself (updated when the callback handler method is invoked)
             callback.invoke(loc, *old_coords)
           }
           loc.proximity_callbacks.each { |callback|

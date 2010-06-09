@@ -38,7 +38,7 @@
     <member name="parent_id" type="int" desc="location id of parent, null if this is a root location" ignore_null="true" />
     <member name="parent"    type="obj" associated="Location" desc="parent location"/>
     <member name="children"  type="array" associated="Location" desc="children locations"/>
-    <member name="movement_strategy" type="obj" desc="associated movement strategy"/>
+    <member name="movement_strategy" type="obj" default="" desc="associated movement strategy"/>
     <member name="entity_id" type="int" desc="id of entity represented by this location" />
     <member name="entity_type" type="str" desc="type of entity represented by this location" />
   </class>

@@ -29,28 +29,35 @@ describe Motel::Callbacks::Movement do
     }
     cb.invoke(loc, 0, 0, 0)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil) # XXX ugly hack need to reset orig_x so that new 'old coordinates' get accepted
 
     cb.invoke(loc, -5, 0, 0)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 0.5, 1.2, 0.23)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 0, 10, 0)
     invoked.should be_true
     invoked = false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 0, 10, -10)
     invoked.should be_true
     invoked = false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, -10, 0, 0)
     invoked.should be_true
     invoked = false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 10, 0, 0)
     invoked.should be_true
     invoked = false
+    cb.instance_variable_set(:@orig_x, nil)
 
     loc.x = -5 ; loc.y = 5 ; loc.z = 12
     cb.invoke(loc, 0, 0, 0)
@@ -66,19 +73,24 @@ describe Motel::Callbacks::Movement do
     }
     cb.invoke(loc, 0, 0, 0)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil) # XXX ugly hack need to reset orig_x so that new 'old coordinates' get accepted
 
     cb.invoke(loc, 0, -6, 0)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 10, 0, 0)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 10, -5, 20)
     invoked.should be_false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 0, -10, 0)
     invoked.should be_true
     invoked = false
+    cb.instance_variable_set(:@orig_x, nil)
 
     cb.invoke(loc, 0, 10, 0)
     invoked.should be_true

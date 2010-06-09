@@ -3,7 +3,7 @@
 # Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-dir = File.dirname(__FILE__) 
+dir = File.dirname(__FILE__)
 require dir + '/spec_helper'
 
 describe "Motel::Simrpc" do
@@ -89,6 +89,29 @@ describe "Motel::Simrpc" do
     loc.x.should be(150)
   end
 
+  #it "should invoke callbacks when updating a location" do
+  #  Runner.instance.clear
+  #  clocation = Location.new :id => 250
+  #  @client.create_location(clocation).id.should == clocation.id
+
+  #  # handle and subscribe to location movement
+  #  times_moved = 0
+  #  @client.on_location_moved = lambda { |location, d, dx, dy, dz|
+  #    times_moved += 1
+  #  }
+  #  @client.subscribe_to_location_movement(clocation.id).should be(true)
+
+  #  res = @client.update_location(Location.new(:id => clocation.id, :x => 150, :y => 300, :z => -600))
+  #  res.should be(true)
+
+  #  loc = @client.get_location(clocation.id)
+  #  loc.should_not be_nil
+  #  loc.x.should be(150)
+  #  loc.y.should be(300)
+  #  loc.z.should be(-600)
+  #  times_moved.should be(1)
+  #end
+
   it "should permit receiving location movement updates" do
     # start the runner here, to actual move location / process callbacks
     Runner.instance.clear
@@ -102,18 +125,18 @@ describe "Motel::Simrpc" do
     location = Location.new
     location.id = clocation.id
     location.movement_strategy = Linear.new(:step_delay => 1,
-                                            :speed      => 15, 
+                                            :speed      => 15,
                                             :direction_vector_x => 1,
                                             :direction_vector_y => 0,
                                             :direction_vector_z => 0)
     @client.update_location(location).should be(true)
 
-    times_moved = 0 
+    times_moved = 0
 
     # handle location_moved method
     @client.on_location_moved = lambda { |location, d, dx, dy, dz|
       times_moved += 1
-    }   
+    }
 
     ## subscribe to updates
     @client.subscribe_to_location_movement(clocation.id).should be(true)
@@ -123,7 +146,7 @@ describe "Motel::Simrpc" do
     ## delay briefly allowing for updates
     sleep 2
 
-    times_moved.should be > 0 
+    times_moved.should be > 0
 
     # stop the runner
     Runner.instance.stop

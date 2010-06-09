@@ -101,6 +101,14 @@ class Location
      return parent.total_z + z
    end
 
+   # return the distance between this location and specified other
+   def -(location)
+     dx = x - location.x
+     dy = y - location.y
+     dz = z - location.z
+     Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+   end
+
 end
 
 end # module Motel

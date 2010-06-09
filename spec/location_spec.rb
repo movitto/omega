@@ -99,4 +99,10 @@ describe Location do
     child.total_z.should == 42 - 93
   end
 
+  it "should calculate the distance between two locations" do
+    loc1 = Location.new :x => 10, :y => 10, :z => 10
+    loc2 = Location.new :x => -5, :y => -7, :z => 30
+    ((loc1 - loc2 - 30.2324329156619) < 0.000001).should be_true
+  end
+
 end
