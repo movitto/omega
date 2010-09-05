@@ -66,6 +66,11 @@ class Location
       @parent_id = location.parent_id unless location.parent_id.nil?
    end
 
+   # return this locations coordinates in an array
+   def coordinates
+     [@x, @y, @z]
+   end
+
    # return this location's root location
    def root
      return self if parent.nil?

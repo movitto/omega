@@ -11,6 +11,8 @@ module Motel
 # MovementStrategy subclasses define the rules and params which 
 # a location changes its position. 
 class MovementStrategy
+   attr_accessor :id, :type
+
    attr_accessor :step_delay
    
    def initialize(args = {})

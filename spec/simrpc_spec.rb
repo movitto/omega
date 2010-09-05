@@ -179,9 +179,11 @@ describe "Motel::Simrpc" do
     }
 
     ## subscribe to updates
-    @client.subscribe_to_locations_proximity(clocation1.id, clocation2.id, 10).should be(true)
+    @client.subscribe_to_locations_proximity(clocation1.id, clocation2.id, "proximity", 10).should be(true)
     Runner.instance.locations.first.proximity_callbacks.size.should == 1
     Runner.instance.locations.first.proximity_callbacks[0].class.should == Callbacks::Proximity
+
+    # FIXME test all proximity events: proximity, entered_proximity, left_proximity
 
     ## delay briefly allowing for updates
     sleep 2

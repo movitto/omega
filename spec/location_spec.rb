@@ -45,7 +45,13 @@ describe Location do
      orig.y.should be(6)
   end
 
-  it "retrieve root location" do
+  it "should retrieve a location's coordinates" do
+    loc = Location.new :x => 10, :y => 20, :z => -30
+    coords = loc.coordinates
+    coords.should == [10, 20, -30]
+  end
+
+  it "should retrieve root location" do
     ggp = Location.new
     gp  = Location.new :parent => ggp
     p   = Location.new :parent => gp

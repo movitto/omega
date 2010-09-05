@@ -19,8 +19,9 @@ class Base
   # Accessor which will be invoked upon callback event
   attr_accessor :handler
 
-  def initialize(args = {})
+  def initialize(args = {}, &block)
     @handler = args[:handler] if args.has_key?(:handler)
+    @handler = block if block_given?
   end
 
   # FIXME XXX this should be *args instead of args = [] (remove [] around super calls below)
@@ -38,7 +39,7 @@ class Movement < Base
   # Minimum x,y,z distance the location needs to move to trigger the event
   attr_accessor :min_x, :min_y, :min_z
 
-  def initialize(args = {})
+  def initialize(args = {}, &block)
     @min_distance = 0
     @min_x = 0
     @min_y = 0
@@ -54,7 +55,7 @@ class Movement < Base
     # and callback is invoked, then clear
     @orig_x = @orig_y = @orig_z = nil
 
-    super(args)
+    super(args, &block)
   end
 
   # Calculate distance between location and old coordinates, invoke handler w/ location if minimums are true
@@ -83,26 +84,34 @@ class Proximity < Base
   # location which to compare to
   attr_accessor :to_location
 
+  # proximity event which to trigger on
+  attr_accessor :event
+
   # Max distance the locations needs to be apart to trigger event
   attr_accessor :max_distance
 
   # Max x,y,z distance the locations need to be to trigger the event
   attr_accessor :max_x, :max_y, :max_z
 
-  def initialize(args = {})
+  def initialize(args = {}, &block)
     @max_distance = 0
     @max_x = 0
     @max_y = 0
     @max_z = 0
     @to_location = nil
+    @event = :proximity
 
     @max_distance = args[:max_distance] if args.has_key?(:max_distance)
     @max_x = args[:max_x] if args.has_key?(:max_x)
     @max_y = args[:max_y] if args.has_key?(:max_y)
     @max_z = args[:max_z] if args.has_key?(:max_z)
     @to_location = args[:to_location] if args.has_key?(:to_location)
+    @event = args[:event].intern if args.has_key?(:event)
 
-    super(args)
+    # keep track of proximity state internally for different event types
+    @locations_in_proximity = false
+
+    super(args, &block)
   end
 
   # Calculate distance between specified location and stored one,
@@ -113,7 +122,16 @@ class Proximity < Base
      dz = (location.z - to_location.z).abs
      d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
-     super([location, to_location]) if (d <= @max_distance) || (dx <= @max_x && dy <= @max_y && dz <= @max_z)
+     currently_in_proximity  = (d <= @max_distance) || (dx <= @max_x && dy <= @max_y && dz <= @max_z)
+     trigger_callback = (currently_in_proximity &&  (@event == :proximity ||
+                                                    (@event == :entered_proximity &&
+                                                     !@locations_in_proximity))) ||
+                        (!currently_in_proximity && (@event == :left_proximity &&
+                                                     @locations_in_proximity))
+
+     @locations_in_proximity = currently_in_proximity
+
+     super([location, to_location]) if trigger_callback
   end
 end # class Proximity
 

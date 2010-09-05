@@ -77,6 +77,12 @@ class Runner
     return location
   end
 
+  # Wrapper around run, except return 'self' when done
+  def <<(location)
+    run(location)
+    return self
+  end
+
   # Start moving the locations. If :async => true is passed in, this will immediately
   # return, else this will block until stop is called.
   def start(args = {})
@@ -175,7 +181,7 @@ class Runner
 
         # run through each location to be run, perform actual movement, invoke callbacks
         tqueue.each { |loc|
-          Logger.debug "runner moving location #{loc.id} via #{loc.movement_strategy.class.to_s}"
+          Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.class.to_s}"
 
           # store the old location coordinates for comparison after the movement
           old_coords = [loc.x, loc.y, loc.z]

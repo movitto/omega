@@ -74,6 +74,7 @@
     <param name="node_id" type="str" desc="Node identifier which to update of location movements"/>
     <param name="location_id1" type="int" desc="First location identifier"/>
     <param name="location_id2" type="int" desc="Second location identifier"/>
+    <param name="event"        type="str" default="proximity" desc="Proximity event to subscribe to, should be proximity, entered_proxity, or left_proximity" />
     <param name="max_distance" type="float" default="0" desc="Max distance the locations need to be apart before notifying node"/>
     <param name="max_x" type="float" default="0" desc="Max x-axis-distance the locations need to be apart before notifying node"/>
     <param name="max_y" type="float" default="0" desc="Max y-axis-distance the locations need to be apart before notifying node"/>

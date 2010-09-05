@@ -105,7 +105,7 @@ class Server
        success
     }
 
-    @simrpc_node.handle_method("subscribe_to_locations_proximity") { |client_id, location1_id, location2_id, max_distance, max_x, max_y, max_z|
+    @simrpc_node.handle_method("subscribe_to_locations_proximity") { |client_id, location1_id, location2_id, event, max_distance, max_x, max_y, max_z|
        Logger.info "subscribe client #{client_id} to location #{location1_id}/#{location2_id} proximity request received"
        loc1 = Runner.instance.locations.find { |loc| loc.id == location1_id  }
        loc2 = Runner.instance.locations.find { |loc| loc.id == location2_id  }
@@ -113,7 +113,7 @@ class Server
        if loc1.nil? || loc2.nil?
          success = false
        else
-         callback = Callbacks::Proximity.new :to_location => loc2, :max_distance => max_distance, :max_x => max_x, :max_y => max_y, :max_z => max_z,
+         callback = Callbacks::Proximity.new :to_location => loc2, :event => event, :max_distance => max_distance, :max_x => max_x, :max_y => max_y, :max_z => max_z,
                                             :handler => lambda { |location1, location2|
            # send locations to client
            @simrpc_node.send_method("locations_proximity", client_id, location1, location2)
@@ -123,6 +123,10 @@ class Server
        Logger.info "subscribe client #{client_id} to location #{location1_id}/#{location2_id} proximity request returning  #{success}"
        success
     }
+  end
+
+  def terminate
+    @simrpc_node.terminate
   end
 
   def join
