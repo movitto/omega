@@ -9,9 +9,10 @@ $: << lib + '/motel/'
 require lib + '/motel/exceptions'
 require lib + '/motel/callbacks'
 require lib + '/motel/runner'
-require lib + '/motel/simrpc_adapter'
+#require lib + '/motel/simrpc_adapter'
+require lib + '/motel/rjr_adapter'
 
-require lib + '/motel/dsl'
+#require lib + '/motel/dsl'
 
 require lib + '/motel/location'
 require lib + '/motel/movement_strategy'
