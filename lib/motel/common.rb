@@ -15,10 +15,8 @@ class Logger
   private
     def self._instantiate_logger
        unless defined? @@logger
-         # FIXME need configurable log_level, out-stream
-         @@log_level = ::Logger::FATAL
          @@logger = ::Logger.new(STDOUT)
-         @@logger.level = @@log_level
+         @@logger.level = ::Logger::FATAL
        end 
     end 
 
@@ -35,7 +33,8 @@ class Logger
     end
 
     def self.log_level=(level)
-      @@log_level = level
+      _instantiate_logger
+      @@logger.level = level
     end
 end
 

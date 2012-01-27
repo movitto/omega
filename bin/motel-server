@@ -1,0 +1,48 @@
+#!/usr/bin/ruby
+# A motel server executable
+# Executable to launch various rjr methods 
+#
+# Flags:
+#  -h --help
+#
+# Copyright (C) 2011 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+require 'motel'
+require 'rjr'
+
+######################
+
+
+def main()
+  Motel::Logger.log_level= ::Logger::INFO
+
+  # setup cmd line options
+  opts = OptionParser.new do |opts|
+    opts.on("-h", "--help", "Print help message") do
+       puts opts
+       exit
+    end
+  end
+
+  # parse cmd line
+  begin
+    opts.parse!(ARGV)
+  rescue OptionParser::InvalidOption
+    puts opts
+    exit
+  end
+
+  Motel::RJRAdapter.init
+  Motel::RJRAdapter.register_handlers(RJR::Dispatcher)
+
+  rjr_node = RJR::AMQPNode.new :node_id => 'motel', :broker => 'localhost'
+  #rjr_node = RJR::WSNode.new :node_id => 'motel', :host => 'localhost', :port => 8080
+
+  rjr_node.listen
+  rjr_node.terminate # TODO run in signal handler
+end
+
+main()

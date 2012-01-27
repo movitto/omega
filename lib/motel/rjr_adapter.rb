@@ -11,11 +11,6 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('hello_world') { |location_id|
-      puts "Hello World #{location_id}"
-      42
-    }
-
     rjr_dispatcher.add_handler('get_location') { |location_id|
        Logger.info "received get location #{location_id} request"
        loc = nil
@@ -47,7 +42,7 @@ class RJRAdapter
          Logger.warn "create location failed w/ exception #{e}"
          ret = nil
        end
-       Logger.info "create location request created and returning #{ret.id}"
+       Logger.info "create location request created and returning #{ret.class} #{ret.to_json}"
        ret
     }
 

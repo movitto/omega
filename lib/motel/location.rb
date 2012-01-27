@@ -46,14 +46,15 @@ class Location
       @y = nil
       @z = nil
 
-      @id = args[:id] if args.has_key? :id
-      @parent_id = args[:parent_id] if args.has_key? :parent_id
-      @x = args[:x] if args.has_key? :x
-      @y = args[:y] if args.has_key? :y
-      @z = args[:z] if args.has_key? :z
-      @parent = args[:parent] if args.has_key? :parent
+      [:id, :parent_id, :x, :y, :z, :parent, :movement_strategy].each { |key|
+        inst_attr = ('@' + key.to_s).to_sym
+        if args.has_key? key
+          instance_variable_set(inst_attr, args[key])
+        elsif args.has_key? key.to_s
+          instance_variable_set(inst_attr, args[key.to_s])
+        end
+      }
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
-      @movement_strategy = args[:movement_strategy] if args.has_key? :movement_strategy
    end
 
    # update this location's attributes to match other's set attributes
@@ -112,6 +113,18 @@ class Location
      dy = y - location.y
      dz = z - location.z
      Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+   end
+
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id}
+     }.to_json(*a)
+   end
+
+   def self.json_create(o)
+     new(o['data'])
    end
 
 end
