@@ -29,6 +29,7 @@ class RJRAdapter
     rjr_dispatcher.add_handler('create_location') { |location|
        Logger.info "received create location request"
        location = Location.new if location.nil?
+       #location = Location.new location if location.is_a? Hash
        ret = location
        begin
          location.x = 0 if location.x.nil?
