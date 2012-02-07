@@ -1,0 +1,49 @@
+#!/usr/bin/ruby
+# Generate motel seed data
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+require 'motel'
+require 'rjr'
+
+def create_location(rjr_node, location)
+  return rjr_node.invoke_request 'motel-queue', 'create_location', location
+end
+
+def main()
+  Motel::Logger.log_level= ::Logger::INFO
+
+  rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
+  parent = create_location(rjr_node, Motel::Location.new(:x => 0, :y => 0, :z => 0))
+
+  child = create_location(rjr_node, 
+                  Motel::Location.new(:x => 10,  :y => 10,  :z => 10,
+                                      :parent_id => parent.id,
+                                      :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5,
+                                                                                                  :direction_vector_x => 1,
+                                                                                                  :direction_vector_y => 0,
+                                                                                                  :direction_vector_z => 0)))
+
+  create_location(rjr_node,
+                  Motel::Location.new(:x => -10, :y => -10, :z => -10,
+                                      :parent_id => parent.id,
+                                      :movement_strategy => Motel::MovementStrategies::Elliptical.new(:relative_to  => "center",
+                                                                                                      :speed => 0.1,
+                                                                                                      :eccentricity => 0.5,
+                                                                                                      :semi_latus_rectum => 10,
+                                                                                                      :direction_major_x => 1,
+                                                                                                      :direction_major_y => 0,
+                                                                                                      :direction_major_z => 0,
+                                                                                                      :direction_minor_x => 0,
+                                                                                                      :direction_minor_y => 1,
+                                                                                                      :direction_minor_z => 0)))
+
+  create_location(rjr_node,
+                  Motel::Location.new(:x => 20,  :y => -5,  :z => 30,
+                                      :parent_id => parent.id))
+end
+
+main()
