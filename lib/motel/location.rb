@@ -46,14 +46,11 @@ class Location
       @y = nil
       @z = nil
 
-      [:id, :parent_id, :x, :y, :z, :parent, :movement_strategy].each { |key|
-        inst_attr = ('@' + key.to_s).to_sym
-        if args.has_key? key
-          instance_variable_set(inst_attr, args[key])
-        elsif args.has_key? key.to_s
-          instance_variable_set(inst_attr, args[key.to_s])
-        end
+      args.each { |k,v|
+        inst_attr = ('@' + k.to_s).to_sym
+        instance_variable_set(inst_attr, args[k])
       }
+
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
    end
 
@@ -119,12 +116,16 @@ class Location
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id}
+         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id, :movement_strategy => movement_strategy.to_json}
      }.to_json(*a)
    end
 
    def self.json_create(o)
-     new(o['data'])
+     loc = new(o['data'])
+     if o['data']['movement_strategy']
+       loc.movement_strategy = JSON.parse(o['data']['movement_strategy'])
+     end
+     return loc
    end
 
 end

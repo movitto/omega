@@ -27,7 +27,7 @@ class Linear < MovementStrategy
 
      # normalize direction vector
      @direction_vector_x, @direction_vector_y, @direction_vector_z =
-       normalize(@direction_vector_x, @direction_vector_y, @direction_vector_z)
+       Motel::normalize(@direction_vector_x, @direction_vector_y, @direction_vector_z)
    end
 
 
@@ -49,6 +49,14 @@ class Linear < MovementStrategy
      location.z += distance * direction_vector_z
    end
 
+   def to_json(*a)
+     { 'json_class' => self.class.name,
+       'data'       => { :speed => speed,
+                         :direction_vector_x => direction_vector_x,
+                         :direction_vector_y => direction_vector_y,
+                         :direction_vector_z => direction_vector_z }
+     }.to_json(*a)
+   end
 end
 
 end # module Models

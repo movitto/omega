@@ -49,13 +49,13 @@ class Elliptical < MovementStrategy
      super(args)
 
      @direction_major_x, @direction_major_y, @direction_major_z = 
-         normalize(@direction_major_x, @direction_major_y, @direction_major_z)
+         Motel::normalize(@direction_major_x, @direction_major_y, @direction_major_z)
 
      @direction_minor_x, @direction_minor_y, @direction_minor_z = 
-        normalize(@direction_minor_x, @direction_minor_y, @direction_minor_z)
+        Motel::normalize(@direction_minor_x, @direction_minor_y, @direction_minor_z)
 
-     unless orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z)
-        raise InvalidMovementStrategy.new("elliptical direction vectors not orthogonal") 
+     unless Motel::orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z)
+        raise InvalidMovementStrategy.new("elliptical direction vectors not orthogonal")
      end
    end
 
@@ -101,6 +101,21 @@ class Elliptical < MovementStrategy
      location.x = nX
      location.y = nY
      location.z = nZ
+   end
+
+   def to_json(*a)
+     { 'json_class' => self.class.name,
+       'data'       => { :speed        => speed,
+                         :relative_to  => relative_to,
+                         :eccentricity => eccentricity,
+                         :semi_latus_rectum  => semi_latus_rectum,
+                         :direction_major_x => direction_major_x,
+                         :direction_major_y => direction_major_y,
+                         :direction_major_z => direction_major_z,
+                         :direction_minor_x => direction_minor_x,
+                         :direction_minor_y => direction_minor_y,
+                         :direction_minor_z => direction_minor_z }
+     }.to_json(*a)
    end
 
   private
