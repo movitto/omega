@@ -105,7 +105,8 @@ class Elliptical < MovementStrategy
 
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :speed        => speed,
+       'data'       => { :step_delay   => step_delay,
+                         :speed        => speed,
                          :relative_to  => relative_to,
                          :eccentricity => eccentricity,
                          :semi_latus_rectum  => semi_latus_rectum,
@@ -185,7 +186,8 @@ class Elliptical < MovementStrategy
 
       t = (direction_minor_y * ocX - direction_minor_x * ocY) /
            (a * (direction_minor_y * direction_major_x - direction_minor_x * direction_major_y))
-      t= 1.0 if(t>1.0) 
+      t= 1.0  if(t>1.0) 
+      t= -1.0 if(t<-1.0)
       theta = Math.acos(t)
 
       # determine if current point is in negative quadrants of min axis coordinate system

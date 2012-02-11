@@ -98,6 +98,26 @@ class RJRAdapter
        Logger.info "track location #{location_id} request returning #{loc}"
        loc
     }
+
+    rjr_dispatcher.add_callback('track_proximity') { |callback, location1_id, location2_id, event, max_distance|
+       Logger.info "received track proximity #{location1_id}/#{location2_id} request"
+       Logger.info "track proximity #{location1_id}/#{location2_id} returning"
+       begin
+         loc1 = Runner.instance.locations.find { |loc| loc.id == location1_id }
+         loc2 = Runner.instance.locations.find { |loc| loc.id == location2_id }
+         on_proximity =
+           Callbacks::Proximity.new :to_location => loc2,
+                                    :event => event,
+                                    :max_distance => max_distance,
+                                    :handler => lambda { |location1, location2|
+             callback.invoke(loc1, loc2)
+           }
+           loc1.proximity_callbacks << on_proximity
+       rescue Exception => e
+         Logger.warn "track proximity #{location1_id}/#{location2_id} failed w/ exception #{e}"
+       end
+       nil
+    }
   end
 end
 

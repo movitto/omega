@@ -51,7 +51,8 @@ class Linear < MovementStrategy
 
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :speed => speed,
+       'data'       => { :step_delay => step_delay,
+                         :speed => speed,
                          :direction_vector_x => direction_vector_x,
                          :direction_vector_y => direction_vector_y,
                          :direction_vector_z => direction_vector_z }

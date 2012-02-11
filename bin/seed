@@ -13,6 +13,20 @@ def create_location(rjr_node, location)
   return rjr_node.invoke_request 'motel-queue', 'create_location', location
 end
 
+def track_proximity(rjr_node, location1_id, location2_id, distance)
+  RJR::Dispatcher.add_handler('track_proximity'){ |location1, location2|
+    puts "Proximity of #{location1.id}/#{location2.id}"
+  }
+  return rjr_node.invoke_request 'motel-queue', 'track_proximity', location1_id, location2_id, "proximity", distance
+end
+
+def track_location(rjr_node, location1_id, location2_id, distance)
+  RJR::Dispatcher.add_handler('track_location'){ |location_id, distance|
+    puts "Location #{location_id} moved #{distance}"
+  }
+  return rjr_node.invoke_request 'motel-queue', 'track_location', location_id, distance
+end
+
 def main()
   Motel::Logger.log_level= ::Logger::INFO
 
@@ -22,18 +36,19 @@ def main()
   child = create_location(rjr_node, 
                   Motel::Location.new(:x => 10,  :y => 10,  :z => 10,
                                       :parent_id => parent.id,
-                                      :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5,
+                                      :movement_strategy => Motel::MovementStrategies::Linear.new(:step_delay => 0.25,
+                                                                                                  :speed => 5,
                                                                                                   :direction_vector_x => 1,
                                                                                                   :direction_vector_y => 0,
                                                                                                   :direction_vector_z => 0)))
 
   create_location(rjr_node,
-                  Motel::Location.new(:x => -10, :y => -10, :z => -10,
+                  Motel::Location.new(:x => -500, :y => -500, :z => -500,
                                       :parent_id => parent.id,
                                       :movement_strategy => Motel::MovementStrategies::Elliptical.new(:relative_to  => "center",
                                                                                                       :speed => 0.1,
                                                                                                       :eccentricity => 0.5,
-                                                                                                      :semi_latus_rectum => 10,
+                                                                                                      :semi_latus_rectum => 100,
                                                                                                       :direction_major_x => 1,
                                                                                                       :direction_major_y => 0,
                                                                                                       :direction_major_z => 0,
@@ -42,8 +57,12 @@ def main()
                                                                                                       :direction_minor_z => 0)))
 
   create_location(rjr_node,
-                  Motel::Location.new(:x => 20,  :y => -5,  :z => 30,
+                  Motel::Location.new(:x => 50,  :y => 10,  :z => 10,
                                       :parent_id => parent.id))
+  
+  #track_location(rjr_node, 2, 5)
+  track_proximity(rjr_node, 2, 4, 5)
+  rjr_node.listen
 end
 
 main()

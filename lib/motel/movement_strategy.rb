@@ -29,7 +29,7 @@ class MovementStrategy
    def to_json(*a)
      {
        'json_class' => self.class.name,
-       'data'       => {}
+       'data'       => { :step_delay => step_delay }
      }.to_json(*a)
    end
 
