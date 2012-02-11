@@ -17,8 +17,6 @@ require 'rjr'
 
 
 def main()
-  Motel::Logger.log_level= ::Logger::INFO
-
   # setup cmd line options
   opts = OptionParser.new do |opts|
     opts.on("-h", "--help", "Print help message") do
@@ -35,12 +33,15 @@ def main()
     exit
   end
 
+  Motel::Logger.log_level = ::Logger::DEBUG
   Motel::RJRAdapter.init
   Motel::RJRAdapter.register_handlers(RJR::Dispatcher)
 
-  amqp_node = RJR::AMQPNode.new :node_id => 'motel', :broker => 'localhost'
-  ws_node = RJR::WSNode.new :node_id => 'motel', :host => 'localhost', :port => 8080
-  multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node]
+  amqp_node  = RJR::AMQPNode.new  :node_id => 'motel', :broker => 'localhost'
+  ws_node    = RJR::WSNode.new    :node_id => 'motel', :host   => 'localhost', :port => 8080
+  www_node   = RJR::WebNode.new   :node_id => 'motel', :host   => 'localhost', :port => 8888
+
+  multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node]
 
   multi_node.listen
   multi_node.terminate # TODO run in signal handler
