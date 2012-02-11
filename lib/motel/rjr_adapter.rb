@@ -80,6 +80,24 @@ class RJRAdapter
        Logger.info "update location #{location.id} returning #{success}"
        success
     }
+
+    rjr_dispatcher.add_callback('track_location') { |callback, location_id, min_distance|
+       Logger.info "received track location #{location_id} request"
+       loc = nil
+       begin
+         loc = Runner.instance.locations.find { |loc| loc.id == location_id }
+         on_movement = 
+           Callbacks::Movement.new :min_distance => min_distance,
+                                   :handler => lambda{ |loc, d, dx, dy, dz|
+             callback.invoke(loc)
+           }
+         loc.movement_callbacks << on_movement
+       rescue Exception => e
+         Logger.warn "track location #{location_id} failed w/ exception #{e}"
+       end
+       Logger.info "track location #{location_id} request returning #{loc}"
+       loc
+    }
   end
 end
 
