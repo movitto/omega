@@ -1,0 +1,35 @@
+#!/usr/bin/ruby
+# Generate motel seed data
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'motel'
+require 'cosmos'
+require 'rjr'
+
+def main()
+  RJR::Logger.log_level= ::Logger::INFO
+
+  rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
+
+  galaxy1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Galaxy.new(:name => 'galaxy1'), :universe)
+  galaxy2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Galaxy.new(:name => 'galaxy2'), :universe)
+
+  system1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system1'), galaxy1)
+  system2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system2'), galaxy1)
+  system3 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system3'), galaxy2)
+
+  planet1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet1'), system1)
+  planet2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet2'), system1)
+  planet3 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet3'), system1)
+  planet4 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet4'), system1)
+
+  planet5 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet5'), system2)
+
+  moon1   = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Moon.new(:name => 'moon1'), planet1)
+  moon2   = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Moon.new(:name => 'moon2'), planet1)
+end
+
+main()
