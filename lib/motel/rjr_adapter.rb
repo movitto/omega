@@ -1,6 +1,6 @@
 # Motel rjr adapter
 #
-# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Motel
@@ -12,7 +12,7 @@ class RJRAdapter
 
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('get_location') { |location_id|
-       Logger.info "received get location #{location_id} request"
+       RJR::Logger.info "received get location #{location_id} request"
        loc = nil
        begin
          loc = Runner.instance.locations.find { |loc| loc.id == location_id }
@@ -20,14 +20,14 @@ class RJRAdapter
          # server is specified, send request to get child location, swapping
          # it in for the one thats there
        rescue Exception => e
-         Logger.warn "get location #{location_id} failed w/ exception #{e}"
+         RJR::Logger.warn "get location #{location_id} failed w/ exception #{e}"
        end
-       Logger.info "get location #{location_id} request returning #{loc}"
+       RJR::Logger.info "get location #{location_id} request returning #{loc}"
        loc
     }
 
     rjr_dispatcher.add_handler('create_location') { |location|
-       Logger.info "received create location request"
+       RJR::Logger.info "received create location request"
        location = Location.new if location.nil?
        #location = Location.new location if location.is_a? Hash
        ret = location
@@ -40,15 +40,15 @@ class RJRAdapter
          Runner.instance.run location
 
        rescue Exception => e
-         Logger.warn "create location failed w/ exception #{e}"
+         RJR::Logger.warn "create location failed w/ exception #{e}"
          ret = nil
        end
-       Logger.info "create location request created and returning #{ret.class} #{ret.to_json}"
+       RJR::Logger.info "create location request created and returning #{ret.class} #{ret.to_json}"
        ret
     }
 
     rjr_dispatcher.add_handler("update_location") { |location|
-       Logger.info "received update location #{location.id} request"
+       RJR::Logger.info "received update location #{location.id} request"
        success = true
        if location.nil?
          success = false
@@ -60,7 +60,7 @@ class RJRAdapter
 
            # FIXME XXX big problem/bug here, client must always specify location.movement_strategy, else location constructor will set it to stopped
            # FIXME this should halt location movement, update location, then start it again
-           Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
+           RJR::Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
            rloc.update(location)
 
            # FIXME trigger location movement & proximity callbacks (make sure to keep these in sync w/ those invoked the the runner)
@@ -73,16 +73,16 @@ class RJRAdapter
            #}
 
          rescue Exception => e
-           Logger.warn "update location #{location.id} failed w/ exception #{e}"
+           RJR::Logger.warn "update location #{location.id} failed w/ exception #{e}"
            success = false
          end
        end
-       Logger.info "update location #{location.id} returning #{success}"
+       RJR::Logger.info "update location #{location.id} returning #{success}"
        success
     }
 
     rjr_dispatcher.add_callback('track_location') { |callback, location_id, min_distance|
-       Logger.info "received track location #{location_id} request"
+       RJR::Logger.info "received track location #{location_id} request"
        loc = nil
        begin
          loc = Runner.instance.locations.find { |loc| loc.id == location_id }
@@ -93,15 +93,15 @@ class RJRAdapter
            }
          loc.movement_callbacks << on_movement
        rescue Exception => e
-         Logger.warn "track location #{location_id} failed w/ exception #{e}"
+         RJR::Logger.warn "track location #{location_id} failed w/ exception #{e}"
        end
-       Logger.info "track location #{location_id} request returning #{loc}"
+       RJR::Logger.info "track location #{location_id} request returning #{loc}"
        loc
     }
 
     rjr_dispatcher.add_callback('track_proximity') { |callback, location1_id, location2_id, event, max_distance|
-       Logger.info "received track proximity #{location1_id}/#{location2_id} request"
-       Logger.info "track proximity #{location1_id}/#{location2_id} returning"
+       RJR::Logger.info "received track proximity #{location1_id}/#{location2_id} request"
+       RJR::Logger.info "track proximity #{location1_id}/#{location2_id} returning"
        begin
          loc1 = Runner.instance.locations.find { |loc| loc.id == location1_id }
          loc2 = Runner.instance.locations.find { |loc| loc.id == location2_id }
@@ -114,7 +114,7 @@ class RJRAdapter
            }
            loc1.proximity_callbacks << on_proximity
        rescue Exception => e
-         Logger.warn "track proximity #{location1_id}/#{location2_id} failed w/ exception #{e}"
+         RJR::Logger.warn "track proximity #{location1_id}/#{location2_id} failed w/ exception #{e}"
        end
        nil
     }

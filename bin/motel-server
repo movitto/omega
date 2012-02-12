@@ -33,7 +33,7 @@ def main()
     exit
   end
 
-  Motel::Logger.log_level = ::Logger::DEBUG
+  RJR::Logger.log_level = ::Logger::DEBUG
   Motel::RJRAdapter.init
   Motel::RJRAdapter.register_handlers(RJR::Dispatcher)
 

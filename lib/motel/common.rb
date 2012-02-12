@@ -10,34 +10,6 @@ require 'logger'
 
 module Motel
 
-# Logger helper class
-class Logger
-  private
-    def self._instantiate_logger
-       unless defined? @@logger
-         @@logger = ::Logger.new(STDOUT)
-         @@logger.level = ::Logger::FATAL
-       end 
-    end 
-
-  public
-
-    def self.method_missing(method_id, *args)
-       _instantiate_logger
-       @@logger.send(method_id, args)
-    end 
-
-    def self.logger
-       _instantiate_logger
-       @@logger
-    end
-
-    def self.log_level=(level)
-      _instantiate_logger
-      @@logger.level = level
-    end
-end
-
 # generate a random id
 def gen_uuid
   ["%02x"*4, "%02x"*2, "%02x"*2, "%02x"*2, "%02x"*6].join("-") %

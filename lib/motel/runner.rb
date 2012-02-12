@@ -70,7 +70,7 @@ class Runner
         }
       end
 
-      Logger.debug "adding location #{location.id} to runner queue"
+      RJR::Logger.debug "adding location #{location.id} to runner queue"
       @schedule_queue.push location
       @schedule_cv.signal
     }
@@ -91,10 +91,10 @@ class Runner
     @terminate = false
 
     if args.has_key?(:async) && args[:async]
-      Logger.debug "starting async motel runner"
+      RJR::Logger.debug "starting async motel runner"
       @run_thread = Thread.new { run_cycle }
     else
-      Logger.debug "starting motel runner"
+      RJR::Logger.debug "starting motel runner"
       run_cycle
     end
 
@@ -102,7 +102,7 @@ class Runner
 
   # Stop locations movement
   def stop
-    Logger.debug "stopping motel runner"
+    RJR::Logger.debug "stopping motel runner"
     @terminate = true
     @schedule_lock.synchronize {
       @schedule_cv.signal
@@ -111,7 +111,7 @@ class Runner
       @run_cv.signal
     }
     join
-    Logger.debug "motel runner stopped"
+    RJR::Logger.debug "motel runner stopped"
   end
 
   # Block until runner is shutdown before returning
@@ -181,7 +181,7 @@ class Runner
 
         # run through each location to be run, perform actual movement, invoke callbacks
         tqueue.each { |loc|
-          Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.class.to_s}"
+          RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.class.to_s}"
 
           # store the old location coordinates for comparison after the movement
           old_coords = [loc.x, loc.y, loc.z]
