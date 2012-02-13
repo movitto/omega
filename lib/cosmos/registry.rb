@@ -13,18 +13,18 @@ class Registry
     @galaxies = []
   end
 
-  def find_entity(type, id)
+  def find_entity(type, name)
     return self if type == :universe
 
     @galaxies.each { |g|
-      return g if type == :galaxy && id == g.id
+      return g if type == :galaxy && name == g.name
       g.solar_systems.each { |sys|
-        return sys if type == :solar_system && id == sys.id
-        return sys.star if type == :star && id == sys.star.id
+        return sys if type == :solarsystem && name == sys.name
+        return sys.star if type == :star && name == sys.star.name
         sys.planets.each { |p|
-          return p if type == :planet && id == p.id
+          return p if type == :planet && name == p.name
           p.moons.each { |m|
-            return m if type == :moon && id == m.id
+            return m if type == :moon && name == m.name
           }
         }
       }

@@ -13,24 +13,37 @@ class SolarSystem
   attr_reader :planets
 
   def initialize(args = {})
-    name   = args[:name]
-    galaxy = args[:galaxy]
+    @name = args['name'] || args[:name]
+    @galaxy = args['galaxy']
+    @star = args.has_key?('star') ? args['star'] : Star.new(:solar_system => self)
+    @planets = args.has_key?('planets') ? args['planets'] : []
 
-    @star = Star.new :solar_system => self
-    @planets = []
-
-    # TODO parameterize planet creation
-    0.upto(rand(10)){ |i|
-      @planets << Planet.new(:solar_system => self)
-    }
-
-    # TODO generate random location
-    # @location.x = @location.y = @location.z = 
+    if args.has_key?('location')
+      @location = args['location']
+    else
+      @location = Motel::Location.new
+      # TODO generate random coordiantes ?
+      #@location.x = @location.y = @location.z = 0
+    end
   end
 
   def add_child(planet)
     # TODO rails exception unless planet.is_a? Planet
     @planets << planet
   end
+
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:name => name, :location => @location, :star => @star, :planets => @planets}
+     }.to_json(*a)
+   end
+
+   def self.json_create(o)
+     galaxy = new(o['data'])
+     return galaxy
+   end
+
 end
 end

@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'active_support/inflector'
+
 module Cosmos
 
 class RJRAdapter
@@ -16,9 +18,11 @@ class RJRAdapter
        begin
          parent_type = parent.is_a?(String) ?
                            parent.intern :
-                           parent.class.to_s.lower.underscore.intern,
+                           parent.class.to_s.downcase.underscore.split('/').last.intern
+         parent_name = parent.is_a?(String) ?
+                           parent : parent.name
 
-         rparent = registry.find_entity(parent_type, parent.id)
+         rparent = Cosmos::Registry.instance.find_entity(parent_type, parent_name)
          # TODO raise exception if rparent.nil?
 
          rparent.add_child entity
@@ -29,6 +33,9 @@ class RJRAdapter
        RJR::Logger.info "request create entity returning #{entity}"
        entity
     }
+
+    #rjr_dispatcher.add_handler('get_entity'){ |type, id|
+    #}
   end
 end # class RJRAdapter
 

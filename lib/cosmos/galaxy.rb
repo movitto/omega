@@ -10,22 +10,33 @@ class Galaxy
   attr_reader :solar_systems
 
   def initialize(args = {})
-    @name = args[:name]
+    @name = args['name'] || args[:name]
+    @solar_systems = args.has_key?('solar_systems') ? args['solar_systems'] : []
 
-    @solar_systems = []
-    @location = Motel::Location.new
-    @location.x = @location.y = @location.z = 0
-
-    # TODO parameterize system creation
-    0.upto(rand(10)) { |i|
-      @solar_systems <<  SolarSystem.new(:name   => "#{name}-system-#{i}",
-                                         :galaxy => self)
-    }
+    if args.has_key?('location')
+      @location = args['location']
+    else
+      @location = Motel::Location.new
+      @location.x = @location.y = @location.z = 0
+    end
   end
 
   def add_child(solar_system)
     # TODO rails exception unless solar_system.is_a? SolarSystem
     @solar_systems << solar_system
   end
+
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:name => @name, :location => @location, :solar_systems => @solar_systems}
+     }.to_json(*a)
+   end
+
+   def self.json_create(o)
+     galaxy = new(o['data'])
+     return galaxy
+   end
 end
 end

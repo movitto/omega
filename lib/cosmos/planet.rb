@@ -12,25 +12,36 @@ class Planet
   attr_reader :moons
 
   def initialize(args = {})
-    name   = args[:name]
-    solar_system = args[:solar_system]
+    @name = args['name'] || args[:name]
+    @solar_system = args['solar_system']
+    @moons = args.has_key?('moons') ? args['moons'] : []
 
-    @moons = []
-
-    # TODO parameterize moon creation
-    0.upto(rand(10)) { |i|
-      @moons << Moon.new(:name   => "#{name}-moon-#{i}",
-                         :solar_system => self)
-    }
-
-    # TODO generate random location
-    # @location.x = @location.y = @location.z = 
+    if args.has_key?('location')
+      @location = args['location']
+    else
+      @location = Motel::Location.new
+      # TODO generate random coordiantes ?
+      #@location.x = @location.y = @location.z = 0
+    end
   end
 
   def add_child(moon)
     # TODO rails exception unless moon.is_a? Moon
     @moons << moon
   end
+
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:name => name, :location => @location, :moons => @moons}
+     }.to_json(*a)
+   end
+
+   def self.json_create(o)
+     planet = new(o['data'])
+     return planet
+   end
 
 end
 end
