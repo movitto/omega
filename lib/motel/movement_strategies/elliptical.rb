@@ -92,7 +92,7 @@ class Elliptical < MovementStrategy
       #   return
       #end
 
-     Logger.debug "moving location #{location.id} via elliptical movement strategy"
+     RJR::Logger.debug "moving location #{location.id} via elliptical movement strategy"
 
      # calculate distance moved and update x,y,z accordingly
      distance = speed * elapsed_seconds

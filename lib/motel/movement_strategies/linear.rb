@@ -38,7 +38,7 @@ class Linear < MovementStrategy
      #  return
      #end
 
-     Logger.debug "moving location #{location.id} via linear movement strategy " +
+     RJR::Logger.debug "moving location #{location.id} via linear movement strategy " +
                   "#{speed} #{direction_vector_x}/#{direction_vector_y}/#{direction_vector_z}"
 
      # calculate distance and update x,y,z accordingly
