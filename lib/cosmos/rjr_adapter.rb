@@ -34,8 +34,17 @@ class RJRAdapter
        entity
     }
 
-    #rjr_dispatcher.add_handler('get_entity'){ |type, id|
-    #}
+    rjr_dispatcher.add_handler('get_entity'){ |type, name|
+       RJR::Logger.info "received get entity #{type} with name #{name} request"
+       entity = nil
+       begin
+         entity = Cosmos::Registry.instance.find_entity(type.intern, name)
+       rescue Exception => e
+         RJR::Logger.warn "request get entity #{type} with name #{name} failed with exception #{e}"
+       end
+       RJR::Logger.info "request get entity returning #{entity}"
+       entity
+    }
   end
 end # class RJRAdapter
 
