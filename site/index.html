@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="motel.css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="rjr/json.js"></script>
+    <script type="text/javascript" src="rjr/jrw.js"></script>
+    <script type="text/javascript" src="motel.js"></script>
+    <script type="text/javascript">
+      var client = new CosmosClient();
+      client.onopen = function(){
+        loc = new Location();
+        loc.x=20; loc.y=-30; loc.z=15;
+        //client.ws_node.invoke_request('create_location', loc);
+                                      
+        //client.track_location(2, 5);
+        //client.track_location(3, 5);
+        //client.get_entity('galaxy', 'galaxy1');
+      }
+      client.message_received = function(msg){
+        //console.log(msg);
+      }
+      client.onsuccess = function(result){
+        console.log(result);
+        //for(s=0; s<result.solar_systems.length; ++s){
+        //  sys = result.solar_systems[s];
+        //  console.log(sys);
+        //}
+      }
+      client.onfailed = function(error, msg){
+        //console.log(error);
+        //console.log(msg);
+      }
+//a = { b: 'c', toJSON: function() { alert(this); return $.toJSON(this.b); } };
+//j = $.toJSON(a);
+//alert(j);
+//alert($.evalJSON(j));
+    </script>
+  </head>
+  <body>
+    <div id="motel_canvas_container">
+      <canvas id="motel_canvas" width="1500" height="700"></canvas>
+    </div>
+  </body>
+</html>

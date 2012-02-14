@@ -1,0 +1,8 @@
+#motel_canvas_container{
+  margin: 0 auto;
+  margin-top: 50px;
+  text-align: center;
+  border: 1px solid black;
+  width: 1500px;
+  height: 700px;
+}
