@@ -116,15 +116,12 @@ class Location
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id, :movement_strategy => movement_strategy.to_json}
+         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id, :movement_strategy => movement_strategy}
      }.to_json(*a)
    end
 
    def self.json_create(o)
      loc = new(o['data'])
-     if o['data']['movement_strategy']
-       loc.movement_strategy = JSON.parse(o['data']['movement_strategy'])
-     end
      return loc
    end
 
