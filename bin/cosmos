@@ -9,27 +9,60 @@ require 'motel'
 require 'cosmos'
 require 'rjr'
 
+MAX_GALAXIES = 2
+MAX_SYSTEMS_PER_GALAXY = 3
+MAX_PLANETS_PER_SYSTEM = 3
+MAX_MOONS_PER_PLANET = 2
+
 def main()
   RJR::Logger.log_level= ::Logger::INFO
 
   rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
 
-  galaxy1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Galaxy.new(:name => 'galaxy1'), :universe)
-  galaxy2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Galaxy.new(:name => 'galaxy2'), :universe)
+  total_galaxies = total_systems = total_planets = total_moons = 0
 
-  system1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system1'), galaxy1)
-  system2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system2'), galaxy1)
-  system3 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::SolarSystem.new(:name => 'system3'), galaxy2)
+  num_galaxies = rand(MAX_GALAXIES)
+  0.upto(num_galaxies) { |gi|
+    total_galaxies += 1
+    g = rjr_node.invoke_request('motel-queue', 'create_entity', 
+             Cosmos::Galaxy.new(:name => "galaxy#{total_galaxies}"), :universe)
+    puts "Created galaxy #{g.name}"
 
-  planet1 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet1'), system1)
-  planet2 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet2'), system1)
-  planet3 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet3'), system1)
-  planet4 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet4'), system1)
+    num_systems = rand(MAX_SYSTEMS_PER_GALAXY)
+    0.upto(num_systems) { |si|
+      total_systems += 1
+      sys = rjr_node.invoke_request('motel-queue', 'create_entity',
+             Cosmos::SolarSystem.new(:name => "system#{total_systems}",
+                                     :location => Motel::Location.random(:max => g.size)), g)
+      puts "Created system #{sys.name}"
 
-  planet5 = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Planet.new(:name => 'planet5'), system2)
+      num_planets = rand(MAX_PLANETS_PER_SYSTEM)
+      0.upto(num_planets) { |pi|
+        total_planets += 1
+        # TODO randomize movement strategy
+        ploc = Motel::Location.random(:max => sys.size)
+        ploc.movement_strategy = Motel::MovementStrategies::Elliptical.new :relative_to => :center,
+                                                                           :speed => 0.1,
+                                                                           :semi_latus_rectum => 100,
+                                                                           :eccentricity => 0.5
+        pl = rjr_node.invoke_request('motel-queue', 'create_entity',
+                  Cosmos::Planet.new(:name => "planet#{total_planets}",
+                                     :location => ploc), sys)
+        puts "Created planet #{pl.name}"
 
-  moon1   = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Moon.new(:name => 'moon1'), planet1)
-  moon2   = rjr_node.invoke_request('motel-queue', 'create_entity', Cosmos::Moon.new(:name => 'moon2'), planet1)
+        num_moons = rand(MAX_MOONS_PER_PLANET)
+        0.upto(num_moons) { |mi|
+          total_moons += 1
+          mn = rjr_node.invoke_request('motel-queue', 'create_entity',
+               Cosmos::Moon.new(:name => "moon#{total_moons}",
+                 :location => Motel::Location.random(:min => pl.size, :max => pl.size * 1.3)), pl)
+          puts "Created moon #{mn.name}"
+        }
+      }
+    }
+  }
+
+  #galaxy = rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy', 'galaxy1')
 end
 
 main()
