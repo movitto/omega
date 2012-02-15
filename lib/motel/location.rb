@@ -125,6 +125,26 @@ class Location
      return loc
    end
 
+   def self.random(args = {})
+     max_x = max_y = max_z = nil
+     max_x = max_y = max_z = args[:max] if args.has_key?(:max)
+     max_x = args[:max_x] if args.has_key?(:max_x)
+     max_y = args[:max_y] if args.has_key?(:max_y)
+     max_z = args[:max_z] if args.has_key?(:max_z)
+
+     min_x = min_y = min_z = 0
+     min_x = min_y = min_z = args[:min] if args.has_key?(:min)
+     min_x = args[:min_x] if args.has_key?(:min_x)
+     min_y = args[:min_y] if args.has_key?(:min_y)
+     min_z = args[:min_z] if args.has_key?(:min_z)
+
+     loc = Location.new
+     loc.x = max_x.nil? ? rand : min_x + rand(max_x - min_x)
+     loc.y = max_y.nil? ? rand : min_y + rand(max_y - min_y)
+     loc.z = max_z.nil? ? rand : min_z + rand(max_z - min_z)
+     return loc
+   end
+
 end
 
 end # module Motel

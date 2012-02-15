@@ -8,23 +8,26 @@
     <script type="text/javascript">
       var client = new CosmosClient();
       client.onopen = function(){
-        loc = new Location();
-        loc.x=20; loc.y=-30; loc.z=15;
+        //loc = new Location();
+        //loc.x=20; loc.y=-30; loc.z=15;
         //client.ws_node.invoke_request('create_location', loc);
                                       
         //client.track_location(2, 5);
         //client.track_location(3, 5);
         //client.get_entity('galaxy', 'galaxy1');
+        client.get_entity('solarsystem', 'system1');
       }
       client.message_received = function(msg){
         //console.log(msg);
       }
       client.onsuccess = function(result){
         console.log(result);
-        //for(s=0; s<result.solar_systems.length; ++s){
-        //  sys = result.solar_systems[s];
-        //  console.log(sys);
-        //}
+        client.track_location(result.star.location.id, 5);
+        for(var p=0; p<result.planets.length; ++p){
+          planet = result.planets[p];
+          console.log(planet);
+          client.track_location(planet.location.id, 5);
+        }
       }
       client.onfailed = function(error, msg){
         //console.log(error);

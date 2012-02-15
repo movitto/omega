@@ -5,7 +5,11 @@
 
 module Cosmos
 class SolarSystem
+  # maximum size of the system in any given direction from center
+  MAX_SIZE = 100
+
   attr_reader :name
+  attr_reader :size
   attr_reader :location
 
   attr_reader :galaxy
@@ -14,16 +18,21 @@ class SolarSystem
 
   def initialize(args = {})
     @name = args['name'] || args[:name]
+    @location = args['location'] || args[:location]
     @galaxy = args['galaxy']
     @star = args.has_key?('star') ? args['star'] : Star.new(:solar_system => self)
     @planets = args.has_key?('planets') ? args['planets'] : []
 
-    if args.has_key?('location')
-      @location = args['location']
-    else
+    if @location.nil?
       @location = Motel::Location.new
-      # TODO generate random coordiantes ?
-      #@location.x = @location.y = @location.z = 0
+      @location.x = @location.y = @location.z = 0
+    end
+
+    if args.has_key?('size')
+      @size = args['size']
+    else
+      # TODO generate random size from MAX?
+      @size = MAX_SIZE
     end
   end
 

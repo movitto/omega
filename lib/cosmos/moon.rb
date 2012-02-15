@@ -12,14 +12,12 @@ class Moon
 
   def initialize(args = {})
     @name = args['name'] || args[:name]
+    @location = args['location'] || args[:location]
     @planet = args['planet']
 
-    if args.has_key?('location')
-      @location = args['location']
-    else
+    if @location.nil?
       @location = Motel::Location.new
-      # TODO generate random coordiantes ?
-      #@location.x = @location.y = @location.z = 0
+      @location.x = @location.y = @location.z = 0
     end
   end
 

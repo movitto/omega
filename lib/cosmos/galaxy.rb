@@ -5,19 +5,29 @@
 
 module Cosmos
 class Galaxy
+  # maximum size of the galaxy in any given direction from center
+  MAX_SIZE = 100
+
   attr_reader :name
+  attr_reader :size
   attr_reader :location
   attr_reader :solar_systems
 
   def initialize(args = {})
     @name = args['name'] || args[:name]
+    @location = args['location'] || args[:location]
     @solar_systems = args.has_key?('solar_systems') ? args['solar_systems'] : []
 
-    if args.has_key?('location')
-      @location = args['location']
-    else
+    if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
+    end
+
+    if args.has_key?('size')
+      @size = args['size']
+    else
+      # TODO generate random size from MAX?
+      @size = MAX_SIZE
     end
   end
 
@@ -30,7 +40,7 @@ class Galaxy
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => @name, :location => @location, :solar_systems => @solar_systems}
+         {:name => @name, :size => @size, :location => @location, :solar_systems => @solar_systems}
      }.to_json(*a)
    end
 

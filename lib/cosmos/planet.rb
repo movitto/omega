@@ -5,7 +5,11 @@
 
 module Cosmos
 class Planet
+  # maximum size of the planet
+  MAX_SIZE = 10
+
   attr_reader :name
+  attr_reader :size
   attr_reader :location
 
   attr_reader :solar_system
@@ -13,15 +17,20 @@ class Planet
 
   def initialize(args = {})
     @name = args['name'] || args[:name]
+    @location = args['location'] || args[:location]
     @solar_system = args['solar_system']
     @moons = args.has_key?('moons') ? args['moons'] : []
 
-    if args.has_key?('location')
-      @location = args['location']
-    else
+    if @location.nil?
       @location = Motel::Location.new
-      # TODO generate random coordiantes ?
-      #@location.x = @location.y = @location.z = 0
+      @location.x = @location.y = @location.z = 0
+    end
+
+    if args.has_key?('size')
+      @size = args['size']
+    else
+      # TODO generate random size from MAX?
+      @size = MAX_SIZE
     end
   end
 
