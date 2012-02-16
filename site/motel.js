@@ -4,6 +4,7 @@ function Location(){
   this.z = 0;
   this.movement_stategy = null;
   this.toJSON = function(){ return new JRObject("Motel::Location", this).toJSON(); };
+  //JRObject.class_registry['Motel::Location'] = Location;
 };
 
 function CosmosClient() {
@@ -21,6 +22,9 @@ function CosmosClient() {
       client.onsuccess(result);
   };
   this.web_node.onsuccess = function(result){
+    if(result.json_class == 'Motel::Location')
+      client.add_location(result);
+
     if(client.onsuccess)
       client.onsuccess(result);
   };
@@ -37,7 +41,7 @@ function CosmosClient() {
       client.message_received(msg);
   };
   this.web_node.message_received = function(msg){
-    if(clientmessage_receivedonfailed)
+    if(client.onfailed)
       client.message_received(msg);
   };
   this.ws_node.invoke_callback = function(method, params){
@@ -46,11 +50,18 @@ function CosmosClient() {
     if(client.invoke_callback)
       client.invoke_callback(method, params);
   };
+  this.clear_locations = function(){
+    this.locations = [];
+  }
   this.get_locations = function(){ 
     return this.locations;
   }
   this.add_location  = function(loc){
     this.locations["l" + loc.id] = loc;
+  }
+
+  this.get_location = function(id){
+    this.web_node.invoke_request('get_location', id);
   }
 
   this.track_location = function(id, min_distance){

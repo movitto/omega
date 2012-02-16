@@ -20,7 +20,7 @@ class SolarSystem
     @name = args['name'] || args[:name]
     @location = args['location'] || args[:location]
     @galaxy = args['galaxy']
-    @star = args.has_key?('star') ? args['star'] : Star.new(:solar_system => self)
+    @star = args.has_key?('star') ? args['star'] : nil
     @planets = args.has_key?('planets') ? args['planets'] : []
 
     if @location.nil?
@@ -36,9 +36,12 @@ class SolarSystem
     end
   end
 
-  def add_child(planet)
-    # TODO rails exception unless planet.is_a? Planet
-    @planets << planet
+  def add_child(child)
+    if child.is_a? Planet
+      @planets << child 
+    elsif child.is_a? Star
+      @star = child
+    end
   end
 
    def to_json(*a)

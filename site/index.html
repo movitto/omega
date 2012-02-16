@@ -21,12 +21,14 @@
         //console.log(msg);
       }
       client.onsuccess = function(result){
-        console.log(result);
-        client.track_location(result.star.location.id, 5);
-        for(var p=0; p<result.planets.length; ++p){
-          planet = result.planets[p];
-          console.log(planet);
-          client.track_location(planet.location.id, 5);
+        //console.log(result);
+        if(result.json_class == "Cosmos::SolarSystem"){
+          client.get_location(result.star.location.id);
+          for(var p=0; p<result.planets.length; ++p){
+            planet = result.planets[p];
+            //console.log(planet);
+            client.track_location(planet.location.id, 5);
+          }
         }
       }
       client.onfailed = function(error, msg){
