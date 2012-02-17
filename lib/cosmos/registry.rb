@@ -13,23 +13,60 @@ class Registry
     @galaxies = []
   end
 
-  def find_entity(type, name)
+  def find_entity(args = {})
+    type = args[:type]
+    name = args[:name]
+    # parent = args[:parent]
+    entities = []
+
     return self if type == :universe
 
     @galaxies.each { |g|
-      return g if type == :galaxy && name == g.name
-      g.solar_systems.each { |sys|
-        return sys if type == :solarsystem && name == sys.name
-        return sys.star if type == :star && name == sys.star.name
-        sys.planets.each { |p|
-          return p if type == :planet && name == p.name
-          p.moons.each { |m|
-            return m if type == :moon && name == m.name
-          }
+      if type == :galaxy
+        if name.nil?
+          entities << g
+        elsif name == g.name
+          return g
+        end
+      else
+        g.solar_systems.each { |sys|
+          if type == :solarsystem
+            if name.nil?
+              entities << sys
+            elsif name == sys.name
+              return sys
+            end
+          elsif type == :star
+            if name.nil?
+              entities << sys.star
+            elsif name == sys.star.name
+              return sys.star
+            end
+          else
+            sys.planets.each { |p|
+              if type == :planet
+                if name.nil?
+                  entities << p
+                elsif name == p.name
+                  return p
+                end
+              else
+                p.moons.each { |m|
+                  if type == :moon
+                    if name.nil?
+                      entities << m
+                    elsif name == m.name
+                      return m
+                    end
+                  end
+                }
+              end
+            }
+          end
         }
-      }
+      end
     }
-    return nil
+    return name.nil? ? entities : nil
   end
 
   def add_child(galaxy)

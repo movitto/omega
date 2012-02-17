@@ -22,7 +22,7 @@ class RJRAdapter
          parent_name = parent.is_a?(String) ?
                            parent : parent.name
 
-         rparent = Cosmos::Registry.instance.find_entity(parent_type, parent_name)
+         rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
          # TODO raise exception if rparent.nil?
 
          rparent.add_child entity
@@ -37,10 +37,14 @@ class RJRAdapter
     }
 
     rjr_dispatcher.add_handler('get_entity'){ |type, name|
-       RJR::Logger.info "received get entity #{type} with name #{name} request"
+       if name.nil?
+         RJR::Logger.info "received get entity #{type} request"
+       else
+         RJR::Logger.info "received get entity #{type} with name #{name} request"
+       end
        entity = nil
        begin
-         entity = Cosmos::Registry.instance.find_entity(type.intern, name)
+         entity = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
        rescue Exception => e
          RJR::Logger.warn "request get entity #{type} with name #{name} failed with exception #{e}"
        end
