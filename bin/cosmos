@@ -16,10 +16,12 @@ MAX_PLANETS_PER_SYSTEM = 3
 MAX_MOONS_PER_PLANET = 2
 
 # planet elliptical path boundries
-MIN_SEMI_LATUS_RECTUM = 100
-MAX_SEMI_LATUS_RECTUM = 200
+MIN_SEMI_LATUS_RECTUM = 50
+MAX_SEMI_LATUS_RECTUM = 100
 MIN_ECCENTRICITY = 0.1
 MAX_ECCENTRICITY = 0.9
+MIN_SPEED = 0.05
+MAX_SPEED = 0.09
 
 def main()
   RJR::Logger.log_level= ::Logger::INFO
@@ -50,13 +52,16 @@ def main()
       num_planets = rand(MAX_PLANETS_PER_SYSTEM)
       0.upto(num_planets) { |pi|
         total_planets += 1
-        slr = MIN_SEMI_LATUS_RECTUM + rand(MAX_SEMI_LATUS_RECTUM - MIN_SEMI_LATUS_RECTUM)
-        ecc = MIN_ECCENTRICITY + rand(MAX_ECCENTRICITY - MIN_ECCENTRICITY)
         ploc = Motel::Location.random(:max => sys.size)
-        ploc.movement_strategy = Motel::MovementStrategies::Elliptical.new :relative_to => :foci,
-                                                                           :speed => 0.1,
-                                                                           :semi_latus_rectum => slr,
-                                                                           :eccentricity => ecc
+        ploc.movement_strategy =
+          Motel::MovementStrategies::Elliptical.random(:relative_to => :foci,
+                                                       :speed => 0.1,
+                                                       :max_e => MAX_ECCENTRICITY,
+                                                       :min_e => MIN_ECCENTRICITY,
+                                                       :min_l => MAX_SEMI_LATUS_RECTUM,
+                                                       :max_l => MAX_SEMI_LATUS_RECTUM,
+                                                       :min_s => MIN_SPEED,
+                                                       :max_s => MAX_SPEED)
         pl = rjr_node.invoke_request('motel-queue', 'create_entity',
                   Cosmos::Planet.new(:name => "planet#{total_planets}",
                                      :location => ploc), sys)

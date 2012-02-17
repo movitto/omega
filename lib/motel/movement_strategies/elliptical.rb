@@ -86,11 +86,12 @@ class Elliptical < MovementStrategy
       #end
 
       ## FIXME make sure location is on ellipse
-      #unless location_valid? location
-      #   cx,cy,cz = closest_coordinates location
+      unless location_valid? location
+         cx,cy,cz = closest_coordinates location
+         location.x,location.y,location.z = cx,cy,cz
       #   Logger.warn "location #{location} not on ellipse, the closest location is #{cl}, not proceeding with move"
       #   return
-      #end
+      end
 
      RJR::Logger.debug "moving location #{location.id} via elliptical movement strategy"
 
@@ -231,6 +232,43 @@ class Elliptical < MovementStrategy
       return (x - location.x).round_to(4) == 0 &&
              (y - location.y).round_to(4) == 0 &&
              (z - location.z).round_to(4) == 0
+   end
+
+   # Generate and return a random elliptical movement strategy
+   def self.random(args = {})
+     relative_to = args.has_key?(:relative_to) ? args[:relative_to] : :center
+
+     min_e = min_l = min_s = 0
+     min_e = args[:min_e] if args.has_key?(:min_e)
+     min_l = args[:min_l] if args.has_key?(:min_l)
+     min_s = args[:min_s] if args.has_key?(:min_s)
+
+     max_e = max_l = max_s = nil
+     max_e = args[:max_e] if args.has_key?(:max_e)
+     max_l = args[:max_l] if args.has_key?(:max_l)
+     max_s = args[:max_s] if args.has_key?(:max_s)
+
+     # multiply by 10000 to ensure floats < 1 for e + speed
+     eccentricity      = max_e.nil? ? rand : ((min_e*10000 + rand(max_e*10000 - min_e*10000))/10000)
+     speed             = max_s.nil? ? rand : ((min_s*10000 + rand(max_s*10000 - min_s*10000))/10000)
+     semi_latus_rectum = max_l.nil? ? rand : (min_l + rand(max_l - min_l))
+
+     axis = Motel::random_axis
+     direction_major_x, direction_major_y, direction_major_z = *axis[0]
+     direction_minor_x, direction_minor_y, direction_minor_z = *axis[1]
+
+     strategy = Elliptical.new :relative_to => relative_to,
+                               :eccentricity => eccentricity,
+                               :semi_latus_rectum => semi_latus_rectum,
+                               :speed => speed,
+                               :direction_major_x => direction_major_x,
+                               :direction_major_y => direction_major_y,
+                               :direction_major_z => direction_major_z,
+                               :direction_minor_x => direction_minor_x,
+                               :direction_minor_y => direction_minor_y,
+                               :direction_minor_z => direction_minor_z
+
+     return strategy
    end
 
 end

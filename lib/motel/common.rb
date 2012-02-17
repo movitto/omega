@@ -34,7 +34,29 @@ end
 # determine if two vectors are orthogonal
 def self.orthogonal?(x1,y1,z1, x2,y2,z2)
   return false if x1.nil? || y1.nil? || z1.nil? || x2.nil? || y2.nil? || z2.nil?
-  return (x1 * x2 + y1 * y2 + z1 * z2).abs == 0
+  return (x1 * x2 + y1 * y2 + z1 * z2).abs < 0.00001 # TODO close enough?
+end
+
+# generate two orthogonal, normalized vectors
+def self.random_axis
+  axis = []
+
+  # generate random initial axis
+  nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
+  x1,y1,z1 = 0,0,0
+  x1,y1,z1 =
+     nx * rand(10), ny * rand(10), nz * rand(10) while x1 == 0 || y1 == 0 || z1 == 0
+  x1,y1,z1 = *Motel::normalize(x1, y1, z1)
+
+  # generate two coordinates of the second,
+  # calculate the final coordinate
+  nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
+  x2,y2 = 0,0
+  x2,y2 = nx * rand(10), ny * rand(10) while x2 == 0 || y2 == 0
+  z2 = (x1*x2 + y1*y2) * -1 / z1
+  x2,y2,z2 = *Motel::normalize(x2, y2, z2)
+
+  return [[x1,y1,z1],[x2,y2,z2]]
 end
 
 end # module Motel
