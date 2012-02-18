@@ -1,3 +1,13 @@
+#motel_locations_container{
+  position: absolute;
+  left: 25px;
+  top: 75px;
+  border: 1px solid black;
+  min-width: 350px;
+  min-height: 500px;
+  padding: 5px;
+}
+
 #motel_canvas_container{
   margin: 0 auto;
   margin-top: 50px;
