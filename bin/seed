@@ -20,7 +20,7 @@ def track_proximity(rjr_node, location1_id, location2_id, distance)
   return rjr_node.invoke_request 'motel-queue', 'track_proximity', location1_id, location2_id, "proximity", distance
 end
 
-def track_location(rjr_node, location1_id, location2_id, distance)
+def track_location(rjr_node, location_id, distance)
   RJR::Dispatcher.add_handler('track_location'){ |location_id, distance|
     puts "Location #{location_id} moved #{distance}"
   }
@@ -28,7 +28,7 @@ def track_location(rjr_node, location1_id, location2_id, distance)
 end
 
 def main()
-  Motel::Logger.log_level= ::Logger::INFO
+  RJR::Logger.log_level= ::Logger::INFO
 
   rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
   parent = create_location(rjr_node, Motel::Location.new(:x => 0, :y => 0, :z => 0))
@@ -61,8 +61,8 @@ def main()
                                       :parent_id => parent.id))
   
   #track_location(rjr_node, 2, 5)
-  track_proximity(rjr_node, 2, 4, 5)
-  rjr_node.listen
+  #track_proximity(rjr_node, 2, 4, 5)
+  #rjr_node.listen
 end
 
 main()
