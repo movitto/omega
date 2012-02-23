@@ -81,7 +81,7 @@ class RJRAdapter
        success
     }
 
-    rjr_dispatcher.add_callback('track_location') { |callback, location_id, min_distance|
+    rjr_dispatcher.add_callback('track_location') { |rjr_callback, location_id, min_distance|
        RJR::Logger.info "received track location #{location_id} request"
        loc = nil
        begin
@@ -89,7 +89,12 @@ class RJRAdapter
          on_movement = 
            Callbacks::Movement.new :min_distance => min_distance,
                                    :handler => lambda{ |loc, d, dx, dy, dz|
-             callback.invoke(loc)
+             begin
+               rjr_callback.invoke(loc)
+             rescue RJR::Errors::ConnectionError => e
+               RJR::Logger.warn "track_location client disconnected"
+               loc.movement_callbacks.delete on_movement
+             end
            }
          loc.movement_callbacks << on_movement
        rescue Exception => e
@@ -99,7 +104,7 @@ class RJRAdapter
        loc
     }
 
-    rjr_dispatcher.add_callback('track_proximity') { |callback, location1_id, location2_id, event, max_distance|
+    rjr_dispatcher.add_callback('track_proximity') { |rjr_callback, location1_id, location2_id, event, max_distance|
        RJR::Logger.info "received track proximity #{location1_id}/#{location2_id} request"
        RJR::Logger.info "track proximity #{location1_id}/#{location2_id} returning"
        begin
@@ -110,7 +115,12 @@ class RJRAdapter
                                     :event => event,
                                     :max_distance => max_distance,
                                     :handler => lambda { |location1, location2|
-             callback.invoke(loc1, loc2)
+             begin
+               rjr_callback.invoke(loc1, loc2)
+             rescue RJR::Errors::ConnectionError => e
+               RJR::Logger.warn "track_proximity client disconnected"
+               loc.proximity_callbacks.delete on_proximity
+             end
            }
            loc1.proximity_callbacks << on_proximity
        rescue Exception => e
