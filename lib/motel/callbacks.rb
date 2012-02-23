@@ -40,15 +40,10 @@ class Movement < Base
   attr_accessor :min_x, :min_y, :min_z
 
   def initialize(args = {}, &block)
-    @min_distance = 0
-    @min_x = 0
-    @min_y = 0
-    @min_z = 0
-
-    @min_distance = args[:min_distance] if args.has_key?(:min_distance)
-    @min_x = args[:min_x] if args.has_key?(:min_x)
-    @min_y = args[:min_y] if args.has_key?(:min_y)
-    @min_z = args[:min_z] if args.has_key?(:min_z)
+    @min_distance = args[:min_distance] || 0
+    @min_x        = args[:min_x]        || 0
+    @min_y        = args[:min_y]        || 0
+    @min_z        = args[:min_z]        || 0
 
     # store original coordinates internally,
     # until minimum distances are satified
