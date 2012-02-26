@@ -109,7 +109,13 @@ function draw(){
   for(loc in client.get_locations()){
     loco = client.locations[loc];
 
-    if(loco.entity.json_class == "Cosmos::Planet"){
+    if(loco.entity.json_class == "Cosmos::SolarSystem"){
+      context.beginPath();
+      context.fillStyle = "#FFFFFF";
+      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.fill();
+
+    }else if(loco.entity.json_class == "Cosmos::Planet"){
       //var cx = 288, cy = 0;
       var orbit = loco.movement_strategy.orbit;
       context.beginPath();

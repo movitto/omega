@@ -42,7 +42,7 @@ def main()
       total_systems += 1
       sys = rjr_node.invoke_request('motel-queue', 'create_entity',
              Cosmos::SolarSystem.new(:name => "system#{total_systems}",
-                                     :location => Motel::Location.random(:max => g.size)), g)
+                                     :location => Motel::Location.random(:max => g.size, :min => -1 * g.size)), g)
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
       star = rjr_node.invoke_request('motel-queue', 'create_entity',

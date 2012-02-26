@@ -4,7 +4,7 @@
   top: 75px;
   border: 1px solid black;
   min-width: 350px;
-  min-height: 500px;
+  min-height: 625px;
   padding: 5px;
 }
 
@@ -21,4 +21,25 @@
   cursor: crosshair;
   /*cursor: move;
   cursor: pointer;*/
+}
+
+#motel_locations_container_title{
+  border-bottom: 1px solid black;
+  width: 100%;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+#motel_locations_container ul{
+  list-style: none;
+  padding-left: 15px;
+  padding-top: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+#motel_locations_container > ul{
+  list-style: circle;
+  padding-left: 25px;
 }

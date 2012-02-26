@@ -6,7 +6,7 @@
 module Cosmos
 class Galaxy
   # maximum size of the galaxy in any given direction from center
-  MAX_SIZE = 100
+  MAX_SIZE = 350
 
   attr_reader :name
   attr_reader :size
@@ -14,20 +14,14 @@ class Galaxy
   attr_reader :solar_systems
 
   def initialize(args = {})
-    @name = args['name'] || args[:name]
-    @location = args['location'] || args[:location]
-    @solar_systems = args.has_key?('solar_systems') ? args['solar_systems'] : []
+    @name          = args['name']          || args[:name]
+    @location      = args['location']      || args[:location]
+    @size          = args['size']          || args[:size] || MAX_SIZE # TODO generate random size from MAX?
+    @solar_systems = args['solar_systems'] || []
 
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
-    end
-
-    if args.has_key?('size')
-      @size = args['size']
-    else
-      # TODO generate random size from MAX?
-      @size = MAX_SIZE
     end
   end
 

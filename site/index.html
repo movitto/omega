@@ -6,6 +6,7 @@
     <script type="text/javascript" src="rjr/jrw.js"></script>
     <script type="text/javascript" src="motel.js"></script>
     <script type="text/javascript">
+      var current_galaxy = null;
       var current_system = null;
       var client = new CosmosClient();
       client.onopen = function(){
@@ -18,40 +19,67 @@
         //client.get_entity('solarsystem', 'system1');
         //client.get_entity('galaxy', 'galaxy1');
 
-        if(current_system == null){
-          client.get_entity('galaxy', 'galaxy1');
-        }else
+        if(current_galaxy != null)
+          client.get_entity('galaxy', current_galaxy);
+        else if(current_system != null)
           client.get_entity('solarsystem', current_system);
+        else
+          client.get_entity('galaxy');
       }
       client.message_received = function(msg){
         //console.log(msg);
       }
       client.onsuccess = function(result){
-        //console.log(result);
-        if(result.json_class == "Cosmos::Galaxy"){
-          data  = result.name;
-          data += "<ul>";
-          for(var s=0;s<result.solar_systems.length;++s){
-            var sname = result.solar_systems[s].name;
-            data += "<li>";
-            data += "<span id='" + sname + "'class='entity_title solar_system_title'>" + sname + "</span>";
+        if(isArray(result)   &&
+           result.length > 0 &&
+           result[0].json_class == "Cosmos::Galaxy"){
+
+          data  = "<span id='motel_locations_container_title'>Locations:</span><ul>"
+          for(var g=0;g<result.length;++g){
+            var galaxy = result[g];
+            data += "<li><span id='" + galaxy.name + "' class='entity_title galaxy_title'>" + galaxy.name + "</span></li>";
             data += "<ul>";
-              for(var p=0;p<result.solar_systems[s].planets.length;++p){
-                var pname = result.solar_systems[s].planets[p].name;
+
+            for(var s=0;s<galaxy.solar_systems.length;++s){
+              var sname = galaxy.solar_systems[s].name;
+              data += "<li>";
+              data += "<span id='" + sname + "'class='entity_title solar_system_title'>" + sname + "</span>";
+              data += "<ul>";
+              for(var p=0;p<galaxy.solar_systems[s].planets.length;++p){
+                var pname = galaxy.solar_systems[s].planets[p].name;
                 data += "<li>" + pname + "</li>";
               }
+              data += "</ul>";
+            }
             data += "</ul>";
-            data += "</li>";
+
           }
-          data += "</ul>";
+          data += "</ul>"
+
           $("#motel_locations_container").html(data);
+          $('.galaxy_title').live('click', function(event){
+            current_galaxy = event.currentTarget.id;
+            current_system = null;
+            client.disconnect();
+            client.clear_locations();
+            client.connect();
+            $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/galaxy.png") no-repeat');
+          });
           $('.solar_system_title').live('click', function(event){
+            current_galaxy = null;
             current_system = event.currentTarget.id;
             client.disconnect();
             client.clear_locations();
             client.connect();
+            $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/system.png") no-repeat');
           });
-          $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/galaxy.png") no-repeat');
+
+        }else if(result.json_class == "Cosmos::Galaxy"){
+          for(var s=0; s<result.solar_systems.length; ++s){
+            system = result.solar_systems[s];
+            system.location.entity = system;
+            client.add_location(system.location);
+          }
 
         }else if(result.json_class == "Cosmos::SolarSystem"){
           //client.get_location(result.star.location.id);
@@ -66,7 +94,6 @@
             //console.log(planet);
             client.track_location(planet.location.id, 5);
           }
-          $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/system.png") no-repeat');
 
         }
 
