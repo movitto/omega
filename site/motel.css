@@ -16,3 +16,9 @@
   width: 1500px;
   height: 700px;
 }
+
+#motel_locations_container .entity_title{
+  cursor: crosshair;
+  /*cursor: move;
+  cursor: pointer;*/
+}

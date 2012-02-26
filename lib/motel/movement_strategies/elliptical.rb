@@ -26,11 +26,14 @@ class Elliptical < MovementStrategy
    attr_accessor :direction_major_x, :direction_major_y, :direction_major_z,
                  :direction_minor_x, :direction_minor_y, :direction_minor_z
 
+   # cache the orbital path
+   attr_accessor :orbit
+
    def initialize(args = {})
-      @relative_to        = args[:relative_to]       if args.has_key? :relative_to
-      @speed              = args[:speed]             if args.has_key? :speed
-      @eccentricity       = args[:eccentricity]      if args.has_key? :eccentricity
-      @semi_latus_rectum  = args[:semi_latus_rectum] if args.has_key? :semi_latus_rectum
+     @relative_to        = args[:relative_to]       if args.has_key? :relative_to
+     @speed              = args[:speed]             if args.has_key? :speed
+     @eccentricity       = args[:eccentricity]      if args.has_key? :eccentricity
+     @semi_latus_rectum  = args[:semi_latus_rectum] if args.has_key? :semi_latus_rectum
 
      @direction_major_x   = args[:direction_major_x] if args.has_key? :direction_major_x
      @direction_major_y   = args[:direction_major_y] if args.has_key? :direction_major_y
@@ -57,6 +60,8 @@ class Elliptical < MovementStrategy
      unless Motel::orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z)
         raise InvalidMovementStrategy.new("elliptical direction vectors not orthogonal")
      end
+
+     calculate_orbit
    end
 
    def e
@@ -110,7 +115,8 @@ class Elliptical < MovementStrategy
                          :speed        => speed,
                          :relative_to  => relative_to,
                          :eccentricity => eccentricity,
-                         :semi_latus_rectum  => semi_latus_rectum,
+                         :semi_latus_rectum => semi_latus_rectum,
+                         :orbit             => orbit,
                          :direction_major_x => direction_major_x,
                          :direction_major_y => direction_major_y,
                          :direction_major_z => direction_major_z,
@@ -123,6 +129,17 @@ class Elliptical < MovementStrategy
   private
 
     ### internal helper movement methods
+
+    # precalculate the orbit
+    def calculate_orbit
+      @orbit = []
+
+      0.upto(365) { |i|
+        distance = i / 57.295
+        coords = coordinates_from_theta(distance)
+        @orbit << coords
+      }
+    end
 
     # return the a,b intercepts of the ellipse
     # p = a(1 - e^2) = b^2 / a
@@ -213,6 +230,12 @@ class Elliptical < MovementStrategy
        x = cX + a * Math.cos(theta) * direction_major_x + b * Math.sin(theta) * direction_minor_x
        y = cY + a * Math.cos(theta) * direction_major_y + b * Math.sin(theta) * direction_minor_y
        z = cZ + a * Math.cos(theta) * direction_major_z + b * Math.sin(theta) * direction_minor_z
+
+       # round to two decimal places (FIXME remove?)
+       x = x.round_to(2)
+       y = y.round_to(2)
+       z = z.round_to(2)
+
        return x,y,z
     end
 

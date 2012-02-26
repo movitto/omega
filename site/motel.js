@@ -2,74 +2,98 @@ function Location(){
   this.x = 0;
   this.y = 0;
   this.z = 0;
-  this.movement_stategy = null;
+  this.movement_strategy = null;
+  this.entity = null;
+
+  this.update = function(new_location){
+    this.x = new_location.x;
+    this.y = new_location.y;
+    this.z = new_location.z;
+
+    if(new_location.movement_strategy)
+      this.movement_strategy = new_location.movement_strategy;
+
+    if(new_location.entity)
+      this.entity = new_location.entity;
+  };
+
   this.toJSON = function(){ return new JRObject("Motel::Location", this).toJSON(); };
   //JRObject.class_registry['Motel::Location'] = Location;
 };
 
 function CosmosClient() {
-  client = this;
+  var client = this;
   this.locations = [];
-  this.web_node = new WebNode('http://localhost/motel');
-  this.ws_node  = new WSNode('127.0.0.1', '8080');
-  this.ws_node.open();
-  this.ws_node.onopen = function(){
-    if(client.onopen)
-      client.onopen();
-  };
-  this.ws_node.onsuccess = function(result){
-    if(client.onsuccess)
-      client.onsuccess(result);
-  };
-  this.web_node.onsuccess = function(result){
-    if(result.json_class == 'Motel::Location')
-      client.add_location(result);
+  this.connect = function(){
+    client.web_node = new WebNode('http://localhost/motel');
+    client.ws_node  = new WSNode('127.0.0.1', '8080');
+    client.ws_node.open();
+    client.ws_node.onopen = function(){
+      if(client.onopen)
+        client.onopen();
+    };
+    client.ws_node.onsuccess = function(result){
+      if(client.onsuccess)
+        client.onsuccess(result);
+    };
+    client.web_node.onsuccess = function(result){
+      if(result.json_class == 'Motel::Location')
+        client.add_location(result);
 
-    if(client.onsuccess)
-      client.onsuccess(result);
+      if(client.onsuccess)
+        client.onsuccess(result);
+    };
+    client.ws_node.onfailed = function(error, msg){
+      if(client.onfailed)
+        client.onfailed(error, msg);
+    };
+    client.web_node.onfailed = function(error, msg){
+      if(client.onfailed)
+        client.onfailed(error, msg);
+    };
+    client.ws_node.message_received = function(msg){
+      if(client.message_received)
+        client.message_received(msg);
+    };
+    client.web_node.message_received = function(msg){
+      if(client.onfailed)
+        client.message_received(msg);
+    };
+    client.ws_node.invoke_callback = function(method, params){
+      if(method == 'track_location')
+        client.add_location(params[0]);
+
+      if(client.invoke_callback)
+        client.invoke_callback(method, params);
+    };
   };
-  this.ws_node.onfailed = function(error, msg){
-    if(client.onfailed)
-      client.onfailed(error, msg);
-  };
-  this.web_node.onfailed = function(error, msg){
-    if(client.onfailed)
-      client.onfailed(error, msg);
-  };
-  this.ws_node.message_received = function(msg){
-    if(client.message_received)
-      client.message_received(msg);
-  };
-  this.web_node.message_received = function(msg){
-    if(client.onfailed)
-      client.message_received(msg);
-  };
-  this.ws_node.invoke_callback = function(method, params){
-    if(method == 'track_location')
-      client.add_location(params[0]);
-    if(client.invoke_callback)
-      client.invoke_callback(method, params);
-  };
+  this.disconnect = function(){
+    client.ws_node.close();
+  }
+
   this.clear_locations = function(){
-    this.locations = [];
+    client.locations = [];
   }
   this.get_locations = function(){ 
-    return this.locations;
+    return client.locations;
   }
   this.add_location  = function(loc){
-    this.locations["l" + loc.id] = loc;
+    var key = "l" + loc.id;
+    if(!client.locations[key])
+      client.locations[key] = new Location();
+    client.locations[key].update(loc);
   }
 
   this.get_location = function(id){
-    this.web_node.invoke_request('get_location', id);
+    client.web_node.invoke_request('get_location', id);
   }
 
   this.track_location = function(id, min_distance){
-    this.ws_node.invoke_request('track_location', id, min_distance);
+    client.ws_node.invoke_request('track_location', id, min_distance);
   }
 
   this.get_entity = function(entity, name){
-    this.web_node.invoke_request('get_entity', entity, name);
+    client.web_node.invoke_request('get_entity', entity, name);
   }
 };
 
@@ -80,15 +104,32 @@ function draw(){
   height  = canvas.height();
 
   // clear drawing area
-  context.fillStyle = '#fff';
-  context.fillRect(0, 0, width, height);
+  context.clearRect(0, 0, width, height);
 
   for(loc in client.get_locations()){
     loco = client.locations[loc];
-    context.beginPath();
-    context.fillStyle = "#000";
-    context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
-    context.fill();
+
+    if(loco.entity.json_class == "Cosmos::Planet"){
+      //var cx = 288, cy = 0;
+      var orbit = loco.movement_strategy.orbit;
+      context.beginPath();
+      for(orbiti in orbit){
+        var orbito = orbit[orbiti];
+        context.lineTo(orbito[0] + width/2, orbito[1] + height/2);
+      }
+      context.strokeStyle = "#AAAAAA";
+      context.stroke();
+
+      context.beginPath();
+      context.fillStyle = "#" + loco.entity.color;
+      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.fill();
+    }else if(loco.entity.json_class == "Cosmos::Star"){
+      context.beginPath();
+      context.fillStyle = "#FFFF00";
+      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.fill();
+    }
   }
 }
 

@@ -27,7 +27,10 @@ class RJRAdapter
 
          rparent.add_child entity
 
-         Motel::Runner.instance.run entity.location unless entity.location.nil?
+         unless entity.location.nil?
+           # entity.location.entity = entity
+           Motel::Runner.instance.run entity.location
+         end
 
        rescue Exception => e
          RJR::Logger.warn "request create entity #{entity} failed with exception #{e}"

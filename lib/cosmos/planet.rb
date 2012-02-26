@@ -10,27 +10,24 @@ class Planet
 
   attr_reader :name
   attr_reader :size
+  attr_reader :color
   attr_reader :location
 
   attr_reader :solar_system
   attr_reader :moons
 
   def initialize(args = {})
-    @name = args['name'] || args[:name]
+    @name     = args['name']     || args[:name]
     @location = args['location'] || args[:location]
+    @color    = args['color']    || args[:color]    || ("%06x" % (rand * 0xffffff))
+    @size     = args['size']     || args[:size]     || MAX_SIZE # TODO generate random size from MAX?
+
+    @moons        = args['moons'] || []
     @solar_system = args['solar_system']
-    @moons = args.has_key?('moons') ? args['moons'] : []
 
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
-    end
-
-    if args.has_key?('size')
-      @size = args['size']
-    else
-      # TODO generate random size from MAX?
-      @size = MAX_SIZE
     end
   end
 
@@ -43,7 +40,7 @@ class Planet
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => name, :location => @location, :moons => @moons}
+         {:name => name, :color => color, :location => @location, :moons => @moons}
      }.to_json(*a)
    end
 
