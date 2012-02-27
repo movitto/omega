@@ -10,9 +10,9 @@ require 'cosmos'
 require 'rjr'
 
 # cosmos entity generation boundries
-MAX_GALAXIES = 2
-MAX_SYSTEMS_PER_GALAXY = 3
-MAX_PLANETS_PER_SYSTEM = 3
+MAX_GALAXIES = 5
+MAX_SYSTEMS_PER_GALAXY = 5
+MAX_PLANETS_PER_SYSTEM = 5
 MAX_MOONS_PER_PLANET = 2
 
 # planet elliptical path boundries
@@ -37,12 +37,14 @@ def main()
              Cosmos::Galaxy.new(:name => "galaxy#{total_galaxies}"), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
+    systems = []
     num_systems = rand(MAX_SYSTEMS_PER_GALAXY)
     0.upto(num_systems) { |si|
       total_systems += 1
       sys = rjr_node.invoke_request('motel-queue', 'create_entity',
              Cosmos::SolarSystem.new(:name => "system#{total_systems}",
                                      :location => Motel::Location.random(:max => g.size, :min => -1 * g.size)), g)
+      systems << sys
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
       star = rjr_node.invoke_request('motel-queue', 'create_entity',
@@ -77,6 +79,23 @@ def main()
         }
       }
     }
+
+    # after systems have been created in galaxy, connect them through jump gates
+    if systems.size > 1
+      0.upto(systems.size - 1){ |si|
+        sys = systems[si]
+        num_gates = (1 + rand(systems.size-2)).to_i
+        endpoint  = si - 1
+        if endpoint >= 0
+          0.upto(num_gates) { |ji|
+            gate = rjr_node.invoke_request('motel-queue', 'create_entity',
+                     Cosmos::JumpGate.new(:solar_system => sys, :endpoint => systems[endpoint]), sys)
+            endpoint -= 1
+            puts "Created jump_gate from #{gate.solar_system} to #{gate.endpoint} (loc #{gate.location.id})"
+          }
+        end
+      }
+    end
   }
 
   #galaxy = rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy', 'galaxy1')

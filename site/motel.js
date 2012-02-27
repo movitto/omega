@@ -110,13 +110,33 @@ function draw(){
     loco = client.locations[loc];
 
     if(loco.entity.json_class == "Cosmos::SolarSystem"){
+      // draw jumpgates
+      for(var j=0; j<loco.entity.jump_gates.length;++j){
+        var jg = loco.entity.jump_gates[j];
+        var endpoint = null;
+        for(eloc in client.locations){
+          if(jg.endpoint == client.locations[eloc].entity.name){
+            endpoint = client.locations[eloc];
+            break;
+          }
+        }
+        if(endpoint != null){
+          context.beginPath();
+          context.fillStyle = "#FFFFFF";
+          context.moveTo(loco.x     + width/2, loco.y     + height/2);
+          context.lineTo(endpoint.x + width/2, endpoint.y + height/2);
+          context.stroke();
+        }
+      }
+
+      // draw circle representing system
       context.beginPath();
-      context.fillStyle = "#FFFFFF";
+      context.strokeStyle = "#FFFFFF";
       context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
       context.fill();
 
     }else if(loco.entity.json_class == "Cosmos::Planet"){
-      //var cx = 288, cy = 0;
+      // draw orbit path
       var orbit = loco.movement_strategy.orbit;
       context.beginPath();
       for(orbiti in orbit){
@@ -126,11 +146,14 @@ function draw(){
       context.strokeStyle = "#AAAAAA";
       context.stroke();
 
+      // draw circle representing planet
       context.beginPath();
       context.fillStyle = "#" + loco.entity.color;
       context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
       context.fill();
+
     }else if(loco.entity.json_class == "Cosmos::Star"){
+      // draw circle representing star
       context.beginPath();
       context.fillStyle = "#FFFF00";
       context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);

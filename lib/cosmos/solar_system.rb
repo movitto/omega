@@ -15,30 +15,28 @@ class SolarSystem
   attr_reader :galaxy
   attr_reader :star
   attr_reader :planets
+  attr_reader :jump_gates
 
   def initialize(args = {})
-    @name = args['name'] || args[:name]
-    @location = args['location'] || args[:location]
-    @galaxy = args['galaxy']
-    @star = args.has_key?('star') ? args['star'] : nil
-    @planets = args.has_key?('planets') ? args['planets'] : []
+    @name       = args['name']       || args[:name]
+    @location   = args['location']   || args[:location]
+    @star       = args['star']       || nil
+    @size       = args['size']       || MAX_SIZE # TODO generate random size from MAX?
+    @galaxy     = args['galaxy']
+    @planets    = args['planets']    || []
+    @jump_gates = args['jump_gates'] || []
 
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
-    end
-
-    if args.has_key?('size')
-      @size = args['size']
-    else
-      # TODO generate random size from MAX?
-      @size = MAX_SIZE
     end
   end
 
   def add_child(child)
     if child.is_a? Planet
       @planets << child 
+    elsif child.is_a? JumpGate
+      @jump_gates << child
     elsif child.is_a? Star
       @star = child
     end
@@ -48,7 +46,8 @@ class SolarSystem
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => name, :location => @location, :star => @star, :planets => @planets}
+         {:name => name, :location => @location,
+          :star => @star, :planets => @planets, :jump_gates => @jump_gates}
      }.to_json(*a)
    end
 
