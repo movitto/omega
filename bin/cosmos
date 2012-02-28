@@ -74,7 +74,7 @@ def main()
           total_moons += 1
           mn = rjr_node.invoke_request('motel-queue', 'create_entity',
                Cosmos::Moon.new(:name => "moon#{total_moons}",
-                 :location => Motel::Location.random(:min => pl.size, :max => pl.size * 1.3)), pl)
+                 :location => Motel::Location.random(:min => pl.size, :max => pl.size * 2.3)), pl)
           puts "Created moon #{mn.name} (loc #{mn.location.id})"
         }
       }

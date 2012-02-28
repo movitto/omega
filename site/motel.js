@@ -172,6 +172,17 @@ function draw(){
       context.arc(loco.x + width/2, height/2 - loco.y, 15, 0, Math.PI*2, true);
       context.fill();
 
+      // draw moons
+      for(var m=0; m<loco.entity.moons.length; ++m){
+        var moon = loco.entity.moons[m];
+        context.beginPath();
+        context.fillStyle = "#808080";
+        context.arc(loco.x + moon.location.x + width/2,
+                    height/2 - (loco.y + moon.location.y),
+                    5, 0, Math.PI*2, true);
+        context.fill();
+      }
+
     }else if(loco.entity.json_class == "Cosmos::Star"){
       // draw circle representing star
       context.beginPath();
