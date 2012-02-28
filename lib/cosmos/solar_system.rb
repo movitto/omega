@@ -6,7 +6,7 @@
 module Cosmos
 class SolarSystem
   # maximum size of the system in any given direction from center
-  MAX_SIZE = 100
+  MAX_SIZE = 500
 
   attr_reader :name
   attr_reader :size

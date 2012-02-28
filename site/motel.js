@@ -17,6 +17,10 @@ function Location(){
       this.entity = new_location.entity;
   };
 
+  this.within_distance = function(x, y, distance){
+    return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2)) < distance;
+  };
+
   this.toJSON = function(){ return new JRObject("Motel::Location", this).toJSON(); };
   //JRObject.class_registry['Motel::Location'] = Location;
 };
@@ -97,6 +101,18 @@ function CosmosClient() {
   }
 };
 
+// initialize mouse input
+mouse_down_x          = null;
+mouse_down_y          = null;
+mouse_current_x       = null;
+mouse_current_y       = null;
+
+// initialize select box
+select_box_top_left_x = null;
+select_box_top_left_y = null;
+select_box_width      = null;
+select_box_height     = null;
+
 function draw(){
   canvas  = $('#motel_canvas')
   context = canvas[0].getContext('2d');
@@ -123,8 +139,8 @@ function draw(){
         if(endpoint != null){
           context.beginPath();
           context.fillStyle = "#FFFFFF";
-          context.moveTo(loco.x     + width/2, loco.y     + height/2);
-          context.lineTo(endpoint.x + width/2, endpoint.y + height/2);
+          context.moveTo(loco.x     + width/2, height/2 - loco.y    );
+          context.lineTo(endpoint.x + width/2, height/2 - endpoint.y);
           context.stroke();
         }
       }
@@ -132,8 +148,12 @@ function draw(){
       // draw circle representing system
       context.beginPath();
       context.strokeStyle = "#FFFFFF";
-      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.arc(loco.x + width/2, height/2 - loco.y, 15, 0, Math.PI*2, true);
       context.fill();
+
+      // draw label
+      context.font = 'bold 16px sans-serif';
+      context.fillText(loco.entity.name, loco.x + width/2 - 25, height/2 - loco.y - 25);
 
     }else if(loco.entity.json_class == "Cosmos::Planet"){
       // draw orbit path
@@ -141,7 +161,7 @@ function draw(){
       context.beginPath();
       for(orbiti in orbit){
         var orbito = orbit[orbiti];
-        context.lineTo(orbito[0] + width/2, orbito[1] + height/2);
+        context.lineTo(orbito[0] + width/2, height/2 - orbito[1]);
       }
       context.strokeStyle = "#AAAAAA";
       context.stroke();
@@ -149,18 +169,118 @@ function draw(){
       // draw circle representing planet
       context.beginPath();
       context.fillStyle = "#" + loco.entity.color;
-      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.arc(loco.x + width/2, height/2 - loco.y, 15, 0, Math.PI*2, true);
       context.fill();
 
     }else if(loco.entity.json_class == "Cosmos::Star"){
       // draw circle representing star
       context.beginPath();
       context.fillStyle = "#FFFF00";
-      context.arc(loco.x + width/2, loco.y + height/2, 15, 0, Math.PI*2, true);
+      context.arc(loco.x + width/2, height/2 - loco.y, 15, 0, Math.PI*2, true);
       context.fill();
+    }else if(loco.entity.json_class == "Cosmos::JumpGate"){
+      // draw triangle representing gate
+      context.beginPath();
+      context.fillStyle = "#00CC00";
+      context.moveTo(loco.x + width/2,      height/2 - loco.y - 15);
+      context.lineTo(loco.x + width/2 - 15, height/2 - loco.y + 15);
+      context.lineTo(loco.x + width/2 + 15, height/2 - loco.y + 15);
+      context.lineTo(loco.x + width/2,      height/2 - loco.y - 15);
+      context.fill();
+
+      // draw name of system gate is to
+      context.font = 'bold 16px sans-serif';
+      context.fillText(loco.entity.endpoint, loco.x   + width/2 - 25,
+                                             height/2 - loco.y  - 25);
     }
   }
+
+  // draw the select box
+  if(select_box_top_left_x && select_box_top_left_y &&
+     select_box_width      && select_box_height){
+      context.beginPath();
+      context.fillStyle = "rgba(142, 214, 255, 0.5)";
+      context.rect(select_box_top_left_x + width/2, height/2 - select_box_top_left_y,
+                   select_box_width, select_box_height);
+      context.fill();
+  }
 }
+
+function update_select_box(){
+  if(mouse_down_x    && mouse_down_y &&
+     mouse_current_x && mouse_current_y){
+       if(mouse_current_x < mouse_down_x){
+         select_box_top_left_x     = mouse_current_x;
+         select_box_bottom_right_x = mouse_down_x;
+       }else{
+         select_box_top_left_x     = mouse_down_x;
+         select_box_bottom_right_x = mouse_current_x;
+       }
+
+       if(mouse_current_y < mouse_down_y){
+         select_box_top_left_y     = mouse_current_y;
+         select_box_bottom_right_y = mouse_down_y;
+       }else{
+         select_box_top_left_y     = mouse_down_y;
+         select_box_bottom_right_y = mouse_current_y;
+       }
+       select_box_width  = select_box_bottom_right_x - select_box_top_left_x;
+       select_box_height = select_box_top_left_y     - select_box_bottom_right_y
+  }else{
+    select_box_top_left_x     = null;
+    select_box_top_left_y     = null;
+    select_box_bottom_right_x = null;
+    select_box_bottom_right_y = null;
+    select_box_width          = null;
+    select_box_height         = null;
+  }
+}
+
+// handle click input
+$('#motel_canvas').live('click', function(e){
+  canvas  = $('#motel_canvas')
+  width   = canvas.width();
+  height  = canvas.height();
+  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left - width / 2);
+  var y = Math.floor(height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+
+  for(loc in client.get_locations()){
+    loco = client.locations[loc];
+    if(loco && loco.within_distance(x, y, 125)){
+console.log("clicked on " + loco.entity.name);
+      if(loco.entity.json_class == "Cosmos::SolarSystem"){
+        client.current_galaxy = null;
+        client.current_system = loco.entity.name;
+        client.disconnect();
+        client.clear_locations();
+        client.connect();
+      }
+    }
+  }
+});
+
+$('#motel_canvas').live('mousemove', function(e){
+  mouse_current_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - width / 2);
+  mouse_current_y = Math.floor(height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  update_select_box();
+});
+
+// handle mouse down event
+$('#motel_canvas').live('mousedown', function(e){
+  canvas  = $('#motel_canvas')
+  width   = canvas.width();
+  height  = canvas.height();
+  mouse_down_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - width / 2);
+  mouse_down_y = Math.floor(height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  update_select_box();
+//console.log("coords: " + x + " / " + y);
+});
+
+// handle mouse up event
+$('#motel_canvas').live('mouseup', function(e){
+  mouse_down_x = null; mouse_down_y = null;
+  update_select_box();
+});
 
 $(document).ready(function(){
   setInterval(draw, 5);

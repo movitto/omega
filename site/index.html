@@ -6,9 +6,9 @@
     <script type="text/javascript" src="rjr/jrw.js"></script>
     <script type="text/javascript" src="motel.js"></script>
     <script type="text/javascript">
-      var current_galaxy = null;
-      var current_system = null;
       var client = new CosmosClient();
+      client.current_galaxy = null;
+      client.current_system = null;
       client.onopen = function(){
         //loc = new Location();
         //loc.x=20; loc.y=-30; loc.z=15;
@@ -19,10 +19,10 @@
         //client.get_entity('solarsystem', 'system1');
         //client.get_entity('galaxy', 'galaxy1');
 
-        if(current_galaxy != null)
-          client.get_entity('galaxy', current_galaxy);
-        else if(current_system != null)
-          client.get_entity('solarsystem', current_system);
+        if(client.current_galaxy != null)
+          client.get_entity('galaxy', client.current_galaxy);
+        else if(client.current_system != null)
+          client.get_entity('solarsystem', client.current_system);
         else
           client.get_entity('galaxy');
       }
@@ -58,16 +58,16 @@
 
           $("#motel_locations_container").html(data);
           $('.galaxy_title').live('click', function(event){
-            current_galaxy = event.currentTarget.id;
-            current_system = null;
+            client.current_galaxy = event.currentTarget.id;
+            client.current_system = null;
             client.disconnect();
             client.clear_locations();
             client.connect();
             $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/galaxy.png") no-repeat');
           });
           $('.solar_system_title').live('click', function(event){
-            current_galaxy = null;
-            current_system = event.currentTarget.id;
+            client.current_galaxy = null;
+            client.current_system = event.currentTarget.id;
             client.disconnect();
             client.clear_locations();
             client.connect();
@@ -93,6 +93,12 @@
 
             //console.log(planet);
             client.track_location(planet.location.id, 5);
+          }
+
+          for(var j=0; j<result.jump_gates.length; ++j){
+            gate = result.jump_gates[j];
+            gate.location.entity = gate;
+            client.add_location(gate.location);
           }
 
         }
