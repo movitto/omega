@@ -17,6 +17,17 @@
   height: 700px;
 }
 
+#motel_entity_container{
+  display: none;
+  position: absolute;
+  right: 25px;
+  top: 75px;
+  min-width: 350px;
+  min-height: 625px;
+  padding: 5px;
+  border: 1px solid black;
+}
+
 #motel_locations_container .entity_title{
   cursor: crosshair;
   /*cursor: move;

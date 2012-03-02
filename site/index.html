@@ -21,9 +21,10 @@
 
         if(client.current_galaxy != null)
           client.get_entity('galaxy', client.current_galaxy);
-        else if(client.current_system != null)
+        else if(client.current_system != null){
           client.get_entity('solarsystem', client.current_system);
-        else
+          client.get_entities(client.current_system);
+        }else
           client.get_entity('galaxy');
       }
       client.message_received = function(msg){
@@ -54,7 +55,7 @@
             data += "</ul>";
 
           }
-          data += "</ul>"
+          data += "</ul>";
 
           $("#motel_locations_container").html(data);
           $('.galaxy_title').live('click', function(event){
@@ -101,6 +102,15 @@
             client.add_location(gate.location);
           }
 
+        }else if(isArray(result)   &&
+           result.length > 0 &&
+           (result[0].json_class == "Manufactured::Ship" ||
+            result[0].json_class == "Manufactured::Station")){
+              for(var e=0;e<result.length;++e){
+                var entity = result[e];
+                entity.location.entity = entity;
+                client.add_location(entity.location);
+              }
         }
 
       }
@@ -116,5 +126,6 @@
     <div id="motel_canvas_container">
       <canvas id="motel_canvas" width="1500" height="700"></canvas>
     </div>
+    <div id="motel_entity_container"></div>
   </body>
 </html>

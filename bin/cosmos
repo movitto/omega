@@ -7,6 +7,7 @@
 require 'rubygems'
 require 'motel'
 require 'cosmos'
+require 'manufactured'
 require 'rjr'
 
 # cosmos entity generation boundries
@@ -14,6 +15,10 @@ MAX_GALAXIES = 5
 MAX_SYSTEMS_PER_GALAXY = 5
 MAX_PLANETS_PER_SYSTEM = 5
 MAX_MOONS_PER_PLANET = 2
+
+# manufacture entity generation
+MAX_SHIPS    = 5
+MAX_STATIONS = 5
 
 # planet elliptical path boundries
 MIN_SEMI_LATUS_RECTUM = 50
@@ -29,6 +34,9 @@ def main()
   rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
 
   total_galaxies = total_systems = total_planets = total_moons = 0
+  total_ships = total_stations = 0
+
+  all_systems = []
 
   num_galaxies = rand(MAX_GALAXIES)
   0.upto(num_galaxies) { |gi|
@@ -37,14 +45,15 @@ def main()
              Cosmos::Galaxy.new(:name => "galaxy#{total_galaxies}"), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
-    systems = []
+    galaxy_systems = []
     num_systems = rand(MAX_SYSTEMS_PER_GALAXY)
     0.upto(num_systems) { |si|
       total_systems += 1
       sys = rjr_node.invoke_request('motel-queue', 'create_entity',
              Cosmos::SolarSystem.new(:name => "system#{total_systems}",
                                      :location => Motel::Location.random(:max => g.size, :min => -1 * g.size)), g)
-      systems << sys
+      all_systems    << sys
+      galaxy_systems << sys
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
       star = rjr_node.invoke_request('motel-queue', 'create_entity',
@@ -81,15 +90,15 @@ def main()
     }
 
     # after systems have been created in galaxy, connect them through jump gates
-    if systems.size > 1
-      0.upto(systems.size - 1){ |si|
-        sys = systems[si]
-        num_gates = (1 + rand(systems.size-2)).to_i
+    if galaxy_systems.size > 1
+      0.upto(galaxy_systems.size - 1){ |si|
+        sys = galaxy_systems[si]
+        num_gates = (1 + rand(galaxy_systems.size-2)).to_i
         endpoint  = si - 1
         if endpoint >= 0
           0.upto(num_gates) { |ji|
             gate = rjr_node.invoke_request('motel-queue', 'create_entity',
-                     Cosmos::JumpGate.new(:solar_system => sys, :endpoint => systems[endpoint]), sys)
+                     Cosmos::JumpGate.new(:solar_system => sys, :endpoint => galaxy_systems[endpoint]), sys)
             endpoint -= 1
             puts "Created jump_gate from #{gate.solar_system} to #{gate.endpoint} (loc #{gate.location.id})"
           }
@@ -97,6 +106,35 @@ def main()
       }
     end
   }
+
+  # create some man made entities (ships, stations, etc)
+  num_ships = rand(MAX_SHIPS)
+  0.upto(num_ships) { |si|
+    total_ships += 1
+    sys = all_systems[rand(total_systems)]
+    s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
+             Manufactured::Ship.new(:id           => "ship#{total_ships}",
+                                    :solar_system => sys,
+                                    :location     => Motel::Location.random(:max => sys.size)))
+    puts "Created ship #{s.id} in system #{sys.name} (loc #{s.location.id})"
+  }
+  num_stations = rand(MAX_STATIONS)
+  0.upto(num_stations) { |si|
+    total_stations += 1
+    sys = all_systems[rand(total_systems)]
+    s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
+             Manufactured::Station.new(:id           => "station#{total_stations}",
+                                       :solar_system => sys,
+                                       :location     => Motel::Location.random(:max => sys.size)))
+    puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
+  }
+
+  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'ship1')
+  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
+
+  #new_sys = all_systems[rand(total_systems)]
+  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::move_entity', 'ship1', new_sys.name, Motel::Location.new(:x => 10, :y => -20, :z => 0))
+  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
 
   #galaxy = rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy', 'galaxy1')
   #rjr_node.invoke_request('motel-queue', 'track_location', 4)

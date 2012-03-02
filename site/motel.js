@@ -99,6 +99,14 @@ function CosmosClient() {
   this.get_entity = function(entity, name){
     client.web_node.invoke_request('get_entity', entity, name);
   }
+
+  this.get_entities = function(parent_id){
+    client.web_node.invoke_request('manufactured::get_entities_under', parent_id);
+  }
+
+  this.move_entity = function(id, parent_id, new_location){
+    client.web_node.invoke_request('manufactured::move_entity', id, parent_id, new_location);
+  }
 };
 
 // initialize mouse input
@@ -203,6 +211,28 @@ function draw(){
       context.font = 'bold 16px sans-serif';
       context.fillText(loco.entity.endpoint, loco.x   + width/2 - 25,
                                              height/2 - loco.y  - 25);
+
+    }else if(loco.entity.json_class == "Manufactured::Ship"){
+      // draw crosshairs representing ship
+      context.beginPath();
+      context.strokeStyle = "#00CC00";
+      context.moveTo(loco.x + width/2 + 15, height/2 - loco.y);
+      context.lineTo(loco.x + width/2 + 15, height/2 - loco.y - 30);
+      context.moveTo(loco.x + width/2,      height/2 - loco.y - 15);
+      context.lineTo(loco.x + width/2 + 30, height/2 - loco.y - 15);
+      context.lineWidth = 4;
+      context.stroke();
+
+    }else if(loco.entity.json_class == "Manufactured::Station"){
+      // draw crosshairs representing statin
+      context.beginPath();
+      context.strokeStyle = "#0000CC";
+      context.moveTo(loco.x + width/2 + 15, height/2 - loco.y);
+      context.lineTo(loco.x + width/2 + 15, height/2 - loco.y - 30);
+      context.moveTo(loco.x + width/2,      height/2 - loco.y - 15);
+      context.lineTo(loco.x + width/2 + 30, height/2 - loco.y - 15);
+      context.lineWidth = 4;
+      context.stroke();
     }
   }
 
@@ -249,23 +279,53 @@ function update_select_box(){
 
 // handle click input
 $('#motel_canvas').live('click', function(e){
-  canvas  = $('#motel_canvas')
-  width   = canvas.width();
-  height  = canvas.height();
+  var canvas  = $('#motel_canvas')
+  var width   = canvas.width();
+  var height  = canvas.height();
   var x = Math.floor(e.pageX-$("#motel_canvas").offset().left - width / 2);
   var y = Math.floor(height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  var clicked_on_entity = false;
 
   for(loc in client.get_locations()){
     loco = client.locations[loc];
     if(loco && loco.within_distance(x, y, 125)){
-console.log("clicked on " + loco.entity.name);
+      clicked_on_entity = true;
+console.log("clicked on " + loco.entity.id + " / " + loco.entity.name + " " + loco.entity.json_class);
       if(loco.entity.json_class == "Cosmos::SolarSystem"){
         client.current_galaxy = null;
         client.current_system = loco.entity.name;
         client.disconnect();
         client.clear_locations();
         client.connect();
+
+      }else if(loco.entity.json_class == "Cosmos::Planet"){
+        var entity_container = $('#motel_entity_container');
+        entity_container.show();
+        entity_container.html("Planet: " + loco.entity.name);
+
+      }else if(loco.entity.json_class == "Manufactured::Ship"){
+        var entity_container = $('#motel_entity_container');
+        client.selected_ship = loco.entity;
+        entity_container.show();
+        entity_container.html("Ship: " + loco.entity.id);
+
+      }else if(loco.entity.json_class == "Manufactured::Station"){
+        var entity_container = $('#motel_entity_container');
+        entity_container.show();
+        entity_container.html("Station: " + loco.entity.id);
+
       }
+    }
+  }
+
+  if(!clicked_on_entity){
+    if(client.selected_ship != null && client.current_system != null){
+      console.log("moving ship");
+      var new_loc = new Location();
+      new_loc.x = x; new_loc.y = y;
+      client.move_entity(client.selected_ship.id, client.current_system, new_loc);
+      client.track_location(client.selected_ship.location.id, 25);
+      // FIXME when ship arrives on location, unregister handler
     }
   }
 });

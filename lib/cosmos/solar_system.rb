@@ -17,6 +17,10 @@ class SolarSystem
   attr_reader :planets
   attr_reader :jump_gates
 
+  def id
+    return @name
+  end
+
   def initialize(args = {})
     @name       = args['name']       || args[:name]
     @location   = args['location']   || args[:location]

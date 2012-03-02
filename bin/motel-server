@@ -12,6 +12,7 @@ require 'rubygems'
 require 'optparse'
 require 'motel'
 require 'cosmos'
+require 'manufactured'
 require 'rjr'
 
 ######################
@@ -38,6 +39,7 @@ def main()
   Motel::RJRAdapter.init
   Motel::RJRAdapter.register_handlers(RJR::Dispatcher)
   Cosmos::RJRAdapter.register_handlers(RJR::Dispatcher)
+  Manufactured::RJRAdapter.register_handlers(RJR::Dispatcher)
 
   amqp_node  = RJR::AMQPNode.new  :node_id => 'motel', :broker => 'localhost'
   ws_node    = RJR::WSNode.new    :node_id => 'motel', :host   => 'localhost', :port => 8080

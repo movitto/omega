@@ -101,7 +101,7 @@ class Proximity < Base
     @max_y = args[:max_y] if args.has_key?(:max_y)
     @max_z = args[:max_z] if args.has_key?(:max_z)
     @to_location = args[:to_location] if args.has_key?(:to_location)
-    @event = args[:event].intern if args.has_key?(:event)
+    @event = args[:event].intern if args.has_key?(:event) && args[:event].is_a?(String)
 
     # keep track of proximity state internally for different event types
     @locations_in_proximity = false
