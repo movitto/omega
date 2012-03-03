@@ -8,5 +8,6 @@ $: << lib + '/manufactured/'
 
 require lib + '/manufactured/ship'
 require lib + '/manufactured/station'
+require lib + '/manufactured/fleet'
 require lib + '/manufactured/rjr_adapter'
 require lib + '/manufactured/registry'

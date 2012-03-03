@@ -17,14 +17,14 @@ class RJRAdapter
        RJR::Logger.info "received create entity #{entity} request"
        begin
          # swap out the parent w/ the one stored in the cosmos registry
-         if entity.parent
+         if !entity.is_a?(Manufactured::Fleet) && entity.parent
            entity.parent = Cosmos::Registry.instance.find_entity :type => :solarsystem,
                                                                  :name => entity.parent.name
          end
 
          Manufactured::Registry.instance.create entity
 
-         unless entity.location.nil?
+         unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
            #unless entity.parent.nil? || entity.parent.location.nil?
            #  entity.location.parent
            #end

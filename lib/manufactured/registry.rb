@@ -9,10 +9,12 @@ class Registry
   include Singleton
   attr_accessor :ships
   attr_accessor :stations
+  attr_accessor :fleets
 
   def initialize
-    @ships = []
+    @ships    = []
     @stations = []
+    @fleets   = []
   end
 
   def find(args = {})
@@ -21,7 +23,7 @@ class Registry
 
     entities = []
 
-    [@ships, @stations].each { |entity_array|
+    [@ships, @stations, @fleets].each { |entity_array|
       entity_array.each { |entity|
         entities << entity if (id.nil? || entity.id == id) &&
                               (parent_id.nil? || entity.parent.id == parent_id)
@@ -36,6 +38,8 @@ class Registry
       @ships << entity
     elsif entity.is_a?(Manufactured::Station)
       @stations << entity
+    elsif entity.is_a?(Manufactured::Fleet)
+      @fleets << entity
     end
   end
 

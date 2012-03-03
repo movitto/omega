@@ -108,6 +108,7 @@ def main()
   }
 
   # create some man made entities (ships, stations, etc)
+  all_ships = []
   num_ships = rand(MAX_SHIPS)
   0.upto(num_ships) { |si|
     total_ships += 1
@@ -116,6 +117,7 @@ def main()
              Manufactured::Ship.new(:id           => "ship#{total_ships}",
                                     :solar_system => sys,
                                     :location     => Motel::Location.random(:max => sys.size)))
+    all_ships << s
     puts "Created ship #{s.id} in system #{sys.name} (loc #{s.location.id})"
   }
   num_stations = rand(MAX_STATIONS)
@@ -128,6 +130,13 @@ def main()
                                        :location     => Motel::Location.random(:max => sys.size)))
     puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
   }
+
+  fleet = Manufactured::Fleet.new(:id => 'fleet1', :ships => all_ships)
+  fleet = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity', fleet)
+  puts "Created fleet #{fleet.id} with ships: #{fleet.ship_ids.join(", ")}"
+
+  #fleet = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'fleet1')
+  #puts "Got fleet #{fleet.to_json}"
 
   #ship = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'ship1')
   #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
