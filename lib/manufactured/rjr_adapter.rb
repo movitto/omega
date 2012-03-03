@@ -75,7 +75,8 @@ class RJRAdapter
          # if parents don't match, simply set parent and location
          if entity.parent.id != parent_id
            entity.parent   = parent
-           entity.location = new_location
+           entity.location = new_location unless new_location.nil?
+           # TODO set locaiton parent
 
          # else move to location using a linear movement strategy
          else

@@ -27,6 +27,11 @@ function Location(){
 
 function CosmosClient() {
   var client = this;
+  this.current_galaxy = null;
+  this.current_system = null;
+  this.selected_ship  = null;
+  this.selected_gate  = null;
+
   this.locations = [];
   this.connect = function(){
     client.web_node = new WebNode('http://localhost/motel');
@@ -149,6 +154,7 @@ function draw(){
           context.fillStyle = "#FFFFFF";
           context.moveTo(loco.x     + width/2, height/2 - loco.y    );
           context.lineTo(endpoint.x + width/2, height/2 - endpoint.y);
+          context.lineWidth = 2;
           context.stroke();
         }
       }
@@ -167,6 +173,7 @@ function draw(){
       // draw orbit path
       var orbit = loco.movement_strategy.orbit;
       context.beginPath();
+      context.lineWidth = 2;
       for(orbiti in orbit){
         var orbito = orbit[orbiti];
         context.lineTo(orbito[0] + width/2, height/2 - orbito[1]);
@@ -288,9 +295,10 @@ $('#motel_canvas').live('click', function(e){
 
   for(loc in client.get_locations()){
     loco = client.locations[loc];
-    if(loco && loco.within_distance(x, y, 125)){
+    if(loco && loco.within_distance(x, y, 25)){
       clicked_on_entity = true;
-console.log("clicked on " + loco.entity.id + " / " + loco.entity.name + " " + loco.entity.json_class);
+console.log("clicked on ");
+console.log(loco.entity);
       if(loco.entity.json_class == "Cosmos::SolarSystem"){
         client.current_galaxy = null;
         client.current_system = loco.entity.name;
@@ -314,6 +322,12 @@ console.log("clicked on " + loco.entity.id + " / " + loco.entity.name + " " + lo
         entity_container.show();
         entity_container.html("Station: " + loco.entity.id);
 
+      }else if(loco.entity.json_class == "Cosmos::JumpGate"){
+        var entity_container = $('#motel_entity_container');
+        client.selected_gate = loco.entity;
+        entity_container.show();
+        entity_container.html("JumpGate to: " + loco.entity.endpoint +
+                              "<br/><a href='#' id='command_jumpgate_trigger'>Trigger</a>");
       }
     }
   }
@@ -353,6 +367,40 @@ $('#motel_canvas').live('mouseup', function(e){
   update_select_box();
 });
 
+
+////////////////////// various custom inputs
+
+// trigger jump gate
+$('#command_jumpgate_trigger').live('click', function(e){
+  //console.log("triggered");
+  //console.log(client.selected_gate);
+
+  // grab ships around gate in current system
+  // TODO only current user's ships
+  var current_system = null;
+  for(loc in client.get_locations()){
+    var loco = client.locations[loc];
+    if(loco.entity.json_class == "Manufactured::Ship"  &&
+       loco.entity.solar_system.name == client.current_system &&
+       loco.within_distance(client.selected_gate.location.x,
+                            client.selected_gate.location.y,
+                            50)){
+      //current_system = client.current_system;
+      // move to new system
+      client.move_entity(loco.entity.id, client.selected_gate.endpoint);
+
+      // refresh current system
+      client.disconnect();
+      client.clear_locations();
+      client.connect();
+      break;
+    }
+  }
+
+  // grab ships around gate & move to new system, refresh old system
+});
+
+/////////////////////
 $(document).ready(function(){
   setInterval(draw, 5);
 });

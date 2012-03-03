@@ -5,7 +5,9 @@
   border: 1px solid black;
   min-width: 350px;
   min-height: 625px;
+  height: 625px;
   padding: 5px;
+  overflow: auto;
 }
 
 #motel_canvas_container{
