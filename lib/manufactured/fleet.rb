@@ -6,11 +6,13 @@
 module Manufactured
 class Fleet
   attr_reader :id
+  attr_reader :user_id
   attr_reader :ships
   attr_reader :ship_ids
 
   def initialize(args = {})
     @id       = args['id']       || args[:id]
+    @user_id  = args['user_id']  || args[:user_id]
     @ships    = []
     @ship_ids = []
 
@@ -46,7 +48,9 @@ class Fleet
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :ship_ids => ship_ids }
+         {:id => id, :user_id => user_id,
+          :solar_system => (solar_system.nil? ? nil : solar_system.name),
+          :ship_ids => ship_ids }
      }.to_json(*a)
    end
 

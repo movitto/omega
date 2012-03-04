@@ -62,6 +62,18 @@ class RJRAdapter
        entities
     }
 
+    rjr_dispatcher.add_handler('manufactured::get_entities_for_user') { |user_id, entity_type|
+       RJR::Logger.info "received get get entities of #{entity_type} for user #{user_id}"
+       entities = []
+       begin
+         entities = Manufactured::Registry.instance.find(:type => entity_type, :user_id => user_id)
+       rescue Exception => e
+         RJR::Logger.info "request get get entities of #{entity_type} for user #{user_id} failed with exception #{e}"
+       end
+       RJR::Logger.info "request get get entities of #{entity_type} for user #{user_id} returning #{entities}"
+       entities
+    }
+
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, parent_id, new_location|
        RJR::Logger.info "received move entity #{id} to location #{new_location} under parent #{parent_id} request"
        begin

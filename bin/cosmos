@@ -115,6 +115,7 @@ def main()
     sys = all_systems[rand(total_systems)]
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
              Manufactured::Ship.new(:id           => "ship#{total_ships}",
+                                    :user_id      => "mmorsi",
                                     :solar_system => sys,
                                     :location     => Motel::Location.random(:max => sys.size)))
     all_ships << s
@@ -131,12 +132,19 @@ def main()
     puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
   }
 
-  fleet = Manufactured::Fleet.new(:id => 'fleet1', :ships => all_ships)
+  fleet = Manufactured::Fleet.new(:id => 'fleet1', :user_id => 'mmorsi', :ships => all_ships)
+  fleet = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity', fleet)
+  puts "Created fleet #{fleet.id} with ships: #{fleet.ship_ids.join(", ")}"
+
+  fleet = Manufactured::Fleet.new(:id => 'fleet2', :user_id => 'jbob')
   fleet = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity', fleet)
   puts "Created fleet #{fleet.id} with ships: #{fleet.ship_ids.join(", ")}"
 
   #fleet = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'fleet1')
   #puts "Got fleet #{fleet.to_json}"
+
+  fleets = rjr_node.invoke_request('motel-queue', 'manufactured::get_entities_for_user', 'mmorsi', "Manufactured::Fleet")
+  puts "Got fleets #{fleets.size}"
 
   #ship = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'ship1')
   #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"

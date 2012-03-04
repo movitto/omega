@@ -6,6 +6,7 @@
 module Manufactured
 class Station
   attr_reader :id
+  attr_reader :user_id
   attr_reader :type
   attr_reader :location
 
@@ -15,6 +16,7 @@ class Station
     @id       = args['id']       || args[:id]
     @type     = args['type']     || args[:type]
     @location = args['location'] || args[:location]
+    @user_id  = args['user_id']  || args[:user_id]
 
     @solar_system = args['solar_system'] || args[:solar_system]
 
@@ -36,7 +38,7 @@ class Station
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :type => type, :location => @location, :solar_system => @solar_system}
+         {:id => id, :user_id => user_id, :type => type, :location => @location, :solar_system => @solar_system}
      }.to_json(*a)
    end
 

@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'singleton'
+
 module Manufactured
 
 class Registry
@@ -18,15 +20,19 @@ class Registry
   end
 
   def find(args = {})
-    id = args[:id]
+    id        = args[:id]
     parent_id = args[:parent_id]
+    user_id   = args[:user_id]
+    type      = args[:type]
 
     entities = []
 
     [@ships, @stations, @fleets].each { |entity_array|
       entity_array.each { |entity|
-        entities << entity if (id.nil? || entity.id == id) &&
-                              (parent_id.nil? || entity.parent.id == parent_id)
+        entities << entity if (id.nil?        || entity.id         == id)        &&
+                              (parent_id.nil? || entity.parent.id  == parent_id) &&
+                              (user_id.nil?   || entity.user_id    == user_id)   &&
+                              (type.nil?      || entity.class.to_s == type)
 
       }
     }

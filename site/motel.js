@@ -105,8 +105,12 @@ function CosmosClient() {
     client.web_node.invoke_request('get_entity', entity, name);
   }
 
-  this.get_entities = function(parent_id){
+  this.get_entities_under = function(parent_id){
     client.web_node.invoke_request('manufactured::get_entities_under', parent_id);
+  }
+
+  this.get_entities_for_user = function(user_id, entity_type){
+    client.web_node.invoke_request('manufactured::get_entities_for_user', user_id, entity_type);
   }
 
   this.move_entity = function(id, parent_id, new_location){

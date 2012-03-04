@@ -21,9 +21,11 @@
           client.get_entity('galaxy', client.current_galaxy);
         else if(client.current_system != null){
           client.get_entity('solarsystem', client.current_system);
-          client.get_entities(client.current_system);
-        }else
+          client.get_entities_under(client.current_system);
+        }else{
           client.get_entity('galaxy');
+          client.get_entities_for_user('mmorsi', 'Manufactured::Fleet');
+        }
       }
       client.message_received = function(msg){
         //console.log(msg);
@@ -33,7 +35,7 @@
            result.length > 0 &&
            result[0].json_class == "Cosmos::Galaxy"){
 
-          data  = "<span id='motel_locations_container_title'>Locations:</span><ul>"
+          data  = "<span class='motel_entities_container_title'>Locations:</span><ul>"
           for(var g=0;g<result.length;++g){
             var galaxy = result[g];
             data += "<li><span id='" + galaxy.name + "' class='entity_title galaxy_title'>" + galaxy.name + "</span></li>";
@@ -109,6 +111,26 @@
                 entity.location.entity = entity;
                 client.add_location(entity.location);
               }
+
+        }else if(isArray(result)   &&
+           result.length > 0 &&
+           result[0].json_class == "Manufactured::Fleet"){
+              data  = "<span class='motel_entities_container_title'>Fleets:</span><ul>"
+              for(var f=0;f<result.length;++f){
+                var fleet = result[f];
+                data += "<li><span id='" + fleet.id + "' class='entity_title fleet_title' system_id='"+fleet.solar_system+"'>" + fleet.id + " (" + fleet.solar_system + ") </span></li>";
+              }
+              data += "</ul>";
+
+              $("#motel_fleets_container").html(data);
+              $('.fleet_title').live('click', function(event){
+                client.current_galaxy = null;
+                client.current_system = $(event.currentTarget).attr('system_id');
+                client.disconnect();
+                client.clear_locations();
+                client.connect();
+                $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/system.png") no-repeat');
+              });
         }
 
       }
@@ -120,7 +142,10 @@
     </script>
   </head>
   <body>
-    <div id="motel_locations_container">Locations:</div>
+    <div id="motel_entities_container">
+      <div id="motel_locations_container"></div>
+      <div id="motel_fleets_container"></div>
+    </div>
     <div id="motel_canvas_container">
       <canvas id="motel_canvas" width="1500" height="700"></canvas>
     </div>
