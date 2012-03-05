@@ -8,6 +8,7 @@ require 'rubygems'
 require 'motel'
 require 'cosmos'
 require 'manufactured'
+require 'users'
 require 'rjr'
 
 # cosmos entity generation boundries
@@ -17,7 +18,7 @@ MAX_PLANETS_PER_SYSTEM = 5
 MAX_MOONS_PER_PLANET = 2
 
 # manufacture entity generation
-MAX_SHIPS    = 5
+MAX_SHIPS    = 25
 MAX_STATIONS = 5
 
 # planet elliptical path boundries
@@ -106,6 +107,31 @@ def main()
       }
     end
   }
+
+  # create a few users / groupings
+  user = Users::User.new :id => 'mmorsi'
+  mo_user = rjr_node.invoke_request('motel-queue', 'users::create_entity', user)
+  puts "Created user #{mo_user.id}"
+
+  user = Users::User.new :id => 'jbob'
+  jbob_user = rjr_node.invoke_request('motel-queue', 'users::create_entity', user)
+  puts "Created user #{jbob_user.id}"
+
+  #user = rjr_node.invoke_request('motel-queue', 'users::get_entity', user.id)
+  #puts "Got user #{user.to_json}"
+
+  mo_alliance   = Users::Alliance.new :id => 'mmorsi-alliance', :members => [mo_user]
+  jbob_alliance = Users::Alliance.new :id => 'jbob-alliance',   :members => [jbob_user], :enemies => [mo_alliance]
+  mo_alliance.enemies = [jbob_alliance]
+
+  alliance = rjr_node.invoke_request('motel-queue', 'users::create_entity', mo_alliance)
+  puts "Create alliance #{alliance.to_json}"
+
+  alliance = rjr_node.invoke_request('motel-queue', 'users::create_entity', jbob_alliance)
+  puts "Create alliance #{alliance.to_json}"
+
+  alliance = rjr_node.invoke_request('motel-queue', 'users::get_entity', alliance.id)
+  puts "Got alliance #{alliance.to_json}"
 
   # create some man made entities (ships, stations, etc)
   all_ships = []

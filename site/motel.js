@@ -27,12 +27,19 @@ function Location(){
 
 function CosmosClient() {
   var client = this;
+  this.current_user   = 'mmorsi';
   this.current_galaxy = null;
   this.current_system = null;
   this.selected_ships = [];
   this.selected_gate  = null;
 
   this.locations = [];
+  this.users     = [];
+  this.user_alliances  = [];
+  //this.allied_users  = [];
+  //this.enemy_alliances = [];
+  //this.enemy_users     = [];
+
   this.connect = function(){
     client.web_node = new WebNode('http://localhost/motel');
     client.ws_node  = new WSNode('127.0.0.1', '8080');
@@ -119,6 +126,10 @@ function CosmosClient() {
 
   this.create_entity = function(entity){
     client.web_node.invoke_request('manufactured::create_entity', entity);
+  }
+
+  this.get_user_info = function(){
+    client.web_node.invoke_request('users::get_entity', client.current_user)
   }
 };
 
@@ -437,7 +448,7 @@ $('#command_fleet_create').live('click', function(e){
     shnames.push(client.selected_ships[s].id);
   client.create_entity(new JRObject('Manufactured::Fleet',
                                     {'id'      : 'fleet123',
-                                     'user_id' : 'mmorsi',
+                                     'user_id' : client.current_user,
                                      'ships'   : shnames}));
 });
 

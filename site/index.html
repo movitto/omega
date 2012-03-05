@@ -24,7 +24,8 @@
           client.get_entities_under(client.current_system);
         }else{
           client.get_entity('galaxy');
-          client.get_entities_for_user('mmorsi', 'Manufactured::Fleet');
+          client.get_entities_for_user(client.current_user, 'Manufactured::Fleet');
+          client.get_user_info();
         }
       }
       client.message_received = function(msg){
@@ -131,6 +132,37 @@
                 client.connect();
                 $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/system.png") no-repeat');
               });
+
+        }else if(result.json_class == "Users::User"){
+          client.users[result.id] = result;
+          var data  = "<span class='motel_entities_container_title'>Alliances:</span><ul>";
+          for(var a in result.alliances){
+            var alliance = result.alliances[a];
+            client.user_alliances[alliance.id] = alliance;
+            data += '<li><span id="' + alliance.id + '" class="entity_title alliance_title">' + alliance.id + '</span></li>';
+
+            //for(var e in result.enemies_ids){
+            //  var enemy = result.enemies[e];
+            //  // TODO send request for enemy alliance info, store in client.enemy_alliances and client.enemy_users
+            //}
+          }
+
+          data += "</ul>";
+          $('#motel_alliances_container').html(data);
+          $('.alliance_title').live('click', function(event){
+            var entity_container = $('#motel_entity_container');
+            var selected_alliance = $(event.currentTarget).attr('id');
+            var allianceo = client.user_alliances[selected_alliance];
+            entity_container.show();
+            var entity_container_contents = "Alliance: " + selected_alliance +
+                                            "<br/>Members: ";
+            for(var m in allianceo.member_ids)
+              entity_container_contents += allianceo.member_ids[m] + " "
+            entity_container_contents += "<br/>Enemies: ";
+            for(var e in allianceo.enemy_ids)
+              entity_container_contents += allianceo.enemy_ids[e] + " "
+            entity_container.html(entity_container_contents);
+          });
         }
 
       }
@@ -143,8 +175,9 @@
   </head>
   <body>
     <div id="motel_entities_container">
-      <div id="motel_locations_container"></div>
-      <div id="motel_fleets_container"></div>
+      <div id="motel_locations_container" class="motel_entities_subcontainer"></div>
+      <div id="motel_fleets_container" class="motel_entities_subcontainer"></div>
+      <div id="motel_alliances_container" class="motel_entities_subcontainer"></div>
     </div>
     <div id="motel_canvas_container">
       <canvas id="motel_canvas" width="1500" height="700"></canvas>
