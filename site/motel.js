@@ -29,7 +29,7 @@ function CosmosClient() {
   var client = this;
   this.current_galaxy = null;
   this.current_system = null;
-  this.selected_ship  = null;
+  this.selected_ships = [];
   this.selected_gate  = null;
 
   this.locations = [];
@@ -115,6 +115,10 @@ function CosmosClient() {
 
   this.move_entity = function(id, parent_id, new_location){
     client.web_node.invoke_request('manufactured::move_entity', id, parent_id, new_location);
+  }
+
+  this.create_entity = function(entity){
+    client.web_node.invoke_request('manufactured::create_entity', entity);
   }
 };
 
@@ -226,7 +230,10 @@ function draw(){
     }else if(loco.entity.json_class == "Manufactured::Ship"){
       // draw crosshairs representing ship
       context.beginPath();
-      context.strokeStyle = "#00CC00";
+      if(loco.entity.selected)
+        context.strokeStyle = "#FFFF00";
+      else
+        context.strokeStyle = "#00CC00";
       context.moveTo(loco.x + width/2 + 15, height/2 - loco.y);
       context.lineTo(loco.x + width/2 + 15, height/2 - loco.y - 30);
       context.moveTo(loco.x + width/2,      height/2 - loco.y - 15);
@@ -317,9 +324,21 @@ console.log(loco.entity);
 
       }else if(loco.entity.json_class == "Manufactured::Ship"){
         var entity_container = $('#motel_entity_container');
-        client.selected_ship = loco.entity;
+        if(!e.shiftKey){
+          for(var s in client.selected_ships)
+            client.selected_ships[s].selected = false;
+          client.selected_ships = [];
+        }
+        loco.entity.selected = true;
+        client.selected_ships.push(loco.entity);
         entity_container.show();
-        entity_container.html("Ship: " + loco.entity.id);
+        var entity_container_contents = client.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
+        for(var s in client.selected_ships)
+          entity_container_contents += " " + client.selected_ships[s].id;
+        entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
+        if(client.selected_ships.length > 1)
+          entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
+        entity_container.html(entity_container_contents);
 
       }else if(loco.entity.json_class == "Manufactured::Station"){
         var entity_container = $('#motel_entity_container');
@@ -337,13 +356,17 @@ console.log(loco.entity);
   }
 
   if(!clicked_on_entity){
-    if(client.selected_ship != null && client.current_system != null){
-      console.log("moving ship");
-      var new_loc = new Location();
-      new_loc.x = x; new_loc.y = y;
-      client.move_entity(client.selected_ship.id, client.current_system, new_loc);
-      client.track_location(client.selected_ship.location.id, 25);
-      // FIXME when ship arrives on location, unregister handler
+    if(client.selected_ships.length > 0 && client.current_system != null){
+      var shi = 0;
+      for(var sh in client.selected_ships){
+console.log("moving ship");
+        var new_loc = new Location();
+        new_loc.x = x + (shi * 2); new_loc.y = y + (shi * 2);
+        client.move_entity(client.selected_ships[sh].id, client.current_system, new_loc);
+        client.track_location(client.selected_ships[sh].location.id, 25);
+        shi = (shi + 1) * -1;
+        // FIXME when ship arrives on location, unregister handler
+      }
     }
   }
 });
@@ -400,8 +423,22 @@ $('#command_jumpgate_trigger').live('click', function(e){
       break;
     }
   }
+});
 
-  // grab ships around gate & move to new system, refresh old system
+$('#command_selection_clear').live('click', function(e){
+  for(var s in client.selected_ships)
+    client.selected_ships[s].selected = false;
+  client.selected_ships = [];
+});
+
+$('#command_fleet_create').live('click', function(e){
+  var shnames = [];
+  for(var s in client.selected_ships)
+    shnames.push(client.selected_ships[s].id);
+  client.create_entity(new JRObject('Manufactured::Fleet',
+                                    {'id'      : 'fleet123',
+                                     'user_id' : 'mmorsi',
+                                     'ships'   : shnames}));
 });
 
 /////////////////////
