@@ -1,7 +1,9 @@
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="motel.css" />
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css" />
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="rjr/json.js"></script>
     <script type="text/javascript" src="rjr/jrw.js"></script>
     <script type="text/javascript" src="motel.js"></script>
@@ -32,6 +34,9 @@
         //console.log(msg);
       }
       client.onsuccess = function(result){
+        if(result == null)
+          return;
+
         if(isArray(result)   &&
            result.length > 0 &&
            result[0].json_class == "Cosmos::Galaxy"){
@@ -89,7 +94,7 @@
           client.add_location(result.star.location);
 
           for(var p=0; p<result.planets.length; ++p){
-            planet = result.planets[p];
+            var planet = result.planets[p];
             planet.location.entity = planet;
             client.add_location(planet.location);
 
@@ -109,8 +114,12 @@
             result[0].json_class == "Manufactured::Station")){
               for(var e=0;e<result.length;++e){
                 var entity = result[e];
-                entity.location.entity = entity;
-                client.add_location(entity.location);
+                // XXX hack this array can contain fleets too as
+                // this will be invoked when get_entites_under is called
+                if(entity.location){
+                  entity.location.entity = entity;
+                  client.add_location(entity.location);
+                }
               }
 
         }else if(isArray(result)   &&
@@ -163,12 +172,51 @@
               entity_container_contents += allianceo.enemy_ids[e] + " "
             entity_container.html(entity_container_contents);
           });
-        }
 
+        }
       }
       client.onfailed = function(error, msg){
         //console.log(error);
         //console.log(msg);
+      }
+      client.invoke_callback = function(method, params){
+        if(isArray(params)   &&
+           params.length > 0){
+             if(params[0] == "attacked"){
+               //console.log('attacked event');
+               var defender = null;
+               for(var s in client.locations){
+                 if(client.locations[s].entity.id == params[2].id){
+                   defender = client.locations[s].entity;
+                   break;
+                 }
+               }
+               for(var s in client.locations){
+                 if(client.locations[s].entity.id == params[1].id){
+                   client.locations[s].entity.attacking = defender;
+                   break;
+                 }
+               }
+
+
+             }else if(params[0] == "attacked_stop"){
+               //console.log('attack_stopped event');
+
+               for(var s in client.selected_ships){
+                 if(client.selected_ships[s].id == params[1].id){
+                   client.selected_ships[s].attacking = null;
+                   break;
+                 }
+               }
+
+             }else if(params[0] == "destroyed"){
+               //console.log('destroyed event');
+
+               client.disconnect();
+               client.clear_locations();
+               client.connect();
+             }
+        }
       }
       client.connect();
     </script>
@@ -183,5 +231,6 @@
       <canvas id="motel_canvas" width="1500" height="700"></canvas>
     </div>
     <div id="motel_entity_container"></div>
+    <div id="motel_dialog"></div>
   </body>
 </html>

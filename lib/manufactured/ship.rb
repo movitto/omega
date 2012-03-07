@@ -5,12 +5,22 @@
 
 module Manufactured
 class Ship
-  attr_reader :id
-  attr_reader :user_id
-  attr_reader :type
+  # ship properties
+  attr_reader   :id
+  attr_reader   :user_id
+  attr_reader   :type
   attr_accessor :location
 
+  # system ship is in
   attr_reader :solar_system
+
+  # list of callbacks to invoke on certain events relating to ship
+  attr_accessor :notification_callbacks
+
+  # attack/defense properties
+  attr_accessor :attack_rate  # attacks per second
+  attr_accessor :damage_dealt
+  attr_accessor :hp
 
   def initialize(args = {})
     @id       = args['id']       || args[:id]
@@ -19,6 +29,13 @@ class Ship
     @location = args['location'] || args[:location]
 
     @solar_system = args[:solar_system] || args['solar_system']
+
+    @notification_callbacks = []
+
+    # FIXME make variable
+    @attack_rate  = 0.5
+    @damage_dealt = 2
+    @hp           = 10
 
     if @location.nil?
       @location = Motel::Location.new

@@ -1,4 +1,5 @@
 function Location(){
+  this.id = null;
   this.x = 0;
   this.y = 0;
   this.z = 0;
@@ -6,6 +7,7 @@ function Location(){
   this.entity = null;
 
   this.update = function(new_location){
+    this.id = new_location.id;
     this.x = new_location.x;
     this.y = new_location.y;
     this.z = new_location.z;
@@ -15,6 +17,9 @@ function Location(){
 
     if(new_location.entity)
       this.entity = new_location.entity;
+
+    if(this.entity)
+      this.entity.location = this;
   };
 
   this.within_distance = function(x, y, distance){
@@ -53,7 +58,7 @@ function CosmosClient() {
         client.onsuccess(result);
     };
     client.web_node.onsuccess = function(result){
-      if(result.json_class == 'Motel::Location')
+      if(result != null && result.json_class == 'Motel::Location')
         client.add_location(result);
 
       if(client.onsuccess)
@@ -131,6 +136,15 @@ function CosmosClient() {
   this.get_user_info = function(){
     client.web_node.invoke_request('users::get_entity', client.current_user)
   }
+
+  this.attack_entity = function(attacker, defender){
+    // TODO should subscribe to these events in another location
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked');
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked_stop');
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'destroyed');
+    client.web_node.invoke_request('manufactured::attack_entity', attacker, defender);
+  }
+
 };
 
 // initialize mouse input
@@ -252,6 +266,17 @@ function draw(){
       context.lineWidth = 4;
       context.stroke();
 
+      // if ship is attacking another, draw line of attack
+      if(loco.entity.attacking){
+        context.beginPath();
+        context.strokeStyle = "#FF0000";
+        context.moveTo(loco.x + width/2 + 15, height/2 - loco.y);
+        context.lineTo(loco.entity.attacking.location.x + width/2 + 30,
+                       height/2 - loco.entity.attacking.location.y - 15);
+        context.lineWidth = 2;
+        context.stroke();
+      }
+
     }else if(loco.entity.json_class == "Manufactured::Station"){
       // draw crosshairs representing statin
       context.beginPath();
@@ -347,6 +372,7 @@ console.log(loco.entity);
         for(var s in client.selected_ships)
           entity_container_contents += " " + client.selected_ships[s].id;
         entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
+        entity_container_contents += "<br/><a href='#' id='command_ship_select_target'>attack</a>";
         if(client.selected_ships.length > 1)
           entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
         entity_container.html(entity_container_contents);
@@ -437,6 +463,7 @@ $('#command_jumpgate_trigger').live('click', function(e){
 });
 
 $('#command_selection_clear').live('click', function(e){
+  $('#motel_entity_container').hide();
   for(var s in client.selected_ships)
     client.selected_ships[s].selected = false;
   client.selected_ships = [];
@@ -450,6 +477,26 @@ $('#command_fleet_create').live('click', function(e){
                                     {'id'      : 'fleet123',
                                      'user_id' : client.current_user,
                                      'ships'   : shnames}));
+});
+
+$('#command_ship_select_target').live('click', function(e){
+  var targets = "<ul>";
+  for(var l in client.locations){
+    var loc = client.locations[l];
+    // FIXME variable attack distance
+    if(client.selected_ships[0].location.within_distance(loc.x, loc.y, 100) &&
+       loc.entity && loc.entity.json_class == "Manufactured::Ship" &&
+       $.inArray(loc.entity, client.selected_ships) == -1)
+         targets += "<li id='"+loc.entity.id+"' class='command_ship_attack' ><a href='#'>" + loc.entity.id + "</a></li>"
+  }
+  targets += "</ul>";
+  $('#motel_dialog').html(targets).dialog({show: 'explode', title: 'select attack target'}).dialog('open');
+});
+
+$('.command_ship_attack').live('click', function(e){
+  $('#motel_dialog').dialog('close');
+  for(var s in client.selected_ships)
+    client.attack_entity(client.selected_ships[s].id, e.currentTarget.id);
 });
 
 /////////////////////

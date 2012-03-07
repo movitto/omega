@@ -74,6 +74,28 @@ class RJRAdapter
        entities
     }
 
+    rjr_dispatcher.add_callback('manufactured::subscribe_to') { |rjr_callback, entity_id, event|
+       RJR::Logger.info "received subscribe_to #{entity_id} #{event} request"
+       begin
+         entity = Manufactured::Registry.instance.find(:id => entity_id).first
+         event_callback =
+           Callback.new(event){ |*args|
+             begin
+               rjr_callback.invoke *args
+             rescue RJR::Errors::ConnectionError => e
+               RJR::Logger.warn "subscribe_to client disconnected"
+               entity.notification_callbacks.delete event_callback
+             end
+           }
+
+         entity.notification_callbacks << event_callback
+       rescue Exception => e
+         RJR::Logger.info "subscribe_to #{entity_id} #{event} failed with exception #{e}"
+       end
+       RJR::Logger.info "subscribe_to #{entity_id} #{event} request returning"
+       nil
+    }
+
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, parent_id, new_location|
        RJR::Logger.info "received move entity #{id} to location #{new_location} under parent #{parent_id} request"
        begin
@@ -123,7 +145,18 @@ class RJRAdapter
        entity
     }
 
-    rjr_dispatcher.add_handler('attack_entity'){ |attacker_entity, defender_entity|
+    rjr_dispatcher.add_handler('manufactured::attack_entity'){ |attacker_entity_id, defender_entity_id|
+       RJR::Logger.info "received attack_entity #{defender_entity_id} (attacker #{attacker_entity_id})"
+       begin
+         attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
+         defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
+         Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
+
+       rescue Exception => e
+         RJR::Logger.info "request attack_entity #{defender_entity_id} (attacker #{attacker_entity_id}) returning failed with exception #{e}"
+       end
+       RJR::Logger.info "request attack_entity #{defender_entity_id} (attacker #{attacker_entity_id}) returning"
+       nil
     }
   end
 end # class RJRAdapter

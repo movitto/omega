@@ -11,7 +11,19 @@ require 'manufactured'
 require 'users'
 require 'rjr'
 
+# number of consmos entities to generate, if not set
+# a random number will be generated using maxima below
+#NUM_GALAXIES           = 1
+#NUM_SYSTEMS_PER_GALAXY = 1
+#NUM_PLANETS_PER_SYSTEM = 1
+#NUM_MOONS_PER_PLANET   = 1
+
+# number of manufactured entities to generate
+#NUM_SHIPS = 25
+#NUM_STATIONS = 1
+
 # cosmos entity generation boundries
+# will be used if NUM_ constants aren't set above
 MAX_GALAXIES = 5
 MAX_SYSTEMS_PER_GALAXY = 5
 MAX_PLANETS_PER_SYSTEM = 5
@@ -29,6 +41,13 @@ MAX_ECCENTRICITY = 0.9
 MIN_SPEED = 0.05
 MAX_SPEED = 0.09
 
+def num_entities(entity_type)
+  nconst = ("NUM_" + entity_type).intern
+  mconst = ("MAX_" + entity_type).intern
+  return Object.const_get(nconst) if Object.const_defined?(nconst)
+  return rand(Object.const_get(mconst)-1) + 1
+end
+
 def main()
   RJR::Logger.log_level= ::Logger::INFO
 
@@ -39,16 +58,16 @@ def main()
 
   all_systems = []
 
-  num_galaxies = rand(MAX_GALAXIES)
-  0.upto(num_galaxies) { |gi|
+  num_galaxies = num_entities('GALAXIES')
+  0.upto(num_galaxies-1) { |gi|
     total_galaxies += 1
     g = rjr_node.invoke_request('motel-queue', 'create_entity', 
              Cosmos::Galaxy.new(:name => "galaxy#{total_galaxies}"), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
     galaxy_systems = []
-    num_systems = rand(MAX_SYSTEMS_PER_GALAXY)
-    0.upto(num_systems) { |si|
+    num_systems = num_entities('SYSTEMS_PER_GALAXY')
+    0.upto(num_systems-1) { |si|
       total_systems += 1
       sys = rjr_node.invoke_request('motel-queue', 'create_entity',
              Cosmos::SolarSystem.new(:name => "system#{total_systems}",
@@ -61,8 +80,8 @@ def main()
                                Cosmos::Star.new(:name => "star#{total_systems}"), sys)
       puts "Created star #{star.name} (loc #{star.location.id})"
 
-      num_planets = rand(MAX_PLANETS_PER_SYSTEM)
-      0.upto(num_planets) { |pi|
+      num_planets = num_entities('PLANETS_PER_SYSTEM')
+      0.upto(num_planets-1) { |pi|
         total_planets += 1
         ploc = Motel::Location.random(:max => sys.size)
         ploc.movement_strategy =
@@ -79,8 +98,8 @@ def main()
                                      :location => ploc), sys)
         puts "Created planet #{pl.name} (loc #{pl.location.id})"
 
-        num_moons = rand(MAX_MOONS_PER_PLANET)
-        0.upto(num_moons) { |mi|
+        num_moons = num_entities('MOONS_PER_PLANET')
+        0.upto(num_moons-1) { |mi|
           total_moons += 1
           mn = rjr_node.invoke_request('motel-queue', 'create_entity',
                Cosmos::Moon.new(:name => "moon#{total_moons}",
@@ -97,7 +116,7 @@ def main()
         num_gates = (1 + rand(galaxy_systems.size-2)).to_i
         endpoint  = si - 1
         if endpoint >= 0
-          0.upto(num_gates) { |ji|
+          0.upto(num_gates-1) { |ji|
             gate = rjr_node.invoke_request('motel-queue', 'create_entity',
                      Cosmos::JumpGate.new(:solar_system => sys, :endpoint => galaxy_systems[endpoint]), sys)
             endpoint -= 1
@@ -107,6 +126,10 @@ def main()
       }
     end
   }
+
+  #galaxy = rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy', 'galaxy1')
+  #rjr_node.invoke_request('motel-queue', 'track_location', 4)
+  #rjr_node.listen
 
   # create a few users / groupings
   user = Users::User.new :id => 'mmorsi'
@@ -135,8 +158,8 @@ def main()
 
   # create some man made entities (ships, stations, etc)
   all_ships = []
-  num_ships = rand(MAX_SHIPS)
-  0.upto(num_ships) { |si|
+  num_ships = num_entities('SHIPS')
+  0.upto(num_ships-1) { |si|
     total_ships += 1
     sys = all_systems[rand(total_systems)]
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
@@ -147,8 +170,12 @@ def main()
     all_ships << s
     puts "Created ship #{s.id} in system #{sys.name} (loc #{s.location.id})"
   }
-  num_stations = rand(MAX_STATIONS)
-  0.upto(num_stations) { |si|
+
+  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'ship1')
+  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
+
+  num_stations = num_entities('STATIONS')
+  0.upto(num_stations-1) { |si|
     total_stations += 1
     sys = all_systems[rand(total_systems)]
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
@@ -157,6 +184,10 @@ def main()
                                        :location     => Motel::Location.random(:max => sys.size)))
     puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
   }
+
+  #new_sys = all_systems[rand(total_systems)]
+  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::move_entity', 'ship1', new_sys.name, Motel::Location.new(:x => 10, :y => -20, :z => 0))
+  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
 
   fleet = Manufactured::Fleet.new(:id => 'fleet1', :user_id => 'mmorsi', :ships => all_ships)
   fleet = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity', fleet)
@@ -172,16 +203,19 @@ def main()
   fleets = rjr_node.invoke_request('motel-queue', 'manufactured::get_entities_for_user', 'mmorsi', "Manufactured::Fleet")
   puts "Got fleets #{fleets.size}"
 
-  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::get_entity', 'ship1')
-  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
 
-  #new_sys = all_systems[rand(total_systems)]
-  #ship = rjr_node.invoke_request('motel-queue', 'manufactured::move_entity', 'ship1', new_sys.name, Motel::Location.new(:x => 10, :y => -20, :z => 0))
-  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
+  #################################################
 
-  #galaxy = rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy', 'galaxy1')
-  #rjr_node.invoke_request('motel-queue', 'track_location', 4)
+  #puts "attacking #{all_ships.last.id} #{all_ships.first.id}"
+  #rjr_node.invoke_request('motel-queue', 'manufactured::subscribe_to', all_ships.last.id, 'attacked')
+  #rjr_node.invoke_request('motel-queue', 'manufactured::subscribe_to', all_ships.last.id, 'destroyed')
+  #rjr_node.invoke_request('motel-queue', 'manufactured::attack_entity', all_ships.first.id, all_ships.last.id)
+  #RJR::Dispatcher.add_handler('manufactured::subscribe_to') { |event, *args|
+  #  puts "#{event}"
+  #  puts "#{args[0].id}" if args.size > 0
+  #}
   #rjr_node.listen
+
 end
 
 main()

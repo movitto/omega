@@ -10,10 +10,6 @@ module Motel
 
 module Callbacks
 
-# TODO implement callbacks via callback conditions, optional conditions
-# which may be added to a callback which all or some must be true to
-# invoke callback (eg min movement, max proximity, min time passed, etc)
-
 # Base Motel callback interface, provides access to invocable handler
 class Base
   # Accessor which will be invoked upon callback event

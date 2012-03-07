@@ -60,3 +60,7 @@
   list-style: circle;
   padding-left: 25px;
 }
+
+#motel_dialog{
+  display: none;
+}
