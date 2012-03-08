@@ -55,62 +55,54 @@ function CosmosControls(){
         ui.context.fill();
     }
   }
-}
 
-// handle click input
-$('#motel_canvas').live('click', function(e){
-  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left - ui.width / 2);
-  var y = Math.floor(ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
-  var clicked_on_entity = false;
+  this.unregistered_click = function(click_event, entity) {}
 
-  for(loc in client.locations){
-    var loco = client.locations[loc];
-    if(loco && loco.within_distance(x, y, 25)){
-// FIXME also ensure loco is in current galaxy/system
-      clicked_on_entity = true;
-      if(loco.entity.json_class == "Cosmos::SolarSystem"){
-        client.set_system(loco.entity.name);
-
-      }else if(loco.entity.json_class == "Cosmos::Planet"){
-        var entity_container = $('#motel_entity_container');
-        entity_container.show();
-        entity_container.html("Planet: " + loco.entity.name);
-
-      }else if(loco.entity.json_class == "Manufactured::Ship"){
-        var entity_container = $('#motel_entity_container');
-        if(!e.shiftKey){
-          for(var s in controls.selected_ships)
-            controls.selected_ships[s].selected = false;
-          controls.selected_ships = [];
-        }
-        loco.entity.selected = true;
-        controls.selected_ships.push(loco.entity);
-        entity_container.show();
-        var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
-        for(var s in controls.selected_ships)
-          entity_container_contents += " " + controls.selected_ships[s].id;
-        entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
-        entity_container_contents += "<br/><a href='#' id='command_ship_select_target'>attack</a>";
-        if(controls.selected_ships.length > 1)
-          entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
-        entity_container.html(entity_container_contents);
-
-      }else if(loco.entity.json_class == "Manufactured::Station"){
-        var entity_container = $('#motel_entity_container');
-        entity_container.show();
-        entity_container.html("Station: " + loco.entity.id);
-
-      }else if(loco.entity.json_class == "Cosmos::JumpGate"){
-        var entity_container = $('#motel_entity_container');
-        controls.selected_gate = loco.entity;
-        entity_container.show();
-        entity_container.html("JumpGate to: " + loco.entity.endpoint +
-                              "<br/><a href='#' id='command_jumpgate_trigger'>Trigger</a>");
-      }
-    }
+  this.clicked_system  = function(click_event, system) {
+    client.set_system(system.name);
   }
 
-  if(!clicked_on_entity){
+  this.clicked_planet  = function(click_event, planet) {
+    var entity_container = $('#motel_entity_container');
+    entity_container.show();
+    entity_container.html("Planet: " + planet.name);
+  }
+
+  this.clicked_gate    = function(click_event, gate) {
+    var entity_container = $('#motel_entity_container');
+    controls.selected_gate = gate;
+    entity_container.show();
+    entity_container.html("JumpGate to: " + gate.endpoint +
+                          "<br/><a href='#' id='command_jumpgate_trigger'>Trigger</a>");
+  }
+
+  this.clicked_ship    = function(click_event, ship) {
+    var entity_container = $('#motel_entity_container');
+    if(!click_event.shiftKey){
+      for(var s in controls.selected_ships)
+        controls.selected_ships[s].selected = false;
+      controls.selected_ships = [];
+    }
+    ship.selected = true;
+    controls.selected_ships.push(ship);
+    entity_container.show();
+    var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
+    for(var s in controls.selected_ships)
+      entity_container_contents += " " + controls.selected_ships[s].id;
+    entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
+    entity_container_contents += "<br/><a href='#' id='command_ship_select_target'>attack</a>";
+    if(controls.selected_ships.length > 1)
+      entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
+    entity_container.html(entity_container_contents);
+  }
+
+  this.clicked_station = function(click_event, station) {
+    var entity_container = $('#motel_entity_container');
+    entity_container.show();
+    entity_container.html("Station: " + station.id);
+  }
+
+  this.clicked_space = function(x, y){
     if(controls.selected_ships.length > 0 && client.current_system != null){
       var shi = 0;
       for(var sh in controls.selected_ships){
@@ -123,6 +115,25 @@ $('#motel_canvas').live('click', function(e){
       }
     }
   }
+}
+
+// handle click input
+$('#motel_canvas').live('click', function(e){
+  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left - ui.width / 2);
+  var y = Math.floor(ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  var clicked_on_entity = false;
+
+  for(loc in client.locations){
+    var loco = client.locations[loc];
+    if(loco.check_clicked(x, y)){
+      clicked_on_entity = true;
+      loco.clicked(e, loco.entity);
+    }
+  }
+
+  if(!clicked_on_entity)
+    controls.clicked_space(x, y);
+
 });
 
 $('#motel_canvas').live('mousemove', function(e){

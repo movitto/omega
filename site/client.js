@@ -34,6 +34,7 @@ function onsuccess(client, result){
           galaxy_systems.push(system);
           system.galaxy = galaxy;
           system.location.entity = system;
+          system.size = 15;
           client.add_location(system.location);
 
           var sname = system.name;
@@ -43,12 +44,14 @@ function onsuccess(client, result){
 
           system.star.system = system;
           system.star.location.entity = system.star;
+          system.star.size = 15;
           client.add_location(system.star.location);
 
           for(var p=0; p<system.planets.length; ++p){
             var planet = system.planets[p];
             planet.system = system;
             planet.location.entity = planet;
+            planet.size = 15;
             client.add_location(planet.location);
 
             var pname = galaxy.solar_systems[s].planets[p].name;
@@ -61,6 +64,7 @@ function onsuccess(client, result){
             galaxy_gates.push(gate);
             gate.system = system;
             gate.location.entity = gate;
+            gate.size = 30;
             client.add_location(gate.location);
           }
 
@@ -100,6 +104,7 @@ function onsuccess(client, result){
         if(entity.location){
           entity.location.entity = entity;
           entity.system = entity.solar_system;
+          entity.size = 30;
           client.add_location(entity.location);
         }
       }
@@ -119,6 +124,7 @@ function onsuccess(client, result){
   }else if(result.json_class == "Manufactured::Ship"){
     result.location.entity = result;
     result.system = result.solar_system;
+    result.size = 30;
     client.add_location(result.location);
 
     // refresh current system
@@ -182,8 +188,7 @@ function invoke_callback(client, method, params){
       }
 
     }else if(params[0] == "destroyed"){
-      console.log('destroyed event');
-      console.log(params);
+      //console.log('destroyed event');
       var remove = null;
       for(var s in client.locations){
         if(client.locations[s].entity.id == params[2].id){
@@ -191,7 +196,6 @@ function invoke_callback(client, method, params){
           break;
         }
       }
-      console.log(remove);
       if(remove != null) delete client.locations[remove];
     }
   }
@@ -253,21 +257,25 @@ function CosmosClient() {
       if(entity.json_class == "Cosmos::Galaxy"){
         if(entity.name == galaxy_name)
           client.current_galaxy = entity;
-        else
-          loco.draw = ui.draw_nothing;
+        loco.draw    = ui.draw_nothing;
+        loco.clicked = controls.unregistered_click;
 
       }else if(entity.json_class == "Cosmos::SolarSystem"){
-        if(entity.galaxy.name == galaxy_name)
-          loco.draw = function(entity){ ui.draw_system(entity); }
-        else
-          loco.draw = ui.draw_nothing;
+        if(entity.galaxy.name == galaxy_name){
+          loco.draw = function(system) { ui.draw_system(system); }
+          loco.clicked = function(clicked_event, system) { controls.clicked_system(clicked_event, system); }
+        }else{
+          loco.draw    = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
 
       }else if(entity.json_class == "Cosmos::Star"       ||
                entity.json_class == "Cosmos::Planet"     ||
                entity.json_class == "Cosmos::JumpGate"   ||
                entity.json_class == "Manufactured::Ship" ||
                entity.json_class == "Manufactured::Station"){
-        entity.location.draw = ui.draw_nothing;
+        entity.location.draw    = ui.draw_nothing;
+        entity.location.clicked = controls.unregistered_click;
       }
 
       $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/galaxy.png") no-repeat');
@@ -284,40 +292,56 @@ function CosmosClient() {
       if(entity.json_class == "Cosmos::SolarSystem"){
         if(entity.name == system_name)
           client.current_system = entity;
-        entity.location.draw = ui.draw_nothing;
+        entity.location.draw    = ui.draw_nothing;
+        entity.location.clicked = controls.unregistered_click;
 
       }else if(entity.json_class == "Cosmos::Star"){
-        if(entity.system.name == system_name)
-          entity.location.draw = function(entity){ ui.draw_star(entity); }
-        else
+        if(entity.system.name == system_name){
+          entity.location.draw = function(star){ ui.draw_star(star); }
+          //entity.location.clicked = function(clicked_event, star) { controls.clicked_star(clicked_event, star); }
+        }else{
           loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
 
       }else if(entity.json_class == "Cosmos::Planet"){
         if(entity.system.name == system_name){
           // FIXME update planets location locally automatically,
           // track location at a larger distance for a periodic resync
           client.track_location(loco.id, 7);
-          entity.location.draw = function(entity){ ui.draw_planet(entity); }
-        }else
+          entity.location.draw   = function(planet){ ui.draw_planet(planet); }
+          entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
+        }else{
           loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
 
       }else if(entity.json_class == "Cosmos::JumpGate"){
-        if(entity.system.name == system_name)
-          entity.location.draw = function(entity){ ui.draw_gate(entity); }
-        else
+        if(entity.system.name == system_name){
+          entity.location.draw = function(gate){ ui.draw_gate(gate); }
+          entity.location.clicked = function(clicked_event, gate) { controls.clicked_gate(clicked_event, gate); }
+        }else{
           loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
 
       }else if(entity.json_class == "Manufactured::Ship"){
-        if(entity.system.name == system_name)
-          entity.location.draw = function(entity){ ui.draw_ship(entity); }
-        else
+        if(entity.system.name == system_name){
+          entity.location.draw = function(ship){ ui.draw_ship(ship); }
+          entity.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
+        }else{
           loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
 
       }else if(entity.json_class == "Manufactured::Station"){
-        if(entity.system.name == system_name)
-          entity.location.draw = function(entity){ ui.draw_station(entity); }
-        else
+        if(entity.system.name == system_name){
+          entity.location.draw = function(station){ ui.draw_station(station); }
+          entity.location.clicked = function(clicked_event, station) { controls.clicked_station(clicked_event, station); }
+        }else{
           loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
       }
     }
 

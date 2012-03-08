@@ -3,6 +3,13 @@ function CosmosUI(){
   this.context = this.canvas[0].getContext('2d');
   this.width   = this.canvas.width();
   this.height  = this.canvas.height();
+
+  this.adjusted_x  = function(x){
+    return x + ui.width/2;
+  }
+  this.adjusted_y = function(y){
+    return ui.height/2 - y;
+  }
   
   this.draw = function(){
     // clear drawing area
@@ -29,8 +36,8 @@ function CosmosUI(){
         var endpoint = jg.endpoint_system.location;
         ui.context.beginPath();
         ui.context.strokeStyle = "#FFFFFF";
-        ui.context.moveTo(loco.x     + ui.width/2, ui.height/2 - loco.y    );
-        ui.context.lineTo(endpoint.x + ui.width/2, ui.height/2 - endpoint.y);
+        ui.context.moveTo(ui.adjusted_x(loco.x),     ui.adjusted_y(loco.y)    );
+        ui.context.lineTo(ui.adjusted_x(endpoint.x), ui.adjusted_y(endpoint.y));
         ui.context.lineWidth = 2;
         ui.context.stroke();
       }
@@ -39,12 +46,12 @@ function CosmosUI(){
     // draw circle representing system
     ui.context.beginPath();
     ui.context.fillStyle = "#FFFFFF";
-    ui.context.arc(loco.x + ui.width/2, ui.height/2 - loco.y, 15, 0, Math.PI*2, true);
+    ui.context.arc(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y), system.size, 0, Math.PI*2, true);
     ui.context.fill();
   
     // draw label
     ui.context.font = 'bold 16px sans-serif';
-    ui.context.fillText(system.name, loco.x + ui.width/2 - 25, ui.height/2 - loco.y - 25);
+    ui.context.fillText(system.name, ui.adjusted_x(loco.x) - 25, ui.adjusted_y(loco.y) - 25);
   }
 
   this.draw_star = function(star){
@@ -53,7 +60,7 @@ function CosmosUI(){
     // draw circle representing star
     ui.context.beginPath();
     ui.context.fillStyle = "#FFFF00";
-    ui.context.arc(loco.x + ui.width/2, ui.height/2 - loco.y, 15, 0, Math.PI*2, true);
+    ui.context.arc(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y), star.size, 0, Math.PI*2, true);
     ui.context.fill();
   }
 
@@ -66,7 +73,7 @@ function CosmosUI(){
     ui.context.lineWidth = 2;
     for(orbiti in orbit){
       var orbito = orbit[orbiti];
-      ui.context.lineTo(orbito[0] + ui.width/2, ui.height/2 - orbito[1]);
+      ui.context.lineTo(ui.adjusted_x(orbito[0]), ui.adjusted_y(orbito[1]));
     }
     ui.context.strokeStyle = "#AAAAAA";
     ui.context.stroke();
@@ -74,7 +81,7 @@ function CosmosUI(){
     // draw circle representing planet
     ui.context.beginPath();
     ui.context.fillStyle = "#" + planet.color;
-    ui.context.arc(loco.x + ui.width/2, ui.height/2 - loco.y, 15, 0, Math.PI*2, true);
+    ui.context.arc(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y), planet.size, 0, Math.PI*2, true);
     ui.context.fill();
   
     // draw moons
@@ -82,9 +89,9 @@ function CosmosUI(){
       var moon = planet.moons[m];
       ui.context.beginPath();
       ui.context.fillStyle = "#808080";
-      ui.context.arc(loco.x + moon.location.x + ui.width/2,
-                  ui.height/2 - (loco.y + moon.location.y),
-                  5, 0, Math.PI*2, true);
+      ui.context.arc(ui.adjusted_x(loco.x + moon.location.x),
+                     ui.adjusted_y(loco.y + moon.location.y),
+                     5, 0, Math.PI*2, true);
       ui.context.fill();
     }
   }
@@ -93,28 +100,29 @@ function CosmosUI(){
     var loco = gate.location;
 
     // draw triangle representing gate
+    var py = 13; // used to draw traingle for gate =sqrt((gate.size/2)^2 - (gate.size/4)^2)
     ui.context.beginPath();
     ui.context.fillStyle = "#00CC00";
-    ui.context.moveTo(loco.x + ui.width/2,      ui.height/2 - loco.y - 15);
-    ui.context.lineTo(loco.x + ui.width/2 - 15, ui.height/2 - loco.y + 15);
-    ui.context.lineTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y + 15);
-    ui.context.lineTo(loco.x + ui.width/2,      ui.height/2 - loco.y - 15);
+    ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - py);
+    ui.context.lineTo(ui.adjusted_x(loco.x) - gate.size/2, ui.adjusted_y(loco.y) + py);
+    ui.context.lineTo(ui.adjusted_x(loco.x) + gate.size/2, ui.adjusted_y(loco.y) + py);
+    ui.context.lineTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - py);
     ui.context.fill();
   
     // draw name of system gate is to
     ui.context.font = 'bold 16px sans-serif';
-    ui.context.fillText(gate.endpoint, loco.x   + ui.width/2 - 25,
-                                           ui.height/2 - loco.y  - 25);
-  }
+    ui.context.fillText(gate.endpoint, ui.adjusted_x(loco.x) - 35,
+                                       ui.adjusted_y(loco.y) + 30);
+ }
 
   this.draw_station = function(station){
     // draw crosshairs representing statin
     ui.context.beginPath();
     ui.context.strokeStyle = "#0000CC";
-    ui.context.moveTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y);
-    ui.context.lineTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y - 30);
-    ui.context.moveTo(loco.x + ui.width/2,      ui.height/2 - loco.y - 15);
-    ui.context.lineTo(loco.x + ui.width/2 + 30, ui.height/2 - loco.y - 15);
+    ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - station.size/2);
+    ui.context.lineTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) + station.size/2);
+    ui.context.moveTo(ui.adjusted_x(loco.x) - station.size/2, ui.adjusted_y(loco.y));
+    ui.context.lineTo(ui.adjusted_x(loco.x) + station.size/2, ui.adjusted_y(loco.y));
     ui.context.lineWidth = 4;
     ui.context.stroke();
   }
@@ -128,10 +136,10 @@ function CosmosUI(){
       ui.context.strokeStyle = "#FFFF00";
     else
       ui.context.strokeStyle = "#00CC00";
-    ui.context.moveTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y);
-    ui.context.lineTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y - 30);
-    ui.context.moveTo(loco.x + ui.width/2,      ui.height/2 - loco.y - 15);
-    ui.context.lineTo(loco.x + ui.width/2 + 30, ui.height/2 - loco.y - 15);
+    ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - ship.size/2);
+    ui.context.lineTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) + ship.size/2);
+    ui.context.moveTo(ui.adjusted_x(loco.x) - ship.size/2, ui.adjusted_y(loco.y));
+    ui.context.lineTo(ui.adjusted_x(loco.x) + ship.size/2, ui.adjusted_y(loco.y));
     ui.context.lineWidth = 4;
     ui.context.stroke();
   
@@ -139,9 +147,9 @@ function CosmosUI(){
     if(ship.attacking){
       ui.context.beginPath();
       ui.context.strokeStyle = "#FF0000";
-      ui.context.moveTo(loco.x + ui.width/2 + 15, ui.height/2 - loco.y);
-      ui.context.lineTo(ship.attacking.location.x + ui.width/2 + 30,
-                     ui.height/2 - ship.attacking.location.y - 15);
+      ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y));
+      ui.context.lineTo(ui.adjusted_x(ship.attacking.location.x),
+                        ui.adjusted_y(ship.attacking.location.y));
       ui.context.lineWidth = 2;
       ui.context.stroke();
     }
