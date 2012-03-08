@@ -6,7 +6,7 @@
 module Cosmos
 class Galaxy
   # maximum size of the galaxy in any given direction from center
-  MAX_SIZE = 350
+  MAX_SIZE = 325
 
   attr_reader :name
   attr_reader :size

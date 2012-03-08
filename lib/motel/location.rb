@@ -141,10 +141,15 @@ class Location
      min_y = args[:min_y] if args.has_key?(:min_y)
      min_z = args[:min_z] if args.has_key?(:min_z)
 
+     nx = rand(2) == 0 ? -1 : 1
+     ny = rand(2) == 0 ? -1 : 1
+     nz = rand(2) == 0 ? -1 : 1
+
      loc = Location.new
-     loc.x = max_x.nil? ? rand : min_x + rand(max_x - min_x)
-     loc.y = max_y.nil? ? rand : min_y + rand(max_y - min_y)
-     loc.z = max_z.nil? ? rand : min_z + rand(max_z - min_z)
+     loc.x = (max_x.nil? ? rand : min_x + rand(max_x - min_x)) * nx
+     loc.y = (max_y.nil? ? rand : min_y + rand(max_y - min_y)) * ny
+     loc.z = (max_z.nil? ? rand : min_z + rand(max_z - min_z)) * nz
+
      return loc
    end
 

@@ -75,8 +75,8 @@ function onsuccess(client, result){
         data += "</ul>";
 
         // wire up gates
-        for(var g in galaxy_gates){
-          var gate = galaxy_gates[g];
+        for(var gg in galaxy_gates){
+          var gate = galaxy_gates[gg];
           for(var s in galaxy_systems){
             var system = galaxy_systems[s];
             if(gate.endpoint == system.name){
