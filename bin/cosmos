@@ -17,9 +17,9 @@ require 'rjr'
 #NUM_SYSTEMS_PER_GALAXY = 1
 #NUM_PLANETS_PER_SYSTEM = 1
 #NUM_MOONS_PER_PLANET   = 1
-
-# number of manufactured entities to generate
-#NUM_SHIPS = 25
+#
+## number of manufactured entities to generate
+#NUM_SHIPS = 0
 #NUM_STATIONS = 1
 
 # cosmos entity generation boundries
