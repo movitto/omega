@@ -259,7 +259,8 @@ class Elliptical < MovementStrategy
 
    # Generate and return a random elliptical movement strategy
    def self.random(args = {})
-     relative_to = args.has_key?(:relative_to) ? args[:relative_to] : :center
+     dimensions  = args[:dimensions]  || 3
+     relative_to = args[:relative_to] || :center
 
      min_e = min_l = min_s = 0
      min_e = args[:min_e] if args.has_key?(:min_e)
@@ -276,7 +277,7 @@ class Elliptical < MovementStrategy
      speed             = max_s.nil? ? rand : ((min_s*10000 + rand(max_s*10000 - min_s*10000))/10000)
      semi_latus_rectum = max_l.nil? ? rand : (min_l + rand(max_l - min_l))
 
-     axis = Motel::random_axis
+     axis = Motel::random_axis :dimensions => dimensions
      direction_major_x, direction_major_y, direction_major_z = *axis[0]
      direction_minor_x, direction_minor_y, direction_minor_z = *axis[1]
 

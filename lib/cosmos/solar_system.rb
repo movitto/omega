@@ -5,11 +5,7 @@
 
 module Cosmos
 class SolarSystem
-  # maximum size of the system in any given direction from center
-  MAX_SIZE = 500
-
   attr_reader :name
-  attr_reader :size
   attr_reader :location
 
   attr_reader :galaxy
@@ -25,7 +21,6 @@ class SolarSystem
     @name       = args['name']       || args[:name]
     @location   = args['location']   || args[:location]
     @star       = args['star']       || nil
-    @size       = args['size']       || MAX_SIZE # TODO generate random size from MAX?
     @galaxy     = args['galaxy']
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []

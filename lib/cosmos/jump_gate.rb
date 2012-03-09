@@ -12,7 +12,7 @@ class JumpGate
   def initialize(args = {})
     @solar_system = args['solar_system'] || args[:solar_system]
     @endpoint     = args['endpoint']     || args[:endpoint]
-    @location     = args['location']     || args[:location]      || Motel::Location.random(:max => @solar_system.nil? ? nil : @solar_system.size)
+    @location     = args['location']     || args[:location]
 
     if @solar_system.is_a?(String)
       tsolar_system = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
