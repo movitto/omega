@@ -12,6 +12,9 @@ class Station
 
   attr_reader :solar_system
 
+  STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
+                   :technology, :manufacturing, :commerce]
+
   def initialize(args = {})
     @id       = args['id']       || args[:id]
     @type     = args['type']     || args[:type]

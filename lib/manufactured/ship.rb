@@ -22,6 +22,9 @@ class Ship
   attr_accessor :damage_dealt
   attr_accessor :hp
 
+  SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
+                :battlecruiser, :exploration]
+
   def initialize(args = {})
     @id       = args['id']       || args[:id]
     @user_id  = args['user_id']  || args[:user_id]

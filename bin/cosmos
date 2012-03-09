@@ -11,16 +11,18 @@ require 'manufactured'
 require 'users'
 require 'rjr'
 
+require 'names'
+
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
 NUM_GALAXIES           = 2
-NUM_SYSTEMS_PER_GALAXY = 10
+NUM_SYSTEMS_PER_GALAXY = 2
 NUM_PLANETS_PER_SYSTEM = 5
 NUM_MOONS_PER_PLANET   = 1
 
 # number of manufactured entities to generate
-NUM_SHIPS = 50
-NUM_STATIONS = 50
+NUM_SHIPS = 5
+NUM_STATIONS = 5
 
 # cosmos entity generation boundries
 # will be used if NUM_ constants aren't set above
@@ -67,7 +69,7 @@ def main()
   0.upto(num_galaxies-1) { |gi|
     total_galaxies += 1
     g = rjr_node.invoke_request('motel-queue', 'create_entity', 
-             Cosmos::Galaxy.new(:name => "galaxy#{total_galaxies}"), :universe)
+             Cosmos::Galaxy.new(:name => rand_name), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
     galaxy_systems = []
@@ -75,14 +77,14 @@ def main()
     0.upto(num_systems-1) { |si|
       total_systems += 1
       sys = rjr_node.invoke_request('motel-queue', 'create_entity',
-             Cosmos::SolarSystem.new(:name => "system#{total_systems}",
+             Cosmos::SolarSystem.new(:name => rand_name,
                                      :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), g)
       all_systems    << sys
       galaxy_systems << sys
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
       star = rjr_node.invoke_request('motel-queue', 'create_entity',
-                               Cosmos::Star.new(:name => "star#{total_systems}"), sys)
+                               Cosmos::Star.new(:name => rand_name), sys)
       puts "Created star #{star.name} (loc #{star.location.id})"
 
       num_planets = num_entities('PLANETS_PER_SYSTEM')
@@ -100,7 +102,7 @@ def main()
                                                        :max_s => MAX_SPEED,
                                                        :dimensions => 2) # XXX for now, we'll ignore the z axis
         pl = rjr_node.invoke_request('motel-queue', 'create_entity',
-                  Cosmos::Planet.new(:name => "planet#{total_planets}",
+                  Cosmos::Planet.new(:name => rand_name,
                                      :location => ploc), sys)
         puts "Created planet #{pl.name} (loc #{pl.location.id})"
 
@@ -108,7 +110,7 @@ def main()
         0.upto(num_moons-1) { |mi|
           total_moons += 1
           mn = rjr_node.invoke_request('motel-queue', 'create_entity',
-               Cosmos::Moon.new(:name => "moon#{total_moons}",
+               Cosmos::Moon.new(:name => rand_name,
                  :location => Motel::Location.random(:min => pl.size, :max => pl.size * 2.3)), pl)
           puts "Created moon #{mn.name} (loc #{mn.location.id})"
         }
@@ -173,6 +175,7 @@ def main()
     sys = all_systems[rand(total_systems)]
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
              Manufactured::Ship.new(:id           => "ship#{total_ships}",
+                                    :type         => Manufactured::Ship::SHIP_TYPES[rand(Manufactured::Ship::SHIP_TYPES.size)],
                                     :user_id      => "mmorsi",
                                     :solar_system => sys,
                                     :location     => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)))
@@ -189,6 +192,7 @@ def main()
     sys = all_systems[rand(total_systems)]
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
              Manufactured::Station.new(:id           => "station#{total_stations}",
+                                       :type         => Manufactured::Station::STATION_TYPES[rand(Manufactured::Station::STATION_TYPES.size)],
                                        :solar_system => sys,
                                        :location     => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)))
     puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"

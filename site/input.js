@@ -88,7 +88,8 @@ function CosmosControls(){
     entity_container.show();
     var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
     for(var s in controls.selected_ships)
-      entity_container_contents += " " + controls.selected_ships[s].id;
+      entity_container_contents += " " + controls.selected_ships[s].id +
+                                   " (" + controls.selected_ships[s].type + ")"
     entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
     entity_container_contents += "<br/><a href='#' id='command_ship_select_target'>attack</a>";
     if(controls.selected_ships.length > 1)
@@ -97,9 +98,12 @@ function CosmosControls(){
   }
 
   this.clicked_station = function(click_event, station) {
+    var html = "Station: " + station.id +
+               "<br/>Type: " + station.type
+
     var entity_container = $('#motel_entity_container');
     entity_container.show();
-    entity_container.html("Station: " + station.id);
+    entity_container.html(html);
   }
 
   this.clicked_space = function(x, y){
