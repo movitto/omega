@@ -48,6 +48,17 @@ class RJRAdapter
        entities
     }
 
+    rjr_dispatcher.add_handler('users::send_message') { |user_id, message|
+       RJR::Logger.info "received send_message #{message} from #{user_id} request"
+       begin
+         Users::ChatProxy.proxy_for(user_id).proxy_message message
+       rescue Exception => e
+         RJR::Logger.info "send_message #{message} from #{user_id} request failed with exception #{e}"
+       end
+       RJR::Logger.info "send_message #{message} from #{user_id} request returning"
+       nil
+     }
+
   end
 
 end # class RJRAdapter
