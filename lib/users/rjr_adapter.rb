@@ -59,6 +59,26 @@ class RJRAdapter
        nil
      }
 
+    rjr_dispatcher.add_callback('users::subscribe_to_messages') { |rjr_callback, user_id|
+       RJR::Logger.info "received subscribe_to_messages #{user_id} request"
+       begin
+         callback = Users::ChatCallback.new { |message|
+           begin
+             rjr_callback.invoke(message)
+           rescue RJR::Errors::ConnectionError => e
+             RJR::Logger.warn "subscribe_to_messages #{user_id} client disconnected"
+             # Users::ChatProxy.proxy_for(user_id).remove_callback # TODO
+           end
+         }
+         Users::ChatProxy.proxy_for(user_id).add_callback callback
+       rescue Exception => e
+         RJR::Logger.info "subscribe_to_messages #{user_id} request failed with exception #{e}"
+       end
+       RJR::Logger.info "subscribe_to_messages #{user_id} request returning"
+       nil
+     }
+
+
   end
 
 end # class RJRAdapter

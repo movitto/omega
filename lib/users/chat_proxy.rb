@@ -6,8 +6,17 @@
 require 'isaac/bot' # make sure to use isaac >= 0.3.0 (latest on rubygems.org is 0.2.6)
 
 module Users
+
+class ChatCallback
+  attr_accessor :handler
+
+  def initialize(args = {}, &b)
+    @handler = b
+  end
+end
+
 class ChatProxy
-  attr_accessor :user, :server, :port, :chatroom, :connected, :inchannel, :messages
+  attr_accessor :user, :server, :port, :chatroom, :connected, :inchannel, :messages, :callbacks
 
   def self.proxy_for(user)
     @@proxies ||= {}
@@ -24,6 +33,7 @@ class ChatProxy
     @inchannel = false
     @connected = false
     @messages  = []
+    @callbacks = []
 
     @bot = Isaac::Bot.new do
       on :connect do
@@ -39,7 +49,10 @@ class ChatProxy
         proxy.inchannel = true
       end
       on :channel do
-        # TODO sent messages back to client if subscribed
+        proxy = ChatProxy.proxy_for(user)
+        proxy.callbacks.each { |c|
+          c.handler.call message
+        }
       end
     end
     @bot.config.nick    = @user
@@ -47,6 +60,10 @@ class ChatProxy
     @bot.config.port    = @port
     @bot.config.verbose = true
     @bot.start
+  end
+
+  def add_callback(callback)
+    @callbacks << callback
   end
 
   def proxy_message(message)
