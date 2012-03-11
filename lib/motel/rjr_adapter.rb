@@ -11,6 +11,18 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
+    rjr_dispatcher.add_handler('get_all_locations') {
+       RJR::Logger.info "received get all locations request"
+       locations = []
+       begin
+         locations = Runner.instance.locations
+       rescue Exception => e
+         RJR::Logger.warn "get all locations failed w/ exception #{e}"
+       end
+       RJR::Logger.info "get all locations request returning #{locations}"
+       locations
+    }
+
     rjr_dispatcher.add_handler('get_location') { |location_id|
        RJR::Logger.info "received get location #{location_id} request"
        loc = nil

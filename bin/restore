@@ -1,0 +1,50 @@
+#!/usr/bin/ruby
+# Restoration Utility
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'rjr'
+require 'motel'
+require 'cosmos'
+require 'manufactured'
+require 'users'
+
+BACKUP_FILE = 'backup.unv'
+bf = File.open(BACKUP_FILE, 'r')
+
+rjr_node = RJR::AMQPNode.new :node_id => 'backup-utility', :broker => 'localhost'
+
+bf.each { |json|
+  entity = JSON.parse(json)
+  case entity
+
+  when Motel::Location
+
+  when Cosmos::Galaxy
+    rjr_node.invoke_request('motel-queue', 'create_entity', entity, :universe)
+    entity.solar_systems.each { |system|
+      rjr_node.invoke_request('motel-queue', 'create_entity', system, entity)
+      rjr_node.invoke_request('motel-queue', 'create_entity', system.star, system)
+      system.planets.each { |planet|
+        rjr_node.invoke_request('motel-queue', 'create_entity', planet, system)
+        planet.moons.each { |moon|
+          rjr_node.invoke_request('motel-queue', 'create_entity', moon, planet)
+        }
+      }
+      system.jump_gates.each { |gate|
+        rjr_node.invoke_request('motel-queue', 'create_entity', gate, system)
+      }
+    }
+
+  when Users::User, Users::Alliance
+    rjr_node.invoke_request('motel-queue', 'users::create_entity', entity)
+
+  when Manufactured::Ship, Manufactured::Station,Manufactured::Fleet
+    s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity', entity)
+
+  end
+}
+
+bf.close

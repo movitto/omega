@@ -34,7 +34,7 @@ class Alliance
       } if args.has_key?(enemy_ids)
     }
 
-    Users::Registry.instance.create self
+    #Users::Registry.instance.create self
   end
 
   def add_enemy(enemy_alliance)

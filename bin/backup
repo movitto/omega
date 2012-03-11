@@ -1,0 +1,53 @@
+#!/usr/bin/ruby
+# Backup Utility
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'rjr'
+require 'motel'
+require 'cosmos'
+require 'manufactured'
+require 'users'
+
+BACKUP_FILE = 'backup.unv'
+bf = File.open(BACKUP_FILE, 'w')
+
+rjr_node = RJR::AMQPNode.new :node_id => 'backup-utility', :broker => 'localhost'
+
+#######################
+
+rjr_node.invoke_request('motel-queue', 'get_all_locations').each { |loc|
+  bf.write loc.to_json + "\n"
+}
+
+#######################
+
+rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy').each { |galaxy|
+  bf.write galaxy.to_json + "\n"
+}
+
+#######################
+
+users = []
+rjr_node.invoke_request('motel-queue', 'users::get_all_entities').each { |entity|
+  users << entity if entity.is_a?(Users::User)
+  bf.write entity.to_json + "\n"
+}
+
+#######################
+
+users.each { |u|
+  [Manufactured::Ship, Manufactured::Station, Manufactured::Fleet].each { |entity_type|
+    rjr_node.invoke_request('motel-queue', 
+                            'manufactured::get_entities_for_user', 
+                            u.id, entity_type).each { |entity|
+      bf.write entity.to_json + "\n"
+    }
+  }
+}
+
+#######################
+
+bf.close

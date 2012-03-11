@@ -35,6 +35,19 @@ class RJRAdapter
        RJR::Logger.info "request get entity #{id} returning #{entity}"
        entity
     }
+
+    rjr_dispatcher.add_handler('users::get_all_entities') {
+       RJR::Logger.info "received get all entities request"
+       entities = []
+       begin
+         entities = Users::Registry.instance.find
+       rescue Exception => e
+         RJR::Logger.warn "get all entities failed w/ exception #{e}"
+       end
+       RJR::Logger.info "get all entities request returning #{entities}"
+       entities
+    }
+
   end
 
 end # class RJRAdapter

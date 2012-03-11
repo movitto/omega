@@ -12,7 +12,7 @@ class User
     @id        = args['id']        || args[:id]
     @alliances = args['alliances'] || args[:alliances] || []
 
-    Users::Registry.instance.create self
+    #Users::Registry.instance.create self
   end
 
   def add_alliance(alliance)

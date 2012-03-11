@@ -193,6 +193,7 @@ def main()
     s = rjr_node.invoke_request('motel-queue', 'manufactured::create_entity',
              Manufactured::Station.new(:id           => "station#{total_stations}",
                                        :type         => Manufactured::Station::STATION_TYPES[rand(Manufactured::Station::STATION_TYPES.size)],
+                                       :user_id      => "mmorsi",
                                        :solar_system => sys,
                                        :location     => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)))
     puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
