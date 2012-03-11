@@ -64,3 +64,20 @@
 #motel_dialog{
   display: none;
 }
+
+#motel_jplayer_container{
+  position: absolute;
+  right: 7px;
+  top: 5px;
+  width: 250px;
+  height: 25px;
+
+  background:#FFF;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px
+}
+
+#motel_jplayer_container .players{
+  float:left;
+  margin:10px
+}
