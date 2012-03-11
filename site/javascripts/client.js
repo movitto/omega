@@ -278,7 +278,7 @@ function CosmosClient() {
         entity.location.clicked = controls.unregistered_click;
       }
 
-      $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/galaxy.png") no-repeat');
+      $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/galaxy.png") no-repeat');
       // FIXME also need to stop tracking ship and planet locations
     }
   }
@@ -345,7 +345,7 @@ function CosmosClient() {
       }
     }
 
-    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/system.png") no-repeat');
+    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/system.png") no-repeat');
   }
 
   this.get_location = function(id){
