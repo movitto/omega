@@ -16,6 +16,16 @@
     <script type="text/javascript" src="javascripts/audio.js"></script>
     <script type="text/javascript">
       $(document).ready(function(){ 
+        // right now browser compatability check is restricted
+        // to the platform I tested all this on.
+        // Want expanded support?
+        // Test this out in alternative browsers and send patches!
+        var user_agent = $.browser;
+        if(!user_agent.mozilla || user_agent.version < "8.0"){
+          alert("Must be running Firefox >= 8.0");
+          return;
+        }
+
         controls = new CosmosControls();
         client = new CosmosClient();
         client.connect();
