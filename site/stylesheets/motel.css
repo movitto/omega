@@ -81,3 +81,32 @@
   float:left;
   margin:10px
 }
+
+#motel_chat{
+  margin: 0 auto;
+  width: 1500px;
+  height: 350px;
+  margin-top: 10px;
+  border: 1px solid black;
+}
+
+#motel_chat_input{
+  margin-top: 10px;
+  margin-left: 10px;
+  width: 100%;
+}
+
+#motel_chat_output{
+  margin-top: 10px;
+  margin-left: 10px;
+  width: 100%;
+}
+
+#motel_chat_input input[type=text]{
+  width: 93%;
+}
+
+#motel_chat_output textarea{
+  width: 97%;
+  height: 80%;
+}

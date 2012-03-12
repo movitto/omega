@@ -250,3 +250,10 @@ $('.alliance_title').live('click', function(event){
     entity_container_contents += allianceo.enemy_ids[e] + " "
   entity_container.html(entity_container_contents);
 });
+
+$('#motel_chat_input input[type=button]').live('click', function(event){
+  var message = $('#motel_chat_input input[type=text]').attr('value');
+  client.send_message(message);
+  $("#motel_chat_output textarea").append(client.current_user + ": " + message + "\n");
+  $('#motel_chat_input input[type=text]').attr('value', '');
+});

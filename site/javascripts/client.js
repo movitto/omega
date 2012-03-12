@@ -8,6 +8,7 @@ function onopen(client){
   client.get_entity('galaxy');
   client.get_entities_for_user(client.current_user, 'Manufactured::Fleet');
   client.get_user_info();
+  client.subscribe_to_messages();
 }
 
 function onsuccess(client, result){
@@ -164,6 +165,9 @@ function invoke_callback(client, method, params){
 
     else if(method == 'track_location')
       client.add_location(params[0]);
+
+    else if(method == "users::subscribe_to_messages")
+      $("#motel_chat_output textarea").append(params[0].nick + ": " + params[0].message + "\n");
 
     else if(params[0] == "attacked"){
       //console.log('attacked event');
@@ -378,6 +382,14 @@ function CosmosClient() {
 
   this.get_user_info = function(){
     client.web_node.invoke_request('users::get_entity', client.current_user)
+  }
+
+  this.send_message = function(message){
+    client.web_node.invoke_request('users::send_message', client.current_user, message);
+  }
+
+  this.subscribe_to_messages = function(){
+    client.ws_node.invoke_request('users::subscribe_to_messages', client.current_user);
   }
 
   this.attack_entity = function(attacker, defender){

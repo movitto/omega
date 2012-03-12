@@ -7,6 +7,28 @@ require 'isaac/bot' # make sure to use isaac >= 0.3.0 (latest on rubygems.org is
 
 module Users
 
+class ChatMessage
+  attr_accessor :nick
+  attr_accessor :message
+
+  def initialize(args = {})
+    @nick    = args[:nick]    || args['nick']
+    @message = args[:message] || args['message']
+  end
+
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       => {:message => message, :nick => nick}
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    user = new(o['data'])
+    return user
+  end
+end
+
 class ChatCallback
   attr_accessor :handler
 
@@ -51,7 +73,8 @@ class ChatProxy
       on :channel do
         proxy = ChatProxy.proxy_for(user)
         proxy.callbacks.each { |c|
-          c.handler.call message
+          cm = ChatMessage.new :message => message, :nick => nick
+          c.handler.call cm
         }
       end
     end
