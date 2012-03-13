@@ -93,7 +93,7 @@ class RJRAdapter
        success
     }
 
-    rjr_dispatcher.add_callback('track_location') { |rjr_callback, location_id, min_distance|
+    rjr_dispatcher.add_callback('track_location') { |location_id, min_distance|
        RJR::Logger.info "received track location #{location_id} request"
        loc = nil
        begin
@@ -102,7 +102,7 @@ class RJRAdapter
            Callbacks::Movement.new :min_distance => min_distance,
                                    :handler => lambda{ |loc, d, dx, dy, dz|
              begin
-               rjr_callback.invoke(loc)
+               @rjr_callback.invoke(loc)
              rescue RJR::Errors::ConnectionError => e
                RJR::Logger.warn "track_location client disconnected"
                loc.movement_callbacks.delete on_movement
@@ -116,7 +116,7 @@ class RJRAdapter
        loc
     }
 
-    rjr_dispatcher.add_callback('track_proximity') { |rjr_callback, location1_id, location2_id, event, max_distance|
+    rjr_dispatcher.add_callback('track_proximity') { |location1_id, location2_id, event, max_distance|
        RJR::Logger.info "received track proximity #{location1_id}/#{location2_id} request"
        RJR::Logger.info "track proximity #{location1_id}/#{location2_id} returning"
        begin
@@ -128,7 +128,7 @@ class RJRAdapter
                                     :max_distance => max_distance,
                                     :handler => lambda { |location1, location2|
              begin
-               rjr_callback.invoke(loc1, loc2)
+               @rjr_callback.invoke(loc1, loc2)
              rescue RJR::Errors::ConnectionError => e
                RJR::Logger.warn "track_proximity client disconnected"
                loc.proximity_callbacks.delete on_proximity

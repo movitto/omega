@@ -74,14 +74,14 @@ class RJRAdapter
        entities
     }
 
-    rjr_dispatcher.add_callback('manufactured::subscribe_to') { |rjr_callback, entity_id, event|
+    rjr_dispatcher.add_callback('manufactured::subscribe_to') { |entity_id, event|
        RJR::Logger.info "received subscribe_to #{entity_id} #{event} request"
        begin
          entity = Manufactured::Registry.instance.find(:id => entity_id).first
          event_callback =
            Callback.new(event){ |*args|
              begin
-               rjr_callback.invoke *args
+               @rjr_callback.invoke *args
              rescue RJR::Errors::ConnectionError => e
                RJR::Logger.warn "subscribe_to client disconnected"
                entity.notification_callbacks.delete event_callback
