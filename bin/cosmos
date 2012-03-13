@@ -143,7 +143,7 @@ def main()
   #rjr_node.listen
 
   # create a few users / groupings
-  user = Users::User.new :id => 'mmorsi'
+  user = Users::User.new :id => 'mmorsi', :password => 'foobar'
   mo_user = rjr_node.invoke_request('motel-queue', 'users::create_entity', user)
   puts "Created user #{mo_user.id}"
 

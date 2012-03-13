@@ -6,7 +6,7 @@ function isArray(testObject) {
 
 function onopen(client){
   client.get_entity('galaxy');
-  client.get_entities_for_user(client.current_user, 'Manufactured::Fleet');
+  client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
   client.get_user_info();
   client.subscribe_to_messages();
 }
@@ -150,6 +150,9 @@ function onsuccess(client, result){
     data += "</ul>";
     $('#motel_alliances_container').html(data);
 
+  // returned when we invoke client.login
+  }else if(result.json_class == "Users::Session"){
+    client.current_user.create_session(result.id, client);
   }
 }
 
@@ -211,7 +214,7 @@ function message_received(client, msg){
 
 function CosmosClient() {
   var client = this;
-  this.current_user   = 'mmorsi';
+  this.current_user   = new User();
   this.current_galaxy = null;
   this.current_system = null;
 
@@ -381,15 +384,15 @@ function CosmosClient() {
   }
 
   this.get_user_info = function(){
-    client.web_node.invoke_request('users::get_entity', client.current_user)
+    client.web_node.invoke_request('users::get_entity', client.current_user.id)
   }
 
   this.send_message = function(message){
-    client.web_node.invoke_request('users::send_message', client.current_user, message);
+    client.web_node.invoke_request('users::send_message', client.current_user.id, message);
   }
 
   this.subscribe_to_messages = function(){
-    client.ws_node.invoke_request('users::subscribe_to_messages', client.current_user);
+    client.ws_node.invoke_request('users::subscribe_to_messages', client.current_user.id);
   }
 
   this.attack_entity = function(attacker, defender){
@@ -398,6 +401,15 @@ function CosmosClient() {
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked_stop');
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'destroyed');
     client.web_node.invoke_request('manufactured::attack_entity', attacker, defender);
+  }
+
+  this.login = function(){
+    client.web_node.invoke_request('users::login', client.current_user);
+  }
+
+  this.logout = function(){
+    client.web_node.invoke_request('users::login', client.current_user.session_id);
+    client.current_user.destroy_session();
   }
 
 };

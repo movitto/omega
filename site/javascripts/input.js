@@ -199,7 +199,7 @@ $('#command_fleet_create').live('click', function(e){
     shnames.push(controls.selected_ships[s].id);
   client.create_entity(new JRObject('Manufactured::Fleet',
                                     {'id'      : 'fleet123',
-                                     'user_id' : client.current_user,
+                                     'user_id' : client.current_user.id,
                                      'ships'   : shnames}));
 });
 
@@ -254,6 +254,18 @@ $('.alliance_title').live('click', function(event){
 $('#motel_chat_input input[type=button]').live('click', function(event){
   var message = $('#motel_chat_input input[type=text]').attr('value');
   client.send_message(message);
-  $("#motel_chat_output textarea").append(client.current_user + ": " + message + "\n");
+  $("#motel_chat_output textarea").append(client.current_user.id + ": " + message + "\n");
   $('#motel_chat_input input[type=text]').attr('value', '');
+});
+
+$('#login_link').live('click', function(event){
+  client.login();
+  $('#logout_link').show();
+  $('#login_link').hide();
+});
+
+$('#logout_link').live('click', function(event){
+  client.logout();
+  $('#login_link').show();
+  $('#logout_link').hide();
 });
