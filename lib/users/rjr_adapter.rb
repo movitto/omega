@@ -79,6 +79,33 @@ class RJRAdapter
        nil
      }
 
+     rjr_dispatcher.add_handler('users::login') { |user|
+       RJR::Logger.info "received login as #{user.id} request"
+       session = nil
+       begin
+         user_entity = Users::Registry.instance.find(:id => user.id).first
+         if user_entity.valid_login?(user.id, user.password)
+           session = Users::Registry.instance.create_session(user_entity)
+         else
+           # TODO throw exception
+         end
+       rescue Exception => e
+         RJR::Logger.info "login as #{user.id} request failed with exception #{e}"
+       end
+       RJR::Logger.info "login as #{user.id} request returning #{session.to_json}"
+       session
+     }
+
+     rjr_dispatcher.add_handler('users::logout') { |session_id|
+       RJR::Logger.info "received logout #{session_id} request"
+       begin
+         Users::Registry.instance.destroy_session(session_id)
+       rescue Exception => e
+         RJR::Logger.info "logout #{session_id} request failed with exception #{e}"
+       end
+       RJR::Logger.info "logout #{session_id} request returning"
+       nil
+     }
 
   end
 

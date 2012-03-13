@@ -9,12 +9,17 @@ module Users
 
 class Registry
   include Singleton
+  # user entities registry
   attr_accessor :users
   attr_accessor :alliances
+
+  # user sessions registry
+  attr_accessor :sessions
 
   def initialize
     @users     = []
     @alliances = []
+    @sessions  = []
   end
 
   def find(args = {})
@@ -36,6 +41,17 @@ class Registry
     elsif entity.is_a?(Users::Alliance)
       @alliances << entity
     end
+  end
+
+  def create_session(user)
+    # TODO just return user session if already existing
+    session = Session.new :user => user
+    @sessions << session
+    return session
+  end
+
+  def destroy_session(session_id)
+    @sessions.delete_if { |session| session.id == session_id }
   end
 
 end

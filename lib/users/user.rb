@@ -6,10 +6,12 @@
 module Users
 class User
   attr_reader :id
+  attr_reader :password
   attr_reader :alliances
 
   def initialize(args = {})
     @id        = args['id']        || args[:id]
+    @password  = args['password']  || args[:password]
     @alliances = args['alliances'] || args[:alliances] || []
 
     #Users::Registry.instance.create self
@@ -19,10 +21,18 @@ class User
     @alliances << alliance unless @alliances.include?(alliance)
   end
 
+  def valid_login?(user_id, password)
+    self.id == user_id && self.password == password
+  end
+
+  # TODO at some point implement a full RBAC solution
+  def is_authorized?(privilege, entity = nil)
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :alliances => alliances}
+      'data'       => {:id => id, :password => password, :alliances => alliances}
     }.to_json(*a)
   end
 

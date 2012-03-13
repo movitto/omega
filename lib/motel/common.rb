@@ -11,7 +11,7 @@ require 'logger'
 module Motel
 
 # generate a random id
-def gen_uuid
+def self.gen_uuid
   ["%02x"*4, "%02x"*2, "%02x"*2, "%02x"*2, "%02x"*6].join("-") %
       Array.new(16) {|x| rand(0xff) }
 end
