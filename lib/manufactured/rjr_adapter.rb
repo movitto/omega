@@ -74,7 +74,7 @@ class RJRAdapter
        entities
     }
 
-    rjr_dispatcher.add_callback('manufactured::subscribe_to') { |entity_id, event|
+    rjr_dispatcher.add_handler('manufactured::subscribe_to') { |entity_id, event|
        RJR::Logger.info "received subscribe_to #{entity_id} #{event} request"
        begin
          entity = Manufactured::Registry.instance.find(:id => entity_id).first

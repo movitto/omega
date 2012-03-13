@@ -59,7 +59,7 @@ class RJRAdapter
        nil
      }
 
-    rjr_dispatcher.add_callback('users::subscribe_to_messages') { |user_id|
+    rjr_dispatcher.add_handler('users::subscribe_to_messages') { |user_id|
        RJR::Logger.info "received subscribe_to_messages #{user_id} request"
        begin
          callback = Users::ChatCallback.new { |message|

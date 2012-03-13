@@ -93,7 +93,7 @@ class RJRAdapter
        success
     }
 
-    rjr_dispatcher.add_callback('track_location') { |location_id, min_distance|
+    rjr_dispatcher.add_handler('track_location') { |location_id, min_distance|
        RJR::Logger.info "received track location #{location_id} request"
        loc = nil
        begin
@@ -116,7 +116,7 @@ class RJRAdapter
        loc
     }
 
-    rjr_dispatcher.add_callback('track_proximity') { |location1_id, location2_id, event, max_distance|
+    rjr_dispatcher.add_handler('track_proximity') { |location1_id, location2_id, event, max_distance|
        RJR::Logger.info "received track proximity #{location1_id}/#{location2_id} request"
        RJR::Logger.info "track proximity #{location1_id}/#{location2_id} returning"
        begin
