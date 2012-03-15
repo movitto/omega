@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+# Generate motel roles data
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'users'
+
+PRIVLEGE_VIEW     = 'view'
+PRIVILEGE_CREATE  = 'create'
+PRIVILEGE_MODIFY  = 'modify'
+PRIVILEGE_DELELTE = 'delete'
+
+PRIVILEGES        = [PRIVILEGE_VIEW, PRIVILEGE_CREATE, PRIVILEGE_MODIFY, PRIVILEGE_DELETE]
+
+ENTITY_LOCATIONS    = 'locations'
+ENTITY_COSMOS       = 'cosmos_entities'
+ENTITY_MANUFACTURED = 'manufactured_entities'
+ENTITY_USERS        = 'users'
+ENTITY_PRIVILEGES   = 'privileges'
+
+ENTITIES            = [ENTITY_LOCATIONS, ENTITY_COSMOS, ENTITY_MANUFACTURED, ENTITY_USERS, ENTITY_PRIVILEGES]
+
+ROLES = { :superadmin => PRIVILEGES.collect  { |p| ENTITIES.collect { |e| [p,e] } }.flatten,
+        }
+        

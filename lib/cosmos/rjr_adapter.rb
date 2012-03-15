@@ -14,44 +14,39 @@ class RJRAdapter
 
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('create_entity'){ |entity, parent|
-       RJR::Logger.info "received create entity #{entity} under #{parent} request"
-       begin
-         parent_type = parent.is_a?(String) ?
-                           parent.intern :
-                           parent.class.to_s.downcase.underscore.split('/').last.intern
-         parent_name = parent.is_a?(String) ?
-                           parent : parent.name
+       Users::Registry.require_privilege(:privilege => 'create', :entity => 'cosmos_entities',
+                                         :session   => @headers['session_id'])
 
-         rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
-         # TODO raise exception if rparent.nil?
+       parent_type = parent.is_a?(String) ?
+                         parent.intern :
+                         parent.class.to_s.downcase.underscore.split('/').last.intern
+       parent_name = parent.is_a?(String) ?
+                         parent : parent.name
 
-         rparent.add_child entity
+       rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
+       raise Omega::DataNotFound, "parent entity of type #{parent_type} with name #{parent_name} not found" if rparent.nil?
 
-         unless entity.location.nil?
-           # entity.location.entity = entity
-           Motel::Runner.instance.run entity.location
-         end
+       rparent.add_child entity
 
-       rescue Exception => e
-         RJR::Logger.warn "request create entity #{entity} failed with exception #{e}"
+       unless entity.location.nil?
+         # entity.location.entity = entity
+         Motel::Runner.instance.run entity.location
        end
-       RJR::Logger.info "request create entity returning #{entity}"
+
        entity
     }
 
-    rjr_dispatcher.add_handler('get_entity'){ |type, name|
-       if name.nil?
-         RJR::Logger.info "received get entity #{type} request"
-       else
-         RJR::Logger.info "received get entity #{type} with name #{name} request"
-       end
-       entity = nil
-       begin
-         entity = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
-       rescue Exception => e
-         RJR::Logger.warn "request get entity #{type} with name #{name} failed with exception #{e}"
-       end
-       RJR::Logger.info "request get entity returning #{entity}"
+    rjr_dispatcher.add_handler('get_entity'){ |*args|
+       type = args[0]
+       name = args.length > 0 ? args[1] : nil
+
+       entity = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
+
+       raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
+                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                         :session => @headers['session_id'])
+
        entity
     }
   end

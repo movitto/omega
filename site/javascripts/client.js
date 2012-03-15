@@ -161,7 +161,7 @@ function onfailed(client, error, msg){
   //console.log(msg);
 }
 
-function invoke_callback(client, method, params){
+function invoke_method(client, method, params){
   if(isArray(params)){
     if(params.length < 1)
       return
@@ -234,7 +234,7 @@ function CosmosClient() {
     client.ws_node.onsuccess = function(result)     { onsuccess(client, result);     }
     client.ws_node.onfailed  = function(error, msg) { onfailed(client, error, msg);  }
     client.ws_node.message_received = function(msg) { message_received(client, msg); }
-    client.ws_node.invoke_callback  = function(method, params){ invoke_callback(client, method, params); }
+    client.ws_node.invoke_method  = function(method, params){ invoke_method(client, method, params); }
         
     client.web_node.onsuccess = function(result)     { onsuccess(client, result);     }
     client.web_node.onfailed  = function(error, msg) { onfailed(client, error, msg);  }
@@ -353,10 +353,6 @@ function CosmosClient() {
     }
 
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/system.png") no-repeat');
-  }
-
-  this.get_location = function(id){
-    client.web_node.invoke_request('get_location', id);
   }
 
   this.track_location = function(id, min_distance){

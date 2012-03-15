@@ -107,6 +107,27 @@ class RJRAdapter
        nil
      }
 
+     rjr_dispatcher.add_handler('users::add_privilege') { |*args|
+       user_id      = args[0]
+       privilege_id = args[1]
+       entity_id    = nil
+
+       if args.length < 3
+         RJR::Logger.info "received add_privilage #{privilege_id} to #{user_id} request"
+       else
+         entity_id   = args[2]
+         RJR::Logger.info "received add_privilage #{privilege_id} to #{user_id}/#{entity_id} request"
+       end
+       begin
+         user = Users::Registry.instance.find(:id => user_id).first
+         user.add_privilege Privilege.new :id => privilege_id, :entity_id => entity_id
+       rescue Exception => e
+         RJR::Logger.info "add_privilage #{privilege_id} to #{user_id} request failed with exception #{e}"
+       end
+       RJR::Logger.info "add_privilage #{privilege_id} to #{user_id} request returning"
+       nil
+     }
+
   end
 
 end # class RJRAdapter

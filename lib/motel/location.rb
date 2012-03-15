@@ -38,6 +38,12 @@ class Location
    # a generic association which this location can belong to
    attr_accessor :entity
 
+   # flag indicating if permission checks should restrict access to this location
+   attr_accessor :restrict_view
+
+   # flag indicating if permission checks should restrict modification of this location
+   attr_accessor :restrict_modify
+
    def initialize(args = {})
       # default to the stopped movement strategy
       @movement_strategy = MovementStrategies::Stopped.instance
@@ -48,6 +54,9 @@ class Location
       @x = nil
       @y = nil
       @z = nil
+
+      @restrict_view   = true
+      @restrict_modify = true
 
       args.each { |k,v|
         inst_attr = ('@' + k.to_s).to_sym
@@ -65,6 +74,8 @@ class Location
       @movement_strategy = location.movement_strategy unless location.movement_strategy.nil?
       @parent = location.parent unless location.parent.nil?
       @parent_id = location.parent_id unless location.parent_id.nil?
+      @restrict_view   = location.restrict_view
+      @restrict_modify = location.restrict_modify
    end
 
    # return this locations coordinates in an array
@@ -119,7 +130,7 @@ class Location
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :x => x, :y => y, :z => z, :parent_id => parent_id, :movement_strategy => movement_strategy}
+         {:id => id, :x => x, :y => y, :z => z, :restrict_view => restrict_view, :restrict_modify => restrict_modify, :parent_id => parent_id, :movement_strategy => movement_strategy}
      }.to_json(*a)
    end
 

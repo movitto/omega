@@ -43,11 +43,12 @@ def main()
   Manufactured::RJRAdapter.register_handlers(RJR::Dispatcher)
   Users::RJRAdapter.register_handlers(RJR::Dispatcher)
 
-  amqp_node  = RJR::AMQPNode.new  :node_id => 'motel', :broker => 'localhost'
-  ws_node    = RJR::WSNode.new    :node_id => 'motel', :host   => 'localhost', :port => 8080
-  www_node   = RJR::WebNode.new   :node_id => 'motel', :host   => 'localhost', :port => 8888
+  amqp_node  = RJR::AMQPNode.new  :node_id => 'omega', :broker => 'localhost'
+  ws_node    = RJR::WSNode.new    :node_id => 'omega', :host   => 'localhost', :port => 8080
+  www_node   = RJR::WebNode.new   :node_id => 'omega', :host   => 'localhost', :port => 8888
+  local_node = RJR::LocalNode.new :node_id => 'omega' # not technically needed
 
-  multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node]
+  multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node, local_node]
 
   multi_node.listen
   multi_node.terminate # TODO run in signal handler

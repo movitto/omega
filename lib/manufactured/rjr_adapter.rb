@@ -14,149 +14,178 @@ class RJRAdapter
 
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('manufactured::create_entity'){ |entity|
-       RJR::Logger.info "received create entity #{entity} request"
-       begin
-         # swap out the parent w/ the one stored in the cosmos registry
-         if !entity.is_a?(Manufactured::Fleet) && entity.parent
-           entity.parent = Cosmos::Registry.instance.find_entity :type => :solarsystem,
-                                                                 :name => entity.parent.name
-         end
+      Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
+                                        :session   => @headers['session_id'])
 
-         Manufactured::Registry.instance.create entity
+      # swap out the parent w/ the one stored in the cosmos registry
+      if !entity.is_a?(Manufactured::Fleet) && entity.parent
+        local_node = RJR::LocalNode.new :headers => @headers
+        parent = local_node.invoke_request('get_entity', :solarsystem, entity.parent.name)
+        raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
+        entity.parent = parent
+      end
 
-         unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
-           #unless entity.parent.nil? || entity.parent.location.nil?
-           #  entity.location.parent
-           #end
-           Motel::Runner.instance.run entity.location
-         end
+      Manufactured::Registry.instance.create entity
 
-       rescue Exception => e
-         RJR::Logger.warn "request create entity #{entity} failed with exception #{e}"
-       end
-       RJR::Logger.info "request create entity returning #{entity}"
-       entity
+      unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
+        #unless entity.parent.nil? || entity.parent.location.nil?
+        #  entity.location.parent
+        #end
+        local_node = RJR::LocalNode.new :headers => @headers
+        local_node.invoke_request('create_location', entity.location)
+      end
+
+      entity
     }
 
     rjr_dispatcher.add_handler('manufactured::get_entity'){ |id|
-       RJR::Logger.info "received get entity #{id} request"
-       entity = nil
-       begin
-         entity = Manufactured::Registry.instance.find(:id => id).first
-       rescue Exception => e
-         RJR::Logger.warn "request get entity #{id} failed with exception #{e}"
-       end
-       RJR::Logger.info "request get entity #{id} returning #{entity}"
+       entity = Manufactured::Registry.instance.find(:id => id).first
+
+       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                         :session => @headers['session_id'])
+
        entity
     }
 
     rjr_dispatcher.add_handler('manufactured::get_entities_under'){ |parent_id|
-       RJR::Logger.info "received get_entities_under #{parent_id} request"
-       entities = []
-       begin
-         entities = Manufactured::Registry.instance.find(:parent_id => parent_id)
-       rescue Exception => e
-         RJR::Logger.warn "request get_entities_under #{parent_id} failed with exception #{e}"
-       end
-       RJR::Logger.info "request get_entities_under #{parent_id} returning #{entities}"
-       entities
+      # just lookup parent to ensure it exists
+      local_node = RJR::LocalNode.new :headers => @headers
+      parent = local_node.invoke_request('get_entity', :solarsystem, parent_id)
+      raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
+
+      entities = Manufactured::Registry.instance.find(:parent_id => parent_id)
+      entities.reject! { |entity|
+        raised = false
+        begin
+          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                     {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                            :session => @headers['session_id'])
+        rescue Omega::PermissionError => e
+          raised = true
+        end
+        raised
+      }
+      entities
     }
 
     rjr_dispatcher.add_handler('manufactured::get_entities_for_user') { |user_id, entity_type|
-       RJR::Logger.info "received get get entities of #{entity_type} for user #{user_id}"
-       entities = []
-       begin
-         entities = Manufactured::Registry.instance.find(:type => entity_type, :user_id => user_id)
-       rescue Exception => e
-         RJR::Logger.info "request get get entities of #{entity_type} for user #{user_id} failed with exception #{e}"
-       end
-       RJR::Logger.info "request get get entities of #{entity_type} for user #{user_id} returning #{entities}"
-       entities
+      # just lookup user to ensure it exists
+      local_node = RJR::LocalNode.new :headers => @headers
+      user = local_node.invoke_request('users::get_entity', user_id)
+      raise Omega::DataNotFound, "user specified by #{user_id} not found" if user.nil?
+
+      entities = Manufactured::Registry.instance.find(:type => entity_type, :user_id => user_id)
+      entities.reject! { |entity|
+        raised = false
+        begin
+          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                     {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                            :session => @headers['session_id'])
+        rescue Omega::PermissionError => e
+          raised = true
+        end
+        raised
+      }
+      entities
     }
 
     rjr_dispatcher.add_handler('manufactured::subscribe_to') { |entity_id, event|
-       RJR::Logger.info "received subscribe_to #{entity_id} #{event} request"
-       begin
-         entity = Manufactured::Registry.instance.find(:id => entity_id).first
-         event_callback =
-           Callback.new(event){ |*args|
-             begin
-               @rjr_callback.invoke *args
-             rescue RJR::Errors::ConnectionError => e
-               RJR::Logger.warn "subscribe_to client disconnected"
-               entity.notification_callbacks.delete event_callback
-             end
-           }
+      entity = Manufactured::Registry.instance.find(:id => entity_id).first
+      raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
 
-         entity.notification_callbacks << event_callback
-       rescue Exception => e
-         RJR::Logger.info "subscribe_to #{entity_id} #{event} failed with exception #{e}"
-       end
-       RJR::Logger.info "subscribe_to #{entity_id} #{event} request returning"
-       nil
+      event_callback =
+        Callback.new(event){ |*args|
+          begin
+            Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                       {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                              :session => @headers['session_id'])
+            @rjr_callback.invoke 'manufactured::subscribe_to', *args
+
+          rescue Omega::PermissionError => e
+            RJR::Logger.warn "client does not have privilege to subscribe to #{event} on #{entity.id}"
+            entity.notification_callbacks.delete event_callback
+
+          rescue RJR::Errors::ConnectionError => e
+            RJR::Logger.warn "subscribe_to client disconnected"
+            entity.notification_callbacks.delete event_callback
+          end
+        }
+
+      entity.notification_callbacks << event_callback
+      entity
     }
 
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, parent_id, new_location|
-       RJR::Logger.info "received move entity #{id} to location #{new_location} under parent #{parent_id} request"
-       begin
-         entity = Manufactured::Registry.instance.find(:id => id).first
-         parent = Cosmos::Registry.instance.find_entity :type => :solarsystem, :name => parent_id
+      entity = Manufactured::Registry.instance.find(:id => id).first
+      local_node = RJR::LocalNode.new :headers => @headers
+      parent = local_node.invoke_request('get_entity', :solarsystem, parent_id)
 
-         # raise exception if entity or parent is invalid
-         raise ArgumentError, "Must specify ship to move" if entity.nil? || !entity.is_a?(Manufactured::Ship)
-         raise ArgumentError, "Must specify system to move ship to" if parent.nil? || !parent.is_a?(Cosmos::SolarSystem)
+      raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
+      raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
 
-         # if parents don't match, simply set parent and location
-         if entity.parent.id != parent_id
-           entity.parent   = parent
-           entity.location = new_location unless new_location.nil?
-           # TODO set locaiton parent
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
 
-         # else move to location using a linear movement strategy
-         else
-           dx = new_location.x - entity.location.x
-           dy = new_location.y - entity.location.y
-           dz = new_location.z - entity.location.z
-           distance = Math.sqrt( dx ** 2 + dy ** 2 + dz ** 2 )
+      # raise exception if entity or parent is invalid
+      raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
+      raise ArgumentError, "Must specify system to move ship to" unless parent.is_a?(Cosmos::SolarSystem)
 
-           # FIXME derive speed from ship
-           entity.location.movement_strategy =
-             Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
-                                                   :direction_vector_y => dy/distance,
-                                                   :direction_vector_z => dz/distance,
-                                                   :speed => 5
+      # if parents don't match, simply set parent and location
+      if entity.parent.id != parent_id
+        entity.parent   = parent
+        entity.location = new_location unless new_location.nil?
+        # TODO set locaiton parent
 
-           # stop on arrival
-           on_proximity = Motel::Callbacks::Proximity.new :to_location  => new_location,
-                                                   :event        => :proximity,
-                                                   :max_distance => 10,
-                                                   :handler      => lambda { |location1, location2|
-             entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-             entity.location.proximity_callbacks.clear
-           }
-           entity.location.proximity_callbacks << on_proximity
+      # else move to location using a linear movement strategy
+      else
+        dx = new_location.x - entity.location.x
+        dy = new_location.y - entity.location.y
+        dz = new_location.z - entity.location.z
+        distance = Math.sqrt( dx ** 2 + dy ** 2 + dz ** 2 )
 
-         end
+        # FIXME utlitize local_node to invoke track_proximity request,
+        #   currently limitation w/ local rjr node callbacks prevents this
+        # FIXME derive speed from ship
+        entity.location.movement_strategy =
+          Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
+                                                :direction_vector_y => dy/distance,
+                                                :direction_vector_z => dz/distance,
+                                                :speed => 5
 
-       rescue Exception => e
-         RJR::Logger.warn "request move entity #{entity} to location #{new_location} under parent #{parent} failed with exception #{e}"
-       end
-       RJR::Logger.info "request move entity #{entity} to location #{new_location} under parent #{parent} returning #{entity}"
-       entity
+        # stop on arrival
+        on_proximity = Motel::Callbacks::Proximity.new :to_location  => new_location,
+                                                :event        => :proximity,
+                                                :max_distance => 10,
+                                                :handler      => lambda { |location1, location2|
+          entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+          entity.location.proximity_callbacks.clear # FIXME delete(on_proximity) instead
+        }
+        entity.location.proximity_callbacks << on_proximity
+      end
+
+      entity
     }
 
     rjr_dispatcher.add_handler('manufactured::attack_entity'){ |attacker_entity_id, defender_entity_id|
-       RJR::Logger.info "received attack_entity #{defender_entity_id} (attacker #{attacker_entity_id})"
-       begin
-         attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
-         defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
-         Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
+      attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
+      defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
 
-       rescue Exception => e
-         RJR::Logger.info "request attack_entity #{defender_entity_id} (attacker #{attacker_entity_id}) returning failed with exception #{e}"
-       end
-       RJR::Logger.info "request attack_entity #{defender_entity_id} (attacker #{attacker_entity_id}) returning"
-       nil
+      raise Omega::DataNotFound, "manufactured entity specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
+      raise Omega::DataNotFound, "manufactured entity specified by #{defender_entity_id} (defender) not found"  if defender.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
+                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
+                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
+
+      [attacker, defender]
     }
   end
 end # class RJRAdapter
