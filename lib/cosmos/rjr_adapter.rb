@@ -14,7 +14,7 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('create_entity'){ |entity, parent|
+    rjr_dispatcher.add_handler('cosmos::create_entity'){ |entity, parent|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'cosmos_entities',
                                          :session   => @headers['session_id'])
 
@@ -38,7 +38,7 @@ class RJRAdapter
        entity
     }
 
-    rjr_dispatcher.add_handler('get_entity'){ |*args|
+    rjr_dispatcher.add_handler('cosmos::get_entity'){ |*args|
        type = args[0]
        name = args.length > 0 ? args[1] : nil
 

@@ -5,7 +5,7 @@ function isArray(testObject) {
 }
 
 function onopen(client){
-  client.get_entity('galaxy');
+  client.get_cosmos_entity('galaxy');
   client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
   client.get_user_info();
   client.subscribe_to_messages();
@@ -19,7 +19,7 @@ function onsuccess(client, result){
     if(result.length < 1)
       return;
 
-    // returned when we invoke client.get_entity('galaxy')
+    // returned when we invoke client.get_cosmos_entity('galaxy')
     else if(result[0].json_class == "Cosmos::Galaxy"){
       var data  = "<span class='motel_entities_container_title'>Locations:</span><ul>"
 
@@ -359,8 +359,8 @@ function CosmosClient() {
     client.ws_node.invoke_request('track_location', id, min_distance);
   }
 
-  this.get_entity = function(entity, name){
-    client.web_node.invoke_request('get_entity', entity, name);
+  this.get_cosmos_entity = function(entity, name){
+    client.web_node.invoke_request('cosmos::get_entity', entity, name);
   }
 
   this.get_entities_under = function(parent_id){

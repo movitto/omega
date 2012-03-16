@@ -24,7 +24,7 @@ rjr_node.invoke_request('motel-queue', 'get_all_locations').each { |loc|
 
 #######################
 
-rjr_node.invoke_request('motel-queue', 'get_entity', 'galaxy').each { |galaxy|
+rjr_node.invoke_request('motel-queue', 'cosmos::get_entity', 'galaxy').each { |galaxy|
   bf.write galaxy.to_json + "\n"
 }
 

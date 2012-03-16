@@ -104,7 +104,7 @@ def main()
   num_galaxies = num_entities('GALAXIES')
   0.upto(num_galaxies-1) { |gi|
     total_galaxies += 1
-    g = rjr_node.invoke_request('omega-queue', 'create_entity', 
+    g = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
              Cosmos::Galaxy.new(:name => Omega::Names.rand_name), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
@@ -112,14 +112,14 @@ def main()
     num_systems = num_entities('SYSTEMS_PER_GALAXY')
     0.upto(num_systems-1) { |si|
       total_systems += 1
-      sys = rjr_node.invoke_request('omega-queue', 'create_entity',
+      sys = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
              Cosmos::SolarSystem.new(:name => Omega::Names.rand_name,
                                      :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), g)
       all_systems    << sys
       galaxy_systems << sys
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
-      star = rjr_node.invoke_request('omega-queue', 'create_entity',
+      star = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
                                Cosmos::Star.new(:name => Omega::Names.rand_name), sys)
       puts "Created star #{star.name} (loc #{star.location.id})"
 
@@ -137,7 +137,7 @@ def main()
                                                        :min_s => MIN_SPEED,
                                                        :max_s => MAX_SPEED,
                                                        :dimensions => 2) # XXX for now, we'll ignore the z axis
-        pl = rjr_node.invoke_request('omega-queue', 'create_entity',
+        pl = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
                   Cosmos::Planet.new(:name => Omega::Names.rand_name,
                                      :location => ploc), sys)
         puts "Created planet #{pl.name} (loc #{pl.location.id})"
@@ -145,7 +145,7 @@ def main()
         num_moons = num_entities('MOONS_PER_PLANET')
         0.upto(num_moons-1) { |mi|
           total_moons += 1
-          mn = rjr_node.invoke_request('omega-queue', 'create_entity',
+          mn = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
                Cosmos::Moon.new(:name => Omega::Names.rand_name,
                  :location => Motel::Location.random(:min => pl.size, :max => pl.size * 2.3)), pl)
           puts "Created moon #{mn.name} (loc #{mn.location.id})"
@@ -163,7 +163,7 @@ def main()
         endpoint  = si - 1
         if endpoint >= 0
           0.upto(num_gates-1) { |ji|
-            gate = rjr_node.invoke_request('omega-queue', 'create_entity',
+            gate = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
                      Cosmos::JumpGate.new(:solar_system => sys, :endpoint => galaxy_systems[endpoint],
                                           :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), sys)
             endpoint -= 1
@@ -174,7 +174,7 @@ def main()
     end
   }
 
-  #galaxy = rjr_node.invoke_request('omega-queue', 'get_entity', 'galaxy', 'galaxy1')
+  #galaxy = rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', 'galaxy', 'galaxy1')
   #rjr_node.invoke_request('omega-queue', 'track_location', 4)
   #rjr_node.listen
 

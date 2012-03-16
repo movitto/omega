@@ -23,18 +23,18 @@ bf.each { |json|
   when Motel::Location
 
   when Cosmos::Galaxy
-    rjr_node.invoke_request('motel-queue', 'create_entity', entity, :universe)
+    rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', entity, :universe)
     entity.solar_systems.each { |system|
-      rjr_node.invoke_request('motel-queue', 'create_entity', system, entity)
-      rjr_node.invoke_request('motel-queue', 'create_entity', system.star, system)
+      rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', system, entity)
+      rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', system.star, system)
       system.planets.each { |planet|
-        rjr_node.invoke_request('motel-queue', 'create_entity', planet, system)
+        rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', planet, system)
         planet.moons.each { |moon|
-          rjr_node.invoke_request('motel-queue', 'create_entity', moon, planet)
+          rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', moon, planet)
         }
       }
       system.jump_gates.each { |gate|
-        rjr_node.invoke_request('motel-queue', 'create_entity', gate, system)
+        rjr_node.invoke_request('motel-queue', 'cosmos::create_entity', gate, system)
       }
     }
 
