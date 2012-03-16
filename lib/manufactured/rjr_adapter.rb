@@ -8,8 +8,22 @@ require 'active_support/inflector'
 module Manufactured
 
 class RJRAdapter
+  def self.user
+    @@manufactured_user ||= Users::User.new(:id => 'manufactured',
+                                            :password => 'changeme')
+  end
+
   def self.init
+    self.register_handlers(RJR::Dispatcher)
     #Manufactured::Registry.instance.init
+    @@local_node = RJR::LocalNode.new
+    @@local_node.invoke_request('users::create_entity', self.user)
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'cosmos_entities')
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'locations')
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'users_entities')
+
+    session = @@local_node.invoke_request('users::login', self.user)
+    @@local_node.message_headers['session_id'] = session.id
   end
 
   def self.register_handlers(rjr_dispatcher)
@@ -19,8 +33,7 @@ class RJRAdapter
 
       # swap out the parent w/ the one stored in the cosmos registry
       if !entity.is_a?(Manufactured::Fleet) && entity.parent
-        local_node = RJR::LocalNode.new :headers => @headers
-        parent = local_node.invoke_request('get_entity', :solarsystem, entity.parent.name)
+        parent = @@local_node.invoke_request('get_entity', :solarsystem, entity.parent.name)
         raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
         entity.parent = parent
       end
@@ -31,8 +44,7 @@ class RJRAdapter
         #unless entity.parent.nil? || entity.parent.location.nil?
         #  entity.location.parent
         #end
-        local_node = RJR::LocalNode.new :headers => @headers
-        local_node.invoke_request('create_location', entity.location)
+        @@local_node.invoke_request('create_location', entity.location)
       end
 
       entity
@@ -51,8 +63,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::get_entities_under'){ |parent_id|
       # just lookup parent to ensure it exists
-      local_node = RJR::LocalNode.new :headers => @headers
-      parent = local_node.invoke_request('get_entity', :solarsystem, parent_id)
+      parent = @@local_node.invoke_request('get_entity', :solarsystem, parent_id)
       raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
 
       entities = Manufactured::Registry.instance.find(:parent_id => parent_id)
@@ -72,8 +83,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::get_entities_for_user') { |user_id, entity_type|
       # just lookup user to ensure it exists
-      local_node = RJR::LocalNode.new :headers => @headers
-      user = local_node.invoke_request('users::get_entity', user_id)
+      user = @@local_node.invoke_request('users::get_entity', user_id)
       raise Omega::DataNotFound, "user specified by #{user_id} not found" if user.nil?
 
       entities = Manufactured::Registry.instance.find(:type => entity_type, :user_id => user_id)
@@ -119,8 +129,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, parent_id, new_location|
       entity = Manufactured::Registry.instance.find(:id => id).first
-      local_node = RJR::LocalNode.new :headers => @headers
-      parent = local_node.invoke_request('get_entity', :solarsystem, parent_id)
+      parent = @@local_node.invoke_request('get_entity', :solarsystem, parent_id)
 
       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
       raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?

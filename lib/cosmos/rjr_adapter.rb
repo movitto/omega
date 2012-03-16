@@ -9,6 +9,7 @@ module Cosmos
 
 class RJRAdapter
   def self.init
+    self.register_handlers(RJR::Dispatcher)
     #Cosmos::Registry.instance.init
   end
 
@@ -28,6 +29,7 @@ class RJRAdapter
 
        rparent.add_child entity
 
+       # FIXME use local rjr node
        unless entity.location.nil?
          # entity.location.entity = entity
          Motel::Runner.instance.run entity.location

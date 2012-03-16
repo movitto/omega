@@ -39,9 +39,11 @@ class Registry
 
   def create(entity)
     if entity.is_a?(Users::User)
-      @users << entity
+      @users     << entity if @users.find { |u| u.id == entity.id }.nil?
+
     elsif entity.is_a?(Users::Alliance)
-      @alliances << entity
+      @alliances << entity if @alliances.find { |a| a.id == entity.id}.nil?
+
     end
   end
 

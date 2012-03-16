@@ -9,6 +9,7 @@ module Users
 
 class RJRAdapter
   def self.init
+    self.register_handlers(RJR::Dispatcher)
     #Users::Registry.instance.init
   end
 

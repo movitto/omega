@@ -9,6 +9,7 @@ module Motel
 
 class RJRAdapter
   def self.init
+    self.register_handlers(RJR::Dispatcher)
     Motel::Runner.instance.start :async => true
   end
 

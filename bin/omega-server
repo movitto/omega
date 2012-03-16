@@ -33,11 +33,11 @@ def main()
   end
 
   RJR::Logger.log_level = ::Logger::DEBUG
+
   Motel::RJRAdapter.init
-  Motel::RJRAdapter.register_handlers(RJR::Dispatcher)
-  Cosmos::RJRAdapter.register_handlers(RJR::Dispatcher)
-  Manufactured::RJRAdapter.register_handlers(RJR::Dispatcher)
-  Users::RJRAdapter.register_handlers(RJR::Dispatcher)
+  Users::RJRAdapter.init
+  Cosmos::RJRAdapter.init
+  Manufactured::RJRAdapter.init
 
   amqp_node  = RJR::AMQPNode.new  :node_id => 'omega', :broker => 'localhost'
   ws_node    = RJR::WSNode.new    :node_id => 'omega', :host   => 'localhost', :port => 8080
