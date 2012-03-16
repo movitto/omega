@@ -10,11 +10,7 @@
 
 require 'rubygems'
 require 'optparse'
-require 'motel'
-require 'cosmos'
-require 'manufactured'
-require 'users'
-require 'rjr'
+require 'omega'
 
 ######################
 
@@ -49,6 +45,10 @@ def main()
   local_node = RJR::LocalNode.new :node_id => 'omega' # not technically needed
 
   multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node, local_node]
+
+  # create an initial superadmin user
+  admin = Omega::Roles.create_user('admin', 'nimda')
+  Omega::Roles.create_user_role(admin, :superadmin)
 
   multi_node.listen
   multi_node.terminate # TODO run in signal handler

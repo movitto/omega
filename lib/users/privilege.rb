@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Users
+
 class Privilege
   attr_reader :id
   attr_reader :entity_id
@@ -18,4 +19,18 @@ class Privilege
   end
 
 end
+
+class Role
+  attr_accessor :id
+  attr_accessor :privilege
+  attr_accessor :entity
+
+  def initialize(args = {})
+    @id        = args['id']         || args[:id]
+    @entity    = args['entity_id']  || args[:entity_id]
+    @privilege = args['privilege']  || args[:privilege]
+  end
+end
+
+
 end

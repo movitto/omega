@@ -9,6 +9,8 @@ $: << lib + '/omega/'
 require 'rjr'
 
 require lib + '/omega/exceptions'
+require lib + '/omega/roles'
+require lib + '/omega/names'
 
 require lib + '/motel'
 require lib + '/cosmos'

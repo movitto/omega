@@ -11,7 +11,7 @@ require 'manufactured'
 require 'users'
 require 'rjr'
 
-require 'names'
+require 'omega/names'
 
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
@@ -60,6 +60,11 @@ def main()
 
   rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
 
+  # login as superadmin
+  superadmin = Users::User.new :id => 'admin', :password => 'nimda'
+  session = rjr_node.invoke_request('omega-queue', 'users::login', superadmin)
+  rjr_node.message_headers['session_id'] = session.id
+
   # create a few users / groupings
   user = Users::User.new :id => 'mmorsi', :password => 'foobar'
   mo_user = rjr_node.invoke_request('omega-queue', 'users::create_entity', user)
@@ -91,11 +96,6 @@ def main()
   rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'create', 'manufactured_entities')
   rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view',   'cosmos_entities')
 
-  # log user in for subsequent requests
-  session = rjr_node.invoke_request('omega-queue', 'users::login', mo_user)
-  rjr_node.message_headers['session_id'] = session.id
-
-
   total_galaxies = total_systems = total_planets = total_moons = 0
   total_ships = total_stations = 0
 
@@ -105,7 +105,7 @@ def main()
   0.upto(num_galaxies-1) { |gi|
     total_galaxies += 1
     g = rjr_node.invoke_request('omega-queue', 'create_entity', 
-             Cosmos::Galaxy.new(:name => rand_name), :universe)
+             Cosmos::Galaxy.new(:name => Omega::Names.rand_name), :universe)
     puts "Created galaxy #{g.name} (loc #{g.location.id})"
 
     galaxy_systems = []
@@ -113,14 +113,14 @@ def main()
     0.upto(num_systems-1) { |si|
       total_systems += 1
       sys = rjr_node.invoke_request('omega-queue', 'create_entity',
-             Cosmos::SolarSystem.new(:name => rand_name,
+             Cosmos::SolarSystem.new(:name => Omega::Names.rand_name,
                                      :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), g)
       all_systems    << sys
       galaxy_systems << sys
       puts "Created system #{sys.name} (loc #{sys.location.id})"
 
       star = rjr_node.invoke_request('omega-queue', 'create_entity',
-                               Cosmos::Star.new(:name => rand_name), sys)
+                               Cosmos::Star.new(:name => Omega::Names.rand_name), sys)
       puts "Created star #{star.name} (loc #{star.location.id})"
 
       num_planets = num_entities('PLANETS_PER_SYSTEM')
@@ -138,7 +138,7 @@ def main()
                                                        :max_s => MAX_SPEED,
                                                        :dimensions => 2) # XXX for now, we'll ignore the z axis
         pl = rjr_node.invoke_request('omega-queue', 'create_entity',
-                  Cosmos::Planet.new(:name => rand_name,
+                  Cosmos::Planet.new(:name => Omega::Names.rand_name,
                                      :location => ploc), sys)
         puts "Created planet #{pl.name} (loc #{pl.location.id})"
 
@@ -146,7 +146,7 @@ def main()
         0.upto(num_moons-1) { |mi|
           total_moons += 1
           mn = rjr_node.invoke_request('omega-queue', 'create_entity',
-               Cosmos::Moon.new(:name => rand_name,
+               Cosmos::Moon.new(:name => Omega::Names.rand_name,
                  :location => Motel::Location.random(:min => pl.size, :max => pl.size * 2.3)), pl)
           puts "Created moon #{mn.name} (loc #{mn.location.id})"
         }
