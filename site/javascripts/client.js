@@ -4,7 +4,7 @@ function isArray(testObject) {
   return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
 }
 
-function onopen(client){
+function post_login(client){
   client.get_cosmos_entity('galaxy');
   client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
   client.get_user_info();
@@ -153,12 +153,13 @@ function onsuccess(client, result){
   // returned when we invoke client.login
   }else if(result.json_class == "Users::Session"){
     client.current_user.create_session(result.id, client);
+    post_login(client);
   }
 }
 
 function onfailed(client, error, msg){
-  //console.log(error);
-  //console.log(msg);
+  console.log(error);
+  console.log(msg);
 }
 
 function invoke_method(client, method, params){
@@ -230,7 +231,7 @@ function CosmosClient() {
     client.ws_node  = new WSNode('127.0.0.1', '8080');
     client.ws_node.open();
 
-    client.ws_node.onopen    = function(){ onopen(client); };
+    //client.ws_node.onopen    = function(){ onopen(client); };
     client.ws_node.onsuccess = function(result)     { onsuccess(client, result);     }
     client.ws_node.onfailed  = function(error, msg) { onfailed(client, error, msg);  }
     client.ws_node.message_received = function(msg) { message_received(client, msg); }
@@ -404,7 +405,7 @@ function CosmosClient() {
   }
 
   this.logout = function(){
-    client.web_node.invoke_request('users::login', client.current_user.session_id);
+    client.web_node.invoke_request('users::logout', client.current_user.session_id);
     client.current_user.destroy_session();
   }
 

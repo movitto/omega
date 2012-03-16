@@ -15,9 +15,9 @@ require 'omega/names'
 
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
-NUM_GALAXIES           = 1
-NUM_SYSTEMS_PER_GALAXY = 1
-NUM_PLANETS_PER_SYSTEM = 1
+NUM_GALAXIES           = 2
+NUM_SYSTEMS_PER_GALAXY = 3
+NUM_PLANETS_PER_SYSTEM = 5
 NUM_MOONS_PER_PLANET   = 1
 
 # number of manufactured entities to generate
@@ -91,10 +91,13 @@ def main()
   puts "Got alliance #{alliance.to_json}"
 
   # permissions
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'create', 'locations')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'create', 'cosmos_entities')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'locations')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'cosmos_entities')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'manufactured_entities')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'users_entities')
   rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'create', 'manufactured_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view',   'cosmos_entities')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'modify', 'manufactured_entities')
+  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'modify', 'user-mmorsi')
 
   total_galaxies = total_systems = total_planets = total_moons = 0
   total_ships = total_stations = 0
