@@ -6,7 +6,7 @@
 module Cosmos
 class Moon
   attr_reader :name
-  attr_reader :location
+  attr_accessor :location
 
   attr_reader :planet
 
@@ -21,12 +21,20 @@ class Moon
     end
   end
 
+  def has_children?
+    false
+  end
+
    def to_json(*a)
      {
        'json_class' => self.class.name,
        'data'       =>
          {:name => name, :location => @location}
      }.to_json(*a)
+   end
+
+   def to_s
+     "moon-#{name}"
    end
 
    def self.json_create(o)

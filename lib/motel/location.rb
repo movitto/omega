@@ -44,12 +44,17 @@ class Location
    # flag indicating if permission checks should restrict modification of this location
    attr_accessor :restrict_modify
 
+   # if children of this location are tracked remotely,
+   # name of the remote queue which to query for them
+   attr_accessor :remote_queue
+
    def initialize(args = {})
       # default to the stopped movement strategy
       @movement_strategy = MovementStrategies::Stopped.instance
       @movement_callbacks = []
       @proximity_callbacks = []
       @children = []
+      @parent_id = nil
 
       @x = nil
       @y = nil
@@ -57,6 +62,8 @@ class Location
 
       @restrict_view   = true
       @restrict_modify = true
+
+      @remote_queue = nil
 
       args.each { |k,v|
         inst_attr = ('@' + k.to_s).to_sym
@@ -76,6 +83,7 @@ class Location
       @parent_id = location.parent_id unless location.parent_id.nil?
       @restrict_view   = location.restrict_view
       @restrict_modify = location.restrict_modify
+      @remote_queue    = location.remote_queue
    end
 
    # return this locations coordinates in an array
@@ -90,11 +98,23 @@ class Location
    end
 
    # traverse all chilren recursively, calling block for each
-   def traverse_descendants(&bl)
+   def each_child(&bl)
       children.each { |child|
          bl.call child
-         child.traverse_descendants &bl
+         child.each_child &bl
       }
+   end
+
+   # add new child to location
+   def add_child(child)
+     child.parent.remove_child(child) if child.parent
+     child.parent = self
+     @children << child unless @children.include?(child)
+   end
+
+   # remove child from location
+   def remove_child(child)
+     @children.reject!{ |ch| ch == child }
    end
 
    # return sum of the x values of this location and all its parents,
@@ -130,8 +150,17 @@ class Location
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :x => x, :y => y, :z => z, :restrict_view => restrict_view, :restrict_modify => restrict_modify, :parent_id => parent_id, :movement_strategy => movement_strategy}
+         {:id => id,
+          :x => x, :y => y, :z => z,
+          :restrict_view => restrict_view, :restrict_modify => restrict_modify,
+          :parent_id => parent_id,
+          :remote_queue => remote_queue,
+          :movement_strategy => movement_strategy}
      }.to_json(*a)
+   end
+
+   def to_s
+     "location-#{id}(#{x},#{y},#{z})"
    end
 
    def self.json_create(o)

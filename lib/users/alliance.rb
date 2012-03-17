@@ -41,6 +41,10 @@ class Alliance
     @enemies << enemy_alliance unless @enemies.include?(enemy_alliance)
   end
 
+  def to_s
+    "alliance-#{@id}"
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,

@@ -40,7 +40,7 @@ class RJRAdapter
     }
 
     rjr_dispatcher.add_handler('users::send_message') { |user_id, message|
-      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{rloc.id}"},
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user_id}"},
                                                  {:privilege => 'modify', :entity => 'users'}],
                                         :session   => @headers['session_id'])
 
@@ -56,10 +56,10 @@ class RJRAdapter
 
        callback = Users::ChatCallback.new { |message|
          begin
-           @rjr_callback.invoke(message)
+           @rjr_callback.invoke('users::on_message', message)
          rescue RJR::Errors::ConnectionError => e
            RJR::Logger.warn "subscribe_to_messages #{user_id} client disconnected"
-           # Users::ChatProxy.proxy_for(user_id).remove_callback # TODO
+           # Users::ChatProxy.proxy_for(user_id).remove_callback # FIXME
          end
        }
        Users::ChatProxy.proxy_for(user_id).add_callback callback

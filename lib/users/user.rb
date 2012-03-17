@@ -40,6 +40,10 @@ class User
     has_privilege_on?(privilege_id, nil)
   end
 
+  def to_s
+    "user-#{@id}"
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,

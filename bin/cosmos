@@ -15,9 +15,9 @@ require 'omega/names'
 
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
-NUM_GALAXIES           = 2
-NUM_SYSTEMS_PER_GALAXY = 3
-NUM_PLANETS_PER_SYSTEM = 5
+NUM_GALAXIES           = 1
+NUM_SYSTEMS_PER_GALAXY = 2
+NUM_PLANETS_PER_SYSTEM = 2
 NUM_MOONS_PER_PLANET   = 1
 
 # number of manufactured entities to generate

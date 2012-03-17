@@ -62,6 +62,10 @@ class Ship
     }.to_json(*a)
   end
 
+  def to_s
+    "ship-#{@id}"
+  end
+
   def self.json_create(o)
     ship = new(o['data'])
     return ship

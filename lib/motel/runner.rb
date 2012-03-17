@@ -183,6 +183,7 @@ class Runner
         # run through each location to be run, perform actual movement, invoke callbacks
         tqueue.each { |loc|
           RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.class.to_s}"
+          #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
 
           # store the old location coordinates for comparison after the movement
           old_coords = [loc.x, loc.y, loc.z]

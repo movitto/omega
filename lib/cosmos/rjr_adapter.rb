@@ -8,9 +8,22 @@ require 'active_support/inflector'
 module Cosmos
 
 class RJRAdapter
+  def self.user
+    @@cosmos_user ||= Users::User.new(:id => 'cosmos',
+                                      :password => 'changeme')
+  end
+
   def self.init
     self.register_handlers(RJR::Dispatcher)
     #Cosmos::Registry.instance.init
+    @@local_node = RJR::LocalNode.new :node_id => 'cosmos'
+    @@local_node.message_headers['source_node'] = 'cosmos'
+    @@local_node.invoke_request('users::create_entity', self.user)
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'locations')
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'locations')
+
+    session = @@local_node.invoke_request('users::login', self.user)
+    @@local_node.message_headers['session_id'] = session.id
   end
 
   def self.register_handlers(rjr_dispatcher)
@@ -29,10 +42,9 @@ class RJRAdapter
 
        rparent.add_child entity
 
-       # FIXME use local rjr node
        unless entity.location.nil?
          # entity.location.entity = entity
-         Motel::Runner.instance.run entity.location
+         @@local_node.invoke_request('create_location', entity.location)
        end
 
        entity
@@ -42,12 +54,65 @@ class RJRAdapter
        type = args[0]
        name = args.length > 0 ? args[1] : nil
 
-       entity = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
+       entities = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
+
+       if entities.is_a?(Array)
+         entities.reject! { |entity|
+           raised = false
+           begin
+             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
+                                                        {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                               :session => @headers['session_id'])
+           rescue Omega::PermissionError => e
+             raised = true
+           end
+           raised
+         }
+         entities.each{ |entity|
+           # update locations w/ latest from the tracker
+           entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+           if entity.has_children?
+             entity.each_child { |child|
+               child.location = @@local_node.invoke_request('get_location', child.location.id)
+             }
+           end
+         }
+
+       else
+         raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entities.nil?
+         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.id}"},
+                                                    {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                           :session => @headers['session_id'])
+
+         # update locations w/ latest from the tracker
+         entities.location = @@local_node.invoke_request('get_location', entities.location.id)
+         if entities.has_children?
+           entities.each_child { |child|
+             child.location = @@local_node.invoke_request('get_location', child.location.id)
+           }
+         end
+
+       end
+
+       entities
+    }
+
+    rjr_dispatcher.add_handler('cosmos::get_entity_from_location'){ |type, location_id|
+       entity = Cosmos::Registry.instance.find_entity(:type => type.intern,
+                                                      :location => location_id)
 
        raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entity.nil?
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
                                                   {:privilege => 'view', :entity => 'cosmos_entities'}],
                                          :session => @headers['session_id'])
+
+       # update locations w/ latest from the tracker
+       entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+       if entity.has_children?
+         entity.each_child { |child|
+           child.location = @@local_node.invoke_request('get_location', child.location.id)
+         }
+       end
 
        entity
     }

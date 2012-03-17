@@ -11,7 +11,7 @@ class Planet
   attr_reader :name
   attr_reader :size
   attr_reader :color
-  attr_reader :location
+  attr_accessor :location
 
   attr_reader :solar_system
   attr_reader :moons
@@ -33,7 +33,22 @@ class Planet
 
   def add_child(moon)
     # TODO rails exception unless moon.is_a? Moon
+    moon.location.parent_id = location.id
     @moons << moon
+  end
+
+  def has_children?
+    @moons.size > 0
+  end
+
+  def each_child(&bl)
+    @moons.each { |m|
+      bl.call m
+    }
+  end
+
+  def to_s
+    "planet-#{@name}"
   end
 
    def to_json(*a)

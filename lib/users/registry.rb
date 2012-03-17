@@ -93,7 +93,7 @@ class Registry
     unless found_priv
       # TODO also allow for custom error messages
       RJR::Logger.warn "require_privilege(#{args.inspect}): user does not have required privilege"
-      raise Omega::PermissionError, "user does not have required privilege #{privilege_ids.join(', ')} " + (entity_ids.size > 0 ? "on #{entity_ids.join(', ')}" : "")
+      raise Omega::PermissionError, "user #{session.user.id} does not have required privilege #{privilege_ids.join(', ')} " + (entity_ids.size > 0 ? "on #{entity_ids.join(', ')}" : "")
     end
   end
 

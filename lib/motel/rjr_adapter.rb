@@ -43,6 +43,12 @@ class RJRAdapter
        location = args.size == 0 ? Location.new : args[0]
        #location = Location.new location if args[0].is_a? Hash
 
+       unless location.parent_id.nil?
+         parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id }
+         raise Omega::DataNotFound, "parent location specified by #{location.parent_id} not found" if parent.nil?
+         parent.add_child(location)
+       end
+
        location.x = 0 if location.x.nil?
        location.y = 0 if location.y.nil?
        location.z = 0 if location.z.nil?
@@ -64,13 +70,19 @@ class RJRAdapter
        # store the old location coordinates for comparison after the movement
        old_coords = [location.x, location.y, location.z]
 
-       # FIXME XXX big problem/bug here, client must always specify location.movement_strategy, else location constructor will set it to stopped
+       # adjust location heirarchy
+       if rloc.parent_id != location.parent_id
+         new_parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id  }
+         new_parent.add_child(rloc)
+       end
+       location.parent = rloc.parent
+
+       # client should explicity set movement_strategy on location to nil to keep movement strategy
        # FIXME this should halt location movement, update location, then start it again
        RJR::Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
        rloc.update(location)
 
-       # FIXME trigger location movement & proximity callbacks (make sure to keep these in sync w/ those invoked the the runner)
-       # right now we can't do this because a single simrpc node can't handle multiple sent message response, see FIXME XXX in lib/simrpc/node.rb
+       # invoke callbacks as appropriate
        #rloc.movement_callbacks.each { |callback|
        #  callback.invoke(rloc, *old_coords)
        #}
@@ -81,13 +93,14 @@ class RJRAdapter
        location
     }
 
-    rjr_dispatcher.add_handler('track_location') { |location_id, min_distance|
+    rjr_dispatcher.add_handler('track_movement') { |location_id, min_distance|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
 
 
        on_movement = 
-         Callbacks::Movement.new :min_distance => min_distance,
+         Callbacks::Movement.new :endpoint => @headers['source_node'],
+                                 :min_distance => min_distance,
                                  :handler => lambda{ |loc, d, dx, dy, dz|
            begin
              if loc.restrict_view
@@ -95,13 +108,17 @@ class RJRAdapter
                                                           {:privilege => 'view', :entity => 'locations'}],
                                                  :session   => @headers['session_id'])
              end
-             @rjr_callback.invoke('track_location', loc)
+             @rjr_callback.invoke('on_movement', loc)
 
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view movement of #{loc.id}"
              loc.movement_callbacks.delete on_movement
+
+           # FIXME connection error will only trigger when movement
+           # callback is triggered, need to detect connection being
+           # terminated whenever it happens
            rescue RJR::Errors::ConnectionError => e
-             RJR::Logger.warn "track_location client disconnected"
+             RJR::Logger.warn "track_movement client disconnected"
              loc.movement_callbacks.delete on_movement
            end
          }
@@ -116,7 +133,8 @@ class RJRAdapter
        raise Omega::DataNotFound, "location specified by #{location2_id} not found" if loc2.nil?
 
        on_proximity =
-         Callbacks::Proximity.new :to_location => loc2,
+         Callbacks::Proximity.new :endpoint => @headers['source_node'],
+                                  :to_location => loc2,
                                   :event => event,
                                   :max_distance => max_distance,
                                   :handler => lambda { |location1, location2|
@@ -133,7 +151,7 @@ class RJRAdapter
                                                :session   => @headers['session_id'])
              end
 
-             @rjr_callback.invoke('track_proximity', loc1, loc2)
+             @rjr_callback.invoke('on_proximity', loc1, loc2)
 
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view proximity of #{loc1.id}/#{loc2.id}"
@@ -145,6 +163,25 @@ class RJRAdapter
          }
        loc1.proximity_callbacks << on_proximity
        [loc1, loc2]
+    }
+
+    rjr_dispatcher.add_handler('remove_callbacks') { |*args|
+      location_id = args[0]
+      callback_type = args.length > 1 ? args[1] : nil
+      source_node = @headers['source_node']
+
+      loc = Runner.instance.locations.find { |loc| loc.id == location_id }
+      raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                                 {:privilege => 'view', :entity => 'locations'}],
+                                        :session   => @headers['session_id'])
+
+      if callback_type.nil? || callback_type == 'movement'
+        loc.movement_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
+      elsif callback_type.nil? || callback_type == 'proximity'
+        loc.proximity_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
+      end
+      loc
     }
   end
 end

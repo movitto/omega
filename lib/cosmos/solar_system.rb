@@ -6,7 +6,7 @@
 module Cosmos
 class SolarSystem
   attr_reader :name
-  attr_reader :location
+  attr_accessor :location
 
   attr_reader :galaxy
   attr_reader :star
@@ -32,6 +32,7 @@ class SolarSystem
   end
 
   def add_child(child)
+    child.location.parent_id = location.id
     if child.is_a? Planet
       @planets << child 
     elsif child.is_a? JumpGate
@@ -39,6 +40,25 @@ class SolarSystem
     elsif child.is_a? Star
       @star = child
     end
+  end
+
+  def each_child(&bl)
+    bl.call star
+    @planets.each { |planet|
+      bl.call planet
+      planet.each_child &bl
+    }
+    @jump_gates.each { |gate|
+      bl.call gate
+    }
+  end
+
+  def has_children?
+    true
+  end
+
+  def to_s
+    "solar_system-#{@name}"
   end
 
    def to_json(*a)

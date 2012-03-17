@@ -44,6 +44,10 @@ class Fleet
     return @ships.empty? ? nil : @ships.first.solar_system
   end
 
+  def to_s
+    "fleet-#{@id}"
+  end
+
    def to_json(*a)
      {
        'json_class' => self.class.name,

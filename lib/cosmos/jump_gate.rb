@@ -7,13 +7,14 @@ module Cosmos
 class JumpGate
   attr_reader :solar_system
   attr_reader :endpoint
-  attr_reader :location
+  attr_accessor :location
 
   def initialize(args = {})
     @solar_system = args['solar_system'] || args[:solar_system]
     @endpoint     = args['endpoint']     || args[:endpoint]
     @location     = args['location']     || args[:location]
 
+    # TODO would rather not access the cosmos registry directly here
     if @solar_system.is_a?(String)
       tsolar_system = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
                                                             :name => @solar_system)
@@ -27,6 +28,10 @@ class JumpGate
     end
   end
 
+  def has_children?
+    false
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -37,6 +42,10 @@ class JumpGate
                            @endpoint : @endpoint.name),
          :location     => @location}
     }.to_json(*a)
+  end
+
+  def to_s
+    "jump_gate-#{solar_system}-#{endpoint}"
   end
 
   def self.json_create(o)

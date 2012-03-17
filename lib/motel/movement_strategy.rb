@@ -26,6 +26,10 @@ class MovementStrategy
    def move(location, elapsed_seconds)
    end
 
+   def to_s
+     "movement_strategy-#{self.class.to_s}"
+   end
+
    def to_json(*a)
      {
        'json_class' => self.class.name,

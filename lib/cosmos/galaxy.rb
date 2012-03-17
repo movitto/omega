@@ -6,7 +6,7 @@
 module Cosmos
 class Galaxy
   attr_reader :name
-  attr_reader :location
+  attr_accessor :location
   attr_reader :solar_systems
 
   def initialize(args = {})
@@ -22,7 +22,19 @@ class Galaxy
 
   def add_child(solar_system)
     # TODO rails exception unless solar_system.is_a? SolarSystem
+    solar_system.location.parent_id = location.id
     @solar_systems << solar_system
+  end
+
+  def has_children?
+    return @solar_systems.size > 0
+  end
+
+  def each_child(&bl)
+    @solar_systems.each { |sys|
+      bl.call sys
+      sys.each_child &bl
+    }
   end
 
    def to_json(*a)
@@ -31,6 +43,10 @@ class Galaxy
        'data'       =>
          {:name => @name, :location => @location, :solar_systems => @solar_systems}
      }.to_json(*a)
+   end
+
+   def to_s
+     "galaxy-#{@name}"
    end
 
    def self.json_create(o)

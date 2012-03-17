@@ -4,6 +4,7 @@ function Location(){
   this.y = 0;
   this.z = 0;
   this.size = 0;
+  this.parent_id = null;
   this.movement_strategy = null;
   this.entity = null;
   this.draw    = ui.draw_nothing;
@@ -21,6 +22,9 @@ function Location(){
     if(new_location.entity)
       this.entity = new_location.entity;
 
+    if(new_location.parent_id)
+      this.parent_id = new_location.parent_id;
+
     if(this.entity)
       this.entity.location = this;
   };
@@ -33,6 +37,7 @@ function Location(){
     return this.within_distance(x, y, this.entity.size);
   }
 
-  this.toJSON = function(){ return new JRObject("Motel::Location", this).toJSON(); };
+  this.toJSON = function(){ return new JRObject("Motel::Location", this, 
+                                                ["toJSON", "entity", "movement_strategy"]).toJSON(); };
   //JRObject.class_registry['Motel::Location'] = Location;
 };

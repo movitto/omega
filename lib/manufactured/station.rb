@@ -8,7 +8,7 @@ class Station
   attr_reader :id
   attr_reader :user_id
   attr_reader :type
-  attr_reader :location
+  attr_accessor :location
 
   attr_reader :solar_system
 
@@ -35,6 +35,10 @@ class Station
 
   def parent=(system)
     @solar_system = system
+  end
+
+  def to_s
+    "station-#{@id}"
   end
 
    def to_json(*a)

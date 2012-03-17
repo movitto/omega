@@ -15,9 +15,14 @@ class Base
   # Accessor which will be invoked upon callback event
   attr_accessor :handler
 
+  # endpoint_id which this callback is being used for
+  attr_accessor :endpoint_id
+
   def initialize(args = {}, &block)
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
+
+    @endpoint_id = args[:endpoint]
   end
 
   # FIXME XXX this should be *args instead of args = [] (remove [] around super calls below)

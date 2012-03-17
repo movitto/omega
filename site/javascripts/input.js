@@ -112,8 +112,10 @@ function CosmosControls(){
       for(var sh in controls.selected_ships){
         var new_loc = new Location();
         new_loc.x = x + (shi * 2); new_loc.y = y + (shi * 2);
-        client.move_entity(controls.selected_ships[sh].id, client.current_system.name, new_loc);
-        client.track_location(controls.selected_ships[sh].location.id, 25);
+        new_loc.id = controls.selected_ships[sh].location.id;
+        new_loc.parent_id = client.current_system.location.id;
+        client.move_entity(controls.selected_ships[sh].id, new_loc);
+        client.track_movement(controls.selected_ships[sh].location.id, 25);
         shi = (shi + 1) * -1;
         // FIXME when ship arrives on location, unregister handler
       }
@@ -166,11 +168,21 @@ $('#motel_canvas').live('mouseup', function(e){
 // trigger jump gate
 $('#command_jumpgate_trigger').live('click', function(e){
   //console.log("triggered");
-  //console.log(controls.selected_gate);
+  //console.log(controls.selected_gate.endpoint);
+
+  // find remote system
+  var remote_system = null;
+  for(var loc in client.locations){
+    var loco = client.locations[loc];
+    if(loco.entity.json_class == "Cosmos::SolarSystem" &&
+       loco.entity.name == controls.selected_gate.endpoint){
+         remote_system = loco.entity;
+         break;
+    }
+  }
 
   // grab ships around gate in current system
   // TODO only current user's ships
-  var current_system = null;
   for(loc in client.locations){
     var loco = client.locations[loc];
     if(loco.entity.json_class == "Manufactured::Ship"  &&
@@ -178,9 +190,9 @@ $('#command_jumpgate_trigger').live('click', function(e){
        loco.within_distance(controls.selected_gate.location.x,
                             controls.selected_gate.location.y,
                             50)){
-      //current_system = client.current_system;
       // move to new system
-      client.move_entity(loco.entity.id, controls.selected_gate.endpoint);
+      loco.parent_id = remote_system.location.id;
+      client.move_entity(loco.entity.id, loco);
       break;
     }
   }

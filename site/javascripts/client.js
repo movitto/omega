@@ -152,7 +152,7 @@ function onsuccess(client, result){
 
   // returned when we invoke client.login
   }else if(result.json_class == "Users::Session"){
-    client.current_user.create_session(result.id, client);
+    client.current_user.create_session(result, client);
     post_login(client);
   }
 }
@@ -167,10 +167,10 @@ function invoke_method(client, method, params){
     if(params.length < 1)
       return
 
-    else if(method == 'track_location')
+    else if(method == 'on_movement')
       client.add_location(params[0]);
 
-    else if(method == "users::subscribe_to_messages")
+    else if(method == "users::on_message")
       $("#motel_chat_output textarea").append(params[0].nick + ": " + params[0].message + "\n");
 
     else if(params[0] == "attacked"){
@@ -316,7 +316,7 @@ function CosmosClient() {
         if(entity.system.name == system_name){
           // FIXME update planets location locally automatically,
           // track location at a larger distance for a periodic resync
-          client.track_location(loco.id, 7);
+          client.track_movement(loco.id, 7);
           entity.location.draw   = function(planet){ ui.draw_planet(planet); }
           entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
         }else{
@@ -356,8 +356,8 @@ function CosmosClient() {
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/system.png") no-repeat');
   }
 
-  this.track_location = function(id, min_distance){
-    client.ws_node.invoke_request('track_location', id, min_distance);
+  this.track_movement = function(id, min_distance){
+    client.ws_node.invoke_request('track_movement', id, min_distance);
   }
 
   this.get_cosmos_entity = function(entity, name){
@@ -372,8 +372,8 @@ function CosmosClient() {
     client.web_node.invoke_request('manufactured::get_entities_for_user', user_id, entity_type);
   }
 
-  this.move_entity = function(id, parent_id, new_location){
-    client.web_node.invoke_request('manufactured::move_entity', id, parent_id, new_location);
+  this.move_entity = function(id, new_location){
+    client.web_node.invoke_request('manufactured::move_entity', id, new_location);
   }
 
   this.create_entity = function(entity){

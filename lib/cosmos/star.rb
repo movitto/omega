@@ -6,7 +6,7 @@
 module Cosmos
 class Star
   attr_reader :name
-  attr_reader :location
+  attr_accessor :location
 
   attr_reader :solar_system
 
@@ -19,6 +19,14 @@ class Star
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+  end
+
+  def has_children?
+    false
+  end
+
+  def to_s
+    "star-#{@name}"
   end
 
    def to_json(*a)

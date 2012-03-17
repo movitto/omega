@@ -25,6 +25,10 @@ class Session
     @user_id = @user.id if !@user.nil? && @user_id.nil?
   end
 
+  def to_s
+    "session-#{@id}(#{@user})"
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,
