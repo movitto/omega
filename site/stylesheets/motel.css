@@ -133,3 +133,32 @@
   margin: 0 55px 0 55px;
   font-size: 1.5em;
 }
+
+.command_icon {
+  height: 50px;
+  width: 75px;
+  padding-top: 35px;
+  margin-right: 5px;
+  float: left;
+}
+
+.command_icon:hover {
+  cursor: crosshair;
+}
+
+/* specific command icons */
+
+#command_jumpgate_trigger {
+  background: url('http://localhost/wotel/images/icons/trigger-jumpgate.png') no-repeat;
+  background-size: 30px;
+}
+
+#command_selection_clear {
+  background: url('http://localhost/wotel/images/icons/clear-selection.png') no-repeat;
+  background-size: 30px;
+}
+
+#command_ship_select_target {
+  background: url('http://localhost/wotel/images/icons/attack-ship.png') no-repeat;
+  background-size: 30px;
+}

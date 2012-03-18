@@ -73,7 +73,7 @@ function CosmosControls(){
     controls.selected_gate = gate;
     entity_container.show();
     entity_container.html("JumpGate to: " + gate.endpoint +
-                          "<br/><a href='#' id='command_jumpgate_trigger'>Trigger</a>");
+                          "<br/><div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
   }
 
   this.clicked_ship    = function(click_event, ship) {
@@ -90,8 +90,8 @@ function CosmosControls(){
     for(var s in controls.selected_ships)
       entity_container_contents += " " + controls.selected_ships[s].id +
                                    " (" + controls.selected_ships[s].type + ")"
-    entity_container_contents += "<br/><a href='#' id='command_selection_clear'>clear selection</a>";
-    entity_container_contents += "<br/><a href='#' id='command_ship_select_target'>attack</a>";
+    entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
     if(controls.selected_ships.length > 1)
       entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
     entity_container.html(entity_container_contents);
