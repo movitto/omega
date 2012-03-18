@@ -199,6 +199,8 @@ class RJRAdapter
       raise Omega::DataNotFound, "manufactured entity specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
       raise Omega::DataNotFound, "manufactured entity specified by #{defender_entity_id} (defender) not found"  if defender.nil?
 
+      # TODO verify entities are within attacking distance
+
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
@@ -209,6 +211,20 @@ class RJRAdapter
       Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
 
       [attacker, defender]
+    }
+
+    rjr_dispatcher.add_handler('manufactured::save_state') { |output|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      output_file = File.open(output, 'a+')
+      Manufactured::Registry.instance.save_state(output_file)
+      output_file.close
+    }
+
+    rjr_dispatcher.add_handler('manufactured::restore_state') { |input|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      input_file = File.open(input, 'r')
+      Manufactured::Registry.instance.restore_state(input_file)
+      input_file.close
     }
   end
 end # class RJRAdapter

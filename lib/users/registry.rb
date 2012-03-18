@@ -97,6 +97,31 @@ class Registry
     end
   end
 
+  # Save state of the registry to specified stream
+  def save_state(io)
+    # TODO block new operations on registry
+    users.each { |user|
+      io.write user.to_json + "\n"
+      user.privileges.each { |priv|
+        io.write priv.to_json + "\n"
+      }
+    }
+  end
+
+  # restore state of the registry from the specified stream
+  def restore_state(io)
+    prev_entity = nil
+    io.each { |json|
+      entity = JSON.parse(json)
+      if entity.is_a?(Users::User)
+        create(entity)
+        prev_entity = entity
+      elsif entity.is_a?(Users::Privilege)
+        prev_entity.add_privilege(entity)
+      end
+    }
+  end
+
 end
 
 end

@@ -18,6 +18,18 @@ class Privilege
     @id == privilege.id && @entity_id == privilege.entity_id
   end
 
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       => {:id => id, :entity_id => entity_id}
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    privilege = new(o['data'])
+    return privilege
+  end
+
 end
 
 class Role

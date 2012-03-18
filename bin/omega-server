@@ -10,23 +10,34 @@
 
 require 'rubygems'
 require 'optparse'
+require 'fileutils'
 require 'omega'
 
-BACKUP_FILE = 'backup.unv'
+BACKUP_FILE = File.expand_path(File.dirname(__FILE__) + "/../backups/backup.unv")
 
 ######################
 
 def setup_signals
   Signal.trap("USR1") {
     puts "Backup"
+    current_backup = "#{BACKUP_FILE}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
     local_node = RJR::LocalNode.new :node_id => 'admin'
-    local_node.invoke_request('motel::save_state', BACKUP_FILE)
+    local_node.invoke_request('motel::save_state', current_backup)
+    local_node.invoke_request('cosmos::save_state', current_backup)
+    local_node.invoke_request('manufactured::save_state', current_backup)
+    local_node.invoke_request('users::save_state', current_backup)
+    FileUtils.rm_f(BACKUP_FILE) if File.exists?(BACKUP_FILE)
+    FileUtils.ln_s(current_backup, BACKUP_FILE)
   }
 
   Signal.trap("USR2") {
     puts "Restore"
+    current_backup = "#{BACKUP_FILE}"
     local_node = RJR::LocalNode.new :node_id => 'admin'
-    local_node.invoke_request('motel::restore_state', BACKUP_FILE)
+    local_node.invoke_request('motel::restore_state', current_backup)
+    local_node.invoke_request('cosmos::restore_state', current_backup)
+    local_node.invoke_request('manufactured::restore_state', current_backup)
+    local_node.invoke_request('users::restore_state', current_backup)
   }
 
   Signal.trap("INT") {

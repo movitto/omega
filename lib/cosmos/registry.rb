@@ -90,6 +90,23 @@ class Registry
       g.each_child &bl
     }
   end
+
+  # Save state of the registry to specified stream
+  def save_state(io)
+    # TODO block new operations on registry
+    galaxies.each { |galaxy| io.write galaxy.to_json + "\n" }
+  end
+
+  # restore state of the registry from the specified stream
+  def restore_state(io)
+    io.each { |json|
+      entity = JSON.parse(json)
+      if entity.is_a?(Cosmos::Galaxy)
+        add_child(entity)
+      end
+    }
+  end
+
 end
 
 end

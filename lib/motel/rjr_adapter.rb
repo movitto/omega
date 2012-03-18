@@ -186,7 +186,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('motel::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-      output_file = File.open(output, 'w+')
+      output_file = File.open(output, 'a+')
       Runner.instance.save_state(output_file)
       output_file.close
     }

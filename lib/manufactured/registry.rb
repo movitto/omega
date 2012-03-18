@@ -83,6 +83,24 @@ class Registry
     end
   end
 
+  # Save state of the registry to specified stream
+  def save_state(io)
+    # TODO block new operations on registry
+    ships.each { |ship| io.write ship.to_json + "\n" }
+    stations.each { |station| io.write station.to_json + "\n" }
+  end
+
+  # restore state of the registry from the specified stream
+  def restore_state(io)
+    io.each { |json|
+      entity = JSON.parse(json)
+      if entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
+        create(entity)
+      end
+    }
+  end
+
+
 end
 
 end

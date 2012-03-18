@@ -101,6 +101,20 @@ class RJRAdapter
        nil
      }
 
+    rjr_dispatcher.add_handler('users::save_state') { |output|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      output_file = File.open(output, 'a+')
+      Users::Registry.instance.save_state(output_file)
+      output_file.close
+    }
+
+    rjr_dispatcher.add_handler('users::restore_state') { |input|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      input_file = File.open(input, 'r')
+      Users::Registry.instance.restore_state(input_file)
+      input_file.close
+    }
+
   end
 
 end # class RJRAdapter
