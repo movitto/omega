@@ -34,13 +34,13 @@ ROLES = { :superadmin => PRIVILEGES.product(ENTITIES),
 
 def self.create_user(id, password)
   user = Users::User.new :id => id, :password => password
-  local_node = RJR::LocalNode.new
+  local_node = RJR::LocalNode.new :node_id => 'admin'
   local_node.invoke_request('users::create_entity', user)
 end
 
 def self.create_user_role(user, role_id)
   privilege_entities = ROLES[role_id]
-  local_node = RJR::LocalNode.new
+  local_node = RJR::LocalNode.new :node_id => 'admin'
   privilege_entities.each { |pe|
     privilege = pe[0]
     entity    = pe[1]

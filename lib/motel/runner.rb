@@ -121,6 +121,22 @@ class Runner
     @run_thread = nil
   end
 
+  # Save state of the runner to specified stream
+  def save_state(io)
+    # TODO pause instances, block new ones, etc
+    locations.each { |loc| io.write loc.to_json + "\n" }
+  end
+
+  # restore state of the runner from the specified stream
+  def restore_state(io)
+    io.each { |json|
+      entity = JSON.parse(json)
+      if entity.is_a?(Motel::Location)
+        run entity
+      end
+    }
+  end
+
   private
 
     # Internal helper method performing main runner operations

@@ -12,8 +12,28 @@ require 'rubygems'
 require 'optparse'
 require 'omega'
 
+BACKUP_FILE = 'backup.unv'
+
 ######################
 
+def setup_signals
+  Signal.trap("USR1") {
+    puts "Backup"
+    local_node = RJR::LocalNode.new :node_id => 'admin'
+    local_node.invoke_request('motel::save_state', BACKUP_FILE)
+  }
+
+  Signal.trap("USR2") {
+    puts "Restore"
+    local_node = RJR::LocalNode.new :node_id => 'admin'
+    local_node.invoke_request('motel::restore_state', BACKUP_FILE)
+  }
+
+  Signal.trap("INT") {
+    EventMachine.stop
+    #multi_node.terminate
+  }
+end
 
 def main()
   # setup cmd line options
@@ -50,8 +70,9 @@ def main()
   admin = Omega::Roles.create_user('admin', 'nimda')
   Omega::Roles.create_user_role(admin, :superadmin)
 
-  multi_node.listen
-  multi_node.terminate # TODO run in signal handler
+  multi_node.listen {
+    setup_signals
+  }
 end
 
 main()
