@@ -25,6 +25,9 @@ function onsuccess(client, result){
 
       for(var g = 0; g < result.length; ++g){
         var galaxy = result[g];
+        galaxy.location.entity = galaxy;
+        client.add_location(galaxy.location);
+
         data += "<li><span id='" + galaxy.name + "' class='entity_title galaxy_title'>" + galaxy.name + "</span></li>";
         data += "<ul>";
 
@@ -285,10 +288,10 @@ function CosmosClient() {
         entity.location.draw    = ui.draw_nothing;
         entity.location.clicked = controls.unregistered_click;
       }
-
-      $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/galaxy.png") no-repeat');
-      // FIXME also need to stop tracking ship and planet locations
     }
+
+    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/' + client.current_galaxy.background + '.png") no-repeat');
+    // FIXME also need to stop tracking ship and planet locations
   }
 
   this.set_system = function(system_name){
@@ -353,7 +356,7 @@ function CosmosClient() {
       }
     }
 
-    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/system.png") no-repeat');
+    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/'+ client.current_system.background +'.png") no-repeat');
   }
 
   this.track_movement = function(id, min_distance){

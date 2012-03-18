@@ -13,6 +13,9 @@ class SolarSystem
   attr_reader :planets
   attr_reader :jump_gates
 
+  MAX_BACKGROUNDS = 6
+  attr_reader :background
+
   def id
     return @name
   end
@@ -24,6 +27,8 @@ class SolarSystem
     @galaxy     = args['galaxy']
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
+
+    @background = "system#{rand(MAX_BACKGROUNDS-1)+1}"
 
     if @location.nil?
       @location = Motel::Location.new
@@ -65,7 +70,7 @@ class SolarSystem
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => name, :location => @location,
+         {:name => name, :location => @location, :background => @background,
           :star => @star, :planets => @planets, :jump_gates => @jump_gates}
      }.to_json(*a)
    end

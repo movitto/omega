@@ -9,10 +9,15 @@ class Galaxy
   attr_accessor :location
   attr_reader :solar_systems
 
+  MAX_BACKGROUNDS = 7
+  attr_reader :background
+
   def initialize(args = {})
     @name          = args['name']          || args[:name]
     @location      = args['location']      || args[:location]
     @solar_systems = args['solar_systems'] || []
+
+    @background = "galaxy#{rand(MAX_BACKGROUNDS-1)+1}"
 
     if @location.nil?
       @location = Motel::Location.new
@@ -41,7 +46,9 @@ class Galaxy
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => @name, :location => @location, :solar_systems => @solar_systems}
+         {:name => @name,
+          :background => @background,
+          :location => @location, :solar_systems => @solar_systems}
      }.to_json(*a)
    end
 

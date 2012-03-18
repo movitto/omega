@@ -16,7 +16,7 @@
 
 #motel_canvas_container{
   margin: 0 auto;
-  margin-top: 50px;
+  margin-top: 20px;
   text-align: center;
   border: 1px solid black;
   width: 1500px;
@@ -121,4 +121,15 @@
   border: 1px solid black;
   padding-left: 5px;
   padding-top: 3px;
+}
+
+#primary_navigation{
+  top: 5px;
+  margin: 0 auto;
+  width: 750px;
+}
+
+#primary_navigation a{
+  margin: 0 55px 0 55px;
+  font-size: 1.5em;
 }
