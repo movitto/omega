@@ -13,7 +13,7 @@ class Star
   def initialize(args = {})
     @name = args['name'] || args[:name]
     @location = args['location'] || args[:location]
-    @solar_system = args['solar_system']
+    @solar_system = args['solar_system'] || args[:solar_system]
 
     if @location.nil?
       @location = Motel::Location.new

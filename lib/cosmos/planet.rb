@@ -23,7 +23,7 @@ class Planet
     @size     = args['size']     || args[:size]     || MAX_SIZE # TODO generate random size from MAX?
 
     @moons        = args['moons'] || []
-    @solar_system = args['solar_system']
+    @solar_system = args['solar_system'] || args[:solar_system]
 
     if @location.nil?
       @location = Motel::Location.new
@@ -45,6 +45,10 @@ class Planet
     @moons.each { |m|
       bl.call m
     }
+  end
+
+  def movement_strategy=(strategy)
+    @location.movement_strategy = strategy unless @location.nil?
   end
 
   def to_s

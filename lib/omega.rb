@@ -11,6 +11,7 @@ require 'rjr'
 require lib + '/omega/exceptions'
 require lib + '/omega/roles'
 require lib + '/omega/names'
+require lib + '/omega/client'
 
 require lib + '/motel'
 require lib + '/cosmos'

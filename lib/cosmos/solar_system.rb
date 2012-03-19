@@ -24,7 +24,7 @@ class SolarSystem
     @name       = args['name']       || args[:name]
     @location   = args['location']   || args[:location]
     @star       = args['star']       || nil
-    @galaxy     = args['galaxy']
+    @galaxy     = args['galaxy']     || args[:galaxy]
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
 

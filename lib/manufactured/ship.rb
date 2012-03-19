@@ -7,12 +7,12 @@ module Manufactured
 class Ship
   # ship properties
   attr_reader   :id
-  attr_reader   :user_id
-  attr_reader   :type
+  attr_accessor :user_id
+  attr_accessor :type
   attr_accessor :location
 
   # system ship is in
-  attr_reader :solar_system
+  attr_accessor :solar_system
 
   # list of callbacks to invoke on certain events relating to ship
   attr_accessor :notification_callbacks

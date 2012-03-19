@@ -5,13 +5,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
-require 'motel'
-require 'cosmos'
-require 'manufactured'
-require 'users'
-require 'rjr'
+require 'omega'
 
-require 'omega/names'
+include Omega::DSL
 
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
@@ -19,6 +15,7 @@ NUM_GALAXIES           = 1
 NUM_SYSTEMS_PER_GALAXY = 2
 NUM_PLANETS_PER_SYSTEM = 2
 NUM_MOONS_PER_PLANET   = 1
+NUM_GATES_PER_SYSTEM   = 1
 
 # number of manufactured entities to generate
 NUM_SHIPS = 5
@@ -48,202 +45,114 @@ MAX_ECCENTRICITY = 0.9
 MIN_SPEED = 0.05
 MAX_SPEED = 0.09
 
-def num_entities(entity_type)
+def num_of(entity_type)
   nconst = ("NUM_" + entity_type).intern
   mconst = ("MAX_" + entity_type).intern
   return Object.const_get(nconst) if Object.const_defined?(nconst)
   return rand(Object.const_get(mconst)-1) + 1
 end
 
-def main()
-  RJR::Logger.log_level= ::Logger::INFO
+RJR::Logger.log_level= ::Logger::DEBUG
 
-  rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
+login 'admin',  :password => 'nimda'
 
-  # login as superadmin
-  superadmin = Users::User.new :id => 'admin', :password => 'nimda'
-  session = rjr_node.invoke_request('omega-queue', 'users::login', superadmin)
-  rjr_node.message_headers['session_id'] = session.id
+mmorsi =
+  user 'mmorsi', :password => 'foobar' do |u|
+    privilege 'view',   'locations'
+    privilege 'view',   'cosmos_entities'
+    privilege 'view',   'manufactured_entities'
+    privilege 'view',   'users_entities'
+    privilege 'create', 'manufactured_entities'
+    privilege 'modify', 'manufactured_entities'
+    privilege 'modify', 'user-mmorsi'
+  end
+jbob = user 'jbob'
 
-  # create a few users / groupings
-  user = Users::User.new :id => 'mmorsi', :password => 'foobar'
-  mo_user = rjr_node.invoke_request('omega-queue', 'users::create_entity', user)
-  puts "Created user #{mo_user.id}"
-
-  user = Users::User.new :id => 'jbob'
-  jbob_user = rjr_node.invoke_request('omega-queue', 'users::create_entity', user)
-  puts "Created user #{jbob_user.id}"
-
-  #user = rjr_node.invoke_request('omega-queue', 'users::get_entity', user.id)
-  #puts "Got user #{user.to_json}"
-
-  mo_alliance   = Users::Alliance.new :id => 'mmorsi-alliance', :members => [mo_user]
-  jbob_alliance = Users::Alliance.new :id => 'jbob-alliance',   :members => [jbob_user], :enemies => [mo_alliance]
-  mo_alliance.enemies = [jbob_alliance]
-
-  alliance = rjr_node.invoke_request('omega-queue', 'users::create_entity', mo_alliance)
-  puts "Create alliance #{alliance.to_json}"
-
-  alliance = rjr_node.invoke_request('omega-queue', 'users::create_entity', jbob_alliance)
-  puts "Create alliance #{alliance.to_json}"
-
-  alliance = rjr_node.invoke_request('omega-queue', 'users::get_entity', alliance.id)
-  puts "Got alliance #{alliance.to_json}"
-
-  # permissions
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'locations')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'cosmos_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'manufactured_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'view', 'users_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'create', 'manufactured_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'modify', 'manufactured_entities')
-  rjr_node.invoke_request('omega-queue', 'users::add_privilege', 'mmorsi', 'modify', 'user-mmorsi')
-
-  total_galaxies = total_systems = total_planets = total_moons = 0
-  total_ships = total_stations = 0
-
-  all_systems = []
-
-  num_galaxies = num_entities('GALAXIES')
-  0.upto(num_galaxies-1) { |gi|
-    total_galaxies += 1
-    g = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-             Cosmos::Galaxy.new(:name => Omega::Names.rand_name), :universe)
-    puts "Created galaxy #{g.name} (loc #{g.location.id})"
-
-    galaxy_systems = []
-    num_systems = num_entities('SYSTEMS_PER_GALAXY')
-    0.upto(num_systems-1) { |si|
-      total_systems += 1
-      sys = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-             Cosmos::SolarSystem.new(:name => Omega::Names.rand_name,
-                                     :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), g)
-      all_systems    << sys
-      galaxy_systems << sys
-      puts "Created system #{sys.name} (loc #{sys.location.id})"
-
-      star = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-                               Cosmos::Star.new(:name => Omega::Names.rand_name), sys)
-      puts "Created star #{star.name} (loc #{star.location.id})"
-
-      num_planets = num_entities('PLANETS_PER_SYSTEM')
-      0.upto(num_planets-1) { |pi|
-        total_planets += 1
-        ploc = Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT / 2)
-        ploc.movement_strategy =
-          Motel::MovementStrategies::Elliptical.random(:relative_to => :foci,
-                                                       :speed => 0.1,
-                                                       :max_e => MAX_ECCENTRICITY,
-                                                       :min_e => MIN_ECCENTRICITY,
-                                                       :min_l => MAX_SEMI_LATUS_RECTUM,
-                                                       :max_l => MAX_SEMI_LATUS_RECTUM,
-                                                       :min_s => MIN_SPEED,
-                                                       :max_s => MAX_SPEED,
-                                                       :dimensions => 2) # XXX for now, we'll ignore the z axis
-        pl = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-                  Cosmos::Planet.new(:name => Omega::Names.rand_name,
-                                     :location => ploc), sys)
-        puts "Created planet #{pl.name} (loc #{pl.location.id})"
-
-        num_moons = num_entities('MOONS_PER_PLANET')
-        0.upto(num_moons-1) { |mi|
-          total_moons += 1
-          mn = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-               Cosmos::Moon.new(:name => Omega::Names.rand_name,
-                 :location => Motel::Location.random(:min => pl.size, :max => pl.size * 2.3)), pl)
-          puts "Created moon #{mn.name} (loc #{mn.location.id})"
-        }
-      }
-    }
-
-    # after systems have been created in galaxy, connect them through jump gates
-    # TODO better gate generation algorithm
-    if galaxy_systems.size > 1
-      0.upto(galaxy_systems.size - 1){ |si|
-        sys = galaxy_systems[si]
-        max = MAX_GATES_PER_SYSTEM < galaxy_systems.size ? MAX_GATES_PER_SYSTEM : (galaxy_systems.size-2)
-        num_gates = (1 + rand(max)).to_i
-        endpoint  = si - 1
-        if endpoint >= 0
-          0.upto(num_gates-1) { |ji|
-            gate = rjr_node.invoke_request('omega-queue', 'cosmos::create_entity',
-                     Cosmos::JumpGate.new(:solar_system => sys, :endpoint => galaxy_systems[endpoint],
-                                          :location => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)), sys)
-            endpoint -= 1
-            puts "Created jump_gate from #{gate.solar_system} to #{gate.endpoint} (loc #{gate.location.id})"
-          }
-        end
-      }
-    end
-  }
-
-  #galaxy = rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', 'galaxy', 'galaxy1')
-  #rjr_node.invoke_request('omega-queue', 'track_location', 4)
-  #rjr_node.listen
-
-  # create some man made entities (ships, stations, etc)
-  all_ships = []
-  num_ships = num_entities('SHIPS')
-  0.upto(num_ships-1) { |si|
-    total_ships += 1
-    sys = all_systems[rand(total_systems)]
-    s = rjr_node.invoke_request('omega-queue', 'manufactured::create_entity',
-             Manufactured::Ship.new(:id           => "ship#{total_ships}",
-                                    :type         => Manufactured::Ship::SHIP_TYPES[rand(Manufactured::Ship::SHIP_TYPES.size)],
-                                    :user_id      => "mmorsi",
-                                    :solar_system => sys,
-                                    :location     => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)))
-    all_ships << s
-    puts "Created ship #{s.id} in system #{sys.name} (loc #{s.location.id})"
-  }
-
-  #ship = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', 'ship1')
-  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
-
-  num_stations = num_entities('STATIONS')
-  0.upto(num_stations-1) { |si|
-    total_stations += 1
-    sys = all_systems[rand(total_systems)]
-    s = rjr_node.invoke_request('omega-queue', 'manufactured::create_entity',
-             Manufactured::Station.new(:id           => "station#{total_stations}",
-                                       :type         => Manufactured::Station::STATION_TYPES[rand(Manufactured::Station::STATION_TYPES.size)],
-                                       :user_id      => "mmorsi",
-                                       :solar_system => sys,
-                                       :location     => Motel::Location.random(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)))
-    puts "Created station #{s.id} in system #{sys.name} (loc #{s.location.id})"
-  }
-
-  #new_sys = all_systems[rand(total_systems)]
-  #ship = rjr_node.invoke_request('omega-queue', 'manufactured::move_entity', 'ship1', new_sys.name, Motel::Location.new(:x => 10, :y => -20, :z => 0))
-  #puts "Got ship #{ship.solar_system.name} #{ship.location.to_json}"
-
-  fleet = Manufactured::Fleet.new(:id => 'fleet1', :user_id => 'mmorsi', :ships => all_ships)
-  fleet = rjr_node.invoke_request('omega-queue', 'manufactured::create_entity', fleet)
-  puts "Created fleet #{fleet.id} with ships: #{fleet.ship_ids.join(", ")}"
-
-  fleet = Manufactured::Fleet.new(:id => 'fleet2', :user_id => 'jbob')
-  fleet = rjr_node.invoke_request('omega-queue', 'manufactured::create_entity', fleet)
-  puts "Created fleet #{fleet.id} with ships: #{fleet.ship_ids.join(", ")}"
-
-  #fleet = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', 'fleet1')
-  #puts "Got fleet #{fleet.to_json}"
-
-  #fleets = rjr_node.invoke_request('omega-queue', 'manufactured::get_entities_for_user', 'mmorsi', "Manufactured::Fleet")
-  #puts "Got fleets #{fleets.size}"
-
-
-  #################################################
-
-  #puts "attacking #{all_ships.last.id} #{all_ships.first.id}"
-  #rjr_node.invoke_request('omega-queue', 'manufactured::subscribe_to', all_ships.last.id, 'attacked')
-  #rjr_node.invoke_request('omega-queue', 'manufactured::subscribe_to', all_ships.last.id, 'destroyed')
-  #rjr_node.invoke_request('omega-queue', 'manufactured::attack_entity', all_ships.first.id, all_ships.last.id)
-  #RJR::Dispatcher.add_handler('manufactured::subscribe_to') { |event, *args|
-  #  puts "#{event}"
-  #  puts "#{args[0].id}" if args.size > 0
-  #}
-  #rjr_node.listen
-
+mmorsi_alliance = alliance 'mmorsi-alliance', :members => [mmorsi]
+alliance 'jbob-alliance' do |a|
+  a.members << jbob
+  a.enemies << mmorsi_alliance
 end
 
-main()
+num_galaxies = num_of('GALAXIES')
+0.upto(num_galaxies-1) do |gi|
+  galaxy rand_name do |g|
+
+    galaxy_systems = []
+    num_systems = num_of('SYSTEMS_PER_GALAXY')
+    0.upto(num_systems-1) do |si|
+      system rand_name, rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2) do |sys|
+        galaxy_systems << sys
+
+        num_planets = num_of('PLANETS_PER_SYSTEM')
+        0.upto(num_planets-1) do |pi|
+          planet rand_name do |pl|
+            pl.movement_strategy =
+              elliptical :relative_to => :foci,
+                         :speed => 0.1,
+                         :max_e => MAX_ECCENTRICITY,
+                         :min_e => MIN_ECCENTRICITY,
+                         :min_l => MAX_SEMI_LATUS_RECTUM,
+                         :max_l => MAX_SEMI_LATUS_RECTUM,
+                         :min_s => MIN_SPEED,
+                         :max_s => MAX_SPEED,
+                         :dimensions => 2 # XXX for now, we'll ignore the z axis
+
+
+            num_moons = num_of('MOONS_PER_PLANET')
+            0.upto(num_moons-1) do |mi|
+              moon rand_name, :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+            end # end moons
+          end
+        end # end planets
+      end
+    end # end systems
+
+    galaxy_systems.each { |sys|
+      num_gates = num_of("GATES_PER_SYSTEM")
+      used_systems = [sys]
+      0.upto(num_gates-1){
+        endpoint = rand_galaxy_system(g, used_systems)
+        jump_gate sys, endpoint,
+                  :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+      }
+    }
+  end
+end  # end galaxies
+
+total_ships = 0
+
+all_ships = []
+num_ships = num_of('SHIPS')
+0.upto(num_ships-1) { |si|
+  total_ships += 1
+  all_ships << ship("ship#{total_ships}") do |ship|
+                 ship.type    = rand_ship_type
+                 ship.user_id = 'mmorsi'
+                 ship.solar_system  = rand_system
+                 ship.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+               end
+
+  #track_movement 25 do
+  #end
+  #track_proximity 'ship2' do
+  #end
+}
+
+total_stations = 0
+all_stations = []
+num_stations = num_of('STATIONS')
+0.upto(num_stations-1) { |si|
+  total_stations += 1
+  all_stations << station("station#{total_stations}") do |station|
+                 station.type = rand_station_type
+                 station.user_id ='mmorsi'
+                 station.solar_system = rand_system
+                 station.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+               end
+}
+
+fleet 'fleet1', :user_id => 'mmorsi', :ships => all_ships
+fleet 'fleet2' do |fl|
+  fl.user_id = 'jbob'
+end

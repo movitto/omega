@@ -6,11 +6,11 @@
 module Manufactured
 class Station
   attr_reader :id
-  attr_reader :user_id
-  attr_reader :type
+  attr_accessor :user_id
+  attr_accessor :type
   attr_accessor :location
 
-  attr_reader :solar_system
+  attr_accessor :solar_system
 
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]

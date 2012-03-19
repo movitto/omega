@@ -13,7 +13,7 @@ class Moon
   def initialize(args = {})
     @name = args['name'] || args[:name]
     @location = args['location'] || args[:location]
-    @planet = args['planet']
+    @planet   = args['planet']   || args[:planet]
 
     if @location.nil?
       @location = Motel::Location.new

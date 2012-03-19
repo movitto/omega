@@ -6,9 +6,9 @@
 module Manufactured
 class Fleet
   attr_reader :id
-  attr_reader :user_id
-  attr_reader :ships
-  attr_reader :ship_ids
+  attr_accessor :user_id
+  attr_accessor :ships
+  attr_accessor :ship_ids
 
   def initialize(args = {})
     @id       = args['id']       || args[:id]
