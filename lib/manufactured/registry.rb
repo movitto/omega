@@ -35,6 +35,7 @@ class Registry
     parent_id = args[:parent_id]
     user_id   = args[:user_id]
     type      = args[:type]
+    location_id = args[:location_id]
 
     entities = []
 
@@ -43,6 +44,7 @@ class Registry
         entities << entity if (id.nil?        || entity.id         == id)        &&
                               (parent_id.nil? || entity.parent.id  == parent_id) &&  # FIXME fleet parent could be nil (autodelete fleet if no ships?)
                               (user_id.nil?   || entity.user_id    == user_id)   &&
+                              (location_id.nil? || (entity.location && entity.location.id == location_id)) &&
                               (type.nil?      || entity.class.to_s == type)
 
       }

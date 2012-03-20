@@ -36,6 +36,11 @@ class Fleet
     }
   end
 
+  # TODO
+  def location
+    nil
+  end
+
   def parent
     return solar_system
   end
