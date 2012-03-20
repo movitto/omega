@@ -59,7 +59,7 @@ function CosmosUI(){
 
     // draw circle representing star
     ui.context.beginPath();
-    ui.context.fillStyle = "#FFFF00";
+    ui.context.fillStyle = "#" + star.color;
     ui.context.arc(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y), star.size, 0, Math.PI*2, true);
     ui.context.fill();
   }
@@ -100,18 +100,29 @@ function CosmosUI(){
     var loco = gate.location;
 
     // draw triangle representing gate
-    var py = 13; // used to draw traingle for gate =sqrt((gate.size/2)^2 - (gate.size/4)^2)
-    ui.context.beginPath();
+    var py = 12; // used to draw traingle for gate
     ui.context.fillStyle = "#00CC00";
+    ui.context.beginPath();
     ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - py);
     ui.context.lineTo(ui.adjusted_x(loco.x) - gate.size/2, ui.adjusted_y(loco.y) + py);
     ui.context.lineTo(ui.adjusted_x(loco.x) + gate.size/2, ui.adjusted_y(loco.y) + py);
     ui.context.lineTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - py);
     ui.context.fill();
+
+    if(gate == controls.selected_gate){
+      // draw circle around gate representing 'trigger area' or
+      // area in which ships will be picked up for transport
+      ui.context.strokeStyle = "#808080";
+      ui.context.beginPath();
+      ui.context.arc(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y),
+                     controls.gate_trigger_area, 0, Math.PI*2, false);
+      ui.context.stroke();
+    }
   
     // draw name of system gate is to
     ui.context.font = 'bold 16px sans-serif';
-    ui.context.fillText(gate.endpoint, ui.adjusted_x(loco.x) - 35,
+    var text_offset = gate.endpoint.length * 5;
+    ui.context.fillText(gate.endpoint, ui.adjusted_x(loco.x) - text_offset,
                                        ui.adjusted_y(loco.y) + 30);
  }
 
@@ -134,6 +145,8 @@ function CosmosUI(){
     ui.context.beginPath();
     if(ship.selected)
       ui.context.strokeStyle = "#FFFF00";
+    else if(ship.docked_at)
+      ui.context.strokeStyle = "#99FFFF";
     else
       ui.context.strokeStyle = "#00CC00";
     ui.context.moveTo(ui.adjusted_x(loco.x), ui.adjusted_y(loco.y) - ship.size/2);

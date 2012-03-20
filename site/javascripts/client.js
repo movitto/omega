@@ -48,14 +48,12 @@ function onsuccess(client, result){
 
           system.star.system = system;
           system.star.location.entity = system.star;
-          system.star.size = 15;
           client.add_location(system.star.location);
 
           for(var p=0; p<system.planets.length; ++p){
             var planet = system.planets[p];
             planet.system = system;
             planet.location.entity = planet;
-            planet.size = 15;
             client.add_location(planet.location);
 
             var pname = galaxy.solar_systems[s].planets[p].name;
@@ -68,7 +66,7 @@ function onsuccess(client, result){
             galaxy_gates.push(gate);
             gate.system = system;
             gate.location.entity = gate;
-            gate.size = 30;
+            gate.size = 20;
             client.add_location(gate.location);
           }
 
@@ -108,7 +106,6 @@ function onsuccess(client, result){
         if(entity.location){
           entity.location.entity = entity;
           entity.system = entity.solar_system;
-          entity.size = 30;
           client.add_location(entity.location);
         }
       }

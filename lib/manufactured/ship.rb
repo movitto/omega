@@ -10,6 +10,7 @@ class Ship
   attr_accessor :user_id
   attr_accessor :type
   attr_accessor :location
+  attr_accessor :size
 
   # system ship is in
   attr_accessor :solar_system
@@ -28,11 +29,18 @@ class Ship
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
                 :battlecruiser, :exploration]
 
+  # mapping of ship types to default sizes
+  SHIP_SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
+                :destroyer => 30, :bomber => 25, :corvette => 25,
+                :battlecruiser => 35, :exploration => 23}
+
   def initialize(args = {})
     @id       = args['id']       || args[:id]
     @user_id  = args['user_id']  || args[:user_id]
     @type     = args['type']     || args[:type]
+    @type     = @type.intern if !@type.nil? && @type.is_a?(String)
     @location = args['location'] || args[:location]
+    @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
 
     @solar_system = args[:solar_system] || args['solar_system']
 
@@ -75,7 +83,7 @@ class Ship
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:id => id, :user_id => user_id, :type => type, :docked_at => @docked_at, :location => @location, :solar_system => @solar_system}
+        {:id => id, :user_id => user_id, :type => type, :size => size, :docked_at => @docked_at, :location => @location, :solar_system => @solar_system}
     }.to_json(*a)
   end
 

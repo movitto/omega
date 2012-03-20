@@ -5,8 +5,9 @@
 
 module Cosmos
 class Planet
-  # maximum size of the planet
-  MAX_SIZE = 10
+  # size of the planet
+  MAX_PLANET_SIZE = 20
+  MIN_PLANET_SIZE = 10
 
   attr_reader :name
   attr_reader :size
@@ -20,7 +21,7 @@ class Planet
     @name     = args['name']     || args[:name]
     @location = args['location'] || args[:location]
     @color    = args['color']    || args[:color]    || ("%06x" % (rand * 0xffffff))
-    @size     = args['size']     || args[:size]     || MAX_SIZE # TODO generate random size from MAX?
+    @size     = args['size']     || args[:size]     || (rand(MAX_PLANET_SIZE-MIN_PLANET_SIZE) + MIN_PLANET_SIZE)
 
     @moons        = args['moons'] || []
     @solar_system = args['solar_system'] || args[:solar_system]
@@ -59,7 +60,7 @@ class Planet
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => name, :color => color, :location => @location, :moons => @moons}
+         {:name => name, :color => color, :size => size, :location => @location, :moons => @moons}
      }.to_json(*a)
    end
 

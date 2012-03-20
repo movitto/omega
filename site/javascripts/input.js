@@ -4,6 +4,8 @@ function CosmosControls(){
   this.selected_ship = null; // will point to first selected ship, null if none
   this.selected_gate  = null;
 
+  this.gate_trigger_area = 100;
+
   // helper method
   this.update_selected_ship = function(ship){
     for(var si in this.selected_ships){
@@ -15,6 +17,26 @@ function CosmosControls(){
     }
     ship.selected = false;
     return false;
+  }
+
+  this.set_selected_ship = function(ship, clear_selected){
+    if(clear_selected){
+      for(var s in this.selected_ships)
+        this.selected_ships[s].selected = false;
+      this.selected_ships = [];
+      this.selected_ship  = null;
+    }
+    if(ship){
+      ship.selected = true;
+      if(this.selected_ships.length == 0) this.selected_ship = ship;
+      this.selected_ships.push(ship);
+      this.selected_gate = null;
+    }
+  }
+
+  this.set_selected_gate = function(gate){
+    this.selected_gate = gate;
+    this.set_selected_ship(null, true);
   }
 
   // initialize mouse input
@@ -85,22 +107,16 @@ function CosmosControls(){
   this.clicked_gate    = function(click_event, gate) {
     var entity_container = $('#motel_entity_container');
     controls.selected_gate = gate;
+    controls.set_selected_gate(gate);
     entity_container.show();
     entity_container.html("JumpGate to: " + gate.endpoint +
+                          "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>" +
                           "<br/><div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
   }
 
   this.clicked_ship    = function(click_event, ship) {
     var entity_container = $('#motel_entity_container');
-    if(!click_event.shiftKey){
-      for(var s in controls.selected_ships)
-        controls.selected_ships[s].selected = false;
-      controls.selected_ships = [];
-      controls.selected_ship  = null;
-    }
-    ship.selected = true;
-    if(controls.selected_ships.length == 0) controls.selected_ship = ship;
-    controls.selected_ships.push(ship);
+    controls.set_selected_ship(ship, !click_event.shiftKey);
     entity_container.show();
     var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
     for(var s in controls.selected_ships)
@@ -212,7 +228,7 @@ $('#command_jumpgate_trigger').live('click', function(e){
        loco.entity.solar_system.name == client.current_system.name &&
        loco.within_distance(controls.selected_gate.location.x,
                             controls.selected_gate.location.y,
-                            50)){
+                            controls.gate_trigger_area)){
       // move to new system
       loco.parent_id = remote_system.location.id;
       client.move_entity(loco.entity.id, loco);
@@ -227,6 +243,7 @@ $('#command_selection_clear').live('click', function(e){
     controls.selected_ships[s].selected = false;
   controls.selected_ships = [];
   controls.selected_ship = null;
+  controls.selected_gate = null;
 });
 
 $('#command_fleet_create').live('click', function(e){

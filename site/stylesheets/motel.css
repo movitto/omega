@@ -135,15 +135,18 @@
 }
 
 .command_icon {
-  height: 50px;
-  width: 75px;
-  padding-top: 35px;
-  margin-right: 5px;
-  float: left;
+  border: 1px solid #EEF3E2;
+  height: 30px;
+  width: 130px;
+  padding-top: 5px;
+  padding-left: 40px;
+  margin-top: 5px;
+  margin-left: 5px;
 }
 
 .command_icon:hover {
   cursor: crosshair;
+  color: #8B7D6B;
 }
 
 /* specific command icons */

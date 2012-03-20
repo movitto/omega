@@ -9,17 +9,26 @@ class Station
   attr_accessor :user_id
   attr_accessor :type
   attr_accessor :location
+  attr_accessor :size
 
   attr_accessor :solar_system
 
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]
 
+  STATION_SIZES = {:defense => 35, :offense => 35, :mining => 27,
+                   :exploration => 20, :science => 20,
+                   :technology => 20, :manufacturing => 40,
+                   :commerce => 30}
+
+
   def initialize(args = {})
     @id       = args['id']       || args[:id]
     @type     = args['type']     || args[:type]
+    @type     = @type.intern if !@type.nil? && @type.is_a?(String)
     @location = args['location'] || args[:location]
     @user_id  = args['user_id']  || args[:user_id]
+    @size     = args['size']     || args[:size] || (@type.nil? ? nil : STATION_SIZES[@type])
 
     @solar_system = args['solar_system'] || args[:solar_system]
 
@@ -45,7 +54,7 @@ class Station
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :user_id => user_id, :type => type, :location => @location, :solar_system => @solar_system}
+         {:id => id, :user_id => user_id, :type => type, :size => size, :location => @location, :solar_system => @solar_system}
      }.to_json(*a)
    end
 
