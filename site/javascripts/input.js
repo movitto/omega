@@ -1,7 +1,21 @@
 function CosmosControls(){
   // selected entities
   this.selected_ships = [];
+  this.selected_ship = null; // will point to first selected ship, null if none
   this.selected_gate  = null;
+
+  // helper method
+  this.update_selected_ship = function(ship){
+    for(var si in this.selected_ships){
+      if(this.selected_ships[si].id == ship.id){
+        ship.selected = true;
+        this.selected_ships[si] = ship;
+        return true;
+      }
+    }
+    ship.selected = false;
+    return false;
+  }
 
   // initialize mouse input
   this.mouse_down_x          = null;
@@ -82,8 +96,10 @@ function CosmosControls(){
       for(var s in controls.selected_ships)
         controls.selected_ships[s].selected = false;
       controls.selected_ships = [];
+      controls.selected_ship  = null;
     }
     ship.selected = true;
+    if(controls.selected_ships.length == 0) controls.selected_ship = ship;
     controls.selected_ships.push(ship);
     entity_container.show();
     var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
@@ -92,9 +108,16 @@ function CosmosControls(){
                                    " (" + controls.selected_ships[s].type + ")"
     entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_select_dock'>dock</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_undock'>undock</div>";
     if(controls.selected_ships.length > 1)
       entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
     entity_container.html(entity_container_contents);
+
+    if(!controls.selected_ship.docked_at)
+      $('#command_ship_undock').hide();
+    else
+      $('#command_ship_select_dock').hide();
   }
 
   this.clicked_station = function(click_event, station) {
@@ -203,6 +226,7 @@ $('#command_selection_clear').live('click', function(e){
   for(var s in controls.selected_ships)
     controls.selected_ships[s].selected = false;
   controls.selected_ships = [];
+  controls.selected_ship = null;
 });
 
 $('#command_fleet_create').live('click', function(e){
@@ -230,10 +254,37 @@ $('#command_ship_select_target').live('click', function(e){
   $('#motel_dialog').html(targets).dialog({show: 'explode', title: 'select attack target'}).dialog('open');
 });
 
+$('#command_ship_select_dock').live('click', function(e){
+  var stations = "<ul>";
+  for(var l in client.locations){
+    var loc = client.locations[l];
+    // FIXME variable docking distance
+    if(controls.selected_ship.location.within_distance(loc.x, loc.y, 100) &&
+       loc.entity && loc.entity.json_class == "Manufactured::Station" &&
+       loc.entity.system.name == client.current_system.name)
+         stations += "<li id='"+loc.entity.id+"' class='command_ship_dock' ><a href='#'>" + loc.entity.id + "</a></li>"
+  }
+  stations += "</ul>";
+  $('#motel_dialog').html(stations).dialog({show: 'explode', title: 'select station to dock at'}).dialog('open');
+});
+
 $('.command_ship_attack').live('click', function(e){
   $('#motel_dialog').dialog('close');
   for(var s in controls.selected_ships)
     client.attack_entity(controls.selected_ships[s].id, e.currentTarget.id);
+});
+
+$('.command_ship_dock').live('click', function(e){
+  $('#motel_dialog').dialog('close');
+  client.dock_ship(controls.selected_ship.id, e.currentTarget.id);
+  $('#command_ship_undock').show();
+  $('#command_ship_select_dock').hide();
+});
+
+$('#command_ship_undock').live('click', function(e){
+  client.undock_ship(controls.selected_ship.id);
+  $('#command_ship_undock').hide();
+  $('#command_ship_select_dock').show();
 });
 
 $('.galaxy_title').live('click', function(event){

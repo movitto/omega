@@ -226,6 +226,37 @@ class RJRAdapter
       Manufactured::Registry.instance.restore_state(input_file)
       input_file.close
     }
+
+    rjr_dispatcher.add_handler('manufactured::dock') { |ship_id, station_id|
+      ship    = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
+      station = Manufactured::Registry.instance.find(:id => station_id, :type => 'Manufactured::Station').first
+
+      raise Omega::DataNotFound, "manufactured ship specified by #{ship_id} not found" if ship.nil?
+      raise Omega::DataNotFound, "manufactured station specified by #{station_id} not found"  if station.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      ship.dock_at(station)
+      ship
+    }
+
+    rjr_dispatcher.add_handler('manufactured::undock') { |ship_id|
+      ship    = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
+
+      raise Omega::DataNotFound, "manufactured ship specified by #{ship_id} not found" if ship.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+      ship.undock
+      ship
+    }
+
   end
 end # class RJRAdapter
 

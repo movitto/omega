@@ -22,6 +22,9 @@ class Ship
   attr_accessor :damage_dealt
   attr_accessor :hp
 
+  # station ship is docked to, nil if not docked
+  attr_reader :docked_at
+
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
                 :battlecruiser, :exploration]
 
@@ -40,6 +43,8 @@ class Ship
     @damage_dealt = 2
     @hp           = 10
 
+    @docked_to = nil
+
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
@@ -54,11 +59,23 @@ class Ship
     @solar_system = system
   end
 
+  def dock_at(station)
+    # FIXME ensure ship / station are within docking distance
+    #       + other permission checks (eg if station has free ports, allows ship to dock)
+    #       + ship isn't docked elsewhere
+    # TODO station.add_docked_ship(ship)
+    @docked_at = station
+  end
+
+  def undock
+    @docked_at = nil
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:id => id, :user_id => user_id, :type => type, :location => @location, :solar_system => @solar_system}
+        {:id => id, :user_id => user_id, :type => type, :docked_at => @docked_at, :location => @location, :solar_system => @solar_system}
     }.to_json(*a)
   end
 

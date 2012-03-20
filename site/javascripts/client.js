@@ -125,7 +125,9 @@ function onsuccess(client, result){
     }
 
   // returned when we invoke client.move_entity
+  //  and client.dock_ship, client.undock_ship
   }else if(result.json_class == "Manufactured::Ship"){
+    result.selected = controls.update_selected_ship(result);
     result.location.entity = result;
     result.system = result.solar_system;
     result.size = 30;
@@ -401,6 +403,16 @@ function CosmosClient() {
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked_stop');
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'destroyed');
     client.web_node.invoke_request('manufactured::attack_entity', attacker, defender);
+  }
+
+  this.dock_ship = function(ship, station){
+    // TODO should subscribe to these events in another location
+    client.web_node.invoke_request('manufactured::dock', ship, station);
+  }
+
+  this.undock_ship = function(ship){
+    // TODO should subscribe to these events in another location
+    client.web_node.invoke_request('manufactured::undock', ship);
   }
 
   this.login = function(){

@@ -162,3 +162,13 @@
   background: url('http://localhost/wotel/images/icons/attack-ship.png') no-repeat;
   background-size: 30px;
 }
+
+#command_ship_select_dock {
+  background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
+  background-size: 30px;
+}
+
+#command_ship_select_undock {
+  background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
+  background-size: 30px;
+}
