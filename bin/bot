@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+# Simple omega bot
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'omega'
+
+include Omega::DSL
+
+RJR::Logger.log_level= ::Logger::INFO
+
+login 'mmorsi',  :password => 'foobar'
+
+#ship("ship1") do |ship|
+#  subscribe_to :movement, :distance => 25 do
+#  end
+#end
+
+planet("Alexandros") do |planet|
+  subscribe_to :movement, :distance => 5 do |loc|
+    puts "Planet #{planet.name} moved to #{loc.to_s}"
+  end
+end
+
+listen

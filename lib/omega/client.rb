@@ -18,13 +18,28 @@ end
 class Client
   def initialize(args = {})
     @args = args
-    @args.each { |k,v|
+    set_context(args)
+  end
+
+  def set_context(context={})
+    context.each { |k,v|
       instance_variable_set "@#{k}".intern, v
+      add_entity v
     }
   end
 
   def invoke_callback(*params, &bl)
     instance_exec *params, &bl if block_given?
+  end
+
+  def register_callback(callback_method, &bl)
+    RJR::Dispatcher.add_handler(callback_method) { |*args|
+      instance_exec *args, &bl if block_given?
+    }
+  end
+
+  def self.listen
+    @@rjr_node.listen
   end
 
   def queue_request(method_name, *params)
@@ -36,13 +51,14 @@ class Client
     @@session_id ||= nil
 
     responses = []
-    rjr_node = RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
-    rjr_node.message_headers['session_id'] = @@session_id
-    @@requests.each { |req|
-      RJR::Logger.debug "Invoking #{req.method_name} with (#{req.method_params.join(", ")})"
-      responses << rjr_node.invoke_request('omega-queue', req.method_name, *req.method_params)
-    }
+    @@rjr_node ||= RJR::AMQPNode.new :node_id => 'seeder', :broker => 'localhost'
+    @@rjr_node.message_headers['session_id'] = @@session_id
+    requests = Array.new(@@requests)
     @@requests.clear
+    requests.each { |req|
+      RJR::Logger.debug "Invoking #{req.method_name} with (#{req.method_params.join(", ")})"
+      responses << @@rjr_node.invoke_request('omega-queue', req.method_name, *req.method_params)
+    }
     responses.first
   end
 
@@ -52,7 +68,11 @@ class Client
 
   def add_entity(entity)
     @@entities ||= []
-    @@entities << entity
+    @@entities << entity unless @@entities.include?(entity)
+  end
+
+  def remove_entity(entity)
+    @@entities.delete(entity)
   end
 
   def self.entities
@@ -103,6 +123,10 @@ def elliptical(args = {})
   return Motel::MovementStrategies::Elliptical.random args
 end
 
+def listen
+  Omega::Client.listen
+end
+
 def login(id, args={})
   user = Users::User.new(args.merge({:id => id}))
   client = Omega::Client.new
@@ -118,7 +142,6 @@ def user(id, args = {}, &bl)
 
   # TODO attempt to retrieve user b4 creating
   client = Omega::Client.new :user => user
-  client.add_entity user
   client.queue_request 'users::create_entity', user
   RJR::Logger.info "creating user #{user.id}"
   client.invoke_callback user, &bl
@@ -139,7 +162,6 @@ def alliance(id, args = {}, &bl)
   ualliance = Users::Alliance.new(args.merge({:id => id}))
 
   client = Omega::Client.new :alliance => ualliance
-  client.add_entity ualliance
   client.queue_request 'users::create_entity', ualliance
   RJR::Logger.info "creating alliance #{ualliance.id}"
   client.invoke_callback ualliance, &bl
@@ -150,7 +172,6 @@ def galaxy(id, &bl)
   gal = Cosmos::Galaxy.new :name => id
 
   client = Omega::Client.new :galaxy => gal
-  client.add_entity gal
   client.queue_request 'cosmos::create_entity', gal, :universe
   RJR::Logger.info "creating galaxy #{gal.name}"
   client.invoke_callback gal, &bl
@@ -163,9 +184,7 @@ def system(id, star_id, args = {}, &bl)
   sys = Cosmos::SolarSystem.new(args.merge({:name => id, :galaxy => @galaxy}))
   star = Cosmos::Star.new :name => star_id, :solar_system => sys
 
-  client = Omega::Client.new :system => sys
-  client.add_entity sys
-  client.add_entity star
+  client = Omega::Client.new :system => sys, :star => star
   client.queue_request 'cosmos::create_entity', sys, @galaxy
   client.queue_request 'cosmos::create_entity', star, sys
   RJR::Logger.info "creating system #{sys.name}"
@@ -177,22 +196,36 @@ def jump_gate(system, endpoint, args = {}, &bl)
   gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
 
   client = Omega::Client.new :jump_gate => gate
-  client.add_entity gate
   client.queue_request 'cosmos::create_entity', gate, system
   RJR::Logger.info "creating gate from #{system.name} to #{endpoint.name}"
   client.invoke_callback gate, &bl
 end
 
 def planet(id, args={}, &bl)
-  raise ArgumentError, "system must not be nil" if @system.nil?
-
   plan = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
 
   client = Omega::Client.new :planet => plan
-  client.add_entity plan
-  client.queue_request 'cosmos::create_entity', plan, @system
-  RJR::Logger.info "creating planet #{plan.name}"
-  client.invoke_callback plan, &bl
+  RJR::Logger.info "retrieving planet #{id}"
+  client.queue_request 'cosmos::get_entity', :planet, id
+  begin
+    nplan = client.invoke_requests
+    client.remove_entity(plan)
+    client.set_context(:planet => nplan)
+    client.invoke_callback nplan, &bl
+    #RJR::Logger.info "updating planet #{id}"
+    return nplan
+
+  rescue Exception => e
+    raise ArgumentError, "system must not be nil" if @system.nil?
+
+    client.queue_request 'cosmos::create_entity', plan, @system
+    RJR::Logger.info "creating planet #{plan.name}"
+    client.invoke_callback plan, &bl
+    plan = client.invoke_requests
+
+  end
+
+  return plan
 end
 
 def moon(id, args={}, &bl)
@@ -201,7 +234,6 @@ def moon(id, args={}, &bl)
   mn = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
 
   client = Omega::Client.new :moon => mn
-  client.add_entity mn
   client.queue_request 'cosmos::create_entity', mn, @planet
   RJR::Logger.info "creating moon #{mn.name}"
   client.invoke_callback mn, &bl
@@ -211,18 +243,31 @@ def ship(id, args={}, &bl)
   sh = Manufactured::Ship.new(args.merge({:id => id}))
 
   client = Omega::Client.new :ship => sh
-  client.add_entity sh
-  client.queue_request 'manufactured::create_entity', sh
-  RJR::Logger.info "creating ship #{sh.id}"
-  client.invoke_callback sh, &bl
-  client.invoke_requests
+  RJR::Logger.info "retrieving ship #{id}"
+  client.queue_request 'manufactured::get_entity', id
+  begin
+    nsh = client.invoke_requests
+    client.remove_entity(sh)
+    client.set_context(:ship => nsh)
+    client.invoke_callback nsh, &bl
+    #RJR::Logger.info "updating ship #{id}"
+    return nsh
+
+  rescue Exception => e
+    client.queue_request 'manufactured::create_entity', sh
+    RJR::Logger.info "creating ship #{sh.id}"
+    client.invoke_callback sh, &bl
+    client.invoke_requests
+
+  end
+
+  return sh
 end
 
 def station(id, args={}, &bl)
   st = Manufactured::Station.new(args.merge({:id => id}))
 
   client = Omega::Client.new :station => st
-  client.add_entity st
   client.queue_request 'manufactured::create_entity', st
   RJR::Logger.info "creating station #{st.id}"
   client.invoke_callback st, &bl
@@ -233,7 +278,6 @@ def fleet(id, args={}, &bl)
   fl = Manufactured::Fleet.new(args.merge({:id => id}))
 
   client = Omega::Client.new :fleet => fl
-  client.add_entity fl
   client.queue_request 'manufactured::create_entity', fl
   RJR::Logger.info "creating fleet #{fl.id}"
   client.invoke_callback fl, &bl
@@ -241,9 +285,30 @@ def fleet(id, args={}, &bl)
 end
 
 
-# TODO for entities planets / ships
-#      for events movement, proximity (all 3), attacked/stop attacked/destroyed
-def subscribe_to(entity, event, args = {})
+def subscribe_to(event, args = {}, &bl)
+  case event
+  when :movement
+    raise ArgumentError, "ship or planet must not be nil" if @ship.nil? && @planet.nil?
+    entity = @ship || @planet
+    client = Omega::Client.new :entity => entity
+    client.queue_request 'track_movement', entity.location.id, args[:distance]
+    RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
+    client.register_callback "on_movement", &bl
+    client.invoke_requests
+
+  #when :proximity
+  #when :entered_proximity
+  #when :left_proximity
+
+  when :attacked, :attacked_stopped, :destroyed
+    raise ArgumentError, "ship must not be nil" if @ship.nil?
+    client = Omega::Client.new :ship => @ship
+    client.queue_request 'manufactured::subscribe_to', @ship, event
+    RJR::Logger.info "subscribing to #{event} on #{@ship}"
+    client.register_callback "manufactured::subscribe_to", &bl
+    client.invoke_requests
+
+  end
 end
 
 end # module DSL

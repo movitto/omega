@@ -52,9 +52,9 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::get_entity'){ |id|
        entity = Manufactured::Registry.instance.find(:id => id).first
-       entity.location = @@local_node.invoke_request('get_location', entity.location.id)
-
        raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entity.nil?
+
+       entity.location = @@local_node.invoke_request('get_location', entity.location.id)
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                   {:privilege => 'view', :entity => 'manufactured_entities'}],
                                          :session => @headers['session_id'])

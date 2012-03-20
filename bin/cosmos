@@ -12,8 +12,8 @@ include Omega::DSL
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
 NUM_GALAXIES           = 1
-NUM_SYSTEMS_PER_GALAXY = 2
-NUM_PLANETS_PER_SYSTEM = 2
+NUM_SYSTEMS_PER_GALAXY = 1
+NUM_PLANETS_PER_SYSTEM = 1
 NUM_MOONS_PER_PLANET   = 1
 NUM_GATES_PER_SYSTEM   = 1
 
@@ -52,7 +52,7 @@ def num_of(entity_type)
   return rand(Object.const_get(mconst)-1) + 1
 end
 
-RJR::Logger.log_level= ::Logger::DEBUG
+RJR::Logger.log_level= ::Logger::INFO
 
 login 'admin',  :password => 'nimda'
 
@@ -108,15 +108,19 @@ num_galaxies = num_of('GALAXIES')
       end
     end # end systems
 
-    galaxy_systems.each { |sys|
-      num_gates = num_of("GATES_PER_SYSTEM")
-      used_systems = [sys]
-      0.upto(num_gates-1){
-        endpoint = rand_galaxy_system(g, used_systems)
-        jump_gate sys, endpoint,
-                  :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+    begin
+      galaxy_systems.each { |sys|
+        num_gates = num_of("GATES_PER_SYSTEM")
+        used_systems = [sys]
+        0.upto(num_gates-1){
+          endpoint = rand_galaxy_system(g, used_systems)
+          jump_gate sys, endpoint,
+                    :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+        }
       }
-    }
+    rescue ArgumentError => e
+      puts "Error received #{e}, not generating any more jump gates"
+    end
   end
 end  # end galaxies
 
