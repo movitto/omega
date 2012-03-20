@@ -111,7 +111,7 @@ function CosmosControls(){
     entity_container.show();
     entity_container.html("JumpGate to: " + gate.endpoint +
                           "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>" +
-                          "<br/><div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
+                          "<div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
   }
 
   this.clicked_ship    = function(click_event, ship) {
@@ -340,12 +340,16 @@ $('#motel_chat_input input[type=button]').live('click', function(event){
 
 $('#login_link').live('click', function(event){
   client.login();
+  $('#account_link').show();
   $('#logout_link').show();
   $('#login_link').hide();
+  $('#create_account_link').hide();
 });
 
 $('#logout_link').live('click', function(event){
   client.logout();
+  $('#create_account_link').show();
   $('#login_link').show();
   $('#logout_link').hide();
+  $('#account_link').hide();
 });

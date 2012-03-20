@@ -115,12 +115,14 @@
   position: absolute;
   left: 7px;
   top: 5px;
-  width: 250px;
+  width: 230px;
   height: 25px;
 
   border: 1px solid black;
-  padding-left: 5px;
-  padding-top: 3px;
+  padding-left: 15px;
+  padding-top: 25px;
+
+  background: url('http://localhost/wotel/images/logo.png') no-repeat;
 }
 
 #primary_navigation{
@@ -171,7 +173,7 @@
   background-size: 30px;
 }
 
-#command_ship_select_undock {
+#command_ship_undock {
   background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
   background-size: 30px;
 }
