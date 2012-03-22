@@ -26,12 +26,16 @@ class Registry
 
   def find(args = {})
     id        = args[:id]
+    session_id = args[:session_id]
+
+    session = session_id.nil? ? nil : @sessions.find { |s| s.id == session_id }
 
     entities = []
 
     [@users, @alliances].each { |entity_array|
       entity_array.each { |entity|
-        entities << entity if (id.nil?        || entity.id         == id)
+        entities << entity if (id.nil?        || (entity.id         == id)) &&
+                              (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id))
       }
     }
     entities

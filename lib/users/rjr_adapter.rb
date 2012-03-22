@@ -78,7 +78,8 @@ class RJRAdapter
      }
 
      rjr_dispatcher.add_handler('users::logout') { |session_id|
-       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{rloc.id}"},
+       user = Users::Registry.instance.find(:session_id => session_id).first
+       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
                                                   {:privilege => 'modify', :entity => 'users'}],
                                          :session   => @headers['session_id'])
 
