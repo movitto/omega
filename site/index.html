@@ -7,6 +7,7 @@
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="javascripts/rjr/json.js"></script>
     <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
     <script type="text/javascript" src="javascripts/jquery.jplayer.min.js"></script>
     <script type="text/javascript" src="javascripts/jquery.jplayer.playlist.min.js"></script>
     <script type="text/javascript" src="javascripts/user.js"></script>
@@ -29,6 +30,19 @@
 
         controls = new CosmosControls();
         client = new CosmosClient();
+        client.onopen = function(){
+          client.current_user.restore_session(client);
+        }
+        client.onlogin = function(){
+          client.get_cosmos_entity('galaxy');
+          client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
+          client.get_user_info();
+          client.subscribe_to_messages();
+          controls.show_logout_controls();
+        }
+        client.onlogout = function(){
+          controls.show_login_controls();
+        }
         client.connect();
 
         ui = new CosmosUI();
@@ -38,9 +52,9 @@
   </head>
   <body>
     <div id="login_logout_link">
-      <a href="#" id="create_account_link">register</a>
-      <a href="#" id="account_link" style="display: none">account</a> /
-      <a href="#" id="login_link">login</a>
+      <a href="#" id="create_account_dialog_link">register</a>
+      <a href="/wotel/account.html" id="account_link" style="display: none">account</a> /
+      <a href="#" id="login_dialog_link">login</a>
       <a href="#" id="logout_link" style="display: none">logout</a>
     </div>
 

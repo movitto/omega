@@ -4,13 +4,6 @@ function isArray(testObject) {
   return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
 }
 
-function post_login(client){
-  client.get_cosmos_entity('galaxy');
-  client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
-  client.get_user_info();
-  client.subscribe_to_messages();
-}
-
 function onsuccess(client, result){
   if(result == null)
     return;
@@ -97,8 +90,10 @@ function onsuccess(client, result){
     //  client.add_location(result);
 
     // returned when get invoke client.get_entities_under(system)
+    //   and client.get_entities_for_user(current_user, 'Manufactured::Ship')
     }else if((result[0].json_class == "Manufactured::Ship" ||
               result[0].json_class == "Manufactured::Station")){
+      var data = '';
       for(var e=0;e<result.length;++e){
         var entity = result[e];
         // XXX hack this array can contain fleets too as
@@ -108,11 +103,18 @@ function onsuccess(client, result){
           entity.system = entity.solar_system;
           client.add_location(entity.location);
         }
+        if(data != "") data += ", ";
+        data += entity.id;
       }
 
-    // returned when get invoke client.get_enities_for_user(current_user, fleet)
+      if(result[0].json_class == "Manufactured::Ship")
+        $('#player_ships').html(data);
+      else
+        $('#player_stations').html(data);
+
+    // returned when get invoke client.get_entities_for_user(current_user, fleet)
     }else if(result[0].json_class == "Manufactured::Fleet"){
-      data  = "<span class='motel_entities_container_title'>Fleets:</span><ul>"
+      var data  = "<span class='motel_entities_container_title'>Fleets:</span><ul>"
       for(var f=0;f<result.length;++f){
         var fleet = result[f];
         data += "<li><span id='" + fleet.id + "' class='entity_title fleet_title' system_id='"+fleet.solar_system+"'>" + fleet.id + " (" + fleet.solar_system + ") </span></li>";
@@ -134,7 +136,7 @@ function onsuccess(client, result){
     // XXX hack this is here for when we move ships between systems
     if(client.current_system) client.set_system(client.current_system.name);
 
-  // returned when we invoke client.get_user_info
+  // returned when we invoke client.get_user_info and client.create_account
   }else if(result.json_class == "Users::User"){
     client.users[result.id] = result;
     var data  = "<span class='motel_entities_container_title'>Alliances:</span><ul>";
@@ -150,18 +152,22 @@ function onsuccess(client, result){
     }
 
     data += "</ul>";
+    // TODO need a way to register and dispatch to different handlers
     $('#motel_alliances_container').html(data);
+    $('#user_username').attr('value', result.id);
+    $('#user_email').attr('value', result.email);
+    $('#motel_dialog').html("creating account, you should receive a confirmation email momentarily");
 
   // returned when we invoke client.login
   }else if(result.json_class == "Users::Session"){
-    client.current_user.create_session(result, client);
-    post_login(client);
+    client.current_user.create_session(result.id, result.user_id, client);
   }
 }
 
 function onfailed(client, error, msg){
   console.log(error);
   console.log(msg);
+  alert("error: " + msg);
 }
 
 function invoke_method(client, method, params){
@@ -233,7 +239,7 @@ function CosmosClient() {
     client.ws_node  = new WSNode('127.0.0.1', '8080');
     client.ws_node.open();
 
-    //client.ws_node.onopen    = function(){ onopen(client); };
+    client.ws_node.onopen    = function(){ if(client.onopen) client.onopen(); };
     client.ws_node.onsuccess = function(result)     { onsuccess(client, result);     }
     client.ws_node.onfailed  = function(error, msg) { onfailed(client, error, msg);  }
     client.ws_node.message_received = function(msg) { message_received(client, msg); }
@@ -418,7 +424,15 @@ function CosmosClient() {
 
   this.logout = function(){
     client.web_node.invoke_request('users::logout', client.current_user.session_id);
-    client.current_user.destroy_session();
+    client.current_user.destroy_session(client);
+  }
+
+  this.create_account = function(){
+    client.web_node.invoke_request('users::register', client.current_user);
+  }
+
+  this.update_account = function(){
+    client.web_node.invoke_request('users::update_user', client.current_user);
   }
 
 };

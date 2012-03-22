@@ -5,7 +5,7 @@
   border: 1px solid black;
   min-width: 350px;
   min-height: 625px;
-  height: 625px;
+  height: 1030px;
   padding: 5px;
   overflow: auto;
 }
@@ -113,7 +113,7 @@
 
 #login_logout_link{
   position: absolute;
-  left: 7px;
+  left: 25px;
   top: 5px;
   width: 230px;
   height: 25px;

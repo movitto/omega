@@ -27,6 +27,7 @@ class Registry
   def find(args = {})
     id        = args[:id]
     session_id = args[:session_id]
+    registration_code = args[:registration_code]
 
     session = session_id.nil? ? nil : @sessions.find { |s| s.id == session_id }
 
@@ -35,7 +36,8 @@ class Registry
     [@users, @alliances].each { |entity_array|
       entity_array.each { |entity|
         entities << entity if (id.nil?        || (entity.id         == id)) &&
-                              (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id))
+                              (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id)) &&
+                              (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code))
       }
     }
     entities
@@ -78,6 +80,7 @@ class Registry
     }
 
     session = @sessions.find { |s| s.id == session_id }
+    # TODO incorporate a session timeout (only if inactivity?)
     if session.nil?
       RJR::Logger.warn "require_privilege(#{args.inspect}): session not found"
       raise Omega::PermissionError, "session not found"

@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="stylesheets/account.css" />
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="javascripts/rjr/json.js"></script>
+    <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
+<script type="text/javascript" src="javascripts/location.js"></script>
+    <script type="text/javascript" src="javascripts/user.js"></script>
+    <script type="text/javascript" src="javascripts/client.js"></script>
+    <script type="text/javascript" src="javascripts/input.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){ 
+        // right now browser compatability check is restricted
+        // to the platform I tested all this on.
+        // Want expanded support?
+        // Test this out in alternative browsers and send patches!
+        var user_agent = $.browser;
+        if(!user_agent.mozilla || user_agent.version < "8.0"){
+          alert("Must be running Firefox >= 8.0");
+          return;
+        }
+
+        client = new CosmosClient();
+        client.onopen = function(){
+          client.current_user.restore_session(client);
+        }
+        client.onlogin = function(){
+          client.get_user_info();
+          client.get_entities_for_user(client.current_user.id, 'Manufactured::Ship');
+          client.get_entities_for_user(client.current_user.id, 'Manufactured::Station');
+        }
+        client.connect();
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="account_info">
+      <div id="account_info_actions" class="account_info_row">
+        <div id="logo">
+          Account Information
+        </div>
+        <a href="#" id="account_info_update">update</a>
+        <a href="/wotel/account.html" id="account_info_reset">reset</a>
+        <a href="/wotel" id="account_info_reset">back</a>
+      </div>
+
+      <div id="account_info_last_login" class="account_info_row"></div>
+      <div id="account_info_username" class="account_info_row">
+        Username:
+        <input type="text" id="user_username" disabled="true"/>
+      </div>
+      <div id="account_info_email" class="account_info_row">
+        Email:
+        <input type="text" id="user_email" disabled="true"/>
+      </div>
+      <div id="account_info_password" class="account_info_row">
+        Password:
+        <input type="password" id="user_password" />
+      </div>
+      <div id="account_info_confirm_password" class="account_info_row">
+        Confirm password:
+        <input type="password" id="user_confirm_password" />
+      </div>
+    </div>
+
+    <div id="player_info">
+      <div id="player_info_ships" class="player_info_row">
+        Ships:
+        <span id="player_ships" />
+      </div>
+
+      <div id="player_info_stations" class="player_info_row">
+        Stations:
+        <span id="player_stations" />
+      </div>
+    </div>
+
+  </body>
+</html>

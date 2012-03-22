@@ -7,8 +7,8 @@ function Location(){
   this.parent_id = null;
   this.movement_strategy = null;
   this.entity = null;
-  this.draw    = ui.draw_nothing;
-  this.clicked = controls.unregistered_click;
+  if(typeof ui != 'undefined') this.draw    = ui.draw_nothing;
+  if(typeof controls != 'undefined') this.clicked = controls.unregistered_click;
 
   this.update = function(new_location){
     this.id = new_location.id;

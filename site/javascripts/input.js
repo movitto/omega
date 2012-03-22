@@ -81,6 +81,20 @@ function CosmosControls(){
     }
   }
 
+  this.show_login_controls = function(){
+    $('#create_account_dialog_link').show();
+    $('#login_dialog_link').show();
+    $('#logout_link').hide();
+    $('#account_link').hide();
+  }
+
+  this.show_logout_controls = function(){
+    $('#account_link').show();
+    $('#logout_link').show();
+    $('#login_dialog_link').hide();
+    $('#create_account_dialog_link').hide();
+  }
+
   this.draw = function(){
     if(this.select_box_top_left_x && this.select_box_top_left_y &&
        this.select_box_width      && this.select_box_height){
@@ -338,18 +352,58 @@ $('#motel_chat_input input[type=button]').live('click', function(event){
   $('#motel_chat_input input[type=text]').attr('value', '');
 });
 
+$('#login_dialog_link').live('click', function(event){
+  var html  = 'Username: <input type="text" id="user_username" />';
+      html += 'Password: <input type="password" id="user_password" />';
+      html += '<input type="button" id="login_link" value="login" />';
+  $('#motel_dialog').html(html).dialog({title: 'login'}).dialog('open');
+});
+
+$('#create_account_dialog_link').live('click', function(event){
+  var html  = 'Username: <input type="text" id="user_username" />';
+      html += 'Password: <input type="password" id="user_password" />';
+      html += 'Email: <input type="text" id="user_email" />';
+      html += "<br/>By submitting this form, you are agreeing to The Omegaverse <a href='/wiki/Terms_of_Use'>Terms of Use</a><br/>";
+      html += '<input type="button" id="create_account_link" value="confirm" />';
+  // TODO recaptcha
+  $('#motel_dialog').html(html).dialog({title: 'create account'}).dialog('open');
+});
+
 $('#login_link').live('click', function(event){
+  $('#motel_dialog').dialog('close');
+
+  // populate login details from dialog
+  client.current_user.id = $('#user_username').attr('value');
+  client.current_user.password = $('#user_password').attr('value');
+  //client.current_user.id = 'mmorsi';
+  //client.current_user.password = 'foobar';
+
   client.login();
-  $('#account_link').show();
-  $('#logout_link').show();
-  $('#login_link').hide();
-  $('#create_account_link').hide();
 });
 
 $('#logout_link').live('click', function(event){
   client.logout();
-  $('#create_account_link').show();
-  $('#login_link').show();
-  $('#logout_link').hide();
-  $('#account_link').hide();
+});
+
+
+$('#create_account_link').live('click', function(event){
+  // populate login details from dialog
+  client.current_user.id = $('#user_username').attr('value');
+  client.current_user.password = $('#user_password').attr('value');
+  client.current_user.email    = $('#user_email').attr('value');
+
+  client.create_account();
+});
+
+$('#account_info_update').live('click', function(event){
+  var pass1 = $('#user_password').attr('value');
+  var pass2 = $('#user_confirm_password').attr('value');
+console.log(pass1);
+  if(pass1 != pass2){
+    alert("passwords do not match");
+    return;
+  }
+
+  client.current_user.password = pass1;
+  client.update_account();
 });

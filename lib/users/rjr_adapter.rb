@@ -69,10 +69,11 @@ class RJRAdapter
      rjr_dispatcher.add_handler('users::login') { |user|
        session = nil
        user_entity = Users::Registry.instance.find(:id => user.id).first
+       raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
        if user_entity.valid_login?(user.id, user.password)
          session = Users::Registry.instance.create_session(user_entity)
        else
-         # TODO throw exception
+         raise ArgumentError, "invalid user"
        end
        session
      }
@@ -100,6 +101,39 @@ class RJRAdapter
        user = Users::Registry.instance.find(:id => user_id).first
        user.add_privilege Privilege.new(:id => privilege_id, :entity_id => entity_id)
        nil
+     }
+
+     rjr_dispatcher.add_handler("users::register") { |user|
+       # validate email format, user isn't already taken
+       raise ArgumentError, "invalid user email"    unless user.valid_email?
+       raise ArgumentError, "user id already taken" unless Users::Registry.instance.find(:id => user.id).empty?
+
+       # generate random registraton code
+       user.registration_code = Users::User.random_registration_code
+
+       # create new user
+       Users::Registry.instance.create user
+
+       # TODO send users::confirm_register link via email
+       user
+     }
+
+     rjr_dispatcher.add_handler("users::confirm_register") { |registration_code|
+       user = Users::Registry.instance.find(:registration_code => registration_code).first
+       raise Omega::DataNotFound, "user specified by registration code #{registration_code} not found" if user.nil?
+
+       user.registration_code = nil
+
+       # assign it base privileges
+
+       # TODO issue request to create mediawiki user
+     }
+
+     rjr_dispatcher.add_handler("users::update_user") { |user|
+       user_entity = Users::Registry.instance.find(:id => user.id).first
+       raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
+       user_entity.update!(user)
+       user
      }
 
     rjr_dispatcher.add_handler('users::save_state') { |output|

@@ -1,0 +1,38 @@
+#logo{
+  padding-top: 25px;
+  padding-left: 15px;
+  background: url('http://localhost/wotel/images/logo.png') no-repeat;
+  width: 25%;
+  float: left;
+  border: 1px solid black;
+}
+
+#account_info_actions{
+  margin-left: 0px;
+}
+
+#account_info_actions a{
+  float: right;
+  padding-left: 10px;
+}
+
+.account_info_row,
+.player_info_row{
+  height: 50px;
+  margin-left: 20px;
+}
+
+#account_info input{
+  float: right;
+}
+
+#account_info{
+  width: 40%;
+}
+
+#player_info {
+  width: 40%;
+  margin-top:  15px;
+  padding-top: 15px;
+  border-top: 1px solid black;
+}
