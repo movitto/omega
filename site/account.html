@@ -7,8 +7,9 @@
     <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
     <script type="text/javascript" src="javascripts/rjr/json.js"></script>
     <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
-<script type="text/javascript" src="javascripts/location.js"></script>
+    <script type="text/javascript" src="javascripts/location.js"></script>
     <script type="text/javascript" src="javascripts/user.js"></script>
+    <script type="text/javascript" src="javascripts/handler.js"></script>
     <script type="text/javascript" src="javascripts/client.js"></script>
     <script type="text/javascript" src="javascripts/input.js"></script>
     <script type="text/javascript">
@@ -23,15 +24,21 @@
           return;
         }
 
-        client = new CosmosClient();
-        client.onopen = function(){
+        handlers = new OmegaHandlers();
+        handlers.onopen = function(){
           client.current_user.restore_session(client);
         }
-        client.onlogin = function(){
+        handlers.onlogin = function(){
+          handlers.clear_callbacks();
+          handlers.add_callback(handlers.set_player_manufactured_entities);
+          handlers.add_callback(handlers.populate_user_info);
+
           client.get_user_info();
           client.get_entities_for_user(client.current_user.id, 'Manufactured::Ship');
           client.get_entities_for_user(client.current_user.id, 'Manufactured::Station');
         }
+
+        client = new CosmosClient();
         client.connect();
       });
     </script>

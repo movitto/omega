@@ -109,7 +109,7 @@ function CosmosControls(){
   this.unregistered_click = function(click_event, entity) {}
 
   this.clicked_system  = function(click_event, system) {
-    client.set_system(system.name);
+    handlers.set_system(system.name);
   }
 
   this.clicked_planet  = function(click_event, planet) {
@@ -161,6 +161,9 @@ function CosmosControls(){
 
   this.clicked_space = function(x, y){
     if(controls.selected_ships.length > 0 && client.current_system != null){
+      handlers.add_callback(handlers.handle_ships);
+      handlers.add_method('on_movement', handlers.on_movement);
+
       var shi = 0;
       for(var sh in controls.selected_ships){
         var new_loc = new Location();
@@ -234,6 +237,9 @@ $('#command_jumpgate_trigger').live('click', function(e){
     }
   }
 
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
+
   // grab ships around gate in current system
   // TODO only current user's ships
   for(loc in client.locations){
@@ -261,6 +267,8 @@ $('#command_selection_clear').live('click', function(e){
 });
 
 $('#command_fleet_create').live('click', function(e){
+  handlers.clear_callbacks();
+
   var shnames = [];
   for(var s in controls.selected_ships)
     shnames.push(controls.selected_ships[s].id);
@@ -300,12 +308,19 @@ $('#command_ship_select_dock').live('click', function(e){
 });
 
 $('.command_ship_attack').live('click', function(e){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
+  handlers.add_method('manufactured::subscribe_to', handlers.on_attacked_event);
+
   $('#motel_dialog').dialog('close');
   for(var s in controls.selected_ships)
     client.attack_entity(controls.selected_ships[s].id, e.currentTarget.id);
 });
 
 $('.command_ship_dock').live('click', function(e){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
+
   $('#motel_dialog').dialog('close');
   client.dock_ship(controls.selected_ship.id, e.currentTarget.id);
   $('#command_ship_undock').show();
@@ -313,21 +328,24 @@ $('.command_ship_dock').live('click', function(e){
 });
 
 $('#command_ship_undock').live('click', function(e){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
+
   client.undock_ship(controls.selected_ship.id);
   $('#command_ship_undock').hide();
   $('#command_ship_select_dock').show();
 });
 
 $('.galaxy_title').live('click', function(event){
-  client.set_galaxy(event.currentTarget.id);
+  handlers.set_galaxy(event.currentTarget.id);
 });
 
 $('.solar_system_title').live('click', function(event){
-  client.set_system(event.currentTarget.id);
+  handlers.set_system(event.currentTarget.id);
 });
 
 $('.fleet_title').live('click', function(event){
-  client.set_system($(event.currentTarget).attr('system_id'));
+  handlers.set_system($(event.currentTarget).attr('system_id'));
 });
 
 $('.alliance_title').live('click', function(event){
@@ -370,6 +388,9 @@ $('#create_account_dialog_link').live('click', function(event){
 });
 
 $('#login_link').live('click', function(event){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.create_session);
+
   $('#motel_dialog').dialog('close');
 
   // populate login details from dialog
@@ -382,11 +403,16 @@ $('#login_link').live('click', function(event){
 });
 
 $('#logout_link').live('click', function(event){
+  handlers.clear_callbacks();
+
   client.logout();
 });
 
 
 $('#create_account_link').live('click', function(event){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.create_account_confirmation);
+
   // populate login details from dialog
   client.current_user.id = $('#user_username').attr('value');
   client.current_user.password = $('#user_password').attr('value');
@@ -396,9 +422,11 @@ $('#create_account_link').live('click', function(event){
 });
 
 $('#account_info_update').live('click', function(event){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.populate_user_info);
+
   var pass1 = $('#user_password').attr('value');
   var pass2 = $('#user_confirm_password').attr('value');
-console.log(pass1);
   if(pass1 != pass2){
     alert("passwords do not match");
     return;

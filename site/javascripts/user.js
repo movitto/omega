@@ -16,7 +16,7 @@ function User(){
     client.ws_node.headers['source_node'] = user_id;
     client.web_node.headers['session_id'] = session_id;
     client.ws_node.headers['session_id']  = session_id;
-    if(client.onlogin) client.onlogin();
+    if(handlers.onlogin) handlers.onlogin();
   };
 
   this.destroy_session = function(client){
@@ -29,7 +29,7 @@ function User(){
     client.ws_node.headers['source_node'] = '';
     client.web_node.headers['session_id'] = '';
     client.ws_node.headers['session_id']  = '';
-    if(client.onlogout) client.onlogout();
+    if(handlers.onlogout) handlers.onlogout();
   }
 
   // restore session if possible
