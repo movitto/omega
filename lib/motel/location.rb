@@ -3,6 +3,7 @@
 # Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'json'
 require 'motel/movement_strategy'
 
 module Motel
@@ -181,6 +182,8 @@ class Location
      min_y = args[:min_y] if args.has_key?(:min_y)
      min_z = args[:min_z] if args.has_key?(:min_z)
 
+     # TODO this is a little weird w/ the semantics of the 'min'
+     # arguments, at some point look into changing this
      nx = rand(2) == 0 ? -1 : 1
      ny = rand(2) == 0 ? -1 : 1
      nz = rand(2) == 0 ? -1 : 1

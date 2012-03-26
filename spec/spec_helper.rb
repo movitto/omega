@@ -8,6 +8,8 @@ require 'rubygems'
 CURRENT_DIR=File.dirname(__FILE__)
 $: << File.expand_path(CURRENT_DIR + "/../lib")
 
+CLOSE_ENOUGH=0.000001
+
 require 'motel'
 
 class TestMovementStrategy < Motel::MovementStrategy

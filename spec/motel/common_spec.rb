@@ -36,16 +36,50 @@ describe "normalize" do
 
   it "should correctly normalize vector" do
     x,y,z = Motel.normalize 0.5,0.5,0.5
-    (x - 0.577350269189626).should < 0.000000000000001
-    (y - 0.577350269189626).should < 0.000000000000001
-    (z - 0.577350269189626).should < 0.000000000000001
+    (x - 0.577350269189626).should < CLOSE_ENOUGH
+    (y - 0.577350269189626).should < CLOSE_ENOUGH
+    (z - 0.577350269189626).should < CLOSE_ENOUGH
 
     x,y,z = Motel.normalize 0.75,0.6,0.12
-    (x - 0.77484465921718).should   < 0.000000000000001
-    (y - 0.619875727373744).should  < 0.000000000000001
-    (z - 0.123975145474749).should  < 0.000000000000001
+    (x - 0.77484465921718).should   < CLOSE_ENOUGH
+    (y - 0.619875727373744).should  < CLOSE_ENOUGH
+    (z - 0.123975145474749).should  < CLOSE_ENOUGH
   end
 
+end
+
+describe "random_axis" do
+  it "should generate three dimensional random axis by default" do
+    axis_vector1, axis_vector2 = Motel.random_axis
+    axis_vector1.size.should == 3
+    axis_vector2.size.should == 3
+
+    axis_vector1.find { |c| c == 0 }.should be_nil
+    axis_vector2.find { |c| c == 0 }.should be_nil
+
+    nav1 = Motel.normalize(*axis_vector1)
+    nav2 = Motel.normalize(*axis_vector2)
+
+    0.upto(2) { |i|
+      (axis_vector1[i] - nav1[i]).should < CLOSE_ENOUGH
+      (axis_vector2[i] - nav2[i]).should < CLOSE_ENOUGH
+    }
+
+    Motel.orthogonal?(*(axis_vector1 + axis_vector2)).should be_true
+  end
+
+  it "should allow invoker to generate a two dimensional random axis" do
+    axis_vector1, axis_vector2 = Motel.random_axis :dimensions => 2
+    axis_vector1.size.should == 3
+    axis_vector2.size.should == 3
+
+    axis_vector1[0].should_not == 0
+    axis_vector1[1].should_not == 0
+    axis_vector1[2].should == 0
+    axis_vector2[0].should_not == 0
+    axis_vector2[1].should_not == 0
+    axis_vector2[2].should == 0
+  end
 end
 
 describe "orthogonal?" do

@@ -89,6 +89,34 @@ describe Motel::Location do
    i.should == 6
   end
 
+  it "should permit adding and removing children" do
+    oldparent = Motel::Location.new
+    parent    = Motel::Location.new
+    child1    = Motel::Location.new
+    child2    = Motel::Location.new
+
+    child1.parent = oldparent
+
+    parent.children.size.should == 0
+
+    parent.add_child(child1)
+    parent.children.size.should == 1
+    parent.children.include?(child1).should be_true
+    child1.parent.should == parent
+
+    parent.add_child(child1)
+    parent.children.size.should == 1
+
+    parent.add_child(child2)
+    parent.children.size.should == 2
+    parent.children.include?(child2).should be_true
+
+    parent.remove_child(child1)
+    parent.children.size.should == 1
+    parent.children.include?(child1).should be_false
+    parent.children.include?(child2).should be_true
+  end
+
   it "should return total position from root origin" do
     grandparent = Motel::Location.new
     parent = Motel::Location.new :parent => grandparent,
@@ -108,7 +136,60 @@ describe Motel::Location do
   it "should calculate the distance between two locations" do
     loc1 = Motel::Location.new :x => 10, :y => 10, :z => 10
     loc2 = Motel::Location.new :x => -5, :y => -7, :z => 30
-    ((loc1 - loc2 - 30.2324329156619) < 0.000001).should be_true
+    ((loc1 - loc2 - 30.2324329156619) < CLOSE_ENOUGH).should be_true
+  end
+
+  it "should be convertable to json" do
+    l = Motel::Location.new(:id => 42,
+                            :x => 10, :y => -20, :z => 0.5,
+                            :restrict_view => false, :restrict_modify => true,
+                            :parent_id => 15, :remote_queue => 'foobar',
+                            :movement_strategy =>
+                              Motel::MovementStrategies::Linear.new(:speed => 51))
+    j = l.to_json
+    j.should include('"json_class":"Motel::Location"')
+    j.should include('"id":42')
+    j.should include('"x":10')
+    j.should include('"y":-20')
+    j.should include('"z":0.5')
+    j.should include('"restrict_view":false')
+    j.should include('"restrict_modify":true')
+    j.should include('"parent_id":15')
+    j.should include('"remote_queue":"foobar"')
+    j.should include('"movement_strategy":{')
+    j.should include('"json_class":"Motel::MovementStrategies::Linear"')
+    j.should include('"speed":51')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":null,"direction_vector_y":null,"direction_vector_z":null,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"id":42}}'
+    l = JSON.parse(j)
+
+    l.class.should == Motel::Location
+    l.id.should == 42
+    l.x.should  == 10
+    l.y.should  == -20
+    l.z.should  == 0.5
+    l.restrict_view.should be_false
+    l.restrict_modify.should be_true
+    l.parent_id.should == 15
+    l.remote_queue.should == 'foobar'
+    l.movement_strategy.class.should == Motel::MovementStrategies::Linear
+    l.movement_strategy.speed.should == 51
+  end
+
+  it "should provide means to generate parameterized random location" do
+    l = Motel::Location.random :max_x => 10,  :max_y => 20, :max_z => 100,
+                               :min_x => 0,   :min_y => 5,  :min_z => 50
+
+    l.x.should < 10
+    l.x.should > -10
+
+    l.y.abs.should < 20
+    l.y.abs.should > 5
+
+    l.z.abs.should < 100
+    l.z.abs.should > 50
   end
 
 end

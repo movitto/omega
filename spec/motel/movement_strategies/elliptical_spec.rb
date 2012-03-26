@@ -16,11 +16,11 @@ describe "Motel::MovementStrategies::Elliptical" do
                                  :direction_minor_x => 3, :direction_minor_y => -1, :direction_minor_z => 0
                                  
      # the orthogonal direction vectors get normalized                                  
-     (elliptical.direction_major_x - 0.267261241912424).abs.should < 0.0000000001
-     (elliptical.direction_major_y - 0.801783725737273).abs.should < 0.0000000001
-     (elliptical.direction_major_z - 0.534522483824849).abs.should < 0.0000000001
-     (elliptical.direction_minor_x - 0.948683298050514).abs.should < 0.0000000001
-     (elliptical.direction_minor_y - -0.316227766016838).abs.should < 0.0000000001
+     (elliptical.direction_major_x - 0.267261241912424).abs.should < CLOSE_ENOUGH
+     (elliptical.direction_major_y - 0.801783725737273).abs.should < CLOSE_ENOUGH
+     (elliptical.direction_major_z - 0.534522483824849).abs.should < CLOSE_ENOUGH
+     (elliptical.direction_minor_x - 0.948683298050514).abs.should < CLOSE_ENOUGH
+     (elliptical.direction_minor_y - -0.316227766016838).abs.should < CLOSE_ENOUGH
      elliptical.direction_minor_z.should == 0
 
      elliptical.speed.should == 5
