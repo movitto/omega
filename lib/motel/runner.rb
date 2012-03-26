@@ -7,6 +7,7 @@
 
 require 'thread'
 require 'singleton'
+require 'rjr/common'
 
 module Motel
 

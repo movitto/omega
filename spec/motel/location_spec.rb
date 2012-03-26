@@ -3,13 +3,13 @@
 # Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/spec_helper'
+require File.dirname(__FILE__) + '/../spec_helper'
 
-describe Location do
+describe Motel::Location do
 
   it "should successfully accept and set location params" do
-     parent = Location.new
-     location = Location.new :id => 1, :parent_id => 2, :parent => parent, :x => 3, :y => 4, :z => 5
+     parent = Motel::Location.new
+     location = Motel::Location.new :id => 1, :parent_id => 2, :parent => parent, :x => 3, :y => 4, :z => 5
      location.id.should == 1
      location.parent_id.should == 2
      location.x.should == 3
@@ -18,19 +18,19 @@ describe Location do
      location.parent.should == parent
      location.children.should == []
      location.movement_callbacks.should == []
-     location.movement_strategy.should == MovementStrategies::Stopped.instance
+     location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
 
      ms = TestMovementStrategy.new
-     location = Location.new :movement_strategy => ms
+     location = Motel::Location.new :movement_strategy => ms
      location.movement_strategy.should == ms
   end
 
   it "should be updatable given another location to copy" do
-     p1 = Location.new
-     p2 = Location.new
+     p1 = Motel::Location.new
+     p2 = Motel::Location.new
 
-     orig = Location.new :x => 1, :y => 2, :movement_strategy => 'foobar', :parent_id => 5, :parent => p1
-     new  = Location.new :x => 5, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
+     orig = Motel::Location.new :x => 1, :y => 2, :movement_strategy => 'foobar', :parent_id => 5, :parent => p1
+     new  = Motel::Location.new :x => 5, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
      orig.update(new)
      orig.x.should be(5)
      orig.y.should == 2
@@ -46,18 +46,18 @@ describe Location do
   end
 
   it "should retrieve a location's coordinates" do
-    loc = Location.new :x => 10, :y => 20, :z => -30
+    loc = Motel::Location.new :x => 10, :y => 20, :z => -30
     coords = loc.coordinates
     coords.should == [10, 20, -30]
   end
 
   it "should retrieve root location" do
-    ggp = Location.new
-    gp  = Location.new :parent => ggp
-    p   = Location.new :parent => gp
-    l   = Location.new :parent => p
-    c   = Location.new :parent => l
-    gc  = Location.new  :parent => c
+    ggp = Motel::Location.new
+    gp  = Motel::Location.new :parent => ggp
+    p   = Motel::Location.new :parent => gp
+    l   = Motel::Location.new :parent => p
+    c   = Motel::Location.new :parent => l
+    gc  = Motel::Location.new  :parent => c
 
     gp.root.should == ggp
     p.root.should == ggp
@@ -67,22 +67,22 @@ describe Location do
   end
 
   it "should provide means to traverse all descendants, invoking optional block arg" do
-   greatgrandparent = Location.new
-   grandparent = Location.new
+   greatgrandparent = Motel::Location.new
+   grandparent = Motel::Location.new
    greatgrandparent.children.push grandparent
-   grampy   = Location.new
+   grampy   = Motel::Location.new
    greatgrandparent.children.push grampy
-   parent = Location.new
+   parent = Motel::Location.new
    grandparent.children.push parent
-   parent2 = Location.new
+   parent2 = Motel::Location.new
    grandparent.children.push parent2
-   child1 = Location.new
+   child1 = Motel::Location.new
    parent.children.push child1
-   child2 = Location.new
+   child2 = Motel::Location.new
    parent.children.push child2
 
    i = 0 
-   greatgrandparent.traverse_descendants { |desc|
+   greatgrandparent.each_child { |desc|
      i += 1
    }   
 
@@ -90,12 +90,12 @@ describe Location do
   end
 
   it "should return total position from root origin" do
-    grandparent = Location.new
-    parent = Location.new :parent => grandparent,
+    grandparent = Motel::Location.new
+    parent = Motel::Location.new :parent => grandparent,
                           :x      => 14,
                           :y      => 24,
                           :z      => 42 
-    child = Location.new  :parent => parent,
+    child = Motel::Location.new  :parent => parent,
                           :x      => 123,
                           :y      => -846,
                           :z      => -93
@@ -106,8 +106,8 @@ describe Location do
   end
 
   it "should calculate the distance between two locations" do
-    loc1 = Location.new :x => 10, :y => 10, :z => 10
-    loc2 = Location.new :x => -5, :y => -7, :z => 30
+    loc1 = Motel::Location.new :x => 10, :y => 10, :z => 10
+    loc2 = Motel::Location.new :x => -5, :y => -7, :z => 30
     ((loc1 - loc2 - 30.2324329156619) < 0.000001).should be_true
   end
 

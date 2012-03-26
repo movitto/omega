@@ -3,18 +3,18 @@
 # Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
 # See COPYING for the License of this software
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Motel::MovementStrategies::Stopped" do
 
   it "should not move location" do
      # setup test
-     stopped = Stopped.instance
-     parent   = Location.new
+     stopped = Motel::MovementStrategies::Stopped.instance
+     parent   = Motel::Location.new
      x = 50
      y = 100 
      z = 200 
-     location = Location.new(:parent => parent,
+     location = Motel::Location.new(:parent => parent,
                              :movement_strategy => stopped,
                              :x => 50, :y => 100, :z => 200)
 

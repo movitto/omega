@@ -132,6 +132,8 @@ class Elliptical < MovementStrategy
 
     # precalculate the orbit
     def calculate_orbit
+      return if e.nil? || p.nil?
+
       @orbit = []
 
       0.upto(365) { |i|

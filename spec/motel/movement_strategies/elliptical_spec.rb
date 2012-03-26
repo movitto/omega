@@ -3,7 +3,9 @@
 # Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
 # See COPYING for the License of this software
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
+
+Elliptical = Motel::MovementStrategies::Elliptical
 
 describe "Motel::MovementStrategies::Elliptical" do
 
@@ -41,7 +43,7 @@ describe "Motel::MovementStrategies::Elliptical" do
      lambda { 
        elliptical = Elliptical.new :direction_major_x => 0.75, :direction_major_y => -0.33,  :direction_major_z => -0.21,
                                    :direction_minor_x => -0.41, :direction_minor_y => 0, :direction_minor_z => 0.64
-     }.should raise_error(InvalidMovementStrategy, "elliptical direction vectors not orthogonal")
+     }.should raise_error(Motel::InvalidMovementStrategy, "elliptical direction vectors not orthogonal")
   end
 
 
@@ -58,10 +60,10 @@ describe "Motel::MovementStrategies::Elliptical" do
                                  :direction_minor_y => 1,
                                  :direction_minor_z => 0)
 
-     parent   = Location.new
+     parent   = Motel::Location.new
      x = 1
      y = z = 0
-     location = Location.new(:parent => parent,
+     location = Motel::Location.new(:parent => parent,
                              :movement_strategy => elliptical,
                              :x => x, :y => y, :z => z)
 

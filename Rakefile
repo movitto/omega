@@ -3,9 +3,9 @@
 # Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'rake/rdoctask'
-require 'spec/rake/spectask'
-require 'rake/gempackagetask'
+require 'rdoc/task'
+require "rspec/core/rake_task"
+require 'rubygems/package_task'
 
 
 GEM_NAME="motel"
@@ -13,8 +13,9 @@ PKG_VERSION='0.3.1'
 SIMRPC_SPEC='conf/motel-schema.xml'
 
 desc "Run all specs"
-Spec::Rake::SpecTask.new('spec') do |t|
-  t.spec_files = FileList['spec/**/*_spec.rb']
+RSpec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = 'spec/**/*_spec.rb'
+  spec.rspec_opts = ['--backtrace']
 end
 
 Rake::RDocTask.new do |rd|
@@ -44,7 +45,7 @@ SPEC = Gem::Specification.new do |s|
     s.homepage = %q{http://morsi.org/projects/motel}
 end
 
-Rake::GemPackageTask.new(SPEC) do |pkg|
+Gem::PackageTask.new(SPEC) do |pkg|
     pkg.need_tar = true
     pkg.need_zip = true
 end

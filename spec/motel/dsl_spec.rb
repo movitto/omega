@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 dir = File.dirname(__FILE__) 
-require dir + '/spec_helper'
+require dir + '/../spec_helper'
 
 SIMRPC_SPEC = dir + '/../conf/motel-schema.xml'
 

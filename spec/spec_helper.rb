@@ -4,16 +4,13 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
-require 'spec'
 
 CURRENT_DIR=File.dirname(__FILE__)
 $: << File.expand_path(CURRENT_DIR + "/../lib")
 
 require 'motel'
-include Motel
-include Motel::MovementStrategies
 
-class TestMovementStrategy < MovementStrategy
+class TestMovementStrategy < Motel::MovementStrategy
    attr_accessor :times_moved
 
    def initialize
