@@ -67,6 +67,10 @@ class Ship
     @solar_system = system
   end
 
+  def docked?
+    !@docked_at.nil?
+  end
+
   def dock_at(station)
     # FIXME ensure ship / station are within docking distance
     #       + other permission checks (eg if station has free ports, allows ship to dock)
@@ -83,7 +87,11 @@ class Ship
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:id => id, :user_id => user_id, :type => type, :size => size, :docked_at => @docked_at, :location => @location, :solar_system => @solar_system}
+        {:id => id, :user_id => user_id,
+         :type => type, :size => size,
+         :docked_at => @docked_at,
+         :location => @location,
+         :solar_system => @solar_system}
     }.to_json(*a)
   end
 

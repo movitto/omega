@@ -12,6 +12,7 @@ CLOSE_ENOUGH=0.000001
 
 require 'motel'
 require 'cosmos'
+require 'manufactured'
 require 'users'
 
 class TestMovementStrategy < Motel::MovementStrategy

@@ -24,6 +24,8 @@ class AttackCommand
   def attack!
     RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
 
+    @last_attack_time = Time.now
+
     # reduce defender's hp
     @defender.hp -= @attacker.damage_dealt
 
