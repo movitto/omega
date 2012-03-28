@@ -10,6 +10,10 @@ class Registry
   attr_accessor :galaxies
 
   def initialize
+    init
+  end
+
+  def init
     @galaxies = []
   end
 
@@ -72,12 +76,15 @@ class Registry
         }
       end
     }
-    return name.nil? ? entities : nil
+    return (!name.nil? || !location.nil?) ? nil : entities
+  end
+
+  def children
+    @galaxies
   end
 
   def add_child(galaxy)
-    # TODO raise exception unless galaxy.is_a? Galaxy
-    @galaxies << galaxy
+    @galaxies << galaxy unless @galaxies.include?(galaxy) || !galaxy.is_a?(Cosmos::Galaxy)
   end
 
   def has_children?

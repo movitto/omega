@@ -39,6 +39,10 @@ class User
     @alliances << alliance unless @alliances.include?(alliance)
   end
 
+  def clear_privileges
+    @privileges.clear
+  end
+
   def add_privilege(privilege)
     @privileges << privilege unless @privileges.include?(privilege)
   end

@@ -11,11 +11,13 @@ $: << File.expand_path(CURRENT_DIR + "/../lib")
 CLOSE_ENOUGH=0.000001
 
 require 'motel'
+require 'cosmos'
+require 'users'
 
 class TestMovementStrategy < Motel::MovementStrategy
    attr_accessor :times_moved
 
-   def initialize
+   def initialize(args = {})
      @times_moved = 0
      @step_delay = 1
    end
@@ -23,4 +25,39 @@ class TestMovementStrategy < Motel::MovementStrategy
    def move(loc, elapsed_time)
      @times_moved += 1
    end
+end
+
+class TestUser
+  # always call me first!
+  def self.create
+    @@user ||= Users::User.new :id => 'omega-test'
+    @@session ||= nil
+    Users::Registry.instance.create @@user
+    self
+  end
+
+  def self.login(node = nil)
+    self.logout unless @@session.nil?
+    @@session = Users::Registry.instance.create_session(@@user)
+    node.message_headers['session_id'] = @@session.id unless node.nil?
+    self
+  end
+
+  def self.logout
+    unless @@session.nil?
+      Users::Registry.instance.destroy_session(@@session.id)
+      @@session = nil
+    end
+    self
+  end
+
+  def self.clear_privileges
+    @@user.clear_privileges
+    self
+  end
+
+  def self.add_privilege(privilege_id, entity_id = nil)
+    @@user.add_privilege Users::Privilege.new(:id => privilege_id, :entity_id => entity_id)
+    self
+  end
 end

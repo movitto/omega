@@ -26,6 +26,11 @@ class JumpGate
                                                         :name => @endpoint)
       @endpoint = tendpoint unless tendpoint.nil?
     end
+
+    if @location.nil?
+      @location = Motel::Location.new
+      @location.x = @location.y = @location.z = 0
+    end
   end
 
   def has_children?

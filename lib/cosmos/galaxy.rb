@@ -25,10 +25,14 @@ class Galaxy
     end
   end
 
+  def children
+    @solar_systems
+  end
+
   def add_child(solar_system)
     # TODO rails exception unless solar_system.is_a? SolarSystem
     solar_system.location.parent_id = location.id
-    @solar_systems << solar_system
+    @solar_systems << solar_system unless @solar_systems.include?(solar_system) || !solar_system.is_a?(Cosmos::SolarSystem)
   end
 
   def has_children?

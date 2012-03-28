@@ -36,12 +36,16 @@ class SolarSystem
     end
   end
 
+  def children
+    @planets + @jump_gates + (@star.nil? ? [] : [@star])
+  end
+
   def add_child(child)
     child.location.parent_id = location.id
     if child.is_a? Planet
-      @planets << child 
+      @planets << child  unless @planets.include?(child)
     elsif child.is_a? JumpGate
-      @jump_gates << child
+      @jump_gates << child unless @jump_gates.include?(child)
     elsif child.is_a? Star
       @star = child
     end

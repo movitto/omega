@@ -32,10 +32,14 @@ class Planet
     end
   end
 
+  def children
+    @moons
+  end
+
   def add_child(moon)
     # TODO rails exception unless moon.is_a? Moon
     moon.location.parent_id = location.id
-    @moons << moon
+    @moons << moon unless @moons.include?(moon) || !moon.is_a?(Cosmos::Moon)
   end
 
   def has_children?

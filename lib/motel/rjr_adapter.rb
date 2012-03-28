@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/exceptions'
+require 'rjr/dispatcher'
 
 module Motel
 
