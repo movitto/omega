@@ -89,4 +89,77 @@ describe "Motel::MovementStrategies::Elliptical" do
      (0  - location.z).abs.round_to(2).should == 0
   end
 
+  # TODO test other orbital methods
+
+  it "should be convertable to json" do
+   m = Motel::MovementStrategies::Elliptical.new :relative_to => Motel::MovementStrategies::Elliptical::RELATIVE_TO_CENTER,
+                                                 :step_delay        => 21,
+                                                 :speed             => 42,
+                                                 :eccentricity      => 0.5,
+                                                 :semi_latus_rectum => 420,
+                                                 :direction_major_x => 1,
+                                                 :direction_major_y => 0,
+                                                 :direction_major_z => 0,
+                                                 :direction_minor_x => 0,
+                                                 :direction_minor_y => 1,
+                                                 :direction_minor_z => 0
+    j = m.to_json
+    j.should include('"json_class":"Motel::MovementStrategies::Elliptical"')
+    j.should include('"step_delay":21')
+    j.should include('"speed":42')
+    j.should include('"relative_to":"center"')
+    j.should include('"eccentricity":0.5')
+    j.should include('"semi_latus_rectum":420')
+    j.should include('"direction_major_x":1')
+    j.should include('"direction_major_y":0')
+    j.should include('"direction_major_z":0')
+    j.should include('"direction_minor_x":0')
+    j.should include('"direction_minor_y":1')
+    j.should include('"direction_minor_z":0')
+    j.should include('"orbit":['+m.orbit.collect{ |o| '['+o.join(',')+']' }.join(',')+']')
+  end
+
+  it "should be convertable from json" do
+    j = '{"data":{"direction_major_y":0,"speed":42,"direction_major_z":0,"relative_to":"center","direction_minor_x":0,"eccentricity":0.5,"direction_minor_y":1,"semi_latus_rectum":420,"step_delay":21,"direction_minor_z":0,"direction_major_x":1},"json_class":"Motel::MovementStrategies::Elliptical"}'
+    m = JSON.parse(j)
+
+    m.class.should == Motel::MovementStrategies::Elliptical
+    m.step_delay.should == 21
+    m.speed.should == 42
+    m.relative_to.should == "center"
+    m.eccentricity.should == 0.5
+    m.semi_latus_rectum.should == 420
+    m.direction_major_x.should == 1
+    m.direction_major_y.should == 0
+    m.direction_major_z.should == 0
+    m.direction_minor_x.should == 0
+    m.direction_minor_y.should == 1
+    m.direction_minor_z.should == 0
+  end
+
+  it "should permit generating parameterized random elliptical movement strategy" do
+    m = Motel::MovementStrategies::Elliptical.random :dimensions => 2,
+                                                     :relative_to => "foci",
+                                                     :min_e      => 0.3,
+                                                     :max_e      => 0.7,
+                                                     :min_l      => 90,
+                                                     :max_l      => 120,
+                                                     :min_s      => 10,
+                                                     :max_s      => 20
+    m.direction_major_z.should == 0
+    m.direction_minor_z.should == 0
+
+    m.relative_to.should == "foci"
+
+    m.e.should >= 0.3
+    m.e.should < 0.7
+
+    m.p.should >= 90
+    m.p.should < 120
+
+    m.speed.should >= 10
+    m.speed.should < 20
+  end
+
+
 end

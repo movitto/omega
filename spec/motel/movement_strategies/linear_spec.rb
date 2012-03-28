@@ -48,4 +48,31 @@ describe "Motel::MovementStrategies::Linear" do
  
   end
 
+  it "should be convertable to json" do
+    m = Motel::MovementStrategies::Linear.new :step_delay => 20,
+                                              :speed      => 15,
+                                              :direction_vector_x =>  1,
+                                              :direction_vector_y =>  0,
+                                              :direction_vector_z =>  0
+    j = m.to_json
+    j.should include('"json_class":"Motel::MovementStrategies::Linear"')
+    j.should include('"step_delay":20')
+    j.should include('"speed":15')
+    j.should include('"direction_vector_x":1')
+    j.should include('"direction_vector_y":0')
+    j.should include('"direction_vector_z":0')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"direction_vector_x":1,"direction_vector_y":0,"step_delay":20,"direction_vector_z":0}}'
+    m = JSON.parse(j)
+
+    m.class.should == Motel::MovementStrategies::Linear
+    m.step_delay.should == 20
+    m.speed.should == 15
+    m.direction_vector_x.should == 1
+    m.direction_vector_y.should == 0
+    m.direction_vector_z.should == 0
+  end
+
 end

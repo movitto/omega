@@ -183,13 +183,13 @@ describe Motel::Location do
                                :min_x => 0,   :min_y => 5,  :min_z => 50
 
     l.x.should < 10
-    l.x.should > -10
+    l.x.should >= -10
 
     l.y.abs.should < 20
-    l.y.abs.should > 5
+    l.y.abs.should >= 5
 
     l.z.abs.should < 100
-    l.z.abs.should > 50
+    l.z.abs.should >= 50
   end
 
 end

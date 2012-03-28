@@ -5,6 +5,8 @@
 
 require File.dirname(__FILE__) + '/../spec_helper'
 
+require 'stringio'
+
 describe Motel::Runner do
 
   it "manage array of locations to be run" do
@@ -54,6 +56,38 @@ describe Motel::Runner do
     loc2a = Motel::Runner.instance.run loc2
     loc2.id.should == 2
     Motel::Runner.instance.locations.size.should == 3
+  end
+
+  it "should save running locations to io object" do
+    loc1 = Motel::Location.new :id => 1, :movement_strategy => TestMovementStrategy.new
+    loc3 = Motel::Location.new :id => 3, :movement_strategy => TestMovementStrategy.new
+    Motel::Runner.instance.clear
+    Motel::Runner.instance.run loc1
+    Motel::Runner.instance.run loc3
+    Motel::Runner.instance.locations.size.should == 2
+
+    sio = StringIO.new
+    Motel::Runner.instance.save_state(sio)
+    s = sio.string
+
+    s.should include('"id":1')
+    s.should include('"id":3')
+    s.should include('"json_class":"TestMovementStrategy"')
+    s.should include('"json_class":"Motel::Location"')
+  end
+
+  it "should restore running locations from io object" do
+    s = '{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"TestMovementStrategy"},"remote_queue":null,"parent_id":null,"y":null,"z":null,"x":null,"restrict_view":true,"id":1,"restrict_modify":true},"json_class":"Motel::Location"}' + "\n" +
+        '{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"TestMovementStrategy"},"remote_queue":null,"parent_id":null,"y":null,"z":null,"x":null,"restrict_view":true,"id":3,"restrict_modify":true},"json_class":"Motel::Location"}'
+    a = s.collect { |i| i }
+
+    Motel::Runner.instance.clear
+    Motel::Runner.instance.restore_state(a)
+    Motel::Runner.instance.locations.size.should == 2
+
+    ids = Motel::Runner.instance.locations.collect { |l| l.id }
+    ids.should include(1)
+    ids.should include(3)
   end
 
 end

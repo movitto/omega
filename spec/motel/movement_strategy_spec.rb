@@ -21,4 +21,19 @@ describe Motel::MovementStrategy do
      loc.z.should == 300
   end
 
+  it "should be convertable to json" do
+    m = Motel::MovementStrategy.new :step_delay => 20
+    j = m.to_json
+    j.should include('"json_class":"Motel::MovementStrategy"')
+    j.should include('"data":{"step_delay":20}')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::MovementStrategy","data":{"step_delay":20}}'
+    m = JSON.parse(j)
+
+    m.class.should == Motel::MovementStrategy
+    m.step_delay.should == 20
+  end
+
 end
