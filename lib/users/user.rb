@@ -6,8 +6,8 @@
 module Users
 class User
   attr_reader :id
-  attr_reader :email
-  attr_reader :password
+  attr_accessor :email
+  attr_accessor :password
   attr_reader :alliances
 
   attr_reader :privileges
@@ -26,6 +26,7 @@ class User
     @email     = args['email']     || args[:email]
     @password  = args['password']  || args[:password]
     @alliances = args['alliances'] || args[:alliances] || []
+    # FIXME encrypt password w/ salt
 
     @privileges = []
     #Users::Registry.instance.create self
@@ -70,7 +71,9 @@ class User
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :email => email, :password => password, :alliances => alliances}
+      'data'       => {:id => id,
+                       :email => email, :password => password, # FIXME filter password when sending user to client
+                       :alliances => alliances}
     }.to_json(*a)
   end
 

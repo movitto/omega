@@ -19,6 +19,10 @@ class Registry
   attr_accessor :sessions
 
   def initialize
+    init
+  end
+
+  def init
     @users     = []
     @alliances = []
     @sessions  = []

@@ -116,7 +116,7 @@ describe Manufactured::Registry do
     s.should_not include('"id":"fleet"')
   end
 
-  it "should restore running locations from io object" do
+  it "should restore registered manufactured entities from io object" do
     s = '{"data":{"type":null,"docked_at":null,"solar_system":null,"user_id":null,"size":null,"id":"ship1","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Ship"}' + "\n" +
         '{"data":{"type":null,"docked_at":null,"solar_system":null,"user_id":null,"size":null,"id":"ship2","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Ship"}' + "\n" +
         '{"data":{"type":null,"solar_system":null,"user_id":null,"size":null,"id":"station","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
