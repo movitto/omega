@@ -45,6 +45,7 @@ class RJRAdapter
        unless entity.location.nil?
          # entity.location.entity = entity
          @@local_node.invoke_request('create_location', entity.location)
+       # else raise error TODO
        end
 
        entity
@@ -68,6 +69,7 @@ class RJRAdapter
            end
            raised
          }
+         # raise Omega::DataNotFound if entities.empty? (?)
          entities.each{ |entity|
            # update locations w/ latest from the tracker
            entity.location = @@local_node.invoke_request('get_location', entity.location.id)
@@ -122,6 +124,7 @@ class RJRAdapter
       output_file = File.open(output, 'a+')
       Cosmos::Registry.instance.save_state(output_file)
       output_file.close
+      nil
     }
 
     rjr_dispatcher.add_handler('cosmos::restore_state') { |input|
@@ -129,6 +132,7 @@ class RJRAdapter
       input_file = File.open(input, 'r')
       Cosmos::Registry.instance.restore_state(input_file)
       input_file.close
+      nil
     }
 
   end

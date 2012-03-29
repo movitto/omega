@@ -52,7 +52,7 @@ class SolarSystem
   end
 
   def each_child(&bl)
-    bl.call star
+    bl.call star unless star.nil?
     @planets.each { |planet|
       bl.call planet
       planet.each_child &bl
