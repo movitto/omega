@@ -72,8 +72,9 @@ class RJRAdapter
        old_coords = [location.x, location.y, location.z]
 
        # adjust location heirarchy
-       if rloc.parent_id != location.parent_id
+       if (rloc.parent_id != location.parent_id) && !location.parent_id.nil?
          new_parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id  }
+         raise Omega::DataNotFound, "parent location specified by #{location.parent_id} not found" if new_parent.nil?
          new_parent.add_child(rloc)
        end
        location.parent = rloc.parent
@@ -156,10 +157,10 @@ class RJRAdapter
 
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view proximity of #{loc1.id}/#{loc2.id}"
-             loc.movement_callbacks.delete on_movement
+             loc1.proximity_callbacks.delete on_proximity
            rescue RJR::Errors::ConnectionError => e
              RJR::Logger.warn "track_proximity client disconnected"
-             loc.proximity_callbacks.delete on_proximity
+             loc1.proximity_callbacks.delete on_proximity
            end
          }
        loc1.proximity_callbacks << on_proximity
@@ -179,7 +180,9 @@ class RJRAdapter
 
       if callback_type.nil? || callback_type == 'movement'
         loc.movement_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
-      elsif callback_type.nil? || callback_type == 'proximity'
+      end
+
+      if callback_type.nil? || callback_type == 'proximity'
         loc.proximity_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
       end
       loc
@@ -190,6 +193,7 @@ class RJRAdapter
       output_file = File.open(output, 'a+')
       Runner.instance.save_state(output_file)
       output_file.close
+      nil
     }
 
     rjr_dispatcher.add_handler('motel::restore_state') { |input|
@@ -197,6 +201,7 @@ class RJRAdapter
       input_file = File.open(input, 'r')
       Runner.instance.restore_state(input_file)
       input_file.close
+      nil
     }
 
   end

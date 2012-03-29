@@ -33,6 +33,7 @@ class TestUser
   def self.create
     @@user ||= Users::User.new :id => 'omega-test'
     @@session ||= nil
+    self.logout unless @@session.nil?
     Users::Registry.instance.create @@user
     self
   end

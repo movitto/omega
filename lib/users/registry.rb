@@ -58,7 +58,10 @@ class Registry
   end
 
   def create_session(user)
-    # TODO just return user session if already existing
+    # just return user session if already existing
+    session = @sessions.find { |s| s.user_id == user.id }
+    return session unless session.nil?
+
     session = Session.new :user => user
     @sessions << session
     return session
