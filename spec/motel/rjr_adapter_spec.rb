@@ -299,6 +299,7 @@ describe Motel::RJRAdapter do
     sleep 1
     times_moved.should > 0
 
+    # verify when user no longer has access to location, callbacks are discontinued
     u.clear_privileges
     sleep 1
     rloc1.movement_callbacks.size.should == 0

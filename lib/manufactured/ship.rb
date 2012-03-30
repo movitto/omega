@@ -80,6 +80,7 @@ class Ship
   end
 
   def undock
+    # TODO check to see if station has given ship undocking clearance
     @docked_at = nil
   end
 

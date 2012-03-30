@@ -310,7 +310,7 @@ $('#command_ship_select_dock').live('click', function(e){
 $('.command_ship_attack').live('click', function(e){
   handlers.clear_callbacks();
   handlers.add_callback(handlers.handle_ships);
-  handlers.add_method('manufactured::subscribe_to', handlers.on_attacked_event);
+  handlers.add_method('manufactured::event_occurred', handlers.on_attacked_event);
 
   $('#motel_dialog').dialog('close');
   for(var s in controls.selected_ships)

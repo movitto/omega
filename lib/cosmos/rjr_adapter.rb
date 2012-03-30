@@ -45,6 +45,7 @@ class RJRAdapter
        unless entity.location.nil?
          # entity.location.entity = entity
          @@local_node.invoke_request('create_location', entity.location)
+         # TODO add all of entities children to location tracker
        # else raise error TODO
        end
 
@@ -103,7 +104,7 @@ class RJRAdapter
        entity = Cosmos::Registry.instance.find_entity(:type => type.intern,
                                                       :location => location_id)
 
-       raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entity.nil?
+       raise Omega::DataNotFound, "entity of type #{type} with location_id #{location_id} not found" if entity.nil?
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
                                                   {:privilege => 'view', :entity => 'cosmos_entities'}],
                                          :session => @headers['session_id'])

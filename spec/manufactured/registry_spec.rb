@@ -9,8 +9,15 @@ require 'stringio'
 
 describe Manufactured::Registry do
 
-  it "provide acceses to managed manufactured entities" do
+  before(:each) do
     Manufactured::Registry.instance.init
+  end
+
+  after(:each) do
+    Manufactured::Registry.instance.terminate
+  end
+
+  it "provide acceses to managed manufactured entities" do
     Manufactured::Registry.instance.ships.size.should == 0
     Manufactured::Registry.instance.stations.size.should == 0
     Manufactured::Registry.instance.fleets.size.should == 0
@@ -65,7 +72,6 @@ describe Manufactured::Registry do
   end
 
   it "should run attack cycle" do
-    Manufactured::Registry.instance.init
     Manufactured::Registry.instance.running?.should be_true
 
     attacker = Manufactured::Ship.new  :id => 'ship1'
@@ -98,7 +104,6 @@ describe Manufactured::Registry do
     station  = Manufactured::Station.new :id => 'station'
     fleet  = Manufactured::Fleet.new :id => 'fleet'
 
-    Manufactured::Registry.instance.init
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create ship2
@@ -122,7 +127,6 @@ describe Manufactured::Registry do
         '{"data":{"type":null,"solar_system":null,"user_id":null,"size":null,"id":"station","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
     a = s.collect { |i| i }
 
-    Manufactured::Registry.instance.init
     Manufactured::Registry.instance.restore_state(a)
     Manufactured::Registry.instance.children.size.should == 3
 

@@ -2,7 +2,7 @@
 # and is responsible for managing locations and moving them according to
 # their corresponding movement_strategies
 #
-# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'thread'
@@ -42,10 +42,19 @@ class Runner
 
   # Return complete list of locations being managed/tracked
   def locations
-    # need conccurrent protection here, or copy the elements into another array and return that?
-    @schedule_queue + @run_queue
+    ret = []
+    @schedule_lock.synchronize {
+      @schedule_queue.each { |l| ret << l }
+    }
+    @run_lock.synchronize {
+      @run_queue.each { |l| ret << l }
+    }
+    return ret
   end
 
+  def has_location?(id)
+    !locations.find { |l| l.id == id }.nil?
+  end
 
   # Empty the list of locations being managed/tracked
   def clear

@@ -12,8 +12,21 @@ module Users
 class Registry
   include Singleton
   # user entities registry
-  attr_accessor :users
-  attr_accessor :alliances
+  def users
+    u = []
+    @entities_lock.synchronize{
+      u = @users.collect { |user| user }
+    }
+    u
+  end
+
+  def alliances
+    a = []
+    @entities_lock.synchronize{
+      a = @alliances.collect { |alliance| alliance }
+    }
+    a
+  end
 
   # user sessions registry
   attr_accessor :sessions
@@ -26,6 +39,8 @@ class Registry
     @users     = []
     @alliances = []
     @sessions  = []
+
+    @entities_lock = Mutex.new
   end
 
   def find(args = {})
@@ -37,24 +52,38 @@ class Registry
 
     entities = []
 
-    [@users, @alliances].each { |entity_array|
-      entity_array.each { |entity|
-        entities << entity if (id.nil?        || (entity.id         == id)) &&
-                              (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id)) &&
-                              (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code))
-      }
+    to_search = []
+    @entities_lock.synchronize {
+      to_search = [@users, @alliances].flatten
+    }
+
+    to_search.each { |entity|
+      entities << entity if (id.nil?        || (entity.id         == id)) &&
+                            (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id)) &&
+                            (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code))
     }
     entities
   end
 
   def create(entity)
-    if entity.is_a?(Users::User)
-      @users     << entity if @users.find { |u| u.id == entity.id }.nil?
+    @entities_lock.synchronize{
+      if entity.is_a?(Users::User)
+        @users     << entity if @users.find { |u| u.id == entity.id }.nil?
 
-    elsif entity.is_a?(Users::Alliance)
-      @alliances << entity if @alliances.find { |a| a.id == entity.id}.nil?
+      elsif entity.is_a?(Users::Alliance)
+        @alliances << entity if @alliances.find { |a| a.id == entity.id}.nil?
 
-    end
+      end
+    }
+  end
+
+  def remove(id)
+    @entities_lock.synchronize{
+      [@users, @alliances].each { |entitya|
+        entitya.reject! { |entity| entity.id == id }
+        # TODO if removing user, remove sessions
+      }
+    }
   end
 
   def create_session(user)

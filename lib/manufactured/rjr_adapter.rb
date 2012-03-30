@@ -123,7 +123,7 @@ class RJRAdapter
             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                        {:privilege => 'view', :entity => 'manufactured_entities'}],
                                               :session => @headers['session_id'])
-            @rjr_callback.invoke 'manufactured::subscribe_to', *args
+            @rjr_callback.invoke 'manufactured::event_occurred', *args
 
           rescue Omega::PermissionError => e
             RJR::Logger.warn "client does not have privilege to subscribe to #{event} on #{entity.id}"
@@ -173,7 +173,7 @@ class RJRAdapter
           Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
                                                 :direction_vector_y => dy/distance,
                                                 :direction_vector_z => dz/distance,
-                                                :speed => 5
+                                                :speed => 1
         @@local_node.invoke_request('update_location', entity.location)
 
         @@local_node.invoke_request('track_movement', entity.location.id, distance)
@@ -201,8 +201,8 @@ class RJRAdapter
 
       # TODO verify entities are within attacking distance
 
-      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
-                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{attacker.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
@@ -212,6 +212,9 @@ class RJRAdapter
 
       [attacker, defender]
     }
+
+    # TODO
+    # rjr_dispatcher.add_handler('manufactured::stop_attack'){ |attacker_entity_id|
 
     rjr_dispatcher.add_handler('manufactured::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE

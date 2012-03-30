@@ -15,7 +15,7 @@ SIMRPC_SPEC='conf/motel-schema.xml'
 desc "Run all specs"
 RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = 'spec/**/*_spec.rb'
-  spec.rspec_opts = ['--backtrace']
+  spec.rspec_opts = ['--backtrace', '-fd', '-c']
 end
 
 Rake::RDocTask.new do |rd|

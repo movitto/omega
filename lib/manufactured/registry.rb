@@ -12,6 +12,7 @@ class Registry
   include Singleton
 
   # entities we are tracking
+  # TODO manually define these accessors, protecting arrays w/ the entities_lock
   attr_reader :ships
   attr_reader :stations
   attr_reader :fleets
@@ -33,6 +34,7 @@ class Registry
     @fleets   = []
     @attack_commands = []
 
+    terminate
     @terminate_attack_cycle = false
     @entities_lock = Mutex.new
     @attack_thread = Thread.new { attack_cycle }

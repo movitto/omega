@@ -305,7 +305,7 @@ def subscribe_to(event, args = {}, &bl)
     client = Omega::Client.new :ship => @ship
     client.queue_request 'manufactured::subscribe_to', @ship, event
     RJR::Logger.info "subscribing to #{event} on #{@ship}"
-    client.register_callback "manufactured::subscribe_to", &bl
+    client.register_callback "manufactured::event_occurred", &bl
     client.invoke_requests
 
   end

@@ -53,7 +53,7 @@ class RJRAdapter
        location.x = 0 if location.x.nil?
        location.y = 0 if location.y.nil?
        location.z = 0 if location.z.nil?
-       Runner.instance.run location
+       Runner.instance.run location unless Runner.instance.has_location?(location.id)
 
        location
     }
