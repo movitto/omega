@@ -5,7 +5,7 @@
 
 module Users
 class User
-  attr_reader :id
+  attr_accessor :id
   attr_accessor :email
   attr_accessor :password
   attr_reader :alliances

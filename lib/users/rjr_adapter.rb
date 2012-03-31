@@ -127,11 +127,15 @@ class RJRAdapter
        # assign it base privileges
 
        # TODO issue request to create mediawiki user
+       nil
      }
 
      rjr_dispatcher.add_handler("users::update_user") { |user|
        user_entity = Users::Registry.instance.find(:id => user.id).first
        raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
+                                                  {:privilege => 'modify', :entity => 'users'}],
+                                         :session   => @headers['session_id'])
        user_entity.update!(user)
        user
      }
