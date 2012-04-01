@@ -17,6 +17,7 @@ describe Cosmos::SolarSystem do
      solar_system.star.should be_nil
      solar_system.galaxy.should be_nil
      solar_system.planets.size.should == 0
+     solar_system.asteroids.size.should == 0
      solar_system.jump_gates.size.should == 0
   end
 
@@ -25,6 +26,7 @@ describe Cosmos::SolarSystem do
     star      = Cosmos::Star.new
     planet1   = Cosmos::Planet.new
     planet2   = Cosmos::Planet.new
+    asteroid1 = Cosmos::Asteroid.new
     jump_gate = Cosmos::JumpGate.new
 
     # always true, change?
@@ -48,13 +50,17 @@ describe Cosmos::SolarSystem do
     solar_system.children.size.should == 2
     solar_system.children.include?(planet2).should be_true
 
+    solar_system.add_child(asteroid1)
+    solar_system.children.size.should == 3
+
     solar_system.add_child(star)
     solar_system.add_child(jump_gate)
-    solar_system.children.size.should == 4
+    solar_system.children.size.should == 5
     solar_system.children.should include(planet1)
     solar_system.children.should include(planet2)
     solar_system.children.should include(star)
     solar_system.children.should include(jump_gate)
+    solar_system.children.should include(asteroid1)
   end
 
   it "should provide means to traverse all descendants, invoking optional block arg" do
@@ -62,10 +68,12 @@ describe Cosmos::SolarSystem do
     star      = Cosmos::Star.new
     planet    = Cosmos::Planet.new
     jump_gate = Cosmos::JumpGate.new
+    asteroid  = Cosmos::Asteroid.new
     moon      = Cosmos::Moon.new
 
     solar_system.add_child(star)
     solar_system.add_child(planet)
+    solar_system.add_child(asteroid)
     solar_system.add_child(jump_gate)
     planet.add_child(moon)
 
@@ -74,7 +82,7 @@ describe Cosmos::SolarSystem do
       i += 1
     }   
 
-    i.should == 4
+    i.should == 5
   end
 
   it "should be convertable to json" do

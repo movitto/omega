@@ -120,6 +120,27 @@ class RJRAdapter
        entity
     }
 
+    rjr_dispatcher.add_handler('cosmos::set_resource') { |entity_id, resource, quantity|
+       entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
+       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "cosmos_entity-#{entity.name}"},
+                                                  {:privilege => 'modify', :entity => 'cosmos_entities'}],
+                                         :session => @headers['session_id'])
+       Cosmos::Registry.instance.set_resource(entity_id, resource, quantity)
+       nil
+    }
+
+    rjr_dispatcher.add_handler('cosmos::get_resources') { |entity_id|
+       entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
+       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
+                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                         :session => @headers['session_id'])
+       resources = Cosmos::Registry.instance.resources(:entity_id => entity_id)
+       resources
+    }
+
+
     rjr_dispatcher.add_handler('cosmos::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       output_file = File.open(output, 'a+')

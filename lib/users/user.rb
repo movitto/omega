@@ -83,7 +83,7 @@ class User
   end
 
   def self.random_registration_code
-    (0...8).map{65.+(rand(25)).chr}.join
+    Users.random_string(8)
   end
 
 end

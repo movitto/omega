@@ -12,6 +12,7 @@ class SolarSystem
   attr_reader :star
   attr_reader :planets
   attr_reader :jump_gates
+  attr_reader :asteroids
 
   MAX_BACKGROUNDS = 6
   attr_reader :background
@@ -27,6 +28,7 @@ class SolarSystem
     @galaxy     = args['galaxy']     || args[:galaxy]
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
+    @asteroids  = args['asteroids '] || []
 
     @background = "system#{rand(MAX_BACKGROUNDS-1)+1}"
 
@@ -37,7 +39,7 @@ class SolarSystem
   end
 
   def children
-    @planets + @jump_gates + (@star.nil? ? [] : [@star])
+    @planets + @jump_gates + @asteroids + (@star.nil? ? [] : [@star])
   end
 
   def add_child(child)
@@ -46,6 +48,8 @@ class SolarSystem
       @planets << child  unless @planets.include?(child)
     elsif child.is_a? JumpGate
       @jump_gates << child unless @jump_gates.include?(child)
+    elsif child.is_a? Asteroid
+      @asteroids << child unless @asteroids.include?(child)
     elsif child.is_a? Star
       @star = child
     end
@@ -59,6 +63,9 @@ class SolarSystem
     }
     @jump_gates.each { |gate|
       bl.call gate
+    }
+    @asteroids.each { |asteroid|
+      bl.call asteroid
     }
   end
 
@@ -75,7 +82,8 @@ class SolarSystem
        'json_class' => self.class.name,
        'data'       =>
          {:name => name, :location => @location, :background => @background,
-          :star => @star, :planets => @planets, :jump_gates => @jump_gates}
+          :star => @star, :planets => @planets, :jump_gates => @jump_gates,
+          :asteroids => @asteroids}
      }.to_json(*a)
    end
 

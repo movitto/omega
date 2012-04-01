@@ -6,6 +6,7 @@
 lib = File.dirname(__FILE__)
 $: << lib + '/users/'
 
+require lib + '/users/common'
 require lib + '/users/user'
 require lib + '/users/alliance'
 require lib + '/users/chat_proxy'
