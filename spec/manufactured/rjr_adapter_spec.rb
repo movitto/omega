@@ -6,7 +6,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'rjr/local_node'
 
-describe Cosmos::RJRAdapter do
+describe Manufactured::RJRAdapter do
 
   before(:all) do
     Motel::RJRAdapter.init
@@ -465,6 +465,44 @@ describe Cosmos::RJRAdapter do
     }.should_not raise_error
 
     Manufactured::Registry.instance.attack_commands.size.should == 1
+  end
+
+  it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to start_mining" do
+    ship = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
+    resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+    gal1     = Cosmos::Galaxy.new :name => 'galaxy1'
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    Manufactured::Registry.instance.create ship
+    Manufactured::Registry.instance.mining_commands.size.should == 0
+
+    Cosmos::Registry.instance.add_child gal1
+    rs = Cosmos::Registry.instance.set_resource gal1.name, resource, 50
+
+    lambda{
+      @local_node.invoke_request('manufactured::start_mining', ship.id, 'non_existant')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::start_mining', 'non_existant', rs.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::start_mining', ship.id, rs.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('modify', 'manufactured_entities')
+
+    lambda{
+      rship = @local_node.invoke_request('manufactured::start_mining', ship.id, rs.id)
+      rship.class.should == Manufactured::Ship
+      rship.id.should == ship.id
+    }.should_not raise_error
+
+    Manufactured::Registry.instance.mining_commands.size.should == 1
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do

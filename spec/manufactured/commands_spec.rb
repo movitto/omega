@@ -71,3 +71,40 @@ describe Manufactured::AttackCommand do
   end
 
 end
+
+describe Manufactured::MiningCommand do
+  it "should run mining cycle" do
+     ship     = Manufactured::Ship.new  :id => 'ship1'
+     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+     source   = Cosmos::ResourceSource.new :resource => resource
+
+     # 1 mining operation every 2 seconds
+     ship.mining_rate = 0.5
+
+     # need 2 mining operations to deplete source
+     ship.mining_quantity = 5
+     source.quantity = 10
+
+     cmd = Manufactured::MiningCommand.new :ship => ship, :resource_source => source
+
+     cmd.ship.should == ship
+     cmd.resource_source.should == source
+     cmd.remove?.should be_false
+     cmd.minable?.should be_true
+
+     cmd.mine!
+     cmd.minable?.should be_false
+     ship.resources.size.should == 1
+     ship.resources[resource.id].should == 5
+     source.quantity.should == 5
+     cmd.remove?.should be_false
+
+     sleep 2
+     cmd.minable?.should be_true
+     cmd.mine!
+     ship.resources[resource.id].should == 10
+     source.quantity.should == 0
+     cmd.remove?.should be_true
+  end
+
+end

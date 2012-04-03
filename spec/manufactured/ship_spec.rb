@@ -45,6 +45,38 @@ describe Manufactured::Ship do
     ship.docked_at.should be_nil
   end
 
+  it "should be permit mining resource sources" do
+    ship   = Manufactured::Ship.new :id => 'ship1'
+    res    = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    source = Cosmos::ResourceSource.new :resource => res, :quantity => 50
+
+    ship.mining?.should be_false
+    ship.mining.should be_nil
+
+    ship.start_mining(source)
+    ship.mining?.should be_true
+    ship.mining.should == source
+
+    ship.stop_mining
+    ship.mining?.should be_false
+    ship.mining.should be_nil
+  end
+
+  it "should permit storing resources locally" do
+    ship   = Manufactured::Ship.new :id => 'ship1'
+    ship.resources.should be_empty
+    
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    ship.add_resource res, 50
+    ship.resources.should_not be_empty
+    ship.resources.size.should == 1
+    ship.resources[res.id].should == 50
+
+    ship.add_resource res, 60
+    ship.resources.size.should == 1
+    ship.resources[res.id].should == 110
+  end
+
   it "should be convertable to json" do
     system1 = Cosmos::SolarSystem.new :name => 'system1'
     location= Motel::Location.new :id => 20, :y => -15

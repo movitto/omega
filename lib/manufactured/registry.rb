@@ -17,10 +17,14 @@ class Registry
   attr_reader :stations
   attr_reader :fleets
 
-  # attack commands client has issues to be regularily run
+  # attack commands client has issued to be regularily run
   attr_reader :attack_commands
 
+  # mining commands client has issued to be regularily run
+  attr_reader :mining_commands
+
   ATTACK_POLL_DELAY = 0.5 # TODO make configurable?
+  MINING_POLL_DELAY = 0.5 # TODO make configurable?
 
   def initialize
     init
@@ -33,23 +37,26 @@ class Registry
     @stations = []
     @fleets   = []
     @attack_commands = []
+    @mining_commands = []
 
     terminate
-    @terminate_attack_cycle = false
+    @terminate_cycles = false
     @entities_lock = Mutex.new
     @attack_thread = Thread.new { attack_cycle }
+    @mining_thread = Thread.new { mining_cycle }
   end
 
   def running?
-    !@terminate_attack_cycle && !@attack_thread.nil? &&
-    (@attack_thread.status == 'run' || @attack_thread.status == 'sleep')
+    !@terminate_cycles && !@attack_thread.nil? && !@mining_thread.nil? &&
+    (@attack_thread.status == 'run' || @attack_thread.status == 'sleep') &&
+    (@mining_thread.status == 'run' || @mining_thread.status == 'sleep')
   end
 
   def terminate
-    unless @attack_thread.nil?
-      @terminate_attack_cycle = true
-      @attack_thread.join
-    end
+    @terminate_cycles = true
+
+    @attack_thread.join unless @attack_thread.nil?
+    @mining_thread.join unless @mining_thread.nil?
   end
 
   def find(args = {})
@@ -99,9 +106,16 @@ class Registry
     }
   end
 
+  # add new mining command to run
+  def schedule_mining(args = {})
+    @entities_lock.synchronize{
+      @mining_commands << MiningCommand.new(args)
+    }
+  end
+
   # invoked in thread to periodically invoke attack commands
   def attack_cycle
-    until @terminate_attack_cycle
+    until @terminate_cycles
       @entities_lock.synchronize{
         # run attack if appropriate
         @attack_commands.each { |ac|
@@ -116,6 +130,32 @@ class Registry
       }
 
       sleep ATTACK_POLL_DELAY
+    end
+  end
+
+  # invoked in thread to periodically invoke mining commands
+  def mining_cycle
+    until @terminate_cycles
+      @entities_lock.synchronize{
+        # run mining operation if appropriate
+        @mining_commands.each { |mc|
+          if mc.minable?
+            mc.ship.start_mining(mc.resource_source) unless mc.ship.mining?
+            mc.mine!
+          end
+        }
+
+        # remove mining commands no longer necessary
+        to_remove = @mining_commands.select { |mc| mc.remove? }
+        to_remove.each { |mc|
+          mc.ship.stop_mining
+          @mining_commands.delete(mc)
+        }
+
+        # TODO remove resource sources w/ quantity <= 0 ?
+      }
+
+      sleep MINING_POLL_DELAY
     end
   end
 

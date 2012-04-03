@@ -230,6 +230,7 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
+      # TODO not thread safe, should go through the registry
       ship.dock_at(station)
       ship
     }
@@ -242,9 +243,29 @@ class RJRAdapter
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
+
+      # TODO not thread safe, should go through the registry
       ship.undock
       ship
     }
+
+    rjr_dispatcher.add_handler('manufactured::start_mining') { |ship_id, resource_source_id|
+      ship = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
+      resource_source = @@local_node.invoke_request('cosmos::get_resource_source', resource_source_id)
+
+      raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
+      raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if resource_source.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => resource_source
+      ship
+    }
+
+    # TODO
+    #rjr_dispatcher.add_handler('manufactured::stop_mining') { |ship_id|
 
     rjr_dispatcher.add_handler('manufactured::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE

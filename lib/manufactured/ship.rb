@@ -23,8 +23,18 @@ class Ship
   attr_accessor :damage_dealt
   attr_accessor :hp
 
+  # mining properties
+  attr_accessor :mining_rate  # times to mine per second
+  attr_accessor :mining_quantity # how much we extract each time we mine
+
   # station ship is docked to, nil if not docked
   attr_reader :docked_at
+
+  # resource source ship is mining, nil if not mining
+  attr_reader :mining
+
+  # map of resources contained in the ship to quantities
+  attr_reader :resources
 
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
                 :battlecruiser, :exploration]
@@ -45,13 +55,17 @@ class Ship
     @solar_system = args[:solar_system] || args['solar_system']
 
     @notification_callbacks = []
+    @resources = {}
 
     # FIXME make variable
     @attack_rate  = 0.5
     @damage_dealt = 2
     @hp           = 10
+    @mining_rate  = 0.5
+    @mining_quantity = 5
 
     @docked_to = nil
+    @mining    = nil
 
     if @location.nil?
       @location = Motel::Location.new
@@ -82,6 +96,27 @@ class Ship
   def undock
     # TODO check to see if station has given ship undocking clearance
     @docked_at = nil
+  end
+
+  def mining?
+    !@mining.nil?
+  end
+
+  def start_mining(resource_source)
+    # FIXME ensure ship / resource_source are within mining distance
+    #       + ship is has mining capabilities
+    #       + ship isn't full
+    # TODO resource_source.add_sink(ship)
+    @mining = resource_source
+  end
+
+  def stop_mining
+    @mining = nil
+  end
+
+  def add_resource(resource, quantity)
+    @resources[resource.id] ||= 0
+    @resources[resource.id] += quantity
   end
 
   def to_json(*a)

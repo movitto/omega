@@ -133,6 +133,7 @@ class Registry
     entity_resource = resources(:entity_id => entity_id,
                                 :resource_name => resource.name,
                                 :resoure_type  => resource.type).first
+    resource_source = nil
     if entity_resource.nil?
       resource_source = ResourceSource.new(:entity => entity,
                                            :resource => resource,
@@ -144,6 +145,8 @@ class Registry
                                                      rs.resource.type == resource.type }
       resource_source.quantity = quantity
     end
+
+    return resource_source
   end
 
   # Save state of the registry to specified stream

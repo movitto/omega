@@ -98,6 +98,36 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.running?.should be_false
   end
 
+  it "should run attack cycle" do
+    Manufactured::Registry.instance.running?.should be_true
+
+     ship     = Manufactured::Ship.new  :id => 'ship1'
+     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+     source   = Cosmos::ResourceSource.new :resource => resource
+
+     # 1 mining operation every 2 seconds
+     ship.mining_rate = 0.5
+
+     # need 2 mining operations to deplete source
+     ship.mining_quantity = 5
+     source.quantity = 10
+
+    Manufactured::Registry.instance.create ship
+    Manufactured::Registry.instance.ships.should include(ship)
+
+    Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source
+    sleep 1
+    ship.mining.should be_true
+    Manufactured::Registry.instance.mining_commands.size.should == 1
+    sleep 2
+
+    ship.mining.should be_false
+    Manufactured::Registry.instance.mining_commands.should be_empty
+
+    Manufactured::Registry.instance.terminate
+    Manufactured::Registry.instance.running?.should be_false
+  end
+
   it "should save registered manufactured ships and stations to io object" do
     ship1  = Manufactured::Ship.new :id => 'ship1'
     ship2  = Manufactured::Ship.new :id => 'ship2'
