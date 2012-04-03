@@ -13,6 +13,10 @@ class Resource
     @type = args['type']  || args[:type]
   end
 
+  def id
+    "#{@type}-#{@name}"
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,

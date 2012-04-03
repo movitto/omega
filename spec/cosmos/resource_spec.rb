@@ -11,6 +11,7 @@ describe Cosmos::Resource do
      resource   = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
      resource.name.should == 'titanium'
      resource.type.should == 'metal'
+     resource.id.should == "metal-titanium"
   end
 
   it "should be convertable to json" do
