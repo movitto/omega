@@ -140,6 +140,14 @@ class RJRAdapter
        resources
     }
 
+    rjr_dispatcher.add_handler('cosmos::get_resource_source') { |resource_source_id|
+       rs = Cosmos::Registry.instance.resource_sources.find { |rs| rs.id == resource_source_id }
+       raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if rs.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{rs.entity.name}"},
+                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                         :session => @headers['session_id'])
+       rs
+    }
 
     rjr_dispatcher.add_handler('cosmos::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE

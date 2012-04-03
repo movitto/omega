@@ -28,11 +28,13 @@ class Resource
 end
 
 class ResourceSource
+  attr_accessor :id
   attr_accessor :resource
   attr_accessor :quantity
   attr_accessor :entity
 
   def initialize(args = {})
+    @id       = args[:id]         || args['id']         || Motel::gen_uuid
     @resource = args['resource']  || args[:resource]
     @quantity = args['quantity']  || args[:quantity]
     @entity   = args['entity']  || args[:entity]
@@ -42,7 +44,7 @@ class ResourceSource
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:resource => resource, :quantity => quantity, :entity => entity}
+        {:id => id, :resource => resource, :quantity => quantity, :entity => entity}
     }.to_json(*a)
   end
 

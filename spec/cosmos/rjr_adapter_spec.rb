@@ -184,6 +184,35 @@ describe Cosmos::RJRAdapter do
     }.should_not raise_error
   end
 
+  it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resource_source" do
+    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    Motel::Runner.instance.run gal1.location
+    Cosmos::Registry.instance.add_child gal1
+    Cosmos::Registry.instance.set_resource gal1.name, res1, 50
+    rs = Cosmos::Registry.instance.resource_sources.first
+
+    lambda{
+      @local_node.invoke_request('cosmos::get_resource_source', 'non_existant')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('cosmos::get_resource_source', rs.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('view', 'cosmos_entities')
+
+    lambda{
+      rrs = @local_node.invoke_request('cosmos::get_resource_source', rs.id)
+      rrs.class.should == Cosmos::ResourceSource
+      rrs.should == rs
+    }.should_not raise_error
+  end
+
   it "should permit users with modify cosmos_entities or modify cosmos_entity-<id> to set_resource" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
