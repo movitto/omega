@@ -216,20 +216,6 @@ class RJRAdapter
     # TODO
     # rjr_dispatcher.add_handler('manufactured::stop_attack'){ |attacker_entity_id|
 
-    rjr_dispatcher.add_handler('manufactured::save_state') { |output|
-      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-      output_file = File.open(output, 'a+')
-      Manufactured::Registry.instance.save_state(output_file)
-      output_file.close
-    }
-
-    rjr_dispatcher.add_handler('manufactured::restore_state') { |input|
-      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-      input_file = File.open(input, 'r')
-      Manufactured::Registry.instance.restore_state(input_file)
-      input_file.close
-    }
-
     rjr_dispatcher.add_handler('manufactured::dock') { |ship_id, station_id|
       ship    = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
       station = Manufactured::Registry.instance.find(:id => station_id, :type => 'Manufactured::Station').first
@@ -259,6 +245,21 @@ class RJRAdapter
       ship.undock
       ship
     }
+
+    rjr_dispatcher.add_handler('manufactured::save_state') { |output|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      output_file = File.open(output, 'a+')
+      Manufactured::Registry.instance.save_state(output_file)
+      output_file.close
+    }
+
+    rjr_dispatcher.add_handler('manufactured::restore_state') { |input|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      input_file = File.open(input, 'r')
+      Manufactured::Registry.instance.restore_state(input_file)
+      input_file.close
+    }
+
 
   end
 end # class RJRAdapter
