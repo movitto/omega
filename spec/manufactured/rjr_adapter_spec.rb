@@ -505,6 +505,76 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.mining_commands.size.should == 1
   end
 
+  it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to transfer_resource" do
+    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    Manufactured::Registry.instance.create ship1
+    Manufactured::Registry.instance.create stat1
+
+    ship1.add_resource resource, 50
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', 'non_existant', stat1.id, resource, 10)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, 'non_existant', resource, 10)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('modify', 'manufactured_entity-' + ship1.id)
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('modify', 'manufactured_entity-' + stat1.id)
+
+    nres = Cosmos::Resource.new :type => 'gem', :name => 'ruby'
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, nres, 10)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 1000)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    lambda{
+      ret = @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+      ret.class.should == Array
+      ret.size.should == 2
+      ret.first.should == ship1
+      ret.last.should  == stat1
+    }.should_not raise_error
+
+    ship1.resources[resource.id].should == 40
+    stat1.resources[resource.id].should == 10
+
+    lambda{
+      ret = @local_node.invoke_request('manufactured::transfer_resource', stat1.id, ship1.id, resource, 5)
+      ret.class.should == Array
+      ret.size.should == 2
+      ret.first.should == stat1
+      ret.last.should  == ship1
+    }.should_not raise_error
+
+    ship1.resources[resource.id].should == 45
+    stat1.resources[resource.id].should == 5
+  end
+
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
     stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')

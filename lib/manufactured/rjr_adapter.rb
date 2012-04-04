@@ -267,6 +267,24 @@ class RJRAdapter
     # TODO
     #rjr_dispatcher.add_handler('manufactured::stop_mining') { |ship_id|
 
+    rjr_dispatcher.add_handler('manufactured::transfer_resource') { |from_entity_id, to_entity_id, resource, quantity|
+      from_entity = Manufactured::Registry.instance.find(:id => from_entity_id).first
+      to_entity   = Manufactured::Registry.instance.find(:id => to_entity_id).first
+      raise Omega::DataNotFound, "entity specified by #{from_entity_id} not found" if from_entity.nil?
+      raise Omega::DataNotFound, "entity specified by #{to_entity_id} not found"   if to_entity.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{from_entity.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{to_entity.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource, quantity)
+      raise Omega::OperationError, "problem transferring resources from #{from_entity} to #{to_entity}" if entities.nil?
+      entities
+    }
+
     rjr_dispatcher.add_handler('manufactured::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       output_file = File.open(output, 'a+')

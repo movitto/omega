@@ -71,6 +71,38 @@ describe Manufactured::Registry do
     station.should == station1
   end
 
+  it "should permit transferring resources between entities" do
+    ship  = Manufactured::Ship.new :id => 'ship1'
+    station  = Manufactured::Station.new :id => 'station1'
+
+    Manufactured::Registry.instance.create(ship)
+    Manufactured::Registry.instance.create(station)
+
+    res = Cosmos::Resource.new :type => 'metal', :name => 'gold'
+    ship.add_resource res, 50
+
+    Manufactured::Registry.instance.transfer_resource(nil, station, res, 25)
+    ship.resources[res.id].should == 50
+    station.resources[res.id].should be_nil
+
+    Manufactured::Registry.instance.transfer_resource(ship, nil, res, 25)
+    ship.resources[res.id].should == 50
+    station.resources[res.id].should be_nil
+
+    Manufactured::Registry.instance.transfer_resource(ship, station, res, 250)
+    ship.resources[res.id].should == 50
+    station.resources[res.id].should be_nil
+
+    nres = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+    Manufactured::Registry.instance.transfer_resource(ship, station, nres, 1)
+    ship.resources[res.id].should == 50
+    station.resources[res.id].should be_nil
+
+    Manufactured::Registry.instance.transfer_resource(ship, station, res, 20)
+    ship.resources[res.id].should == 30
+    station.resources[res.id].should == 20
+  end
+
   it "should run attack cycle" do
     Manufactured::Registry.instance.running?.should be_true
 

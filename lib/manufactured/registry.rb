@@ -99,6 +99,18 @@ class Registry
     }
   end
 
+  def transfer_resource(from_entity, to_entity, resource, quantity)
+    @entities_lock.synchronize{
+      # TODO throw exception ?
+      return if from_entity.nil? || to_entity.nil? ||
+                from_entity.resources[resource.id].nil? ||
+                from_entity.resources[resource.id] < quantity
+      to_entity.add_resource(resource, quantity)
+      from_entity.remove_resource(resource, quantity)
+      return [from_entity, to_entity]
+    }
+  end
+
   # add new attack command to run
   def schedule_attack(args = {})
     @entities_lock.synchronize{

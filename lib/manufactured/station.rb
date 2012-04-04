@@ -13,6 +13,9 @@ class Station
 
   attr_accessor :solar_system
 
+  # map of resources contained in the station to quantities
+  attr_reader :resources
+
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]
 
@@ -32,6 +35,8 @@ class Station
 
     @solar_system = args['solar_system'] || args[:solar_system]
 
+    @resources = {}
+
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
@@ -44,6 +49,17 @@ class Station
 
   def parent=(system)
     @solar_system = system
+  end
+
+  def add_resource(resource, quantity)
+    @resources[resource.id] ||= 0
+    @resources[resource.id] += quantity
+  end
+
+  def remove_resource(resource, quantity)
+    return unless @resources.has_key?(resource.id) ||# TODO throw exception?
+                  @resources[resource.id] >= quantity
+    @resources[resource.id] -= quantity
   end
 
   def to_s

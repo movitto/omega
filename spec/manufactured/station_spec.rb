@@ -29,6 +29,29 @@ describe Manufactured::Station do
      station.parent.should == 'system2'
   end
 
+  it "should permit storing resources locally" do
+    station   = Manufactured::Station.new :id => 'station1'
+    station.resources.should be_empty
+
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    station.add_resource res, 50
+    station.resources.should_not be_empty
+    station.resources.size.should == 1
+    station.resources[res.id].should == 50
+
+    station.add_resource res, 60
+    station.resources.size.should == 1
+    station.resources[res.id].should == 110
+
+    station.remove_resource res, 40
+    station.resources.size.should == 1
+    station.resources[res.id].should == 70
+
+    station.remove_resource res, 70
+    station.resources.size.should == 1
+    station.resources[res.id].should == 0
+  end
+
   it "should be convertable to json" do
     system1 = Cosmos::SolarSystem.new :name => 'system1'
     location= Motel::Location.new :id => 20, :y => -15

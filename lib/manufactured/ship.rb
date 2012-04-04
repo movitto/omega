@@ -119,6 +119,12 @@ class Ship
     @resources[resource.id] += quantity
   end
 
+  def remove_resource(resource, quantity)
+    return unless @resources.has_key?(resource.id) ||# TODO throw exception?
+                  @resources[resource.id] >= quantity
+    @resources[resource.id] -= quantity
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,

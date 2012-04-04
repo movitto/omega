@@ -75,6 +75,14 @@ describe Manufactured::Ship do
     ship.add_resource res, 60
     ship.resources.size.should == 1
     ship.resources[res.id].should == 110
+
+    ship.remove_resource res, 40
+    ship.resources.size.should == 1
+    ship.resources[res.id].should == 70
+
+    ship.remove_resource res, 70
+    ship.resources.size.should == 1
+    ship.resources[res.id].should == 0
   end
 
   it "should be convertable to json" do
