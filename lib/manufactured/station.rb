@@ -62,6 +62,29 @@ class Station
     @resources[resource.id] -= quantity
   end
 
+  # use this station to construct new manufactured entities
+  def construct(args = {})
+    # TODO verify enough resources are locally present to construct entity
+    #             + station is of manufacturing type
+    # TODO construction time/delay
+    # TODO constrain args to permitted values
+    entity_type = args[:entity_type]
+    entity      = nil
+
+    if entity_type == "Manufactured::Ship"
+      entity = Manufactured::Ship.new args
+    elsif entity_type == "Manufactured::Station"
+      entity = Manufactured::Station.new args
+    end
+
+    unless entity.nil?
+      entity.parent = self.parent
+      entity.location = Motel::Location.random # TODO generate location nearby (allow user to specify alternate location)
+    end
+
+    entity
+  end
+
   def to_s
     "station-#{@id}"
   end

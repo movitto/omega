@@ -24,6 +24,7 @@ class RJRAdapter
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'users_entities')
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'locations')
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'modify', 'locations')
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'manufactured_entities')
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id
@@ -47,6 +48,18 @@ class RJRAdapter
         entity.location = @@local_node.invoke_request('create_location', entity.location)
       end
 
+      entity
+    }
+
+    rjr_dispatcher.add_handler('manufactured::construct_entity') { |manufacturer_id, entity_type|
+      station = Manufactured::Registry.instance.find(:type => "Manufactured::Station", :id => manufacturer_id).first
+      raise Omega::DataNotFound, "station specified by #{manufacturer_id} not found" if station.nil?
+
+      Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
+                                        :session   => @headers['session_id'])
+
+      entity = station.construct :entity_type => entity_type
+      @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
     }
 

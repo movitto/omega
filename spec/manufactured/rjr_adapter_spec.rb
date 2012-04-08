@@ -100,6 +100,49 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.locations.size.should == 5 # locations created for system, galaxy, ships, stations
   end
 
+  it "should permit users with create manufactured_entities to construct_entity" do
+    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
+    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    gal1.add_child(sys1)
+    stat1.parent = sys1
+
+    Motel::Runner.instance.clear
+    Motel::Runner.instance.run gal1.location
+    Motel::Runner.instance.run sys1.location
+    Motel::Runner.instance.locations.size.should == 2
+    Cosmos::Registry.instance.add_child gal1
+
+    Manufactured::Registry.instance.init
+    Manufactured::Registry.instance.create stat1
+    Manufactured::Registry.instance.ships.size.should == 0
+    Manufactured::Registry.instance.stations.size.should == 1
+
+    lambda{
+      @local_node.invoke_request('manufactured::construct_entity', 'non_existant', 'Manufactured::Ship')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::construct_entity', stat1, 'Manufactured::Ship')
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('create', 'manufactured_entities')
+
+    lambda{
+      rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship')
+      rship.class.should == Manufactured::Ship
+      rship.parent.name.should == sys1.name
+      rship.location.should_not be_nil
+    }.should_not raise_error
+
+    Manufactured::Registry.instance.ships.size.should == 1
+    Motel::Runner.instance.locations.size.should == 3
+  end
+
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entity" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')

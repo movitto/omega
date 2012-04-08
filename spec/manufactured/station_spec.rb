@@ -52,6 +52,24 @@ describe Manufactured::Station do
     station.resources[res.id].should == 0
   end
 
+  it "should permit constructing new entities" do
+    station   = Manufactured::Station.new :id => 'station1',
+                                          :solar_system => 'system1'
+
+    entity   = station.construct :entity_type => 'foobar'
+    entity.should be_nil
+
+    entity   = station.construct :entity_type => "Manufactured::Ship"
+    entity.class.should == Manufactured::Ship
+    entity.parent.should == station.parent
+    entity.location.should_not be_nil
+
+    entity   = station.construct :entity_type => "Manufactured::Station"
+    entity.class.should == Manufactured::Station
+    entity.parent.should == station.parent
+    entity.location.should_not be_nil
+  end
+
   it "should be convertable to json" do
     system1 = Cosmos::SolarSystem.new :name => 'system1'
     location= Motel::Location.new :id => 20, :y => -15
