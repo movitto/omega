@@ -23,6 +23,12 @@ class PermissionError < BaseError
   end
 end
 
+class OperationError < BaseError
+  def initialize(msg)
+    super(msg)
+  end
+end
+
 class RPCError < BaseError
   def initialize(msg)
     super(msg)
