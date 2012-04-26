@@ -210,7 +210,7 @@ describe Cosmos::RJRAdapter do
     lambda{
       rrs = @local_node.invoke_request('cosmos::get_resource_source', rs.id)
       rrs.class.should == Cosmos::ResourceSource
-      rrs.should == rs
+      rrs.id.should == rs.id
     }.should_not raise_error
   end
 

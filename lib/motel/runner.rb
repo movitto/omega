@@ -43,11 +43,14 @@ class Runner
   # Return complete list of locations being managed/tracked
   def locations
     ret = []
+    # TODO would rather not have to lock these both at the same time,
+    # but if locked independenly, the queues can be maniupulated
+    # inbetween the locks
     @schedule_lock.synchronize {
-      @schedule_queue.each { |l| ret << l }
-    }
-    @run_lock.synchronize {
-      @run_queue.each { |l| ret << l }
+      @run_lock.synchronize {
+        @schedule_queue.each { |l| ret << l }
+        @run_queue.each { |l| ret << l }
+      }
     }
     return ret
   end
@@ -231,8 +234,8 @@ class Runner
         }
 
         # add locations back to schedule queue
-        @run_lock.synchronize{
-          @schedule_lock.synchronize{
+        @schedule_lock.synchronize{
+          @run_lock.synchronize{
             locs_to_schedule.each { |loc| @schedule_queue << loc ; @run_queue.delete(loc) }
             @schedule_cv.signal unless locs_to_schedule.empty?
           }

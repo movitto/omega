@@ -599,8 +599,8 @@ describe Manufactured::RJRAdapter do
       ret = @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
       ret.class.should == Array
       ret.size.should == 2
-      ret.first.should == ship1
-      ret.last.should  == stat1
+      ret.first.id.should == ship1.id
+      ret.last.id.should  == stat1.id
     }.should_not raise_error
 
     ship1.resources[resource.id].should == 40
@@ -610,8 +610,8 @@ describe Manufactured::RJRAdapter do
       ret = @local_node.invoke_request('manufactured::transfer_resource', stat1.id, ship1.id, resource, 5)
       ret.class.should == Array
       ret.size.should == 2
-      ret.first.should == stat1
-      ret.last.should  == ship1
+      ret.first.id.should == stat1.id
+      ret.last.id.should  == ship1.id
     }.should_not raise_error
 
     ship1.resources[resource.id].should == 45

@@ -112,7 +112,7 @@ class Location
    def add_child(child)
      child.parent.remove_child(child) if child.parent
      child.parent = self
-     @children << child unless @children.include?(child)
+     @children << child unless @children.include?(child) || !@children.find { |ch| ch.id == child.id }.nil?
    end
 
    # remove child from location

@@ -51,6 +51,7 @@ class Ship
     @type     = @type.intern if !@type.nil? && @type.is_a?(String)
     @location = args['location'] || args[:location]
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
+    @docked_at= args['docked_at']|| args[:docked_at]
 
     @solar_system = args[:solar_system] || args['solar_system']
 

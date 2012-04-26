@@ -90,11 +90,11 @@ class Registry
   def create(entity)
     @entities_lock.synchronize{
       if entity.is_a?(Manufactured::Ship)
-        @ships << entity  unless @ships.include?(entity)
+        @ships << entity  unless @ships.include?(entity) || !@ships.find{ |sh| sh.id == entity.id }.nil?
       elsif entity.is_a?(Manufactured::Station)
-        @stations << entity unless @stations.include?(entity)
+        @stations << entity unless @stations.include?(entity) || !@stations.find { |st| st.id == entity.id }.nil?
       elsif entity.is_a?(Manufactured::Fleet)
-        @fleets << entity unless @fleets.include?(entity)
+        @fleets << entity unless @fleets.include?(entity) || !@fleets.find { |fl| fl.id == entity.id }.nil?
       end
     }
   end

@@ -73,6 +73,7 @@ class RJRAdapter
          # raise Omega::DataNotFound if entities.empty? (?)
          entities.each{ |entity|
            # update locations w/ latest from the tracker
+           # FIXME only updates two levels of locations, should recursively update
            entity.location = @@local_node.invoke_request('get_location', entity.location.id)
            if entity.has_children?
              entity.each_child { |child|
@@ -88,6 +89,7 @@ class RJRAdapter
                                            :session => @headers['session_id'])
 
          # update locations w/ latest from the tracker
+         # same recursive locations FIXME as above
          entities.location = @@local_node.invoke_request('get_location', entities.location.id)
          if entities.has_children?
            entities.each_child { |child|

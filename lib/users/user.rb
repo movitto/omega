@@ -26,6 +26,7 @@ class User
     @email     = args['email']     || args[:email]
     @password  = args['password']  || args[:password]
     @alliances = args['alliances'] || args[:alliances] || []
+    @registration_code = args['registration_code'] || args[:registration_code]
     # FIXME encrypt password w/ salt
 
     @privileges = []
@@ -73,6 +74,7 @@ class User
       'json_class' => self.class.name,
       'data'       => {:id => id,
                        :email => email, :password => password, # FIXME filter password when sending user to client
+                       :registration_code => registration_code,
                        :alliances => alliances}
     }.to_json(*a)
   end
