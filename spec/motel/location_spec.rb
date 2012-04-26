@@ -89,11 +89,50 @@ describe Motel::Location do
    i.should == 6
   end
 
+  it "should provide means to traverse all descendants, invoking optional block arg with reference to location" do
+   greatgrandparent = Motel::Location.new
+   grandparent = Motel::Location.new
+   greatgrandparent.children.push grandparent
+   grampy   = Motel::Location.new
+   greatgrandparent.children.push grampy
+   parent = Motel::Location.new
+   grandparent.children.push parent
+   parent2 = Motel::Location.new
+   grandparent.children.push parent2
+   child1 = Motel::Location.new
+   parent.children.push child1
+   child2 = Motel::Location.new
+   parent.children.push child2
+
+   parents = []
+   children = []
+   greatgrandparent.each_child { |lparent, lchild|
+     parents << lparent
+     children << lchild
+   }
+
+   parents.size.should == 6
+   parents[0].should == greatgrandparent
+   parents[1].should == grandparent
+   parents[2].should == parent
+   parents[3].should == parent
+   parents[4].should == grandparent
+   parents[5].should == greatgrandparent
+
+   children.size.should == 6
+   children[0].should == grandparent
+   children[1].should == parent
+   children[2].should == child1
+   children[3].should == child2
+   children[4].should == parent2
+   children[5].should == grampy
+  end
+
   it "should permit adding and removing children" do
     oldparent = Motel::Location.new
     parent    = Motel::Location.new
-    child1    = Motel::Location.new
-    child2    = Motel::Location.new
+    child1    = Motel::Location.new :id => 'c1'
+    child2    = Motel::Location.new :id => 'c2'
 
     child1.parent = oldparent
 
@@ -115,6 +154,9 @@ describe Motel::Location do
     parent.children.size.should == 1
     parent.children.include?(child1).should be_false
     parent.children.include?(child2).should be_true
+
+    parent.remove_child(child2.id)
+    parent.children.should be_empty
   end
 
   it "should return total position from root origin" do

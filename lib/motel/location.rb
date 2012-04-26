@@ -8,8 +8,6 @@ require 'motel/movement_strategy'
 
 module Motel
 
-# FIXME Motel locations need concurrent access protection, add here (?)
-
 # A Location defines an optional parent location and the x,y,z
 # cartesian  coordinates of the location relative to that parent.
 # If parent is not specified x,y,z are ignored and this location
@@ -101,7 +99,11 @@ class Location
    # traverse all chilren recursively, calling block for each
    def each_child(&bl)
       children.each { |child|
-         bl.call child
+         if bl.arity == 1
+           bl.call child
+         elsif bl.arity == 2
+           bl.call self, child
+         end
          child.each_child &bl
       }
    end
@@ -115,7 +117,8 @@ class Location
 
    # remove child from location
    def remove_child(child)
-     @children.reject!{ |ch| ch == child }
+     @children.reject!{ |ch| (child.is_a?(Motel::Location) && ch == child) ||
+                             (child == ch.id) }
    end
 
    # return sum of the x values of this location and all its parents,
@@ -155,6 +158,7 @@ class Location
           :x => x, :y => y, :z => z,
           :restrict_view => restrict_view, :restrict_modify => restrict_modify,
           :parent_id => parent_id,
+          :children  => children,
           :remote_queue => remote_queue,
           :movement_strategy => movement_strategy}
      }.to_json(*a)

@@ -9,6 +9,7 @@ $: << lib + '/motel/'
 require lib + '/motel/exceptions'
 require lib + '/motel/callbacks'
 require lib + '/motel/runner'
+require lib + '/motel/remote_location_manager'
 require lib + '/motel/rjr_adapter'
 
 require lib + '/motel/location'

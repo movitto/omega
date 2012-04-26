@@ -12,6 +12,7 @@ class RJRAdapter
   def self.init
     self.register_handlers(RJR::Dispatcher)
     Motel::Runner.instance.start :async => true
+    @@remote_location_manager = RemoteLocationManager.new
   end
 
   def self.register_handlers(rjr_dispatcher)
@@ -23,6 +24,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('get_location') { |location_id|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
+       # TODO pull in remote location if loc.remote_queue is set
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
 
        if loc.restrict_view
@@ -31,9 +33,19 @@ class RJRAdapter
                                            :session => @headers['session_id'])
        end
 
-       # FIXME traverse all of loc's descendants, and if remote location
-       # server is specified, send request to get child location, swapping
-       # it in for the one thats there
+       # traverse and pull in children managed by remote trackers
+       loc.each_child { |rparent, rchild|
+         if rchild.remote_queue
+           remote_child = @@remote_location_manager.get_location(rchild)
+
+           # swap child for remote_child
+           # we lose attributes of original child's not sent over rjr
+           # TODO just update rchild ?
+           rparent.remove_child(rchild.id)
+           rparent.add_child(remote_child)
+         end
+       }
+
        loc
     }
 
@@ -46,13 +58,17 @@ class RJRAdapter
 
        unless location.parent_id.nil?
          parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id }
-         raise Omega::DataNotFound, "parent location specified by #{location.parent_id} not found" if parent.nil?
-         parent.add_child(location)
+         parent.add_child(location) unless parent.nil?
        end
 
        location.x = 0 if location.x.nil?
        location.y = 0 if location.y.nil?
        location.z = 0 if location.z.nil?
+
+       if location.remote_queue
+         @@remote_location_manager.create_location(location)
+       end
+
        Runner.instance.run location unless Runner.instance.has_location?(location.id)
 
        location
@@ -72,10 +88,9 @@ class RJRAdapter
        old_coords = [location.x, location.y, location.z]
 
        # adjust location heirarchy
-       if (rloc.parent_id != location.parent_id) && !location.parent_id.nil?
+       if (rloc.parent_id != location.parent_id)
          new_parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id  }
-         raise Omega::DataNotFound, "parent location specified by #{location.parent_id} not found" if new_parent.nil?
-         new_parent.add_child(rloc)
+         new_parent.add_child(rloc) unless new_parent.nil?
        end
        location.parent = rloc.parent
 
@@ -83,6 +98,11 @@ class RJRAdapter
        # FIXME this should halt location movement, update location, then start it again
        RJR::Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
        rloc.update(location)
+
+       # TODO if rloc.remote_queue != location.remote_queue, move ?
+       if rloc.remote_queue
+         @@remote_location_manager.update_location(rloc)
+       end
 
        # invoke callbacks as appropriate
        #rloc.movement_callbacks.each { |callback|

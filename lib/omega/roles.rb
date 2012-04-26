@@ -3,6 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'users/user'
+require 'rjr/local_node'
+
 module Omega
 module Roles
 
@@ -30,7 +33,7 @@ ENTITIES            = [ENTITIES_LOCATIONS, ENTITIES_COSMOS, ENTITIES_MANUFACTURE
 ENTITYS             = [ENTITY_LOCATION,    ENTITY_COSMOS,   ENTITY_MANUFACTURED,   ENTITY_USERS,   ENTITY_USER]
 
 ROLES = { :superadmin => PRIVILEGES.product(ENTITIES),
-        }
+          :remote_location_manager => [[PRIVILEGE_VIEW, ENTITIES_LOCATIONS], [PRIVILEGE_CREATE, ENTITIES_LOCATIONS], [PRIVILEGE_MODIFY, ENTITIES_LOCATIONS]] }
 
 def self.create_user(id, password)
   user = Users::User.new :id => id, :password => password

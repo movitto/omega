@@ -140,14 +140,8 @@ describe Motel::RJRAdapter do
   end
 
   it "should validate and initialize new locations" do
-    loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
-                               :parent_id => 'nonexistant'
+    loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('create', 'locations')
-
-    lambda{
-      @local_node.invoke_request('create_location', loc1)
-    #}.should raise_error(Omega::DataNotFound)
-    }.should raise_error(Exception)
 
     loc2 = Motel::Location.new :id => 43, :movement_strategy => TestMovementStrategy.new
     loc1.parent_id = loc2.id
@@ -220,19 +214,10 @@ describe Motel::RJRAdapter do
   it "should validate and initialize locations to be updated" do
     loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
                                :parent_id => 'nonexistant'
-    loc2 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
-                               :parent_id => 'should_throw_error'
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('modify', 'locations')
 
     Motel::Runner.instance.clear
     Motel::Runner.instance.run loc1
-
-    lambda{
-      @local_node.invoke_request('update_location', loc2)
-    #}.should raise_error(Omega::DataNotFound)
-    }.should raise_error(Exception)
-
-    loc1.parent_id = nil
 
     lambda{
       rloc1 = @local_node.invoke_request('update_location', loc1)

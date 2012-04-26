@@ -14,6 +14,7 @@ require 'motel'
 require 'cosmos'
 require 'manufactured'
 require 'users'
+require 'omega'
 
 class TestMovementStrategy < Motel::MovementStrategy
    attr_accessor :times_moved
@@ -62,4 +63,13 @@ class TestUser
     @@user.add_privilege Users::Privilege.new(:id => privilege_id, :entity_id => entity_id)
     self
   end
+
+  def self.add_role(role_id)
+    role = Omega::Roles::ROLES[role_id]
+    role.each { |pe|
+      self.add_privilege pe[0], pe[1]
+    }
+    self
+  end
+
 end

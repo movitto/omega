@@ -21,6 +21,7 @@ describe Cosmos::RJRAdapter do
   end
 
   after(:all) do
+    Motel::Runner.instance.stop
   end
 
   it "should permit users with create entities to create_entity" do

@@ -77,9 +77,15 @@ def main()
 
   multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node, local_node]
 
+  # FIXME lookup initial users to create from config
+
   # create an initial superadmin user
   admin = Omega::Roles.create_user('admin', 'nimda')
   Omega::Roles.create_user_role(admin, :superadmin)
+
+  # create an user for remote location management
+  rlm  = Omega::Roles.create_user('rlm', 'mlr')
+  Omega::Roles.create_user_role(rlm, :remote_location_manager)
 
   multi_node.listen {
     setup_signals
