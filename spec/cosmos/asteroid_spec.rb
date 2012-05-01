@@ -20,6 +20,10 @@ describe Cosmos::Asteroid do
      asteroid.solar_system.should be_nil
   end
 
+  it "should be not able to be remotely trackable" do
+    Cosmos::Asteroid.remotely_trackable?.should be_false
+  end
+
   it "should be convertable to json" do
     a = Cosmos::Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50,
                              :location => Motel::Location.new(:x => 50)

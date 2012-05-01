@@ -156,6 +156,17 @@ def privilege(id, entity)
   RJR::Logger.info "creating privilege #{id} on #{entity} for #{@user.id}"
 end
 
+def role(role)
+  raise ArgumentError, "user must not be nil" if @user.nil?
+
+  client = Omega::Client.new
+  privilege_entities = Omega::Client::Roles::ROLES[role]
+  privilege_entities.each { |pe|
+    client.queue_request 'users::add_privilege', @user.id, pe[0], pe[1]
+  }
+  RJR::Logger.info "creating role #{role} for #{@user.id}"
+end
+
 def alliance(id, args = {}, &bl)
   # TODO alliance member/entity propertires should accept 
   # interchangable ids / entity objects
@@ -185,8 +196,8 @@ def system(id, star_id, args = {}, &bl)
   star = Cosmos::Star.new :name => star_id, :solar_system => sys
 
   client = Omega::Client.new :system => sys, :star => star
-  client.queue_request 'cosmos::create_entity', sys, @galaxy
-  client.queue_request 'cosmos::create_entity', star, sys
+  client.queue_request 'cosmos::create_entity', sys, @galaxy.name
+  client.queue_request 'cosmos::create_entity', star, sys.name
   RJR::Logger.info "creating system #{sys.name}"
   RJR::Logger.info "creating star #{star.name}"
   client.invoke_callback sys, &bl
@@ -196,7 +207,7 @@ def jump_gate(system, endpoint, args = {}, &bl)
   gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
 
   client = Omega::Client.new :jump_gate => gate
-  client.queue_request 'cosmos::create_entity', gate, system
+  client.queue_request 'cosmos::create_entity', gate, system.name
   RJR::Logger.info "creating gate from #{system.name} to #{endpoint.name}"
   client.invoke_callback gate, &bl
 end
@@ -218,7 +229,7 @@ def planet(id, args={}, &bl)
   rescue Exception => e
     raise ArgumentError, "system must not be nil" if @system.nil?
 
-    client.queue_request 'cosmos::create_entity', plan, @system
+    client.queue_request 'cosmos::create_entity', plan, @system.name
     RJR::Logger.info "creating planet #{plan.name}"
     client.invoke_callback plan, &bl
     plan = client.invoke_requests
@@ -234,7 +245,7 @@ def moon(id, args={}, &bl)
   mn = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
 
   client = Omega::Client.new :moon => mn
-  client.queue_request 'cosmos::create_entity', mn, @planet
+  client.queue_request 'cosmos::create_entity', mn, @planet.name
   RJR::Logger.info "creating moon #{mn.name}"
   client.invoke_callback mn, &bl
 end

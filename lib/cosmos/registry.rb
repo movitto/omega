@@ -101,15 +101,37 @@ class Registry
     @galaxies << galaxy unless @galaxies.include?(galaxy) || !galaxy.is_a?(Cosmos::Galaxy)
   end
 
+  def remove_child(child)
+    @galaxies.reject! { |ch| (child.is_a?(Cosmos::Galaxy) && ch == child) ||
+                             (child == ch.name) }
+  end
+
   def has_children?
     return @galaxies.size > 0
   end
 
   def each_child(&bl)
     @galaxies.each { |g|
-      bl.call g
+      bl.call self, g
       g.each_child &bl
     }
+  end
+
+  def create_parent(entity, parent_name)
+    if entity.is_a?(Cosmos::Galaxy)
+      return :universe
+
+    elsif entity.is_a?(Cosmos::SolarSystem)
+      parent = find_entity :type => entity.class.parent_type, :name => parent_name
+      if parent.nil?
+        parent = Cosmos::Galaxy.new :name => parent_name, :remote_queue => ''
+        add_child(parent)
+      end
+
+      return parent
+    end
+
+    return nil
   end
 
   # return the resource sources for the specified entity

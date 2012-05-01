@@ -25,7 +25,7 @@ describe Motel::RJRAdapter do
     }
 
     @remote_server_pid = fork{
-      exec File.expand_path(File.dirname(__FILE__) + "/../remote_server.rb")
+      exec File.expand_path(File.dirname(__FILE__) + "/../remote_location_server.rb")
     }
     sleep 1
 

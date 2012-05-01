@@ -87,6 +87,10 @@ def main()
   rlm  = Omega::Roles.create_user('rlm', 'mlr')
   Omega::Roles.create_user_role(rlm, :remote_location_manager)
 
+  # create an user for remote cosmos management
+  rcm  = Omega::Roles.create_user('rcm', 'mcr')
+  Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
+
   multi_node.listen {
     setup_signals
   }

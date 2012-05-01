@@ -78,6 +78,8 @@ describe Cosmos::Registry do
     entity.should be_nil
   end
 
+  # FIXME test registery.remove_child
+
   it "should provide means to traverse all descendants, invoking optional block arg" do
    galaxy1 = Cosmos::Galaxy.new
    galaxy2 = Cosmos::Galaxy.new
@@ -101,7 +103,7 @@ describe Cosmos::Registry do
    Cosmos::Registry.instance.add_child galaxy2
 
    i = 0 
-   Cosmos::Registry.instance.each_child { |desc|
+   Cosmos::Registry.instance.each_child { |parent, desc|
      i += 1
    }   
 

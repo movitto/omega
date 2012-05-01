@@ -55,6 +55,7 @@ class Location
       @children = []
       @parent_id = nil
 
+      @id = nil
       @x = nil
       @y = nil
       @z = nil

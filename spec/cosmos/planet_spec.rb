@@ -18,6 +18,10 @@ describe Cosmos::Planet do
      planet.moons.size.should == 0
   end
 
+  it "should be not able to be remotely trackable" do
+    Cosmos::Planet.remotely_trackable?.should be_false
+  end
+
   it "should permit adding children" do
     planet    = Cosmos::Planet.new
     moon1   = Cosmos::Moon.new
@@ -44,6 +48,22 @@ describe Cosmos::Planet do
     planet.children.include?(moon2).should be_true
   end
 
+  it "should permit removing children" do
+    planet    = Cosmos::Planet.new
+    moon1   = Cosmos::Moon.new :name => 'moon1'
+    moon2   = Cosmos::Moon.new :name => 'moon2'
+
+    planet.add_child(moon1)
+    planet.add_child(moon2)
+    planet.children.size.should == 2
+
+    planet.remove_child(moon1)
+    planet.children.size.should == 1
+
+    planet.remove_child(moon2.name)
+    planet.children.size.should == 0
+  end
+
   it "should provide means to traverse all descendants, invoking optional block arg" do
     planet    = Cosmos::Planet.new
     moon      = Cosmos::Moon.new
@@ -51,7 +71,7 @@ describe Cosmos::Planet do
     planet.add_child(moon)
 
     i = 0 
-    planet.each_child { |desc|
+    planet.each_child { |parent, desc|
       i += 1
     }   
 

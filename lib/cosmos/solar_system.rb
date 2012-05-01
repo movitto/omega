@@ -17,6 +17,10 @@ class SolarSystem
   MAX_BACKGROUNDS = 6
   attr_reader :background
 
+  # if children under this system are tracked remotely,
+  # name of the remote queue which to query for them
+  attr_accessor :remote_queue
+
   def id
     return @name
   end
@@ -29,13 +33,23 @@ class SolarSystem
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
     @asteroids  = args['asteroids '] || []
+    @remote_queue = args['remote_queue'] || args[:remote_queue] || nil
 
     @background = "system#{rand(MAX_BACKGROUNDS-1)+1}"
+
 
     if @location.nil?
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+  end
+
+  def self.parent_type
+    :galaxy
+  end
+
+  def self.remotely_trackable?
+    true
   end
 
   def children
@@ -55,17 +69,26 @@ class SolarSystem
     end
   end
 
+  def remove_child(child)
+    @planets.reject! { |ch| (child.is_a?(Cosmos::Planet) && ch == child) ||
+                            (child == ch.name) }
+    @jump_gates.reject! { |ch| (child.is_a?(Cosmos::JumpGate) && ch == child) } # TODO compare string against jg.endpoint.name ?
+    @asteroids.reject!  { |ch| (child.is_a?(Cosmos::Asteroid) && ch == child) ||
+                               (child == ch.name) }
+    @star = nil if (child.is_a?(Cosmos::Star) && @star == child) || (!@star.nil? && child == @star.name)
+  end
+
   def each_child(&bl)
-    bl.call star unless star.nil?
+    bl.call self, star unless star.nil?
     @planets.each { |planet|
-      bl.call planet
+      bl.call self, planet
       planet.each_child &bl
     }
     @jump_gates.each { |gate|
-      bl.call gate
+      bl.call self, gate
     }
     @asteroids.each { |asteroid|
-      bl.call asteroid
+      bl.call self, asteroid
     }
   end
 
@@ -83,7 +106,7 @@ class SolarSystem
        'data'       =>
          {:name => name, :location => @location, :background => @background,
           :star => @star, :planets => @planets, :jump_gates => @jump_gates,
-          :asteroids => @asteroids}
+          :asteroids => @asteroids, :remote_queue => remote_queue}
      }.to_json(*a)
    end
 

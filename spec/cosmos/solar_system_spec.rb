@@ -21,6 +21,12 @@ describe Cosmos::SolarSystem do
      solar_system.jump_gates.size.should == 0
   end
 
+  it "should be able to be remotely trackable" do
+    Cosmos::SolarSystem.remotely_trackable?.should be_true
+    ss = Cosmos::SolarSystem.new :remote_queue => 'foozbar'
+    ss.remote_queue.should == 'foozbar'
+  end
+
   it "should permit adding children" do
     solar_system    = Cosmos::SolarSystem.new
     star      = Cosmos::Star.new
@@ -63,6 +69,34 @@ describe Cosmos::SolarSystem do
     solar_system.children.should include(asteroid1)
   end
 
+  it "should permit removing children" do
+    solar_system    = Cosmos::SolarSystem.new
+    star      = Cosmos::Star.new
+    planet1   = Cosmos::Planet.new
+    planet2   = Cosmos::Planet.new
+    asteroid1 = Cosmos::Asteroid.new :name => 'asteroid1'
+    jump_gate = Cosmos::JumpGate.new
+
+    solar_system.add_child(star)
+    solar_system.add_child(planet1)
+    solar_system.add_child(planet2)
+    solar_system.add_child(asteroid1)
+    solar_system.add_child(jump_gate)
+    solar_system.children.size.should == 5
+
+    solar_system.remove_child(star)
+    solar_system.children.size.should == 4
+
+    solar_system.remove_child(planet1)
+    solar_system.children.size.should == 3
+
+    solar_system.remove_child(planet1)
+    solar_system.children.size.should == 3
+
+    solar_system.remove_child(asteroid1.name)
+    solar_system.children.size.should == 2
+  end
+
   it "should provide means to traverse all descendants, invoking optional block arg" do
     solar_system    = Cosmos::SolarSystem.new
     star      = Cosmos::Star.new
@@ -78,7 +112,7 @@ describe Cosmos::SolarSystem do
     planet.add_child(moon)
 
     i = 0 
-    solar_system.each_child { |desc|
+    solar_system.each_child { |parent, desc|
       i += 1
     }   
 

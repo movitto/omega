@@ -32,6 +32,14 @@ class Planet
     end
   end
 
+  def self.parent_type
+    :solarsystem
+  end
+
+  def self.remotely_trackable?
+    false
+  end
+
   def children
     @moons
   end
@@ -42,13 +50,18 @@ class Planet
     @moons << moon unless @moons.include?(moon) || !moon.is_a?(Cosmos::Moon)
   end
 
+  def remove_child(child)
+    @moons.reject! { |ch| (child.is_a?(Cosmos::Moon) && ch == child) ||
+                          (child == ch.name) }
+  end
+
   def has_children?
     @moons.size > 0
   end
 
   def each_child(&bl)
     @moons.each { |m|
-      bl.call m
+      bl.call self, m
     }
   end
 

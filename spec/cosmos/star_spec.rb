@@ -20,6 +20,10 @@ describe Cosmos::Star do
      star.has_children?.should be_false
   end
 
+  it "should be not able to be remotely trackable" do
+    Cosmos::Star.remotely_trackable?.should be_false
+  end
+
   it "should be convertable to json" do
     g = Cosmos::Star.new(:name => 'star1',
                          :location => Motel::Location.new(:x => 50))

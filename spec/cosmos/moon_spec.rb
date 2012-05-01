@@ -18,6 +18,10 @@ describe Cosmos::Moon do
      moon.has_children?.should be_false
   end
 
+  it "should be not able to be remotely trackable" do
+    Cosmos::Moon.remotely_trackable?.should be_false
+  end
+
   it "should be convertable to json" do
     g = Cosmos::Moon.new(:name => 'moon1',
                          :location => Motel::Location.new(:x => 50))

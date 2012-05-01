@@ -30,6 +30,14 @@ class Asteroid
     end
   end
 
+  def self.parent_type
+    :solarsystem
+  end
+
+  def self.remotely_trackable?
+    false
+  end
+
   def has_children?
     false
   end

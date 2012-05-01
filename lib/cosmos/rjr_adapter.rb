@@ -24,28 +24,34 @@ class RJRAdapter
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id
+
+    @@remote_cosmos_manager = RemoteCosmosManager.new
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('cosmos::create_entity'){ |entity, parent|
+    rjr_dispatcher.add_handler('cosmos::create_entity'){ |entity, parent_name|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'cosmos_entities',
                                          :session   => @headers['session_id'])
 
-       parent_type = parent.is_a?(String) ?
-                         parent.intern :
-                         parent.class.to_s.downcase.underscore.split('/').last.intern
-       parent_name = parent.is_a?(String) ?
-                         parent : parent.name
+       parent_type = entity.class.parent_type
 
        rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
+       if rparent.nil?
+         # create placeholder parent
+         rparent = Cosmos::Registry.instance.create_parent entity, parent_name
+       end
        raise Omega::DataNotFound, "parent entity of type #{parent_type} with name #{parent_name} not found" if rparent.nil?
 
        rparent.add_child entity
 
-       unless entity.location.nil?
+       if entity.class.remotely_trackable? && entity.remote_queue
+         @@remote_cosmos_manager.create_entity(entity, parent_name)
+
+       elsif !entity.location.id.nil?
          # entity.location.entity = entity
          @@local_node.invoke_request('create_location', entity.location)
          # TODO add all of entities children to location tracker
+
        # else raise error TODO
        end
 
@@ -62,7 +68,7 @@ class RJRAdapter
          entities.reject! { |entity|
            raised = false
            begin
-             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
+             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
                                                         {:privilege => 'view', :entity => 'cosmos_entities'}],
                                                :session => @headers['session_id'])
            rescue Omega::PermissionError => e
@@ -72,29 +78,58 @@ class RJRAdapter
          }
          # raise Omega::DataNotFound if entities.empty? (?)
          entities.each{ |entity|
-           # update locations w/ latest from the tracker
-           # FIXME only updates two levels of locations, should recursively update
-           entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+           if !entity.location.id.nil?
+             # update locations w/ latest from the tracker
+             entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+           end
+
            if entity.has_children?
-             entity.each_child { |child|
-               child.location = @@local_node.invoke_request('get_location', child.location.id)
+             entity.each_child { |parent, child|
+               if child.class.remotely_trackable? && child.remote_queue
+                 rchild = @@remote_cosmos_manager.get_entity(child)
+                 parent.remove_child(child)
+                 parent.add_child(rchild)
+
+               elsif !child.location.id.nil?
+                 child.location = @@local_node.invoke_request('get_location', child.location.id)
+               end
+
              }
+           end
+         }
+
+         0.upto(entities.size-1) { |i|
+           entity = entities[i]
+           if entity.class.remotely_trackable? && entity.remote_queue
+             entities[i] = @@remote_cosmos_manager.get_entity(entity)
            end
          }
 
        else
          raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entities.nil?
-         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.id}"},
+         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.name}"},
                                                     {:privilege => 'view', :entity => 'cosmos_entities'}],
                                            :session => @headers['session_id'])
 
-         # update locations w/ latest from the tracker
-         # same recursive locations FIXME as above
-         entities.location = @@local_node.invoke_request('get_location', entities.location.id)
+         if !entities.location.id.nil?
+           # update locations w/ latest from the tracker
+           entities.location = @@local_node.invoke_request('get_location', entities.location.id)
+         end
+
          if entities.has_children?
-           entities.each_child { |child|
-             child.location = @@local_node.invoke_request('get_location', child.location.id)
+           entities.each_child { |parent, child|
+             if child.class.remotely_trackable? && child.remote_queue
+               rchild = @@remote_cosmos_manager.get_entity(child)
+               parent.remove_child(child)
+               parent.add_child(rchild)
+             elsif !child.location.id.nil?
+               child.location = @@local_node.invoke_request('get_location', child.location.id)
+             end
            }
+         end
+
+         if entities.class.remotely_trackable? && entities.remote_queue
+           entities = @@remote_cosmos_manager.get_entity(entities)
          end
 
        end
@@ -114,8 +149,15 @@ class RJRAdapter
        # update locations w/ latest from the tracker
        entity.location = @@local_node.invoke_request('get_location', entity.location.id)
        if entity.has_children?
-         entity.each_child { |child|
-           child.location = @@local_node.invoke_request('get_location', child.location.id)
+         entity.each_child { |parent, child|
+           if child.class.remotely_trackable? && child.remote_queue
+             rchild = @@remote_cosmos_manager.get_entity(child)
+             parent.remove_child(child)
+             parent.add_child(rchild)
+           elsif !child.location.id.nil?
+             child.location = @@local_node.invoke_request('get_location',
+                                                          child.location.id)
+           end
          }
        end
 

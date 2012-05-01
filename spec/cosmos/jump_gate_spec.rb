@@ -20,6 +20,10 @@ describe Cosmos::JumpGate do
      jump_gate.has_children?.should be_false
   end
 
+  it "should be not able to be remotely trackable" do
+    Cosmos::JumpGate.remotely_trackable?.should be_false
+  end
+
   it "should be convertable to json" do
      system      = Cosmos::SolarSystem.new
      endpoint    = Cosmos::SolarSystem.new

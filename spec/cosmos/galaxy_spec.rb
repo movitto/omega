@@ -16,6 +16,12 @@ describe Cosmos::Galaxy do
      galaxy.location.z.should == 0
   end
 
+  it "should be able to be remotely trackable" do
+    Cosmos::Galaxy.remotely_trackable?.should be_true
+    galaxy = Cosmos::Galaxy.new :remote_queue => 'foozbar'
+    galaxy.remote_queue.should == 'foozbar'
+  end
+
   it "should permit adding children" do
     galaxy    = Cosmos::Galaxy.new
     system1   = Cosmos::SolarSystem.new
@@ -41,6 +47,27 @@ describe Cosmos::Galaxy do
     galaxy.children.include?(system2).should be_true
   end
 
+  it "should permit removing children" do
+    galaxy    = Cosmos::Galaxy.new
+    system1   = Cosmos::SolarSystem.new :name => 'system1'
+    system2   = Cosmos::SolarSystem.new :name => 'system2'
+
+    galaxy.has_children?.should be_false
+
+    galaxy.add_child(system1)
+    galaxy.add_child(system2)
+    galaxy.children.size.should == 2
+
+    galaxy.remove_child(system2)
+    galaxy.children.size.should == 1
+
+    galaxy.remove_child(system2)
+    galaxy.children.size.should == 1
+
+    galaxy.remove_child(system1.name)
+    galaxy.children.size.should == 0
+  end
+
   it "should provide means to traverse all descendants, invoking optional block arg" do
    galaxy = Cosmos::Galaxy.new
    system = Cosmos::SolarSystem.new
@@ -53,7 +80,7 @@ describe Cosmos::Galaxy do
    planet.add_child(moon)
 
    i = 0 
-   galaxy.each_child { |desc|
+   galaxy.each_child { |parent, desc|
      i += 1
    }   
 

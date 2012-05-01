@@ -21,6 +21,14 @@ class Moon
     end
   end
 
+  def self.parent_type
+    :planet
+  end
+
+  def self.remotely_trackable?
+    false
+  end
+
   def has_children?
     false
   end
