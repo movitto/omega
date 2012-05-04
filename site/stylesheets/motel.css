@@ -19,7 +19,7 @@
   margin-top: 20px;
   text-align: center;
   border: 1px solid black;
-  width: 1500px;
+  width: 1000px;
   height: 700px;
 }
 
@@ -84,7 +84,7 @@
 
 #motel_chat{
   margin: 0 auto;
-  width: 1500px;
+  width: 1000px;
   height: 350px;
   margin-top: 10px;
   border: 1px solid black;
@@ -103,7 +103,7 @@
 }
 
 #motel_chat_input input[type=text]{
-  width: 93%;
+  width: 90%;
 }
 
 #motel_chat_output textarea{

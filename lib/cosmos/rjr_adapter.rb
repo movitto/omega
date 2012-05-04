@@ -47,9 +47,9 @@ class RJRAdapter
        if entity.class.remotely_trackable? && entity.remote_queue
          @@remote_cosmos_manager.create_entity(entity, parent_name)
 
-       elsif !entity.location.id.nil?
+       else
          # entity.location.entity = entity
-         @@local_node.invoke_request('create_location', entity.location)
+         entity.location = @@local_node.invoke_request('create_location', entity.location)
          # TODO add all of entities children to location tracker
 
        # else raise error TODO
@@ -78,10 +78,8 @@ class RJRAdapter
          }
          # raise Omega::DataNotFound if entities.empty? (?)
          entities.each{ |entity|
-           if !entity.location.id.nil?
-             # update locations w/ latest from the tracker
-             entity.location = @@local_node.invoke_request('get_location', entity.location.id)
-           end
+           # update locations w/ latest from the tracker
+           entity.location = @@local_node.invoke_request('get_location', entity.location.id)
 
            if entity.has_children?
              entity.each_child { |parent, child|
@@ -90,7 +88,7 @@ class RJRAdapter
                  parent.remove_child(child)
                  parent.add_child(rchild)
 
-               elsif !child.location.id.nil?
+               else
                  child.location = @@local_node.invoke_request('get_location', child.location.id)
                end
 
@@ -111,10 +109,8 @@ class RJRAdapter
                                                     {:privilege => 'view', :entity => 'cosmos_entities'}],
                                            :session => @headers['session_id'])
 
-         if !entities.location.id.nil?
-           # update locations w/ latest from the tracker
-           entities.location = @@local_node.invoke_request('get_location', entities.location.id)
-         end
+         # update locations w/ latest from the tracker
+         entities.location = @@local_node.invoke_request('get_location', entities.location.id)
 
          if entities.has_children?
            entities.each_child { |parent, child|
@@ -122,7 +118,7 @@ class RJRAdapter
                rchild = @@remote_cosmos_manager.get_entity(child)
                parent.remove_child(child)
                parent.add_child(rchild)
-             elsif !child.location.id.nil?
+             else
                child.location = @@local_node.invoke_request('get_location', child.location.id)
              end
            }
@@ -154,7 +150,7 @@ class RJRAdapter
              rchild = @@remote_cosmos_manager.get_entity(child)
              parent.remove_child(child)
              parent.add_child(rchild)
-           elsif !child.location.id.nil?
+           else
              child.location = @@local_node.invoke_request('get_location',
                                                           child.location.id)
            end

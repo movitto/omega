@@ -47,7 +47,7 @@ class Client
     @@requests << ClientRequest.new(method_name, *params)
   end
 
-  def invoke_requests
+  def invoke_requests(selected_response = :first)
     @@session_id ||= nil
 
     responses = []
@@ -59,7 +59,10 @@ class Client
       RJR::Logger.debug "Invoking #{req.method_name} with (#{req.method_params.join(", ")})"
       responses << @@rjr_node.invoke_request('omega-queue', req.method_name, *req.method_params)
     }
-    responses.first
+    return responses.first if selected_response == :first
+    return responses.last  if selected_response == :last
+    return responses.find { |r| r.is_a?(selected_response) }
+    return responses
   end
 
   def self.session_id=(session_id)
@@ -131,7 +134,7 @@ def login(id, args={})
   user = Users::User.new(args.merge({:id => id}))
   client = Omega::Client.new
   client.queue_request 'users::login', user
-  session = client.invoke_requests
+  session = client.invoke_requests(Users::Session)
   Omega::Client.session_id = session.id
   session
 end
@@ -145,7 +148,7 @@ def user(id, args = {}, &bl)
   client.queue_request 'users::create_entity', user
   RJR::Logger.info "creating user #{user.id}"
   client.invoke_callback user, &bl
-  client.invoke_requests
+  client.invoke_requests(Users::User)
 end
 
 def privilege(id, entity)
@@ -176,7 +179,7 @@ def alliance(id, args = {}, &bl)
   client.queue_request 'users::create_entity', ualliance
   RJR::Logger.info "creating alliance #{ualliance.id}"
   client.invoke_callback ualliance, &bl
-  client.invoke_requests
+  client.invoke_requests(Users::Alliance)
 end
 
 def galaxy(id, &bl)
@@ -186,7 +189,7 @@ def galaxy(id, &bl)
   client.queue_request 'cosmos::create_entity', gal, :universe
   RJR::Logger.info "creating galaxy #{gal.name}"
   client.invoke_callback gal, &bl
-  client.invoke_requests
+  client.invoke_requests(Cosmos::Galaxy)
 end
 
 def system(id, star_id, args = {}, &bl)
@@ -219,7 +222,9 @@ def planet(id, args={}, &bl)
   RJR::Logger.info "retrieving planet #{id}"
   client.queue_request 'cosmos::get_entity', :planet, id
   begin
-    nplan = client.invoke_requests
+    # FIXME if invoked within the context of something else (galaxy/system creation)
+    #       this will return the wrong value (also w/ ship below)
+    nplan = client.invoke_requests(Cosmos::Planet)
     client.remove_entity(plan)
     client.set_context(:planet => nplan)
     client.invoke_callback nplan, &bl
@@ -232,7 +237,7 @@ def planet(id, args={}, &bl)
     client.queue_request 'cosmos::create_entity', plan, @system.name
     RJR::Logger.info "creating planet #{plan.name}"
     client.invoke_callback plan, &bl
-    plan = client.invoke_requests
+    plan = client.invoke_requests(Cosmos::Planet)
 
   end
 
@@ -257,7 +262,7 @@ def ship(id, args={}, &bl)
   RJR::Logger.info "retrieving ship #{id}"
   client.queue_request 'manufactured::get_entity', id
   begin
-    nsh = client.invoke_requests
+    nsh = client.invoke_requests(Manufactured::Ship)
     client.remove_entity(sh)
     client.set_context(:ship => nsh)
     client.invoke_callback nsh, &bl
@@ -268,7 +273,7 @@ def ship(id, args={}, &bl)
     client.queue_request 'manufactured::create_entity', sh
     RJR::Logger.info "creating ship #{sh.id}"
     client.invoke_callback sh, &bl
-    client.invoke_requests
+    client.invoke_requests(Manufactured::Ship)
 
   end
 
@@ -282,7 +287,7 @@ def station(id, args={}, &bl)
   client.queue_request 'manufactured::create_entity', st
   RJR::Logger.info "creating station #{st.id}"
   client.invoke_callback st, &bl
-  client.invoke_requests
+  client.invoke_requests(Manufactured::Station)
 end
 
 def fleet(id, args={}, &bl)
@@ -292,7 +297,7 @@ def fleet(id, args={}, &bl)
   client.queue_request 'manufactured::create_entity', fl
   RJR::Logger.info "creating fleet #{fl.id}"
   client.invoke_callback fl, &bl
-  client.invoke_requests
+  client.invoke_requests(Manufactured::Fleet)
 end
 
 

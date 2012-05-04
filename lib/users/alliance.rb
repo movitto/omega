@@ -38,7 +38,8 @@ class Alliance
   end
 
   def add_enemy(enemy_alliance)
-    @enemies << enemy_alliance unless @enemies.include?(enemy_alliance)
+    @enemies << enemy_alliance unless @enemies.collect { |e| e.id }.
+                                      include?(enemy_alliance.id)
   end
 
   def to_s

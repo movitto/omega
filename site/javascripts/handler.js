@@ -246,7 +246,7 @@ function OmegaHandlers(){
   }
 
   this.handle_ships = function(ships){
-    if(ships.json_class == "Manufactured::Ship"){
+    if(ships != null && ships.json_class == "Manufactured::Ship"){
       ships.selected = controls.update_selected_ship(result);
       ships = [ships];
     }
@@ -318,7 +318,7 @@ function OmegaHandlers(){
   }
 
   this.populate_alliances_container = function(user){
-    if(user.json_class == "Users::User"){
+    if(user != null && user.json_class == "Users::User"){
       var data  = "<span class='motel_entities_container_title'>Alliances:</span><ul>";
       for(var a in user.alliances){
         var alliance = user.alliances[a];
@@ -337,20 +337,20 @@ function OmegaHandlers(){
   }
 
   this.populate_user_info = function(user){
-    if(user.json_class == "Users::User"){
+    if(user != null && user.json_class == "Users::User"){
       $('#user_username').attr('value', user.id);
       $('#user_email').attr('value', user.email);
     }
   }
 
   this.create_account_confirmation = function(user){
-    if(user.json_class == "Users::User"){
+    if(user!= null && user.json_class == "Users::User"){
       $('#motel_dialog').html("creating account, you should receive a confirmation email momentarily");
     }
   }
 
   this.create_session = function(session){
-    if(session.json_class == "Users::Session"){
+    if(session != null && session.json_class == "Users::Session"){
       client.current_user.create_session(session.id, session.user_id, client);
     }
   }

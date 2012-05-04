@@ -186,7 +186,7 @@ class RJRAdapter
           Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
                                                 :direction_vector_y => dy/distance,
                                                 :direction_vector_z => dz/distance,
-                                                :speed => 1
+                                                :speed => 5
         @@local_node.invoke_request('update_location', entity.location)
 
         @@local_node.invoke_request('track_movement', entity.location.id, distance)
@@ -200,6 +200,7 @@ class RJRAdapter
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id).first
 
+      entity.location.update(loc)
       entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
       @@local_node.invoke_request('update_location', entity.location)
       @@local_node.invoke_request('remove_callbacks', entity.location.id, :movement)

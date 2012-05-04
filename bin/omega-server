@@ -94,6 +94,7 @@ def main()
   multi_node.listen {
     setup_signals
   }
+  multi_node.join
 end
 
 main()

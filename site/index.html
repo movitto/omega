@@ -42,7 +42,7 @@
           handlers.add_callback(handlers.populate_fleets_container);
           handlers.add_callback(handlers.populate_alliances_container);
           handlers.add_method('on_movement', handlers.on_movement);
-          handlers.add_method('on_message', handlers.on_message);
+          handlers.add_method('users::on_message', handlers.on_message);
 
           client.get_cosmos_entity('galaxy');
           client.get_entities_for_user(client.current_user.id, 'Manufactured::Fleet');
@@ -87,7 +87,7 @@
     </div>
 
     <div id="motel_canvas_container">
-      <canvas id="motel_canvas" width="1500" height="700"></canvas>
+      <canvas id="motel_canvas" width="1000" height="700"></canvas>
     </div>
 
     <div id="motel_entity_container"></div>

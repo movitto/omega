@@ -29,7 +29,8 @@ class RJRAdapter
                                                   {:privilege => 'view', :entity => 'users_entities'}],
                                          :session => @headers['session_id'])
 
-       Users::Registry.instance.find(:id => id).first
+       entity = Users::Registry.instance.find(:id => id).first
+       entity
     }
 
     rjr_dispatcher.add_handler('users::get_all_entities') {
