@@ -2,7 +2,7 @@
   padding-top: 25px;
   padding-left: 15px;
   background: url('http://localhost/wotel/images/logo.png') no-repeat;
-  width: 25%;
+  width: 230px;
   float: left;
   border: 1px solid black;
 }
@@ -16,10 +16,26 @@
   padding-left: 10px;
 }
 
-.account_info_row,
+#account_logo {
+  height: 175px;
+  width:  175px;
+  float: left;
+  border: 1px solid black;
+  margin-top: 50px;
+  margin-left: 20px;
+}
+
+#account_details{
+  float: right;
+  width:  70%;
+}
+
+.account_info_row{
+  height: 50px;
+}
+
 .player_info_row{
   height: 50px;
-  margin-left: 20px;
 }
 
 #account_info input{

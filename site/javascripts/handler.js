@@ -340,6 +340,12 @@ function OmegaHandlers(){
     if(user != null && user.json_class == "Users::User"){
       $('#user_username').attr('value', user.id);
       $('#user_email').attr('value', user.email);
+
+      var gravatar_url = 'http://gravatar.com/avatar/' + md5(user.email) + '?s=175';
+      $('#account_logo').html('<img src="'+gravatar_url+'" alt="gravatar" title="gravatar"></img>');
+
+      var wiki_user_page = 'http://localhost/wiki/User:' + user.id;
+      $('#wiki_user_page').html('(<a href="'+wiki_user_page+'">profile</a>)');
     }
   }
 
