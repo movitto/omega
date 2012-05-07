@@ -118,6 +118,12 @@ function CosmosControls(){
     entity_container.html("Planet: " + planet.name);
   }
 
+  this.clicked_asteroid  = function(click_event, asteroid) {
+    var entity_container = $('#motel_entity_container');
+    entity_container.show();
+    entity_container.html("Asteroid: " + asteroid.name);
+  }
+
   this.clicked_gate    = function(click_event, gate) {
     var entity_container = $('#motel_entity_container');
     controls.selected_gate = gate;
@@ -140,6 +146,7 @@ function CosmosControls(){
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_dock'>dock</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_undock'>undock</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_select_mining'>start mining</div>";
     if(controls.selected_ships.length > 1)
       entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
     entity_container.html(entity_container_contents);
@@ -218,6 +225,85 @@ $('#motel_canvas').live('mouseup', function(e){
   controls.update_select_box();
 });
 
+/////////////////////// camera controls
+
+$('#cam_inc_x_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_x = angle[0] + 0.2;
+  if(new_x > 6.28) new_x = 0;
+  ui.camera.set_angle(new_x, angle[1], angle[2]);
+});
+
+$('#cam_dec_x_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_x = angle[0] - 0.2;
+  if(new_x < 0) new_x = 6.28;
+  ui.camera.set_angle(new_x, angle[1], angle[2]);
+});
+
+$('#cam_inc_y_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_y = angle[1] + 0.2;
+  if(new_y > 6.28) new_y = 0;
+  ui.camera.set_angle(angle[0], new_y, angle[2]);
+});
+
+$('#cam_dec_y_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_y = angle[1] - 0.2;
+  if(new_y < 0) new_y = 6.28;
+  ui.camera.set_angle(angle[0], new_y, angle[2]);
+});
+
+$('#cam_inc_z_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_z = angle[2] + 0.2;
+  if(new_z > 6.28) new_z = 0;
+  ui.camera.set_angle(angle[0], angle[1], new_z);
+});
+
+$('#cam_dec_z_angle').live('click', function(e){
+  var angle = ui.camera.angle;
+  var new_z = angle[2] - 0.2;
+  if(new_z < 0) new_z = 6.28;
+  ui.camera.set_angle(angle[0], angle[1], new_z);
+});
+
+$('#cam_inc_x_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_x = pos[0] + 20;
+  ui.camera.set_position(new_x, pos[1], pos[2]);
+});
+
+$('#cam_dec_x_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_x = pos[0] - 20;
+  ui.camera.set_position(new_x, pos[1], pos[2]);
+});
+
+$('#cam_inc_y_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_y = pos[1] + 20;
+  ui.camera.set_position(pos[0], new_y, pos[2]);
+});
+
+$('#cam_dec_y_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_y = pos[1] - 20;
+  ui.camera.set_position(pos[0], new_y, pos[2]);
+});
+
+$('#cam_inc_z_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_z = pos[2] + 20;
+  ui.camera.set_position(pos[0], pos[1], new_z);
+});
+
+$('#cam_dec_z_position').live('click', function(e){
+  var pos = ui.camera.position;
+  var new_z = pos[2] - 20;
+  ui.camera.set_position(pos[0], pos[1], new_z);
+});
 
 ////////////////////// various custom inputs
 

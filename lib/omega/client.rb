@@ -215,6 +215,17 @@ def jump_gate(system, endpoint, args = {}, &bl)
   client.invoke_callback gate, &bl
 end
 
+def asteroid(id, args={}, &bl)
+  raise ArgumentError, "system must not be nil" if @system.nil?
+
+  asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => @system}))
+
+  client = Omega::Client.new :asteroid => asteroid
+  client.queue_request 'cosmos::create_entity', asteroid, @system.name
+  RJR::Logger.info "creating asteroid #{asteroid.name}"
+  client.invoke_callback asteroid, &bl
+end
+
 def planet(id, args={}, &bl)
   plan = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
 

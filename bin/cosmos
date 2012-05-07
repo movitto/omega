@@ -12,10 +12,11 @@ include Omega::DSL
 # number of consmos entities to generate, if not set
 # a random number will be generated using maxima below
 NUM_GALAXIES           = 1
-NUM_SYSTEMS_PER_GALAXY = 1
-NUM_PLANETS_PER_SYSTEM = 1
+NUM_SYSTEMS_PER_GALAXY = 2
+NUM_PLANETS_PER_SYSTEM = 5
 NUM_MOONS_PER_PLANET   = 1
 NUM_GATES_PER_SYSTEM   = 1
+NUM_ASTEROIDS_PER_SYSTEM = 10
 
 # number of manufactured entities to generate
 NUM_SHIPS = 5
@@ -28,14 +29,16 @@ MAX_SYSTEMS_PER_GALAXY = 5
 MAX_GATES_PER_SYSTEM = 3
 MAX_PLANETS_PER_SYSTEM = 10
 MAX_MOONS_PER_PLANET = 2
+MAX_ASTEROIDS_PER_SYSTEM = 20
 
 # manufacture entity generation
 MAX_SHIPS    = 25
 MAX_STATIONS = 5
 
 # playing area boundaries
-MAX_WIDTH    = 1400
-MAX_HEIGHT   = 600
+MAX_WIDTH    = 1000
+MAX_HEIGHT   = 1000
+MAX_DEPTH    = 1000
 
 # planet elliptical path boundries
 MIN_SEMI_LATUS_RECTUM = 100
@@ -57,7 +60,7 @@ RJR::Logger.log_level= ::Logger::INFO
 login 'admin',  :password => 'nimda'
 
 mmorsi =
-  user 'mmorsi', :password => 'foobar' do |u|
+  user 'mmorsi', :password => 'foobar', :email => 'mo@morsi.org' do |u|
     privilege 'view',   'locations'
     privilege 'view',   'cosmos_entities'
     privilege 'view',   'manufactured_entities'
@@ -81,7 +84,7 @@ num_galaxies = num_of('GALAXIES')
     galaxy_systems = []
     num_systems = num_of('SYSTEMS_PER_GALAXY')
     0.upto(num_systems-1) do |si|
-      system rand_name, rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2) do |sys|
+      system rand_name, rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2) do |sys|
         galaxy_systems << sys
 
         num_planets = num_of('PLANETS_PER_SYSTEM')
@@ -95,8 +98,7 @@ num_galaxies = num_of('GALAXIES')
                          :min_l => MAX_SEMI_LATUS_RECTUM,
                          :max_l => MAX_SEMI_LATUS_RECTUM,
                          :min_s => MIN_SPEED,
-                         :max_s => MAX_SPEED,
-                         :dimensions => 2 # XXX for now, we'll ignore the z axis
+                         :max_s => MAX_SPEED
 
 
             num_moons = num_of('MOONS_PER_PLANET')
@@ -105,6 +107,12 @@ num_galaxies = num_of('GALAXIES')
             end # end moons
           end
         end # end planets
+
+        num_asteroids = num_of('ASTEROIDS_PER_SYSTEM')
+        0.upto(num_asteroids-1) do |ai|
+          asteroid rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2)
+        end
+
       end
     end # end systems
 
@@ -115,7 +123,7 @@ num_galaxies = num_of('GALAXIES')
         0.upto(num_gates-1){
           endpoint = rand_galaxy_system(g, used_systems)
           jump_gate sys, endpoint,
-                    :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+                    :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2)
         }
       }
     rescue ArgumentError => e
@@ -134,7 +142,7 @@ num_ships = num_of('SHIPS')
                  ship.type    = rand_ship_type
                  ship.user_id = 'mmorsi'
                  ship.solar_system  = rand_system
-                 ship.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+                 ship.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2)
                end
 
   #track_movement 25 do
@@ -152,7 +160,7 @@ num_stations = num_of('STATIONS')
                  station.type = rand_station_type
                  station.user_id ='mmorsi'
                  station.solar_system = rand_system
-                 station.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2)
+                 station.location = rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2)
                end
 }
 

@@ -23,6 +23,26 @@
   height: 700px;
 }
 
+#motel_camera_controls_container{
+  position: absolute;
+  top: 75px;
+  left: 1452px;
+  height: 375px;
+  width: 30px;
+  border: 1px solid black;
+}
+
+#motel_camera_controls_container img{
+  height: 25px;
+  width:  25px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+
+#motel_camera_controls_container img:hover {
+  cursor: crosshair;
+}
+
 #motel_entity_container{
   display: none;
   position: absolute;
@@ -123,6 +143,15 @@
   padding-top: 25px;
 
   background: url('http://localhost/wotel/images/logo.png') no-repeat;
+}
+
+#user_username,
+#user_password{
+  margin-bottom: 15px;
+}
+
+#login_link{
+  display: block;
 }
 
 #primary_navigation{

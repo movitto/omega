@@ -53,6 +53,7 @@
         handlers.onlogout = function(){
           controls.show_login_controls();
         }
+        handlers.add_error_handler(handlers.logout_user);
         handlers.add_error_handler(handlers.print_error_to_console);
         handlers.add_error_handler(handlers.show_error);
 
@@ -88,6 +89,23 @@
 
     <div id="motel_canvas_container">
       <canvas id="motel_canvas" width="1000" height="700"></canvas>
+    </div>
+
+    <div id="motel_camera_controls_container">
+      cam
+      <img src="/wotel/images/camera/inc_x_angle.png" id="cam_inc_x_angle" />
+      <img src="/wotel/images/camera/dec_x_angle.png" id="cam_dec_x_angle" />
+      <img src="/wotel/images/camera/inc_y_angle.png" id="cam_inc_y_angle" />
+      <img src="/wotel/images/camera/dec_y_angle.png" id="cam_dec_y_angle" />
+      <img src="/wotel/images/camera/inc_z_angle.png" id="cam_inc_z_angle" />
+      <img src="/wotel/images/camera/dec_z_angle.png" id="cam_dec_z_angle" />
+      <hr/>
+      <img src="/wotel/images/camera/inc_x_position.png" id="cam_inc_x_position" />
+      <img src="/wotel/images/camera/dec_x_position.png" id="cam_dec_x_position" />
+      <img src="/wotel/images/camera/inc_y_position.png" id="cam_inc_y_position" />
+      <img src="/wotel/images/camera/dec_y_position.png" id="cam_dec_y_position" />
+      <img src="/wotel/images/camera/dec_z_position.png" id="cam_dec_z_position" />
+      <img src="/wotel/images/camera/inc_z_position.png" id="cam_inc_z_position" />
     </div>
 
     <div id="motel_entity_container"></div>

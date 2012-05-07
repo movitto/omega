@@ -35,7 +35,8 @@ function OmegaHandlers(){
   };
   this.invoke_error_handlers = function(error, msg){
     for(var h in this.error_handlers){
-      this.error_handlers[h](error, msg);
+      var ret = this.error_handlers[h](error, msg);
+      if(ret) break;
     }
   };
   this.invoke_methods = function(method, params){
@@ -77,6 +78,15 @@ function OmegaHandlers(){
           client.track_movement(loco.id, 7);
           entity.location.draw   = function(planet){ ui.draw_planet(planet); }
           entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
+        }else{
+          loco.draw = ui.draw_nothing;
+          loco.clicked = controls.unregistered_click;
+        }
+
+      }else if(entity.json_class == "Cosmos::Asteroid"){
+        if(entity.system.name == system_name){
+          entity.location.draw   = function(asteroid){ ui.draw_asteroid(asteroid); }
+          entity.location.clicked = function(clicked_event, asteroid) { controls.clicked_asteroid(clicked_event, asteroid); }
         }else{
           loco.draw = ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
@@ -137,6 +147,7 @@ function OmegaHandlers(){
         }
 
       }else if(entity.json_class == "Cosmos::Star"       ||
+               entity.json_class == "Cosmos::Asteroid"   ||
                entity.json_class == "Cosmos::Planet"     ||
                entity.json_class == "Cosmos::JumpGate"   ||
                entity.json_class == "Manufactured::Ship" ||
@@ -181,6 +192,15 @@ function OmegaHandlers(){
               client.add_location(planet.location);
 
               var pname = galaxy.solar_systems[s].planets[p].name;
+            }
+
+            for(var a=0; a<system.asteroids.length; ++a){
+              var asteroid = system.asteroids[a];
+              asteroid.system = system;
+              asteroid.location.entity = asteroid;
+              client.add_location(asteroid.location);
+
+              var aname = galaxy.solar_systems[s].asteroids[p].name;
             }
 
             for(var j=0; j<system.jump_gates.length; ++j){
@@ -370,6 +390,13 @@ function OmegaHandlers(){
 
   this.show_error = function(error, msg){
     alert("error: " + msg);
+  }
+  
+  this.logout_user = function(error, msg){
+    if(msg == "session not found"){
+      client.current_user.destroy_session(client);
+      return true;
+    }
   }
 
   /////////////////// registerable method handlers
