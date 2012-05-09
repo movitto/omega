@@ -171,6 +171,8 @@ function CosmosControls(){
       handlers.add_callback(handlers.handle_ships);
       handlers.add_method('on_movement', handlers.on_movement);
 
+      // FIXME map the 2d screen coords to 3d space
+
       var shi = 0;
       for(var sh in controls.selected_ships){
         var new_loc = new Location();
@@ -188,8 +190,8 @@ function CosmosControls(){
 
 // handle click input
 $('#motel_canvas').live('click', function(e){
-  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left - ui.width / 2);
-  var y = Math.floor(ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left);
+  var y = Math.floor(e.pageY-$("#motel_canvas").offset().top);
   var clicked_on_entity = false;
 
   for(loc in client.locations){
@@ -227,79 +229,79 @@ $('#motel_canvas').live('mouseup', function(e){
 
 /////////////////////// camera controls
 
-$('#cam_inc_x_angle').live('click', function(e){
+$('#cam_inc_x_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_x = angle[0] + 0.2;
+  var new_x = angle[0] + 0.01;
   if(new_x > 6.28) new_x = 0;
   ui.camera.set_angle(new_x, angle[1], angle[2]);
 });
 
-$('#cam_dec_x_angle').live('click', function(e){
+$('#cam_dec_x_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_x = angle[0] - 0.2;
+  var new_x = angle[0] - 0.01;
   if(new_x < 0) new_x = 6.28;
   ui.camera.set_angle(new_x, angle[1], angle[2]);
 });
 
-$('#cam_inc_y_angle').live('click', function(e){
+$('#cam_inc_y_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_y = angle[1] + 0.2;
+  var new_y = angle[1] + 0.01;
   if(new_y > 6.28) new_y = 0;
   ui.camera.set_angle(angle[0], new_y, angle[2]);
 });
 
-$('#cam_dec_y_angle').live('click', function(e){
+$('#cam_dec_y_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_y = angle[1] - 0.2;
+  var new_y = angle[1] - 0.01;
   if(new_y < 0) new_y = 6.28;
   ui.camera.set_angle(angle[0], new_y, angle[2]);
 });
 
-$('#cam_inc_z_angle').live('click', function(e){
+$('#cam_inc_z_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_z = angle[2] + 0.2;
+  var new_z = angle[2] + 0.01;
   if(new_z > 6.28) new_z = 0;
   ui.camera.set_angle(angle[0], angle[1], new_z);
 });
 
-$('#cam_dec_z_angle').live('click', function(e){
+$('#cam_dec_z_angle').mousehold(function(e, ctr){
   var angle = ui.camera.angle;
-  var new_z = angle[2] - 0.2;
+  var new_z = angle[2] - 0.01;
   if(new_z < 0) new_z = 6.28;
   ui.camera.set_angle(angle[0], angle[1], new_z);
 });
 
-$('#cam_inc_x_position').live('click', function(e){
+$('#cam_inc_x_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_x = pos[0] + 20;
   ui.camera.set_position(new_x, pos[1], pos[2]);
 });
 
-$('#cam_dec_x_position').live('click', function(e){
+$('#cam_dec_x_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_x = pos[0] - 20;
   ui.camera.set_position(new_x, pos[1], pos[2]);
 });
 
-$('#cam_inc_y_position').live('click', function(e){
+$('#cam_inc_y_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_y = pos[1] + 20;
   ui.camera.set_position(pos[0], new_y, pos[2]);
 });
 
-$('#cam_dec_y_position').live('click', function(e){
+$('#cam_dec_y_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_y = pos[1] - 20;
   ui.camera.set_position(pos[0], new_y, pos[2]);
 });
 
-$('#cam_inc_z_position').live('click', function(e){
+$('#cam_inc_z_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_z = pos[2] + 20;
   ui.camera.set_position(pos[0], pos[1], new_z);
 });
 
-$('#cam_dec_z_position').live('click', function(e){
+$('#cam_dec_z_position').mousehold(function(e, ctr){
   var pos = ui.camera.position;
   var new_z = pos[2] - 20;
   ui.camera.set_position(pos[0], pos[1], new_z);
@@ -334,6 +336,7 @@ $('#command_jumpgate_trigger').live('click', function(e){
        loco.entity.solar_system.name == client.current_system.name &&
        loco.within_distance(controls.selected_gate.location.x,
                             controls.selected_gate.location.y,
+                            controls.selected_gate.location.z,
                             controls.gate_trigger_area)){
       // move to new system
       loco.parent_id = remote_system.location.id;
@@ -369,7 +372,7 @@ $('#command_ship_select_target').live('click', function(e){
   for(var l in client.locations){
     var loc = client.locations[l];
     // FIXME variable attack distance
-    if(controls.selected_ships[0].location.within_distance(loc.x, loc.y, 100) &&
+    if(controls.selected_ships[0].location.within_distance(loc.x, loc.y, loc.z, 100) &&
        loc.entity && loc.entity.json_class == "Manufactured::Ship" &&
        loc.entity.system.name == client.current_system.name &&
        $.inArray(loc.entity, controls.selected_ships) == -1)
@@ -384,7 +387,7 @@ $('#command_ship_select_dock').live('click', function(e){
   for(var l in client.locations){
     var loc = client.locations[l];
     // FIXME variable docking distance
-    if(controls.selected_ship.location.within_distance(loc.x, loc.y, 100) &&
+    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, 100) &&
        loc.entity && loc.entity.json_class == "Manufactured::Station" &&
        loc.entity.system.name == client.current_system.name)
          stations += "<li id='"+loc.entity.id+"' class='command_ship_dock' ><a href='#'>" + loc.entity.id + "</a></li>"

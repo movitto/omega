@@ -3,6 +3,12 @@ function Location(){
   this.x = 0;
   this.y = 0;
   this.z = 0;
+
+  // x,y,z coordinates projected into camera viewspace
+  this.cx = 0;
+  this.cy = 0;
+  this.cz = 0;
+
   this.size = 0;
   this.parent_id = null;
   this.movement_strategy = null;
@@ -19,6 +25,10 @@ function Location(){
     if(new_location.movement_strategy)
       this.movement_strategy = new_location.movement_strategy;
 
+    // needs to be invoked after movement stategy is set as orbit is updated here
+    var nloc = ui.camera.update_location(this);
+    this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
+
     if(new_location.entity)
       this.entity = new_location.entity;
 
@@ -29,12 +39,18 @@ function Location(){
       this.entity.location = this;
   };
 
-  this.within_distance = function(x, y, distance){
-    return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2)) < distance;
+  this.within_distance = function(x, y, z, distance){
+    return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2) + Math.pow(this.z - z, 2)) < distance;
   };
 
+  this.within_screen_coords = function(x, y, distance){
+    var ax = ui.adjusted_x(this.cx, this.cy, this.cz);
+    var ay = ui.adjusted_y(this.cx, this.cy, this.cz);
+    return Math.sqrt(Math.pow(ax - x, 2) + Math.pow(ay - y, 2)) < distance;
+  }
+
   this.check_clicked = function(x, y){
-    return this.within_distance(x, y, this.entity.size);
+    return this.within_screen_coords(x, y, this.entity.size);
   }
 
   this.toJSON = function(){ return new JRObject("Motel::Location", this, 
