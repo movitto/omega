@@ -30,21 +30,6 @@ function CosmosCamera(){
     loc.cz = this.cos_angle[0] * (this.cos_angle[1] * cz + this.sin_angle[1] * (this.sin_angle[2] * cy + this.cos_angle[2] * cx)) -
              this.sin_angle[0] * (this.cos_angle[2] * cy - this.sin_angle[2] * cx);
 
-    // XXX hack take care of planet orbit here
-    if(loc.movement_strategy && loc.movement_strategy.orbit){
-      for(orbiti in loc.movement_strategy.orbit){
-        var orbito = loc.movement_strategy.orbit[orbiti];
-
-        // XXX hack use update_location to update the orbit
-        var oloc = new Location();
-        oloc.x = orbito[0]; oloc.y = orbito[1]; oloc.z = orbito[2];
-        this.update_location(oloc);
-        loc.movement_strategy.orbit[orbiti][0] = oloc.cx;
-        loc.movement_strategy.orbit[orbiti][1] = oloc.cy;
-        loc.movement_strategy.orbit[orbiti][2] = oloc.cz;
-      }
-    }
-
     return loc;
   }
 
@@ -88,12 +73,11 @@ function CosmosUI(){
       sorted_locations.splice(i, 0, client.locations[loc]);
     }
 
-    // TODO draw orbits first
     for(loc in sorted_locations){
       var loco = sorted_locations[loc];
       loco.draw(loco.entity);
     }
-  
+
     // draw the controls
     controls.draw();
   }
@@ -146,26 +130,27 @@ function CosmosUI(){
     ui.context.fill();
   }
 
-  this.draw_orbit = function(planet){
-    var loco = planet.location;
+  this.draw_orbit = function(orbit){
+    if(orbit.previous){
+      var loco  = orbit.location;
+      var ploco = orbit.previous.location;
 
-    // draw orbit path
-    var orbit = loco.movement_strategy.orbit;
-    ui.context.beginPath();
-    ui.context.lineWidth = 2;
-    for(orbiti in orbit){
-      var orbito = orbit[orbiti];
-      ui.context.lineTo(ui.adjusted_x(orbito[0], orbito[1], orbito[2]),
-                        ui.adjusted_y(orbito[0], orbito[1], orbito[2]));
+      var aox = ui.adjusted_x(loco.cx,  loco.cy,  loco.cz);
+      var aoy = ui.adjusted_y(loco.cx,  loco.cy,  loco.cz);
+      var apx = ui.adjusted_x(ploco.cx, ploco.cy, ploco.cz);
+      var apy = ui.adjusted_y(ploco.cx, ploco.cy, ploco.cz);
+
+      ui.context.beginPath();
+      ui.context.lineWidth = 2;
+      ui.context.strokeStyle = "#AAAAAA";
+      ui.context.moveTo(apx, apy);
+      ui.context.lineTo(aox, aoy);
+      ui.context.stroke();
     }
-    ui.context.strokeStyle = "#AAAAAA";
-    ui.context.stroke();
   }
 
   this.draw_planet = function(planet){
     var loco = planet.location;
-
-    this.draw_orbit(planet);
 
     // draw circle representing planet
     ui.context.beginPath();

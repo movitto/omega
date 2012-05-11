@@ -83,6 +83,13 @@ function OmegaHandlers(){
           loco.clicked = controls.unregistered_click;
         }
 
+      }else if(entity.json_class == "Cosmos::Planet::Orbit"){
+        if(entity.planet.system.name == system_name){
+          entity.location.draw = function(orbit){ ui.draw_orbit(orbit); }
+        }else{
+          loco.draw = ui.draw_nothing;
+        }
+
       }else if(entity.json_class == "Cosmos::Asteroid"){
         if(entity.system.name == system_name){
           entity.location.draw   = function(asteroid){ ui.draw_asteroid(asteroid); }
@@ -191,7 +198,21 @@ function OmegaHandlers(){
               planet.location.entity = planet;
               client.add_location(planet.location);
 
-              var pname = galaxy.solar_systems[s].planets[p].name;
+              var prev = null;
+
+              // create locations for each point in the orbit
+              for(orbitp in planet.location.movement_strategy.orbit){
+                var orbito = planet.location.movement_strategy.orbit[orbitp];
+                var loco = new Location();
+                loco.entity = { 'json_class' : 'Cosmos::Planet::Orbit',
+                                'planet'     :  planet,
+                                'location'   : loco };
+                loco.entity.previous = prev;
+                loco.id = 'orbit-' + planet.location.id + '-' + orbitp;
+                loco.x  = orbito[0]; loco.y = orbito[1]; loco.z = orbito[2];
+                client.add_location(loco);
+                prev = loco.entity;
+              }
             }
 
             for(var a=0; a<system.asteroids.length; ++a){
@@ -199,8 +220,6 @@ function OmegaHandlers(){
               asteroid.system = system;
               asteroid.location.entity = asteroid;
               client.add_location(asteroid.location);
-
-              var aname = galaxy.solar_systems[s].asteroids[p].name;
             }
 
             for(var j=0; j<system.jump_gates.length; ++j){

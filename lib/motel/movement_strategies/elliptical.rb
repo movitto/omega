@@ -136,10 +136,10 @@ class Elliptical < MovementStrategy
 
       @orbit = []
 
-      0.upto(365) { |i|
-        distance = i / 57.295
+      0.upto(360) { |i|
+        distance = i / 57.295 # one radian (360 / 2pi)
         coords = coordinates_from_theta(distance)
-        @orbit << coords
+        @orbit << coords if i % 10 == 0  # for efficiency, don't need to store all coordinates
       }
     end
 
