@@ -143,6 +143,7 @@ function CosmosControls(){
       entity_container_contents += " " + controls.selected_ships[s].id +
                                    " (" + controls.selected_ships[s].type + ")"
     entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_select_destination'>move</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_dock'>dock</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_undock'>undock</div>";
@@ -166,26 +167,7 @@ function CosmosControls(){
     entity_container.html(html);
   }
 
-  this.clicked_space = function(x, y){
-    if(controls.selected_ships.length > 0 && client.current_system != null){
-      handlers.add_callback(handlers.handle_ships);
-      handlers.add_method('on_movement', handlers.on_movement);
-
-      // FIXME map the 2d screen coords to 3d space
-
-      var shi = 0;
-      for(var sh in controls.selected_ships){
-        var new_loc = new Location();
-        new_loc.x = x + (shi * 2); new_loc.y = y + (shi * 2);
-        new_loc.id = controls.selected_ships[sh].location.id;
-        new_loc.parent_id = client.current_system.location.id;
-        client.move_entity(controls.selected_ships[sh].id, new_loc);
-        client.track_movement(controls.selected_ships[sh].location.id, 25);
-        shi = (shi + 1) * -1;
-        // FIXME when ship arrives on location, unregister handler
-      }
-    }
-  }
+  this.clicked_space = function(x, y){}
 }
 
 // handle click input
@@ -365,6 +347,38 @@ $('#command_fleet_create').live('click', function(e){
                                     {'id'      : 'fleet123',
                                      'user_id' : client.current_user.id,
                                      'ships'   : shnames}));
+});
+
+$('#command_ship_select_destination').live('click', function(e){
+  // TODO also provide ability to auto-select coordinates of
+  //      stations, gates, and other entities in current system
+  var select = "Coordinates To Move To:<br/>";
+  if(controls.selected_ships.length > 0 && client.current_system != null)
+    select += "(current position: "+controls.selected_ships[0].location.x+","+controls.selected_ships[0].location.y+","+controls.selected_ships[0].location.z+")<br/><br/>"
+  select += "x: <input type='text' id='destination_x_coord' class='destination_coord' />";
+  select += "y: <input type='text' id='destination_y_coord' class='destination_coord' />";
+  select += "z: <input type='text' id='destination_z_coord' class='destination_coord' /><br/>";
+  select += "<input type='button' id='command_ship_move' value='move' />";
+  $('#motel_dialog').html(select).dialog({show: 'explode', title: 'select destination'}).dialog('open');
+});
+
+$('#command_ship_move').live('click', function(e){
+  var dest_x = parseFloat($('#destination_x_coord').attr('value'));
+  var dest_y = parseFloat($('#destination_y_coord').attr('value'));
+  var dest_z = parseFloat($('#destination_z_coord').attr('value'));
+  $('#motel_dialog').dialog('close');
+
+   var shi = 0;
+   for(var sh in controls.selected_ships){
+     var new_loc = new Location();
+     new_loc.x = dest_x + (shi * 2); new_loc.y = dest_y + (shi * 2); new_loc.z = dest_z + (shi * 2);
+     new_loc.id = controls.selected_ships[sh].location.id;
+     new_loc.parent_id = client.current_system.location.id;
+     client.move_entity(controls.selected_ships[sh].id, new_loc);
+     client.track_movement(controls.selected_ships[sh].location.id, 25);
+     shi = (shi + 1) * -1;
+     // FIXME when ship arrives on location, unregister handler
+   }
 });
 
 $('#command_ship_select_target').live('click', function(e){

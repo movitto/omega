@@ -70,6 +70,10 @@ class Location
         instance_variable_set(inst_attr, args[k])
       }
 
+      @x = @x.to_f unless @x.nil?
+      @y = @y.to_f unless @y.nil?
+      @z = @z.to_f unless @z.nil?
+
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
    end
 

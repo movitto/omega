@@ -180,6 +180,15 @@
   color: #8B7D6B;
 }
 
+.destination_coord {
+  width: 50px;
+  margin-right: 10px;
+}
+
+#command_ship_move {
+  margin-top: 20px;
+}
+
 /* specific command icons */
 
 #command_jumpgate_trigger {
@@ -189,6 +198,11 @@
 
 #command_selection_clear {
   background: url('http://localhost/wotel/images/icons/clear-selection.png') no-repeat;
+  background-size: 30px;
+}
+
+#command_ship_select_destination {
+  background: url('http://localhost/wotel/images/icons/move-ship.png') no-repeat;
   background-size: 30px;
 }
 
