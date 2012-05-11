@@ -5,6 +5,38 @@ function CosmosCamera(){
   this.cos_angle = [];
   this.focal_length = 1000;
 
+  this.move = function(direction, distance){
+    var new_pos = this.position;
+    var current_distance = Math.sqrt(Math.pow(new_pos[0], 2) +
+                                     Math.pow(new_pos[1], 2) +
+                                     Math.pow(new_pos[2], 2));
+
+    if(direction == 'x'){
+      var inc_x = this.cos_angle[2] * distance;
+      var inc_y = this.sin_angle[2] * distance;
+      var inc_z = this.sin_angle[1] * distance;
+      new_pos[0] += inc_x;
+      new_pos[1] += inc_y;
+      new_pos[2] -= inc_z;
+
+    }else if(direction == 'y'){
+      var inc_x = this.sin_angle[2] * distance;
+      var inc_y = this.cos_angle[2] * distance;
+      var inc_z = this.sin_angle[1] * distance;
+      new_pos[0] -= inc_x;
+      new_pos[1] += inc_y;
+      new_pos[2] -= inc_z;
+
+    }else if(direction == 'z'){
+      new_pos[2] += distance;
+    }
+
+    this.set_position(new_pos[0], new_pos[1], new_pos[2]);
+  }
+
+  this.rotate = function(axis, distance){
+  }
+
   this.set_position = function(x, y, z){
     this.position = [x, y, z];
     this.update_locations();

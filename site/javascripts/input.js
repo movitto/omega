@@ -254,39 +254,27 @@ $('#cam_dec_z_angle').mousehold(function(e, ctr){
 });
 
 $('#cam_inc_x_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_x = pos[0] + 20;
-  ui.camera.set_position(new_x, pos[1], pos[2]);
+  ui.camera.move('x', 20);
 });
 
 $('#cam_dec_x_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_x = pos[0] - 20;
-  ui.camera.set_position(new_x, pos[1], pos[2]);
+  ui.camera.move('x', -20);
 });
 
 $('#cam_inc_y_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_y = pos[1] + 20;
-  ui.camera.set_position(pos[0], new_y, pos[2]);
+  ui.camera.move('y', 20);
 });
 
 $('#cam_dec_y_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_y = pos[1] - 20;
-  ui.camera.set_position(pos[0], new_y, pos[2]);
+  ui.camera.move('y', -20);
 });
 
 $('#cam_inc_z_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_z = pos[2] + 20;
-  ui.camera.set_position(pos[0], pos[1], new_z);
+  ui.camera.move('z', 20);
 });
 
 $('#cam_dec_z_position').mousehold(function(e, ctr){
-  var pos = ui.camera.position;
-  var new_z = pos[2] - 20;
-  ui.camera.set_position(pos[0], pos[1], new_z);
+  ui.camera.move('z', -20);
 });
 
 ////////////////////// various custom inputs
