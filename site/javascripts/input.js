@@ -212,45 +212,27 @@ $('#motel_canvas').live('mouseup', function(e){
 /////////////////////// camera controls
 
 $('#cam_inc_x_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_x = angle[0] + 0.01;
-  if(new_x > 6.28) new_x = 0;
-  ui.camera.set_angle(new_x, angle[1], angle[2]);
+  ui.camera.rotate('x', 0.01);
 });
 
 $('#cam_dec_x_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_x = angle[0] - 0.01;
-  if(new_x < 0) new_x = 6.28;
-  ui.camera.set_angle(new_x, angle[1], angle[2]);
+  ui.camera.rotate('x', -0.01);
 });
 
 $('#cam_inc_y_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_y = angle[1] + 0.01;
-  if(new_y > 6.28) new_y = 0;
-  ui.camera.set_angle(angle[0], new_y, angle[2]);
+  ui.camera.rotate('y', 0.01);
 });
 
 $('#cam_dec_y_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_y = angle[1] - 0.01;
-  if(new_y < 0) new_y = 6.28;
-  ui.camera.set_angle(angle[0], new_y, angle[2]);
+  ui.camera.rotate('y', -0.01);
 });
 
 $('#cam_inc_z_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_z = angle[2] + 0.01;
-  if(new_z > 6.28) new_z = 0;
-  ui.camera.set_angle(angle[0], angle[1], new_z);
+  ui.camera.rotate('z', 0.01);
 });
 
 $('#cam_dec_z_angle').mousehold(function(e, ctr){
-  var angle = ui.camera.angle;
-  var new_z = angle[2] - 0.01;
-  if(new_z < 0) new_z = 6.28;
-  ui.camera.set_angle(angle[0], angle[1], new_z);
+  ui.camera.rotate('z', -0.01);
 });
 
 $('#cam_inc_x_position').mousehold(function(e, ctr){

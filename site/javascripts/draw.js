@@ -1,4 +1,5 @@
 function CosmosCamera(){
+  this.original_position = [];
   this.position = [];
   this.angle    = [];
   this.sin_angle = [];
@@ -7,9 +8,6 @@ function CosmosCamera(){
 
   this.move = function(direction, distance){
     var new_pos = this.position;
-    var current_distance = Math.sqrt(Math.pow(new_pos[0], 2) +
-                                     Math.pow(new_pos[1], 2) +
-                                     Math.pow(new_pos[2], 2));
 
     if(direction == 'x'){
       var inc_x = this.cos_angle[2] * distance;
@@ -35,6 +33,44 @@ function CosmosCamera(){
   }
 
   this.rotate = function(axis, distance){
+    var new_angle = this.angle;
+    var new_pos   = this.position;
+
+    if(axis == 'x'){
+      new_angle[0] += distance;
+      new_pos[1] = this.original_position[1] * Math.cos(new_angle[0]) -
+                   this.original_position[2] * Math.sin(new_angle[0]);
+      new_pos[2] = this.original_position[1] * Math.sin(new_angle[0]) +
+                   this.original_position[2] * Math.cos(new_angle[0]);
+
+    }else if(axis == 'y'){
+      new_angle[1] += distance;
+      new_pos[2] = this.original_position[2] * Math.cos(new_angle[1]) -
+                   this.original_position[0] * Math.sin(new_angle[1]);
+      new_pos[0] = this.original_position[2] * Math.sin(new_angle[1]) +
+                   this.original_position[0] * Math.cos(new_angle[1]);
+    }else if(axis == 'z'){
+      new_angle[2] += distance;
+      new_pos[0] = this.original_position[0] * Math.cos(new_angle[2]) -
+                   this.original_position[1] * Math.sin(new_angle[2]);
+      new_pos[1] = this.original_position[0] * Math.sin(new_angle[2]) +
+                   this.original_position[1] * Math.cos(new_angle[2]);
+    }
+
+    for(var i = 0; i < 3; ++i){
+      if(new_angle[i] > 6.28)
+        new_angle[i] -= 6.28;
+      else if(new_angle[i] < 0)
+        new_angle[i] += 6.28;
+    }
+
+    this.set_position(new_pos[0], new_pos[1], new_pos[2]);
+    this.set_angle(new_angle[0], new_angle[1], new_angle[2]);
+  }
+
+  this.set_original_position = function(x, y, z){
+    this.original_position = [x, y, z];
+    this.set_position(x, y, z);
   }
 
   this.set_position = function(x, y, z){
@@ -72,7 +108,7 @@ function CosmosCamera(){
     }
   }
 
-  this.set_position(0, 0, 1000);
+  this.set_original_position(0, 0, 1000);
   this.set_angle(0, 0, 0);
 };
 
