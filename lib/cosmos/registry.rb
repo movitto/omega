@@ -9,6 +9,10 @@ module Cosmos
 
 class Registry
   include Singleton
+
+  # FIXME remove default accessors,
+  # replace w/ custom one w/ lock to protect
+  # these from concurrent access
   attr_accessor :galaxies
   attr_accessor :resource_sources
 

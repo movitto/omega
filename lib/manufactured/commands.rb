@@ -18,6 +18,7 @@ class AttackCommand
 
   # determine if we can attack using this attack command
   def attackable?
+    # TODO make sure entities are within attacking distance
     return @last_attack_time.nil? || ((Time.now - @last_attack_time) > 1 / @attacker.attack_rate)
   end
 
@@ -82,6 +83,7 @@ class MiningCommand
 
   # determine if we can mine using this mining command
   def minable?
+    # TODO make sure entities are within mining distance
     return @last_time_mined.nil? || ((Time.now - @last_time_mined) > (1 / @ship.mining_rate))
   end
 
