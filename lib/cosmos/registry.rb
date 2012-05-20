@@ -30,71 +30,47 @@ class Registry
     name = args[:name]
     location = args[:location]
     # parent = args[:parent]
-    entities = []
 
     return self if type == :universe
 
+    entities = []
     @galaxies.each { |g|
-      if type.nil? || type == :galaxy
-        if name.nil? && location.nil?
-          entities << g
-        elsif (!name.nil?     && (name     == g.name       )) ||
-              (!location.nil? && (location == g.location.id))
-          return g
-        end
-      else
-        g.solar_systems.each { |sys|
-          if type.nil? || type == :solarsystem
-            if name.nil? && location.nil?
-              entities << sys
-            elsif (!name.nil?     && (name     == sys.name       )) ||
-                  (!location.nil? && (location == sys.location.id))
-              return sys
-            end
-          elsif type.nil? || type == :star
-            if name.nil? && location.nil?
-              entities << sys.star
-            elsif (!name.nil?     && (name     == sys.star.name       )) ||
-                  (!location.nil? && (location == sys.star.location.id))
-              return sys.star
-            end
-          else
-            sys.planets.each { |p|
-              if type.nil? || type == :planet
-                if name.nil? && location.nil?
-                  entities << p
-                elsif (!name.nil?     && (name     == p.name       )) ||
-                      (!location.nil? && (location == p.location.id))
-                  return p
-                end
-              else
-                p.moons.each { |m|
-                  if type.nil? || type == :moon
-                    if name.nil? && location.nil?
-                      entities << m
-                    elsif (!name.nil?     && (name     == m.name       )) ||
-                          (!location.nil? && (location == m.location.id))
-                      return m
-                    end
-                  end
-                }
-              end
-            }
-            sys.asteroids.each { |a|
-              if type.nil? || type == :asteroid
-                if name.nil? && location.nil?
-                  entities << a
-                elsif (!name.nil?     && (name     == a.name       )) ||
-                      (!location.nil? && (location == a.location.id))
-                  return a
-                end
-              end
-            }
-          end
+      entities << g
+      g.solar_systems.each { |sys|
+        entities << sys
+        entities << sys.star
+        sys.planets.each { |pl|
+          entities << pl
+          pl.moons.each { |m|
+            entities << m
+          }
         }
-      end
+        sys.asteroids.each { |ast|
+          entities << ast
+        }
+      }
     }
-    return (!name.nil? || !location.nil?) ? nil : entities
+
+    unless type.nil?
+      types = { :galaxy      => Cosmos::Galaxy,
+                :solarsystem => Cosmos::SolarSystem,
+                :star        => Cosmos::Star,
+                :planet      => Cosmos::Planet,
+                :moon        => Cosmos::Moon,
+                :asteroid    => Cosmos::Asteroid }
+      entities.reject! { |e| e.class != types[type] }
+    end
+
+    unless name.nil?
+      entities.reject! { |e| e.name != name }
+    end
+
+    unless location.nil?
+      entities.reject! { |e| e.location.id != location }
+    end
+
+    return entities.first unless name.nil? && location.nil?
+    return entities
   end
 
   def children
