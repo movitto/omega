@@ -92,6 +92,16 @@ function CosmosClient() {
     client.web_node.invoke_request('manufactured::undock', ship);
   }
 
+  this.get_resource_sources = function(entity_id){
+    client.web_node.invoke_request('cosmos::get_resource_sources', entity_id);
+  }
+
+  this.start_mining = function(ship, resource_source_id){
+    client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_collected');
+    client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_depleted');
+    client.web_node.invoke_request('manufactured::start_mining', ship.id, resource_source_id);
+  }
+
   this.login = function(){
     client.web_node.invoke_request('users::login', client.current_user);
   }

@@ -20,6 +20,7 @@ class RJRAdapter
     @@local_node.message_headers['source_node'] = 'manufactured'
     @@local_node.invoke_request('users::create_entity', self.user)
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'cosmos_entities')
+    @@local_node.invoke_request('users::add_privilege', self.user.id, 'modify', 'cosmos_entities')
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'locations')
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'users_entities')
     @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'locations')
@@ -210,6 +211,7 @@ class RJRAdapter
       attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
       defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
 
+      # TODO verify ship is not already attacking entity and is withing attacking distance
       raise Omega::DataNotFound, "manufactured entity specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
       raise Omega::DataNotFound, "manufactured entity specified by #{defender_entity_id} (defender) not found"  if defender.nil?
 
@@ -267,12 +269,28 @@ class RJRAdapter
       ship = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
       resource_source = @@local_node.invoke_request('cosmos::get_resource_source', resource_source_id)
 
+      # TODO verify ship is not already mining resource, within mining distance
       raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
       raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if resource_source.nil?
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
+
+      # resource_source is a copy of actual resource_source
+      # stored in cosmos registry, need to update original
+      collected_callback =
+        Callback.new(:resource_collected){ |*args|
+          rs = args[2]
+          @@local_node.invoke_request('cosmos::set_resource', rs.entity.name, rs.resource, rs.quantity)
+        }
+      depleted_callback =
+        Callback.new(:resource_depleted){ |*args|
+          ship.notification_callbacks.delete collected_callback
+          ship.notification_callbacks.delete depleted_callback
+        }
+      ship.notification_callbacks << collected_callback
+      ship.notification_callbacks << depleted_callback
 
       Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => resource_source
       ship

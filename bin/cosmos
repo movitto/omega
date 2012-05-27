@@ -17,6 +17,8 @@ NUM_PLANETS_PER_SYSTEM = 5
 NUM_MOONS_PER_PLANET   = 1
 NUM_GATES_PER_SYSTEM   = 1
 NUM_ASTEROIDS_PER_SYSTEM = 10
+NUM_RESOURCES_PER_ASTEROID = 3
+NUM_RESOURCES_PER_SOURCE = 50
 
 # number of manufactured entities to generate
 NUM_SHIPS = 5
@@ -30,6 +32,8 @@ MAX_GATES_PER_SYSTEM = 3
 MAX_PLANETS_PER_SYSTEM = 10
 MAX_MOONS_PER_PLANET = 2
 MAX_ASTEROIDS_PER_SYSTEM = 20
+MAX_RESOURCES_PER_ASTEROID = 15
+MAX_RESOURCES_PER_SOURCE = 50
 
 # manufacture entity generation
 MAX_SHIPS    = 25
@@ -110,7 +114,13 @@ num_galaxies = num_of('GALAXIES')
 
         num_asteroids = num_of('ASTEROIDS_PER_SYSTEM')
         0.upto(num_asteroids-1) do |ai|
-          asteroid rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2)
+          asteroid rand_name, :location => rand_location(:max_x => MAX_WIDTH/2, :max_y => MAX_HEIGHT/2, :max_z => MAX_DEPTH/2) do |ast|
+            num_resources = num_of('RESOURCES_PER_ASTEROID')
+            0.upto(num_resources-1) do |ri|
+              resource_quantity = num_of('RESOURCES_PER_SOURCE')
+              resource :resource => rand_resource, :quantity => resource_quantity
+            end
+          end
         end
 
       end

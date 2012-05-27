@@ -92,13 +92,27 @@ class MiningCommand
 
     @last_time_mined = Time.now
 
-    @resource_source.quantity -= @ship.mining_quantity
-    @ship.add_resource @resource_source.resource, @ship.mining_quantity
+    # if resource_source has less than mining_quantity only transfer that amount
+    mining_quantity = @ship.mining_quantity
+    mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
+
+    @resource_source.quantity -= mining_quantity
+    @ship.add_resource @resource_source.resource, mining_quantity
+
+    @ship.notification_callbacks.
+          select { |c| c.type == :resource_collected}.
+          each { |c|
+      c.invoke 'resource_collected', @ship, @resource_source, mining_quantity
+    }
 
     if @resource_source.quantity <= 0
       RJR::Logger.debug "#{@ship.id} depleted resource #{@resource_source.id}, marking for removal"
 
-      # TODO implement resource_depleted & stopped_mining callbacks
+      @ship.notification_callbacks.
+            select { |c| c.type == :resource_depleted}.
+            each { |c|
+        c.invoke 'resource_depleted', @ship, @resource_source
+      }
 
       # remove this mining command
       # TODO should be set elsewhere as well (such as when targets become too far apart)

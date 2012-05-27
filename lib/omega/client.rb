@@ -92,6 +92,10 @@ def rand_name
   Omega::Names.rand_name
 end
 
+def rand_resource
+  Omega::Resources.rand_resource
+end
+
 def rand_location(args={})
   Motel::Location.random args
 end
@@ -224,6 +228,19 @@ def asteroid(id, args={}, &bl)
   client.queue_request 'cosmos::create_entity', asteroid, @system.name
   RJR::Logger.info "creating asteroid #{asteroid.name}"
   client.invoke_callback asteroid, &bl
+  return asteroid
+end
+
+def resource(args = {}, &bl)
+  raise ArgumentError, "asteroid must not be nil" if @asteroid.nil?
+
+  resource = Cosmos::Resource.new(args)
+
+  client = Omega::Client.new :resource => resource
+  client.queue_request 'cosmos::set_resource', @asteroid.name, resource, args[:quantity]
+  RJR::Logger.info "setting resource #{resource.id} on #{@asteroid.name}"
+  client.invoke_callback resource, &bl
+  return resource
 end
 
 def planet(id, args={}, &bl)

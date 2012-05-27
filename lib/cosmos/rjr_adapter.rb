@@ -180,6 +180,15 @@ class RJRAdapter
        resources
     }
 
+    rjr_dispatcher.add_handler('cosmos::get_resource_sources') { |entity_id|
+       entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
+       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
+                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                         :session => @headers['session_id'])
+       Cosmos::Registry.instance.resource_sources.select { |rs| rs.entity.name == entity_id }
+    }
+
     rjr_dispatcher.add_handler('cosmos::get_resource_source') { |resource_source_id|
        rs = Cosmos::Registry.instance.resource_sources.find { |rs| rs.id == resource_source_id }
        raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if rs.nil?

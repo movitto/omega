@@ -284,6 +284,24 @@ function OmegaHandlers(){
     }
   }
 
+  this.handle_resource_sources = function(resource_sources){
+    if(resource_sources != null && isArray(resource_sources) && resource_sources.length > 0){
+      for(var r = 0; r < resource_sources.length; ++r){
+        var resource_source = resource_sources[r];
+        if(resource_source.json_class == "Cosmos::ResourceSource"){
+          for(var l = 0; l < client.locations.size; ++l){
+            var loc = client.locations[l];
+            if(loc.entity.name == resource_source.entity.name){
+              if(!loc.entity.resources) loc.entity.resources = [];
+              loc.entity.resources[resource_source.resource.id] = resource_source;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
   this.handle_ships = function(ships){
     if(ships != null && ships.json_class == "Manufactured::Ship"){
       ships.selected = controls.update_selected_ship(result);
@@ -388,6 +406,22 @@ function OmegaHandlers(){
     }
   }
 
+  this.populate_asteroid_resources = function(resource_sources){
+    if(resource_sources != null && isArray(resource_sources) && resource_sources.length > 0){
+      var got_resources = false;
+      var resources = "<ul>";
+      for(var r = 0; r < resource_sources.length; ++r){
+        var resource_source = resource_sources[r];
+        if(resource_source.json_class == "Cosmos::ResourceSource"){
+          got_resources = true;
+          resources += "<li id='"+resource_source.id+"' class='command_mine_resource_source'><a href='#'>"+ resource_source.resource.id + "</a> (" + resource_source.quantity + ")" +"</li>";
+        }
+      }
+      resources += "</ul>";
+      $('#motel_dialog').html(resources).dialog({show: 'explode', title: 'select resource to mine'}).dialog('open');
+    }
+  }
+
   this.create_account_confirmation = function(user){
     if(user!= null && user.json_class == "Users::User"){
       $('#motel_dialog').html("creating account, you should receive a confirmation email momentarily");
@@ -461,6 +495,31 @@ function OmegaHandlers(){
         }
       }
       if(remove != null) delete client.locations[remove];
+    }
+  }
+
+  this.on_mining_event = function(params){
+    if(params[0] == "resource_collected"){
+      var entity = null;
+      var ship = null;
+      for(var s in client.locations){
+        if(client.locations[s].entity.id == params[1].id){
+          ship = client.locations[s].entity;
+        }else if(client.locations[s].entity.name == params[2].entity.name){
+          entity = client.locations[s].entity;
+        }
+      }
+      ship.mining = entity;
+
+    }else if(params[0] == "resource_depleted"){
+      var ship = null;
+      for(var s in client.locations){
+        if(client.locations[s].entity.id == params[1].id){
+          ship = client.locations[s].entity;
+          break;
+        }
+      }
+      ship.mining = null;
     }
   }
 

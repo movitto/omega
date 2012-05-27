@@ -14,7 +14,7 @@ class Callback
   attr_accessor :handler
 
   def initialize(type, args = {}, &block)
-    @type    = type.intern
+    @type    = type.is_a?(Symbol)? type : type.intern
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
   end

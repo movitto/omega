@@ -338,6 +338,18 @@ function CosmosUI(){
       ui.context.lineWidth = 2;
       ui.context.stroke();
     }
+
+    // if ship is mining, draw line to mining target
+    if(ship.mining){
+      ui.context.beginPath();
+      ui.context.strokeStyle = "#0000FF";
+      ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                        ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+      ui.context.lineTo(ui.adjusted_x(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz),
+                        ui.adjusted_y(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz));
+      ui.context.lineWidth = 2;
+      ui.context.stroke();
+    }
   }
 
 };

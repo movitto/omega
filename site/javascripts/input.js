@@ -121,7 +121,8 @@ function CosmosControls(){
   this.clicked_asteroid  = function(click_event, asteroid) {
     var entity_container = $('#motel_entity_container');
     entity_container.show();
-    entity_container.html("Asteroid: " + asteroid.name);
+    entity_container.html("Asteroid: " + asteroid.name +
+                          " ( @ " + asteroid.location.to_s() + ")");
   }
 
   this.clicked_gate    = function(click_event, gate) {
@@ -141,7 +142,8 @@ function CosmosControls(){
     var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
     for(var s in controls.selected_ships)
       entity_container_contents += " " + controls.selected_ships[s].id +
-                                   " (" + controls.selected_ships[s].type + ")"
+                                   " (" + controls.selected_ships[s].type + " @ " +
+                                          controls.selected_ships[s].location.to_s() + ")"
     entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_destination'>move</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
@@ -324,7 +326,7 @@ $('#command_ship_select_destination').live('click', function(e){
   //      stations, gates, and other entities in current system
   var select = "Coordinates To Move To:<br/>";
   if(controls.selected_ships.length > 0 && client.current_system != null)
-    select += "(current position: "+controls.selected_ships[0].location.x+","+controls.selected_ships[0].location.y+","+controls.selected_ships[0].location.z+")<br/><br/>"
+    select += "(currently @: "+controls.selected_ships[0].location.to_s()+")<br/><br/>"
   select += "x: <input type='text' id='destination_x_coord' class='destination_coord' />";
   select += "y: <input type='text' id='destination_y_coord' class='destination_coord' />";
   select += "z: <input type='text' id='destination_z_coord' class='destination_coord' /><br/>";
@@ -407,6 +409,35 @@ $('#command_ship_undock').live('click', function(e){
   client.undock_ship(controls.selected_ship.id);
   $('#command_ship_undock').hide();
   $('#command_ship_select_dock').show();
+});
+
+$('#command_ship_select_mining').live('click', function(e){
+  var mining = '<ul>';
+  for(var l in client.locations){
+    var loc = client.locations[l];
+    // FIXME variable mining distance
+    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, 100) &&
+       loc.entity.json_class == "Cosmos::Asteroid" &&
+       loc.entity.system.name == client.current_system.name){
+         mining += "<li id='" + loc.entity.name + "' class='command_scan_asteroid'><a href='#'>" + loc.entity.name + "</a></li>";
+    }
+  }
+  mining += "</ul>";
+  $('#motel_dialog').html(mining).dialog({show: 'explode', title: 'select asteroid to scan'}).dialog('open');
+});
+
+$('.command_scan_asteroid').live('click', function(event){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_resource_sources);
+  handlers.add_callback(handlers.populate_asteroid_resources);
+  client.get_resource_sources(event.currentTarget.id);
+});
+
+$('.command_mine_resource_source').live('click', function(event){
+  handlers.clear_callbacks();
+  handlers.add_method('manufactured::event_occurred', handlers.on_mining_event);
+  client.start_mining(controls.selected_ship, event.currentTarget.id);
+  $('#motel_dialog').dialog('close');
 });
 
 $('.galaxy_title').live('click', function(event){

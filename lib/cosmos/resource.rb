@@ -9,8 +9,15 @@ class Resource
   attr_accessor :type
 
   def initialize(args = {})
-    @name = args['name']  || args[:name]
-    @type = args['type']  || args[:type]
+    resource = args['resource'] || args[:resource]
+
+    unless resource.nil?
+      @name = resource.name
+      @type = resource.type
+    end
+
+    @name = args['name']  || args[:name] || @name
+    @type = args['type']  || args[:type] || @type
   end
 
   def id
@@ -21,7 +28,7 @@ class Resource
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:name => name, :type => type}
+        {:id => id, :name => name, :type => type}
     }.to_json(*a)
   end
 

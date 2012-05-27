@@ -53,6 +53,10 @@ function Location(){
     return this.within_screen_coords(x, y, this.entity.size);
   }
 
+  this.to_s = function() { return (Math.round(this.x*100)/100) + "," +
+                                  (Math.round(this.y*100)/100) + "," +
+                                  (Math.round(this.z*100)/100); }
+
   this.toJSON = function(){ return new JRObject("Motel::Location", this, 
                                                 ["toJSON", "entity", "movement_strategy"]).toJSON(); };
   //JRObject.class_registry['Motel::Location'] = Location;

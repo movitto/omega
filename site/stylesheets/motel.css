@@ -220,3 +220,8 @@
   background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
   background-size: 30px;
 }
+
+#command_ship_select_mining {
+  background: url('http://localhost/wotel/images/icons/start-mining.png') no-repeat;
+  background-size: 30px;
+}
