@@ -25,7 +25,7 @@
         // Want expanded support?
         // Test this out in alternative browsers and send patches!
         var user_agent = $.browser;
-        if(!user_agent.mozilla || user_agent.version < "8.0"){
+        if(!user_agent.mozilla || parseFloat(user_agent.version) < 8.0){
           alert("Must be running Firefox >= 8.0");
           return;
         }
