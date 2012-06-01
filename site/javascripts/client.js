@@ -100,6 +100,10 @@ function CosmosClient() {
     client.web_node.invoke_request('cosmos::get_resource_sources', entity_id);
   }
 
+  this.construct_ship = function(station){
+    client.web_node.invoke_request('manufactured::construct_entity', station.id, 'Manufactured::Ship');
+  }
+
   this.start_mining = function(ship, resource_source_id){
     client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_collected');
     client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_depleted');

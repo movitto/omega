@@ -40,7 +40,12 @@ function CosmosControls(){
 
   this.set_selected_gate = function(gate){
     this.selected_gate = gate;
-    this.set_selected_ship(null, true);
+    this.clear_selected_ship();
+  }
+
+  this.set_selected_station = function(station){
+    this.selected_station = station;
+    this.clear_selected_ship();
   }
 
   // initialize mouse input
@@ -183,6 +188,7 @@ function CosmosControls(){
   }
 
   this.clicked_station = function(click_event, station) {
+    controls.set_selected_station(station);
     var html = "Station: " + station.id +
                " @ " + station.location.to_s() +
                "<br/>Type: " + station.type +
@@ -195,6 +201,8 @@ function CosmosControls(){
          e.docked_at.id == station.id)
            html += "<a href='#' id='"+e.id+"' class='command_view_ship' >"+e.id+"</a>";
     }
+
+    html += "<div class='command_icon' id='command_station_select_construction'>construct ship</div>";
 
     this.clear_selected_ship();
     var entity_container = $('#motel_entity_container');
@@ -515,6 +523,13 @@ $('.command_mine_resource_source').live('click', function(event){
   handlers.add_method('manufactured::event_occurred', handlers.on_mining_event);
   client.start_mining(controls.selected_ship, event.currentTarget.id);
   $('#motel_dialog').dialog('close');
+});
+
+$('#command_station_select_construction').live('click', function(event){
+  // TODO prompt user for which type of ship to construct, verify resources are sufficient
+  handlers.clear_callbacks();
+  client.construct_ship(controls.selected_station);
+  //handlers.set_system(client.current_system.name); // TODO add ship to list and/or refresh ships in system
 });
 
 $('.galaxy_title').live('click', function(event){

@@ -46,6 +46,11 @@ class RJRAdapter
       Manufactured::Registry.instance.create entity
 
       unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
+        if entity.parent
+          entity.location.parent_id = entity.parent.location.id
+          entity.location.parent    = entity.parent.location
+        end
+
         entity.location = @@local_node.invoke_request('create_location', entity.location)
       end
 

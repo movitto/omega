@@ -71,15 +71,26 @@ class Station
     entity_type = args[:entity_type]
     entity      = nil
 
+
     if entity_type == "Manufactured::Ship"
-      entity = Manufactured::Ship.new args
+      cargs = {:id => Motel.gen_uuid,
+               :type => :frigate,
+               :size => Ship::SHIP_SIZES[:frigate]}.merge(args)
+      entity = Manufactured::Ship.new cargs
     elsif entity_type == "Manufactured::Station"
-      entity = Manufactured::Station.new args
+      cargs = {:id => Motel.gen_uuid}.merge(args)
+      entity = Manufactured::Station.new cargs
     end
 
     unless entity.nil?
       entity.parent = self.parent
-      entity.location = Motel::Location.random # TODO generate location nearby (allow user to specify alternate location)
+
+      # create entity at nearby location
+      entity.location = Motel::Location.new # TODO allow user to specify alternate location (& move entity to it if permissable)
+      entity.location.x = self.location.x + 10
+      entity.location.y = self.location.y + 10
+      entity.location.z = self.location.z + 10
+      entity.location.parent = self.location.parent
     end
 
     entity
