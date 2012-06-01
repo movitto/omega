@@ -156,6 +156,7 @@ function OmegaHandlers(){
       }else if(entity.json_class == "Cosmos::Star"       ||
                entity.json_class == "Cosmos::Asteroid"   ||
                entity.json_class == "Cosmos::Planet"     ||
+               entity.json_class == "Cosmos::Planet::Orbit" ||
                entity.json_class == "Cosmos::JumpGate"   ||
                entity.json_class == "Manufactured::Ship" ||
                entity.json_class == "Manufactured::Station"){
