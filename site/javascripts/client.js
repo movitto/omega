@@ -92,6 +92,10 @@ function CosmosClient() {
     client.web_node.invoke_request('manufactured::undock', ship);
   }
 
+  this.transfer_resource = function(from_entity_id, to_entity_id, resource, quantity){
+    client.web_node.invoke_request('manufactured::transfer_resource', from_entity_id, to_entity_id, resource, quantity);
+  }
+
   this.get_resource_sources = function(entity_id){
     client.web_node.invoke_request('cosmos::get_resource_sources', entity_id);
   }

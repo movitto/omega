@@ -221,6 +221,11 @@
   background-size: 30px;
 }
 
+#command_ship_select_transfter_resource {
+  background: url('http://localhost/wotel/images/icons/resource-transfer.png') no-repeat;
+  background-size: 30px;
+}
+
 #command_ship_select_mining {
   background: url('http://localhost/wotel/images/icons/start-mining.png') no-repeat;
   background-size: 30px;

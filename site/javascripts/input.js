@@ -34,6 +34,10 @@ function CosmosControls(){
     }
   }
 
+  this.clear_selected_ship = function(){
+    this.set_selected_ship(null, true);
+  }
+
   this.set_selected_gate = function(gate){
     this.selected_gate = gate;
     this.set_selected_ship(null, true);
@@ -109,61 +113,90 @@ function CosmosControls(){
   this.unregistered_click = function(click_event, entity) {}
 
   this.clicked_system  = function(click_event, system) {
+    this.clear_selected_ship();
     handlers.set_system(system.name);
   }
 
   this.clicked_planet  = function(click_event, planet) {
     var entity_container = $('#motel_entity_container');
+    this.clear_selected_ship();
     entity_container.show();
     entity_container.html("Planet: " + planet.name);
   }
 
   this.clicked_asteroid  = function(click_event, asteroid) {
     var entity_container = $('#motel_entity_container');
+    var asteroid_data = "Asteroid: " + asteroid.name +
+                        " ( @ " + asteroid.location.to_s() + ")" +
+                        "<br/>";
+    for(var r in asteroid.resources){
+      asteroid_data += r.quantity + " of " + r.name + " (" + r.type + ")<br/>";
+    }
+    this.clear_selected_ship();
     entity_container.show();
-    entity_container.html("Asteroid: " + asteroid.name +
-                          " ( @ " + asteroid.location.to_s() + ")");
+    entity_container.html(asteroid_data);
   }
 
   this.clicked_gate    = function(click_event, gate) {
     var entity_container = $('#motel_entity_container');
     controls.selected_gate = gate;
     controls.set_selected_gate(gate);
+    controls.clear_selected_ship();
     entity_container.show();
     entity_container.html("JumpGate to: " + gate.endpoint +
+                          "<br/> (@ "+ gate.location.to_s()+")" +
                           "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>" +
                           "<div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
   }
 
-  this.clicked_ship    = function(click_event, ship) {
+  // helper method
+  this.show_ship_details = function(ship){
     var entity_container = $('#motel_entity_container');
-    controls.set_selected_ship(ship, !click_event.shiftKey);
+    controls.set_selected_ship(ship, true);
     entity_container.show();
-    var entity_container_contents = controls.selected_ships.length > 1 ? 'Ships:' : 'Ship:';
-    for(var s in controls.selected_ships)
-      entity_container_contents += " " + controls.selected_ships[s].id +
-                                   " (" + controls.selected_ships[s].type + " @ " +
-                                          controls.selected_ships[s].location.to_s() + ")"
+    var entity_container_contents = "Ship: " +
+                                    controls.selected_ship.id +
+                                    " (" + controls.selected_ship.type + " @ " +
+                                           controls.selected_ship.location.to_s() + ")";
     entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_destination'>move</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_dock'>dock</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_undock'>undock</div>";
+    entity_container_contents += "<div class='command_icon' id='command_ship_select_transfer_resource'>transfer resource</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_mining'>start mining</div>";
     if(controls.selected_ships.length > 1)
       entity_container_contents += "<br/><a href='#' id='command_fleet_create'>create fleet</a>";
     entity_container.html(entity_container_contents);
 
-    if(!controls.selected_ship.docked_at)
+    if(!controls.selected_ship.docked_at){
       $('#command_ship_undock').hide();
-    else
+      $('#command_ship_select_transfer_resource').hide();
+    }else{
       $('#command_ship_select_dock').hide();
+      $('#command_ship_select_transfer_resource').show();
+    }
+  }
+
+  this.clicked_ship    = function(click_event, ship) {
+    this.show_ship_details(ship);
   }
 
   this.clicked_station = function(click_event, station) {
     var html = "Station: " + station.id +
-               "<br/>Type: " + station.type
+               " @ " + station.location.to_s() +
+               "<br/>Type: " + station.type +
+               "<br/>Docked Ships: ";
 
+    for(var l in client.locations){
+      var e = client.locations[l].entity;
+      if(e.json_class == "Manufactured::Ship" &&
+         e.docked_at &&
+         e.docked_at.id == station.id)
+           html += "<a href='#' id='"+e.id+"' class='command_view_ship' >"+e.id+"</a>";
+    }
+
+    this.clear_selected_ship();
     var entity_container = $('#motel_entity_container');
     entity_container.show();
     entity_container.html(html);
@@ -262,6 +295,20 @@ $('#cam_dec_z_position').mousehold(function(e, ctr){
 });
 
 ////////////////////// various custom inputs
+
+// show ship details
+$('.command_view_ship').live('click', function(e){
+  var ship;
+  for(var loc in client.locations){
+    var loco = client.locations[loc];
+    if(loco.entity.json_class == "Manufactured::Ship" &&
+       e.currentTarget.id == loco.entity.id){
+         ship = loco.entity;
+         break;
+       }
+  }
+  controls.show_ship_details(ship);
+});
 
 // trigger jump gate
 $('#command_jumpgate_trigger').live('click', function(e){
@@ -400,6 +447,7 @@ $('.command_ship_dock').live('click', function(e){
   client.dock_ship(controls.selected_ship.id, e.currentTarget.id);
   $('#command_ship_undock').show();
   $('#command_ship_select_dock').hide();
+  $('#command_ship_select_transfer_resource').show();
 });
 
 $('#command_ship_undock').live('click', function(e){
@@ -409,6 +457,35 @@ $('#command_ship_undock').live('click', function(e){
   client.undock_ship(controls.selected_ship.id);
   $('#command_ship_undock').hide();
   $('#command_ship_select_dock').show();
+  $('#command_ship_select_transfer_resource').hide();
+});
+
+$('#command_ship_select_transfer_resource').live('click', function(e){
+  var transfer = 'Select resource to transfer';
+  transfer += "<ul>";
+console.log(controls.selected_ship);
+  for(var resource in controls.selected_ship.resources){
+    var quantity = controls.selected_ship.resources[resource];
+    transfer += "<li><a href='#' class='command_ship_transfer_resource'"+
+                "id='"+controls.selected_ship.id + ":" + controls.selected_ship.docked_at.id + ":" + resource + ":" + quantity +"'>"+
+                quantity + " of " + resource + " -> " + controls.selected_ship.docked_at.id +
+                "</a></li>";
+  }
+  for(var resource in controls.selected_ship.docked_at.resources){
+    var quantity = controls.selected_ship.docked_at.resources[resource];
+    transfer += "<li><a href='#' class='command_ship_transfer_resource'" +
+                "id='"+controls.selected_ship.docked_at.id + ":" + controls.selected_ship.id + ":" + resource + ":" + quantity + "'>" +
+                quantity + " of " + resource + " -> " + controls.selected_ship.id +
+                "</a></li>";
+  }
+  transfer += "<ul>";
+  $('#motel_dialog').html(transfer).dialog({show: 'explode', title: 'select resource to transfer'}).dialog('open');
+});
+
+$('.command_ship_transfer_resource').live('click', function(e){
+  var tr = e.currentTarget.id.split(":");
+  client.transfer_resource(tr[0], tr[1], tr[2], tr[3]);
+  $('#motel_dialog').dialog('close');
 });
 
 $('#command_ship_select_mining').live('click', function(e){

@@ -97,7 +97,7 @@ class MiningCommand
     mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
 
     @resource_source.quantity -= mining_quantity
-    @ship.add_resource @resource_source.resource, mining_quantity
+    @ship.add_resource @resource_source.resource.id, mining_quantity
 
     @ship.notification_callbacks.
           select { |c| c.type == :resource_collected}.

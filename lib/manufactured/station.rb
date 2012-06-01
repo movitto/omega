@@ -51,15 +51,15 @@ class Station
     @solar_system = system
   end
 
-  def add_resource(resource, quantity)
-    @resources[resource.id] ||= 0
-    @resources[resource.id] += quantity
+  def add_resource(resource_id, quantity)
+    @resources[resource_id] ||= 0
+    @resources[resource_id] += quantity
   end
 
-  def remove_resource(resource, quantity)
-    return unless @resources.has_key?(resource.id) ||# TODO throw exception?
-                  @resources[resource.id] >= quantity
-    @resources[resource.id] -= quantity
+  def remove_resource(resource_id, quantity)
+    return unless @resources.has_key?(resource_id) ||# TODO throw exception?
+                  @resources[resource_id] >= quantity
+    @resources[resource_id] -= quantity
   end
 
   # use this station to construct new manufactured entities
@@ -93,7 +93,8 @@ class Station
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :user_id => user_id, :type => type, :size => size, :location => @location, :solar_system => @solar_system}
+         {:id => id, :user_id => user_id, :type => type, :size => size, :location => @location, :solar_system => @solar_system,
+          :resources => @resources}
      }.to_json(*a)
    end
 

@@ -99,14 +99,15 @@ class Registry
     }
   end
 
-  def transfer_resource(from_entity, to_entity, resource, quantity)
+  def transfer_resource(from_entity, to_entity, resource_id, quantity)
     @entities_lock.synchronize{
       # TODO throw exception ?
+      quantity = quantity.to_f
       return if from_entity.nil? || to_entity.nil? ||
-                from_entity.resources[resource.id].nil? ||
-                from_entity.resources[resource.id] < quantity
-      to_entity.add_resource(resource, quantity)
-      from_entity.remove_resource(resource, quantity)
+                from_entity.resources[resource_id].nil? ||
+                from_entity.resources[resource_id] < quantity
+      to_entity.add_resource(resource_id, quantity)
+      from_entity.remove_resource(resource_id, quantity)
       return [from_entity, to_entity]
     }
   end

@@ -115,15 +115,15 @@ class Ship
     @mining = nil
   end
 
-  def add_resource(resource, quantity)
-    @resources[resource.id] ||= 0
-    @resources[resource.id] += quantity
+  def add_resource(resource_id, quantity)
+    @resources[resource_id] ||= 0
+    @resources[resource_id] += quantity
   end
 
-  def remove_resource(resource, quantity)
-    return unless @resources.has_key?(resource.id) ||# TODO throw exception?
-                  @resources[resource.id] >= quantity
-    @resources[resource.id] -= quantity
+  def remove_resource(resource_id, quantity)
+    return unless @resources.has_key?(resource_id) ||# TODO throw exception?
+                  @resources[resource_id] >= quantity
+    @resources[resource_id] -= quantity
   end
 
   def to_json(*a)
@@ -134,7 +134,8 @@ class Ship
          :type => type, :size => size,
          :docked_at => @docked_at,
          :location => @location,
-         :solar_system => @solar_system}
+         :solar_system => @solar_system,
+         :resources => @resources}
     }.to_json(*a)
   end
 

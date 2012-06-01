@@ -299,7 +299,7 @@ class RJRAdapter
     # TODO
     #rjr_dispatcher.add_handler('manufactured::stop_mining') { |ship_id|
 
-    rjr_dispatcher.add_handler('manufactured::transfer_resource') { |from_entity_id, to_entity_id, resource, quantity|
+    rjr_dispatcher.add_handler('manufactured::transfer_resource') { |from_entity_id, to_entity_id, resource_id, quantity|
       from_entity = Manufactured::Registry.instance.find(:id => from_entity_id).first
       to_entity   = Manufactured::Registry.instance.find(:id => to_entity_id).first
       raise Omega::DataNotFound, "entity specified by #{from_entity_id} not found" if from_entity.nil?
@@ -312,7 +312,7 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource, quantity)
+      entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource_id, quantity)
       raise Omega::OperationError, "problem transferring resources from #{from_entity} to #{to_entity}" if entities.nil?
       entities
     }
