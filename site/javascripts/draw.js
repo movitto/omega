@@ -246,6 +246,8 @@ function CosmosUI(){
     // draw asterisk representing the asteroid
     ui.context.fillStyle = "#FFFFFF";
     ui.context.font = 'bold 32px sans-serif';
+    ui.context.textAlign = 'center';
+    ui.context.textBaseline = 'middle';
     ui.context.fillText("*",
                         ui.adjusted_x(loco.cx, loco.cy, loco.cz),
                         ui.adjusted_y(loco.cx, loco.cy, loco.cz));
@@ -281,9 +283,8 @@ function CosmosUI(){
   
     // draw name of system gate is to
     ui.context.font = 'bold 16px sans-serif';
-    var text_offset = gate.endpoint.length * 5;
     ui.context.fillText(gate.endpoint,
-                        ui.adjusted_x(loco.cx, loco.cy, loco.cz) - text_offset,
+                        ui.adjusted_x(loco.cx, loco.cy, loco.cz),
                         ui.adjusted_y(loco.cx, loco.cy, loco.cz) + 30);
  }
 
