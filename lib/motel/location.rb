@@ -155,6 +155,16 @@ class Location
      Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
    end
 
+   # add specified quantities to each coordinate component and return new location
+   def +(values)
+     loc = Location.new
+     loc.update(self)
+     loc.x += values[0]
+     loc.y += values[1]
+     loc.z += values[2]
+     loc
+   end
+
    def to_json(*a)
      {
        'json_class' => self.class.name,

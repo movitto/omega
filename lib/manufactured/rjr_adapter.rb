@@ -137,7 +137,7 @@ class RJRAdapter
       raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
 
       event_callback =
-        Callback.new(event){ |*args|
+        Callback.new(event, :endpoint => @headers['source_node']){ |*args|
           begin
             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                        {:privilege => 'view', :entity => 'manufactured_entities'}],
@@ -155,6 +155,20 @@ class RJRAdapter
         }
 
       entity.notification_callbacks << event_callback
+      entity
+    }
+
+    rjr_dispatcher.add_handler('manufactured::remove_callbacks') { |entity_id|
+      source_node = @headers['source_node']
+      # FIXME verify request is coming from authenticated source node
+
+      entity = Manufactured::Registry.instance.find(:id => id).first
+      raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      entity.notification_callbacks.reject!{ |nc| nc.endpoint_id == source_node }
       entity
     }
 
@@ -285,12 +299,12 @@ class RJRAdapter
       # resource_source is a copy of actual resource_source
       # stored in cosmos registry, need to update original
       collected_callback =
-        Callback.new(:resource_collected){ |*args|
+        Callback.new(:resource_collected, :endpoint => @@local_node.message_headers['source_node']){ |*args|
           rs = args[2]
           @@local_node.invoke_request('cosmos::set_resource', rs.entity.name, rs.resource, rs.quantity)
         }
       depleted_callback =
-        Callback.new(:resource_depleted){ |*args|
+        Callback.new(:resource_depleted, :endpoint => @@local_node.message_headers['source_node']){ |*args|
           ship.notification_callbacks.delete collected_callback
           ship.notification_callbacks.delete depleted_callback
         }

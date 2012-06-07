@@ -13,10 +13,15 @@ class Callback
   # Accessor which will be invoked upon callback event
   attr_accessor :handler
 
+  # endpoint_id which this callback is being used for
+  attr_accessor :endpoint_id
+
   def initialize(type, args = {}, &block)
     @type    = type.is_a?(Symbol)? type : type.intern
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
+
+    @endpoint_id = args[:endpoint]
   end
 
   def invoke(*args)

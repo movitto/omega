@@ -32,11 +32,10 @@ class SolarSystem
     @galaxy     = args['galaxy']     || args[:galaxy]
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
-    @asteroids  = args['asteroids '] || []
+    @asteroids  = args['asteroids']  || []
     @remote_queue = args['remote_queue'] || args[:remote_queue] || nil
 
     @background = "system#{rand(MAX_BACKGROUNDS-1)+1}"
-
 
     if @location.nil?
       @location = Motel::Location.new

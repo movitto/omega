@@ -35,6 +35,18 @@ class Elliptical < MovementStrategy
      @eccentricity       = args[:eccentricity]      if args.has_key? :eccentricity
      @semi_latus_rectum  = args[:semi_latus_rectum] if args.has_key? :semi_latus_rectum
 
+     @direction_major_x, @direction_major_y, @direction_major_z =
+       *args[:direction][0]  if args.has_key?(:direction)
+
+     @direction_minor_x, @direction_minor_y, @direction_minor_z =
+       *args[:direction][1]  if args.has_key?(:direction)
+
+     @direction_major_x, @direction_major_y, @direction_major_z =
+       *args[:direction_major]  if args.has_key?(:direction_major)
+
+     @direction_minor_x, @direction_minor_y, @direction_minor_z =
+       *args[:direction_minor]  if args.has_key?(:direction_minor)
+
      @direction_major_x   = args[:direction_major_x] if args.has_key? :direction_major_x
      @direction_major_y   = args[:direction_major_y] if args.has_key? :direction_major_y
      @direction_major_z   = args[:direction_major_z] if args.has_key? :direction_major_z

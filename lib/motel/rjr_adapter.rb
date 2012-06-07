@@ -191,6 +191,7 @@ class RJRAdapter
       location_id = args[0]
       callback_type = args.length > 1 ? args[1] : nil
       source_node = @headers['source_node']
+      # FIXME verify request is coming from authenticated source node
 
       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?

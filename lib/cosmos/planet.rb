@@ -30,6 +30,8 @@ class Planet
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+
+    @location.movement_strategy = args[:movement_strategy] if args.has_key?(:movement_strategy)
   end
 
   def self.parent_type

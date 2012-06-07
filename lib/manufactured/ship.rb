@@ -37,12 +37,12 @@ class Ship
   attr_reader :resources
 
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
-                :battlecruiser, :exploration]
+                :battlecruiser, :exploration, :mining]
 
   # mapping of ship types to default sizes
   SHIP_SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
                 :destroyer => 30, :bomber => 25, :corvette => 25,
-                :battlecruiser => 35, :exploration => 23}
+                :battlecruiser => 35, :exploration => 23, :mining => 25}
 
   def initialize(args = {})
     @id       = args['id']       || args[:id]
