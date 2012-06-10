@@ -3,6 +3,18 @@ function User(){
   this.email      = null;
   this.password   = null;
   this.session_id = '';
+  this.ships = [];
+  this.stations = [];
+
+  this.update = function(user){
+    this.id         = user.id;
+    this.email      = user.email;
+    this.password   = user.password;
+    this.session_id = user.session_id;
+
+    this.ship     = user.ships;
+    this.stations = user.stations;
+  };
 
   this.toJSON = function(){ return new JRObject("Users::User", this).toJSON(); };
   this.create_session = function(session_id, user_id, client){

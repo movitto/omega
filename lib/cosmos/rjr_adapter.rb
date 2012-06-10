@@ -64,73 +64,56 @@ class RJRAdapter
 
        entities = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
 
-       if entities.is_a?(Array)
-         entities.reject! { |entity|
-           raised = false
-           begin
-             Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
-                                                        {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                               :session => @headers['session_id'])
-           rescue Omega::PermissionError => e
-             raised = true
-           end
-           raised
-         }
-         # raise Omega::DataNotFound if entities.empty? (?)
-         entities.each{ |entity|
-           # update locations w/ latest from the tracker
-           entity.location = @@local_node.invoke_request('get_location', entity.location.id)
-
-           if entity.has_children?
-             entity.each_child { |parent, child|
-               if child.class.remotely_trackable? && child.remote_queue
-                 rchild = @@remote_cosmos_manager.get_entity(child)
-                 parent.remove_child(child)
-                 parent.add_child(rchild)
-
-               else
-                 child.location = @@local_node.invoke_request('get_location', child.location.id)
-               end
-
-             }
-           end
-         }
-
-         0.upto(entities.size-1) { |i|
-           entity = entities[i]
-           if entity.class.remotely_trackable? && entity.remote_queue
-             entities[i] = @@remote_cosmos_manager.get_entity(entity)
-           end
-         }
-
-       else
+       return_first = false
+       unless entities.is_a?(Array)
          raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entities.nil?
          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.name}"},
                                                     {:privilege => 'view', :entity => 'cosmos_entities'}],
                                            :session => @headers['session_id'])
 
-         # update locations w/ latest from the tracker
-         entities.location = @@local_node.invoke_request('get_location', entities.location.id)
+         return_first = true
+         entities = [entities]
+       end
 
-         if entities.has_children?
-           entities.each_child { |parent, child|
+       entities.reject! { |entity|
+         raised = false
+         begin
+           Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
+                                                      {:privilege => 'view', :entity => 'cosmos_entities'}],
+                                             :session => @headers['session_id'])
+         rescue Omega::PermissionError => e
+           raised = true
+         end
+         raised
+       }
+       # raise Omega::DataNotFound if entities.empty? (?)
+       entities.each{ |entity|
+         # update locations w/ latest from the tracker
+         entity.location = @@local_node.invoke_request('get_location', entity.location.id) if entity.location
+
+         if entity.has_children?
+           entity.each_child { |parent, child|
              if child.class.remotely_trackable? && child.remote_queue
                rchild = @@remote_cosmos_manager.get_entity(child)
                parent.remove_child(child)
                parent.add_child(rchild)
+
              else
                child.location = @@local_node.invoke_request('get_location', child.location.id)
              end
+
            }
          end
+       }
 
-         if entities.class.remotely_trackable? && entities.remote_queue
-           entities = @@remote_cosmos_manager.get_entity(entities)
+       0.upto(entities.size-1) { |i|
+         entity = entities[i]
+         if entity.class.remotely_trackable? && entity.remote_queue
+           entities[i] = @@remote_cosmos_manager.get_entity(entity)
          end
+       }
 
-       end
-
-       entities
+       return_first ? entities.first : entities
     }
 
     rjr_dispatcher.add_handler('cosmos::get_entity_from_location'){ |type, location_id|

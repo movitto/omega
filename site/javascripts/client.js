@@ -40,6 +40,13 @@ function CosmosClient() {
     client.locations[key].update(loc);
   }
 
+  this.add_user = function(user){
+    var key = user.id;
+    if(!client.users[key])
+      client.users[key] = new User();
+    client.users[key].update(user);
+  }
+
   this.track_movement = function(id, min_distance){
     client.ws_node.invoke_request('track_movement', id, min_distance);
   }
@@ -64,6 +71,10 @@ function CosmosClient() {
     client.web_node.invoke_request('manufactured::create_entity', entity);
   }
 
+  this.get_users = function(){
+    client.web_node.invoke_request('users::get_all_entities', 'Users::User');
+  }
+
   this.get_user_info = function(){
     client.web_node.invoke_request('users::get_entity', client.current_user.id)
   }
@@ -76,11 +87,14 @@ function CosmosClient() {
     client.ws_node.invoke_request('users::subscribe_to_messages', client.current_user.id);
   }
 
-  this.attack_entity = function(attacker, defender){
-    // TODO should subscribe to these events in another location
+  this.subscribe_to_attacked_events = function(defender){
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked');
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked_stop');
     client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'destroyed');
+  }
+
+  this.attack_entity = function(attacker, defender){
+    client.subscribe_to_attacked_events(defender);
     client.web_node.invoke_request('manufactured::attack_entity', attacker, defender);
   }
 
@@ -104,9 +118,14 @@ function CosmosClient() {
     client.web_node.invoke_request('manufactured::construct_entity', station.id, 'Manufactured::Ship');
   }
 
-  this.start_mining = function(ship, resource_source_id){
+  this.subscribe_to_mining_events = function(ship){
     client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_collected');
     client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_depleted');
+  }
+
+
+  this.start_mining = function(ship, resource_source_id){
+    client.subscribe_to_mining_events(ship);
     client.web_node.invoke_request('manufactured::start_mining', ship.id, resource_source_id);
   }
 

@@ -33,11 +33,12 @@ class RJRAdapter
        entity
     }
 
-    rjr_dispatcher.add_handler('users::get_all_entities') {
+    rjr_dispatcher.add_handler('users::get_all_entities') { |*args|
+       type = args.length > 0 ? args[0] : nil
        Users::Registry.require_privilege(:privilege => 'view', :entity => 'users_entities',
                                          :session   => @headers['session_id'])
 
-       Users::Registry.instance.find
+       Users::Registry.instance.find :type => type
     }
 
     rjr_dispatcher.add_handler('users::send_message') { |user_id, message|

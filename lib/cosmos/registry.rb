@@ -73,6 +73,18 @@ class Registry
     return entities
   end
 
+  def name
+    "universe"
+  end
+
+  def location
+    nil
+  end
+
+  def self.remotely_trackable?
+    false
+  end
+
   def children
     @galaxies
   end
@@ -150,6 +162,10 @@ class Registry
 
     return resource_source
   end
+
+   def to_json(*a)
+     @galaxies.to_json(*a)
+   end
 
   # Save state of the registry to specified stream
   def save_state(io)

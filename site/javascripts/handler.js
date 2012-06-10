@@ -171,6 +171,17 @@ function OmegaHandlers(){
 
   /////////////////// registerable callbacks
 
+  this.handle_users = function(users){
+    if(users != null && isArray(users) && users.length > 0){
+      for(var u = 0; u < users.length; ++u){
+        var user = users[u];
+        if(user.json_class == "Users::User"){
+          client.add_user(user);
+        }
+      }
+    }
+  };
+
   this.handle_galaxies = function(galaxies){
     if(galaxies != null && isArray(galaxies) && galaxies.length > 0){
       for(var g = 0; g < galaxies.length; ++g){
@@ -287,10 +298,10 @@ function OmegaHandlers(){
 
   this.handle_resource_sources = function(resource_sources){
     if(resource_sources != null && isArray(resource_sources) && resource_sources.length > 0){
-      for(var r = 0; r < resource_sources.length; ++r){
+      for(var r in resource_sources){
         var resource_source = resource_sources[r];
         if(resource_source.json_class == "Cosmos::ResourceSource"){
-          for(var l = 0; l < client.locations.size; ++l){
+          for(var l in client.locations){
             var loc = client.locations[l];
             if(loc.entity.name == resource_source.entity.name){
               if(!loc.entity.resources) loc.entity.resources = [];
@@ -318,13 +329,20 @@ function OmegaHandlers(){
           ship.location.entity = ship;
           ship.system = ship.solar_system
           client.add_location(ship.location);
+          for(var u in client.users){
+            if(ship.user_id == client.users[u].id){
+              ship.user = client.users[u];
+              client.users[u].ships[ship.id] = ship;
+            }
+          }
         }
       }
 
       // refresh current system
       // XXX hack this is here for when we move ships between systems
-      if(client.current_system && num_ships > 0)
-        handlers.set_system(client.current_system.name);
+      // XXX removed for stats page
+      //if(client.current_system && num_ships > 0)
+      //  handlers.set_system(client.current_system.name);
     }
 
   }
@@ -511,6 +529,7 @@ function OmegaHandlers(){
         }
       }
       ship.mining = entity;
+      entity.resources[params[2].resource.id].quantity -= params[3];
 
     }else if(params[0] == "resource_depleted"){
       var ship = null;

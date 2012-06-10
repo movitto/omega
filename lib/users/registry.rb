@@ -45,6 +45,7 @@ class Registry
 
   def find(args = {})
     id        = args[:id]
+    type      = args[:type]
     session_id = args[:session_id]
     registration_code = args[:registration_code]
 
@@ -59,6 +60,7 @@ class Registry
 
     to_search.each { |entity|
       entities << entity if (id.nil?        || (entity.id         == id)) &&
+                            (type.nil?      || (entity.class.to_s == type)) &&
                             (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id)) &&
                             (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code))
     }

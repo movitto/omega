@@ -354,3 +354,72 @@ function CosmosUI(){
   }
 
 };
+
+function CosmosStatsUI(){
+  this.cosmos_stats  = $('#omega_cosmos_stats');
+  this.users_stats   = $('#omega_users_stats');
+  this.actions_stats = $('#omega_actions_stats');
+  this.draw = function(){
+    var cs = '';
+    var as = '<ul>';
+    for(var l in client.locations){
+      if(client.locations[l].entity.json_class == "Cosmos::Galaxy"){
+        var gal = client.locations[l].entity;
+        cs += '<ul><li>Galaxy: ' + gal.name + '<ul>';
+        for(var s = 0; s < gal.solar_systems.length; ++s){
+          var sys = gal.solar_systems[s];
+          cs += "<li>System: " + sys.name + "<ul><li>Star: " + sys.star.name + "</li>";
+          for(var p = 0; p < sys.planets.length; ++p){
+            var planet = sys.planets[p];
+            cs += "<li>Planet: " + planet.name + " (@ " + planet.location.to_s() + ") <ul>";
+            for(var m = 0; m < planet.moons.length; ++m){
+              var moon = planet.moons[m];
+              cs += "<li>Moon: " + moon.name + "</li>";
+            }
+            cs += "</ul></li>";
+          }
+          for(var a = 0; a < sys.asteroids.length; ++a){
+            var asteroid = sys.asteroids[a];
+            cs += "<li>Asteroid: " + asteroid.name + "<ul>";
+            if(asteroid.resources){
+              for(var r in asteroid.resources){
+                var res = asteroid.resources[r];
+                cs += "<li>" + res.resource.id + " (" + res.quantity + ")</li>";
+              }
+            }
+            cs += "</ul></li>";
+          }
+          cs += "</ul></li>";
+        }
+        cs += '</ul></li></ul>';
+
+      }else if(client.locations[l].entity.json_class == "Manufactured::Ship"){
+        var ship = client.locations[l].entity;
+        if(ship.attacking){
+          as += "<li>" + ship.id + " attacking " + ship.attacking.id + "</li>";
+        }
+
+        if(ship.mining){
+          as += "<li>" + ship.id + " mining " + ship.mining.name + "</li>";
+        }
+      }
+    }
+
+    as += "</ul>";
+
+    var us = '<ul>';
+    for(var u in client.users){
+      var user = client.users[u];
+      us += "<li>" + user.id + "<ul>";
+      for(var s in user.ships){
+        us += "<li>" + user.ships[s].id + " (@" + user.ships[s].location.to_s() + ")</li>";
+      }
+      us += "</ul></li>";
+    }
+    us += "</ul>"
+
+    ui.cosmos_stats.html(cs);
+    ui.users_stats.html(us);
+    ui.actions_stats.html(as);
+  };
+};

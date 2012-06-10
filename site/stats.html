@@ -1,0 +1,134 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="stylesheets/motel.css" />
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="javascripts/rjr/json.js"></script>
+    <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
+    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="javascripts/user.js"></script>
+    <script type="text/javascript" src="javascripts/location.js"></script>
+    <script type="text/javascript" src="javascripts/handler.js"></script>
+    <script type="text/javascript" src="javascripts/client.js"></script>
+    <script type="text/javascript" src="javascripts/input.js"></script>
+    <script type="text/javascript" src="javascripts/draw.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){ 
+        // right now browser compatability check is restricted
+        // to the platform I tested all this on.
+        // Want expanded support?
+        // Test this out in alternative browsers and send patches!
+        var user_agent = $.browser;
+        if(!user_agent.mozilla || parseFloat(user_agent.version) < 8.0){
+          alert("Must be running Firefox >= 8.0");
+          return;
+        }
+
+        handlers = new OmegaHandlers();
+        handlers.onopen = function(){
+          client.current_user.restore_session(client);
+        }
+        handlers.onlogin = function(){
+          handlers.clear_callbacks();
+          handlers.add_callback(handlers.handle_galaxies);
+          handlers.add_callback(handlers.handle_users);
+          handlers.add_callback(handlers.handle_resource_sources);
+          handlers.add_callback(handlers.handle_ships);
+          handlers.add_callback(handlers.handle_stations);
+          handlers.add_method('on_movement', handlers.on_movement);
+          handlers.add_method('manufactured::event_occurred', handlers.on_attacked_event);
+          handlers.add_method('manufactured::event_occurred', handlers.on_mining_event);
+
+          handlers.add_callback(function(result){
+            if(result != null && isArray(result) && result.length > 0){
+              for(var r = 0; r < result.length; ++r){
+                var res = result[r];
+                if(res.json_class == "Cosmos::Galaxy"){
+                  for(var s = 0; s < res.solar_systems.length; ++s){
+                    var sys = res.solar_systems[s];
+                    // get all ships + stations
+                    client.get_entities_under(sys.name);
+
+                    // track planet movement
+                    for(var p in sys.planets){
+                      var plan = sys.planets[p];
+                      client.track_movement(plan.location.id, 1);
+                    }
+
+                    // track asteroid resources
+                    for(var a in sys.asteroids){
+                      var ast = sys.asteroids[a];
+                      client.get_resource_sources(ast.name);
+                    }
+                  }
+
+                }else if(res.json_class == "Manufactured::Ship"){
+                  // track ship movement
+                  client.track_movement(res.location.id, 1);
+
+                  // get + track all ship mining and attack commands
+                  client.subscribe_to_attacked_events(res);
+                  client.subscribe_to_mining_events(res);
+
+
+                }//else if(res.json_class == "Manufactured::Station"){
+              }
+            }
+          });
+
+          client.get_users();
+          client.get_cosmos_entity('universe');
+
+          controls.show_logout_controls();
+        }
+        handlers.onlogout = function(){
+          controls.show_login_controls();
+        }
+        handlers.add_error_handler(handlers.logout_user);
+        handlers.add_error_handler(handlers.print_error_to_console);
+        handlers.add_error_handler(handlers.show_error);
+
+        controls = new CosmosControls();
+        client = new CosmosClient();
+        client.connect();
+
+        ui = new CosmosStatsUI();
+        setInterval(ui.draw, 500);
+      });
+    </script>
+
+  </head>
+  <body>
+    <div id="login_logout_link">
+      <a href="#" id="create_account_dialog_link">register</a>
+      <a href="/wotel/account.html" id="account_link" style="display: none">account</a> /
+      <a href="#" id="login_dialog_link">login</a>
+      <a href="#" id="logout_link" style="display: none">logout</a>
+    </div>
+
+    <div id="primary_navigation">
+      <a href="/wiki/Omegaverse:About">About</a>
+      <a href="/wiki/Omegaverse">Wiki</a>
+      <a href="/wiki/Forum">Forums</a>
+      <a href="/stats.html">Stats</a>
+    </div>
+
+    <div id="omega_stats_nav">
+      <ul>
+       <li id="stats_cosmos" class="omega_display_stats">Cosmos</li>
+       <li id="stats_users"  class="omega_display_stats">Users</li>
+       <li id="stats_actions" class="omega_display_stats">Actions</li>
+     </ul>
+    </div>
+
+    <div id="omega_stats_content">
+      <div id="omega_cosmos_stats"></div>
+      <div id="omega_users_stats"></div>
+      <div id="omega_actions_stats"></div>
+    </div>
+
+    <div id="motel_dialog"></div>
+
+  </body>
+</html>

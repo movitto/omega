@@ -165,6 +165,37 @@
   font-size: 1.5em;
 }
 
+#omega_stats_nav {
+  margin-top: 30px;
+  float: left;
+  width: 10%;
+}
+
+#omega_stats_nav li{
+  list-style: none;
+  padding-left: 10px;
+  background: #FFFF00;
+  border: 1px black solid;
+}
+
+#omega_stats_nav li:hover {
+  background: #00FFFF;
+  cursor: crosshair;
+}
+
+#omega_stats_content{
+  float: left;
+  margin-top: 30px;
+  width: 50%;
+}
+
+#omega_cosmos_stats,
+#omega_users_stats,
+#omega_actions_stats{
+  display: none;
+  margin-left: 15px;
+}
+
 .command_icon {
   border: 1px solid #EEF3E2;
   height: 30px;

@@ -26,8 +26,10 @@ function Location(){
       this.movement_strategy = new_location.movement_strategy;
 
     // needs to be invoked after movement stategy is set as orbit is updated here
-    var nloc = ui.camera.update_location(this);
-    this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
+    if(ui.camera){
+      var nloc = ui.camera.update_location(this);
+      this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
+    }
 
     if(new_location.entity)
       this.entity = new_location.entity;

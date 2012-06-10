@@ -254,6 +254,8 @@ $('#motel_canvas').live('mouseup', function(e){
 
 /////////////////////// camera controls
 
+if(jQuery.fn.mousehold){
+
 $('#cam_inc_x_angle').mousehold(function(e, ctr){
   ui.camera.rotate('x', 0.01);
 });
@@ -301,6 +303,8 @@ $('#cam_inc_z_position').mousehold(function(e, ctr){
 $('#cam_dec_z_position').mousehold(function(e, ctr){
   ui.camera.move('z', -20);
 });
+
+}
 
 ////////////////////// various custom inputs
 
@@ -630,4 +634,11 @@ $('#account_info_update').live('click', function(event){
 
   client.current_user.password = pass1;
   client.update_account();
+});
+
+$('#.omega_display_stats').live('click', function(event){
+  var selected_stat = $(event.currentTarget).attr('id');
+  selected_stat = selected_stat.slice(6);
+  $('#omega_stats_content div').hide();
+  $('#omega_' + selected_stat + '_stats').show();
 });
