@@ -22,7 +22,7 @@ class Base
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
 
-    @endpoint_id = args[:endpoint]
+    @endpoint_id = args[:endpoint] || args['endpoint']
   end
 
   # FIXME XXX this should be *args instead of args = [] (remove [] around super calls below)
@@ -41,10 +41,10 @@ class Movement < Base
   attr_accessor :min_x, :min_y, :min_z
 
   def initialize(args = {}, &block)
-    @min_distance = args[:min_distance] || 0
-    @min_x        = args[:min_x]        || 0
-    @min_y        = args[:min_y]        || 0
-    @min_z        = args[:min_z]        || 0
+    @min_distance = args[:min_distance] || args['min_distance'] || 0
+    @min_x        = args[:min_x]        || args['min_x']        || 0
+    @min_y        = args[:min_y]        || args['min_y']        || 0
+    @min_z        = args[:min_z]        || args['min_z']        || 0
 
     # store original coordinates internally,
     # until minimum distances are satified
@@ -73,6 +73,24 @@ class Movement < Base
        @orig_x = @orig_y = @orig_z = nil
      end
   end
+
+  def to_s
+    "(#{@min_distance},#{@min_x},#{@min_y},#{@min_z})"
+  end
+
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        { :endpoint => @endpoint_id, :min_distance => @min_distance,
+          :min_x => @min_x, :min_y => @min_y, :min_z => @min_z }
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    callback = new(o['data'])
+    return callback
+  end
 end # class Movement
 
 # Invoked upon specified maximum distance between locations
@@ -97,12 +115,13 @@ class Proximity < Base
     @to_location = nil
     @event = :proximity
 
-    @max_distance = args[:max_distance] if args.has_key?(:max_distance)
-    @max_x = args[:max_x] if args.has_key?(:max_x)
-    @max_y = args[:max_y] if args.has_key?(:max_y)
-    @max_z = args[:max_z] if args.has_key?(:max_z)
-    @to_location = args[:to_location] if args.has_key?(:to_location)
-    @event = args[:event].intern if args.has_key?(:event) && args[:event].is_a?(String)
+    @max_distance = args[:max_distance] || args['max_distance']
+    @max_x = args[:max_x] || args['max_x']
+    @max_y = args[:max_y] || args['max_y']
+    @max_z = args[:max_z] || args['max_z']
+    @to_location = args[:to_location] || args['to_location']
+    @event = args[:event].intern  if args.has_key?(:event)  && args[:event].is_a?(String)
+    @event = args['event'].intern if args.has_key?('event') && args['event'].is_a?(String)
 
     # keep track of proximity state internally for different event types
     @locations_in_proximity = false
@@ -128,6 +147,25 @@ class Proximity < Base
      @locations_in_proximity = currently_in_proximity
 
      super([location, to_location]) if trigger_callback
+  end
+
+  def to_s
+    "(#{@max_distance},#{@max_x},#{@max_y},#{@max_z})"
+  end
+
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        { :endpoint => @endpoint_id, :max_distance => @max_distance,
+          :max_x => @max_x, :max_y => @max_y, :max_z => @max_z,
+          :to_location => @to_location, :event => @event}
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    callback = new(o['data'])
+    return callback
   end
 end # class Proximity
 

@@ -21,11 +21,24 @@ class Callback
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
 
-    @endpoint_id = args[:endpoint]
+    @endpoint_id = args[:endpoint] || args['endpoint']
   end
 
   def invoke(*args)
     handler.call *args
+  end
+
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        { :type => @type, :endpoint => @endpoint_id}
+    }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    callback = new(o['data']['type'], o['data'])
+    return callback
   end
 
 end

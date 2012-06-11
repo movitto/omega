@@ -175,7 +175,9 @@ class Location
           :parent_id => parent_id,
           :children  => children,
           :remote_queue => remote_queue,
-          :movement_strategy => movement_strategy}
+          :movement_strategy => movement_strategy,
+          :movement_callbacks => movement_callbacks,
+          :proximity_callback => proximity_callbacks}
      }.to_json(*a)
    end
 

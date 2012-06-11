@@ -55,7 +55,7 @@ class Ship
 
     @solar_system = args[:solar_system] || args['solar_system']
 
-    @notification_callbacks = []
+    @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = {}
 
     # FIXME make variable
@@ -135,7 +135,8 @@ class Ship
          :docked_at => @docked_at,
          :location => @location,
          :solar_system => @solar_system,
-         :resources => @resources}
+         :resources => @resources,
+         :notifications => @notification_callbacks}
     }.to_json(*a)
   end
 
