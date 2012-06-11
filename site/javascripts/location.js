@@ -60,6 +60,6 @@ function Location(){
                                   (Math.round(this.z*100)/100); }
 
   this.toJSON = function(){ return new JRObject("Motel::Location", this, 
-                                                ["toJSON", "entity", "movement_strategy"]).toJSON(); };
+                                                ["toJSON", "entity", "movement_strategy", "notifications"]).toJSON(); };
   //JRObject.class_registry['Motel::Location'] = Location;
 };

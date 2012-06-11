@@ -88,9 +88,9 @@ function CosmosClient() {
   }
 
   this.subscribe_to_attacked_events = function(defender){
-    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked');
-    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'attacked_stop');
-    client.ws_node.invoke_request('manufactured::subscribe_to', defender, 'destroyed');
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender.id, 'attacked');
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender.id, 'attacked_stop');
+    client.ws_node.invoke_request('manufactured::subscribe_to', defender.id, 'destroyed');
   }
 
   this.attack_entity = function(attacker, defender){
