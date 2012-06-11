@@ -1,0 +1,136 @@
+#!/usr/bin/ruby
+# Create new cosmos entity
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+entity = nil
+name   = nil
+parent = nil
+xcoord = nil
+ycoord = nil
+zcoord = nil
+remote_queue = nil
+size = nil
+color = nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-e', '--entity ENTITY', 'type of cosmos entity to create') do |e|
+    entity = e
+  end
+
+  opts.on('-n', '--name NAME', 'name to give entity') do |n|
+    name = n
+  end
+
+  opts.on('-p', '--parent NAME', 'name of entity\'s parent') do |p|
+    parent = p
+  end
+
+  opts.on('-x', '--xcoord COORDINATE', 'x coordiante of entity\'s location') do |x|
+    xcoord = x
+  end
+  opts.on('-y', '--ycoord COORDINATE', 'y coordiante of entity\'s location') do |y|
+    ycoord = y
+  end
+  opts.on('-z', '--zcoord COORDINATE', 'z coordiante of entity\'s location') do |z|
+    zcoord = z
+  end
+
+  opts.on('-r', '--remote QUEUE', 'name of remote queue to track entities (galaxy/system only)') do |r|
+    remote_queue = r
+  end
+
+  opts.on('-s', '--size SIZE', 'size of entity') do |s|
+    size = s
+  end
+  opts.on('-c', '--color COLOR', 'color to give entity') do |c|
+    color = c
+  end
+end
+
+optparse.parse!
+
+unless ['galaxy', 'solarsystem', 'star', 'asteroid', 'planet', 'moon'].include?(entity)
+  puts "Invalid entity '#{entity}' specified"
+  exit 1
+end
+
+if name.nil?
+  puts "Must specify name"
+  exit 1
+end
+
+if !['galaxy'].include?(entity) && parent.nil?
+  puts "Must specify parent for #{entity}"
+  exit 1
+end
+
+if !['galaxy', 'solarsystem'].include?(entity) && !remote_queue.nil?
+  puts "Cannot specify remote_queue with #{entity}"
+  exit 1
+end
+
+if !['asteroid', 'planet', 'star'].include?(entity) && (!size.nil? || !color.nil?)
+  puts "Cannot specify size or color with #{entity}"
+  exit 1
+end
+
+if !['galaxy', 'star'].include?(entity) && (xcoord.nil? || ycoord.nil? || zcoord.nil?)
+  puts "Must specify location of #{entity}"
+  exit 1
+end
+
+entity_obj = nil
+case entity
+when 'galaxy'
+  entity_obj = Cosmos::Galaxy.new :name => name,
+                                  :remote_queue => remote_queue
+when 'solarsystem'
+  entity_obj = Cosmos::SolarSystem.new :name => name,
+                                       :remote_queue => remote_queue,
+                                       :location => Motel::Location.new(:x => xcoord,
+                                                                        :y => ycoord,
+                                                                        :z => zcoord)
+when 'star'
+  entity_obj = Cosmos::Star.new :name => name
+
+when 'asteroid'
+  entity_obj = Cosmos::Asteroid.new :name => name,
+                                    :size => size,
+                                    :color => color,
+                                    :location => Motel::Location.new(:x => xcoord,
+                                                                     :y => ycoord,
+                                                                     :z => zcoord)
+when 'planet'
+  entity_obj = Cosmos::Planet.new :name => name,
+                                  :size => size,
+                                  :color => color,
+                                  :location => Motel::Location.new(:x => xcoord,
+                                                                   :y => ycoord,
+                                                                   :z => zcoord)
+when 'moon'
+  entity_obj = Cosmos::Moon.new :name => name
+end
+
+
+
+
+RJR::Logger.log_level= ::Logger::INFO
+
+rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-create', :broker => 'localhost'
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+rjr_node.message_headers['session_id'] = session.id
+
+rjr_node.invoke_request('omega-queue', 'cosmos::create_entity', entity_obj, parent)

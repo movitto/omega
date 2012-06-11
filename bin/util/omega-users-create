@@ -1,0 +1,75 @@
+#!/usr/bin/ruby
+# Create new users entity
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+entity   = nil
+id       = nil
+password = nil
+email    = nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-e', '--entity ENTITY', 'type of users entity to create') do |e|
+    entity = e
+  end
+
+  opts.on('-i', '--id ID', 'id to give entity') do |i|
+    id = i
+  end
+
+  opts.on('-p', '--password PASSWORD', 'password to give entity') do |p|
+    parent = p
+  end
+
+  opts.on('-m', '--email email', 'email to give entity') do |e|
+    email = e
+  end
+end
+
+optparse.parse!
+
+unless ['user'].include?(entity)
+  puts "Invalid entity '#{entity}' specified"
+  exit 1
+end
+
+if id.nil?
+  puts "Must specify id"
+  exit 1
+end
+
+if !['user'].include?(entity) && (password.nil? || email.nil?)
+  puts "Must specify password and email for #{entity}"
+  exit 1
+end
+
+entity_obj = nil
+case entity
+when 'user'
+  entity_obj = Users::User.new :id       => id,
+                               :password => password,
+                               :email    => email
+end
+
+
+
+
+RJR::Logger.log_level= ::Logger::INFO
+
+rjr_node   = RJR::AMQPNode.new :node_id => 'omega-users-create', :broker => 'localhost'
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+rjr_node.message_headers['session_id'] = session.id
+
+rjr_node.invoke_request('omega-queue', 'users::create_entity', entity_obj)

@@ -1,0 +1,71 @@
+#!/usr/bin/ruby
+# Retrieve manufactured entity
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+entity_type   = nil
+id            = nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-e', '--entity ENTITY', 'type of users entity to create') do |e|
+    entity_type = e
+  end
+
+  opts.on('-i', '--id ID', 'id of entity to retrieve') do |i|
+    id = i
+  end
+end
+
+optparse.parse!
+
+unless ['ship'].include?(entity_type)
+  puts "Invalid entity '#{entity_type}' specified"
+  exit 1
+end
+
+if id.nil?
+  puts "Must specify id"
+  exit 1
+end
+
+RJR::Logger.log_level= ::Logger::INFO
+
+rjr_node   = RJR::AMQPNode.new :node_id => 'omega-manufactured-retrieve', :broker => 'localhost'
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+rjr_node.message_headers['session_id'] = session.id
+
+entity = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', id)
+
+puts "Entity: " + entity.to_s
+
+case entity_type
+when "ship"
+  puts "ship #{entity.id}"
+  puts " beloning to #{entity.user_id}"
+  puts " of type #{entity.type}"
+  puts " of size #{entity.size}"
+  puts " in system #{entity.solar_system.name}"
+  puts "  at #{entity.location.to_s}"
+  puts " notifications:"
+  entity.notification_callbacks.each { |n|
+    puts "   - #{n.type} -> #{n.endpoint_id}"
+  }
+  entity.location.movement_callbacks.each { |m|
+    puts "   - movement of #{m.to_s} -> #{m.endpoint_id}"
+  }
+  entity.location.proximity_callbacks.each { |p|
+    puts "   - proximity (#{p.event}) of #{p.to_s}/#{p.to_location} -> #{p.endpoint_id}"
+  }
+end
