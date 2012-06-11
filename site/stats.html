@@ -77,8 +77,14 @@
             }
           });
 
-          client.get_users();
-          client.get_cosmos_entity('universe');
+          function refresh(){
+            client.get_users();
+            client.get_cosmos_entity('universe');
+          }
+
+          // overall refresh every 10s
+          setInterval(refresh, 10000);
+          refresh();
 
           controls.show_logout_controls();
         }

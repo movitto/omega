@@ -368,7 +368,10 @@ function CosmosStatsUI(){
         cs += '<ul><li>Galaxy: ' + gal.name + '<ul>';
         for(var s = 0; s < gal.solar_systems.length; ++s){
           var sys = gal.solar_systems[s];
-          cs += "<li>System: " + sys.name + "<ul><li>Star: " + sys.star.name + "</li>";
+          cs += "<li>System: " + sys.name + "<ul>";
+          if(sys.star){
+            cs += "<li>Star: " + sys.star.name + "</li>";
+          }
           for(var p = 0; p < sys.planets.length; ++p){
             var planet = sys.planets[p];
             cs += "<li>Planet: " + planet.name + " (@ " + planet.location.to_s() + ") <ul>";

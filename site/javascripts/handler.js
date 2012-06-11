@@ -200,9 +200,11 @@ function OmegaHandlers(){
             system.size = 15;
             client.add_location(system.location);
 
-            system.star.system = system;
-            system.star.location.entity = system.star;
-            client.add_location(system.star.location);
+            if(system.star){
+              system.star.system = system;
+              system.star.location.entity = system.star;
+              client.add_location(system.star.location);
+            }
 
             for(var p=0; p<system.planets.length; ++p){
               var planet = system.planets[p];
