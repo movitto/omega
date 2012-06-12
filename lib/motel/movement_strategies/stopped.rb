@@ -12,6 +12,10 @@ module MovementStrategies
 # Stopped is the default MovementStrategy which does nothing 
 class Stopped < MovementStrategy
    include Singleton
+
+   def to_s
+     "stopped"
+   end
 end
 
 end # module MovementStrategies

@@ -58,6 +58,10 @@ class Linear < MovementStrategy
                          :direction_vector_z => direction_vector_z }
      }.to_json(*a)
    end
+
+   def to_s
+     "linear-(#{@direction_vector_x},#{@direction_vector_y},#{@direction_vector_z})"
+   end
 end
 
 end # module Models

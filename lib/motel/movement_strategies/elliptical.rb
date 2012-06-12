@@ -138,6 +138,10 @@ class Elliptical < MovementStrategy
      }.to_json(*a)
    end
 
+   def to_s
+     "elliptical-()"
+   end
+
   private
 
     ### internal helper movement methods
