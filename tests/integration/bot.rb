@@ -35,8 +35,12 @@ end
 
 def move_to_and_mine_nearest_resource(ship)
   rs = get_nearest_nondepleted_resource(ship)
-  move_to (rs.entity.location + [50, 50, 50])
-  subscribe_to :movement, :distance => (ship.location - rs.entity.location - 100)  do
+  nl = rs.entity.location + [50, 50, 50]
+  RJR::Logger.info "moving ship #{ship.id} to #{rs.entity.name} to mine"
+  move_to (nl)
+  subscribe_to :movement, :distance => (ship.location - nl - 100)  do |*args|
+    RJR::Logger.info "ship #{ship.id} arrived at #{rs.entity.name}, starting to mine"
+    @ship = ship
     start_mining rs
   end
   subscribe_to :resource_collected do |s, srs, q|
@@ -63,6 +67,7 @@ end
 ship(USER_NAME + "-mining-ship1") do |ship|
   move_to_and_mine_nearest_resource(ship)
   subscribe_to :resource_depleted do |s,srs|
+    RJR::Logger.info "resource depleted"
     clear_callbacks
     move_to_and_mine_nearest_resource(ship)
   end

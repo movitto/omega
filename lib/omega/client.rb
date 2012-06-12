@@ -61,6 +61,7 @@ class Client
     responses = []
     @@rjr_node ||= RJR::AMQPNode.new :node_id => 'omega-' + Motel.gen_uuid, :broker => 'localhost'
     @@rjr_node.message_headers['session_id'] = @@session_id
+    @@rjr_node.message_headers['source_node'] = @@rjr_node.node_id
     requests = Array.new(@@requests)
     @@requests.clear
     requests.each { |req|
@@ -355,6 +356,7 @@ def ship(id, args={}, &bl)
     #RJR::Logger.info "updating ship #{id}"
     return nsh
 
+  # TODO should only wrap the invoke_requests call above
   rescue Exception => e
     client.queue_request 'manufactured::create_entity', sh
     RJR::Logger.info "creating ship #{sh.id}"
@@ -396,7 +398,7 @@ def subscribe_to(event, args = {}, &bl)
     client.queue_request 'track_movement', entity.location.id, args[:distance]
     RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
     client.register_callback "on_movement", &bl
-    #client.invoke_requests
+    client.invoke_requests
 
   #when :proximity
   #when :entered_proximity
@@ -405,10 +407,15 @@ def subscribe_to(event, args = {}, &bl)
   when :attacked, :attacked_stopped, :destroyed, :resource_collected, :resource_depleted
     raise ArgumentError, "ship must not be nil" if @ship.nil?
     client = Omega::Client.new :ship => @ship
-    client.queue_request 'manufactured::subscribe_to', @ship, event
+    client.queue_request 'manufactured::subscribe_to', @ship.id, event
     RJR::Logger.info "subscribing to #{event} on #{@ship}"
-    client.register_callback "manufactured::event_occurred", &bl
-    #client.invoke_requests
+    client.register_callback "manufactured::event_occurred" do |*args|
+      if args[0] == event
+        args.shift
+        bl.call *args
+      end
+    end
+    client.invoke_requests
 
   end
 end
@@ -419,6 +426,7 @@ def clear_callbacks
   client.queue_request 'remove_callbacks', @ship.location.id
   client.queue_request 'manufactured::remove_callbacks', @ship.id
   RJR::Logger.info "removing callbacks on ship #{@ship}"
+  client.invoke_requests
 end
 
 def move_to(location)
@@ -426,13 +434,15 @@ def move_to(location)
   client = Omega::Client.new :ship => @ship
   client.queue_request 'manufactured::move_entity', @ship.id, location
   RJR::Logger.info "moving #{@ship} to #{location}"
+  client.invoke_requests
 end
 
 def start_mining(resource_source)
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
   client.queue_request 'manufactured::start_mining', @ship.id, resource_source.id
-  RJR::Logger.info "moving #{@ship} to #{location}"
+  RJR::Logger.info "mining #{resource_source.id} with #{@ship}"
+  client.invoke_requests
 end
 
 end # module DSL
