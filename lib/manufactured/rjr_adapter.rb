@@ -169,7 +169,7 @@ class RJRAdapter
       source_node = @headers['source_node']
       # FIXME verify request is coming from authenticated source node
 
-      entity = Manufactured::Registry.instance.find(:id => id).first
+      entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],

@@ -390,6 +390,7 @@ end
 
 
 def subscribe_to(event, args = {}, &bl)
+  @@handlers ||= {}
   case event
   when :movement
     raise ArgumentError, "ship or planet must not be nil" if @ship.nil? && @planet.nil?
@@ -397,7 +398,11 @@ def subscribe_to(event, args = {}, &bl)
     client = Omega::Client.new :entity => entity
     client.queue_request 'track_movement', entity.location.id, args[:distance]
     RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
-    client.register_callback "on_movement", &bl
+    @@handlers[:on_movement] ||= {}
+    @@handlers[:on_movement][entity.location.id] = bl
+    client.register_callback "on_movement" do |loc|
+      @@handlers[:on_movement][loc.id].call loc
+    end
     client.invoke_requests
 
   #when :proximity
@@ -409,14 +414,13 @@ def subscribe_to(event, args = {}, &bl)
     client = Omega::Client.new :ship => @ship
     client.queue_request 'manufactured::subscribe_to', @ship.id, event
     RJR::Logger.info "subscribing to #{event} on #{@ship}"
+    @@handlers[:manufactured_event_occurred] ||= {}
+    @@handlers[:manufactured_event_occurred][event.to_s] = bl
     client.register_callback "manufactured::event_occurred" do |*args|
-      if args[0] == event
-        args.shift
-        bl.call *args
-      end
+      aevent = args.shift
+      @@handlers[:manufactured_event_occurred][aevent].call *args
     end
     client.invoke_requests
-
   end
 end
 
