@@ -154,6 +154,13 @@ class RJRAdapter
           end
         }
 
+      old = entity.notification_callbacks.find { |n| n.type == event_callback.type &&
+                                                     n.endpoint_id == event_callback.endpoint_id }
+
+      unless old.nil?
+       entity.notification_callbacks.delete(old)
+      end
+
       entity.notification_callbacks << event_callback
       entity
     }
@@ -196,6 +203,7 @@ class RJRAdapter
 
       # else move to location using a linear movement strategy
       else
+        # TODO replace w/ new_location - entity.location
         dx = new_location.x - entity.location.x
         dy = new_location.y - entity.location.y
         dz = new_location.z - entity.location.z

@@ -144,6 +144,11 @@ class RJRAdapter
              loc.movement_callbacks.delete on_movement
            end
          }
+       old = loc.movement_callbacks.find { |m| m.endpoint_id == on_movement.endpoint_id }
+       unless old.nil?
+         loc.movement_callbacks.delete(old)
+       end
+
        loc.movement_callbacks << on_movement
        loc
     }
@@ -183,6 +188,12 @@ class RJRAdapter
              loc1.proximity_callbacks.delete on_proximity
            end
          }
+
+       old = loc.proximity_callbacks.find { |p| p.endpoint_id == on_proximity.endpoint_id }
+       unless old.nil?
+         loc.proximity_callbacks.delete(old)
+       end
+
        loc1.proximity_callbacks << on_proximity
        [loc1, loc2]
     }
