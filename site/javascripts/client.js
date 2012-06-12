@@ -95,7 +95,7 @@ function CosmosClient() {
 
   this.attack_entity = function(attacker, defender){
     client.subscribe_to_attacked_events(defender);
-    client.web_node.invoke_request('manufactured::attack_entity', attacker, defender);
+    client.web_node.invoke_request('manufactured::attack_entity', attacker.id, defender.id);
   }
 
   this.dock_ship = function(ship, station){

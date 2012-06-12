@@ -448,7 +448,7 @@ $('.command_ship_attack').live('click', function(e){
 
   $('#motel_dialog').dialog('close');
   for(var s in controls.selected_ships)
-    client.attack_entity(controls.selected_ships[s].id, e.currentTarget.id);
+    client.attack_entity(controls.selected_ships[s], e.currentTarget);
 });
 
 $('.command_ship_dock').live('click', function(e){

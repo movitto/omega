@@ -415,7 +415,8 @@ function CosmosStatsUI(){
       var user = client.users[u];
       us += "<li>" + user.id + "<ul>";
       for(var s in user.ships){
-        us += "<li>" + user.ships[s].id + " (@" + user.ships[s].location.to_s() + ")</li>";
+        us += "<li>" + user.ships[s].id + " (@" + user.ships[s].location.to_s() + ")<ul>";
+        us += "</ul></li>";
       }
       us += "</ul></li>";
     }
