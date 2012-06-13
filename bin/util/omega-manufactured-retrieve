@@ -18,7 +18,7 @@ optparse = OptionParser.new do |opts|
     exit
   end
 
-  opts.on('-e', '--entity ENTITY', 'type of users entity to create') do |e|
+  opts.on('-e', '--entity ENTITY', 'type of users entity to retrieve') do |e|
     entity_type = e
   end
 

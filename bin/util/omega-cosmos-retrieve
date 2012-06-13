@@ -1,0 +1,172 @@
+#!/usr/bin/ruby
+# Retrieve cosmos entity
+#
+# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+entity_type   = nil
+id            = nil
+manufactured  = false
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-e', '--entity ENTITY', 'type of users entity to retrieve') do |e|
+    entity_type = e
+  end
+
+  opts.on('-m', '--manufactured', 'include optional manufacted entities information') do
+    manufactured = true
+  end
+
+  opts.on('-i', '--id ID', 'id of entity to retrieve') do |i|
+    id = i
+  end
+end
+
+optparse.parse!
+
+unless ['galaxy', 'solarsystem', 'star', 'asteroid', 'planet', 'moon', 'jumpgate'].include?(entity_type)
+  puts "Invalid entity '#{entity_type}' specified"
+  exit 1
+end
+
+if id.nil?
+  puts "Must specify id"
+  exit 1
+end
+
+RJR::Logger.log_level= ::Logger::INFO
+
+$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost'
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+$rjr_node.message_headers['session_id'] = session.id
+
+entity = $rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', entity_type, id)
+
+$manufactured_entities = []
+if manufactured
+  if 'galaxy' == entity_type
+    entity.solar_systems.each { |sys|
+      $manufactured_entities += $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities_under', sys.name)
+    }
+
+  elsif 'solarsystem' == entity_type
+    $manufactured_entities = $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities_under', id)
+
+  # elsif 'asteroid' == entity_type # TODO get entities mining this asteroid
+  end
+end
+
+puts "Entity: " + entity.to_s
+
+def indent(i)
+  r = ''
+  i.times { r += ' ' }
+  r
+end
+
+def print_callbacks(entity, i=0)
+  puts indent(i) + "Notifications:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size) > 0
+  entity.location.movement_callbacks.each { |m|
+    puts indent(i+1) + "- movement of #{m.to_s} -> #{m.endpoint_id}"
+  }
+  entity.location.proximity_callbacks.each { |p|
+    puts indent(i+1) + "- proximity (#{p.event}) of #{p.to_s}/#{p.to_location} -> #{p.endpoint_id}"
+  }
+end
+
+def print_galaxy(galaxy, i=0)
+  puts indent(i) + "galaxy " + galaxy.name
+  print_callbacks(galaxy, i+1)
+  galaxy.solar_systems.each { |sys|
+    print_system(sys, i+1)
+  }
+end
+
+def print_system(sys, i=0)
+  puts indent(i) + "system " + sys.name + " (@" + sys.location.to_s + ")"
+  print_callbacks(sys, i+1)
+  print_star(sys.star, i+1)
+  sys.planets.each { |p|
+    print_planet(p, i+1)
+  }
+  sys.asteroids.each { |a|
+    print_asteroid(a, i+1)
+  }
+  sys.jump_gates.each { |j|
+    print_jump_gate(j, i+1)
+  }
+  $manufactured_entities.select { |mu| mu.solar_system.name == sys.name }.each{ |mu|
+    print_manufactured_entity(mu, i+1)
+  }
+end
+
+def print_star(star, i=0)
+  puts indent(i) + "star " + star.name + " (@" + star.location.to_s + ")"
+  print_callbacks(star, i+1)
+end
+
+def print_planet(planet, i=0)
+  puts indent(i) + "planet " + planet.name + " (@" + planet.location.to_s + " with strategy " + planet.location.movement_strategy.to_s + ")"
+  print_callbacks(planet, i+1)
+  planet.moons.each { |m|
+    print_moon(m, i+1)
+  }
+end
+
+def print_asteroid(asteroid, i=0)
+  puts indent(i) + "asteroid " + asteroid.name + " (@" + asteroid.location.to_s + ")"
+  print_callbacks(asteroid, i+1)
+
+  resource_sources = $rjr_node.invoke_request('omega-queue', 'cosmos::get_resource_sources', asteroid.name)
+  puts indent(i+i) + "resources: "
+  resource_sources.each { |rs|
+    print_resource_source(rs, i+2)
+  }
+end
+
+def print_resource_source(resource_source, i=0)
+  puts indent(i) + " " + resource_source.resource.id + " (" + resource_source.quantity.to_s + ")"
+end
+
+def print_moon(moon, i=0)
+  puts indent(i) + "moon " + moon.name + " (@" + moon.location.to_s + ")"
+  print_callbacks(moon, i+1)
+end
+
+def print_jump_gate(jump_gate, i=0)
+  puts indent(i) + "jump gate to " + jump_gate.endpoint + " (@" + jump_gate.location.to_s + ")"
+  print_callbacks(jump_gate, i+1)
+end
+
+def print_manufactured_entity(mu, i=0)
+  puts indent(i) + mu.class.to_s + " " + mu.id.to_s + " (@" + mu.location.to_s + " with strategy " + mu.location.movement_strategy.to_s + ")"
+  print_callbacks(mu, i+1)
+end
+
+case entity_type
+when "galaxy"
+  print_galaxy(entity)
+when "solarsystem"
+  print_system(entity)
+when "star"
+  print_star(entity)
+when "planet"
+  print_planet(entity)
+when "asteroid"
+  print_asteroid(entity)
+when "moon"
+  print_moon(entity)
+when "jump_gate"
+  print_jump_gate(entity)
+end
