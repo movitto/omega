@@ -14,7 +14,7 @@ class Asteroid
   attr_reader :color
   attr_accessor :location
 
-  attr_reader :solar_system
+  attr_accessor :solar_system
 
   def initialize(args = {})
     @name     = args['name']     || args[:name]

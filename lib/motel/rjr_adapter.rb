@@ -144,6 +144,7 @@ class RJRAdapter
              loc.movement_callbacks.delete on_movement
            end
          }
+       # TODO this ignores distance differences, do anything about this?
        old = loc.movement_callbacks.find { |m| m.endpoint_id == on_movement.endpoint_id }
        unless old.nil?
          loc.movement_callbacks.delete(old)

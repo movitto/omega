@@ -9,135 +9,222 @@
 
 require 'rubygems'
 require 'omega'
+require 'singleton'
 
 include Omega::DSL
 
-include Motel
-
 USER_NAME = ARGV.shift
-STARTING_SYSTEM = ARGV.shift
 
 RJR::Logger.log_level= ::Logger::INFO
 login 'admin',  :password => 'nimda'
 
-$current_system   = system(STARTING_SYSTEM)
-$system_resources =
-  $current_system.asteroids.collect { |ast| resource_sources(ast) }.flatten
+class ClientRegistry
+  include Singleton
 
-def get_nearest_nondepleted_resource(ship)
-  $system_resources.select { |sr| sr.quantity > 0 }.
-                    sort { |a,b| (ship.location - a.entity.location) <=>
-                                 (ship.location - b.entity.location) }.first
-end
-
-def move_to_next_system_with_resources(ship)
-  $system_resources.clear
-
-  # refresh current system
-  $current_system = system($current_system.name)
-
-  # get list of nearby systems, ordered by proximity
-  nearby_systems =
-    $current_system.jump_gates.collect { |jg| system(jg.endpoint) }.
-                               sort { |sys1, sys2| ($current_system.location - sys1.location) <=>
-                                                   ($current_system.location - sys2.location) }
-
-  # find first system w/ available resources
-  #   (TODO incorporate number of resources & other statistics)?
-  $next_system = nearby_systems.find { |sys|
-                      $next_system_resources =
-                        sys.asteroids.collect { |ast| resource_sources(ast) }.flatten
-                      !$next_system_resources.find { |rs| rs.quantity > 0 }.nil?
-                    }
-
-  if $next_system.nil?
-    RJR::Logger.info "no more resources in accessible systems, stopping movement/mining"
-    return
+  def initialize
+    @systems = []
+    @ships   = []
   end
 
-  jumpgate = $current_system.jump_gates.find { |jg| jg.endpoint == $next_system.name }
-  nl = jumpgate.location + [10, 10, 10]
-  move_to(nl)
-  subscribe_to :movement, :distance => (ship.location - nl - 20)  do |*args|
-    clear_callbacks
+  def <<(value)
+    if(value.is_a?(ClientSystem))
+      @systems << value
+    elsif(value.is_a?(ClientShip))
+      @ships << value
+    end
+  end
 
-    RJR::Logger.info "ship #{ship.id} arrived at jumpgate to #{jumpgate.endpoint}, triggering gate"
-    nl.parent_id = $next_system.location.id
-    move_to(nl)
+  def include?(value)
+    (!@systems.find { |s| s.name == value }.nil?) ||
+    (!@ships.find   { |s| s.id   == value }.nil?)
+  end
 
-    RJR::Logger.info "ship #{ship.id} arrived in system #{$next_system.name}, moving to next resource"
-    $current_system = $next_system
-    $system_resources = $next_system_resources
-    move_to_and_mine_nearest_resource(ship)
+  def [](index)
+    @systems.find { |s| s.name == value } ||
+    @ships.find   { |s| s.id   == value }
   end
 end
 
-def move_to_and_mine_nearest_resource(ship)
-  ship(ship.id) do |ship|
-    rs = get_nearest_nondepleted_resource(ship)
+class ClientSystem
+  # name of the system
+  attr_accessor :name
+
+  # remote handle to system
+  attr_accessor :server_system
+
+  # resources in the system
+  attr_accessor :resources
+
+  # nearby systems ordered by proximity
+  attr_accessor :nearby_systems
+
+  def self.load_or_create(name)
+    if ClientRegistry.instance.include?(name)
+      return ClientRegistry.instance[name]
+    end
+    return ClientSystem.new(:name => name)
+  end
+
+  def initialize(args = {})
+    @name = args[:name]
+    ClientRegistry.instance << self
+    refresh
+  end
+
+  def refresh
+    @server_system = system(@name)
+    @resources = @server_system.asteroids.collect { |ast|
+                          resource_sources(ast) }.flatten
+    @resources.each { |rs| rs.entity.solar_system = self }
+
+    nearby_system_names = @server_system.jump_gates.collect { |jg|
+                                                     jg.endpoint }
+    @nearby_systems = []
+    nearby_system_names.each { |n|
+      @nearby_systems << ClientSystem.load_or_create(n)
+    }
+    @nearby_systems.sort! { |sys1, sys2|
+      (@server_system.location - sys1.server_system.location) <=>
+      (@server_system.location - sys2.server_system.location)
+    }
+
+    self
+  end
+end
+
+class ClientShip
+  # handle to the ship as returned by the server
+  attr_accessor :server_ship
+
+  # handle to the system its in
+  attr_accessor :system
+
+  def initialize(args = {})
+    @name        = args[:name]
+    refresh
+
+    @system      = ClientSystem.new(:name => @server_ship.solar_system.name)
+  end
+
+  def refresh
+    @server_ship = ship(@name)
+  end
+
+  def track_movement(distance, &bl)
+    @movement_callbacks_lock ||= Mutex.new
+    @movement_callbacks_lock.synchronize {
+      @movement_callbacks ||= {}
+      @movement_callbacks[distance] ||= []
+      @movement_callbacks[distance] << bl
+    }
+
+    subscribe_to :movement, :distance => 5  do |location|
+      @server_ship.location = location
+
+      callbacks_to_invoke = []
+      @movement_callbacks_lock.synchronize {
+        new_callbacks = {}
+        @movement_callbacks.each { |dist,callbacks|
+          ndist = dist - 5
+          if ndist <= 0
+            callbacks_to_invoke += callbacks
+          else
+            new_callbacks[ndist] = callbacks
+          end
+        }
+        @movement_callbacks = new_callbacks
+        nil
+      }
+      callbacks_to_invoke.each { |cb| cb.call }
+    end
+  end
+
+  def move_to_location(new_location)
+    @ship = @server_ship
+    move_to(new_location)
+  end
+
+  def move_to_system(system, &bl)
+    # TODO support mapping multi-system route
+
+    # move to jumpgate to specified system
+    jumpgate = @system.server_system.jump_gates.find { |jg|
+                        jg.endpoint == system.name }
+puts "JG #{system}/#{system.server_system.location}"
+    nl = jumpgate.location + [10, 10, 10]
+    move_to_location(nl)
+
+    # on jumpgate arrival, trigger move to new system
+    track_movement(@server_ship.location - nl - 20) do
+      RJR::Logger.info "ship #{@server_ship.id} arrived at jumpgate to #{jumpgate.endpoint}, triggering gate"
+puts "JGT #{system}/#{system.server_system.location}"
+      nl.parent_id = system.server_system.location.id
+      move_to_location(nl)
+      @system = system
+      bl.call if bl
+    end
+  end
+end
+
+class MinerShip < ClientShip
+
+  def nearest_nondepleted_resource
+    res = nil
+    systems = [@system]
+    systems.each { |s|
+      res = s.resources.select { |sr| sr.quantity > 0 }.
+                        sort { |a,b| (@server_ship.location - a.entity.location) <=>
+                                     (@server_ship.location - b.entity.location) }.first
+      if res.nil?
+        s.nearby_systems.each { |ns|
+          systems << ns unless systems.include?(ns)
+        }
+      else
+        break
+      end
+    }
+    res
+  end
+
+  def mine_cycle()
+    rs = nearest_nondepleted_resource
     if rs.nil?
-      move_to_next_system_with_resources(ship)
+      RJR::Logger.info "no more resources in accessible systems, stopping movement/mining"
       return
+    elsif rs.entity.location.parent_id != @system.server_system.location.id
+      move_to_system(rs.entity.solar_system) do
+        clear_callbacks
+        RJR::Logger.info "ship #{@server_ship.id} arrived in system #{rs.entity.solar_system.name}, moving to next resource"
+        mine_cycle()
+      end
+    else
+      RJR::Logger.info "moving ship #{@server_ship.id} to #{rs.entity.name} to mine #{rs.resource.id}(#{rs.quantity})"
+      nl = rs.entity.location + [10, 10, 10]
+      move_to_location(nl)
+      track_movement(@server_ship.location - nl - 20) do
+        RJR::Logger.info "ship #{@server_ship.id} arrived at #{rs.entity.name}, starting to mine"
+        @ship = @server_ship
+        start_mining rs
+        subscribe_to :resource_collected do |s, srs, q|
+          rs.quantity -= q
+        end
+        subscribe_to :resource_depleted do |s,srs|
+          RJR::Logger.info "resource depleted"
+          clear_callbacks
+          rs.quantity = 0
+          mine_cycle()
+        end
+      end
     end
 
-    RJR::Logger.info "moving ship #{ship.id} to #{rs.entity.name} to mine #{rs.resource.id}(#{rs.quantity})"
-    nl = rs.entity.location + [10, 10, 10]
-    move_to(nl)
-    subscribe_to :movement, :distance => (ship.location - nl - 20)  do |*args|
-      RJR::Logger.info "ship #{ship.id} arrived at #{rs.entity.name}, starting to mine"
-      @ship = ship
-      start_mining rs
-    end
-    subscribe_to :resource_collected do |s, srs, q|
-      rs.quantity -= q
-    end
-    subscribe_to :resource_depleted do |s,srs|
-      RJR::Logger.info "resource depleted"
-      clear_callbacks
-      move_to_and_mine_nearest_resource(ship)
-    end
   end
 end
 
-station(USER_NAME + "-manufacturing-station") do |station|
-  station.type     = :manufacturing
-  station.user_id  = USER_NAME
-  station.solar_system = $current_system
-  station.location = Location.new(:x => 200, :y=> 200, :z => 200)
+class Corvette < ClientShip
 end
 
-miner = ship(USER_NAME + "-mining-ship1") do |ship|
-          ship.type     = :mining
-          ship.user_id  = USER_NAME
-          ship.solar_system = $current_system
-          ship.location = Location.new(:x => 0, :y=> 300, :z => -200)
-        end
-
-move_to_and_mine_nearest_resource(miner)
-
-#ship(USER_NAME + "-frigate-ship1") do |ship|
-#  ship.type     = :frigate
-#  ship.user_id  = USER_NAME
-#  ship.solar_system = $current_system
-#  ship.location = Location.new(:x => 200, :y=> 300, :z => -200)
-#
-#  subscribe_to :movement, :distance => 25 do
-#  end
-#end
-#
-#ship(USER_NAME + "-corvette-ship1") do |ship|
-#  ship.type     = :corvette
-#  ship.user_id  = USER_NAME
-#  ship.solar_system = $current_system
-#  ship.location = Location.new(:x => 400, :y=> 300, :z => -200)
-#
-#  subscribe_to :movement, :distance => 25 do
-#  end
-#end
-
-# run the bot until signaled
-#$term_mutex = Mutex.new
-#$term_cv    = ConditionVariable.new
+miner = MinerShip.new :name   => USER_NAME + "-mining-ship1"
+miner.mine_cycle()
 
 Signal.trap("USR1") {
   stop
