@@ -49,6 +49,36 @@ class RJRAdapter
        loc
     }
 
+    rjr_dispatcher.add_handler('get_locations_within_proximity') { |location, max_distance|
+      locations = Runner.instance.locations.select { |loc|
+        (loc.parent_id == location.parent_id) &&
+        (loc - location) <= max_distance
+      }
+      locations.reject! { |loc|
+        loc.restrict_view &&
+        !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                                  {:privilege => 'view', :entity => 'locations'}],
+                                         :session => @headers['session_id'])
+      }
+
+
+       locations.each { |loc|
+         loc.each_child { |rparent, rchild|
+           if rchild.remote_queue
+             remote_child = @@remote_location_manager.get_location(rchild)
+
+             # swap child for remote_child
+             # we lose attributes of original child's not sent over rjr
+             # TODO just update rchild ?
+             rparent.remove_child(rchild.id)
+             rparent.add_child(remote_child)
+           end
+         }
+       }
+
+       locations
+    }
+
     rjr_dispatcher.add_handler('create_location') { |*args|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'locations',
                                          :session   => @headers['session_id'])

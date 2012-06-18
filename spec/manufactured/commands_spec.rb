@@ -52,9 +52,9 @@ describe Manufactured::AttackCommand do
      attack_invoked = 0
      destroyed_invoked = false
      attack_stopped_invoked = false
-     defender.notification_callbacks << Manufactured::Callback.new('attacked')      { attack_invoked += 1 }
+     defender.notification_callbacks << Manufactured::Callback.new('defended')      { attack_invoked += 1 }
      defender.notification_callbacks << Manufactured::Callback.new('destroyed')     { destroyed_invoked = true }
-     defender.notification_callbacks << Manufactured::Callback.new('attacked_stop') { attack_stopped_invoked = true }
+     defender.notification_callbacks << Manufactured::Callback.new('defended_stop') { attack_stopped_invoked = true }
 
      cmd = Manufactured::AttackCommand.new :attacker => attacker, :defender => defender
 

@@ -81,6 +81,19 @@ class RJRAdapter
        entity
     }
 
+    rjr_dispatcher.add_handler('manufactured::get_entity_from_location'){ |type, location_id|
+      entity = Manufactured::Registry.instance.find(:type => type,
+                                                    :location_id => location_id).first
+      raise Omega::DataNotFound, "manufactured entity specified by type #{type} & location #{location_id} not found" if entity.nil?
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      entity.location = @@local_node.invoke_request('get_location',
+                                                    entity.location.id)
+      entity
+    }
+
     rjr_dispatcher.add_handler('manufactured::get_entities_under'){ |parent_id|
       # just lookup parent to ensure it exists
       parent = @@local_node.invoke_request('cosmos::get_entity', :solarsystem, parent_id)
@@ -200,6 +213,7 @@ class RJRAdapter
         new_location.id = entity.location.id
         entity.location = new_location
         @@local_node.invoke_request('update_location', entity.location)
+        @@local_node.invoke_request('remove_callbacks', entity.location.id, 'movement')
 
       # else move to location using a linear movement strategy
       else
@@ -223,6 +237,37 @@ class RJRAdapter
       entity
     }
 
+    rjr_dispatcher.add_handler('manufactured::follow_entity'){ |id, target_id, distance|
+      entity = Manufactured::Registry.instance.find(:id => id).first
+      target_entity = Manufactured::Registry.instance.find(:id => target_id).first
+
+      raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
+      raise Omega::DataNotFound, "manufactured entity specified by #{target_id} not found"  if target_entity.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{target_entity.id}"},
+                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      # raise exception if entity or parent is invalid
+      raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
+      raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
+
+      # FIXME derive speed from ship
+      entity.location.movement_strategy =
+        Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
+                                              :distance            => distance,
+                                              :speed => 5
+
+      # TODO what if target_entity changes systems?
+      @@local_node.invoke_request('update_location', entity.location)
+
+      entity
+    }
+
+
     # callback to track_proximity in update location
     rjr_dispatcher.add_handler('on_movement') { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
@@ -238,11 +283,8 @@ class RJRAdapter
       attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
       defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
 
-      # TODO verify ship is not already attacking entity and is withing attacking distance
       raise Omega::DataNotFound, "manufactured entity specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
       raise Omega::DataNotFound, "manufactured entity specified by #{defender_entity_id} (defender) not found"  if defender.nil?
-
-      # TODO verify entities are within attacking distance
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{attacker.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],

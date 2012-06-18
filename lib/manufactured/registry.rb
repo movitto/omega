@@ -36,8 +36,8 @@ class Registry
     @ships    = []
     @stations = []
     @fleets   = []
-    @attack_commands = []
-    @mining_commands = []
+    @attack_commands = {}
+    @mining_commands = {}
 
     terminate
     @terminate_cycles = false
@@ -115,14 +115,16 @@ class Registry
   # add new attack command to run
   def schedule_attack(args = {})
     @entities_lock.synchronize{
-      @attack_commands << AttackCommand.new(args)
+      cmd = AttackCommand.new(args)
+      @attack_commands[cmd.id] = cmd
     }
   end
 
   # add new mining command to run
   def schedule_mining(args = {})
     @entities_lock.synchronize{
-      @mining_commands << MiningCommand.new(args)
+      cmd = MiningCommand.new(args)
+      @mining_commands[cmd.id] = cmd
     }
   end
 
@@ -131,12 +133,12 @@ class Registry
     until @terminate_cycles
       @entities_lock.synchronize{
         # run attack if appropriate
-        @attack_commands.each { |ac|
+        @attack_commands.each { |id, ac|
           ac.attack! if ac.attackable?
         }
 
         # remove attack commands no longer necessary
-        @attack_commands.reject! { |ac| ac.remove? }
+        @attack_commands.reject! { |id, ac| ac.remove? }
 
         # remove ships w/ <= 0 hp
         @ships.reject! { |sh| sh.hp <= 0 }
@@ -151,7 +153,7 @@ class Registry
     until @terminate_cycles
       @entities_lock.synchronize{
         # run mining operation if appropriate
-        @mining_commands.each { |mc|
+        @mining_commands.each { |id, mc|
           if mc.minable?
             mc.ship.start_mining(mc.resource_source) unless mc.ship.mining?
             mc.mine!
@@ -159,10 +161,10 @@ class Registry
         }
 
         # remove mining commands no longer necessary
-        to_remove = @mining_commands.select { |mc| mc.remove? }
-        to_remove.each { |mc|
-          mc.ship.stop_mining
-          @mining_commands.delete(mc)
+        to_remove = @mining_commands.keys.select { |id| @mining_commands[id].remove? }
+        to_remove.each { |id|
+          @mining_commands[id].ship.stop_mining
+          @mining_commands.delete(id)
         }
 
         # TODO remove resource sources w/ quantity <= 0 ?

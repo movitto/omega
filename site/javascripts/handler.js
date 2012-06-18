@@ -484,7 +484,7 @@ function OmegaHandlers(){
   }
 
   this.on_attacked_event = function(params){
-    if(params[0] == "attacked"){
+    if(params[0] == "defended"){
       //console.log('attacked event');
       var attacker = null;
       var defender = null;
@@ -496,7 +496,7 @@ function OmegaHandlers(){
       }
       attacker.attacking = defender;
 
-    }else if(params[0] == "attacked_stop"){
+    }else if(params[0] == "defended_stop"){
       //console.log('attack_stopped event');
 
       for(var s in client.locations){

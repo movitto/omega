@@ -16,6 +16,11 @@ class AttackCommand
     @remove   = false
   end
 
+  def id
+    # TODO incorporate weapon id into this
+    @attacker.id
+  end
+
   # determine if we can attack using this attack command
   def attackable?
     # TODO make sure entities are within attacking distance
@@ -25,23 +30,49 @@ class AttackCommand
   def attack!
     RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
 
+    # ensure entities are within attacking distance
+    # FIXME update these locations before this check
+    if (@attacker.location - @defender.location) > @attacker.attack_distance
+      # invoke attackers's 'attacked_stop' callbacks
+      @attacker.notification_callbacks.
+                select { |c| c.type == :attacked_stop}.
+                each { |c|
+        c.invoke 'attacked_stop', @attacker, @defender
+      }
+
+      # invoke defender's 'defended_stop' callbacks
+      @defender.notification_callbacks.
+                select { |c| c.type == :defended_stop}.
+                each { |c|
+        c.invoke 'defended_stop', @attacker, @defender
+      }
+
+      @remove = true
+      return
+    end
+
     @last_attack_time = Time.now
 
     # reduce defender's hp
     @defender.hp -= @attacker.damage_dealt
 
-    # invoke defender's 'attacked' callbacks
-    @defender.notification_callbacks.
+    # invoke attacker's 'attacked' callbacks
+    @attacker.notification_callbacks.
               select { |c| c.type == :attacked}.
               each { |c|
       c.invoke 'attacked', @attacker, @defender
     }
 
+    # invoke defender's 'defended' callbacks
+    @defender.notification_callbacks.
+              select { |c| c.type == :defended}.
+              each { |c|
+      c.invoke 'defended', @attacker, @defender
+    }
+
     # check if defender has been destroyed
     if @defender.hp <= 0
       RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}, marking for removal"
-
-      # TODO clear defender's notification callbacks?
 
       # invoke defender's 'destroyed' callbacks
       @defender.notification_callbacks.
@@ -51,14 +82,20 @@ class AttackCommand
       }
 
       # remove this attack command
-      # TODO should be set elsewhere as well (such as when targets become too far apart)
       @remove = true
 
-      # invoke defender's 'attacked_stop' callbacks
-      @defender.notification_callbacks.
+      # invoke attackers's 'attacked_stop' callbacks
+      @attacker.notification_callbacks.
                 select { |c| c.type == :attacked_stop}.
                 each { |c|
         c.invoke 'attacked_stop', @attacker, @defender
+      }
+
+      # invoke defender's 'defended_stop' callbacks
+      @defender.notification_callbacks.
+                select { |c| c.type == :defended_stop}.
+                each { |c|
+        c.invoke 'defended_stop', @attacker, @defender
       }
     end
       
@@ -79,6 +116,11 @@ class MiningCommand
     @ship            = args[:ship]
     @resource_source = args[:resource_source]
     @remove          = false
+  end
+
+  def id
+    # TODO allow one ship to mine multipe resources (incorporate incrementer here w/ per-ship max)
+    @ship.id
   end
 
   # determine if we can mine using this mining command

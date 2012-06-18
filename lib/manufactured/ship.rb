@@ -19,6 +19,7 @@ class Ship
   attr_accessor :notification_callbacks
 
   # attack/defense properties
+  attr_accessor :attack_distance
   attr_accessor :attack_rate  # attacks per second
   attr_accessor :damage_dealt
   attr_accessor :hp
@@ -59,6 +60,7 @@ class Ship
     @resources = {}
 
     # FIXME make variable
+    @attack_distance = 100
     @attack_rate  = 0.5
     @damage_dealt = 2
     @hp           = 10

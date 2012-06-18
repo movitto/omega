@@ -32,14 +32,14 @@ station(USER_NAME + "-manufacturing-station") do |station|
   station.type     = :manufacturing
   station.user_id  = USER_NAME
   station.solar_system = starting_system
-  station.location = Location.new(:x => 200, :y=> 200, :z => 200)
+  station.location = Location.new(:x => 100, :y=> 100, :z => 100)
 end
 
 ship(USER_NAME + "-mining-ship1") do |ship|
   ship.type     = :mining
   ship.user_id  = USER_NAME
   ship.solar_system = starting_system
-  ship.location = Location.new(:x => 0, :y=> 300, :z => -200)
+  ship.location = Location.new(:x => 0, :y=> 150, :z => -100)
 end
 
 #ship(USER_NAME + "-frigate-ship1") do |ship|
@@ -53,5 +53,5 @@ ship(USER_NAME + "-corvette-ship1") do |ship|
   ship.type     = :corvette
   ship.user_id  = USER_NAME
   ship.solar_system = starting_system
-  ship.location = Location.new(:x => 400, :y=> 300, :z => -200)
+  ship.location = Location.new(:x => 200, :y=> 150, :z => -100)
 end

@@ -92,6 +92,11 @@ galaxy 'Zeus' do |g|
            :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1,
                                                 :eccentricity => 0.49, :semi_latus_rectum => 110,
                                                 :direction => Motel.random_axis)
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
   end
 
   system 'Theodosia', 'ST9098', :location => Location.new(:x => 412, :y => -132, :z => 342) do |sys|
@@ -218,6 +223,22 @@ galaxy 'Zeus' do |g|
       moon 'Xeno I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Xeno II',  :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
+
+  end
+
+  system 'Aphrodite', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
+    planet 'Xenon',
+           :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1,
+                                                :eccentricity => 0.8, :semi_latus_rectum => 110,
+                                                :direction => Motel.random_axis)
+    planet 'Aesop',
+           :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1,
   end
 
   system 'Irene', 'HZ1279', :location => Location.new(:x => 110, :y => 423, :z => -455) do |sys|
@@ -243,6 +264,9 @@ galaxy 'Zeus' do |g|
                                                 :direction => Motel.random_axis)
   end
 end
+
+jump_gate system('Athena'), system('Aphrodite')
+jump_gate system('Athena'), system('Philo')
 
 galaxy 'Hera' do |g|
   system 'Agathon', 'JJ7192', :location => Location.new(:x => -88, :y => 219, :z => 499) do |sys|
@@ -396,4 +420,3 @@ galaxy 'Hera' do |g|
 
   system 'Stephanos', 'ST111', :location => Location.new(:x => 51, :y => -63, :z => 500)
 end
-

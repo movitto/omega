@@ -142,6 +142,19 @@ class Registry
     end
   end
 
+  def self.check_privilege(args = {})
+    self.instance.check_privilege(args)
+  end
+
+  def check_privilege(args = {})
+    begin
+      require_privilege(args)
+    rescue Omega::PermissionError
+      return false
+    end
+    return true
+  end
+
   # Save state of the registry to specified stream
   def save_state(io)
     # TODO block new operations on registry

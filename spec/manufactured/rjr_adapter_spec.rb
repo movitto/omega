@@ -297,14 +297,14 @@ describe Manufactured::RJRAdapter do
     }
 
     lambda{
-      @local_node.invoke_request('manufactured::subscribe_to', 'nonexistant', 'attacked')
+      @local_node.invoke_request('manufactured::subscribe_to', 'nonexistant', 'defended')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     rship2.notification_callbacks.size.should == 0
 
     lambda{
-      rloc = @local_node.invoke_request('manufactured::subscribe_to', ship2.id, 'attacked')
+      rloc = @local_node.invoke_request('manufactured::subscribe_to', ship2.id, 'defended')
       rloc.class.should == Manufactured::Ship
       rloc.id.should == ship2.id
     }.should_not raise_error
@@ -314,7 +314,7 @@ describe Manufactured::RJRAdapter do
     @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
     sleep 1
     received_events.size.should > 0
-    received_events.first.should == 'attacked'
+    received_events.first.should == 'defended'
 
     # verify when user no longer has access to entity, callbacks are discontinued
     u.clear_privileges

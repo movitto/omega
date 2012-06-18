@@ -207,6 +207,13 @@ def alliance(id, args = {}, &bl)
   client.invoke_requests(Users::Alliance)
 end
 
+def nearby_locations(location, distance)
+  client = Omega::Client.new
+  RJR::Logger.info "retrieving locations within #{distance} of #{location}"
+  client.queue_request 'get_locations_within_proximity', location, distance
+  client.invoke_requests(Motel::Location)
+end
+
 def galaxy(id, &bl)
   gal = Cosmos::Galaxy.new :name => id
 
@@ -343,11 +350,21 @@ def moon(id, args={}, &bl)
 end
 
 def ship(id, args={}, &bl)
+  if id.is_a?(Hash)
+    args = id
+    id   = args[:id]
+  end
+
   sh = Manufactured::Ship.new(args.merge({:id => id}))
 
   client = Omega::Client.new :ship => sh
-  RJR::Logger.info "retrieving ship #{id}"
-  client.queue_request 'manufactured::get_entity', id
+  RJR::Logger.info "retrieving ship #{id} with #{args.inspect}"
+  if id
+    client.queue_request 'manufactured::get_entity', id
+  elsif args.has_key?(:location_id)
+    client.queue_request('manufactured::get_entity_from_location', 'Manufactured::Ship', args[:location_id])
+  end
+
   begin
     nsh = client.invoke_requests(Manufactured::Ship)
     client.remove_entity(sh)
@@ -358,14 +375,19 @@ def ship(id, args={}, &bl)
 
   # TODO should only wrap the invoke_requests call above
   rescue Exception => e
-    client.queue_request 'manufactured::create_entity', sh
-    RJR::Logger.info "creating ship #{sh.id}"
-    client.invoke_callback sh, &bl
-    client.invoke_requests(Manufactured::Ship)
+    if id
+      client.queue_request 'manufactured::create_entity', sh
+      RJR::Logger.info "creating ship #{sh.id}"
+      client.invoke_callback sh, &bl
+      client.invoke_requests(Manufactured::Ship)
+      return sh
 
+    else
+      RJR::Logger.info "could not retrieve ship with #{args}"
+    end
   end
 
-  return sh
+  return nil
 end
 
 def station(id, args={}, &bl)
@@ -409,7 +431,7 @@ def subscribe_to(event, args = {}, &bl)
   #when :entered_proximity
   #when :left_proximity
 
-  when :attacked, :attacked_stopped, :destroyed, :resource_collected, :resource_depleted
+  when :attacked, :attacked_stop, :defended, :defended_stop, :destroyed, :resource_collected, :resource_depleted
     raise ArgumentError, "ship must not be nil" if @ship.nil?
     client = Omega::Client.new :ship => @ship
     client.queue_request 'manufactured::subscribe_to', @ship.id, event
@@ -441,11 +463,27 @@ def move_to(location)
   client.invoke_requests
 end
 
+def follow(entity)
+  raise ArgumentError, "ship must not be nil" if @ship.nil?
+  client = Omega::Client.new :ship => @ship
+  client.queue_request 'manufactured::follow_entity', @ship.id, entity.id, 10
+  RJR::Logger.info "following #{entity} with #{@ship}"
+  client.invoke_requests
+end
+
 def start_mining(resource_source)
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
   client.queue_request 'manufactured::start_mining', @ship.id, resource_source.id
   RJR::Logger.info "mining #{resource_source.id} with #{@ship}"
+  client.invoke_requests
+end
+
+def start_attacking(target)
+  raise ArgumentError, "ship must not be nil" if @ship.nil?
+  client = Omega::Client.new :ship => @ship
+  client.queue_request 'manufactured::attack_entity', @ship.id, target.id
+  RJR::Logger.info "attacking #{target.id} with #{@ship}"
   client.invoke_requests
 end
 
