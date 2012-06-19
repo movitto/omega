@@ -256,6 +256,8 @@ class CorvetteShip < ClientShip
     @protect_thread = Thread.new {
       until @stop_protect
         if @attacking.nil?
+          refresh
+
           # attack enemy ships that come within specified proximity
           neighbors = nearby_locations(ship.server_ship.location, 50)
           neighbors.each { |loc|
@@ -279,7 +281,7 @@ class CorvetteShip < ClientShip
             end
           }
         end
-        sleep 25
+        sleep 5
       end
     }
     return self
