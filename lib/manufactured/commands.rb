@@ -125,8 +125,33 @@ class MiningCommand
 
   # determine if we can mine using this mining command
   def minable?
-    # TODO make sure entities are within mining distance
-    return @last_time_mined.nil? || ((Time.now - @last_time_mined) > (1 / @ship.mining_rate))
+    # elapsed time between mining cycles is less than ship's mining rate
+    if !@last_time_mined.nil? && ((Time.now - @last_time_mined) < (1 / @ship.mining_rate))
+      return false
+
+    # ship & resource are too far apart
+    # TODO refresh locations first
+    elsif ((@ship.location - @resource_source.entity.location) > @ship.mining_distance)
+      @remove = true # must issue subsequent mining requests
+      @ship.notification_callbacks.
+            select { |c| c.type == :mining_stopped }.
+            each   { |c|
+        c.invoke 'mining_stopped', 'mining_distance_exceeded', @ship, @resource_source
+      }
+      return false
+
+    # ship is at max capacity
+    elsif (@ship.cargo_quantity >= @ship.cargo_capacity)
+      @remove = true # must issue subsequent mining requests
+      @ship.notification_callbacks.
+            select { |c| c.type == :mining_stopped }.
+            each   { |c|
+        c.invoke 'mining_stopped', 'ship_cargo_full', @ship, @resource_source
+      }
+      return false
+    end
+
+    return true
   end
 
   def mine!
@@ -154,6 +179,12 @@ class MiningCommand
             select { |c| c.type == :resource_depleted}.
             each { |c|
         c.invoke 'resource_depleted', @ship, @resource_source
+      }
+
+      @ship.notification_callbacks.
+            select { |c| c.type == :mining_stopped }.
+            each   { |c|
+        c.invoke 'mining_stopped', 'resource_depleted', @ship, @resource_source
       }
 
       # remove this mining command

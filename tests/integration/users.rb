@@ -28,7 +28,7 @@ starting_system = system(STARTING_SYSTEM)
 
 alliance USER_NAME + "-alliance", :members => [u]
 
-station(USER_NAME + "-manufacturing-station") do |station|
+station(USER_NAME + "-manufacturing-station1") do |station|
   station.type     = :manufacturing
   station.user_id  = USER_NAME
   station.solar_system = starting_system
@@ -44,12 +44,13 @@ ship(USER_NAME + "-mining-ship1") do |ship|
   #ship.location = Location.new(:x => 20, :y=> 40, :z => 40)
 end
 
-#ship(USER_NAME + "-frigate-ship1") do |ship|
-#  ship.type     = :frigate
-#  ship.user_id  = USER_NAME
-#  ship.solar_system = $current_system
-#  ship.location = Location.new(:x => 200, :y=> 300, :z => -200)
-#end
+ship(USER_NAME + "-frigate-ship1") do |ship|
+  ship.type     = :frigate
+  ship.user_id  = USER_NAME
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => 200, :y=> 300, :z => -200)
+  #ship.location = Location.new(:x => -200, :y=> -300, :z => 200)
+end
 
 ship(USER_NAME + "-corvette-ship1") do |ship|
   ship.type     = :corvette

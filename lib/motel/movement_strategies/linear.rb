@@ -60,7 +60,7 @@ class Linear < MovementStrategy
    end
 
    def to_s
-     "linear-(#{@direction_vector_x},#{@direction_vector_y},#{@direction_vector_z})"
+     "linear-(#{@direction_vector_x.round_to(2)},#{@direction_vector_y.round_to(2)},#{@direction_vector_z.round_to(2)})"
    end
 end
 

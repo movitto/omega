@@ -151,6 +151,10 @@ end
 
 def print_manufactured_entity(mu, i=0)
   puts indent(i) + mu.class.to_s + " " + mu.id.to_s + " (@" + mu.location.to_s + " with strategy " + mu.location.movement_strategy.to_s + ")"
+  puts indent(i+1) + "resources: " if mu.resources.size > 0
+  mu.resources.each { |id,q|
+    puts indent(i+2) + "#{q} of #{id}"
+  }
   print_callbacks(mu, i+1)
 end
 

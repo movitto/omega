@@ -16,6 +16,10 @@ class Station
   # map of resources contained in the station to quantities
   attr_reader :resources
 
+  # cargo properties
+  attr_accessor :cargo_capacity
+  # see cargo_quantity below
+
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]
 
@@ -23,6 +27,11 @@ class Station
                    :exploration => 20, :science => 20,
                    :technology => 20, :manufacturing => 40,
                    :commerce => 30}
+
+  # TODO right now just return a fixed cost for every station, eventually make more variable
+  def self.construction_cost(type)
+    100
+  end
 
 
   def initialize(args = {})
@@ -35,7 +44,10 @@ class Station
 
     @solar_system = args['solar_system'] || args[:solar_system]
 
-    @resources = {}
+    @resources = args[:resources] || args['resources'] || {}
+
+    # FIXME make variable
+    @cargo_capacity = 10000
 
     if @location.nil?
       @location = Motel::Location.new
@@ -62,25 +74,56 @@ class Station
     @resources[resource_id] -= quantity
   end
 
+  def cargo_quantity
+    q = 0
+    @resources.each { |id, quantity|
+      q += quantity
+    }
+    q
+  end
+
   # use this station to construct new manufactured entities
   def construct(args = {})
-    # TODO verify enough resources are locally present to construct entity
-    #             + station is of manufacturing type
+    # TODO verify station is of manufacturing type ?
     # TODO construction time/delay
     # TODO constrain args to permitted values
     entity_type = args[:entity_type]
     entity      = nil
-
+    cargs       = {}
+    cclass      = nil
 
     if entity_type == "Manufactured::Ship"
       cargs = {:id => Motel.gen_uuid,
                :type => :frigate,
                :size => Ship::SHIP_SIZES[:frigate]}.merge(args)
-      entity = Manufactured::Ship.new cargs
+      cclass = Manufactured::Ship
     elsif entity_type == "Manufactured::Station"
       cargs = {:id => Motel.gen_uuid}.merge(args)
-      entity = Manufactured::Station.new cargs
+      cclass = Manufactured::Station
     end
+
+    # verify enough resources are locally present to construct entity
+    cost = cclass.construction_cost(cargs[:type])
+    if cargo_quantity < cost
+      return nil
+    end
+
+    # remove resources from the station
+    # TODO when entities are mapped to specific resources and quantities
+    # needed to construct them, we can be more discreminate here
+    remaining = cost
+    @resources.each { |id,quantity|
+      if quantity >= remaining
+        @resources[id] -= remaining
+        break
+      else
+        remaining -= quantity
+        @resources[id] = 0
+      end
+    }
+
+    # instantiate the new entity
+    entity = cclass.new cargs unless cclass.nil?
 
     unless entity.nil?
       entity.parent = self.parent

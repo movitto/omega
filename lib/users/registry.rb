@@ -155,6 +155,17 @@ class Registry
     return true
   end
 
+  def self.current_user(args = {})
+    self.instance.current_user(args)
+  end
+
+  def current_user(args = {})
+    session_id = args[:session]
+
+    session = @sessions.find { |s| s.id == session_id }
+    session.user
+  end
+
   # Save state of the registry to specified stream
   def save_state(io)
     # TODO block new operations on registry

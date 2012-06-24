@@ -57,14 +57,21 @@ class RJRAdapter
       entity
     }
 
-    rjr_dispatcher.add_handler('manufactured::construct_entity') { |manufacturer_id, entity_type|
+    rjr_dispatcher.add_handler('manufactured::construct_entity') { |manufacturer_id, entity_type, *args|
       station = Manufactured::Registry.instance.find(:type => "Manufactured::Station", :id => manufacturer_id).first
       raise Omega::DataNotFound, "station specified by #{manufacturer_id} not found" if station.nil?
 
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
                                         :session   => @headers['session_id'])
 
-      entity = station.construct :entity_type => entity_type
+      # simply convert remaining args into key /
+      # value pairs to pass into construct
+      # TODO validate these in the context of the entities being created
+      args = Hash[*args]
+      args[:entity_type] = entity_type
+
+      entity = station.construct args
+      entity.user_id = Users::Registry.current_user(:session => @headers['session_id']) # TODO set permissions on entity?
       @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
     }
@@ -204,8 +211,8 @@ class RJRAdapter
                                         :session => @headers['session_id'])
 
       # raise exception if entity or parent is invalid
-      raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
-      raise ArgumentError, "Must specify system to move ship to" unless parent.is_a?(Cosmos::SolarSystem)
+      raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
+      raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
 
       # if parents don't match, simply set parent and location
       if entity.parent.id != parent.id

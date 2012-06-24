@@ -27,6 +27,7 @@ class Ship
   # mining properties
   attr_accessor :mining_rate  # times to mine per second
   attr_accessor :mining_quantity # how much we extract each time we mine
+  attr_accessor :mining_distance # max distance entities can be apart to mine
 
   # station ship is docked to, nil if not docked
   attr_reader :docked_at
@@ -37,6 +38,10 @@ class Ship
   # map of resources contained in the ship to quantities
   attr_reader :resources
 
+  # cargo properties
+  attr_accessor :cargo_capacity
+  # see cargo_quantity below
+
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
                 :battlecruiser, :exploration, :mining]
 
@@ -44,6 +49,11 @@ class Ship
   SHIP_SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
                 :destroyer => 30, :bomber => 25, :corvette => 25,
                 :battlecruiser => 35, :exploration => 23, :mining => 25}
+
+  # TODO right now just return a fixed cost for every ship, eventually make more variable
+  def self.construction_cost(type)
+    100
+  end
 
   def initialize(args = {})
     @id       = args['id']       || args[:id]
@@ -57,15 +67,17 @@ class Ship
     @solar_system = args[:solar_system] || args['solar_system']
 
     @notification_callbacks = args['notifications'] || args[:notifications] || []
-    @resources = {}
+    @resources = args[:resources] || args['resources'] || {}
 
     # FIXME make variable
+    @cargo_capacity = 100
     @attack_distance = 100
     @attack_rate  = 0.5
     @damage_dealt = 2
     @hp           = 10
     @mining_rate  = 0.5
     @mining_quantity = 5
+    @mining_distance = 100
 
     @docked_to = nil
     @mining    = nil
@@ -118,6 +130,7 @@ class Ship
   end
 
   def add_resource(resource_id, quantity)
+    # TODO raise error if cargo_quantity >= cargo_capacity
     @resources[resource_id] ||= 0
     @resources[resource_id] += quantity
   end
@@ -126,6 +139,14 @@ class Ship
     return unless @resources.has_key?(resource_id) ||# TODO throw exception?
                   @resources[resource_id] >= quantity
     @resources[resource_id] -= quantity
+  end
+
+  def cargo_quantity
+    q = 0
+    @resources.each { |id, quantity|
+      q += quantity
+    }
+    q
   end
 
   def to_json(*a)

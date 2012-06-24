@@ -18,11 +18,17 @@ USER_NAME = ARGV.shift
 RJR::Logger.log_level= ::Logger::INFO
 login 'admin',  :password => 'nimda'
 
+# A registry to track server side entities to prevent duplicates
 class ClientRegistry
   include Singleton
 
+  attr_reader :systems
+  attr_reader :stations
+  attr_reader :ships
+
   def initialize
     @systems = []
+    @stations= []
     @ships   = []
   end
 
@@ -31,20 +37,25 @@ class ClientRegistry
       @systems << value
     elsif(value.is_a?(ClientShip))
       @ships << value
+    elsif(value.is_a?(ClientStation))
+      @stations << value
     end
   end
 
   def include?(value)
-    (!@systems.find { |s| s.name == value }.nil?) ||
-    (!@ships.find   { |s| s.id   == value }.nil?)
+    (!@systems.find { |s| s.server_system.name == value }.nil?) ||
+    (!@ships.find   { |s| s.server_ship.id     == value }.nil?) ||
+    (!@stations.find{ |s| s.server_station.id  == value }.nil?)
   end
 
   def [](index)
-    @systems.find { |s| s.name == index } ||
-    @ships.find   { |s| s.id   == index }
+    @systems.find { |s| s.server_system.name == index } ||
+    @ships.find   { |s| s.server_ship.id     == index } ||
+    @stations.find{ |s| s.server_station.id  == index }
   end
 end
 
+# Client represetation of server solar system
 class ClientSystem
   # name of the system
   attr_accessor :name
@@ -58,11 +69,12 @@ class ClientSystem
   # nearby systems ordered by proximity
   attr_accessor :nearby_systems
 
-  def self.load_or_create(name)
+  def self.load(args = {})
+    name = args[:name]
     if ClientRegistry.instance.include?(name)
       return ClientRegistry.instance[name]
     end
-    return ClientSystem.new(:name => name)
+    return ClientSystem.new(args)
   end
 
   def initialize(args = {})
@@ -81,7 +93,7 @@ class ClientSystem
                                                      jg.endpoint }
     @nearby_systems = []
     nearby_system_names.each { |n|
-      @nearby_systems << ClientSystem.load_or_create(n)
+      @nearby_systems << ClientSystem.load(:name => n)
     }
     @nearby_systems.sort! { |sys1, sys2|
       (@server_system.location - sys1.server_system.location) <=>
@@ -92,18 +104,138 @@ class ClientSystem
   end
 end
 
-class ClientShip
-  # handle to the ship as returned by the server
-  attr_accessor :server_ship
+# Client representation of server station
+class ClientStation
+  # handle to the station as returned by the server
+  attr_accessor :server_station
 
   # handle to the system its in
   attr_accessor :system
 
+  def server_entity() @server_station end
+
+  def self.load(args = {})
+    name = args[:name]
+    if ClientRegistry.instance.include?(name)
+      return ClientRegistry.instance[name]
+    end
+    return ClientStation.new(args)
+  end
+
+  def initialize(args = {})
+    @name   = args[:name]
+    ClientRegistry.instance << self
+    refresh
+  end
+
+  def refresh
+    @server_station = station(@name)
+    @system = ClientSystem.load(:name => @server_station.solar_system.name)
+  end
+
+  def move_to_system(system, &bl)
+    @server_station.location.parent_id = system.server_system.location.id
+    @station = @server_station
+puts "~~~~ #{@station} #{@server_station.location}"
+    move_to(@server_station.location)
+    bl.call if bl
+  end
+
+  def construction_cycle
+    @stop_construction = false
+    @build_for_system = ClientSystem.load :name => "Aphrodite"
+    @construction_thread = Thread.new {
+      until @stop_construction
+        refresh
+
+        # if we're building entities for a new system
+        unless @build_for_system.nil?
+          if @server_station.cargo_quantity >=
+             (Manufactured::Ship.construction_cost(:frigate) + Manufactured::Station.construction_cost(:manufacturing))
+
+            # construct the entities
+            @station = @server_station
+            new_station = construct_station :type => :manufacturing
+            new_frigate = construct_ship    :type => :frigate
+
+            # load them on the client side
+            client_station = ClientStation.load(:name => new_station.id)
+            client_frigate = FrigateShip.load(:name => new_frigate.id, :home_station => client_station)
+puts "!!!!"
+
+            # move station / frigate to new system
+            client_station.move_to_system(@build_for_system) do
+              client_station.construction_cycle
+            end
+            client_frigate.move_to_system(@build_for_system) do
+              ClientRegistry.instance.ships.select { |sh| sh.server_ship.type == :mining &&
+                                                          sh.server_ship.parent.name == @build_for_system.server_system.name }.
+                                            each {   |sh| sh.transfer_endpoint = client_frigate }
+            end
+            @build_for_system = nil
+          end
+
+        else
+          # determine if any system w/ our ships doesn't have a station
+          ClientRegistry.instance.systems.each { |sys|
+            se = system_entities(sys.server_system)
+            unless !se.find { |e| e.is_a?(Manufactured::Ship)    && e.user_id == USER_NAME } ||
+                    se.find { |e| e.is_a?(Manufactured::Station) && e.user_id == USER_NAME }
+                # TODO 'claim' system so that other stations don't build
+                @build_for_system = sys
+                break
+            end
+          }
+
+          # if we have enough resources, build miners and corvettes
+          unless @build_for_system || 
+                 @server_station.cargo_quantity <
+                   (Manufactured::Ship.construction_cost(:mining) + Manufactured::Ship.construction_cost(:corvette))
+            @station = @server_station
+            new_miner    = construct_ship :type => :mining
+            new_corvette = construct_ship :type => :corvette
+
+            client_miner = MinerShip.load :name => new_miner.id
+            client_corvette = CorvetteShip.load :name => new_corvette.id
+
+            client_miner.mine_cycle()
+            #client_corvette.follow(client_miner).protect(client_miner)
+          end
+        end
+
+        sleep 5
+      end
+    }
+
+    return self
+  end
+end
+
+# Client representation of server ship
+class ClientShip
+  # handle to the ship as returned by the server
+  attr_accessor :server_ship
+  
+  def server_entity() @server_ship end
+
+  # handle to the system its in
+  attr_accessor :system
+
+  def self.load(args = {})
+    name = args[:name]
+    if ClientRegistry.instance.include?(name)
+      return ClientRegistry.instance[name]
+    end
+    return self.new(args)
+  end
+
+
   def initialize(args = {})
     @name        = args[:name]
+    ClientRegistry.instance << self
     refresh
 
-    @system      = ClientSystem.new(:name => @server_ship.solar_system.name)
+    @system      = ClientSystem.load(:name => @server_ship.solar_system.name)
   end
 
   def refresh
@@ -141,6 +273,28 @@ class ClientShip
     end
   end
 
+  def follow_ship(ship)
+    @following ||= false
+    unless @following
+      @ship = @server_ship
+      follow ship.server_ship
+      @following = true
+    end
+
+    ship.track_movement 10 do
+      if ship.system.name != system.name
+        move_to_system(ship.system) do
+          @following = false
+          follow_ship(ship)
+        end
+      else
+        follow_ship(ship)
+      end
+    end
+    return self
+  end
+
+
   def move_to_location(new_location)
     @ship = @server_ship
     move_to(new_location)
@@ -156,18 +310,37 @@ class ClientShip
     move_to_location(nl)
 
     # on jumpgate arrival, trigger move to new system
-    refresh # TODO refresh everywhere @server_ship.location is explicitly used
+    refresh
     track_movement(@server_ship.location - nl - 20) do
       RJR::Logger.info "ship #{@server_ship.id} arrived at jumpgate to #{jumpgate.endpoint}, triggering gate"
       nl.parent_id = system.server_system.location.id
       move_to_location(nl)
-      @system = system
+      @system = ClientSystem.load(:name => system.name)
       bl.call if bl
     end
   end
 end
 
+# Continously mine resources
 class MinerShip < ClientShip
+
+  # ship or station which miner will transfer resources to when at full cargo capacity
+  attr_reader :transfer_endpoint
+  def transfer_endpoint=(value)
+    @transfer_endpoint = value
+    unless @transfer_endpoint.nil?
+      # TODO refresh ?
+      if @server_ship.cargo_quantity >= @server_ship.cargo_capacity
+        @transfer_endpoint.signal(self)
+      end
+    end
+  end
+
+  def initialize(args = {})
+    @transfer_endpoint = args[:transfer_endpoint]
+
+    super(args)
+  end
 
   def nearest_nondepleted_resource
     res = nil
@@ -188,22 +361,31 @@ class MinerShip < ClientShip
   end
 
   def mine_cycle()
+    # get next resource to mine
     rs = nearest_nondepleted_resource
+
+    # no more resource
     if rs.nil?
       RJR::Logger.info "no more resources in accessible systems, stopping movement/mining"
       return
+
+    # next resource is in another system
     elsif rs.entity.location.parent_id != @system.server_system.location.id
       move_to_system(rs.entity.solar_system) do
         clear_callbacks
         RJR::Logger.info "ship #{@server_ship.id} arrived in system #{rs.entity.solar_system.name}, moving to next resource"
+        @transfer_endpoint = ClientRegistry.instance.ships.find { |sh| sh.server_ship.type == :frigate &&
+                                                                       sh.server_ship.parent.name == @system.server_system.name }
         mine_cycle()
       end
+
+    # next resource is in this system
     else
-      RJR::Logger.info "moving ship #{@server_ship.id} to #{rs.entity.name} to mine #{rs.resource.id}(#{rs.quantity})"
       nl = rs.entity.location + [10, 10, 10]
-      move_to_location(nl)
-      track_movement(@server_ship.location - nl - 20) do
-        RJR::Logger.info "ship #{@server_ship.id} arrived at #{rs.entity.name}, starting to mine"
+
+      # mine if we are within mining distance
+      if(@server_ship.location - nl) < @server_ship.mining_distance
+        RJR::Logger.info "mining #{rs.entity} with #{@server_ship.id}"
         @ship = @server_ship
         start_mining rs
         subscribe_to :resource_collected do |s, srs, q|
@@ -215,12 +397,35 @@ class MinerShip < ClientShip
           rs.quantity = 0
           mine_cycle()
         end
+        subscribe_to :mining_stopped do |cause, s, srs|
+          if cause == "ship_cargo_full"
+            @server_ship = s
+            unless @transfer_endpoint.nil?
+              @transfer_endpoint.signal(self) do
+                @server_ship.resources.each { |rsid, quantity|
+                  transfer_resource(@server_ship, @transfer_endpoint.server_entity, rsid, quantity)
+                }
+                mine_cycle()
+              end
+            end
+          end
+        end
+
+      # else move to resource
+      else
+        RJR::Logger.info "moving ship #{@server_ship.id} to #{rs.entity.name} to mine #{rs.resource.id}(#{rs.quantity})"
+        move_to_location(nl)
+        track_movement(@server_ship.location - nl - 20) do
+          RJR::Logger.info "ship #{@server_ship.id} arrived at #{rs.entity.name}"
+          mine_cycle()
+        end
       end
     end
 
   end
 end
 
+# Follows and protects the specified ship
 class CorvetteShip < ClientShip
   # ship we are attacking
   attr_accessor :attacking
@@ -228,27 +433,6 @@ class CorvetteShip < ClientShip
   def initialize(args = {})
     @attacking = nil
     super(args)
-  end
-
-  def follow_ship(ship)
-    @following ||= false
-    unless @following
-      @ship = @server_ship
-      follow ship.server_ship
-      @following = true
-    end
-
-    ship.track_movement 10 do
-      if ship.system.name != system.name
-        move_to_system(ship.system) do
-          @following = false
-          follow_ship(ship)
-        end
-      else
-        follow_ship(ship)
-      end
-    end
-    return self
   end
 
   def protect(ship)
@@ -288,11 +472,75 @@ class CorvetteShip < ClientShip
   end
 end
 
-miner = MinerShip.new :name   => USER_NAME + "-mining-ship1"
+# Can be signaled to collect resources and deposit them at a station
+class FrigateShip < ClientShip
+  def initialize(args = {})
+    @entities_to_visit  = []
+    @entities_callbacks = []
+    @entities_lock = Mutex.new
+
+    @return_to_station = false
+    @home_station = args[:home_station]
+    super(args)
+  end
+
+  def transport_cycle
+    refresh
+    @return_to_station = (@server_ship.cargo_quantity > (0.75 * @server_ship.cargo_capacity))
+
+    if @return_to_station
+      nl = @home_station.server_station.location + [10, 10, 10]
+      move_to_location(nl)
+      track_movement(@server_ship.location - nl - 20) do
+        # TODO dock / undock (+serverside docking checks)
+        @server_ship.resources.each { |rsid, quantity|
+          transfer_resource(@server_ship, @home_station.server_station, rsid, quantity)
+        }
+        @return_to_station = false
+        transport_cycle
+      end
+      return
+    end
+
+    entity = nil
+    cb     = nil
+    @entities_lock.synchronize {
+      entity = @entities_to_visit.shift
+      cb     = @entities_callbacks.shift
+    }
+    unless entity.nil?
+      nl = entity.server_entity.location + [10, 10, 10]
+      move_to_location(nl)
+      track_movement(@server_ship.location - nl - 20) do
+        cb.call
+        transport_cycle
+      end
+    end
+  end
+
+  # signal frigate should navigate to specified entity + invoke callback on arrival
+  def signal(entity, &bl)
+    @entities_lock.synchronize {
+      @entities_to_visit  << entity
+      @entities_callbacks << bl
+    }
+    transport_cycle unless @return_to_station
+
+  end
+end
+
+station = ClientStation.load :name => USER_NAME + "-manufacturing-station1"
+station.construction_cycle()
+
+frigate = FrigateShip.load :name => USER_NAME + "-frigate-ship1",
+                           :home_station => station
+
+miner = MinerShip.load :name   => USER_NAME + "-mining-ship1",
+                       :transfer_endpoint => frigate
 miner.mine_cycle()
 
-corvette = CorvetteShip.new :name => USER_NAME + "-corvette-ship1"
-corvette.follow_ship(miner).protect(miner)
+#corvette = CorvetteShip.load :name => USER_NAME + "-corvette-ship1"
+#corvette.follow_ship(miner).protect(miner)
 
 Signal.trap("USR1") {
   stop

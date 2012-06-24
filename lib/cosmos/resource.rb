@@ -51,6 +51,10 @@ class ResourceSource
     @entity   = args['entity']  || args[:entity]
   end
 
+  def to_s
+    "resource_source-#{@id}-(#{@quantity} of #{resource.id} at #{entity.name})"
+  end
+
   def to_json(*a)
     {
       'json_class' => self.class.name,

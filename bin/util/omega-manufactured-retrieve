@@ -59,6 +59,9 @@ when "ship"
   puts " in system #{entity.solar_system.name}"
   puts "  at #{entity.location.to_s}"
   puts "  w/ movement strategy #{entity.location.movement_strategy.to_s}"
+  entity.resources.each { |id,q|
+    puts intent(i+2) + "#{q} of #{id}"
+  }
   puts " notifications:"
   entity.notification_callbacks.each { |n|
     puts "   - #{n.type} -> #{n.endpoint_id}"

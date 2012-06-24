@@ -59,14 +59,17 @@ class Client
     @@session_id ||= nil
 
     responses = []
-    @@rjr_node ||= RJR::AMQPNode.new :node_id => 'omega-' + Motel.gen_uuid, :broker => 'localhost'
-    @@rjr_node.message_headers['session_id'] = @@session_id
-    @@rjr_node.message_headers['source_node'] = @@rjr_node.node_id
-    requests = Array.new(@@requests)
-    @@requests.clear
-    requests.each { |req|
-      RJR::Logger.debug "Invoking #{req.method_name} with (#{req.method_params.join(", ")})"
-      responses << @@rjr_node.invoke_request('omega-queue', req.method_name, *req.method_params)
+    @@rjr_lock ||= Mutex.new
+    @@rjr_lock.synchronize {
+      @@rjr_node ||= RJR::AMQPNode.new :node_id => 'omega-' + Motel.gen_uuid, :broker => 'localhost'
+      @@rjr_node.message_headers['session_id'] = @@session_id
+      @@rjr_node.message_headers['source_node'] = @@rjr_node.node_id
+      requests = Array.new(@@requests)
+      @@requests.clear
+      requests.each { |req|
+        RJR::Logger.debug "Invoking #{req.method_name} with (#{req.method_params.join(", ")})"
+        responses << @@rjr_node.invoke_request('omega-queue', req.method_name, *req.method_params)
+      }
     }
     return responses.first if selected_response == :first
     return responses.last  if selected_response == :last
@@ -266,6 +269,15 @@ def system(id, star_id = nil, args = {}, &bl)
   return sys
 end
 
+def system_entities(sys = nil)
+  sys = @system if sys.nil?
+  raise ArgumentError, "system must not be nil" if sys.nil?
+  client = Omega::Client.new :system => system
+  client.queue_request 'manufactured::get_entities_under', sys.name
+  RJR::Logger.info "getting entities under #{sys.name}"
+  client.invoke_requests
+end
+
 def jump_gate(system, endpoint, args = {}, &bl)
   gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
 
@@ -394,10 +406,24 @@ def station(id, args={}, &bl)
   st = Manufactured::Station.new(args.merge({:id => id}))
 
   client = Omega::Client.new :station => st
-  client.queue_request 'manufactured::create_entity', st
-  RJR::Logger.info "creating station #{st.id}"
-  client.invoke_callback st, &bl
-  client.invoke_requests(Manufactured::Station)
+  RJR::Logger.info "retrieving station #{id} with #{args.inspect}"
+  client.queue_request 'manufactured::get_entity', id
+
+  begin
+    nst = client.invoke_requests(Manufactured::Station)
+    client.remove_entity(st)
+    client.set_context(:station => nst)
+    client.invoke_callback nst, &bl
+    return nst
+  
+  rescue Exception => e
+    client.queue_request 'manufactured::create_entity', st
+    RJR::Logger.info "creating station #{st.id}"
+    client.invoke_callback st, &bl
+    client.invoke_requests(Manufactured::Station)
+  end
+
+  return st
 end
 
 def fleet(id, args={}, &bl)
@@ -431,7 +457,7 @@ def subscribe_to(event, args = {}, &bl)
   #when :entered_proximity
   #when :left_proximity
 
-  when :attacked, :attacked_stop, :defended, :defended_stop, :destroyed, :resource_collected, :resource_depleted
+  when :attacked, :attacked_stop, :defended, :defended_stop, :destroyed, :resource_collected, :resource_depleted, :mining_stopped
     raise ArgumentError, "ship must not be nil" if @ship.nil?
     client = Omega::Client.new :ship => @ship
     client.queue_request 'manufactured::subscribe_to', @ship.id, event
@@ -456,10 +482,11 @@ def clear_callbacks
 end
 
 def move_to(location)
-  raise ArgumentError, "ship must not be nil" if @ship.nil?
-  client = Omega::Client.new :ship => @ship
-  client.queue_request 'manufactured::move_entity', @ship.id, location
-  RJR::Logger.info "moving #{@ship} to #{location}"
+  raise ArgumentError, "ship or station must not be nil" if @ship.nil? && @station.nil?
+  client = Omega::Client.new :ship => @ship, :station => @station
+  entity = @ship || @station
+  client.queue_request 'manufactured::move_entity', entity.id, location
+  RJR::Logger.info "moving #{entity} to #{location}"
   client.invoke_requests
 end
 
@@ -471,11 +498,34 @@ def follow(entity)
   client.invoke_requests
 end
 
+def transfer_resource(from_entity, to_entity, resource_id, quantity)
+  client = Omega::Client.new
+  client.queue_request 'manufactured::transfer_resource', from_entity.id, to_entity.id, resource_id, quantity
+  RJR::Logger.info "transferring #{quantity} of resource #{resource_id} from #{from_entity.id} to #{to_entity.id}"
+  client.invoke_requests
+end
+
+def construct(entity_type, args={})
+  raise ArgumentError, "station must not be nil" if @station.nil?
+  client = Omega::Client.new :station => @station
+  client.queue_request 'manufactured::construct_entity', @station.id, entity_type.to_s, args.to_a.flatten
+  RJR::Logger.info "constructing #{entity_type} at #{@station.id} with args #{args}"
+  client.invoke_requests(entity_type)
+end
+
+def construct_ship(args={})
+  construct(Manufactured::Ship, args)
+end
+
+def construct_station(args={})
+  construct(Manufactured::Station, args)
+end
+
 def start_mining(resource_source)
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
   client.queue_request 'manufactured::start_mining', @ship.id, resource_source.id
-  RJR::Logger.info "mining #{resource_source.id} with #{@ship}"
+  RJR::Logger.info "mining #{resource_source} with #{@ship}"
   client.invoke_requests
 end
 
