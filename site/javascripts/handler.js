@@ -59,15 +59,15 @@ function OmegaHandlers(){
       if(entity.json_class == "Cosmos::SolarSystem"){
         if(entity.name == system_name)
           client.current_system = entity;
-        entity.location.draw    = ui.draw_nothing;
+        entity.location.draw    = canvas_ui.draw_nothing;
         entity.location.clicked = controls.unregistered_click;
 
       }else if(entity.json_class == "Cosmos::Star"){
         if(entity.system.name == system_name){
-          entity.location.draw = function(star){ ui.draw_star(star); }
+          entity.location.draw = function(star){ canvas_ui.draw_star(star); }
           //entity.location.clicked = function(clicked_event, star) { controls.clicked_star(clicked_event, star); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
@@ -76,59 +76,60 @@ function OmegaHandlers(){
           // FIXME update planets location locally automatically,
           // track location at a larger distance for a periodic resync
           client.track_movement(loco.id, 7);
-          entity.location.draw   = function(planet){ ui.draw_planet(planet); }
+          entity.location.draw   = function(planet){ canvas_ui.draw_planet(planet); }
           entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
       }else if(entity.json_class == "Cosmos::Planet::Orbit"){
         if(entity.planet.system.name == system_name){
-          entity.location.draw = function(orbit){ ui.draw_orbit(orbit); }
+          entity.location.draw = function(orbit){ canvas_ui.draw_orbit(orbit); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
         }
 
       }else if(entity.json_class == "Cosmos::Asteroid"){
         if(entity.system.name == system_name){
-          entity.location.draw   = function(asteroid){ ui.draw_asteroid(asteroid); }
+          entity.location.draw   = function(asteroid){ canvas_ui.draw_asteroid(asteroid); }
           entity.location.clicked = function(clicked_event, asteroid) { controls.clicked_asteroid(clicked_event, asteroid); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
       }else if(entity.json_class == "Cosmos::JumpGate"){
         if(entity.system.name == system_name){
-          entity.location.draw = function(gate){ ui.draw_gate(gate); }
+          entity.location.draw = function(gate){ canvas_ui.draw_gate(gate); }
           entity.location.clicked = function(clicked_event, gate) { controls.clicked_gate(clicked_event, gate); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
       }else if(entity.json_class == "Manufactured::Ship"){
         if(entity.system.name == system_name){
-          entity.location.draw = function(ship){ ui.draw_ship(ship); }
+          entity.location.draw = function(ship){ canvas_ui.draw_ship(ship); }
           entity.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
       }else if(entity.json_class == "Manufactured::Station"){
         if(entity.system.name == system_name){
-          entity.location.draw = function(station){ ui.draw_station(station); }
+          entity.location.draw = function(station){ canvas_ui.draw_station(station); }
           entity.location.clicked = function(clicked_event, station) { controls.clicked_station(clicked_event, station); }
         }else{
-          loco.draw = ui.draw_nothing;
+          loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
       }
     }
 
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/'+ client.current_system.background +'.png") no-repeat');
+    $('#motel_canvas_container').show();
   }
 
   this.set_galaxy = function(galaxy_name){
@@ -141,15 +142,15 @@ function OmegaHandlers(){
       if(entity.json_class == "Cosmos::Galaxy"){
         if(entity.name == galaxy_name)
           client.current_galaxy = entity;
-        loco.draw    = ui.draw_nothing;
+        loco.draw    = canvas_ui.draw_nothing;
         loco.clicked = controls.unregistered_click;
 
       }else if(entity.json_class == "Cosmos::SolarSystem"){
         if(entity.galaxy.name == galaxy_name){
-          loco.draw = function(system) { ui.draw_system(system); }
+          loco.draw = function(system) { canvas_ui.draw_system(system); }
           loco.clicked = function(clicked_event, system) { controls.clicked_system(clicked_event, system); }
         }else{
-          loco.draw    = ui.draw_nothing;
+          loco.draw    = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
         }
 
@@ -160,7 +161,7 @@ function OmegaHandlers(){
                entity.json_class == "Cosmos::JumpGate"   ||
                entity.json_class == "Manufactured::Ship" ||
                entity.json_class == "Manufactured::Station"){
-        entity.location.draw    = ui.draw_nothing;
+        entity.location.draw    = canvas_ui.draw_nothing;
         entity.location.clicked = controls.unregistered_click;
       }
     }

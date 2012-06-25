@@ -120,15 +120,15 @@ function CosmosUI(){
   this.camera  = new CosmosCamera();
 
   this.adjusted_x  = function(x, y, z){
-    return (x * this.camera.focal_length / z) + ui.width / 2;
+    return (x * this.camera.focal_length / z) + canvas_ui.width / 2;
   }
   this.adjusted_y = function(x, y, z){
-    return ui.height/2 - (y * this.camera.focal_length / z);
+    return canvas_ui.height/2 - (y * this.camera.focal_length / z);
   }
   
   this.draw = function(){
     // clear drawing area
-    ui.context.clearRect(0, 0, ui.width, ui.height);
+    canvas_ui.context.clearRect(0, 0, canvas_ui.width, canvas_ui.height);
 
     // sort locations based on z axis position
     var sorted_locations = [];
@@ -160,42 +160,42 @@ function CosmosUI(){
       var jg = system.jump_gates[j];
       if(jg.endpoint_system != null){
         var endpoint = jg.endpoint_system.location;
-        ui.context.beginPath();
-        ui.context.strokeStyle = "#FFFFFF";
-        ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                          ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-        ui.context.lineTo(ui.adjusted_x(endpoint.cx, endpoint.cy, endpoint.cz),
-                          ui.adjusted_y(endpoint.cx, endpoint.cy, endpoint.cz));
-        ui.context.lineWidth = 2;
-        ui.context.stroke();
+        canvas_ui.context.beginPath();
+        canvas_ui.context.strokeStyle = "#FFFFFF";
+        canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                                 canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+        canvas_ui.context.lineTo(canvas_ui.adjusted_x(endpoint.cx, endpoint.cy, endpoint.cz),
+                                 canvas_ui.adjusted_y(endpoint.cx, endpoint.cy, endpoint.cz));
+        canvas_ui.context.lineWidth = 2;
+        canvas_ui.context.stroke();
       }
     }
   
     // draw circle representing system
-    ui.context.beginPath();
-    ui.context.fillStyle = "#FFFFFF";
-    ui.context.arc(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                   ui.adjusted_y(loco.cx, loco.cy, loco.cz),
+    canvas_ui.context.beginPath();
+    canvas_ui.context.fillStyle = "#FFFFFF";
+    canvas_ui.context.arc(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                          canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz),
                    system.size, 0, Math.PI*2, true);
-    ui.context.fill();
+    canvas_ui.context.fill();
   
     // draw label
-    ui.context.font = 'bold 16px sans-serif';
-    ui.context.fillText(system.name,
-                        ui.adjusted_x(loco.cx, loco.cy, loco.cz) - 25,
-                        ui.adjusted_y(loco.cx, loco.cy, loco.cz) - 25);
+    canvas_ui.context.font = 'bold 16px sans-serif';
+    canvas_ui.context.fillText(system.name,
+                               canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) - 25,
+                               canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) - 25);
   }
 
   this.draw_star = function(star){
     var loco = star.location;
 
     // draw circle representing star
-    ui.context.beginPath();
-    ui.context.fillStyle = "#" + star.color;
-    ui.context.arc(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                   ui.adjusted_y(loco.cx, loco.cy, loco.cz),
-                   star.size, 0, Math.PI*2, true);
-    ui.context.fill();
+    canvas_ui.context.beginPath();
+    canvas_ui.context.fillStyle = "#" + star.color;
+    canvas_ui.context.arc(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                          canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz),
+                          star.size, 0, Math.PI*2, true);
+    canvas_ui.context.fill();
   }
 
   this.draw_orbit = function(orbit){
@@ -203,17 +203,17 @@ function CosmosUI(){
       var loco  = orbit.location;
       var ploco = orbit.previous.location;
 
-      var aox = ui.adjusted_x(loco.cx,  loco.cy,  loco.cz);
-      var aoy = ui.adjusted_y(loco.cx,  loco.cy,  loco.cz);
-      var apx = ui.adjusted_x(ploco.cx, ploco.cy, ploco.cz);
-      var apy = ui.adjusted_y(ploco.cx, ploco.cy, ploco.cz);
+      var aox = canvas_ui.adjusted_x(loco.cx,  loco.cy,  loco.cz);
+      var aoy = canvas_ui.adjusted_y(loco.cx,  loco.cy,  loco.cz);
+      var apx = canvas_ui.adjusted_x(ploco.cx, ploco.cy, ploco.cz);
+      var apy = canvas_ui.adjusted_y(ploco.cx, ploco.cy, ploco.cz);
 
-      ui.context.beginPath();
-      ui.context.lineWidth = 2;
-      ui.context.strokeStyle = "#AAAAAA";
-      ui.context.moveTo(apx, apy);
-      ui.context.lineTo(aox, aoy);
-      ui.context.stroke();
+      canvas_ui.context.beginPath();
+      canvas_ui.context.lineWidth = 2;
+      canvas_ui.context.strokeStyle = "#AAAAAA";
+      canvas_ui.context.moveTo(apx, apy);
+      canvas_ui.context.lineTo(aox, aoy);
+      canvas_ui.context.stroke();
     }
   }
 
@@ -221,22 +221,22 @@ function CosmosUI(){
     var loco = planet.location;
 
     // draw circle representing planet
-    ui.context.beginPath();
-    ui.context.fillStyle = "#" + planet.color;
-    ui.context.arc(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                   ui.adjusted_y(loco.cx, loco.cy, loco.cz),
-                   planet.size, 0, Math.PI*2, true);
-    ui.context.fill();
+    canvas_ui.context.beginPath();
+    canvas_ui.context.fillStyle = "#" + planet.color;
+    canvas_ui.context.arc(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                          canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz),
+                          planet.size, 0, Math.PI*2, true);
+    canvas_ui.context.fill();
   
     // draw moons
     for(var m=0; m<planet.moons.length; ++m){
       var moon = planet.moons[m];
-      ui.context.beginPath();
-      ui.context.fillStyle = "#808080";
-      ui.context.arc(ui.adjusted_x(loco.cx + moon.location.x, loco.cy + moon.location.y, loco.cz + moon.location.z),
-                     ui.adjusted_y(loco.cx + moon.location.x, loco.cy + moon.location.y, loco.cz + moon.location.z),
-                     5, 0, Math.PI*2, true);
-      ui.context.fill();
+      canvas_ui.context.beginPath();
+      canvas_ui.context.fillStyle = "#808080";
+      canvas_ui.context.arc(canvas_ui.adjusted_x(loco.cx + moon.location.x, loco.cy + moon.location.y, loco.cz + moon.location.z),
+                            canvas_ui.adjusted_y(loco.cx + moon.location.x, loco.cy + moon.location.y, loco.cz + moon.location.z),
+                            5, 0, Math.PI*2, true);
+      canvas_ui.context.fill();
     }
   }
 
@@ -244,13 +244,13 @@ function CosmosUI(){
     var loco = asteroid.location;
 
     // draw asterisk representing the asteroid
-    ui.context.fillStyle = "#FFFFFF";
-    ui.context.font = 'bold 32px sans-serif';
-    ui.context.textAlign = 'center';
-    ui.context.textBaseline = 'middle';
-    ui.context.fillText("*",
-                        ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                        ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+    canvas_ui.context.fillStyle = "#FFFFFF";
+    canvas_ui.context.font = 'bold 32px sans-serif';
+    canvas_ui.context.textAlign = 'center';
+    canvas_ui.context.textBaseline = 'middle';
+    canvas_ui.context.fillText("*",
+                               canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                               canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
   }
 
   this.draw_gate = function(gate){
@@ -258,98 +258,98 @@ function CosmosUI(){
 
     // draw triangle representing gate
     var py = 12; // used to draw traingle for gate
-    ui.context.fillStyle = "#00CC00";
-    ui.context.beginPath();
-    ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) - py);
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) - gate.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) + py);
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) + gate.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) + py);
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) - py);
-    ui.context.fill();
+    canvas_ui.context.fillStyle = "#00CC00";
+    canvas_ui.context.beginPath();
+    canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) - py);
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) - gate.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) + py);
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) + gate.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) + py);
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) - py);
+    canvas_ui.context.fill();
 
     if(gate == controls.selected_gate){
       // draw circle around gate representing 'trigger area' or
       // area in which ships will be picked up for transport
-      ui.context.strokeStyle = "#808080";
-      ui.context.beginPath();
-      ui.context.arc(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                     ui.adjusted_y(loco.cx, loco.cy, loco.cz),
-                     controls.gate_trigger_area, 0, Math.PI*2, false);
-      ui.context.stroke();
+      canvas_ui.context.strokeStyle = "#808080";
+      canvas_ui.context.beginPath();
+      canvas_ui.context.arc(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                            canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz),
+                            controls.gate_trigger_area, 0, Math.PI*2, false);
+      canvas_ui.context.stroke();
     }
   
     // draw name of system gate is to
-    ui.context.font = 'bold 16px sans-serif';
-    ui.context.fillText(gate.endpoint,
-                        ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                        ui.adjusted_y(loco.cx, loco.cy, loco.cz) + 30);
+    canvas_ui.context.font = 'bold 16px sans-serif';
+    canvas_ui.context.fillText(gate.endpoint,
+                               canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                               canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) + 30);
  }
 
   this.draw_station = function(station){
     var loco = station.location;
 
     // draw crosshairs representing statin
-    ui.context.beginPath();
-    ui.context.strokeStyle = "#0000CC";
-    ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) - station.size/2);
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) + station.size/2);
-    ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) - station.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) + station.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-    ui.context.lineWidth = 4;
-    ui.context.stroke();
+    canvas_ui.context.beginPath();
+    canvas_ui.context.strokeStyle = "#0000CC";
+    canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) - station.size/2);
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) + station.size/2);
+    canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) - station.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) + station.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+    canvas_ui.context.lineWidth = 4;
+    canvas_ui.context.stroke();
   }
   
   this.draw_ship = function(ship){
     var loco = ship.location;
 
     // draw crosshairs representing ship
-    ui.context.beginPath();
+    canvas_ui.context.beginPath();
     if(ship.selected)
-      ui.context.strokeStyle = "#FFFF00";
+      canvas_ui.context.strokeStyle = "#FFFF00";
     else if(ship.docked_at)
-      ui.context.strokeStyle = "#99FFFF";
+      canvas_ui.context.strokeStyle = "#99FFFF";
     else
-      ui.context.strokeStyle = "#00CC00";
-    ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) - ship.size/2);
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz) + ship.size/2);
-    ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) - ship.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-    ui.context.lineTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz) + ship.size/2,
-                      ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-    ui.context.lineWidth = 4;
-    ui.context.stroke();
+      canvas_ui.context.strokeStyle = "#00CC00";
+    canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) - ship.size/2);
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz) + ship.size/2);
+    canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) - ship.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+    canvas_ui.context.lineTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz) + ship.size/2,
+                             canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+    canvas_ui.context.lineWidth = 4;
+    canvas_ui.context.stroke();
   
     // if ship is attacking another, draw line of attack
     if(ship.attacking){
-      ui.context.beginPath();
-      ui.context.strokeStyle = "#FF0000";
-      ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                        ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-      ui.context.lineTo(ui.adjusted_x(ship.attacking.location.cx, ship.attacking.location.cy, ship.attacking.location.cz),
-                        ui.adjusted_y(ship.attacking.location.cx, ship.attacking.location.cy, ship.attacking.location.cz));
-      ui.context.lineWidth = 2;
-      ui.context.stroke();
+      canvas_ui.context.beginPath();
+      canvas_ui.context.strokeStyle = "#FF0000";
+      canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                               canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+      canvas_ui.context.lineTo(canvas_ui.adjusted_x(ship.attacking.location.cx, ship.attacking.location.cy, ship.attacking.location.cz),
+                               canvas_ui.adjusted_y(ship.attacking.location.cx, ship.attacking.location.cy, ship.attacking.location.cz));
+      canvas_ui.context.lineWidth = 2;
+      canvas_ui.context.stroke();
     }
 
     // if ship is mining, draw line to mining target
     if(ship.mining){
-      ui.context.beginPath();
-      ui.context.strokeStyle = "#0000FF";
-      ui.context.moveTo(ui.adjusted_x(loco.cx, loco.cy, loco.cz),
-                        ui.adjusted_y(loco.cx, loco.cy, loco.cz));
-      ui.context.lineTo(ui.adjusted_x(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz),
-                        ui.adjusted_y(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz));
-      ui.context.lineWidth = 2;
-      ui.context.stroke();
+      canvas_ui.context.beginPath();
+      canvas_ui.context.strokeStyle = "#0000FF";
+      canvas_ui.context.moveTo(canvas_ui.adjusted_x(loco.cx, loco.cy, loco.cz),
+                               canvas_ui.adjusted_y(loco.cx, loco.cy, loco.cz));
+      canvas_ui.context.lineTo(canvas_ui.adjusted_x(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz),
+                               canvas_ui.adjusted_y(ship.mining.location.cx, ship.mining.location.cy, ship.mining.location.cz));
+      canvas_ui.context.lineWidth = 2;
+      canvas_ui.context.stroke();
     }
   }
 
@@ -368,7 +368,7 @@ function CosmosStatsUI(){
         cs += '<ul><li>Galaxy: ' + gal.name + '<ul>';
         for(var s = 0; s < gal.solar_systems.length; ++s){
           var sys = gal.solar_systems[s];
-          cs += "<li>System: " + sys.name + "<ul>";
+          cs += "<li><span id='"+sys.name+"' class='entity_title solar_system_title'>System: " + sys.name + "</span><ul>";
           if(sys.star){
             cs += "<li>Star: " + sys.star.name + "</li>";
           }
@@ -422,8 +422,8 @@ function CosmosStatsUI(){
     }
     us += "</ul>"
 
-    ui.cosmos_stats.html(cs);
-    ui.users_stats.html(us);
-    ui.actions_stats.html(as);
+    stats_ui.cosmos_stats.html(cs);
+    stats_ui.users_stats.html(us);
+    stats_ui.actions_stats.html(as);
   };
 };

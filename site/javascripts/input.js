@@ -107,11 +107,11 @@ function CosmosControls(){
   this.draw = function(){
     if(this.select_box_top_left_x && this.select_box_top_left_y &&
        this.select_box_width      && this.select_box_height){
-        ui.context.beginPath();
-        ui.context.fillStyle = "rgba(142, 214, 255, 0.5)";
-        ui.context.rect(this.select_box_top_left_x + ui.width/2, ui.height/2 - this.select_box_top_left_y,
+        canvas_ui.context.beginPath();
+        canvas_ui.context.fillStyle = "rgba(142, 214, 255, 0.5)";
+        canvas_ui.context.rect(this.select_box_top_left_x + canvas_ui.width/2, canvas_ui.height/2 - this.select_box_top_left_y,
                      this.select_box_width, this.select_box_height);
-        ui.context.fill();
+        canvas_ui.context.fill();
     }
   }
 
@@ -233,15 +233,15 @@ $('#motel_canvas').live('click', function(e){
 });
 
 $('#motel_canvas').live('mousemove', function(e){
-  controls.mouse_current_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - ui.width / 2);
-  controls.mouse_current_y = Math.floor(ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  controls.mouse_current_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - canvas_ui.width / 2);
+  controls.mouse_current_y = Math.floor(canvas_ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
   controls.update_select_box();
 });
 
 // handle mouse down event
 $('#motel_canvas').live('mousedown', function(e){
-  controls.mouse_down_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - ui.width / 2);
-  controls.mouse_down_y = Math.floor(ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+  controls.mouse_down_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - canvas_ui.width / 2);
+  controls.mouse_down_y = Math.floor(canvas_ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
   controls.update_select_box();
 //console.log("coords: " + x + " / " + y);
 });
@@ -257,56 +257,61 @@ $('#motel_canvas').live('mouseup', function(e){
 if(jQuery.fn.mousehold){
 
 $('#cam_inc_x_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('x', 0.01);
+  canvas_ui.camera.rotate('x', 0.01);
 });
 
 $('#cam_dec_x_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('x', -0.01);
+  canvas_ui.camera.rotate('x', -0.01);
 });
 
 $('#cam_inc_y_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('y', 0.01);
+  canvas_ui.camera.rotate('y', 0.01);
 });
 
 $('#cam_dec_y_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('y', -0.01);
+  canvas_ui.camera.rotate('y', -0.01);
 });
 
 $('#cam_inc_z_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('z', 0.01);
+  canvas_ui.camera.rotate('z', 0.01);
 });
 
 $('#cam_dec_z_angle').mousehold(function(e, ctr){
-  ui.camera.rotate('z', -0.01);
+  canvas_ui.camera.rotate('z', -0.01);
 });
 
 $('#cam_inc_x_position').mousehold(function(e, ctr){
-  ui.camera.move('x', 20);
+  canvas_ui.camera.move('x', 20);
 });
 
 $('#cam_dec_x_position').mousehold(function(e, ctr){
-  ui.camera.move('x', -20);
+  canvas_ui.camera.move('x', -20);
 });
 
 $('#cam_inc_y_position').mousehold(function(e, ctr){
-  ui.camera.move('y', 20);
+  canvas_ui.camera.move('y', 20);
 });
 
 $('#cam_dec_y_position').mousehold(function(e, ctr){
-  ui.camera.move('y', -20);
+  canvas_ui.camera.move('y', -20);
 });
 
 $('#cam_inc_z_position').mousehold(function(e, ctr){
-  ui.camera.move('z', 20);
+  canvas_ui.camera.move('z', 20);
 });
 
 $('#cam_dec_z_position').mousehold(function(e, ctr){
-  ui.camera.move('z', -20);
+  canvas_ui.camera.move('z', -20);
 });
 
 }
 
 ////////////////////// various custom inputs
+
+// close canvas view
+$('#motel_close_canvas').live('click', function(e){
+  $('#motel_canvas_container').hide();
+});
 
 // show ship details
 $('.command_view_ship').live('click', function(e){

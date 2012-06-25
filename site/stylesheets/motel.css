@@ -14,12 +14,30 @@
   margin-bottom: 10px;
 }
 
+#motel_stats_canvas_container {
+  position: relative;
+}
+
 #motel_canvas_container{
   margin: 0 auto;
   margin-top: 20px;
   text-align: center;
   border: 1px solid black;
   width: 1000px;
+  height: 700px;
+}
+
+#motel_stats_canvas_container > #motel_canvas_container{
+  margin-left: 10%;
+  width: 90%;
+  position: absolute;
+  display: none;
+  border: none;
+}
+
+#motel_stats_canvas_container canvas {
+  float: right;
+  width: 1500px;
   height: 700px;
 }
 
@@ -43,6 +61,18 @@
   cursor: crosshair;
 }
 
+#motel_close_canvas{
+  height: 25px;
+  width:  25px;
+  background: red;
+  float: right;
+  font-size: 22px;
+}
+
+#motel_close_canvas:hover {
+  cursor: crosshair;
+}
+
 #motel_entity_container{
   display: none;
   position: absolute;
@@ -54,7 +84,7 @@
   border: 1px solid black;
 }
 
-#motel_entities_container .entity_title{
+.entity_title{
   cursor: crosshair;
   /*cursor: move;
   cursor: pointer;*/

@@ -136,14 +136,13 @@ class ClientStation
   def move_to_system(system, &bl)
     @server_station.location.parent_id = system.server_system.location.id
     @station = @server_station
-puts "~~~~ #{@station} #{@server_station.location}"
     move_to(@server_station.location)
     bl.call if bl
   end
 
   def construction_cycle
     @stop_construction = false
-    @build_for_system = ClientSystem.load :name => "Aphrodite"
+    @build_for_system = nil
     @construction_thread = Thread.new {
       until @stop_construction
         refresh
@@ -161,7 +160,6 @@ puts "~~~~ #{@station} #{@server_station.location}"
             # load them on the client side
             client_station = ClientStation.load(:name => new_station.id)
             client_frigate = FrigateShip.load(:name => new_frigate.id, :home_station => client_station)
-puts "!!!!"
 
             # move station / frigate to new system
             client_station.move_to_system(@build_for_system) do
@@ -199,7 +197,7 @@ puts "!!!!"
             client_corvette = CorvetteShip.load :name => new_corvette.id
 
             client_miner.mine_cycle()
-            #client_corvette.follow(client_miner).protect(client_miner)
+            client_corvette.follow(client_miner).protect(client_miner)
           end
         end
 
@@ -539,8 +537,8 @@ miner = MinerShip.load :name   => USER_NAME + "-mining-ship1",
                        :transfer_endpoint => frigate
 miner.mine_cycle()
 
-#corvette = CorvetteShip.load :name => USER_NAME + "-corvette-ship1"
-#corvette.follow_ship(miner).protect(miner)
+corvette = CorvetteShip.load :name => USER_NAME + "-corvette-ship1"
+corvette.follow_ship(miner).protect(miner)
 
 Signal.trap("USR1") {
   stop

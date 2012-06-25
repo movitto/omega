@@ -13,7 +13,7 @@ function Location(){
   this.parent_id = null;
   this.movement_strategy = null;
   this.entity = null;
-  if(typeof ui != 'undefined') this.draw    = ui.draw_nothing;
+  if(typeof canvas_ui != 'undefined') this.draw    = canvas_ui.draw_nothing;
   if(typeof controls != 'undefined') this.clicked = controls.unregistered_click;
 
   this.update = function(new_location){
@@ -26,8 +26,8 @@ function Location(){
       this.movement_strategy = new_location.movement_strategy;
 
     // needs to be invoked after movement stategy is set as orbit is updated here
-    if(ui.camera){
-      var nloc = ui.camera.update_location(this);
+    if(canvas_ui.camera){
+      var nloc = canvas_ui.camera.update_location(this);
       this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
     }
 
@@ -46,8 +46,8 @@ function Location(){
   };
 
   this.within_screen_coords = function(x, y, distance){
-    var ax = ui.adjusted_x(this.cx, this.cy, this.cz);
-    var ay = ui.adjusted_y(this.cx, this.cy, this.cz);
+    var ax = canvas_ui.adjusted_x(this.cx, this.cy, this.cz);
+    var ay = canvas_ui.adjusted_y(this.cx, this.cy, this.cz);
     return Math.sqrt(Math.pow(ax - x, 2) + Math.pow(ay - y, 2)) < distance;
   }
 

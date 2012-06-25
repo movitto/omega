@@ -77,14 +77,11 @@
             }
           });
 
-          function refresh(){
-            client.get_users();
-            client.get_cosmos_entity('universe');
-          }
-
           // overall refresh every 10s
-          setInterval(refresh, 10000);
-          refresh();
+          // TODO remove refresh and subscribe callbacks to new user / ship creation
+          setInterval(client.get_users, 10000);
+          client.get_users();
+          client.get_cosmos_entity('universe');
 
           controls.show_logout_controls();
         }
@@ -99,8 +96,10 @@
         client = new CosmosClient();
         client.connect();
 
-        ui = new CosmosStatsUI();
-        setInterval(ui.draw, 500);
+        stats_ui   = new CosmosStatsUI();
+        canvas_ui  = new CosmosUI();
+        setInterval(stats_ui.draw, 500);
+        setInterval(canvas_ui.draw, 500);
       });
     </script>
 
@@ -118,6 +117,13 @@
       <a href="/wiki/Omegaverse">Wiki</a>
       <a href="/wiki/Forum">Forums</a>
       <a href="/stats.html">Stats</a>
+    </div>
+
+    <div id="motel_stats_canvas_container">
+      <div id="motel_canvas_container">
+        <canvas id="motel_canvas" width="1500" height="700"></canvas>
+        <div id="motel_close_canvas"> X</div>
+      </div>
     </div>
 
     <div id="omega_stats_nav">
