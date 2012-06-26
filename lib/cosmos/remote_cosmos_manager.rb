@@ -24,7 +24,7 @@ class RemoteCosmosManager
       user = Users::User.new :id => 'rcm', :password => 'mcr'
 
       node_id = Motel.gen_uuid
-      @nodes[queue] = RJR::AMQPNode.new :broker => broker, :node_id => "motel-remote-#{node_id}"
+      @nodes[queue] = RJR::AMQPNode.new :broker => broker, :node_id => "cosmos-remote-#{node_id}"
       #@nodes[queue].listen
 
       # TODO incorporate a rjr timeout?

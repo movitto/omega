@@ -88,9 +88,6 @@ class RJRAdapter
        }
        # raise Omega::DataNotFound if entities.empty? (?)
        entities.each{ |entity|
-         # update locations w/ latest from the tracker
-         entity.location = @@local_node.invoke_request('get_location', entity.location.id) if entity.location
-
          if entity.has_children?
            entity.each_child { |parent, child|
              if child.class.remotely_trackable? && child.remote_queue
@@ -110,6 +107,9 @@ class RJRAdapter
          entity = entities[i]
          if entity.class.remotely_trackable? && entity.remote_queue
            entities[i] = @@remote_cosmos_manager.get_entity(entity)
+         else
+           # update locations w/ latest from the tracker
+           entity.location = @@local_node.invoke_request('get_location', entity.location.id) if entity.location
          end
        }
 

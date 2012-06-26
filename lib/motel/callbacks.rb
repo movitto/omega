@@ -108,17 +108,13 @@ class Proximity < Base
   attr_accessor :max_x, :max_y, :max_z
 
   def initialize(args = {}, &block)
-    @max_distance = 0
-    @max_x = 0
-    @max_y = 0
-    @max_z = 0
     @to_location = nil
     @event = :proximity
 
-    @max_distance = args[:max_distance] || args['max_distance']
-    @max_x = args[:max_x] || args['max_x']
-    @max_y = args[:max_y] || args['max_y']
-    @max_z = args[:max_z] || args['max_z']
+    @max_distance = args[:max_distance] || args['max_distance'] || 0
+    @max_x = args[:max_x] || args['max_x'] || 0
+    @max_y = args[:max_y] || args['max_y'] || 0
+    @max_z = args[:max_z] || args['max_z'] || 0
     @to_location = args[:to_location] || args['to_location']
     @event = args[:event].intern  if args.has_key?(:event)  && args[:event].is_a?(String)
     @event = args['event'].intern if args.has_key?('event') && args['event'].is_a?(String)

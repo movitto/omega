@@ -101,7 +101,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with create manufactured_entities to construct_entity" do
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    stat1 = Manufactured::Station.new :id => 'station1',
+                                      :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0),
+                                      :resources => { 'metal-alloy' => 5000 }
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -279,8 +281,10 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to subscribe to events" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    ship2 = Manufactured::Ship.new :id => 'ship2', :location => Motel::Location.new(:id => '101')
+    ship1 = Manufactured::Ship.new :id => 'ship1',
+                                   :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
+    ship2 = Manufactured::Ship.new :id => 'ship2',
+                                   :location => Motel::Location.new(:id => '101', :x => 10, :y => 10, :z => 5)
     u = TestUser.create.login(@local_node).clear_privileges.
                  add_privilege('view', 'manufactured_entities').
                  add_privilege('modify', 'manufactured_entities')
@@ -397,7 +401,7 @@ describe Manufactured::RJRAdapter do
     # verify ship has arrived and is no longer moving
     rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
     rloc.movement_callbacks.size.should == 0
-    (rloc.x - new_loc.x).should < 5 # FIXME since the entity is moved in increments of speed, might not be exactly on
+    (rloc.x - new_loc.x).should < 25 # FIXME since the entity is moved in increments of speed, might not be exactly on
     rloc.y.should == new_loc.y
     rloc.z.should == new_loc.z
   end
@@ -557,27 +561,27 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
 
-    ship1.add_resource resource, 50
+    ship1.add_resource resource.id, 50
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', 'non_existant', stat1.id, resource, 10)
+      @local_node.invoke_request('manufactured::transfer_resource', 'non_existant', stat1.id, resource.id, 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, 'non_existant', resource, 10)
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, 'non_existant', resource.id, 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('modify', 'manufactured_entity-' + ship1.id)
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
@@ -586,17 +590,17 @@ describe Manufactured::RJRAdapter do
     nres = Cosmos::Resource.new :type => 'gem', :name => 'ruby'
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, nres, 10)
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, nres.id, 10)
     #}.should raise_error(Omega::OperationError)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 1000)
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 1000)
     #}.should raise_error(Omega::OperationError)
     }.should raise_error(Exception)
 
     lambda{
-      ret = @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource, 10)
+      ret = @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
       ret.class.should == Array
       ret.size.should == 2
       ret.first.id.should == ship1.id
@@ -607,7 +611,7 @@ describe Manufactured::RJRAdapter do
     stat1.resources[resource.id].should == 10
 
     lambda{
-      ret = @local_node.invoke_request('manufactured::transfer_resource', stat1.id, ship1.id, resource, 5)
+      ret = @local_node.invoke_request('manufactured::transfer_resource', stat1.id, ship1.id, resource.id, 5)
       ret.class.should == Array
       ret.size.should == 2
       ret.first.id.should == stat1.id

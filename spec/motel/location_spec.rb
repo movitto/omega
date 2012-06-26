@@ -32,7 +32,7 @@ describe Motel::Location do
      orig = Motel::Location.new :x => 1, :y => 2, :movement_strategy => 'foobar', :parent_id => 5, :parent => p1
      new  = Motel::Location.new :x => 5, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
      orig.update(new)
-     orig.x.should be(5)
+     orig.x.should == 5
      orig.y.should == 2
      orig.z.should be_nil
      orig.movement_strategy.should == "foomoney"

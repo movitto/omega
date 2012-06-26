@@ -30,8 +30,8 @@ describe Cosmos::RJRAdapter do
     }
     sleep 1
 
-    gal1 = Cosmos::Galaxy.new :name => 'gal1', :remote_queue => 'remote_server-queue'
-    pl1  = Cosmos::Planet.new :name => 'pl1'
+    gal1 = Cosmos::Galaxy.new :name => 'gal1', :remote_queue => 'remote_server-queue', :location => Motel::Location.new(:id => 'g1')
+    pl1  = Cosmos::Planet.new :name => 'pl1', :location => Motel::Location.new(:id => 'p1')
     @local_node = RJR::LocalNode.new  :node_id => 'cosmos-rrjr-test'
     TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
     @local_node.invoke_request('cosmos::create_entity', gal1, :universe)

@@ -34,27 +34,28 @@ describe Manufactured::Station do
     station.resources.should be_empty
 
     res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    station.add_resource res, 50
+    station.add_resource res.id, 50
     station.resources.should_not be_empty
     station.resources.size.should == 1
     station.resources[res.id].should == 50
 
-    station.add_resource res, 60
+    station.add_resource res.id, 60
     station.resources.size.should == 1
     station.resources[res.id].should == 110
 
-    station.remove_resource res, 40
+    station.remove_resource res.id, 40
     station.resources.size.should == 1
     station.resources[res.id].should == 70
 
-    station.remove_resource res, 70
+    station.remove_resource res.id, 70
     station.resources.size.should == 1
     station.resources[res.id].should == 0
   end
 
   it "should permit constructing new entities" do
     station   = Manufactured::Station.new :id => 'station1',
-                                          :solar_system => 'system1'
+                                          :solar_system => 'system1',
+                                          :resources => { 'metal-alloy' => 5000 }
 
     entity   = station.construct :entity_type => 'foobar'
     entity.should be_nil

@@ -220,9 +220,9 @@ class RJRAdapter
            end
          }
 
-       old = loc.proximity_callbacks.find { |p| p.endpoint_id == on_proximity.endpoint_id }
+       old = loc1.proximity_callbacks.find { |p| p.endpoint_id == on_proximity.endpoint_id }
        unless old.nil?
-         loc.proximity_callbacks.delete(old)
+         loc1.proximity_callbacks.delete(old)
        end
 
        loc1.proximity_callbacks << on_proximity

@@ -182,7 +182,10 @@ class Location
    end
 
    def to_s
-     "location-#{id}(#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)})"
+     s = "location-#{id}("
+     s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}" unless x.nil? || y.nil? || z.nil?
+     s += ")"
+     s
    end
 
    def self.json_create(o)

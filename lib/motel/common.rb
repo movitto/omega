@@ -73,3 +73,10 @@ class Float
      return (self * 10 ** precision).round.to_f / (10 ** precision)
   end
 end
+
+# so we don't need to distinguish between an int and float to use round_to
+class Fixnum
+  def round_to(precision)
+    return self
+  end
+end

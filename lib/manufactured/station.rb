@@ -102,6 +102,8 @@ class Station
       cclass = Manufactured::Station
     end
 
+    return nil if cclass.nil?
+
     # verify enough resources are locally present to construct entity
     cost = cclass.construction_cost(cargs[:type])
     if cargo_quantity < cost

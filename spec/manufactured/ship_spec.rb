@@ -67,20 +67,20 @@ describe Manufactured::Ship do
     ship.resources.should be_empty
     
     res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    ship.add_resource res, 50
+    ship.add_resource res.id, 50
     ship.resources.should_not be_empty
     ship.resources.size.should == 1
     ship.resources[res.id].should == 50
 
-    ship.add_resource res, 60
+    ship.add_resource res.id, 60
     ship.resources.size.should == 1
     ship.resources[res.id].should == 110
 
-    ship.remove_resource res, 40
+    ship.remove_resource res.id, 40
     ship.resources.size.should == 1
     ship.resources[res.id].should == 70
 
-    ship.remove_resource res, 70
+    ship.remove_resource res.id, 70
     ship.resources.size.should == 1
     ship.resources[res.id].should == 0
   end

@@ -15,16 +15,17 @@ describe Cosmos::RemoteCosmosManager do
     Cosmos::RJRAdapter.init
 
     user = Users::User.new :id => 'rcm', :password => 'mcr'
-    @local_node = RJR::LocalNode.new :node_id => 'motel-rcm-test'
+    @local_node = RJR::LocalNode.new :node_id => 'cosmos-rcm-test'
     @local_node.invoke_request('users::create_entity', user)
     @local_node.invoke_request('users::add_privilege', user.id, 'create',   'cosmos_entities')
     @local_node.invoke_request('users::add_privilege', user.id, 'modify',   'cosmos_entities')
     @local_node.invoke_request('users::add_privilege', user.id, 'view',     'cosmos_entities')
 
-    @amqp_node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'motel-rcm-test'
+    @amqp_node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'cosmos-rcm-test'
     @server_thread = Thread.new {
       @amqp_node.listen
     }
+    sleep 1
   end
 
   after(:all) do
@@ -41,41 +42,44 @@ describe Cosmos::RemoteCosmosManager do
 
   it "should encapsulate one amqp node per remote queue" do
     rcm = Cosmos::RemoteCosmosManager.new
-    q1 = rcm.remote_node_for 'motel-rcm-test-queue'
-    q2 = rcm.remote_node_for 'motel-rcm-test-queue'
+    q1 = rcm.remote_node_for 'cosmos-rcm-test-queue'
+    q2 = rcm.remote_node_for 'cosmos-rcm-test-queue'
     #q3 = rcm.remote_node_for 'foobar'
     q1.should == q2
     #q1.should_not == q3
   end
 
   it "should provide access to get remote galaxies" do
-    gal = Cosmos::Galaxy.new :name => 'rmg42'
+    gal = Cosmos::Galaxy.new :name => 'rmg42', :location => Motel::Location.new
     unv = Cosmos::Registry.instance.find_entity :type => :universe
     unv.add_child gal
+    Motel::Runner.instance.run gal.location
 
     rcm = Cosmos::RemoteCosmosManager.new
-    rgal = rcm.get_entity(Cosmos::Galaxy.new(:name => 'rmg42', :remote_queue => 'motel-rcm-test-queue'))
+    rgal = rcm.get_entity(Cosmos::Galaxy.new(:name => 'rmg42', :remote_queue => 'cosmos-rcm-test-queue'))
     rgal.name.should == gal.name
     rgal.to_s.should == gal.to_s
     rgal.should_not == gal
   end
 
   it "should provide access to get remote systems" do
-    sys = Cosmos::SolarSystem.new :name => 'rms42'
-    gal = Cosmos::Galaxy.new :name => 'gal42'
+    sys = Cosmos::SolarSystem.new :name => 'rms42', :location => Motel::Location.new
+    gal = Cosmos::Galaxy.new :name => 'gal42', :location => Motel::Location.new
     unv = Cosmos::Registry.instance.find_entity :type => :universe
     gal.add_child sys
     unv.add_child gal
+    Motel::Runner.instance.run gal.location
+    Motel::Runner.instance.run sys.location
 
     rcm = Cosmos::RemoteCosmosManager.new
-    rsys = rcm.get_entity(Cosmos::SolarSystem.new(:name => 'rms42', :remote_queue => 'motel-rcm-test-queue'))
+    rsys = rcm.get_entity(Cosmos::SolarSystem.new(:name => 'rms42', :remote_queue => 'cosmos-rcm-test-queue'))
     rsys.name.should == sys.name
     rsys.to_s.should == sys.to_s
     rsys.should_not == sys
   end
 
   it "should provide access to create remote galaxies" do
-    gal = Cosmos::Galaxy.new :name => 'rmg42', :remote_queue => 'motel-rcm-test-queue'
+    gal = Cosmos::Galaxy.new :name => 'rmg42', :remote_queue => 'cosmos-rcm-test-queue'
 
     rcm = Cosmos::RemoteCosmosManager.new
     rcm.create_entity(gal, :universe)
@@ -86,7 +90,7 @@ describe Cosmos::RemoteCosmosManager do
   end
 
   it "should provide access to create remote systems" do
-    sys = Cosmos::SolarSystem.new :name => 'rms42', :remote_queue => 'motel-rcm-test-queue'
+    sys = Cosmos::SolarSystem.new :name => 'rms42', :remote_queue => 'cosmos-rcm-test-queue'
     gal = Cosmos::Galaxy.new :name => 'gal42'
     unv = Cosmos::Registry.instance.find_entity :type => :universe
     unv.add_child gal

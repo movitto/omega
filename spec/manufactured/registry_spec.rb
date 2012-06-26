@@ -79,26 +79,26 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.create(station)
 
     res = Cosmos::Resource.new :type => 'metal', :name => 'gold'
-    ship.add_resource res, 50
+    ship.add_resource res.id, 50
 
-    Manufactured::Registry.instance.transfer_resource(nil, station, res, 25)
+    Manufactured::Registry.instance.transfer_resource(nil, station, res.id, 25)
     ship.resources[res.id].should == 50
     station.resources[res.id].should be_nil
 
-    Manufactured::Registry.instance.transfer_resource(ship, nil, res, 25)
+    Manufactured::Registry.instance.transfer_resource(ship, nil, res.id, 25)
     ship.resources[res.id].should == 50
     station.resources[res.id].should be_nil
 
-    Manufactured::Registry.instance.transfer_resource(ship, station, res, 250)
+    Manufactured::Registry.instance.transfer_resource(ship, station, res.id, 250)
     ship.resources[res.id].should == 50
     station.resources[res.id].should be_nil
 
     nres = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
-    Manufactured::Registry.instance.transfer_resource(ship, station, nres, 1)
+    Manufactured::Registry.instance.transfer_resource(ship, station, nres.id, 1)
     ship.resources[res.id].should == 50
     station.resources[res.id].should be_nil
 
-    Manufactured::Registry.instance.transfer_resource(ship, station, res, 20)
+    Manufactured::Registry.instance.transfer_resource(ship, station, res.id, 20)
     ship.resources[res.id].should == 30
     station.resources[res.id].should == 20
   end
@@ -130,12 +130,13 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.running?.should be_false
   end
 
-  it "should run attack cycle" do
+  it "should run mining cycle" do
     Manufactured::Registry.instance.running?.should be_true
 
      ship     = Manufactured::Ship.new  :id => 'ship1'
+     entity  = Cosmos::Asteroid.new :name => 'ast1'
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
-     source   = Cosmos::ResourceSource.new :resource => resource
+     source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
      # 1 mining operation every 2 seconds
      ship.mining_rate = 0.5

@@ -75,8 +75,9 @@ end
 describe Manufactured::MiningCommand do
   it "should run mining cycle" do
      ship     = Manufactured::Ship.new  :id => 'ship1'
+     entity   = Cosmos::Asteroid.new :name => 'ast1'
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
-     source   = Cosmos::ResourceSource.new :resource => resource
+     source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
      # 1 mining operation every 2 seconds
      ship.mining_rate = 0.5

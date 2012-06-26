@@ -34,9 +34,9 @@ local_node = RJR::LocalNode.new  :node_id => 'remote_server'
 session = local_node.invoke_request('users::login', rcm)
 local_node.message_headers['session_id'] = session.id
 
-gal2 = Cosmos::Galaxy.new(:name => 'gal2')
-sys1 = Cosmos::SolarSystem.new :name => 'sys1'
-sys2 = Cosmos::SolarSystem.new :name => 'sys2', :remote_queue => 'cosmos-rrjr-test-queue'
+gal2 = Cosmos::Galaxy.new(:name => 'gal2', :location => Motel::Location.new(:id => 'g2'))
+sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 's1')
+sys2 = Cosmos::SolarSystem.new :name => 'sys2', :remote_queue => 'cosmos-rrjr-test-queue', :location => Motel::Location.new(:id => 's2')
 
 local_node.invoke_request('cosmos::create_entity', gal2, :universe)
 local_node.invoke_request('cosmos::create_entity', sys1, 'gal1')
