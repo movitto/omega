@@ -101,11 +101,14 @@ describe Users::RJRAdapter do
   it "should permit users with view users_entities to get_all_entities" do
     nu1 = Users::User.new :id => 'user43'
     nu2 = Users::User.new :id => 'user44'
+    a1  = Users::Alliance.new :id => 'alliance52'
     u  = TestUser.create.login(@local_node).clear_privileges
 
     Users::Registry.instance.create nu1
     Users::Registry.instance.create nu2
+    Users::Registry.instance.create a1
     Users::Registry.instance.users.size.should == 3
+    Users::Registry.instance.alliances.size.should == 1
 
     lambda{
       @local_node.invoke_request('users::get_all_entities')
@@ -116,6 +119,33 @@ describe Users::RJRAdapter do
 
     lambda{
       rus = @local_node.invoke_request('users::get_all_entities')
+      rus.class.should == Array
+      rus.size.should == 4
+      rus.collect { |ru| ru.id }.should include(nu1.id)
+      rus.collect { |ru| ru.id }.should include(nu2.id)
+      rus.collect { |ru| ru.id }.should include(a1.id)
+    }.should_not raise_error
+  end
+
+  it "should permit users with view users_entities to get_all_entities by type" do
+    nu1 = Users::User.new :id => 'user43'
+    nu2 = Users::User.new :id => 'user44'
+    a1  = Users::Alliance.new :id => 'alliance52'
+    u  = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'users_entities')
+
+    Users::Registry.instance.create nu1
+    Users::Registry.instance.create nu2
+    Users::Registry.instance.create a1
+
+    lambda{
+      rus = @local_node.invoke_request('users::get_all_entities', "Users::Alliance")
+      rus.class.should == Array
+      rus.size.should == 1
+      rus.collect { |ru| ru.id }.should include(a1.id)
+    }.should_not raise_error
+
+    lambda{
+      rus = @local_node.invoke_request('users::get_all_entities', "Users::User")
       rus.class.should == Array
       rus.size.should == 3
       rus.collect { |ru| ru.id }.should include(nu1.id)

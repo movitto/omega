@@ -44,6 +44,15 @@ describe Users::Registry do
     found = Users::Registry.instance.find :registration_code => 'foobar'
     found.size.should == 1
     found.first.should == u3
+
+    found = Users::Registry.instance.find :type => "Users::User"
+    found.size.should == 2
+    found[0].should == u1
+    found[1].should == u3
+
+    found = Users::Registry.instance.find :type => "Users::User",
+                                          :id   => "user5"
+    found.size.should == 0
   end
 
   it "should manage sessions" do
@@ -102,6 +111,51 @@ describe Users::Registry do
                                         :any     => [{:privilege => 'modify', :entity    => 'locations'},
                                                      {:privilege => 'modify'}]
     }.should_not raise_error
+  end
+
+  it "should provide means to query user privileges" do
+    Users::Registry.instance.init
+    u = Users::User.new :id => 'user42'
+    Users::Registry.instance.create u
+
+    Users::Registry.check_privilege(:session => 'aaa',
+                                    :privilege => 'view',
+                                    :entity => 'locations').should be_false # no session
+
+    session = Users::Registry.instance.create_session u
+
+    Users::Registry.check_privilege(:session => session.id,
+                                    :privilege => 'view',
+                                    :entity => 'locations').should be_false # no privilege
+
+    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+
+    Users::Registry.check_privilege(:session => session.id,
+                                    :privilege => 'view',
+                                    :entity => 'locations').should be_true
+
+    Users::Registry.check_privilege(:session => session.id,
+                                    :any     => [{:privilege => 'modify', :entity    => 'locations'},
+                                                 {:privilege => 'modify'}]).should be_false # no privilege
+
+    u.add_privilege Users::Privilege.new(:id => 'modify')
+
+    Users::Registry.check_privilege(:session => session.id,
+                                    :any     => [{:privilege => 'modify', :entity    => 'locations'},
+                                                 {:privilege => 'modify'}]).should be_true
+  end
+
+  it "should provide access to current user" do
+    Users::Registry.instance.init
+    u = Users::User.new :id => 'user42'
+    Users::Registry.instance.create u
+
+    cu = Users::Registry.current_user :session => 'aaa'
+    cu.should be_nil
+
+    session = Users::Registry.instance.create_session u
+    cu = Users::Registry.current_user :session => session.id
+    cu.should == u
   end
 
   it "should save registered users entities to io object" do

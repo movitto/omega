@@ -89,6 +89,7 @@ class RJRAdapter
        unless location.parent_id.nil?
          parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id }
          parent.add_child(location) unless parent.nil?
+         location.parent = parent
        end
 
        location.x = 0 if location.x.nil?

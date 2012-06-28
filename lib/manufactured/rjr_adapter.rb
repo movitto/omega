@@ -46,12 +46,14 @@ class RJRAdapter
       Manufactured::Registry.instance.create entity
 
       unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
-        if entity.parent
-          entity.location.parent_id = entity.parent.location.id
-          entity.location.parent    = entity.parent.location
-        end
+        # needs to happen b4 create_location so motel sets up heirarchy correctly
+        entity.location.parent_id = entity.parent.location.id if entity.parent
 
+        # TODO: skip create_location if entity wasn't created in registry
         entity.location = @@local_node.invoke_request('create_location', entity.location)
+
+        # needs to happen after create_location as parent won't be sent in the result
+        entity.location.parent    = entity.parent.location if entity.parent
       end
 
       entity
@@ -220,7 +222,9 @@ class RJRAdapter
         new_location.id = entity.location.id
         entity.location = new_location
         @@local_node.invoke_request('update_location', entity.location)
+        # TODO remove all callbacks, not just those corresponding to @@local_node ???
         @@local_node.invoke_request('remove_callbacks', entity.location.id, 'movement')
+        @@local_node.invoke_request('remove_callbacks', entity.location.id, 'proximity')
 
       # else move to location using a linear movement strategy
       else
@@ -275,7 +279,7 @@ class RJRAdapter
     }
 
 
-    # callback to track_proximity in update location
+    # callback to track_movement in update location
     rjr_dispatcher.add_handler('on_movement') { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id).first

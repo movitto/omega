@@ -101,6 +101,14 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.transfer_resource(ship, station, res.id, 20)
     ship.resources[res.id].should == 30
     station.resources[res.id].should == 20
+
+    res2 = Cosmos::Resource.new :type => 'metal', :name => 'silver'
+    station.add_resource res2.id, 500
+
+    # would exceed cargo capacity:
+    Manufactured::Registry.instance.transfer_resource(station, ship, res2.id, 200)
+    ship.resources[res2.id].should be_nil
+    station.resources[res2.id].should == 500
   end
 
   it "should run attack cycle" do
@@ -128,6 +136,31 @@ describe Manufactured::Registry do
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.running?.should be_false
+  end
+
+  it "should replace duplicate attack commands" do
+    Manufactured::Registry.instance.running?.should be_true
+
+    attacker = Manufactured::Ship.new  :id => 'ship1'
+    defender1 = Manufactured::Ship.new  :id => 'ship2'
+    defender2 = Manufactured::Ship.new  :id => 'ship3'
+
+    attacker.attack_rate = 1
+    attacker.damage_dealt = 5
+    defender1.hp = 10
+    defender2.hp = 10
+
+    Manufactured::Registry.instance.create attacker
+    Manufactured::Registry.instance.create defender1
+    Manufactured::Registry.instance.create defender2
+    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender1
+
+    Manufactured::Registry.instance.attack_commands.size.should == 1
+    Manufactured::Registry.instance.attack_commands[attacker.id].defender.id.should == defender1.id
+
+    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender2
+    Manufactured::Registry.instance.attack_commands.size.should == 1
+    Manufactured::Registry.instance.attack_commands[attacker.id].defender.id.should == defender2.id
   end
 
   it "should run mining cycle" do
@@ -159,6 +192,33 @@ describe Manufactured::Registry do
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.running?.should be_false
+  end
+
+  it "should replace duplicate mining commands" do
+    Manufactured::Registry.instance.running?.should be_true
+
+    ship     = Manufactured::Ship.new  :id => 'ship1'
+    entity1  = Cosmos::Asteroid.new :name => 'ast1'
+    resource1 = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+    source1   = Cosmos::ResourceSource.new :resource => resource1, :entity => entity1
+    entity2  = Cosmos::Asteroid.new :name => 'ast2'
+    resource2 = Cosmos::Resource.new :type => 'gem', :name => 'ruby'
+    source2   = Cosmos::ResourceSource.new :resource => resource2, :entity => entity2
+
+    ship.mining_rate = 0.5
+    ship.mining_quantity = 5
+    source1.quantity = 10
+    source2.quantity = 10
+
+    Manufactured::Registry.instance.create ship
+    Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source1
+
+    Manufactured::Registry.instance.mining_commands.size.should == 1
+    Manufactured::Registry.instance.mining_commands[ship.id].resource_source.id.should == source1.id
+
+    Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source2
+    Manufactured::Registry.instance.mining_commands.size.should == 1
+    Manufactured::Registry.instance.mining_commands[ship.id].resource_source.id.should == source2.id
   end
 
   it "should save registered manufactured ships and stations to io object" do

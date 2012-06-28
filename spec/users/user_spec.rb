@@ -26,12 +26,19 @@ describe Users::User do
   end
 
   it "should permit adding an alliance" do
-    a = Users::Alliance.new
+    a = Users::Alliance.new :id => 'a1'
+    b = Users::Alliance.new :id => 'a2'
     u = Users::User.new
     u.alliances.size.should == 0
     u.add_alliance(a)
     u.alliances.size.should == 1
     u.alliances.first.should == a
+    u.add_alliance(a)
+    u.alliances.size.should == 1
+    u.add_alliance(u)
+    u.alliances.size.should == 1
+    u.add_alliance(b)
+    u.alliances.size.should == 2
   end
 
   it "should permit adding and removing privileges" do

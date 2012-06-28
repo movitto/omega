@@ -96,6 +96,33 @@ describe Motel::Callbacks::Movement do
     invoked.should be_true
     invoked = false
   end
+
+  it "should be convertable to json" do
+    cb = Motel::Callbacks::Movement.new :endpoint => 'baz',
+                                        'min_distance' => 10,
+                                        'min_x'        => 5
+
+    j = cb.to_json
+    j.should include('"json_class":"Motel::Callbacks::Movement"')
+    j.should include('"endpoint":"baz"')
+    j.should include('"min_distance":10')
+    j.should include('"min_x":5')
+    j.should include('"min_y":0')
+    j.should include('"min_z":0')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::Callbacks::Movement","data":{"endpoint":"baz","min_distance":10,"min_x":5,"min_y":0,"min_z":0}}'
+    cb = JSON.parse(j)
+
+    cb.class.should == Motel::Callbacks::Movement
+    cb.endpoint_id.should == "baz"
+    cb.min_distance.should == 10
+    cb.min_x.should == 5
+    cb.min_y.should == 0
+    cb.min_z.should == 0
+  end
+
 end
 
 describe Motel::Callbacks::Proximity do
@@ -152,5 +179,34 @@ describe Motel::Callbacks::Proximity do
     loc2.z = 7
     cb.invoke(loc2)
     invoked.should be_true
+  end
+
+  it "should be convertable to json" do
+    cb = Motel::Callbacks::Proximity.new :endpoint => 'baz',
+                                         'max_distance' => 10,
+                                         'max_x'        => 5,
+                                         'event'        => 'entered_proximity'
+
+    j = cb.to_json
+    j.should include('"json_class":"Motel::Callbacks::Proximity"')
+    j.should include('"endpoint":"baz"')
+    j.should include('"max_distance":10')
+    j.should include('"max_x":5')
+    j.should include('"max_y":0')
+    j.should include('"max_z":0')
+    j.should include('"event":"entered_proximity"')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::Callbacks::Proximity","data":{"endpoint":"baz","max_distance":10,"max_x":5,"max_y":0,"max_z":0,"event":"entered_proximity"}}'
+    cb = JSON.parse(j)
+
+    cb.class.should == Motel::Callbacks::Proximity
+    cb.endpoint_id.should == "baz"
+    cb.max_distance.should == 10
+    cb.max_x.should == 5
+    cb.max_y.should == 0
+    cb.max_z.should == 0
+    cb.event.should == :entered_proximity
   end
 end

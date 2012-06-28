@@ -39,6 +39,10 @@ class TestUser
     self
   end
 
+  def self.id
+    @@user.id
+  end
+
   def self.login(node = nil)
     self.logout unless @@session.nil?
     @@session = Users::Registry.instance.create_session(@@user)

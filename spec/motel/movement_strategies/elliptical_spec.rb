@@ -29,6 +29,36 @@ describe "Motel::MovementStrategies::Elliptical" do
      elliptical.semi_latus_rectum.should == 10
   end
 
+  it "should successfully accept and set direction vectors in combined form" do
+    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]]
+    elliptical.direction_major_x.should == 1
+    elliptical.direction_major_y.should == 0
+    elliptical.direction_major_z.should == 0
+    elliptical.direction_minor_x.should == 0
+    elliptical.direction_minor_y.should == 1
+    elliptical.direction_minor_z.should == 0
+
+    elliptical = Elliptical.new :direction_major => [0,0,1],
+                                :direction_minor => [0,1,0]
+    elliptical.direction_major_x.should == 0
+    elliptical.direction_major_y.should == 0
+    elliptical.direction_major_z.should == 1
+    elliptical.direction_minor_x.should == 0
+    elliptical.direction_minor_y.should == 1
+    elliptical.direction_minor_z.should == 0
+
+    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]],
+                                :direction_major => [0,1,0],
+                                :direction_minor_x => 1,
+                                :direction_minor_y => 0
+    elliptical.direction_major_x.should == 0
+    elliptical.direction_major_y.should == 1
+    elliptical.direction_major_z.should == 0
+    elliptical.direction_minor_x.should == 1
+    elliptical.direction_minor_y.should == 0
+    elliptical.direction_minor_z.should == 0
+  end
+
   it "should default to standard cartesian direction axis" do
      elliptical = Elliptical.new
      elliptical.direction_major_x.should == 1

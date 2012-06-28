@@ -14,11 +14,20 @@ describe Cosmos::Resource do
      resource.id.should == "metal-titanium"
   end
 
+  it "should successfully accept resource to copy" do
+     resource1   = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+     resource2   = Cosmos::Resource.new :resource => resource1
+     resource2.name.should == 'titanium'
+     resource2.type.should == 'metal'
+     resource2.id.should == "metal-titanium"
+  end
+
   it "should be convertable to json" do
     r = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
 
     j = r.to_json
     j.should include('"json_class":"Cosmos::Resource"')
+    j.should include('"id":"'+r.id+'"')
     j.should include('"name":"titanium"')
     j.should include('"type":"metal"')
   end

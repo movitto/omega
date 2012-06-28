@@ -15,12 +15,21 @@ describe Users::Alliance do
   end
 
   it "should permit adding an enemy" do
-    e = Users::Alliance.new
-    a = Users::Alliance.new
+    e = Users::Alliance.new :id => 'a1'
+    f = Users::Alliance.new :id => 'a2'
+    a = Users::Alliance.new :id => 'a3'
     a.enemies.size.should == 0
     a.add_enemy(e)
     a.enemies.size.should == 1
     a.enemies.first.should == e
+    a.add_enemy(e)
+    a.enemies.size.should == 1
+    a.add_enemy(a)
+    a.enemies.size.should == 1
+    a.add_enemy(1)
+    a.enemies.size.should == 1
+    a.add_enemy(f)
+    a.enemies.size.should == 2
   end
 
   it "should be convertable to json" do

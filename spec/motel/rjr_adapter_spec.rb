@@ -108,6 +108,32 @@ describe Motel::RJRAdapter do
     }.should_not raise_error
   end
 
+  it "should permit users view view locations to get locations within proximity of specified location" do
+    loc0 = Motel::Location.new :id => 41, :x => 0,  :y => 0, :z => 0, :movement_strategy => TestMovementStrategy.new
+    loc1 = Motel::Location.new :id => 42, :x => 0,  :y => 0, :z => 0, :parent_id => loc0.id, :movement_strategy => TestMovementStrategy.new
+    loc2 = Motel::Location.new :id => 43, :x => 10, :y => 0, :z => 0, :parent_id => loc0.id, :movement_strategy => TestMovementStrategy.new
+    loc3 = Motel::Location.new :id => 44, :x => 5,  :y => 0, :z => 0, :parent_id => loc0.id, :movement_strategy => TestMovementStrategy.new
+    loc4 = Motel::Location.new :id => 44, :x => 5,  :y => 0, :z => 0, :parent_id => loc3.id, :movement_strategy => TestMovementStrategy.new
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    Motel::Runner.instance.clear
+    Motel::Runner.instance.run loc0
+    Motel::Runner.instance.run loc2
+    Motel::Runner.instance.run loc3
+    Motel::Runner.instance.run loc4
+
+    locations = @local_node.invoke_request('get_locations_within_proximity', loc1, 7)
+    locations.class.should == Array
+    locations.size.should == 0
+
+    u.add_privilege('view', 'locations')
+
+    locations = @local_node.invoke_request('get_locations_within_proximity', loc1, 7)
+    locations.class.should == Array
+    locations.size.should == 1
+    locations.first.id.should == loc3.id # only loc3 shares same parent and is close enough
+  end
+
   it "should permit users with create locations to create_location" do
     loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new
     u = TestUser.create.clear_privileges
@@ -261,8 +287,8 @@ describe Motel::RJRAdapter do
     rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
 
     times_moved = 0
-    RJR::Dispatcher.add_handler('on_movement') { |loc|
-      loc.id.should == loc1.id
+    RJR::Dispatcher.add_handler('on_movement') { |nloc|
+      nloc.id.should == loc1.id
       times_moved += 1
     }
 
@@ -280,13 +306,24 @@ describe Motel::RJRAdapter do
     }.should_not raise_error
 
     rloc1.movement_callbacks.size.should == 1
+    rloc1.movement_callbacks.first.min_distance.should == 5
+
+    # ensure subsequent trackings are overwritten
+    lambda{
+      rloc = @local_node.invoke_request('track_movement', loc1.id, 3)
+      rloc.class.should == Motel::Location
+      rloc.id.should == loc1.id
+    }.should_not raise_error
+
+    rloc1.movement_callbacks.size.should == 1
+    rloc1.movement_callbacks.first.min_distance.should == 3
 
     sleep 2
     times_moved.should > 0
 
     # verify when user no longer has access to location, callbacks are discontinued
     u.clear_privileges
-    sleep 1
+    sleep 2
     rloc1.movement_callbacks.size.should == 0
   end
 
@@ -304,9 +341,9 @@ describe Motel::RJRAdapter do
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
 
     proximity_notifications = 0
-    RJR::Dispatcher.add_handler('on_proximity') { |loc1, loc2|
-      loc1.id.should == loc1.id
-      loc2.id.should == loc2.id
+    RJR::Dispatcher.add_handler('on_proximity') { |nloc1, nloc2|
+      nloc1.id.should == loc1.id
+      nloc2.id.should == loc2.id
       proximity_notifications += 1
     }
 
@@ -327,6 +364,20 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc2
 
     lambda{
+      rlocs = @local_node.invoke_request('track_proximity', loc1.id, loc2.id, 'proximity', 10)
+      rlocs.class.should == Array
+      rlocs.size.should == 2
+      rlocs.first.class.should == Motel::Location
+      rlocs.last.class.should == Motel::Location
+      rlocs.first.id.should == loc1.id
+      rlocs.last.id.should == loc2.id
+    }.should_not raise_error
+
+    loc1.proximity_callbacks.size.should == 1
+    loc1.proximity_callbacks.first.max_distance.should == 10
+
+    # ensure subsequent trackings are overwritten
+    lambda{
       rlocs = @local_node.invoke_request('track_proximity', loc1.id, loc2.id, 'proximity', 5)
       rlocs.class.should == Array
       rlocs.size.should == 2
@@ -337,6 +388,7 @@ describe Motel::RJRAdapter do
     }.should_not raise_error
 
     loc1.proximity_callbacks.size.should == 1
+    loc1.proximity_callbacks.first.max_distance.should == 5
 
     sleep 2
     proximity_notifications.should > 0

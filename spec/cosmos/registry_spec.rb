@@ -12,8 +12,11 @@ describe Cosmos::Registry do
   it "provide acceses to managed cosmos entities" do
     Cosmos::Registry.instance.init
     Cosmos::Registry.instance.children.size.should == 0
-
     Cosmos::Registry.instance.has_children?.should be_false
+
+    Cosmos::Registry.instance.name.should == "universe"
+    Cosmos::Registry.instance.location.should == nil
+    Cosmos::Registry.remotely_trackable?.should == false
 
     galaxy1 = Cosmos::Galaxy.new :name => 'galaxy1', :location => Motel::Location.new(:id => 1)
     galaxy2 = Cosmos::Galaxy.new :name => 'galaxy2', :location => Motel::Location.new(:id => 2)
@@ -43,6 +46,10 @@ describe Cosmos::Registry do
 
     Cosmos::Registry.instance.add_child(galaxy2)
     Cosmos::Registry.instance.children.size.should == 2
+
+    entity = Cosmos::Registry.instance.find_entity
+    entity.class.should == Array
+    entity.size.should == 8
 
     entity = Cosmos::Registry.instance.find_entity :type => :galaxy
     entity.class.should == Array
@@ -136,6 +143,28 @@ describe Cosmos::Registry do
     Cosmos::Registry.instance.resource_sources.first.entity.should == galaxy1
     Cosmos::Registry.instance.resource_sources.first.resource.should == resource
     Cosmos::Registry.instance.resource_sources.first.quantity.should == 30
+  end
+
+  it "should be convertable to json" do
+    g1 = Cosmos::Galaxy.new(:name => 'galaxy1',
+                            :location => Motel::Location.new(:x => 50))
+    g1.add_child(Cosmos::SolarSystem.new(:name => 'system1'))
+    g2 = Cosmos::Galaxy.new(:name => 'galaxy2',
+                            :location => Motel::Location.new(:x => 60))
+
+    Cosmos::Registry.instance.init
+    Cosmos::Registry.instance.add_child g1
+    Cosmos::Registry.instance.add_child g2
+
+    j = Cosmos::Registry.instance.to_json
+    j.should include('"json_class":"Cosmos::Galaxy"')
+    j.should include('"name":"galaxy1"')
+    j.should include('"name":"galaxy2"')
+    j.should include('"json_class":"Motel::Location"')
+    j.should include('"x":50')
+    j.should include('"x":60')
+    j.should include('"json_class":"Cosmos::SolarSystem"')
+    j.should include('"name":"system1"')
   end
 
   it "should save running cosmos entities to io object" do

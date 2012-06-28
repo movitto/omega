@@ -93,7 +93,7 @@ describe Cosmos::Galaxy do
     g.add_child(Cosmos::SolarSystem.new(:name => 'system1'))
 
     j = g.to_json
-    j.should include('"json_class":"Cosmos::SolarSystem"')
+    j.should include('"json_class":"Cosmos::Galaxy"')
     j.should include('"name":"galaxy1"')
     j.should include('"json_class":"Motel::Location"')
     j.should include('"x":50')

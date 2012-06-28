@@ -181,13 +181,32 @@ describe Motel::Location do
     ((loc1 - loc2 - 30.2324329156619) < CLOSE_ENOUGH).should be_true
   end
 
+  it "should provide ability to create new location from old plus specified distance" do
+    loc1 = Motel::Location.new :x => 4, :y => 2, :z => 0
+    loc2 = loc1 + [10, 20, 30]
+
+    loc1.x.should == 4
+    loc1.y.should == 2
+    loc1.z.should == 0
+    loc2.x.should == 14
+    loc2.y.should == 22
+    loc2.z.should == 30
+  end
+
   it "should be convertable to json" do
+    mc1 = Motel::Callbacks::Movement.new :min_distance => 20
+    mc2 = Motel::Callbacks::Movement.new :min_y => 30
+    pc  = Motel::Callbacks::Proximity.new :max_distance => 50
     l = Motel::Location.new(:id => 42,
                             :x => 10, :y => -20, :z => 0.5,
                             :restrict_view => false, :restrict_modify => true,
                             :parent_id => 15, :remote_queue => 'foobar',
                             :movement_strategy =>
                               Motel::MovementStrategies::Linear.new(:speed => 51))
+    l.movement_callbacks  << mc1
+    l.movement_callbacks  << mc2
+    l.proximity_callbacks << pc
+
     j = l.to_json
     j.should include('"json_class":"Motel::Location"')
     j.should include('"id":42')
@@ -201,6 +220,13 @@ describe Motel::Location do
     j.should include('"movement_strategy":{')
     j.should include('"json_class":"Motel::MovementStrategies::Linear"')
     j.should include('"speed":51')
+    j.should include('"movement_callbacks":[')
+    j.should include('"json_class":"Motel::Callbacks::Movement"')
+    j.should include('"min_distance":20')
+    j.should include('"min_y":30')
+    j.should include('"proximity_callbacks":[')
+    j.should include('"json_class":"Motel::Callbacks::Proximity"')
+    j.should include('"max_distance":50')
   end
 
   it "should be convertable from json" do

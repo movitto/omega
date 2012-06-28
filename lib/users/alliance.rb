@@ -38,8 +38,10 @@ class Alliance
   end
 
   def add_enemy(enemy_alliance)
-    @enemies << enemy_alliance unless @enemies.collect { |e| e.id }.
-                                      include?(enemy_alliance.id)
+    @enemies << enemy_alliance unless !enemy_alliance.is_a?(Users::Alliance) ||
+                                      @enemies.collect { |e| e.id }.
+                                        include?(enemy_alliance.id) ||
+                                      enemy_alliance.id == id
   end
 
   def to_s

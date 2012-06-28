@@ -38,8 +38,9 @@ class User
   end
 
   def add_alliance(alliance)
-    @alliances << alliance unless @alliances.collect{ |a| a.id }.
-                                  include?(alliance.id)
+    @alliances << alliance unless !alliance.is_a?(Users::Alliance) ||
+                                  @alliances.collect{ |a| a.id }.
+                                    include?(alliance.id)
   end
 
   def clear_privileges

@@ -163,6 +163,7 @@ class Registry
     session_id = args[:session]
 
     session = @sessions.find { |s| s.id == session_id }
+    return nil if session.nil?
     session.user
   end
 

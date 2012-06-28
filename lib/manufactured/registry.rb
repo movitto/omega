@@ -106,7 +106,7 @@ class Registry
       return if from_entity.nil? || to_entity.nil? ||
                 from_entity.resources[resource_id].nil? ||
                 from_entity.resources[resource_id] < quantity ||
-                to_entity.cargo_quantity >= to_entity.cargo_capacity
+                (to_entity.cargo_quantity + quantity) >= to_entity.cargo_capacity
       to_entity.add_resource(resource_id, quantity)
       from_entity.remove_resource(resource_id, quantity)
       return [from_entity, to_entity]
@@ -117,6 +117,7 @@ class Registry
   def schedule_attack(args = {})
     @entities_lock.synchronize{
       cmd = AttackCommand.new(args)
+      # TODO if replacing old command, invoke old command 'stopped' callbacks
       @attack_commands[cmd.id] = cmd
     }
   end

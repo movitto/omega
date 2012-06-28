@@ -37,7 +37,7 @@ class Follow < MovementStrategy
      if location.parent_id != tracked_location.parent_id
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
 
-     elsif distance_to_cover < @distance
+     elsif distance_to_cover <= @distance
        RJR::Logger.warn "#{location} within #{@distance} of #{tracked_location}"
        # TODO orbit the location or similar?
 

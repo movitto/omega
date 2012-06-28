@@ -177,7 +177,7 @@ class Location
           :remote_queue => remote_queue,
           :movement_strategy => movement_strategy,
           :movement_callbacks => movement_callbacks,
-          :proximity_callback => proximity_callbacks}
+          :proximity_callbacks => proximity_callbacks}
      }.to_json(*a)
    end
 

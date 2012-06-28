@@ -52,23 +52,38 @@ describe Manufactured::Station do
     station.resources[res.id].should == 0
   end
 
+  it "should permit retreival of current cargo quantity" do
+    station   = Manufactured::Station.new :id => 'station1'
+    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    res2 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
+    station.add_resource res1.id, 50
+    station.add_resource res1.id, 60
+    station.cargo_quantity.should == 110
+  end
+
   it "should permit constructing new entities" do
     station   = Manufactured::Station.new :id => 'station1',
-                                          :solar_system => 'system1',
-                                          :resources => { 'metal-alloy' => 5000 }
+                                          :solar_system => 'system1'
 
     entity   = station.construct :entity_type => 'foobar'
     entity.should be_nil
 
     entity   = station.construct :entity_type => "Manufactured::Ship"
+    entity.should be_nil
+
+    station.add_resource 'metal-alloy', 5000
+
+    entity   = station.construct :entity_type => "Manufactured::Ship"
     entity.class.should == Manufactured::Ship
     entity.parent.should == station.parent
     entity.location.should_not be_nil
+    station.resources['metal-alloy'].should == 4900
 
     entity   = station.construct :entity_type => "Manufactured::Station"
     entity.class.should == Manufactured::Station
     entity.parent.should == station.parent
     entity.location.should_not be_nil
+    station.resources['metal-alloy'].should == 4800
   end
 
   it "should be convertable to json" do

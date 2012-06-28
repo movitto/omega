@@ -18,6 +18,12 @@ describe Cosmos::Planet do
      planet.moons.size.should == 0
   end
 
+  it "should accept movement strategy to use" do
+    planet = Cosmos::Planet.new :movement_strategy => Motel::MovementStrategies::Elliptical.new(:speed => 10)
+    planet.location.movement_strategy.class.should be(Motel::MovementStrategies::Elliptical)
+    planet.location.movement_strategy.speed.should == 10
+  end
+
   it "should be not able to be remotely trackable" do
     Cosmos::Planet.remotely_trackable?.should be_false
   end
