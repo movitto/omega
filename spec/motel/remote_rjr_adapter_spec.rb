@@ -36,10 +36,10 @@ describe Motel::RJRAdapter do
                                :parent_id => 3
     @local_node = RJR::LocalNode.new  :node_id => 'motel-rrjr-test'
     TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
-    @local_node.invoke_request('create_location', loc1)
-    @local_node.invoke_request('create_location', loc2)
+    @local_node.invoke_request('motel::create_location', loc1)
+    @local_node.invoke_request('motel::create_location', loc2)
     sleep 3
-    @local_node.invoke_request('create_location', loc4)
+    @local_node.invoke_request('motel::create_location', loc4)
   end
 
   after(:all) do
@@ -51,7 +51,7 @@ describe Motel::RJRAdapter do
   end
 
   it "should get remotely tracked locations" do
-    loc1 = @local_node.invoke_request('get_location', 1)
+    loc1 = @local_node.invoke_request('motel::get_location', 1)
     loc1.id.should == 1
     loc1.children.size.should == 1
 
@@ -71,10 +71,10 @@ describe Motel::RJRAdapter do
   it "should create remotely tracked locations" do
     loc = Motel::Location.new :id => 'create_test', :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                               :remote_queue => 'remote_server-queue', :restrict_view => false
-    @local_node.invoke_request('create_location', loc)
+    @local_node.invoke_request('motel::create_location', loc)
 
     # retrieve location from remote queue
-    rloc = @amqp_node.invoke_request('remote_server-queue', 'get_location', 'create_test')
+    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'create_test')
     rloc.class.should == Motel::Location
     rloc.id.should == 'create_test'
   end
@@ -82,13 +82,13 @@ describe Motel::RJRAdapter do
   it "should update remotely tracked locations" do
     loc = Motel::Location.new :id => 'update_test', :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                               :remote_queue => 'remote_server-queue', :restrict_view => false
-    @local_node.invoke_request('create_location', loc)
+    @local_node.invoke_request('motel::create_location', loc)
 
     loc.x = 50
-    @local_node.invoke_request('update_location', loc)
+    @local_node.invoke_request('motel::update_location', loc)
 
     # retrieve location from remote queue
-    rloc = @amqp_node.invoke_request('remote_server-queue', 'get_location', 'update_test')
+    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'update_test')
     rloc.class.should == Motel::Location
     rloc.id.should == 'update_test'
     rloc.x.should == 50

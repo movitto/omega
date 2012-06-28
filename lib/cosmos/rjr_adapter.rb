@@ -49,7 +49,7 @@ class RJRAdapter
 
        else
          # entity.location.entity = entity
-         entity.location = @@local_node.invoke_request('create_location', entity.location)
+         entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
          # TODO add all of entities children to location tracker
 
        # else raise error TODO
@@ -96,7 +96,7 @@ class RJRAdapter
                parent.add_child(rchild)
 
              else
-               child.location = @@local_node.invoke_request('get_location', child.location.id)
+               child.location = @@local_node.invoke_request('motel::get_location', child.location.id)
              end
 
            }
@@ -109,7 +109,7 @@ class RJRAdapter
            entities[i] = @@remote_cosmos_manager.get_entity(entity)
          else
            # update locations w/ latest from the tracker
-           entity.location = @@local_node.invoke_request('get_location', entity.location.id) if entity.location
+           entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id) if entity.location
          end
        }
 
@@ -126,7 +126,7 @@ class RJRAdapter
                                          :session => @headers['session_id'])
 
        # update locations w/ latest from the tracker
-       entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+       entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
        if entity.has_children?
          entity.each_child { |parent, child|
            if child.class.remotely_trackable? && child.remote_queue
@@ -134,7 +134,7 @@ class RJRAdapter
              parent.remove_child(child)
              parent.add_child(rchild)
            else
-             child.location = @@local_node.invoke_request('get_location',
+             child.location = @@local_node.invoke_request('motel::get_location',
                                                           child.location.id)
            end
          }

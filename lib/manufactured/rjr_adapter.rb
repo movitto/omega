@@ -50,7 +50,7 @@ class RJRAdapter
         entity.location.parent_id = entity.parent.location.id if entity.parent
 
         # TODO: skip create_location if entity wasn't created in registry
-        entity.location = @@local_node.invoke_request('create_location', entity.location)
+        entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
 
         # needs to happen after create_location as parent won't be sent in the result
         entity.location.parent    = entity.parent.location if entity.parent
@@ -82,7 +82,7 @@ class RJRAdapter
        entity = Manufactured::Registry.instance.find(:id => id).first
        raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entity.nil?
 
-       entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+       entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                   {:privilege => 'view', :entity => 'manufactured_entities'}],
                                          :session => @headers['session_id'])
@@ -98,7 +98,7 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      entity.location = @@local_node.invoke_request('get_location',
+      entity.location = @@local_node.invoke_request('motel::get_location',
                                                     entity.location.id)
       entity
     }
@@ -122,7 +122,7 @@ class RJRAdapter
       }
       entities.each { |entity|
         unless entity.is_a?(Manufactured::Fleet)
-          entity.location = @@local_node.invoke_request('get_location',
+          entity.location = @@local_node.invoke_request('motel::get_location',
                                                         entity.location.id)
         end
       }
@@ -148,7 +148,7 @@ class RJRAdapter
       }
       entities.each { |entity|
         unless entity.is_a?(Manufactured::Fleet)
-          entity.location = @@local_node.invoke_request('get_location', entity.location.id)
+          entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
         end
       }
       entities
@@ -221,10 +221,10 @@ class RJRAdapter
         entity.parent   = parent
         new_location.id = entity.location.id
         entity.location = new_location
-        @@local_node.invoke_request('update_location', entity.location)
+        @@local_node.invoke_request('motel::update_location', entity.location)
         # TODO remove all callbacks, not just those corresponding to @@local_node ???
-        @@local_node.invoke_request('remove_callbacks', entity.location.id, 'movement')
-        @@local_node.invoke_request('remove_callbacks', entity.location.id, 'proximity')
+        @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
+        @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'proximity')
 
       # else move to location using a linear movement strategy
       else
@@ -240,9 +240,9 @@ class RJRAdapter
                                                 :direction_vector_y => dy/distance,
                                                 :direction_vector_z => dz/distance,
                                                 :speed => 5
-        @@local_node.invoke_request('update_location', entity.location)
+        @@local_node.invoke_request('motel::update_location', entity.location)
 
-        @@local_node.invoke_request('track_movement', entity.location.id, distance)
+        @@local_node.invoke_request('motel::track_movement', entity.location.id, distance)
       end
 
       entity
@@ -273,7 +273,7 @@ class RJRAdapter
                                               :speed => 5
 
       # TODO what if target_entity changes systems?
-      @@local_node.invoke_request('update_location', entity.location)
+      @@local_node.invoke_request('motel::update_location', entity.location)
 
       entity
     }
@@ -286,8 +286,8 @@ class RJRAdapter
 
       entity.location.update(loc)
       entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-      @@local_node.invoke_request('update_location', entity.location)
-      @@local_node.invoke_request('remove_callbacks', entity.location.id, :movement)
+      @@local_node.invoke_request('motel::update_location', entity.location)
+      @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)
     }
 
     rjr_dispatcher.add_handler('manufactured::attack_entity'){ |attacker_entity_id, defender_entity_id|

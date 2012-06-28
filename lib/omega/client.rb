@@ -213,7 +213,7 @@ end
 def nearby_locations(location, distance)
   client = Omega::Client.new
   RJR::Logger.info "retrieving locations within #{distance} of #{location}"
-  client.queue_request 'get_locations_within_proximity', location, distance
+  client.queue_request 'motel::get_locations_within_proximity', location, distance
   client.invoke_requests(Motel::Location)
 end
 
@@ -444,7 +444,7 @@ def subscribe_to(event, args = {}, &bl)
     raise ArgumentError, "ship or planet must not be nil" if @ship.nil? && @planet.nil?
     entity = @ship || @planet
     client = Omega::Client.new :entity => entity
-    client.queue_request 'track_movement', entity.location.id, args[:distance]
+    client.queue_request 'motel::track_movement', entity.location.id, args[:distance]
     RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
     @@handlers[:on_movement] ||= {}
     @@handlers[:on_movement][entity.location.id] = bl

@@ -48,7 +48,7 @@ function CosmosClient() {
   }
 
   this.track_movement = function(id, min_distance){
-    client.ws_node.invoke_request('track_movement', id, min_distance);
+    client.ws_node.invoke_request('motel::track_movement', id, min_distance);
   }
 
   this.get_cosmos_entity = function(entity, name){

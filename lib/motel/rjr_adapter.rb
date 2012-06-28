@@ -16,13 +16,13 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('get_all_locations') {
+    rjr_dispatcher.add_handler('motel::get_all_locations') {
        Users::Registry.require_privilege(:privilege => 'view', :entity => 'locations',
                                          :session   => @headers['session_id'])
        Runner.instance.locations
     }
 
-    rjr_dispatcher.add_handler('get_location') { |location_id|
+    rjr_dispatcher.add_handler('motel::get_location') { |location_id|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        # TODO pull in remote location if loc.remote_queue is set
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
@@ -49,7 +49,7 @@ class RJRAdapter
        loc
     }
 
-    rjr_dispatcher.add_handler('get_locations_within_proximity') { |location, max_distance|
+    rjr_dispatcher.add_handler('motel::get_locations_within_proximity') { |location, max_distance|
       locations = Runner.instance.locations.select { |loc|
         (loc.parent_id == location.parent_id) &&
         (loc - location) <= max_distance
@@ -79,7 +79,7 @@ class RJRAdapter
        locations
     }
 
-    rjr_dispatcher.add_handler('create_location') { |*args|
+    rjr_dispatcher.add_handler('motel::create_location') { |*args|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'locations',
                                          :session   => @headers['session_id'])
 
@@ -105,7 +105,7 @@ class RJRAdapter
        location
     }
 
-    rjr_dispatcher.add_handler("update_location") { |location|
+    rjr_dispatcher.add_handler("motel::update_location") { |location|
        rloc = Runner.instance.locations.find { |loc| loc.id == location.id  }
        raise Omega::DataNotFound, "location specified by #{location.id} not found" if rloc.nil?
 
@@ -146,7 +146,7 @@ class RJRAdapter
        location
     }
 
-    rjr_dispatcher.add_handler('track_movement') { |location_id, min_distance|
+    rjr_dispatcher.add_handler('motel::track_movement') { |location_id, min_distance|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
 
@@ -185,7 +185,7 @@ class RJRAdapter
        loc
     }
 
-    rjr_dispatcher.add_handler('track_proximity') { |location1_id, location2_id, event, max_distance|
+    rjr_dispatcher.add_handler('motel::track_proximity') { |location1_id, location2_id, event, max_distance|
        loc1 = Runner.instance.locations.find { |loc| loc.id == location1_id }
        loc2 = Runner.instance.locations.find { |loc| loc.id == location2_id }
        raise Omega::DataNotFound, "location specified by #{location1_id} not found" if loc1.nil?
@@ -230,7 +230,7 @@ class RJRAdapter
        [loc1, loc2]
     }
 
-    rjr_dispatcher.add_handler('remove_callbacks') { |*args|
+    rjr_dispatcher.add_handler('motel::remove_callbacks') { |*args|
       location_id = args[0]
       callback_type = args.length > 1 ? args[1] : nil
       source_node = @headers['source_node']

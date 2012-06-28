@@ -38,7 +38,7 @@ class RemoteLocationManager
   def get_location(location)
     @lock.synchronize{
       node = remote_node_for(location.remote_queue)
-      return node.invoke_request(location.remote_queue, 'get_location', location.id)
+      return node.invoke_request(location.remote_queue, 'motel::get_location', location.id)
     }
   end
 
@@ -48,7 +48,7 @@ class RemoteLocationManager
       location.remote_queue = nil
 
       node = remote_node_for(trq)
-      node.invoke_request(trq, 'create_location', location)
+      node.invoke_request(trq, 'motel::create_location', location)
 
       location.remote_queue = trq
     }
@@ -60,7 +60,7 @@ class RemoteLocationManager
       location.remote_queue = nil
 
       node = remote_node_for(trq)
-      node.invoke_request(trq, 'update_location', location)
+      node.invoke_request(trq, 'motel::update_location', location)
 
       location.remote_queue = trq
     }
