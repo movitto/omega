@@ -191,46 +191,6 @@ describe Cosmos::RJRAdapter do
     }.should_not raise_error
   end
 
-  it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resources" do
-    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
-    sys1 = Cosmos::SolarSystem.new :name => 'system23'
-    ast1 = Cosmos::Asteroid.new :name => 'astt2'
-    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    res2 = Cosmos::Resource.new :name => 'ruby', :type => 'gem'
-    u = TestUser.create.login(@local_node).clear_privileges
-
-    Motel::Runner.instance.run gal1.location
-    Cosmos::Registry.instance.add_child gal1
-    gal1.add_child sys1
-    sys1.add_child ast1
-    Cosmos::Registry.instance.set_resource ast1.name, res1, 50
-    Cosmos::Registry.instance.set_resource ast1.name, res2, 25
-
-    Cosmos::Registry.instance.children.size.should == 1
-    Cosmos::Registry.instance.resource_sources.size.should == 2
-
-    lambda{
-      @local_node.invoke_request('cosmos::get_resources', 'non_existant')
-    #}.should raise_error(Omega::DataNotFound)
-    }.should raise_error(Exception)
-
-    lambda{
-      @local_node.invoke_request('cosmos::get_resources', ast1.name)
-    #}.should raise_error(Omega::PermissionError)
-    }.should raise_error(Exception)
-
-    u.add_privilege('view', 'cosmos_entity-' + ast1.name)
-
-    lambda{
-      resources = @local_node.invoke_request('cosmos::get_resources', ast1.name)
-      resources.size.should == 2
-      resources.first.name.should == 'titanium'
-      resources.first.type.should == 'metal'
-      resources.last.name.should == 'ruby'
-      resources.last.type.should == 'gem'
-    }.should_not raise_error
-  end
-
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resource_sources (from entity id)" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
     sys1 = Cosmos::SolarSystem.new :name => 'system23'
@@ -266,39 +226,6 @@ describe Cosmos::RJRAdapter do
       rrs.size.should == 2
       rrs.first.resource.id.should == res1.id
       rrs.last.resource.id.should == res3.id
-    }.should_not raise_error
-  end
-
-  it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resource_source (from resource source id)" do
-    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
-    sys1 = Cosmos::SolarSystem.new :name => 'system23'
-    ast1 = Cosmos::Asteroid.new :name => 'astt2'
-    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    u = TestUser.create.login(@local_node).clear_privileges
-
-    Motel::Runner.instance.run gal1.location
-    Cosmos::Registry.instance.add_child gal1
-    gal1.add_child sys1
-    sys1.add_child ast1
-    Cosmos::Registry.instance.set_resource ast1.name, res1, 50
-    rs = Cosmos::Registry.instance.resource_sources.first
-
-    lambda{
-      @local_node.invoke_request('cosmos::get_resource_source', 'non_existant')
-    #}.should raise_error(Omega::DataNotFound)
-    }.should raise_error(Exception)
-
-    lambda{
-      @local_node.invoke_request('cosmos::get_resource_source', rs.id)
-    #}.should raise_error(Omega::PermissionError)
-    }.should raise_error(Exception)
-
-    u.add_privilege('view', 'cosmos_entities')
-
-    lambda{
-      rrs = @local_node.invoke_request('cosmos::get_resource_source', rs.id)
-      rrs.class.should == Cosmos::ResourceSource
-      rrs.id.should == rs.id
     }.should_not raise_error
   end
 

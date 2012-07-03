@@ -436,7 +436,7 @@ function OmegaHandlers(){
         var resource_source = resource_sources[r];
         if(resource_source.json_class == "Cosmos::ResourceSource"){
           got_resources = true;
-          resources += "<li id='"+resource_source.id+"' class='command_mine_resource_source'><a href='#'>"+ resource_source.resource.id + "</a> (" + resource_source.quantity + ")" +"</li>";
+          resources += "<li id='"+resource_source.entity.name+":"+resource_source.resource.id+"' class='command_mine_resource_source'><a href='#'>"+ resource_source.resource.id + "</a> (" + resource_source.quantity + ")" +"</li>";
         }
       }
       resources += "</ul>";

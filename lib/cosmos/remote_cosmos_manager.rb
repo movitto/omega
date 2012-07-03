@@ -58,10 +58,7 @@ class RemoteCosmosManager
   def set_resource(entity, resource, quantity)
   end
 
-  def get_resources(entity)
-  end
-
-  def get_resource_source(resource_source)
+  def get_resource_sources(entity)
   end
 
 end

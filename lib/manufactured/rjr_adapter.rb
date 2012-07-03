@@ -345,9 +345,11 @@ class RJRAdapter
       ship
     }
 
-    rjr_dispatcher.add_handler('manufactured::start_mining') { |ship_id, resource_source_id|
+    rjr_dispatcher.add_handler('manufactured::start_mining') { |ship_id, entity_id, resource_id|
       ship = Manufactured::Registry.instance.find(:id => ship_id,    :type => 'Manufactured::Ship').first
-      resource_source = @@local_node.invoke_request('cosmos::get_resource_source', resource_source_id)
+      # TODO how/where to incorporate resource scanning distance & capabilities into this
+      resource_sources = @@local_node.invoke_request('cosmos::get_resource_sources', entity_id)
+      resource_source  = resource_sources.find { |rs| rs.resource.id == resource_id }
 
       # TODO verify ship is not already mining resource, within mining distance
       raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?

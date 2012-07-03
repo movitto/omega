@@ -530,7 +530,8 @@ $('.command_scan_asteroid').live('click', function(event){
 $('.command_mine_resource_source').live('click', function(event){
   handlers.clear_callbacks();
   handlers.add_method('manufactured::event_occurred', handlers.on_mining_event);
-  client.start_mining(controls.selected_ship, event.currentTarget.id);
+  var rs = event.currentTarget.id.split(":");
+  client.start_mining(controls.selected_ship, rs[0], rs[1]);
   $('#motel_dialog').dialog('close');
 });
 

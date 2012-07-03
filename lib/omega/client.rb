@@ -524,7 +524,7 @@ end
 def start_mining(resource_source)
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
-  client.queue_request 'manufactured::start_mining', @ship.id, resource_source.id
+  client.queue_request 'manufactured::start_mining', @ship.id, resource_source.entity.name, resource_source.resource.id
   RJR::Logger.info "mining #{resource_source} with #{@ship}"
   client.invoke_requests
 end

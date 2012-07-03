@@ -47,8 +47,10 @@ class RJRAdapter
 
        # XXX ugly but allows us to lookup entities by name for the time being
        #   at some point change / remove this
-       rentity = Cosmos::Registry.instance.find_entity(:name => entity.name)
-       raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
+       unless entity.is_a?(Cosmos::JumpGate)
+         rentity = Cosmos::Registry.instance.find_entity(:name => entity.name)
+         raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
+       end
 
        # TODO rparent.can_add?(entity)  # would need to be in mutex w/ add_child
        entity.parent= rparent
@@ -74,7 +76,7 @@ class RJRAdapter
        while qualifier = args.shift
          raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_name", "with_location"].include?(qualifier)
          val = args.shift
-         raise ArgumentError, "qualifier #{qualifier} request values" if val.nil?
+         raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
          qualifier = case qualifier
                        when "of_type"
                          :type
@@ -161,16 +163,6 @@ class RJRAdapter
        nil
     }
 
-    rjr_dispatcher.add_handler('cosmos::get_resources') { |entity_id|
-       entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
-       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
-                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                         :session => @headers['session_id'])
-       resources = Cosmos::Registry.instance.resources(:entity_id => entity_id)
-       resources
-    }
-
     rjr_dispatcher.add_handler('cosmos::get_resource_sources') { |entity_id|
        entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
        raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
@@ -178,15 +170,6 @@ class RJRAdapter
                                                   {:privilege => 'view', :entity => 'cosmos_entities'}],
                                          :session => @headers['session_id'])
        Cosmos::Registry.instance.resource_sources.select { |rs| rs.entity.name == entity_id }
-    }
-
-    rjr_dispatcher.add_handler('cosmos::get_resource_source') { |resource_source_id|
-       rs = Cosmos::Registry.instance.resource_sources.find { |rs| rs.id == resource_source_id }
-       raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if rs.nil?
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{rs.entity.name}"},
-                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                         :session => @headers['session_id'])
-       rs
     }
 
     rjr_dispatcher.add_handler('cosmos::save_state') { |output|

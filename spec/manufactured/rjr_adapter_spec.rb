@@ -770,24 +770,29 @@ describe Manufactured::RJRAdapter do
     rs = Cosmos::Registry.instance.set_resource ast1.name, resource, 50
 
     lambda{
-      @local_node.invoke_request('manufactured::start_mining', ship.id, 'non_existant')
+      @local_node.invoke_request('manufactured::start_mining', ship.id, 'non_existant', resource.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('manufactured::start_mining', 'non_existant', rs.id)
+      @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('manufactured::start_mining', ship.id, rs.id)
+      @local_node.invoke_request('manufactured::start_mining', 'non_existant', ast1.name, resource.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    lambda{
+      @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, resource.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('modify', 'manufactured_entities')
 
     lambda{
-      rship = @local_node.invoke_request('manufactured::start_mining', ship.id, rs.id)
+      rship = @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, resource.id)
       rship.class.should == Manufactured::Ship
       rship.id.should == ship.id
       rship.notification_callbacks.size.should == 2

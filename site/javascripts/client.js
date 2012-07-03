@@ -52,7 +52,11 @@ function CosmosClient() {
   }
 
   this.get_cosmos_entity = function(entity, name){
-    client.web_node.invoke_request('cosmos::get_entity', 'of_type', entity, 'with_name', name);
+    if(name == null){
+      client.web_node.invoke_request('cosmos::get_entity', 'of_type', entity);
+    }else{
+      client.web_node.invoke_request('cosmos::get_entity', 'of_type', entity, 'with_name', name);
+    }
   }
 
   this.get_entities_under = function(parent_id){
@@ -124,9 +128,9 @@ function CosmosClient() {
   }
 
 
-  this.start_mining = function(ship, resource_source_id){
+  this.start_mining = function(ship, entity_id, resource_id){
     client.subscribe_to_mining_events(ship);
-    client.web_node.invoke_request('manufactured::start_mining', ship.id, resource_source_id);
+    client.web_node.invoke_request('manufactured::start_mining', ship.id, entity_id, resource_id);
   }
 
   this.login = function(){
