@@ -757,13 +757,17 @@ describe Manufactured::RJRAdapter do
     ship = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
     gal1     = Cosmos::Galaxy.new :name => 'galaxy1'
+    sys1     = Cosmos::SolarSystem.new :name => 'system1'
+    ast1     = Cosmos::Asteroid.new :name => 'asteroid1'
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship
     Manufactured::Registry.instance.mining_commands.size.should == 0
 
     Cosmos::Registry.instance.add_child gal1
-    rs = Cosmos::Registry.instance.set_resource gal1.name, resource, 50
+    gal1.add_child sys1
+    sys1.add_child ast1
+    rs = Cosmos::Registry.instance.set_resource ast1.name, resource, 50
 
     lambda{
       @local_node.invoke_request('manufactured::start_mining', ship.id, 'non_existant')

@@ -18,6 +18,8 @@ describe Cosmos::Planet do
      planet.solar_system.should == system
      planet.moons.size.should == 0
      planet.parent.should == planet.solar_system
+
+     planet.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of planet" do

@@ -20,6 +20,10 @@ class Resource
     @type = args['type']  || args[:type] || @type
   end
 
+  def valid?
+    @name.is_a?(String) && @type.is_a?(String)
+  end
+
   def id
     "#{@type}-#{@name}"
   end

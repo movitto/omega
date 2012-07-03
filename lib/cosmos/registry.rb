@@ -165,25 +165,35 @@ class Registry
   # set the resource for the specified entity
   def set_resource(entity_id, resource, quantity)
     entity = find_entity(:name => entity_id)
-    return if entity.nil? || resource.nil? || quantity < 0
+    return if entity.nil? || resource.nil? ||
+             !entity.accepts_resource?(resource) ||
+             quantity < 0
 
-    entity_resource = resources(:entity_id => entity_id,
-                                :resource_name => resource.name,
-                                :resoure_type  => resource.type).first
-    resource_source = nil
-    if entity_resource.nil?
-      resource_source = ResourceSource.new(:entity => entity,
-                                           :resource => resource,
-                                           :quantity => quantity)
-      @resource_sources << resource_source
+    rs = nil
+    # if we're setting quantity to 0, just delete resource
+    if quantity == 0
+      resource_sources.delete_if { |rsi| rsi.entity.name == entity_id &&
+                                         rsi.resource.name == resource.name &&
+                                         rsi.resource.type == resource.type }
+
     else
-      resource_source = resource_sources.find { |rs| rs.entity.name == entity_id &&
-                                                     rs.resource.name == resource.name &&
-                                                     rs.resource.type == resource.type }
-      resource_source.quantity = quantity
+      rs = resource_sources.find { |rsi| rsi.entity.name == entity_id &&
+                                         rsi.resource.name == resource.name &&
+                                         rsi.resource.type == resource.type }
+
+      # if resource doesn't exist, create, else just set quantity
+      if rs.nil?
+        rs = ResourceSource.new(:entity => entity,
+                                :resource => resource,
+                                :quantity => quantity)
+        @resource_sources << rs
+
+      else
+        rs.quantity = quantity
+      end
     end
 
-    return resource_source
+    return rs
   end
 
    def to_json(*a)

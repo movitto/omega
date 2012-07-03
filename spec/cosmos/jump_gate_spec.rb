@@ -19,6 +19,8 @@ describe Cosmos::JumpGate do
      jump_gate.endpoint.should == endpoint
      jump_gate.has_children?.should be_false
      jump_gate.parent.should == jump_gate.solar_system
+
+     jump_gate.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of jump gate" do

@@ -41,6 +41,11 @@ class JumpGate
     # && @solar_system.name != @endpoint.name
   end
 
+  # does not accept any resources
+  def accepts_resource?(res)
+    false
+  end
+
   def self.parent_type
     :solarsystem
   end

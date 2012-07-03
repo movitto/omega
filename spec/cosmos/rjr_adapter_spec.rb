@@ -193,14 +193,18 @@ describe Cosmos::RJRAdapter do
 
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resources" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    sys1 = Cosmos::SolarSystem.new :name => 'system23'
+    ast1 = Cosmos::Asteroid.new :name => 'astt2'
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     res2 = Cosmos::Resource.new :name => 'ruby', :type => 'gem'
     u = TestUser.create.login(@local_node).clear_privileges
 
     Motel::Runner.instance.run gal1.location
     Cosmos::Registry.instance.add_child gal1
-    Cosmos::Registry.instance.set_resource gal1.name, res1, 50
-    Cosmos::Registry.instance.set_resource gal1.name, res2, 25
+    gal1.add_child sys1
+    sys1.add_child ast1
+    Cosmos::Registry.instance.set_resource ast1.name, res1, 50
+    Cosmos::Registry.instance.set_resource ast1.name, res2, 25
 
     Cosmos::Registry.instance.children.size.should == 1
     Cosmos::Registry.instance.resource_sources.size.should == 2
@@ -211,14 +215,14 @@ describe Cosmos::RJRAdapter do
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('cosmos::get_resources', gal1.name)
+      @local_node.invoke_request('cosmos::get_resources', ast1.name)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
-    u.add_privilege('view', 'cosmos_entity-' + gal1.name)
+    u.add_privilege('view', 'cosmos_entity-' + ast1.name)
 
     lambda{
-      resources = @local_node.invoke_request('cosmos::get_resources', gal1.name)
+      resources = @local_node.invoke_request('cosmos::get_resources', ast1.name)
       resources.size.should == 2
       resources.first.name.should == 'titanium'
       resources.first.type.should == 'metal'
@@ -229,6 +233,8 @@ describe Cosmos::RJRAdapter do
 
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resource_sources (from entity id)" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    sys1 = Cosmos::SolarSystem.new :name => 'system23'
+    ast1 = Cosmos::Asteroid.new :name => 'astt2'
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     res2 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     res3 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
@@ -236,9 +242,11 @@ describe Cosmos::RJRAdapter do
 
     Motel::Runner.instance.run gal1.location
     Cosmos::Registry.instance.add_child gal1
-    Cosmos::Registry.instance.set_resource gal1.name, res1, 50
-    Cosmos::Registry.instance.set_resource gal1.name, res2, 50
-    Cosmos::Registry.instance.set_resource gal1.name, res3, 50
+    gal1.add_child sys1
+    sys1.add_child ast1
+    Cosmos::Registry.instance.set_resource ast1.name, res1, 50
+    Cosmos::Registry.instance.set_resource ast1.name, res2, 50
+    Cosmos::Registry.instance.set_resource ast1.name, res3, 50
 
     lambda{
       @local_node.invoke_request('cosmos::get_resource_sources', 'non_existant')
@@ -246,14 +254,14 @@ describe Cosmos::RJRAdapter do
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('cosmos::get_resource_sources', gal1.name)
+      @local_node.invoke_request('cosmos::get_resource_sources', ast1.name)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('view', 'cosmos_entities')
 
     lambda{
-      rrs = @local_node.invoke_request('cosmos::get_resource_sources', gal1.name)
+      rrs = @local_node.invoke_request('cosmos::get_resource_sources', ast1.name)
       rrs.class.should == Array
       rrs.size.should == 2
       rrs.first.resource.id.should == res1.id
@@ -263,12 +271,16 @@ describe Cosmos::RJRAdapter do
 
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_resource_source (from resource source id)" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    sys1 = Cosmos::SolarSystem.new :name => 'system23'
+    ast1 = Cosmos::Asteroid.new :name => 'astt2'
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     u = TestUser.create.login(@local_node).clear_privileges
 
     Motel::Runner.instance.run gal1.location
     Cosmos::Registry.instance.add_child gal1
-    Cosmos::Registry.instance.set_resource gal1.name, res1, 50
+    gal1.add_child sys1
+    sys1.add_child ast1
+    Cosmos::Registry.instance.set_resource ast1.name, res1, 50
     rs = Cosmos::Registry.instance.resource_sources.first
 
     lambda{
@@ -292,33 +304,97 @@ describe Cosmos::RJRAdapter do
 
   it "should permit users with modify cosmos_entities or modify cosmos_entity-<id> to set_resource" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    sys1 = Cosmos::SolarSystem.new :name => 'system14'
+    ast1 = Cosmos::Asteroid.new :name => 'asteroid33'
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    invalid = Cosmos::Resource.new :name => 1111, :type => 2222
     u = TestUser.create.login(@local_node).clear_privileges
 
     Motel::Runner.instance.run gal1.location
     Cosmos::Registry.instance.add_child gal1
+    gal1.add_child(sys1)
+    sys1.add_child(ast1)
 
     Cosmos::Registry.instance.children.size.should == 1
     Cosmos::Registry.instance.resource_sources.size.should == 0
 
+    # invalid entity
     lambda{
       @local_node.invoke_request('cosmos::set_resource', 'non_existant', res1, 50)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid entity
     lambda{
-      @local_node.invoke_request('cosmos::set_resource', gal1.name, res1, 50)
-    #}.should raise_error(Omega::DataNotFound)
+      @local_node.invoke_request('cosmos::set_resource', :universe, res1, 50)
+    #}.should raise_error(Omega::ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid quantity
+    lambda{
+      @local_node.invoke_request('cosmos::set_resource', ast1.name, res1, -50)
+    #}.should raise_error(Omega::ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid resource
+    lambda{
+      @local_node.invoke_request('cosmos::set_resource', ast1.name, 1111, 50)
+    #}.should raise_error(Omega::ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid resource
+    lambda{
+      @local_node.invoke_request('cosmos::set_resource', ast1.name, invalid, 50)
+    #}.should raise_error(Omega::ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid inputs, no permissions
+    lambda{
+      @local_node.invoke_request('cosmos::set_resource', ast1.name, res1, 50)
+    #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('modify', 'cosmos_entities')
 
+    # entity does not accept resource
     lambda{
       ret = @local_node.invoke_request('cosmos::set_resource', gal1.name, res1, 50)
+    #}.should raise_error(Omega::ArgumentError)
+    }.should raise_error(Exception)
+
+    # good call
+    lambda{
+      ret = @local_node.invoke_request('cosmos::set_resource', ast1.name, res1, 50)
       ret.should be_nil
     }.should_not raise_error
 
     Cosmos::Registry.instance.resource_sources.size.should == 1
+  end
+
+  it "should should remove resources when invoking set_resource with a quantity of 0" do
+    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
+    sys1 = Cosmos::SolarSystem.new :name => 'system14'
+    ast1 = Cosmos::Asteroid.new :name => 'asteroid33'
+    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    u = TestUser.create.login(@local_node).clear_privileges.add_privilege('modify', 'cosmos_entities')
+
+    Cosmos::Registry.instance.add_child gal1
+    gal1.add_child(sys1)
+    sys1.add_child(ast1)
+
+    Cosmos::Registry.instance.children.size.should == 1
+    Cosmos::Registry.instance.resource_sources.size.should == 0
+    lambda{
+      ret = @local_node.invoke_request('cosmos::set_resource', ast1.name, res1, 50)
+      ret.should be_nil
+    }.should_not raise_error
+    Cosmos::Registry.instance.resource_sources.size.should == 1
+
+    lambda{
+      ret = @local_node.invoke_request('cosmos::set_resource', ast1.name, res1, 0)
+      ret.should be_nil
+    }.should_not raise_error
+    Cosmos::Registry.instance.resource_sources.size.should == 0
   end
 
   it "should permit local nodes to save and restore state" do

@@ -37,6 +37,11 @@ class Galaxy
     @solar_systems.is_a?(Array) && @solar_systems.find { |s| !s.is_a?(Cosmos::SolarSystem) || !s.valid? }.nil?
   end
 
+  # does not accept any resources
+  def accepts_resource?(res)
+    false
+  end
+
   def self.parent_type
     :universe
   end

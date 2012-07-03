@@ -18,6 +18,8 @@ describe Cosmos::Moon do
      moon.planet.should == planet
      moon.has_children?.should be_false
      moon.parent.should == moon.planet
+
+     moon.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of moon" do

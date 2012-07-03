@@ -20,6 +20,8 @@ describe Cosmos::Star do
      star.size.should_not be_nil
      star.has_children?.should be_false
      star.parent.should == star.solar_system
+
+     star.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of star" do

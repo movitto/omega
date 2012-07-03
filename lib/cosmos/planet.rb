@@ -51,6 +51,12 @@ class Planet
     false
   end
 
+  # does not accept any resources
+  # TODO change
+  def accepts_resource?(res)
+    false
+  end
+
   def parent
     @solar_system
   end

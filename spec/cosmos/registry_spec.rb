@@ -174,20 +174,24 @@ describe Cosmos::Registry do
     Cosmos::Registry.instance.resource_sources.size.should == 0
 
     galaxy1 = Cosmos::Galaxy.new :name => 'galaxy1'
+    system1 = Cosmos::SolarSystem.new :name => 'system1'
+    astero1 = Cosmos::Asteroid.new :name => 'astero1'
     Cosmos::Registry.instance.add_child(galaxy1)
+    galaxy1.add_child(system1)
+    system1.add_child(astero1)
 
-    Cosmos::Registry.instance.set_resource(galaxy1.name, resource, -10)
+    Cosmos::Registry.instance.set_resource(astero1.name, resource, -10)
     Cosmos::Registry.instance.resource_sources.size.should == 0
 
-    Cosmos::Registry.instance.set_resource(galaxy1.name, resource, 50)
+    Cosmos::Registry.instance.set_resource(astero1.name, resource, 50)
     Cosmos::Registry.instance.resource_sources.size.should == 1
-    Cosmos::Registry.instance.resource_sources.first.entity.should == galaxy1
+    Cosmos::Registry.instance.resource_sources.first.entity.should == astero1
     Cosmos::Registry.instance.resource_sources.first.resource.should == resource
     Cosmos::Registry.instance.resource_sources.first.quantity.should == 50
 
-    Cosmos::Registry.instance.set_resource(galaxy1.name, resource, 30)
+    Cosmos::Registry.instance.set_resource(astero1.name, resource, 30)
     Cosmos::Registry.instance.resource_sources.size.should == 1
-    Cosmos::Registry.instance.resource_sources.first.entity.should == galaxy1
+    Cosmos::Registry.instance.resource_sources.first.entity.should == astero1
     Cosmos::Registry.instance.resource_sources.first.resource.should == resource
     Cosmos::Registry.instance.resource_sources.first.quantity.should == 30
   end
@@ -223,10 +227,12 @@ describe Cosmos::Registry do
     star2   = Cosmos::Star.new :name => 'star2'
     planet = Cosmos::Planet.new :name => 'planet1'
     moon   = Cosmos::Moon.new :name => 'moon1'
+    asteroid1 = Cosmos::Asteroid.new :name => 'asteroid1'
     galaxy1.add_child(system1)
     galaxy2.add_child(system2)
     system1.add_child(star1)
     system2.add_child(star2)
+    system1.add_child(asteroid1)
     system1.add_child(planet)
     planet.add_child(moon)
 
@@ -237,7 +243,7 @@ describe Cosmos::Registry do
     Cosmos::Registry.instance.add_child galaxy2
     Cosmos::Registry.instance.children.size.should == 2
 
-    Cosmos::Registry.instance.set_resource(galaxy1.name, resource, 10)
+    Cosmos::Registry.instance.set_resource(asteroid1.name, resource, 10)
     Cosmos::Registry.instance.resource_sources.size.should == 1
 
     sio = StringIO.new
@@ -255,9 +261,10 @@ describe Cosmos::Registry do
   end
 
   it "should restore running locations from io object" do
-    s = '{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"solar_systems":[{"data":{"jump_gates":[],"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"asteroids":[],"star":{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"size":41,"color":"FFFF00","name":"star1"},"json_class":"Cosmos::Star"},"background":"system4","name":"system1","remote_queue":null,"planets":[{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"moons":[{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"name":"moon1"},"json_class":"Cosmos::Moon"}],"size":13,"color":"9eca4b","name":"planet1"},"json_class":"Cosmos::Planet"}]},"json_class":"Cosmos::SolarSystem"}],"background":"galaxy5","name":"galaxy1","remote_queue":null},"json_class":"Cosmos::Galaxy"}'+ "\n" +
-        '{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"solar_systems":[{"data":{"jump_gates":[],"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"asteroids":[],"star":{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"size":53,"color":"FFFF00","name":"star2"},"json_class":"Cosmos::Star"},"background":"system5","name":"system2","remote_queue":null,"planets":[]},"json_class":"Cosmos::SolarSystem"}],"background":"galaxy4","name":"galaxy2","remote_queue":null},"json_class":"Cosmos::Galaxy"}'+ "\n" +
-        '{"data":{"quantity":10,"entity":{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"solar_systems":[{"data":{"jump_gates":[],"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"asteroids":[],"star":{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"size":41,"color":"FFFF00","name":"star1"},"json_class":"Cosmos::Star"},"background":"system4","name":"system1","remote_queue":null,"planets":[{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"moons":[{"data":{"location":{"data":{"restrict_view":true,"x":0,"restrict_modify":true,"children":[],"y":0,"z":0,"movement_callbacks":[],"proximity_callbacks":[],"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"id":null},"json_class":"Motel::Location"},"name":"moon1"},"json_class":"Cosmos::Moon"}],"size":13,"color":"9eca4b","name":"planet1"},"json_class":"Cosmos::Planet"}]},"json_class":"Cosmos::SolarSystem"}],"background":"galaxy5","name":"galaxy1","remote_queue":null},"json_class":"Cosmos::Galaxy"},"resource":{"data":{"type":"gem","name":"ruby","id":"gem-ruby"},"json_class":"Cosmos::Resource"},"id":"b6e71417-4ab1-2912-6af0-1bc144f275a4"},"json_class":"Cosmos::ResourceSource"}' + "\n"
+    s = '{"json_class":"Cosmos::Galaxy","data":{"solar_systems":[{"json_class":"Cosmos::SolarSystem","data":{"planets":[{"json_class":"Cosmos::Planet","data":{"color":"9eca37","moons":[{"json_class":"Cosmos::Moon","data":{"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"moon1"}}],"size":10,"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"planet1"}}],"jump_gates":[],"asteroids":[{"json_class":"Cosmos::Asteroid","data":{"color":"cad3c2","size":11,"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"asteroid1"}}],"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"system1","remote_queue":null,"star":{"json_class":"Cosmos::Star","data":{"color":"FFFF00","size":41,"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"star1"}},"background":"system4"}}],"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"galaxy1","remote_queue":null,"background":"galaxy6"}}' + "\n" +
+        '{"json_class":"Cosmos::Galaxy","data":{"solar_systems":[{"json_class":"Cosmos::SolarSystem","data":{"planets":[],"jump_gates":[],"asteroids":[],"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"system2","remote_queue":null,"star":{"json_class":"Cosmos::Star","data":{"color":"FFFF00","size":41,"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"star2"}},"background":"system4"}}],"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"galaxy2","remote_queue":null,"background":"galaxy5"}}' + "\n" +
+        '{"json_class":"Cosmos::ResourceSource","data":{"entity":{"json_class":"Cosmos::Asteroid","data":{"color":"cad3c2","size":11,"location":{"json_class":"Motel::Location","data":{"parent_id":null,"proximity_callbacks":[],"y":0,"children":[],"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"z":0,"remote_queue":null,"id":null,"movement_callbacks":[]}},"name":"asteroid1"}},"quantity":10,"resource":{"json_class":"Cosmos::Resource","data":{"type":"gem","name":"ruby","id":"gem-ruby"}},"id":"08e1e3f5-faa7-8b3e-296f-6717ed8ba9a2"}}'
+
     a = s.collect { |i| i }
 
     Cosmos::Registry.instance.init

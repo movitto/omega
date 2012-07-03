@@ -14,6 +14,21 @@ describe Cosmos::Resource do
      resource.id.should == "metal-titanium"
   end
 
+  it "should verify validity of resource" do
+     resource   = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+     resource.valid?.should be_true
+
+     resource.name = 11111
+     resource.valid?.should be_false
+
+     resource.name = nil
+     resource.valid?.should be_false
+     resource.name = 'titanium'
+
+     resource.type = nil
+     resource.valid?.should be_false
+  end
+
   it "should successfully accept resource to copy" do
      resource1   = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
      resource2   = Cosmos::Resource.new :resource => resource1

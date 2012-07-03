@@ -27,6 +27,12 @@ class Moon
     (@planet.nil? || @planet.is_a?(Cosmos::Planet))
   end
 
+  # does not accept any resources
+  # TODO change
+  def accepts_resource?(res)
+    false
+  end
+
   def parent
     @planet
   end

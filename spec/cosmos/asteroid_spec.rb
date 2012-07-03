@@ -21,6 +21,8 @@ describe Cosmos::Asteroid do
      asteroid.location.z.should == 0
      asteroid.solar_system.should == system
      asteroid.parent.should == asteroid.solar_system
+
+     asteroid.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_true
   end
 
   it "should verify validity of asteroid" do

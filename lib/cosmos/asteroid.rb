@@ -38,6 +38,11 @@ class Asteroid
     @color.is_a?(String) && !/^[a-fA-F0-9]{6}$/.match(@color).nil?
   end
 
+  # right now indiscremenantly accepts all valid resources, make this more selective
+  def accepts_resource?(res)
+    res.valid?
+  end
+
   def self.parent_type
     :solarsystem
   end

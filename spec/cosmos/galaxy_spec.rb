@@ -15,6 +15,8 @@ describe Cosmos::Galaxy do
      galaxy.location.y.should == 0
      galaxy.location.z.should == 0
      galaxy.parent.should be_nil
+
+     galaxy.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of galaxy" do

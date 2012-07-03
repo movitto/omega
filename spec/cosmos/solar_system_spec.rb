@@ -21,6 +21,8 @@ describe Cosmos::SolarSystem do
      solar_system.asteroids.size.should == 0
      solar_system.jump_gates.size.should == 0
      solar_system.parent.should == solar_system.galaxy
+
+     solar_system.accepts_resource?(Cosmos::Resource.new(:name => 'what', :type => 'ever')).should be_false
   end
 
   it "should verify validity of solar system" do

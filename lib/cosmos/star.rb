@@ -37,6 +37,12 @@ class Star
     @color.is_a?(String) && STAR_COLORS.include?(@color)
   end
 
+  # does not accept any resources
+  # TODO change
+  def accepts_resource?(res)
+    false
+  end
+
   def self.parent_type
     :solarsystem
   end

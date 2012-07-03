@@ -53,6 +53,11 @@ class SolarSystem
     (@star.nil? || (@star.is_a?(Cosmos::Star) && @star.valid?))
   end
 
+  # does not accept any resources
+  def accepts_resource?(res)
+    false
+  end
+
   def self.parent_type
     :galaxy
   end
