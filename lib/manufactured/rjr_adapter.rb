@@ -75,13 +75,25 @@ class RJRAdapter
 
       # simply convert remaining args into key /
       # value pairs to pass into construct
-      # TODO validate these in the context of the entities being created
+      # TODO verify station has construction capabilities for the specified args
+      # TODO validate these in the context of the entities being created and the constructing station / system
       args = Hash[*args]
+
+      # remove params which should not be set by the user
+      ['solar_system','user_id',
+       'resources', 'notifications',
+       'docked_at', 'size'].each { |i| # set docked at to station?
+        args.delete(i)
+      }
+
+      # auto-set additional params
       args[:entity_type] = entity_type
       args[:solar_system] = station.solar_system
       args[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
 
+      # create the entity and return it
       entity = station.construct args
+      raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
       @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
     }

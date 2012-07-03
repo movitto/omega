@@ -80,7 +80,6 @@ class Ship
     @mining_quantity = 5
     @mining_distance = 100
 
-    @docked_to = nil
     @mining    = nil
 
     if @location.nil?

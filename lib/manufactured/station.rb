@@ -106,11 +106,11 @@ class Station
 
     if entity_type == "Manufactured::Ship"
       cargs = {:id => Motel.gen_uuid,
-               :type => :frigate,
-               :size => Ship::SHIP_SIZES[:frigate]}.merge(args)
+               :type => :frigate}.merge(args)
       cclass = Manufactured::Ship
     elsif entity_type == "Manufactured::Station"
-      cargs = {:id => Motel.gen_uuid}.merge(args)
+      cargs = {:id => Motel.gen_uuid,
+               :type => :manufacturing}.merge(args)
       cclass = Manufactured::Station
     end
 

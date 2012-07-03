@@ -153,8 +153,7 @@ describe Manufactured::RJRAdapter do
 
   it "should permit users with create manufactured_entities to construct_entity" do
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
-                                      :location => Motel::Location.new(:id => '101', :x => 50, :y => 60, :z => -70),
-                                      :resources => { 'metal-alloy' => 5000 }
+                                      :location => Motel::Location.new(:id => '101', :x => 50, :y => 60, :z => -70)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -173,11 +172,13 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.ships.size.should == 0
     Manufactured::Registry.instance.stations.size.should == 1
 
+    # non-existant system
     lambda{
       @local_node.invoke_request('manufactured::construct_entity', 'non_existant', 'Manufactured::Ship')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # not enough permissions
     lambda{
       @local_node.invoke_request('manufactured::construct_entity', stat1, 'Manufactured::Ship')
     #}.should raise_error(Omega::PermissionError)
@@ -185,6 +186,15 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('create', 'manufactured_entities')
 
+    # system does not have enough resources
+    lambda{
+      @local_node.invoke_request('manufactured::construct_entity', stat1, 'Manufactured::Ship')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    stat1.add_resource('metal-alloy', 5000)
+
+    # valid call
     lambda{
       rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'battlecruiser')
       rship.class.should == Manufactured::Ship
@@ -199,7 +209,7 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.locations.size.should == 3
   end
 
-  it "should accept params to instantiate manufactured_entities with when invoking construct_entity" do
+  it "should only accept valid params to instantiate manufactured_entities with when invoking construct_entity" do
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
                                       :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0),
                                       :resources => { 'metal-alloy' => 5000 }
@@ -235,7 +245,7 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.ships[0].location.z.should == stat1.location.z + 10
 
     lambda{
-      rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', Manufactured::Ship::SHIP_SIZES[:transport])
+      rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', 5110)
       rship.should_not be_nil
     }.should_not raise_error
 
