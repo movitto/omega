@@ -46,6 +46,10 @@ class Asteroid
     false
   end
 
+  def parent
+    @solar_system
+  end
+
   def parent=(solar_system)
     @solar_system = solar_system
   end

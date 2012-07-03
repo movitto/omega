@@ -18,6 +18,7 @@ describe Cosmos::JumpGate do
      jump_gate.solar_system.should == system
      jump_gate.endpoint.should == endpoint
      jump_gate.has_children?.should be_false
+     jump_gate.parent.should == jump_gate.solar_system
   end
 
   it "should verify validity of jump gate" do

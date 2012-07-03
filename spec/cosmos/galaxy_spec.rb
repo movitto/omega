@@ -14,6 +14,7 @@ describe Cosmos::Galaxy do
      galaxy.location.x.should == 0
      galaxy.location.y.should == 0
      galaxy.location.z.should == 0
+     galaxy.parent.should be_nil
   end
 
   it "should verify validity of galaxy" do

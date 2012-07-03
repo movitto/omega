@@ -65,11 +65,17 @@ class Registry
 
     unless type.nil?
       types = { :galaxy      => Cosmos::Galaxy,
+                'galaxy'     => Cosmos::Galaxy,
                 :solarsystem => Cosmos::SolarSystem,
+                'solarsystem'=> Cosmos::SolarSystem,
                 :star        => Cosmos::Star,
+                'star'       => Cosmos::Star,
                 :planet      => Cosmos::Planet,
+                'planet'     => Cosmos::Planet,
                 :moon        => Cosmos::Moon,
-                :asteroid    => Cosmos::Asteroid }
+                'moon'       => Cosmos::Moon,
+                :asteroid    => Cosmos::Asteroid,
+                'asteroid'   => Cosmos::Asteroid }
       entities.reject! { |e| e.class != types[type] }
     end
 

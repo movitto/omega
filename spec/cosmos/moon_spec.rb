@@ -8,14 +8,16 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Cosmos::Moon do
 
   it "should successfully accept and set moon params" do
-     moon   = Cosmos::Moon.new :name => 'moon1'
+     planet = Cosmos::Planet.new
+     moon   = Cosmos::Moon.new :name => 'moon1', :planet => planet
      moon.name.should == 'moon1'
      moon.location.should_not be_nil
      moon.location.x.should == 0
      moon.location.y.should == 0
      moon.location.z.should == 0
-     moon.planet.should be_nil
+     moon.planet.should == planet
      moon.has_children?.should be_false
+     moon.parent.should == moon.planet
   end
 
   it "should verify validity of moon" do

@@ -120,7 +120,7 @@ describe Cosmos::RJRAdapter do
     Cosmos::Registry.instance.add_child gal2
 
     lambda{
-      gal = @local_node.invoke_request('cosmos::get_entity', 'galaxy')
+      gal = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy')
       gal.class.should == Array
       gal.size.should == 0
     #}.should raise_error(Omega::PermissionError, "session not found")
@@ -129,43 +129,43 @@ describe Cosmos::RJRAdapter do
     u.login(@local_node).add_privilege('view', 'cosmos_entities')
 
     lambda{
-      gal = @local_node.invoke_request('cosmos::get_entity', 'galaxy')
+      gal = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy')
       gal.class.should == Array
       gal.size.should == 2
       gal.first.class.should == Cosmos::Galaxy
       gal.last.class.should == Cosmos::Galaxy
       gal.first.name.should == 'galaxy42'
       gal.last.name.should  == 'galaxy43'
-      # TODO test galaxy locations retrieved are latest managed by motel
+      # TODO test galaxy locations retrieved are latest managed by motel & local location heirarchies set correctly
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'cosmos_entity-' + gal1.name.to_s)
 
     lambda{
-      gal = @local_node.invoke_request('cosmos::get_entity', 'galaxy')
+      gal = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy')
       gal.class.should == Array
       gal.size.should == 1
       gal.first.class.should == Cosmos::Galaxy
       gal.first.name.should == 'galaxy42'
 
-      gal = @local_node.invoke_request('cosmos::get_entity', 'galaxy', 'galaxy42')
+      gal = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy', 'with_name', 'galaxy42')
       gal.class.should == Cosmos::Galaxy
       gal.name.should == 'galaxy42'
       # TODO test galaxy locations retrieved are latest managed by motel
     }.should_not raise_error
 
     lambda{
-      @local_node.invoke_request('cosmos::get_entity', 'galaxy', 'non_existant')
+      @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy', 'with_name', 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      @local_node.invoke_request('cosmos::get_entity', 'galaxy', 'galaxy43')
+      @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy', 'with_name', 'galaxy43')
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
   end
 
-  it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_entity_from_location" do
+  it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_entity from location" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 42)
     sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new(:id => 43)
     gal1.add_child(sys1)
@@ -178,12 +178,12 @@ describe Cosmos::RJRAdapter do
     u.add_privilege('view', 'cosmos_entities')
 
     lambda{
-      @local_node.invoke_request('cosmos::get_entity_from_location', 'galaxy', 43)
+      @local_node.invoke_request('cosmos::get_entity', 'of_type' 'galaxy', 'with_location', 43)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
     lambda{
-      sys = @local_node.invoke_request('cosmos::get_entity_from_location', 'solarsystem', 43)
+      sys = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'solarsystem', 'with_location', 43)
       sys.class.should == Cosmos::SolarSystem
       sys.name.should == sys1.name
       # TODO test galaxy locations retrieved are latest managed by motel

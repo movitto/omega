@@ -8,17 +8,19 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Cosmos::SolarSystem do
 
   it "should successfully accept and set solar_system params" do
-     solar_system   = Cosmos::SolarSystem.new :name => 'solar_system1'
+     galaxy = Cosmos::Galaxy.new
+     solar_system   = Cosmos::SolarSystem.new :name => 'solar_system1', :galaxy => galaxy
      solar_system.name.should == 'solar_system1'
      solar_system.location.should_not be_nil
      solar_system.location.x.should == 0
      solar_system.location.y.should == 0
      solar_system.location.z.should == 0
      solar_system.star.should be_nil
-     solar_system.galaxy.should be_nil
+     solar_system.galaxy.should == galaxy
      solar_system.planets.size.should == 0
      solar_system.asteroids.size.should == 0
      solar_system.jump_gates.size.should == 0
+     solar_system.parent.should == solar_system.galaxy
   end
 
   it "should verify validity of solar system" do

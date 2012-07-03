@@ -61,6 +61,10 @@ class SolarSystem
     true
   end
 
+  def parent
+    @galaxy
+  end
+
   def parent=(galaxy)
     @galaxy = galaxy
   end

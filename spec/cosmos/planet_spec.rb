@@ -8,14 +8,16 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Cosmos::Planet do
 
   it "should successfully accept and set planet params" do
-     planet   = Cosmos::Planet.new :name => 'planet1'
+     system = Cosmos::SolarSystem.new
+     planet   = Cosmos::Planet.new :name => 'planet1', :solar_system => system
      planet.name.should == 'planet1'
      planet.location.should_not be_nil
      planet.location.x.should == 0
      planet.location.y.should == 0
      planet.location.z.should == 0
-     planet.solar_system.should be_nil
+     planet.solar_system.should == system
      planet.moons.size.should == 0
+     planet.parent.should == planet.solar_system
   end
 
   it "should verify validity of planet" do

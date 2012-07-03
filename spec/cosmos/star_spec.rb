@@ -8,16 +8,18 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Cosmos::Star do
 
   it "should successfully accept and set star params" do
-     star   = Cosmos::Star.new :name => 'star1'
+     system = Cosmos::SolarSystem.new
+     star   = Cosmos::Star.new :name => 'star1', :solar_system => system
      star.name.should == 'star1'
      star.location.should_not be_nil
      star.location.x.should == 0
      star.location.y.should == 0
      star.location.z.should == 0
-     star.solar_system.should be_nil
+     star.solar_system.should == system
      star.color.should_not be_nil
      star.size.should_not be_nil
      star.has_children?.should be_false
+     star.parent.should == star.solar_system
   end
 
   it "should verify validity of star" do

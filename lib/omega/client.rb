@@ -222,7 +222,7 @@ def galaxy(id, &bl)
 
   client = Omega::Client.new :galaxy => gal
   RJR::Logger.info "retrieving galaxy #{id}"
-  client.queue_request 'cosmos::get_entity', :galaxy, id
+  client.queue_request 'cosmos::get_entity', 'of_type', :galaxy, 'with_name', id
   begin
     ngal = client.invoke_requests(Cosmos::Galaxy)
     client.remove_entity(gal)
@@ -246,7 +246,7 @@ def system(id, star_id = nil, args = {}, &bl)
 
   client = Omega::Client.new :system => sys, :star => star
   RJR::Logger.info "retrieving system #{id}"
-  client.queue_request 'cosmos::get_entity', :solarsystem, id
+  client.queue_request 'cosmos::get_entity', 'of_type', :solarsystem, 'with_name', id
   begin
     nsys = client.invoke_requests(Cosmos::SolarSystem)
     client.remove_entity(sys)
@@ -326,7 +326,7 @@ def planet(id, args={}, &bl)
 
   client = Omega::Client.new :planet => plan
   RJR::Logger.info "retrieving planet #{id}"
-  client.queue_request 'cosmos::get_entity', :planet, id
+  client.queue_request 'cosmos::get_entity', 'of_type', :planet, 'with_name', id
   begin
     # FIXME if invoked within the context of something else (galaxy/system creation)
     #       this will return the wrong value (also w/ ship below)

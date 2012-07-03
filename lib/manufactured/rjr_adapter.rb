@@ -38,7 +38,7 @@ class RJRAdapter
 
       # swap out the parent w/ the one stored in the cosmos registry
       if !entity.is_a?(Manufactured::Fleet) && entity.parent
-        parent = @@local_node.invoke_request('cosmos::get_entity', :solarsystem, entity.parent.name)
+        parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', entity.parent.name)
         raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
         entity.parent = parent
       end
@@ -105,7 +105,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::get_entities_under'){ |parent_id|
       # just lookup parent to ensure it exists
-      parent = @@local_node.invoke_request('cosmos::get_entity', :solarsystem, parent_id)
+      parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', parent_id)
       raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
 
       entities = Manufactured::Registry.instance.find(:parent_id => parent_id)
@@ -203,7 +203,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, new_location|
       entity = Manufactured::Registry.instance.find(:id => id).first
-      parent = @@local_node.invoke_request('cosmos::get_entity_from_location', :solarsystem, new_location.parent_id)
+      parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_location', new_location.parent_id)
 
       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
       raise Omega::DataNotFound, "parent system specified by location #{new_location.id} not found" if parent.nil?

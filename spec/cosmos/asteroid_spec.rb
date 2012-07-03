@@ -8,7 +8,9 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Cosmos::Asteroid do
 
   it "should successfully accept and set asteroid params" do
-     asteroid   = Cosmos::Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50
+     system = Cosmos::SolarSystem.new
+     asteroid   = Cosmos::Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50,
+                                       :solar_system => system
      asteroid.name.should == 'asteroid1'
      asteroid.color.should == 'brown'
      asteroid.size.should == 50
@@ -17,7 +19,8 @@ describe Cosmos::Asteroid do
      asteroid.location.x.should == 0
      asteroid.location.y.should == 0
      asteroid.location.z.should == 0
-     asteroid.solar_system.should be_nil
+     asteroid.solar_system.should == system
+     asteroid.parent.should == asteroid.solar_system
   end
 
   it "should verify validity of asteroid" do

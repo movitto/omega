@@ -27,6 +27,10 @@ class Moon
     (@planet.nil? || @planet.is_a?(Cosmos::Planet))
   end
 
+  def parent
+    @planet
+  end
+
   def parent=(planet)
     @planet = planet
   end

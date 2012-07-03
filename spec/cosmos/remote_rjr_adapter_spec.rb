@@ -53,7 +53,7 @@ describe Cosmos::RJRAdapter do
   end
 
   it "should get remotely tracked entities" do
-    gal1 = @local_node.invoke_request('cosmos::get_entity', :galaxy, 'gal1')
+    gal1 = @local_node.invoke_request('cosmos::get_entity', 'of_type', :galaxy, 'with_name', 'gal1')
     gal1.name.should == 'gal1'
     gal1.solar_systems.size.should == 2
     gal1.solar_systems.first.name.should == 'sys1'
@@ -65,7 +65,7 @@ describe Cosmos::RJRAdapter do
   it "should create remotely tracked entities" do
     gal3 = Cosmos::Galaxy.new :name => 'gal3', :remote_queue => 'remote_server-queue'
     @local_node.invoke_request('cosmos::create_entity', gal3, :universe)
-    rgal = @amqp_node.invoke_request('remote_server-queue', 'cosmos::get_entity', 'galaxy', 'gal3')
+    rgal = @amqp_node.invoke_request('remote_server-queue', 'cosmos::get_entity', 'of_type', 'galaxy', 'with_name', 'gal3')
     rgal.class.should == Cosmos::Galaxy
     rgal.name.should == 'gal3'
   end

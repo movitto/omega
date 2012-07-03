@@ -45,6 +45,10 @@ class Galaxy
     true
   end
 
+  def parent
+    nil
+  end
+
   def parent=(val)
     # intentionally left empty as no need to add registry here
   end

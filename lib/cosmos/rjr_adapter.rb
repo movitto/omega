@@ -70,14 +70,27 @@ class RJRAdapter
     }
 
     rjr_dispatcher.add_handler('cosmos::get_entity'){ |*args|
-       type = args[0]
-       name = args.length > 0 ? args[1] : nil
+       filter = {}
+       while qualifier = args.shift
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_name", "with_location"].include?(qualifier)
+         val = args.shift
+         raise ArgumentError, "qualifier #{qualifier} request values" if val.nil?
+         qualifier = case qualifier
+                       when "of_type"
+                         :type
+                       when "with_name"
+                         :name
+                       when "with_location"
+                         :location
+                     end
+         filter[qualifier] = val
+       end
 
-       entities = Cosmos::Registry.instance.find_entity(:type => type.intern, :name => name)
+       entities = Cosmos::Registry.instance.find_entity(filter)
 
        return_first = false
        unless entities.is_a?(Array)
-         raise Omega::DataNotFound, "entity of type #{type}" + (name.nil? ? "" : " with name #{name}") + " not found" if entities.nil?
+         raise Omega::DataNotFound, "entity not found with params #{filter.inspect}" if entities.nil?
          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.name}"},
                                                     {:privilege => 'view', :entity => 'cosmos_entities'}],
                                            :session => @headers['session_id'])
@@ -108,6 +121,7 @@ class RJRAdapter
 
              else
                child.location = @@local_node.invoke_request('motel::get_location', child.location.id)
+               child.location.parent = parent.location
              end
 
            }
@@ -121,37 +135,11 @@ class RJRAdapter
          else
            # update locations w/ latest from the tracker
            entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id) if entity.location
+           entity.location.parent = entity.parent.location if entity.parent
          end
        }
 
        return_first ? entities.first : entities
-    }
-
-    rjr_dispatcher.add_handler('cosmos::get_entity_from_location'){ |type, location_id|
-       entity = Cosmos::Registry.instance.find_entity(:type => type.intern,
-                                                      :location => location_id)
-
-       raise Omega::DataNotFound, "entity of type #{type} with location_id #{location_id} not found" if entity.nil?
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
-                                                  {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                         :session => @headers['session_id'])
-
-       # update locations w/ latest from the tracker
-       entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
-       if entity.has_children?
-         entity.each_child { |parent, child|
-           if child.class.remotely_trackable? && child.remote_queue
-             rchild = @@remote_cosmos_manager.get_entity(child)
-             parent.remove_child(child)
-             parent.add_child(rchild)
-           else
-             child.location = @@local_node.invoke_request('motel::get_location',
-                                                          child.location.id)
-           end
-         }
-       end
-
-       entity
     }
 
     rjr_dispatcher.add_handler('cosmos::set_resource') { |entity_id, resource, quantity|

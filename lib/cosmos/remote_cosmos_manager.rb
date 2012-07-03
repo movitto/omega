@@ -39,7 +39,7 @@ class RemoteCosmosManager
     @lock.synchronize{
       entity_type = entity.class.to_s.downcase.underscore.split('/').last.intern
       node = remote_node_for(entity.remote_queue)
-      return node.invoke_request(entity.remote_queue, 'cosmos::get_entity', entity_type, entity.name)
+      return node.invoke_request(entity.remote_queue, 'cosmos::get_entity', 'of_type', entity_type, 'with_name', entity.name)
     }
   end
 

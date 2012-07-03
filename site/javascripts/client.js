@@ -52,7 +52,7 @@ function CosmosClient() {
   }
 
   this.get_cosmos_entity = function(entity, name){
-    client.web_node.invoke_request('cosmos::get_entity', entity, name);
+    client.web_node.invoke_request('cosmos::get_entity', 'of_type', entity, 'with_name', name);
   }
 
   this.get_entities_under = function(parent_id){
