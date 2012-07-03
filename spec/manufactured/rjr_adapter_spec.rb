@@ -41,10 +41,10 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with create manufactured_entities to create_entity" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
-    stat2 = Manufactured::Station.new :id => 'station2', :location => Motel::Location.new(:id => '102')
-    fleet1 = Manufactured::Fleet.new :id => 'fleet1'
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '101')
+    stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :location => Motel::Location.new(:id => '102')
+    fleet1 = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -60,24 +60,36 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.stations.size.should == 0
     Manufactured::Registry.instance.fleets.size.should == 0
 
+    # invalid type
+    lambda {
+      @local_node.invoke_request('manufactured::create_entity', 1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+
+    # valid data, no permissions
     lambda{
       @local_node.invoke_request('manufactured::create_entity', ship1)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
+    Motel::Runner.instance.locations.size.should == 0
+
     u.add_privilege('create', 'manufactured_entities')
 
+    # parent system not found
     lambda{
       @local_node.invoke_request('manufactured::create_entity', ship1)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
+
+    Motel::Runner.instance.locations.size.should == 0
 
     Motel::Runner.instance.run gal1.location
     Motel::Runner.instance.run sys1.location
     Cosmos::Registry.instance.add_child gal1
 
     lambda{
-      @local_node.invoke_request('manufactured::create_entity', ship1)
       rship1 = @local_node.invoke_request('manufactured::create_entity', ship1)
       rstat1 = @local_node.invoke_request('manufactured::create_entity', stat1)
       rstat2 = @local_node.invoke_request('manufactured::create_entity', stat2)
@@ -100,13 +112,47 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.locations.size.should == 5 # locations created for system, galaxy, ships, stations
 
     (Manufactured::Registry.instance.ships + Manufactured::Registry.instance.stations).each { |e|
+      Motel::Runner.instance.locations.collect { |l| l.id }.include?(e.location.id).should be_true
       e.location.parent_id.should == sys1.location.id
       e.location.parent.id.should == sys1.location.id
     }
   end
 
+  it "should verify entity ids are unique when creating entities" do
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '101')
+    stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :location => Motel::Location.new(:id => '102')
+    fleet1 = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
+    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
+    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
+    u = TestUser.create.login(@local_node).clear_privileges.add_privilege('create', 'manufactured_entities')
+
+    gal1.add_child(sys1)
+    ship1.parent = stat1.parent = stat2.parent = sys1
+
+    Manufactured::Registry.instance.init
+    Motel::Runner.instance.run gal1.location
+    Motel::Runner.instance.run sys1.location
+    Cosmos::Registry.instance.add_child gal1
+
+    # valid request
+    lambda{
+      @local_node.invoke_request('manufactured::create_entity', ship1)
+    }.should_not raise_error
+
+    Manufactured::Registry.instance.ships.size.should    == 1
+
+    # id already taken
+    lambda{
+      @local_node.invoke_request('manufactured::create_entity', ship1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error
+
+    Manufactured::Registry.instance.ships.size.should    == 1
+  end
+
   it "should permit users with create manufactured_entities to construct_entity" do
-    stat1 = Manufactured::Station.new :id => 'station1',
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
                                       :location => Motel::Location.new(:id => '101', :x => 50, :y => 60, :z => -70),
                                       :resources => { 'metal-alloy' => 5000 }
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
@@ -154,7 +200,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should accept params to instantiate manufactured_entities with when invoking construct_entity" do
-    stat1 = Manufactured::Station.new :id => 'station1',
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
                                       :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0),
                                       :resources => { 'metal-alloy' => 5000 }
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
@@ -189,7 +235,7 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.ships[0].location.z.should == stat1.location.z + 10
 
     lambda{
-      rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', 500)
+      rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', Manufactured::Ship::SHIP_SIZES[:transport])
       rship.should_not be_nil
     }.should_not raise_error
 
@@ -197,11 +243,11 @@ describe Manufactured::RJRAdapter do
 
     # verify set params
     Manufactured::Registry.instance.ships[1].type.should == :transport
-    Manufactured::Registry.instance.ships[1].size.should == 500
+    Manufactured::Registry.instance.ships[1].size.should == Manufactured::Ship::SHIP_SIZES[:transport]
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entity" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -243,8 +289,8 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_from_location" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '101')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -292,7 +338,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_under" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -341,8 +387,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_for_user" do
-    ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => @testuser1.id, :location => Motel::Location.new(:id => '100')
-    ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => @testuser2.id, :location => Motel::Location.new(:id => '100')
+    sys = Cosmos::SolarSystem.new
+    ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => @testuser1.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
+    ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => @testuser2.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
     u = TestUser.create.login(@local_node).clear_privileges
 
     Motel::Runner.instance.run ship1.location
@@ -385,9 +432,10 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to subscribe to events" do
-    ship1 = Manufactured::Ship.new :id => 'ship1',
+    sys1 = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
-    ship2 = Manufactured::Ship.new :id => 'ship2',
+    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys1,
                                    :location => Motel::Location.new(:id => '101', :x => 10, :y => 10, :z => 5)
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'manufactured_entities')
 
@@ -448,9 +496,10 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to remove callbacks" do
-    ship1 = Manufactured::Ship.new :id => 'ship1',
+    sys = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
-    ship2 = Manufactured::Ship.new :id => 'ship2',
+    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys,
                                    :location => Motel::Location.new(:id => '101', :x => 10, :y => 10, :z => 5)
     u = TestUser.create.login(@local_node).clear_privileges.
                  add_privilege('view', 'manufactured_entities').
@@ -497,8 +546,8 @@ describe Manufactured::RJRAdapter do
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity within a system" do
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
     new_loc = Motel::Location.new(:id => 101, :parent_id => sys1.id, :x => 1, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
@@ -580,8 +629,8 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity between systems" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)
@@ -654,9 +703,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to follow_entity" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
-    ship2 = Manufactured::Ship.new :id => 'ship2', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '170', :x => 0, :y => 0, :z => 0)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '170', :x => 0, :y => 0, :z => 0)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
@@ -716,8 +765,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to attack_entity" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    ship2 = Manufactured::Ship.new :id => 'ship2', :location => Motel::Location.new(:id => '101')
+    sys = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
+    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1
@@ -754,11 +804,11 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to start_mining" do
-    ship = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
     gal1     = Cosmos::Galaxy.new :name => 'galaxy1'
     sys1     = Cosmos::SolarSystem.new :name => 'system1'
     ast1     = Cosmos::Asteroid.new :name => 'asteroid1'
+    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '100')
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship
@@ -806,8 +856,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to transfer_resource" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    sys = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
     u = TestUser.create.login(@local_node).clear_privileges
 
@@ -876,8 +927,9 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
+    sys = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1
@@ -918,9 +970,10 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit local nodes to save and restore state" do
-    ship1 = Manufactured::Ship.new :id => 'ship1', :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :location => Motel::Location.new(:id => '101')
-    stat2 = Manufactured::Station.new :id => 'station2', :location => Motel::Location.new(:id => '102')
+    sys = Cosmos::SolarSystem.new
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
+    stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '102')
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1

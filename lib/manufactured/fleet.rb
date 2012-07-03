@@ -5,7 +5,7 @@
 
 module Manufactured
 class Fleet
-  attr_reader :id
+  attr_accessor :id
   attr_accessor :user_id
   attr_accessor :ships
   attr_accessor :ship_ids
@@ -26,6 +26,7 @@ class Fleet
             @ships    << ship
 
           elsif ship.is_a?(String)
+            # TODO don't like doing this here
             rship = Manufactured::Registry.instance.find(:id => ship).first
 
             @ship_ids << ship
@@ -35,6 +36,13 @@ class Fleet
         }
       end
     }
+  end
+
+  def valid?
+    !@id.nil? && @id.is_a?(String) && @id != "" &&
+    !@user_id.nil? && @user_id.is_a?(String) && # ensure user id corresponds to actual user ?
+    @ships.is_a?(Array) && @ships.select { |sh| !sh.is_a?(Manufactured::Ship) }.empty? &&
+    @ship_ids.is_a?(Array) && @ship_ids.select { |si| !si.is_a?(String) }.empty? # TODO make sure ship ids & ships correspond to each other?
   end
 
   # TODO

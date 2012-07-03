@@ -36,12 +36,19 @@ class RJRAdapter
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
                                         :session   => @headers['session_id'])
 
+      valid_types = Manufactured::Registry.instance.entity_types
+      raise ArgumentError, "Invalid #{entity.class} entity specified, must be one of #{valid_types.inspect}" unless valid_types.include?(entity.class)
+
       # swap out the parent w/ the one stored in the cosmos registry
       if !entity.is_a?(Manufactured::Fleet) && entity.parent
         parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', entity.parent.name)
         raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
         entity.parent = parent
+        # TODO parent.can_add?(entity)
       end
+
+      rentity = Manufactured::Registry.instance.find(:id => entity.id).first
+      raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
 
       Manufactured::Registry.instance.create entity
 
@@ -71,9 +78,10 @@ class RJRAdapter
       # TODO validate these in the context of the entities being created
       args = Hash[*args]
       args[:entity_type] = entity_type
+      args[:solar_system] = station.solar_system
+      args[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
 
       entity = station.construct args
-      entity.user_id = Users::Registry.current_user(:session => @headers['session_id']) # TODO set permissions on entity?
       @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
     }

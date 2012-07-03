@@ -29,6 +29,58 @@ describe Manufactured::Ship do
      ship.parent.should == 'system2'
   end
 
+  it "should verify validity of ship" do
+    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'tu', :solar_system => Cosmos::SolarSystem.new
+    ship.valid?.should be_true
+
+    ship.id = nil
+    ship.valid?.should be_false
+    ship.id = 'ship1'
+
+    ship.location = nil
+    ship.valid?.should be_false
+    ship.location = Motel::Location.new
+
+    ship.solar_system = nil
+    ship.valid?.should be_false
+    ship.solar_system = Cosmos::SolarSystem.new
+
+    ship.user_id = nil
+    ship.valid?.should be_false
+    ship.user_id = 'tu'
+
+    ship.type = nil
+    ship.valid?.should be_false
+
+    ship.type = 'fooz'
+    ship.valid?.should be_false
+    ship.type = :frigate
+
+    ship.size = 512
+    ship.valid?.should be_false
+    ship.size = Manufactured::Ship::SHIP_SIZES[:frigate]
+
+    ship.dock_at(2)
+    ship.valid?.should be_false
+    ship.dock_at(Manufactured::Station.new)
+
+    ship.start_mining(false)
+    ship.valid?.should be_false
+    ship.start_mining(Cosmos::Asteroid.new)
+
+    ship.notification_callbacks << nil
+    ship.valid?.should be_false
+    ship.notification_callbacks.clear
+    ship.notification_callbacks << Manufactured::Callback.new(:foobar)
+
+    ship.resources[99] = 'false'
+    ship.valid?.should be_false
+    ship.resources.clear
+    ship.resources['gold'] = 500
+
+    ship.valid?.should be_true
+  end
+
   it "should be dockable at stations" do
     ship = Manufactured::Ship.new :id => 'ship1'
     station = Manufactured::Station.new :id => 'station1'

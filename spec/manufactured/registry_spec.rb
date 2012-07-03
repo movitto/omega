@@ -17,6 +17,56 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.terminate
   end
 
+  it "should provide access to valid manufactured entity types" do
+    valid_types = Manufactured::Registry.instance.entity_types
+    valid_types.should include(Manufactured::Ship)
+    valid_types.should include(Manufactured::Station)
+    valid_types.should include(Manufactured::Fleet)
+    valid_types.should_not include(Integer)
+  end
+
+  it "should raise error if adding invalid child entity" do
+    sys = Cosmos::SolarSystem.new :name => 'sys1'
+    ship1   = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
+    ship1a  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
+    ship2   = Manufactured::Ship.new :id => 10101
+    station1   = Manufactured::Ship.new :id => 'station1', :user_id => 'user1', :solar_system => nil
+
+    # valid
+    lambda {
+      Manufactured::Registry.instance.create ship1
+    }.should_not raise_error
+
+    # duplicate
+    lambda {
+      Manufactured::Registry.instance.create ship1
+    }.should raise_error(ArgumentError)
+
+    # duplicate id
+    lambda {
+      Manufactured::Registry.instance.create ship1a
+    }.should raise_error(ArgumentError)
+
+    # not valid
+    lambda {
+      Manufactured::Registry.instance.create ship2
+    }.should raise_error(ArgumentError)
+
+    # not valid
+    lambda {
+      Manufactured::Registry.instance.create station1
+    }.should raise_error(ArgumentError)
+
+    # wrong type
+    lambda {
+      Manufactured::Registry.instance.create 111
+    }.should raise_error(ArgumentError)
+
+    Manufactured::Registry.instance.ships.size.should == 1
+    Manufactured::Registry.instance.stations.size.should == 0
+    Manufactured::Registry.instance.fleets.size.should == 0
+  end
+
   it "provide acceses to managed manufactured entities" do
     Manufactured::Registry.instance.ships.size.should == 0
     Manufactured::Registry.instance.stations.size.should == 0
@@ -26,22 +76,22 @@ describe Manufactured::Registry do
     system1 = Cosmos::SolarSystem.new :name => 'system1'
     system2 = Cosmos::SolarSystem.new :name => 'system2'
     ship1  = Manufactured::Ship.new :id => 'ship1', :solar_system => system1, :user_id => 'user1'
-    ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2'
+    ship2  = Manufactured::Ship.new :id => 'ship2', :solar_system => system2, :user_id => 'user2'
     station1  = Manufactured::Station.new :id => 'station1', :solar_system => system1, :user_id => 'user1', :location => Motel::Location.new(:id => 5)
-    station2  = Manufactured::Station.new :id => 'station2', :solar_system => system2, :location => Motel::Location.new(:id => 10)
-    fleet1  = Manufactured::Fleet.new :id => 'fleet1'
-    fleet2  = Manufactured::Fleet.new :id => 'fleet2'
+    station2  = Manufactured::Station.new :id => 'station2', :solar_system => system2, :user_id => 'user1', :location => Motel::Location.new(:id => 10)
+    fleet1  = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
+    fleet2  = Manufactured::Fleet.new :id => 'fleet2', :user_id => 'user1'
 
     Manufactured::Registry.instance.create(ship1)
-    Manufactured::Registry.instance.create(ship1)
+    begin ; Manufactured::Registry.instance.create(ship1) ; rescue Exception => e ; end
     Manufactured::Registry.instance.create(ship2)
     Manufactured::Registry.instance.create(station1)
-    Manufactured::Registry.instance.create(station1)
+    begin ; Manufactured::Registry.instance.create(station1) ; rescue Exception => e ; end
     Manufactured::Registry.instance.create(station2)
     Manufactured::Registry.instance.create(fleet1)
-    Manufactured::Registry.instance.create(fleet1)
+    begin ; Manufactured::Registry.instance.create(fleet1) ; rescue Exception => e ; end
     Manufactured::Registry.instance.create(fleet2)
-    Manufactured::Registry.instance.create(Object.new)
+    begin ; Manufactured::Registry.instance.create(Object.new) ; rescue Exception => e ; end
 
     Manufactured::Registry.instance.ships.size.should == 2
     Manufactured::Registry.instance.ships.should include(ship1)
@@ -72,8 +122,9 @@ describe Manufactured::Registry do
   end
 
   it "should permit transferring resources between entities" do
-    ship  = Manufactured::Ship.new :id => 'ship1'
-    station  = Manufactured::Station.new :id => 'station1'
+    sys   = Cosmos::SolarSystem.new
+    ship  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
+    station  = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys
 
     Manufactured::Registry.instance.create(ship)
     Manufactured::Registry.instance.create(station)
@@ -114,8 +165,9 @@ describe Manufactured::Registry do
   it "should run attack cycle" do
     Manufactured::Registry.instance.running?.should be_true
 
-    attacker = Manufactured::Ship.new  :id => 'ship1'
-    defender = Manufactured::Ship.new  :id => 'ship2'
+    sys = Cosmos::SolarSystem.new
+    attacker = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+    defender = Manufactured::Ship.new  :id => 'ship2', :solar_system => sys, :user_id => 'user1'
 
     # 1 hit every second
     attacker.attack_rate = 1
@@ -141,9 +193,10 @@ describe Manufactured::Registry do
   it "should replace duplicate attack commands" do
     Manufactured::Registry.instance.running?.should be_true
 
-    attacker = Manufactured::Ship.new  :id => 'ship1'
-    defender1 = Manufactured::Ship.new  :id => 'ship2'
-    defender2 = Manufactured::Ship.new  :id => 'ship3'
+    sys   = Cosmos::SolarSystem.new
+    attacker = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+    defender1 = Manufactured::Ship.new  :id => 'ship2', :solar_system => sys, :user_id => 'user1'
+    defender2 = Manufactured::Ship.new  :id => 'ship3', :solar_system => sys, :user_id => 'user1'
 
     attacker.attack_rate = 1
     attacker.damage_dealt = 5
@@ -166,8 +219,9 @@ describe Manufactured::Registry do
   it "should run mining cycle" do
     Manufactured::Registry.instance.running?.should be_true
 
-     ship     = Manufactured::Ship.new  :id => 'ship1'
-     entity  = Cosmos::Asteroid.new :name => 'ast1'
+     sys   = Cosmos::SolarSystem.new
+     ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+     entity  = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
@@ -197,11 +251,12 @@ describe Manufactured::Registry do
   it "should replace duplicate mining commands" do
     Manufactured::Registry.instance.running?.should be_true
 
-    ship     = Manufactured::Ship.new  :id => 'ship1'
-    entity1  = Cosmos::Asteroid.new :name => 'ast1'
+    sys   = Cosmos::SolarSystem.new
+    ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+    entity1  = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys
     resource1 = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
     source1   = Cosmos::ResourceSource.new :resource => resource1, :entity => entity1
-    entity2  = Cosmos::Asteroid.new :name => 'ast2'
+    entity2  = Cosmos::Asteroid.new :name => 'ast2', :solar_system => sys
     resource2 = Cosmos::Resource.new :type => 'gem', :name => 'ruby'
     source2   = Cosmos::ResourceSource.new :resource => resource2, :entity => entity2
 
@@ -222,10 +277,11 @@ describe Manufactured::Registry do
   end
 
   it "should save registered manufactured ships and stations to io object" do
-    ship1  = Manufactured::Ship.new :id => 'ship1'
-    ship2  = Manufactured::Ship.new :id => 'ship2'
-    station  = Manufactured::Station.new :id => 'station'
-    fleet  = Manufactured::Fleet.new :id => 'fleet'
+    sys    = Cosmos::SolarSystem.new
+    ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
+    ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys
+    station  = Manufactured::Station.new :id => 'station', :user_id => 'user1', :solar_system => sys
+    fleet  = Manufactured::Fleet.new :id => 'fleet', :user_id => 'user1', :solar_system => sys
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.create ship1
@@ -245,9 +301,9 @@ describe Manufactured::Registry do
   end
 
   it "should restore registered manufactured entities from io object" do
-    s = '{"data":{"type":null,"docked_at":null,"solar_system":null,"user_id":null,"size":null,"id":"ship1","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Ship"}' + "\n" +
-        '{"data":{"type":null,"docked_at":null,"solar_system":null,"user_id":null,"size":null,"id":"ship2","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Ship"}' + "\n" +
-        '{"data":{"type":null,"solar_system":null,"user_id":null,"size":null,"id":"station","location":{"data":{"remote_queue":null,"y":0,"parent_id":null,"x":0,"restrict_view":true,"z":0,"restrict_modify":true,"id":null,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"}},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
+    s = '{"data":{"type":"mining","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"docked_at":null,"size":25,"notifications":[],"id":"ship1","resources":{}},"json_class":"Manufactured::Ship"}' + "\n" +
+        '{"data":{"type":"exploration","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"docked_at":null,"size":23,"notifications":[],"id":"ship2","resources":{}},"json_class":"Manufactured::Ship"}' + "\n" +
+        '{"data":{"type":"exploration","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"size":20,"id":"station","resources":{}},"json_class":"Manufactured::Station"}' + "\n"
     a = s.collect { |i| i }
 
     Manufactured::Registry.instance.restore_state(a)

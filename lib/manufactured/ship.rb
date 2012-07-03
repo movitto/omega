@@ -6,7 +6,7 @@
 module Manufactured
 class Ship
   # ship properties
-  attr_reader   :id
+  attr_accessor :id
   attr_accessor :user_id
   attr_accessor :type
   attr_accessor :location
@@ -60,6 +60,7 @@ class Ship
     @user_id  = args['user_id']  || args[:user_id]
     @type     = args['type']     || args[:type]
     @type     = @type.intern if !@type.nil? && @type.is_a?(String)
+    @type     = SHIP_TYPES[rand(SHIP_TYPES.size)] if @type.nil?
     @location = args['location'] || args[:location]
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
     @docked_at= args['docked_at']|| args[:docked_at]
@@ -86,6 +87,20 @@ class Ship
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+  end
+
+  def valid?
+    !@id.nil? && @id.is_a?(String) && @id != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) &&
+    !@user_id.nil? && @user_id.is_a?(String) && # ensure user id corresponds to actual user ?
+    !@type.nil? && SHIP_TYPES.include?(@type) &&
+    !@size.nil? && @size == SHIP_SIZES[@type] &&
+    (@docked_at.nil? || @docked_at.is_a?(Manufactured::Station)) && # TODO verify within docking distance of station
+    (@mining.nil? || @mining.is_a?(Cosmos::Asteroid)) && # TODO verify withing mining distance of target & update as other mining entities are supported
+    !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
+    @notification_callbacks.is_a?(Array) && @notification_callbacks.select { |nc| !nc.kind_of?(Manufactured::Callback) }.empty? && # TODO ensure validity of callbacks
+    @resources.is_a?(Hash) && @resources.select { |id,q| !id.is_a?(String) || !(q.is_a?(Integer) || q.is_a?(Float)) }.empty? # TODO verify resources are valid in context of ship
+    # TODO validate cargo, mining, attack properties when they become variable
   end
 
   def parent

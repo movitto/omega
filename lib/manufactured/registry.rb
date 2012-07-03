@@ -46,6 +46,12 @@ class Registry
     @mining_thread = Thread.new { mining_cycle }
   end
 
+  def entity_types
+    [Manufactured::Ship,
+     Manufactured::Station,
+     Manufactured::Fleet]
+  end
+
   def running?
     !@terminate_cycles && !@attack_thread.nil? && !@mining_thread.nil? &&
     (@attack_thread.status == 'run' || @attack_thread.status == 'sleep') &&
@@ -88,14 +94,32 @@ class Registry
   end
 
   def create(entity)
+    raise ArgumentError, "entity must be a ship, station, or fleet" if ![Manufactured::Ship,
+                                                                         Manufactured::Station,
+                                                                         Manufactured::Fleet].include?(entity.class)
+
+    container = nil
+    if entity.is_a?(Manufactured::Ship)
+      raise ArgumentError, "ship id #{entity.id} already taken" if @ships.find{ |sh| sh.id == entity.id }
+      raise ArgumentError, "ship #{entity} already created" if @ships.include?(entity)
+      raise ArgumentError, "ship #{entity} must be valid" unless entity.valid?
+      container = @ships
+
+    elsif entity.is_a?(Manufactured::Station)
+      raise ArgumentError, "station id #{entity.id} already taken" if @stations.find{ |st| st.id == entity.id }
+      raise ArgumentError, "station #{entity} already created" if @stations.include?(entity)
+      raise ArgumentError, "station #{entity} must be valid" unless entity.valid?
+      container = @stations
+
+    elsif entity.is_a?(Manufactured::Fleet)
+      raise ArgumentError, "fleet id #{entity.id} already taken" if @fleets.find{ |fl| fl.id == entity.id }
+      raise ArgumentError, "fleet #{entity} already created" if @fleets.include?(entity)
+      raise ArgumentError, "fleet #{entity} must be valid" unless entity.valid?
+      container = @fleets
+    end
+
     @entities_lock.synchronize{
-      if entity.is_a?(Manufactured::Ship)
-        @ships << entity  unless @ships.include?(entity) || !@ships.find{ |sh| sh.id == entity.id }.nil?
-      elsif entity.is_a?(Manufactured::Station)
-        @stations << entity unless @stations.include?(entity) || !@stations.find { |st| st.id == entity.id }.nil?
-      elsif entity.is_a?(Manufactured::Fleet)
-        @fleets << entity unless @fleets.include?(entity) || !@fleets.find { |fl| fl.id == entity.id }.nil?
-      end
+      container << entity
     }
   end
 

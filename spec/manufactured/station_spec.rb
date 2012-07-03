@@ -29,6 +29,45 @@ describe Manufactured::Station do
      station.parent.should == 'system2'
   end
 
+  it "should verify validity of station" do
+    station = Manufactured::Station.new :id => 'station1', :user_id => 'tu', :solar_system => Cosmos::SolarSystem.new
+    station.valid?.should be_true
+
+    station.id = nil
+    station.valid?.should be_false
+    station.id = 'station1'
+
+    station.location = nil
+    station.valid?.should be_false
+    station.location = Motel::Location.new
+
+    station.solar_system = nil
+    station.valid?.should be_false
+    station.solar_system = Cosmos::SolarSystem.new
+
+    station.user_id = nil
+    station.valid?.should be_false
+    station.user_id = 'tu'
+
+    station.type = nil
+    station.valid?.should be_false
+
+    station.type = 'fooz'
+    station.valid?.should be_false
+    station.type = :manufacturing
+
+    station.size = 512
+    station.valid?.should be_false
+    station.size = Manufactured::Station::STATION_SIZES[:manufacturing]
+
+    station.resources[99] = 'false'
+    station.valid?.should be_false
+    station.resources.clear
+    station.resources['gold'] = 500
+
+    station.valid?.should be_true
+  end
+
   it "should permit storing resources locally" do
     station   = Manufactured::Station.new :id => 'station1'
     station.resources.should be_empty

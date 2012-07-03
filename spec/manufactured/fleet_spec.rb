@@ -25,6 +25,32 @@ describe Manufactured::Fleet do
      fleet.parent.name.should == 'system44'
   end
 
+  it "should verify validity of fleet" do
+    fleet = Manufactured::Fleet.new :id => 'station1', :user_id => 'tu'
+    fleet.valid?.should be_true
+
+    fleet.id = nil
+    fleet.valid?.should be_false
+    fleet.id = 'station1'
+
+    fleet.user_id = nil
+    fleet.valid?.should be_false
+    fleet.user_id = 'tu'
+
+    fleet.ships << nil
+    fleet.valid?.should be_false
+    fleet.ships.clear
+    fleet.ships << Manufactured::Ship.new
+
+    fleet.ship_ids << nil
+    fleet.valid?.should be_false
+    fleet.ship_ids.clear
+    fleet.ship_ids << "101"
+
+    fleet.valid?.should be_true
+  end
+
+
   it "should be convertable to json" do
     solar_system = Cosmos::SolarSystem.new :name => 'system44'
     ship1 = Manufactured::Ship.new  :id => 'ship1', :solar_system => solar_system
