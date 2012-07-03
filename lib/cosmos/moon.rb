@@ -5,7 +5,7 @@
 
 module Cosmos
 class Moon
-  attr_reader :name
+  attr_accessor :name
   attr_accessor :location
 
   attr_reader :planet
@@ -19,6 +19,16 @@ class Moon
       @location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+  end
+
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    (@planet.nil? || @planet.is_a?(Cosmos::Planet))
+  end
+
+  def parent=(planet)
+    @planet = planet
   end
 
   def self.parent_type

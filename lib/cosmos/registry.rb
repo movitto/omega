@@ -25,6 +25,16 @@ class Registry
     @resource_sources = []
   end
 
+  def entity_types
+    [Cosmos::Galaxy,
+     Cosmos::SolarSystem,
+     Cosmos::Star,
+     Cosmos::Planet,
+     Cosmos::Moon,
+     Cosmos::Asteroid,
+     Cosmos::JumpGate]
+  end
+
   def find_entity(args = {})
     type = args[:type]
     name = args[:name]
@@ -38,7 +48,7 @@ class Registry
       entities << g
       g.solar_systems.each { |sys|
         entities << sys
-        entities << sys.star
+        entities << sys.star unless sys.star.nil?
         sys.planets.each { |pl|
           entities << pl
           pl.moons.each { |m|
@@ -50,6 +60,8 @@ class Registry
         }
       }
     }
+
+    entities.compact!
 
     unless type.nil?
       types = { :galaxy      => Cosmos::Galaxy,
@@ -90,7 +102,12 @@ class Registry
   end
 
   def add_child(galaxy)
-    @galaxies << galaxy unless @galaxies.include?(galaxy) || !galaxy.is_a?(Cosmos::Galaxy)
+    raise ArgumentError, "child must be a galaxy" if !galaxy.is_a?(Cosmos::Galaxy)
+    raise ArgumentError, "galaxy name #{galaxy.name} is already taken" if @galaxies.find { |g| g.name == galaxy.name }
+    raise ArgumentError, "galaxy #{galaxy} already added to registry" if @galaxies.include?(galaxy)
+    raise ArgumentError, "galaxy #{galaxy} must be valid" unless galaxy.valid?
+    @galaxies << galaxy
+    galaxy
   end
 
   def remove_child(child)

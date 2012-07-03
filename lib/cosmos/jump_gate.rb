@@ -5,8 +5,8 @@
 
 module Cosmos
 class JumpGate
-  attr_reader :solar_system
-  attr_reader :endpoint
+  attr_accessor :solar_system
+  attr_accessor :endpoint
   attr_accessor :location
 
   def initialize(args = {})
@@ -22,6 +22,7 @@ class JumpGate
     end
 
     if @endpoint.is_a?(String)
+      # XXX don't like doing this here
       tendpoint = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
                                                         :name => @endpoint)
       @endpoint = tendpoint unless tendpoint.nil?
@@ -33,12 +34,23 @@ class JumpGate
     end
   end
 
+  def valid?
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
+    !@endpoint.nil? && @endpoint.is_a?(Cosmos::SolarSystem)
+    # && @solar_system.name != @endpoint.name
+  end
+
   def self.parent_type
     :solarsystem
   end
 
   def self.remotely_trackable?
     false
+  end
+
+  def parent=(solar_system)
+    @solar_system = solar_system
   end
 
   def has_children?

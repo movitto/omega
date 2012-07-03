@@ -33,6 +33,9 @@ class RJRAdapter
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'cosmos_entities',
                                          :session   => @headers['session_id'])
 
+       valid_types = Cosmos::Registry.instance.entity_types
+       raise ArgumentError, "Invalid #{entity.class} entity specified, must be one of #{valid_types.inspect}" unless valid_types.include?(entity.class)
+
        parent_type = entity.class.parent_type
 
        rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
@@ -42,6 +45,13 @@ class RJRAdapter
        end
        raise Omega::DataNotFound, "parent entity of type #{parent_type} with name #{parent_name} not found" if rparent.nil?
 
+       # XXX ugly but allows us to lookup entities by name for the time being
+       #   at some point change / remove this
+       rentity = Cosmos::Registry.instance.find_entity(:name => entity.name)
+       raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
+
+       # TODO rparent.can_add?(entity)  # would need to be in mutex w/ add_child
+       entity.parent= rparent
        rparent.add_child entity
 
        if entity.class.remotely_trackable? && entity.remote_queue
@@ -50,6 +60,7 @@ class RJRAdapter
        else
          # entity.location.entity = entity
          entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
+         entity.location.parent = rparent.location
          # TODO add all of entities children to location tracker
 
        # else raise error TODO

@@ -18,6 +18,33 @@ describe Cosmos::Planet do
      planet.moons.size.should == 0
   end
 
+  it "should verify validity of planet" do
+     plan   = Cosmos::Planet.new :name => 'planet1'
+     plan.valid?.should be_true
+
+     plan.name = 11111
+     plan.valid?.should be_false
+
+     plan.name = nil
+     plan.valid?.should be_false
+     plan.name = 'planet1'
+
+     plan.location = nil
+     plan.valid?.should be_false
+     plan.location = Motel::Location.new
+
+     plan.moons << 1
+     plan.valid?.should be_false
+
+     plan.moons.clear
+     plan.moons << Cosmos::Moon.new(:name => 'abc')
+     plan.valid?.should be_true
+
+     plan.moons.first.name = 22222
+     plan.valid?.should be_false
+  end
+
+
   it "should accept movement strategy to use" do
     planet = Cosmos::Planet.new :movement_strategy => Motel::MovementStrategies::Elliptical.new(:speed => 10)
     planet.location.movement_strategy.class.should be(Motel::MovementStrategies::Elliptical)
@@ -29,9 +56,9 @@ describe Cosmos::Planet do
   end
 
   it "should permit adding children" do
-    planet    = Cosmos::Planet.new
-    moon1   = Cosmos::Moon.new
-    moon2   = Cosmos::Moon.new
+    planet    = Cosmos::Planet.new :name => 'pl1'
+    moon1   = Cosmos::Moon.new :name => 'mn1'
+    moon2   = Cosmos::Moon.new :name => 'mn2'
 
     planet.has_children?.should be_false
 
@@ -42,16 +69,22 @@ describe Cosmos::Planet do
     planet.children.include?(moon2).should be_false
     planet.has_children?.should be_true
     moon1.location.parent_id.should == planet.location.id
+    moon1.planet.should == planet
 
-    planet.add_child(moon1)
+    lambda{
+      planet.add_child(moon1)
+    }.should raise_error(ArgumentError, "moon name mn1 is already taken")
     planet.children.size.should == 1
 
-    planet.add_child(Cosmos::Galaxy.new)
+    lambda{
+      planet.add_child(Cosmos::Galaxy.new)
+    }.should raise_error(ArgumentError, "child must be a moon")
     planet.children.size.should == 1
 
     planet.add_child(moon2)
     planet.children.size.should == 2
     planet.children.include?(moon2).should be_true
+    moon2.planet.should == planet
   end
 
   it "should permit removing children" do
@@ -70,9 +103,41 @@ describe Cosmos::Planet do
     planet.children.size.should == 0
   end
 
-  it "should provide means to traverse all descendants, invoking optional block arg" do
+  it "should raise error if adding invalid child entity" do
     planet    = Cosmos::Planet.new
-    moon      = Cosmos::Moon.new
+    moon1   = Cosmos::Moon.new :name => 'moon1'
+    moon1a  = Cosmos::Moon.new :name => 'moon1'
+    moon2   = Cosmos::Moon.new :name => 44444
+    asteroid  = Cosmos::Asteroid.new :name => 'asteroid1'
+
+    lambda {
+      planet.add_child(moon1)
+    }.should_not raise_error
+
+    lambda {
+      planet.add_child(moon1)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      planet.add_child(moon1a)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      planet.add_child(moon2)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      planet.add_child(asteroid)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      planet.add_child(1)
+    }.should raise_error(ArgumentError)
+  end
+
+  it "should provide means to traverse all descendants, invoking optional block arg" do
+    planet    = Cosmos::Planet.new :name => 'pl1'
+    moon      = Cosmos::Moon.new :name => 'mn1'
 
     planet.add_child(moon)
 

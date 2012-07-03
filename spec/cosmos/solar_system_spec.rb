@@ -21,6 +21,33 @@ describe Cosmos::SolarSystem do
      solar_system.jump_gates.size.should == 0
   end
 
+  it "should verify validity of solar system" do
+     sys   = Cosmos::SolarSystem.new :name => 'solarsystem1'
+     sys.valid?.should be_true
+
+     sys.name = 11111
+     sys.valid?.should be_false
+
+     sys.name = nil
+     sys.valid?.should be_false
+     sys.name = 'solarsystem1'
+
+     sys.location = nil
+     sys.valid?.should be_false
+     sys.location = Motel::Location.new
+
+     sys.planets << 1
+     sys.valid?.should be_false
+
+     sys.planets.clear
+     sys.planets << Cosmos::Planet.new(:name => 'abc')
+     sys.valid?.should be_true
+
+     sys.planets.first.name = 22222
+     sys.valid?.should be_false
+     # TODO verify asteroids, star, jump_gates
+  end
+
   it "should be able to be remotely trackable" do
     Cosmos::SolarSystem.remotely_trackable?.should be_true
     ss = Cosmos::SolarSystem.new :remote_queue => 'foozbar'
@@ -28,12 +55,13 @@ describe Cosmos::SolarSystem do
   end
 
   it "should permit adding children" do
-    solar_system    = Cosmos::SolarSystem.new
-    star      = Cosmos::Star.new
-    planet1   = Cosmos::Planet.new
-    planet2   = Cosmos::Planet.new
-    asteroid1 = Cosmos::Asteroid.new
-    jump_gate = Cosmos::JumpGate.new
+    solar_system    = Cosmos::SolarSystem.new :name => 'sys1'
+    solar_system2   = Cosmos::SolarSystem.new :name => 'sys2'
+    star      = Cosmos::Star.new :name => 'st1'
+    planet1   = Cosmos::Planet.new :name => 'pla1'
+    planet2   = Cosmos::Planet.new :name => 'pla2'
+    asteroid1 = Cosmos::Asteroid.new :name => 'ast1'
+    jump_gate = Cosmos::JumpGate.new :solar_system => solar_system, :endpoint => solar_system2
 
     # always true, change?
     solar_system.has_children?.should be_true
@@ -45,19 +73,26 @@ describe Cosmos::SolarSystem do
     solar_system.children.include?(planet2).should be_false
     solar_system.has_children?.should be_true
     planet1.location.parent_id.should == solar_system.location.id
+    planet1.solar_system.should == solar_system
 
-    solar_system.add_child(planet1)
+    lambda{
+      solar_system.add_child(planet1)
+    }.should raise_error(ArgumentError, "planet name pla1 is already taken")
     solar_system.children.size.should == 1
 
-    solar_system.add_child(Cosmos::Galaxy.new)
+    lambda{
+      solar_system.add_child(Cosmos::Galaxy.new)
+    }.should raise_error(ArgumentError, "child must be a planet, jump gate, asteroid, star")
     solar_system.children.size.should == 1
 
     solar_system.add_child(planet2)
     solar_system.children.size.should == 2
     solar_system.children.include?(planet2).should be_true
+    planet2.solar_system.should == solar_system
 
     solar_system.add_child(asteroid1)
     solar_system.children.size.should == 3
+    asteroid1.solar_system.should == solar_system
 
     solar_system.add_child(star)
     solar_system.add_child(jump_gate)
@@ -67,15 +102,18 @@ describe Cosmos::SolarSystem do
     solar_system.children.should include(star)
     solar_system.children.should include(jump_gate)
     solar_system.children.should include(asteroid1)
+    star.solar_system.should == solar_system
+    jump_gate.solar_system.should == solar_system
   end
 
   it "should permit removing children" do
-    solar_system    = Cosmos::SolarSystem.new
-    star      = Cosmos::Star.new
-    planet1   = Cosmos::Planet.new
-    planet2   = Cosmos::Planet.new
+    solar_system    = Cosmos::SolarSystem.new :name => 'ss1'
+    solar_system2   = Cosmos::SolarSystem.new :name => 'ss2'
+    star      = Cosmos::Star.new :name => 'star1'
+    planet1   = Cosmos::Planet.new :name => 'planet1'
+    planet2   = Cosmos::Planet.new :name => 'planet2'
     asteroid1 = Cosmos::Asteroid.new :name => 'asteroid1'
-    jump_gate = Cosmos::JumpGate.new
+    jump_gate = Cosmos::JumpGate.new :solar_system => solar_system, :endpoint => solar_system2
 
     solar_system.add_child(star)
     solar_system.add_child(planet1)
@@ -97,13 +135,46 @@ describe Cosmos::SolarSystem do
     solar_system.children.size.should == 2
   end
 
-  it "should provide means to traverse all descendants, invoking optional block arg" do
+  it "should raise error if adding invalid child entity" do
     solar_system    = Cosmos::SolarSystem.new
-    star      = Cosmos::Star.new
-    planet    = Cosmos::Planet.new
-    jump_gate = Cosmos::JumpGate.new
+    planet1   = Cosmos::Planet.new :name => 'planet1'
+    planet1a  = Cosmos::Planet.new :name => 'planet1'
+    planet2   = Cosmos::Planet.new :name => 33333
     asteroid  = Cosmos::Asteroid.new
-    moon      = Cosmos::Moon.new
+
+    lambda {
+      solar_system.add_child(planet1)
+    }.should_not raise_error
+
+    lambda {
+      solar_system.add_child(planet1)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      solar_system.add_child(planet1a)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      solar_system.add_child(planet2)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      solar_system.add_child(asteroid)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      solar_system.add_child(1)
+    }.should raise_error(ArgumentError)
+  end
+
+  it "should provide means to traverse all descendants, invoking optional block arg" do
+    solar_system    = Cosmos::SolarSystem.new :name => 'system1'
+    solar_system2   = Cosmos::SolarSystem.new :name => 'system2'
+    star      = Cosmos::Star.new :name => 'st1'
+    planet    = Cosmos::Planet.new :name => 'pl1'
+    jump_gate = Cosmos::JumpGate.new :solar_system => solar_system, :endpoint => solar_system2
+    asteroid  = Cosmos::Asteroid.new :name => 'ast1'
+    moon      = Cosmos::Moon.new :name => 'mn1'
 
     solar_system.add_child(star)
     solar_system.add_child(planet)

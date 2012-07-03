@@ -20,6 +20,21 @@ describe Cosmos::Star do
      star.has_children?.should be_false
   end
 
+  it "should verify validity of star" do
+     star   = Cosmos::Star.new :name => 'star1'
+     star.valid?.should be_true
+
+     star.name = 11111
+     star.valid?.should be_false
+
+     star.name = nil
+     star.valid?.should be_false
+     star.name = 'star1'
+
+     star.location = nil
+     star.valid?.should be_false
+  end
+
   it "should be not able to be remotely trackable" do
     Cosmos::Star.remotely_trackable?.should be_false
   end

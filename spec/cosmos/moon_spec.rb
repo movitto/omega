@@ -18,6 +18,21 @@ describe Cosmos::Moon do
      moon.has_children?.should be_false
   end
 
+  it "should verify validity of moon" do
+     moon   = Cosmos::Moon.new :name => 'moon1'
+     moon.valid?.should be_true
+
+     moon.name = 11111
+     moon.valid?.should be_false
+
+     moon.name = nil
+     moon.valid?.should be_false
+     moon.name = 'moon1'
+
+     moon.location = nil
+     moon.valid?.should be_false
+  end
+
   it "should be not able to be remotely trackable" do
     Cosmos::Moon.remotely_trackable?.should be_false
   end

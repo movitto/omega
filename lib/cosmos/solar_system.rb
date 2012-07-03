@@ -5,7 +5,7 @@
 
 module Cosmos
 class SolarSystem
-  attr_reader :name
+  attr_accessor :name
   attr_accessor :location
 
   attr_reader :galaxy
@@ -43,6 +43,16 @@ class SolarSystem
     end
   end
 
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    (@galaxy.nil? || @galaxy.is_a?(Cosmos::Galaxy)) &&
+    @planets.is_a?(Array) && @planets.find { |p| !p.is_a?(Cosmos::Planet) || !p.valid? }.nil? &&
+    @asteroids.is_a?(Array) && @asteroids.find { |a| !a.is_a?(Cosmos::Asteroid) || !a.valid? }.nil? &&
+    @jump_gates.is_a?(Array) && @jump_gates.find { |j| !j.is_a?(Cosmos::JumpGate) || !j.valid? }.nil? &&
+    (@star.nil? || (@star.is_a?(Cosmos::Star) && @star.valid?))
+  end
+
   def self.parent_type
     :galaxy
   end
@@ -51,21 +61,50 @@ class SolarSystem
     true
   end
 
+  def parent=(galaxy)
+    @galaxy = galaxy
+  end
+
   def children
     @planets + @jump_gates + @asteroids + (@star.nil? ? [] : [@star])
   end
 
   def add_child(child)
+    raise ArgumentError,
+          "child must be a planet, jump gate, asteroid, star" if ![Cosmos::Planet,
+                                                                   Cosmos::JumpGate,
+                                                                   Cosmos::Asteroid,
+                                                                   Cosmos::Star].include?(child.class)
+    child.parent = self
     child.location.parent_id = location.id
+
     if child.is_a? Planet
-      @planets << child  unless @planets.include?(child)
+      raise ArgumentError, "planet name #{child.name} is already taken" if @planets.find { |p| p.name == child.name }
+      raise ArgumentError, "planet #{child} already added to system" if @planets.include?(child)
+      raise ArgumentError, "planet #{child} must be valid" unless child.valid?
+      @planets << child
+
     elsif child.is_a? JumpGate
-      @jump_gates << child unless @jump_gates.include?(child)
+      #raise ArgumentError, "jump gate to #{child.endpoint.name} is already added" if @jump_gates.find { |j| j.endpoint.name == child.endpoing.name }
+      raise ArgumentError, "jump gate #{child} already added to system" if @jump_gates.include?(child)
+      raise ArgumentError, "jump gate #{child} must be valid" unless child.valid?
+      @jump_gates << child
+
     elsif child.is_a? Asteroid
-      @asteroids << child unless @asteroids.include?(child)
+      raise ArgumentError, "asteroid name #{child.name} is already taken" if @asteroids.find { |a| a.name == child.name }
+      raise ArgumentError, "asteroid #{child} already added to system" if @asteroids.include?(child)
+      raise ArgumentError, "asteroid #{child} must be valid" unless child.valid?
+      @asteroids << child
+
     elsif child.is_a? Star
+      #raise ArgumentError, "star name #{child.name} already associated with system" if @star.name == child.name
+      #raise ArgumentError, "star #{child} already assoicated with system" if @star == child
+      raise ArgumentError, "star #{child} must be valid" unless child.valid?
+
       @star = child
     end
+
+    child
   end
 
   def remove_child(child)

@@ -20,6 +20,21 @@ describe Cosmos::JumpGate do
      jump_gate.has_children?.should be_false
   end
 
+  it "should verify validity of jump gate" do
+     sys  = Cosmos::SolarSystem.new :name => 's1'
+     eds  = Cosmos::SolarSystem.new :name => 's2'
+     jg   = Cosmos::JumpGate.new :solar_system => sys, :endpoint => eds
+     jg.valid?.should be_true
+
+     jg.endpoint = nil
+     jg.valid?.should be_false
+
+     jg.endpoint = sys
+     jg.location = nil
+     jg.valid?.should be_false
+  end
+
+
   it "should be not able to be remotely trackable" do
     Cosmos::JumpGate.remotely_trackable?.should be_false
   end

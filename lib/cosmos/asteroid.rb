@@ -9,7 +9,7 @@ class Asteroid
   MAX_ASTEROID_SIZE = 20
   MIN_ASTEROID_SIZE = 10
 
-  attr_reader :name
+  attr_accessor :name
   attr_reader :size
   attr_reader :color
   attr_accessor :location
@@ -30,12 +30,24 @@ class Asteroid
     end
   end
 
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
+    (@size.is_a?(Integer) || @size.is_a?(Float)) && @size <= MAX_ASTEROID_SIZE && @size >= MIN_ASTEROID_SIZE &&
+    @color.is_a?(String) && !/^[a-fA-F0-9]{6}$/.match(@color).nil?
+  end
+
   def self.parent_type
     :solarsystem
   end
 
   def self.remotely_trackable?
     false
+  end
+
+  def parent=(solar_system)
+    @solar_system = solar_system
   end
 
   def has_children?

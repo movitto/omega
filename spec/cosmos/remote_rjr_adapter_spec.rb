@@ -16,6 +16,7 @@ describe Cosmos::RJRAdapter do
     Users::RJRAdapter.init
     Motel::RJRAdapter.init
     Cosmos::RJRAdapter.init
+    Cosmos::Registry.instance.init
 
     rcm  = Omega::Roles.create_user('rcm', 'mcr')
     Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)

@@ -16,6 +16,32 @@ describe Cosmos::Galaxy do
      galaxy.location.z.should == 0
   end
 
+  it "should verify validity of galaxy" do
+     galaxy   = Cosmos::Galaxy.new :name => 'galaxy1'
+     galaxy.valid?.should be_true
+
+     galaxy.name = 11111
+     galaxy.valid?.should be_false
+
+     galaxy.name = nil
+     galaxy.valid?.should be_false
+     galaxy.name = 'galaxy1'
+
+     galaxy.location = nil
+     galaxy.valid?.should be_false
+     galaxy.location = Motel::Location.new
+
+     galaxy.solar_systems << 1
+     galaxy.valid?.should be_false
+
+     galaxy.solar_systems.clear
+     galaxy.solar_systems << Cosmos::SolarSystem.new(:name => 'abc')
+     galaxy.valid?.should be_true
+
+     galaxy.solar_systems.first.name = 22222
+     galaxy.valid?.should be_false
+  end
+
   it "should be able to be remotely trackable" do
     Cosmos::Galaxy.remotely_trackable?.should be_true
     galaxy = Cosmos::Galaxy.new :remote_queue => 'foozbar'
@@ -23,9 +49,9 @@ describe Cosmos::Galaxy do
   end
 
   it "should permit adding children" do
-    galaxy    = Cosmos::Galaxy.new
-    system1   = Cosmos::SolarSystem.new
-    system2   = Cosmos::SolarSystem.new
+    galaxy    = Cosmos::Galaxy.new :name => 'gal1'
+    system1   = Cosmos::SolarSystem.new :name => 'sys1'
+    system2   = Cosmos::SolarSystem.new :name => 'sys2'
 
     galaxy.has_children?.should be_false
 
@@ -35,16 +61,22 @@ describe Cosmos::Galaxy do
     galaxy.children.include?(system2).should be_false
     galaxy.has_children?.should be_true
     system1.location.parent_id.should == galaxy.location.id
+    system1.galaxy.should == galaxy
 
-    galaxy.add_child(system1)
+    lambda{
+      galaxy.add_child(system1)
+    }.should raise_error(ArgumentError, "solar system name sys1 is already taken")
     galaxy.children.size.should == 1
 
-    galaxy.add_child(Cosmos::Planet.new)
+    lambda{
+      galaxy.add_child(Cosmos::Planet.new)
+    }.should raise_error(ArgumentError, "child must be a solar system")
     galaxy.children.size.should == 1
 
     galaxy.add_child(system2)
     galaxy.children.size.should == 2
     galaxy.children.include?(system2).should be_true
+    system2.galaxy.should == galaxy
   end
 
   it "should permit removing children" do
@@ -68,12 +100,44 @@ describe Cosmos::Galaxy do
     galaxy.children.size.should == 0
   end
 
+  it "should raise error if adding invalid child entity" do
+    galaxy    = Cosmos::Galaxy.new
+    system1  = Cosmos::SolarSystem.new :name => 'system1', :galaxy => galaxy, :location => Motel::Location.new(:id => 3)
+    system1a = Cosmos::SolarSystem.new :name => 'system1'
+    system2  = Cosmos::SolarSystem.new :name => 22222, :galaxy => galaxy, :location => Motel::Location.new(:id => 4)
+    planet   = Cosmos::Planet.new :name => 'planet1'
+
+    lambda {
+      galaxy.add_child(system1)
+    }.should_not raise_error
+
+    lambda {
+      galaxy.add_child(system1)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      galaxy.add_child(system1a)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      galaxy.add_child(system2)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      galaxy.add_child(planet)
+    }.should raise_error(ArgumentError)
+
+    lambda {
+      galaxy.add_child(1)
+    }.should raise_error(ArgumentError)
+  end
+
   it "should provide means to traverse all descendants, invoking optional block arg" do
-   galaxy = Cosmos::Galaxy.new
-   system = Cosmos::SolarSystem.new
-   star   = Cosmos::Star.new
-   planet = Cosmos::Planet.new
-   moon   = Cosmos::Moon.new
+   galaxy = Cosmos::Galaxy.new :name => 'gal1'
+   system = Cosmos::SolarSystem.new :name => 'sys1'
+   star   = Cosmos::Star.new :name => 'st1'
+   planet = Cosmos::Planet.new :name => 'pl1'
+   moon   = Cosmos::Moon.new :name => 'mn1'
    galaxy.add_child(system)
    system.add_child(star)
    system.add_child(planet)

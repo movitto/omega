@@ -5,7 +5,7 @@
 
 module Cosmos
 class Galaxy
-  attr_reader :name
+  attr_accessor :name
   attr_accessor :location
   attr_reader :solar_systems
 
@@ -31,6 +31,12 @@ class Galaxy
     end
   end
 
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    @solar_systems.is_a?(Array) && @solar_systems.find { |s| !s.is_a?(Cosmos::SolarSystem) || !s.valid? }.nil?
+  end
+
   def self.parent_type
     :universe
   end
@@ -39,14 +45,23 @@ class Galaxy
     true
   end
 
+  def parent=(val)
+    # intentionally left empty as no need to add registry here
+  end
+
   def children
     @solar_systems
   end
 
   def add_child(solar_system)
-    # TODO rails exception unless solar_system.is_a? SolarSystem
+    raise ArgumentError, "child must be a solar system" if !solar_system.is_a?(Cosmos::SolarSystem)
+    raise ArgumentError, "solar system name #{solar_system.name} is already taken" if @solar_systems.find { |s| s.name == solar_system.name }
+    raise ArgumentError, "solar system #{solar_system} already added to galaxy" if @solar_systems.include?(solar_system)
+    raise ArgumentError, "solar system #{solar_system} must be valid" unless solar_system.valid?
     solar_system.location.parent_id = location.id
-    @solar_systems << solar_system unless @solar_systems.include?(solar_system) || !solar_system.is_a?(Cosmos::SolarSystem)
+    solar_system.parent = self
+    @solar_systems << solar_system
+    solar_system
   end
 
   def remove_child(child)

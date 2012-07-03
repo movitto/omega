@@ -34,7 +34,16 @@ describe Cosmos::RJRAdapter do
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
+    Motel::Runner.instance.locations.size.should == 0
+
     u.add_privilege('create', 'cosmos_entities')
+
+    lambda{
+      @local_node.invoke_request('cosmos::create_entity', 1, :universe)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    Motel::Runner.instance.locations.size.should == 0
 
     lambda{
       gal = @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
@@ -59,7 +68,40 @@ describe Cosmos::RJRAdapter do
       sys.class.should == Cosmos::SolarSystem
       sys.name.should == sys1.name
     }.should_not raise_error
+
+    Motel::Runner.instance.locations.size.should == 2
+
+    sys = Cosmos::Registry.instance.find_entity :type => :solarsystem, :name => 'system42'
+    sys.class.should == Cosmos::SolarSystem
+    sys.name.should == sys1.name
+    sys.galaxy.should_not be_nil
+    sys.galaxy.should == gal
+    sys.location.parent.should == gal.location
   end
+
+  it "should verify entity names are unique when creating entities" do
+    gal1 = Cosmos::Galaxy.new :name => 'entity11', :location => Motel::Location.new(:id => 50)
+    sys1 = Cosmos::SolarSystem.new :name => 'entity11', :location => Motel::Location.new(:id => 51)
+    u = TestUser.create.login(@local_node).clear_privileges.add_privilege('create', 'cosmos_entities')
+
+    lambda{
+      gal = @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
+      gal.class.should == Cosmos::Galaxy
+      gal.name.should == gal1.name
+    }.should_not raise_error
+
+    Motel::Runner.instance.locations.size.should == 1
+
+    lambda{
+      sys = @local_node.invoke_request('cosmos::create_entity', sys1, gal1.name)
+      sys.class.should == Cosmos::SolarSystem
+      sys.name.should == sys1.name
+    #}.should raise_error(ArgumentError)
+    }.should raise_error
+
+    Motel::Runner.instance.locations.size.should == 1
+  end
+
 
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_entity" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 15)

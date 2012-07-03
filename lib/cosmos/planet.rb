@@ -9,7 +9,7 @@ class Planet
   MAX_PLANET_SIZE = 20
   MIN_PLANET_SIZE = 10
 
-  attr_reader :name
+  attr_accessor :name
   attr_reader :size
   attr_reader :color
   attr_accessor :location
@@ -34,6 +34,15 @@ class Planet
     @location.movement_strategy = args[:movement_strategy] if args.has_key?(:movement_strategy)
   end
 
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && #@location.movement_strategy.class == Motel::MovementStrategies::Elliptical &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
+    @moons.is_a?(Array) && @moons.find { |m| !m.is_a?(Cosmos::Moon) || !m.valid? }.nil? &&
+    (@size.is_a?(Integer) || @size.is_a?(Float)) && @size <= MAX_PLANET_SIZE && @size >= MIN_PLANET_SIZE &&
+    @color.is_a?(String) && !/^[a-fA-F0-9]{6}$/.match(@color).nil?
+  end
+
   def self.parent_type
     :solarsystem
   end
@@ -42,14 +51,23 @@ class Planet
     false
   end
 
+  def parent=(solar_system)
+    @solar_system = solar_system
+  end
+
   def children
     @moons
   end
 
   def add_child(moon)
-    # TODO rails exception unless moon.is_a? Moon
+    raise ArgumentError, "child must be a moon" if !moon.is_a?(Cosmos::Moon)
+    raise ArgumentError, "moon name #{moon.name} is already taken" if @moons.find { |m| m.name == moon.name }
+    raise ArgumentError, "moon #{moon} already added to planet" if @moons.include?(moon)
+    raise ArgumentError, "moon #{moon} must be valid" unless moon.valid?
     moon.location.parent_id = location.id
-    @moons << moon unless @moons.include?(moon) || !moon.is_a?(Cosmos::Moon)
+    moon.parent = self
+    @moons << moon
+    moon
   end
 
   def remove_child(child)

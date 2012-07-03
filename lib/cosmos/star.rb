@@ -5,7 +5,7 @@
 
 module Cosmos
 class Star
-  attr_reader :name
+  attr_accessor :name
   attr_accessor :location
   attr_reader   :color
   attr_reader   :size
@@ -29,12 +29,24 @@ class Star
     end
   end
 
+  def valid?
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
+    (@size.is_a?(Integer) || @size.is_a?(Float)) && @size <= MAX_STAR_SIZE && @size >= MIN_STAR_SIZE &&
+    @color.is_a?(String) && STAR_COLORS.include?(@color)
+  end
+
   def self.parent_type
     :solarsystem
   end
 
   def self.remotely_trackable?
     false
+  end
+
+  def parent=(solar_system)
+    @solar_system = solar_system
   end
 
   def has_children?
