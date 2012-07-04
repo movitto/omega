@@ -166,7 +166,7 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.running?.should be_true
 
     sys = Cosmos::SolarSystem.new
-    attacker = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+    attacker = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1', :type => :battlecruiser
     defender = Manufactured::Ship.new  :id => 'ship2', :solar_system => sys, :user_id => 'user1'
 
     # 1 hit every second

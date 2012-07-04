@@ -11,9 +11,11 @@ describe Manufactured::Ship do
      type = Manufactured::Ship::SHIP_TYPES.first
      size = Manufactured::Ship::SHIP_SIZES[type]
 
+     sys  = Cosmos::SolarSystem.new :name => 'system1'
+     sys2  = Cosmos::SolarSystem.new :name => 'system2'
      ship = Manufactured::Ship.new :id => 'ship1', :user_id => 5,
                                    :type => type.to_s, :size => size,
-                                   :solar_system => 'system1'
+                                   :solar_system => sys
                                    
      ship.id.should == 'ship1'
      ship.user_id.should == 5
@@ -24,9 +26,9 @@ describe Manufactured::Ship do
      ship.type.should == type
      ship.size.should == size
 
-     ship.parent.should == 'system1'
-     ship.parent = 'system2'
-     ship.parent.should == 'system2'
+     ship.parent.should == sys
+     ship.parent = sys2
+     ship.parent.should == sys2
   end
 
   it "should verify validity of ship" do
@@ -87,6 +89,40 @@ describe Manufactured::Ship do
     loc = Motel::Location.new
     ship.location = loc
     loc.parent.should == sys1.location
+  end
+
+  it "should set parent location when setting system" do
+    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    sys2 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
+    ship.location.parent.should == sys1.location
+    ship.solar_system = sys2
+    ship.location.parent.should == sys2.location
+  end
+
+  it "should return bool indicating if it can attack another entity" do
+    sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
+    sys2  = Cosmos::SolarSystem.new :name => "sys2", :location => Motel::Location.new(:id => 2)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :type => :corvette
+    ship2 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
+
+    ship1.can_attack?(ship2).should be_true
+
+    ship1.type = :mining
+    ship1.can_attack?(ship2).should be_false
+    ship1.type = :battlecruiser
+
+    ship1.location.x = 500
+    ship1.can_attack?(ship2).should be_false
+    ship1.location.x = 0
+
+    ship1.parent = sys2
+    ship1.location.parent = sys2.location
+    ship1.can_attack?(ship2).should be_false
+
+    ship1.parent = sys1
+    ship1.location.parent = sys1.location
+    ship1.can_attack?(ship2).should be_true
   end
 
   it "should be dockable at stations" do

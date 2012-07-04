@@ -8,7 +8,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Manufactured::AttackCommand do
 
   it "should run attack cycle between ships" do
-     attacker = Manufactured::Ship.new  :id => 'ship1'
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette
      defender = Manufactured::Ship.new  :id => 'ship2'
 
      # 1 hit every 2 seconds
@@ -39,7 +39,7 @@ describe Manufactured::AttackCommand do
   end
 
   it "should invoke attack cycle callbacks" do
-     attacker = Manufactured::Ship.new  :id => 'ship1'
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :bomber
      defender = Manufactured::Ship.new  :id => 'ship2'
 
      # 1 hit every second
@@ -82,7 +82,7 @@ describe Manufactured::AttackCommand do
   end
 
   it "should terminate attack cycle and invoke callbacks if targets are too far apart" do
-     attacker = Manufactured::Ship.new  :id => 'ship1', :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
      defender = Manufactured::Ship.new  :id => 'ship2', :location => Motel::Location.new(:x => 90,:y => 0, :z => 0)
 
      attacker.attack_rate = 1

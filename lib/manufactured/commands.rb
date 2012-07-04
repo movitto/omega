@@ -32,7 +32,7 @@ class AttackCommand
 
     # ensure entities are within attacking distance
     # FIXME update these locations before this check
-    if (@attacker.location - @defender.location) > @attacker.attack_distance
+    unless @attacker.can_attack?(@defender)
       # invoke attackers's 'attacked_stop' callbacks
       @attacker.notification_callbacks.
                 select { |c| c.type == :attacked_stop}.
@@ -52,6 +52,8 @@ class AttackCommand
     end
 
     @last_attack_time = Time.now
+
+    # TODO syncronize multiple attackers of a single defender (eg one may destroy defender after which attack cycle of second is launched)
 
     # reduce defender's hp
     @defender.hp -= @attacker.damage_dealt

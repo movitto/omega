@@ -167,6 +167,7 @@ class Registry
         @attack_commands.reject! { |id, ac| ac.remove? }
 
         # remove ships w/ <= 0 hp
+        # TODO add deleted ships to a ship graveyard registry
         @ships.reject! { |sh| sh.hp <= 0 }
       }
 

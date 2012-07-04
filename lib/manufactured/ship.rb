@@ -23,7 +23,11 @@ class Ship
   end
 
   # system ship is in
-  attr_accessor :solar_system
+  attr_reader :solar_system
+  def solar_system=(val)
+    @solar_system = val
+    @location.parent = parent.location unless parent.nil? || @location.nil?
+  end
 
   # list of callbacks to invoke on certain events relating to ship
   attr_accessor :notification_callbacks
@@ -55,6 +59,8 @@ class Ship
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
                 :battlecruiser, :exploration, :mining]
 
+  ATTACK_SHIP_TYPES = [:escort, :destroyer, :bomber, :corvette, :battlecruiser]
+
   # mapping of ship types to default sizes
   SHIP_SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
                 :destroyer => 30, :bomber => 25, :corvette => 25,
@@ -71,11 +77,8 @@ class Ship
     @type     = args['type']     || args[:type]
     @type     = @type.intern if !@type.nil? && @type.is_a?(String)
     @type     = SHIP_TYPES[rand(SHIP_TYPES.size)] if @type.nil?
-    @location = args['location'] || args[:location]
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
     @docked_at= args['docked_at']|| args[:docked_at]
-
-    @solar_system = args[:solar_system] || args['solar_system']
 
     @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = args[:resources] || args['resources'] || {}
@@ -92,8 +95,13 @@ class Ship
 
     @mining    = nil
 
+    self.solar_system = args[:solar_system] || args['solar_system']
+
+    # location should be set after solar system so parent is set correctly
+    self.location = args['location'] || args[:location]
+
     if @location.nil?
-      @location = Motel::Location.new
+      self.location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
   end
@@ -117,7 +125,13 @@ class Ship
   end
 
   def parent=(system)
-    @solar_system = system
+    self.solar_system = system
+  end
+
+  def can_attack?(entity)
+    ATTACK_SHIP_TYPES.include?(@type) && !self.docked? &&
+    (@location.parent.id == entity.location.parent.id) &&
+    (@location - entity.location) <= @attack_distance
   end
 
   def docked?

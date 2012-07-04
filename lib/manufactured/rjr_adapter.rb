@@ -331,11 +331,13 @@ class RJRAdapter
     }
 
     rjr_dispatcher.add_handler('manufactured::attack_entity'){ |attacker_entity_id, defender_entity_id|
-      attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id).first
-      defender = Manufactured::Registry.instance.find(:id => defender_entity_id).first
+      raise ArgumentError, "attacker and defender entities must be different" if attacker_entity_id == defender_entity_id
 
-      raise Omega::DataNotFound, "manufactured entity specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
-      raise Omega::DataNotFound, "manufactured entity specified by #{defender_entity_id} (defender) not found"  if defender.nil?
+      attacker = Manufactured::Registry.instance.find(:id => attacker_entity_id, :type => "Manufactured::Ship").first
+      defender = Manufactured::Registry.instance.find(:id => defender_entity_id, :type => "Manufactured::Ship").first
+
+      raise Omega::DataNotFound, "ship specified by #{attacker_entity_id} (attacker) not found"  if attacker.nil?
+      raise Omega::DataNotFound, "ship specified by #{defender_entity_id} (defender) not found"  if defender.nil?
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{attacker.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
@@ -343,6 +345,11 @@ class RJRAdapter
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
+
+      attacker.location = @@local_node.invoke_request('motel::get_location', attacker.location.id)
+      defender.location = @@local_node.invoke_request('motel::get_location', defender.location.id)
+
+      raise Omega::OperationError, "#{attacker} cannot attack #{defender}" unless attacker.can_attack?(defender)
 
       Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
 

@@ -479,7 +479,7 @@ describe Manufactured::RJRAdapter do
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to subscribe to events" do
     sys1 = Cosmos::SolarSystem.new
-    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1,
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1, :type => :destroyer,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
     ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys1,
                                    :location => Motel::Location.new(:id => '101', :x => 10, :y => 10, :z => 5)
@@ -487,6 +487,8 @@ describe Manufactured::RJRAdapter do
 
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create ship2
+    Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run ship2.location
     rship2 = Manufactured::Registry.instance.ships.find { |s| s.id == 'ship2' }
 
     received_events, received_attackers, received_defenders = [],[],[]
@@ -960,25 +962,52 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to attack_entity" do
-    sys = Cosmos::SolarSystem.new
-    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
-    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
+    sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 222)
+    sys2 = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => 333)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :type => :destroyer, :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    ship2 = Manufactured::Ship.new :id => 'ship2', :type => :transport, :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'stat1', :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '102', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create ship2
+    Manufactured::Registry.instance.create stat1
+    Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run ship2.location
+    Motel::Runner.instance.run stat1.location
     Manufactured::Registry.instance.attack_commands.size.should == 0
 
+    # attacker cannot be defender
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', ship2.id, ship2.id)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid attacker id
     lambda{
       @local_node.invoke_request('manufactured::attack_entity', 'non_existant', ship2.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid defender id
     lambda{
       @local_node.invoke_request('manufactured::attack_entity', ship1.id, 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid attacker (station)
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', stat1.id, ship2.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid defender (station)
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', ship1.id, stat1.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
     #}.should raise_error(Omega::PermissionError)
@@ -987,6 +1016,34 @@ describe Manufactured::RJRAdapter do
     u.add_privilege('modify', 'manufactured_entities')
     u.add_privilege('view',   'manufactured_entities')
 
+    # ship doesn't have attack capabilities
+    ship1.type = :frigate
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+    ship1.type = :bomber
+
+    # ships are too far away
+    sloc =Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    sloc.x = 500
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+    sloc.x = 0
+
+    # ships are in different systems
+    ship1.solar_system = sys2
+    sloc.parent = sys2.location
+    lambda{
+      @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+    ship1.solar_system = sys1
+    sloc.parent = sys1.location
+
+    # valid call
     lambda{
       ships = @local_node.invoke_request('manufactured::attack_entity', ship1.id, ship2.id)
       ships.class.should == Array
