@@ -762,7 +762,7 @@ describe Manufactured::RJRAdapter do
     #}.should raise_error(OperationError)
     }.should raise_error(Exception)
 
-    ship1.location.x = 100
+    Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }.x = 100
 
     # valid call
     lambda{
@@ -868,6 +868,7 @@ describe Manufactured::RJRAdapter do
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '170', :x => 0, :y => 0, :z => 0)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
+    sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
     gal1.add_child(sys1)
@@ -885,16 +886,31 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.create ship2
     Manufactured::Registry.instance.create stat1
 
+    # cannot specify the same entity and target
+    lambda{
+      @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship1.id, 10)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid ship id
     lambda{
       @local_node.invoke_request('manufactured::follow_entity', 'non_existant', ship2.id, 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid target id
     lambda{
       @local_node.invoke_request('manufactured::follow_entity', ship1.id, 'non_existant', 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship2.id, -10)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship2.id, 10)
     #}.should raise_error(Omega::PermissionError)
@@ -903,16 +919,35 @@ describe Manufactured::RJRAdapter do
     u.add_privilege('modify', 'manufactured_entities')
     u.add_privilege('view', 'manufactured_entities')
 
+    # cannot follow with station
     lambda{
       @local_node.invoke_request('manufactured::follow_entity', stat1.id, ship2.id, 10)
     #}.should raise_error(ArgumentError)
     }.should raise_error(Exception)
 
+    # cannot follow station
     lambda{
       @local_node.invoke_request('manufactured::follow_entity', ship1.id, stat1.id, 10)
     #}.should raise_error(ArgumentError)
     }.should raise_error(Exception)
 
+    # entities not in the same system
+    ship1.parent = sys2
+    lambda{
+      @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship2.id, 10)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+    ship1.parent = sys1
+
+    # entity is docked
+    ship1.dock_at(stat1)
+    lambda{
+      @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship2.id, 10)
+    #}.should raise_error(OperationError)
+    }.should raise_error(Exception)
+    ship1.undock
+
+    # valid call
     lambda{
       entity = @local_node.invoke_request('manufactured::follow_entity', ship1.id, ship2.id, 10)
       entity.class.should == Manufactured::Ship

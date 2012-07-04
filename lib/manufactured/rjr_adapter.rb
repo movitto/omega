@@ -148,7 +148,6 @@ class RJRAdapter
        entities.each { |entity|
          unless entity.is_a?(Manufactured::Fleet)
            entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
-           entity.location.parent = entity.parent.location
          end
        }
 
@@ -224,6 +223,9 @@ class RJRAdapter
       raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
       raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
 
+      # update the entity's location
+      entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
+
       # if parents don't match, we are moving entity between systems
       if entity.parent.id != parent.id
         # if moving ship ensure it is within trigger distance of gate to new system and is not docked
@@ -274,11 +276,15 @@ class RJRAdapter
     }
 
     rjr_dispatcher.add_handler('manufactured::follow_entity'){ |id, target_id, distance|
+      raise ArgumentError, "entity #{id} and target #{target_id} cannot be the same" if id == target_id
+
       entity = Manufactured::Registry.instance.find(:id => id).first
       target_entity = Manufactured::Registry.instance.find(:id => target_id).first
 
       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
       raise Omega::DataNotFound, "manufactured entity specified by #{target_id} not found"  if target_entity.nil?
+
+      raise ArgumentError, "distance must be an int / float > 0" if !distance.is_a?(Integer) && !distance.is_a?(Float) && distance <= 0
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
@@ -291,13 +297,22 @@ class RJRAdapter
       raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
       raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
 
+      # update the entities' locations
+      entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
+      target_entity.location = @@local_node.invoke_request('motel::get_location', target_entity.location.id)
+
+      # ensure entities are in the same system
+      raise ArgumentError, "entity #{entity} must be in the same system as entity to follow #{target_entity}" if entity.location.parent.id != target_entity.location.parent.id
+
+      # ensure entity isn't docked
+      raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
+
       # FIXME derive speed from ship
       entity.location.movement_strategy =
         Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
                                               :distance            => distance,
                                               :speed => 5
 
-      # TODO what if target_entity changes systems?
       @@local_node.invoke_request('motel::update_location', entity.location)
 
       entity

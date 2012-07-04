@@ -68,6 +68,14 @@ describe Manufactured::Station do
     station.valid?.should be_true
   end
 
+  it "should set parent location when setting location" do
+    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    station = Manufactured::Station.new :id => 'station', :solar_system => sys1
+    loc = Motel::Location.new
+    station.location = loc
+    loc.parent.should == sys1.location
+  end
+
   it "should permit storing resources locally" do
     station   = Manufactured::Station.new :id => 'station1'
     station.resources.should be_empty
@@ -120,9 +128,10 @@ describe Manufactured::Station do
   end
 
   it "should permit constructing new entities" do
+    system = Cosmos::SolarSystem.new :name => 'system1'
     station   = Manufactured::Station.new :id => 'station1',
                                           :type => :manufacturing,
-                                          :solar_system => 'system1'
+                                          :solar_system => system
 
     entity   = station.construct :entity_type => 'foobar'
     entity.should be_nil

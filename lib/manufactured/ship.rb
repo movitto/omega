@@ -8,8 +8,13 @@ class Ship
   # ship properties
   attr_accessor :id
   attr_accessor :user_id
-  attr_accessor :location
   attr_accessor :size
+
+  attr_reader :location
+  def location=(val)
+    @location = val
+    @location.parent = parent.location unless parent.nil? || @location.nil?
+  end
 
   attr_reader :type
   def type=(val)

@@ -81,6 +81,14 @@ describe Manufactured::Ship do
     ship.valid?.should be_true
   end
 
+  it "should set parent location when setting location" do
+    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
+    loc = Motel::Location.new
+    ship.location = loc
+    loc.parent.should == sys1.location
+  end
+
   it "should be dockable at stations" do
     ship = Manufactured::Ship.new :id => 'ship1'
     station = Manufactured::Station.new :id => 'station1'
