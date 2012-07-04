@@ -91,6 +91,8 @@ class RJRAdapter
       args[:solar_system] = station.solar_system
       args[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
 
+      raise ArgumentError, "station specified by #{station} cannot construct entity specified by #{args}" unless station.can_construct?(args)
+
       # create the entity and return it
       entity = station.construct args
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?

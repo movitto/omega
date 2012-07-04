@@ -99,11 +99,34 @@ class Station
     q
   end
 
+  # determine if the station can construct a new entity w/ the specified args
+  def can_construct?(args = {})
+    entity_type = args[:entity_type]
+    cargs       = {}
+    cclass      = nil
+
+    if entity_type == "Manufactured::Ship"
+      cargs = {:id => Motel.gen_uuid,
+               :type => :frigate}.merge(args)
+      cclass = Manufactured::Ship
+    elsif entity_type == "Manufactured::Station"
+      cargs = {:id => Motel.gen_uuid,
+               :type => :manufacturing}.merge(args)
+      cclass = Manufactured::Station
+    end
+
+    # TODO also check if entity can be constructed in system ?
+    return @type == :manufacturing &&
+           !cclass.nil? &&
+           cargo_quantity >= cclass.construction_cost(cargs[:type])
+  end
+
   # use this station to construct new manufactured entities
   def construct(args = {})
-    # TODO verify station is of manufacturing type ?
+    # verify station is of manufacturing type
+    return nil unless @type == :manufacturing
+
     # TODO construction time/delay
-    # TODO constrain args to permitted values
     entity_type = args[:entity_type]
     entity      = nil
     cargs       = {}

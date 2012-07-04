@@ -100,8 +100,28 @@ describe Manufactured::Station do
     station.cargo_quantity.should == 110
   end
 
+  it "should permit determining if station can construct new entity" do
+    station   = Manufactured::Station.new :id => 'station1',
+                                          :type => :manufacturing,
+                                          :solar_system => 'system1',
+                                          :resources => {'metal-alloy', 5000 }
+
+    station.can_construct?(:entity_type => "Manufactured::Ship").should be_true
+    station.can_construct?(:entity_type => "Manufactured::Station").should be_true
+
+    station.type = :offense
+    station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
+    station.can_construct?(:entity_type => "Manufactured::Station").should be_false
+    station.type = :manufacturing
+
+    station.resources['metal-alloy'] = 0
+    station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
+    station.can_construct?(:entity_type => "Manufactured::Station").should be_false
+  end
+
   it "should permit constructing new entities" do
     station   = Manufactured::Station.new :id => 'station1',
+                                          :type => :manufacturing,
                                           :solar_system => 'system1'
 
     entity   = station.construct :entity_type => 'foobar'
@@ -123,6 +143,10 @@ describe Manufactured::Station do
     entity.parent.should == station.parent
     entity.location.should_not be_nil
     station.resources['metal-alloy'].should == 4800
+
+    station.type = :offense
+    entity   = station.construct :entity_type => "Manufactured::Ship"
+    entity.should be_nil
   end
 
   it "should be convertable to json" do

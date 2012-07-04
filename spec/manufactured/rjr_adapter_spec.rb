@@ -152,7 +152,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with create manufactured_entities to construct_entity" do
-    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :type => :manufacturing,
                                       :location => Motel::Location.new(:id => '101', :x => 50, :y => 60, :z => -70)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
@@ -186,13 +186,24 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('create', 'manufactured_entities')
 
-    # system does not have enough resources
+    # station does not have enough resources
     lambda{
       @local_node.invoke_request('manufactured::construct_entity', stat1, 'Manufactured::Ship')
     #}.should raise_error(ArgumentError)
     }.should raise_error(Exception)
 
     stat1.add_resource('metal-alloy', 5000)
+
+    stat1.type = :offense
+
+    # station is of the wrong type
+    lambda{
+      @local_node.invoke_request('manufactured::construct_entity', stat1, 'Manufactured::Ship')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    stat1.type = :manufacturing
+
 
     # valid call
     lambda{
@@ -210,7 +221,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should only accept valid params to instantiate manufactured_entities with when invoking construct_entity" do
-    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :type => :manufacturing,
                                       :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0),
                                       :resources => { 'metal-alloy' => 5000 }
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
