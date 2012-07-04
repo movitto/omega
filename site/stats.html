@@ -36,7 +36,7 @@
           handlers.add_callback(handlers.handle_resource_sources);
           handlers.add_callback(handlers.handle_ships);
           handlers.add_callback(handlers.handle_stations);
-          handlers.add_method('on_movement', handlers.on_movement);
+          handlers.add_method('motel::on_movement', handlers.on_movement);
           handlers.add_method('manufactured::event_occurred', handlers.on_attacked_event);
           handlers.add_method('manufactured::event_occurred', handlers.on_mining_event);
 

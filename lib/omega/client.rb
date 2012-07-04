@@ -448,7 +448,7 @@ def subscribe_to(event, args = {}, &bl)
     RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
     @@handlers[:on_movement] ||= {}
     @@handlers[:on_movement][entity.location.id] = bl
-    client.register_callback "on_movement" do |loc|
+    client.register_callback "motel::on_movement" do |loc|
       @@handlers[:on_movement][loc.id].call loc
     end
     client.invoke_requests

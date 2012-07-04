@@ -287,7 +287,7 @@ describe Motel::RJRAdapter do
     rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
 
     times_moved = 0
-    RJR::Dispatcher.add_handler('on_movement') { |nloc|
+    RJR::Dispatcher.add_handler('motel::on_movement') { |nloc|
       nloc.id.should == loc1.id
       times_moved += 1
     }

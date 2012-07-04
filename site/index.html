@@ -42,7 +42,7 @@
           handlers.add_callback(handlers.populate_locations_container);
           handlers.add_callback(handlers.populate_fleets_container);
           handlers.add_callback(handlers.populate_alliances_container);
-          handlers.add_method('on_movement', handlers.on_movement);
+          handlers.add_method('motel::on_movement', handlers.on_movement);
           handlers.add_method('users::on_message', handlers.on_message);
 
           client.get_cosmos_entity('galaxy');

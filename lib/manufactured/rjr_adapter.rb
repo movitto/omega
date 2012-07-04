@@ -320,7 +320,7 @@ class RJRAdapter
 
 
     # callback to track_movement in update location
-    rjr_dispatcher.add_handler('on_movement') { |loc|
+    rjr_dispatcher.add_handler('motel::on_movement') { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id).first
 

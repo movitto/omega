@@ -161,7 +161,7 @@ class RJRAdapter
                                                           {:privilege => 'view', :entity => 'locations'}],
                                                  :session   => @headers['session_id'])
              end
-             @rjr_callback.invoke('on_movement', loc)
+             @rjr_callback.invoke('motel::on_movement', loc)
 
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view movement of #{loc.id}"
