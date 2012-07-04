@@ -341,7 +341,7 @@ describe Motel::RJRAdapter do
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
 
     proximity_notifications = 0
-    RJR::Dispatcher.add_handler('on_proximity') { |nloc1, nloc2|
+    RJR::Dispatcher.add_handler('motel::on_proximity') { |nloc1, nloc2|
       nloc1.id.should == loc1.id
       nloc2.id.should == loc2.id
       proximity_notifications += 1

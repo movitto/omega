@@ -210,7 +210,7 @@ class RJRAdapter
                                                :session   => @headers['session_id'])
              end
 
-             @rjr_callback.invoke('on_proximity', loc1, loc2)
+             @rjr_callback.invoke('motel::on_proximity', loc1, loc2)
 
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view proximity of #{loc1.id}/#{loc2.id}"
