@@ -98,80 +98,64 @@ class RJRAdapter
       entity
     }
 
-    rjr_dispatcher.add_handler('manufactured::get_entity'){ |id|
-       entity = Manufactured::Registry.instance.find(:id => id).first
-       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entity.nil?
+    rjr_dispatcher.add_handler(['manufactured::get_entity', 'manufactured::get_entities']){ |*args|
+       filter = {}
+       while qualifier = args.shift
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "owned_by", "with_id", "with_location", "under"].include?(qualifier)
+         val = args.shift
+         raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
+         qualifier = case qualifier
+                       when "of_type"
+                         :type
+                       when "owned_by"
+                         :user_id
+                       when "with_id"
+                         :id
+                       when "with_location"
+                         :location_id
+                       when "under"
+                         :parent_id
+                     end
+         filter[qualifier] = val
+       end
 
-       entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                         :session => @headers['session_id'])
+       # if user specified id or location, return the first (and only) result on its own
+       return_first = filter.has_key?(:id) || filter.has_key?(:location_id)
 
-       entity
-    }
+       # ensure user exists if user_id is specified
+       if filter.has_key?(:user_id)
+         user = @@local_node.invoke_request('users::get_entity', filter[:user_id])
+         raise Omega::DataNotFound, "user specified by #{user_id} not found" if user.nil?
+       end
 
-    rjr_dispatcher.add_handler('manufactured::get_entity_from_location'){ |type, location_id|
-      entity = Manufactured::Registry.instance.find(:type => type,
-                                                    :location_id => location_id).first
-      raise Omega::DataNotFound, "manufactured entity specified by type #{type} & location #{location_id} not found" if entity.nil?
-      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                                 {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                        :session => @headers['session_id'])
+       # ensure system exists if parent_id is specified
+       if filter.has_key?(:parent_id)
+         parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', filter[:parent_id])
+         raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
+       end
 
-      entity.location = @@local_node.invoke_request('motel::get_location',
-                                                    entity.location.id)
-      entity
-    }
+       entities = Manufactured::Registry.instance.find(filter)
 
-    rjr_dispatcher.add_handler('manufactured::get_entities_under'){ |parent_id|
-      # just lookup parent to ensure it exists
-      parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', parent_id)
-      raise Omega::DataNotFound, "parent system specified by #{parent_id} not found" if parent.nil?
+       entities.reject! { |entity|
+         !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+                                                   {:privilege => 'view', :entity => 'manufactured_entities'}],
+                                          :session => @headers['session_id'])
 
-      entities = Manufactured::Registry.instance.find(:parent_id => parent_id)
-      entities.reject! { |entity|
-        raised = false
-        begin
-          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                                     {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                            :session => @headers['session_id'])
-        rescue Omega::PermissionError => e
-          raised = true
-        end
-        raised
-      }
-      entities.each { |entity|
-        unless entity.is_a?(Manufactured::Fleet)
-          entity.location = @@local_node.invoke_request('motel::get_location',
-                                                        entity.location.id)
-        end
-      }
-      entities
-    }
+       }
 
-    rjr_dispatcher.add_handler('manufactured::get_entities_for_user') { |user_id, entity_type|
-      # just lookup user to ensure it exists
-      user = @@local_node.invoke_request('users::get_entity', user_id)
-      raise Omega::DataNotFound, "user specified by #{user_id} not found" if user.nil?
+       entities.each { |entity|
+         unless entity.is_a?(Manufactured::Fleet)
+           entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
+           entity.location.parent = entity.parent.location
+         end
+       }
 
-      entities = Manufactured::Registry.instance.find(:type => entity_type, :user_id => user_id)
-      entities.reject! { |entity|
-        raised = false
-        begin
-          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                                     {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                            :session => @headers['session_id'])
-        rescue Omega::PermissionError => e
-          raised = true
-        end
-        raised
-      }
-      entities.each { |entity|
-        unless entity.is_a?(Manufactured::Fleet)
-          entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
-        end
-      }
-      entities
+       if return_first
+         entities = entities.first
+         raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entities.nil?
+       end
+
+       entities
     }
 
     rjr_dispatcher.add_handler('manufactured::subscribe_to') { |entity_id, event|

@@ -273,7 +273,7 @@ def system_entities(sys = nil)
   sys = @system if sys.nil?
   raise ArgumentError, "system must not be nil" if sys.nil?
   client = Omega::Client.new :system => system
-  client.queue_request 'manufactured::get_entities_under', sys.name
+  client.queue_request 'manufactured::get_entities', 'under', sys.name
   RJR::Logger.info "getting entities under #{sys.name}"
   client.invoke_requests
 end
@@ -372,9 +372,9 @@ def ship(id, args={}, &bl)
   client = Omega::Client.new :ship => sh
   RJR::Logger.info "retrieving ship #{id} with #{args.inspect}"
   if id
-    client.queue_request 'manufactured::get_entity', id
+    client.queue_request 'manufactured::get_entity', 'with_id', id
   elsif args.has_key?(:location_id)
-    client.queue_request('manufactured::get_entity_from_location', 'Manufactured::Ship', args[:location_id])
+    client.queue_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', args[:location_id])
   end
 
   begin
@@ -407,7 +407,7 @@ def station(id, args={}, &bl)
 
   client = Omega::Client.new :station => st
   RJR::Logger.info "retrieving station #{id} with #{args.inspect}"
-  client.queue_request 'manufactured::get_entity', id
+  client.queue_request 'manufactured::get_entity', 'with_id', id
 
   begin
     nst = client.invoke_requests(Manufactured::Station)

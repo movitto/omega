@@ -51,17 +51,17 @@ login_user = Users::User.new(:id => 'admin', :password => 'nimda')
 session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
 $rjr_node.message_headers['session_id'] = session.id
 
-entity = $rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', entity_type, id)
+entity = $rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', 'of_type', entity_type, 'with_name', id)
 
 $manufactured_entities = []
 if manufactured
   if 'galaxy' == entity_type
     entity.solar_systems.each { |sys|
-      $manufactured_entities += $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities_under', sys.name)
+      $manufactured_entities += $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities', 'under', sys.name)
     }
 
   elsif 'solarsystem' == entity_type
-    $manufactured_entities = $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities_under', id)
+    $manufactured_entities = $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities', 'under', id)
 
   # elsif 'asteroid' == entity_type # TODO get entities mining this asteroid
   end

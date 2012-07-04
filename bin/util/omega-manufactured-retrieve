@@ -46,7 +46,7 @@ login_user = Users::User.new(:id => 'admin', :password => 'nimda')
 session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
 rjr_node.message_headers['session_id'] = session.id
 
-entity = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', id)
+entity = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', 'with_id', id)
 
 puts "Entity: " + entity.to_s
 

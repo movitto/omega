@@ -271,34 +271,46 @@ describe Manufactured::RJRAdapter do
     Cosmos::Registry.instance.add_child gal1
     Manufactured::Registry.instance.create ship1
 
+    # invalid id
     lambda{
-      @local_node.invoke_request('manufactured::get_entity', 'non_existant')
+      @local_node.invoke_request('manufactured::get_entity', 'with_id', 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # no permissions
     lambda{
-      @local_node.invoke_request('manufactured::get_entity', ship1.id)
+      @local_node.invoke_request('manufactured::get_entity', 'with_id', ship1.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('view', 'manufactured_entities')
 
+    # invalid qualifier
     lambda{
-      rship = @local_node.invoke_request('manufactured::get_entity', ship1.id)
+      @local_node.invoke_request('manufactured::get_entity', 'without_id', ship1.id)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid request
+    lambda{
+      rship = @local_node.invoke_request('manufactured::get_entity', 'with_id', ship1.id)
       rship.class.should == Manufactured::Ship
       rship.id.should == ship1.id
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'manufactured_entity-' + ship1.id.to_s)
 
+    # valid request
     lambda{
-      rship = @local_node.invoke_request('manufactured::get_entity', ship1.id)
+      rship = @local_node.invoke_request('manufactured::get_entity', 'with_id', ship1.id)
       rship.class.should == Manufactured::Ship
       rship.id.should == ship1.id
     }.should_not raise_error
+
+    ship1.location.parent.should == sys1.location
   end
 
-  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_from_location" do
+  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities from_location" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '101')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
@@ -317,37 +329,42 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
 
+    # invalid location
     lambda{
-      @local_node.invoke_request('manufactured::get_entity_from_location', 'Manufactured::Ship', 'non_existant')
+      @local_node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # type / location mismatch
     lambda{
-      @local_node.invoke_request('manufactured::get_entity_from_location', 'Manufactured::Ship', stat1.location.id)
+      @local_node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', stat1.location.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # not enought permissions
     lambda{
-      @local_node.invoke_request('manufactured::get_entity_from_location', 'Manufactured::Ship', ship1.location.id)
+      @local_node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', ship1.location.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('view', 'manufactured_entities')
 
+    # valid request
     lambda{
-      entity = @local_node.invoke_request('manufactured::get_entity_from_location', 'Manufactured::Ship', ship1.location.id)
+      entity = @local_node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', ship1.location.id)
       entity.class.should == Manufactured::Ship
       entity.id.should == ship1.id
     }.should_not raise_error
 
+    # valid request
     lambda{
-      entity = @local_node.invoke_request('manufactured::get_entity_from_location', 'Manufactured::Station', stat1.location.id)
+      entity = @local_node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Station', 'with_location', stat1.location.id)
       entity.class.should == Manufactured::Station
       entity.id.should == stat1.id
     }.should_not raise_error
   end
 
-  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_under" do
+  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities under" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
@@ -362,21 +379,24 @@ describe Manufactured::RJRAdapter do
     Cosmos::Registry.instance.add_child gal1
     Manufactured::Registry.instance.create ship1
 
+    # invalid id
     lambda{
-      @local_node.invoke_request('manufactured::get_entities_under', 'non_existant')
+      @local_node.invoke_request('manufactured::get_entities', 'under', 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # insufficient permissions
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_under', sys1.id)
+      entities = @local_node.invoke_request('manufactured::get_entities', 'under', sys1.id)
       entities.class.should == Array
       entities.size.should == 0
     }.should_not raise_error
 
     u.add_privilege('view', 'manufactured_entities')
 
+    # valid request
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_under', sys1.id)
+      entities = @local_node.invoke_request('manufactured::get_entities', 'under', sys1.id)
       entities.class.should == Array
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
@@ -386,8 +406,9 @@ describe Manufactured::RJRAdapter do
 
     u.clear_privileges.add_privilege('view', 'manufactured_entity-' + ship1.id.to_s)
 
+    # valid request
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_under', sys1.id)
+      entities = @local_node.invoke_request('manufactured::get_entities', 'under', sys1.id)
       entities.class.should == Array
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
@@ -396,7 +417,7 @@ describe Manufactured::RJRAdapter do
     }.should_not raise_error
   end
 
-  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities_for_user" do
+  it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities for_user" do
     sys = Cosmos::SolarSystem.new
     ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => @testuser1.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
     ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => @testuser2.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
@@ -407,21 +428,24 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create ship2
 
+    # invalid user id
     lambda{
-      @local_node.invoke_request('manufactured::get_entities_for_user', 'non_existant', 'Manufactured::Ship')
+      @local_node.invoke_request('manufactured::get_entities', 'owned_by', 'non_existant', 'of_type', 'Manufactured::Ship')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # valid request, no matching data
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_for_user', 'user42', 'Manufactured::Ship')
+      entities = @local_node.invoke_request('manufactured::get_entities', 'owned_by', 'user42', 'of_type', 'Manufactured::Ship')
       entities.class.should == Array
       entities.size.should == 0
     }.should_not raise_error
 
     u.add_privilege('view', 'manufactured_entities')
 
+    # valid request
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_for_user', 'user42', 'Manufactured::Ship')
+      entities = @local_node.invoke_request('manufactured::get_entities', 'owned_by', 'user42', 'of_type', 'Manufactured::Ship')
       entities.class.should == Array
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
@@ -431,8 +455,9 @@ describe Manufactured::RJRAdapter do
 
     u.clear_privileges.add_privilege('view', 'manufactured_entity-' + ship1.id.to_s)
 
+    # valid request
     lambda{
-      entities = @local_node.invoke_request('manufactured::get_entities_for_user', 'user42', 'Manufactured::Ship')
+      entities = @local_node.invoke_request('manufactured::get_entities', 'owned_by', 'user42', 'of_type', 'Manufactured::Ship')
       entities.class.should == Array
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
