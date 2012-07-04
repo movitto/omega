@@ -1241,6 +1241,12 @@ describe Manufactured::RJRAdapter do
 
     ship1.docked?.should be_false
     ship1.docked_at.should be_nil
+
+    # ship is not docked at station, undock is no longer a valid operation
+    lambda{
+      @local_node.invoke_request('manufactured::undock', ship1.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
   end
 
   it "should permit local nodes to save and restore state" do

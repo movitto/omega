@@ -400,6 +400,10 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
+      # TODO we may want to require a station's docking clearance at some point
+
+      raise Omega::OperationError, "#{ship} is not docked, cannot undock" unless ship.docked?
+
       # TODO not thread safe, should go through the registry
       ship.undock
       ship
