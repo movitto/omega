@@ -209,6 +209,8 @@ class RJRAdapter
       entity = Manufactured::Registry.instance.find(:id => id).first
       parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_location', new_location.parent_id)
 
+      raise ArgumentError, "invalid location #{new_location} specified" unless new_location.is_a?(Motel::Location)
+
       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
       raise Omega::DataNotFound, "parent system specified by location #{new_location.id} not found" if parent.nil?
 
@@ -220,8 +222,18 @@ class RJRAdapter
       raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
       raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
 
-      # if parents don't match, simply set parent and location
+      # if parents don't match, we are moving entity between systems
       if entity.parent.id != parent.id
+        # if moving ship ensure it is within trigger distance of gate to new system and is not docked
+        #   (TODO currently stations don't have this restriction though we may want to put others in place, or a transport delay / time)
+        if entity.is_a?(Manufactured::Ship)
+          near_jg = !entity.solar_system.jump_gates.select { |jg| jg.endpoint.name == parent.name &&
+                                                                  (jg.location - entity.location) < jg.trigger_distance }.empty?
+          raise Omega::OperationError, "Ship #{entity} not within triggering distance of a jump gate to #{parent}" unless near_jg
+          raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
+        end
+
+        # simply set parent and location
         entity.parent   = parent
         new_location.id = entity.location.id
         entity.location = new_location
@@ -230,14 +242,21 @@ class RJRAdapter
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'proximity')
 
-      # else move to location using a linear movement strategy
+      # else move location within the system
       else
-        # TODO replace w/ new_location - entity.location
+        # if moving ship, ensure it is not docked
+        if entity.is_a?(Manufactured::Ship) && entity.docked?
+          raise Omega::OperationError, "Ship #{entity} is docked, cannot move"
+        end
+
         dx = new_location.x - entity.location.x
         dy = new_location.y - entity.location.y
         dz = new_location.z - entity.location.z
-        distance = Math.sqrt( dx ** 2 + dy ** 2 + dz ** 2 )
+        distance = new_location - entity.location
 
+        raise Omega::OperationError, "Ship or station #{entity} is already at location" if distance < 1
+
+        # move to location using a linear movement strategy
         # FIXME derive speed from ship
         entity.location.movement_strategy =
           Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,

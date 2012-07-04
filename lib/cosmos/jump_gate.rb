@@ -9,10 +9,17 @@ class JumpGate
   attr_accessor :endpoint
   attr_accessor :location
 
+  # max distance in any direction around
+  # gate which entities can trigger it
+  attr_reader   :trigger_distance
+
   def initialize(args = {})
     @solar_system = args['solar_system'] || args[:solar_system]
     @endpoint     = args['endpoint']     || args[:endpoint]
     @location     = args['location']     || args[:location]
+
+    # TODO make variable
+    @trigger_distance = 100
 
     # TODO would rather not access the cosmos registry directly here
     if @solar_system.is_a?(String)

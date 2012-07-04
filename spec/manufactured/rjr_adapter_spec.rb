@@ -583,7 +583,8 @@ describe Manufactured::RJRAdapter do
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
-    new_loc = Motel::Location.new(:id => 101, :parent_id => sys1.id, :x => 1, :y => 0, :z => 0)
+    fl1   = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
+    new_loc = Motel::Location.new(:id => 101, :parent_id => sys1.id, :x => 5, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
     gal1.add_child(sys1)
@@ -599,6 +600,7 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
 
+    # invalid ship id
     lambda{
       @local_node.invoke_request('manufactured::move_entity', 'non_existant', new_loc)
     #}.should raise_error(Omega::DataNotFound)
@@ -606,6 +608,7 @@ describe Manufactured::RJRAdapter do
 
     new_loc.parent_id = 'non_existant'
 
+    # invalid destination
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(Omega::DataNotFound)
@@ -613,6 +616,7 @@ describe Manufactured::RJRAdapter do
 
     new_loc.parent_id = sys1.id
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(Omega::PermissionError)
@@ -620,13 +624,15 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('modify', 'manufactured_entities')
 
-    #lambda{ # TODO try w/ id of fleet
-    #  @local_node.invoke_request('manufactured::move_entity', stat1.id, new_loc)
-    ##}.should raise_error(ArgumentError)
-    #}.should raise_error(Exception)
+    # cannot specify fleet
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', fl1.id, new_loc)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
 
     new_loc.parent_id = gal1.name
 
+    # invalid destination (galaxy)
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(ArgumentError)
@@ -634,6 +640,19 @@ describe Manufactured::RJRAdapter do
 
     new_loc.parent_id = sys1.location.id
 
+    # invalid destination (not a location)
+    lambda {
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, 5)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid destination (same coordinates as ship)
+    lambda {
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, ship1.location)
+    #}.should raise_error(OperationError)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       rship = @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
       rship.class.should == Manufactured::Ship
@@ -648,7 +667,7 @@ describe Manufactured::RJRAdapter do
     rloc.movement_strategy.direction_vector_z.should == 0
     rloc.movement_callbacks.size.should == 1
 
-    sleep 2
+    sleep 1
 
     # verify ship has arrived and is no longer moving
     rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
@@ -663,17 +682,21 @@ describe Manufactured::RJRAdapter do
     rship.first.location.z.should == rloc.z
   end
 
+
+
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity between systems" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)
+    jg1   = Cosmos::JumpGate.new :solar_system => sys1, :endpoint => sys2, :location => Motel::Location.new(:id => 303, :x => 150, :y => 0, :z => 0)
     new_loc = Motel::Location.new(:id => 101, :parent_id => sys2.location.id, :x => 10, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
     gal1.add_child(sys1)
     gal1.add_child(sys2)
+    sys1.add_child(jg1)
     ship1.parent = sys1
     stat1.parent = sys1
 
@@ -681,12 +704,14 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.run sys1.location
     Motel::Runner.instance.run sys2.location
     Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run stat1.location
     Cosmos::Registry.instance.add_child gal1
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
 
     ship1.location.movement_callbacks << Motel::Callbacks::Movement.new(:endpoint => Manufactured::RJRAdapter.send(:class_variable_get, :@@local_node).node_id)
 
+    # invalid ship id
     lambda{
       @local_node.invoke_request('manufactured::move_entity', 'non_existant', new_loc)
     #}.should raise_error(Omega::DataNotFound)
@@ -694,13 +719,15 @@ describe Manufactured::RJRAdapter do
 
     new_loc.parent_id = 'non_existant'
 
+    # invalid destination id
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
-    new_loc.parent_id = sys2.id
+    new_loc.parent_id = sys2.location.id
 
+    # insufficent permissions
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(Omega::PermissionError)
@@ -708,13 +735,9 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('modify', 'manufactured_entities')
 
-    lambda{
-      @local_node.invoke_request('manufactured::move_entity', stat1.id, new_loc)
-    #}.should raise_error(ArgumentError)
-    }.should raise_error(Exception)
-
     new_loc.parent_id = gal1.id
 
+    # invalid destination (galaxy)
     lambda{
       @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
     #}.should raise_error(ArgumentError)
@@ -722,11 +745,28 @@ describe Manufactured::RJRAdapter do
 
     new_loc.parent_id = sys2.location.id
 
+    # not within activation distance of gate
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
+    #}.should raise_error(OperationError)
+    }.should raise_error(Exception)
+
+    ship1.location.x = 100
+
+    # valid call
     lambda{
       rship = @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc)
       rship.class.should == Manufactured::Ship
       rship.id.should == ship1.id
       rship.parent.name.should == sys2.name
+    }.should_not raise_error
+
+    # valid call
+    lambda{
+      rstat = @local_node.invoke_request('manufactured::move_entity', stat1.id, new_loc)
+      rstat.class.should == Manufactured::Station
+      rstat.id.should == stat1.id
+      rstat.parent.name.should == sys2.name
     }.should_not raise_error
 
     # verify ship is now in the new system
@@ -735,6 +775,80 @@ describe Manufactured::RJRAdapter do
     rloc.parent_id.should == sys2.location.id
     rloc.movement_callbacks.size.should == 0
     rloc.proximity_callbacks.size.should == 0
+
+    # verify station is now in the new system
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == stat1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
+    rloc.parent_id.should == sys2.location.id
+  end
+
+  it "should not allow a docked ship to move within on inbetween systems" do
+    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
+    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
+    sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 120, :y => 0, :z => 0)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 125, :y => 0, :z => 0), :docked_at => stat1
+    jg1   = Cosmos::JumpGate.new :solar_system => sys1, :endpoint => sys2, :location => Motel::Location.new(:id => 303, :x => 150, :y => 0, :z => 0)
+    new_loc1 = Motel::Location.new(:id => 101, :parent_id => sys1.location.id, :x => 145, :y => 0, :z => 0)
+    new_loc2 = Motel::Location.new(:id => 102, :parent_id => sys2.location.id, :x => 125, :y => 0, :z => 0)
+    u = TestUser.create.login(@local_node).clear_privileges.add_privilege('modify', 'manufactured_entities')
+
+    gal1.add_child(sys1)
+    gal1.add_child(sys2)
+    sys1.add_child(jg1)
+    ship1.parent = sys1
+    stat1.parent = sys1
+    ship1.location.parent = sys1.location
+    stat1.location.parent = sys1.location
+
+    Motel::Runner.instance.run gal1.location
+    Motel::Runner.instance.run sys1.location
+    Motel::Runner.instance.run sys2.location
+    Motel::Runner.instance.run jg1.location
+    Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run stat1.location
+    Cosmos::Registry.instance.add_child gal1
+    Manufactured::Registry.instance.create ship1
+    Manufactured::Registry.instance.create stat1
+
+    # ship is docked, cannot move in system
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc1)
+    #}.should raise_error(OperationError)
+    }.should raise_error(Exception)
+
+    # ship is docked, cannot move inbetween systems
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc2)
+    #}.should raise_error(OperationError)
+    }.should raise_error(Exception)
+
+    # verify ship is not moving & in orig system
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
+    rloc.parent.id.should == sys1.location.id
+
+    ship1.undock
+
+    # valid call
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc1)
+    }.should_not raise_error
+
+    # verify ship is moving in orig system
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Linear
+    rloc.parent.id.should == sys1.location.id
+
+    # valid call
+    lambda{
+      @local_node.invoke_request('manufactured::move_entity', ship1.id, new_loc2)
+    }.should_not raise_error
+
+    # verify ship is in new system
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
+    rloc.parent.id.should == sys2.location.id
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to follow_entity" do
