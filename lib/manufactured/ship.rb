@@ -104,6 +104,8 @@ class Ship
       self.location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
+
+    @location.movement_strategy = args[:movement_strategy] if args.has_key?(:movement_strategy)
   end
 
   def valid?
@@ -139,10 +141,6 @@ class Ship
   end
 
   def dock_at(station)
-    # FIXME ensure ship / station are within docking distance
-    #       + other permission checks (eg if station has free ports, allows ship to dock)
-    #       + ship isn't docked elsewhere
-    # TODO station.add_docked_ship(ship)
     @docked_at = station
   end
 

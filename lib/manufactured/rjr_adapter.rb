@@ -373,8 +373,21 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
+      # update ship / station location
+      ship.location = @@local_node.invoke_request('motel::get_location', ship.location.id)
+      station.location = @@local_node.invoke_request('motel::get_location', station.location.id)
+
+      raise Omega::OperationError, "#{ship} cannot dock at #{station}" unless station.dockable?(ship)
+
       # TODO not thread safe, should go through the registry
+      # TODO station.add_docked_ship(ship)
       ship.dock_at(station)
+
+      # set ship movement strategy to stopped
+      # TODO we may want to set position of ship in proximity of station
+      ship.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+      @@local_node.invoke_request('motel::update_location', ship.location)
+
       ship
     }
 

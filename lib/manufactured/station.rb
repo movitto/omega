@@ -21,7 +21,12 @@ class Station
     @size = STATION_SIZES[val]
   end
 
-  attr_accessor :solar_system
+  # system station is in
+  attr_reader :solar_system
+  def solar_system=(val)
+    @solar_system = val
+    @location.parent = parent.location unless parent.nil? || @location.nil?
+  end
 
   # map of resources contained in the station to quantities
   attr_reader :resources
@@ -49,19 +54,20 @@ class Station
     @type     = args['type']     || args[:type]
     @type     = @type.intern if !@type.nil? && @type.is_a?(String)
     @type     = STATION_TYPES[rand(STATION_TYPES.size)] if @type.nil?
-    @location = args['location'] || args[:location]
     @user_id  = args['user_id']  || args[:user_id]
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : STATION_SIZES[@type])
-
-    @solar_system = args['solar_system'] || args[:solar_system]
 
     @resources = args[:resources] || args['resources'] || {}
 
     # FIXME make variable
     @cargo_capacity = 10000
+    @docking_distance = 100
+
+    self.solar_system = args['solar_system'] || args[:solar_system]
+    self.location = args['location'] || args[:location]
 
     if @location.nil?
-      @location = Motel::Location.new
+      self.location = Motel::Location.new
       @location.x = @location.y = @location.z = 0
     end
   end
@@ -75,6 +81,15 @@ class Station
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @resources.is_a?(Hash) && @resources.select { |id,q| !id.is_a?(String) || !(q.is_a?(Integer) || q.is_a?(Float)) }.empty? # TODO verify resources are valid in context of ship
     # TODO validate cargo properties when they become variable
+  end
+
+  def dockable?(ship)
+    # TODO at some point we may want to limit
+    # the number of ships able to be ported at a station at a given time,
+    # restrict this via station type, add a toggleable flag, etc
+    (ship.location.parent.id == @location.parent.id) &&
+    (ship.location - @location) <= @docking_distance &&
+    !ship.docked?
   end
 
   def parent

@@ -1180,29 +1180,44 @@ describe Manufactured::RJRAdapter do
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do
     sys = Cosmos::SolarSystem.new
-    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0),
+                                   :movement_strategy => Motel::MovementStrategies::Linear.new
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
+    Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run stat1.location
 
+    # invalid ship id
     lambda{
       @local_node.invoke_request('manufactured::dock', 'non_existant', stat1.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid station id
     lambda{
       @local_node.invoke_request('manufactured::dock', ship1.id, 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::dock', ship1.id, stat1.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('modify', 'manufactured_entities')
+
+    # not dockable
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    rloc.x = 1000
+    lambda{
+      @local_node.invoke_request('manufactured::dock', ship1.id, stat1.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+    rloc.x = 0
 
     lambda{
       rship = @local_node.invoke_request('manufactured::dock', ship1.id, stat1.id)
@@ -1212,6 +1227,10 @@ describe Manufactured::RJRAdapter do
       rship.docked_at.id.should == stat1.id
     }.should_not raise_error
 
+    ship1.docked?.should be_true
+    ship1.docked_at.id.should == stat1.id
+    ship1.location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+
     lambda{
       rship = @local_node.invoke_request('manufactured::undock', ship1.id)
       rship.class.should == Manufactured::Ship
@@ -1219,6 +1238,9 @@ describe Manufactured::RJRAdapter do
       rship.docked?.should be_false
       rship.docked_at.should be_nil
     }.should_not raise_error
+
+    ship1.docked?.should be_false
+    ship1.docked_at.should be_nil
   end
 
   it "should permit local nodes to save and restore state" do

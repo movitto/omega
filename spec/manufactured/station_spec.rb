@@ -11,9 +11,11 @@ describe Manufactured::Station do
      type = Manufactured::Station::STATION_TYPES.first
      size = Manufactured::Station::STATION_SIZES[type]
 
+     sys  = Cosmos::SolarSystem.new :name => 'system1'
+     sys2  = Cosmos::SolarSystem.new :name => 'system2'
      station = Manufactured::Station.new :id => 'station1', :user_id => 5,
                                    :type => type.to_s, :size => size,
-                                   :solar_system => 'system1'
+                                   :solar_system => sys
                                    
      station.id.should == 'station1'
      station.user_id.should == 5
@@ -24,9 +26,9 @@ describe Manufactured::Station do
      station.type.should == type
      station.size.should == size
 
-     station.parent.should == 'system1'
-     station.parent = 'system2'
-     station.parent.should == 'system2'
+     station.parent.should == sys
+     station.parent = sys2
+     station.parent.should == sys2
   end
 
   it "should verify validity of station" do
@@ -76,6 +78,39 @@ describe Manufactured::Station do
     loc.parent.should == sys1.location
   end
 
+  it "should set parent location when setting system" do
+    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    sys2 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    stat = Manufactured::Station.new :id => 'stat1', :solar_system => sys1
+    stat.location.parent.should == sys1.location
+    stat.solar_system = sys2
+    stat.location.parent.should == sys2.location
+  end
+
+  it "should return bool indicating if ship is dockable at station" do
+    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
+    sys2 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 2)
+    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
+    stat = Manufactured::Station.new :id => 'stat1', :solar_system => sys1
+    stat2 = Manufactured::Station.new :id => 'stat2', :solar_system => sys1
+
+    stat.dockable?(ship).should be_true
+
+    ship.location.parent = sys2.location
+    stat.dockable?(ship).should be_false
+    ship.location.parent = sys1.location
+
+    ship.location.x = 5000
+    stat.dockable?(ship).should be_false
+    ship.location.x = 0
+
+    ship.dock_at(stat2)
+    stat.dockable?(ship).should be_false
+    ship.undock
+
+    stat.dockable?(ship).should be_true
+  end
+
   it "should permit storing resources locally" do
     station   = Manufactured::Station.new :id => 'station1'
     station.resources.should be_empty
@@ -109,9 +144,10 @@ describe Manufactured::Station do
   end
 
   it "should permit determining if station can construct new entity" do
+    sys  = Cosmos::SolarSystem.new :name => 'system1'
     station   = Manufactured::Station.new :id => 'station1',
                                           :type => :manufacturing,
-                                          :solar_system => 'system1',
+                                          :solar_system => sys,
                                           :resources => {'metal-alloy', 5000 }
 
     station.can_construct?(:entity_type => "Manufactured::Ship").should be_true
