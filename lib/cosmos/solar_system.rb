@@ -86,6 +86,7 @@ class SolarSystem
                                                                    Cosmos::Star].include?(child.class)
     child.parent = self
     child.location.parent_id = location.id
+    child.location.parent = location
 
     if child.is_a? Planet
       raise ArgumentError, "planet name #{child.name} is already taken" if @planets.find { |p| p.name == child.name }

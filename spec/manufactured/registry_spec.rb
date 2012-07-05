@@ -220,10 +220,12 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.running?.should be_true
 
      sys   = Cosmos::SolarSystem.new
-     ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+     ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1', :type => :mining
      entity  = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
+
+     sys.add_child entity
 
      # 1 mining operation every 2 seconds
      ship.mining_rate = 0.5
@@ -237,11 +239,11 @@ describe Manufactured::Registry do
 
     Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source
     sleep 1
-    ship.mining.should be_true
+    ship.mining?.should be_true
     Manufactured::Registry.instance.mining_commands.size.should == 1
     sleep 2
 
-    ship.mining.should be_false
+    ship.mining?.should be_false
     Manufactured::Registry.instance.mining_commands.should be_empty
 
     Manufactured::Registry.instance.terminate

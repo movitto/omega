@@ -136,6 +136,14 @@ class Ship
     (@location - entity.location) <= @attack_distance
   end
 
+  def can_mine?(resource_source)
+    # TODO eventually filter per specific resource mining capabilities
+    @type == :mining && !self.docked? &&
+    (@location.parent.id == resource_source.entity.location.parent.id) &&
+    (@location - resource_source.entity.location) <= @mining_distance &&
+    (cargo_quantity + @mining_quantity) <= @cargo_capacity
+  end
+
   def docked?
     !@docked_at.nil?
   end

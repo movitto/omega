@@ -680,7 +680,7 @@ describe Manufactured::RJRAdapter do
     rloc.movement_strategy.direction_vector_z.should == 0
     rloc.movement_callbacks.size.should == 1
 
-    sleep 1
+    sleep 2
 
     # verify ship has arrived and is no longer moving
     rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
@@ -1060,9 +1060,13 @@ describe Manufactured::RJRAdapter do
     gal1     = Cosmos::Galaxy.new :name => 'galaxy1'
     sys1     = Cosmos::SolarSystem.new :name => 'system1'
     ast1     = Cosmos::Asteroid.new :name => 'asteroid1'
-    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '100')
+    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :type => :mining, :solar_system => sys1, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
+    Motel::Runner.instance.run gal1.location
+    Motel::Runner.instance.run sys1.location
+    Motel::Runner.instance.run ast1.location
+    Motel::Runner.instance.run ship.location
     Manufactured::Registry.instance.create ship
     Manufactured::Registry.instance.mining_commands.size.should == 0
 
@@ -1071,21 +1075,25 @@ describe Manufactured::RJRAdapter do
     sys1.add_child ast1
     rs = Cosmos::Registry.instance.set_resource ast1.name, resource, 50
 
+    # invalid entity id
     lambda{
       @local_node.invoke_request('manufactured::start_mining', ship.id, 'non_existant', resource.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid resource id
     lambda{
       @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, 'non_existant')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid ship id
     lambda{
       @local_node.invoke_request('manufactured::start_mining', 'non_existant', ast1.name, resource.id)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, resource.id)
     #}.should raise_error(Omega::PermissionError)
@@ -1093,6 +1101,16 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('modify', 'manufactured_entities')
 
+    # ship cannot mine resource
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship.location.id }
+    rloc.x = 5000
+    lambda{
+      @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, resource.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+    rloc.x = 0
+
+    # valid call
     lambda{
       rship = @local_node.invoke_request('manufactured::start_mining', ship.id, ast1.name, resource.id)
       rship.class.should == Manufactured::Ship
@@ -1100,7 +1118,7 @@ describe Manufactured::RJRAdapter do
       rship.notification_callbacks.size.should == 2
       rship.notification_callbacks.first.type.should == :resource_collected
       rship.notification_callbacks.first.endpoint_id.should == Manufactured::RJRAdapter.send(:class_variable_get, :@@local_node).message_headers['source_node']
-      rship.notification_callbacks.last.type.should == :resource_depleted
+      rship.notification_callbacks.last.type.should == :mining_stopped
       rship.notification_callbacks.last.endpoint_id.should == Manufactured::RJRAdapter.send(:class_variable_get, :@@local_node).message_headers['source_node']
     }.should_not raise_error
 

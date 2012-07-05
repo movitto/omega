@@ -71,7 +71,6 @@ describe Manufactured::AttackCommand do
      defended_stopped_invoked.should be_false
      cmd.remove?.should be_false
 
-     sleep 1
      cmd.attack!
      attacked_invoked.should == 2
      attacked_stopped_invoked.should be_true
@@ -114,7 +113,6 @@ describe Manufactured::AttackCommand do
 
      defender.location.x = 200
 
-     sleep 1
      cmd.attack!
      attacked_invoked.should == 1
      attacked_stopped_invoked.should be_true
@@ -129,13 +127,16 @@ end
 
 describe Manufactured::MiningCommand do
   it "should run mining cycle" do
-     ship     = Manufactured::Ship.new  :id => 'ship1'
-     entity   = Cosmos::Asteroid.new :name => 'ast1'
+     sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
+     ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys1, :type => :mining
+     entity   = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys1
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
-     # 1 mining operation every 2 seconds
-     ship.mining_rate = 0.5
+     sys1.add_child(entity)
+
+     # 1 mining operations every second
+     ship.mining_rate = 1
 
      # need 3 mining operations to deplete source
      ship.mining_quantity = 5
@@ -156,14 +157,14 @@ describe Manufactured::MiningCommand do
      source.quantity.round_to(1).should == 5.3
      cmd.remove?.should be_false
 
-     sleep 2
+     sleep 1
      cmd.minable?.should be_true
      cmd.mine!
      ship.resources[resource.id].should == 10
      source.quantity.round_to(1).should == 0.3
      cmd.remove?.should be_false
 
-     sleep 2
+     sleep 1
      cmd.minable?.should be_true
      cmd.mine!
      ship.resources[resource.id].should == 10.3
@@ -172,10 +173,13 @@ describe Manufactured::MiningCommand do
   end
 
   it "should invoke mining cycle callbacks" do
-     ship     = Manufactured::Ship.new  :id => 'ship1', :location => Motel::Location.new(:x => 50, :y => 0, :z => 0)
-     entity   = Cosmos::Asteroid.new :name => 'ast1', :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
+     sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
+     ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys1, :type => :mining, :location => Motel::Location.new(:x => 50, :y => 0, :z => 0)
+     entity   = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys1, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
+
+     sys1.add_child entity
 
      # 1 mining operation every second
      ship.mining_rate = 1
@@ -202,7 +206,6 @@ describe Manufactured::MiningCommand do
      ship.resources[resource.id].should == 5
      source.quantity.should == 5
 
-     sleep 1
      cmd.mine!
      times_resources_collected.should == 2
      resources_depleted_invoked.should == true
@@ -218,8 +221,7 @@ describe Manufactured::MiningCommand do
      ship.add_resource("metal-alloy", 90)
      cmd.instance_variable_set(:@remove, false)
 
-     sleep 1
-     cmd.mine! if cmd.minable?
+     cmd.mine!
      times_resources_collected.should == 0
      resources_depleted_invoked.should == false
      stopped_reason.should == "ship_cargo_full"
@@ -236,14 +238,79 @@ describe Manufactured::MiningCommand do
      cmd.instance_variable_set(:@remove, false)
      ship.location.x = 120
 
-     sleep 1
-     cmd.mine! if cmd.minable?
+     cmd.mine!
      times_resources_collected.should == 0
      resources_depleted_invoked.should == false
      stopped_reason.should == "mining_distance_exceeded"
      cmd.remove?.should be_true
      ship.resources[resource.id].should == 10
      source.quantity.should == 50
+  end
+
+  it "should terminate mining cycle and invoke callbacks if ship can no longer mine resource source" do
+     sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
+     sys2  = Cosmos::SolarSystem.new :name => "sys2", :location => Motel::Location.new(:id => 2)
+     ship     = Manufactured::Ship.new  :id => 'ship1', :type => :mining, :solar_system => sys1, :location => Motel::Location.new(:x => 50, :y => 0, :z => 0)
+     stat     = Manufactured::Station.new :id => 'stat1', :solar_system => sys1
+     entity   = Cosmos::Asteroid.new :name => 'ast1', :solar_system => sys1, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
+     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
+     source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
+
+     sys1.add_child entity
+
+     # 1 mining operation every second
+     ship.mining_rate = 1
+
+     # need 2 mining operations to deplete source
+     ship.mining_quantity = 5
+     source.quantity = 20
+
+     # setup callbacks
+     stopped_reason = nil
+     ship.notification_callbacks << Manufactured::Callback.new('mining_stopped') { |cb, reason, nship, nresource|  stopped_reason = reason}
+
+     cmd = Manufactured::MiningCommand.new :ship => ship, :resource_source => source
+     cmd.mine!
+     stopped_reason.should be_nil
+     cmd.remove?.should be_false
+
+     ship.parent = sys2
+     ship.location.parent = sys2.location
+     cmd.mine!
+     cmd.remove?.should be_true
+     stopped_reason.should == 'mining_distance_exceeded'
+     stopped_reason = nil
+     cmd.instance_variable_set(:@remove, false)
+     ship.parent = sys1
+     ship.location.parent = sys1.location
+
+     ship.location.x = 500
+     cmd.mine!
+     cmd.remove?.should be_true
+     stopped_reason.should == 'mining_distance_exceeded'
+     stopped_reason = nil
+     cmd.instance_variable_set(:@remove, false)
+     ship.location.x = 0
+
+     ship.add_resource('metal-alloy', ship.cargo_capacity-1)
+     cmd.mine!
+     cmd.remove?.should be_true
+     stopped_reason.should == 'ship_cargo_full'
+     stopped_reason = nil
+     cmd.instance_variable_set(:@remove, false)
+     ship.remove_resource('metal-alloy', ship.cargo_capacity-1)
+
+     ship.dock_at(stat)
+     cmd.mine!
+     cmd.remove?.should be_true
+     stopped_reason.should == 'ship_docked'
+     stopped_reason = nil
+     cmd.instance_variable_set(:@remove, false)
+     ship.undock
+
+     cmd.mine!
+     stopped_reason.should be_nil
+     cmd.remove?.should be_false
   end
 
 end

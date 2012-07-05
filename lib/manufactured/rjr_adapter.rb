@@ -423,6 +423,11 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
+      # XXX don't like having to do this but need to load resource source's entity's location parent explicity
+      resource_source.entity.location.parent = @@local_node.invoke_request('motel::get_location', resource_source.entity.location.parent_id)
+
+      raise Omega::OperationError, "#{ship} cannot mine #{resource_source}" unless ship.can_mine?(resource_source)
+
       # resource_source is a copy of actual resource_source
       # stored in cosmos registry, need to update original
       collected_callback =
@@ -431,7 +436,7 @@ class RJRAdapter
           @@local_node.invoke_request('cosmos::set_resource', rs.entity.name, rs.resource, rs.quantity)
         }
       depleted_callback =
-        Callback.new(:resource_depleted, :endpoint => @@local_node.message_headers['source_node']){ |*args|
+        Callback.new(:mining_stopped, :endpoint => @@local_node.message_headers['source_node']){ |*args|
           ship.notification_callbacks.delete collected_callback
           ship.notification_callbacks.delete depleted_callback
         }

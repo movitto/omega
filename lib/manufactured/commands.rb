@@ -128,42 +128,48 @@ class MiningCommand
   # determine if we can mine using this mining command
   def minable?
     # elapsed time between mining cycles is less than ship's mining rate
-    if !@last_time_mined.nil? && ((Time.now - @last_time_mined) < (1 / @ship.mining_rate))
-      return false
-
-    # ship & resource are too far apart
-    # TODO refresh locations first
-    elsif ((@ship.location - @resource_source.entity.location) > @ship.mining_distance)
-      @remove = true # must issue subsequent mining requests
-      @ship.notification_callbacks.
-            select { |c| c.type == :mining_stopped }.
-            each   { |c|
-        c.invoke 'mining_stopped', 'mining_distance_exceeded', @ship, @resource_source
-      }
-      return false
-
-    # ship is at max capacity
-    elsif (@ship.cargo_quantity >= @ship.cargo_capacity)
-      @remove = true # must issue subsequent mining requests
-      @ship.notification_callbacks.
-            select { |c| c.type == :mining_stopped }.
-            each   { |c|
-        c.invoke 'mining_stopped', 'ship_cargo_full', @ship, @resource_source
-      }
-      return false
-    end
-
-    return true
+    return @last_time_mined.nil? || ((Time.now - @last_time_mined) > (1 / @ship.mining_rate))
   end
 
   def mine!
     RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource_source.id}"
+
+    # FIXME refresh locations first
+    unless @ship.can_mine?(@resource_source)
+      @remove = true # must issue subsequent mining requests
+      reason = ''
+
+      # ship & resource are too far apart or in different systems
+      if (@ship.location.parent.id != @resource_source.entity.location.parent.id ||
+          (@ship.location - @resource_source.entity.location) > @ship.mining_distance)
+        reason = 'mining_distance_exceeded'
+
+      # ship is at max capacity
+      elsif (@ship.cargo_quantity + @ship.mining_quantity) >= @ship.cargo_capacity
+        reason = 'ship_cargo_full'
+
+      # ship has become docked
+      elsif @ship.docked?
+        reason = 'ship_docked'
+
+      end
+
+      @ship.notification_callbacks.
+            select { |c| c.type == :mining_stopped }.
+            each   { |c|
+        c.invoke 'mining_stopped', reason, @ship, @resource_source
+      }
+
+      return
+    end
 
     @last_time_mined = Time.now
 
     # if resource_source has less than mining_quantity only transfer that amount
     mining_quantity = @ship.mining_quantity
     mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
+
+    # TODO synchronize multiple miners (eg one may mine and deplete a resource before this mining cycle is invoked
 
     @resource_source.quantity -= mining_quantity
     @ship.add_resource @resource_source.resource.id, mining_quantity

@@ -125,6 +125,38 @@ describe Manufactured::Ship do
     ship1.can_attack?(ship2).should be_true
   end
 
+  it "should return bool indicating if it can mine resource source" do
+    sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
+    sys2  = Cosmos::SolarSystem.new :name => "sys2", :location => Motel::Location.new(:id => 2)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :type => :mining
+    ast1  = Cosmos::Asteroid.new :name => 'ast1'
+    rs = Cosmos::ResourceSource.new :entity => ast1, :resource => Cosmos::Resource.new, :quantity => 500
+
+    sys1.add_child(ast1)
+
+    ship1.can_mine?(rs).should be_true
+
+    ship1.type = :corvette
+    ship1.can_mine?(rs).should be_false
+    ship1.type = :mining
+
+    ship1.location.x = 500
+    ship1.can_mine?(rs).should be_false
+    ship1.location.x = 0
+
+    ship1.parent = sys2
+    ship1.location.parent = sys2.location
+    ship1.can_mine?(rs).should be_false
+    ship1.parent = sys1
+    ship1.location.parent = sys1.location
+
+    ship1.add_resource('metal-alloy', ship1.cargo_capacity)
+    ship1.can_mine?(rs).should be_false
+    ship1.remove_resource('metal-alloy', ship1.cargo_capacity)
+
+    ship1.can_mine?(rs).should be_true
+  end
+
   it "should be dockable at stations" do
     ship = Manufactured::Ship.new :id => 'ship1'
     station = Manufactured::Station.new :id => 'station1'
