@@ -17,37 +17,6 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.stop
   end
 
-  it "should permit users with view locations to get_all_locations" do
-    TestUser.create.clear_privileges
-    lambda{
-      @local_node.invoke_request('motel::get_all_locations')
-    }.should raise_error(Exception)
-
-    TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
-
-    lambda{
-      @local_node.invoke_request('motel::get_all_locations')
-    }.should_not raise_error
-  end
-
-  it "should return all locations" do
-    loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
-                               :restrict_view => true
-
-    TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
-    Motel::Runner.instance.clear
-    locations = @local_node.invoke_request('motel::get_all_locations')
-    locations.class.should == Array
-    locations.size.should == 0
-
-    Motel::Runner.instance.run loc1
-    locations = @local_node.invoke_request('motel::get_all_locations')
-    locations.class.should == Array
-    locations.size.should == 1
-    locations.first.class.should == Motel::Location
-    locations.first.id.should == 42
-  end
-
   it "should raise exception if trying to find location that cannot be found" do
     Motel::Runner.instance.clear
     lambda{

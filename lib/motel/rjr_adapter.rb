@@ -16,12 +16,6 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('motel::get_all_locations') {
-       Users::Registry.require_privilege(:privilege => 'view', :entity => 'locations',
-                                         :session   => @headers['session_id'])
-       Runner.instance.locations
-    }
-
     rjr_dispatcher.add_handler('motel::get_location') { |location_id|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        # TODO pull in remote location if loc.remote_queue is set
