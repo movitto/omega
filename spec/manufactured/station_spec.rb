@@ -129,9 +129,45 @@ describe Manufactured::Station do
     station.resources.size.should == 1
     station.resources[res.id].should == 70
 
+    # should remove resource if set to 0
     station.remove_resource res.id, 70
-    station.resources.size.should == 1
-    station.resources[res.id].should == 0
+    station.resources.size.should == 0
+  end
+
+  it "should permit determining if station can transfer resources to entity" do
+    sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 1)
+    sys2 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 2)
+    station1   = Manufactured::Station.new :id => 'station1', :solar_system => sys1
+    station2   = Manufactured::Station.new :id => 'station2', :solar_system => sys1
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+
+    station1.add_resource(res.id, 50)
+
+    station1.can_transfer?(station2, res.id, 50).should be_true
+    station1.can_transfer?(station2, res.id, 5).should be_true
+
+    station1.can_transfer?(station1, res.id, 50).should be_false
+
+    station1.can_transfer?(station2, res.id, 500).should be_false
+    station1.can_transfer?(station2, 'gem-diamon', 5).should be_false
+
+    station1.solar_system = sys2
+    station1.can_transfer?(station2, res.id, 50).should be_false
+    station1.solar_system = sys1
+
+    station1.location.x = 500
+    station1.can_transfer?(station2, res.id, 50).should be_false
+    station1.location.x = 0
+
+    station1.can_transfer?(station2, res.id, 50).should be_true
+  end
+
+  it "should permit determining if station can accept resources" do
+    station   = Manufactured::Station.new :id => 'station1'
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+
+    station.can_accept?(res.id, 50).should be_true
+    station.can_accept?(res.id, 50000).should be_false
   end
 
   it "should permit retreival of current cargo quantity" do

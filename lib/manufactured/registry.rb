@@ -128,9 +128,8 @@ class Registry
       # TODO throw exception ?
       quantity = quantity.to_f
       return if from_entity.nil? || to_entity.nil? ||
-                from_entity.resources[resource_id].nil? ||
-                from_entity.resources[resource_id] < quantity ||
-                (to_entity.cargo_quantity + quantity) >= to_entity.cargo_capacity
+                !from_entity.can_transfer?(to_entity, resource_id, quantity) ||
+                !to_entity.can_accept?(resource_id, quantity)
       to_entity.add_resource(resource_id, quantity)
       from_entity.remove_resource(resource_id, quantity)
       return [from_entity, to_entity]
@@ -208,6 +207,7 @@ class Registry
         io.write entity.to_json + "\n"
       end
     }
+    # FIXME update to store attack + mining commands
   end
 
   # restore state of the registry from the specified stream

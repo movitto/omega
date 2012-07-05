@@ -62,6 +62,7 @@ class Station
     # FIXME make variable
     @cargo_capacity = 10000
     @docking_distance = 100
+    @transfer_distance = 100
 
     self.solar_system = args['solar_system'] || args[:solar_system]
     self.location = args['location'] || args[:location]
@@ -109,6 +110,7 @@ class Station
     return unless @resources.has_key?(resource_id) ||# TODO throw exception?
                   @resources[resource_id] >= quantity
     @resources[resource_id] -= quantity
+    @resources.delete(resource_id) if @resources[resource_id] <= 0
   end
 
   def cargo_quantity
@@ -117,6 +119,18 @@ class Station
       q += quantity
     }
     q
+  end
+
+  def can_transfer?(to_entity, resource_id, quantity)
+    @id != to_entity.id &&
+    @resources.has_key?(resource_id) &&
+    @resources[resource_id] >= quantity &&
+    (@location.parent.id == to_entity.location.parent.id) &&
+    ((@location - to_entity.location) <= @transfer_distance)
+  end
+
+  def can_accept?(resource_id, quantity)
+    self.cargo_quantity + quantity <= @cargo_capacity
   end
 
   # determine if the station can construct a new entity w/ the specified args

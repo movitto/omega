@@ -423,6 +423,9 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
+      # update ship's location
+      ship.location = @@local_node.invoke_request('motel::get_location', ship.location.id)
+
       # XXX don't like having to do this but need to load resource source's entity's location parent explicity
       resource_source.entity.location.parent = @@local_node.invoke_request('motel::get_location', resource_source.entity.location.parent_id)
 
@@ -451,6 +454,8 @@ class RJRAdapter
     #rjr_dispatcher.add_handler('manufactured::stop_mining') { |ship_id|
 
     rjr_dispatcher.add_handler('manufactured::transfer_resource') { |from_entity_id, to_entity_id, resource_id, quantity|
+      raise ArgumentError, "quantity must be an int / float > 0" if !quantity.is_a?(Integer) && !quantity.is_a?(Float) && quantity <= 0
+
       from_entity = Manufactured::Registry.instance.find(:id => from_entity_id).first
       to_entity   = Manufactured::Registry.instance.find(:id => to_entity_id).first
       raise Omega::DataNotFound, "entity specified by #{from_entity_id} not found" if from_entity.nil?
@@ -462,6 +467,13 @@ class RJRAdapter
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{to_entity.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
+
+      # update from & to entitys' location
+      from_entity.location = @@local_node.invoke_request('motel::get_location', from_entity.location.id)
+      to_entity.location   = @@local_node.invoke_request('motel::get_location', to_entity.location.id)
+
+      raise Omega::OperationError, "source entity cannot transfer resource" unless from_entity.can_transfer?(to_entity, resource_id, quantity)
+      raise Omega::OperationError, "destination entity cannot accept resource" unless to_entity.can_accept?(resource_id, quantity)
 
       entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource_id, quantity)
       raise Omega::OperationError, "problem transferring resources from #{from_entity} to #{to_entity}" if entities.nil?

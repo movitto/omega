@@ -92,6 +92,7 @@ class Ship
     @mining_rate  = 0.5
     @mining_quantity = 5
     @mining_distance = 100
+    @transfer_distance = 100
 
     @mining    = nil
 
@@ -183,6 +184,7 @@ class Ship
     return unless @resources.has_key?(resource_id) ||# TODO throw exception?
                   @resources[resource_id] >= quantity
     @resources[resource_id] -= quantity
+    @resources.delete(resource_id) if @resources[resource_id] <= 0
   end
 
   def cargo_quantity
@@ -191,6 +193,18 @@ class Ship
       q += quantity
     }
     q
+  end
+
+  def can_transfer?(to_entity, resource_id, quantity)
+    @id != to_entity.id &&
+    @resources.has_key?(resource_id) &&
+    @resources[resource_id] >= quantity &&
+    (@location.parent.id == to_entity.location.parent.id) &&
+    ((@location - to_entity.location) <= @transfer_distance)
+  end
+
+  def can_accept?(resource_id, quantity)
+    self.cargo_quantity + quantity <= @cargo_capacity
   end
 
   def to_json(*a)

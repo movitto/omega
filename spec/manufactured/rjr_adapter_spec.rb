@@ -1127,26 +1127,38 @@ describe Manufactured::RJRAdapter do
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to transfer_resource" do
     sys = Cosmos::SolarSystem.new
-    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
-    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
     u = TestUser.create.login(@local_node).clear_privileges
 
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
+    Motel::Runner.instance.run sys.location
+    Motel::Runner.instance.run ship1.location
+    Motel::Runner.instance.run stat1.location
 
     ship1.add_resource resource.id, 50
 
+    # invalid quantity
+    lambda{
+      @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, -10)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid from_entity id
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', 'non_existant', stat1.id, resource.id, 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # invalid to_entity id
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', ship1.id, 'non_existant', resource.id, 10)
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
     #}.should raise_error(Omega::PermissionError)
@@ -1154,6 +1166,7 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('modify', 'manufactured_entity-' + ship1.id)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
     #}.should raise_error(Omega::PermissionError)
@@ -1163,16 +1176,19 @@ describe Manufactured::RJRAdapter do
 
     nres = Cosmos::Resource.new :type => 'gem', :name => 'ruby'
 
+    # invalid resource
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, nres.id, 10)
     #}.should raise_error(Omega::OperationError)
     }.should raise_error(Exception)
 
+    # too large quantity
     lambda{
       @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 1000)
     #}.should raise_error(Omega::OperationError)
     }.should raise_error(Exception)
 
+    # valid call
     lambda{
       ret = @local_node.invoke_request('manufactured::transfer_resource', ship1.id, stat1.id, resource.id, 10)
       ret.class.should == Array
@@ -1184,6 +1200,7 @@ describe Manufactured::RJRAdapter do
     ship1.resources[resource.id].should == 40
     stat1.resources[resource.id].should == 10
 
+    # valid call
     lambda{
       ret = @local_node.invoke_request('manufactured::transfer_resource', stat1.id, ship1.id, resource.id, 5)
       ret.class.should == Array
