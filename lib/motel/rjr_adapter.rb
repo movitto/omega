@@ -75,30 +75,37 @@ class RJRAdapter
        return_first ? locs.first : locs
     }
 
-    rjr_dispatcher.add_handler('motel::create_location') { |*args|
+    rjr_dispatcher.add_handler('motel::create_location') { |new_location|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'locations',
                                          :session   => @headers['session_id'])
 
-       location = args.size == 0 ? Location.new : args[0]
-       #location = Location.new location if args[0].is_a? Hash
+       raise ArgumentError, "#{new_location} must be a location" unless new_location.is_a?(Motel::Location)
 
-       unless location.parent_id.nil?
-         parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id }
-         parent.add_child(location) unless parent.nil?
-         location.parent = parent
+       unless new_location.parent_id.nil?
+         # if parent.nil? throw error?
+         parent = Runner.instance.locations.find { |loc| loc.id == new_location.parent_id }
+         parent.add_child(new_location) unless parent.nil?
+         new_location.parent = parent
        end
 
-       location.x = 0 if location.x.nil?
-       location.y = 0 if location.y.nil?
-       location.z = 0 if location.z.nil?
+       new_location.x = 0 unless new_location.x.is_a?(Integer) || new_location.x.is_a?(Float)
+       new_location.y = 0 unless new_location.y.is_a?(Integer) || new_location.y.is_a?(Float)
+       new_location.z = 0 unless new_location.z.is_a?(Integer) || new_location.z.is_a?(Float)
+       new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance unless new_location.movement_strategy.kind_of?(Motel::MovementStrategy)
 
-       if location.remote_queue
-         @@remote_location_manager.create_location(location)
+       new_location.movement_callbacks  = []
+       new_location.proximity_callbacks = []
+       new_location.children = []
+
+       if new_location.remote_queue
+         @@remote_location_manager.create_location(new_location)
        end
 
-       Runner.instance.run location unless Runner.instance.has_location?(location.id)
+       # id gets set here
+       # if id exists, throw error? or invoke update_location?
+       Runner.instance.run new_location unless Runner.instance.has_location?(new_location.id)
 
-       location
+       new_location
     }
 
     rjr_dispatcher.add_handler("motel::update_location") { |location|

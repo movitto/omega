@@ -13,6 +13,10 @@ describe Motel::RJRAdapter do
     @local_node = RJR::LocalNode.new :node_id => 'omega-test'
   end
 
+  before(:each) do
+    Motel::Runner.instance.clear
+  end
+
   after(:all) do
     Motel::Runner.instance.stop
   end
@@ -123,6 +127,7 @@ describe Motel::RJRAdapter do
 
     Motel::Runner.instance.locations.size.should == 0
 
+    # not logged in
     lambda{
       @local_node.invoke_request('motel::create_location', loc1)
     #}.should raise_error(Omega::PermissionError, "session not found")
@@ -130,6 +135,7 @@ describe Motel::RJRAdapter do
 
     u.login(@local_node)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('motel::create_location', loc1)
     #}.should raise_error(Omega::PermissionError)
@@ -137,6 +143,13 @@ describe Motel::RJRAdapter do
 
     u.add_privilege('create', 'locations')
 
+    # not a location
+    lambda{
+      rloc = @local_node.invoke_request('motel::create_location', "loc1")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       rloc = @local_node.invoke_request('motel::create_location', loc1)
       rloc.class.should == Motel::Location
@@ -147,10 +160,10 @@ describe Motel::RJRAdapter do
   end
 
   it "should validate and initialize new locations" do
-    loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new
+    loc1 = Motel::Location.new :id => 42, :x => 50, :children => [123], :movement_strategy => TestMovementStrategy.new
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('create', 'locations')
 
-    loc2 = Motel::Location.new :id => 43, :movement_strategy => TestMovementStrategy.new
+    loc2 = Motel::Location.new :id => 43, :y => '50', :movement_callbacks => [Motel::Callbacks::Movement.new], :movement_strategy => 'invalid'
     loc1.parent_id = loc2.id
 
     lambda{
@@ -165,12 +178,16 @@ describe Motel::RJRAdapter do
     rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
     rloc2 = Motel::Runner.instance.locations.find { |l| l.id == 43 }
 
-    rloc1.x.should == 0
+    rloc1.x.should == 50
     rloc1.y.should == 0
     rloc1.z.should == 0
     rloc2.x.should == 0
-    rloc2.y.should == 0
+    rloc2.y.should == 50
     rloc2.z.should == 0
+
+    rloc1.children.size.should == 0
+    rloc2.movement_callbacks.size.should == 0
+    rloc2.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
   end
 
   it "should permit users with modify locations or modify location-<id> to update_location" do

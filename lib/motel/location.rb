@@ -49,27 +49,29 @@ class Location
 
    def initialize(args = {})
       # default to the stopped movement strategy
-      @movement_strategy = MovementStrategies::Stopped.instance
-      @movement_callbacks = []
-      @proximity_callbacks = []
-      @children = []
-      @parent_id = nil
+      @movement_strategy   = args[:movement_strategy]   || args['movement_strategy']   || MovementStrategies::Stopped.instance
+      @movement_callbacks  = args[:movement_callbacks]  || args['movement_callbacks']  || []
+      @proximity_callbacks = args[:proximity_callbacks] || args['proximity_callbacks'] || []
+      @children            = args[:children]            || args['children']            || []
+      @parent_id           = args[:parent_id]           || args['parent_id']           || nil
+      @parent              = args[:parent]              || args[:parent]
 
-      @id = nil
-      @x = nil
-      @y = nil
-      @z = nil
+      @id                  = args[:id]                  || args['id']                  || nil
+      @x                   = args[:x]                   || args['x']                   || nil
+      @y                   = args[:y]                   || args['y']                   || nil
+      @z                   = args[:z]                   || args['z']                   || nil
 
-      @restrict_view   = true
-      @restrict_modify = true
+      @restrict_view       = true
+      @restrict_view       = args[:restrict_view]  if args.has_key?(:restrict_view)
+      @restrict_view       = args['restrict_view'] if args.has_key?('restrict_view')
 
-      @remote_queue = nil
+      @restrict_modify     = true
+      @restrict_modify     = args[:restrict_modify]  if args.has_key?(:restrict_modify)
+      @restrict_modify     = args['restrict_modify'] if args.has_key?('restrict_modify')
 
-      args.each { |k,v|
-        inst_attr = ('@' + k.to_s).to_sym
-        instance_variable_set(inst_attr, args[k])
-      }
+      @remote_queue        = args[:remote_queue]        || args['remote_queue']        || nil
 
+      # FIXME catch parsing errors
       @x = @x.to_f unless @x.nil?
       @y = @y.to_f unless @y.nil?
       @z = @z.to_f unless @z.nil?
