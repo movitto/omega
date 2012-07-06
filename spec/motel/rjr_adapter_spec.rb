@@ -200,6 +200,7 @@ describe Motel::RJRAdapter do
 
     loc1.x = 50
 
+    # not logged in
     lambda{
       @local_node.invoke_request('motel::update_location', loc1)
     #}.should raise_error(Omega::PermissionError, "session not found")
@@ -207,6 +208,7 @@ describe Motel::RJRAdapter do
 
     u.login(@local_node)
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('motel::update_location', loc1)
     #}.should raise_error(Omega::PermissionError)
@@ -214,6 +216,28 @@ describe Motel::RJRAdapter do
 
     u.add_privilege('modify', 'locations')
 
+    # invalid location
+    lambda{
+      @local_node.invoke_request('motel::update_location', "loc1")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid location id
+    loc1.id = nil
+    lambda{
+      @local_node.invoke_request('motel::update_location', loc1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+    loc1.id = 42
+
+    # invalid location id (doesn't exist)
+    loc2 = Motel::Location.new :id => 43
+    lambda{
+      @local_node.invoke_request('motel::update_location', loc2)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       rloc1 = @local_node.invoke_request('motel::update_location', loc1)
       rloc1.class.should == Motel::Location
@@ -223,6 +247,7 @@ describe Motel::RJRAdapter do
     rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
     rloc1.x.should == 50
 
+    # valid call
     loc1.x = 70
     u.clear_privileges.add_privilege('modify', 'location-' + loc1.id.to_s)
     lambda{
@@ -251,23 +276,31 @@ describe Motel::RJRAdapter do
   end
 
   it "should permit any user to update_location that does not restrict modify" do
+    loc33 = Motel::Location.new :id => 33
     loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
                                :restrict_modify => false
     u = TestUser.create.login(@local_node).clear_privileges
 
     Motel::Runner.instance.clear
+    Motel::Runner.instance.run loc33
     Motel::Runner.instance.run loc1
 
-    loc1.x = 50
+    loc1a = Motel::Location.new :id => 42, :x => 50, :y => '-10', :movement_strategy => 'invalid',
+                                           :remote_queue => 'queue', :parent_id => 33
 
     lambda{
-      rloc1 = @local_node.invoke_request('motel::update_location', loc1)
+      rloc1 = @local_node.invoke_request('motel::update_location', loc1a)
       rloc1.class.should == Motel::Location
       rloc1.id.should == loc1.id
     }.should_not raise_error
 
+    rloc33= Motel::Runner.instance.locations.find { |l| l.id == 33 }
     rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
     rloc1.x.should == 50
+    rloc1.y.should == -10
+    rloc1.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+    rloc1.remote_queue.should be_nil
+    rloc1.parent.should == rloc33
   end
 
   it "should permit users with view locations or view location-<id> to track movement of locations" do
