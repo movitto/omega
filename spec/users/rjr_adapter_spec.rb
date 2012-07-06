@@ -199,6 +199,13 @@ describe Users::RJRAdapter do
 
     lu = Users::User.new :id => 'non_existant', :password => 'incorrect'
 
+    # not a user
+    lambda{
+      @local_node.invoke_request('users::login', 'lu')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid user id
     lambda{
       @local_node.invoke_request('users::login', lu)
     #}.should raise_error(Omega::DataNotFound)
@@ -206,6 +213,7 @@ describe Users::RJRAdapter do
 
     lu.id = 'user44'
 
+    # invalid password
     lambda{
       @local_node.invoke_request('users::login', lu)
     #}.should raise_error(ArgumentError)
@@ -213,6 +221,7 @@ describe Users::RJRAdapter do
 
     lu.password = 'foobar'
 
+    # valid call
     session = nil
     lambda{
       session = @local_node.invoke_request('users::login', lu)
@@ -222,6 +231,13 @@ describe Users::RJRAdapter do
 
     Users::Registry.instance.sessions.size.should == 2
 
+    # invalid session
+    lambda{
+      @local_node.invoke_request('users::logout', 'session.id')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('users::logout', session.id)
     #}.should raise_error(Omega::PermissionError)
@@ -229,6 +245,7 @@ describe Users::RJRAdapter do
 
     u.add_privilege('modify', 'user-' + nu1.id)
 
+    # valid call
     lambda{
       ret = @local_node.invoke_request('users::logout', session.id)
       ret.should be_nil

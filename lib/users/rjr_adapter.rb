@@ -87,6 +87,7 @@ class RJRAdapter
      }
 
      rjr_dispatcher.add_handler('users::login') { |user|
+       raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)
        session = nil
        user_entity = Users::Registry.instance.find(:id => user.id).first
        raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
@@ -101,6 +102,7 @@ class RJRAdapter
 
      rjr_dispatcher.add_handler('users::logout') { |session_id|
        user = Users::Registry.instance.find(:session_id => session_id).first
+       raise Omega::DataNotFound, "user specified by session_id #{session_id} not found" if user.nil?
        Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
                                                   {:privilege => 'modify', :entity => 'users'}],
                                          :session   => @headers['session_id'])
