@@ -110,6 +110,7 @@ function OmegaHandlers(){
 
       }else if(entity.json_class == "Manufactured::Ship"){
         if(entity.system.name == system_name){
+          client.track_movement(entity.location.id, 25);
           entity.location.draw = function(ship){ canvas_ui.draw_ship(ship); }
           entity.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
         }else{

@@ -413,7 +413,6 @@ $('#command_ship_move').live('click', function(e){
      new_loc.id = controls.selected_ships[sh].location.id;
      new_loc.parent_id = client.current_system.location.id;
      client.move_entity(controls.selected_ships[sh].id, new_loc);
-     client.track_movement(controls.selected_ships[sh].location.id, 25);
      shi = (shi + 1) * -1;
      // FIXME when ship arrives on location, unregister handler
    }
