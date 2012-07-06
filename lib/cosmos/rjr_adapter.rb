@@ -122,7 +122,7 @@ class RJRAdapter
                parent.add_child(rchild)
 
              else
-               child.location = @@local_node.invoke_request('motel::get_location', child.location.id)
+               child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
                child.location.parent = parent.location
              end
 
@@ -136,7 +136,7 @@ class RJRAdapter
            entities[i] = @@remote_cosmos_manager.get_entity(entity)
          else
            # update locations w/ latest from the tracker
-           entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id) if entity.location
+           entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
            entity.location.parent = entity.parent.location if entity.parent
          end
        }

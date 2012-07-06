@@ -147,7 +147,7 @@ class RJRAdapter
 
        entities.each { |entity|
          unless entity.is_a?(Manufactured::Fleet)
-           entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
+           entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
          end
        }
 
@@ -224,7 +224,7 @@ class RJRAdapter
       raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
 
       # update the entity's location
-      entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
+      entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
 
       # if parents don't match, we are moving entity between systems
       if entity.parent.id != parent.id
@@ -238,6 +238,7 @@ class RJRAdapter
         end
 
         # simply set parent and location
+        # FIXME set new_location x, y, z to vicinity of jump gate (or reverse gate if found)
         entity.parent   = parent
         new_location.id = entity.location.id
         entity.location = new_location
@@ -298,8 +299,8 @@ class RJRAdapter
       raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
 
       # update the entities' locations
-      entity.location = @@local_node.invoke_request('motel::get_location', entity.location.id)
-      target_entity.location = @@local_node.invoke_request('motel::get_location', target_entity.location.id)
+      entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+      target_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', target_entity.location.id)
 
       # ensure entities are in the same system
       raise ArgumentError, "entity #{entity} must be in the same system as entity to follow #{target_entity}" if entity.location.parent.id != target_entity.location.parent.id
@@ -346,8 +347,8 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      attacker.location = @@local_node.invoke_request('motel::get_location', attacker.location.id)
-      defender.location = @@local_node.invoke_request('motel::get_location', defender.location.id)
+      attacker.location = @@local_node.invoke_request('motel::get_location', 'with_id', attacker.location.id)
+      defender.location = @@local_node.invoke_request('motel::get_location', 'with_id', defender.location.id)
 
       raise Omega::OperationError, "#{attacker} cannot attack #{defender}" unless attacker.can_attack?(defender)
 
@@ -374,8 +375,8 @@ class RJRAdapter
                                         :session => @headers['session_id'])
 
       # update ship / station location
-      ship.location = @@local_node.invoke_request('motel::get_location', ship.location.id)
-      station.location = @@local_node.invoke_request('motel::get_location', station.location.id)
+      ship.location = @@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id)
+      station.location = @@local_node.invoke_request('motel::get_location', 'with_id', station.location.id)
 
       raise Omega::OperationError, "#{ship} cannot dock at #{station}" unless station.dockable?(ship)
 
@@ -424,10 +425,10 @@ class RJRAdapter
                                         :session => @headers['session_id'])
 
       # update ship's location
-      ship.location = @@local_node.invoke_request('motel::get_location', ship.location.id)
+      ship.location = @@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id)
 
       # XXX don't like having to do this but need to load resource source's entity's location parent explicity
-      resource_source.entity.location.parent = @@local_node.invoke_request('motel::get_location', resource_source.entity.location.parent_id)
+      resource_source.entity.location.parent = @@local_node.invoke_request('motel::get_location', 'with_id', resource_source.entity.location.parent_id)
 
       raise Omega::OperationError, "#{ship} cannot mine #{resource_source}" unless ship.can_mine?(resource_source)
 
@@ -469,8 +470,8 @@ class RJRAdapter
                                         :session => @headers['session_id'])
 
       # update from & to entitys' location
-      from_entity.location = @@local_node.invoke_request('motel::get_location', from_entity.location.id)
-      to_entity.location   = @@local_node.invoke_request('motel::get_location', to_entity.location.id)
+      from_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', from_entity.location.id)
+      to_entity.location   = @@local_node.invoke_request('motel::get_location', 'with_id', to_entity.location.id)
 
       raise Omega::OperationError, "source entity cannot transfer resource" unless from_entity.can_transfer?(to_entity, resource_id, quantity)
       raise Omega::OperationError, "destination entity cannot accept resource" unless to_entity.can_accept?(resource_id, quantity)

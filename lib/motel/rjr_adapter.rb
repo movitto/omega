@@ -16,47 +16,49 @@ class RJRAdapter
   end
 
   def self.register_handlers(rjr_dispatcher)
-    rjr_dispatcher.add_handler('motel::get_location') { |location_id|
-       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
-       # TODO pull in remote location if loc.remote_queue is set
-       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
-
-       if loc.restrict_view
-         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
-                                                    {:privilege => 'view', :entity => 'locations'}],
-                                           :session => @headers['session_id'])
+    rjr_dispatcher.add_handler(['motel::get_location', 'motel::get_locations']) { |*args|
+       return_first = false
+       filters = []
+       while qualifier = args.shift
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "within"].include?(qualifier)
+         filter = case qualifier
+                    when "with_id"
+                      return_first = true
+                      val = args.shift
+                      raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
+                      lambda { |loc| loc.id == val }
+                    when "within"
+                      distance = args.shift
+                      raise ArgumentError, "qualifier #{qualifier} requires int or float distance > 0" if distance.nil? || (!distance.is_a?(Integer) && !distance.is_a?(Float)) || distance <= 0
+                      qualifier = args.shift
+                      plocation  = args.shift
+                      raise ArgumentError, "must specify 'of location' when specifing 'within distance'" if qualifier != "of" || plocation.nil? || !plocation.is_a?(Motel::Location)
+                      lambda { |loc| loc.parent_id == plocation.parent_id &&
+                                     (loc - plocation) <= distance }
+                  end
+         filters << filter
        end
 
-       # traverse and pull in children managed by remote trackers
-       loc.each_child { |rparent, rchild|
-         if rchild.remote_queue
-           remote_child = @@remote_location_manager.get_location(rchild)
+       locs = Runner.instance.locations
+       filters.each { |f| locs = locs.select &f }
 
-           # swap child for remote_child
-           # we lose attributes of original child's not sent over rjr
-           # TODO just update rchild ?
-           rparent.remove_child(rchild.id)
-           rparent.add_child(remote_child)
-         end
+       # TODO pull in remote location if loc.remote_queue is set
+
+       if return_first
+         raise Omega::DataNotFound, "location specified by id not found" if locs.empty?
+         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{locs.first.id}"},
+                                                    {:privilege => 'view', :entity => 'locations'}],
+                                           :session => @headers['session_id']) if locs.first.restrict_view
+       end
+
+       locs.reject! { |loc|
+         loc.restrict_view &&
+         !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                                   {:privilege => 'view', :entity => 'locations'}],
+                                          :session => @headers['session_id'])
        }
 
-       loc
-    }
-
-    rjr_dispatcher.add_handler('motel::get_locations_within_proximity') { |location, max_distance|
-      locations = Runner.instance.locations.select { |loc|
-        (loc.parent_id == location.parent_id) &&
-        (loc - location) <= max_distance
-      }
-      locations.reject! { |loc|
-        loc.restrict_view &&
-        !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
-                                                  {:privilege => 'view', :entity => 'locations'}],
-                                         :session => @headers['session_id'])
-      }
-
-
-       locations.each { |loc|
+       locs.each { |loc|
          loc.each_child { |rparent, rchild|
            if rchild.remote_queue
              remote_child = @@remote_location_manager.get_location(rchild)
@@ -70,7 +72,7 @@ class RJRAdapter
          }
        }
 
-       locations
+       return_first ? locs.first : locs
     }
 
     rjr_dispatcher.add_handler('motel::create_location') { |*args|

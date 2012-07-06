@@ -51,7 +51,7 @@ describe Motel::RJRAdapter do
   end
 
   it "should get remotely tracked locations" do
-    loc1 = @local_node.invoke_request('motel::get_location', 1)
+    loc1 = @local_node.invoke_request('motel::get_location', 'with_id', 1)
     loc1.id.should == 1
     loc1.children.size.should == 1
 
@@ -74,7 +74,7 @@ describe Motel::RJRAdapter do
     @local_node.invoke_request('motel::create_location', loc)
 
     # retrieve location from remote queue
-    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'create_test')
+    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'with_id', 'create_test')
     rloc.class.should == Motel::Location
     rloc.id.should == 'create_test'
   end
@@ -88,7 +88,7 @@ describe Motel::RJRAdapter do
     @local_node.invoke_request('motel::update_location', loc)
 
     # retrieve location from remote queue
-    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'update_test')
+    rloc = @amqp_node.invoke_request('remote_server-queue', 'motel::get_location', 'with_id', 'update_test')
     rloc.class.should == Motel::Location
     rloc.id.should == 'update_test'
     rloc.x.should == 50

@@ -20,12 +20,12 @@ describe Motel::RJRAdapter do
   it "should raise exception if trying to find location that cannot be found" do
     Motel::Runner.instance.clear
     lambda{
-      @local_node.invoke_request('motel::get_location', 'foobar')
+      @local_node.invoke_request('motel::get_location', 'with_id', 'foobar')
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
   end
 
-  it "should permit users with view location or view location-<id> to get_all_location" do
+  it "should permit users with view location or view location-<id> to get_location" do
     loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
                                :restrict_view => true
     u = TestUser.create.clear_privileges
@@ -34,21 +34,21 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc1
 
     lambda{
-      @local_node.invoke_request('motel::get_location', loc1.id)
+      @local_node.invoke_request('motel::get_location', 'with_id', loc1.id)
     #}.should raise_error(Omega::PermissionError, "session not found")
     }.should raise_error(Exception, "session not found")
 
     u.login(@local_node)
 
     lambda{
-      @local_node.invoke_request('motel::get_location', loc1.id)
+      @local_node.invoke_request('motel::get_location', 'with_id', loc1.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('view', 'locations')
 
     lambda{
-      rloc = @local_node.invoke_request('motel::get_location', loc1.id)
+      rloc = @local_node.invoke_request('motel::get_location', 'with_id', loc1.id)
       rloc.class.should == Motel::Location
       rloc.id.should == loc1.id
     }.should_not raise_error
@@ -56,7 +56,7 @@ describe Motel::RJRAdapter do
     u.clear_privileges.add_privilege('view', 'location-' + loc1.id.to_s)
 
     lambda{
-      rloc = @local_node.invoke_request('motel::get_location', loc1.id)
+      rloc = @local_node.invoke_request('motel::get_location', 'with_id', loc1.id)
       rloc.class.should == Motel::Location
       rloc.id.should == loc1.id
     }.should_not raise_error
@@ -71,7 +71,7 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc1
 
     lambda{
-      rloc = @local_node.invoke_request('motel::get_location', loc1.id)
+      rloc = @local_node.invoke_request('motel::get_location', 'with_id', loc1.id)
       rloc.class.should == Motel::Location
       rloc.id.should == loc1.id
     }.should_not raise_error
@@ -91,13 +91,25 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc3
     Motel::Runner.instance.run loc4
 
-    locations = @local_node.invoke_request('motel::get_locations_within_proximity', loc1, 7)
+    locations = @local_node.invoke_request('motel::get_locations', 'within', 7, 'of', loc1)
     locations.class.should == Array
     locations.size.should == 0
 
     u.add_privilege('view', 'locations')
 
-    locations = @local_node.invoke_request('motel::get_locations_within_proximity', loc1, 7)
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('motel::get_locations', 'within', -7, 'of', loc1)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    # invalid location
+    lambda{
+      @local_node.invoke_request('motel::get_locations', 'within', -7, 'of', "loc1")
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    locations = @local_node.invoke_request('motel::get_locations', 'within', 7, 'of', loc1)
     locations.class.should == Array
     locations.size.should == 1
     locations.first.id.should == loc3.id # only loc3 shares same parent and is close enough

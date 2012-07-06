@@ -213,7 +213,7 @@ end
 def nearby_locations(location, distance)
   client = Omega::Client.new
   RJR::Logger.info "retrieving locations within #{distance} of #{location}"
-  client.queue_request 'motel::get_locations_within_proximity', location, distance
+  client.queue_request 'motel::get_locations', 'within', distance, 'of', location
   client.invoke_requests(Motel::Location)
 end
 
