@@ -84,11 +84,11 @@ function CosmosClient() {
   }
 
   this.send_message = function(message){
-    client.web_node.invoke_request('users::send_message', client.current_user.id, message);
+    client.web_node.invoke_request('users::send_message', message);
   }
 
   this.subscribe_to_messages = function(){
-    client.ws_node.invoke_request('users::subscribe_to_messages', client.current_user.id);
+    client.ws_node.invoke_request('users::subscribe_to_messages');
   }
 
   this.subscribe_to_attacked_events = function(defender){

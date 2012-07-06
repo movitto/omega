@@ -374,6 +374,13 @@ describe Users::RJRAdapter do
 
     uu = Users::User.new :id => 'non_existant', :password => 'foozbar'
 
+    # not a user
+    lambda{
+      @local_node.invoke_request('users::update_user', 'uu')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid user id
     lambda{
       @local_node.invoke_request('users::update_user', uu)
     #}.should raise_error(Omega::DataNotFound)
@@ -381,6 +388,7 @@ describe Users::RJRAdapter do
     
     uu.id = 'user43'
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('users::update_user', uu)
     #}.should raise_error(Omega::PermissionError)
@@ -388,6 +396,7 @@ describe Users::RJRAdapter do
 
     u.add_privilege('modify', 'users')
 
+    # valid call
     lambda{
       ru = @local_node.invoke_request('users::update_user', uu)
       ru.class.should == Users::User

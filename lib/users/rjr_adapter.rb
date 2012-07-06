@@ -59,18 +59,24 @@ class RJRAdapter
        entities
     }
 
-    rjr_dispatcher.add_handler('users::send_message') { |user_id, message|
-      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user_id}"},
+    rjr_dispatcher.add_handler('users::send_message') { |message|
+      raise ArgumentError, "message must be a string of non-zero length" unless message.is_a?(String) && message != ""
+
+      user = Users::Registry.instance.current_user
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
                                                  {:privilege => 'modify', :entity => 'users'}],
                                         :session   => @headers['session_id'])
 
-       Users::ChatProxy.proxy_for(user_id).proxy_message message
+       Users::ChatProxy.proxy_for(user.id).proxy_message message
        nil
      }
 
-    rjr_dispatcher.add_handler('users::subscribe_to_messages') { |user_id|
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user-#{id}"},
-                                                  {:privilege => 'view', :entity => "users_entity-#{id}"},
+    rjr_dispatcher.add_handler('users::subscribe_to_messages') {
+       user = Users::Registry.instance.current_user
+
+       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user-#{user.id}"},
+                                                  {:privilege => 'view', :entity => "users_entity-#{user.id}"},
                                                   {:privilege => 'view', :entity => 'users_entities'}],
                                          :session => @headers['session_id'])
 
@@ -78,11 +84,11 @@ class RJRAdapter
          begin
            @rjr_callback.invoke('users::on_message', message)
          rescue RJR::Errors::ConnectionError => e
-           RJR::Logger.warn "subscribe_to_messages #{user_id} client disconnected"
-           # Users::ChatProxy.proxy_for(user_id).remove_callback # FIXME
+           RJR::Logger.warn "subscribe_to_messages #{user.id} client disconnected"
+           # Users::ChatProxy.proxy_for(user.id).remove_callback # FIXME
          end
        }
-       Users::ChatProxy.proxy_for(user_id).add_callback callback
+       Users::ChatProxy.proxy_for(user.id).add_callback callback
        nil
      }
 
@@ -160,6 +166,8 @@ class RJRAdapter
      }
 
      rjr_dispatcher.add_handler("users::update_user") { |user|
+       raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)
+
        user_entity = Users::Registry.instance.find(:id => user.id).first
        raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
        Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
