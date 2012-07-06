@@ -11,6 +11,10 @@ module Users
 
 class Registry
   include Singleton
+
+  # valid types this registry tracks
+  VALID_TYPES = [Users::User, Users::Alliance]
+
   # user entities registry
   def users
     u = []
@@ -77,6 +81,7 @@ class Registry
 
       end
     }
+    entity
   end
 
   def remove(id)

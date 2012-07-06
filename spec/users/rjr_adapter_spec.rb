@@ -32,8 +32,10 @@ describe Users::RJRAdapter do
 
     Users::Registry.instance.users.size.should == 1
 
+    # exception for local node needs to be overrided
     @local_node.node_type = 'local-test'
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('users::create_entity', nu1)
     #}.should raise_error(Omega::PermissionError)
@@ -41,11 +43,24 @@ describe Users::RJRAdapter do
 
     u.add_privilege('create', 'users_entities')
 
+    # invalid entity
+    lambda{
+      @local_node.invoke_request('users::create_entity', 123)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       ru = @local_node.invoke_request('users::create_entity', nu1)
       ru.class.should == Users::User
       ru.id.should == nu1.id
     }.should_not raise_error
+
+    # invalid entity (duplicate id)
+    lambda{
+      @local_node.invoke_request('users::create_entity', nu1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
 
     Users::Registry.instance.users.size.should == 2
 
@@ -53,6 +68,7 @@ describe Users::RJRAdapter do
 
     @local_node.node_type = :local
 
+    # valid call
     lambda{
       ru = @local_node.invoke_request('users::create_entity', nu2)
       ru.class.should == Users::User

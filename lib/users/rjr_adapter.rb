@@ -9,8 +9,8 @@ module Users
 
 class RJRAdapter
   def self.init
+    Users::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
-    #Users::Registry.instance.init
   end
 
   def self.register_handlers(rjr_dispatcher)
@@ -20,8 +20,10 @@ class RJRAdapter
                                            :session   => @headers['session_id'])
        end
 
+       raise ArgumentError, "entity must be one of #{Users::Registry::VALID_TYPES}" unless Users::Registry::VALID_TYPES.include?(entity.class)
+       raise ArgumentError, "entity id #{entity.id} already taken" unless Users::Registry.instance.find(:type => entity.class.to_s, :id => entity.id).empty?
+
        Users::Registry.instance.create entity
-       entity
     }
 
     rjr_dispatcher.add_handler('users::get_entity'){ |id|
@@ -73,6 +75,7 @@ class RJRAdapter
        user_entity = Users::Registry.instance.find(:id => user.id).first
        raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
        if user_entity.valid_login?(user.id, user.password)
+         # FIXME store the source_node which this user session is valid for (ensure this is the same everywhere source_node is used)
          session = Users::Registry.instance.create_session(user_entity)
        else
          raise ArgumentError, "invalid user"
