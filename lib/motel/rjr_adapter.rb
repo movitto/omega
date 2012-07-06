@@ -162,7 +162,9 @@ class RJRAdapter
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
 
+       raise ArgumentError, "min_distance must be an int or float > 0" unless (min_distance.is_a?(Integer) || min_distance.is_a?(Float)) && min_distance > 0
 
+       # FIXME verify source_node is one session was authenticated against
        on_movement = 
          Callbacks::Movement.new :endpoint => @headers['source_node'],
                                  :min_distance => min_distance,
@@ -203,6 +205,11 @@ class RJRAdapter
        raise Omega::DataNotFound, "location specified by #{location1_id} not found" if loc1.nil?
        raise Omega::DataNotFound, "location specified by #{location2_id} not found" if loc2.nil?
 
+       valid_events = ['proximity', 'entered_proximity', 'left_proximity']
+       raise ArgumentError, "event must be one of #{valid_events.join(", ")}" unless valid_events.include?(event)
+       raise ArgumentError, "max_distance must be an int or float > 0" unless (max_distance.is_a?(Integer) || max_distance.is_a?(Float)) && max_distance > 0
+
+       # FIXME verify source_node is one session was authenticated against
        on_proximity =
          Callbacks::Proximity.new :endpoint => @headers['source_node'],
                                   :to_location => loc2,
@@ -246,13 +253,15 @@ class RJRAdapter
       location_id = args[0]
       callback_type = args.length > 1 ? args[1] : nil
       source_node = @headers['source_node']
-      # FIXME verify request is coming from authenticated source node
+      # FIXME verify source_node is one session was authenticated against
 
       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
                                                  {:privilege => 'view', :entity => 'locations'}],
                                         :session   => @headers['session_id'])
+
+      raise ArgumentError, "callback_type must be nil, movement, or proximity" unless [nil, 'movement', 'proximity'].include?(callback_type)
 
       if callback_type.nil? || callback_type == 'movement'
         loc.movement_callbacks.reject!{ |mc| mc.endpoint_id == source_node }

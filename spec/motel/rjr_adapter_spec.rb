@@ -323,6 +323,7 @@ describe Motel::RJRAdapter do
       times_moved += 1
     }
 
+    # invalid location id
     lambda{
       @local_node.invoke_request('motel::track_movement', 'nonexistant', 5)
     #}.should raise_error(Omega::DataNotFound)
@@ -330,6 +331,23 @@ describe Motel::RJRAdapter do
 
     rloc1.movement_callbacks.size.should == 0
 
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('motel::track_movement', loc1.id, "5")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    rloc1.movement_callbacks.size.should == 0
+
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('motel::track_movement', loc1.id, -5)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    rloc1.movement_callbacks.size.should == 0
+
+    # valid call
     lambda{
       rloc = @local_node.invoke_request('motel::track_movement', loc1.id, 5)
       rloc.class.should == Motel::Location
@@ -378,6 +396,7 @@ describe Motel::RJRAdapter do
       proximity_notifications += 1
     }
 
+    # invalid location id
     lambda{
       @local_node.invoke_request('motel::track_proximity', loc1.id, 'nonexistant', 'proximity', 5)
     #}.should raise_error(Omega::DataNotFound)
@@ -385,6 +404,7 @@ describe Motel::RJRAdapter do
 
     loc1.movement_callbacks.size.should == 0
 
+    # invalid location id
     lambda{
       @local_node.invoke_request('motel::track_proximity', 'nonexistant', loc2.id, 'proximity', 5)
     #}.should raise_error(Omega::DataNotFound)
@@ -394,6 +414,27 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc1
     Motel::Runner.instance.run loc2
 
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('motel::track_proximity', loc1.id, loc2.id, 'proximity', "5")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid distance
+    lambda{
+      @local_node.invoke_request('motel::track_proximity', loc1.id, loc2.id, 'proximity', -5)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid event
+    lambda{
+      @local_node.invoke_request('motel::track_proximity', loc1.id, loc2.id, 'invalid', 5)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    loc1.movement_callbacks.size.should == 0
+
+    # valid call
     lambda{
       rlocs = @local_node.invoke_request('motel::track_proximity', loc1.id, loc2.id, 'proximity', 10)
       rlocs.class.should == Array
@@ -447,6 +488,7 @@ describe Motel::RJRAdapter do
     rloc1.movement_callbacks.size.should == 1
     rloc1.proximity_callbacks.size.should == 1
 
+    # invalid location id
     lambda{
       @local_node.invoke_request('motel::remove_callbacks', 'nonexistant')
     #}.should raise_error(Omega::DataNotFound)
@@ -454,6 +496,7 @@ describe Motel::RJRAdapter do
 
     u.clear_privileges
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('motel::remove_callbacks', loc1.id)
     #}.should raise_error(Omega::DataNotFound)
@@ -461,6 +504,13 @@ describe Motel::RJRAdapter do
 
     u.add_privilege('view', 'locations')
 
+    # invalid callback_type
+    lambda{
+      @local_node.invoke_request('motel::remove_callbacks', loc1.id, 'invalid')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       rloc = @local_node.invoke_request('motel::remove_callbacks', loc1.id)
       rloc.class.should == Motel::Location
