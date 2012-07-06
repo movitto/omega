@@ -440,7 +440,9 @@ function OmegaHandlers(){
         }
       }
       resources += "</ul>";
-      $('#motel_dialog').html(resources).dialog({show: 'explode', title: 'select resource to mine'}).dialog('open');
+      $('#motel_dialog').html(resources).dialog({show: 'explode'}).
+                                         dialog('option', 'title', 'select resource to mine').
+                                         dialog('open');
     }
   }
 

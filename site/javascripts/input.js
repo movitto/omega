@@ -395,7 +395,9 @@ $('#command_ship_select_destination').live('click', function(e){
   select += "y: <input type='text' id='destination_y_coord' class='destination_coord' />";
   select += "z: <input type='text' id='destination_z_coord' class='destination_coord' /><br/>";
   select += "<input type='button' id='command_ship_move' value='move' />";
-  $('#motel_dialog').html(select).dialog({show: 'explode', title: 'select destination'}).dialog('open');
+  $('#motel_dialog').html(select).dialog({show: 'explode'}).
+                                  dialog('option', 'title', 'select destination').
+                                  dialog('open');
 });
 
 $('#command_ship_move').live('click', function(e){
@@ -429,7 +431,9 @@ $('#command_ship_select_target').live('click', function(e){
          targets += "<li id='"+loc.entity.id+"' class='command_ship_attack' ><a href='#'>" + loc.entity.id + "</a></li>"
   }
   targets += "</ul>";
-  $('#motel_dialog').html(targets).dialog({show: 'explode', title: 'select attack target'}).dialog('open');
+  $('#motel_dialog').html(targets).dialog({show: 'explode'}).
+                                   dialog('option', 'title', 'select attack target').
+                                   dialog('open');
 });
 
 $('#command_ship_select_dock').live('click', function(e){
@@ -443,7 +447,9 @@ $('#command_ship_select_dock').live('click', function(e){
          stations += "<li id='"+loc.entity.id+"' class='command_ship_dock' ><a href='#'>" + loc.entity.id + "</a></li>"
   }
   stations += "</ul>";
-  $('#motel_dialog').html(stations).dialog({show: 'explode', title: 'select station to dock at'}).dialog('open');
+  $('#motel_dialog').html(stations).dialog({show: 'explode'}).
+                                    dialog('option', 'title', 'select station to dock at').
+                                    dialog('open');
 });
 
 $('.command_ship_attack').live('click', function(e){
@@ -496,7 +502,9 @@ console.log(controls.selected_ship);
                 "</a></li>";
   }
   transfer += "<ul>";
-  $('#motel_dialog').html(transfer).dialog({show: 'explode', title: 'select resource to transfer'}).dialog('open');
+  $('#motel_dialog').html(transfer).dialog({show: 'explode'}).
+                                    dialog('option', 'title', 'select resource to transfer').
+                                    dialog('open');
 });
 
 $('.command_ship_transfer_resource').live('click', function(e){
@@ -517,7 +525,9 @@ $('#command_ship_select_mining').live('click', function(e){
     }
   }
   mining += "</ul>";
-  $('#motel_dialog').html(mining).dialog({show: 'explode', title: 'select asteroid to scan'}).dialog('open');
+  $('#motel_dialog').html(mining).dialog({show: 'explode'}).
+                                  dialog('option', 'title', 'select asteroid to scan').
+                                  dialog('open');
 });
 
 $('.command_scan_asteroid').live('click', function(event){
@@ -580,7 +590,8 @@ $('#login_dialog_link').live('click', function(event){
   var html  = 'Username: <input type="text" id="user_username" />';
       html += 'Password: <input type="password" id="user_password" />';
       html += '<input type="button" id="login_link" value="login" />';
-  $('#motel_dialog').html(html).dialog({title: 'login'}).dialog('open');
+  $('#motel_dialog').html(html).dialog({ show: 'explode' }).
+                                dialog('option', 'title', 'login').dialog('open');
 });
 
 $('#create_account_dialog_link').live('click', function(event){
