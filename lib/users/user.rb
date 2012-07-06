@@ -8,7 +8,7 @@ class User
   attr_accessor :id
   attr_accessor :email
   attr_accessor :password
-  attr_reader :alliances
+  attr_accessor :alliances
 
   attr_reader :privileges
 

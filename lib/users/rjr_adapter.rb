@@ -129,12 +129,16 @@ class RJRAdapter
      }
 
      rjr_dispatcher.add_handler("users::register") { |user|
+       raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)
+
        # validate email format, user isn't already taken
        raise ArgumentError, "invalid user email"    unless user.valid_email?
        raise ArgumentError, "user id already taken" unless Users::Registry.instance.find(:id => user.id).empty?
+       raise ArgumentError, "valid username and password is required"  unless user.id.is_a?(String) && user.password.is_a?(String) && user.id != "" && user.password != ""
 
        # generate random registraton code
        user.registration_code = Users::User.random_registration_code
+       user.alliances = []
 
        # create new user
        Users::Registry.instance.create user

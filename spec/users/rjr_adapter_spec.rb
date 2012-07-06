@@ -312,6 +312,13 @@ describe Users::RJRAdapter do
 
     Users::Registry.instance.users.size.should == 1
 
+    # not a user instance
+    lambda{
+      @local_node.invoke_request('users::register', "nu1")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid email
     lambda{
       @local_node.invoke_request('users::register', nu1)
     #}.should raise_error(ArgumentError)
@@ -320,13 +327,24 @@ describe Users::RJRAdapter do
     nu1.email = 'now@val.id'
     nu1.id = 'omega-test'
 
+    # duplicate user
     lambda{
       @local_node.invoke_request('users::register', nu1)
     #}.should raise_error(ArgumentError)
     }.should raise_error(Exception)
 
     nu1.id = 'user43'
+    nu1.password = nil
 
+    # invalid password
+    lambda{
+      @local_node.invoke_request('users::register', nu1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    nu1.password = 'foobar'
+
+    # valid calls
     lambda{
       ru = @local_node.invoke_request('users::register', nu1)
       ru.class.should == Users::User
@@ -337,6 +355,8 @@ describe Users::RJRAdapter do
       du = Users::Registry.instance.users.find { |u| u.id == nu1.id }
       du.should_not be_nil
       du.registration_code.should == rc
+      du.alliances.empty?.should be_true
+      du.privileges.empty?.should be_true
 
       ret = @local_node.invoke_request('users::confirm_register', rc)
       ret.should be_nil
