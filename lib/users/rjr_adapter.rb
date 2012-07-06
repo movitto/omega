@@ -120,8 +120,10 @@ class RJRAdapter
        user_id      = args[0]
        privilege_id = args[1]
        entity_id    = args.length > 2 ? args[2] : nil
+       # TODO verify privilege_id and entity_id are valid values?
 
        user = Users::Registry.instance.find(:id => user_id).first
+       raise Omega::DataNotFound, "user specified by id #{user_id} not found" if user.nil?
        user.add_privilege Privilege.new(:id => privilege_id, :entity_id => entity_id)
        nil
      }

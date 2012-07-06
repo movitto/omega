@@ -175,6 +175,7 @@ class Registry
   # Save state of the registry to specified stream
   def save_state(io)
     # TODO block new operations on registry
+    # FIXME save alliances
     users.each { |user|
       io.write user.to_json + "\n"
       user.privileges.each { |priv|

@@ -31,18 +31,4 @@ class Privilege
   end
 
 end
-
-class Role
-  attr_accessor :id
-  attr_accessor :privilege
-  attr_accessor :entity
-
-  def initialize(args = {})
-    @id        = args['id']         || args[:id]
-    @entity    = args['entity_id']  || args[:entity_id]
-    @privilege = args['privilege']  || args[:privilege]
-  end
-end
-
-
 end

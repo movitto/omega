@@ -262,8 +262,10 @@ describe Users::RJRAdapter do
     Users::Registry.instance.create nu
     Users::Registry.instance.users.size.should == 2
 
+    # exception for local node needs to be overrided
     @local_node.node_type = 'local-test'
 
+    # insufficient permissions
     lambda{
       @local_node.invoke_request('users::add_privilege', nu.id, 'view', 'all')
     #}.should raise_error(Omega::PermissionError)
@@ -271,6 +273,13 @@ describe Users::RJRAdapter do
 
     u.add_privilege('modify', 'users_entities')
 
+    # invalid user
+    lambda{
+      @local_node.invoke_request('users::add_privilege', 'non_existant', 'view', 'all')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # valid call
     lambda{
       ret = @local_node.invoke_request('users::add_privilege', nu.id, 'view', 'all')
       ret.should be_nil
@@ -280,6 +289,12 @@ describe Users::RJRAdapter do
 
     @local_node.node_type = :local
 
+    # valid call
+    lambda{
+      @local_node.invoke_request('users::add_privilege', nu.id, 'modify', 'all')
+    }.should_not raise_error
+
+    # duplicate call (no error, but no effect)
     lambda{
       @local_node.invoke_request('users::add_privilege', nu.id, 'modify', 'all')
     }.should_not raise_error

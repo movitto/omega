@@ -30,7 +30,6 @@ class User
     # FIXME encrypt password w/ salt
 
     @privileges = []
-    #Users::Registry.instance.create self
   end
 
   def update!(new_user)
@@ -48,7 +47,9 @@ class User
   end
 
   def add_privilege(privilege)
-    @privileges << privilege unless @privileges.include?(privilege)
+    @privileges << privilege unless privilege.nil? ||
+                                     @privileges.include?(privilege) ||
+                                    !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
   end
 
   def valid_email?

@@ -48,6 +48,17 @@ describe Users::User do
     u.add_privilege(p)
     u.privileges.size.should == 1
     u.privileges.first.should == p
+    u.add_privilege(p)
+    u.privileges.size.should == 1
+  end
+
+  it "should not permit adding duplicate privileges" do
+    p1 = Users::Privilege.new :id => 'p', :entity_id => 1
+    p2 = Users::Privilege.new :id => 'p', :entity_id => 1
+    u = Users::User.new
+    u.add_privilege(p1)
+    u.add_privilege(p2)
+    u.privileges.size.should == 1
   end
 
   it "should validate emails" do
