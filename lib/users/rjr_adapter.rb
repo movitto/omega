@@ -26,21 +26,37 @@ class RJRAdapter
        Users::Registry.instance.create entity
     }
 
-    rjr_dispatcher.add_handler('users::get_entity'){ |id|
-       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{id}"},
-                                                  {:privilege => 'view', :entity => 'users_entities'}],
-                                         :session => @headers['session_id'])
+    rjr_dispatcher.add_handler(['users::get_entity', 'users::get_entities']){ |*args|
+       filter = {}
+       while qualifier = args.shift
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_id"].include?(qualifier)
+         val = args.shift
+         raise ArgumentError, "qualifier #{quanlifier} requires value" if val.nil?
+         qualifier = case qualifier
+                       when "of_type"
+                         :type
+                       when "with_id"
+                         :id
+                     end
+         filter[qualifier] = val
+       end
 
-       entity = Users::Registry.instance.find(:id => id).first
-       entity
-    }
+       return_first = filter.has_key?(:id)
 
-    rjr_dispatcher.add_handler('users::get_all_entities') { |*args|
-       type = args.length > 0 ? args[0] : nil
-       Users::Registry.require_privilege(:privilege => 'view', :entity => 'users_entities',
-                                         :session   => @headers['session_id'])
+       entities = Users::Registry.instance.find(filter)
 
-       Users::Registry.instance.find :type => type
+       entities.reject! { |entity|
+         !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
+                                                   {:privilege => 'view', :entity => 'users_entities'}],
+                                          :session => @headers['session_id'])
+       }
+
+       if return_first
+         entities = entities.first
+         raise Omega::DataNotFound, "users entity specified by #{filter} not found" if entities.nil?
+       end
+
+       entities
     }
 
     rjr_dispatcher.add_handler('users::send_message') { |user_id, message|

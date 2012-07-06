@@ -126,7 +126,7 @@ class RJRAdapter
 
        # ensure user exists if user_id is specified
        if filter.has_key?(:user_id)
-         user = @@local_node.invoke_request('users::get_entity', filter[:user_id])
+         user = @@local_node.invoke_request('users::get_entity', 'with_id', filter[:user_id])
          raise Omega::DataNotFound, "user specified by #{user_id} not found" if user.nil?
        end
 
@@ -153,7 +153,7 @@ class RJRAdapter
 
        if return_first
          entities = entities.first
-         raise Omega::DataNotFound, "manufactured entity specified by #{id} not found" if entities.nil?
+         raise Omega::DataNotFound, "manufactured entity specified by #{filter} not found" if entities.nil?
        end
 
        entities

@@ -76,11 +76,11 @@ function CosmosClient() {
   }
 
   this.get_users = function(){
-    client.web_node.invoke_request('users::get_all_entities', 'Users::User');
+    client.web_node.invoke_request('users::get_all_entities', 'of_type', 'Users::User');
   }
 
   this.get_user_info = function(){
-    client.web_node.invoke_request('users::get_entity', client.current_user.id)
+    client.web_node.invoke_request('users::get_entity', 'with_id', client.current_user.id)
   }
 
   this.send_message = function(message){

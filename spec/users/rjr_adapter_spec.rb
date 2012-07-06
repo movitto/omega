@@ -85,31 +85,47 @@ describe Users::RJRAdapter do
     Users::Registry.instance.create nu
     Users::Registry.instance.users.size.should == 2
 
+    # insufficient permissions
     lambda{
-      @local_node.invoke_request('users::get_entity', nu.id)
+      @local_node.invoke_request('users::get_entity', 'with_id', nu.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('view', 'users_entities')
 
+    # invalid entity id
     lambda{
-      ru = @local_node.invoke_request('users::get_entity', nu.id)
+      ru = @local_node.invoke_request('users::get_entity', 'with_id', 'invalid')
+    # }.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid qualifier
+    lambda{
+      ru = @local_node.invoke_request('users::get_entity', 'invalid', nu.id)
+    # }.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
+    lambda{
+      ru = @local_node.invoke_request('users::get_entity', 'with_id', nu.id)
       ru.class.should == Users::User
       ru.id.should == nu.id
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'users_entity-' + nu.id)
 
+    # valid call
     lambda{
-      ru = @local_node.invoke_request('users::get_entity', nu.id)
+      ru = @local_node.invoke_request('users::get_entity', 'with_id', nu.id)
       ru.class.should == Users::User
       ru.id.should == nu.id
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'users_entity-foobar')
 
+    # insufficient permissions
     lambda{
-      @local_node.invoke_request('users::get_entity', nu.id)
+      @local_node.invoke_request('users::get_entity', 'with_id', nu.id)
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
   end
@@ -127,14 +143,15 @@ describe Users::RJRAdapter do
     Users::Registry.instance.alliances.size.should == 1
 
     lambda{
-      @local_node.invoke_request('users::get_all_entities')
-    #}.should raise_error(Omega::PermissionError)
-    }.should raise_error(Exception)
+      rus = @local_node.invoke_request('users::get_entities')
+      rus.class.should == Array
+      rus.empty?.should be_true
+    }.should_not raise_error
 
     u.add_privilege('view', 'users_entities')
 
     lambda{
-      rus = @local_node.invoke_request('users::get_all_entities')
+      rus = @local_node.invoke_request('users::get_entities')
       rus.class.should == Array
       rus.size.should == 4
       rus.collect { |ru| ru.id }.should include(nu1.id)
@@ -143,7 +160,7 @@ describe Users::RJRAdapter do
     }.should_not raise_error
   end
 
-  it "should permit users with view users_entities to get_all_entities by type" do
+  it "should permit users with view users_entities to get_entities by type" do
     nu1 = Users::User.new :id => 'user43'
     nu2 = Users::User.new :id => 'user44'
     a1  = Users::Alliance.new :id => 'alliance52'
@@ -154,14 +171,14 @@ describe Users::RJRAdapter do
     Users::Registry.instance.create a1
 
     lambda{
-      rus = @local_node.invoke_request('users::get_all_entities', "Users::Alliance")
+      rus = @local_node.invoke_request('users::get_entities', 'of_type', "Users::Alliance")
       rus.class.should == Array
       rus.size.should == 1
       rus.collect { |ru| ru.id }.should include(a1.id)
     }.should_not raise_error
 
     lambda{
-      rus = @local_node.invoke_request('users::get_all_entities', "Users::User")
+      rus = @local_node.invoke_request('users::get_entities', 'of_type', "Users::User")
       rus.class.should == Array
       rus.size.should == 3
       rus.collect { |ru| ru.id }.should include(nu1.id)
