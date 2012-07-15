@@ -26,10 +26,10 @@ function Location(){
       this.movement_strategy = new_location.movement_strategy;
 
     // needs to be invoked after movement stategy is set as orbit is updated here
-    if(canvas_ui.camera){
-      var nloc = canvas_ui.camera.update_location(this);
-      this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
-    }
+    //if(canvas_ui.camera){
+    //  var nloc = canvas_ui.camera.update_location(this);
+    //  this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
+    //}
 
     if(new_location.entity)
       this.entity = new_location.entity;
@@ -44,16 +44,6 @@ function Location(){
   this.within_distance = function(x, y, z, distance){
     return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2) + Math.pow(this.z - z, 2)) < distance;
   };
-
-  this.within_screen_coords = function(x, y, distance){
-    var ax = canvas_ui.adjusted_x(this.cx, this.cy, this.cz);
-    var ay = canvas_ui.adjusted_y(this.cx, this.cy, this.cz);
-    return Math.sqrt(Math.pow(ax - x, 2) + Math.pow(ay - y, 2)) < distance;
-  }
-
-  this.check_clicked = function(x, y){
-    return this.within_screen_coords(x, y, this.entity.size);
-  }
 
   this.to_s = function() { return (Math.round(this.x*100)/100) + "," +
                                   (Math.round(this.y*100)/100) + "," +

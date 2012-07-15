@@ -196,6 +196,8 @@ def role(role)
     client.queue_request 'users::add_privilege', @user.id, pe[0], pe[1]
   }
   RJR::Logger.info "creating role #{role} for #{@user.id}"
+  client.invoke_requests
+  nil
 end
 
 def alliance(id, args = {}, &bl)
@@ -285,6 +287,7 @@ def jump_gate(system, endpoint, args = {}, &bl)
   client.queue_request 'cosmos::create_entity', gate, system.name
   RJR::Logger.info "creating gate from #{system.name} to #{endpoint.name}"
   client.invoke_callback gate, &bl
+  client.invoke_requests
 end
 
 def asteroid(id, args={}, &bl)

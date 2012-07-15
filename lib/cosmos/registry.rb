@@ -41,7 +41,7 @@ class Registry
     location = args[:location]
     # parent = args[:parent]
 
-    return self if type == :universe
+    return self if type == :universe || type == 'universe'
 
     entities = []
     @galaxies.each { |g|

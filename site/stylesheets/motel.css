@@ -1,11 +1,11 @@
 #motel_entities_container{
   position: absolute;
-  left: 25px;
+  right: 25px;
   top: 75px;
   border: 1px solid black;
   min-width: 350px;
-  min-height: 625px;
-  height: 1030px;
+  min-height: 375px;
+  height: 375px;
   padding: 5px;
   overflow: auto;
 }
@@ -19,12 +19,11 @@
 }
 
 #motel_canvas_container{
-  margin: 0 auto;
-  margin-top: 20px;
-  text-align: center;
-  border: 1px solid black;
   width: 1000px;
   height: 700px;
+  position: absolute;
+  left: 25px;
+  top: 95px;
 }
 
 #motel_stats_canvas_container > #motel_canvas_container{
@@ -35,30 +34,41 @@
   border: none;
 }
 
+#motel_canvas_container canvas{
+  border: 1px solid black;
+}
+
 #motel_stats_canvas_container canvas {
   float: right;
   width: 1500px;
   height: 700px;
 }
 
+#motel_grid_control{
+  float: right;
+}
+
+
 #motel_camera_controls_container{
-  position: absolute;
-  top: 75px;
-  left: 1452px;
-  height: 375px;
-  width: 30px;
-  border: 1px solid black;
+  height: 25px;
+  width: 200px;
+  background-color: #00FFFF;
+  padding-left: 5px;
 }
 
 #motel_camera_controls_container img{
-  height: 25px;
-  width:  25px;
+  height: 15px;
+  width:  15px;
   margin-left: 3px;
   margin-top: 3px;
 }
 
 #motel_camera_controls_container img:hover {
   cursor: crosshair;
+}
+
+#motel_canvas_selection_controls {
+  position: absolute;
 }
 
 #motel_close_canvas{
@@ -77,9 +87,11 @@
   display: none;
   position: absolute;
   right: 25px;
-  top: 75px;
+  top: 500px;
   min-width: 350px;
-  min-height: 625px;
+  max-width: 350px;
+  min-height: 320px;
+  max-height: 320px;
   padding: 5px;
   border: 1px solid black;
 }
@@ -133,11 +145,12 @@
 }
 
 #motel_chat{
-  margin: 0 auto;
   width: 1000px;
   height: 350px;
-  margin-top: 10px;
   border: 1px solid black;
+  position: absolute;
+  left: 25px;
+  top: 825px;
 }
 
 #motel_chat_input{
@@ -185,14 +198,18 @@
 }
 
 #primary_navigation{
-  top: 5px;
-  margin: 0 auto;
-  width: 750px;
+  position: absolute;
+  left: 25px;
+  top: 56px;
+  width: 245px;
+  border: 1px solid black;
 }
 
 #primary_navigation a{
-  margin: 0 55px 0 55px;
-  font-size: 1.5em;
+  margin: 0 5px 0 5px;
+  font-size: 0.8em;
+  padding-left:  2px;
+  padding-right: 7px;
 }
 
 #omega_stats_nav {

@@ -3,6 +3,8 @@ function CosmosControls(){
   this.selected_ships = [];
   this.selected_ship = null; // will point to first selected ship, null if none
   this.selected_gate  = null;
+  this.selected_station  = null;
+  this.selected_asteroid = null;
 
   this.gate_trigger_area = 100;
 
@@ -40,12 +42,30 @@ function CosmosControls(){
 
   this.set_selected_gate = function(gate){
     this.selected_gate = gate;
-    this.clear_selected_ship();
+
+    if(gate != null){
+      this.clear_selected_ship();
+      this.set_selected_station(null);
+      this.set_selected_asteroid(null);
+    }
   }
 
   this.set_selected_station = function(station){
     this.selected_station = station;
-    this.clear_selected_ship();
+    if(station != null){
+      this.clear_selected_ship();
+      this.set_selected_gate(null);
+      this.set_selected_asteroid(null);
+    }
+  }
+
+  this.set_selected_asteroid = function(asteroid){
+    this.selected_asteroid = asteroid;
+    if(asteroid != null){
+      this.clear_selected_ship();
+      this.set_selected_gate(null);
+      this.set_selected_station(null);
+    }
   }
 
   // initialize mouse input
@@ -78,8 +98,8 @@ function CosmosControls(){
            this.select_box_top_left_y     = this.mouse_down_y;
            this.select_box_bottom_right_y = this.mouse_current_y;
          }
-         this.select_box_width  = this.select_box_bottom_right_x - this.select_box_top_left_x;
-         this.select_box_height = this.select_box_top_left_y     - this.select_box_bottom_right_y
+         this.select_box_width  = this.select_box_bottom_right_x - this.select_box_top_left_x - 15;
+         this.select_box_height = this.select_box_bottom_right_y - this.select_box_top_left_y - 15;
     }else{
       this.select_box_top_left_x     = null;
       this.select_box_top_left_y     = null;
@@ -88,6 +108,9 @@ function CosmosControls(){
       this.select_box_width          = null;
       this.select_box_height         = null;
     }
+
+    // draw the controls
+    this.draw();
   }
 
   this.show_login_controls = function(){
@@ -105,13 +128,53 @@ function CosmosControls(){
   }
 
   this.draw = function(){
+    $("#motel_canvas_selection_controls").remove();
     if(this.select_box_top_left_x && this.select_box_top_left_y &&
-       this.select_box_width      && this.select_box_height){
-        canvas_ui.context.beginPath();
-        canvas_ui.context.fillStyle = "rgba(142, 214, 255, 0.5)";
-        canvas_ui.context.rect(this.select_box_top_left_x + canvas_ui.width/2, canvas_ui.height/2 - this.select_box_top_left_y,
-                     this.select_box_width, this.select_box_height);
-        canvas_ui.context.fill();
+       this.select_box_width > 0 && this.select_box_height > 0){
+        $("#motel_canvas_container").append("<div id='motel_canvas_selection_controls'></div>");
+        var c = $('#motel_canvas_selection_controls');
+        c.css('left', canvas_ui.canvas.offset().left + this.select_box_top_left_x);
+        c.css('top',  canvas_ui.canvas.offset().top + this.select_box_top_left_y);
+        c.css('min-width',  this.select_box_width);
+        c.css('min-height',  this.select_box_height);
+        c.css('border', '1px solid black');
+    }
+  }
+
+  // helper method to refresh the details box currently being displayed
+  this.refresh_details = function(){
+    if(this.selected_ship != null){
+      for(var l in client.locations){
+        if(client.locations[l].entity.json_class == "Manufactured::Ship" &&
+           client.locations[l].entity.id == this.selected_ship.id){
+          this.selected_ship = client.locations[l].entity;
+          break;
+        }
+      }
+      this.show_ship_details(this.selected_ship);
+
+    }else if(this.selected_station != null){
+      for(var l in client.locations){
+        if(client.locations[l].entity.json_class == "Manufactured::Station" &&
+           client.locations[l].entity.id == this.selected_station.id){
+          this.selected_station = client.locations[l].entity;
+          break;
+        }
+      }
+      this.show_station_details(this.selected_station);
+
+    }else if(this.selected_gate != null){
+      this.show_gate_details(this.selected_gate);
+
+    }else if(this.selected_asteroid != null){
+      for(var l in client.locations){
+        if(client.locations[l].entity.json_class == "Cosmos::Asteroid" &&
+           client.locations[l].entity.name == this.selected_asteroid.name){
+          this.selected_asteroid = client.locations[l].entity;
+          break;
+        }
+      }
+      this.show_asteroid_details(this.selected_asteroid);
     }
   }
 
@@ -129,29 +192,38 @@ function CosmosControls(){
     entity_container.html("Planet: " + planet.name);
   }
 
-  this.clicked_asteroid  = function(click_event, asteroid) {
+  // helper method
+  this.show_asteroid_details = function(asteroid) {
+    this.set_selected_asteroid(asteroid);
     var entity_container = $('#motel_entity_container');
     var asteroid_data = "Asteroid: " + asteroid.name +
                         " ( @ " + asteroid.location.to_s() + ")" +
-                        "<br/>";
+                        "<br/>Resources: ";
     for(var r in asteroid.resources){
-      asteroid_data += r.quantity + " of " + r.name + " (" + r.type + ")<br/>";
+      var res = asteroid.resources[r];
+      asteroid_data += res.quantity + " of " + res.resource.name + " (" + res.resource.type + ")<br/>";
     }
     this.clear_selected_ship();
     entity_container.show();
     entity_container.html(asteroid_data);
   }
 
-  this.clicked_gate    = function(click_event, gate) {
+  this.clicked_asteroid  = function(click_event, asteroid) {
+    this.show_asteroid_details(asteroid);
+  }
+
+  // helper method
+  this.show_gate_details = function(gate){
     var entity_container = $('#motel_entity_container');
-    controls.selected_gate = gate;
     controls.set_selected_gate(gate);
-    controls.clear_selected_ship();
     entity_container.show();
     entity_container.html("JumpGate to: " + gate.endpoint +
                           "<br/> (@ "+ gate.location.to_s()+")" +
                           "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>" +
                           "<div class='command_icon' id='command_jumpgate_trigger'>Trigger</div>");
+  }
+  this.clicked_gate    = function(click_event, gate) {
+    this.show_gate_details(gate);
   }
 
   // helper method
@@ -163,6 +235,11 @@ function CosmosControls(){
                                     controls.selected_ship.id +
                                     " (" + controls.selected_ship.type + " @ " +
                                            controls.selected_ship.location.to_s() + ")";
+
+    entity_container_contents += "<br/>Resources: ";
+    for(var r in ship.resources){
+      entity_container_contents += r + " (" + ship.resources[r] + ") ";
+    }
     entity_container_contents += "<br/><div class='command_icon' id='command_selection_clear'>clear selection</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_destination'>move</div>";
     entity_container_contents += "<div class='command_icon' id='command_ship_select_target'>attack</div>";
@@ -187,7 +264,8 @@ function CosmosControls(){
     this.show_ship_details(ship);
   }
 
-  this.clicked_station = function(click_event, station) {
+  // helper method
+  this.show_station_details = function(station){
     controls.set_selected_station(station);
     var html = "Station: " + station.id +
                " @ " + station.location.to_s() +
@@ -202,6 +280,11 @@ function CosmosControls(){
            html += "<a href='#' id='"+e.id+"' class='command_view_ship' >"+e.id+"</a>";
     }
 
+    html += "<br/>Resources: ";
+    for(var r in station.resources){
+      html += r + " (" + station.resources[r] + ")";
+    }
+
     html += "<div class='command_icon' id='command_station_select_construction'>construct ship</div>";
 
     this.clear_selected_ship();
@@ -210,98 +293,96 @@ function CosmosControls(){
     entity_container.html(html);
   }
 
+  this.clicked_station = function(click_event, station) {
+    this.show_station_details(station);
+  }
+
   this.clicked_space = function(x, y){}
 }
 
 // handle click input
-$('#motel_canvas').live('click', function(e){
-  var x = Math.floor(e.pageX-$("#motel_canvas").offset().left);
-  var y = Math.floor(e.pageY-$("#motel_canvas").offset().top);
+function on_canvas_clicked(e){
+  var x = Math.floor(e.pageX-canvas_ui.canvas.offset().left);
+  var y = Math.floor(e.pageY-canvas_ui.canvas.offset().top);
+  x = x / canvas_ui.canvas.width() * 2 - 1;
+  y = - y / canvas_ui.canvas.height() * 2 + 1;
   var clicked_on_entity = false;
 
-  for(loc in client.locations){
-    var loco = client.locations[loc];
-    if(loco.check_clicked(x, y)){
-      clicked_on_entity = true;
-      loco.clicked(e, loco.entity);
+  var projector = new THREE.Projector();
+  var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), canvas_ui.camera.scene_camera);
+  var intersects = ray.intersectObjects(canvas_ui.scene.__objects);
+
+  if(intersects.length > 0){
+    for(loc in client.locations){
+      var loco = client.locations[loc];
+      if(loco.entity.scene_object == intersects[0].object){
+        clicked_on_entity = true;
+        loco.clicked(e, loco.entity);
+        break;
+      }
     }
   }
 
   if(!clicked_on_entity)
     controls.clicked_space(x, y);
 
-});
+  canvas_ui.setup_scene(); // appearances may have changed, redraw scene
+}
+$("#motel_canvas").live('click', on_canvas_clicked);
+$("#motel_canvas_selection_controls").live('click', on_canvas_clicked);
 
-$('#motel_canvas').live('mousemove', function(e){
-  controls.mouse_current_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - canvas_ui.width / 2);
-  controls.mouse_current_y = Math.floor(canvas_ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+// handle mouse move event
+function on_canvas_mouse_move(e){
+  controls.mouse_current_x = e.pageX - canvas_ui.canvas.offset().left;
+  controls.mouse_current_y = e.pageY - canvas_ui.canvas.offset().top;
   controls.update_select_box();
-});
+}
+$("#motel_canvas").live('mousemove', on_canvas_mouse_move);
+$("#motel_canvas_selection_controls").live('mousemove', on_canvas_mouse_move);
 
 // handle mouse down event
-$('#motel_canvas').live('mousedown', function(e){
-  controls.mouse_down_x = Math.floor(e.pageX-$("#motel_canvas").offset().left - canvas_ui.width / 2);
-  controls.mouse_down_y = Math.floor(canvas_ui.height / 2 - (e.pageY-$("#motel_canvas").offset().top));
+function on_canvas_mouse_down(e){
+  controls.mouse_down_x = e.pageX - canvas_ui.canvas.offset().left;
+  controls.mouse_down_y = e.pageY - canvas_ui.canvas.offset().top;
   controls.update_select_box();
-//console.log("coords: " + x + " / " + y);
-});
+}
+$("#motel_canvas").live('mousedown', on_canvas_mouse_down);
+$("#motel_canvas_selection_controls").live('mousedown', on_canvas_mouse_down);
 
 // handle mouse up event
-$('#motel_canvas').live('mouseup', function(e){
+function on_canvas_mouse_up(e){
   controls.mouse_down_x = null; controls.mouse_down_y = null;
   controls.update_select_box();
-});
+}
+$("#motel_canvas").live('mouseup', on_canvas_mouse_up);
+$("#motel_canvas_selection_controls").live('mouseup', on_canvas_mouse_up);
 
 /////////////////////// camera controls
 
 if(jQuery.fn.mousehold){
 
-$('#cam_inc_x_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('x', 0.01);
-});
-
-$('#cam_dec_x_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('x', -0.01);
-});
-
-$('#cam_inc_y_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('y', 0.01);
-});
-
-$('#cam_dec_y_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('y', -0.01);
-});
-
-$('#cam_inc_z_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('z', 0.01);
-});
-
-$('#cam_dec_z_angle').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate('z', -0.01);
-});
-
 $('#cam_inc_x_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('x', 20);
+  canvas_ui.camera.rotate(0.0, -0.2);
 });
 
 $('#cam_dec_x_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('x', -20);
+  canvas_ui.camera.rotate(0.0, 0.2);
 });
 
 $('#cam_inc_y_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('y', 20);
+  canvas_ui.camera.rotate(0.2, 0.0);
 });
 
 $('#cam_dec_y_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('y', -20);
+  canvas_ui.camera.rotate(-0.2, 0.0);
 });
 
 $('#cam_inc_z_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('z', 20);
+  canvas_ui.camera.zoom(20);
 });
 
 $('#cam_dec_z_position').mousehold(function(e, ctr){
-  canvas_ui.camera.move('z', -20);
+  canvas_ui.camera.zoom(-20);
 });
 
 }
@@ -311,6 +392,11 @@ $('#cam_dec_z_position').mousehold(function(e, ctr){
 // close canvas view
 $('#motel_close_canvas').live('click', function(e){
   $('#motel_canvas_container').hide();
+});
+
+// toggle grid on canvas
+$('#motel_toggle_grid_canvas').live('click', function(e){
+  canvas_ui.setup_scene();
 });
 
 // show ship details
@@ -371,6 +457,7 @@ $('#command_selection_clear').live('click', function(e){
   controls.selected_ships = [];
   controls.selected_ship = null;
   controls.selected_gate = null;
+  canvas_ui.setup_scene();
 });
 
 $('#command_fleet_create').live('click', function(e){
@@ -485,7 +572,7 @@ $('#command_ship_undock').live('click', function(e){
 $('#command_ship_select_transfer_resource').live('click', function(e){
   var transfer = 'Select resource to transfer';
   transfer += "<ul>";
-console.log(controls.selected_ship);
+  // TODO need to refresh ship & station's resources here
   for(var resource in controls.selected_ship.resources){
     var quantity = controls.selected_ship.resources[resource];
     transfer += "<li><a href='#' class='command_ship_transfer_resource'"+
@@ -507,8 +594,11 @@ console.log(controls.selected_ship);
 });
 
 $('.command_ship_transfer_resource').live('click', function(e){
+  handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
+  handlers.add_callback(handlers.handle_stations);
   var tr = e.currentTarget.id.split(":");
-  client.transfer_resource(tr[0], tr[1], tr[2], tr[3]);
+  client.transfer_resource(tr[0], tr[1], tr[2], parseFloat(tr[3]));
   $('#motel_dialog').dialog('close');
 });
 
@@ -547,8 +637,8 @@ $('.command_mine_resource_source').live('click', function(event){
 $('#command_station_select_construction').live('click', function(event){
   // TODO prompt user for which type of ship to construct, verify resources are sufficient
   handlers.clear_callbacks();
+  handlers.add_callback(handlers.handle_ships);
   client.construct_ship(controls.selected_station);
-  //handlers.set_system(client.current_system.name); // TODO add ship to list and/or refresh ships in system
 });
 
 $('.galaxy_title').live('click', function(event){
@@ -648,6 +738,10 @@ $('#account_info_update').live('click', function(event){
     return;
   }
 
+  // set email here so that it can just be pulled again when user is returned
+  var email = $('#user_email').attr('value');
+
+  client.current_user.email = email;
   client.current_user.password = pass1;
   client.update_account();
 });

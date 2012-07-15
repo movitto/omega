@@ -62,7 +62,7 @@ class RJRAdapter
     rjr_dispatcher.add_handler('users::send_message') { |message|
       raise ArgumentError, "message must be a string of non-zero length" unless message.is_a?(String) && message != ""
 
-      user = Users::Registry.instance.current_user
+      user = Users::Registry.instance.current_user :session => @headers['session_id']
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
                                                  {:privilege => 'modify', :entity => 'users'}],
@@ -73,7 +73,7 @@ class RJRAdapter
      }
 
     rjr_dispatcher.add_handler('users::subscribe_to_messages') {
-       user = Users::Registry.instance.current_user
+       user = Users::Registry.instance.current_user :session => @headers['session_id']
 
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user-#{user.id}"},
                                                   {:privilege => 'view', :entity => "users_entity-#{user.id}"},

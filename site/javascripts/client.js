@@ -76,7 +76,7 @@ function CosmosClient() {
   }
 
   this.get_users = function(){
-    client.web_node.invoke_request('users::get_all_entities', 'of_type', 'Users::User');
+    client.web_node.invoke_request('users::get_entities', 'of_type', 'Users::User');
   }
 
   this.get_user_info = function(){

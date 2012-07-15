@@ -3,21 +3,34 @@
     <link rel="stylesheet" type="text/css" href="stylesheets/jplayer.blue.monday.css" />
     <link rel="stylesheet" type="text/css" href="stylesheets/motel.css" />
     <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css" />
+
+    <!-- jquery and jquery ui -->
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="javascripts/rjr/json.js"></script>
-    <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
+
+    <!-- other jquery plugins -->
     <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
     <script type="text/javascript" src="javascripts/jquery.jplayer.min.js"></script>
     <script type="text/javascript" src="javascripts/jquery.jplayer.playlist.min.js"></script>
     <script type="text/javascript" src="javascripts/mousehold.js"></script>
+
+    <!-- three.js & deps -->
+    <script type="text/javascript" src="http://mrdoob.github.com/three.js/build/Three.js"></script>
+    <script type="text/javascript" src="javascripts/helvetiker_font/helvetiker_regular.typeface.js"></script>
+
+    <!-- rjr -->
+    <script type="text/javascript" src="javascripts/rjr/json.js"></script>
+    <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
+
+    <!-- omega -->
     <script type="text/javascript" src="javascripts/user.js"></script>
     <script type="text/javascript" src="javascripts/location.js"></script>
     <script type="text/javascript" src="javascripts/input.js"></script>
     <script type="text/javascript" src="javascripts/handler.js"></script>
     <script type="text/javascript" src="javascripts/client.js"></script>
-    <script type="text/javascript" src="javascripts/draw.js"></script>
+    <script type="text/javascript" src="javascripts/draw_three.js"></script>
     <script type="text/javascript" src="javascripts/audio.js"></script>
+
     <script type="text/javascript">
       $(document).ready(function(){ 
         // right now browser compatability check is restricted
@@ -37,6 +50,7 @@
         handlers.onlogin = function(){
           handlers.clear_callbacks();
           handlers.add_callback(handlers.handle_galaxies);
+          handlers.add_callback(handlers.handle_resource_sources);
           handlers.add_callback(handlers.handle_ships);
           handlers.add_callback(handlers.handle_stations);
           handlers.add_callback(handlers.populate_locations_container);
@@ -62,8 +76,8 @@
         client = new CosmosClient();
         client.connect();
 
-        canvas_ui = new CosmosUI();
-        setInterval(canvas_ui.draw, 500);
+        canvas_ui = new OmegaUI();
+        canvas_ui.render();
       });
     </script>
   </head>
@@ -89,25 +103,22 @@
     </div>
 
     <div id="motel_canvas_container">
+      <div id="motel_grid_control">
+        <input id="motel_toggle_grid_canvas" type="checkbox" />toggle grid
+      </div>
+
+      <div id="motel_camera_controls_container">
+        cam
+        <img src="/wotel/images/camera/inc_x_position.png" id="cam_inc_x_position" />
+        <img src="/wotel/images/camera/dec_x_position.png" id="cam_dec_x_position" />
+        <img src="/wotel/images/camera/inc_y_position.png" id="cam_inc_y_position" />
+        <img src="/wotel/images/camera/dec_y_position.png" id="cam_dec_y_position" />
+        <img src="/wotel/images/camera/dec_z_position.png" id="cam_dec_z_position" />
+        <img src="/wotel/images/camera/inc_z_position.png" id="cam_inc_z_position" />
+      </div>
       <canvas id="motel_canvas" width="1000" height="700"></canvas>
     </div>
 
-    <div id="motel_camera_controls_container">
-      cam
-      <img src="/wotel/images/camera/inc_x_angle.png" id="cam_inc_x_angle" />
-      <img src="/wotel/images/camera/dec_x_angle.png" id="cam_dec_x_angle" />
-      <img src="/wotel/images/camera/inc_y_angle.png" id="cam_inc_y_angle" />
-      <img src="/wotel/images/camera/dec_y_angle.png" id="cam_dec_y_angle" />
-      <img src="/wotel/images/camera/inc_z_angle.png" id="cam_inc_z_angle" />
-      <img src="/wotel/images/camera/dec_z_angle.png" id="cam_dec_z_angle" />
-      <hr/>
-      <img src="/wotel/images/camera/inc_x_position.png" id="cam_inc_x_position" />
-      <img src="/wotel/images/camera/dec_x_position.png" id="cam_dec_x_position" />
-      <img src="/wotel/images/camera/inc_y_position.png" id="cam_inc_y_position" />
-      <img src="/wotel/images/camera/dec_y_position.png" id="cam_dec_y_position" />
-      <img src="/wotel/images/camera/dec_z_position.png" id="cam_dec_z_position" />
-      <img src="/wotel/images/camera/inc_z_position.png" id="cam_inc_z_position" />
-    </div>
 
     <div id="motel_entity_container"></div>
 

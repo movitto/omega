@@ -51,5 +51,5 @@ galaxy 'Zeus' do |g|
   end
 end
 
-jump_gate system('Athena'), system('Aphrodite')
-jump_gate system('Athena'), system('Philo')
+jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
+jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => -150, :y => -150, :z => -150)

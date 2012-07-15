@@ -206,7 +206,7 @@ galaxy 'Zeus' do |g|
                                                 :direction => Motel.random_axis) do |pl|
       moon 'Theophila X',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Theophila XI',  :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
-      moon 'Theophila XI',  :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Theophila XII',  :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
 
     planet 'Zosime',
@@ -238,7 +238,7 @@ galaxy 'Zeus' do |g|
                                                 :eccentricity => 0.8, :semi_latus_rectum => 110,
                                                 :direction => Motel.random_axis)
     planet 'Aesop',
-           :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1,
+           :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1)
   end
 
   system 'Irene', 'HZ1279', :location => Location.new(:x => 110, :y => 423, :z => -455) do |sys|

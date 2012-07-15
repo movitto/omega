@@ -132,6 +132,7 @@ class Ship
   end
 
   def can_attack?(entity)
+    # TODO verify ships do not belong to same user (incoporate alliances?)
     ATTACK_SHIP_TYPES.include?(@type) && !self.docked? &&
     (@location.parent.id == entity.location.parent.id) &&
     (@location - entity.location) <= @attack_distance

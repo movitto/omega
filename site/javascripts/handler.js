@@ -129,6 +129,7 @@ function OmegaHandlers(){
       }
     }
 
+    canvas_ui.setup_scene();
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/'+ client.current_system.background +'.png") no-repeat');
     $('#motel_canvas_container').show();
   }
@@ -167,6 +168,7 @@ function OmegaHandlers(){
       }
     }
 
+    canvas_ui.setup_scene();
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/' + client.current_galaxy.background + '.png") no-repeat');
     // FIXME also need to stop tracking ship and planet locations
   }
@@ -236,6 +238,9 @@ function OmegaHandlers(){
               asteroid.system = system;
               asteroid.location.entity = asteroid;
               client.add_location(asteroid.location);
+
+              // get asteroid's resources
+              client.get_resource_sources(asteroid.name);
             }
 
             for(var j=0; j<system.jump_gates.length; ++j){
@@ -248,7 +253,6 @@ function OmegaHandlers(){
             }
 
             // get ships/stations/fleets in each system
-            // TODO should this go in a better location ? 
             client.get_entities_under(system.name);
           }
 
@@ -325,14 +329,21 @@ function OmegaHandlers(){
     }
 
     if(ships != null && isArray(ships) && ships.length > 0){
-      var num_ships = 0;
       for(var s = 0; s < ships.length; ++s){
         var ship = ships[s];
         if(ship.json_class == "Manufactured::Ship"){
-          num_ships += 1;
           ship.location.entity = ship;
           ship.system = ship.solar_system
           client.add_location(ship.location);
+          if(client.current_system &&
+             client.current_system.name == ship.system.name){
+            client.track_movement(ship.location.id, 25);
+            ship.location.draw = function(ship){ canvas_ui.draw_ship(ship); }
+            ship.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
+          }else{
+            ship.location.draw = canvas_ui.draw_nothing;
+            ship.location.clicked = controls.unregistered_click;
+          }
           for(var u in client.users){
             if(ship.user_id == client.users[u].id){
               ship.user = client.users[u];
@@ -342,11 +353,11 @@ function OmegaHandlers(){
         }
       }
 
+      // refresh details
+      controls.refresh_details();
+
       // refresh current system
-      // XXX hack this is here for when we move ships between systems
-      // XXX removed for stats page
-      //if(client.current_system && num_ships > 0)
-      //  handlers.set_system(client.current_system.name);
+      canvas_ui.setup_scene();
     }
 
   }
@@ -361,6 +372,12 @@ function OmegaHandlers(){
           client.add_location(station.location);
         }
       }
+
+      // refresh details
+      controls.refresh_details();
+
+      // refresh current system
+      canvas_ui.setup_scene();
     }
   }
 
@@ -481,6 +498,8 @@ function OmegaHandlers(){
 
   this.on_movement = function(params){
     client.add_location(params[0]);
+    canvas_ui.setup_scene();
+    controls.refresh_details();
   }
 
   this.on_message = function(params){
@@ -521,6 +540,7 @@ function OmegaHandlers(){
       }
       if(remove != null) delete client.locations[remove];
     }
+    canvas_ui.setup_scene();
   }
 
   this.on_mining_event = function(params){
@@ -534,9 +554,14 @@ function OmegaHandlers(){
           entity = client.locations[s].entity;
         }
       }
+      var resource_id = params[2].resource.id;
+      var quantity = params[3];
       ship.mining = entity;
-      entity.resources[params[2].resource.id].quantity -= params[3];
+      entity.resources[resource_id].quantity -= quantity;
+      if(!ship.resources[resource_id]) ship.resources[resource_id] = 0;
+      ship.resources[resource_id] += quantity;
 
+    // FIXME handle all mining stopped events
     }else if(params[0] == "resource_depleted"){
       var ship = null;
       for(var s in client.locations){
@@ -547,6 +572,11 @@ function OmegaHandlers(){
       }
       ship.mining = null;
     }
+
+    // refresh details
+    controls.refresh_details();
+
+    canvas_ui.setup_scene();
   }
 
 }

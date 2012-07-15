@@ -2,17 +2,30 @@
   <head>
     <link rel="stylesheet" type="text/css" href="stylesheets/motel.css" />
     <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/base/jquery-ui.css" />
+
+    <!-- jquery and jquery ui -->
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+
+    <!-- other jquery plugins -->
+    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
+
+    <!-- three.js & deps -->
+    <script type="text/javascript" src="http://mrdoob.github.com/three.js/build/Three.js"></script>
+    <script type="text/javascript" src="javascripts/helvetiker_font/helvetiker_regular.typeface.js"></script>
+
+    <!-- rjr -->
     <script type="text/javascript" src="javascripts/rjr/json.js"></script>
     <script type="text/javascript" src="javascripts/rjr/jrw.js"></script>
-    <script type="text/javascript" src="javascripts/jquery.cookie.js"></script>
+
+    <!-- omega -->
     <script type="text/javascript" src="javascripts/user.js"></script>
     <script type="text/javascript" src="javascripts/location.js"></script>
     <script type="text/javascript" src="javascripts/handler.js"></script>
     <script type="text/javascript" src="javascripts/client.js"></script>
     <script type="text/javascript" src="javascripts/input.js"></script>
     <script type="text/javascript" src="javascripts/draw.js"></script>
+    <script type="text/javascript" src="javascripts/draw_three.js"></script>
     <script type="text/javascript">
       $(document).ready(function(){ 
         // right now browser compatability check is restricted
@@ -81,7 +94,7 @@
           // TODO remove refresh and subscribe callbacks to new user / ship creation
           setInterval(client.get_users, 10000);
           client.get_users();
-          client.get_cosmos_entity('universe');
+          client.get_cosmos_entity('galaxy');
 
           controls.show_logout_controls();
         }
@@ -97,9 +110,10 @@
         client.connect();
 
         stats_ui   = new CosmosStatsUI();
-        canvas_ui  = new CosmosUI();
         setInterval(stats_ui.draw, 500);
-        setInterval(canvas_ui.draw, 500);
+
+        canvas_ui  = new OmegaUI();
+        canvas_ui.render();
       });
     </script>
 

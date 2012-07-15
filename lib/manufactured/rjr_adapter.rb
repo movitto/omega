@@ -91,12 +91,12 @@ class RJRAdapter
       args[:solar_system] = station.solar_system
       args[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
 
-      raise ArgumentError, "station specified by #{station} cannot construct entity specified by #{args}" unless station.can_construct?(args)
+      raise ArgumentError, "station specified by #{station} cannot construct entity specified by #{args.inspect}" unless station.can_construct?(args)
 
       # create the entity and return it
       entity = station.construct args
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
-      @@local_node.invoke_request('manufactured::create_entity', entity)
+      entity = @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
     }
 
@@ -455,7 +455,7 @@ class RJRAdapter
     #rjr_dispatcher.add_handler('manufactured::stop_mining') { |ship_id|
 
     rjr_dispatcher.add_handler('manufactured::transfer_resource') { |from_entity_id, to_entity_id, resource_id, quantity|
-      raise ArgumentError, "quantity must be an int / float > 0" if !quantity.is_a?(Integer) && !quantity.is_a?(Float) && quantity <= 0
+      raise ArgumentError, "quantity must be an int / float > 0" if (!quantity.is_a?(Integer) && !quantity.is_a?(Float)) || quantity <= 0
 
       from_entity = Manufactured::Registry.instance.find(:id => from_entity_id).first
       to_entity   = Manufactured::Registry.instance.find(:id => to_entity_id).first
