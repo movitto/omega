@@ -17,6 +17,7 @@ function CosmosClient() {
     client.ws_node.open();
 
     client.ws_node.onopen    = function(){ if(handlers.onopen) handlers.onopen(); };
+    client.ws_node.onerror   = function(e){ if(handlers.onerror) handlers.onerror(e); };
     client.ws_node.onsuccess = function(result)     { handlers.invoke_callbacks(result); }
     client.ws_node.onfailed  = function(error, msg) { handlers.invoke_error_handlers(error, msg);  }
     //client.ws_node.message_received = function(msg) { }

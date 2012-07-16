@@ -50,6 +50,17 @@ function OmegaHandlers(){
   ///////////////////////////////// top level handlers
   // TODO better place to put these ?
 
+  this.clear_canvas = function(){
+    for(var l in client.locations){
+      var loco = client.locations[l];
+      loco.draw = canvas_ui.draw_nothing;
+      loco.clicked = controls.unregistered_click;
+    }
+
+    canvas_ui.setup_scene();
+    $('#motel_canvas_container canvas').css('background', '');
+  }
+
   this.set_system = function(system_name){
     client.current_galaxy = null;
     for(var l in client.locations){
@@ -272,10 +283,17 @@ function OmegaHandlers(){
     }
   }
 
+  this.clear_entities_container = function(){
+    $('#motel_locations_container').html('');
+    $('#motel_fleets_container').html('');
+    $('#motel_alliances_container').html('');
+    $('.motel_entities_container').hide();
+  }
+
   this.populate_locations_container = function(galaxies){
     if(galaxies != null && isArray(galaxies) && galaxies.length > 0){
       var num_galaxies = 0;
-      var data  = "<span class='motel_entities_container_title'>Locations:</span><ul>"
+      var data  = "<span class='motel_entities_container_title' id='locations_title'>Locations:</span><ul id='locations_list'>"
       for(var g = 0; g < galaxies.length; ++g){
         var galaxy = galaxies[g];
         if(galaxy.json_class == "Cosmos::Galaxy"){
@@ -300,7 +318,11 @@ function OmegaHandlers(){
           data += "</ul>";
         }
       }
-      if(num_galaxies > 0) $("#motel_locations_container").html(data);
+      data += "</ul><div style='clear: both;'></div>";
+      if(num_galaxies > 0){
+        $("#motel_locations_container").html(data);
+        $("#motel_locations_container").show();
+      }
     }
   }
 
@@ -400,7 +422,7 @@ function OmegaHandlers(){
   this.populate_fleets_container = function(fleets){
     if(fleets != null && isArray(fleets) && fleets.length > 0){
       var num_fleets = 0;
-      var data  = "<span class='motel_entities_container_title'>Fleets:</span><ul>"
+      var data  = "<span class='motel_entities_container_title' 'id='fleets_title'>Fleets:</span><ul id='fleets_list'>"
       for(var f=0;f<fleets.length;++f){
         var fleet = fleets[f];
         if(fleet.json_class == "Manufactured::Fleet"){
@@ -410,13 +432,16 @@ function OmegaHandlers(){
         }
       }
       data += "</ul>";
-      if(num_fleets) $("#motel_fleets_container").html(data);
+      if(num_fleets){
+        $("#motel_fleets_container").html(data);
+        $("#motel_fleets_container").show();
+      }
     }
   }
 
   this.populate_alliances_container = function(user){
     if(user != null && user.json_class == "Users::User"){
-      var data  = "<span class='motel_entities_container_title'>Alliances:</span><ul>";
+      var data  = "<span class='motel_entities_container_title' id='alliances_title' >Alliances:</span><ul id='alliances_list'>";
       for(var a in user.alliances){
         var alliance = user.alliances[a];
         client.user_alliances[alliance.id] = alliance;
@@ -430,6 +455,7 @@ function OmegaHandlers(){
 
       data += "</ul>";
       $('#motel_alliances_container').html(data);
+      $("#motel_alliances_container").show();
     }
   }
 

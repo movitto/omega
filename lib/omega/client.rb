@@ -196,7 +196,6 @@ def role(role)
     client.queue_request 'users::add_privilege', @user.id, pe[0], pe[1]
   }
   RJR::Logger.info "creating role #{role} for #{@user.id}"
-  client.invoke_requests
   nil
 end
 

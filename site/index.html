@@ -67,6 +67,16 @@
         }
         handlers.onlogout = function(){
           controls.show_login_controls();
+          handlers.clear_canvas();
+          handlers.clear_entities_container();
+          controls.clear_details();
+        }
+        handlers.onerror = function(e){
+          console.log("websocket error");
+          controls.show_login_controls();
+          handlers.clear_canvas();
+          handlers.clear_entities_container();
+          controls.clear_details();
         }
         handlers.add_error_handler(handlers.logout_user);
         handlers.add_error_handler(handlers.print_error_to_console);
@@ -96,31 +106,35 @@
       <a href="/stats.html">Stats</a>
     </div>
 
-    <div id="motel_entities_container">
-      <div id="motel_locations_container" class="motel_entities_subcontainer"></div>
-      <div id="motel_fleets_container" class="motel_entities_subcontainer"></div>
-      <div id="motel_alliances_container" class="motel_entities_subcontainer"></div>
-    </div>
 
     <div id="motel_canvas_container">
-      <div id="motel_grid_control">
-        <input id="motel_toggle_grid_canvas" type="checkbox" />toggle grid
+      <div id="motel_canvas_controls_container">
+        <div id="motel_camera_controls_container">
+          cam
+          <img src="/wotel/images/camera/rotate_left.png" id="cam_rotate_left" />
+          <img src="/wotel/images/camera/rotate_right.png" id="cam_rotate_right" />
+          <img src="/wotel/images/camera/rotate_up.png" id="cam_rotate_up" />
+          <img src="/wotel/images/camera/rotate_down.png" id="cam_rotate_down" />
+          <img src="/wotel/images/camera/zoom_out.png" id="cam_zoom_out" />
+          <img src="/wotel/images/camera/zoom_in.png" id="cam_zoom_in" />
+        </div>
+
+        <div id="motel_locations_container" class="motel_entities_container"></div>
+        <div id="motel_alliances_container" class="motel_entities_container"></div>
+        <div id="motel_fleets_container" class="motel_entities_container"></div>
+
+        <div id="motel_grid_control">
+          <input id="motel_toggle_grid_canvas" type="checkbox" />toggle grid
+        </div>
+
+        <div style="clear: both;"></div>
       </div>
 
-      <div id="motel_camera_controls_container">
-        cam
-        <img src="/wotel/images/camera/inc_x_position.png" id="cam_inc_x_position" />
-        <img src="/wotel/images/camera/dec_x_position.png" id="cam_dec_x_position" />
-        <img src="/wotel/images/camera/inc_y_position.png" id="cam_inc_y_position" />
-        <img src="/wotel/images/camera/dec_y_position.png" id="cam_dec_y_position" />
-        <img src="/wotel/images/camera/dec_z_position.png" id="cam_dec_z_position" />
-        <img src="/wotel/images/camera/inc_z_position.png" id="cam_inc_z_position" />
-      </div>
-      <canvas id="motel_canvas" width="1000" height="700"></canvas>
+      <canvas id="motel_canvas" width="900" height="400"></canvas>
+
+      <div id="motel_entity_container"></div>
     </div>
 
-
-    <div id="motel_entity_container"></div>
 
     <div id="motel_dialog"></div>
 

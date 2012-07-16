@@ -32,7 +32,9 @@ function CosmosControls(){
       ship.selected = true;
       if(this.selected_ships.length == 0) this.selected_ship = ship;
       this.selected_ships.push(ship);
-      this.selected_gate = null;
+      this.set_selected_gate(null);
+      this.set_selected_station(null);
+      this.set_selected_asteroid(null);
     }
   }
 
@@ -133,12 +135,17 @@ function CosmosControls(){
        this.select_box_width > 0 && this.select_box_height > 0){
         $("#motel_canvas_container").append("<div id='motel_canvas_selection_controls'></div>");
         var c = $('#motel_canvas_selection_controls');
-        c.css('left', canvas_ui.canvas.offset().left + this.select_box_top_left_x);
-        c.css('top',  canvas_ui.canvas.offset().top + this.select_box_top_left_y);
+        c.css('left', canvas_ui.canvas.position().left + this.select_box_top_left_x);
+        c.css('top',  canvas_ui.canvas.position().top + this.select_box_top_left_y);
         c.css('min-width',  this.select_box_width);
         c.css('min-height',  this.select_box_height);
         c.css('border', '1px solid black');
     }
+  }
+
+  this.clear_details = function(){
+    var entity_container = $('#motel_entity_container');
+    entity_container.html('');
   }
 
   // helper method to refresh the details box currently being displayed
@@ -361,27 +368,27 @@ $("#motel_canvas_selection_controls").live('mouseup', on_canvas_mouse_up);
 
 if(jQuery.fn.mousehold){
 
-$('#cam_inc_x_position').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate(0.0, -0.2);
-});
-
-$('#cam_dec_x_position').mousehold(function(e, ctr){
+$('#cam_rotate_right').mousehold(function(e, ctr){
   canvas_ui.camera.rotate(0.0, 0.2);
 });
 
-$('#cam_inc_y_position').mousehold(function(e, ctr){
-  canvas_ui.camera.rotate(0.2, 0.0);
+$('#cam_rotate_left').mousehold(function(e, ctr){
+  canvas_ui.camera.rotate(0.0, -0.2);
 });
 
-$('#cam_dec_y_position').mousehold(function(e, ctr){
+$('#cam_rotate_up').mousehold(function(e, ctr){
   canvas_ui.camera.rotate(-0.2, 0.0);
 });
 
-$('#cam_inc_z_position').mousehold(function(e, ctr){
+$('#cam_rotate_down').mousehold(function(e, ctr){
+  canvas_ui.camera.rotate(0.2, 0.0);
+});
+
+$('#cam_zoom_out').mousehold(function(e, ctr){
   canvas_ui.camera.zoom(20);
 });
 
-$('#cam_dec_z_position').mousehold(function(e, ctr){
+$('#cam_zoom_in').mousehold(function(e, ctr){
   canvas_ui.camera.zoom(-20);
 });
 
@@ -397,6 +404,20 @@ $('#motel_close_canvas').live('click', function(e){
 // toggle grid on canvas
 $('#motel_toggle_grid_canvas').live('click', function(e){
   canvas_ui.setup_scene();
+});
+
+// view entities container info
+$('.motel_entities_container').live('mouseenter', function(e){
+  var container = $(e.currentTarget).attr('id');
+  container = container.substring(6, container.length - 10);
+  $('#' + container + '_list').show();
+});
+
+// hide entities container info
+$('.motel_entities_container').live('mouseleave', function(e){
+  var container = $(e.currentTarget).attr('id');
+  container = container.substring(6, container.length - 10);
+  $('#' + container + '_list').hide();
 });
 
 // show ship details

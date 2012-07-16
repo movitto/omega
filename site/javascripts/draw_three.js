@@ -4,7 +4,7 @@
 // Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 function OmegaCamera(){
-  this.scene_camera = new THREE.PerspectiveCamera(75, 1000 / 700, 1, 1000 );
+  this.scene_camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 1000 );
   //this.scene_camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   this.scene_camera.position.z = 500;
 
@@ -70,7 +70,7 @@ function OmegaUI(){
   this.camera = new OmegaCamera();
   this.scene.add(this.camera.scene_camera);
   this.renderer = new THREE.CanvasRenderer({canvas: this.canvas.get()[0]});
-  this.renderer.setSize( 1000, 700 );
+  this.renderer.setSize( 900, 400 );
   this.canvas_container.append(this.renderer.domElement);
 
   this.setup_scene = function(){
@@ -237,7 +237,7 @@ function OmegaUI(){
     canvas_ui.scene.add(line);
 
     var geometry = new THREE.PlaneGeometry( station.size, station.size );
-    var texture = new THREE.MeshBasicMaterial({ color: '0x000000', transparent: true, blending: THREE.AdditiveBlending  });
+    var texture = new THREE.MeshFaceMaterial({ });
     var mesh = new THREE.Mesh(geometry, texture);
     mesh.doubleSided = true;
     mesh.rotation.x = 90 * Math.PI / 180;
@@ -270,9 +270,10 @@ function OmegaUI(){
     canvas_ui.scene.add(line);
 
     var geometry = new THREE.PlaneGeometry( ship.size, ship.size );
-    var texture = new THREE.MeshBasicMaterial({ color: '0x000000', transparent: true, blending: THREE.AdditiveBlending  });
+    var texture = new THREE.MeshFaceMaterial({ });
     var mesh = new THREE.Mesh(geometry, texture);
     mesh.doubleSided = true;
+    mesh.rotation.x = 90 * Math.PI / 180;
     mesh.position.set(ship.location.x, ship.location.y, ship.location.z);
     canvas_ui.scene.add(mesh);
 
