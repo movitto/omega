@@ -490,7 +490,7 @@ class FrigateShip < ClientShip
       nl = @home_station.server_station.location + [10, 10, 10]
       move_to_location(nl)
       track_movement(@server_ship.location - nl - 20) do
-        # TODO dock / undock (+serverside docking checks)
+        # TODO dock / undock
         @server_ship.resources.each { |rsid, quantity|
           transfer_resource(@server_ship, @home_station.server_station, rsid, quantity)
         }

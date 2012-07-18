@@ -102,7 +102,7 @@ class Elliptical < MovementStrategy
       #   return
       #end
 
-      ## FIXME make sure location is on ellipse
+      # make sure location is on ellipse
       unless location_valid? location
          cx,cy,cz = closest_coordinates location
          location.x,location.y,location.z = cx,cy,cz
@@ -249,7 +249,7 @@ class Elliptical < MovementStrategy
        y = cY + a * Math.cos(theta) * direction_major_y + b * Math.sin(theta) * direction_minor_y
        z = cZ + a * Math.cos(theta) * direction_major_z + b * Math.sin(theta) * direction_minor_z
 
-       # round to two decimal places (FIXME remove?)
+       # round to two decimal places
        x = x.round_to(2)
        y = y.round_to(2)
        z = z.round_to(2)

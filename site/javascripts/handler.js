@@ -48,7 +48,6 @@ function OmegaHandlers(){
   };
 
   ///////////////////////////////// top level handlers
-  // TODO better place to put these ?
 
   this.clear_canvas = function(){
     for(var l in client.locations){
@@ -84,8 +83,6 @@ function OmegaHandlers(){
 
       }else if(entity.json_class == "Cosmos::Planet"){
         if(entity.system.name == system_name){
-          // FIXME update planets location locally automatically,
-          // track location at a larger distance for a periodic resync
           client.track_movement(loco.id, 7);
           entity.location.draw   = function(planet){ canvas_ui.draw_planet(planet); }
           entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
@@ -181,7 +178,6 @@ function OmegaHandlers(){
 
     canvas_ui.setup_scene();
     $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/' + client.current_galaxy.background + '.png") no-repeat');
-    // FIXME also need to stop tracking ship and planet locations
   }
 
   /////////////////// registerable callbacks

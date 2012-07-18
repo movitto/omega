@@ -23,7 +23,7 @@ class AttackCommand
 
   # determine if we can attack using this attack command
   def attackable?
-    # TODO make sure entities are within attacking distance
+    # elapsed time between mining cycles is less than ship's attack rate
     return @last_attack_time.nil? || ((Time.now - @last_attack_time) > 1 / @attacker.attack_rate)
   end
 
@@ -196,7 +196,6 @@ class MiningCommand
       }
 
       # remove this mining command
-      # TODO should be set elsewhere as well (such as when targets become too far apart)
       @remove = true
     end
   end

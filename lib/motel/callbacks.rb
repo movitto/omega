@@ -25,8 +25,7 @@ class Base
     @endpoint_id = args[:endpoint] || args['endpoint']
   end
 
-  # FIXME XXX this should be *args instead of args = [] (remove [] around super calls below)
-  def invoke(args = [])
+  def invoke(*args)
     handler.call *args
   end
 
@@ -69,7 +68,7 @@ class Movement < Base
      d  = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
 
      if d >= @min_distance && dx.abs >= @min_x && dy.abs >= @min_y && dz.abs >= @min_z
-       super([new_location, d, dx, dy, dz])
+       super(new_location, d, dx, dy, dz)
        @orig_x = @orig_y = @orig_z = nil
      end
   end
@@ -142,7 +141,7 @@ class Proximity < Base
 
      @locations_in_proximity = currently_in_proximity
 
-     super([location, to_location]) if trigger_callback
+     super(location, to_location) if trigger_callback
   end
 
   def to_s

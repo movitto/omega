@@ -75,8 +75,6 @@ class RJRAdapter
 
       # simply convert remaining args into key /
       # value pairs to pass into construct
-      # TODO verify station has construction capabilities for the specified args
-      # TODO validate these in the context of the entities being created and the constructing station / system
       args = Hash[*args]
 
       # remove params which should not be set by the user
@@ -163,6 +161,8 @@ class RJRAdapter
       entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
 
+      # FIXME verify request is coming from authenticated source node which current connection was established on
+
       event_callback =
         Callback.new(event, :endpoint => @headers['source_node']){ |*args|
           begin
@@ -175,6 +175,9 @@ class RJRAdapter
             RJR::Logger.warn "client does not have privilege to subscribe to #{event} on #{entity.id}"
             entity.notification_callbacks.delete event_callback
 
+          # FIXME connection error will only trigger when
+          # callback is triggered, need to detect connection being
+          # terminated whenever it happens (perhaps resolve w/ periodic checking on client connection)
           rescue RJR::Errors::ConnectionError => e
             RJR::Logger.warn "subscribe_to client disconnected"
             entity.notification_callbacks.delete event_callback
@@ -194,7 +197,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::remove_callbacks') { |entity_id|
       source_node = @headers['source_node']
-      # FIXME verify request is coming from authenticated source node
+      # FIXME verify request is coming from authenticated source node which current connection was established on
 
       entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
@@ -238,12 +241,11 @@ class RJRAdapter
         end
 
         # simply set parent and location
-        # FIXME set new_location x, y, z to vicinity of jump gate (or reverse gate if found)
+        # FIXME set new_location x, y, z to vicinity of jump gate (or reverse gate if found) & set movement strategy to stopped
         entity.parent   = parent
         new_location.id = entity.location.id
         entity.location = new_location
         @@local_node.invoke_request('motel::update_location', entity.location)
-        # TODO remove all callbacks, not just those corresponding to @@local_node ???
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'proximity')
 
@@ -262,12 +264,11 @@ class RJRAdapter
         raise Omega::OperationError, "Ship or station #{entity} is already at location" if distance < 1
 
         # move to location using a linear movement strategy
-        # FIXME derive speed from ship
         entity.location.movement_strategy =
           Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
                                                 :direction_vector_y => dy/distance,
                                                 :direction_vector_z => dz/distance,
-                                                :speed => 5
+                                                :speed => entity.movement_speed
         @@local_node.invoke_request('motel::update_location', entity.location)
 
         @@local_node.invoke_request('motel::track_movement', entity.location.id, distance)
@@ -308,11 +309,10 @@ class RJRAdapter
       # ensure entity isn't docked
       raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
 
-      # FIXME derive speed from ship
       entity.location.movement_strategy =
         Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
                                               :distance            => distance,
-                                              :speed => 5
+                                              :speed => entity.movement_speed
 
       @@local_node.invoke_request('motel::update_location', entity.location)
 
@@ -381,7 +381,6 @@ class RJRAdapter
       raise Omega::OperationError, "#{ship} cannot dock at #{station}" unless station.dockable?(ship)
 
       # TODO not thread safe, should go through the registry
-      # TODO station.add_docked_ship(ship)
       ship.dock_at(station)
 
       # set ship movement strategy to stopped
@@ -416,7 +415,6 @@ class RJRAdapter
       resource_sources = @@local_node.invoke_request('cosmos::get_resource_sources', entity_id)
       resource_source  = resource_sources.find { |rs| rs.resource.id == resource_id }
 
-      # TODO verify ship is not already mining resource, within mining distance
       raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
       raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if resource_source.nil?
 

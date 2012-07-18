@@ -16,7 +16,6 @@ class Fleet
     @ships    = []
     @ship_ids = []
 
-    # TODO might not be best to access registry directly here
     ['ships', :ships, 'ship_ids', :ship_ids].each { |si|
       if args.has_key?(si)
         ships = args[si]

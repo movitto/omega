@@ -65,7 +65,6 @@ class RJRAdapter
          entity.location.parent = rparent.location
          # TODO add all of entities children to location tracker
 
-       # else raise error TODO
        end
 
        entity

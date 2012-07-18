@@ -78,6 +78,7 @@ class ChatProxy
         }
       end
     end
+    # TODO set timeout
     @bot.config.nick    = @user
     @bot.config.server  = @server
     @bot.config.port    = @port

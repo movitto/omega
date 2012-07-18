@@ -147,7 +147,7 @@ class RJRAdapter
          @@remote_location_manager.update_location(rloc)
        end
 
-       # invoke callbacks as appropriate
+       # TODO invoke callbacks as appropriate
        #rloc.movement_callbacks.each { |callback|
        #  callback.invoke(rloc, *old_coords)
        #}
@@ -164,7 +164,7 @@ class RJRAdapter
 
        raise ArgumentError, "min_distance must be an int or float > 0" unless (min_distance.is_a?(Integer) || min_distance.is_a?(Float)) && min_distance > 0
 
-       # FIXME verify source_node is one session was authenticated against
+       # FIXME verify request is coming from authenticated source node which current connection was established on
        on_movement = 
          Callbacks::Movement.new :endpoint => @headers['source_node'],
                                  :min_distance => min_distance,
@@ -183,7 +183,7 @@ class RJRAdapter
 
            # FIXME connection error will only trigger when movement
            # callback is triggered, need to detect connection being
-           # terminated whenever it happens
+           # terminated whenever it happens (perhaps resolve w/ periodic checking on client connection)
            rescue RJR::Errors::ConnectionError => e
              RJR::Logger.warn "track_movement client disconnected"
              loc.movement_callbacks.delete on_movement
@@ -209,7 +209,7 @@ class RJRAdapter
        raise ArgumentError, "event must be one of #{valid_events.join(", ")}" unless valid_events.include?(event)
        raise ArgumentError, "max_distance must be an int or float > 0" unless (max_distance.is_a?(Integer) || max_distance.is_a?(Float)) && max_distance > 0
 
-       # FIXME verify source_node is one session was authenticated against
+       # FIXME verify request is coming from authenticated source node which current connection was established on
        on_proximity =
          Callbacks::Proximity.new :endpoint => @headers['source_node'],
                                   :to_location => loc2,
@@ -253,7 +253,7 @@ class RJRAdapter
       location_id = args[0]
       callback_type = args.length > 1 ? args[1] : nil
       source_node = @headers['source_node']
-      # FIXME verify source_node is one session was authenticated against
+      # FIXME verify request is coming from authenticated source node which current connection was established on
 
       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?

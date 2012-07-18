@@ -454,10 +454,10 @@ $('#command_jumpgate_trigger').live('click', function(e){
   handlers.add_callback(handlers.handle_ships);
 
   // grab ships around gate in current system
-  // TODO only current user's ships
   for(loc in client.locations){
     var loco = client.locations[loc];
     if(loco.entity.json_class == "Manufactured::Ship"  &&
+       loco.entity.user_id == client.current_user.id   &&
        loco.entity.solar_system.name == client.current_system.name &&
        loco.within_distance(controls.selected_gate.location.x,
                             controls.selected_gate.location.y,
@@ -522,7 +522,6 @@ $('#command_ship_move').live('click', function(e){
      new_loc.parent_id = client.current_system.location.id;
      client.move_entity(controls.selected_ships[sh].id, new_loc);
      shi = (shi + 1) * -1;
-     // FIXME when ship arrives on location, unregister handler
    }
 });
 
@@ -530,8 +529,7 @@ $('#command_ship_select_target').live('click', function(e){
   var targets = "<ul>";
   for(var l in client.locations){
     var loc = client.locations[l];
-    // FIXME variable attack distance
-    if(controls.selected_ships[0].location.within_distance(loc.x, loc.y, loc.z, 100) &&
+    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, controls.selected_ship.attack_distance) &&
        loc.entity && loc.entity.json_class == "Manufactured::Ship" &&
        loc.entity.system.name == client.current_system.name &&
        $.inArray(loc.entity, controls.selected_ships) == -1)
@@ -547,10 +545,9 @@ $('#command_ship_select_dock').live('click', function(e){
   var stations = "<ul>";
   for(var l in client.locations){
     var loc = client.locations[l];
-    // FIXME variable docking distance
-    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, 100) &&
-       loc.entity && loc.entity.json_class == "Manufactured::Station" &&
-       loc.entity.system.name == client.current_system.name)
+    if(loc.entity && loc.entity.json_class == "Manufactured::Station" &&
+       loc.entity.system.name == client.current_system.name &&
+       controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, loc.entity.docking_distance))
          stations += "<li id='"+loc.entity.id+"' class='command_ship_dock' ><a href='#'>" + loc.entity.id + "</a></li>"
   }
   stations += "</ul>";
@@ -593,7 +590,6 @@ $('#command_ship_undock').live('click', function(e){
 $('#command_ship_select_transfer_resource').live('click', function(e){
   var transfer = 'Select resource to transfer';
   transfer += "<ul>";
-  // TODO need to refresh ship & station's resources here
   for(var resource in controls.selected_ship.resources){
     var quantity = controls.selected_ship.resources[resource];
     transfer += "<li><a href='#' class='command_ship_transfer_resource'"+
@@ -627,8 +623,7 @@ $('#command_ship_select_mining').live('click', function(e){
   var mining = '<ul>';
   for(var l in client.locations){
     var loc = client.locations[l];
-    // FIXME variable mining distance
-    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, 100) &&
+    if(controls.selected_ship.location.within_distance(loc.x, loc.y, loc.z, controls.selected_ship.mining_distance) &&
        loc.entity.json_class == "Cosmos::Asteroid" &&
        loc.entity.system.name == client.current_system.name){
          mining += "<li id='" + loc.entity.name + "' class='command_scan_asteroid'><a href='#'>" + loc.entity.name + "</a></li>";

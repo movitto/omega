@@ -85,7 +85,7 @@ class RJRAdapter
            @rjr_callback.invoke('users::on_message', message)
          rescue RJR::Errors::ConnectionError => e
            RJR::Logger.warn "subscribe_to_messages #{user.id} client disconnected"
-           # Users::ChatProxy.proxy_for(user.id).remove_callback # FIXME
+           # Users::ChatProxy.proxy_for(user.id).remove_callback # FIXME + periodic connection timeout
          end
        }
        Users::ChatProxy.proxy_for(user.id).add_callback callback

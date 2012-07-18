@@ -14,13 +14,13 @@ EGYPTIAN_NAMES = ["Aah", "Aken", "Aker", "Amaunet", "Amenhotep", "Ament ", "Am-H
 
 NORSE_NAMES = ["Aesir", "Alta", "Angrbotha", "Asgard", "Asynjr", "Balder", "Berserker", "Bertha", "Bor", "Bragi", "Brono", "Buri", "Bylgja", "Edda", "Eir", "Farbanti", "Fenrir", "Forseti", "Freya", "Freyr", "Frigga", "Fulla", "Garm", "Gefjon", "Gerd", "Ginnunggap", "Gioll", "Gladsheim", "Gleipnir", "Gna", "Gold-comb", "Gotterdammerung", "Gulltopr", "Gullveig", "Gungnir", "Gunlad", "Heimdall", "Hel", "Hermod", "Hlin", "Hodur", "Hoenir", "Hresvelgr", "Huldra", "Huginn", "Iduna", "Jord", "Jormungandr", "Jotunheim", "Kolga", "Lodur", "Lofn", "Loki", "Magni", "Mimir", "Modi", "Muninn", "Nanna", "Nastrand", "Nidhogg", "Niflheim", "Njord", "Norn", "Odin", "Ogres", "Outgard", "Ragnarok", "Ran", "Runes", "Runic", "Saga", "Seidr", "Sif", "Sjofn", "Skadi", "Sleipnir", "Snotra", "Surtr", "Syn", "Thiassi", "Thor", "Thrud", "Troll", "Tyr", "Ulle", "Valhalla", "Vali", "Valkyries", "Var", "Ve", "Vidar", "Vili", "Vingulf", "Vithar", "Vor", "Woden", "Yggdrasil", "Ymi"]
 
-# FIXME names from other mythologies
+# TODO names from other mythologies
 
 NAMES = GREEK_NAMES + EGYPTIAN_NAMES + NORSE_NAMES + []
 
 def self.rand_name(args = {})
   with_suffix = args[:with_suffix] || false
-  # TODO used names argument (names to ignore in selection)
+  # TODO used_names argument (names to ignore in selection)
 
   name = NAMES[rand(NAMES.length-1)]
   name += " " + (1 + rand(MAX_SUFFIX - 1)).to_s if with_suffix

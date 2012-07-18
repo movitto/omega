@@ -28,6 +28,9 @@ class Station
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
+  # movement properties
+  attr_accessor :movement_speed
+
   # map of resources contained in the station to quantities
   attr_reader :resources
 
@@ -59,7 +62,8 @@ class Station
 
     @resources = args[:resources] || args['resources'] || {}
 
-    # FIXME make variable
+    # TODO make variable
+    @movement_speed = 5
     @cargo_capacity = 10000
     @docking_distance = 100
     @transfer_distance = 100
@@ -160,7 +164,7 @@ class Station
     # verify station is of manufacturing type
     return nil unless @type == :manufacturing
 
-    # TODO construction time/delay
+    # FIXME construction time/delay
     entity_type = args[:entity_type]
     entity      = nil
     cargs       = {}
@@ -223,7 +227,11 @@ class Station
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:id => id, :user_id => user_id, :type => type, :size => size, :location => @location, :solar_system => @solar_system,
+         {:id => id, :user_id => user_id,
+          :type => type, :size => size,
+          :docking_distance => @docking_distance,
+          :location => @location,
+          :solar_system => @solar_system,
           :resources => @resources}
      }.to_json(*a)
    end

@@ -192,8 +192,6 @@ class Registry
           @mining_commands[id].ship.stop_mining
           @mining_commands.delete(id)
         }
-
-        # TODO remove resource sources w/ quantity <= 0 ?
       }
 
       sleep MINING_POLL_DELAY

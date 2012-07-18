@@ -25,7 +25,7 @@ class Runner
     # is set to true upon runner termination
     @terminate = false
 
-    # TODO use ruby tree to store locations w/ heirarchy
+    # TODO use ruby tree to store locations w/ heirarchy ?
     # management queues, locations to be scheduled and locations to be run
     @schedule_queue = []
     @run_queue = []
@@ -43,7 +43,7 @@ class Runner
   # Return complete list of locations being managed/tracked
   def locations
     ret = []
-    # TODO would rather not have to lock these both at the same time,
+    # would rather not have to lock these both at the same time,
     # but if locked independenly, the queues can be maniupulated
     # inbetween the locks
     @schedule_lock.synchronize {

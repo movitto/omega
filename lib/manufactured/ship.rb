@@ -32,6 +32,9 @@ class Ship
   # list of callbacks to invoke on certain events relating to ship
   attr_accessor :notification_callbacks
 
+  # movement properties
+  attr_accessor :movement_speed
+
   # attack/defense properties
   attr_accessor :attack_distance
   attr_accessor :attack_rate  # attacks per second
@@ -84,6 +87,7 @@ class Ship
     @resources = args[:resources] || args['resources'] || {}
 
     # FIXME make variable
+    @movement_speed = 5
     @cargo_capacity = 100
     @attack_distance = 100
     @attack_rate  = 0.5
@@ -115,8 +119,8 @@ class Ship
     !@user_id.nil? && @user_id.is_a?(String) && # ensure user id corresponds to actual user ?
     !@type.nil? && SHIP_TYPES.include?(@type) &&
     !@size.nil? && @size == SHIP_SIZES[@type] &&
-    (@docked_at.nil? || @docked_at.is_a?(Manufactured::Station)) && # TODO verify within docking distance of station
-    (@mining.nil? || @mining.is_a?(Cosmos::Asteroid)) && # TODO verify withing mining distance of target & update as other mining entities are supported
+    (@docked_at.nil? || @docked_at.is_a?(Manufactured::Station)) && # TODO verify can_dock_at?(@docked_at)
+    (@mining.nil? || @mining.is_a?(Cosmos::Asteroid)) && # TODO verify can_mine?(@mining)
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @notification_callbacks.is_a?(Array) && @notification_callbacks.select { |nc| !nc.kind_of?(Manufactured::Callback) }.empty? && # TODO ensure validity of callbacks
     @resources.is_a?(Hash) && @resources.select { |id,q| !id.is_a?(String) || !(q.is_a?(Integer) || q.is_a?(Float)) }.empty? # TODO verify resources are valid in context of ship
@@ -164,10 +168,6 @@ class Ship
   end
 
   def start_mining(resource_source)
-    # FIXME ensure ship / resource_source are within mining distance
-    #       + ship is has mining capabilities
-    #       + ship isn't full
-    # TODO resource_source.add_sink(ship)
     @mining = resource_source
   end
 
@@ -176,7 +176,7 @@ class Ship
   end
 
   def add_resource(resource_id, quantity)
-    # TODO raise error if cargo_quantity >= cargo_capacity
+    # FIXME return / raise error if cargo_quantity >= cargo_capacity
     @resources[resource_id] ||= 0
     @resources[resource_id] += quantity
   end
@@ -214,6 +214,8 @@ class Ship
       'data'       =>
         {:id => id, :user_id => user_id,
          :type => type, :size => size,
+         :attack_distance => @attack_distance,
+         :mining_distance => @mining_distance,
          :docked_at => @docked_at,
          :location => @location,
          :solar_system => @solar_system,
