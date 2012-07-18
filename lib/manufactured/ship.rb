@@ -105,10 +105,10 @@ class Ship
     # location should be set after solar system so parent is set correctly
     self.location = args['location'] || args[:location]
 
-    if @location.nil?
-      self.location = Motel::Location.new
-      @location.x = @location.y = @location.z = 0
-    end
+    self.location = Motel::Location.new if @location.nil?
+    @location.x = 0 if @location.x.nil?
+    @location.y = 0 if @location.y.nil?
+    @location.z = 0 if @location.z.nil?
 
     @location.movement_strategy = args[:movement_strategy] if args.has_key?(:movement_strategy)
   end

@@ -251,9 +251,9 @@ describe Manufactured::RJRAdapter do
     # verify defaults
     Manufactured::Registry.instance.ships[0].type.should == :frigate
     Manufactured::Registry.instance.ships[0].size.should == Manufactured::Ship::SHIP_SIZES[:frigate]
-    Manufactured::Registry.instance.ships[0].location.x.should == stat1.location.x + 10
-    Manufactured::Registry.instance.ships[0].location.y.should == stat1.location.y + 10
-    Manufactured::Registry.instance.ships[0].location.z.should == stat1.location.z + 10
+    Manufactured::Registry.instance.ships[0].location.x.should == 0
+    Manufactured::Registry.instance.ships[0].location.y.should == 0
+    Manufactured::Registry.instance.ships[0].location.z.should == 0
 
     lambda{
       rship = @local_node.invoke_request('manufactured::construct_entity', stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', 5110)

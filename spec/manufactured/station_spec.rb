@@ -230,18 +230,34 @@ describe Manufactured::Station do
 
     station.add_resource 'metal-alloy', 5000
 
+    # build ship
     entity   = station.construct :entity_type => "Manufactured::Ship"
     entity.class.should == Manufactured::Ship
     entity.parent.should == station.parent
     entity.location.should_not be_nil
+    entity.location.x.should == 0
+    entity.location.y.should == 0
+    entity.location.z.should == 0
     station.resources['metal-alloy'].should == 4900
 
+    # build station
     entity   = station.construct :entity_type => "Manufactured::Station"
     entity.class.should == Manufactured::Station
     entity.parent.should == station.parent
     entity.location.should_not be_nil
     station.resources['metal-alloy'].should == 4800
 
+    # specify location
+    entity   = station.construct :entity_type => "Manufactured::Ship", :location => Motel::Location.new(:x => 30, :y => 0, :z => 0)
+    entity.class.should == Manufactured::Ship
+    entity.location.x.should == 30
+
+    # outside of construction distance
+    entity   = station.construct :entity_type => "Manufactured::Ship", :location => Motel::Location.new(:x => 500, :y => 0, :z => 0)
+    entity.class.should == Manufactured::Ship
+    entity.location.x.should == 50
+
+    # cannot construct
     station.type = :offense
     entity   = station.construct :entity_type => "Manufactured::Ship"
     entity.should be_nil

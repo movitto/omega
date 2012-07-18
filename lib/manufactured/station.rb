@@ -48,6 +48,9 @@ class Station
   attr_accessor :cargo_capacity
   # see cargo_quantity below
 
+  # max distance which construction occurs
+  attr_reader :construction_distance
+
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]
 
@@ -79,14 +82,15 @@ class Station
     @cargo_capacity = 10000
     @docking_distance = 100
     @transfer_distance = 100
+    @construction_distance = 50
 
     self.solar_system = args['solar_system'] || args[:solar_system]
     self.location = args['location'] || args[:location]
 
-    if @location.nil?
-      self.location = Motel::Location.new
-      @location.x = @location.y = @location.z = 0
-    end
+    self.location = Motel::Location.new if @location.nil?
+    @location.x = 0 if @location.x.nil?
+    @location.y = 0 if @location.y.nil?
+    @location.z = 0 if @location.z.nil?
   end
 
   def valid?
@@ -228,12 +232,20 @@ class Station
     unless entity.nil?
       entity.parent = self.parent
 
-      # create entity at nearby location
-      entity.location = Motel::Location.new # TODO allow user to specify alternate location (& move entity to it if permissable)
-      entity.location.x = self.location.x + 10
-      entity.location.y = self.location.y + 10
-      entity.location.z = self.location.z + 10
       entity.location.parent = self.location.parent
+      entity.location.parent_id = self.location.parent.id
+
+      # allow user to specify coordinates unless too far away
+      # in which case, construct at closest location to specified location withing construction distance
+      distance = entity.location - self.location
+      if distance > @construction_distance
+        dx = (entity.location.x - self.location.x) / distance
+        dy = (entity.location.y - self.location.y) / distance
+        dz = (entity.location.z - self.location.z) / distance
+        entity.location.x = dx * @construction_distance
+        entity.location.y = dy * @construction_distance
+        entity.location.z = dz * @construction_distance
+      end
     end
 
     entity
