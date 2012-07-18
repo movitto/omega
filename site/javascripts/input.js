@@ -699,12 +699,15 @@ $('#login_dialog_link').live('click', function(event){
 
 $('#create_account_dialog_link').live('click', function(event){
   var html  = 'Username: <input type="text" id="user_username" />';
-      html += 'Password: <input type="password" id="user_password" />';
-      html += 'Email: <input type="text" id="user_email" />';
+      html += '<br/>Password: <input type="password" id="user_password" />';
+      html += '<br/>Email: <input type="text" id="user_email" />';
+      html += '<br/><div id="omega_recaptcha"></div>';
       html += "<br/>By submitting this form, you are agreeing to The Omegaverse <a href='/wiki/Terms_of_Use'>Terms of Use</a><br/>";
-      html += '<input type="button" id="create_account_link" value="confirm" />';
-  // TODO recaptcha
+      html += '<br/><input type="button" id="create_account_link" value="confirm" />';
   $('#motel_dialog').html(html).dialog({title: 'create account'}).dialog('open');
+  // FIXME make recaptcha public key variable / configurable
+  Recaptcha.create("6LflM9QSAAAAAHsPkhWc7OPrwV4_AYZfnhWh3e3n", "omega_recaptcha",
+                   { theme: "red", callback: Recaptcha.focus_response_field});
 });
 
 $('#login_link').live('click', function(event){
@@ -737,6 +740,8 @@ $('#create_account_link').live('click', function(event){
   client.current_user.id = $('#user_username').attr('value');
   client.current_user.password = $('#user_password').attr('value');
   client.current_user.email    = $('#user_email').attr('value');
+  client.current_user.recaptcha_challenge = Recaptcha.get_challenge();
+  client.current_user.recaptcha_response  = Recaptcha.get_response();
 
   client.create_account();
 });

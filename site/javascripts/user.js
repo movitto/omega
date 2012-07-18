@@ -5,6 +5,8 @@ function User(){
   this.session_id = '';
   this.ships = [];
   this.stations = [];
+  this.recaptcha_challenge = null;
+  this.recaptcha_response  = null;
 
   this.update = function(user){
     this.id         = user.id;

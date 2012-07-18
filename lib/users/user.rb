@@ -16,6 +16,10 @@ class User
   # but hasn't confirmed their email yet
   attr_accessor :registration_code
 
+  # recaptcha values comes in on new account requests, verify
+  attr_accessor :recaptcha_challenge
+  attr_accessor :recaptcha_response
+
   # TODO set these
   attr_reader :created_at
   attr_reader :last_modified_at
@@ -26,7 +30,9 @@ class User
     @email     = args['email']     || args[:email]
     @password  = args['password']  || args[:password]
     @alliances = args['alliances'] || args[:alliances] || []
-    @registration_code = args['registration_code'] || args[:registration_code]
+    @registration_code   = args['registration_code'] || args[:registration_code]
+    @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
+    @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
     # FIXME encrypt password w/ salt
 
     @privileges = []
