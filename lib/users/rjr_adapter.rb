@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 # FIXME make configurable
+RECAPTCHA_ENABLED = true
 RECAPTCHA_PRIVATE_KEY = 'CHANGE_ME'
 
 require 'curb'
@@ -150,16 +151,17 @@ class RJRAdapter
        raise ArgumentError, "user id already taken" unless Users::Registry.instance.find(:id => user.id).empty?
        raise ArgumentError, "valid username and password is required"  unless user.id.is_a?(String) && user.password.is_a?(String) && user.id != "" && user.password != ""
 
-       # TODO ensure node type isn't amqp so that client_ip is available ?
-
-       # ensure recaptcha is valid
-       recaptcha_response = Curl::Easy.http_post 'http://www.google.com/recaptcha/api/verify',
-                                           Curl::PostField.content('privatekey', RECAPTCHA_PRIVATE_KEY),
-                                           Curl::PostField.content('remoteip', @client_ip),
-                                           Curl::PostField.content('challenge', user.recaptcha_challenge),
-                                           Curl::PostField.content('response', user.recaptcha_response)
-       recaptcha_response = recaptcha_response.body_str.split.first
-       raise ArgumentError, "invalid recaptcha" if recaptcha_response != "true"
+       if RECAPTCHA_ENABLED
+         # TODO ensure node type isn't amqp so that client_ip is available ?
+         # ensure recaptcha is valid
+         recaptcha_response = Curl::Easy.http_post 'http://www.google.com/recaptcha/api/verify',
+                                             Curl::PostField.content('privatekey', RECAPTCHA_PRIVATE_KEY),
+                                             Curl::PostField.content('remoteip', @client_ip),
+                                             Curl::PostField.content('challenge', user.recaptcha_challenge),
+                                             Curl::PostField.content('response', user.recaptcha_response)
+         recaptcha_response = recaptcha_response.body_str.split.first
+         raise ArgumentError, "invalid recaptcha" if recaptcha_response != "true"
+       end
 
        # generate random registraton code
        user.registration_code = Users::User.random_registration_code
