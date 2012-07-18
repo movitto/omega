@@ -180,11 +180,13 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.create defender
     Manufactured::Registry.instance.ships.should include(attacker)
     Manufactured::Registry.instance.ships.should include(defender)
+    Manufactured::Registry.instance.ship_graveyard.size.should == 0
 
     Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
     sleep 3
 
     Manufactured::Registry.instance.ships.should_not include(defender)
+    Manufactured::Registry.instance.ship_graveyard.should include(defender)
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.running?.should be_false

@@ -17,6 +17,9 @@ class Registry
   attr_reader :stations
   attr_reader :fleets
 
+  # holds ships which have been destroyed
+  attr_reader :ship_graveyard
+
   # attack commands client has issued to be regularily run
   attr_reader :attack_commands
 
@@ -38,6 +41,8 @@ class Registry
     @fleets   = []
     @attack_commands = {}
     @mining_commands = {}
+
+    @ship_graveyard = []
 
     terminate
     @terminate_cycles = false
@@ -76,7 +81,7 @@ class Registry
 
     children.each { |entity|
       entities << entity if (id.nil?        || entity.id         == id)        &&
-                            (parent_id.nil? || (entity.parent && (entity.parent.name  == parent_id))) &&  # FIXME fleet parent could be nil (autodelete fleet if no ships?)
+                            (parent_id.nil? || (entity.parent && (entity.parent.name  == parent_id))) &&
                             (user_id.nil?   || entity.user_id    == user_id)   &&
                             (location_id.nil? || (entity.location && entity.location.id == location_id)) &&
                             (type.nil?      || entity.class.to_s == type)
@@ -165,9 +170,11 @@ class Registry
         # remove attack commands no longer necessary
         @attack_commands.reject! { |id, ac| ac.remove? }
 
-        # remove ships w/ <= 0 hp
-        # TODO add deleted ships to a ship graveyard registry
-        @ships.reject! { |sh| sh.hp <= 0 }
+        # remove ships w/ <= 0 hp and
+        # add deleted ships to ship graveyard registry
+        destroyed = []
+        @ships.delete_if { |sh| destroyed << sh if sh.hp <= 0 }
+        @ship_graveyard += destroyed
       }
 
       sleep ATTACK_POLL_DELAY
