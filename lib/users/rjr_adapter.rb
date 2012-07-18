@@ -45,15 +45,19 @@ class RJRAdapter
 
        entities = Users::Registry.instance.find(filter)
 
-       entities.reject! { |entity|
-         !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
-                                                   {:privilege => 'view', :entity => 'users_entities'}],
-                                          :session => @headers['session_id'])
-       }
-
        if return_first
          entities = entities.first
-         raise Omega::DataNotFound, "users entity specified by #{filter} not found" if entities.nil?
+         raise Omega::DataNotFound, "users entity specified by #{filter.inspect} not found" if entities.nil?
+         Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entities.id}"},
+                                                    {:privilege => 'view', :entity => 'users_entities'}],
+                                           :session   => @headers['session_id'])
+
+       else
+         entities.reject! { |entity|
+           !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
+                                                     {:privilege => 'view', :entity => 'users_entities'}],
+                                            :session => @headers['session_id'])
+         }
        end
 
        entities
