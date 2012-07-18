@@ -44,6 +44,9 @@ class Station
   # map of resources contained in the station to quantities
   attr_reader :resources
 
+  # docking properties
+  attr_reader :docking_distance
+
   # cargo properties
   attr_accessor :cargo_capacity
   # see cargo_quantity below

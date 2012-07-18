@@ -32,7 +32,8 @@ describe Manufactured::Ship do
   end
 
   it "should verify validity of ship" do
-    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'tu', :solar_system => Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new
+    ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'tu', :solar_system => sys
     ship.valid?.should be_true
 
     ship.id = nil
@@ -41,7 +42,7 @@ describe Manufactured::Ship do
 
     ship.location = nil
     ship.valid?.should be_false
-    ship.location = Motel::Location.new
+    ship.location = Motel::Location.new :x => 0, :y => 0, :z => 0
 
     ship.solar_system = nil
     ship.valid?.should be_false
@@ -64,7 +65,14 @@ describe Manufactured::Ship do
 
     ship.dock_at(2)
     ship.valid?.should be_false
+
     ship.dock_at(Manufactured::Station.new)
+    ship.valid?.should be_false
+    ship.docked_at.location.parent = sys.location
+
+    ship.location.x = 500
+    ship.valid?.should be_false
+    ship.location.x = 0
 
     ship.start_mining(false)
     ship.valid?.should be_false
@@ -155,6 +163,27 @@ describe Manufactured::Ship do
     ship1.remove_resource('metal-alloy', ship1.cargo_capacity)
 
     ship1.can_mine?(rs).should be_true
+  end
+
+  it "should return bool indicating if it can dock at station" do
+    sys = Cosmos::SolarSystem.new
+    sys1 = Cosmos::SolarSystem.new
+    ship = Manufactured::Ship.new :id => 'ship1'
+    station = Manufactured::Station.new :id => 'station1'
+
+    sys.location.id = 42
+    sys1.location.id = 43
+    ship.location.parent = sys.location
+    station.location.parent = sys.location
+
+    ship.can_dock_at?(station).should be_true
+
+    ship.location.x = 500
+    ship.can_dock_at?(station).should be_false
+    ship.location.x = 0
+
+    ship.location.parent = sys1.location
+    ship.can_dock_at?(station).should be_false
   end
 
   it "should be dockable at stations" do

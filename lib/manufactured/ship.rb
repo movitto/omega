@@ -119,7 +119,7 @@ class Ship
     !@user_id.nil? && @user_id.is_a?(String) && # ensure user id corresponds to actual user ?
     !@type.nil? && SHIP_TYPES.include?(@type) &&
     !@size.nil? && @size == SHIP_SIZES[@type] &&
-    (@docked_at.nil? || @docked_at.is_a?(Manufactured::Station)) && # TODO verify can_dock_at?(@docked_at)
+    (@docked_at.nil? || (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at))) &&
     (@mining.nil? || @mining.is_a?(Cosmos::Asteroid)) && # TODO verify can_mine?(@mining)
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @notification_callbacks.is_a?(Array) && @notification_callbacks.select { |nc| !nc.kind_of?(Manufactured::Callback) }.empty? && # TODO ensure validity of callbacks
@@ -133,6 +133,11 @@ class Ship
 
   def parent=(system)
     self.solar_system = system
+  end
+
+  def can_dock_at?(station)
+    (@location.parent.id == station.location.parent.id) &&
+    (@location - station.location) <= station.docking_distance
   end
 
   def can_attack?(entity)
