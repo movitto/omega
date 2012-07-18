@@ -120,7 +120,7 @@ class Ship
     !@type.nil? && SHIP_TYPES.include?(@type) &&
     !@size.nil? && @size == SHIP_SIZES[@type] &&
     (@docked_at.nil? || (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at))) &&
-    (@mining.nil? || @mining.is_a?(Cosmos::Asteroid)) && # TODO verify can_mine?(@mining)
+    (@mining.nil? || (@mining.is_a?(Cosmos::ResourceSource) && can_mine?(@mining))) &&
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @notification_callbacks.is_a?(Array) && @notification_callbacks.select { |nc| !nc.kind_of?(Manufactured::Callback) }.empty? && # TODO ensure validity of callbacks
     @resources.is_a?(Hash) && @resources.select { |id,q| !id.is_a?(String) || !(q.is_a?(Integer) || q.is_a?(Float)) }.empty? # TODO verify resources are valid in context of ship

@@ -57,11 +57,11 @@ describe Manufactured::Ship do
 
     ship.type = 'fooz'
     ship.valid?.should be_false
-    ship.type = :frigate
+    ship.type = :mining
 
     ship.size = 512
     ship.valid?.should be_false
-    ship.size = Manufactured::Ship::SHIP_SIZES[:frigate]
+    ship.size = Manufactured::Ship::SHIP_SIZES[:mining]
 
     ship.dock_at(2)
     ship.valid?.should be_false
@@ -73,10 +73,21 @@ describe Manufactured::Ship do
     ship.location.x = 500
     ship.valid?.should be_false
     ship.location.x = 0
+    ship.undock
 
     ship.start_mining(false)
     ship.valid?.should be_false
-    ship.start_mining(Cosmos::Asteroid.new)
+
+    ship.start_mining(Cosmos::ResourceSource.new(:entity => Cosmos::Asteroid.new))
+    ship.valid?.should be_false
+
+    ship.mining.entity.location.parent = sys.location
+    ship.valid?.should be_true
+    ship.start_mining(nil)
+
+    #ship.location.x = 500
+    #ship.valid?.should be_false
+    #ship.location.x = 0
 
     ship.notification_callbacks << nil
     ship.valid?.should be_false
@@ -86,7 +97,7 @@ describe Manufactured::Ship do
     ship.resources[99] = 'false'
     ship.valid?.should be_false
     ship.resources.clear
-    ship.resources['gold'] = 500
+    ship.resources['gold'] = 50
 
     ship.valid?.should be_true
   end
