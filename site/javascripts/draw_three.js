@@ -217,10 +217,19 @@ function OmegaUI(){
     mesh.rotation.x = 90 * Math.PI / 180;
     mesh.doubleSided = true;
     mesh.position.set( gate.location.x, gate.location.y, gate.location.z );
-    gate.scene_object = mesh;
     canvas_ui.scene.add( mesh );
 
-    // TODO if selected draw circle around gate
+    // if selected draw sphere around gate trigger radius
+    if(gate == controls.selected_gate){
+      var radius = gate.trigger_distance, segments = 32, rings = 32;
+      var sphereMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4});
+      var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
+      sphere.position.x = gate.location.x ; sphere.position.y = gate.location.y ; sphere.position.z = gate.location.z ;
+      canvas_ui.scene.add(sphere);
+      gate.scene_object = sphere;
+    }else{
+      gate.scene_object = mesh;
+    }
   };
   this.draw_station = function(station){
     var material = new THREE.LineBasicMaterial({color: '0x0000CC'});

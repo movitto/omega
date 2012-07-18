@@ -77,11 +77,12 @@ class JumpGate
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:solar_system => (@solar_system.is_a?(String) ?
-                           @solar_system : @solar_system.name),
-         :endpoint     => (@endpoint.is_a?(String)     ?
-                           @endpoint : @endpoint.name),
-         :location     => @location}
+        {:trigger_distance => @trigger_distance,
+         :solar_system     => (@solar_system.is_a?(String) ?
+                               @solar_system : @solar_system.name),
+         :endpoint         => (@endpoint.is_a?(String)     ?
+                               @endpoint : @endpoint.name),
+         :location         => @location}
     }.to_json(*a)
   end
 

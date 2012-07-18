@@ -6,8 +6,6 @@ function CosmosControls(){
   this.selected_station  = null;
   this.selected_asteroid = null;
 
-  this.gate_trigger_area = 100;
-
   // helper method
   this.update_selected_ship = function(ship){
     for(var si in this.selected_ships){
@@ -462,7 +460,7 @@ $('#command_jumpgate_trigger').live('click', function(e){
        loco.within_distance(controls.selected_gate.location.x,
                             controls.selected_gate.location.y,
                             controls.selected_gate.location.z,
-                            controls.gate_trigger_area)){
+                            controls.selected_gate.trigger_distance)){
       // move to new system
       loco.parent_id = remote_system.location.id;
       client.move_entity(loco.entity.id, loco);
