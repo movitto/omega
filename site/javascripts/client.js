@@ -125,7 +125,7 @@ function CosmosClient() {
 
   this.subscribe_to_mining_events = function(ship){
     client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_collected');
-    client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'resource_depleted');
+    client.ws_node.invoke_request( 'manufactured::subscribe_to', ship.id, 'mining_stopped');
   }
 
 

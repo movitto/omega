@@ -583,11 +583,10 @@ function OmegaHandlers(){
       if(!ship.resources[resource_id]) ship.resources[resource_id] = 0;
       ship.resources[resource_id] += quantity;
 
-    // FIXME handle all mining stopped events
-    }else if(params[0] == "resource_depleted"){
+    }else if(params[0] == "mining_stopped"){
       var ship = null;
       for(var s in client.locations){
-        if(client.locations[s].entity.id == params[1].id){
+        if(client.locations[s].entity.id == params[2].id){
           ship = client.locations[s].entity;
           break;
         }
