@@ -75,24 +75,30 @@ class RJRAdapter
 
       # simply convert remaining args into key /
       # value pairs to pass into construct
-      args = Hash[*args]
+      argsh = Hash[*args]
 
       # remove params which should not be set by the user
       ['solar_system','user_id',
        'resources', 'notifications',
        'docked_at', 'size'].each { |i| # set docked at to station?
-        args.delete(i)
+        argsh.delete(i)
       }
 
       # auto-set additional params
-      args[:entity_type] = entity_type
-      args[:solar_system] = station.solar_system
-      args[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
+      argsh[:entity_type] = entity_type
+      argsh[:solar_system] = station.solar_system
+      argsh[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
 
-      raise ArgumentError, "station specified by #{station} cannot construct entity specified by #{args.inspect}" unless station.can_construct?(args)
+      station.clear_errors :of_type => :construction
+      unless station.can_construct?(argsh)
+        raise ArgumentError,
+              "station specified by #{station} "\
+              "cannot construct entity with args #{args.inspect} "\
+              "due to errors: #{station.errors[:construction]} "
+      end
 
       # create the entity and return it
-      entity = station.construct args
+      entity = station.construct argsh
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
       entity = @@local_node.invoke_request('manufactured::create_entity', entity)
       entity

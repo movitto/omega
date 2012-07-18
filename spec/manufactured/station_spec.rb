@@ -188,15 +188,32 @@ describe Manufactured::Station do
 
     station.can_construct?(:entity_type => "Manufactured::Ship").should be_true
     station.can_construct?(:entity_type => "Manufactured::Station").should be_true
+    station.clear_errors :of_type => :construction
+    station.errors[:construction].size.should == 0
 
     station.type = :offense
     station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
+    station.errors[:construction].size.should == 1
+    station.errors[:construction].first.should == "not manufacturing station"
+
     station.can_construct?(:entity_type => "Manufactured::Station").should be_false
+    station.errors[:construction].size.should == 2
+    station.errors[:construction].last.should == "not manufacturing station"
+
+    station.clear_errors :of_type => :construction
     station.type = :manufacturing
 
     station.resources['metal-alloy'] = 0
     station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
+    station.errors[:construction].size.should == 1
+    station.errors[:construction].first.should == "insufficient resources"
+
     station.can_construct?(:entity_type => "Manufactured::Station").should be_false
+    station.errors[:construction].size.should == 2
+    station.errors[:construction].last.should == "insufficient resources"
+
+    station.clear_errors :of_type => :construction
+    station.errors[:construction].size.should == 0
   end
 
   it "should permit constructing new entities" do

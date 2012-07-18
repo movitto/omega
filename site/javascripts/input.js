@@ -649,7 +649,7 @@ $('.command_mine_resource_source').live('click', function(event){
 });
 
 $('#command_station_select_construction').live('click', function(event){
-  // TODO prompt user for which type of ship to construct, verify resources are sufficient
+  // TODO prompt user for which type of ship to construct
   handlers.clear_callbacks();
   handlers.add_callback(handlers.handle_ships);
   client.construct_ship(controls.selected_station);

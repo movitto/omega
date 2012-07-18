@@ -9,6 +9,16 @@ class Station
   attr_accessor :user_id
   attr_accessor :size
 
+  # hash of operation names to array of errors invoked during operation
+  attr_accessor :errors
+  def clear_errors(args = {})
+    if args.has_key?(:of_type)
+      @errors[args[:of_type]] = []
+    else
+      @errors = {}
+    end
+  end
+
   attr_reader :location
   def location=(val)
     @location = val
@@ -59,6 +69,8 @@ class Station
     @type     = STATION_TYPES[rand(STATION_TYPES.size)] if @type.nil?
     @user_id  = args['user_id']  || args[:user_id]
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : STATION_SIZES[@type])
+
+    @errors   = args[:errors]    || args['errors'] || {}
 
     @resources = args[:resources] || args['resources'] || {}
 
@@ -154,9 +166,17 @@ class Station
     end
 
     # TODO also check if entity can be constructed in system ?
-    return @type == :manufacturing &&
-           !cclass.nil? &&
-           cargo_quantity >= cclass.construction_cost(cargs[:type])
+    @errors[:construction] ||= []
+    if @type != :manufacturing
+      @errors[:construction] << "not manufacturing station"
+    elsif cclass.nil?
+      @errors[:construction] << "cannot construct entity of type #{entity_type}"
+    elsif cargo_quantity < cclass.construction_cost(cargs[:type])
+      @errors[:construction] << "insufficient resources"
+    else
+      return true
+    end
+    return false
   end
 
   # use this station to construct new manufactured entities
@@ -229,6 +249,7 @@ class Station
        'data'       =>
          {:id => id, :user_id => user_id,
           :type => type, :size => size,
+          :errors => errors,
           :docking_distance => @docking_distance,
           :location => @location,
           :solar_system => @solar_system,
