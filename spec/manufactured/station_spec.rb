@@ -134,6 +134,30 @@ describe Manufactured::Station do
     station.resources.size.should == 0
   end
 
+  it "should raise error if cannot add or remove resource" do
+    station   = Manufactured::Station.new :id => 'station1'
+    station.resources.should be_empty
+
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    station.add_resource res.id, station.cargo_capacity
+
+    lambda{
+      station.add_resource res.id, 1
+    }.should raise_error(Omega::OperationError)
+
+    station.remove_resource res.id, ( 3 * station.cargo_capacity / 4 )
+
+    lambda{
+      station.remove_resource res.id, station.cargo_capacity / 2
+    }.should raise_error(Omega::OperationError)
+
+    res1 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
+
+    lambda{
+      station.remove_resource res1.id, 1
+    }.should raise_error(Omega::OperationError)
+  end
+
   it "should permit determining if station can transfer resources to entity" do
     sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 1)
     sys2 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 2)

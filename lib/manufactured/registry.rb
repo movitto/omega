@@ -135,8 +135,13 @@ class Registry
       return if from_entity.nil? || to_entity.nil? ||
                 !from_entity.can_transfer?(to_entity, resource_id, quantity) ||
                 !to_entity.can_accept?(resource_id, quantity)
-      to_entity.add_resource(resource_id, quantity)
-      from_entity.remove_resource(resource_id, quantity)
+      begin
+        to_entity.add_resource(resource_id, quantity)
+        from_entity.remove_resource(resource_id, quantity)
+      rescue Exception => e
+        return nil
+      end
+
       return [from_entity, to_entity]
     }
   end

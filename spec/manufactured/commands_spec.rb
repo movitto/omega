@@ -292,6 +292,7 @@ describe Manufactured::MiningCommand do
      cmd.instance_variable_set(:@remove, false)
      ship.location.x = 0
 
+     ship.resources.clear
      ship.add_resource('metal-alloy', ship.cargo_capacity-1)
      cmd.mine!
      cmd.remove?.should be_true

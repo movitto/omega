@@ -134,8 +134,12 @@ class MiningCommand
   def mine!
     RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource_source.id}"
 
+    # if resource_source has less than mining_quantity only transfer that amount
+    mining_quantity = @ship.mining_quantity
+    mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
+
     # FIXME refresh locations first
-    unless @ship.can_mine?(@resource_source)
+    unless @ship.can_mine?(@resource_source) && @ship.can_accept?(@resource_source.resource.id, mining_quantity)
       @remove = true # must issue subsequent mining requests
       reason = ''
 
@@ -165,20 +169,26 @@ class MiningCommand
 
     @last_time_mined = Time.now
 
-    # if resource_source has less than mining_quantity only transfer that amount
-    mining_quantity = @ship.mining_quantity
-    mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
-
     # TODO synchronize multiple miners (eg one may mine and deplete a resource before this mining cycle is invoked
 
-    @resource_source.quantity -= mining_quantity
-    @ship.add_resource @resource_source.resource.id, mining_quantity
+    removed_resource = false
+    resource_transferred = false
+    begin
+      @resource_source.quantity -= mining_quantity
+      removed_resource = true
+      @ship.add_resource @resource_source.resource.id, mining_quantity
+      resource_transferred = true
+    rescue Exception => e
+      @resource_source.quantity += mining_quantity if removed_resource
+    end
 
-    @ship.notification_callbacks.
-          select { |c| c.type == :resource_collected}.
-          each { |c|
-      c.invoke 'resource_collected', @ship, @resource_source, mining_quantity
-    }
+    if resource_transferred
+      @ship.notification_callbacks.
+            select { |c| c.type == :resource_collected}.
+            each { |c|
+        c.invoke 'resource_collected', @ship, @resource_source, mining_quantity
+      }
+    end
 
     if @resource_source.quantity <= 0
       RJR::Logger.debug "#{@ship.id} depleted resource #{@resource_source.id}, marking for removal"

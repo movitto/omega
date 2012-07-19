@@ -125,13 +125,15 @@ class Station
   end
 
   def add_resource(resource_id, quantity)
+    raise Omega::OperationError, "station cannot accept resource" unless can_accept?(resource_id, quantity) # should we define an exception heirarchy local to manufactured so as not to pull in omega here?
     @resources[resource_id] ||= 0
     @resources[resource_id] += quantity
   end
 
   def remove_resource(resource_id, quantity)
-    return unless @resources.has_key?(resource_id) ||# TODO throw exception?
-                  @resources[resource_id] >= quantity
+    unless @resources.has_key?(resource_id) && @resources[resource_id] >= quantity
+      raise Omega::OperationError, "ship does not contain specified quantity of resource" 
+    end
     @resources[resource_id] -= quantity
     @resources.delete(resource_id) if @resources[resource_id] <= 0
   end

@@ -239,22 +239,46 @@ describe Manufactured::Ship do
     ship.resources.should be_empty
     
     res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    ship.add_resource res.id, 50
+    ship.add_resource res.id, 10
     ship.resources.should_not be_empty
     ship.resources.size.should == 1
-    ship.resources[res.id].should == 50
+    ship.resources[res.id].should == 10
 
     ship.add_resource res.id, 60
     ship.resources.size.should == 1
-    ship.resources[res.id].should == 110
+    ship.resources[res.id].should == 70
 
     ship.remove_resource res.id, 40
     ship.resources.size.should == 1
-    ship.resources[res.id].should == 70
+    ship.resources[res.id].should == 30
 
     # should remove resource if set to 0
-    ship.remove_resource res.id, 70
+    ship.remove_resource res.id, 30
     ship.resources.size.should == 0
+  end
+
+  it "should raise error if cannot add or remove resource" do
+    ship   = Manufactured::Ship.new :id => 'ship1'
+    ship.resources.should be_empty
+
+    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
+    ship.add_resource res.id, ship.cargo_capacity
+
+    lambda{
+      ship.add_resource res.id, 1
+    }.should raise_error(Omega::OperationError)
+
+    ship.remove_resource res.id, ( 3 * ship.cargo_capacity / 4 )
+
+    lambda{
+      ship.remove_resource res.id, ship.cargo_capacity / 2
+    }.should raise_error(Omega::OperationError)
+
+    res1 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
+
+    lambda{
+      ship.remove_resource res1.id, 1
+    }.should raise_error(Omega::OperationError)
   end
 
   it "should permit determining if ship can transfer resources to entity" do
@@ -299,9 +323,9 @@ describe Manufactured::Ship do
     ship   = Manufactured::Ship.new :id => 'ship1'
     res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     res2 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
-    ship.add_resource res1.id, 50
-    ship.add_resource res1.id, 60
-    ship.cargo_quantity.should == 110
+    ship.add_resource res1.id, 20
+    ship.add_resource res1.id, 30
+    ship.cargo_quantity.should == 50
   end
 
   it "should be convertable to json" do
