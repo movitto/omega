@@ -8,8 +8,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe Manufactured::AttackCommand do
 
   it "should run attack cycle between ships" do
-     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette
-     defender = Manufactured::Ship.new  :id => 'ship2'
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :user_id => 'user1'
+     defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
 
      # 1 hit every 2 seconds
      attacker.attack_rate = 0.5
@@ -39,8 +39,8 @@ describe Manufactured::AttackCommand do
   end
 
   it "should invoke attack cycle callbacks" do
-     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :bomber
-     defender = Manufactured::Ship.new  :id => 'ship2'
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :bomber, :user_id => 'user1'
+     defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
 
      # 1 hit every second
      attacker.attack_rate = 1
@@ -81,8 +81,8 @@ describe Manufactured::AttackCommand do
   end
 
   it "should terminate attack cycle and invoke callbacks if targets are too far apart" do
-     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
-     defender = Manufactured::Ship.new  :id => 'ship2', :location => Motel::Location.new(:x => 90,:y => 0, :z => 0)
+     attacker = Manufactured::Ship.new  :id => 'ship1', :user_id => 'user1', :type => :corvette, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
+     defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2', :location => Motel::Location.new(:x => 90,:y => 0, :z => 0)
 
      attacker.attack_rate = 1
      attacker.damage_dealt = 5

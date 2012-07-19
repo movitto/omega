@@ -167,7 +167,7 @@ describe Manufactured::Registry do
 
     sys = Cosmos::SolarSystem.new
     attacker = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1', :type => :battlecruiser
-    defender = Manufactured::Ship.new  :id => 'ship2', :solar_system => sys, :user_id => 'user1'
+    defender = Manufactured::Ship.new  :id => 'ship2', :solar_system => sys, :user_id => 'user2'
 
     # 1 hit every second
     attacker.attack_rate = 1

@@ -481,7 +481,7 @@ describe Manufactured::RJRAdapter do
     sys1 = Cosmos::SolarSystem.new
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1, :type => :destroyer,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
-    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys1,
+    ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2', :solar_system => sys1,
                                    :location => Motel::Location.new(:id => '101', :x => 10, :y => 10, :z => 5)
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'manufactured_entities')
 
@@ -965,7 +965,7 @@ describe Manufactured::RJRAdapter do
     sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 222)
     sys2 = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => 333)
     ship1 = Manufactured::Ship.new :id => 'ship1', :type => :destroyer, :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
-    ship2 = Manufactured::Ship.new :id => 'ship2', :type => :transport, :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
+    ship2 = Manufactured::Ship.new :id => 'ship2', :type => :transport, :user_id => 'user2', :solar_system => sys1, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
     stat1 = Manufactured::Station.new :id => 'stat1', :user_id => 'user1', :solar_system => sys1, :location => Motel::Location.new(:id => '102', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 
