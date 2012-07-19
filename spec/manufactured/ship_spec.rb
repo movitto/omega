@@ -122,8 +122,8 @@ describe Manufactured::Ship do
   it "should return bool indicating if it can attack another entity" do
     sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
     sys2  = Cosmos::SolarSystem.new :name => "sys2", :location => Motel::Location.new(:id => 2)
-    ship1 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :type => :corvette
-    ship2 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
+    ship1 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :type => :corvette, :user_id => 'bob'
+    ship2 = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :user_id => 'jim'
 
     ship1.can_attack?(ship2).should be_true
 
@@ -138,9 +138,13 @@ describe Manufactured::Ship do
     ship1.parent = sys2
     ship1.location.parent = sys2.location
     ship1.can_attack?(ship2).should be_false
-
     ship1.parent = sys1
     ship1.location.parent = sys1.location
+
+    ship1.user_id = 'jim'
+    ship1.can_attack?(ship2).should be_false
+    ship1.user_id = 'bob'
+
     ship1.can_attack?(ship2).should be_true
   end
 
