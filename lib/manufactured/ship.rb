@@ -145,7 +145,7 @@ class Ship
     ATTACK_SHIP_TYPES.include?(@type) && !self.docked? &&
     (@location.parent.id == entity.location.parent.id) &&
     (@location - entity.location) <= @attack_distance  &&
-    @user_id != entity.user_id
+    @user_id != entity.user_id && entity.hp > 0
   end
 
   def can_mine?(resource_source)
@@ -153,7 +153,8 @@ class Ship
     @type == :mining && !self.docked? &&
     (@location.parent.id == resource_source.entity.location.parent.id) &&
     (@location - resource_source.entity.location) <= @mining_distance &&
-    (cargo_quantity + @mining_quantity) <= @cargo_capacity
+    (cargo_quantity + @mining_quantity) <= @cargo_capacity &&
+    resource_source.quantity > 0
   end
 
   def docked?

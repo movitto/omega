@@ -309,6 +309,14 @@ describe Manufactured::MiningCommand do
      cmd.instance_variable_set(:@remove, false)
      ship.undock
 
+     source.quantity = 0
+     cmd.mine!
+     cmd.remove?.should be_true
+     stopped_reason.should == 'resource_source_depleted'
+     stopped_reason = nil
+     cmd.instance_variable_set(:@remove, false)
+     source.quantity = 20
+
      cmd.mine!
      stopped_reason.should be_nil
      cmd.remove?.should be_false

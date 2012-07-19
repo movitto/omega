@@ -78,7 +78,7 @@ describe Manufactured::Ship do
     ship.start_mining(false)
     ship.valid?.should be_false
 
-    ship.start_mining(Cosmos::ResourceSource.new(:entity => Cosmos::Asteroid.new))
+    ship.start_mining(Cosmos::ResourceSource.new(:entity => Cosmos::Asteroid.new, :quantity => 50))
     ship.valid?.should be_false
 
     ship.mining.entity.location.parent = sys.location

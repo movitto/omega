@@ -53,8 +53,6 @@ class AttackCommand
 
     @last_attack_time = Time.now
 
-    # TODO syncronize multiple attackers of a single defender (eg one may destroy defender after which attack cycle of second is launched)
-
     # reduce defender's hp
     @defender.hp -= @attacker.damage_dealt
 
@@ -156,6 +154,9 @@ class MiningCommand
       elsif @ship.docked?
         reason = 'ship_docked'
 
+      elsif @resource_source.quantity <= 0
+        reason = 'resource_source_depleted'
+
       end
 
       @ship.notification_callbacks.
@@ -168,8 +169,6 @@ class MiningCommand
     end
 
     @last_time_mined = Time.now
-
-    # TODO synchronize multiple miners (eg one may mine and deplete a resource before this mining cycle is invoked
 
     removed_resource = false
     resource_transferred = false
