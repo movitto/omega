@@ -50,20 +50,20 @@ class RJRAdapter
       rentity = Manufactured::Registry.instance.find(:id => entity.id).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
 
-      Manufactured::Registry.instance.create entity
+      rentity = Manufactured::Registry.instance.create entity
 
-      unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
+      # skip create_location if entity wasn't created in registry
+      unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
         # needs to happen b4 create_location so motel sets up heirarchy correctly
         entity.location.parent_id = entity.parent.location.id if entity.parent
 
-        # TODO: skip create_location if entity wasn't created in registry
         entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
 
         # needs to happen after create_location as parent won't be sent in the result
         entity.location.parent    = entity.parent.location if entity.parent
       end
 
-      entity
+      rentity
     }
 
     rjr_dispatcher.add_handler('manufactured::construct_entity') { |manufacturer_id, entity_type, *args|
@@ -247,9 +247,10 @@ class RJRAdapter
         end
 
         # simply set parent and location
-        # FIXME set new_location x, y, z to vicinity of jump gate (or reverse gate if found) & set movement strategy to stopped
+        # TODO set new_location x, y, z to vicinity of reverse jump gate (eg gate to current system in destination system) if it exists
         entity.parent   = parent
         new_location.id = entity.location.id
+        new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance
         entity.location = new_location
         @@local_node.invoke_request('motel::update_location', entity.location)
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')

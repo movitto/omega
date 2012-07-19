@@ -699,7 +699,10 @@ describe Manufactured::RJRAdapter do
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity between systems" do
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
-    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '150', :x => 0, :y => 0, :z => 0)
+    stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
+                                      :location => Motel::Location.new(:id => '150',
+                                                                       :x => 0, :y => 0, :z => 0,
+                                                                       :movement_strategy => Motel::MovementStrategies::Linear.new(:dx => 1, :dy => 0, :dz => 0))
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)

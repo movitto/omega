@@ -123,9 +123,13 @@ class Registry
       container = @fleets
     end
 
+    return nil if container.nil?
+
     @entities_lock.synchronize{
       container << entity
     }
+
+    return entity
   end
 
   def transfer_resource(from_entity, to_entity, resource_id, quantity)
