@@ -170,13 +170,22 @@ end
 
 def user(id, args = {}, &bl)
   user = Users::User.new(args.merge({:id => id}))
+  client = Omega::Client.new
+  client.queue_request 'users::get_entity', 'with_id', id
 
-  # TODO attempt to retrieve user b4 creating
-  client = Omega::Client.new :user => user
-  client.queue_request 'users::create_entity', user
-  RJR::Logger.info "creating user #{user.id}"
+  begin
+    user = client.invoke_requests(Users::User)
+
+  rescue Exception => e
+    RJR::Logger.info "creating user #{user.id}"
+    client.queue_request 'users::create_entity', user
+    user = client.invoke_requests(Users::User)
+  end
+
+  client.set_context :user => user
   client.invoke_callback user, &bl
-  client.invoke_requests(Users::User)
+
+  return user
 end
 
 def privilege(id, entity)
@@ -369,39 +378,38 @@ def ship(id, args={}, &bl)
     id   = args[:id]
   end
 
+  create_new = false
   sh = Manufactured::Ship.new(args.merge({:id => id}))
+  client = Omega::Client.new
 
-  client = Omega::Client.new :ship => sh
-  RJR::Logger.info "retrieving ship #{id} with #{args.inspect}"
   if id
+    RJR::Logger.info "retrieving ship #{id}"
     client.queue_request 'manufactured::get_entity', 'with_id', id
   elsif args.has_key?(:location_id)
+    RJR::Logger.info "retrieving ship with #{args.inspect}"
     client.queue_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'with_location', args[:location_id])
   end
 
   begin
-    nsh = client.invoke_requests(Manufactured::Ship)
-    client.remove_entity(sh)
-    client.set_context(:ship => nsh)
-    client.invoke_callback nsh, &bl
-    #RJR::Logger.info "updating ship #{id}"
-    return nsh
+    sh = client.invoke_requests(Manufactured::Ship)
 
-  # TODO should only wrap the invoke_requests call above
   rescue Exception => e
-    if id
-      client.queue_request 'manufactured::create_entity', sh
-      RJR::Logger.info "creating ship #{sh.id}"
-      client.invoke_callback sh, &bl
-      client.invoke_requests(Manufactured::Ship)
-      return sh
-
-    else
+    unless id
       RJR::Logger.info "could not retrieve ship with #{args}"
+      return nil
     end
+
+    client.queue_request 'manufactured::create_entity', sh
+    RJR::Logger.info "creating ship #{sh.id}"
+    create_new = true
   end
 
-  return nil
+  client.set_context(:ship => sh)
+  client.invoke_callback sh, &bl
+
+  client.invoke_requests(Manufactured::Ship) if create_new
+
+  return sh
 end
 
 def station(id, args={}, &bl)
