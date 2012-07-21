@@ -122,7 +122,7 @@ class RJRAdapter
                                                   {:privilege => 'modify', :entity => 'users'}],
                                          :session   => @headers['session_id'])
 
-       Users::Registry.instance.destroy_session(session_id)
+       Users::Registry.instance.destroy_session(:session_id => session_id)
        nil
      }
 

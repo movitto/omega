@@ -20,9 +20,15 @@ describe Users::User do
     u = Users::User.new :password => 'foobar'
     u.password.should == 'foobar'
 
+    ct = Time.now
     n = Users::User.new :password => 'barfoo'
     u.update!(n)
     u.password.should == 'barfoo'
+
+    u.last_modified_at.should_not be_nil
+    u.last_modified_at.class.should == Time
+    u.last_modified_at.should > ct
+    u.last_modified_at.should < Time.now
   end
 
   it "should permit adding an alliance" do

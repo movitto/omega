@@ -74,10 +74,22 @@ class Registry
   def create(entity)
     @entities_lock.synchronize{
       if entity.is_a?(Users::User)
-        @users     << entity if @users.find { |u| u.id == entity.id }.nil?
+        existing = @users.find { |u| u.id == entity.id }
+        if existing.nil?
+          entity.created_at = Time.now
+          entity.last_modified_at = Time.now
+          @users     << entity
+        else # raise exception?
+          entity = existing
+        end
 
       elsif entity.is_a?(Users::Alliance)
-        @alliances << entity if @alliances.find { |a| a.id == entity.id}.nil?
+        existing = @alliances.find { |a| a.id == entity.id}
+        if existing.nil?
+          @alliances << entity
+        else
+          entity = existing
+        end
 
       end
     }
@@ -86,9 +98,17 @@ class Registry
 
   def remove(id)
     @entities_lock.synchronize{
+      entity = nil
       [@users, @alliances].each { |entitya|
-        entitya.reject! { |entity| entity.id == id }
-        # TODO if removing user, remove sessions
+        entity = entitya.find { |entity| entity.id == id }
+        unless entity.nil?
+          entitya.delete(entity)
+
+          # if removing user, remove sessions
+          if entity.is_a?(Users::User)
+            destroy_session(:user_id => entity.id)
+          end
+        end
       }
     }
   end
@@ -98,13 +118,17 @@ class Registry
     session = @sessions.find { |s| s.user_id == user.id }
     return session unless session.nil?
 
+    user.last_login_at = Time.now
     session = Session.new :user => user
     @sessions << session
     return session
   end
 
-  def destroy_session(session_id)
-    @sessions.delete_if { |session| session.id == session_id }
+  def destroy_session(args = {})
+    @sessions.delete_if { |session|
+      session.id == args[:session_id] ||
+      session.user.id == args[:user_id]
+    }
   end
 
   def self.require_privilege(*args)

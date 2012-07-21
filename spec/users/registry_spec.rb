@@ -22,8 +22,16 @@ describe Users::Registry do
     a1  = Users::Alliance.new :id => 'alliance1'
     a2  = Users::Alliance.new :id => 'alliance1'
 
+    ct = Time.now
+
     Users::Registry.instance.create u1
     Users::Registry.instance.users.size.should == 1
+
+    # ensure created_at timestamp gets set
+    u1.created_at.should_not be_nil
+    u1.created_at.class.should == Time
+    u1.created_at.should > ct
+    u1.created_at.should < Time.now
 
     Users::Registry.instance.create u2
     Users::Registry.instance.users.size.should == 1
@@ -53,6 +61,14 @@ describe Users::Registry do
     found = Users::Registry.instance.find :type => "Users::User",
                                           :id   => "user5"
     found.size.should == 0
+
+    # ensure entity removal and removing user destroys session
+    session = Users::Registry.instance.create_session u2
+    Users::Registry.instance.remove u2.id
+    Users::Registry.instance.users.size.should == 1
+    found = Users::Registry.instance.find :id => u2.id
+    found.size.should == 0
+    Users::Registry.instance.sessions.should_not include(session)
   end
 
   it "should manage sessions" do
@@ -60,15 +76,24 @@ describe Users::Registry do
     u = Users::User.new :id => 'user42'
     Users::Registry.instance.create u
 
+    ct = Time.now
+
     session = Users::Registry.instance.create_session u
     session.user.should == u
     Users::Registry.instance.sessions.should include(session)
+
+    # ensure last_login_at timestamp gets created
+    u.last_login_at.should_not be_nil
+    u.last_login_at.class.should == Time
+    u.last_login_at.should > ct
+    u.last_login_at.should < Time.now
 
     found = Users::Registry.instance.find :session_id => session.id
     found.size.should == 1
     found.first.should == u
 
-    Users::Registry.instance.destroy_session session.id
+    Users::Registry.instance.destroy_session :session_id => session.id
+    Users::Registry.instance.sessions.should_not include(session)
   end
 
   it "should provide means to enforce user privileges" do

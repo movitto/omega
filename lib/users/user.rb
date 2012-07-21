@@ -20,10 +20,9 @@ class User
   attr_accessor :recaptcha_challenge
   attr_accessor :recaptcha_response
 
-  # TODO set these
-  attr_reader :created_at
-  attr_reader :last_modified_at
-  attr_reader :last_login_at
+  attr_accessor :created_at
+  attr_accessor :last_modified_at
+  attr_accessor :last_login_at
 
   def initialize(args = {})
     @id        = args['id']        || args[:id]
@@ -39,6 +38,7 @@ class User
   end
 
   def update!(new_user)
+    @last_modified_at = Time.now
     @password = new_user.password
   end
 

@@ -52,7 +52,7 @@ class TestUser
 
   def self.logout
     unless @@session.nil?
-      Users::Registry.instance.destroy_session(@@session.id)
+      Users::Registry.instance.destroy_session(:session_id => @@session.id)
       @@session = nil
     end
     self
