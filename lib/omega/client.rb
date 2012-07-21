@@ -182,6 +182,9 @@ def user(id, args = {}, &bl)
     user = client.invoke_requests(Users::User)
   end
 
+  # pass not returned by server, so need to set explicitly if we can
+  user.password = args[:password]
+
   client.set_context :user => user
   client.invoke_callback user, &bl
 

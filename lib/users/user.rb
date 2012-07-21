@@ -7,10 +7,28 @@ module Users
 class User
   attr_accessor :id
   attr_accessor :email
-  attr_accessor :password
   attr_accessor :alliances
 
   attr_reader :privileges
+
+  attr_reader :password
+  def password=(v)
+    @password = v
+    if @secure_password
+      @password = PasswordHelper.update(@password)
+    end
+  end
+
+  # boolean indicating if we should take additional steps to secure pass
+  attr_reader :secure_password
+  def secure_password=(v)
+    v = @secure_password unless [true, false].include?(v)
+    @secure_password = v
+    if @secure_password
+      # encrypt password w/ salt
+      @password = PasswordHelper.update(@password)
+    end
+  end
 
   # registration code, if set the user has registered
   # but hasn't confirmed their email yet
@@ -32,7 +50,7 @@ class User
     @registration_code   = args['registration_code'] || args[:registration_code]
     @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
     @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
-    # FIXME encrypt password w/ salt
+    @secure_password = false
 
     @privileges = []
   end
@@ -40,6 +58,9 @@ class User
   def update!(new_user)
     @last_modified_at = Time.now
     @password = new_user.password
+
+    # XXX hack, ensure password is salted after updating if necessary
+    self.secure_password=@secure_password
   end
 
   def add_alliance(alliance)
@@ -63,7 +84,8 @@ class User
   end
 
   def valid_login?(user_id, password)
-    self.id == user_id && self.password == password && self.registration_code.nil?
+    self.id == user_id && self.registration_code.nil? &&
+    (@secure_password ? PasswordHelper.check(password, self.password) : password == self.password)
   end
 
   def has_privilege_on?(privilege_id, entity_id)
@@ -81,10 +103,8 @@ class User
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id,
-                       :email => email, :password => password, # FIXME filter password when sending user to client
-                       :registration_code => registration_code,
-                       :alliances => alliances}
+      'data'       => {:id => id, :email => email, :alliances => alliances,
+                      }.merge(@secure_password ? {} : {:password => password})
     }.to_json(*a)
   end
 

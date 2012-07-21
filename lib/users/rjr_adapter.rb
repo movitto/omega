@@ -28,6 +28,8 @@ class RJRAdapter
        raise ArgumentError, "entity must be one of #{Users::Registry::VALID_TYPES}" unless Users::Registry::VALID_TYPES.include?(entity.class)
        raise ArgumentError, "entity id #{entity.id} already taken" unless Users::Registry.instance.find(:type => entity.class.to_s, :id => entity.id).empty?
 
+       entity.secure_password = true if entity.is_a? Users::User
+
        Users::Registry.instance.create entity
     }
 
@@ -165,7 +167,9 @@ class RJRAdapter
 
        # generate random registraton code
        user.registration_code = Users::User.random_registration_code
+
        user.alliances = []
+       user.secure_password = true
 
        # create new user
        Users::Registry.instance.create user
@@ -195,7 +199,7 @@ class RJRAdapter
                                                   {:privilege => 'modify', :entity => 'users'}],
                                          :session   => @headers['session_id'])
        user_entity.update!(user)
-       user
+       user_entity
      }
 
     rjr_dispatcher.add_handler('users::save_state') { |output|

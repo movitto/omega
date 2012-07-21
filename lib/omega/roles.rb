@@ -39,7 +39,9 @@ ROLES = { :superadmin => PRIVILEGES.product(ENTITIES),
 def self.create_user(id, password)
   user = Users::User.new :id => id, :password => password
   local_node = RJR::LocalNode.new :node_id => 'admin'
-  local_node.invoke_request('users::create_entity', user)
+  user = local_node.invoke_request('users::create_entity', user)
+  user.password = password # need to set explicity since it won't be returned by server
+  user
 end
 
 def self.create_user_role(user, role_id)

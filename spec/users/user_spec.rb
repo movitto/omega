@@ -11,9 +11,18 @@ describe Users::User do
     u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
     u.id.should       == 'user1'
     u.email.should    == 'u@ser.com'
-    u.password.should == 'foobar'
+    u.password.should == "foobar"
     u.alliances.size.should == 0
     u.privileges.size.should == 0
+  end
+
+  it "should properly secure user password" do
+    u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
+    u.secure_password = true
+
+    # password should be salted
+    u.password.should_not == "foobar"
+    PasswordHelper.check('foobar', u.password)
   end
 
   it "should permit password to be update" do
@@ -22,8 +31,9 @@ describe Users::User do
 
     ct = Time.now
     n = Users::User.new :password => 'barfoo'
+    u.secure_password = true
     u.update!(n)
-    u.password.should == 'barfoo'
+    PasswordHelper.check('barfoo', u.password).should be_true
 
     u.last_modified_at.should_not be_nil
     u.last_modified_at.class.should == Time
@@ -92,6 +102,13 @@ describe Users::User do
     u.valid_login?('user2', 'foobar').should be_false
   end
 
+  it "should validate login when password is secure" do
+    u = Users::User.new :id => 'user1', :password => 'foobar'
+    u.secure_password = true
+    u.valid_login?('user1', 'foobar').should be_true
+    u.valid_login?('user1', 'barfoo').should be_false
+  end
+
   it "should validate privileges" do
     u = Users::User.new :id => 'user1', :password => 'foobar'
     p1 = Users::Privilege.new :id => 'view', :entity_id => 'entity1'
@@ -119,6 +136,16 @@ describe Users::User do
     j.should include('"password":"foobar"')
     j.should include('"json_class":"Users::Alliance"')
     j.should include('"id":"alliance1"')
+  end
+
+  it "should not include password in json if secure" do
+    user = Users::User.new :id => 'user42',
+                           :email => 'user@42.omega', :password => 'foobar',
+                           :alliances => [Users::Alliance.new(:id => 'alliance1')]
+    user.secure_password = true
+
+    j = user.to_json
+    j.should_not include('password')
   end
 
   it "should be convertable from json" do

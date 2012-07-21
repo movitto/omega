@@ -201,7 +201,10 @@ class Registry
     # TODO block new operations on registry
     # FIXME save alliances
     users.each { |user|
+      user.secure_password = false
       io.write user.to_json + "\n"
+      user.secure_password = true
+
       user.privileges.each { |priv|
         io.write priv.to_json + "\n"
       }

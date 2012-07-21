@@ -29,8 +29,8 @@ describe Users::RJRAdapter do
   it "should permit local nodes or users with create users_entities to create_entity" do
     Users::Registry.instance.users.size.should == 0
 
-    nu1 = Users::User.new :id => 'user42'
-    nu2 = Users::User.new :id => 'user43'
+    nu1 = Users::User.new :id => 'user42', :password => 'foobar'
+    nu2 = Users::User.new :id => 'user43', :password => 'foobar'
     u  = TestUser.create.login(@local_node).clear_privileges
 
     Users::Registry.instance.users.size.should == 1
@@ -57,6 +57,7 @@ describe Users::RJRAdapter do
       ru = @local_node.invoke_request('users::create_entity', nu1)
       ru.class.should == Users::User
       ru.id.should == nu1.id
+      ru.password.should be_nil # ensure pass returned by server is nil
     }.should_not raise_error
 
     # invalid entity (duplicate id)
@@ -79,6 +80,13 @@ describe Users::RJRAdapter do
     }.should_not raise_error
 
     Users::Registry.instance.users.size.should == 3
+
+    # ensure secure_password is set to true and pass is encrypted on create_entity
+    Users::Registry.instance.users[1..2].each { |u|
+      u.secure_password.should be_true
+      u.password.should_not == "foobar"
+      PasswordHelper.check("foobar", u.password).should be_true
+    }
   end
 
   it "should permit users with view users_entities or view user_entity-<id> to get_entity" do
@@ -113,6 +121,7 @@ describe Users::RJRAdapter do
       ru = @local_node.invoke_request('users::get_entity', 'with_id', nu.id)
       ru.class.should == Users::User
       ru.id.should == nu.id
+      ru.password.should be_nil # ensure pass returned by server is nil
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'users_entity-' + nu.id)
@@ -186,6 +195,7 @@ describe Users::RJRAdapter do
       rus.size.should == 3
       rus.collect { |ru| ru.id }.should include(nu1.id)
       rus.collect { |ru| ru.id }.should include(nu2.id)
+      rus.first.password.should be_nil # ensure pass returned by server is nil
     }.should_not raise_error
   end
 
@@ -352,14 +362,16 @@ describe Users::RJRAdapter do
       ru = @local_node.invoke_request('users::register', nu1)
       ru.class.should == Users::User
       ru.id.should == nu1.id
-      ru.registration_code.should_not be_nil
-      rc = ru.registration_code
+      nu1.registration_code.should be_nil # registration code should not be returned
+      ru.password.should be_nil # ensure pass returned by server is nil
 
       du = Users::Registry.instance.users.find { |u| u.id == nu1.id }
       du.should_not be_nil
-      du.registration_code.should == rc
+      du.registration_code.should_not be_nil
+      rc = du.registration_code
       du.alliances.empty?.should be_true
       du.privileges.empty?.should be_true
+      du.secure_password.should be_true
 
       ret = @local_node.invoke_request('users::confirm_register', rc)
       ret.should be_nil
@@ -370,6 +382,7 @@ describe Users::RJRAdapter do
 
   it "should permit a user with modify users_entities to update_user" do
     nu1 = Users::User.new :id => 'user43', :password => 'foobar'
+    nu1.secure_password = true
     u  = TestUser.create.login(@local_node).clear_privileges
 
     Users::Registry.instance.create nu1
@@ -404,9 +417,11 @@ describe Users::RJRAdapter do
       ru = @local_node.invoke_request('users::update_user', uu)
       ru.class.should == Users::User
       ru.id.should == nu1.id
+      ru.password.should be_nil # ensure pass returned by server is nil
     }.should_not raise_error
 
-    nu1.password.should == 'foozbar'
+    nu1.secure_password.should == true
+    PasswordHelper.check('foozbar', nu1.password).should be_true
   end
 
   it "should permit local nodes to save and restore state" do
