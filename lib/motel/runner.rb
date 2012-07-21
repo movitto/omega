@@ -221,18 +221,24 @@ class Runner
           loc.movement_strategy.move loc, elapsed 
           location_timestamps[loc.id] = Time.now
 
+          # invoke movement_callbacks for location moved
           # TODO invoke these async so as not to hold up the runner
-          # TODO invoke 'reverse' proximity_callbacks
           # make sure to keep these in sync w/ those invoked in the simrpc adapter "update_location" handler
           loc.movement_callbacks.each { |callback|
             callback.invoke(loc, *old_coords)
           }
-          loc.proximity_callbacks.each { |callback|
-            callback.invoke(loc)
-          }
 
           locs_to_schedule << loc
         }
+
+        # invoke all proximity_callbacks
+        # see comments about movement_callbacks above
+        locations.each { |loc|
+          loc.proximity_callbacks.each { |callback|
+            callback.invoke(loc)
+          }
+        }
+
 
         # add locations back to schedule queue
         @schedule_lock.synchronize{

@@ -26,6 +26,8 @@ describe Motel::Runner do
     Motel::Runner.instance.run loc2
     Motel::Runner.instance.locations.size.should == 2
 
+    # TODO ensure movement + proximity callbacks are invoked
+
     Motel::Runner.instance.start :async => true, :num_threads => 10
     #Motel::Runner.instance.thread_pool.should_not == nil
     #Motel::Runner.instance.thread_pool.max_size.should == 10
