@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'timecop'
 
 describe Manufactured::AttackCommand do
 
@@ -31,7 +32,7 @@ describe Manufactured::AttackCommand do
      defender.hp.should == 5
      cmd.remove?.should be_false
 
-     sleep 2
+     Timecop.travel(2)
      cmd.attackable?.should be_true
      cmd.attack!
      defender.hp.should == 0
@@ -157,14 +158,14 @@ describe Manufactured::MiningCommand do
      source.quantity.round_to(1).should == 5.3
      cmd.remove?.should be_false
 
-     sleep 1
+     Timecop.travel(1)
      cmd.minable?.should be_true
      cmd.mine!
      ship.resources[resource.id].should == 10
      source.quantity.round_to(1).should == 0.3
      cmd.remove?.should be_false
 
-     sleep 1
+     Timecop.travel(1)
      cmd.minable?.should be_true
      cmd.mine!
      ship.resources[resource.id].should == 10.3
