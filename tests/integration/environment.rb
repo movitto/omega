@@ -36,7 +36,7 @@ galaxy 'Zeus' do |g|
 
   system 'Philo', 'HU1792', :location => Location.new(:x => -142, :y => -338, :z => 409) do |sys|
     planet 'Xeno',
-           :movement_strategy => Elliptical.new(:relative_to => :foci, :speed => 0.1,
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.16, :semi_latus_rectum => 140,
                                                 :direction => Motel.random_axis) do |pl|
     end
