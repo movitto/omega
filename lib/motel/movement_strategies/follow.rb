@@ -11,6 +11,8 @@ module MovementStrategies
 
 # The Follow MovementStrategy follows another location
 # at a specified distance
+#
+# To be valid you must specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
    attr_accessor :tracked_location_id, :distance
    
@@ -21,31 +23,52 @@ class Follow < MovementStrategy
      @distance             = args[:distance]            if args.has_key? :distance
      @speed                = args[:speed]               if args.has_key? :speed
      super(args)
+
+     raise InvalidMovementStrategy.new("follow movement strategy not valid") unless valid?
    end
 
+   def tracked_location
+     # retireve location we're tracking
+     # XXX don't like doing this here (should permissions be enforced for example?)
+     Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
+   end
+
+   def valid?
+     !@tracked_location_id.nil? && !tracked_location.nil? &&
+     [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
+     [Float, Fixnum].include?(@distance.class) && @distance > 0
+   end
 
    # Motel::MovementStrategy::move
    def move(location, elapsed_seconds)
+     unless valid?
+       RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
+       return
+     end
+
+     tl = tracked_location
+     unless tl.parent_id == location.parent_id
+       RJR::Logger.warn "follow movement strategy is set to track location with different parent than the one being moved"
+       return
+     end
+
      RJR::Logger.debug "moving location #{location.id} via follow movement strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     # retireve location we're tracking
-     # XXX don't like doing this here (should permissions be enforced for example?)
-     tracked_location = Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
-     distance_to_cover  = location - tracked_location
+     distance_to_cover  = location - tl
 
-     if location.parent_id != tracked_location.parent_id
+     if location.parent_id != tl.parent_id
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
 
      elsif distance_to_cover <= @distance
-       RJR::Logger.warn "#{location} within #{@distance} of #{tracked_location}"
+       RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
      else
        # calculate direction of tracked location
-       direction_vector_x = (tracked_location.x - location.x) / distance_to_cover
-       direction_vector_y = (tracked_location.y - location.y) / distance_to_cover
-       direction_vector_z = (tracked_location.z - location.z) / distance_to_cover
+       direction_vector_x = (tl.x - location.x) / distance_to_cover
+       direction_vector_y = (tl.y - location.y) / distance_to_cover
+       direction_vector_z = (tl.z - location.z) / distance_to_cover
 
        # calculate distance and update x,y,z accordingly
        distance = speed * elapsed_seconds

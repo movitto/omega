@@ -19,6 +19,36 @@ describe "Motel::MovementStrategies::Linear" do
      linear.speed.should == 5
   end
 
+  it "should return bool indicating validity of movement_strategy" do
+     linear = Motel::MovementStrategies::Linear.new :speed => 10
+     linear.valid?.should be_true
+
+     linear.speed = 'foobar'
+     linear.valid?.should be_false
+
+     linear.speed = -10
+     linear.valid?.should be_false
+     linear.speed = 10
+
+     linear.direction_vector_x = nil
+     linear.valid?.should be_false
+     linear.direction_vector_x = 1
+
+     linear.direction_vector_y = nil
+     linear.valid?.should be_false
+     linear.direction_vector_y = 0
+
+     linear.direction_vector_z = nil
+     linear.valid?.should be_false
+     linear.direction_vector_z = 0
+
+     linear.direction_vector_x = 10
+     linear.valid?.should be_false
+
+     linear.direction_vector_x = 1
+     linear.valid?.should be_true
+  end
+
 
   it "should move location correctly" do
      linear = Motel::MovementStrategies::Linear.new :step_delay => 5, :speed => 20, 
@@ -45,7 +75,23 @@ describe "Motel::MovementStrategies::Linear" do
      location.x.should == x + dx * linear.speed * 5
      location.y.should == y + dy * linear.speed * 5
      location.z.should == z + dz * linear.speed * 5
- 
+  end
+
+  it "should not move location if strategy is invalid" do
+     linear = Motel::MovementStrategies::Linear.new :step_delay => 5, :speed => 20,
+                         :direction_vector_x => 5, :direction_vector_y => 5, :direction_vector_z => 5
+     parent   = Motel::Location.new
+     x = y = z = 20
+     location = Motel::Location.new(:parent => parent, :movement_strategy => linear,
+                                    :x => x, :y => y, :z => z)
+
+     linear.speed = -10
+     linear.valid?.should be_false
+
+     linear.move location, 5
+     location.x.should == x
+     location.y.should == y
+     location.z.should == z
   end
 
   it "should be convertable to json" do

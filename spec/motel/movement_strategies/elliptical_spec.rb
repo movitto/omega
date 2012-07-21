@@ -30,7 +30,8 @@ describe "Motel::MovementStrategies::Elliptical" do
   end
 
   it "should successfully accept and set direction vectors in combined form" do
-    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]]
+    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]],
+                                :e => 0.5, :p => 10, :speed => 5
     elliptical.direction_major_x.should == 1
     elliptical.direction_major_y.should == 0
     elliptical.direction_major_z.should == 0
@@ -39,7 +40,8 @@ describe "Motel::MovementStrategies::Elliptical" do
     elliptical.direction_minor_z.should == 0
 
     elliptical = Elliptical.new :direction_major => [0,0,1],
-                                :direction_minor => [0,1,0]
+                                :direction_minor => [0,1,0],
+                                :e => 0.5, :p => 10, :speed => 5
     elliptical.direction_major_x.should == 0
     elliptical.direction_major_y.should == 0
     elliptical.direction_major_z.should == 1
@@ -50,7 +52,8 @@ describe "Motel::MovementStrategies::Elliptical" do
     elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]],
                                 :direction_major => [0,1,0],
                                 :direction_minor_x => 1,
-                                :direction_minor_y => 0
+                                :direction_minor_y => 0,
+                                :e => 0.5, :p => 10, :speed => 5
     elliptical.direction_major_x.should == 0
     elliptical.direction_major_y.should == 1
     elliptical.direction_major_z.should == 0
@@ -60,7 +63,7 @@ describe "Motel::MovementStrategies::Elliptical" do
   end
 
   it "should default to standard cartesian direction axis" do
-     elliptical = Elliptical.new
+     elliptical = Elliptical.new :e => 0.5, :p => 10, :speed => 5
      elliptical.direction_major_x.should == 1
      elliptical.direction_major_y.should == 0
      elliptical.direction_major_z.should == 0
@@ -69,11 +72,64 @@ describe "Motel::MovementStrategies::Elliptical" do
      elliptical.direction_minor_z.should == 0
   end
 
-  it "should raise exception if direction vectors are orthogonal" do
+  it "should raise exception if direction vectors are not orthogonal" do
      lambda { 
        elliptical = Elliptical.new :direction_major_x => 0.75, :direction_major_y => -0.33,  :direction_major_z => -0.21,
-                                   :direction_minor_x => -0.41, :direction_minor_y => 0, :direction_minor_z => 0.64
-     }.should raise_error(Motel::InvalidMovementStrategy, "elliptical direction vectors not orthogonal")
+                                   :direction_minor_x => -0.41, :direction_minor_y => 0, :direction_minor_z => 0.64,
+                                   :e => 0.5, :p => 10, :speed => 5
+     }.should raise_error(Motel::InvalidMovementStrategy, "elliptical movement strategy not valid")
+  end
+
+  it "should return bool indicateing validity of movement strategy" do
+     elliptical = Elliptical.new :relative_to => Elliptical::RELATIVE_TO_CENTER,
+                                 :speed       => 5,
+                                 :semi_latus_rectum => 100,
+                                 :eccentricity => 0.5
+     elliptical.valid?.should be_true
+
+     # not normalized direction vector
+     elliptical.direction_major_x = 50
+     elliptical.valid?.should be_false
+     elliptical.direction_major_x = 1
+
+     # not normalized direction vector
+     elliptical.direction_minor_x = 50
+     elliptical.valid?.should be_false
+     elliptical.direction_minor_x = 0
+
+     # non orthogonal direction vectors
+     elliptical.direction_major_x = 0
+     elliptical.direction_major_y = 1
+     elliptical.valid?.should be_false
+     elliptical.direction_major_x = 1
+     elliptical.direction_major_y = 0
+
+     elliptical.e = 'foobar'
+     elliptical.valid?.should be_false
+
+     elliptical.e = 5
+     elliptical.valid?.should be_false
+     elliptical.e = 0.5
+
+     elliptical.semi_latus_rectum = 'foobar'
+     elliptical.valid?.should be_false
+
+     elliptical.semi_latus_rectum = -10
+     elliptical.valid?.should be_false
+     elliptical.semi_latus_rectum = 100
+
+     elliptical.speed = 'foobar'
+     elliptical.valid?.should be_false
+
+     elliptical.speed = -10
+     elliptical.valid?.should be_false
+     elliptical.speed = 5
+
+     elliptical.relative_to = 'fooz'
+     elliptical.valid?.should be_false
+     elliptical.relative_to = Elliptical::RELATIVE_TO_FOCI
+
+     elliptical.valid?.should be_true
   end
 
 
@@ -117,6 +173,28 @@ describe "Motel::MovementStrategies::Elliptical" do
      (1  - location.x).abs.round_to(2).should == 0
      (0 - location.y).abs.round_to(2).should == 0
      (0  - location.z).abs.round_to(2).should == 0
+  end
+
+  it "should not move location if strategy is invalid" do
+     elliptical = Elliptical.new(:step_delay        => 5,
+                                 :relative_to       => Elliptical::RELATIVE_TO_CENTER,
+                                 :speed             => 1.57,
+                                 :eccentricity      => 0,
+                                 :semi_latus_rectum => 100)
+
+     parent   = Motel::Location.new
+     location = Motel::Location.new(:parent => parent,
+                             :movement_strategy => elliptical,
+                             :x => 1, :y => 0, :z => 0)
+
+
+     elliptical.direction_major_x = 5
+     elliptical.valid?.should be_false
+
+     elliptical.move location, 1
+     location.x.should == 1
+     location.y.should == 0
+     location.z.should == 0
   end
 
   # TODO test other orbital methods

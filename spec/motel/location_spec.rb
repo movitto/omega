@@ -230,7 +230,7 @@ describe Motel::Location do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":null,"direction_vector_y":null,"direction_vector_z":null,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"id":42}}'
+    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"id":42}}'
     l = JSON.parse(j)
 
     l.class.should == Motel::Location

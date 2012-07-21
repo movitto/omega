@@ -472,7 +472,7 @@ describe Motel::RJRAdapter do
 
   it "should permit user to remove registered callbacks" do
     loc1 = Motel::Location.new :id => 42, :movement_strategy => Motel::MovementStrategies::Stopped.instance
-    loc2 = Motel::Location.new :id => 43, :movement_strategy => Motel::MovementStrategies::Linear.new
+    loc2 = Motel::Location.new :id => 43, :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5)
     u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
 
     Motel::Runner.instance.clear

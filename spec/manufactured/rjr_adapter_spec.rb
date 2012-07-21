@@ -702,7 +702,7 @@ describe Manufactured::RJRAdapter do
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1',
                                       :location => Motel::Location.new(:id => '150',
                                                                        :x => 0, :y => 0, :z => 0,
-                                                                       :movement_strategy => Motel::MovementStrategies::Linear.new(:dx => 1, :dy => 0, :dz => 0))
+                                                                       :movement_strategy => Motel::MovementStrategies::Linear.new(:dx => 1, :dy => 0, :dz => 0, :speed => 5))
     gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
     sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
     sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202', :x => 0, :y => 0, :z => 0)
@@ -1219,7 +1219,7 @@ describe Manufactured::RJRAdapter do
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do
     sys = Cosmos::SolarSystem.new
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0),
-                                   :movement_strategy => Motel::MovementStrategies::Linear.new
+                                   :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5)
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
     u = TestUser.create.login(@local_node).clear_privileges
 

@@ -18,6 +18,9 @@ module MovementStrategies
 # is the center or a foci of the ellipse.
 # Lastly a speed value is required indicating the
 # angular velocity of the location.
+#
+# To be valid you must specify eccentricity, semi_latus_rectum, and speed
+# at a minimum
 class Elliptical < MovementStrategy
    attr_accessor :relative_to, :speed
 
@@ -30,10 +33,10 @@ class Elliptical < MovementStrategy
    attr_accessor :orbit
 
    def initialize(args = {})
-     @relative_to        = args[:relative_to]       if args.has_key? :relative_to
-     @speed              = args[:speed]             if args.has_key? :speed
-     @eccentricity       = args[:eccentricity]      if args.has_key? :eccentricity
-     @semi_latus_rectum  = args[:semi_latus_rectum] if args.has_key? :semi_latus_rectum
+     @relative_to        = args[:relative_to]       || RELATIVE_TO_FOCI
+     @speed              = args[:speed]
+     @eccentricity       = args[:eccentricity]      || args[:e]
+     @semi_latus_rectum  = args[:semi_latus_rectum] || args[:p]
 
      @direction_major_x, @direction_major_y, @direction_major_z =
        *args[:direction][0]  if args.has_key?(:direction)
@@ -69,25 +72,32 @@ class Elliptical < MovementStrategy
      @direction_minor_x, @direction_minor_y, @direction_minor_z = 
         Motel::normalize(@direction_minor_x, @direction_minor_y, @direction_minor_z)
 
-     unless Motel::orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z)
-        raise InvalidMovementStrategy.new("elliptical direction vectors not orthogonal")
-     end
-
+     raise InvalidMovementStrategy.new("elliptical movement strategy not valid") unless valid?
      calculate_orbit
    end
 
+   def valid?
+     Motel::normalized?(@direction_major_x, @direction_major_y, @direction_major_z) &&
+     Motel::normalized?(@direction_minor_x, @direction_minor_y, @direction_minor_z) &&
+     Motel::orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z) &&
+     [Float, Fixnum].include?(@eccentricity.class) && @eccentricity >= 0 && @eccentricity <= 1 &&
+     [Float, Fixnum].include?(@semi_latus_rectum.class) && @semi_latus_rectum > 0 &&
+     [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
+     [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI].include?(@relative_to)
+   end
+
    def e
-     eccentricity
+     self.eccentricity
    end
    def e=(v)
-    eccentricity= v
+    self.eccentricity= v
    end
 
    def p
-     semi_latus_rectum
+     self.semi_latus_rectum
    end
    def p=(v)
-     semi_latus_rectum = v
+     self.semi_latus_rectum = v
    end
 
    # the possible relative_to values
@@ -96,19 +106,18 @@ class Elliptical < MovementStrategy
 
    # Motel::Models::MovementStrategy::move
    def move(location, elapsed_seconds)
-      # FIXME make sure this movement strategy is valid
-      #unless valid?
-      #   Logger.warn "elliptical movement strategy not valid, not proceeding with move"
-      #   return
-      #end
+     # make sure this movement strategy is valid
+     unless valid?
+        RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
+        return
+     end
 
-      # make sure location is on ellipse
-      unless location_valid? location
-         cx,cy,cz = closest_coordinates location
-         location.x,location.y,location.z = cx,cy,cz
-      #   Logger.warn "location #{location} not on ellipse, the closest location is #{cl}, not proceeding with move"
-      #   return
-      end
+     # make sure location is on ellipse
+     unless location_valid? location
+        cx,cy,cz = closest_coordinates location
+        RJR::Logger.warn "location #{location} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
+        location.x,location.y,location.z = cx,cy,cz
+     end
 
      RJR::Logger.debug "moving location #{location.id} via elliptical movement strategy"
 

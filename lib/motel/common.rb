@@ -23,12 +23,19 @@ def self.normalize(x,y,z)
   return x,y,z if x.nil? || y.nil? || z.nil?
 
   l = Math.sqrt(x**2 + y**2 + z**2)
-  if l != 1
-    x /= l
-    y /= l
-    z /= l
-  end
+  raise ArgumentError if l <= 0
+
+  x /= l
+  y /= l
+  z /= l
   return x,y,z
+end
+
+# determine if a vector is normalized
+def self.normalized?(x,y,z)
+  return false if x.nil? || y.nil? || z.nil?
+  l = Math.sqrt(x**2 + y**2 + z**2)
+  l.to_f.round_to(1) == 1  # XXX not quite sure why to_f.round_to(1) is needed
 end
 
 # determine if two vectors are orthogonal
@@ -40,7 +47,7 @@ end
 # generate two orthogonal, normalized vectors
 def self.random_axis(args = {})
   dimensions  = args[:dimensions]  || 3
-  # TODO verify dimensions == 2 or 3
+  raise ArgumentError if dimensions != 2 && dimensions != 3
 
   axis = []
 

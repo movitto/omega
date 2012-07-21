@@ -19,19 +19,25 @@ describe "normalize" do
 
   it "shoud not affect a normalized vector" do
     x,y,z = Motel.normalize 1,0,0
-    x.should be(1)
-    y.should be(0)
-    z.should be(0)
+    x.should == 1
+    y.should == 0
+    z.should == 0
 
     x,y,z = Motel.normalize 0,1,0
-    x.should be(0)
-    y.should be(1)
-    z.should be(0)
+    x.should == 0
+    y.should == 1
+    z.should == 0
 
     x,y,z = Motel.normalize 0,0,1
-    x.should be(0)
-    y.should be(0)
-    z.should be(1)
+    x.should == 0
+    y.should == 0
+    z.should == 1
+  end
+
+  it "should raise an error if an invalid vector is passed in" do
+    lambda{
+      Motel.normalize 0,0,0
+    }.should raise_error(ArgumentError)
   end
 
   it "should correctly normalize vector" do
@@ -46,6 +52,18 @@ describe "normalize" do
     (z - 0.123975145474749).should  < CLOSE_ENOUGH
   end
 
+end
+
+describe "normalized?" do
+ it "should return true for normalized vectors" do
+    Motel.normalized?(0, 0, 1).should be_true
+ end
+
+ it "should return false for non-normalized vectors" do
+    Motel.normalized?(1, 1, 1).should be_false
+    Motel.normalized?(0, 0, 0).should be_false
+    Motel.normalized?(0.5, 0.5, 0.5).should be_false
+ end
 end
 
 describe "random_axis" do
@@ -79,6 +97,17 @@ describe "random_axis" do
     axis_vector2[0].should_not == 0
     axis_vector2[1].should_not == 0
     axis_vector2[2].should == 0
+  end
+
+  it "should raise error if an invalid number of dimensions were specified" do
+    lambda{
+      Motel.random_axis :dimensions => 2
+      Motel.random_axis :dimensions => 3
+    }.should_not raise_error
+
+    lambda{
+      Motel.random_axis :dimensions => 5
+    }.should raise_error(ArgumentError)
   end
 end
 

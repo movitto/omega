@@ -50,9 +50,11 @@ describe Cosmos::Planet do
 
 
   it "should accept movement strategy to use" do
-    planet = Cosmos::Planet.new :movement_strategy => Motel::MovementStrategies::Elliptical.new(:speed => 10)
+    planet = Cosmos::Planet.new :movement_strategy => Motel::MovementStrategies::Elliptical.new(:speed => 10, :e => 0.5, :p => 10)
     planet.location.movement_strategy.class.should be(Motel::MovementStrategies::Elliptical)
     planet.location.movement_strategy.speed.should == 10
+    planet.location.movement_strategy.e.should == 0.5
+    planet.location.movement_strategy.p.should == 10
   end
 
   it "should be not able to be remotely trackable" do

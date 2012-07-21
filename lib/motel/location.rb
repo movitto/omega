@@ -71,13 +71,15 @@ class Location
 
       @remote_queue        = args[:remote_queue]        || args['remote_queue']        || nil
 
-      # FIXME catch parsing errors
+      # no parsing errors will be raised (invalid conversions will be set to 0), use alternate conversions / raise error ?
       @x = @x.to_f unless @x.nil?
       @y = @y.to_f unless @y.nil?
       @z = @z.to_f unless @z.nil?
 
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
    end
+
+   # TODO add validation method
 
    # update this location's attributes to match other's set attributes
    def update(location)
