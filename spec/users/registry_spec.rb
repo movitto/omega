@@ -188,6 +188,8 @@ describe Users::Registry do
     u = Users::User.new :id => 'user42'
     Users::Registry.instance.create u
     u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+    a = Users::Alliance.new :id => 'aly123'
+    Users::Registry.instance.create a
 
     sio = StringIO.new
     Users::Registry.instance.save_state(sio)
@@ -197,21 +199,31 @@ describe Users::Registry do
     s.should include('"json_class":"Users::Privilege"')
     s.should include('"id":"view"')
     s.should include('"entity_id":"locations"')
+    s.should include('"json_class":"Users::Alliance"')
+    s.should include('"id":"aly123"')
   end
 
   it "should restore users entities from io object" do
     s = '{"data":{"email":null,"password":null,"id":"user42","alliances":[]},"json_class":"Users::User"}' + "\n" +
-        '{"data":{"entity_id":"locations","id":"view"},"json_class":"Users::Privilege"}'
+        '{"data":{"entity_id":"locations","id":"view"},"json_class":"Users::Privilege"}' + "\n" +
+        '{"json_class":"Users::Alliance","data":{"member_ids":["user42"],"enemy_ids":[],"id":"alliance42"}}'
     a = s.collect { |i| i }
 
     Users::Registry.instance.init
     Users::Registry.instance.restore_state(a)
     Users::Registry.instance.users.size.should == 1
+    Users::Registry.instance.alliances.size.should == 1
 
     u = Users::Registry.instance.find :id => 'user42'
     u.size.should == 1
     u.first.id.should == 'user42'
     u.first.has_privilege_on?('view', 'locations').should be_true
+
+    a = Users::Registry.instance.find :id => 'alliance42'
+    a.size.should == 1
+    a.first.id.should == 'alliance42'
+    a.first.members.size.should == 1
+    a.first.members.first.should == u.first
   end
 
 end

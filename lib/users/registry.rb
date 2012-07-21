@@ -199,7 +199,6 @@ class Registry
   # Save state of the registry to specified stream
   def save_state(io)
     # TODO block new operations on registry
-    # FIXME save alliances
     users.each { |user|
       user.secure_password = false
       io.write user.to_json + "\n"
@@ -208,6 +207,10 @@ class Registry
       user.privileges.each { |priv|
         io.write priv.to_json + "\n"
       }
+    }
+
+    alliances.each { |alliance|
+      io.write alliance.to_json + "\n"
     }
   end
 
@@ -221,6 +224,9 @@ class Registry
         prev_entity = entity
       elsif entity.is_a?(Users::Privilege)
         prev_entity.add_privilege(entity)
+
+      elsif entity.is_a?(Users::Alliance)
+        create(entity)
       end
     }
   end
