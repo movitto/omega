@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'timecop'
 
 describe Users::Session do
 
@@ -13,6 +14,16 @@ describe Users::Session do
     s.id.should == id
     s.user_id.should == 'user1'
     s.login_time.should_not be_nil
+  end
+
+  it "should provide timeout mechanism" do
+    Timecop.freeze
+    s = Users::Session.new :id => id, :user_id => 'user1'
+    s.timed_out?.should be_false
+    s.instance_variable_get(:@timeout_timestamp).should == Time.now
+    Timecop.freeze Users::Session::SESSION_EXPIRATION + 1
+    s.timed_out?.should be_true
+    Timecop.travel
   end
 
   it "should be convertable to json" do

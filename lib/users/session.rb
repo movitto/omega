@@ -15,6 +15,9 @@ class Session
 
   attr_accessor :user
 
+  # TODO make configurable
+  SESSION_EXPIRATION = 6000
+
   def initialize(args = {})
     @user       = args[:user]       || args['user']
     @user_id    = args[:user_id]    || args['user_id']
@@ -23,6 +26,16 @@ class Session
 
     @user = Users::Registry.instance.find(:id => @user_id) if !@user_id.nil? && @user.nil?
     @user_id = @user.id if !@user.nil? && @user_id.nil?
+    
+    @timeout_timestamp = Time.now
+  end
+
+  def timed_out?
+    ct = Time.now
+    return true if ct - @timeout_timestamp > SESSION_EXPIRATION
+
+    @timeout_timestamp = ct
+    return false
   end
 
   def to_s

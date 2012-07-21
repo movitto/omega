@@ -147,10 +147,15 @@ class Registry
     }
 
     session = @sessions.find { |s| s.id == session_id }
-    # TODO incorporate a session timeout (only if inactivity?)
     if session.nil?
       RJR::Logger.warn "require_privilege(#{args.inspect}): session not found"
       raise Omega::PermissionError, "session not found"
+    end
+
+    if session.timed_out?
+      destroy_session :session_id => session.id
+      RJR::Logger.warn "require_privilege(#{args.inspect}): session timeout"
+      raise Omega::PermissionError, "session timeout"
     end
 
     found_priv = false
@@ -192,7 +197,13 @@ class Registry
     session_id = args[:session]
 
     session = @sessions.find { |s| s.id == session_id }
+
     return nil if session.nil?
+    if session.timed_out?
+      destroy_session :session_id => session.id
+      return nil
+    end
+
     session.user
   end
 

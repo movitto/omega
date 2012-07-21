@@ -6,6 +6,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 require 'stringio'
+require 'timecop'
 
 describe Users::Registry do
 
@@ -181,6 +182,44 @@ describe Users::Registry do
     session = Users::Registry.instance.create_session u
     cu = Users::Registry.current_user :session => session.id
     cu.should == u
+  end
+
+  it "should check session validity before checking privilege" do
+    Users::Registry.instance.init
+    u = Users::User.new :id => 'user42'
+    Users::Registry.instance.create u
+    session = Users::Registry.instance.create_session u
+    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+
+    lambda{
+      Users::Registry.require_privilege :session => session.id,
+                                        :privilege => 'view',
+                                        :entity    => 'locations'
+    }.should_not raise_error
+
+    Timecop.travel(Users::Session::SESSION_EXPIRATION + 1)
+
+    lambda{
+      Users::Registry.require_privilege :session => session.id,
+                                        :privilege => 'view',
+                                        :entity    => 'locations'
+    }.should raise_error(Omega::PermissionError)
+
+    Users::Registry.instance.sessions.find { |s| s.id == session.id }.should be_nil
+  end
+
+  it "should check session validity before returning current user" do
+    Users::Registry.instance.init
+    u = Users::User.new :id => 'user42'
+    Users::Registry.instance.create u
+    session = Users::Registry.instance.create_session u
+    cu = Users::Registry.current_user :session => session.id
+    cu.should == u
+
+    Timecop.travel(Users::Session::SESSION_EXPIRATION + 1)
+    cu = Users::Registry.current_user :session => session.id
+    cu.should be_nil
+    Users::Registry.instance.sessions.find { |s| s.id == session.id }.should be_nil
   end
 
   it "should save registered users entities to io object" do
