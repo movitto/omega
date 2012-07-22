@@ -29,10 +29,10 @@ describe Cosmos::JumpGate do
      jg   = Cosmos::JumpGate.new :solar_system => sys, :endpoint => eds
      jg.valid?.should be_true
 
-     jg.endpoint = nil
-     jg.valid?.should be_false
+     #jg.endpoint = nil
+     #jg.valid?.should be_false
 
-     jg.endpoint = sys
+     #jg.endpoint = sys
      jg.location = nil
      jg.valid?.should be_false
   end

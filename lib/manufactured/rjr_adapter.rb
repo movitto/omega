@@ -179,12 +179,11 @@ class RJRAdapter
             @rjr_callback.invoke 'manufactured::event_occurred', *args
 
           rescue Omega::PermissionError => e
+            # FIXME delete all entity.notification_callbacks associated w/ @headers['session_id']
             RJR::Logger.warn "client does not have privilege to subscribe to #{event} on #{entity.id}"
             entity.notification_callbacks.delete event_callback
 
-          # FIXME connection error will only trigger when
-          # callback is triggered, need to detect connection being
-          # terminated whenever it happens (perhaps resolve w/ periodic checking on client connection)
+          # FIXME @rjr_node.on(:closed){ |node| entity.notification_callbacks.delete event_callback }
           rescue RJR::Errors::ConnectionError => e
             RJR::Logger.warn "subscribe_to client disconnected"
             entity.notification_callbacks.delete event_callback

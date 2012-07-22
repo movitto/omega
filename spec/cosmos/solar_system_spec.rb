@@ -49,7 +49,29 @@ describe Cosmos::SolarSystem do
 
      sys.planets.first.name = 22222
      sys.valid?.should be_false
-     # TODO verify asteroids, star, jump_gates
+     sys.planets.first.name = 'abc'
+
+     sys.add_child Cosmos::Star.new(:name => 'sta')
+     sys.valid?.should be_true
+
+     sys.star.name = 22222
+     sys.valid?.should be_false
+     sys.star.name = 'sta'
+
+     sys.asteroids.clear
+     sys.asteroids << Cosmos::Asteroid.new(:name => 'ast')
+     sys.valid?.should be_true
+
+     sys.asteroids.first.name = 22222
+     sys.valid?.should be_false
+     sys.asteroids.first.name = 'ast'
+
+     sys.jump_gates << Cosmos::JumpGate.new(:solar_system => sys)
+     sys.valid?.should be_true
+
+     sys.jump_gates << 1
+     sys.valid?.should be_false
+     sys.jump_gates.clear
   end
 
   it "should be able to be remotely trackable" do

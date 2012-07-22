@@ -44,7 +44,7 @@ class JumpGate
   def valid?
     !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
     (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
-    !@endpoint.nil? && @endpoint.is_a?(Cosmos::SolarSystem)
+    (@endpoint.nil? || @endpoint.is_a?(Cosmos::SolarSystem))
     # && @solar_system.name != @endpoint.name
   end
 

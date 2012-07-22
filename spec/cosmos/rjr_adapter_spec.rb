@@ -25,7 +25,7 @@ describe Cosmos::RJRAdapter do
   end
 
   it "should permit users with create entities to create_entity" do
-    gal1 = Cosmos::Galaxy.new :name => 'galaxy43', :location => Motel::Location.new(:id => 50)
+    gal1 = Cosmos::Galaxy.new :name => 'galaxy43', :location => Motel::Location.new
     sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new(:id => 51)
     u = TestUser.create.login(@local_node).clear_privileges
 
@@ -55,8 +55,8 @@ describe Cosmos::RJRAdapter do
     gal.class.should == Cosmos::Galaxy
     gal.name.should == gal1.name
     Motel::Runner.instance.locations.size.should == 1
-    Motel::Runner.instance.locations.first.id.should == 50
-    gal.location.id.should == Motel::Runner.instance.locations.first.id # TODO how else to assure entity.location is set to result of 'create_location' call
+    Motel::Runner.instance.locations.first.id.should_not be_nil
+    gal.location.id.should == Motel::Runner.instance.locations.first.id
 
     #lambda{
     #  @local_node.invoke_request('cosmos::create_entity', sys1, 'non_existant')
@@ -104,10 +104,10 @@ describe Cosmos::RJRAdapter do
 
 
   it "should permit users with view cosmos_entities or view cosmos_entity-<id> to get_entity" do
-    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new(:id => 15)
-    gal2 = Cosmos::Galaxy.new :name => 'galaxy43', :location => Motel::Location.new(:id => 25)
-    sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new(:id => 35)
-    star1= Cosmos::Star.new :name => 'star42', :location => Motel::Location.new(:id => 45)
+    gal1 = Cosmos::Galaxy.new :name => 'galaxy42', :location => Motel::Location.new
+    gal2 = Cosmos::Galaxy.new :name => 'galaxy43', :location => Motel::Location.new
+    sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new
+    star1= Cosmos::Star.new :name => 'star42', :location => Motel::Location.new
     gal1.add_child(sys1)
     sys1.add_child(star1)
     u = TestUser.create.clear_privileges
@@ -136,7 +136,10 @@ describe Cosmos::RJRAdapter do
       gal.last.class.should == Cosmos::Galaxy
       gal.first.name.should == 'galaxy42'
       gal.last.name.should  == 'galaxy43'
-      # TODO test galaxy locations retrieved are latest managed by motel & local location heirarchies set correctly
+      gal.first.location.id.should_not be_nil
+      gal.first.location.id.should == gal1.location.id
+      #gal.first.location.children.size.should == 1
+      #gal.first.location.children.first.id.should == sys1.location.id
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'cosmos_entity-' + gal1.name.to_s)

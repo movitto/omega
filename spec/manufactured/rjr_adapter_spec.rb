@@ -537,7 +537,7 @@ describe Manufactured::RJRAdapter do
     # verify when user no longer has access to entity, callbacks are discontinued
     u.clear_privileges
     sleep 2
-    rship2.notification_callbacks.size.should == 1 # TODO since only the 'defended' callback was triggered, just that was removed, need to remove all callbacks on loosing privs & other err cases
+    rship2.notification_callbacks.size.should == 1
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to remove callbacks" do
