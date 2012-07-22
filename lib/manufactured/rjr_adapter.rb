@@ -168,6 +168,7 @@ class RJRAdapter
       raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
 
       # TODO add option to verify request is coming from authenticated source node which current connection was established on
+      # TODO ensure that rjr_node_type supports persistant connections
 
       event_callback =
         Callback.new(event, :endpoint => @headers['source_node']){ |*args|

@@ -86,6 +86,8 @@ class RJRAdapter
     rjr_dispatcher.add_handler('users::subscribe_to_messages') {
        user = Users::Registry.instance.current_user :session => @headers['session_id']
 
+       # TODO ensure that rjr_node_type supports persistant connections
+
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user-#{user.id}"},
                                                   {:privilege => 'view', :entity => "users_entity-#{user.id}"},
                                                   {:privilege => 'view', :entity => 'users_entities'}],
@@ -96,9 +98,14 @@ class RJRAdapter
            @rjr_callback.invoke('users::on_message', message)
          rescue RJR::Errors::ConnectionError => e
            RJR::Logger.warn "subscribe_to_messages #{user.id} client disconnected"
-           # Users::ChatProxy.proxy_for(user.id).remove_callback # FIXME + periodic connection timeout
+           # Users::ChatProxy.proxy_for(user.id).remove_callback # TODO
          end
        }
+
+       #@rjr_node.on(:closed) { |node|
+       # Users::ChatProxy.proxy_for(user.id).remove_callback # TODO
+       #}
+
        Users::ChatProxy.proxy_for(user.id).add_callback callback
        nil
      }

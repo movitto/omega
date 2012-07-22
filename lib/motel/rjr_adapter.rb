@@ -165,6 +165,8 @@ class RJRAdapter
        raise ArgumentError, "min_distance must be an int or float > 0" unless (min_distance.is_a?(Integer) || min_distance.is_a?(Float)) && min_distance > 0
 
        # TODO add option to verify request is coming from authenticated source node which current connection was established on
+       # TODO ensure that rjr_node_type supports persistant connections
+
        on_movement = 
          Callbacks::Movement.new :endpoint => @headers['source_node'],
                                  :min_distance => min_distance,
@@ -181,9 +183,6 @@ class RJRAdapter
              RJR::Logger.warn "client does not have privilege to view movement of #{loc.id}"
              loc.movement_callbacks.delete on_movement
 
-           # FIXME connection error will only trigger when movement
-           # callback is triggered, need to detect connection being
-           # terminated whenever it happens (perhaps resolve w/ periodic checking on client connection)
            rescue RJR::Errors::ConnectionError => e
              RJR::Logger.warn "track_movement client disconnected"
              loc.movement_callbacks.delete on_movement
@@ -194,6 +193,10 @@ class RJRAdapter
        unless old.nil?
          loc.movement_callbacks.delete(old)
        end
+
+       @rjr_node.on(:closed){ |node|
+         loc.movement_callbacks.delete(on_movement)
+       }
 
        loc.movement_callbacks << on_movement
        loc
@@ -210,6 +213,8 @@ class RJRAdapter
        raise ArgumentError, "max_distance must be an int or float > 0" unless (max_distance.is_a?(Integer) || max_distance.is_a?(Float)) && max_distance > 0
 
        # TODO add option to verify request is coming from authenticated source node which current connection was established on
+       # TODO ensure that rjr_node_type supports persistant connections
+
        on_proximity =
          Callbacks::Proximity.new :endpoint => @headers['source_node'],
                                   :to_location => loc2,
@@ -244,6 +249,10 @@ class RJRAdapter
        unless old.nil?
          loc1.proximity_callbacks.delete(old)
        end
+
+       @rjr_node.on(:closed){ |node|
+         loc1.proximity_callbacks.delete(on_proximity)
+       }
 
        loc1.proximity_callbacks << on_proximity
        [loc1, loc2]
