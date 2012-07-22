@@ -34,14 +34,14 @@ class Follow < MovementStrategy
    end
 
    def valid?
-     !@tracked_location_id.nil? && !tracked_location.nil? &&
+     !@tracked_location_id.nil? &&
      [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
      [Float, Fixnum].include?(@distance.class) && @distance > 0
    end
 
    # Motel::MovementStrategy::move
    def move(location, elapsed_seconds)
-     unless valid?
+     unless valid? && !tracked_location.nil?
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
        return
      end

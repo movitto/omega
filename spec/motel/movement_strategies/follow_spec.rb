@@ -48,9 +48,6 @@ describe "Motel::MovementStrategies::Follow" do
      follow.tracked_location_id = nil
      follow.valid?.should be_false
 
-     follow.tracked_location_id = 500
-     follow.valid?.should be_false
-
      follow.tracked_location_id = loc1.id
      follow.valid?.should be_true
   end
@@ -77,7 +74,7 @@ describe "Motel::MovementStrategies::Follow" do
      loc1.x.should == 10
   end
 
-  it "should not move location if strategy is invalid" do
+  it "should not move location if strategy is invalid or does not refer to location in registry" do
      parent   = Motel::Location.new :id => 15
      loc1 = Motel::Location.new(:id => 1, :parent => parent, :x => 20, :y => 0, :z => 0)
      loc2 = Motel::Location.new(:id => 2, :parent => parent, :x => 0,  :y => 0, :z => 0)
@@ -88,7 +85,7 @@ describe "Motel::MovementStrategies::Follow" do
 
      follow = Motel::MovementStrategies::Follow.new :tracked_location_id => loc2.id, :distance => 10, :speed => 5
 
-     follow.tracked_location_id = 420
+     follow.distance = -10
      follow.valid?.should be_false
 
      follow.move loc1, 5
@@ -96,8 +93,15 @@ describe "Motel::MovementStrategies::Follow" do
      loc1.y.should == 0
      loc1.z.should == 0
 
-     follow.tracked_location_id = loc2.id
+     follow.distance = 10
      follow.valid?.should be_true
+
+     follow.tracked_location_id = 420
+     follow.move loc1, 5
+     loc1.x.should == 20
+     loc1.y.should == 0
+     loc1.z.should == 0
+     follow.tracked_location_id = loc2.id
 
      # should raise error if parent locations are different
      loc1.parent_id = 50
