@@ -519,8 +519,35 @@ describe Motel::RJRAdapter do
 
     rloc1.movement_callbacks.size.should == 0
     rloc1.proximity_callbacks.size.should == 0
+  end
 
-    # TODO test remove_callbacks of a certain type
+  it "should permit user to remove registered callbacks of a certain type" do
+    loc1 = Motel::Location.new :id => 42, :movement_strategy => Motel::MovementStrategies::Stopped.instance
+    loc2 = Motel::Location.new :id => 43, :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5)
+    u = TestUser.create.login(@local_node).clear_privileges.add_privilege('view', 'locations')
+
+    Motel::Runner.instance.clear
+    Motel::Runner.instance.run loc1
+    Motel::Runner.instance.run loc2
+    rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
+
+    lambda{
+      @local_node.invoke_request('motel::track_movement',  loc1.id, 3)
+      @local_node.invoke_request('motel::track_proximity', loc1.id, loc2.id, 'proximity', 3)
+    }.should_not raise_error
+
+    rloc1.movement_callbacks.size.should == 1
+    rloc1.proximity_callbacks.size.should == 1
+
+    # valid call
+    lambda{
+      rloc = @local_node.invoke_request('motel::remove_callbacks', loc1.id, 'proximity')
+      rloc.class.should == Motel::Location
+      rloc.id.should == loc1.id
+    }.should_not raise_error
+
+    rloc1.movement_callbacks.size.should == 1
+    rloc1.proximity_callbacks.size.should == 0
   end
 
   it "should permit local nodes to save and restore state" do
