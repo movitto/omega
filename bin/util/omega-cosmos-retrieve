@@ -122,6 +122,7 @@ def print_planet(planet, i=0)
   planet.moons.each { |m|
     print_moon(m, i+1)
   }
+  print_callbacks(planet, i+1)
 end
 
 def print_asteroid(asteroid, i=0)
