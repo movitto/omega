@@ -164,7 +164,7 @@ class RJRAdapter
 
        raise ArgumentError, "min_distance must be an int or float > 0" unless (min_distance.is_a?(Integer) || min_distance.is_a?(Float)) && min_distance > 0
 
-       # FIXME verify request is coming from authenticated source node which current connection was established on
+       # TODO add option to verify request is coming from authenticated source node which current connection was established on
        on_movement = 
          Callbacks::Movement.new :endpoint => @headers['source_node'],
                                  :min_distance => min_distance,
@@ -209,7 +209,7 @@ class RJRAdapter
        raise ArgumentError, "event must be one of #{valid_events.join(", ")}" unless valid_events.include?(event)
        raise ArgumentError, "max_distance must be an int or float > 0" unless (max_distance.is_a?(Integer) || max_distance.is_a?(Float)) && max_distance > 0
 
-       # FIXME verify request is coming from authenticated source node which current connection was established on
+       # TODO add option to verify request is coming from authenticated source node which current connection was established on
        on_proximity =
          Callbacks::Proximity.new :endpoint => @headers['source_node'],
                                   :to_location => loc2,
@@ -253,7 +253,7 @@ class RJRAdapter
       location_id = args[0]
       callback_type = args.length > 1 ? args[1] : nil
       source_node = @headers['source_node']
-      # FIXME verify request is coming from authenticated source node which current connection was established on
+      # TODO add option to verify request is coming from authenticated source node which current connection was established on
 
       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?

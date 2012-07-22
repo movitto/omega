@@ -109,7 +109,7 @@ class RJRAdapter
        user_entity = Users::Registry.instance.find(:id => user.id).first
        raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
        if user_entity.valid_login?(user.id, user.password)
-         # FIXME store the source_node which this user session is valid for (ensure this is the same everywhere source_node is used)
+         # TODO store the rjr node which this user session was established on for use in other handlers
          session = Users::Registry.instance.create_session(user_entity)
        else
          raise ArgumentError, "invalid user"
