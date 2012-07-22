@@ -173,6 +173,11 @@ class Registry
       @entities_lock.synchronize{
         # run attack if appropriate
         @attack_commands.each { |id, ac|
+          # run 'before' hooks
+          ac.hooks[:before].each { |hook|
+            hook.call ac
+          }
+
           ac.attack! if ac.attackable?
         }
 
@@ -196,6 +201,11 @@ class Registry
       @entities_lock.synchronize{
         # run mining operation if appropriate
         @mining_commands.each { |id, mc|
+          # run 'before' hooks
+          mc.hooks[:before].each { |hook|
+            hook.call mc
+          }
+
           if mc.minable?
             mc.ship.start_mining(mc.resource_source) unless mc.ship.mining?
             mc.mine!
@@ -221,7 +231,7 @@ class Registry
         io.write entity.to_json + "\n"
       end
     }
-    # FIXME update to store attack + mining commands
+    # FIXME update to store attack + mining commands & ship graveyard
   end
 
   # restore state of the registry from the specified stream

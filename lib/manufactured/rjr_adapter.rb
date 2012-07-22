@@ -167,7 +167,7 @@ class RJRAdapter
       entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
 
-      # FIXME verify request is coming from authenticated source node which current connection was established on
+      # TODO add option to verify request is coming from authenticated source node which current connection was established on
 
       event_callback =
         Callback.new(event, :endpoint => @headers['source_node']){ |*args|
@@ -203,7 +203,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::remove_callbacks') { |entity_id|
       source_node = @headers['source_node']
-      # FIXME verify request is coming from authenticated source node which current connection was established on
+      # TODO add option to verify request is coming from authenticated source node which current connection was established on
 
       entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
@@ -359,7 +359,14 @@ class RJRAdapter
 
       raise Omega::OperationError, "#{attacker} cannot attack #{defender}" unless attacker.can_attack?(defender)
 
-      Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
+      # update locations before attack
+      before_attack = lambda { |cmd|
+        cmd.attacker.location = @@local_node.invoke_request('motel::get_location', 'with_id', cmd.attacker.location.id)
+        cmd.defender.location = @@local_node.invoke_request('motel::get_location', 'with_id', cmd.defender.location.id)
+      }
+
+      Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender,
+                                                      :before   => before_attack
 
       [attacker, defender]
     }
@@ -452,7 +459,13 @@ class RJRAdapter
       ship.notification_callbacks << collected_callback
       ship.notification_callbacks << depleted_callback
 
-      Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => resource_source
+      # update location before mining
+      before_mining = lambda { |cmd|
+        cmd.ship.location = @@local_node.invoke_request('motel::get_location', 'with_id', cmd.ship.location.id)
+      }
+
+      Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => resource_source,
+                                                      :before => before_mining
       ship
     }
 

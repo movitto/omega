@@ -10,10 +10,17 @@ class AttackCommand
   attr_accessor :defender
   attr_accessor :last_attack_time
 
+  # hash of tags / list of handlers to invoke at various points
+  # in the attack cycle
+  attr_accessor :hooks
+
   def initialize(args = {})
     @attacker = args[:attacker]
     @defender = args[:defender]
     @remove   = false
+
+    @hooks = { :before => [] }
+    @hooks[:before] << args[:before] if args.has_key?(:before)
   end
 
   def id
@@ -31,7 +38,6 @@ class AttackCommand
     RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
 
     # ensure entities are within attacking distance
-    # FIXME update these locations before this check
     unless @attacker.can_attack?(@defender)
       # invoke attackers's 'attacked_stop' callbacks
       @attacker.notification_callbacks.
@@ -112,10 +118,17 @@ class MiningCommand
   attr_accessor :resource_source
   attr_accessor :last_time_mined
 
+  # hash of tags / list of handlers to invoke at various points
+  # in the attack cycle
+  attr_accessor :hooks
+
   def initialize(args = {})
     @ship            = args[:ship]
     @resource_source = args[:resource_source]
     @remove          = false
+
+    @hooks = { :before => [] }
+    @hooks[:before] << args[:before] if args.has_key?(:before)
   end
 
   def id
@@ -136,7 +149,6 @@ class MiningCommand
     mining_quantity = @ship.mining_quantity
     mining_quantity = @resource_source.quantity if @resource_source.quantity < mining_quantity
 
-    # FIXME refresh locations first
     unless @ship.can_mine?(@resource_source) && @ship.can_accept?(@resource_source.resource.id, mining_quantity)
       @remove = true # must issue subsequent mining requests
       reason = ''

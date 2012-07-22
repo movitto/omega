@@ -182,11 +182,15 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.ships.should include(defender)
     Manufactured::Registry.instance.ship_graveyard.size.should == 0
 
-    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender
+    before_hook_called = false
+    before_hook = lambda { |cmd| before_hook_called = true }
+
+    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender, :before => before_hook
     sleep 3
 
     Manufactured::Registry.instance.ships.should_not include(defender)
     Manufactured::Registry.instance.ship_graveyard.should include(defender)
+    before_hook_called.should be_true
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.running?.should be_false
@@ -239,10 +243,14 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.create ship
     Manufactured::Registry.instance.ships.should include(ship)
 
-    Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source
+    before_hook_called = false
+    before_hook = lambda { |cmd| before_hook_called = true }
+
+    Manufactured::Registry.instance.schedule_mining :ship => ship, :resource_source => source, :before => before_hook
     sleep 1
     ship.mining?.should be_true
     Manufactured::Registry.instance.mining_commands.size.should == 1
+    before_hook_called.should be_true
     sleep 2
 
     ship.mining?.should be_false

@@ -1056,6 +1056,8 @@ describe Manufactured::RJRAdapter do
     }.should_not raise_error
 
     Manufactured::Registry.instance.attack_commands.size.should == 1
+    Manufactured::Registry.instance.attack_commands.first.last.hooks[:before].size.should == 1
+    # TODO ensure locations are updated b4 attack cycle?
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to start_mining" do
@@ -1126,6 +1128,8 @@ describe Manufactured::RJRAdapter do
     }.should_not raise_error
 
     Manufactured::Registry.instance.mining_commands.size.should == 1
+    Manufactured::Registry.instance.mining_commands.first.last.hooks[:before].size.should == 1
+    # TODO ensure locations are updated b4 attack cycle?
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to transfer_resource" do

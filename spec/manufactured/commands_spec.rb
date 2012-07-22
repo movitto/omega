@@ -19,10 +19,14 @@ describe Manufactured::AttackCommand do
      attacker.damage_dealt = 5
      defender.hp = 10
 
-     cmd = Manufactured::AttackCommand.new :attacker => attacker, :defender => defender
+     before_hook = lambda { |c| }
+
+     cmd = Manufactured::AttackCommand.new :attacker => attacker, :defender => defender, :before => before_hook
 
      cmd.attacker.should == attacker
      cmd.defender.should == defender
+     cmd.hooks[:before].size.should == 1
+     cmd.hooks[:before].first.should == before_hook
      cmd.id.should == attacker.id
      cmd.remove?.should be_false
      cmd.attackable?.should be_true
@@ -143,9 +147,13 @@ describe Manufactured::MiningCommand do
      ship.mining_quantity = 5
      source.quantity = 10.3
 
-     cmd = Manufactured::MiningCommand.new :ship => ship, :resource_source => source
+     before_hook = lambda { |c| }
+
+     cmd = Manufactured::MiningCommand.new :ship => ship, :resource_source => source, :before => before_hook
 
      cmd.ship.should == ship
+     cmd.hooks[:before].size.should == 1
+     cmd.hooks[:before].first.should == before_hook
      cmd.id.should == ship.id
      cmd.resource_source.should == source
      cmd.remove?.should be_false
