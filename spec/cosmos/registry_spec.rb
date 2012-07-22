@@ -130,9 +130,13 @@ describe Cosmos::Registry do
 
     entity = Cosmos::Registry.instance.find_entity :type => :solarsystem, :location => 7 
     entity.should be_nil
-  end
 
-  # FIXME test registery.remove_child
+    Cosmos::Registry.instance.remove_child(galaxy2)
+    Cosmos::Registry.instance.children.size.should == 1
+
+    Cosmos::Registry.instance.remove_child(galaxy1.name)
+    Cosmos::Registry.instance.children.size.should == 0
+  end
 
   it "should provide means to traverse all descendants, invoking optional block arg" do
    galaxy1 = Cosmos::Galaxy.new :name => 'galaxy1'
