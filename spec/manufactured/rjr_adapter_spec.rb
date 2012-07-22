@@ -424,7 +424,6 @@ describe Manufactured::RJRAdapter do
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
       entities.first.id.should == ship1.id
-      # TODO verify entities.first.location is latest tracked by motel
     }.should_not raise_error
   end
 
@@ -461,7 +460,6 @@ describe Manufactured::RJRAdapter do
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
       entities.first.id.should == ship1.id
-      # TODO verify entities.first.location is latest tracked by motel
     }.should_not raise_error
 
     u.clear_privileges.add_privilege('view', 'manufactured_entity-' + ship1.id.to_s)
@@ -473,7 +471,6 @@ describe Manufactured::RJRAdapter do
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
       entities.first.id.should == ship1.id
-      # TODO verify entities.first.location is latest tracked by motel
     }.should_not raise_error
   end
 

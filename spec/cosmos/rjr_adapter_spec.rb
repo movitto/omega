@@ -151,7 +151,6 @@ describe Cosmos::RJRAdapter do
       gal = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'galaxy', 'with_name', 'galaxy42')
       gal.class.should == Cosmos::Galaxy
       gal.name.should == 'galaxy42'
-      # TODO test galaxy locations retrieved are latest managed by motel
     }.should_not raise_error
 
     lambda{
@@ -186,7 +185,6 @@ describe Cosmos::RJRAdapter do
       sys = @local_node.invoke_request('cosmos::get_entity', 'of_type', 'solarsystem', 'with_location', 43)
       sys.class.should == Cosmos::SolarSystem
       sys.name.should == sys1.name
-      # TODO test galaxy locations retrieved are latest managed by motel
     #}.should raise_error(Omega::DataNotFound)
     }.should_not raise_error
   end
