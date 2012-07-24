@@ -178,6 +178,8 @@ describe Manufactured::MiningCommand do
      cmd.mine!
      ship.resources[resource.id].should == 10.3
      source.quantity.should == 0
+
+     cmd.mine!
      cmd.remove?.should be_true
   end
 
@@ -217,6 +219,8 @@ describe Manufactured::MiningCommand do
 
      cmd.mine!
      times_resources_collected.should == 2
+
+     cmd.mine!
      resources_depleted_invoked.should == true
      stopped_reason.should == "resource_depleted"
      cmd.remove?.should be_true
@@ -321,7 +325,7 @@ describe Manufactured::MiningCommand do
      source.quantity = 0
      cmd.mine!
      cmd.remove?.should be_true
-     stopped_reason.should == 'resource_source_depleted'
+     stopped_reason.should == 'resource_depleted'
      stopped_reason = nil
      cmd.instance_variable_set(:@remove, false)
      source.quantity = 20

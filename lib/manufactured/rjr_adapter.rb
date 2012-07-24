@@ -87,7 +87,7 @@ class RJRAdapter
       # auto-set additional params
       argsh[:entity_type] = entity_type
       argsh[:solar_system] = station.solar_system
-      argsh[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity?
+      argsh[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity? # TODO change to station's owner ?
 
       station.clear_errors :of_type => :construction
       unless station.can_construct?(argsh)
@@ -430,7 +430,7 @@ class RJRAdapter
       resource_source  = resource_sources.find { |rs| rs.resource.id == resource_id }
 
       raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
-      raise Omega::DataNotFound, "resource_source specified by #{resource_source_id} not found" if resource_source.nil?
+      raise Omega::DataNotFound, "resource_source specified by #{entity_id}/#{resource_id} not found" if resource_source.nil?
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],

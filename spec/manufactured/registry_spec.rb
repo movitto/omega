@@ -233,8 +233,8 @@ describe Manufactured::Registry do
 
      sys.add_child entity
 
-     # 1 mining operation every 2 seconds
-     ship.mining_rate = 0.5
+     # 1 mining operation every second
+     ship.mining_rate = 1
 
      # need 2 mining operations to deplete source
      ship.mining_quantity = 5

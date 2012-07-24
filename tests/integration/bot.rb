@@ -14,9 +14,10 @@ require 'singleton'
 include Omega::DSL
 
 USER_NAME = ARGV.shift
+PASSWORD = ARGV.shift
 
 RJR::Logger.log_level= ::Logger::INFO
-login 'admin',  :password => 'nimda'
+login USER_NAME,  :password => PASSWORD
 
 # A registry to track server side entities to prevent duplicates
 class ClientRegistry
@@ -140,6 +141,30 @@ class ClientStation
     bl.call if bl
   end
 
+  # registers and returns next system which to build station for
+  def self.next_system(current_system)
+    @@systems_lock ||= Mutex.new
+    @@claimed_systems ||= []
+    ns = nil
+
+    @@systems_lock.synchronize {
+      # determine if any linked system doesn't have a station
+      # TODO sort systems placing those that have our ships and/or resources before those that don't
+      current_system.server_system.jump_gates.each { |jg|
+        sys = ClientRegistry.instance.systems.find { |sys| sys.server_system.name == jg.endpoint }
+        se = system_entities(sys.server_system)
+        unless se.find { |e| e.is_a?(Manufactured::Station) && e.user_id == USER_NAME } ||
+                @@claimed_systems.include?(sys)
+            # claim system so that other stations don't build
+            @@claimed_systems << sys
+            ns = sys
+        end
+      }
+    }
+
+    return ns
+  end
+
   def construction_cycle
     @stop_construction = false
     @build_for_system = nil
@@ -174,16 +199,7 @@ class ClientStation
           end
 
         else
-          # determine if any system w/ our ships doesn't have a station
-          ClientRegistry.instance.systems.each { |sys|
-            se = system_entities(sys.server_system)
-            unless !se.find { |e| e.is_a?(Manufactured::Ship)    && e.user_id == USER_NAME } ||
-                    se.find { |e| e.is_a?(Manufactured::Station) && e.user_id == USER_NAME }
-                # TODO 'claim' system so that other stations don't build
-                @build_for_system = sys
-                break
-            end
-          }
+          @build_for_system = ClientStation.next_system(@system)
 
           # if we have enough resources, build miners and corvettes
           unless @build_for_system || 
@@ -238,6 +254,7 @@ class ClientShip
 
   def refresh
     @server_ship = ship(@name)
+    @system.refresh unless @system.nil?
   end
 
   def track_movement(distance, &bl)
@@ -315,6 +332,7 @@ class ClientShip
       move_to_location(nl)
       @system = ClientSystem.load(:name => system.name)
       bl.call if bl
+      nil
     end
   end
 end
@@ -327,7 +345,7 @@ class MinerShip < ClientShip
   def transfer_endpoint=(value)
     @transfer_endpoint = value
     unless @transfer_endpoint.nil?
-      # TODO refresh ?
+      refresh
       if @server_ship.cargo_quantity >= @server_ship.cargo_capacity
         @transfer_endpoint.signal(self)
       end
@@ -344,6 +362,7 @@ class MinerShip < ClientShip
     res = nil
     systems = [@system]
     systems.each { |s|
+      s.refresh
       res = s.resources.select { |sr| sr.quantity > 0 }.
                         sort { |a,b| (@server_ship.location - a.entity.location) <=>
                                      (@server_ship.location - b.entity.location) }.first
@@ -385,15 +404,10 @@ class MinerShip < ClientShip
       if(@server_ship.location - nl) < @server_ship.mining_distance
         RJR::Logger.info "mining #{rs.entity} with #{@server_ship.id}"
         @ship = @server_ship
+        # TODO retry for another resource if exception is raised
         start_mining rs
         subscribe_to :resource_collected do |s, srs, q|
           rs.quantity -= q
-        end
-        subscribe_to :resource_depleted do |s,srs|
-          RJR::Logger.info "resource depleted"
-          clear_callbacks
-          rs.quantity = 0
-          mine_cycle()
         end
         subscribe_to :mining_stopped do |cause, s, srs|
           if cause == "ship_cargo_full"
@@ -406,6 +420,11 @@ class MinerShip < ClientShip
                 mine_cycle()
               end
             end
+          elsif cause == "resource_depleted"
+            RJR::Logger.info "resource depleted"
+            clear_callbacks
+            rs.quantity = 0
+            mine_cycle()
           end
         end
 
@@ -445,6 +464,7 @@ class CorvetteShip < ClientShip
           neighbors.each { |loc|
             # XXX would prefer if there was some way to determine if
             # location corresponded to ship b4 issuing this call
+            # FIXME surround w/ begin/rescue as many location's don't correspond to ships
             lship = ship(:location_id => loc.id)
             # TODO respect alliances
             unless lship.nil? ||
@@ -490,10 +510,11 @@ class FrigateShip < ClientShip
       nl = @home_station.server_station.location + [10, 10, 10]
       move_to_location(nl)
       track_movement(@server_ship.location - nl - 20) do
-        # TODO dock / undock
+        dock(@server_ship, @home_station.server_station)
         @server_ship.resources.each { |rsid, quantity|
           transfer_resource(@server_ship, @home_station.server_station, rsid, quantity)
         }
+        undock(@server_ship)
         @return_to_station = false
         transport_cycle
       end

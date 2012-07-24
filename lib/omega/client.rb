@@ -285,7 +285,7 @@ end
 def system_entities(sys = nil)
   sys = @system if sys.nil?
   raise ArgumentError, "system must not be nil" if sys.nil?
-  client = Omega::Client.new :system => system
+  client = Omega::Client.new :system => sys
   client.queue_request 'manufactured::get_entities', 'under', sys.name
   RJR::Logger.info "getting entities under #{sys.name}"
   client.invoke_requests
@@ -463,6 +463,7 @@ def subscribe_to(event, args = {}, &bl)
     @@handlers[:on_movement][entity.location.id] = bl
     client.register_callback "motel::on_movement" do |loc|
       @@handlers[:on_movement][loc.id].call loc
+      nil
     end
     client.invoke_requests
 
@@ -480,6 +481,7 @@ def subscribe_to(event, args = {}, &bl)
     client.register_callback "manufactured::event_occurred" do |*args|
       aevent = args.shift
       @@handlers[:manufactured_event_occurred][aevent].call *args
+      nil
     end
     client.invoke_requests
   end
@@ -488,7 +490,7 @@ end
 def clear_callbacks
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
-  client.queue_request 'remove_callbacks', @ship.location.id
+  client.queue_request 'motel::remove_callbacks', @ship.location.id
   client.queue_request 'manufactured::remove_callbacks', @ship.id
   RJR::Logger.info "removing callbacks on ship #{@ship}"
   client.invoke_requests
@@ -508,6 +510,20 @@ def follow(entity)
   client = Omega::Client.new :ship => @ship
   client.queue_request 'manufactured::follow_entity', @ship.id, entity.id, 10
   RJR::Logger.info "following #{entity} with #{@ship}"
+  client.invoke_requests
+end
+
+def dock(ship, station)
+  client = Omega::Client.new
+  client.queue_request 'manufactured::dock', ship.id, station.id
+  RJR::Logger.info "docking #{ship.id} at #{station.id}"
+  client.invoke_requests
+end
+
+def undock(ship)
+  client = Omega::Client.new
+  client.queue_request 'manufactured::undock', ship.id
+  RJR::Logger.info "undocking #{ship.id}"
   client.invoke_requests
 end
 

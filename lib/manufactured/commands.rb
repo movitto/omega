@@ -167,7 +167,14 @@ class MiningCommand
         reason = 'ship_docked'
 
       elsif @resource_source.quantity <= 0
-        reason = 'resource_source_depleted'
+        RJR::Logger.debug "#{@ship.id} depleted resource #{@resource_source.id}, marking for removal"
+        @ship.notification_callbacks.
+              select { |c| c.type == :resource_depleted}.
+              each { |c|
+          c.invoke 'resource_depleted', @ship, @resource_source
+        }
+
+        reason = 'resource_depleted'
 
       end
 
@@ -199,25 +206,6 @@ class MiningCommand
             each { |c|
         c.invoke 'resource_collected', @ship, @resource_source, mining_quantity
       }
-    end
-
-    if @resource_source.quantity <= 0
-      RJR::Logger.debug "#{@ship.id} depleted resource #{@resource_source.id}, marking for removal"
-
-      @ship.notification_callbacks.
-            select { |c| c.type == :resource_depleted}.
-            each { |c|
-        c.invoke 'resource_depleted', @ship, @resource_source
-      }
-
-      @ship.notification_callbacks.
-            select { |c| c.type == :mining_stopped }.
-            each   { |c|
-        c.invoke 'mining_stopped', 'resource_depleted', @ship, @resource_source
-      }
-
-      # remove this mining command
-      @remove = true
     end
   end
 
