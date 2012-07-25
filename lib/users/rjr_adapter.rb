@@ -7,6 +7,9 @@
 RECAPTCHA_ENABLED = true
 RECAPTCHA_PRIVATE_KEY = 'CHANGE_ME'
 
+MEDIAWIKI_ENABLED = true
+MEDIAWIKI_DIR = 'CHANGE_ME'
+
 require 'curb'
 require 'active_support/inflector'
 
@@ -121,6 +124,9 @@ class RJRAdapter
        else
          raise ArgumentError, "invalid user"
        end
+
+       # FIXME log the user into mediawiki, return session id for them to use, disable explicit mediawiki login / account creation
+
        session
      }
 
@@ -208,7 +214,13 @@ MESSAGE_END
 
        # assign it base privileges
 
-       # TODO issue request to create mediawiki user
+       # issue request to create mediawiki user
+       # we just use a custom script leveraging the mw api to do this for now
+       if MEDIAWIKI_ENABLED
+         # TODO use original / unencrypted pass or different pass ?
+         system("cd #{MEDIAWIKI_DIR} && ./create_user.php #{user.id} #{user.password} #{user.email}")
+       end
+
        nil
      }
 
