@@ -147,6 +147,10 @@ function CosmosClient() {
     client.web_node.invoke_request('users::register', client.current_user);
   }
 
+  this.confirm_registration = function(registration_code){
+    client.web_node.invoke_request('users::confirm_register', registration_code);
+  }
+
   this.update_account = function(){
     client.web_node.invoke_request('users::update_user', client.current_user);
   }

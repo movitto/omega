@@ -8,6 +8,7 @@ $: << lib + '/users/'
 
 require lib + '/users/common'
 require lib + '/users/password_helper'
+require lib + '/users/email_helper'
 require lib + '/users/user'
 require lib + '/users/alliance'
 require lib + '/users/chat_proxy'

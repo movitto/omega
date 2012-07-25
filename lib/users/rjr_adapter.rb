@@ -181,7 +181,22 @@ class RJRAdapter
        # create new user
        Users::Registry.instance.create user
 
-       # TODO send users::confirm_register link via email
+       # send users::confirm_register link via email
+       # TODO make configurable
+       message = <<MESSAGE_END
+From: #{EmailHelper.instance.from_address}
+To: #{user.email}
+Subject: New Omega Account
+
+This is to inform you that your new omega account has been created. You
+will need to activate your registration code by navigating to the following
+link:
+
+  http://localhost/wotel/confirm.html?rc=#{user.registration_code}
+
+MESSAGE_END
+       EmailHelper.instance.send_email user.email, message
+
        user
      }
 
