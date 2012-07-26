@@ -11,6 +11,11 @@ require 'thread'
 module Cosmos
 
 class RemoteCosmosManager
+  class << self
+    attr_accessor :user
+    attr_accessor :password
+  end
+
   def initialize
     @nodes = {}
     @lock  = Mutex.new
@@ -21,7 +26,7 @@ class RemoteCosmosManager
       # FIXME lookup which broker is running queue & user credentials to use
       #       (intially via config file, but later via service)
       broker = 'localhost'
-      user = Users::User.new :id => 'rcm', :password => 'mcr'
+      user = Users::User.new :id => self.class.user, :password => self.class.password
 
       node_id = Motel.gen_uuid
       @nodes[queue] = RJR::AMQPNode.new :broker => broker, :node_id => "cosmos-remote-#{node_id}"

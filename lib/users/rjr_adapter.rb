@@ -3,19 +3,21 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# FIXME make configurable
-RECAPTCHA_ENABLED = true
-RECAPTCHA_PRIVATE_KEY = 'CHANGE_ME'
-
-MEDIAWIKI_ENABLED = true
-MEDIAWIKI_DIR = 'CHANGE_ME'
-
 require 'curb'
 require 'active_support/inflector'
 
 module Users
 
 class RJRAdapter
+  class << self
+    attr_accessor :recaptcha_enabled
+    attr_accessor :recaptcha_pub_key
+    attr_accessor :recaptcha_priv_key
+    attr_accessor :mediawiki_enabled
+    attr_accessor :mediawiki_dir
+    attr_accessor :omega_url
+  end
+
   def self.init
     Users::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
@@ -166,11 +168,11 @@ class RJRAdapter
        raise ArgumentError, "user id already taken" unless Users::Registry.instance.find(:id => user.id).empty?
        raise ArgumentError, "valid username and password is required"  unless user.id.is_a?(String) && user.password.is_a?(String) && user.id != "" && user.password != ""
 
-       if RECAPTCHA_ENABLED
+       if Users::RJRAdapter.recaptcha_enabled
          # TODO ensure node type isn't amqp so that client_ip is available ?
          # ensure recaptcha is valid
          recaptcha_response = Curl::Easy.http_post 'http://www.google.com/recaptcha/api/verify',
-                                             Curl::PostField.content('privatekey', RECAPTCHA_PRIVATE_KEY),
+                                             Curl::PostField.content('privatekey', Users::RJRAdapter.recaptcha_priv_key),
                                              Curl::PostField.content('remoteip', @client_ip),
                                              Curl::PostField.content('challenge', user.recaptcha_challenge),
                                              Curl::PostField.content('response', user.recaptcha_response)
@@ -190,7 +192,7 @@ class RJRAdapter
        # send users::confirm_register link via email
        # TODO make configurable
        message = <<MESSAGE_END
-From: #{EmailHelper.instance.from_address}
+From: #{EmailHelper.smtp_from_address}
 To: #{user.email}
 Subject: New Omega Account
 
@@ -198,7 +200,7 @@ This is to inform you that your new omega account has been created. You
 will need to activate your registration code by navigating to the following
 link:
 
-  http://localhost/wotel/confirm.html?rc=#{user.registration_code}
+  #{Users::RJRAdapter.omega_url}confirm.html?rc=#{user.registration_code}
 
 MESSAGE_END
        EmailHelper.instance.send_email user.email, message
@@ -216,9 +218,9 @@ MESSAGE_END
 
        # issue request to create mediawiki user
        # we just use a custom script leveraging the mw api to do this for now
-       if MEDIAWIKI_ENABLED
+       if Users::RJRAdapter.mediawiki_enabled
          # TODO use original / unencrypted pass or different pass ?
-         system("cd #{MEDIAWIKI_DIR} && ./create_user.php #{user.id} #{user.password} #{user.email}")
+         system("cd #{Users::RJRAdapter.mediawiki_dir} && ./create_user.php #{user.id} #{user.password} #{user.email}")
        end
 
        nil

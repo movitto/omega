@@ -9,8 +9,9 @@ require 'rjr/local_node'
 describe Users::RJRAdapter do
 
   before(:all) do
-    OLD_RECAPTCHA_ENABLED = RECAPTCHA_ENABLED
-    RECAPTCHA_ENABLED = false
+    Users::EmailHelper.email_enabled = false
+    Users::RJRAdapter.recaptcha_enabled = false
+    Users::RJRAdapter.mediawiki_enabled = false
     Users::RJRAdapter.init
   end
 
@@ -23,7 +24,6 @@ describe Users::RJRAdapter do
   end
 
   after(:all) do
-    RECAPTCHA_ENABLED = OLD_RECAPTCHA_ENABLED
   end
 
   it "should permit local nodes or users with create users_entities to create_entity" do

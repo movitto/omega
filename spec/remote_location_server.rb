@@ -16,19 +16,25 @@ require 'spec/spec_helper'
 
 #RJR::Logger.log_level = ::Logger::INFO
 
+config = Omega::Config.load :amqp_broker => 'localhost'
+config.node_id = 'remote_server'
+
+Motel::RemoteLocationManager.user      = config.remote_location_manager_user
+Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
+
 Users::RJRAdapter.init
 Motel::RJRAdapter.init
 
-rlm  = Omega::Roles.create_user('rlm', 'mlr')
+rlm  = Omega::Roles.create_user(config.remote_location_manager_user, config.remote_location_manager_pass)
 Omega::Roles.create_user_role(rlm, :remote_location_manager)
 
-amqp_node  = RJR::AMQPNode.new   :node_id => 'remote_server', :broker => 'localhost'
+amqp_node  = RJR::AMQPNode.new   :node_id => config.node_id, :broker => config.amqp_broker
 
 amqp_node.listen
 
 sleep 5
 
-local_node = RJR::LocalNode.new  :node_id => 'remote_server'
+local_node = RJR::LocalNode.new  :node_id => config.node_id
 session = local_node.invoke_request('users::login', rlm)
 local_node.message_headers['session_id'] = session.id
 

@@ -14,7 +14,7 @@ class MovementStrategy
    attr_accessor :step_delay
    
    def initialize(args = {})
-      @step_delay = args.has_key?(:step_delay) ? args[:step_delay] : 1
+      @step_delay = 1 # TODO make configurable
 
       args.each { |k,v|
         inst_attr = ('@' + k.to_s).to_sym

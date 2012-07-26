@@ -17,20 +17,26 @@ require 'spec/spec_helper'
 
 #RJR::Logger.log_level = ::Logger::INFO
 
+config = Omega::Config.load :amqp_broker => 'localhost'
+config.node_id = 'remote_server'
+
+Cosmos::RemoteCosmosManager.user      = config.remote_cosmos_manager_user
+Cosmos::RemoteCosmosManager.password  = config.remote_cosmos_manager_pass
+
 Users::RJRAdapter.init
 Motel::RJRAdapter.init
 Cosmos::RJRAdapter.init
 
-rcm  = Omega::Roles.create_user('rcm', 'mcr')
+rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_pass)
 Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
 
-amqp_node  = RJR::AMQPNode.new   :node_id => 'remote_server', :broker => 'localhost'
+amqp_node  = RJR::AMQPNode.new   :node_id => config.node_id, :broker => config.amqp_broker
 
 amqp_node.listen
 
 sleep 3
 
-local_node = RJR::LocalNode.new  :node_id => 'remote_server'
+local_node = RJR::LocalNode.new  :node_id => config.node_id
 session = local_node.invoke_request('users::login', rcm)
 local_node.message_headers['session_id'] = session.id
 

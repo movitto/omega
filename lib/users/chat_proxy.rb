@@ -40,6 +40,12 @@ end
 class ChatProxy
   attr_accessor :user, :server, :port, :chatroom, :connected, :inchannel, :messages, :callbacks
 
+  class << self
+    attr_accessor :default_irc_server
+    attr_accessor :default_irc_port
+    attr_accessor :default_irc_channel
+  end
+
   def self.proxy_for(user)
     @@proxies ||= {}
     @@proxies[user] = ChatProxy.new user unless @@proxies.has_key?(user)
@@ -48,9 +54,9 @@ class ChatProxy
 
   def initialize(user, args={})
     @user     = user
-    @server   = args[:server ] || args['server']  || 'irc.freenode.net'
-    @port     = args[:port ]   || args['port']    || 6667
-    @chatroom = args[:channel] || args['channel'] || '#unv-chat'
+    @server   = args[:server ] || args['server']  || self.class.default_irc_server
+    @port     = args[:port ]   || args['port']    || self.class.default_irc_port
+    @chatroom = args[:channel] || args['channel'] || self.class.default_irc_channel
 
     @inchannel = false
     @connected = false

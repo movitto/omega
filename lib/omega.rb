@@ -13,6 +13,7 @@ require lib + '/omega/roles'
 require lib + '/omega/names'
 require lib + '/omega/resources'
 require lib + '/omega/client'
+require lib + '/omega/config'
 
 require lib + '/motel'
 require lib + '/cosmos'

@@ -13,28 +13,35 @@ require 'rjr/amqp_node'
 describe Motel::RJRAdapter do
 
   before(:all) do
+    config = Omega::Config.load :amqp_broker => 'localhost'
+    config.node_id = 'motel-rrjr-test'
+
+    Motel::RemoteLocationManager.user      = config.remote_location_manager_user
+    Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
+
     Users::RJRAdapter.init
     Motel::RJRAdapter.init
 
-    rlm  = Omega::Roles.create_user('rlm', 'mlr')
+    rlm  = Omega::Roles.create_user(config.remote_location_manager_user, config.remote_location_manager_pass)
     Omega::Roles.create_user_role(rlm, :remote_location_manager)
 
-    @amqp_node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'motel-rrjr-test'
+    @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {
       @amqp_node.listen
     }
 
     @remote_server_pid = fork{
-      exec File.expand_path(File.dirname(__FILE__) + "/../remote_location_server.rb")
+      Dir.chdir(File.expand_path(File.dirname(__FILE__) + "/../../"))
+      exec "spec/remote_location_server.rb"
     }
-    sleep 1
+    sleep 2
 
     loc1 = Motel::Location.new :id => 1, :movement_strategy => Motel::MovementStrategies::Stopped.instance
     loc2 = Motel::Location.new :id => 2, :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                                :parent_id => 1, :remote_queue => 'remote_server-queue'
     loc4 = Motel::Location.new :id => 4, :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                                :parent_id => 3
-    @local_node = RJR::LocalNode.new  :node_id => 'motel-rrjr-test'
+    @local_node = RJR::LocalNode.new  :node_id => config.node_id
     TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
     @local_node.invoke_request('motel::create_location', loc1)
     @local_node.invoke_request('motel::create_location', loc2)

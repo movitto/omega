@@ -13,27 +13,33 @@ require 'rjr/amqp_node'
 describe Cosmos::RJRAdapter do
 
   before(:all) do
+    config = Omega::Config.load :amqp_broker => 'localhost'
+    config.node_id = 'cosmos-rrjr-test'
+    Cosmos::RemoteCosmosManager.user      = config.remote_cosmos_manager_user
+    Cosmos::RemoteCosmosManager.password  = config.remote_cosmos_manager_pass
+
     Users::RJRAdapter.init
     Motel::RJRAdapter.init
     Cosmos::RJRAdapter.init
     Cosmos::Registry.instance.init
 
-    rcm  = Omega::Roles.create_user('rcm', 'mcr')
+    rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_pass)
     Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
 
-    @amqp_node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'cosmos-rrjr-test'
+    @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {
       @amqp_node.listen
     }
 
     @remote_server_pid = fork{
-      exec File.expand_path(File.dirname(__FILE__) + "/../remote_cosmos_server.rb")
+      Dir.chdir(File.expand_path(File.dirname(__FILE__) + "/../../"))
+      exec "spec/remote_cosmos_server.rb"
     }
-    sleep 1
+    sleep 2
 
     gal1 = Cosmos::Galaxy.new :name => 'gal1', :remote_queue => 'remote_server-queue', :location => Motel::Location.new(:id => 'g1')
     pl1  = Cosmos::Planet.new :name => 'pl1', :location => Motel::Location.new(:id => 'p1')
-    @local_node = RJR::LocalNode.new  :node_id => 'cosmos-rrjr-test'
+    @local_node = RJR::LocalNode.new  :node_id => config.node_id
     TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
     @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
     sleep 3

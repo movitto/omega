@@ -1,0 +1,43 @@
+---
+omega_url: 'http://localhost/wotel/'
+
+node_id: 'omega'
+node_types: ['amqp', 'ws', 'www', 'local']
+
+amqp_broker: 'localhost'
+
+ws_host: 'localhost'
+ws_port: 8080
+
+www_host: 'localhost'
+www_port: 8888
+
+admin_user: 'admin'
+admin_pass: 'nimda'
+
+remote_location_manager_user: 'rlm'
+remote_location_manager_pass: 'mlr'
+
+remote_cosmos_manager_user: 'rcm'
+remote_cosmos_manager_pass: 'mcr'
+
+email_enabled: true
+smtp_host: 'localhost'
+smtp_from_address: 'mo@morsi.org'
+
+irc_server: 'irc.freenode.net'
+irc_port: 6667
+irc_channel: '#unv-chat'
+
+recaptcha_enabled: true
+recaptcha_pub_key:  'CHANGE_ME' # FIXME: not currently used, need to set in javascript client
+recaptcha_priv_key: 'CHANGE_ME'
+
+mediawiki_enabled: true
+mediawiki_dir: '/usr/share/mediawiki/'
+
+# TODO config options for
+# rjr: node threads, node timeout
+# motel: step_delay
+# manufactured: attack pool delay, mining poll delay
+# users: session expiration

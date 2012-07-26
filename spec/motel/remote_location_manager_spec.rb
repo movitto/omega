@@ -10,16 +10,22 @@ require 'rjr/amqp_node'
 describe Motel::RemoteLocationManager do
 
   before(:all) do
+    config = Omega::Config.load :amqp_broker => 'localhost'
+    config.node_id = 'motel-rlm-test'
+
+    Motel::RemoteLocationManager.user      = config.remote_location_manager_user
+    Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
+
     Motel::RJRAdapter.init
     Users::RJRAdapter.init
 
-    user = Users::User.new :id => 'rlm', :password => 'mlr'
-    @local_node = RJR::LocalNode.new :node_id => 'motel-rlm-test'
+    user = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_pass
+    @local_node = RJR::LocalNode.new :node_id => config.node_id
     @local_node.invoke_request('users::create_entity', user)
     @local_node.invoke_request('users::add_privilege', user.id, 'create',   'locations')
     @local_node.invoke_request('users::add_privilege', user.id, 'modify',   'locations')
 
-    @amqp_node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'motel-rlm-test'
+    @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {
       @amqp_node.listen
     }

@@ -6,26 +6,24 @@
 require 'singleton'
 require 'net/smtp'
 
-EMAIL_ENABLED=true
-
 module Users
 
   class EmailHelper
     include Singleton
 
-    attr_reader :from_address
+    class << self
+      attr_accessor :email_enabled
+      attr_accessor :smtp_host
+      attr_accessor :smtp_from_address
+    end
 
     def initialize
-      # TODO make configurable
-      @smtp_host    = 'localhost'
-      @from_address = 'mo@morsi.org'
     end
 
     def send_email(to_address, message)
-      if EMAIL_ENABLED
-        Net::SMTP.start(@smtp_host) do |smtp|
-          smtp.send_message message, @from_address,
-                                      to_address
+      if self.class.email_enabled
+        Net::SMTP.start(self.class.smtp_host) do |smtp|
+          smtp.send_message message, self.class.smtp_from_address, to_address
         end
       end
       nil
