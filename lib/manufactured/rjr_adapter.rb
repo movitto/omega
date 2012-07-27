@@ -43,8 +43,10 @@ class RJRAdapter
       if !entity.is_a?(Manufactured::Fleet) && entity.parent
         parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', entity.parent.name)
         raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
-        entity.parent = parent
         # TODO parent.can_add?(entity)
+        Manufactured::Registry.instance.safely_run {
+          entity.parent = parent
+        }
       end
 
       rentity = Manufactured::Registry.instance.find(:id => entity.id).first
@@ -54,13 +56,16 @@ class RJRAdapter
 
       # skip create_location if entity wasn't created in registry
       unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
-        # needs to happen b4 create_location so motel sets up heirarchy correctly
-        entity.location.parent_id = entity.parent.location.id if entity.parent
+        Manufactured::Registry.instance.safely_run {
+          # needs to happen b4 create_location so motel sets up heirarchy correctly
+          entity.location.parent_id = entity.parent.location.id if entity.parent
 
-        entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
+          # TODO run create_location request outside safely_run block?
+          entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
 
-        # needs to happen after create_location as parent won't be sent in the result
-        entity.location.parent    = entity.parent.location if entity.parent
+          # needs to happen after create_location as parent won't be sent in the result
+          entity.location.parent    = entity.parent.location if entity.parent
+        }
       end
 
       rentity
@@ -89,16 +94,21 @@ class RJRAdapter
       argsh[:solar_system] = station.solar_system
       argsh[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity? # TODO change to station's owner ?
 
-      station.clear_errors :of_type => :construction
-      unless station.can_construct?(argsh)
-        raise ArgumentError,
-              "station specified by #{station} "\
-              "cannot construct entity with args #{args.inspect} "\
-              "due to errors: #{station.errors[:construction]} "
-      end
+      entity = nil
 
-      # create the entity and return it
-      entity = station.construct argsh
+      Manufactured::Registry.instance.safely_run {
+        station.clear_errors :of_type => :construction
+        unless station.can_construct?(argsh)
+          raise ArgumentError,
+                "station specified by #{station} "\
+                "cannot construct entity with args #{args.inspect} "\
+                "due to errors: #{station.errors[:construction]} "
+        end
+
+        # create the entity and return it
+        entity = station.construct argsh
+      }
+
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
       entity = @@local_node.invoke_request('manufactured::create_entity', entity)
       entity
@@ -151,7 +161,9 @@ class RJRAdapter
 
        entities.each { |entity|
          unless entity.is_a?(Manufactured::Fleet)
-           entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+           Manufactured::Registry.instance.safely_run {
+             entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+           }
          end
        }
 
@@ -190,14 +202,17 @@ class RJRAdapter
           end
         }
 
-      old = entity.notification_callbacks.find { |n| n.type == event_callback.type &&
-                                                     n.endpoint_id == event_callback.endpoint_id }
+      Manufactured::Registry.instance.safely_run {
+        old = entity.notification_callbacks.find { |n| n.type == event_callback.type &&
+                                                       n.endpoint_id == event_callback.endpoint_id }
 
-      unless old.nil?
-       entity.notification_callbacks.delete(old)
-      end
+        unless old.nil?
+         entity.notification_callbacks.delete(old)
+        end
 
-      entity.notification_callbacks << event_callback
+        entity.notification_callbacks << event_callback
+      }
+
       entity
     }
 
@@ -211,7 +226,10 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      entity.notification_callbacks.reject!{ |nc| nc.endpoint_id == source_node }
+      Manufactured::Registry.instance.safely_run {
+        entity.notification_callbacks.reject!{ |nc| nc.endpoint_id == source_node }
+      }
+
       entity
     }
 
@@ -233,7 +251,9 @@ class RJRAdapter
       raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
 
       # update the entity's location
-      entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+      Manufactured::Registry.instance.safely_run {
+        entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+      }
 
       # if parents don't match, we are moving entity between systems
       if entity.parent.id != parent.id
@@ -248,10 +268,12 @@ class RJRAdapter
 
         # simply set parent and location
         # TODO set new_location x, y, z to vicinity of reverse jump gate (eg gate to current system in destination system) if it exists
-        entity.parent   = parent
-        new_location.id = entity.location.id
-        new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-        entity.location = new_location
+        Manufactured::Registry.instance.safely_run {
+          entity.parent   = parent
+          new_location.id = entity.location.id
+          new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+          entity.location = new_location
+        }
         @@local_node.invoke_request('motel::update_location', entity.location)
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'proximity')
@@ -271,11 +293,13 @@ class RJRAdapter
         raise Omega::OperationError, "Ship or station #{entity} is already at location" if distance < 1
 
         # move to location using a linear movement strategy
-        entity.location.movement_strategy =
-          Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
-                                                :direction_vector_y => dy/distance,
-                                                :direction_vector_z => dz/distance,
-                                                :speed => entity.movement_speed
+        Manufactured::Registry.instance.safely_run {
+          entity.location.movement_strategy =
+            Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
+                                                  :direction_vector_y => dy/distance,
+                                                  :direction_vector_z => dz/distance,
+                                                  :speed => entity.movement_speed
+        }
         @@local_node.invoke_request('motel::update_location', entity.location)
 
         @@local_node.invoke_request('motel::track_movement', entity.location.id, distance)
@@ -307,8 +331,10 @@ class RJRAdapter
       raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
 
       # update the entities' locations
-      entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
-      target_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', target_entity.location.id)
+      Manufactured::Registry.instance.safely_run {
+        entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+        target_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', target_entity.location.id)
+      }
 
       # ensure entities are in the same system
       raise ArgumentError, "entity #{entity} must be in the same system as entity to follow #{target_entity}" if entity.location.parent.id != target_entity.location.parent.id
@@ -316,10 +342,12 @@ class RJRAdapter
       # ensure entity isn't docked
       raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
 
-      entity.location.movement_strategy =
-        Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
-                                              :distance            => distance,
-                                              :speed => entity.movement_speed
+      Manufactured::Registry.instance.safely_run {
+        entity.location.movement_strategy =
+          Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
+                                                :distance            => distance,
+                                                :speed => entity.movement_speed
+      }
 
       @@local_node.invoke_request('motel::update_location', entity.location)
 
@@ -332,8 +360,10 @@ class RJRAdapter
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id).first
 
-      entity.location.update(loc)
-      entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+      Manufactured::Registry.instance.safely_run {
+        entity.location.update(loc)
+        entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+      }
       @@local_node.invoke_request('motel::update_location', entity.location)
       @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)
     }
@@ -354,8 +384,10 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      attacker.location = @@local_node.invoke_request('motel::get_location', 'with_id', attacker.location.id)
-      defender.location = @@local_node.invoke_request('motel::get_location', 'with_id', defender.location.id)
+      Manufactured::Registry.instance.safely_run {
+        attacker.location = @@local_node.invoke_request('motel::get_location', 'with_id', attacker.location.id)
+        defender.location = @@local_node.invoke_request('motel::get_location', 'with_id', defender.location.id)
+      }
 
       raise Omega::OperationError, "#{attacker} cannot attack #{defender}" unless attacker.can_attack?(defender)
 
@@ -394,8 +426,9 @@ class RJRAdapter
 
       raise Omega::OperationError, "#{ship} cannot dock at #{station}" unless station.dockable?(ship)
 
-      # TODO not thread safe, should go through the registry
-      ship.dock_at(station)
+      Manufactured::Registry.instance.safely_run {
+        ship.dock_at(station)
+      }
 
       # set ship movement strategy to stopped
       # TODO we may want to set position of ship in proximity of station
@@ -418,8 +451,10 @@ class RJRAdapter
 
       raise Omega::OperationError, "#{ship} is not docked, cannot undock" unless ship.docked?
 
-      # TODO not thread safe, should go through the registry
-      ship.undock
+      Manufactured::Registry.instance.safely_run {
+        ship.undock
+      }
+
       ship
     }
 
@@ -456,8 +491,10 @@ class RJRAdapter
           ship.notification_callbacks.delete collected_callback
           ship.notification_callbacks.delete depleted_callback
         }
-      ship.notification_callbacks << collected_callback
-      ship.notification_callbacks << depleted_callback
+      Manufactured::Registry.instance.safely_run {
+        ship.notification_callbacks << collected_callback
+        ship.notification_callbacks << depleted_callback
+      }
 
       # update location before mining
       before_mining = lambda { |cmd|
@@ -488,8 +525,10 @@ class RJRAdapter
                                         :session => @headers['session_id'])
 
       # update from & to entitys' location
-      from_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', from_entity.location.id)
-      to_entity.location   = @@local_node.invoke_request('motel::get_location', 'with_id', to_entity.location.id)
+      Manufactured::Registry.instance.safely_run {
+        from_entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', from_entity.location.id)
+        to_entity.location   = @@local_node.invoke_request('motel::get_location', 'with_id', to_entity.location.id)
+      }
 
       raise Omega::OperationError, "source entity cannot transfer resource" unless from_entity.can_transfer?(to_entity, resource_id, quantity)
       raise Omega::OperationError, "destination entity cannot accept resource" unless to_entity.can_accept?(resource_id, quantity)

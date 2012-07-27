@@ -11,11 +11,32 @@ module Manufactured
 class Registry
   include Singleton
 
-  # entities we are tracking
-  # TODO manually define these accessors, protecting arrays w/ the entities_lock
-  attr_reader :ships
-  attr_reader :stations
-  attr_reader :fleets
+  # ships we are tracking
+  def ships
+    ret = []
+    @entities_lock.synchronize {
+      @ships.each { |s| ret << s }
+    }
+    return ret
+  end
+
+  # stations we are tracking
+  def stations
+    ret = []
+    @entities_lock.synchronize {
+      @stations.each { |s| ret << s }
+    }
+    return ret
+  end
+
+  # fleets we are tracking
+  def fleets
+    ret = []
+    @entities_lock.synchronize {
+      @fleets.each { |f| ret << f }
+    }
+    return ret
+  end
 
   # holds ships which have been destroyed
   attr_reader :ship_graveyard
@@ -34,8 +55,6 @@ class Registry
   end
 
   def init
-    terminate
-
     @ships    = []
     @stations = []
     @fleets   = []
@@ -68,6 +87,13 @@ class Registry
 
     @attack_thread.join unless @attack_thread.nil?
     @mining_thread.join unless @mining_thread.nil?
+  end
+
+  # runs a block of code as an operation protected by the entities lock
+  def safely_run(*args, &bl)
+    @entities_lock.synchronize {
+      bl.call *args
+    }
   end
 
   def find(args = {})
@@ -232,6 +258,7 @@ class Registry
       end
     }
     # FIXME update to store attack + mining commands & ship graveyard
+    nil
   end
 
   # restore state of the registry from the specified stream
@@ -242,6 +269,7 @@ class Registry
         create(entity)
       end
     }
+    nil
   end
 
 
