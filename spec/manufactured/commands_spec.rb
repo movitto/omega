@@ -8,6 +8,10 @@ require 'timecop'
 
 describe Manufactured::AttackCommand do
 
+  after(:all) do
+    Timecop.return
+  end
+
   it "should run attack cycle between ships" do
      attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :user_id => 'user1'
      defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'

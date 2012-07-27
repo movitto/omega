@@ -8,6 +8,10 @@ require 'timecop'
 
 describe Users::Session do
 
+  after(:all) do
+    Timecop.return
+  end
+
   it "should properly initialze session" do
     id = Motel.gen_uuid
     s = Users::Session.new :id => id, :user_id => 'user1'

@@ -10,6 +10,10 @@ require 'timecop'
 
 describe Users::Registry do
 
+  after(:all) do
+    Timecop.return
+  end
+
   it "provide access to managed users entities" do
     Users::Registry.instance.init
     Users::Registry.instance.users.size.should == 0
