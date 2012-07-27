@@ -47,6 +47,13 @@ class Registry
     @entities_lock = Mutex.new
   end
 
+  # runs a block of code as an operation protected by the entities lock
+  def safely_run(*args, &bl)
+    @entities_lock.synchronize {
+      bl.call *args
+    }
+  end
+
   def find(args = {})
     id        = args[:id]
     type      = args[:type]
@@ -209,14 +216,15 @@ class Registry
 
   # Save state of the registry to specified stream
   def save_state(io)
-    # TODO block new operations on registry
     users.each { |user|
-      user.secure_password = false
-      io.write user.to_json + "\n"
-      user.secure_password = true
+      @entities_lock.synchronize{
+        user.secure_password = false
+        io.write user.to_json + "\n"
+        user.secure_password = true
 
-      user.privileges.each { |priv|
-        io.write priv.to_json + "\n"
+        user.privileges.each { |priv|
+          io.write priv.to_json + "\n"
+        }
       }
     }
 

@@ -156,7 +156,9 @@ class RJRAdapter
 
        user = Users::Registry.instance.find(:id => user_id).first
        raise Omega::DataNotFound, "user specified by id #{user_id} not found" if user.nil?
-       user.add_privilege Privilege.new(:id => privilege_id, :entity_id => entity_id)
+       Users::Registry.instance.safely_run {
+         user.add_privilege Privilege.new(:id => privilege_id, :entity_id => entity_id)
+       }
        nil
      }
 
@@ -212,7 +214,9 @@ MESSAGE_END
        user = Users::Registry.instance.find(:registration_code => registration_code).first
        raise Omega::DataNotFound, "user specified by registration code #{registration_code} not found" if user.nil?
 
-       user.registration_code = nil
+       Users::Registry.instance.safely_run {
+         user.registration_code = nil
+       }
 
        # assign it base privileges
 
@@ -234,7 +238,9 @@ MESSAGE_END
        Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
                                                   {:privilege => 'modify', :entity => 'users'}],
                                          :session   => @headers['session_id'])
-       user_entity.update!(user)
+       Users::Registry.instance.safely_run {
+         user_entity.update!(user)
+       }
        user_entity
      }
 
