@@ -5,16 +5,26 @@
 
 module Cosmos
 
-# !!!FIXME!!! lock datastore
-
 class Registry
   include Singleton
 
-  # FIXME remove default accessors,
-  # replace w/ custom one w/ lock to protect
-  # these from concurrent access
-  attr_accessor :galaxies
-  attr_accessor :resource_sources
+  # galaxies we are managing
+  def galaxies
+    ret = []
+    @entities_lock.synchronize {
+      @galaxies.each { |g| ret << g }
+    }
+    return ret
+  end
+
+  # resource sources we are managing
+  def resource_sources
+    ret = []
+    @entities_lock.synchronize {
+      @resource_sources.each { |s| ret << s }
+    }
+    return ret
+  end
 
   def initialize
     init
@@ -23,6 +33,15 @@ class Registry
   def init
     @galaxies = []
     @resource_sources = []
+
+    @entities_lock = Mutex.new
+  end
+
+  # runs a block of code as an operation protected by the entities lock
+  def safely_run(*args, &bl)
+    @entities_lock.synchronize {
+      bl.call *args
+    }
   end
 
   def entity_types
@@ -44,19 +63,21 @@ class Registry
     return self if type == :universe || type == 'universe'
 
     entities = []
-    @galaxies.each { |g|
-      entities << g
-      g.solar_systems.each { |sys|
-        entities << sys
-        entities << sys.star unless sys.star.nil?
-        sys.planets.each { |pl|
-          entities << pl
-          pl.moons.each { |m|
-            entities << m
+    @entities_lock.synchronize{
+      @galaxies.each { |g|
+        entities << g
+        g.solar_systems.each { |sys|
+          entities << sys
+          entities << sys.star unless sys.star.nil?
+          sys.planets.each { |pl|
+            entities << pl
+            pl.moons.each { |m|
+              entities << m
+            }
           }
-        }
-        sys.asteroids.each { |ast|
-          entities << ast
+          sys.asteroids.each { |ast|
+            entities << ast
+          }
         }
       }
     }
@@ -117,18 +138,26 @@ class Registry
   end
 
   def remove_child(child)
-    @galaxies.reject! { |ch| (child.is_a?(Cosmos::Galaxy) && ch == child) ||
-                             (child == ch.name) }
+    @entities_lock.synchronize{
+      @galaxies.reject! { |ch| (child.is_a?(Cosmos::Galaxy) && ch == child) ||
+                               (child == ch.name) }
+    }
   end
 
   def has_children?
-    return @galaxies.size > 0
+    ret = nil
+    @entities_lock.synchronize{
+      ret = @galaxies.size > 0
+    }
+    return ret
   end
 
   def each_child(&bl)
-    @galaxies.each { |g|
-      bl.call self, g
-      g.each_child &bl
+    @entities_lock.synchronize{
+      @galaxies.each { |g|
+        bl.call self, g
+        g.each_child &bl
+      }
     }
   end
 
@@ -155,11 +184,15 @@ class Registry
     resource_name = args[:resource_name]
     resource_type = args[:resource_type]
 
-    resource_sources.select { |rs|
-      (entity_id.nil? || rs.entity.name == entity_id) &&
-      (resource_name.nil? || rs.resource.name == resource_name) &&
-      (resource_type.nil? || rs.resource.type == resource_type)
-    }.collect { |rs| rs.resource }
+    rs = []
+    @entities_lock.synchronize{
+      rs = resource_sources.select { |rs|
+             (entity_id.nil? || rs.entity.name == entity_id) &&
+             (resource_name.nil? || rs.resource.name == resource_name) &&
+             (resource_type.nil? || rs.resource.type == resource_type)
+           }.collect { |rs| rs.resource }
+    }
+    rs
   end
 
   # set the resource for the specified entity
@@ -170,28 +203,30 @@ class Registry
              quantity < 0
 
     rs = nil
-    # if we're setting quantity to 0, just delete resource
-    if quantity == 0
-      resource_sources.delete_if { |rsi| rsi.entity.name == entity_id &&
-                                         rsi.resource.name == resource.name &&
-                                         rsi.resource.type == resource.type }
-
-    else
-      rs = resource_sources.find { |rsi| rsi.entity.name == entity_id &&
-                                         rsi.resource.name == resource.name &&
-                                         rsi.resource.type == resource.type }
-
-      # if resource doesn't exist, create, else just set quantity
-      if rs.nil?
-        rs = ResourceSource.new(:entity => entity,
-                                :resource => resource,
-                                :quantity => quantity)
-        @resource_sources << rs
+    @entities_lock.synchronize{
+      # if we're setting quantity to 0, just delete resource
+      if quantity == 0
+        @resource_sources.delete_if { |rsi| rsi.entity.name == entity_id &&
+                                            rsi.resource.name == resource.name &&
+                                            rsi.resource.type == resource.type }
 
       else
-        rs.quantity = quantity
+        rs = @resource_sources.find { |rsi| rsi.entity.name == entity_id &&
+                                           rsi.resource.name == resource.name &&
+                                           rsi.resource.type == resource.type }
+
+        # if resource doesn't exist, create, else just set quantity
+        if rs.nil?
+          rs = ResourceSource.new(:entity => entity,
+                                  :resource => resource,
+                                  :quantity => quantity)
+          @resource_sources << rs
+
+        else
+          rs.quantity = quantity
+        end
       end
-    end
+    }
 
     return rs
   end
@@ -202,7 +237,6 @@ class Registry
 
   # Save state of the registry to specified stream
   def save_state(io)
-    # TODO block new operations on registry
     galaxies.each { |galaxy| io.write galaxy.to_json + "\n" }
     resource_sources.each { |rs| io.write rs.to_json + "\n" }
   end

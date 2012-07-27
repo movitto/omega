@@ -52,18 +52,22 @@ class RJRAdapter
          raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
        end
 
-       # TODO rparent.can_add?(entity)  # would need to be in mutex w/ add_child
-       entity.parent= rparent
-       rparent.add_child entity
+       # TODO rparent.can_add?(entity)
+       Cosmos::Registry.instance.safely_run {
+         entity.parent= rparent
+         rparent.add_child entity
+       }
 
        if entity.class.remotely_trackable? && entity.remote_queue
          @@remote_cosmos_manager.create_entity(entity, parent_name)
 
        else
-         # entity.location.entity = entity
-         entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
-         entity.location.parent = rparent.location
-         # TODO add all of entities children to location tracker
+         Cosmos::Registry.instance.safely_run {
+           # entity.location.entity = entity
+           entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
+           entity.location.parent = rparent.location
+           # TODO add all of entities children to location tracker
+         }
 
        end
 
@@ -111,18 +115,23 @@ class RJRAdapter
          end
          raised
        }
+
        # raise Omega::DataNotFound if entities.empty? (?)
        entities.each{ |entity|
          if entity.has_children?
            entity.each_child { |parent, child|
              if child.class.remotely_trackable? && child.remote_queue
                rchild = @@remote_cosmos_manager.get_entity(child)
-               parent.remove_child(child)
-               parent.add_child(rchild)
+               Cosmos::Registry.instance.safely_run {
+                 parent.remove_child(child)
+                 parent.add_child(rchild)
+               }
 
              else
-               child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
-               child.location.parent = parent.location
+               Cosmos::Registry.instance.safely_run {
+                 child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
+                 child.location.parent = parent.location
+               }
              end
 
            }
@@ -132,11 +141,13 @@ class RJRAdapter
        0.upto(entities.size-1) { |i|
          entity = entities[i]
          if entity.class.remotely_trackable? && entity.remote_queue
-           entities[i] = @@remote_cosmos_manager.get_entity(entity)
+             entities[i] = @@remote_cosmos_manager.get_entity(entity)
          else
-           # update locations w/ latest from the tracker
-           entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
-           entity.location.parent = entity.parent.location if entity.parent
+           Cosmos::Registry.instance.safely_run {
+             # update locations w/ latest from the tracker
+             entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
+             entity.location.parent = entity.parent.location if entity.parent
+           }
          end
        }
 
