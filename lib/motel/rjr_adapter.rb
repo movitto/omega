@@ -66,8 +66,10 @@ class RJRAdapter
              # swap child for remote_child
              # we lose attributes of original child's not sent over rjr
              # TODO just update rchild ?
-             rparent.remove_child(rchild.id)
-             rparent.add_child(remote_child)
+             Motel::Runner.instance.safely_run {
+               rparent.remove_child(rchild.id)
+               rparent.add_child(remote_child)
+             }
            end
          }
        }
@@ -84,18 +86,22 @@ class RJRAdapter
        unless new_location.parent_id.nil?
          # if parent.nil? throw error?
          parent = Runner.instance.locations.find { |loc| loc.id == new_location.parent_id }
-         parent.add_child(new_location) unless parent.nil?
-         new_location.parent = parent
+         Motel::Runner.instance.safely_run {
+           parent.add_child(new_location) unless parent.nil?
+           new_location.parent = parent
+         }
        end
 
-       new_location.x = 0 unless new_location.x.is_a?(Integer) || new_location.x.is_a?(Float)
-       new_location.y = 0 unless new_location.y.is_a?(Integer) || new_location.y.is_a?(Float)
-       new_location.z = 0 unless new_location.z.is_a?(Integer) || new_location.z.is_a?(Float)
-       new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance unless new_location.movement_strategy.kind_of?(Motel::MovementStrategy)
+       Motel::Runner.instance.safely_run {
+         new_location.x = 0 unless new_location.x.is_a?(Integer) || new_location.x.is_a?(Float)
+         new_location.y = 0 unless new_location.y.is_a?(Integer) || new_location.y.is_a?(Float)
+         new_location.z = 0 unless new_location.z.is_a?(Integer) || new_location.z.is_a?(Float)
+         new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance unless new_location.movement_strategy.kind_of?(Motel::MovementStrategy)
 
-       new_location.movement_callbacks  = []
-       new_location.proximity_callbacks = []
-       new_location.children = []
+         new_location.movement_callbacks  = []
+         new_location.proximity_callbacks = []
+         new_location.children = []
+       }
 
        if new_location.remote_queue
          @@remote_location_manager.create_location(new_location)
@@ -126,7 +132,9 @@ class RJRAdapter
        # adjust location heirarchy
        if (rloc.parent_id != location.parent_id)
          new_parent = Runner.instance.locations.find { |loc| loc.id == location.parent_id  }
-         new_parent.add_child(rloc) unless new_parent.nil?
+         Motel::Runner.instance.safely_run {
+           new_parent.add_child(rloc) unless new_parent.nil?
+         }
        end
 
        # setup attributes which should not be overwritten
@@ -138,9 +146,10 @@ class RJRAdapter
        location.movement_strategy = Motel::MovementStrategies::Stopped.instance unless location.movement_strategy.kind_of?(Motel::MovementStrategy)
 
        # client should explicity set movement_strategy on location to nil to keep movement strategy
-       # FIXME this should halt location movement, update location, then start it again
        RJR::Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
-       rloc.update(location)
+       Motel::Runner.instance.safely_run {
+         rloc.update(location)
+       }
 
        # TODO if rloc.remote_queue != location.remote_queue, move ?
        if rloc.remote_queue
@@ -188,17 +197,23 @@ class RJRAdapter
              loc.movement_callbacks.delete on_movement
            end
          }
-       # TODO this ignores distance differences, do anything about this?
-       old = loc.movement_callbacks.find { |m| m.endpoint_id == on_movement.endpoint_id }
-       unless old.nil?
-         loc.movement_callbacks.delete(old)
-       end
 
        @rjr_node.on(:closed){ |node|
-         loc.movement_callbacks.delete(on_movement)
+         Motel::Runner.instance.safely_run {
+           loc.movement_callbacks.delete(on_movement)
+         }
        }
 
-       loc.movement_callbacks << on_movement
+       Motel::Runner.instance.safely_run {
+         # TODO this ignores distance differences, do anything about this?
+         old = loc.movement_callbacks.find { |m| m.endpoint_id == on_movement.endpoint_id }
+         unless old.nil?
+           loc.movement_callbacks.delete(old)
+         end
+
+         loc.movement_callbacks << on_movement
+       }
+
        loc
     }
 
@@ -245,16 +260,22 @@ class RJRAdapter
            end
          }
 
-       old = loc1.proximity_callbacks.find { |p| p.endpoint_id == on_proximity.endpoint_id }
-       unless old.nil?
-         loc1.proximity_callbacks.delete(old)
-       end
-
        @rjr_node.on(:closed){ |node|
-         loc1.proximity_callbacks.delete(on_proximity)
+         Motel::Runner.instance.safely_run {
+           loc1.proximity_callbacks.delete(on_proximity)
+         }
        }
 
-       loc1.proximity_callbacks << on_proximity
+
+       Motel::Runner.instance.safely_run {
+         old = loc1.proximity_callbacks.find { |p| p.endpoint_id == on_proximity.endpoint_id }
+         unless old.nil?
+           loc1.proximity_callbacks.delete(old)
+         end
+
+         loc1.proximity_callbacks << on_proximity
+       }
+
        [loc1, loc2]
     }
 
@@ -272,13 +293,15 @@ class RJRAdapter
 
       raise ArgumentError, "callback_type must be nil, movement, or proximity" unless [nil, 'movement', 'proximity'].include?(callback_type)
 
-      if callback_type.nil? || callback_type == 'movement'
-        loc.movement_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
-      end
+      Motel::Runner.instance.safely_run {
+        if callback_type.nil? || callback_type == 'movement'
+          loc.movement_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
+        end
 
-      if callback_type.nil? || callback_type == 'proximity'
-        loc.proximity_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
-      end
+        if callback_type.nil? || callback_type == 'proximity'
+          loc.proximity_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
+        end
+      }
       loc
     }
 

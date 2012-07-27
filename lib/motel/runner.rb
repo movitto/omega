@@ -40,6 +40,16 @@ class Runner
     @run_thread = nil
   end
 
+  # runs a block of code as an operation protected by the schedule & run locks
+  def safely_run(*args, &bl)
+    @schedule_lock.synchronize {
+      @run_lock.synchronize {
+        bl.call *args
+      }
+    }
+  end
+
+
   # Return complete list of locations being managed/tracked
   def locations
     ret = []
@@ -136,8 +146,12 @@ class Runner
 
   # Save state of the runner to specified stream
   def save_state(io)
-    # TODO pause instances, block new ones, etc
-    locations.each { |loc| io.write loc.to_json + "\n" }
+    locs = locations
+    @schedule_lock.synchronize {
+      @run_lock.synchronize {
+        locs.each { |loc| io.write loc.to_json + "\n" }
+      }
+    }
   end
 
   # restore state of the runner from the specified stream
@@ -218,7 +232,9 @@ class Runner
           old_coords = [loc.x, loc.y, loc.z]
 
           elapsed = Time.now - location_timestamps[loc.id]
-          loc.movement_strategy.move loc, elapsed 
+          safely_run { # TODO not a huge fan of using global sync lock here, would rather use a location specific one (so long as other updates to the location make use of it as well)
+            loc.movement_strategy.move loc, elapsed
+          }
           location_timestamps[loc.id] = Time.now
 
           # invoke movement_callbacks for location moved
