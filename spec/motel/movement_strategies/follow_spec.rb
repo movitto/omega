@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # See COPYING for the License of this software
 
-require File.dirname(__FILE__) + '/../../spec_helper'
+require 'spec_helper'
 
 describe "Motel::MovementStrategies::Follow" do
 

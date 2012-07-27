@@ -23,7 +23,7 @@ class Location
    attr_accessor :parent, :children
 
    # overwrite parent writer to also set parent_id
-   def parent=(new_parent) @parent = new_parent ; @parent_id = @parent.id end
+   def parent=(new_parent) @parent = new_parent ; @parent_id = @parent.id unless @parent.nil? end
 
    # movement strategy which location move in accordance to
    attr_accessor :movement_strategy

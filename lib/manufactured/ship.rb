@@ -128,7 +128,7 @@ class Ship
   end
 
   def parent
-    return @solar_system
+    return self.solar_system
   end
 
   def parent=(system)

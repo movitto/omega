@@ -3,16 +3,16 @@
 # Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-lib = File.dirname(__FILE__)
-$: << lib + '/motel/'
+require 'motel/exceptions'
+require 'motel/callbacks'
+require 'motel/runner'
+require 'motel/remote_location_manager'
+require 'motel/rjr_adapter'
 
-require lib + '/motel/exceptions'
-require lib + '/motel/callbacks'
-require lib + '/motel/runner'
-require lib + '/motel/remote_location_manager'
-require lib + '/motel/rjr_adapter'
+require 'motel/location'
+require 'motel/movement_strategy'
 
-require lib + '/motel/location'
-require lib + '/motel/movement_strategy'
-
-Dir[lib + '/motel/movement_strategies/*.rb'].each { |model| require model }
+require 'motel/movement_strategies/stopped'
+require 'motel/movement_strategies/linear'
+require 'motel/movement_strategies/elliptical'
+require 'motel/movement_strategies/follow'

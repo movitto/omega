@@ -6,7 +6,7 @@
 # Copyright (C) 2012 Mohammed Morsi <movitto@yahoo.com>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'rjr/local_node'
 require 'rjr/amqp_node'
 
@@ -55,7 +55,7 @@ describe Cosmos::RJRAdapter do
     @amqp_node.stop
     @amqp_node.join
     @server_thread.join
-    Process.kill 'INT', @remote_server_pid
+    Process.kill 'USR1', @remote_server_pid
   end
 
   it "should get remotely tracked entities" do

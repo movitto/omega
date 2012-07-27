@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'timecop'
 
 describe Users::Session do
@@ -18,7 +18,7 @@ describe Users::Session do
 
   it "should provide timeout mechanism" do
     Timecop.freeze
-    s = Users::Session.new :id => id, :user_id => 'user1'
+    s = Users::Session.new :id => 'id', :user_id => 'user1'
     s.timed_out?.should be_false
     s.instance_variable_get(:@timeout_timestamp).should == Time.now
     Timecop.freeze Users::Session::SESSION_EXPIRATION + 1

@@ -42,4 +42,8 @@ loc3 = Motel::Location.new :id => 3, :movement_strategy => Motel::MovementStrate
                            :parent_id => 2, :remote_queue => 'motel-rrjr-test-queue'
 local_node.invoke_request('motel::create_location', loc3)
 
+Signal.trap("USR1") {
+  amqp_node.stop
+}
+
 amqp_node.join

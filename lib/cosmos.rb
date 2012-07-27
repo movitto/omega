@@ -3,17 +3,14 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-lib = File.dirname(__FILE__)
-$: << lib + '/cosmos/'
-
-require lib + '/cosmos/galaxy'
-require lib + '/cosmos/solar_system'
-require lib + '/cosmos/star'
-require lib + '/cosmos/planet'
-require lib + '/cosmos/moon'
-require lib + '/cosmos/jump_gate'
-require lib + '/cosmos/asteroid'
-require lib + '/cosmos/resource'
-require lib + '/cosmos/remote_cosmos_manager'
-require lib + '/cosmos/rjr_adapter'
-require lib + '/cosmos/registry'
+require 'cosmos/galaxy'
+require 'cosmos/solar_system'
+require 'cosmos/star'
+require 'cosmos/planet'
+require 'cosmos/moon'
+require 'cosmos/jump_gate'
+require 'cosmos/asteroid'
+require 'cosmos/resource'
+require 'cosmos/remote_cosmos_manager'
+require 'cosmos/rjr_adapter'
+require 'cosmos/registry'

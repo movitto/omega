@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 
 describe Manufactured::Ship do
 
@@ -370,7 +370,7 @@ describe Manufactured::Ship do
     s.size.should == 50
     s.notification_callbacks.size.should == 1
     s.notification_callbacks.first.type == "attacked"
-    s.notification_callbacks.first.endpoint_id.type == "foobar"
+    s.notification_callbacks.first.endpoint_id == "foobar"
     #s.docked_at.should_not be_nil
     #s.docked_at.id.should == 'station42'
     s.location.should_not be_nil

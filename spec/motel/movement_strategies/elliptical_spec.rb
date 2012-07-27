@@ -3,7 +3,7 @@
 # Copyright (C) 2009 Mohammed Morsi <movitto@yahoo.com>
 # See COPYING for the License of this software
 
-require File.dirname(__FILE__) + '/../../spec_helper'
+require 'spec_helper'
 
 Elliptical = Motel::MovementStrategies::Elliptical
 

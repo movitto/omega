@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'rjr/local_node'
 
 describe Manufactured::RJRAdapter do
@@ -748,7 +748,7 @@ describe Manufactured::RJRAdapter do
 
     u.add_privilege('modify', 'manufactured_entities')
 
-    new_loc.parent_id = gal1.id
+    new_loc.parent_id = gal1.name
 
     # invalid destination (galaxy)
     lambda{

@@ -117,11 +117,11 @@ class Station
   end
 
   def parent
-    return @solar_system
+    return self.solar_system
   end
 
   def parent=(system)
-    @solar_system = system
+    self.solar_system = system
   end
 
   def add_resource(resource_id, quantity)

@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 require 'timecop'
 
 describe Manufactured::AttackCommand do
@@ -11,6 +11,10 @@ describe Manufactured::AttackCommand do
   it "should run attack cycle between ships" do
      attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :user_id => 'user1'
      defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
+
+     sys1  = Cosmos::SolarSystem.new :name => 'sys1'
+     attacker.parent = sys1
+     defender.parent = sys1
 
      # 1 hit every 2 seconds
      attacker.attack_rate = 0.5
@@ -46,6 +50,10 @@ describe Manufactured::AttackCommand do
   it "should invoke attack cycle callbacks" do
      attacker = Manufactured::Ship.new  :id => 'ship1', :type => :bomber, :user_id => 'user1'
      defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
+
+     sys1  = Cosmos::SolarSystem.new :name => 'sys1'
+     attacker.parent = sys1
+     defender.parent = sys1
 
      # 1 hit every second
      attacker.attack_rate = 1
@@ -88,6 +96,10 @@ describe Manufactured::AttackCommand do
   it "should terminate attack cycle and invoke callbacks if targets are too far apart" do
      attacker = Manufactured::Ship.new  :id => 'ship1', :user_id => 'user1', :type => :corvette, :location => Motel::Location.new(:x => 0, :y => 0, :z => 0)
      defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2', :location => Motel::Location.new(:x => 90,:y => 0, :z => 0)
+
+     sys1  = Cosmos::SolarSystem.new :name => 'sys1'
+     attacker.parent = sys1
+     defender.parent = sys1
 
      attacker.attack_rate = 1
      attacker.damage_dealt = 5
@@ -138,6 +150,7 @@ describe Manufactured::MiningCommand do
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
+     ship.parent = sys1
      sys1.add_child(entity)
 
      # 1 mining operations every second
@@ -190,6 +203,7 @@ describe Manufactured::MiningCommand do
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
+     ship.parent = sys1
      sys1.add_child entity
 
      # 1 mining operation every second
@@ -269,6 +283,7 @@ describe Manufactured::MiningCommand do
      resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
      source   = Cosmos::ResourceSource.new :resource => resource, :entity => entity
 
+     ship.parent = sys1
      sys1.add_child entity
 
      # 1 mining operation every second
