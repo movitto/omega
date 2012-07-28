@@ -66,10 +66,9 @@ describe Manufactured::Ship do
     ship.dock_at(2)
     ship.valid?.should be_false
 
-    ship.dock_at(Manufactured::Station.new)
-    ship.valid?.should be_false
-    ship.docked_at.location.parent = sys.location
-
+    stat = Manufactured::Station.new
+    stat.location.parent = sys.location
+    ship.dock_at(stat)
     ship.location.x = 500
     ship.valid?.should be_false
     ship.location.x = 0
@@ -78,9 +77,10 @@ describe Manufactured::Ship do
     ship.start_mining(false)
     ship.valid?.should be_false
 
-    ship.start_mining(Cosmos::ResourceSource.new(:entity => Cosmos::Asteroid.new, :quantity => 50))
-    ship.valid?.should be_false
-
+    ast = Cosmos::Asteroid.new
+    ast.location.parent = sys.location
+    res = Cosmos::ResourceSource.new(:entity => ast, :quantity => 50)
+    ship.start_mining(res)
     ship.mining.entity.location.parent = sys.location
     ship.valid?.should be_true
     ship.start_mining(nil)

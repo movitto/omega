@@ -550,6 +550,8 @@ class FrigateShip < ClientShip
   end
 end
 
+listen
+
 station = ClientStation.load :name => USER_NAME + "-manufacturing-station1"
 station.construction_cycle()
 
@@ -567,5 +569,4 @@ Signal.trap("USR1") {
   stop
 }
 
-listen
 join

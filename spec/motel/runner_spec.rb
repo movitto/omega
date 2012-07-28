@@ -81,7 +81,7 @@ describe Motel::Runner do
   it "should restore running locations from io object" do
     s = '{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"TestMovementStrategy"},"remote_queue":null,"parent_id":null,"y":null,"z":null,"x":null,"restrict_view":true,"id":1,"restrict_modify":true},"json_class":"Motel::Location"}' + "\n" +
         '{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"TestMovementStrategy"},"remote_queue":null,"parent_id":null,"y":null,"z":null,"x":null,"restrict_view":true,"id":3,"restrict_modify":true},"json_class":"Motel::Location"}'
-    a = s.collect { |i| i }
+    a = s.split "\n"
 
     Motel::Runner.instance.clear
     Motel::Runner.instance.restore_state(a)

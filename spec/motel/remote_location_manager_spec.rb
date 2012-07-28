@@ -29,6 +29,7 @@ describe Motel::RemoteLocationManager do
     @server_thread = Thread.new {
       @amqp_node.listen
     }
+    sleep 1
   end
 
   after(:all) do

@@ -208,7 +208,7 @@ describe Manufactured::Station do
     station   = Manufactured::Station.new :id => 'station1',
                                           :type => :manufacturing,
                                           :solar_system => sys,
-                                          :resources => {'metal-alloy', 5000 }
+                                          :resources => {'metal-alloy' => 5000 }
 
     station.can_construct?(:entity_type => "Manufactured::Ship").should be_true
     station.can_construct?(:entity_type => "Manufactured::Station").should be_true

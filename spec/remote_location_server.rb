@@ -12,7 +12,7 @@ require 'users'
 require 'omega/roles'
 require 'rjr/amqp_node'
 
-require 'spec/spec_helper'
+require './spec/spec_helper'
 
 #RJR::Logger.log_level = ::Logger::INFO
 

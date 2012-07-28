@@ -250,7 +250,7 @@ describe Users::Registry do
     s = '{"data":{"email":null,"password":null,"id":"user42","alliances":[]},"json_class":"Users::User"}' + "\n" +
         '{"data":{"entity_id":"locations","id":"view"},"json_class":"Users::Privilege"}' + "\n" +
         '{"json_class":"Users::Alliance","data":{"member_ids":["user42"],"enemy_ids":[],"id":"alliance42"}}'
-    a = s.collect { |i| i }
+    a = s.split "\n"
 
     Users::Registry.instance.init
     Users::Registry.instance.restore_state(a)

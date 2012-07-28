@@ -145,8 +145,8 @@ class Registry
   # TODO incorporate session privilege checks into a larger generic rjr ACL subsystem (allow generic acl validation objects to be registered for each handler)
   def require_privilege(args = {})
     session_id    = args[:session]
-    privilege_ids = args[:privilege].to_a
-    entity_ids    = args[:entity].to_a
+    privilege_ids = Array(args[:privilege])
+    entity_ids    = Array(args[:entity])
 
     args[:any].to_a.each{ |pe|
       privilege_ids << pe[:privilege]

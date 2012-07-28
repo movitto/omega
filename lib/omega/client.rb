@@ -23,6 +23,15 @@ class Client
     @@client_lock ||= Mutex.new
     @@requests    ||= []
     @@entities    ||= []
+    @@handlers    ||= {:on_movement => {}, :manufactured_event_occurred => {}}
+  end
+
+  def set_handler(k1, k2, v)
+    @@handlers[k1][k2] = v
+  end
+
+  def get_handler(k1, k2)
+    @@handlers[k1][k2]
   end
 
   def set_context(context={})
@@ -464,39 +473,36 @@ end
 
 
 def subscribe_to(event, args = {}, &bl)
-  @@handlers ||= {}
   case event
-  when :movement
+  when :movement then
     raise ArgumentError, "ship or planet must not be nil" if @ship.nil? && @planet.nil?
     entity = @ship || @planet
     client = Omega::Client.new :entity => entity
     client.queue_request 'motel::track_movement', entity.location.id, args[:distance]
     RJR::Logger.info "subscribing to movement (#{args[:distance]}) of #{entity}"
-    @@handlers[:on_movement] ||= {}
-    @@handlers[:on_movement][entity.location.id] = bl
+    client.set_handler :on_movement, entity.location.id, bl
     client.register_callback "motel::on_movement" do |loc|
-      @@handlers[:on_movement][loc.id].call loc
+      client.get_handler(:on_movement, loc.id).call loc
       nil
     end
-    client.invoke_requests
+    return client.invoke_requests
 
-  #when :proximity
-  #when :entered_proximity
-  #when :left_proximity
+  #when :proximity then
+  #when :entered_proximity then
+  #when :left_proximity then
 
-  when :attacked, :attacked_stop, :defended, :defended_stop, :destroyed, :resource_collected, :resource_depleted, :mining_stopped
+  when :attacked, :attacked_stop, :defended, :defended_stop, :destroyed, :resource_collected, :resource_depleted, :mining_stopped then
     raise ArgumentError, "ship must not be nil" if @ship.nil?
     client = Omega::Client.new :ship => @ship
     client.queue_request 'manufactured::subscribe_to', @ship.id, event
     RJR::Logger.info "subscribing to #{event} on #{@ship}"
-    @@handlers[:manufactured_event_occurred] ||= {}
-    @@handlers[:manufactured_event_occurred][event.to_s] = bl
+    client.set_handler :manufactured_event_occurred, event.to_s, bl
     client.register_callback "manufactured::event_occurred" do |*args|
       aevent = args.shift
-      @@handlers[:manufactured_event_occurred][aevent].call *args
+      client.get_handler(:manufactured_event_occurred, avent).call(*args)
       nil
     end
-    client.invoke_requests
+    return client.invoke_requests
   end
 end
 
