@@ -86,10 +86,6 @@ class ClientSystem
 
   def refresh
     @server_system = system(@name)
-    @resources = @server_system.asteroids.collect { |ast|
-                          resource_sources(ast) }.flatten
-    @resources.each { |rs| rs.entity.solar_system = self }
-
     nearby_system_names = @server_system.jump_gates.collect { |jg|
                                                      jg.endpoint }
     @nearby_systems = []
@@ -102,6 +98,13 @@ class ClientSystem
     }
 
     self
+  end
+
+  def refresh_resources
+    @resources = @server_system.asteroids.collect { |ast|
+                   resource_sources(ast)
+                 }.flatten.delete_if { |rs| rs.nil? }
+    @resources.each { |rs| rs.entity.solar_system = self }
   end
 end
 
@@ -254,7 +257,6 @@ class ClientShip
 
   def refresh
     @server_ship = ship(@name)
-    @system.refresh unless @system.nil?
   end
 
   def track_movement(distance, &bl)
@@ -362,7 +364,7 @@ class MinerShip < ClientShip
     res = nil
     systems = [@system]
     systems.each { |s|
-      s.refresh
+      s.refresh_resources
       res = s.resources.select { |sr| sr.quantity > 0 }.
                         sort { |a,b| (@server_ship.location - a.entity.location) <=>
                                      (@server_ship.location - b.entity.location) }.first

@@ -186,7 +186,7 @@ class Registry
 
     rs = []
     @entities_lock.synchronize{
-      rs = resource_sources.select { |rs|
+      rs = @resource_sources.select { |rs|
              (entity_id.nil? || rs.entity.name == entity_id) &&
              (resource_name.nil? || rs.resource.name == resource_name) &&
              (resource_type.nil? || rs.resource.type == resource_type)

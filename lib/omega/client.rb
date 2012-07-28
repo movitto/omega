@@ -19,6 +19,10 @@ class Client
   def initialize(args = {})
     @args = args
     set_context(args)
+
+    @@client_lock ||= Mutex.new
+    @@requests    ||= []
+    @@entities    ||= []
   end
 
   def set_context(context={})
@@ -51,16 +55,16 @@ class Client
   end
 
   def queue_request(method_name, *params)
-    @@requests ||= []
-    @@requests << ClientRequest.new(method_name, *params)
+    @@client_lock.synchronize{
+      @@requests << ClientRequest.new(method_name, *params)
+    }
   end
 
   def invoke_requests(selected_response = :first)
     @@session_id ||= nil
 
     responses = []
-    @@rjr_lock ||= Mutex.new
-    @@rjr_lock.synchronize {
+    @@client_lock.synchronize {
       @@rjr_node ||= RJR::AMQPNode.new :node_id => 'omega-' + Motel.gen_uuid, :broker => 'localhost'
       @@rjr_node.message_headers['session_id'] = @@session_id
       @@rjr_node.message_headers['source_node'] = @@rjr_node.node_id
@@ -79,20 +83,29 @@ class Client
   end
 
   def self.session_id=(session_id)
-    @@session_id=session_id
+    @@client_lock.synchronize {
+      @@session_id=session_id
+    }
   end
 
   def add_entity(entity)
-    @@entities ||= []
-    @@entities << entity unless @@entities.include?(entity)
+    @@client_lock.synchronize {
+      @@entities << entity unless @@entities.include?(entity)
+    }
   end
 
   def remove_entity(entity)
-    @@entities.delete(entity)
+    @@client_lock.synchronize {
+      @@entities.delete(entity)
+    }
   end
 
   def self.entities
-    @@entities
+    ret = []
+    @@client_lock.synchronize {
+      @@entities.each { |e| ret << e }
+    }
+    ret
   end
 
 end # class Client

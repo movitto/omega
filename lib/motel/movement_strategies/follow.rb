@@ -14,7 +14,7 @@ module MovementStrategies
 #
 # To be valid you must specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
-   attr_accessor :tracked_location_id, :distance
+   attr_accessor :tracked_location_id, :tracked_location, :distance
    
    attr_accessor :speed
 
@@ -22,15 +22,14 @@ class Follow < MovementStrategy
      @tracked_location_id  = args[:tracked_location_id] if args.has_key? :tracked_location_id
      @distance             = args[:distance]            if args.has_key? :distance
      @speed                = args[:speed]               if args.has_key? :speed
+
+     # retireve location we're tracking
+     # XXX don't like doing this here (should permissions be enforced for example?)
+     @tracked_location = Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
+
      super(args)
 
      raise InvalidMovementStrategy.new("follow movement strategy not valid") unless valid?
-   end
-
-   def tracked_location
-     # retireve location we're tracking
-     # XXX don't like doing this here (should permissions be enforced for example?)
-     Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
    end
 
    def valid?

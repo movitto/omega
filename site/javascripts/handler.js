@@ -247,7 +247,7 @@ function OmegaHandlers(){
               client.add_location(asteroid.location);
 
               // get asteroid's resources
-              client.get_resource_sources(asteroid.name);
+              //client.get_resource_sources(asteroid.name);
             }
 
             for(var j=0; j<system.jump_gates.length; ++j){
