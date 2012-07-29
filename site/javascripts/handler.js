@@ -54,6 +54,7 @@ function OmegaHandlers(){
       var loco = client.locations[l];
       loco.draw = canvas_ui.draw_nothing;
       loco.clicked = controls.unregistered_click;
+      loco.setup_in_scene = loco.no_setup;
     }
 
     canvas_ui.setup_scene();
@@ -71,14 +72,17 @@ function OmegaHandlers(){
           client.current_system = entity;
         entity.location.draw    = canvas_ui.draw_nothing;
         entity.location.clicked = controls.unregistered_click;
+        entity.location.setup_in_scene = entity.location.no_setup;
 
       }else if(entity.json_class == "Cosmos::Star"){
         if(entity.system.name == system_name){
           entity.location.draw = function(star){ canvas_ui.draw_star(star); }
           //entity.location.clicked = function(clicked_event, star) { controls.clicked_star(clicked_event, star); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Cosmos::Planet"){
@@ -86,34 +90,42 @@ function OmegaHandlers(){
           client.track_movement(loco.id, 7);
           entity.location.draw   = function(planet){ canvas_ui.draw_planet(planet); }
           entity.location.clicked = function(clicked_event, planet) { controls.clicked_planet(clicked_event, planet); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Cosmos::Planet::Orbit"){
         if(entity.planet.system.name == system_name){
           entity.location.draw = function(orbit){ canvas_ui.draw_orbit(orbit); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Cosmos::Asteroid"){
         if(entity.system.name == system_name){
           entity.location.draw   = function(asteroid){ canvas_ui.draw_asteroid(asteroid); }
           entity.location.clicked = function(clicked_event, asteroid) { controls.clicked_asteroid(clicked_event, asteroid); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Cosmos::JumpGate"){
         if(entity.system.name == system_name){
           entity.location.draw = function(gate){ canvas_ui.draw_gate(gate); }
           entity.location.clicked = function(clicked_event, gate) { controls.clicked_gate(clicked_event, gate); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Manufactured::Ship"){
@@ -121,18 +133,22 @@ function OmegaHandlers(){
           client.track_movement(entity.location.id, 25);
           entity.location.draw = function(ship){ canvas_ui.draw_ship(ship); }
           entity.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Manufactured::Station"){
         if(entity.system.name == system_name){
           entity.location.draw = function(station){ canvas_ui.draw_station(station); }
           entity.location.clicked = function(clicked_event, station) { controls.clicked_station(clicked_event, station); }
+          entity.location.setup_in_scene = entity.location.setup_if_dirty;
         }else{
           loco.draw = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
       }
     }
@@ -154,14 +170,17 @@ function OmegaHandlers(){
           client.current_galaxy = entity;
         loco.draw    = canvas_ui.draw_nothing;
         loco.clicked = controls.unregistered_click;
+        loco.setup_in_scene = loco.no_setup;
 
       }else if(entity.json_class == "Cosmos::SolarSystem"){
         if(entity.galaxy.name == galaxy_name){
           loco.draw = function(system) { canvas_ui.draw_system(system); }
           loco.clicked = function(clicked_event, system) { controls.clicked_system(clicked_event, system); }
+          loco.setup_in_scene = loco.setup_if_dirty;
         }else{
           loco.draw    = canvas_ui.draw_nothing;
           loco.clicked = controls.unregistered_click;
+          loco.setup_in_scene = loco.no_setup;
         }
 
       }else if(entity.json_class == "Cosmos::Star"       ||
@@ -173,6 +192,7 @@ function OmegaHandlers(){
                entity.json_class == "Manufactured::Station"){
         entity.location.draw    = canvas_ui.draw_nothing;
         entity.location.clicked = controls.unregistered_click;
+        entity.location.setup_in_scene = entity.location.no_setup;
       }
     }
 
@@ -358,9 +378,11 @@ function OmegaHandlers(){
             client.track_movement(ship.location.id, 25);
             ship.location.draw = function(ship){ canvas_ui.draw_ship(ship); }
             ship.location.clicked = function(clicked_event, ship) { controls.clicked_ship(clicked_event, ship); }
+            ship.location.setup_in_scene = ship.location.setup_if_dirty;
           }else{
             ship.location.draw = canvas_ui.draw_nothing;
             ship.location.clicked = controls.unregistered_click;
+            ship.location.setup_in_scene = ship.location.no_setup;
           }
           for(var u in client.users){
             if(ship.user_id == client.users[u].id){

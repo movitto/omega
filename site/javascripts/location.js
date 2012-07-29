@@ -4,10 +4,11 @@ function Location(){
   this.y = 0;
   this.z = 0;
 
-  // x,y,z coordinates projected into camera viewspace
-  this.cx = 0;
-  this.cy = 0;
-  this.cz = 0;
+  // entities rendered to the scene
+  this.scene_entities = [];
+
+  // if this location is 'dirty' and show be redrawn
+  this.dirty = true;
 
   this.size = 0;
   this.parent_id = null;
@@ -21,15 +22,10 @@ function Location(){
     this.x = new_location.x;
     this.y = new_location.y;
     this.z = new_location.z;
+    this.dirty = true;
 
     if(new_location.movement_strategy)
       this.movement_strategy = new_location.movement_strategy;
-
-    // needs to be invoked after movement stategy is set as orbit is updated here
-    //if(canvas_ui.camera){
-    //  var nloc = canvas_ui.camera.update_location(this);
-    //  this.cx = nloc.cx; this.cy = nloc.cy; this.cz = nloc.cz;
-    //}
 
     if(new_location.entity)
       this.entity = new_location.entity;
@@ -40,6 +36,25 @@ function Location(){
     if(this.entity)
       this.entity.location = this;
   };
+
+  this.no_setup = function(scene){
+    for(var scene_entity in this.scene_entities){
+      scene.remove(this.scene_entities[scene_entity]);
+    }
+    this.scene_entities = [];
+    this.dirty = true;
+  }
+  this.setup_if_dirty = function(scene){
+    if(this.dirty){
+      for(var scene_entity in this.scene_entities){
+        scene.remove(this.scene_entities[scene_entity]);
+      }
+      this.scene_entities = [];
+      this.draw(this.entity);
+    }
+    this.dirty = false;
+  };
+  this.setup_in_scene = this.no_setup;
 
   this.within_distance = function(x, y, z, distance){
     return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2) + Math.pow(this.z - z, 2)) < distance;

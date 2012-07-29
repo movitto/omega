@@ -74,18 +74,12 @@ function OmegaUI(){
   this.canvas_container.append(this.renderer.domElement);
 
   this.setup_scene = function(){
-    // FIXME optimize object removal and adding so that only updated locations are refreshed
-
-    for(var obji = canvas_ui.scene.__objects.length-1;obji>=0;obji--){
-      var obj = canvas_ui.scene.__objects[obji];
-      canvas_ui.scene.remove( obj );
-    }
-
     for(loc in client.locations){
       var loco = client.locations[loc];
-      loco.draw(loco.entity);
+      loco.setup_in_scene(canvas_ui.scene);
     }
 
+    canvas_ui.clear_grid();
     var toggle_grid = $('#motel_toggle_grid_canvas');
     if(toggle_grid && toggle_grid.is(':checked') &&
        (client.current_system || client.current_galaxy))
@@ -100,6 +94,15 @@ function OmegaUI(){
 
   this.render = function(){
     canvas_ui.renderer.render(canvas_ui.scene, canvas_ui.camera.scene_camera);
+  };
+
+  this.clear_grid = function(){
+    if(canvas_ui.grid_lines){
+      for(var gl in canvas_ui.grid_lines){
+        canvas_ui.scene.remove(canvas_ui.grid_lines[gl]);
+      }
+    }
+    canvas_ui.grid_lines = [];
   };
 
   this.draw_grid = function(){
@@ -122,6 +125,7 @@ function OmegaUI(){
     }
 
     var line = new THREE.Line( geometry, material, THREE.LinePieces );
+    canvas_ui.grid_lines.push(line);
     canvas_ui.scene.add( line );
   }
 
@@ -138,6 +142,7 @@ function OmegaUI(){
         geometry.vertices.push(new THREE.Vector3(system.location.x, system.location.y, system.location.z));
         geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
         var line = new THREE.Line(geometry, material);
+        system.location.scene_entities.push(line);
         canvas_ui.scene.add(line);
       }
     }
@@ -148,6 +153,7 @@ function OmegaUI(){
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
     sphere.position.x = system.location.x ; sphere.position.y = system.location.y ; sphere.position.z = system.location.z ;
     system.scene_object = sphere;
+    system.location.scene_entities.push(sphere);
     canvas_ui.scene.add(sphere);
 
     // draw label
@@ -156,6 +162,7 @@ function OmegaUI(){
     var text = new THREE.Mesh( text3d, textMaterial );
     text.position.x = system.location.x - 50 ; text.position.y = system.location.y - 50 ; text.position.z = system.location.z - 50;
     text.lookAt(canvas_ui.camera.scene_camera.position);
+    system.location.scene_entities.push(text);
     canvas_ui.scene.add(text);
   };
 
@@ -165,6 +172,7 @@ function OmegaUI(){
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
     sphere.position.x = star.location.x ; sphere.position.y = star.location.y ; sphere.position.z = star.location.z ;
     star.scene_object = sphere;
+    star.location.scene_entities.push(sphere);
     canvas_ui.scene.add(sphere);
   };
 
@@ -175,6 +183,7 @@ function OmegaUI(){
       geometry.vertices.push(new THREE.Vector3(orbit.location.x, orbit.location.y, orbit.location.z));
       geometry.vertices.push(new THREE.Vector3(orbit.previous.location.x, orbit.previous.location.y, orbit.previous.location.z));
       var line = new THREE.Line(geometry, material);
+      orbit.location.scene_entities.push(line);
       canvas_ui.scene.add(line);
     }
   };
@@ -187,6 +196,7 @@ function OmegaUI(){
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
     sphere.position.x = planet.location.x ; sphere.position.y = planet.location.y ; sphere.position.z = planet.location.z ;
     planet.scene_object = sphere;
+    planet.location.scene_entities.push(sphere);
     canvas_ui.scene.add(sphere);
   
     // draw moons
@@ -197,6 +207,7 @@ function OmegaUI(){
       var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
       sphere.position.x = planet.location.x + moon.location.x ; sphere.position.y = planet.location.y + moon.location.y; sphere.position.z = planet.location.z + moon.location.z;
       moon.scene_object = sphere;
+      moon.location.scene_entities.push(sphere);
       canvas_ui.scene.add(sphere);
     }
   };
@@ -206,6 +217,7 @@ function OmegaUI(){
     var text = new THREE.Mesh( text3d, textMaterial );
     text.position.x = asteroid.location.x ; text.position.y = asteroid.location.y ; text.position.z = asteroid.location.z;
     asteroid.scene_object = text;
+    asteroid.location.scene_entities.push(text);
     canvas_ui.scene.add(text);
   };
   this.draw_gate = function(gate){
@@ -217,6 +229,7 @@ function OmegaUI(){
     mesh.rotation.x = 90 * Math.PI / 180;
     mesh.doubleSided = true;
     mesh.position.set( gate.location.x, gate.location.y, gate.location.z );
+    gate.location.scene_entities.push(mesh);
     canvas_ui.scene.add( mesh );
 
     // if selected draw sphere around gate trigger radius
@@ -226,6 +239,7 @@ function OmegaUI(){
       var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
       sphere.position.x = gate.location.x ; sphere.position.y = gate.location.y ; sphere.position.z = gate.location.z ;
       canvas_ui.scene.add(sphere);
+      gate.location.scene_entities.push(sphere);
       gate.scene_object = sphere;
     }else{
       gate.scene_object = mesh;
@@ -237,12 +251,14 @@ function OmegaUI(){
     geometry.vertices.push(new THREE.Vector3(station.location.x - station.size/2, station.location.y, station.location.z));
     geometry.vertices.push(new THREE.Vector3(station.location.x + station.size/2, station.location.y, station.location.z));
     var line = new THREE.Line(geometry, material);
+    station.location.scene_entities.push(line);
     canvas_ui.scene.add(line);
 
     geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(station.location.x, station.location.y - station.size/2, station.location.z));
     geometry.vertices.push(new THREE.Vector3(station.location.x, station.location.y + station.size/2, station.location.z));
     line = new THREE.Line(geometry, material);
+    station.location.scene_entities.push(line);
     canvas_ui.scene.add(line);
 
     var geometry = new THREE.PlaneGeometry( station.size, station.size );
@@ -251,6 +267,7 @@ function OmegaUI(){
     mesh.doubleSided = true;
     mesh.rotation.x = 90 * Math.PI / 180;
     mesh.position.set(station.location.x, station.location.y, station.location.z);
+    station.location.scene_entities.push(mesh);
     canvas_ui.scene.add(mesh);
 
     station.scene_object = mesh;
@@ -270,12 +287,14 @@ function OmegaUI(){
     geometry.vertices.push(new THREE.Vector3(ship.location.x - ship.size/2, ship.location.y, ship.location.z));
     geometry.vertices.push(new THREE.Vector3(ship.location.x + ship.size/2, ship.location.y, ship.location.z));
     var line = new THREE.Line(geometry, material);
+    ship.location.scene_entities.push(line);
     canvas_ui.scene.add(line);
 
     geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(ship.location.x, ship.location.y - ship.size/2, ship.location.z));
     geometry.vertices.push(new THREE.Vector3(ship.location.x, ship.location.y + ship.size/2, ship.location.z));
     line = new THREE.Line(geometry, material);
+    ship.location.scene_entities.push(line);
     canvas_ui.scene.add(line);
 
     var geometry = new THREE.PlaneGeometry( ship.size, ship.size );
@@ -284,6 +303,7 @@ function OmegaUI(){
     mesh.doubleSided = true;
     mesh.rotation.x = 90 * Math.PI / 180;
     mesh.position.set(ship.location.x, ship.location.y, ship.location.z);
+    ship.location.scene_entities.push(mesh);
     canvas_ui.scene.add(mesh);
 
     ship.scene_object = mesh;
@@ -295,6 +315,7 @@ function OmegaUI(){
       geometry.vertices.push(new THREE.Vector3(ship.location.x, ship.location.y, ship.location.z));
       geometry.vertices.push(new THREE.Vector3(ship.attacking.location.x, ship.attacking.location.y + 25, ship.attacking.location.z));
       line = new THREE.Line(geometry, material);
+      ship.location.scene_entities.push(line);
       canvas_ui.scene.add(line);
     }
 
@@ -305,6 +326,7 @@ function OmegaUI(){
       geometry.vertices.push(new THREE.Vector3(ship.location.x, ship.location.y, ship.location.z));
       geometry.vertices.push(new THREE.Vector3(ship.mining.location.x, ship.mining.location.y + 25, ship.mining.location.z));
       line = new THREE.Line(geometry, material);
+      ship.location.scene_entities.push(line);
       canvas_ui.scene.add(line);
     }
   };
