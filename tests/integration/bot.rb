@@ -263,10 +263,13 @@ class ClientShip
     @@movement_callbacks_lock ||= Mutex.new
     @@movement_callbacks_lock.synchronize {
       @@movement_callbacks ||= {}
-      @@movement_callbacks[@server_ship.id] ||= {}
-      @@movement_callbacks[@server_ship.id][distance] ||= []
-      @@movement_callbacks[@server_ship.id][distance] << bl
+      @@movement_callbacks[@server_ship.id] ||= []
+      @@movement_callbacks[@server_ship.id] << { :original_location => @server_ship.location, :distance => distance, :callbacks => [] }
+      @@movement_callbacks[@server_ship.id].last[:callbacks] << bl
     }
+
+    return if @tracking_movement
+    @tracking_movement = true
 
     @ship = @server_ship
     subscribe_to :movement, :distance => 5  do |location|
@@ -274,13 +277,13 @@ class ClientShip
 
       callbacks_to_invoke = []
       @@movement_callbacks_lock.synchronize {
-        new_callbacks = {}
-        @@movement_callbacks[@server_ship.id].each { |dist,callbacks|
-          ndist = dist - 5
-          if ndist <= 0
-            callbacks_to_invoke += callbacks
+        new_callbacks = []
+        @@movement_callbacks[@server_ship.id].each { |tuple|
+          ndist = tuple[:original_location] - location
+          if ndist >= tuple[:distance]
+            callbacks_to_invoke += tuple[:callbacks]
           else
-            new_callbacks[ndist] = callbacks
+            new_callbacks << tuple
           end
         }
         @@movement_callbacks[@server_ship.id] = new_callbacks
@@ -391,7 +394,9 @@ class MinerShip < ClientShip
     # next resource is in another system
     elsif rs.entity.location.parent_id != @system.server_system.location.id
       move_to_system(rs.entity.solar_system) do
-        clear_callbacks
+        clear_callbacks do
+          @tracking_movement = false
+        end
         RJR::Logger.info "ship #{@server_ship.id} arrived in system #{rs.entity.solar_system.name}, moving to next resource"
         @transfer_endpoint = ClientRegistry.instance.ships.find { |sh| sh.server_ship.type == :frigate &&
                                                                        sh.server_ship.parent.name == @system.server_system.name }
@@ -424,7 +429,9 @@ class MinerShip < ClientShip
             end
           elsif cause == "resource_depleted"
             RJR::Logger.info "resource depleted"
-            clear_callbacks
+            clear_callbacks do
+              @tracking_movement = false
+            end
             rs.quantity = 0
             mine_cycle()
           end
@@ -432,7 +439,7 @@ class MinerShip < ClientShip
 
       # else move to resource
       else
-        RJR::Logger.info "moving ship #{@server_ship.id} to #{rs.entity.name} to mine #{rs.resource.id}(#{rs.quantity})"
+        RJR::Logger.info "moving ship #{@server_ship.id}@(#{@server_ship.location}) to #{rs.entity.name}@(#{nl}) to mine #{rs.resource.id}(#{rs.quantity}) - total distance: #{@server_ship.location - nl}"
         move_to_location(nl)
         track_movement(@server_ship.location - nl - 20) do
           RJR::Logger.info "ship #{@server_ship.id} arrived at #{rs.entity.name}"

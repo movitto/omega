@@ -499,20 +499,21 @@ def subscribe_to(event, args = {}, &bl)
     client.set_handler :manufactured_event_occurred, event.to_s, bl
     client.register_callback "manufactured::event_occurred" do |*args|
       aevent = args.shift
-      client.get_handler(:manufactured_event_occurred, avent).call(*args)
+      client.get_handler(:manufactured_event_occurred, event.to_s).call(*args)
       nil
     end
     return client.invoke_requests
   end
 end
 
-def clear_callbacks
+def clear_callbacks(&bl)
   raise ArgumentError, "ship must not be nil" if @ship.nil?
   client = Omega::Client.new :ship => @ship
   client.queue_request 'motel::remove_callbacks', @ship.location.id
   client.queue_request 'manufactured::remove_callbacks', @ship.id
   RJR::Logger.info "removing callbacks on ship #{@ship}"
   client.invoke_requests
+  client.invoke_callback &bl
 end
 
 def move_to(location)
