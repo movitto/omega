@@ -97,15 +97,6 @@ function OmegaHandlers(){
           loco.setup_in_scene = loco.no_setup;
         }
 
-      }else if(entity.json_class == "Cosmos::Planet::Orbit"){
-        if(entity.planet.system.name == system_name){
-          entity.location.draw = function(orbit){ canvas_ui.draw_orbit(orbit); }
-          entity.location.setup_in_scene = entity.location.setup_if_dirty;
-        }else{
-          loco.draw = canvas_ui.draw_nothing;
-          loco.setup_in_scene = loco.no_setup;
-        }
-
       }else if(entity.json_class == "Cosmos::Asteroid"){
         if(entity.system.name == system_name){
           entity.location.draw   = function(asteroid){ canvas_ui.draw_asteroid(asteroid); }
@@ -186,7 +177,6 @@ function OmegaHandlers(){
       }else if(entity.json_class == "Cosmos::Star"       ||
                entity.json_class == "Cosmos::Asteroid"   ||
                entity.json_class == "Cosmos::Planet"     ||
-               entity.json_class == "Cosmos::Planet::Orbit" ||
                entity.json_class == "Cosmos::JumpGate"   ||
                entity.json_class == "Manufactured::Ship" ||
                entity.json_class == "Manufactured::Station"){
@@ -243,20 +233,26 @@ function OmegaHandlers(){
               planet.location.entity = planet;
               client.add_location(planet.location);
 
-              var prev = null;
-
-              // create locations for each point in the orbit
-              for(orbitp in planet.location.movement_strategy.orbit){
-                var orbito = planet.location.movement_strategy.orbit[orbitp];
-                var loco = new Location();
-                loco.entity = { 'json_class' : 'Cosmos::Planet::Orbit',
-                                'planet'     :  planet,
-                                'location'   : loco };
-                loco.entity.previous = prev;
-                loco.id = 'orbit-' + planet.location.id + '-' + orbitp;
-                loco.x  = orbito[0]; loco.y = orbito[1]; loco.z = orbito[2];
-                client.add_location(loco);
-                prev = loco.entity;
+              // calculate orbit
+              planet.orbit = [];
+              // intercepts
+              var a = planet.location.movement_strategy.semi_latus_rectum / (1 - Math.pow(planet.location.movement_strategy.eccentricity, 2));
+              var b = Math.sqrt(planet.location.movement_strategy.semi_latus_rectum * a);
+              // linear eccentricity
+              var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+              // center (assumes planet's location's movement_strategy.relative to is set to foci
+              var cx = -1 * planet.location.movement_strategy.direction_major_x * le;
+              var cy = -1 * planet.location.movement_strategy.direction_major_y * le;
+              var cz = -1 * planet.location.movement_strategy.direction_major_z * le;
+              // orbit
+              for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+                var ox = cx + a * Math.cos(i) * planet.location.movement_strategy.direction_major_x +
+                              b * Math.sin(i) * planet.location.movement_strategy.direction_minor_x ;
+                var oy = cy + a * Math.cos(i) * planet.location.movement_strategy.direction_major_y +
+                              b * Math.sin(i) * planet.location.movement_strategy.direction_minor_y ;
+                var oz = cz + a * Math.cos(i) * planet.location.movement_strategy.direction_major_z +
+                              b * Math.sin(i) * planet.location.movement_strategy.direction_minor_z ;
+                planet.orbit.push([ox, oy, oz]);
               }
             }
 
@@ -322,14 +318,6 @@ function OmegaHandlers(){
             var sname = system.name;
             data += "<li>";
             data += "<span id='" + sname + "'class='entity_title solar_system_title'>" + sname + "</span>";
-            data += "<ul>";
-
-            for(var p=0; p<system.planets.length; ++p){
-              var planet = system.planets[p];
-              var pname = planet.name;
-              data += "<li>" + pname + "</li>";
-            }
-            data += "</ul>";
           }
           data += "</ul>";
         }

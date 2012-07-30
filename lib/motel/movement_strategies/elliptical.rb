@@ -29,9 +29,6 @@ class Elliptical < MovementStrategy
    attr_accessor :direction_major_x, :direction_major_y, :direction_major_z,
                  :direction_minor_x, :direction_minor_y, :direction_minor_z
 
-   # cache the orbital path
-   attr_accessor :orbit
-
    def initialize(args = {})
      @relative_to        = args[:relative_to]       || RELATIVE_TO_FOCI
      @speed              = args[:speed]
@@ -73,7 +70,6 @@ class Elliptical < MovementStrategy
         Motel::normalize(@direction_minor_x, @direction_minor_y, @direction_minor_z)
 
      raise InvalidMovementStrategy.new("elliptical movement strategy not valid") unless valid?
-     calculate_orbit
    end
 
    def valid?
@@ -137,7 +133,6 @@ class Elliptical < MovementStrategy
                          :relative_to  => relative_to,
                          :eccentricity => eccentricity,
                          :semi_latus_rectum => semi_latus_rectum,
-                         :orbit             => orbit,
                          :direction_major_x => direction_major_x,
                          :direction_major_y => direction_major_y,
                          :direction_major_z => direction_major_z,
@@ -154,19 +149,6 @@ class Elliptical < MovementStrategy
   private
 
     ### internal helper movement methods
-
-    # precalculate the orbit
-    def calculate_orbit
-      return if e.nil? || p.nil?
-
-      @orbit = []
-
-      0.upto(360) { |i|
-        distance = i / 57.295 # one radian (360 / 2pi)
-        coords = coordinates_from_theta(distance)
-        @orbit << coords if i % 10 == 0  # for efficiency, don't need to store all coordinates
-      }
-    end
 
     # return the a,b intercepts of the ellipse
     # p = a(1 - e^2) = b^2 / a

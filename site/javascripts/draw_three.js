@@ -176,17 +176,6 @@ function OmegaUI(){
     canvas_ui.scene.add(sphere);
   };
 
-  this.draw_orbit = function(orbit){
-    if(orbit.previous){
-      var material = new THREE.LineBasicMaterial({color: 0xAAAAAA});
-      var geometry = new THREE.Geometry();
-      geometry.vertices.push(new THREE.Vector3(orbit.location.x, orbit.location.y, orbit.location.z));
-      geometry.vertices.push(new THREE.Vector3(orbit.previous.location.x, orbit.previous.location.y, orbit.previous.location.z));
-      var line = new THREE.Line(geometry, material);
-      orbit.location.scene_entities.push(line);
-      canvas_ui.scene.add(line);
-    }
-  };
   this.draw_planet = function(planet){
     var loco = planet.location;
 
@@ -198,6 +187,21 @@ function OmegaUI(){
     planet.scene_object = sphere;
     planet.location.scene_entities.push(sphere);
     canvas_ui.scene.add(sphere);
+
+    // draw orbit
+    var material = new THREE.LineBasicMaterial({color: 0xAAAAAA});
+    var geometry = new THREE.Geometry();
+    for(var o in planet.orbit){
+      if(o != 0){
+        var orbit  = planet.orbit[o];
+        var porbit = planet.orbit[o-1];
+        geometry.vertices.push(new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]));
+        geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
+      }
+    }
+    var line = new THREE.Line(geometry, material);
+    planet.location.scene_entities.push(line);
+    canvas_ui.scene.add(line);
   
     // draw moons
     for(var m=0; m<planet.moons.length; ++m){
@@ -207,7 +211,7 @@ function OmegaUI(){
       var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), sphereMaterial);
       sphere.position.x = planet.location.x + moon.location.x ; sphere.position.y = planet.location.y + moon.location.y; sphere.position.z = planet.location.z + moon.location.z;
       moon.scene_object = sphere;
-      moon.location.scene_entities.push(sphere);
+      planet.location.scene_entities.push(sphere);
       canvas_ui.scene.add(sphere);
     }
   };
