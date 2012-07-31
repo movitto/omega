@@ -17,12 +17,15 @@ function Location(){
   if(typeof canvas_ui != 'undefined') this.draw    = canvas_ui.draw_nothing;
   if(typeof controls != 'undefined') this.clicked = controls.unregistered_click;
 
+  // option callback to be invoked after location is updated
+  this.on_location_update = null;
+
   this.update = function(new_location){
     this.id = new_location.id;
     this.x = new_location.x;
     this.y = new_location.y;
     this.z = new_location.z;
-    this.dirty = true;
+    //this.dirty = true;
 
     if(new_location.movement_strategy)
       this.movement_strategy = new_location.movement_strategy;
@@ -35,26 +38,29 @@ function Location(){
 
     if(this.entity)
       this.entity.location = this;
+
+    if(this.on_location_update)
+      this.on_location_update(this);
   };
 
-  this.no_setup = function(scene){
+  this.remove_from_scene = function(scene){
     for(var scene_entity in this.scene_entities){
       scene.remove(this.scene_entities[scene_entity]);
+      delete this.scene_entities[scene_entity];
     }
-    this.scene_entities = [];
     this.dirty = true;
   }
-  this.setup_if_dirty = function(scene){
+  this.setup_in_scene = function(scene){
     if(this.dirty){
       for(var scene_entity in this.scene_entities){
         scene.remove(this.scene_entities[scene_entity]);
+        delete this.scene_entities[scene_entity];
       }
       this.scene_entities = [];
       this.draw(this.entity);
     }
     this.dirty = false;
   };
-  this.setup_in_scene = this.no_setup;
 
   this.within_distance = function(x, y, z, distance){
     return Math.sqrt(Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2) + Math.pow(this.z - z, 2)) < distance;
