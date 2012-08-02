@@ -693,7 +693,7 @@ $('#login_dialog_link').live('click', function(event){
   var html  = 'Username: <input type="text" id="user_username" />';
       html += 'Password: <input type="password" id="user_password" />';
       html += '<input type="button" id="login_link" value="login" />';
-  $('#motel_dialog').html(html).dialog({ show: 'explode' }).
+  $('#motel_dialog').html(html).dialog({ show: 'explode', width: '450px' }).
                                 dialog('option', 'title', 'login').dialog('open');
 });
 
@@ -704,7 +704,7 @@ $('#create_account_dialog_link').live('click', function(event){
       html += '<br/><div id="omega_recaptcha"></div>';
       html += "<br/>By submitting this form, you are agreeing to The Omegaverse <a href='/wiki/Terms_of_Use'>Terms of Use</a><br/>";
       html += '<br/><input type="button" id="create_account_link" value="confirm" />';
-  $('#motel_dialog').html(html).dialog({title: 'create account'}).dialog('open');
+  $('#motel_dialog').html(html).dialog({title: 'create account', width: '450px'}).dialog('open');
   // FIXME make recaptcha public key variable / configurable
   Recaptcha.create("6LflM9QSAAAAAHsPkhWc7OPrwV4_AYZfnhWh3e3n", "omega_recaptcha",
                    { theme: "red", callback: Recaptcha.focus_response_field});
