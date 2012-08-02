@@ -25,13 +25,19 @@ describe Manufactured::RJRAdapter do
     #  (can't Users::Registry.init since subsystems may have registed users)
     @testuser1 = Users::User.new :id => 'user42'
     @testuser2 = Users::User.new :id => 'user43'
+    @u1 = Users::User.new :id => 'user1'
+    @u2 = Users::User.new :id => 'user2'
     Users::Registry.instance.create @testuser1
     Users::Registry.instance.create @testuser2
+    Users::Registry.instance.create @u1
+    Users::Registry.instance.create @u2
   end
 
   after(:each) do
     Users::Registry.instance.remove @testuser1.id
     Users::Registry.instance.remove @testuser2.id
+    Users::Registry.instance.remove @u1.id
+    Users::Registry.instance.remove @u2.id
 
     Manufactured::Registry.instance.terminate
   end
@@ -89,6 +95,7 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.run sys1.location
     Cosmos::Registry.instance.add_child gal1
 
+    # valid call
     lambda{
       rship1 = @local_node.invoke_request('manufactured::create_entity', ship1)
       rstat1 = @local_node.invoke_request('manufactured::create_entity', stat1)
@@ -111,10 +118,22 @@ describe Manufactured::RJRAdapter do
 
     Motel::Runner.instance.locations.size.should == 5 # locations created for system, galaxy, ships, stations
 
+    # verify owner has view / modify permissions on entity
+    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
+    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
+
     (Manufactured::Registry.instance.ships + Manufactured::Registry.instance.stations).each { |e|
       Motel::Runner.instance.locations.collect { |l| l.id }.include?(e.location.id).should be_true
       e.location.parent_id.should == sys1.location.id
       e.location.parent.id.should == sys1.location.id
+
+      @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + e.location.id }.should_not be_nil
     }
   end
 

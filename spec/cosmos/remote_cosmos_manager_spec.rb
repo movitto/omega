@@ -38,6 +38,8 @@ describe Cosmos::RemoteCosmosManager do
 
   after(:all) do
     Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
+    Cosmos::Registry.instance.init
     @amqp_node.stop
     @amqp_node.join
     @server_thread.join
@@ -58,7 +60,7 @@ describe Cosmos::RemoteCosmosManager do
   end
 
   it "should provide access to get remote galaxies" do
-    gal = Cosmos::Galaxy.new :name => 'rmg42', :location => Motel::Location.new
+    gal = Cosmos::Galaxy.new :name => 'rmg42', :location => Motel::Location.new(:id => 50)
     unv = Cosmos::Registry.instance.find_entity :type => :universe
     unv.add_child gal
     Motel::Runner.instance.run gal.location
@@ -71,8 +73,8 @@ describe Cosmos::RemoteCosmosManager do
   end
 
   it "should provide access to get remote systems" do
-    sys = Cosmos::SolarSystem.new :name => 'rms42', :location => Motel::Location.new
-    gal = Cosmos::Galaxy.new :name => 'gal42', :location => Motel::Location.new
+    sys = Cosmos::SolarSystem.new :name => 'rms42', :location => Motel::Location.new(:id => 50)
+    gal = Cosmos::Galaxy.new :name => 'gal42', :location => Motel::Location.new(:id => 51)
     unv = Cosmos::Registry.instance.find_entity :type => :universe
     gal.add_child sys
     unv.add_child gal

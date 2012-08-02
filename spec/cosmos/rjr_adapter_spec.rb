@@ -18,16 +18,30 @@ describe Cosmos::RJRAdapter do
   before(:each) do
     Motel::Runner.instance.clear
     Cosmos::Registry.instance.init
+
+    @nu1 = Users::User.new :id => 'user42', :password => 'foobar'
+    @nu2 = Users::User.new :id => 'user43', :password => 'foobar'
+    Users::Registry.instance.create @nu1
+    Users::Registry.instance.create @nu2
+  end
+
+  after(:each) do
+    Users::Registry.instance.remove @nu1.id
+    Users::Registry.instance.remove @nu2.id
   end
 
   after(:all) do
     Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
+    Cosmos::Registry.instance.init
   end
 
   it "should permit users with create entities to create_entity" do
     gal1 = Cosmos::Galaxy.new :name => 'galaxy43', :location => Motel::Location.new
     sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new(:id => 51)
     u = TestUser.create.login(@local_node).clear_privileges
+
+    @nu1.add_privilege 'view', 'cosmos_entities'
 
     lambda{
       @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
@@ -57,6 +71,8 @@ describe Cosmos::RJRAdapter do
     Motel::Runner.instance.locations.size.should == 1
     Motel::Runner.instance.locations.first.id.should_not be_nil
     gal.location.id.should == Motel::Runner.instance.locations.first.id
+    @nu1.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + gal.location.id.to_s }.should_not be_nil
+    @nu2.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + gal.location.id.to_s }.should be_nil
 
     #lambda{
     #  @local_node.invoke_request('cosmos::create_entity', sys1, 'non_existant')
@@ -77,6 +93,8 @@ describe Cosmos::RJRAdapter do
     sys.galaxy.should_not be_nil
     sys.galaxy.should == gal
     sys.location.parent.should == gal.location
+    @nu1.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + sys.location.id.to_s }.should_not be_nil
+    @nu2.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + sys.location.id.to_s }.should be_nil
   end
 
   it "should verify entity names are unique when creating entities" do

@@ -9,6 +9,7 @@ module Manufactured
 
 class RJRAdapter
   def self.user
+    # FIXME set id / pass from config
     @@manufactured_user ||= Users::User.new(:id => 'manufactured',
                                             :password => 'changeme')
   end
@@ -52,7 +53,14 @@ class RJRAdapter
       rentity = Manufactured::Registry.instance.find(:id => entity.id).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
 
+      user = @@local_node.invoke_request('users::get_entity', 'with_id', entity.user_id)
+      raise Omega::DataNotFound, "user specified by #{entity.user_id} not found" if user.nil?
+
       rentity = Manufactured::Registry.instance.create entity
+
+      # add permissions to view & modify entity to owner
+      @@local_node.invoke_request('users::add_privilege', user.id, 'view',   "manufactured_entity-#{entity.id}" )
+      @@local_node.invoke_request('users::add_privilege', user.id, 'modify', "manufactured_entity-#{entity.id}" )
 
       # skip create_location if entity wasn't created in registry
       unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
@@ -65,6 +73,13 @@ class RJRAdapter
 
           # needs to happen after create_location as parent won't be sent in the result
           entity.location.parent    = entity.parent.location if entity.parent
+        }
+
+        # add permissions to view location to user that can access entity
+        users = Users::Registry.instance.find(:with_privilege => ['view', 'manufactured_entities']) +
+                Users::Registry.instance.find(:with_privilege => ['view', 'manufactured_entity-' + entity.id])
+        users.each { |user|
+          @@local_node.invoke_request('users::add_privilege', user.id, 'view', "location-#{entity.location.id}")
         }
       end
 
@@ -380,6 +395,7 @@ class RJRAdapter
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{attacker.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
+      # FIXME not sure if it's feasible to grant attacker permission to view defender, how to tackle this
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])

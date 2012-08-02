@@ -76,6 +76,24 @@ describe Users::Registry do
     Users::Registry.instance.sessions.should_not include(session)
   end
 
+  it "should return users which have the specified privilege" do
+    u1 = Users::User.new :id => 'user42'
+    u2 = Users::User.new :id => 'user43'
+    u3 = Users::User.new :id => 'user44'
+    Users::Registry.instance.create u1
+    Users::Registry.instance.create u2
+    Users::Registry.instance.create u3
+
+    u1.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'manufactured_entities')
+    u2.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'manufactured_entities')
+
+    users = Users::Registry.instance.find :with_privilege => ['view', 'manufactured_entities']
+    users.size.should == 2
+    users.should include(u1)
+    users.should include(u2)
+    users.should_not include(u3)
+  end
+
   it "should manage sessions" do
     Users::Registry.instance.init
     u = Users::User.new :id => 'user42'

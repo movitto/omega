@@ -73,7 +73,11 @@ class User
     @privileges.clear
   end
 
-  def add_privilege(privilege)
+  def add_privilege(*args)
+    privilege = nil
+    privilege = args.first if args.size == 1 && args.first.is_a?(Users::Privilege)
+    privilege = Privilege.new(:id => args.first, :entity_id => args.last) if privilege.nil? &&
+                                                                             args.size == 2
     @privileges << privilege unless privilege.nil? ||
                                      @privileges.include?(privilege) ||
                                     !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
@@ -104,7 +108,7 @@ class User
     {
       'json_class' => self.class.name,
       'data'       => {:id => id, :email => email, :alliances => alliances,
-                      }.merge(@secure_password ? {} : {:password => password})
+                      }.merge(@secure_password ? {} : {:password => password, :registration_code => registration_code})
     }.to_json(*a)
   end
 

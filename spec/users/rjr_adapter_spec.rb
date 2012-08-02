@@ -16,6 +16,9 @@ describe Users::RJRAdapter do
   end
 
   before(:each) do
+    Motel::Runner.instance.clear
+    Cosmos::Registry.instance.init
+
     Users::Registry.instance.init
     @local_node = RJR::LocalNode.new :node_id => 'omega-test'
   end
@@ -81,9 +84,14 @@ describe Users::RJRAdapter do
 
     Users::Registry.instance.users.size.should == 3
 
-    # ensure secure_password is set to true and pass is encrypted on create_entity
+    # ensure
+    #  -secure_password is set to true
+    #  -user has view & modify privs on self
+    #  -pass is encrypted on create_entity
     Users::Registry.instance.users[1..2].each { |u|
       u.secure_password.should be_true
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == "users_entity-#{u.id}" }.should_not be_nil
+      u.privileges.find { |p| p.id == 'modify' && p.entity_id == "users_entity-#{u.id}" }.should_not be_nil
       u.password.should_not == "foobar"
       PasswordHelper.check("foobar", u.password).should be_true
     }
@@ -370,7 +378,7 @@ describe Users::RJRAdapter do
       du.registration_code.should_not be_nil
       rc = du.registration_code
       du.alliances.empty?.should be_true
-      du.privileges.empty?.should be_true
+      #du.privileges.empty?.should be_true
       du.secure_password.should be_true
 
       ret = @local_node.invoke_request('users::confirm_register', rc)

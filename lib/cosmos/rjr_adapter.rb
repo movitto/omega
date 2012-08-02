@@ -14,6 +14,7 @@ class RJRAdapter
   end
 
   def self.init
+    Cosmos::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
     #Cosmos::Registry.instance.init
     @@local_node = RJR::LocalNode.new :node_id => 'cosmos'
@@ -70,6 +71,13 @@ class RJRAdapter
          }
 
        end
+
+       # add permissions to view location to user that can access entity
+       users = Users::Registry.instance.find(:with_privilege => ['view', 'cosmos_entities'])
+       #users += Users::Registry.instance.find(:with_privilege => ['view', 'cosmos_entity-' + entity.name]) unless entity.is_a?(Cosmos::JumpGate) # probably uncessary so commented
+       users.each { |user|
+         @@local_node.invoke_request('users::add_privilege', user.id, 'view', "location-#{entity.location.id}")
+       }
 
        entity
     }

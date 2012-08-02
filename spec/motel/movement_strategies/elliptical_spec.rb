@@ -224,7 +224,6 @@ describe "Motel::MovementStrategies::Elliptical" do
     j.should include('"direction_minor_x":0')
     j.should include('"direction_minor_y":1')
     j.should include('"direction_minor_z":0')
-    j.should include('"orbit":['+m.orbit.collect{ |o| '['+o.join(',')+']' }.join(',')+']')
   end
 
   it "should be convertable from json" do

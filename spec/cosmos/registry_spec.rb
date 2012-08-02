@@ -9,6 +9,11 @@ require 'stringio'
 
 describe Cosmos::Registry do
 
+  after(:all) do
+    Motel::Runner.instance.clear
+    Cosmos::Registry.instance.init
+  end
+
   it "should provide access to valid cosmos entity types" do
     valid_types = Cosmos::Registry.instance.entity_types
     valid_types.should include(Cosmos::Galaxy)

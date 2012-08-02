@@ -18,9 +18,21 @@ class RJRAdapter
     attr_accessor :omega_url
   end
 
+  def self.user
+    # FIXME set id / pass from config
+    @@users_user ||= Users::User.new(:id => 'users',
+                                     :password => 'changeme')
+  end
+
   def self.init
     Users::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
+    @@local_node = RJR::LocalNode.new :node_id => 'users'
+    @@local_node.message_headers['source_node'] = 'users'
+    @@local_node.invoke_request('users::create_entity', self.user)
+
+    session = @@local_node.invoke_request('users::login', self.user)
+    @@local_node.message_headers['session_id'] = session.id
   end
 
   def self.register_handlers(rjr_dispatcher)
@@ -36,6 +48,17 @@ class RJRAdapter
        entity.secure_password = true if entity.is_a? Users::User
 
        Users::Registry.instance.create entity
+
+       if entity.is_a?(Users::User)
+         # XXX don't like reaching into omega here but this would be too messy otherwise atm
+         #     perhaps leverage an external hook (or script) to do this
+         Omega::Roles.create_user_role entity, :regular_user
+
+       # TODO grant alliance permissions
+       end
+
+
+       entity
     }
 
     rjr_dispatcher.add_handler(['users::get_entity', 'users::get_entities']){ |*args|
@@ -185,14 +208,14 @@ class RJRAdapter
        # generate random registraton code
        user.registration_code = Users::User.random_registration_code
 
+       # clear alliances
        user.alliances = []
-       user.secure_password = true
 
        # create new user
-       Users::Registry.instance.create user
+       secure_user = @@local_node.invoke_request('users::create_entity', user)
+
 
        # send users::confirm_register link via email
-       # TODO make configurable
        message = <<MESSAGE_END
 From: #{EmailHelper.smtp_from_address}
 To: #{user.email}
@@ -206,8 +229,9 @@ link:
 
 MESSAGE_END
        EmailHelper.instance.send_email user.email, message
+       # TODO if email is disabled just autoregister ?
 
-       user
+       secure_user
      }
 
      rjr_dispatcher.add_handler("users::confirm_register") { |registration_code|
@@ -217,8 +241,6 @@ MESSAGE_END
        Users::Registry.instance.safely_run {
          user.registration_code = nil
        }
-
-       # assign it base privileges
 
        # issue request to create mediawiki user
        # we just use a custom script leveraging the mw api to do this for now

@@ -59,6 +59,7 @@ class Registry
     type      = args[:type]
     session_id = args[:session_id]
     registration_code = args[:registration_code]
+    privilege = args[:with_privilege]
 
     session = session_id.nil? ? nil : @sessions.find { |s| s.id == session_id }
 
@@ -73,7 +74,8 @@ class Registry
       entities << entity if (id.nil?        || (entity.id         == id)) &&
                             (type.nil?      || (entity.class.to_s == type)) &&
                             (session.nil?   || (entity.is_a?(Users::User) && session.user.id   == entity.id)) &&
-                            (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code))
+                            (registration_code.nil? || (entity.is_a?(Users::User) && entity.registration_code == registration_code)) &&
+                            (privilege.nil? || (entity.is_a?(Users::User) && entity.has_privilege_on?(privilege.first, privilege.last)))
     }
     entities
   end
