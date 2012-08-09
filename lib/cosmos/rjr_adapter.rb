@@ -82,7 +82,7 @@ class RJRAdapter
        entity
     }
 
-    rjr_dispatcher.add_handler('cosmos::get_entity'){ |*args|
+    rjr_dispatcher.add_handler(['cosmos::get_entity', 'cosmos::get_entities']){ |*args|
        filter = {}
        while qualifier = args.shift
          raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_name", "with_location"].include?(qualifier)
