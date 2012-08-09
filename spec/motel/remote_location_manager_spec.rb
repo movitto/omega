@@ -34,7 +34,7 @@ describe Motel::RemoteLocationManager do
 
   after(:all) do
     Motel::Runner.instance.stop
-    @amqp_node.stop
+    @amqp_node.halt
     @amqp_node.join
     @server_thread.join
   end

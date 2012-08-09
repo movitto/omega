@@ -59,8 +59,8 @@ class Client
     @@rjr_node.join
   end
 
-  def self.stop
-    @@rjr_node.stop
+  def self.halt
+    @@rjr_node.halt
   end
 
   def queue_request(method_name, *params)
@@ -177,8 +177,8 @@ def join
   Omega::Client.join
 end
 
-def stop
-  Omega::Client.stop
+def halt
+  Omega::Client.halt
 end
 
 def login(id, args={})

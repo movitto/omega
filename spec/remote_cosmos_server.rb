@@ -49,7 +49,7 @@ local_node.invoke_request('cosmos::create_entity', sys1, 'gal1')
 local_node.invoke_request('cosmos::create_entity', sys2, 'gal1')
 
 Signal.trap("USR1") {
-  amqp_node.stop
+  amqp_node.halt
 }
 
 amqp_node.join

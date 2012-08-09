@@ -40,7 +40,7 @@ describe Cosmos::RemoteCosmosManager do
     Motel::Runner.instance.stop
     Motel::Runner.instance.clear
     Cosmos::Registry.instance.init
-    @amqp_node.stop
+    @amqp_node.halt
     @amqp_node.join
     @server_thread.join
   end
