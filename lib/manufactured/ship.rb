@@ -35,6 +35,9 @@ class Ship
   # movement properties
   attr_accessor :movement_speed
 
+  # transfer properties
+  attr_reader :transfer_distance
+
   # attack/defense properties
   attr_accessor :attack_distance
   attr_accessor :attack_rate  # attacks per second

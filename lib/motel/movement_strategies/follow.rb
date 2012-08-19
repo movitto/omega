@@ -19,9 +19,9 @@ class Follow < MovementStrategy
    attr_accessor :speed
 
    def initialize(args = {})
-     @tracked_location_id  = args[:tracked_location_id] if args.has_key? :tracked_location_id
-     @distance             = args[:distance]            if args.has_key? :distance
-     @speed                = args[:speed]               if args.has_key? :speed
+     @tracked_location_id  = args[:tracked_location_id] || args['tracked_location_id']
+     @distance             = args[:distance]            || args['distance']
+     @speed                = args[:speed]               || args['speed']
 
      # retireve location we're tracking
      # XXX don't like doing this here (should permissions be enforced for example?)
