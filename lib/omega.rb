@@ -10,6 +10,7 @@ require 'omega/roles'
 require 'omega/names'
 require 'omega/resources'
 require 'omega/client'
+require 'omega/registry'
 require 'omega/config'
 
 require 'motel'

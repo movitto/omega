@@ -8,16 +8,15 @@ CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BIN_DIR="$CURR_DIR/../.."
 
 # run omega-server
-$BIN_DIR/omega-server
+#$BIN_DIR/omega-server
 
 # create the universe
-$CURR_DIR/universe.rb
+$CURR_DIR/environment.rb
 
 # create two users
-# FIXME create role w/ only required privs
-$CURR_DIR/users.rb Anubis sibuna superadmin
-$CURR_DIR/users.rb Ra ar superadmin
+$CURR_DIR/users.rb Anubis sibuna Athena regular_user
+$CURR_DIR/users.rb Osiris siriso Athena regular_user
 
-# create two bots
-$CURR_DIR/bot.rb Anubis Athena
-$CURR_DIR/bot.rb Ra Agathon
+# create bots
+$CURR_DIR/bot2.rb Anubis sibuna
+#$CURR_DIR/bot.rb Obsiris siriso

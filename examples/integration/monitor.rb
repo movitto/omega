@@ -13,78 +13,6 @@ require 'singleton'
 require 'active_support/core_ext/string/filters'
 require 'omega'
 
-class MonitoredGalaxy
-  attr_accessor :server_galaxy
-
-  def initialize(node, server_galaxy)
-    @node = node
-    @server_galaxy = server_galaxy
-  end
-
-  def refresh
-    @server_galaxy.solar_systems.each { |sys|
-      sys.asteroids.each { |ast|
-        #@node.invoke_request('omega-queue', 'cosmos::get_resources', ...)
-      }
-    }
-  end
-end
-
-class MonitoredShip
-  attr_accessor :server_ship
-
-  def initialize(server_ship)
-    @server_ship = server_ship
-  end
-end
-
-class MonitoredStation
-  attr_accessor :server_station
-
-  def initialize(server_station)
-    @server_station = server_station
-  end
-end
-
-class MonitoredUser
-  attr_accessor :server_user
-  attr_accessor :ships
-  attr_accessor :stations
-
-  def initialize(node, server_user)
-    @node = node
-    @server_user = server_user
-    @ships    = {}
-    @stations = {}
-  end
-
-  def <<(entity)
-    if entity.is_a?(MonitoredShip)
-      @ships[entity.server_ship.id] = entity
-    elsif entity.is_a?(MonitoredStation)
-      @stations[entity.server_station.id] = entity
-    end
-  end
-
-  def refresh
-    user_ships = @node.invoke_request('omega-queue', 'manufactured::get_entities',
-                                      'of_type',     'Manufactured::Ship',
-                                      'owned_by',     @server_user.id)
-    user_stats = @node.invoke_request('omega-queue', 'manufactured::get_entities',
-                                      'of_type',     'Manufactured::Station',
-                                      'owned_by',     @server_user.id)
-
-    user_ships.each { |sh|
-      self << MonitoredShip.new(sh)
-    }
-
-    user_stats.each { |st|
-      self << MonitoredStation.new(st)
-    }
-  end
-
-end
-
 # currently uses ncurses to render output
 class MonitoredOutput
   attr_accessor :registry
@@ -128,8 +56,8 @@ class MonitoredOutput
     @panels = [cosmos_panel, manu_panel, tests_panel]
     Ncurses::Panel.set_panel_userptr(cosmos_panel, manu_panel)
     Ncurses::Panel.set_panel_userptr(manu_panel,   users_panel)
-    Ncurses::Panel.set_panel_userptr(users_panel,   tests_panel)
-    Ncurses::Panel.set_panel_userptr(tests_panel,   cosmos_panel)
+    Ncurses::Panel.set_panel_userptr(users_panel,  tests_panel)
+    Ncurses::Panel.set_panel_userptr(tests_panel,  cosmos_panel)
 
     @current_panel = cosmos_panel
     Ncurses::Panel.top_panel(@current_panel)
@@ -148,7 +76,7 @@ class MonitoredOutput
     return distance + @scroll_distance
   end
 
-  def refresh
+  def refresh(invalidated = nil)
     @cosmos_win.clear
     @cosmos_win.box(0, 0)
     @cosmos_win.move(1,1)
@@ -245,10 +173,10 @@ class MonitoredOutput
         Ncurses::Panel.update_panels
         Ncurses.doupdate
       elsif chin == Ncurses::KEY_UP
-        @scroll_distance += 1
+        @scroll_distance += 1 unless @scroll_distance > -1
         refresh
       elsif chin == Ncurses::KEY_DOWN
-        @scroll_distance -= 1
+        @scroll_distance -= 1 #unless @scroll_distance < (-1 * self.max_window_text)
         refresh
       end
     end
@@ -270,73 +198,6 @@ class MonitoredOutput
 end
 
 
-class MonitoredRegistry
-  attr_accessor :galaxies
-  attr_accessor :users
-  attr_accessor :tests
-
-  def initialize(node, output)
-    @node = node
-    @galaxies = {}
-    @users    = {}
-    @tests    = {}
-    @output   = output
-    @output.registry = self
-  end
-
-  def <<(entity)
-    if entity.is_a?(MonitoredUser)
-      @users[entity.server_user.id] = entity
-    elsif entity.is_a?(MonitoredGalaxy)
-      @galaxies[entity.server_galaxy.name] = entity
-    end
-  end
-
-  def run_tests
-  end
-
-  def refresh
-    @node.invoke_request('omega-queue', 'users::get_entities', 'of_type', 'Users::User').each { |u|
-      mu = MonitoredUser.new(@node, u)
-      self << mu
-      mu.refresh
-    }
-
-    @node.invoke_request('omega-queue', 'cosmos::get_entities', 'of_type', 'galaxy').each { |g|
-      mg = MonitoredGalaxy.new(@node, g)
-      self << mg
-      mg.refresh
-    }
-
-    run_tests
-
-    @output.refresh
-  end
-
-  def start
-    @terminate = false
-    @run_thread = Thread.new {
-      until @terminate
-        refresh
-        sleep 3
-      end
-    }
-    return self
-  end
-
-  def stop
-    @terminate = true
-    @output.stop.close
-    return self
-  end
-
-  def join
-    puts "Terminating run cycle..."
-    @run_thread.join
-    return self
-  end
-end
-
 #RJR::Logger.log_level= ::Logger::INFO
 
 node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'monitor'
@@ -346,7 +207,7 @@ session = node.invoke_request 'omega-queue', 'users::login', admin
 node.message_headers['session_id'] = session.id
 
 output = MonitoredOutput.new
-registry = MonitoredRegistry.new(node, output).start
+registry = Omega::MonitoredRegistry.new(node, output).start
 
 output.handle_input
 registry.join
