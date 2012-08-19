@@ -76,6 +76,8 @@ def indent(i)
 end
 
 def print_callbacks(entity, i=0)
+  return if entity.nil?
+
   puts indent(i) + "Notifications:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size) > 0
   entity.location.movement_callbacks.each { |m|
     puts indent(i+1) + "- movement of #{m.to_s} -> #{m.endpoint_id}"
@@ -112,7 +114,7 @@ def print_system(sys, i=0)
 end
 
 def print_star(star, i=0)
-  puts indent(i) + "star " + star.name + " (@" + star.location.to_s + ")"
+  puts indent(i) + "star " + star.name + " (@" + star.location.to_s + ")" unless star.nil?
   print_callbacks(star, i+1)
 end
 
