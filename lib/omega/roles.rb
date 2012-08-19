@@ -35,7 +35,7 @@ ENTITYS             = [ENTITY_LOCATION,    ENTITY_COSMOS,   ENTITY_MANUFACTURED,
 ROLES = { :superadmin => PRIVILEGES.product(ENTITIES),
           :remote_location_manager => [[PRIVILEGE_VIEW, ENTITIES_LOCATIONS], [PRIVILEGE_CREATE, ENTITIES_LOCATIONS], [PRIVILEGE_MODIFY, ENTITIES_LOCATIONS]],
           :remote_cosmos_manager   => [[PRIVILEGE_VIEW, ENTITIES_COSMOS],    [PRIVILEGE_CREATE, ENTITIES_COSMOS],    [PRIVILEGE_MODIFY, ENTITIES_COSMOS]],
-          :regular_user            => [[PRIVILEGE_VIEW, ENTITIES_COSMOS],    [PRIVILEGE_CREATE, ENTITIES_MANUFACTURED]],
+          :regular_user            => [[PRIVILEGE_VIEW, ENTITIES_COSMOS],    [PRIVILEGE_CREATE, ENTITIES_MANUFACTURED], [PRIVILEGE_VIEW,   ENTITIES_MANUFACTURED]], # TODO doesn't take fog of war into account
           :anonymous_user          => [[PRIVILEGE_VIEW, ENTITIES_COSMOS],    [PRIVILEGE_VIEW,   ENTITIES_MANUFACTURED]]}
 
 def self.additional_privileges_for(user, role_id)
