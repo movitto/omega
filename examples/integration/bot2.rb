@@ -70,7 +70,7 @@ class ManufacturingStation
     # if no pending systems, construct additional miners / corvettes
     else
       if self.cargo_quantity >=
-         (Manufactured::Ship.construction_cost(:mining) + Manufactured::Station.construction_cost(:corvette))
+         (Manufactured::Ship.construction_cost(:mining) + Manufactured::Ship.construction_cost(:corvette))
         begin
           ship1_id = @registry.output.next_id
           ship2_id = @registry.output.next_id
@@ -408,7 +408,7 @@ class BotOutput
         sys.jump_gates.each { |jg|
           @registry.galaxies.each { |name,g|
             esys = g.solar_systems.find { |sys| sys.name == jg.endpoint }
-            if current_user.stations.find { |id,st|
+            if esys && current_user.stations.find { |id,st|
                st.solar_system.name == esys.name }.nil?
                 @pending_systems << esys
             end

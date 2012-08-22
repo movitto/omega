@@ -83,6 +83,13 @@ class MonitoredShip
    }.last
   end
 
+  def refresh
+    @moving    = !@server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+    @following = @server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Follow)
+    @mining    = !@server_ship.mining.nil?
+    #@attacking = @server_ship.
+  end
+
   def update
     @server_ship = @registry.node.invoke_request 'omega-queue', 'manufactured::get_entity', 'with_id', @server_ship.id
   end
@@ -200,6 +207,8 @@ class MonitoredUser
   attr_accessor :ships
   attr_accessor :stations
 
+  SYSTEM_USERS = ['users', 'cosmos', 'manufactured', 'admin', 'rlm', 'rcm']
+
   def initialize(registry, server_user)
     @registry = registry
     @server_user = server_user
@@ -228,11 +237,14 @@ class MonitoredUser
 
     user_ships.each { |sh|
       self << MonitoredShip.new(@registry, sh)
+      @ships[sh.id].refresh
     }
 
     user_stats.each { |st|
       self << MonitoredStation.new(@registry, st)
     }
+
+    # TODO what about ships / stations no longer present
   end
 
   def method_missing(meth, *args, &block)
@@ -254,7 +266,6 @@ class MonitoredRegistry
     @node = node
     @galaxies = {}
     @users    = {}
-    @tests    = {}
     @tracked_locations = []
 
     @registry_lock = Mutex.new
@@ -367,9 +378,6 @@ class MonitoredRegistry
     end
   end
 
-  def run_tests
-  end
-
   def refresh
     # TODO this lock will be held during calls to node.invoke_request, possibly hurting performance
     @registry_lock.synchronize{
@@ -389,8 +397,6 @@ class MonitoredRegistry
         self << mg
         @galaxies[mg.name].refresh
       }
-
-      run_tests
 
       @output.refresh if @output
     }

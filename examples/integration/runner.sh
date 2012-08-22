@@ -11,7 +11,7 @@ BIN_DIR="$CURR_DIR/../.."
 #$BIN_DIR/omega-server
 
 # create the universe
-$CURR_DIR/environment.rb
+$CURR_DIR/universe.rb
 
 # create two users
 $CURR_DIR/users.rb Anubis sibuna Athena regular_user
