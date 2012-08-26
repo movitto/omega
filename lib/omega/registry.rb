@@ -85,13 +85,9 @@ class MonitoredShip
 
   def refresh
     @moving    = !@server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
-    @following = @server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Follow)
+    @following =  @server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Follow)
     @mining    = !@server_ship.mining.nil?
     #@attacking = @server_ship.
-  end
-
-  def update
-    @server_ship = @registry.node.invoke_request 'omega-queue', 'manufactured::get_entity', 'with_id', @server_ship.id
   end
 
   def sync
@@ -183,10 +179,6 @@ class MonitoredStation
     @move_to_system = nil
   end
 
-  def update
-    @server_station = @registry.node.invoke_request 'omega-queue', 'manufactured::get_entity', 'with_id', @server_station.id
-  end
-
   def sync
     if @move_to_system
       self.location.parent_id = @move_to_system.location.id
@@ -244,7 +236,25 @@ class MonitoredUser
       self << MonitoredStation.new(@registry, st)
     }
 
-    # TODO what about ships / stations no longer present
+    # remove ships no longer present
+    ships_to_delete = []
+    @ships.each { |id,sh|
+      if !user_ships.collect { |us| us.id }.include?(id)
+        puts "Ship #{id} no longer, present, deleting"
+        ships_to_delete << id
+      end
+    }
+    ships_to_delete.each { |id| @ships.delete(id) }
+
+    # remove stations no longer present
+    stations_to_delete = []
+    @stations.each { |id,st|
+      if user_stats.find { |us| us.id == id }.nil?
+        puts "Station #{id} no longer, present, deleting"
+        stations_to_delete << id
+      end
+    }
+    stations_to_delete.each { |id| @stations.delete(id) }
   end
 
   def method_missing(meth, *args, &block)
@@ -328,22 +338,16 @@ class MonitoredRegistry
         reason = (event == 'mining_stopped' ? args.shift : nil)
         sentity = args.shift
         puts "Manufactured entity #{sentity} raised event #{event}/#{reason}"
-        rentity = nil
         registry.users.each { |uid,u|
-          u.ships.each { |sid,sh|
-            if sh.id == sentity.id
-              u << sentity
-              rentity = u.ships[sentity.id]
-              break
-            end
-          }
-          break unless rentity.nil?
+          rentity = u.ships.find { |sid,sh| sh.id == sentity.id }
+          unless rentity.nil?
+            rentity = rentity.last
+            rentity.server_ship = sentity
+            rentity.on_event event, *args
+            registry.output.refresh(rentity) if registry.output
+            break
+          end
         }
-
-        unless rentity.nil?
-          rentity.on_event event, *args
-          registry.output.refresh(rentity) if registry.output
-        end
       }
       nil
     }

@@ -23,7 +23,7 @@ class MonitoredOutput
 
   def initialize
     # config
-    @show_asteroids = true
+    @show_asteroids = false
     @show_resources = false
     @scroll_distance = 0
 
@@ -98,40 +98,46 @@ class MonitoredOutput
           @tests[:user_has_alliance] << {:entity => u.server_user, :message => "should have user alliance", :success => false}
         end
 
+        @registry.galaxies.each { |gid, g|
+          g.solar_systems.each { |sys|
+            @tests[:system_frigate] ||= []
+            @tests[:system_station] ||= []
+            sys_ships    = u.ships.select { |sid,s| s.solar_system.name == sys.name }
+            sys_frigates = u.ships.select { |sid,s| s.solar_system.name == sys.name &&
+                                                    s.id =~ /#{u.id}-frigate-ship.*/ }
+            sys_stations = u.stations.select { |sid,s| s.solar_system.name == sys.name &&
+                                                       s.id =~ /#{u.id}-manufacturing-station.*/ }
+
+            if sys_ships.size > 0
+              if sys_frigates.size == 0
+                @tests[:system_frigate] << {:entity => sys, :message => "system with #{u.id}'s ships does not have frigate", :success => false }
+
+              elsif sys_frigates.size > 1
+                @tests[:system_frigate] << {:entity => sys, :message => "system with has multiple frigates for user #{u.id}", :success => false }
+
+              else
+                @tests[:system_frigate] << {:entity => sys, :message => "system with #{u.id}'s ships has frigate", :success => true }
+
+              end
+
+              if sys_stations.size == 0
+                @tests[:system_station] << {:entity => sys, :message => "system with #{u.id}'s ships does not have a station", :success => false }
+
+              elsif sys_stations.size > 1
+                @tests[:system_station] << {:entity => sys, :message => "system with has multiple stations for user #{u.id}", :success => false }
+
+              else
+                @tests[:system_station] << {:entity => sys, :message => "system with #{u.id}'s ships has a station", :success => true }
+              end
+
+            end
+          }
+        }
+
         #is_mining = !u.ships.find { |i,s| s.mining }.nil?
         u.ships.each { |sid,sh|
-
-          # ensure systems have a frigate
-          sys_frigate = u.ships.find { |id,s| sh.solar_system.name == s.solar_system.name &&
-                                              s.id =~ /#{u.id}-frigate-ship.*/ }
-          @tests[:system_frigate] ||= []
-          unless sys_frigate.nil?
-            sys_frigate = sys_frigate.last
-            @tests[:system_frigate] << {:entity => sh.solar_system, :message => 'system has a frigate', :success => true }
-          else
-            @tests[:system_frigate] << {:entity => sh.solar_system, :message => "system does not have frigate for user #{u.id}", :success => false }
-          end
-
-          # ensure systems w/ ships have a station
-          sys_station = u.stations.find { |id,s| sh.solar_system.name == s.solar_system.name &&
-                                                 s.id =~ /#{u.id}-manufacturing-station.*/ }
-          @tests[:system_station] ||= []
-          unless sys_station.nil?
-            sys_station = sys_station.last
-            @tests[:system_station] << {:entity => sh.solar_system, :message => 'system has a station', :success => true }
-          else
-            @tests[:system_station] << {:entity => sh.solar_system, :message => "system does not have a station for user #{u.id}", :success => false }
-          end
-
           # ensure each system only has one frigate
           if sh.id =~ /.*-frigate-ship.*/
-            @tests[:system_frigate] ||= []
-            if sh == sys_frigate
-              @tests[:system_frigate] << {:entity => sh.server_ship, :message => "is the system frigate", :success => true}
-            else
-              @tests[:system_frigate] << {:entity => sh.server_ship, :message => "is not the system frigate", :success => true}
-            end
-
             @tests[:frigate_movement] ||= []
             if sh.location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
               if sh.cargo_quantity > 0
@@ -152,8 +158,7 @@ class MonitoredOutput
           elsif sh.id =~ /.*-mining-ship.*/
             @tests[:mining_moving_or_signaling] ||= []
             if sh.mining || sh.location.movement_strategy.is_a?(Motel::MovementStrategies::Linear) ||
-               (!sys_frigate.nil? && sys_frigate.move_to_location &&
-                 (sys_frigate.move_to_location - sh.location) < sys_frigate.server_ship.transfer_distance)
+               (sh.cargo_quantity + sh.mining_quantity) >= sh.cargo_capacity
               @tests[:mining_moving_or_signaling] << {:entity => sh.server_ship, :message => "miner moving, mining, or signaling", :success => true }
             else
               @tests[:mining_moving_or_signaling] << {:entity => sh.server_ship, :message => "miner not moving, mining, or signaling", :success => false }
@@ -237,6 +242,13 @@ class MonitoredOutput
         @manu_win.move(scrolled_distance(subcounter), 4)
         @manu_win.addstr("@ #{s.server_ship.location}") unless outside_boundry?(subcounter)
         subcounter += 1
+        if @show_resources
+          s.resources.each { |rsid,q|
+            @manu_win.move(scrolled_distance(subcounter), 6)
+            @manu_win.addstr("#{q} of #{rsid}")
+            subcounter += 1
+          }
+        end
       }
 
       u.stations.each { |sid,s|
@@ -246,6 +258,13 @@ class MonitoredOutput
         @manu_win.move(scrolled_distance(subcounter), 4)
         @manu_win.addstr("@ #{s.server_station.location}") unless outside_boundry?(subcounter)
         subcounter += 1
+        if @show_resources
+          s.resources.each { |rsid,q|
+            @manu_win.move(scrolled_distance(subcounter), 6)
+            @manu_win.addstr("#{q} of #{rsid}")
+            subcounter += 1
+          }
+        end
       }
       counter += 1
     }
@@ -388,3 +407,6 @@ registry = Omega::MonitoredRegistry.new(node, output).start
 
 output.handle_input
 registry.join
+
+# reset the terminal to defaults & exit
+exec("reset")

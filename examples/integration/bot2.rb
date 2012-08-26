@@ -328,8 +328,6 @@ class FrigateShip
           @registry.node.invoke_request 'omega-queue','manufactured::transfer_resource',
                                          transfer_from.id, transfer_to.id, rsid, quantity
         }
-        #transfer_from.update
-        #transfer_to.update
         #@visiting = nil
       rescue Exception => e
         puts "Frigate #{self.id}: problem transferring resources #{transfer_to.id}->#{transfer_from.id}: #{e}"
@@ -344,7 +342,7 @@ class FrigateShip
       return true if ((self.location - @visiting.location) > transfer_from.transfer_distance)
 
       # invoke arrival callback
-      @arrival_callback.call @visiting
+      @arrival_callback.call @visiting unless @arrival_callback.nil?
     end
 
     @visiting, @arrival_callback = *(@entities_to_visit.shift)
@@ -447,6 +445,39 @@ class BotOutput
         end
       end
     }
+
+    ships_to_delete = []
+    @frigates.each { |fid,f|
+      if @current_user.ships.find { |usid,us| us.id == f.id }.nil?
+        ships_to_delete << f
+      end
+    }
+    ships_to_delete.each { |id| @frigates.delete(id) }
+
+    ships_to_delete.clear
+    @miners.each { |mid,m|
+      if @current_user.ships.find { |usid,us| us.id == m.id }.nil?
+        ships_to_delete << m
+      end
+    }
+    ships_to_delete.each { |id| @miners.delete(id) }
+
+    ships_to_delete.clear
+    @corvettes.each { |cid,c|
+      if @current_user.ships.find { |usid,us| us.id == c.id }.nil?
+        ships_to_delete << c
+      end
+    }
+    ships_to_delete.each { |id| @corvettes.delete(id) }
+
+    stations_to_delete = []
+    @manufacturing_stations.each { |sid,s|
+      if @current_user.stations.find { |usid,us| us.id == s.id }.nil?
+        stations_to_delete << s
+      end
+    }
+    stations_to_delete.each { |id| @manufacturing_stations.delete(id) }
+
   end
   
   def stop
