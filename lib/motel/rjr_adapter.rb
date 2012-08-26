@@ -195,6 +195,11 @@ class RJRAdapter
            rescue RJR::Errors::ConnectionError => e
              RJR::Logger.warn "track_movement client disconnected"
              loc.movement_callbacks.delete on_movement
+
+           rescue Exception => e
+             RJR::Logger.warn "exception raised when invoking track_movmement callback: #{e}"
+             loc.movement_callbacks.delete on_movement
+
            end
          }
 
@@ -254,9 +259,15 @@ class RJRAdapter
            rescue Omega::PermissionError => e
              RJR::Logger.warn "client does not have privilege to view proximity of #{loc1.id}/#{loc2.id}"
              loc1.proximity_callbacks.delete on_proximity
+
            rescue RJR::Errors::ConnectionError => e
              RJR::Logger.warn "track_proximity client disconnected"
              loc1.proximity_callbacks.delete on_proximity
+
+           rescue Exception => e
+             RJR::Logger.warn "exception raised when invoking track_proximity callback: #{e}"
+             loc1.proximity_callbacks.delete on_proximity
+
            end
          }
 
