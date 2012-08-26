@@ -375,12 +375,15 @@ class RJRAdapter
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id).first
 
-      Manufactured::Registry.instance.safely_run {
-        entity.location.update(loc)
-        entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-      }
-      @@local_node.invoke_request('motel::update_location', entity.location)
-      @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)
+      # FIXME entity could be nil if ship gets added to graveyard b4 fully stopping for example
+      unless entity.nil?
+        Manufactured::Registry.instance.safely_run {
+          entity.location.update(loc)
+          entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+        }
+        @@local_node.invoke_request('motel::update_location', entity.location)
+        @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)
+      end
     }
 
     rjr_dispatcher.add_handler('manufactured::attack_entity'){ |attacker_entity_id, defender_entity_id|
