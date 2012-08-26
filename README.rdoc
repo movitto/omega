@@ -1,6 +1,6 @@
 == Motel - Movable Object Tracking Encopassing Locations
 
-Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 
 Motel is made available under the GNU AFFERO GENERAL PUBLIC LICENSE
 as published by the Free Software Foundation, either version 3
@@ -32,4 +32,4 @@ Generate documentation via
 Also see specs for detailed usage.
 
 === Authors
- Mohammed Morsi <movitto@yahoo.com>
+ Mohammed Morsi <mo@morsi.org>

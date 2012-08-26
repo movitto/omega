@@ -1,6 +1,6 @@
 # motel project Rakefile
 #
-# Copyright (C) 2010 Mohammed Morsi <movitto@yahoo.com>
+# Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rdoc/task'
@@ -38,8 +38,8 @@ SPEC = Gem::Specification.new do |s|
     s.add_development_dependency('rspec', '~> 1.3.0')
 
     s.author = "Mohammed Morsi"
-    s.email = "movitto@yahoo.com"
-    s.date = %q{2010-09-05}
+    s.email = "mo@morsi.org"
+    s.date = %q{2012-08-26}
     s.description = %q{Motel is a library to track and move the locations of objects in a 3D environment.}
     s.summary = %q{Motel is a library to track and move the locations of objects in a 3D environment.}
     s.homepage = %q{http://morsi.org/projects/motel}
