@@ -99,7 +99,7 @@ class RJRAdapter
 
       # remove params which should not be set by the user
       ['solar_system','user_id',
-       'resources', 'notifications',
+       'mining', 'resources', 'notifications',
        'docked_at', 'size'].each { |i| # set docked at to station?
         argsh.delete(i)
       }

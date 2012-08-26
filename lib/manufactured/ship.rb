@@ -85,6 +85,7 @@ class Ship
     @type     = SHIP_TYPES[rand(SHIP_TYPES.size)] if @type.nil?
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
     @docked_at= args['docked_at']|| args[:docked_at]
+    @mining   = args['mining']   || args[:mining]
 
     @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = args[:resources] || args['resources'] || {}
@@ -100,8 +101,6 @@ class Ship
     @mining_quantity = 5
     @mining_distance = 100
     @transfer_distance = 100
-
-    @mining    = nil
 
     self.solar_system = args[:solar_system] || args['solar_system']
 
@@ -228,6 +227,7 @@ class Ship
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,
+         :mining    => @mining,
          :location => @location,
          :solar_system => @solar_system,
          :resources => @resources,
