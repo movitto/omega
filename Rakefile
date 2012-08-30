@@ -24,6 +24,19 @@ Rake::RDocTask.new do |rd|
     rd.rdoc_files.include("README.rdoc", "lib/**/*.rb")
 end
 
+desc 'Print the RJR accessible api'
+task 'rjr_api' do
+  puts "RJR API: "
+  Dir.glob('lib/*/rjr_adapter.rb').
+      collect { |f| File.open(f).read.split("\n") }.flatten.
+      select  { |l| ! l.scan('add_handler').empty? }.
+      collect { |l| l.gsub(/rjr_dispatcher\.add_handler\(\[*/, '').gsub(/\]*\).*/, '') }.
+      collect { |m| m.strip.gsub(/"/, '').gsub(/'/, '') }.
+      each { |m|
+        puts "#{m}"
+      }
+end
+
 PKG_FILES = FileList['conf/motel-schema.xml', 'lib/**/*.rb', 
   'COPYING', 'LICENSE', 'Rakefile', 'README.rdoc', 'spec/**/*.rb' ]
 
