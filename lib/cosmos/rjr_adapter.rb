@@ -7,12 +7,21 @@ require 'active_support/inflector'
 
 module Cosmos
 
+# Provides mechanisms to invoke Cosmos subsystem functionality remotely over RJR.
+#
+# Do not instantiate as interface is defined on the class.
 class RJRAdapter
+
+  # Return user which remote cosmos manager can use to connect to the local node.
+  #
+  # First nstantiates user if it doesn't exist.
   def self.user
+    # FIXME
     @@cosmos_user ||= Users::User.new(:id => 'cosmos',
                                       :password => 'changeme')
   end
 
+  # Initialize the Cosmos subsystem and rjr adapter.
   def self.init
     Cosmos::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
@@ -29,6 +38,9 @@ class RJRAdapter
     @@remote_cosmos_manager = RemoteCosmosManager.new
   end
 
+  # Register handlers with the RJR::Dispatcher to invoke various cosmos operations
+  #
+  # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('cosmos::create_entity'){ |entity, parent_name|
        Users::Registry.require_privilege(:privilege => 'create', :entity => 'cosmos_entities',

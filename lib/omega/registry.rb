@@ -87,7 +87,7 @@ class MonitoredShip
     @moving    = !@server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
     @following =  @server_ship.location.movement_strategy.is_a?(Motel::MovementStrategies::Follow)
     @mining    = !@server_ship.mining.nil?
-    #@attacking = @server_ship.
+    # TODO set @attacking
   end
 
   def sync

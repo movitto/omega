@@ -5,10 +5,17 @@
 
 module Cosmos
 
+# Primary server side entity tracker for Cosmos module.
+#
+# Provides a thread safe registry through which cosmos
+# entity heirarchies and resources can be accessed.
+#
+# Singleton class, access via Cosmos.instance.
 class Registry
   include Singleton
 
-  # galaxies we are managing
+  # Return array of galaxies being managed
+  # @return [Array<Cosmos::Galaxy>]
   def galaxies
     ret = []
     @entities_lock.synchronize {
@@ -17,7 +24,8 @@ class Registry
     return ret
   end
 
-  # resource sources we are managing
+  # Return array of resource sources being managed
+  # @return [Array<Cosmos::ResourceSource>]
   def resource_sources
     ret = []
     @entities_lock.synchronize {
@@ -26,10 +34,12 @@ class Registry
     return ret
   end
 
+  # Cosmos::Registry intializer
   def initialize
     init
   end
 
+  # Reinitialize the Cosmos::Registry
   def init
     @galaxies = []
     @resource_sources = []
@@ -37,13 +47,20 @@ class Registry
     @entities_lock = Mutex.new
   end
 
-  # runs a block of code as an operation protected by the entities lock
+  # Run the specified block of code as a protected operation.
+  #
+  # This should be used when updating any cosmos entities outside
+  # the scope of registry operations to protect them from concurrent access.
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
+  # @param [Callable] bl block to invoke
   def safely_run(*args, &bl)
     @entities_lock.synchronize {
       bl.call *args
     }
   end
 
+  # Return array of classes of cosmos entity types
   def entity_types
     [Cosmos::Galaxy,
      Cosmos::SolarSystem,
@@ -54,6 +71,24 @@ class Registry
      Cosmos::JumpGate]
   end
 
+  # Lookup and return entities in registry.
+  #
+  # By default, with no arguments, returns a flat list of all entities
+  # tracked by the registry. Takes a hash of arguments to filter entities
+  # by. If :name and/or :location is specified a single entity found
+  # will be returned, else nil.
+  #
+  # @param [Hash] args arguments to filter cosmos entities with
+  # @option args [String,:symbol] :type string or symbol representing type of entity to lookup. Valid values include
+  #   * 'galaxy' / :galaxy
+  #   * 'solarsystem' / :solarsystem
+  #   * 'star' / :star
+  #   * 'planet' / :planet
+  #   * 'asteroid' / :asteroid
+  #   * 'moon' / :moon
+  # @option args [String] :name string name to match, if specified first matching result will be returned, nil if none found
+  # @option args [Integer] :location integer location id  to match, if specified first matching result will be returned, nil if none found
+  # @return [Array<CosmosEntity>,CosmosEntity,nil] one or more matching cosmos entities, empty array or nil if none found
   def find_entity(args = {})
     type = args[:type]
     name = args[:name]
@@ -112,22 +147,38 @@ class Registry
     return entities
   end
 
+  # Name of the registry, for entity compat reasons
+  # @return ["universe"]
   def name
     "universe"
   end
 
+  # Location of the registry, for entity compat reasons
+  # @return [nil]
   def location
     nil
   end
 
+  # Returns boolean indicating if remote cosmos retrieval can be performed for registry's children, for entity compat reasons
+  # @return [false]
   def self.remotely_trackable?
     false
   end
 
+  # Return children galaxies
+  # @return [Array<Cosmos::Galaxy>]
   def children
     @galaxies
   end
 
+  # Add galaxy to registry.
+  #
+  # First peforms basic checks to ensure galaxy is valid in the
+  # context of the registry, after which it is added to the local galaxies array
+  #
+  # @param [Cosmos::Galaxy] galaxy system to add to registry
+  # @raise ArgumentError if galaxy is not valid in the context of the local registry
+  # @return [Cosmos::Galaxy] the galaxy just added
   def add_child(galaxy)
     raise ArgumentError, "child must be a galaxy" if !galaxy.is_a?(Cosmos::Galaxy)
     raise ArgumentError, "galaxy name #{galaxy.name} is already taken" if @galaxies.find { |g| g.name == galaxy.name }
@@ -137,6 +188,11 @@ class Registry
     galaxy
   end
 
+  # Remove child galaxy from registry.
+  #
+  # Ignores / just returns if galaxy is not found
+  #
+  # @param [Cosmos::Galaxy,String] child galaxy to remove from registry or its name
   def remove_child(child)
     @entities_lock.synchronize{
       @galaxies.reject! { |ch| (child.is_a?(Cosmos::Galaxy) && ch == child) ||
@@ -144,6 +200,7 @@ class Registry
     }
   end
 
+  # Returns boolean indicating if the registry has one or more child galaxies
   def has_children?
     ret = nil
     @entities_lock.synchronize{
@@ -152,6 +209,11 @@ class Registry
     return ret
   end
 
+  # Iterates over each child galaxy, invoking the specified
+  # block with the child as a parameter and then invoking
+  # 'each_child' on the child itself
+  #
+  # @param [Callable] bl callback block parameter
   def each_child(&bl)
     @entities_lock.synchronize{
       @galaxies.each { |g|
@@ -161,6 +223,16 @@ class Registry
     }
   end
 
+  # Helper method to create a new parent for the entity if it doesn't exist.
+  #
+  # Should be invoked before a entity is added to the registry or to another
+  # entity on the heirarchy. Mostly intended to provide a mechanism to create
+  # a parent to reference for remotely tracked entities (for example to create a
+  # local parent for a solar system being tracked on a different server than its
+  # galaxy).
+  #
+  # @param [CosmosEntity] entity entity to create
+  # @param [String] parent_name name of entity's parent, will be looked up, not created if found
   def create_parent(entity, parent_name)
     if entity.is_a?(Cosmos::Galaxy)
       return :universe
@@ -178,7 +250,16 @@ class Registry
     return nil
   end
 
-  # return the resource sources for the specified entity
+  # Return an array of {Cosmos::ResourceSource}s matching the specified criteria
+  #
+  # If invoked with no arguments, returns all resourse sources, else returns
+  # those matching the specified criteria.
+  #
+  # @param [Hash] args arguments to filter cosmos entities with
+  # @option args [String] :entity_id string name of the entity containing the resource to match
+  # @option args [String] :resource_name string name of the resource to match
+  # @option args [String] :resource_type string type of the resource to match
+  # @return [Array<Cosmos::ResourceSource>] array of matching resource sources
   def resources(args = {})
     entity_id     = args[:entity_id]
     resource_name = args[:resource_name]
@@ -195,7 +276,12 @@ class Registry
     rs
   end
 
-  # set the resource for the specified entity
+  # Set the resource for the specified entity
+  #
+  # @param [String] entity_id name of the entity to add resource too, must correspond to an entity type that can accept resources
+  # @param [Cosmos::Resource] resource resource to add to entity
+  # @param [Integer] quantity amount of resource to add to entity
+  # @return [Cosmos::ResourceSource,nil] resource source added, nil if not added
   def set_resource(entity_id, resource, quantity)
     entity = find_entity(:name => entity_id)
     return if entity.nil? || resource.nil? ||
@@ -231,17 +317,18 @@ class Registry
     return rs
   end
 
+   # Convert entities stored in registry to json representation and return
    def to_json(*a)
      @galaxies.to_json(*a)
    end
 
-  # Save state of the registry to specified stream
+  # Save state of the registry to specified io stream
   def save_state(io)
     galaxies.each { |galaxy| io.write galaxy.to_json + "\n" }
     resource_sources.each { |rs| io.write rs.to_json + "\n" }
   end
 
-  # restore state of the registry from the specified stream
+  # restore state of the registry from the specified io stream
   def restore_state(io)
     io.each { |json|
       entity = JSON.parse(json)

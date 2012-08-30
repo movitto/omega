@@ -10,17 +10,35 @@ require 'thread'
 
 module Cosmos
 
+# Utility to fetch remotely tracked entities and their children
+# from a remote cosmos server via AMQP.
 class RemoteCosmosManager
   class << self
+    # @!group Config options
+
+    # Username to login to remote node with
+    # @!scope class
     attr_accessor :user
+
+    # Password to login to remote node
+    # @!scope class
     attr_accessor :password
+
+    # @!endgroup
   end
 
+  # RemoteCosmosManager initializer
   def initialize
     @nodes = {}
     @lock  = Mutex.new
   end
 
+  # Return a RJR::AMQPNode to send messages to the specified queue
+  #
+  # An AMQPNode will be instantiated for each different queue, and
+  # an internal array is used to keep track of them.
+  # @param [String] queue name of queue to connect to
+  # @return RJR::AMQPNode to be used to send and received messages to/from queue
   def remote_node_for(queue)
     unless @nodes.has_key?(queue)
       # FIXME lookup which broker is running queue & user credentials to use
@@ -40,6 +58,10 @@ class RemoteCosmosManager
     @nodes[queue]
   end
 
+  # Retrieve and return entity from its specified remote queue
+  #
+  # @param [CosmosEntity] entity entity which to retrieve from the queue specified by its remote_queue attribute
+  # @return result of 'cosmos::get_entity' call on remote_queue
   def get_entity(entity)
     @lock.synchronize{
       entity_type = entity.class.to_s.downcase.underscore.split('/').last.intern
@@ -48,6 +70,10 @@ class RemoteCosmosManager
     }
   end
 
+  # Create entity on its specified remote queue
+  #
+  # @param [CosmosEntity] entity to create via the queue specified by its remote_queue attribute
+  # @param [String] parent_name name on entity's parent
   def create_entity(entity, parent_name)
     @lock.synchronize{
       trq = entity.remote_queue
@@ -60,9 +86,11 @@ class RemoteCosmosManager
     }
   end
 
+  # Set resource on remote entity (TBD)
   def set_resource(entity, resource, quantity)
   end
 
+  # Get a remote entity's resources (TBD)
   def get_resource_sources(entity)
   end
 
