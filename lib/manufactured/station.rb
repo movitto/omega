@@ -4,13 +4,28 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Manufactured
+
+# A player owned entity residing in a {Cosmos::SolarSystem}.
+# They can move inbetween systems on their own without requiring a
+# {Cosmos::JumpGate}. May construct other manufactured entities
+# depending on the station type.
 class Station
+  # Unique string id of the station
   attr_accessor :id
+
+  # ID of user which station belongs to
   attr_accessor :user_id
+
+  # Size of the station
+  #
+  # TODO replace with a more accurate description of station's geometry
   attr_accessor :size
 
-  # hash of operation names to array of errors invoked during operation
+  # Error invoked during operations if any, mapping between operation
+  # identifiers (symbols) and array of string errors
   attr_accessor :errors
+
+  # Clear operation errors
   def clear_errors(args = {})
     if args.has_key?(:of_type)
       @errors[args[:of_type]] = []
@@ -19,55 +34,91 @@ class Station
     end
   end
 
+  # [Motel::Location] of the station in its parent solar system
   attr_reader :location
+
+  # Set location of station in its parent solar system
+  #
+  # Will set the parent of the specified location to correspond to the solar system's location object
+  # @param [Motel::Location] val location to assign to the station
   def location=(val)
     @location = val
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
+  # [STATION_TYPE] General category / classification of station
   attr_reader :type
+
+  # Set station type
+  #
+  # Assigns size to that corresponding to type
+  # @param [STATION_TYPE] val type to assign to the station
   def type=(val)
     @type = val
     @size = STATION_SIZES[val]
   end
 
-  # system station is in
+  # [Cosmos::SolarSystem] the station is in
   attr_reader :solar_system
+
+  # Set solar system the station is in
+  #
+  # Assigns the parent of the station's location to the location corresponding to the new solar system
+  # @param [Cosmos::SolarSystem] val solar system parent to assign to the station
   def solar_system=(val)
     @solar_system = val
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
-  # movement properties
+  # Distance station travels during a single movement cycle
+  #
+  # TODO make stations stationary in a system ?
   attr_accessor :movement_speed
 
-  # map of resources contained in the station to quantities
+  # Mapping of ids of resources contained in the station to quantities contained
   attr_reader :resources
 
-  # docking properties
+  # Max distance a ship can be from station to dock with it
   attr_reader :docking_distance
 
-  # cargo properties
+  # Max cargo capacity of station
+  # @see #cargo_quantity
   attr_accessor :cargo_capacity
-  # see cargo_quantity below
 
-  # max distance which construction occurs
+  # Distance away from the station which new entities are constructed
   attr_reader :construction_distance
 
+  # General station classification, used to determine
+  # a station's capabilities
   STATION_TYPES = [:defense, :offense, :mining, :exploration, :science,
                    :technology, :manufacturing, :commerce]
 
+  # Mapping of station types to default sizes
   STATION_SIZES = {:defense => 35, :offense => 35, :mining => 27,
                    :exploration => 20, :science => 20,
                    :technology => 20, :manufacturing => 40,
                    :commerce => 30}
 
+  # Return the cost to construct a station of the specified type
+  #
   # TODO right now just return a fixed cost for every station, eventually make more variable
+  #
+  # @param [STATION_TYPE] type type of station which to return construction cost
+  # @return [Integer] quantity of resources required to construct station
   def self.construction_cost(type)
     100
   end
 
-
+  # Station initializer
+  # @param [Hash] args hash of options to initialize attack command with
+  # @option args [String] :id,'id' id to assign to the station
+  # @option args [String] :user_id,'user_id' id of user that owns the station
+  # @option args [STATION_TYPE] :type,'type' type to assign to station, if not set a random type will be assigned
+  # @option args [Integer] :size,'size' size to assign to station, if not set will be set to size corresponding to type
+  # @option args [Hash<Symbol,Array<String>] :errors,'errors' operation errors to set on station
+  # @option args [Hash<String,Int>] :resources,'resources' hash of resource ids to quantities contained in the station
+  # @option args [Cosmos::SolarSystem] :solar_system,'solar_system' solar system which the station is in
+  # @option args [Motel::Location] :location,'location' location of the station in the solar system
   def initialize(args = {})
     @id       = args['id']       || args[:id]
     @type     = args['type']     || args[:type]
@@ -96,6 +147,19 @@ class Station
     @location.z = 0 if @location.z.nil?
   end
 
+  # Return boolean indicating if this station is valid
+  #
+  # Tests the various attributes of the Station, returning true
+  # if everything is consistent, else false.
+  #
+  # Current tests
+  # * id is set to a valid (non-empty) string
+  # * location is set to a Motel::Location
+  # * user id is set to a string
+  # * type is one of valid STATION_TYPES
+  # * size corresponds to the correct value for type
+  # * solar system is set to Cosmos::SolarSystem
+  # * resources is a hash of resource ids to quantities
   def valid?
     !@id.nil? && @id.is_a?(String) && @id != "" &&
     !@location.nil? && @location.is_a?(Motel::Location) &&
@@ -107,6 +171,10 @@ class Station
     # TODO validate cargo properties when they become variable
   end
 
+  # Return true / false indicating station permits specified ship to dock
+  #
+  # @param [Manufactured::Ship] ship ship which to give or deny docking clearance
+  # @return [true,false] indicating if ship is allowed to dock at station
   def dockable?(ship)
     # TODO at some point we may want to limit
     # the number of ships able to be ported at a station at a given time,
@@ -116,20 +184,35 @@ class Station
     !ship.docked?
   end
 
+  # Return stations's parent solar system
+  #
+  # @return [Cosmos::SolarSystem]
   def parent
     return self.solar_system
   end
 
+  # Set stations's parent solar system
+  # @param [Cosmos::SolarSystem] system solar system to assign to station
   def parent=(system)
     self.solar_system = system
   end
 
+  # Add specified quantity of resource specified by id to station
+  #
+  # @param [String] resource_id id of resource being added
+  # @param [Integer] quantity amount of resource to add
+  # @raise [Omega::OperationError] if station cannot accept specified quantity of resource
   def add_resource(resource_id, quantity)
     raise Omega::OperationError, "station cannot accept resource" unless can_accept?(resource_id, quantity) # should we define an exception heirarchy local to manufactured so as not to pull in omega here?
     @resources[resource_id] ||= 0
     @resources[resource_id] += quantity
   end
 
+  # Remove specified quantity of resource specified by id from station
+  #
+  # @param [String] resource_id id of resource being removed
+  # @param [Integer] quantity amount of resource to remove
+  # @raise [Omega::OperationError] if station does not have the specified quantity of resource
   def remove_resource(resource_id, quantity)
     unless @resources.has_key?(resource_id) && @resources[resource_id] >= quantity
       raise Omega::OperationError, "ship does not contain specified quantity of resource" 
@@ -138,6 +221,9 @@ class Station
     @resources.delete(resource_id) if @resources[resource_id] <= 0
   end
 
+  # Determine the current cargo quantity
+  #
+  # @return [Integer] representing the amount of resource/etc in the station
   def cargo_quantity
     q = 0
     @resources.each { |id, quantity|
@@ -146,6 +232,12 @@ class Station
     q
   end
 
+  # Return boolean if station can transfer specified quantity of resource
+  # specified by id to specified destination
+  #
+  # @param [Manufactured::Entity] to_entity entity which resource is being transfered to
+  # @param [String] resource_id id of resource being transfered
+  # @param [Integer] quantity amount of resource being transfered
   def can_transfer?(to_entity, resource_id, quantity)
     @id != to_entity.id &&
     @resources.has_key?(resource_id) &&
@@ -154,11 +246,21 @@ class Station
     ((@location - to_entity.location) <= @transfer_distance)
   end
 
+  # Return boolean indicating if station can accpt the specified quantity
+  # of the resource specified by id
+  #
+  # @param [String] resource_id id of resource being transfered
+  # @param [Integer] quantity amount of resource being transfered
   def can_accept?(resource_id, quantity)
     self.cargo_quantity + quantity <= @cargo_capacity
   end
 
-  # determine if the station can construct a new entity w/ the specified args
+  # Return true / false indiciating if station can construct entity specified by args.
+  #
+  # Also sets @errors[:construction] if station cannot construct entity.
+  #
+  # @param [Hash] args args which will be passed to {#construct} to construct entity
+  # @return [true,false] indicating if station can construct entity
   def can_construct?(args = {})
     entity_type = args[:entity_type]
     cargs       = {}
@@ -188,7 +290,15 @@ class Station
     return false
   end
 
-  # use this station to construct new manufactured entities
+  # Use this station to construct new manufactured entities.
+  #
+  # Sets up the entity in the correct context, including the right
+  # location properties and verifies its validitiy before deducting
+  # resources necessary to construct and instanting new entity.
+  #
+  # @param [Hash] args hash of options to pass to new entity being initialized
+  # @option args [String] :entity_type,'entity_type' string class name of entity being constructed
+  # @return new entity created, nil otherwise
   def construct(args = {})
     # verify station is of manufacturing type
     return nil unless @type == :manufacturing
@@ -256,10 +366,12 @@ class Station
     entity
   end
 
+  # Convert station to human readable string and return it
   def to_s
     "station-#{@id}"
   end
 
+  # Convert station to json representation and return it
    def to_json(*a)
      {
        'json_class' => self.class.name,
@@ -274,9 +386,10 @@ class Station
      }.to_json(*a)
    end
 
+  # Create new station from json representation
    def self.json_create(o)
-     ship = new(o['data'])
-     return ship
+     station = new(o['data'])
+     return station
    end
 
 end

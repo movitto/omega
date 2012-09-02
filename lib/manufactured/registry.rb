@@ -8,10 +8,17 @@ require 'singleton'
 
 module Manufactured
 
+# Primary server side entity tracker for Manufactured module.
+#
+# Provides a thread safe registry through which manufactured
+# entity heirarchies and resources can be accessed.
+#
+# Singleton class, access via Manufactured::Registry.instance.
 class Registry
   include Singleton
 
-  # ships we are tracking
+  # Return array of ships being managed
+  # @return [Array<Manufactured::Ship>]
   def ships
     ret = []
     @entities_lock.synchronize {
@@ -20,7 +27,8 @@ class Registry
     return ret
   end
 
-  # stations we are tracking
+  # Return array of stations being managed
+  # @return [Array<Manufactured::Station>]
   def stations
     ret = []
     @entities_lock.synchronize {
@@ -29,7 +37,8 @@ class Registry
     return ret
   end
 
-  # fleets we are tracking
+  # Return array of fleets being managed
+  # @return [Array<Manufactured::Fleet>]
   def fleets
     ret = []
     @entities_lock.synchronize {
@@ -38,22 +47,30 @@ class Registry
     return ret
   end
 
-  # holds ships which have been destroyed
+  # [Array<Manufactured::Ship>] array of ships that have been destoryed
   attr_reader :ship_graveyard
 
-  # attack commands client has issued to be regularily run
+  # [Array<Manufactured::AttackCommand>] attack commands clients has issued to be regularily run
   attr_reader :attack_commands
 
-  # mining commands client has issued to be regularily run
+  # [Array<Manufactured::MiningCommand>] mining commands clients has issued to be regularily run
   attr_reader :mining_commands
 
+  # Time attack thread sleeps between attack cycles
   ATTACK_POLL_DELAY = 0.5 # TODO make configurable?
+
+  # Time mining thread sleeps between attack cycles
   MINING_POLL_DELAY = 0.5 # TODO make configurable?
 
+  # Manufactured::Registry initializer
   def initialize
     init
   end
 
+  # Reinitialize the Manufactured::Registry
+  #
+  # Clears all local trackers and starts threads to
+  # run attack and mining cycles
   def init
     @ships    = []
     @stations = []
@@ -70,18 +87,21 @@ class Registry
     @mining_thread = Thread.new { mining_cycle }
   end
 
+  # Return array of classes of manufactured entity types
   def entity_types
     [Manufactured::Ship,
      Manufactured::Station,
      Manufactured::Fleet]
   end
 
+  # Return boolean indicating if registry is running its various worker threads
   def running?
     !@terminate_cycles && !@attack_thread.nil? && !@mining_thread.nil? &&
     (@attack_thread.status == 'run' || @attack_thread.status == 'sleep') &&
     (@mining_thread.status == 'run' || @mining_thread.status == 'sleep')
   end
 
+  # Terminate registry worker threads
   def terminate
     @terminate_cycles = true
 
@@ -89,13 +109,32 @@ class Registry
     @mining_thread.join unless @mining_thread.nil?
   end
 
-  # runs a block of code as an operation protected by the entities lock
+  # Run the specified block of code as a protected operation.
+  #
+  # This should be used when updating any manufactured entities outside
+  # the scope of registry operations to protect them from concurrent access.
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
+  # @param [Callable] bl block to invoke
   def safely_run(*args, &bl)
     @entities_lock.synchronize {
       bl.call *args
     }
   end
 
+  # Lookup and return entities in registry.
+  #
+  # By default, with no arguments, returns a flat list of all entities
+  # tracked by the registry. Takes a hash of arguments to filter entities
+  # by.
+  #
+  # @param [Hash] args arguments to filter manufatured entities with
+  # @option args [String] :id string id to match
+  # @option args [String] :parent_id string name of entity containing manufactured entities to match
+  # @option args [String] :user_id string user id of entity ownining manufactured entities to match
+  # @option args [String,:symbol] :type string class name of entities to match
+  # @option args [Integer] :location_id integer location id  to match, if specified first matching result will be returned, nil if none found
+  # @return [Array<ManufacturedEntity>] matching manufactured entities if any
   def find(args = {})
     id        = args[:id]
     parent_id = args[:parent_id]
@@ -116,6 +155,7 @@ class Registry
     entities
   end
 
+  # Return child ships, stations, fleets tracked by the registry
   def children
     children = []
     @entities_lock.synchronize{
@@ -124,6 +164,14 @@ class Registry
     children
   end
 
+  # Add child manufactured entity to registry
+  #
+  # Performs basic checks to ensure entity can added to registry
+  # before adding to appropriate array
+  #
+  # @param [Cosmos::ManufacturedEntity] entity entity to add to registry
+  # @raise ArgumentError if entity cannot be added to registry for whatever reason
+  # @return [Cosmos::ManufacturedEntity] entity added to the registry
   def create(entity)
     raise ArgumentError, "entity must be a ship, station, or fleet" if ![Manufactured::Ship,
                                                                          Manufactured::Station,
@@ -158,6 +206,13 @@ class Registry
     return entity
   end
 
+  # Perform resource transfer operation between manufactured entities
+  #
+  # @param [Manufactured::Entity] from_entity entity intiating transfer
+  # @param [Manufactured::Entity] to_entity entity to receivereceived resources
+  # @param [String] resource_id string id of the reosurce
+  # @param [Integer] quantity amount of reosurce to transfer
+  # @return [Array<Manufactured::Entity,Manufactured::Entity>, nil] array containing from_entity and to_entity or nil if transfer could not take place
   def transfer_resource(from_entity, to_entity, resource_id, quantity)
     @entities_lock.synchronize{
       # TODO throw exception ?
@@ -176,7 +231,9 @@ class Registry
     }
   end
 
-  # add new attack command to run
+  # Register new {Manufactured::AttackCommand} to be run during attack cycle
+  #
+  # @param [Hash] args args to intialize the attack command with
   def schedule_attack(args = {})
     @entities_lock.synchronize{
       cmd = AttackCommand.new(args)
@@ -185,7 +242,9 @@ class Registry
     }
   end
 
-  # add new mining command to run
+  # Register new {Manufactured::MiningCommand} to be run during mining cycle
+  #
+  # @param [Hash] args args to intialize the mining command with
   def schedule_mining(args = {})
     @entities_lock.synchronize{
       cmd = MiningCommand.new(args)
@@ -193,7 +252,9 @@ class Registry
     }
   end
 
-  # invoked in thread to periodically invoke attack commands
+  # Run attack commands until instructed to stop
+  #
+  # @see #terminate
   def attack_cycle
     until @terminate_cycles
       @entities_lock.synchronize{
@@ -221,7 +282,9 @@ class Registry
     end
   end
 
-  # invoked in thread to periodically invoke mining commands
+  # Run mining commands until instructed to stop
+  #
+  # @see #terminate
   def mining_cycle
     until @terminate_cycles
       @entities_lock.synchronize{
@@ -250,7 +313,7 @@ class Registry
     end
   end
 
-  # Save state of the registry to specified stream
+  # Save state of the registry to specified io stream
   def save_state(io)
     children.each { |entity| 
       unless entity.is_a?(Manufactured::Fleet)
@@ -261,7 +324,7 @@ class Registry
     nil
   end
 
-  # restore state of the registry from the specified stream
+  # Restore state of the registry from the specified io stream
   def restore_state(io)
     io.each { |json|
       entity = JSON.parse(json)

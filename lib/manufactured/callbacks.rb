@@ -5,17 +5,25 @@
 
 module Manufactured
 
-# Manufactured callback, provides access to invocable handler
+# Base Manufactured callback, provides mechanism to register
+# a callback handler for the specified manufactured event.
 class Callback
-  # type of callback
+  # Type of callback, the manufactured event on which to trigger the handler
   attr_accessor :type
 
-  # Accessor which will be invoked upon callback event
+  # Callable object to be invoked upon event
   attr_accessor :handler
 
-  # endpoint_id which this callback is being used for
+  # ID of RJR endpoint (node) which registered this callback
   attr_accessor :endpoint_id
 
+  # Callback initializer
+  #
+  # @param [String] type type of manufactured event on which this callback should be triggered
+  # @param [Hash] args hash of options to initialize asteroid with
+  # @option args [String] :endpoint,'endpoint' endpoint registering this callback
+  # @option args [Callable] :handler,'handler' handler to invoke on the event
+  # @param [Callable] block handler to invoke on the event
   def initialize(type, args = {}, &block)
     @type    = type.is_a?(Symbol)? type : type.intern
     @handler = args[:handler] if args.has_key?(:handler)
@@ -24,10 +32,12 @@ class Callback
     @endpoint_id = args[:endpoint] || args['endpoint']
   end
 
+  # Invoke the callcack handler w/ the specified args
   def invoke(*args)
     handler.call *args
   end
 
+  # Convert callback to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -36,6 +46,7 @@ class Callback
     }.to_json(*a)
   end
 
+  # Create new callback from json representation
   def self.json_create(o)
     callback = new(o['data']['type'], o['data'])
     return callback

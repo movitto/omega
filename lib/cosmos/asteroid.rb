@@ -59,7 +59,7 @@ class Asteroid
 
   # Return boolean indicating if this asteroid is valid.
   #
-  # Tests the various attributes of the Asteroid, returning 'true'
+  # Tests the various attributes of the Asteroid, returning true
   # if everything is consistent, else false.
   #
   # Currently tests

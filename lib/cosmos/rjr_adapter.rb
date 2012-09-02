@@ -12,9 +12,9 @@ module Cosmos
 # Do not instantiate as interface is defined on the class.
 class RJRAdapter
 
-  # Return user which remote cosmos manager can use to connect to the local node.
+  # Return user which can invoke privileged cosmos operations over rjr
   #
-  # First nstantiates user if it doesn't exist.
+  # First instantiates user if it doesn't exist.
   def self.user
     # FIXME
     @@cosmos_user ||= Users::User.new(:id => 'cosmos',

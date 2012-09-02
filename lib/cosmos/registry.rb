@@ -10,7 +10,7 @@ module Cosmos
 # Provides a thread safe registry through which cosmos
 # entity heirarchies and resources can be accessed.
 #
-# Singleton class, access via Cosmos.instance.
+# Singleton class, access via Cosmos::Registry.instance.
 class Registry
   include Singleton
 

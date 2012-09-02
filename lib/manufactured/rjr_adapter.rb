@@ -7,13 +7,21 @@ require 'active_support/inflector'
 
 module Manufactured
 
+# Provides mechanisms to invoke Manufactured subsystem functionality remotely over RJR.
+#
+# Do not instantiate as interface is defined on the class.
 class RJRAdapter
+
+  # Return user which can invoke privileged manufactured operations over rjr
+  #
+  # First instantiates user if it doesn't exist.
   def self.user
     # FIXME set id / pass from config
     @@manufactured_user ||= Users::User.new(:id => 'manufactured',
                                             :password => 'changeme')
   end
 
+  # Initialize the Manufactured subsystem and rjr adapter.
   def self.init
     self.register_handlers(RJR::Dispatcher)
     #Manufactured::Registry.instance.init
@@ -32,6 +40,9 @@ class RJRAdapter
     @@local_node.message_headers['session_id'] = session.id
   end
 
+  # Register handlers with the RJR::Dispatcher to invoke various manufactured operations
+  #
+  # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('manufactured::create_entity'){ |entity|
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
