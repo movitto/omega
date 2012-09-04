@@ -5,6 +5,8 @@
 
 module Motel
 
+# Error raised by the {Motel::Runner} and other subsystems
+# when a movement strategy is invalid in its context
 class InvalidMovementStrategy  < RuntimeError
    def initialize(msg)
       super(msg)

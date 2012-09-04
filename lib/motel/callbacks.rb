@@ -10,14 +10,32 @@ module Motel
 
 module Callbacks
 
-# Base Motel callback interface, provides access to invocable handler
+# Base Motel callback interface, through which a specified handler may
+# be invoked on certain conditions.
+#
+# Instantiate a callback with a handler to invoke and the endpoint (rjr node) which
+# the handler is for. When the callback is ready to be used, the {#invoke} method
+# will invoke the handler with the specified argument list
+#
+# Subclasses should override the 'initialize' and 'invoke' methods to store
+# conditions to check before invoking 'super' with the desired args to
+# invoke the handler
+#
+# @see Motel::Callbacks::Movement
+# @see Motel::Callbacks::Proximity
 class Base
-  # Accessor which will be invoked upon callback event
+  # Callable object to be invoked upon callback event
   attr_accessor :handler
 
-  # endpoint_id which this callback is being used for
+  # Endpoing (rjr node) which this callback is being used for
   attr_accessor :endpoint_id
 
+  # Motel::Callbacks::Base initializer
+  #
+  # @param [Hash] args hash of options to initialize callback with
+  # @option args [Callable] :handler,'handler' handler to invoke on the event
+  # @param [Callable] block handler to invoke on the event (will be set to the block parameter passed in if specified)
+  # @option args [String] :endpoint,'endpoint' endpoint registering this callback
   def initialize(args = {}, &block)
     @handler = args[:handler] if args.has_key?(:handler)
     @handler = block if block_given?
@@ -25,20 +43,43 @@ class Base
     @endpoint_id = args[:endpoint] || args['endpoint']
   end
 
+  # Invoke the registered handler w/ the specified args
+  #
+  # @param [Array] args catch-all array of args to invoke handler with
   def invoke(*args)
     handler.call *args
   end
 
 end
 
-# Invoked upon specified minimum location movement
+# Extends the {Motel::Callbacks::Base} interface to only invoke callback
+# if a location moves a specified minimum distance.
+#
+# The client may specify the minimum overall distance and/or the minimum
+# distance along any axis (x,y,z).
+#
+# *note* *all* minimum conditions will need to be met to trigger handler!
+# So if minimum_distance and min_x are specified, the location will have
+# need to have moved both the minimum overall distance *and* the minimum
+# distance along the x axis.
 class Movement < Base
-  # Minimum distance the location needs to move to trigger event
+  # Minimum distance the location needs to move to trigger event.
   attr_accessor :min_distance
 
   # Minimum x,y,z distance the location needs to move to trigger the event
   attr_accessor :min_x, :min_y, :min_z
 
+  # Motel::Callbacks::Movement initializer
+  #
+  # @param [Hash] args hash of options to initialize callback with
+  # @option args [Integer] :min_distance,'min_distance' minium distance location
+  #   needs to move before handler in invoked
+  # @option args [Integer] :min_x,'min_x' minium distance location
+  #   needs to move along x axis before handler in invoked
+  # @option args [Integer] :min_y,'min_y' minium distance location
+  #   needs to move along y axis before handler in invoked
+  # @option args [Integer] :min_z,'min_z' minium distance location
+  #   needs to move along z axis before handler in invoked
   def initialize(args = {}, &block)
     @min_distance = args[:min_distance] || args['min_distance'] || 0
     @min_x        = args[:min_x]        || args['min_x']        || 0
@@ -53,7 +94,13 @@ class Movement < Base
     super(args, &block)
   end
 
-  # Calculate distance between location and old coordinates, invoke handler w/ location if minimums are true
+  # Calculate distance between location and old coordinates, and
+  # invoke handler w/ location if minimums are true
+  #
+  # @param [Motel::Location] new_location current position of location to check
+  # @param [Integer, Float] old_x old x position of location
+  # @param [Integer, Float] old_y old y position of location
+  # @param [Integer, Float] old_z old z position of location
   def invoke(new_location, old_x, old_y, old_z)
      # unless original coordinates is nil, ignore old coordinates passed in
      if @orig_x.nil?
@@ -73,10 +120,12 @@ class Movement < Base
      end
   end
 
+  # Convert callback to human readable string and return it
   def to_s
     "(#{@min_distance},#{@min_x},#{@min_y},#{@min_z})"
   end
 
+  # Convert callback to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -86,18 +135,33 @@ class Movement < Base
     }.to_json(*a)
   end
 
+  # Create new callback from json representation
   def self.json_create(o)
     callback = new(o['data'])
     return callback
   end
 end # class Movement
 
-# Invoked upon specified maximum distance between locations
+# Extends the {Motel::Callbacks::Base} interface to only invoke callback
+# if two locations are within the specified maximum distance of each other.
+#
+# The client may specify the maximum overall distance and/or the maximum
+# distance along any axis (x,y,z).
+#
+# *note* *all* maximum conditions will need to be met to trigger handler!
+# So if maximum_distance and max_x are specified, the location will have
+# need to have moved both the minimum overall distance *and* the minimum
+# distance along the x axis.
 class Proximity < Base
-  # location which to compare to
+  # [Motel::Location] which to compare proximity of other location to
   attr_accessor :to_location
 
-  # proximity event which to trigger on
+  # [:proximity,:entered_proximity,:left_proximity] Proximity event which to trigger on.
+  #
+  # May correspond to:
+  # * :proximity - trigger callback handler every time when locations are in proximity
+  # * :entered_proximity - trigger callback handler only once after every time locations enter proximity of each other
+  # * :left_proximityy - trigger callback handler only once after every time locations leave proximity of each other
   attr_accessor :event
 
   # Max distance the locations needs to be apart to trigger event
@@ -106,6 +170,20 @@ class Proximity < Base
   # Max x,y,z distance the locations need to be to trigger the event
   attr_accessor :max_x, :max_y, :max_z
 
+  # Motel::Callbacks::Movement initializer
+  #
+  # @param [Hash] args hash of options to initialize callback with
+  # @option args [String] :event,'event' proximity event on which to trigger hander see {#event}
+  # @option args [Integer] :max_distance,'max_distance' maximum distance locations
+  #   can be apart to trigger handler
+  # @option args [Integer] :max_x,'max_x' maximum distance locations
+  #   can be apart to trigger handler
+  # @option args [Integer] :max_y,'max_y' maximum distance locations
+  #   can be apart to trigger handler
+  # @option args [Integer] :max_z,'max_z' maximum distance locations
+  #   can be apart to trigger handler
+  # @option args [Motel::Location] :to_location,'to_location' location which
+  #   to compare that specified to {#invoke} to to determine proximity
   def initialize(args = {}, &block)
     @to_location = nil
     @event = :proximity
@@ -126,6 +204,8 @@ class Proximity < Base
 
   # Calculate distance between specified location and stored one,
   # invoke handler w/ specified location if they are within proximity
+  #
+  # @param [Motel::Location] location location which to compare against @to_location
   def invoke(location)
      dx = (location.x - to_location.x).abs
      dy = (location.y - to_location.y).abs
@@ -144,10 +224,12 @@ class Proximity < Base
      super(location, to_location) if trigger_callback
   end
 
+  # Convert callback to human readable string and return it
   def to_s
     "(#{@max_distance},#{@max_x},#{@max_y},#{@max_z})"
   end
 
+  # Convert callback to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -158,6 +240,7 @@ class Proximity < Base
     }.to_json(*a)
   end
 
+  # Create new callback from json representation
   def self.json_create(o)
     callback = new(o['data'])
     return callback

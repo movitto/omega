@@ -8,13 +8,20 @@ require 'rjr/dispatcher'
 
 module Motel
 
+# Provides mechanisms to invoke Motel subsystem functionality remotely over RJR.
+#
+# Do not instantiate as interface is defined on the class.
 class RJRAdapter
+  # Initialize the Motel subsystem and rjr adapter.
   def self.init
     self.register_handlers(RJR::Dispatcher)
     Motel::Runner.instance.start :async => true
     @@remote_location_manager = RemoteLocationManager.new
   end
 
+  # Register handlers with the RJR::Dispatcher to invoke various motel operations
+  #
+  # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler(['motel::get_location', 'motel::get_locations']) { |*args|
        return_first = false

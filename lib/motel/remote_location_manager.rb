@@ -10,17 +10,35 @@ require 'thread'
 
 module Motel
 
+# Utility to fetch remotely tracked entities and their children
+# from a remote motel server via AMQP.
 class RemoteLocationManager
   class << self
+    # @!group Config options
+
+    # Username to login to remote node with
+    # @!scope class
     attr_accessor :user
+
+    # Password to login to remote node with
+    # @!scope class
     attr_accessor :password
+
+    # @!endgroup
   end
 
+  # RemoteLocationManager initializer
   def initialize
     @nodes = {}
     @lock  = Mutex.new
   end
 
+  # Return a RJR::AMQPNode to send messages to the specified queue
+  #
+  # An AMQPNode will be instantiated for each different queue, and
+  # an internal array is used to keep track of them.
+  # @param [String] queue name of queue to connect to
+  # @return RJR::AMQPNode to be used to send and received messages to/from queue
   def remote_node_for(queue)
     unless @nodes.has_key?(queue)
       # FIXME lookup which broker is running queue & user credentials to use
@@ -40,6 +58,10 @@ class RemoteLocationManager
     @nodes[queue]
   end
 
+  # Retrieve and return location from its specified remote queue
+  #
+  # @param [Motel::Location] location location which to retrieve from the queue specified by its remote_queue attribute
+  # @return result of 'motel::get_location' call on remote_queue
   def get_location(location)
     @lock.synchronize{
       node = remote_node_for(location.remote_queue)
@@ -47,6 +69,9 @@ class RemoteLocationManager
     }
   end
 
+  # Create location on its specified remote queue
+  #
+  # @param [Motel::Location] location location to create via the queue specified by its remote_queue attribute
   def create_location(location)
     @lock.synchronize{
       trq = location.remote_queue
@@ -59,6 +84,9 @@ class RemoteLocationManager
     }
   end
 
+  # Update location via its remote queue
+  #
+  # @param [Motel::Location] location location to update via its remote_queue attribute
   def update_location(location)
     @lock.synchronize{
       trq = location.remote_queue
@@ -71,9 +99,11 @@ class RemoteLocationManager
     }
   end
 
+  # Track the movement of a remote location (TBD)
   def track_movement
   end
 
+  # Track the proximity of a remote location (TBD)
   def track_proximity
   end
 

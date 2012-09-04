@@ -21,6 +21,9 @@ class Runner
   # For testing purposes
   attr_reader :terminate, :run_thread
 
+   # Runner initializer
+   #
+   # @param [Hash] args hash of options to initialize runner with, currently unused
   def initialize(args = {})
     # is set to true upon runner termination
     @terminate = false
@@ -40,7 +43,13 @@ class Runner
     @run_thread = nil
   end
 
-  # runs a block of code as an operation protected by the schedule & run locks
+  # Run the specified block of code as a protected operation.
+  #
+  # This should be used when updating any motel entities outside
+  # the scope of runner operations to protect them from concurrent access.
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
+  # @param [Callable] bl block to invoke
   def safely_run(*args, &bl)
     @schedule_lock.synchronize {
       @run_lock.synchronize {
@@ -51,6 +60,8 @@ class Runner
 
 
   # Return complete list of locations being managed/tracked
+  #
+  # @return [Array<Motel::Location>]
   def locations
     ret = []
     # would rather not have to lock these both at the same time,
@@ -65,6 +76,10 @@ class Runner
     return ret
   end
 
+  # Return boolean indicating if the specified location id is tracked by this runner
+  #
+  # @param [Integer] id id of location to look for
+  # @return [true,false] indicating if location is tracked locally
   def has_location?(id)
     !locations.find { |l| l.id == id }.nil?
   end
@@ -78,8 +93,11 @@ class Runner
     }}
   end
 
-  # Add location to runner to be managed, after this is called, the location's
-  # movement strategy's move method will be invoked periodically
+  # Add location to runner to be managed.
+  #
+  # After this is called, the location's movement strategy's move method will be invoked periodically
+  # @param [Motel::Location] location location to add the the run queue
+  # @return [Motel::Location] location just added
   def run(location)
     @schedule_lock.synchronize {
       # autogenerate location.id if nil
@@ -107,8 +125,14 @@ class Runner
     return self
   end
 
-  # Start moving the locations. If :async => true is passed in, this will immediately
-  # return, else this will block until stop is called.
+  # Start running the locations.
+  #
+  # If :async => true is passed in, this will immediately return,
+  # else this will block until stop is called.
+  #
+  # @param [Hash] args option array of args which can be used to configure runner
+  # @option args [true,false] :async boolean indicating if we should immediately return or not
+  # @option args [Integer] :num_threads the number of worker threads to launch, currently unusued
   def start(args = {})
     @num_threads = 5
     @num_threads = args[:num_threads] if args.has_key? :num_threads
@@ -144,7 +168,7 @@ class Runner
     @run_thread = nil
   end
 
-  # Save state of the runner to specified stream
+  # Save state of the runner to specified io stream
   def save_state(io)
     locs = locations
     @schedule_lock.synchronize {
@@ -154,7 +178,7 @@ class Runner
     }
   end
 
-  # restore state of the runner from the specified stream
+  # Restore state of the runner from the specified io stream
   def restore_state(io)
     io.each { |json|
       entity = JSON.parse(json)

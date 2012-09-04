@@ -10,14 +10,31 @@ module Motel
 module MovementStrategies
 
 # The Follow MovementStrategy follows another location
-# at a specified distance
+# at a specified distance.
 #
-# To be valid you must specify tracked_location_id, distance, and speed
+# If location is at this distance, it will idle in the same location.
+# If nearer / further away this will continously calculate the direction
+# vector to the nearest point the specified distance away from the tracked
+# location and move in a linear fashion to it.
+#
+# To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
-   attr_accessor :tracked_location_id, :tracked_location, :distance
+   # [Motel::Location] ID of and handle to location which is being tracked
+   attr_accessor :tracked_location_id, :tracked_location
+
+   # Distance away from tracked location to try to maintain
+   attr_accessor :distance
    
+   # Distance the location moves per second (when moving)
    attr_accessor :speed
 
+   # Motel::MovementStrategies::Follow initializer
+   #
+   # @param [Hash] args hash of options to initialize the follow movement strategy with
+   # @option args [Integer] :tracked_location_id,'tracked_location_id' id of the location to track
+   # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
+   # @option args [Float] :speed,'speed' speed to assign to the movement strategy
+   # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      @tracked_location_id  = args[:tracked_location_id] || args['tracked_location_id']
      @distance             = args[:distance]            || args['distance']
@@ -32,13 +49,22 @@ class Follow < MovementStrategy
      raise InvalidMovementStrategy.new("follow movement strategy not valid") unless valid?
    end
 
+   # Return boolean indicating if this movement strategy is valid
+   #
+   # Tests the various attributes of the follow movement strategy, returning 'true'
+   # if everything is consistent, else false.
+   #
+   # Currently tests
+   # * tracked location id is not nil
+   # * speed is a valid float/fixnum > 0
+   # * distance is a valid float/fixnum > 0
    def valid?
      !@tracked_location_id.nil? &&
      [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
      [Float, Fixnum].include?(@distance.class) && @distance > 0
    end
 
-   # Motel::MovementStrategy::move
+   # Implementation of {Motel::MovementStrategy#move}
    def move(location, elapsed_seconds)
      unless valid? && !tracked_location.nil?
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
@@ -78,6 +104,7 @@ class Follow < MovementStrategy
      end
    end
 
+   # Convert movement strategy to json representation and return it
    def to_json(*a)
      { 'json_class' => self.class.name,
        'data'       => { :step_delay => step_delay,
@@ -87,6 +114,7 @@ class Follow < MovementStrategy
      }.to_json(*a)
    end
 
+   # Convert movement strategy to human readable string and return it
    def to_s
      "follow-(#{@tracked_location_id} at #{@distance})"
    end

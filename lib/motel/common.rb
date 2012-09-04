@@ -10,15 +10,18 @@ require 'logger'
 
 module Motel
 
-# generate a random id
+# Generate and return a random id
 def self.gen_uuid
   ["%02x"*4, "%02x"*2, "%02x"*2, "%02x"*2, "%02x"*6].join("-") %
       Array.new(16) {|x| rand(0xff) }
 end
 
-# normalize a vector if not normal already, 
-# eg divide each component x,y,z by the 
-# vector length and return them
+# Normalize and return specified vector
+#
+# @param [Integer,Float] x x component of vector
+# @param [Integer,Float] y y component of vector
+# @param [Integer,Float] z z component of vector
+# @return [Array<Float,Float,Float>] array with the normalized x,y,z components
 def self.normalize(x,y,z)
   return x,y,z if x.nil? || y.nil? || z.nil?
 
@@ -31,20 +34,37 @@ def self.normalize(x,y,z)
   return x,y,z
 end
 
-# determine if a vector is normalized
+# Return boolean indicating if the specified vector is normalized
+#
+# @param [Integer,Float] x x component of vector
+# @param [Integer,Float] y y component of vector
+# @param [Integer,Float] z z component of vector
+# @return [true,false] indicating if vector is normalized
 def self.normalized?(x,y,z)
   return false if x.nil? || y.nil? || z.nil?
   l = Math.sqrt(x**2 + y**2 + z**2)
   l.to_f.round_to(1) == 1  # XXX not quite sure why to_f.round_to(1) is needed
 end
 
-# determine if two vectors are orthogonal
+# Return boolean inidicating if two vectors are orthogonal
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+# @return [true,false] indicating if vectors are orthogonal
 def self.orthogonal?(x1,y1,z1, x2,y2,z2)
   return false if x1.nil? || y1.nil? || z1.nil? || x2.nil? || y2.nil? || z2.nil?
   return (x1 * x2 + y1 * y2 + z1 * z2).abs < 0.00001 # TODO close enough?
 end
 
-# generate two orthogonal, normalized vectors
+# Generate and return two orthogonal, normalized vectors
+#
+# @param [Hash] args hash of options to use when generating axis
+# @option args [2,3] :dimensions number of dimensions to create axis for. Must be 2 or 3 (if 2, z-coordinate will always be 0)
+# @return [Array<Array<Float,Float,Float>,Array<Float,Float,Float>>] array containing two arrays containing the x,y,z coordinates of the axis
 def self.random_axis(args = {})
   dimensions  = args[:dimensions]  || 3
   raise ArgumentError if dimensions != 2 && dimensions != 3
@@ -73,16 +93,23 @@ end
 
 end # module Motel
 
-# provide floating point rounding mechanism
+# We extend Float to provide floating point rounding mechanism
 class Float
+
+  # Round float to the specified precision
+  #
+  # @param [Integer] precision number of decimal places to return in float
+  # @return float rounded to the specified precision
   def round_to(precision)
      return nil if precision <= 0
      return (self * 10 ** precision).round.to_f / (10 ** precision)
   end
 end
 
-# so we don't need to distinguish between an int and float to use round_to
+# We extend Fixnum so we don't need to distinguish between an int and float
+# to use round_to
 class Fixnum
+  # Returns self (fixnums are always rounded)
   def round_to(precision)
     return self
   end
