@@ -144,7 +144,7 @@ class Ship
   end
 
   # Ship initializer
-  # @param [Hash] args hash of options to initialize attack command with
+  # @param [Hash] args hash of options to initialize ship with
   # @option args [String] :id,'id' id to assign to the ship
   # @option args [String] :user_id,'user_id' id of user that owns the ship
   # @option args [SHIP_TYPE] :type,'type' type to assign to ship, if not set a random type will be assigned

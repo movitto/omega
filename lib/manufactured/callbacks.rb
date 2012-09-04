@@ -20,7 +20,8 @@ class Callback
   # Callback initializer
   #
   # @param [String] type type of manufactured event on which this callback should be triggered
-  # @param [Hash] args hash of options to initialize asteroid with
+  #
+  # @param [Hash] args hash of options to initialize callback with
   # @option args [String] :endpoint,'endpoint' endpoint registering this callback
   # @option args [Callable] :handler,'handler' handler to invoke on the event
   # @param [Callable] block handler to invoke on the event
