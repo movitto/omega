@@ -156,6 +156,7 @@ class Registry
   end
 
   # Return child ships, stations, fleets tracked by the registry
+  # @return [Array<Manufactured::Ship,Manfuactured::Station,Manufactured::Fleet>]
   def children
     children = []
     @entities_lock.synchronize{

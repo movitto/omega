@@ -130,7 +130,7 @@ class Location
 
    # Update this location's attributes from other location
    #
-   # @param [Motel::Location] location location from which to copu values from
+   # @param [Motel::Location] location location from which to copy values from
    def update(location)
       @x = location.x unless location.x.nil?
       @y = location.y unless location.y.nil?

@@ -9,13 +9,23 @@ require 'singleton'
 
 module Users
 
+# Primary server side entity tracker for the Users module.
+#
+# Provides a thread safe registry through which users and alliances
+# can be accessed and managed.
+#
+# Also provides thread safe methods which to query users and privileges
+# based on a session id and other parameters
+#
+# Singleton class, access via Users::Registry.instance.
 class Registry
   include Singleton
 
-  # valid types this registry tracks
+  # Return array of classes of users types
   VALID_TYPES = [Users::User, Users::Alliance]
 
-  # user entities registry
+  # Return array of users tracked by this registry
+  # @return [Array<Users::User>]
   def users
     u = []
     @entities_lock.synchronize{
@@ -24,6 +34,8 @@ class Registry
     u
   end
 
+  # Return array of alliances tracked by this registry
+  # @return [Array<Users::Allianes>]
   def alliances
     a = []
     @entities_lock.synchronize{
@@ -32,13 +44,17 @@ class Registry
     a
   end
 
-  # user sessions registry
+  # [Array<Users::Session>] session tracked by this registry
   attr_accessor :sessions
 
+  # Users::Registry intitializer
   def initialize
     init
   end
 
+  # Reinitialize the Users::Registry.
+  #
+  # Clears all local tracker arrays.
   def init
     @users     = []
     @alliances = []
@@ -47,13 +63,32 @@ class Registry
     @entities_lock = Mutex.new
   end
 
-  # runs a block of code as an operation protected by the entities lock
+  # Run the specified block of code as a protected operation.
+  #
+  # This should be used when updating any users entities outside the scope of
+  # registry operations to protect them from concurrent access.
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to blcok on invocation
+  # @param [Callable] bl block to invoke
   def safely_run(*args, &bl)
     @entities_lock.synchronize {
       bl.call *args
     }
   end
 
+  # Lookup and return entities in registry.
+  #
+  # By default, with no arguments, returns a flat list of all entities
+  # tracked by the registry. Takes a hash of arguments to filter entities
+  # by.
+  #
+  # @param [Hash] args arguments to filter manufatured Users with
+  # @option args [String] :id string id to match
+  # @option args [String] :type string class name of entities to match
+  # @option args [String] :session_id string session id of user to return
+  # @option args [String] :registration_code string registration_code of user to return
+  # @option args [Array<String,String>] :with_privilege array containing id and entity_id of privilege to match. Users having this privilege will be returned
+  # @return [Array<Users::User,Users::Alliance>] matching entities found
   def find(args = {})
     id        = args[:id]
     type      = args[:type]
@@ -80,6 +115,13 @@ class Registry
     entities
   end
 
+  # Add child users entity to registry
+  #
+  # Performs basic checks to ensure entity can added to registry
+  # before adding to appropriate array
+  #
+  # @param [Users::User,Users::Alliance] entity entity to add to registry
+  # @return the specified entity
   def create(entity)
     @entities_lock.synchronize{
       if entity.is_a?(Users::User)
@@ -105,6 +147,9 @@ class Registry
     entity
   end
 
+  # Remove entitiy specifed by id from the registry
+  #
+  # @param [String] id id of entity to remove from the registry
   def remove(id)
     @entities_lock.synchronize{
       entity = nil
@@ -122,6 +167,9 @@ class Registry
     }
   end
 
+  # Return session for the specified user, if none exists create one first
+  #
+  # @param [Users::User] user which to create the session for
   def create_session(user)
     # just return user session if already existing
     session = @sessions.find { |s| s.user_id == user.id }
@@ -133,6 +181,11 @@ class Registry
     return session
   end
 
+  # Destroy the session specified by the given args
+  #
+  # @param [Hash] args hash of options to use to lookup sessions to delete
+  # @option [String] session_id id of the session to delete
+  # @option [String] user_id id of the user to delete sessions for
   def destroy_session(args = {})
     @sessions.delete_if { |session|
       session.id == args[:session_id] ||
@@ -140,12 +193,26 @@ class Registry
     }
   end
 
+  # Convenience wrapper around {#require_privilege}
   def self.require_privilege(*args)
     self.instance.require_privilege(*args)
   end
 
-  # TODO incorporate session privilege checks into a larger generic rjr ACL subsystem (allow generic acl validation objects to be registered for each handler)
+  # Requires user corresponding to the specified session to have
+  #   the privilege specified by the given args, raising an error
+  #   if that is not the case
+  #
+  # @param [Hash] args hash of options to use in permission check
+  # @option args [String] :session id of session to use to lookup user
+  # @option args [String] :privilege id of privilege which to check on user
+  # @option args [String] :entity id or of entity corresponding to privilege to check
+  # @option args [Array<Hash<Symbol,String>>] :any array of hashes containing :privilege and :entity attributes
+  #   corresponding to ids of privileges and corresponding entities to look for.
+  #   So long as the user has *at least one* of these privilege / entity pairs,
+  #   no error will be raised.
+  # @raise [Omega::PermissionError] if none of the specified privileges can be found
   def require_privilege(args = {})
+    # TODO incorporate session privilege checks into a larger generic rjr ACL subsystem (allow generic acl validation objects to be registered for each handler)
     session_id    = args[:session]
     privilege_ids = Array(args[:privilege])
     entity_ids    = Array(args[:entity])
@@ -185,10 +252,16 @@ class Registry
     end
   end
 
+  # Convenience wrapper around {#check_privilege}
   def self.check_privilege(args = {})
     self.instance.check_privilege(args)
   end
 
+  # Wrapper around {#require_privilege} that catches error and
+  # simply returns boolean indicating if user has / does not have privilege.
+  #
+  # Takes same parameter list as {#require privilege}
+  # @return [true,false] indicating if user has / does not have privilege
   def check_privilege(args = {})
     begin
       require_privilege(args)
@@ -198,10 +271,16 @@ class Registry
     return true
   end
 
+  # Convenience wrapper around {#current_user}
   def self.current_user(args = {})
     self.instance.current_user(args)
   end
 
+  # Return the {Users::User} corresponding to the specified session
+  #
+  # @param [Hash] args session args which to lookup the user with
+  # @option args [String] :session id of the session to lookup corresponding user for
+  # @return [Users::User,nil] user corresponding to session or nil if not found or session timed out
   def current_user(args = {})
     session_id = args[:session]
 
@@ -216,7 +295,7 @@ class Registry
     session.user
   end
 
-  # Save state of the registry to specified stream
+  # Save state of the registry to specified io stream
   def save_state(io)
     users.each { |user|
       @entities_lock.synchronize{
@@ -235,7 +314,7 @@ class Registry
     }
   end
 
-  # restore state of the registry from the specified stream
+  # restore state of the registry from the specified io stream
   def restore_state(io)
     prev_entity = nil
     io.each { |json|

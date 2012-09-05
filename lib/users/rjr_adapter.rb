@@ -8,22 +8,49 @@ require 'active_support/inflector'
 
 module Users
 
+# Provides mechanisms to invoke Users subsystem functionality remotely over RJR.
+#
+# Do not instantiate as interface is defined on the class.
 class RJRAdapter
   class << self
+    # @!group Config options
+
+    # Boolean toggling if recaptchas are enabled / required for user registration
+    # @!scope class
     attr_accessor :recaptcha_enabled
+
+    # String recaptch public key
+    # @!scope class
     attr_accessor :recaptcha_pub_key
+
+    # String recaptch private key
+    # @!scope class
     attr_accessor :recaptcha_priv_key
+
+    # Boolean indicating if mediawiki account should be created
+    #   on new user creation. Requires external mediawiki adapter script
+    # @!scope class
     attr_accessor :mediawiki_enabled
+
+    # String directory of mediawiki installation
+    # @!scope class
     attr_accessor :mediawiki_dir
+
+    # String URL of the omega server
+    # @!scope class
     attr_accessor :omega_url
   end
 
+  # Return user which can invoke privileged users operations over rjr
+  #
+  # First instantiates user if it doesn't exist.
   def self.user
     # FIXME set id / pass from config
     @@users_user ||= Users::User.new(:id => 'users',
                                      :password => 'changeme')
   end
 
+  # Initialize the Users subsystem and rjr adapter.
   def self.init
     Users::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
@@ -35,6 +62,9 @@ class RJRAdapter
     @@local_node.message_headers['session_id'] = session.id
   end
 
+  # Register handlers with the RJR::Dispatcher to invoke various users operations
+  #
+  # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('users::create_entity'){ |entity|
        unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE

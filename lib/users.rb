@@ -3,6 +3,10 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# Users subsytem - provides mechanisms to define and manipulates
+# users, privileges, groups, sessions, etc
+module Users ; end
+
 lib = File.dirname(__FILE__)
 $: << lib + '/users/'
 

@@ -4,14 +4,27 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Users
+
+# Entity central to the Users subsystem representing an end user
+# which may be assigned privileges to query / operate on one or
+# more entities
 class User
+  # [String] unique string identifier of the user
   attr_accessor :id
+
+  # [String] string email of the user
   attr_accessor :email
+
+  # [Array<Users::Alliance>] array of alliances user belongs to
   attr_accessor :alliances
 
+  # [Array<Users::Privilege>] array of privileges the user has
   attr_reader :privileges
 
+  # [String] user password (encrypted if secure_password is enabled)
   attr_reader :password
+
+  # Set user password. Will be encrypted if secure_pasword is enabled
   def password=(v)
     @password = v
     if @secure_password
@@ -19,8 +32,10 @@ class User
     end
   end
 
-  # boolean indicating if we should take additional steps to secure pass
+  # Boolean indicating if we should take additional steps to secure pass
   attr_reader :secure_password
+
+  # Set password security on / off
   def secure_password=(v)
     v = @secure_password unless [true, false].include?(v)
     @secure_password = v
@@ -30,18 +45,34 @@ class User
     end
   end
 
-  # registration code, if set the user has registered
-  # but hasn't confirmed their email yet
+  # Registration code, set on new user registration then deleted on confirmation.
+  # If set the user has registered but hasn't confirmed their email yet
   attr_accessor :registration_code
 
-  # recaptcha values comes in on new account requests, verify
+  # Recaptcha challenge from new account request
   attr_accessor :recaptcha_challenge
+
+  # Recaptcha response from new account request
   attr_accessor :recaptcha_response
 
+  # Time user account was created
   attr_accessor :created_at
+
+  # Time user account was last modified
   attr_accessor :last_modified_at
+
+  # Time user last logged in
   attr_accessor :last_login_at
 
+  # User initializer
+  # @param [Hash] args hash of options to initialize user with
+  # @option args [String] :id,'id' id to assign to the user
+  # @option args [String] :email,'email' email to assign to the user
+  # @option args [String] :password,'password' password to assign to the user
+  # @option args [Array<Users::Alliance>] :alliances,'alliances' alliances to assign to user
+  # @option args [String] :registration_code,'registration_code' registration_code to assign to the user
+  # @option args [String] :recaptcha_challenge,'recaptcha_challenge' recaptcha_challenge to assign to the user
+  # @option args [String] :recaptcha_response,'recaptcha_response' recaptcha_response to assign to the user
   def initialize(args = {})
     @id        = args['id']        || args[:id]
     @email     = args['email']     || args[:email]
@@ -55,6 +86,12 @@ class User
     @privileges = []
   end
 
+  # Update this users's attributes from other users.
+  #
+  # Currently this only copies the password and secure_password
+  # attributes.
+  #
+  # @param [Motel::Users] new_user user from which to copy values from
   def update!(new_user)
     @last_modified_at = Time.now
     @password = new_user.password
@@ -63,16 +100,27 @@ class User
     self.secure_password=@secure_password
   end
 
+  # Adds an alliance to user.
+  #
+  # Will just ignore and return if alliance is already associated with user
+  #
+  # @param [Users::Alliance] alliance to add to the user
   def add_alliance(alliance)
     @alliances << alliance unless !alliance.is_a?(Users::Alliance) ||
                                   @alliances.collect{ |a| a.id }.
                                     include?(alliance.id)
   end
 
+  # Clear the privileges the user has
   def clear_privileges
     @privileges.clear
   end
 
+  # Adds the privilege specified by its arguments to the user
+  #
+  # @param [Array<Users::Privilege>,Array<String,String>] args catch all array of args to use when adding privilege.
+  #   May take one of two forms specifying the instance of the privilege class itself to add, or an id and entity_id
+  #   to create the privilege with
   def add_privilege(*args)
     privilege = nil
     privilege = args.first if args.size == 1 && args.first.is_a?(Users::Privilege)
@@ -83,27 +131,46 @@ class User
                                     !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
   end
 
+  # Returns boolean indicating if email is valid
+  #
+  # @return [true, false] if email matches valid regex
   def valid_email?
     self.email =~ (/\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i)
   end
 
+  # Returns boolean indicating if login credentials are valid for the current user
+  #
+  # @param [String] user_id id of user to compare against local @id attribute
+  # @param [String] password password to encrypt and compare against the local @password parameter
+  # @return [true, false] indicating if login are credentials are valid for user
   def valid_login?(user_id, password)
     self.id == user_id && self.registration_code.nil? &&
     (@secure_password ? PasswordHelper.check(password, self.password) : password == self.password)
   end
 
+  # Returns boolean indicating if the user has the specified privilege on the specified entity
+  #
+  # @param [String] privilege_id id of privilege to lookup in local privileges array
+  # @param [String] entity_id id of entity to lookup in local privileges array
+  # @return [true, false] indicating if user has / does not have privilege
   def has_privilege_on?(privilege_id, entity_id)
     ! @privileges.find { |p| p.id == privilege_id && p.entity_id == entity_id }.nil?
   end
 
+  # Returns boolean indicating if the user has the specified privilege
+  #
+  # @param [String] privilege_id id of privilege to lookup in local privileges array
+  # @return [true, false] indicating if user has / does not have privilege
   def has_privilege?(privilege_id)
     has_privilege_on?(privilege_id, nil)
   end
 
+   # Convert user to human readable string and return it
   def to_s
     "user-#{@id}"
   end
 
+  # Convert user to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -112,11 +179,13 @@ class User
     }.to_json(*a)
   end
 
+  # Create new user from json representation
   def self.json_create(o)
     user = new(o['data'])
     return user
   end
 
+  # Generate random string registration code
   def self.random_registration_code
     Users.random_string(8)
   end
