@@ -5,6 +5,9 @@
 
 module Omega
 
+# Encapsulates a rjr request to be sent from
+# client to server to be queued up / sent in
+# batches.
 class ClientRequest
   attr_accessor :method_name
   attr_accessor :method_params
@@ -15,6 +18,9 @@ class ClientRequest
   end
 end
 
+# Provides convenience utility which to invoke
+# server side methods and register client
+# side callbacks via RJR.
 class Client
   def initialize(args = {})
     @args = args
@@ -121,7 +127,12 @@ end # class Client
 
 ##############################
 
-module DSL # works best if you "include 'Omega::DSL'"
+# The omega client dsl, defines methods allowing the
+# user to easily describe and manipulate omega subsystem
+# resources.
+#
+# Works best if you "include 'Omega::DSL'"
+module DSL
 
 def rand_name
   Omega::Names.rand_name
@@ -450,7 +461,7 @@ def station(id, args={}, &bl)
     client.set_context(:station => nst)
     client.invoke_callback nst, &bl
     return nst
-  
+
   rescue Exception => e
     client.queue_request 'manufactured::create_entity', st
     RJR::Logger.info "creating station #{st.id}"

@@ -7,7 +7,9 @@
 
 module Omega
 
+# Client side galaxy tracker.
 class MonitoredGalaxy
+  # [Cosmos::Galaxy] being tracked
   attr_accessor :server_galaxy
 
   def initialize(registry, server_galaxy)
@@ -15,8 +17,9 @@ class MonitoredGalaxy
     @server_galaxy = server_galaxy
   end
 
-  # return an array containing ordered list of systems with jump gates corresponding
-  # to a path between from and to
+  # Return an array containing ordered list of systems with jump gates corresponding
+  # to a path between from and to.
+  #
   # TODO at some point factor in a shortest path algorthim
   def get_path(from, to)
     tree = @server_galaxy.solar_systems.collect { |s|
@@ -51,7 +54,10 @@ class MonitoredGalaxy
   end
 end
 
+# Client side ship tracker.
 class MonitoredShip
+
+  # [Manufactured::Ship] being tracked
   attr_accessor :server_ship
   attr_accessor :move_to_location
   attr_accessor :move_to_system
@@ -169,7 +175,9 @@ class MonitoredShip
   end
 end
 
+# Client side station tracker
 class MonitoredStation
+  # [Manufactured::Station] being tracked
   attr_accessor :server_station
   attr_accessor :move_to_system
 
@@ -194,7 +202,12 @@ class MonitoredStation
   end
 end
 
+# Client side user tracker
+#
+# Contains handles to monitored ships and statiohs owned by the user.
 class MonitoredUser
+
+  # [Users::User] being tracked
   attr_accessor :server_user
   attr_accessor :ships
   attr_accessor :stations
@@ -263,6 +276,7 @@ class MonitoredUser
 
 end
 
+# Client side registry of monitored galaxies and users
 class MonitoredRegistry
   attr_accessor :node
   attr_accessor :registry_lock

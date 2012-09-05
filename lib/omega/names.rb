@@ -4,6 +4,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Omega
+
+# The names module provides mechanisms to generate random names
+# from a fixed list of well known names
 module Names
 
 MAX_SUFFIX=5
@@ -14,10 +17,16 @@ EGYPTIAN_NAMES = ["Aah", "Aken", "Aker", "Amaunet", "Amenhotep", "Ament ", "Am-H
 
 NORSE_NAMES = ["Aesir", "Alta", "Angrbotha", "Asgard", "Asynjr", "Balder", "Berserker", "Bertha", "Bor", "Bragi", "Brono", "Buri", "Bylgja", "Edda", "Eir", "Farbanti", "Fenrir", "Forseti", "Freya", "Freyr", "Frigga", "Fulla", "Garm", "Gefjon", "Gerd", "Ginnunggap", "Gioll", "Gladsheim", "Gleipnir", "Gna", "Gold-comb", "Gotterdammerung", "Gulltopr", "Gullveig", "Gungnir", "Gunlad", "Heimdall", "Hel", "Hermod", "Hlin", "Hodur", "Hoenir", "Hresvelgr", "Huldra", "Huginn", "Iduna", "Jord", "Jormungandr", "Jotunheim", "Kolga", "Lodur", "Lofn", "Loki", "Magni", "Mimir", "Modi", "Muninn", "Nanna", "Nastrand", "Nidhogg", "Niflheim", "Njord", "Norn", "Odin", "Ogres", "Outgard", "Ragnarok", "Ran", "Runes", "Runic", "Saga", "Seidr", "Sif", "Sjofn", "Skadi", "Sleipnir", "Snotra", "Surtr", "Syn", "Thiassi", "Thor", "Thrud", "Troll", "Tyr", "Ulle", "Valhalla", "Vali", "Valkyries", "Var", "Ve", "Vidar", "Vili", "Vingulf", "Vithar", "Vor", "Woden", "Yggdrasil", "Ymi"]
 
+# Master list of names to select from
+#
 # TODO names from other mythologies
-
 NAMES = GREEK_NAMES + EGYPTIAN_NAMES + NORSE_NAMES + []
 
+# Return a random name from the fixed list of {Names}
+#
+# @param [Hash] args optional arguments to use in name generation
+# @option args [true,false] :with_suffix boolean indicating if we should append a
+#   random numerical suffic to the name
 def self.rand_name(args = {})
   with_suffix = args[:with_suffix] || false
   # TODO used_names argument (names to ignore in selection)

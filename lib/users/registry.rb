@@ -260,7 +260,7 @@ class Registry
   # Wrapper around {#require_privilege} that catches error and
   # simply returns boolean indicating if user has / does not have privilege.
   #
-  # Takes same parameter list as {#require privilege}
+  # Takes same parameter list as {#require_privilege}
   # @return [true,false] indicating if user has / does not have privilege
   def check_privilege(args = {})
     begin

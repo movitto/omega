@@ -4,6 +4,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Omega
+
+# The resources module provides mechanisms to generate random resources
+# from a fix list of resources supported by the system.
 module Resources
 
 RESOURCE_TYPE_METAL      = 'metal'
@@ -20,6 +23,7 @@ RESOURCE_TYPE_FUEL       = 'fuel'
 
 RESOURCE_TYPES  = [RESOURCE_TYPE_METAL, RESOURCE_TYPE_TEXTILE, RESOURCE_TYPE_PLASTIC, RESOURCE_TYPE_ADHESIVE, RESOURCE_TYPE_BIOPOLYMER, RESOURCE_TYPE_WOOD, RESOURCE_TYPE_GLASS, RESOURCE_TYPE_GEM, RESOURCE_TYPE_MINERAL, RESOURCE_TYPE_ELEMENT]
 
+# Master resource dictionary of resource types to arrays of resources of those types
 RESOURCE_NAMES  = { RESOURCE_TYPE_METAL      => ['steel', 'aluminum', 'copper', 'nickel', 'gold', 'silver', 'platinum'],
                     RESOURCE_TYPE_TEXTILE    => ['cotton', 'silk', 'wool', 'linen', 'hemp', 'nylon', 'polyester'],
                     RESOURCE_TYPE_PLASTIC    => ['plastic'],
@@ -32,12 +36,17 @@ RESOURCE_NAMES  = { RESOURCE_TYPE_METAL      => ['steel', 'aluminum', 'copper', 
                     RESOURCE_TYPE_ELEMENT    => ['Hydrogen', 'Helium', 'Lithium', 'Beryllium', 'Boron', 'Carbon', 'Nitrogen', 'Oxygen', 'Fluorine', 'Neon', 'Sodium', 'Magnesium', 'Aluminum, Aluminium', 'Silicon', 'Phosphorus', 'Sulfur', 'Chlorine', 'Argon', 'Potassium', 'Calcium', 'Scandium', 'Titanium', 'Vanadium', 'Chromium', 'Manganese', 'Iron', 'Cobalt', 'Nickel', 'Copper', 'Zinc', 'Gallium', 'Germanium', 'Arsenic', 'Selenium', 'Bromine', 'Krypton', 'Rubidium', 'Strontium', 'Yttrium', 'Zirconium', 'Niobium', 'Molybdenum', 'Technetium', 'Ruthenium', 'Rhodium', 'Palladium', 'Silver', 'Cadmium', 'Indium', 'Tin', 'Antimony', 'Tellurium', 'Iodine', 'Xenon', 'Cesium', 'Barium', 'Lanthanum', 'Cerium', 'Praseodymium', 'Neodymium', 'Promethium', 'Samarium', 'Europium', 'Gadolinium', 'Terbium', 'Dysprosium', 'Holmium', 'Erbium', 'Thulium', 'Ytterbium', 'Lutetium', 'Hafnium', 'Tantalum', 'Tungsten', 'Rhenium', 'Osmium', 'Iridium', 'Platinum', 'Gold', 'Mercury', 'Thallium', 'Lead', 'Bismuth', 'Polonium', 'Astatine', 'Radon', 'Francium', 'Radium', 'Actinium', 'Thorium', 'Protactinium', 'Uranium', 'Neptunium', 'Plutonium', 'Americium', 'Curium', 'Berkelium', 'Californium', 'Einsteinium', 'Fermium', 'Mendelevium', 'Nobelium', 'Lawrencium', 'Rutherfordium', 'Dubnium', 'Seaborgium', 'Bohrium', 'Hassium', 'Meitnerium', 'Darmstadtium', 'Roentgenium', 'Copernicium'],
                     RESOURCE_TYPE_FUEL       => ['oil', 'uranium'] }
 
+# Return string name corresponding to resource type constant.
+#
+# eg Omega::Resources.type_identifier(RESOURCE_TYPE_METAL) => 'metal'
 def self.type_identifier(type)
   type.to_s.gsub(/RESOURCE_TYPE_/, "").downcase
 end
 
+# Return master list of resource identifiers generated from type / resources dictionary
 RESOURCE_IDS   = RESOURCE_NAMES.collect { |type,list| list.collect { |name| self.type_identifier(type) + "-" + name } }.flatten
 
+# Return {Cosmos::Resource} instantiated from random resource selected from master list
 def self.rand_resource
   i = rand(RESOURCE_IDS.length-1)
   id = RESOURCE_IDS[i]

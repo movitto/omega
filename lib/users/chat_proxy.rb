@@ -110,8 +110,8 @@ class ChatProxy
   #
   # Establishes connection to chat server and joins channel.
   #
-  # @param [String] id of user which to instantiate proxy for
-  # @param [Hash] hash of optional arguments to initialize proxy with
+  # @param [String] user id of user which to instantiate proxy for
+  # @param [Hash] args hash of optional arguments to initialize proxy with
   # @option args [String] :server,'server' hostname of chat server to connect to
   # @option args [Integer] :port,'port' port of chat server to connect to
   # @option args [String] :channel,'channel' chat channel to join

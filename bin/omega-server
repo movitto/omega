@@ -1,6 +1,11 @@
 #!/usr/bin/ruby
-# A omega server executable
-# Executable to launch various rjr methods 
+# A omega server executable.
+# Initializes the various omega subsystems and begins
+# listening for requests via all rjr transports.
+#
+# Send USR1 signal to run backup  operation on all subsytems,
+# send USR2 signal to run restore operation on all subsytems,
+# sent INT  signal to gracefully terminate server and exit
 #
 # Flags:
 #  -h --help
