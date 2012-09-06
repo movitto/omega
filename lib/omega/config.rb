@@ -20,7 +20,7 @@ class Config
 
   # Instantiate new Config instance and load values from the config files
   #
-  # @paramn [Hash] defaults default config options and their values to set
+  # @param [Hash] defaults default config options and their values to set
   #   before loading config files (options in config files will override defaults)
   def self.load(defaults = {})
     c = Config.new defaults
