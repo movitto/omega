@@ -1,5 +1,6 @@
 ---
-omega_url: 'http://localhost/wotel/'
+omega_url:  'http://localhost/wotel/'
+backup_dir: './backups/'
 
 node_id: 'omega'
 node_types: ['amqp', 'ws', 'www', 'local']

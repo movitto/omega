@@ -18,26 +18,26 @@ require 'optparse'
 require 'fileutils'
 require 'omega'
 
-BACKUP_FILE = File.expand_path(File.dirname(__FILE__) + "/../backups/backup.unv")
-
 ######################
 
-def setup_signals
+def setup_signals(config)
   Signal.trap("USR1") {
     puts "Backup"
-    current_backup = "#{BACKUP_FILE}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
+    Dir.mkdir(config.backup_dir) unless File.directory?(config.backup_dir)
+    backup_file = "#{config.backup_dir}backup.unv"
+    current_backup = "#{backup_file}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
     local_node = RJR::LocalNode.new :node_id => 'admin'
     local_node.invoke_request('motel::save_state', current_backup)
     local_node.invoke_request('cosmos::save_state', current_backup)
     local_node.invoke_request('manufactured::save_state', current_backup)
     local_node.invoke_request('users::save_state', current_backup)
-    FileUtils.rm_f(BACKUP_FILE) if File.exists?(BACKUP_FILE)
-    FileUtils.ln_s(current_backup, BACKUP_FILE)
+    FileUtils.rm_f(backup_file) if File.symlink?(backup_file)
+    FileUtils.ln_s(File.expand_path(current_backup), backup_file)
   }
 
   Signal.trap("USR2") {
     puts "Restore"
-    current_backup = "#{BACKUP_FILE}"
+    current_backup = backup_file = "#{config.backup_dir}backup.unv"
     local_node = RJR::LocalNode.new :node_id => 'admin'
     local_node.invoke_request('motel::restore_state', current_backup)
     local_node.invoke_request('cosmos::restore_state', current_backup)
@@ -142,9 +142,8 @@ def main()
   rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_password)
   Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
 
-  multi_node.listen {
-    setup_signals
-  }
+  setup_signals(config)
+  multi_node.listen
   multi_node.join
 end
 

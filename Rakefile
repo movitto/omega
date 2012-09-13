@@ -4,11 +4,19 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require "yard"
+require "rake/packagetask"
 require "rspec/core/rake_task"
 
+Rake::PackageTask.new("omega", "0.1.0") do |p|
+  p.need_tar = true
+  p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
+                          "site/**/*", "spec/**/*", "vendor/**/*",
+                          "omega.yml", "Rakefile",
+                          "COPYING", "LICENSE", "README.md")
+end
 
 desc "Run all specs"
-RSpec::Core::RakeTask.new(:spec) do |spec|
+RSpec::Core::RakeTask.new(:specs) do |spec|
   spec.pattern = 'spec/**/*_spec.rb'
   spec.rspec_opts = ['--backtrace', '-fd', '-c']
 end

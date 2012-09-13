@@ -17,10 +17,13 @@ EGYPTIAN_NAMES = ["Aah", "Aken", "Aker", "Amaunet", "Amenhotep", "Ament ", "Am-H
 
 NORSE_NAMES = ["Aesir", "Alta", "Angrbotha", "Asgard", "Asynjr", "Balder", "Berserker", "Bertha", "Bor", "Bragi", "Brono", "Buri", "Bylgja", "Edda", "Eir", "Farbanti", "Fenrir", "Forseti", "Freya", "Freyr", "Frigga", "Fulla", "Garm", "Gefjon", "Gerd", "Ginnunggap", "Gioll", "Gladsheim", "Gleipnir", "Gna", "Gold-comb", "Gotterdammerung", "Gulltopr", "Gullveig", "Gungnir", "Gunlad", "Heimdall", "Hel", "Hermod", "Hlin", "Hodur", "Hoenir", "Hresvelgr", "Huldra", "Huginn", "Iduna", "Jord", "Jormungandr", "Jotunheim", "Kolga", "Lodur", "Lofn", "Loki", "Magni", "Mimir", "Modi", "Muninn", "Nanna", "Nastrand", "Nidhogg", "Niflheim", "Njord", "Norn", "Odin", "Ogres", "Outgard", "Ragnarok", "Ran", "Runes", "Runic", "Saga", "Seidr", "Sif", "Sjofn", "Skadi", "Sleipnir", "Snotra", "Surtr", "Syn", "Thiassi", "Thor", "Thrud", "Troll", "Tyr", "Ulle", "Valhalla", "Vali", "Valkyries", "Var", "Ve", "Vidar", "Vili", "Vingulf", "Vithar", "Vor", "Woden", "Yggdrasil", "Ymi"]
 
+HAWAIIAN_NAMES = ["Akea", "Apukohai",  "Haulili",  "Hai",  "Hiaka",  "Hiiakawawahilani",  "Hinakuluiau",  "Kalaipahoa",  "Kaluannuunohonionio",  "Kamapua",  "Kamohoali",  "Kamooalii",  "Kanaloa",  "Kane",  "Kane",  "Kapo",  "Keoahikamakaua",  "Kapohoikahiola",  "Keuakepo",  "Kiha",  "Koleamoku",  "Ku",  "Kuahana",  "Kukaoo",  "Kane",  "Kaupe",  "Kukailimoku",  "Kuula",  "Laamaomao",  "Laka",  "Lakakane",  "Lie",  "Lono",  "Lonomakua",  "Mahulu",  "Manua",  "Maui",  "Milu",  "Moaalii",  "Mokualii",  "Mooaleo",  "Ouli",  "Poliahu",  "Papa",  "Pele",  "Puea",  "Ukanipo",  "Ulaulekeahi",  "Uli"]
+
+
 # Master list of names to select from
 #
 # TODO names from other mythologies
-NAMES = GREEK_NAMES + EGYPTIAN_NAMES + NORSE_NAMES + []
+NAMES = GREEK_NAMES + EGYPTIAN_NAMES + NORSE_NAMES + HAWAIIAN_NAMES + []
 
 # Return a random name from the fixed list of {Names}
 #
