@@ -1767,57 +1767,717 @@ end
 
 galaxy 'Odin' do |g|
   system 'Asgrad', 'FE8331', :location => Location.new(:x => 253, :y => -753, :z => -112) do |sys|
+    planet 'Guguyni',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.32, :semi_latus_rectum => 193,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Guguyni I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Guguyni II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Haokah',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.63, :semi_latus_rectum => 191,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Hemaskas',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.78, :semi_latus_rectum => 136,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Hemaskas I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Hino',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.43, :semi_latus_rectum => 136,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Hino I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Hinu',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.82, :semi_latus_rectum => 172,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Hinu I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Hinu II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Hinu III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Ibofanga',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.21, :semi_latus_rectum => 150,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ibofanga I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
   end
 
   system 'Valhalla', 'FE9782', :location => Location.new(:x => -10, :y => -523, :z => -492) do |sys|
+    planet 'Ictinike',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.77, :semi_latus_rectum => 146,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Ictinike',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.92, :semi_latus_rectum => 116,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ictinike I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ictinike II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ictinike III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Igaluk',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.49, :semi_latus_rectum => 116,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Igaluk I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Igaluk II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Igaluk III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Igaluk IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Ikto',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.3, :semi_latus_rectum => 148,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ikto I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ikto II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Iktomi',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.55, :semi_latus_rectum => 192,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Iktomi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Ioi',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.17, :semi_latus_rectum => 107,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ioi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ioi II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ioi III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Ioskeha',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.87, :semi_latus_rectum => 120,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ioskeha I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Ioskeha II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
   end
 
   system 'Hel', 'FE7334', :location => Location.new(:x => 57, :y => 115, :z => 432) do |sys|
+    planet 'Isitoq',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.80, :semi_latus_rectum => 101,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Isitoq I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Iya',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.27, :semi_latus_rectum => 185,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Iya I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Iya II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Kaiti',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.4, :semi_latus_rectum => 116,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Kanati',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.37, :semi_latus_rectum => 199,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Karwan',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.52, :semi_latus_rectum => 166,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Runic', 'FE7AA1', :location => Location.new(:x => 785, :y => 899, :z => 845) do |sys|
+    planet 'Kioskurber',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.64, :semi_latus_rectum => 121,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Kivati',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.84, :semi_latus_rectum => 145,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Koko',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.89, :semi_latus_rectum => 187,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Koko I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Koyemsi',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.97, :semi_latus_rectum => 120,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Koyemsi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Koyemsi II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Kumush',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.3, :semi_latus_rectum => 124,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Kumush I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Kwatee',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.75, :semi_latus_rectum => 140,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Kwatyat',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.63, :semi_latus_rectum => 144,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Kwatyat I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Kwatyat II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Logobola',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.66, :semi_latus_rectum => 111,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Logobola I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Logobola II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Logobola III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Saga', 'FE7AA2', :location => Location.new(:x => -822, :y => 910, :z => -734) do |sys|
+    planet 'Maheo',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.59, :semi_latus_rectum => 120,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Maheo I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Maheo II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Malsum',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.4, :semi_latus_rectum => 157,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Malsum I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Malsun',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.37, :semi_latus_rectum => 117,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Mana',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.77, :semi_latus_rectum => 116,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Mana I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Mana II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Jord', 'FE7AA3', :location => Location.new(:x => -999, :y => 456, :z => 650) do |sys|
+    planet 'Manabozo',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.59, :semi_latus_rectum => 102,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Manabush',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.94, :semi_latus_rectum => 180,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Manabush I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Manabush II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Manetto',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.64, :semi_latus_rectum => 187,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Manisar',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.84, :semi_latus_rectum => 178,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Norn', 'FE7AA4', :location => Location.new(:x => 921, :y => 880, :z => -820) do |sys|
+    planet 'Manit',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.56, :semi_latus_rectum => 174,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Michabo',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.52, :semi_latus_rectum => 145,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Michabo I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Michabo II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Mising',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.37, :semi_latus_rectum => 150,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Mising I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Mising II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Mising III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Moar',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.59, :semi_latus_rectum => 146,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Momo',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.61, :semi_latus_rectum => 104,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Momo I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Momo II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet "Na'pi",
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.4, :semi_latus_rectum => 147,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Nanook',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.32, :semi_latus_rectum => 150,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nanook I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nanook II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nanook III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nanook IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nanook V',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Napi',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.4, :semi_latus_rectum => 124,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Napi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Napi II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Napi III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Napi IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Nataska',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.7, :semi_latus_rectum => 108,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nataska I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska V',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska VI',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nataska VII',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Nerivik',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.83, :semi_latus_rectum => 191,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nerivik I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nerivik II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nerivik III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Nocoma',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.70, :semi_latus_rectum => 183,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nocoma I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nocoma II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nocoma III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Nocoma IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Nukatem',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.73, :semi_latus_rectum => 184,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nukatem I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Ogres', 'FE7AA5', :location => Location.new(:x => 888, :y => -777, :z => -666) do |sys|
+    planet 'Nunuso',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.7, :semi_latus_rectum => 105,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Nunuso I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Ocasta',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.8, :semi_latus_rectum => 157,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Ocasta I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Olelbis',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.18, :semi_latus_rectum => 170,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Onatah',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.12, :semi_latus_rectum => 132,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Onatah I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Owiot',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.74, :semi_latus_rectum => 195,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Pah',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.63, :semi_latus_rectum => 194,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Pah I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Pah II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Ulle', 'FE7AA6', :location => Location.new(:x => 807, :y => -749, :z => 850) do |sys|
+    planet 'Palhik Mana',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.76, :semi_latus_rectum => 192,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Pamit',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.47, :semi_latus_rectum => 113,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Pamit I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Poia',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.46, :semi_latus_rectum => 106,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Qamaits',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.77, :semi_latus_rectum => 144,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Qamaits I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Qamaits II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Qamaits III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Quaayayp',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.55, :semi_latus_rectum => 105,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Njord', 'FE7AA7', :location => Location.new(:x => 909, :y => 808, :z => -853) do |sys|
+    planet 'Raven',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.14, :semi_latus_rectum => 185,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Rhpisunt',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.26, :semi_latus_rectum => 163,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Rhpisunt I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Rhpisunt II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Sanopi',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.62, :semi_latus_rectum => 109,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Sanopi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Sanopi II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Sedna',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.49, :semi_latus_rectum => 152,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Sedna I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Sedna II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Sedna III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Syn', 'FE7AA8', :location => Location.new(:x => -935, :y => -942, :z => -908) do |sys|
+    planet 'Selu',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.16, :semi_latus_rectum => 128,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Senx',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.81, :semi_latus_rectum => 105,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Shakaru',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.73, :semi_latus_rectum => 129,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Shakaru I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Sint Holo',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.16, :semi_latus_rectum => 159,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Sint Holo I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Sisiutl',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.84, :semi_latus_rectum => 169,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Skan',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.53, :semi_latus_rectum => 109,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Skan I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Skan II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Skadi', 'FE7AA9', :location => Location.new(:x => 993, :y => 922, :z => -807) do |sys|
-  end
+    planet 'Skili',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.69, :semi_latus_rectum => 100,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Skili I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
 
-  system 'Ogres', 'FE7AAA', :location => Location.new(:x => 888, :y => -767, :z => 909) do |sys|
-  end
+    planet 'Snoqalm',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.75, :semi_latus_rectum => 104,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Snoqalm I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
 
-  system 'Ulle', 'FE7AAB', :location => Location.new(:x => 804, :y => -709, :z => -809) do |sys|
+    planet 'Sotuknang',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.66, :semi_latus_rectum => 139,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Szeukha',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.50, :semi_latus_rectum => 110,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Szeukha I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tabaldak',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.70, :semi_latus_rectum => 176,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Tabaldak I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Tabaldak II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Taiowa',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.26, :semi_latus_rectum => 147,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Taiowa I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tamit',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.41, :semi_latus_rectum => 186,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Tamit I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Tamit II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tawiskara',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.11, :semi_latus_rectum => 114,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Surtr', 'FE7AAC', :location => Location.new(:x => 974, :y => -973, :z => 775) do |sys|
+    planet 'Theelgeth',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.67, :semi_latus_rectum => 152,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Theelgeth I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tihtipihin',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.34, :semi_latus_rectum => 147,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Tihtipihin I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tirawa',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.2, :semi_latus_rectum => 101,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Tolmalok',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.91, :semi_latus_rectum => 171,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Tonenili',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.54, :semi_latus_rectum => 146,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Tonenili I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
   end
 
   system 'Woden', 'FE7AAD', :location => Location.new(:x => 721, :y => 792, :z => -856) do |sys|
+    planet 'Torngasak',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.33, :semi_latus_rectum => 142,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Torngasak I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Torngasak II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Tsohanoai',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.31, :semi_latus_rectum => 148,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Tukupar Itar',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.96, :semi_latus_rectum => 137,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Hermod', 'FE7AAE', :location => Location.new(:x => -978, :y => -898, :z => -859) do |sys|
+    planet 'Txamsem',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.21, :semi_latus_rectum => 194,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Uncegila',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.29, :semi_latus_rectum => 190,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Uncegila I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Uncegila II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Uncegila III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Unelanuki',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.59, :semi_latus_rectum => 195,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Unelanuki I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Unelanuki II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Unktome',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.70, :semi_latus_rectum => 127,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Utset',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.85, :semi_latus_rectum => 185,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Utset I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Utset II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Utset III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Utset IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Wabasso',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.47, :semi_latus_rectum => 107,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 
   system 'Hlin', 'FE7AAF', :location => Location.new(:x => -721, :y => 998, :z => 889) do |sys|
+    planet 'Wakan Tanka',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.86, :semi_latus_rectum => 151,
+                                                :direction => Motel.random_axis) do |pl|
+      moon 'Wakan Tanka I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+    end
+
+    planet 'Wakanda',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.27, :semi_latus_rectum => 126,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
+    planet 'Wakonda',
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
+                                                :eccentricity => 0.53, :semi_latus_rectum => 117,
+                                                :direction => Motel.random_axis) do |pl|
+    end
+
   end
 end
 
