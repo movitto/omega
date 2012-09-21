@@ -688,11 +688,25 @@ galaxy 'Zeus' do |g|
                                                 :direction => Motel.random_axis) do |pl|
       moon 'Butsu I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
   end
 end
 
-jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'), system('Philo'),     :location => Location.new(:x => 150, :y => 150, :z => 150)
+jump_gate system('Athena'),    system('Aphrodite'),   :location => Location.new(:x => -150, :y => -150, :z => -150)
+jump_gate system('Athena'),    system('Philo'),       :location => Location.new(:x => 150, :y => 150, :z => 150)
+jump_gate system('Philo'),     system('Nike'),        :location => Location.new(:x => -192, :y => 429, :z => 184)
+jump_gate system('Nike'),      system('Phokas'),      :location => Location.new(:x => 160, :y => 432, :z => 524)
+jump_gate system('Nike'),      system('Dorisi'),      :location => Location.new(:x => -539, :y => -283, :z => -188)
+jump_gate system('Nike'),      system('Syntyche'),    :location => Location.new(:x => -472, :y => -385, :z => -223)
+jump_gate system('Dorisi'),    system('Aristocoles'), :location => Location.new(:x => 567, :y => -511, :z => 534)
+jump_gate system('Dorisi'),    system('Aphroditus'),  :location => Location.new(:x => 436, :y => 123, :z => 529)
+jump_gate system('Dorisi'),    system('Aristocoles'), :location => Location.new(:x => 353, :y => 75, :z => -353)
+jump_gate system('Aphrodite'), system('Aphroditus'),  :location => Location.new(:x => -242, :y => -553, :z => -132)
 
 galaxy 'Hera' do |g|
   system 'Agathon', 'JJ7192', :location => Location.new(:x => -88, :y => 219, :z => 499) do |sys|
@@ -842,6 +856,12 @@ galaxy 'Hera' do |g|
       moon 'Hero III', :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Hero IV',  :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 1500
+      end
+    }
   end
 
   system 'Stephanos', 'ST111', :location => Location.new(:x => 51, :y => -63, :z => 500)
@@ -989,6 +1009,12 @@ galaxy 'Hera' do |g|
                                                 :eccentricity => 0.67, :semi_latus_rectum => 174,
                                                 :direction => Motel.random_axis) do |pl|
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 750
+      end
+    }
   end
 
   system 'Xenia', 'ST0482', :location => Location.new(:x => 193, :y => -339, :z => -449) do |sys|
@@ -1173,6 +1199,12 @@ galaxy 'Hera' do |g|
                                                 :eccentricity => 0.45, :semi_latus_rectum => 164,
                                                 :direction => Motel.random_axis) do |pl|
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 450
+      end
+    }
   end
 
   system 'Metrodora', 'ST875', :location => Location.new(:x => 305, :y => 438, :z => 308) do |sys|
@@ -1190,7 +1222,7 @@ galaxy 'Hera' do |g|
                                                 :eccentricity => 0.19, :semi_latus_rectum => 136,
                                                 :direction => Motel.random_axis) do |pl|
       moon 'Uga-Jin I',    :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
-      moon 'Uga-Jin I',    :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Uga-Jin II',    :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
 
     planet "Ukemochi",
@@ -1317,6 +1349,11 @@ galaxy 'Hera' do |g|
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.33, :semi_latus_rectum => 184,
                                                 :direction => Motel.random_axis)
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 2000
+      end
+    }
   end
 end
 
@@ -1401,6 +1438,12 @@ galaxy 'Thor' do |g|
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.74, :semi_latus_rectum => 198,
                                                 :direction => Motel.random_axis)
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 1000
+      end
+    }
   end
 
   system 'Modi', 'FFBBA4', :location => Location.new(:x => 189, :y => 420, :z => -112) do |sys|
@@ -1443,7 +1486,7 @@ galaxy 'Thor' do |g|
                                                 :direction => Motel.random_axis) do |pl|
       moon 'Anaye I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Anaye II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
-      moon 'Anaye II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
+      moon 'Anaye III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Anaye IV',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Anaye V',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Anaye VI',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
@@ -1556,6 +1599,12 @@ galaxy 'Thor' do |g|
       moon 'Binaye Ahani II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Binaye Ahani III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
   end
 
   system 'Nidhogg', 'DB0880', :location => Location.new(:x => -303, :y => -304, :z => 203) do |sys|
@@ -1718,6 +1767,12 @@ galaxy 'Thor' do |g|
                                                 :direction => Motel.random_axis) do |pl|
       moon 'Ewah I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 750
+      end
+    }
   end
 
   system 'Ymi', 'DDCB75', :location => Location.new(:x => 776, :y => 644, :z => 344) do |sys|
@@ -1869,6 +1924,12 @@ galaxy 'Odin' do |g|
       moon 'Ioskeha I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Ioskeha II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 1750
+      end
+    }
   end
 
   system 'Hel', 'FE7334', :location => Location.new(:x => 57, :y => 115, :z => 432) do |sys|
@@ -1965,6 +2026,11 @@ galaxy 'Odin' do |g|
       moon 'Logobola III',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
 
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 1000
+      end
+    }
   end
 
   system 'Saga', 'FE7AA2', :location => Location.new(:x => -822, :y => 910, :z => -734) do |sys|
@@ -2132,6 +2198,11 @@ galaxy 'Odin' do |g|
       moon 'Nukatem I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
 
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
   end
 
   system 'Ogres', 'FE7AA5', :location => Location.new(:x => 888, :y => -777, :z => -666) do |sys|
@@ -2213,6 +2284,11 @@ galaxy 'Odin' do |g|
                                                 :direction => Motel.random_axis) do |pl|
     end
 
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 2000
+      end
+    }
   end
 
   system 'Njord', 'FE7AA7', :location => Location.new(:x => 909, :y => 808, :z => -853) do |sys|
@@ -2349,6 +2425,11 @@ galaxy 'Odin' do |g|
                                                 :direction => Motel.random_axis) do |pl|
     end
 
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 250
+      end
+    }
   end
 
   system 'Surtr', 'FE7AAC', :location => Location.new(:x => 974, :y => -973, :z => 775) do |sys|
@@ -2410,7 +2491,7 @@ galaxy 'Odin' do |g|
 
   end
 
-  system 'Hermod', 'FE7AAE', :location => Location.new(:x => -978, :y => -898, :z => -859) do |sys|
+  system 'Hermoda', 'FE7AAE', :location => Location.new(:x => -978, :y => -898, :z => -859) do |sys|
     planet 'Txamsem',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.21, :semi_latus_rectum => 194,
@@ -2456,6 +2537,11 @@ galaxy 'Odin' do |g|
                                                 :direction => Motel.random_axis) do |pl|
     end
 
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 750
+      end
+    }
   end
 
   system 'Hlin', 'FE7AAF', :location => Location.new(:x => -721, :y => 998, :z => 889) do |sys|
@@ -2511,6 +2597,12 @@ galaxy 'Freya' do |g|
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.41, :semi_latus_rectum => 135,
                                                 :direction => Motel.random_axis)
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 500
+      end
+    }
   end
 
   system 'Vithar', 'BA4429', :location => Location.new(:x => -853, :y => 853, :z => 346) do |sys|
@@ -2672,6 +2764,12 @@ galaxy 'Freya' do |g|
       moon 'Mitnal I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
       moon 'Mitnal II',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
+
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 750
+      end
+    }
   end
 
   system 'Gunlad', 'FF2002', :location => Location.new(:x => 220, :y => 773, :z => -667) do |sys|
@@ -2708,5 +2806,10 @@ galaxy 'Freya' do |g|
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.33, :semi_latus_rectum => 135,
                                                 :direction => Motel.random_axis)
+    0.upto(50){
+      asteroid gen_uuid, :location => rand_location(:min => 250, :max => 500) do |ast|
+        resource :resource => rand_resource, :quantity => 1000
+      end
+    }
   end
 end
