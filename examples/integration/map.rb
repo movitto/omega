@@ -11,51 +11,53 @@ require 'rgl/adjacency'
 require 'rgl/dot'
 
 
-current_graph = current_galaxy = current_system = 
+$current_graph = current_galaxy = current_system = 
 current_star = current_planet = current_moon = nil
 
 graphs = {}
-galaxy_systems = []
-galaxy_gates   = []
+$galaxy_systems = []
+$galaxy_gates   = []
+
+def graph_galaxy
+  $galaxy_gates.each { |systems|
+    $galaxy_systems.delete(systems[0])
+    $current_graph.add_vertex(systems[0])
+    $current_graph.add_vertex(systems[1])
+    $current_graph.add_edge(systems[0], systems[1])
+  }
+
+  $galaxy_systems.each { |system|
+    $current_graph.add_vertex(system)
+  }
+end
 
 inf = File.open("examples/integration/complete.rb")
 inf.each_line { |l|
-  if l =~ /.*galaxy '(.*)'.*/
-    unless current_graph.nil?
-      galaxy_gates.each { |systems|
-puts "Gates #{systems}"
-        galaxy_systems.delete(systems[0])
-        current_graph.add_vertex(systems[0])
-        current_graph.add_vertex(systems[1])
-        current_graph.add_edge(systems[0], systems[1])
-      }
-
-      galaxy_systems.each { |system|
-puts "NoGate #{system}"
-        current_graph.add_vertex(system)
-      }
-    end
+  if l =~ /\s*galaxy '(.*)'.*/
+    graph_galaxy unless $current_graph.nil?
 
     current_galaxy = $1
-    galaxy_gates   = []
-    galaxy_systems = []
-    current_graph = RGL::DirectedAdjacencyGraph.new
-    graphs[current_galaxy] = current_graph
+    $galaxy_gates   = []
+    $galaxy_systems = []
+    $current_graph = RGL::DirectedAdjacencyGraph.new
+    graphs[current_galaxy] = $current_graph
 
-  elsif l =~ /.*system '(.*)', '(.*)'.*/
+  elsif l =~ /\s*system '(.*)', '(.*)'.*/
     current_system = $1
     current_star = $2
-    galaxy_systems << current_system
+    $galaxy_systems << current_system
 
-  elsif l =~ /.*planet '(.*)'.*/
+  elsif l =~ /\s*planet '(.*)'.*/
     current_planet = $1
 
-  elsif l =~ /.*moon '(.*)'.*/
+  elsif l =~ /\s*moon '(.*)'.*/
     current_moon = $1
 
-  elsif l =~ /.*jump_gate\s*system\('(.*)'\),\s*system\('(.*)'\).*/
-    galaxy_gates << [$1, $2]
+  elsif l =~ /\s*jump_gate\s*system\('(.*)'\),\s*system\('(.*)'\).*/
+    $galaxy_gates << [$1, $2]
   end
 }
+
+graph_galaxy # need to run one final time for last galaxy
 
 graphs.each { |n,g| g.write_to_graphic_file("png", "doc/graphs/#{n}")}
