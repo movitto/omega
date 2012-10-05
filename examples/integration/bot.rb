@@ -557,7 +557,7 @@ class FrigateShip < ClientShip
   end
 end
 
-listen
+omega_listen
 
 station = ClientStation.load :name => USER_NAME + "-manufacturing-station1"
 station.construction_cycle()
@@ -573,7 +573,7 @@ corvette = CorvetteShip.load :name => USER_NAME + "-corvette-ship1"
 corvette.follow_ship(miner).protect(miner)
 
 Signal.trap("USR1") {
-  stop
+  omega_halt
 }
 
-join
+omega_join

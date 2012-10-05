@@ -271,6 +271,10 @@ class Ship
     resource_source.quantity > 0
   end
 
+  def cargo_full?
+    cargo_quantity + @mining_quantity >= @cargo_capacity
+  end
+
   # Return boolean indicating if ship is currently docked
   #
   # @return [true,false] indicating if ship is docked or not

@@ -42,6 +42,7 @@ class RJRAdapter
                       raise ArgumentError, "must specify 'of location' when specifing 'within distance'" if qualifier != "of" || plocation.nil? || !plocation.is_a?(Motel::Location)
                       lambda { |loc| loc.parent_id == plocation.parent_id &&
                                      (loc - plocation) <= distance }
+                    # when "of_type" # allow & ensure "Motel::Location" for compatability reasons?
                   end
          filters << filter
        end

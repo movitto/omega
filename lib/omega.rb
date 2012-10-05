@@ -16,6 +16,8 @@ require 'omega/client'
 require 'omega/registry'
 require 'omega/config'
 
+require 'omega/client/base'
+
 require 'motel'
 require 'cosmos'
 require 'manufactured'
