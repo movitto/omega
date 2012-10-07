@@ -33,17 +33,20 @@ module Omega
         "Cosmos::Galaxy"
       end
 
-      def get
-        super
+      def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         solar_systems  = self.entity.solar_systems.collect { |ss|
           Omega::Client::SolarSystem.get ss.name
-        }
+        } if @solar_systems.nil?
         self.entity_lock.synchronize{
           @location = location if @location.nil?
-          @solar_system = solar_systems
+          @solar_system = solar_systems if @solar_systems.nil?
         }
         return self
+      end
+
+      def get
+        super if self.entity.nil?
       end
 
     end
@@ -59,16 +62,15 @@ module Omega
         "Cosmos::SolarSystem"
       end
 
-      def get
-        super
+      def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         star     = Omega::Client::Star.get self.entity.star.name if @star.nil?
         planets  = self.entity.planets.collect { |pl|
           Omega::Client::Planet.get pl.name
-        }
+        } if @planets.nil?
         asteroids  = self.entity.asteroids.collect { |as|
           Omega::Client::Asteroid.get as.name
-        }
+        } if @asteroids.nil?
         #jump_gates  = self.entity.jump_gates.collect { |jg|
         #  Omega::Client::JumpGate.get jg.name
         #}
@@ -81,6 +83,10 @@ module Omega
         }
         return self
       end
+
+      def get
+        super if self.entity.nil?
+      end
     end
 
     class Star < CosmosEntity
@@ -90,14 +96,16 @@ module Omega
         "Cosmos::Star"
       end
 
-      def get
-        super
-        return unless @location.nil?
-        location = Omega::Client::Location.get self.entity.location.id
+      def get_associated
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         @entity_lock.synchronize{
-          @location = location
+          @location = location if @location.nil?
         }
         return self
+      end
+
+      def get
+        super if self.entity.nil?
       end
     end
 
@@ -109,14 +117,13 @@ module Omega
         "Cosmos::Planet"
       end
 
-      def get
-        super
-        location = Omega::Client::Location.get self.entity.location.id
+      def get_associated
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         moons    = self.entity.moons.collect { |mn|
           Omega::Client::Moon.get mn.name
         } if @moons.nil?
         @entity_lock.synchronize{
-          @location = location
+          @location = location if @location.nil?
           @moons = moons if @moons.nil?
         }
         return self
@@ -130,14 +137,16 @@ module Omega
         "Cosmos::Moon"
       end
 
-      def get
-        super
-        return unless @location.nil?
-        location = Omega::Client::Location.get self.entity.location.id
+      def get_associated
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         @entity_lock.synchronize{
-          @location = location
+          @location = location if @location.nil?
         }
         return self
+      end
+
+      def get
+        super if self.entity.nil?
       end
     end
 
@@ -149,16 +158,27 @@ module Omega
         "Cosmos::Asteroid"
       end
 
-      def get
-        super
-        location  = Omega::Client::Location.get self.entity.location.id if @location.nil?
+      def update!
         resource_sources = Omega::Client::ResourceSource.associated_with(self.entity.name)
         @entity_lock.synchronize{
-          @location = location if @location.nil?
           @resource_sources = resource_sources
         }
         return self
       end
+
+      def get_associated
+        location  = Omega::Client::Location.get self.entity.location.id if @location.nil?
+        resource_sources = Omega::Client::ResourceSource.associated_with(self.entity.name) if @resource_sources.nil?
+        @entity_lock.synchronize{
+          @location = location if @location.nil?
+          @resource_sources = resource_sources if @resource_sources.nil?
+        }
+        return self
+      end
+
+      #def get
+      #  super if self.entity.nil?
+      #end
     end
 
     class JumpGate < CosmosEntity
@@ -168,14 +188,16 @@ module Omega
         "Cosmos::JumpGate"
       end
 
-      def get
-        super
-        return unless @location.nil?
-        location = Omega::Client::Location.get self.entity.location.id
+      def get_associated
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         @entity_lock.synchronize{
-          @location = location
+          @location = location if @location.nil?
         }
         return self
+      end
+
+      def get
+        super if self.entity.nil?
       end
     end
 

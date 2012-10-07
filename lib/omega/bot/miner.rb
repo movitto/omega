@@ -9,24 +9,35 @@ require 'omega/client/base'
 module Omega
   module Bot
     class Miner < Omega::Client::Ship
+      def valid?
+        self.entity.is_a?(Manufactured::Ship) && self.type == :mining
+      end
+
       def closest_resource
         # TODO check other systems
-        @solar_system.get
-        rs = @solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
+        self.solar_system.get
+        rs = self.solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
                                                   (self.location - b.location) }.
-                                     find { |a| !a.resource_sources.find { |rs|
-                                                             rs.quantity > 0 }.nil? }
+                                     find { |a| !a.update!.resource_sources.find { |rs|
+                                                              rs.quantity > 0 }.nil? }
         rs
       end
 
-      # XXX not the best way to do this, but works
       def on_event(event, &bl)
-        if event == 'arrived_at_station'
+        if event == 'moving_to_station'
+          @moving_to_station_callback = bl
+          return
+
+        elsif event == 'arrived_at_station'
           @arrived_at_station_callback = bl
           return
 
         elsif event == 'arrived_at_resource'
           @arrived_at_resource_callback = bl
+          return
+
+        elsif event == 'selected_resource'
+          @selected_resource_callback = bl
           return
 
         elsif event == 'no_more_resources'
@@ -84,6 +95,8 @@ module Omega
           return
         end
 
+        @selected_resource_callback.call self, target if @selected_resource_callback
+
         dst = ((self.entity.location - target.entity.location) < 15) ? 50 : 10
         move_to(:location => (target.entity.location + [dst,0,0])) { |m|
           @arrived_at_resource_callback.call m if @arrived_at_resource_callback
@@ -92,7 +105,10 @@ module Omega
       end
 
       def start
+        init
         if self.cargo_full?
+          @moving_to_station_callback.call self if @moving_to_station_callback
+
           move_to(:destination => :closest_station) { |m|
             @arrived_at_station_callback.call m if @arrived_at_station_callback
             self.resources.each { |rsid, quantity|
@@ -107,18 +123,19 @@ module Omega
         end
       end
 
-      def self.get(id)
-        miner = super(id)
+      # Initialize miner
+      def init
+        return if @initialized
 
+        @initialized = true
         # setup events
-        miner.on_event('mining_stopped') { |*args|
+        self.on_event('mining_stopped') { |event,reason,miner,rs|
           # TODO ensure reason == 'cargo_full'
-          Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + miner.id].start
+          entity = Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + miner.id]
+          entity.get
+          entity.start
         }
-
-        return miner
       end
-
     end
   end
 end

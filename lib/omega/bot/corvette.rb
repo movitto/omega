@@ -9,6 +9,11 @@ require 'omega/client/base'
 module Omega
   module Bot
     class Corvette < Omega::Client::Ship
+
+      def valid?
+        self.entity.is_a?(Manufactured::Ship) && self.type == :corvette
+      end
+
       # Return an array containing ordered list of systems with jump gates corresponding
       # to a path between from and to.
       #
@@ -50,18 +55,12 @@ module Omega
         full_path
       end
 
-      # Initialize path variables
-      def init_path
-        @full_path ||= path
-        @current_system_index ||= @full_path.index(@solar_system)
-      end
-
       # Check proximity & stop movement to attack if enemy ship is detected.
       #
       # TODO make algorithm smarter, just currently grabs all neighboring locations
       # and tries to retrieve enemy ships associated with them
       def check_proximity
-        self.get
+        self.get_associated
         neighbors = Omega::Client::Tracker.invoke_request 'motel::get_locations',
                       'within', self.attack_distance, 'of', self.location.entity
         neighbors.each { |loc|
@@ -88,13 +87,16 @@ module Omega
       def schedule_proximity_cycle
         # TODO variable detection interval
         @proximity_timer =
-          Omega::Client::Tracker.em_schedule_async(3){ self.check_proximity }
+          Omega::Client::Tracker.em_schedule_async(5){ self.check_proximity }
       end
 
-      # XXX not the best way to do this, but works
       def on_event(event, &bl)
         if event == 'arrived_in_system'
           @arrived_in_system_callback = bl
+          return
+
+        elsif event == 'selected_next_system'
+          @selected_next_system_callback = bl
           return
         end
 
@@ -102,7 +104,7 @@ module Omega
       end
 
       def start
-        init_path
+        init
         next_system = @full_path[@current_system_index + 1]
         jg = @solar_system.jump_gates.find { |jg| jg.endpoint == next_system.name }
         dst = ((self.entity.location - jg.location) < 15) ? 50 : 10
@@ -113,38 +115,37 @@ module Omega
           @arrived_in_system_callback.call c if @arrived_in_system_callback
           start
         }
+        @selected_next_system_callback.call self, next_system, jg if @selected_next_system_callback
 
-        schedule_proximity_cycle
+        schedule_proximity_cycle if @proximity_timer.nil?
       end
 
-      def self.get(id)
-        corvette = super(id)
+      # Initialize corvette
+      def init
+        return if @initialized
 
-        corvette.on_event('attacked') { |event, attacker, defender|
-          corvette.entity= attacker
-          corvette.stop_moving
+        @initialized = true
+        @full_path   = path
+        @current_system_index = @full_path.index(@solar_system)
+
+        self.on_event('attacked') { |event, attacker, defender|
+          self.entity= attacker
+          self.stop_moving
         }
-        corvette.on_event('defended') { |event, attacker, defender|
-          corvette.entity= defender
-          corvette.stop_moving
+        self.on_event('defended') { |event, attacker, defender|
+          self.entity= defender
+          self.stop_moving
           # start attacking if not already?
         }
-        corvette.on_event('attacked_stop') { |event, attacker,defender|
-          corvette.entity= attacker
-          corvette.start
+        self.on_event('attacked_stop') { |event, attacker,defender|
+          self.entity= attacker
+          self.start
         }
-        corvette.on_event('defended_stop') { |event, attacker,defender|
-          corvette.entity= defender
-          corvette.start
+        self.on_event('defended_stop') { |event, attacker,defender|
+          self.entity= defender
+          self.start
         }
-
-        return corvette
       end
-
-      def initialize(args = {})
-        super(args)
-      end
-
     end
   end
 end

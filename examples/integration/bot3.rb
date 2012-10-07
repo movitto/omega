@@ -36,69 +36,94 @@ node = RJR::AMQPNode.new(:node_id => 'client', :broker => 'localhost')
 # puts "Thread Pool Timeouts: #{time_q.size} (#{time_q.num_waiting} waiting)"
 #}
 
-Omega::Client::User.login node, "admin", "nimda"
+Omega::Client::User.login node, "Anubis", "sibuna"
 
-#Omega::Client::User.get_all.each { |u|
-#  puts "got user #{u.id}"
-#  u.refresh_every(3) { |e|
-#    puts "updated user #{e.id}"
-#  }
-#}
-#Omega::Client::Ship.get_all.each { |s|
-#  puts "got ship #{s.id}"
-#  s.on_movement_of(10) { |loc|
-#    puts "ship #{s.id} location #{loc.id} moved to #{loc}"
-#  }
-#  s.on_event('resource_collected') { |*args|
-#    puts "ship #{s.id} resource collected #{args.join(", ")}"
-#  }
-#  s.on_event('mining_stopped') { |*args|
-#    puts "ship #{s.id} mining stopped #{args.join(", ")}"
-#  }
-#}
+def start_miner(miner)
+  puts "registering #{miner.id} events"
+  miner.on_event('selected_resource') { |m,rs|
+    puts "ship #{miner.id} selected #{rs.id}, moving to #{rs.entity.location}"
+  }
+  miner.on_event('resource_collected') { |*args|
+    puts "ship #{miner.id} collected #{args[3]} of resource #{args[2].resource.id}"
+  }
+  miner.on_event('mining_stopped') { |*args|
+    puts "ship #{miner.id} stopped mining #{args[3].resource.id} due to #{args[1]}"
+  }
+  miner.on_event('moving_to_station') { |m|
+    puts "Miner #{m.id} moving to closest station"
+  }
+  miner.on_event('arrived_at_station') { |m|
+    puts "Miner #{m.id} arrived at station"
+  }
+  miner.on_event('transferred') { |m,st,r,q|
+    puts "Miner #{m.id} transferred #{q} of #{r} to #{st.id}"
+  }
+  miner.on_event('arrived_at_resource') { |m|
+    puts "Miner #{m.id} arrived at resource"
+  }
+  miner.on_event('no_more_resources') { |m|
+    puts "Miner #{m.id} could not find any more accessible resources"
+  }
+  miner.start
+end
 
-#station = Omega::Client::Station.get('Anubis-manufacturing-station1')
-#station.jump_to 'Philo'
+def start_corvette(corvette)
+  puts "registering #{corvette.id} events"
+  corvette.on_event('selected_next_system') { |c, s, jg|
+    puts "corvette #{c.id} traveling to system #{s.name} via jump gate @ #{jg.location}"
+  }
+  corvette.on_event('arrived_in_system') { |c|
+    puts "corvette #{c.id} arrived in system #{c.solar_system.name}"
+  }
+  corvette.on_event('attacked') { |event, attacker,defender|
+    puts "#{attacker.id} attacked #{defender.id}"
+  }
+  corvette.on_event('defended') { |event, attacker,defender|
+    puts "#{defender.id} attacked by #{attacker.id}"
+  }
+  corvette.start
+end
 
-miner = Omega::Bot::Miner.get('Anubis-mining-ship1')
-puts "registering #{miner.id} events"
-miner.on_event('resource_collected') { |*args|
-  puts "ship #{miner.id} collected #{args[3]} of resource #{args[2].resource.id}"
-}
-miner.on_event('mining_stopped') { |*args|
-  puts "ship #{miner.id} stopped mining #{args[3].resource.id} due to #{args[1]}"
-}
-miner.on_event('arrived_at_station') { |m|
-  puts "Miner #{miner.id} arrived at station"
-}
-miner.on_event('arrived_at_resource') { |m|
-  puts "Miner #{miner.id} arrived at resource"
-}
-miner.on_event('no_more_resources') { |m|
-  puts "Miner #{miner.id} could not find any more accessible resources"
-}
+def start_factory(factory)
+  unless @first_factory_constructed
+    factory.construct_entity_type = 'factory'
+    factory.stay_in_system = true
+  else
+    factory.construct_entity_type = 'miner'
+  end
+  @first_factory_constructed = true
 
-corvette = Omega::Bot::Corvette.get('Anubis-corvette-ship1')
-puts "registering #{corvette.id} events"
-corvette.on_event('arrived_in_system') { |c|
-  puts "corvette #{c.id} arrived in system #{c.solar_system.name}"
-}
-corvette.on_event('attacked') { |event, attacker,defender|
-  puts "#{attacker.id} attacked #{defender.id}"
-}
-corvette.on_event('defended') { |event, attacker,defender|
-  puts "#{defender.id} attacked by #{attacker.id}"
-}
+  puts "registering #{factory.id} events"
+  factory.on_event('jumped') { |f|
+    puts "station #{f.id} jumped to system #{f.solar_system.name}"
+  }
+  factory.on_event('on_construction') { |f,e|
+    puts "#{f.id} constructed #{e.id}"
+    if e.is_a?(Manufactured::Station)
+      #factory.construct_entity_type = 'miner'
+      start_factory Omega::Bot::Factory.get(e.id)
 
-factory = Omega::Bot::Factory.get('Anubis-manufacturing-station1')
-factory.construct_entity_type = 'factory'
-puts "registering #{factory.id} events"
-factory.on_event('on_construction') { |f,e|
-  puts "#{f.id} constructed #{e.id}"
-}
+    elsif e.is_a?(Manufactured::Ship)
+      if e.type == :mining
+        factory.construct_entity_type = 'corvette'
+        start_miner Omega::Bot::Miner.get(e.id)
 
-miner.start
-corvette.start
-factory.start
+      elsif e.type == :corvette
+        factory.construct_entity_type = 'miner'
+        start_corvette Omega::Bot::Corvette.get(e.id)
 
+      end
+    end
+  }
+  factory.start
+end
+
+#start_factory  Omega::Bot::Factory.get('Anubis-manufacturing-station1')
+#start_corvette Omega::Bot::Corvette.get('Anubis-corvette-ship1')
+#start_miner    Omega::Bot::Miner.get('Anubis-mining-ship1')
+#node.join
+
+Omega::Bot::Factory.owned_by('Anubis').each  { |f| start_factory  f }
+Omega::Bot::Corvette.owned_by('Anubis').each { |c| start_corvette c }
+Omega::Bot::Miner.owned_by('Anubis').each    { |m| start_miner    m }
 node.join

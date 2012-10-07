@@ -21,9 +21,19 @@ module Omega
         "Manufactured::Station"
       end
 
+      # TODO also delegate manfuactured::subscribe to events like
+      # the ship client
+      def on_event(event, &bl)
+        if event == 'jumped'
+          @jumped_callback = bl
+          return
+        end
+      end
+
+
       def construct(entity_type, args={})
         Tracker.invoke_request 'manufactured::construct_entity',
-                      self.entity.id, entity_type, args.to_a.flatten
+                      self.entity.id, entity_type, *(args.to_a.flatten)
       end
 
       def jump_to(system)
@@ -33,13 +43,13 @@ module Omega
         loc.update self.entity.location
         loc.parent_id = system.location.id
         Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
-        # syncs location & system at expense of another call to get ship
         self.get
+        self.get_associated
+        @jumped_callback.call self if @jumped_callback
         return self
       end
 
-      def get
-        super
+      def get_associated
         location = Omega::Client::Location.get self.entity.location.id
         solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
         @entity_lock.synchronize{

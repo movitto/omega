@@ -131,7 +131,14 @@ class Registry
                 :moon        => Cosmos::Moon,
                 'moon'       => Cosmos::Moon,
                 :asteroid    => Cosmos::Asteroid,
-                'asteroid'   => Cosmos::Asteroid }
+                'asteroid'   => Cosmos::Asteroid,
+                'Cosmos::Galaxy'      => Cosmos::Galaxy,
+                'Cosmos::SolarSystem' => Cosmos::SolarSystem,
+                'Cosmos::Star'        => Cosmos::Star,
+                'Cosmos::Planet'      => Cosmos::Planet,
+                'Cosmos::Moon'        => Cosmos::Moon,
+                'Cosmos::Asteroid'    => Cosmos::Asteroid }
+
       entities.reject! { |e| e.class != types[type] }
     end
 

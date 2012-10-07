@@ -9,7 +9,9 @@ require 'omega/client/base'
 module Omega
   module Bot
     class Factory < Omega::Client::Station
-      # XXX not the best way to do this, but works
+      # stay in current system unless jump is explicitly invoked by user
+      attr_accessor :stay_in_system
+
       def on_event(event, &bl)
         if event == 'on_construction'
           @on_construction_callback = bl
@@ -23,7 +25,7 @@ module Omega
       def schedule_construction_cycle
         # TODO variable cycle interval
         @proximity_timer =
-          Omega::Client::Tracker.em_schedule_async(3){ 
+          Omega::Client::Tracker.em_schedule_async(5){
             self.get
 
             if self.can_construct?(:entity_type => @construct_entity_class,
@@ -37,7 +39,25 @@ module Omega
       end
 
       def start
+        init
         schedule_construction_cycle
+      end
+
+      def init
+        return if @initialized
+
+        @initialized = true
+
+        # jump to system w/ fewest stations owned by user
+        # TODO cache stations & systems so we don't have to retrieve every time
+        return if @stay_in_system
+        owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
+        all_systems    = Omega::Client::SolarSystem.get_all
+        all_systems.sort! { |a,b| owned_stations.select { |st| st.solar_system.name == a.name }.size <=>
+                                  owned_stations.select { |st| st.solar_system.name == b.name }.size }
+        if all_systems.first.name != self.solar_system.name
+          self.jump_to all_systems.first
+        end
       end
 
       def construct_entity_type=(val)
@@ -49,7 +69,7 @@ module Omega
               ['Manufactured::Station', {'type' => :manufacturing,
                                         'idt'   => "#{self.user_id}-manufacturing-station"}]
             when 'miner' then
-              ['Manufactured::Ship',    {'type' => :miner,
+              ['Manufactured::Ship',    {'type' => :mining,
                                         'idt'   => "#{self.user_id}-mining-ship"}]
             when 'corvette' then
               ['Manufactured::Ship',    {'type' => :corvette,

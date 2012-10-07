@@ -67,6 +67,10 @@ class RJRAdapter
       user = @@local_node.invoke_request('users::get_entity', 'with_id', entity.user_id)
       raise Omega::DataNotFound, "user specified by #{entity.user_id} not found" if user.nil?
 
+      # XXX hack - give new stations enough resources
+      # to construct a preliminary helper
+      entity.resources['metal-steel'] = 100 if entity.is_a?(Manufactured::Station)
+
       rentity = Manufactured::Registry.instance.create entity
 
       # add permissions to view & modify entity to owner

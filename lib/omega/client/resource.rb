@@ -9,6 +9,9 @@ require 'omega/client/base'
 module Omega
   module Client
     class ResourceSource
+      # TODO support mechanism to only get resource sources
+      # that have been modified since a certain timestamp
+
       def self.associated_with(entity_name)
         Tracker.invoke_request('cosmos::get_resource_sources', entity_name).collect { |rs|
           e = self.new :resource_source => rs

@@ -37,6 +37,11 @@ module Omega
       end
 
       def on_event(event, &bl)
+        if event == 'transferred'
+          @transferred_callback = bl
+          return
+        end
+
         @@event_handlers ||= {}
         @@event_handlers[self.entity.id] ||= {}
         @@event_handlers[self.entity.id][event] ||= []
@@ -96,8 +101,8 @@ module Omega
         loc.update self.entity.location
         loc.parent_id = system.location.id
         self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
-        # syncs location & system at expense of another call to get ship
         self.get
+        self.get_associated
         return self
       end
 
@@ -110,10 +115,10 @@ module Omega
         entities = Tracker.invoke_request 'manufactured::transfer_resource',
                                   self.id, target.id, resource_id, quantity
         self.entity= entities.first
+        @transferred_callback.call self, target, resource_id, quantity
       end
 
-      def get
-        super
+      def get_associated
         location = Omega::Client::Location.get self.entity.location.id
         solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
         @entity_lock.synchronize{
@@ -122,7 +127,6 @@ module Omega
         }
         return self
       end
-
     end
   end
 end

@@ -21,10 +21,10 @@ module Omega
         Omega::Client::Tracker.node = node
 
         session = Omega::Client::Tracker.invoke_request('users::login',
-                    Users::User.new(:id => 'admin', :password => 'nimda'))
+                    Users::User.new(:id => username, :password => password))
         Omega::Client::Tracker.message_headers['session_id'] = session.id
 
-        return get('admin')
+        return get(username)
       end
 
     end
