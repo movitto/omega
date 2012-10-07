@@ -52,4 +52,7 @@ galaxy 'Zeus' do |g|
 end
 
 jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => -150, :y => -150, :z => -150)
+jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 150, :y => 150, :z => 150)
+jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -150, :y => 150, :z => -150)
+jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 150, :y => -150, :z => 150)
+jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 150, :y => -150, :z => 150)

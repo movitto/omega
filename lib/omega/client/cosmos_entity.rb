@@ -16,7 +16,7 @@ module Omega
       end
 
       def entity_id
-        @entity.name
+        self.entity.name
       end
 
       def self.entity_id_attr
@@ -35,10 +35,15 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
-        @solar_systems  = @entity.solar_systems.collect { |ss|
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
+        solar_systems  = self.entity.solar_systems.collect { |ss|
           Omega::Client::SolarSystem.get ss.name
         }
+        self.entity_lock.synchronize{
+          @location = location if @location.nil?
+          @solar_system = solar_systems
+        }
+        return self
       end
 
     end
@@ -56,17 +61,25 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
-        @star     = Omega::Client::Star.get @entity.star.name
-        @planets  = @entity.planets.collect { |pl|
+        location = Omega::Client::Location.get self.entity.location.id if @location.nil?
+        star     = Omega::Client::Star.get self.entity.star.name if @star.nil?
+        planets  = self.entity.planets.collect { |pl|
           Omega::Client::Planet.get pl.name
         }
-        @asteroids  = @entity.asteroids.collect { |as|
+        asteroids  = self.entity.asteroids.collect { |as|
           Omega::Client::Asteroid.get as.name
         }
-        #@jump_gates  = @entity.jump_gates.collect { |jg|
+        #jump_gates  = self.entity.jump_gates.collect { |jg|
         #  Omega::Client::JumpGate.get jg.name
         #}
+        @entity_lock.synchronize{
+          @location    = location if @location.nil?
+          @star        = star if @star.nil?
+          @planets     = planets
+          @asteroids   = asteroids
+          #@jump_gates = jump_gates
+        }
+        return self
       end
     end
 
@@ -79,7 +92,12 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
+        return unless @location.nil?
+        location = Omega::Client::Location.get self.entity.location.id
+        @entity_lock.synchronize{
+          @location = location
+        }
+        return self
       end
     end
 
@@ -93,10 +111,15 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
-        @moons    = @entity.moons.collect { |mn|
+        location = Omega::Client::Location.get self.entity.location.id
+        moons    = self.entity.moons.collect { |mn|
           Omega::Client::Moon.get mn.name
+        } if @moons.nil?
+        @entity_lock.synchronize{
+          @location = location
+          @moons = moons if @moons.nil?
         }
+        return self
       end
     end
 
@@ -109,7 +132,12 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
+        return unless @location.nil?
+        location = Omega::Client::Location.get self.entity.location.id
+        @entity_lock.synchronize{
+          @location = location
+        }
+        return self
       end
     end
 
@@ -123,8 +151,13 @@ module Omega
 
       def get
         super
-        @location  = Omega::Client::Location.get @entity.location.id
-        @resource_sources = Omega::Client::ResourceSource.associated_with(@entity.name)
+        location  = Omega::Client::Location.get self.entity.location.id if @location.nil?
+        resource_sources = Omega::Client::ResourceSource.associated_with(self.entity.name)
+        @entity_lock.synchronize{
+          @location = location if @location.nil?
+          @resource_sources = resource_sources
+        }
+        return self
       end
     end
 
@@ -137,7 +170,12 @@ module Omega
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
+        return unless @location.nil?
+        location = Omega::Client::Location.get self.entity.location.id
+        @entity_lock.synchronize{
+          @location = location
+        }
+        return self
       end
     end
 

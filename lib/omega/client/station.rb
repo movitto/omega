@@ -22,24 +22,31 @@ module Omega
       end
 
       def construct(entity_type, args={})
-        Tracker.instance.invoke_request 'manufactured::construct_entity',
-                               @entity.id, entity_type, args.to_a.flatten
+        Tracker.invoke_request 'manufactured::construct_entity',
+                      self.entity.id, entity_type, args.to_a.flatten
       end
 
-      def jump_to(system_name)
+      def jump_to(system)
         # TODO leverage system from a local registry?
-        system = Omega::Client::SolarSystem.get(system_name)
+        system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
-        loc.update @entity.location
+        loc.update self.entity.location
         loc.parent_id = system.location.id
-        Tracker.instance.invoke_request 'omega-queue', 'manufactured::move_entity',
-                                         @entity.id, loc
+        Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
+        # syncs location & system at expense of another call to get ship
+        self.get
+        return self
       end
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
-        @solar_system   = Omega::Client::SolarSystem.get @entity.solar_system.name
+        location = Omega::Client::Location.get self.entity.location.id
+        solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
+        @entity_lock.synchronize{
+          @location = location
+          @solar_system = solar_system
+        }
+        return self
       end
     end
   end

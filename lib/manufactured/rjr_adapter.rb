@@ -380,6 +380,34 @@ class RJRAdapter
       entity
     }
 
+    rjr_dispatcher.add_handler('manufactured::stop_entity'){ |id|
+      entity = Manufactured::Registry.instance.find(:id => id).first
+
+      raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      # raise exception if entity or parent is invalid
+      raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
+
+      # update the entity's location
+      Manufactured::Registry.instance.safely_run {
+        entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
+      }
+
+      # set entity's movement strategy to stopped
+      Manufactured::Registry.instance.safely_run {
+        entity.location.movement_strategy =
+          Motel::MovementStrategies::Stopped.instance
+        @@local_node.invoke_request('motel::update_location', entity.location)
+        # TODO remove_callbacks?
+        # TODO stop mining / attack / other operations ?
+      }
+
+      entity
+    }
 
     # callback to track_movement in update location
     rjr_dispatcher.add_handler('motel::on_movement') { |loc|

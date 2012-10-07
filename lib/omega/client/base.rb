@@ -23,7 +23,7 @@ module Omega
       def entity_id
         # return id of specified entity
         # override if entity uses another field for id
-        @entity.id
+        self.entity.id
       end
 
       def self.entity_id_attr
@@ -32,61 +32,82 @@ module Omega
       end
 
       def self.get_all
-        Tracker.instance.invoke_request('omega-queue', get_method, 'of_type', entity_type).collect { |entity|
-          self.new :entity => entity
+        Tracker.invoke_request(get_method, 'of_type', entity_type).collect { |entity|
+          e = self.new :entity => entity
+
+          # if already loaded, use local copy & get update
+          # yes we have to do both assignments here, see tracker[]= below
+          e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+
+          # invoke get (possibly defined in subclasses) to load relationships
+          # XXX don't like invoking get_method twice
+          e.get
+          e
         }
       end
 
       def self.get(id)
-        entity = Tracker.instance.invoke_request 'omega-queue', get_method, "with_#{entity_id_attr}", id
-        self.new :entity => entity
+        entity = Tracker.invoke_request get_method, "with_#{entity_id_attr}", id
+        e = self.new :entity => entity
+
+        # see comment in get_all
+        e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+
+        # see comment in get_all
+        e.get
+        e
       end
 
       def self.owned_by(user_id)
-        Tracker.instance.invoke_request('omega-queue', get_method, 'of_type', entity_type, "owned_by", user_id).collect { |entity|
-          self.new :entity => entity
+        Tracker.invoke_request(get_method, 'of_type', entity_type, "owned_by", user_id).collect { |entity|
+          e = self.new :entity => entity
+
+          # see comment in get_all
+          e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+
+          # see comment in get_all
+          e.get
+          e
+        }
+      end
+
+      def entity
+        @entity_lock.synchronize {
+          @entity
         }
       end
 
       # exposed so generic server callbacks can update client
       # side entities through the Tracker registry below
       def entity=(entity)
+        ei = entity_id.to_s
         @entity_lock.synchronize {
           @entity = entity
-          Tracker.instance[self.class.entity_type + '-' + entity_id.to_s] = self
+          Tracker[self.class.entity_type + '-' + ei] = self
         }
       end
 
       def get
-        @entity = Tracker.instance.invoke_request 'omega-queue', self.class.get_method, "with_#{self.class.entity_id_attr}", entity_id
-        Tracker.instance[self.class.entity_type + '-' + entity_id.to_s] = self
-      end
-
-      def sync
-        @entity_lock.synchronize{
-          get
-        }
+        self.entity= Tracker.invoke_request self.class.get_method, "with_#{self.class.entity_id_attr}", entity_id
+        return self
       end
 
       def refresh_every(seconds, &bl)
         callback = block_given? ? bl : nil
         # must run asyncronously so as not block em
-        Tracker.em_schedule_async(seconds) {
-          sync
-          callback.call @entity if callback
+        Tracker.em_repeat_async(seconds) {
+          get
+          callback.call self.entity if callback
         }
       end
 
       def initialize(args = {})
         @entity = args[:entity]
         @entity_lock = Mutex.new
-
-        # FIXME will retrieve entity twice in case of get_all and get(id)
-        get
       end
 
       def method_missing(method_id, *args, &bl)
-        @entity.send method_id, *args, &bl
+        self.entity.send method_id, *args, &bl
       end
     end
 
@@ -99,6 +120,11 @@ module Omega
 
         # hash of unique ids to handles to all entities retrieved from the server
         @registry = {}
+        @registry_lock = Mutex.new
+
+        # provides way to generate incrementing unique ids
+        @id_counter = 500 + rand(100)
+        @id_counter_lock = Mutex.new
       end
 
       def node=(node)
@@ -109,11 +135,29 @@ module Omega
       end
 
       def []=(key, val)
-        @registry[key] = val
+        @registry_lock.synchronize{
+           # will only set value the first time
+           @registry[key] ||= val
+           @registry[key]
+        }
       end
 
       def [](key)
-        @registry[key]
+        @registry_lock.synchronize{
+          @registry[key]
+        }
+      end
+
+      def next_id
+        @id_counter_lock.synchronize{
+          @id_counter += 1
+        }
+      end
+
+      def invoke_request(method, *args)
+        @node_lock.synchronize {
+          @node.invoke_request 'omega-queue', method, *args
+        }
       end
 
       def method_missing(method_id, *args, &bl)

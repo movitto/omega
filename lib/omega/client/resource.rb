@@ -10,13 +10,34 @@ module Omega
   module Client
     class ResourceSource
       def self.associated_with(entity_name)
-        Tracker.instance.invoke_request('omega-queue', 'cosmos::get_resource_sources', entity_name).each { |rs|
-          self.new :resource_source => rs
+        Tracker.invoke_request('cosmos::get_resource_sources', entity_name).collect { |rs|
+          e = self.new :resource_source => rs
+          e = Tracker["Cosmos::ResourceSource-#{rs.id}"] = e
+
+          e.update(rs)
+          e
         }
+      end
+
+      def update(rs)
+        @rs_lock.synchronize{
+          self.quantity = rs.quantity
+          self.resource = rs.resource
+          self.entity   = rs.entity
+        }
+        return self
+      end
+
+      def -(quantity)
+        @rs_lock.synchronize{
+          self.quantity -= quantity
+        }
+        return self
       end
 
       def initialize(args = {})
         @resource_source = args[:resource_source]
+        @rs_lock = Mutex.new {}
       end
 
       def method_missing(method_id, *args, &bl)

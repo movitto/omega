@@ -16,6 +16,10 @@ class Station
   # ID of user which station belongs to
   attr_accessor :user_id
 
+  # Hit points the station has.
+  # Currently not used, here for compatability reasons
+  attr_accessor :hp
+
   # Size of the station
   #
   # TODO replace with a more accurate description of station's geometry
@@ -137,6 +141,7 @@ class Station
     @docking_distance = 100
     @transfer_distance = 100
     @construction_distance = 50
+    @hp = 0
 
     self.solar_system = args['solar_system'] || args[:solar_system]
     self.location = args['location'] || args[:location]

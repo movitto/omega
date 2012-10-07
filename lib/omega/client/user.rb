@@ -20,8 +20,8 @@ module Omega
       def self.login(node, username, password)
         Omega::Client::Tracker.node = node
 
-        session = Omega::Client::Tracker.invoke_request('omega-queue','users::login',
-                               Users::User.new(:id => 'admin', :password => 'nimda'))
+        session = Omega::Client::Tracker.invoke_request('users::login',
+                    Users::User.new(:id => 'admin', :password => 'nimda'))
         Omega::Client::Tracker.message_headers['session_id'] = session.id
 
         return get('admin')

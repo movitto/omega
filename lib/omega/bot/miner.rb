@@ -11,11 +11,11 @@ module Omega
     class Miner < Omega::Client::Ship
       def closest_resource
         # TODO check other systems
-        @solar_system.sync
-        rs = @solar_system.asteroids.select { |a|
-               !a.resource_sources.find { |rs| rs.quantity > 0 }.nil?
-             }.sort { |a,b| (self.location - a.location) <=> 
-                            (self.location - b.location) }.first
+        @solar_system.get
+        rs = @solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
+                                                  (self.location - b.location) }.
+                                     find { |a| !a.resource_sources.find { |rs|
+                                                             rs.quantity > 0 }.nil? }
         rs
       end
 
@@ -27,6 +27,10 @@ module Omega
 
         elsif event == 'arrived_at_resource'
           @arrived_at_resource_callback = bl
+          return
+
+        elsif event == 'no_more_resources'
+          @no_more_resources_callback = bl
           return
 
         end
@@ -52,23 +56,36 @@ module Omega
       def mine(args = {})
         target = args[:target]
         if target == :closest_resource
-          target = closest_resource.resource_sources.find { |rs| rs.quantity > 0 }
+          target = closest_resource
+          target = target.resource_sources.find { |rs| rs.quantity > 0 } unless target.nil?
         end
-        # TODO ensure target isn't nil & we're within mining distance (else catch start_mining errors)
 
-        Omega::Client::Tracker.instance.invoke_request 'omega-queue',
-                            'manufactured::start_mining', @entity.id,
-                              target.entity.name, target.resource.id
-                                    
+        # ensure target isn't nil
+        if target.nil?
+          @no_more_resources_callback.call self if @no_more_resources_callback
+          return
+        end
+
+        # TODO ensurewe're within mining distance (else catch start_mining errors)
+        Omega::Client::Tracker.invoke_request 'manufactured::start_mining',
+                        self.entity.id, target.entity.name, target.resource.id
+
       end
 
       def move_to_and_mine(target)
         if target == :closest_resource
-          target = closest_resource.resource_sources.find { |rs| rs.quantity > 0 }
+          target = closest_resource
+          target = target.resource_sources.find { |rs| rs.quantity > 0 } unless target.nil?
         end
-        # TODO ensure target isn't nil & we're not within mining distance
 
-        move_to(:location => (target.entity.location + 10)) { |m|
+        # ensure target isn't nil
+        if target.nil?
+          @no_more_resources_callback.call self if @no_more_resources_callback
+          return
+        end
+
+        dst = ((self.entity.location - target.entity.location) < 15) ? 50 : 10
+        move_to(:location => (target.entity.location + [dst,0,0])) { |m|
           @arrived_at_resource_callback.call m if @arrived_at_resource_callback
           mine :target => target
         }
@@ -78,7 +95,7 @@ module Omega
         if self.cargo_full?
           move_to(:destination => :closest_station) { |m|
             @arrived_at_station_callback.call m if @arrived_at_station_callback
-            resources.each { |rsid, quantity|
+            self.resources.each { |rsid, quantity|
               transfer quantity, :of => rsid, :to => :closest_station
             }
             move_to_and_mine :closest_resource

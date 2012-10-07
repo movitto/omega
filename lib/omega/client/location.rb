@@ -26,8 +26,7 @@ module Omega
           @@movement_handlers[loc.id].call loc
         }
 
-        Tracker.instance.invoke_request 'omega-queue', 'motel::track_movement',
-                                         @entity.id, distance
+        Tracker.invoke_request 'motel::track_movement', @entity.id, distance
       end
 
     end

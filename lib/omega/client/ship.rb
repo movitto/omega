@@ -22,11 +22,11 @@ module Omega
       end
 
       def closest_station
-        # TODO cache owned stations so we don't have to retireve evety time
-        owned_stations = Omega::Client::Station.owned_by(@entity.user_id)
+        # TODO cache owned stations so we don't have to retireve every time
+        owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
 
         # TODO support other systems
-        st = owned_stations.select { |st| st.solar_system.id == @entity.solar_system.id }.
+        st = owned_stations.select { |st| st.solar_system.name == self.entity.solar_system.name }.
                             sort   { |a,b| (self.location - a.location) <=>
                                            (self.location - b.location) }.first
         st
@@ -38,20 +38,19 @@ module Omega
 
       def on_event(event, &bl)
         @@event_handlers ||= {}
-        @@event_handlers[@entity.id] ||= {}
-        @@event_handlers[@entity.id][event] ||= []
-        @@event_handlers[@entity.id][event] << bl
+        @@event_handlers[self.entity.id] ||= {}
+        @@event_handlers[self.entity.id][event] ||= []
+        @@event_handlers[self.entity.id][event] << bl
 
         RJR::Dispatcher.add_handler("manufactured::event_occurred") { |*args|
           event  = args[0]
           entity = args[event == 'mining_stopped' ? 2 : 1] 
-          # TODO update entity on correspond client object
           Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + entity.id].entity= entity
           @@event_handlers[entity.id][event].each { |cb| cb.call *args }
+          nil
         }
 
-        @entity = Tracker.instance.invoke_request 'omega-queue', 'manufactured::subscribe_to',
-                                                  @entity.id, event
+        self.entity= Tracker.invoke_request 'manufactured::subscribe_to', self.entity.id, event
       end
 
       def move_to(args = {}, &bl)
@@ -61,7 +60,7 @@ module Omega
           st = closest_station
           # raise Exception if st.nil?
           args[:location] = st.location + 10
-          args.delete(:closest_station)
+          args.delete(:destination)
         end
 
         if args.has_key?(:location)
@@ -72,28 +71,34 @@ module Omega
         end
 
         loc = Motel::Location.new
-        loc.update @entity.location
+        loc.update self.entity.location
         loc.x = args[:x] if args.has_key?(:x)
         loc.y = args[:y] if args.has_key?(:y)
         loc.z = args[:z] if args.has_key?(:z)
 
         entity = self
-        self.on_movement_of(@entity.location - loc){ |loc|
+        self.on_movement_of(self.entity.location - loc){ |loc|
           bl.call entity
         }if block_given?
 
-        @entity = Tracker.instance.invoke_request 'omega-queue', 'manufactured::move_entity',
-                                                  @entity.id, loc
+        self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
+        return self
       end
 
-      def jump_to(system_name)
+      def stop_moving
+        self.entity= Tracker.invoke_request 'manufactured::stop_entity', self.entity.id
+      end
+
+      def jump_to(system)
         # TODO leverage system from a local registry?
-        system = Omega::Client::SolarSystem.get(system_name)
+        system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
-        loc.update @entity.location
+        loc.update self.entity.location
         loc.parent_id = system.location.id
-        @entity = Tracker.instance.invoke_request 'omega-queue', 'manufactured::move_entity',
-                                                  @entity.id, loc
+        self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
+        # syncs location & system at expense of another call to get ship
+        self.get
+        return self
       end
 
       def transfer(quantity, args = {})
@@ -102,15 +107,20 @@ module Omega
 
         target = closest_station if target == :closest_station
 
-        entities = Tracker.instance.invoke_request 'omega-queue', 'manufactured::transfer_resource',
-                                                   self.id, target.id, resource_id, quantity
-        @entity = entities.first
+        entities = Tracker.invoke_request 'manufactured::transfer_resource',
+                                  self.id, target.id, resource_id, quantity
+        self.entity= entities.first
       end
 
       def get
         super
-        @location = Omega::Client::Location.get @entity.location.id
-        @solar_system   = Omega::Client::SolarSystem.get @entity.solar_system.name
+        location = Omega::Client::Location.get self.entity.location.id
+        solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
+        @entity_lock.synchronize{
+          @location = location
+          @solar_system = solar_system
+        }
+        return self
       end
 
     end
