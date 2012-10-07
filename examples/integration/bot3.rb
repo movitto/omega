@@ -16,7 +16,8 @@ require 'omega/bot/factory'
 
 #RJR::Logger.log_level = ::Logger::DEBUG
 
-node = RJR::AMQPNode.new(:node_id => 'client', :broker => 'localhost')
+#node = RJR::AMQPNode.new(:node_id => 'client', :broker => 'localhost')
+node = RJR::TCPNode.new(:node_id => 'client', :host => 'localhost', :port => '9090')
 
 #RJR::Signals.setup
 #Signal.trap("INT") {

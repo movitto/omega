@@ -3,9 +3,12 @@ omega_url:  'http://localhost/wotel/'
 backup_dir: './backups/'
 
 node_id: 'omega'
-node_types: ['amqp', 'ws', 'www', 'local']
+node_types: ['amqp', 'tcp', 'ws', 'www', 'local']
 
 amqp_broker: 'localhost'
+
+tcp_host: 'localhost'
+tcp_port: 8181
 
 ws_host: 'localhost'
 ws_port: 8080

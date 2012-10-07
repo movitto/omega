@@ -74,11 +74,13 @@ def main()
                               :amqp_broker => 'localhost',
                               :ws_host     => 'localhost',
                               :www_host    => 'localhost',
+                              :tcp_host    => 'localhost',
                               :ws_port     =>  8080,
                               :www_port    =>  8888,
+                              :tcp_port    => '8181',
                               :node_types  => ['amqp', 'ws', 'www', 'local']
 
-  required_atts = :node_id, :amqp_broker, :ws_host, :www_host, :ws_port, :www_port, :node_types,
+  required_atts = :node_id, :amqp_broker, :ws_host, :www_host, :tcp_host, :ws_port, :www_port, :tcp_port, :node_types,
                   :admin_user, :admin_pass, :remote_location_manager_user, :remote_location_manager_pass, :remote_cosmos_manager_user, :remote_cosmos_manager_pass,
                   :irc_server, :irc_port, :irc_channel
   unless config.has_attributes? required_atts
@@ -123,6 +125,8 @@ def main()
       nodes << RJR::WSNode.new(:node_id => config.node_id, :host   => config.ws_host, :port => config.ws_port)
     when 'www' then
       nodes << RJR::WebNode.new(:node_id => config.node_id, :host   => config.www_host, :port => config.www_port)
+    when 'tcp' then
+      nodes << RJR::TCPNode.new(:node_id => config.node_id, :host => config.tcp_host, :port => config.tcp_port)
     when 'local' then
       nodes << RJR::LocalNode.new(:node_id => config.node_id)
     end

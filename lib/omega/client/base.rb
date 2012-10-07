@@ -169,7 +169,7 @@ module Omega
 
       def invoke_request(method, *args)
         @node_lock.synchronize {
-          @node.invoke_request 'omega-queue', method, *args
+          @node.invoke_request 'json-rpc://localhost:8181', method, *args
         }
       end
 
