@@ -60,7 +60,8 @@ class Session
   # @return [true,false] if the session has timed out or not
   def timed_out?
     ct = Time.now
-    return true if ct - @timeout_timestamp > SESSION_EXPIRATION
+    return true if ct - @timeout_timestamp > SESSION_EXPIRATION &&
+                   !@user.permenant
 
     @timeout_timestamp = ct
     return false

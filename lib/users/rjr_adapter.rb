@@ -39,6 +39,9 @@ class RJRAdapter
     # String URL of the omega server
     # @!scope class
     attr_accessor :omega_url
+
+    # Array<String> Usernames to mark as permenant on creation
+    attr_accessor :permenant_users
   end
 
   # Return user which can invoke privileged users operations over rjr
@@ -83,6 +86,11 @@ class RJRAdapter
          # XXX don't like reaching into omega here but this would be too messy otherwise atm
          #     perhaps leverage an external hook (or script) to do this
          Omega::Roles.create_user_role entity, :regular_user
+
+         # mark permant users as such
+         if Users::RJRAdapter.permenant_users.find { |un| entity.id == un }
+           entity.permenant = true
+         end
 
        # TODO grant alliance permissions
        end

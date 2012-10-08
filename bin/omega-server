@@ -104,6 +104,7 @@ def main()
   Users::ChatProxy.default_irc_channel   = config.irc_channel
 
   Users::RJRAdapter.omega_url            = config.omega_url
+  Users::RJRAdapter.permenant_users      = config.permenant_users
 
   Motel::RemoteLocationManager.user      = config.remote_location_manager_user
   Motel::RemoteLocationManager.password  = config.remote_location_manager_pass

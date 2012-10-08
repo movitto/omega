@@ -64,6 +64,9 @@ class User
   # Time user last logged in
   attr_accessor :last_login_at
 
+  # [Boolean] indicating if this user is permenantly logged in
+  attr_accessor :permenant
+
   # User initializer
   # @param [Hash] args hash of options to initialize user with
   # @option args [String] :id,'id' id to assign to the user
@@ -82,6 +85,7 @@ class User
     @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
     @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
     @secure_password = false
+    @permenant       = false
 
     @privileges = []
   end

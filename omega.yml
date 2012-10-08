@@ -2,6 +2,8 @@
 omega_url:  'http://localhost/wotel/'
 backup_dir: './backups/'
 
+permenant_users: ['admin', 'manufactured', 'cosmos', 'users', 'rlm', 'rcm' ]
+
 node_id: 'omega'
 node_types: ['amqp', 'tcp', 'ws', 'www', 'local']
 
