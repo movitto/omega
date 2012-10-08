@@ -78,7 +78,7 @@ def main()
                               :ws_port     =>  8080,
                               :www_port    =>  8888,
                               :tcp_port    => '8181',
-                              :node_types  => ['amqp', 'ws', 'www', 'local']
+                              :node_types  => ['amqp', 'tcp', 'ws', 'www', 'local']
 
   required_atts = :node_id, :amqp_broker, :ws_host, :www_host, :tcp_host, :ws_port, :www_port, :tcp_port, :node_types,
                   :admin_user, :admin_pass, :remote_location_manager_user, :remote_location_manager_pass, :remote_cosmos_manager_user, :remote_cosmos_manager_pass,
