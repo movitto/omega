@@ -17,7 +17,7 @@ module Omega
         # TODO check other systems
         self.solar_system.get
         rs = self.solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
-                                                  (self.location - b.location) }.
+                                                      (self.location - b.location) }.
                                      find { |a| !a.update!.resource_sources.find { |rs|
                                                               rs.quantity > 0 }.nil? }
         rs
@@ -98,7 +98,7 @@ module Omega
         @selected_resource_callback.call self, target if @selected_resource_callback
 
         dst = ((self.entity.location - target.entity.location) < 15) ? 50 : 10
-        move_to(:location => (target.entity.location + [dst,0,0])) { |m|
+        move_to(:location => (target.entity.location + [dst,0,0])) { |m,dst|
           @arrived_at_resource_callback.call m if @arrived_at_resource_callback
           mine :target => target
         }
@@ -109,10 +109,11 @@ module Omega
         if self.cargo_full?
           @moving_to_station_callback.call self if @moving_to_station_callback
 
-          move_to(:destination => :closest_station) { |m|
+          move_to(:destination => :closest_station) { |m,dst|
             @arrived_at_station_callback.call m if @arrived_at_station_callback
+            # FIXME ensure can transfer resources to station (which may have jumped)
             self.resources.each { |rsid, quantity|
-              transfer quantity, :of => rsid, :to => :closest_station
+              transfer quantity, :of => rsid, :to => dst
             }
             move_to_and_mine :closest_resource
           }

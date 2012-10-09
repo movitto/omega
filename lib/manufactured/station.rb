@@ -65,12 +65,19 @@ class Station
   # [Cosmos::SolarSystem] the station is in
   attr_reader :solar_system
 
+  # [String] name of the solar system.
+  #
+  # Used to reference the solar_system w/out having to pass
+  # the entire system around
+  attr_reader :system_name
+
   # Set solar system the station is in
   #
   # Assigns the parent of the station's location to the location corresponding to the new solar system
   # @param [Cosmos::SolarSystem] val solar system parent to assign to the station
   def solar_system=(val)
     @solar_system = val
+    @system_name = @solar_system.name
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
@@ -143,7 +150,16 @@ class Station
     @construction_distance = 50
     @hp = 0
 
-    self.solar_system = args['solar_system'] || args[:solar_system]
+    if args.has_key?('solar_system') || args.has_key?(:solar_system)
+      self.solar_system = args['solar_system'] || args[:solar_system]
+    elsif args.has_key?('system_name') || args.has_key?(:system_name)
+      @system_name = args['system_name'] || args[:system_name]
+      # TODO would rather not access the cosmos registry directly here
+      solar_system = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
+                                                           :name => @system_name)
+      self.solar_system = solar_system unless solar_system.nil?
+    end
+
     self.location = args['location'] || args[:location]
 
     self.location = Motel::Location.new if @location.nil?
@@ -386,7 +402,7 @@ class Station
           :errors => errors,
           :docking_distance => @docking_distance,
           :location => @location,
-          :solar_system => @solar_system,
+          :system_name => (@solar_system.nil? ? @system_name : @solar_system.name),
           :resources => @resources}
      }.to_json(*a)
    end

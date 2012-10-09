@@ -10,8 +10,17 @@ require 'omega/client/cosmos_entity'
 module Omega
   module Client
     class Ship < Entity
-      attr_reader :location
-      attr_reader :solar_system
+      def location
+        Tracker.synchronize{
+          @location
+        }
+      end
+
+      def solar_system
+        Tracker.synchronize{
+          @solar_system
+        }
+      end
 
       def self.get_method
         "manufactured::get_entity"
@@ -22,14 +31,16 @@ module Omega
       end
 
       def closest_station
-        # TODO cache owned stations so we don't have to retireve every time
+        closest_stations.first
+      end
+
+      def closest_stations
         owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
 
         # TODO support other systems
-        st = owned_stations.select { |st| st.solar_system.name == self.entity.solar_system.name }.
+        owned_stations.select { |st| st.system_name == self.entity.system_name }.
                             sort   { |a,b| (self.location - a.location) <=>
-                                           (self.location - b.location) }.first
-        st
+                                           (self.location - b.location) }
       end
 
       def on_movement_of(distance, &bl)
@@ -40,19 +51,29 @@ module Omega
         if event == 'transferred'
           @transferred_callback = bl
           return
+
+        elsif event == 'jumped'
+          @jumped_callback = bl
+          return
         end
 
-        @@event_handlers ||= {}
-        @@event_handlers[self.entity.id] ||= {}
-        @@event_handlers[self.entity.id][event] ||= []
-        @@event_handlers[self.entity.id][event] << bl
+        Tracker.synchronize{
+          @@event_handlers ||= {}
+          @@event_handlers[self.entity.id] ||= {}
+          @@event_handlers[self.entity.id][event] ||= []
+          @@event_handlers[self.entity.id][event] << bl
 
-        RJR::Dispatcher.add_handler("manufactured::event_occurred") { |*args|
-          event  = args[0]
-          entity = args[event == 'mining_stopped' ? 2 : 1] 
-          Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + entity.id].entity= entity
-          @@event_handlers[entity.id][event].each { |cb| cb.call *args }
-          nil
+          unless @registered_manufactured_events
+            @registered_manufactured_events = true
+            RJR::Dispatcher.add_handler("manufactured::event_occurred") { |*args|
+              event  = args[0]
+              entity = args[event == 'mining_stopped' ? 2 : 1] 
+              Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + entity.id].entity= entity
+              handlers = Tracker.synchronize { Array.new(@@event_handlers[entity.id][event]) }
+              handlers.each { |cb| cb.call *args }
+              nil
+            }
+          end
         }
 
         self.entity= Tracker.invoke_request 'manufactured::subscribe_to', self.entity.id, event
@@ -61,10 +82,16 @@ module Omega
       def move_to(args = {}, &bl)
         # TODO multisystem routes
 
+        dst = nil
+
         if args[:destination] == :closest_station
-          st = closest_station
+          dst = closest_station
           # raise Exception if st.nil?
-          args[:location] = st.location + 10
+          args[:location] = dst.location + 10
+          args.delete(:destination)
+        elsif args[:destination].is_a?(Omega::Client::Station)
+          dst = args[:destination]
+          args[:location] = dst.location + 10
           args.delete(:destination)
         end
 
@@ -80,10 +107,11 @@ module Omega
         loc.x = args[:x] if args.has_key?(:x)
         loc.y = args[:y] if args.has_key?(:y)
         loc.z = args[:z] if args.has_key?(:z)
+        dst = loc if dst.nil?
 
         entity = self
         self.on_movement_of(self.entity.location - loc){ |loc|
-          bl.call entity
+          bl.call entity, dst
         }if block_given?
 
         self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
@@ -101,16 +129,14 @@ module Omega
         loc.update self.entity.location
         loc.parent_id = system.location.id
         self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
-        self.get
         self.get_associated
+        @jumped_callback.call self if @jumped_callback
         return self
       end
 
       def transfer(quantity, args = {})
         resource_id = args[:of]
         target      = args[:to]
-
-        target = closest_station if target == :closest_station
 
         entities = Tracker.invoke_request 'manufactured::transfer_resource',
                                   self.id, target.id, resource_id, quantity
@@ -120,8 +146,8 @@ module Omega
 
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id
-        solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
-        @entity_lock.synchronize{
+        solar_system   = Omega::Client::SolarSystem.get self.entity.system_name if @solar_system.nil? || @solar_system.name != self.entity.system_name
+        Tracker.synchronize{
           @location = location
           @solar_system = solar_system
         }

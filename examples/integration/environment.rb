@@ -42,7 +42,7 @@ galaxy 'Zeus' do |g|
     end
   
     asteroid gen_uuid, :location => Location.new(:x => 47, :y => 48, :z => -5) do |ast|
-      resource :resource => rand_resource, :quantity => 150
+      resource :resource => rand_resource, :quantity => 550
     end
     asteroid gen_uuid, :location => Location.new(:x => 59, :y => -13, :z => -2) do |ast|
       resource :resource => rand_resource, :quantity => 250

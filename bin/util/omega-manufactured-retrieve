@@ -56,7 +56,7 @@ when "ship"
   puts " beloning to #{entity.user_id}"
   puts " of type #{entity.type}"
   puts " of size #{entity.size}"
-  puts " in system #{entity.solar_system.name}"
+  puts " in system #{entity.system_name}"
   puts "  at #{entity.location.to_s}"
   puts "  w/ movement strategy #{entity.location.movement_strategy.to_s}"
   entity.resources.each { |id,q|

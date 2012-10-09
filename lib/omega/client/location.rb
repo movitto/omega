@@ -18,12 +18,18 @@ module Omega
       end
 
       def on_movement_of(distance, &bl)
-        @@movement_handlers ||= {}
-        @@movement_handlers[@entity.id] = bl
+        Tracker.synchronize{
+          @@movement_handlers ||= {}
+          @@movement_handlers[@entity.id] = bl
 
-        RJR::Dispatcher.add_handler("motel::on_movement") { |loc|
-          Omega::Client::Tracker[Omega::Client::Location.entity_type + '-' + loc.id.to_s].entity= loc
-          @@movement_handlers[loc.id].call loc
+          unless @registered_movement
+            @registered_movement = true
+            RJR::Dispatcher.add_handler("motel::on_movement") { |loc|
+              Omega::Client::Tracker[Omega::Client::Location.entity_type + '-' + loc.id.to_s].entity= loc
+              handler = Tracker.synchronize { @@movement_handlers[loc.id] }
+              handler.call loc
+            }
+          end
         }
 
         Tracker.invoke_request 'motel::track_movement', @entity.id, distance

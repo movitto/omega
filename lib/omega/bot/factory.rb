@@ -10,7 +10,16 @@ module Omega
   module Bot
     class Factory < Omega::Client::Station
       # stay in current system unless jump is explicitly invoked by user
-      attr_accessor :stay_in_system
+      attr_writer :stay_in_system
+
+      # XXX don't like exposing these next attributes, but needed
+      # for construction cycle below
+
+      # callback invoked when new entities are constructed
+      attr_reader :on_construction_callback
+
+      # entity which this station will construct
+      attr_reader :entity_to_construct
 
       def on_event(event, &bl)
         if event == 'on_construction'
@@ -22,25 +31,31 @@ module Omega
       end
 
       # run construction cycle
-      def schedule_construction_cycle
+      def self.schedule_construction_cycle
         # TODO variable cycle interval
-        @proximity_timer =
-          Omega::Client::Tracker.em_schedule_async(5){
-            self.get
+        Omega::Client::Tracker.em_schedule_async(30){
+          Omega::Client::Tracker.select { |k,v|
+            k =~ /#{Omega::Client::Station.entity_type}-.*/ 
+          }.each { |k,st|
+            st.get
 
-            if self.can_construct?(:entity_type => @construct_entity_class,
-                                   :type => @construct_entity_args['type'])
-              @construct_entity_args['id'] = "#{@construct_entity_args['idt']}#{Omega::Client::Tracker.next_id}"
-              entity = self.construct @construct_entity_class, @construct_entity_args
-              @on_construction_callback.call self, entity if @on_construction_callback
+            if st.can_construct?(:entity_type => st.entity_to_construct['class'],
+                                 :type        => st.entity_to_construct['type'])
+
+              st.entity_to_construct['id'] =
+                "#{st.entity_to_construct['idt']}#{Omega::Client::Tracker.next_id}"
+
+              entity = st.construct st.entity_to_construct['class'], st.entity_to_construct
+              st.on_construction_callback.call st, entity if st.on_construction_callback
             end
-            self.schedule_construction_cycle
           }
+          self.schedule_construction_cycle
+        }
       end
 
       def start
         init
-        schedule_construction_cycle
+        @@construction_timer ||= self.class.schedule_construction_cycle
       end
 
       def init
@@ -49,31 +64,32 @@ module Omega
         @initialized = true
 
         # jump to system w/ fewest stations owned by user
-        # TODO cache stations & systems so we don't have to retrieve every time
         return if @stay_in_system
         owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
         all_systems    = Omega::Client::SolarSystem.get_all
-        all_systems.sort! { |a,b| owned_stations.select { |st| st.solar_system.name == a.name }.size <=>
-                                  owned_stations.select { |st| st.solar_system.name == b.name }.size }
-        if all_systems.first.name != self.solar_system.name
+        all_systems.sort! { |a,b| owned_stations.select { |st| st.system_name == a.name }.size <=>
+                                  owned_stations.select { |st| st.system_name == b.name }.size }
+        if all_systems.first.name != self.system_name
           self.jump_to all_systems.first
         end
       end
 
       def construct_entity_type=(val)
         # idt -> id template, which unique id is appended onto on construction
-        @construct_entity_type = val
-        @construct_entity_class, @construct_entity_args = 
-          case @construct_entity_type
+        @entity_to_construct = 
+          case val
             when 'factory' then
-              ['Manufactured::Station', {'type' => :manufacturing,
-                                        'idt'   => "#{self.user_id}-manufacturing-station"}]
+              {'class' => 'Manufactured::Station',
+               'type'  => :manufacturing,
+               'idt'   => "#{self.user_id}-manufacturing-station"}
             when 'miner' then
-              ['Manufactured::Ship',    {'type' => :mining,
-                                        'idt'   => "#{self.user_id}-mining-ship"}]
+              {'class' => 'Manufactured::Ship',
+               'type'  => :mining,
+               'idt'   => "#{self.user_id}-mining-ship"}
             when 'corvette' then
-              ['Manufactured::Ship',    {'type' => :corvette,
-                                        'idt'   => "#{self.user_id}-corvette-ship"}]
+              {'class' => 'Manufactured::Ship',
+               'type'  => :corvette,
+               'idt'   => "#{self.user_id}-corvette-ship"}
           end
 
       end

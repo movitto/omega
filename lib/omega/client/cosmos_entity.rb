@@ -33,12 +33,17 @@ module Omega
         "Cosmos::Galaxy"
       end
 
+      # Assuming the cosmos heirarchy doesn't change
+      def self.get_all
+        @@galaxies ||= super
+      end
+
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         solar_systems  = self.entity.solar_systems.collect { |ss|
           Omega::Client::SolarSystem.get ss.name
         } if @solar_systems.nil?
-        self.entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
           @solar_system = solar_systems if @solar_systems.nil?
         }
@@ -62,6 +67,11 @@ module Omega
         "Cosmos::SolarSystem"
       end
 
+      # Assuming the cosmos heirarchy doesn't change
+      def self.get_all
+        @@systems ||= super
+      end
+
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
         star     = Omega::Client::Star.get self.entity.star.name if @star.nil?
@@ -74,11 +84,11 @@ module Omega
         #jump_gates  = self.entity.jump_gates.collect { |jg|
         #  Omega::Client::JumpGate.get jg.name
         #}
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location    = location if @location.nil?
           @star        = star if @star.nil?
-          @planets     = planets
-          @asteroids   = asteroids
+          @planets     = planets if @planets.nil?
+          @asteroids   = asteroids if @asteroids.nil?
           #@jump_gates = jump_gates
         }
         return self
@@ -98,7 +108,7 @@ module Omega
 
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
         }
         return self
@@ -122,7 +132,7 @@ module Omega
         moons    = self.entity.moons.collect { |mn|
           Omega::Client::Moon.get mn.name
         } if @moons.nil?
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
           @moons = moons if @moons.nil?
         }
@@ -139,7 +149,7 @@ module Omega
 
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
         }
         return self
@@ -160,7 +170,7 @@ module Omega
 
       def update!
         resource_sources = Omega::Client::ResourceSource.associated_with(self.entity.name)
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @resource_sources = resource_sources
         }
         return self
@@ -169,7 +179,7 @@ module Omega
       def get_associated
         location  = Omega::Client::Location.get self.entity.location.id if @location.nil?
         resource_sources = Omega::Client::ResourceSource.associated_with(self.entity.name) if @resource_sources.nil?
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
           @resource_sources = resource_sources if @resource_sources.nil?
         }
@@ -190,7 +200,7 @@ module Omega
 
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id if @location.nil?
-        @entity_lock.synchronize{
+        Tracker.synchronize{
           @location = location if @location.nil?
         }
         return self

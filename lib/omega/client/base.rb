@@ -38,6 +38,7 @@ module Omega
       end
 
       def self.get_all
+#puts "GET ALL #{entity_type}"
         Tracker.invoke_request(get_method, 'of_type', entity_type).collect { |entity|
           self.new :entity => entity
         }.select  { |e| e.valid?
@@ -45,7 +46,8 @@ module Omega
           # if already loaded, use local copy & get update.
           # *yes* we have to do both assignments here, since tracked
           # entity might already be loaded, see Tracker[]= below
-          e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+          Tracker[entity_type + '-' + e.entity_id.to_s] = e
+          e = Tracker[entity_type + '-' + e.entity_id.to_s]
 
           # load relationships
           e.get_associated
@@ -54,12 +56,14 @@ module Omega
       end
 
       def self.get(id)
+#puts "GET ID #{id}"
         entity = Tracker.invoke_request get_method, "with_#{entity_id_attr}", id
         e = self.new :entity => entity
         # throw error if !e.valid?
 
         # see comment in get_all
-        e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+        Tracker[entity_type + '-' + e.entity_id.to_s] = e
+        e = Tracker[entity_type + '-' + e.entity_id.to_s]
 
         # load relationships
         e.get_associated
@@ -67,12 +71,14 @@ module Omega
       end
 
       def self.owned_by(user_id)
+#puts "GET OWNED BY #{entity_type}/#{user_id}"
         Tracker.invoke_request(get_method, 'of_type', entity_type, "owned_by", user_id).collect { |entity|
           self.new :entity => entity
         }.select  { |e| e.valid?
         }.collect { |e|
           # see comment in get_all
-          e = Tracker[entity_type + '-' + e.entity_id.to_s] = e
+          Tracker[entity_type + '-' + e.entity_id.to_s] = e
+          e = Tracker[entity_type + '-' + e.entity_id.to_s]
 
           # load relationships
           e.get_associated
@@ -81,15 +87,15 @@ module Omega
       end
 
       def entity
-        @entity_lock.synchronize {
+        #Tracker.synchronize {
           @entity
-        }
+        #}
       end
 
       # exposed so generic server callbacks can update client
       # side entities through the Tracker registry below
       def entity=(entity)
-        @entity_lock.synchronize {
+        Tracker.synchronize {
           @entity = entity
         }
       end
@@ -101,6 +107,7 @@ module Omega
 
       # retrieve tracked entity from server
       def get
+#puts "GET #{entity_id}"
         self.entity= Tracker.invoke_request self.class.get_method, "with_#{self.class.entity_id_attr}", entity_id
         return self
       end
@@ -115,7 +122,6 @@ module Omega
       end
 
       def initialize(args = {})
-        @entity_lock = Mutex.new
         self.entity  = args[:entity]
       end
 
@@ -147,6 +153,13 @@ module Omega
         @node
       end
 
+      # Run an operation protected by the registry lock
+      def synchronize(&bl)
+        @registry_lock.synchronize{
+          bl.call
+        }
+      end
+
       def []=(key, val)
         @registry_lock.synchronize{
            # will only set value the first time
@@ -158,6 +171,12 @@ module Omega
       def [](key)
         @registry_lock.synchronize{
           @registry[key]
+        }
+      end
+
+      def select(&bl)
+        @registry_lock.synchronize{
+          @registry.select &bl
         }
       end
 

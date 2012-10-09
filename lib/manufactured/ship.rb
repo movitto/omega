@@ -48,12 +48,19 @@ class Ship
   # [Cosmos::SolarSystem] the ship is in
   attr_reader :solar_system
 
+  # [String] name of the solar system.
+  #
+  # Used to reference the solar_system w/out having to pass
+  # the entire system around
+  attr_reader :system_name
+
   # Set solar system the ship is in
   #
   # Assigns the parent of the ship's location to the location corresponding to the new solar system
   # @param [Cosmos::SolarSystem] val solar system parent to assign to the ship
   def solar_system=(val)
     @solar_system = val
+    @system_name  = @solar_system.name
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
@@ -176,12 +183,20 @@ class Ship
     @attack_rate  = 0.5
     @damage_dealt = 2
     @hp           = 10
-    @mining_rate  = 0.5
-    @mining_quantity = 5
+    @mining_rate  = 0.25
+    @mining_quantity = 20
     @mining_distance = 100
     @transfer_distance = 100
 
-    self.solar_system = args[:solar_system] || args['solar_system']
+    if args.has_key?('solar_system') || args.has_key?(:solar_system)
+      self.solar_system = args['solar_system'] || args[:solar_system]
+    elsif args.has_key?('system_name') || args.has_key?(:system_name)
+      @system_name = args['system_name'] || args[:system_name]
+      # TODO would rather not access the cosmos registry directly here
+      solar_system= Cosmos::Registry.instance.find_entity(:type => :solarsystem,
+                                                          :name => @system_name)
+      self.solar_system = solar_system unless solar_system.nil?
+    end
 
     # location should be set after solar system so parent is set correctly
     self.location = args['location'] || args[:location]
@@ -382,9 +397,9 @@ class Ship
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,
-         :mining    => @mining,
+         :mining    => @mining, # TODO pass mining via reference ?
          :location => @location,
-         :solar_system => @solar_system,
+         :system_name => (@solar_system.nil? ? @system_name : @solar_system.name),
          :resources => @resources,
          :notifications => @notification_callbacks}
     }.to_json(*a)

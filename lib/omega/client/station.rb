@@ -10,8 +10,17 @@ require 'omega/client/cosmos_entity'
 module Omega
   module Client
     class Station < Entity
-      attr_reader :location
-      attr_reader :solar_system
+      def location
+        Tracker.synchronize{
+          @location
+        }
+      end
+
+      def solar_system
+        Tracker.synchronize{
+          @solar_system
+        }
+      end
 
       def self.get_method
         "manufactured::get_entity"
@@ -43,7 +52,6 @@ module Omega
         loc.update self.entity.location
         loc.parent_id = system.location.id
         Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
-        self.get
         self.get_associated
         @jumped_callback.call self if @jumped_callback
         return self
@@ -51,8 +59,8 @@ module Omega
 
       def get_associated
         location = Omega::Client::Location.get self.entity.location.id
-        solar_system   = Omega::Client::SolarSystem.get self.entity.solar_system.name
-        @entity_lock.synchronize{
+        solar_system   = Omega::Client::SolarSystem.get self.entity.system_name if @solar_system.nil? || @solar_system.name != self.entity.system_name
+        Tracker.synchronize{
           @location = location
           @solar_system = solar_system
         }

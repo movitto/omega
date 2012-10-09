@@ -29,12 +29,12 @@ node = RJR::TCPNode.new(:node_id => 'client', :host => 'localhost', :port => '90
 # puts "Status Check:"
 # puts "Event Machine Running? #{EMAdapter.running?}"
 # terminate = ThreadPool2Manager.thread_pool.instance_variable_get(:@terminate)
-# puts "Thread Pool Running? #{ThreadPool2Manager.running?} (#{terminate})"
+# puts "Thread Pool Running? #{ThreadPool2Manager.running?} (terminate: #{terminate})"
 # workers = ThreadPool2Manager.thread_pool.instance_variable_get(:@worker_threads)
 # work_q  = ThreadPool2Manager.thread_pool.instance_variable_get(:@work_queue)
-# time_q  = ThreadPool2Manager.thread_pool.instance_variable_get(:@timeout_queue)
+# run_q   = ThreadPool2Manager.thread_pool.instance_variable_get(:@running_queue)
 # puts "Thread Pool Workers: #{workers.size}/#{work_q.size} - #{workers.collect { |w| w.status }.join(",")}"
-# puts "Thread Pool Timeouts: #{time_q.size} (#{time_q.num_waiting} waiting)"
+# puts "Run Queue: #{run_q.size}" #{run_q.select { |i| i.being_executed }.collect { |i| [i.timestamp, i.thread, i.handler] }}"
 #}
 
 Omega::Client::User.login node, "Anubis", "sibuna"
@@ -74,7 +74,7 @@ def start_corvette(corvette)
     puts "corvette #{c.id} traveling to system #{s.name} via jump gate @ #{jg.location}"
   }
   corvette.on_event('arrived_in_system') { |c|
-    puts "corvette #{c.id} arrived in system #{c.solar_system.name}"
+    puts "corvette #{c.id} arrived in system #{c.system_name}"
   }
   corvette.on_event('attacked') { |event, attacker,defender|
     puts "#{attacker.id} attacked #{defender.id}"
@@ -96,7 +96,7 @@ def start_factory(factory)
 
   puts "registering #{factory.id} events"
   factory.on_event('jumped') { |f|
-    puts "station #{f.id} jumped to system #{f.solar_system.name}"
+    puts "station #{f.id} jumped to system #{f.system_name}"
   }
   factory.on_event('on_construction') { |f,e|
     puts "#{f.id} constructed #{e.id}"
@@ -118,11 +118,6 @@ def start_factory(factory)
   }
   factory.start
 end
-
-#start_factory  Omega::Bot::Factory.get('Anubis-manufacturing-station1')
-#start_corvette Omega::Bot::Corvette.get('Anubis-corvette-ship1')
-#start_miner    Omega::Bot::Miner.get('Anubis-mining-ship1')
-#node.join
 
 Omega::Bot::Factory.owned_by('Anubis').each  { |f| start_factory  f }
 Omega::Bot::Corvette.owned_by('Anubis').each { |c| start_corvette c }

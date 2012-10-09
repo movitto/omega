@@ -108,7 +108,7 @@ def print_system(sys, i=0)
   sys.jump_gates.each { |j|
     print_jump_gate(j, i+1)
   }
-  $manufactured_entities.select { |mu| !mu.solar_system.nil? && mu.solar_system.name == sys.name }.each{ |mu|
+  $manufactured_entities.select { |mu| mu.system_name == sys.name }.each{ |mu|
     print_manufactured_entity(mu, i+1)
   }
 end
