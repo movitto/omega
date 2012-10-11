@@ -87,11 +87,12 @@ module Omega
         if args[:destination] == :closest_station
           dst = closest_station
           # raise Exception if st.nil?
-          args[:location] = dst.location + 10
+          args[:location] = dst.location + [10,10,10]
           args.delete(:destination)
+
         elsif args[:destination].is_a?(Omega::Client::Station)
           dst = args[:destination]
-          args[:location] = dst.location + 10
+          args[:location] = dst.location + [10,10,10]
           args.delete(:destination)
         end
 
@@ -103,14 +104,22 @@ module Omega
         end
 
         loc = Motel::Location.new
-        loc.update self.entity.location
+        loc.update self.location.entity
         loc.x = args[:x] if args.has_key?(:x)
         loc.y = args[:y] if args.has_key?(:y)
         loc.z = args[:z] if args.has_key?(:z)
         dst = loc if dst.nil?
 
         entity = self
-        self.on_movement_of(self.entity.location - loc){ |loc|
+        self.on_movement_of(self.location.entity - loc){ |loc|
+          entity.get
+          # XXX this handler will be invoked before the serverside 
+          # motel::on_movement callback registered by the manufactured module.
+          # Thus the entity's locally tracked will not be updated by this point.
+          # The client should always use the 'location' property defined on
+          # this class (self.location.entity) as updated by calling get_associated,
+          # instead of the location on the server side entity (self.entity.location).
+          entity.get_associated
           bl.call entity, dst
         }if block_given?
 
@@ -126,7 +135,7 @@ module Omega
         # TODO leverage system from a local registry?
         system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
-        loc.update self.entity.location
+        loc.update self.location.entity
         loc.parent_id = system.location.id
         self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
         self.get_associated
@@ -145,11 +154,13 @@ module Omega
       end
 
       def get_associated
+        # needed as manufactured entity's copy of location may not always reflect
+        # latest location tracked by motel:
         location = Omega::Client::Location.get self.entity.location.id
         solar_system   = Omega::Client::SolarSystem.get self.entity.system_name if @solar_system.nil? || @solar_system.name != self.entity.system_name
         Tracker.synchronize{
           @location = location
-          @solar_system = solar_system
+          @solar_system = solar_system unless solar_system.nil?
         }
         return self
       end

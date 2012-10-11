@@ -14,6 +14,9 @@ require 'omega/bot/miner'
 require 'omega/bot/corvette'
 require 'omega/bot/factory'
 
+USER_NAME = ARGV.shift
+PASSWORD = ARGV.shift
+
 #RJR::Logger.log_level = ::Logger::DEBUG
 
 #node = RJR::AMQPNode.new(:node_id => 'client', :broker => 'localhost')
@@ -37,7 +40,7 @@ node = RJR::TCPNode.new(:node_id => 'client', :host => 'localhost', :port => '90
 # puts "Run Queue: #{run_q.size}" #{run_q.select { |i| i.being_executed }.collect { |i| [i.timestamp, i.thread, i.handler] }}"
 #}
 
-Omega::Client::User.login node, "Anubis", "sibuna"
+Omega::Client::User.login node, USER_NAME, PASSWORD
 
 def start_miner(miner)
   puts "registering #{miner.id} events"
@@ -50,8 +53,8 @@ def start_miner(miner)
   miner.on_event('mining_stopped') { |*args|
     puts "ship #{miner.id} stopped mining #{args[3].resource.id} due to #{args[1]}"
   }
-  miner.on_event('moving_to_station') { |m|
-    puts "Miner #{m.id} moving to closest station"
+  miner.on_event('moving_to_station') { |m,st|
+    puts "Miner #{m.id} moving to station #{st.id}"
   }
   miner.on_event('arrived_at_station') { |m|
     puts "Miner #{m.id} arrived at station"
@@ -119,7 +122,7 @@ def start_factory(factory)
   factory.start
 end
 
-Omega::Bot::Factory.owned_by('Anubis').each  { |f| start_factory  f }
-Omega::Bot::Corvette.owned_by('Anubis').each { |c| start_corvette c }
-Omega::Bot::Miner.owned_by('Anubis').each    { |m| start_miner    m }
+Omega::Bot::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }
+Omega::Bot::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
+Omega::Bot::Miner.owned_by(USER_NAME).each    { |m| start_miner    m }
 node.join

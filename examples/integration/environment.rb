@@ -21,16 +21,16 @@ galaxy 'Zeus' do |g|
       resource :resource => rand_resource, :quantity => 325
     end
     asteroid gen_uuid, :location => Location.new(:x => 15, :y => 51, :z => 42) do |ast|
-      resource :resource => rand_resource, :quantity => 100
+      resource :resource => rand_resource, :quantity => 500
     end
   end
 
   system 'Aphrodite', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
     asteroid gen_uuid, :location => Location.new(:x => -25, :y => -17, :z => -32) do |ast|
-      resource :resource => rand_resource, :quantity => 250
+      resource :resource => rand_resource, :quantity => 750
     end
     asteroid gen_uuid, :location => Location.new(:x => 10, :y => -42, :z => -22) do |ast|
-      resource :resource => rand_resource, :quantity => 250
+      resource :resource => rand_resource, :quantity => 750
     end
   end
 
@@ -45,7 +45,7 @@ galaxy 'Zeus' do |g|
       resource :resource => rand_resource, :quantity => 550
     end
     asteroid gen_uuid, :location => Location.new(:x => 59, :y => -13, :z => -2) do |ast|
-      resource :resource => rand_resource, :quantity => 250
+      resource :resource => rand_resource, :quantity => 550
     end
 
   end

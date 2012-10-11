@@ -17,7 +17,8 @@ module Omega
       # Return an array containing ordered list of systems with jump gates corresponding
       # to a path between from and to.
       #
-      # TODO at some point factor in a shortest path algorthim
+      # TODO at some point factor in a shortest path algorthim.
+      # TODO this should really be defined in another class/module
       def get_path(from, to, visited=[])
         from.jump_gates.each { |jg|
           ds = Omega::Client::Tracker[Omega::Client::SolarSystem.entity_type + '-' + jg.endpoint]
@@ -32,10 +33,11 @@ module Omega
         return nil
       end
 
-      # Calculate and return array containing path to visit all systems
+      # Calculate and return array containing all systems accessible from the
+      # current one.
       #
-      # Assumes you can get to any given system from any other system
-      def path
+      # TODO this should really be defined in another class/module
+      def accessible_systems
         systems = [self.solar_system]
         systems.each { |s|
           s.jump_gates.each { |jg|
@@ -44,15 +46,23 @@ module Omega
             systems << ds unless systems.include?(ds)
           }
         }
+        systems
+      end
 
-        full_path = []
+      # Return path containing route to all accessible systems
+      #
+      # Assumes you can get to any given system from any other system.
+      # TODO this should really be defined in another class/module
+      def full_path
+        fp = []
+        systems = accessible_systems
         0.upto(systems.size-2) { |i|
-          full_path += get_path(systems[i], systems[i+1])
-          full_path.delete_at(-1)
+          fp += get_path(systems[i], systems[i+1])
+          fp.delete_at(-1)
         }
-        full_path += get_path(systems[-1], systems[0])
-        full_path.delete_at(-1)
-        full_path
+        fp += get_path(systems[-1], systems[0])
+        fp.delete_at(-1)
+        fp
       end
 
       # Check proximity & stop movement to attack if enemy ship is detected.
@@ -79,6 +89,7 @@ module Omega
           rescue Exception => e
           end
         }
+        # TODO ensure we are moving, else call start
         nil
       end
 
@@ -111,37 +122,39 @@ module Omega
 
       def start
         init
-        next_system_index = Omega::Client::Tracker.synchronize { @current_system_index + 1 }
-        next_system = @full_path[next_system_index]
+
+        @systemi ||= 0
+        @systemi = 0 if @systemi == @patrol_route.size
+        @systemi = @patrol_route.index(self.solar_system) if @patrol_route[@systemi] != self.solar_system
+        next_system = (@systemi == (@patrol_route.size - 1)) ?
+                       @patrol_route[0] : @patrol_route[@systemi+1]
         jg = self.solar_system.jump_gates.find { |jg| jg.endpoint == next_system.name }
-        dst = ((self.entity.location - jg.location) < 15) ? 50 : 10
-        move_to(:location => (jg.location + [dst,0,0])) { |c,dst|
+        @selected_next_system_callback.call self, next_system, jg if @selected_next_system_callback
+
+        if jg.location - self.location < jg.trigger_distance
           c = jump_to next_system
-          Omega::Client::Tracker.synchronize{
-            @current_system_index += 1
-            @current_system_index = -1 if @current_system_index == (@full_path.size - 1)
-          }
+          @systemi += 1
           @arrived_in_system_callback.call c if @arrived_in_system_callback
           start
-        }
-        @selected_next_system_callback.call self, next_system, jg if @selected_next_system_callback
+
+        else
+          dst = jg.trigger_distance / 4
+          move_to(:location => (jg.location + [dst,dst,dst])) { |c,dst|
+            start
+          }
+        end
 
         @@proximity_timer ||= self.class.schedule_proximity_cycle
       end
 
       # Initialize corvette
       def init
-        @full_path   ||= path
-
-        Omega::Client::Tracker.synchronize{
-          if @current_system_index.nil? || self.system_name != @full_path[@current_system_index].name
-            @current_system_index = @full_path.index(@solar_system)
-          end
-        }
+        self.get
+        self.get_associated
 
         return if @initialized
-
         @initialized = true
+        @patrol_route = full_path
 
         self.on_event('attacked') { |event, attacker, defender|
           self.entity= attacker

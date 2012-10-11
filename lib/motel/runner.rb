@@ -263,7 +263,10 @@ class Runner
 
           # invoke movement_callbacks for location moved
           # TODO invoke these async so as not to hold up the runner
-          # make sure to keep these in sync w/ those invoked in the simrpc adapter "update_location" handler
+          # TODO delete movement callbacks after they are invoked?
+          # TODO prioritize callbacks registered over the local rjr transport
+          #      over others
+          # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
           loc.movement_callbacks.each { |callback|
             callback.invoke(loc, *old_coords)
           }

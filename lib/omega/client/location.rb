@@ -26,8 +26,14 @@ module Omega
             @registered_movement = true
             RJR::Dispatcher.add_handler("motel::on_movement") { |loc|
               Omega::Client::Tracker[Omega::Client::Location.entity_type + '-' + loc.id.to_s].entity= loc
-              handler = Tracker.synchronize { @@movement_handlers[loc.id] }
-              handler.call loc
+              # we delete the handler after one invocation, forcing the client to
+              # reregister a movement handler
+              # XXX if original handler registers another though, we are still susceptible
+              # to more on_movement notifications which may have come in in the meantime,
+              # it might make sense to delete the callback upon invocation on the server
+              # side (see comment in lib/motel/runner::run_cycle)
+              handler = Tracker.synchronize { @@movement_handlers.delete(loc.id) }
+              handler.call loc unless handler.nil?
             }
           end
         }

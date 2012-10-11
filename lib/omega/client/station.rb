@@ -49,20 +49,21 @@ module Omega
         # TODO leverage system from a local registry?
         system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
-        loc.update self.entity.location
+        loc.update self.location.entity
         loc.parent_id = system.location.id
-        Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
+        self.entity= Tracker.invoke_request 'manufactured::move_entity', self.entity.id, loc
         self.get_associated
         @jumped_callback.call self if @jumped_callback
         return self
       end
 
       def get_associated
+        # see comment about location in omega/client/ship::get_associated
         location = Omega::Client::Location.get self.entity.location.id
         solar_system   = Omega::Client::SolarSystem.get self.entity.system_name if @solar_system.nil? || @solar_system.name != self.entity.system_name
         Tracker.synchronize{
           @location = location
-          @solar_system = solar_system
+          @solar_system = solar_system unless solar_system.nil?
         }
         return self
       end
