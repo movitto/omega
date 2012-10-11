@@ -64,6 +64,7 @@ module Omega
         # see comment in get_all
         Tracker[entity_type + '-' + e.entity_id.to_s] = e
         e = Tracker[entity_type + '-' + e.entity_id.to_s]
+        e.update(entity)
 
         # load relationships
         e.get_associated
@@ -98,6 +99,11 @@ module Omega
         Tracker.synchronize {
           @entity = entity
         }
+      end
+
+      # update entity from that received from server
+      def update(val)
+        self.entity = val
       end
 
       # retrieve associated entities from server
