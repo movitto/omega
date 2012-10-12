@@ -26,6 +26,14 @@ module Omega
         "manufactured::get_entity"
       end
 
+      def self.subscribe_method
+        'manufactured::subscribe_to'
+      end
+
+      def self.notification_method
+        "manufactured::event_occurred"
+      end
+
       def self.entity_type
         "Manufactured::Ship"
       end
@@ -57,26 +65,7 @@ module Omega
           return
         end
 
-        Tracker.synchronize{
-          @@event_handlers ||= {}
-          @@event_handlers[self.entity.id] ||= {}
-          @@event_handlers[self.entity.id][event] ||= []
-          @@event_handlers[self.entity.id][event] << bl
-
-          unless @registered_manufactured_events
-            @registered_manufactured_events = true
-            RJR::Dispatcher.add_handler("manufactured::event_occurred") { |*args|
-              event  = args[0]
-              entity = args[event == 'mining_stopped' ? 2 : 1] 
-              Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + entity.id].entity= entity
-              handlers = Tracker.synchronize { Array.new(@@event_handlers[entity.id][event]) }
-              handlers.each { |cb| cb.call *args }
-              nil
-            }
-          end
-        }
-
-        self.entity= Tracker.invoke_request 'manufactured::subscribe_to', self.entity.id, event
+        super(event, &bl)
       end
 
       def move_to(args = {}, &bl)
@@ -156,10 +145,10 @@ module Omega
       def get_associated
         # needed as manufactured entity's copy of location may not always reflect
         # latest location tracked by motel:
-        location = Omega::Client::Location.get self.entity.location.id
+        loc = Omega::Client::Location.get self.entity.location.id
         solar_system   = Omega::Client::SolarSystem.get self.entity.system_name if @solar_system.nil? || @solar_system.name != self.entity.system_name
         Tracker.synchronize{
-          @location = location
+          @location = loc
           @solar_system = solar_system unless solar_system.nil?
         }
         return self

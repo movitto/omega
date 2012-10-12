@@ -33,10 +33,12 @@ module Omega
               # it might make sense to delete the callback upon invocation on the server
               # side (see comment in lib/motel/runner::run_cycle)
               handler = Tracker.synchronize { @@movement_handlers.delete(loc.id) }
-              handler.call loc unless handler.nil?
+              @@event_queue << [handler, [loc]]
             }
           end
         }
+
+        @@event_timer ||= self.class.schedule_event_cycle
 
         Tracker.invoke_request 'motel::track_movement', @entity.id, distance
       end

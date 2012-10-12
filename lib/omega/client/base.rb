@@ -15,6 +15,17 @@ module Omega
         nil
       end
 
+      def self.subscribe_method
+        # return rjr method to invoke to subscribe to entity events
+        nil
+      end
+
+      def self.notification_method
+        # return rjr method server will invoke when notifying
+        # client of events
+        nil
+      end
+
       def self.entity_type
         # return type of specified entity
         nil
@@ -42,12 +53,15 @@ module Omega
         Tracker.invoke_request(get_method, 'of_type', entity_type).collect { |entity|
           self.new :entity => entity
         }.select  { |e| e.valid?
-        }.collect { |e|
+        }.collect { |entity|
           # if already loaded, use local copy & get update.
           # *yes* we have to do both assignments here, since tracked
           # entity might already be loaded, see Tracker[]= below
-          Tracker[entity_type + '-' + e.entity_id.to_s] = e
-          e = Tracker[entity_type + '-' + e.entity_id.to_s]
+          Tracker[entity_type + '-' + entity.entity_id.to_s] = entity
+          e = Tracker[entity_type + '-' + entity.entity_id.to_s]
+
+          # update the entity incase it was just loaded from the client cache
+          e.update(entity.entity)
 
           # load relationships
           e.get_associated
@@ -64,6 +78,7 @@ module Omega
         # see comment in get_all
         Tracker[entity_type + '-' + e.entity_id.to_s] = e
         e = Tracker[entity_type + '-' + e.entity_id.to_s]
+
         e.update(entity)
 
         # load relationships
@@ -76,10 +91,12 @@ module Omega
         Tracker.invoke_request(get_method, 'of_type', entity_type, "owned_by", user_id).collect { |entity|
           self.new :entity => entity
         }.select  { |e| e.valid?
-        }.collect { |e|
+        }.collect { |entity|
           # see comment in get_all
-          Tracker[entity_type + '-' + e.entity_id.to_s] = e
-          e = Tracker[entity_type + '-' + e.entity_id.to_s]
+          Tracker[entity_type + '-' + entity.entity_id.to_s] = entity
+          e = Tracker[entity_type + '-' + entity.entity_id.to_s]
+
+          e.update(entity.entity)
 
           # load relationships
           e.get_associated
@@ -126,6 +143,55 @@ module Omega
           callback.call self.entity if callback
         }
       end
+
+      # Provides mechanisms to serialize events called by the server
+      # on the client. Due to the rjr dispatcher system multiple events
+      # on a single object may be served at a single time so we simply
+      # serialize incoming events using a queue and then use a job
+      # periodically launched by eventmachine to run the event handlers.
+      def self.schedule_event_cycle
+        @@event_queue ||= Queue.new
+
+        # TODO variable timer
+        Omega::Client::Tracker.em_schedule_async(5){
+          while @@event_queue.size > 0 && event = @@event_queue.pop
+            # TODO surround w/ rescue block ?
+            event[0].call *event[1]
+          end
+          self.schedule_event_cycle
+        }
+      end
+
+      # Register event handler for the specified event
+      def on_event(event, &bl)
+        #if event == '*'
+        #  @all_events_callback = bl
+        #end
+
+        Tracker.synchronize{
+          @@event_handlers ||= {}
+          @@event_handlers[self.entity.id] ||= {}
+          @@event_handlers[self.entity.id][event] ||= []
+          @@event_handlers[self.entity.id][event] << bl
+
+          unless @registered_manufactured_events
+            @registered_manufactured_events = true
+            RJR::Dispatcher.add_handler(self.class.notification_method) { |*args|
+              event  = args[0]
+              entity = args[event == 'mining_stopped' ? 2 : 1] 
+              Omega::Client::Tracker[Omega::Client::Ship.entity_type + '-' + entity.id].entity= entity
+              handlers = Tracker.synchronize { Array.new(@@event_handlers[entity.id][event]) }
+              handlers.each { |cb| @@event_queue << [cb, args] }
+              nil
+            }
+          end
+        }
+
+        @@event_timer ||= self.class.schedule_event_cycle
+
+        self.entity= Tracker.invoke_request self.class.subscribe_method, self.entity.id, event
+      end
+
 
       def initialize(args = {})
         self.entity  = args[:entity]
