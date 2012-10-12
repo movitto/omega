@@ -155,8 +155,13 @@ module Omega
         # TODO variable timer
         Omega::Client::Tracker.em_schedule_async(5){
           while @@event_queue.size > 0 && event = @@event_queue.pop
-            # TODO surround w/ rescue block ?
-            event[0].call *event[1]
+            begin
+              event[0].call *event[1]
+            rescue Exception => e
+              puts "Exception launching event handler #{event[0]} w/ args #{event[1]}:"
+              puts " #{e.to_s}"
+              puts " #{e.backtrace.join("\n ")}"
+            end
           end
           self.schedule_event_cycle
         }

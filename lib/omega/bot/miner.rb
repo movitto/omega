@@ -58,32 +58,22 @@ module Omega
       def start
         init
         if self.cargo_full?
-          @stations_to_try    ||= closest_stations
-          @moving_to_station  ||= @stations_to_try.first
-          @moving_to_station_callback.call self, @moving_to_station if @moving_to_station_callback
+          station_to_try    = closest_station
+          @moving_to_station_callback.call self, station_to_try if @moving_to_station_callback
 
-          if self.location - @moving_to_station.location < self.transfer_distance
+          if self.location - station_to_try.location < self.transfer_distance
             @arrived_at_station_callback.call self if @arrived_at_station_callback
             begin
               self.resources.each { |rsid, quantity|
-                transfer quantity, :of => rsid, :to => @moving_to_station
+                transfer quantity, :of => rsid, :to => station_to_try
               }
-              @stations_to_try = @moving_to_station = nil
-
             rescue Exception => e
-              if @moving_to_station == @stations_to_try.last
-                @stations_to_try   = @moving_to_station = nil
-
-              else
-                @moving_to_station =
-                   @stations_to_try[@stations_to_try.index(@moving_to_station)+1]
-              end
             end
 
             start
 
           else
-            move_to(:destination => @moving_to_station) { |m,dst|
+            move_to(:destination => station_to_try) { |m,dst|
               start
             }
           end

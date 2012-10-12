@@ -274,6 +274,8 @@ class MiningCommand
 
       end
 
+      RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"
+
       @ship.notification_callbacks.
             select { |c| c.type == :mining_stopped }.
             each   { |c|

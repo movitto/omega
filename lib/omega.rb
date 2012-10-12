@@ -17,6 +17,19 @@ require 'omega/registry'
 require 'omega/config'
 
 require 'omega/client/base'
+require 'omega/client/user'
+require 'omega/client/location'
+require 'omega/client/resource'
+require 'omega/client/cosmos_entity'
+require 'omega/client/ship'
+require 'omega/client/station'
+
+require 'omega/bot/miner'
+require 'omega/bot/corvette'
+require 'omega/bot/factory'
+
+require 'omega/colored'
+#require 'omega/ncurses'
 
 require 'motel'
 require 'cosmos'

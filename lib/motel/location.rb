@@ -265,7 +265,7 @@ class Location
 
    # Convert location to human readable string and return it
    def to_s
-     s = "location-#{id}("
+     s = "location-#{id}(@#{parent_id}:"
      s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}" unless x.nil? || y.nil? || z.nil?
      s += ")"
      s

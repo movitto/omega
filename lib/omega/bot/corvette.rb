@@ -123,15 +123,13 @@ module Omega
       def start
         init
 
-        @systemi ||= 0
-        @systemi = 0 if @systemi == @patrol_route.size
         @systemi = @patrol_route.index(self.solar_system) if @patrol_route[@systemi] != self.solar_system
         next_system = (@systemi == (@patrol_route.size - 1)) ?
                        @patrol_route[0] : @patrol_route[@systemi+1]
         jg = self.solar_system.jump_gates.find { |jg| jg.endpoint == next_system.name }
         @selected_next_system_callback.call self, next_system, jg if @selected_next_system_callback
 
-        if jg.location - self.location < jg.trigger_distance
+        if jg.location - self.location.entity < jg.trigger_distance
           c = jump_to next_system
           @systemi += 1
           @arrived_in_system_callback.call c if @arrived_in_system_callback
@@ -144,7 +142,7 @@ module Omega
           }
         end
 
-        @@proximity_timer ||= self.class.schedule_proximity_cycle
+        @@proximity_timer  ||= self.class.schedule_proximity_cycle
       end
 
       # Initialize corvette
@@ -155,6 +153,7 @@ module Omega
         return if @initialized
         @initialized = true
         @patrol_route = full_path
+        @systemi = 0
 
         self.on_event('attacked') { |event, attacker, defender|
           self.entity= attacker

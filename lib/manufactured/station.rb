@@ -81,6 +81,11 @@ class Station
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end
 
+  # Array of callbacks to invoke on certain events relating to ship
+  #
+  # Currently unused but should be used for construction callbacks and such
+  attr_accessor :notification_callbacks
+
   # Distance station travels during a single movement cycle
   #
   # TODO make stations stationary in a system ?
@@ -140,6 +145,7 @@ class Station
 
     @errors   = args[:errors]    || args['errors'] || {}
 
+    @notification_callbacks = []
     @resources = args[:resources] || args['resources'] || {}
 
     # TODO make variable

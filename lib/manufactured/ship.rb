@@ -29,8 +29,14 @@ class Ship
   # Will set the parent of the specified location to correspond to the solar system's location object
   # @param [Motel::Location] val location to assign to the ship
   def location=(val)
+    old_location = @location
     @location = val
-    @location.parent = parent.location unless parent.nil? || @location.nil?
+    unless parent.nil? || @location.nil?
+      @location.parent = parent.location
+
+      @location.parent.remove_child(old_location)
+      @location.parent.add_child(@location)
+    end
   end
 
   # [SHIP_TYPE] General category / classification of ship

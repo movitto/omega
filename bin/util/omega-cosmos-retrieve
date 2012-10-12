@@ -78,7 +78,7 @@ end
 def print_callbacks(entity, i=0)
   return if entity.nil?
 
-  puts indent(i) + "Notifications:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size) > 0
+  puts indent(i) + "Callbacks:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size) > 0
   entity.location.movement_callbacks.each { |m|
     puts indent(i+1) + "- movement of #{m.to_s} -> #{m.endpoint_id}"
   }
@@ -87,8 +87,17 @@ def print_callbacks(entity, i=0)
   }
 end
 
+def print_notifications(entity, i=0)
+  return if entity.nil?
+
+  puts indent(i) + "Notifications:" if (entity.notification_callbacks.size) > 0
+  entity.notification_callbacks.each { |n|
+    puts indent(i+1) + "- #{n.type} -> #{n.endpoint_id}"
+  }
+end
+
 def print_galaxy(galaxy, i=0)
-  puts indent(i) + "galaxy " + galaxy.name
+  puts indent(i) + "galaxy " + galaxy.name.bold.green
   print_callbacks(galaxy, i+1)
   galaxy.solar_systems.each { |sys|
     print_system(sys, i+1)
@@ -96,7 +105,7 @@ def print_galaxy(galaxy, i=0)
 end
 
 def print_system(sys, i=0)
-  puts indent(i) + "system " + sys.name + " (@" + sys.location.to_s + ")"
+  puts indent(i) + "system " + sys.name.bold.green + " (@" + sys.location.to_s + ")"
   print_callbacks(sys, i+1)
   print_star(sys.star, i+1)
   sys.planets.each { |p|
@@ -128,7 +137,7 @@ def print_planet(planet, i=0)
 end
 
 def print_asteroid(asteroid, i=0)
-  puts indent(i) + "asteroid " + asteroid.name + " (@" + asteroid.location.to_s + ")"
+  puts indent(i) + "asteroid " + asteroid.name.bold.red + " (@" + asteroid.location.to_s + ")"
   print_callbacks(asteroid, i+1)
 
   resource_sources = $rjr_node.invoke_request('omega-queue', 'cosmos::get_resource_sources', asteroid.name)
@@ -139,7 +148,7 @@ def print_asteroid(asteroid, i=0)
 end
 
 def print_resource_source(resource_source, i=0)
-  puts indent(i) + " " + resource_source.resource.id + " (" + resource_source.quantity.to_s + ")"
+  puts indent(i) + " " + resource_source.resource.id.red + " (" + resource_source.quantity.to_s + ")"
 end
 
 def print_moon(moon, i=0)
@@ -153,12 +162,13 @@ def print_jump_gate(jump_gate, i=0)
 end
 
 def print_manufactured_entity(mu, i=0)
-  puts indent(i) + mu.class.to_s + " " + mu.id.to_s + " (w/" + mu.hp.to_s + "hp @" + mu.location.to_s + " with strategy " + mu.location.movement_strategy.to_s + ")"
+  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (w/" + mu.hp.to_s + "hp @" + mu.location.to_s + " with strategy " + mu.location.movement_strategy.to_s + ")"
   puts indent(i+1) + "resources: " if mu.resources.size > 0
   mu.resources.each { |id,q|
-    puts indent(i+2) + "#{q} of #{id}"
+    puts indent(i+2) + "#{q} of #{id.to_s.red}"
   }
   print_callbacks(mu, i+1)
+  print_notifications(mu, i+1)
 end
 
 case entity_type
