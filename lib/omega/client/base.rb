@@ -202,6 +202,10 @@ module Omega
         self.entity  = args[:entity]
       end
 
+      def to_s
+        self.entity.to_s
+      end
+
       def method_missing(method_id, *args, &bl)
         self.entity.send method_id, *args, &bl
       end
@@ -225,6 +229,8 @@ module Omega
 
       def node=(node)
         @node = node
+        @server_endpoint = node.class::RJR_NODE_TYPE == :amqp ?
+                    'omega-queue' : 'json-rpc://localhost:8181'
         @node.message_headers['source_node'] = @node.node_id
         @node.listen
         @node
@@ -239,8 +245,20 @@ module Omega
 
       def []=(key, val)
         @registry_lock.synchronize{
-           # will only set value the first time
-           @registry[key] ||= val
+           # XXX not the best way of doing this, but
+           # only set value the first time unless setting
+           # to an instance of a class derived from the 
+           # class of the instance already assigned.
+           #
+           # Done so as to cache client entity objects
+           # (their handles to server side tracker objects
+           # maybe still modified/updated) while allowing
+           # for subsequent clientside functionality
+           # to be binded when various interfaces are loaded.
+           if !@registry.has_key?(key) || (@registry[key].class != val.class &&
+                                           val.kind_of?(@registry[key].class))
+             @registry[key] = val
+           end
            @registry[key]
         }
       end
@@ -265,7 +283,7 @@ module Omega
 
       def invoke_request(method, *args)
         @node_lock.synchronize {
-          @node.invoke_request 'json-rpc://localhost:8181', method, *args
+          @node.invoke_request @server_endpoint, method, *args
         }
       end
 

@@ -45,7 +45,7 @@ module Omega
         } if @solar_systems.nil?
         Tracker.synchronize{
           @location = location if @location.nil?
-          @solar_system = solar_systems if @solar_systems.nil?
+          @solar_systems = solar_systems if @solar_systems.nil?
         }
         return self
       end

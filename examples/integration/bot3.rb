@@ -6,13 +6,6 @@
 
 require 'rjr'
 require 'omega'
-require 'omega/client/user'
-require 'omega/client/ship'
-require 'omega/client/station'
-#require 'omega/client/cosmos_entity'
-require 'omega/bot/miner'
-require 'omega/bot/corvette'
-require 'omega/bot/factory'
 
 USER_NAME = ARGV.shift
 PASSWORD = ARGV.shift

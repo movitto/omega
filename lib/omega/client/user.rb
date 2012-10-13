@@ -9,6 +9,9 @@ require 'omega/client/base'
 module Omega
   module Client
     class User < Entity
+      attr_accessor :ships
+      attr_accessor :stations
+
       def self.get_method
         "users::get_entity"
       end
@@ -27,6 +30,16 @@ module Omega
         return get(username)
       end
 
+      def get_associated
+        # ships / stations may have been constructed
+        # TODO create better way to just get new ones
+        lships = Omega::Client::Ship.owned_by self.id
+        lstats = Omega::Client::Station.owned_by self.id
+        Tracker.synchronize{
+          @ships    = lships
+          @stations = lstats
+        }
+      end
     end
   end
 end
