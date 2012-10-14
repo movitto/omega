@@ -101,14 +101,15 @@ module Omega
 
         entity = self
         self.on_movement_of(self.location.entity - loc){ |loc|
-          entity.get
+          #entity.get
           # XXX this handler will be invoked before the serverside 
           # motel::on_movement callback registered by the manufactured module.
           # Thus the entity's locally tracked will not be updated by this point.
           # The client should always use the 'location' property defined on
           # this class (self.location.entity) as updated by calling get_associated,
           # instead of the location on the server side entity (self.entity.location).
-          entity.get_associated
+          #entity.get_associated
+          self.location.entity = loc
           bl.call entity, dst
         }if block_given?
 
@@ -121,8 +122,6 @@ module Omega
       end
 
       def jump_to(system)
-        # TODO leverage system from a local registry?
-        system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
         loc.update self.location.entity
         loc.parent_id = system.location.id

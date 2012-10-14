@@ -38,28 +38,28 @@ Omega::Client::User.login node, USER_NAME, PASSWORD
 def start_miner(miner)
   puts "registering #{miner.id} events"
   miner.on_event('selected_resource') { |m,rs|
-    puts "ship #{miner.id} selected #{rs.id}, moving to #{rs.entity.location}"
+    puts "ship #{miner.id.bold.yellow} selected #{rs.id.bold.red}, moving to #{rs.entity.location.to_s}"
   }
   miner.on_event('resource_collected') { |*args|
-    puts "ship #{miner.id} collected #{args[3]} of resource #{args[2].resource.id}"
+    puts "ship #{miner.id.bold.yellow} collected #{args[3]} of resource #{args[2].resource.id.bold.red}"
   }
   miner.on_event('mining_stopped') { |*args|
-    puts "ship #{miner.id} stopped mining #{args[3].resource.id} due to #{args[1]}"
+    puts "ship #{miner.id.bold.yellow} stopped mining #{args[3].resource.id.bold.red} due to #{args[1]}"
   }
   miner.on_event('moving_to_station') { |m,st|
-    puts "Miner #{m.id} moving to station #{st.id}"
+    puts "Miner #{m.id.bold.yellow} moving to station #{st.id.bold.yellow}"
   }
   miner.on_event('arrived_at_station') { |m|
-    puts "Miner #{m.id} arrived at station"
+    puts "Miner #{m.id.bold.yellow} arrived at station"
   }
   miner.on_event('transferred') { |m,st,r,q|
-    puts "Miner #{m.id} transferred #{q} of #{r} to #{st.id}"
+    puts "Miner #{m.id.bold.yellow} transferred #{q} of #{r.bold.red} to #{st.id.bold.yellow}"
   }
   miner.on_event('arrived_at_resource') { |m|
-    puts "Miner #{m.id} arrived at resource"
+    puts "Miner #{m.id.bold.yellow} arrived at resource"
   }
   miner.on_event('no_more_resources') { |m|
-    puts "Miner #{m.id} could not find any more accessible resources"
+    puts "Miner #{m.id.bold.yellow} could not find any more accessible resources"
   }
   miner.start
 end
@@ -67,16 +67,16 @@ end
 def start_corvette(corvette)
   puts "registering #{corvette.id} events"
   corvette.on_event('selected_next_system') { |c, s, jg|
-    puts "corvette #{c.id} traveling to system #{s.name} via jump gate @ #{jg.location}"
+    puts "corvette #{c.id.bold.yellow} traveling to system #{s.name} via jump gate @ #{jg.location}"
   }
   corvette.on_event('arrived_in_system') { |c|
-    puts "corvette #{c.id} arrived in system #{c.system_name}"
+    puts "corvette #{c.id.bold.yellow} arrived in system #{c.system_name.green}"
   }
   corvette.on_event('attacked') { |event, attacker,defender|
-    puts "#{attacker.id} attacked #{defender.id}"
+    puts "#{attacker.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
   corvette.on_event('defended') { |event, attacker,defender|
-    puts "#{defender.id} attacked by #{attacker.id}"
+    puts "#{defender.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
   }
   corvette.start
 end
@@ -92,10 +92,10 @@ def start_factory(factory)
 
   puts "registering #{factory.id} events"
   factory.on_event('jumped') { |f|
-    puts "station #{f.id} jumped to system #{f.system_name}"
+    puts "station #{f.id.bold.yellow} jumped to system #{f.system_name.green}"
   }
   factory.on_event('on_construction') { |f,e|
-    puts "#{f.id} constructed #{e.id}"
+    puts "#{f.id.bold.yellow} constructed #{e.id.bold.yellow}"
     if e.is_a?(Manufactured::Station)
       #factory.construct_entity_type = 'miner'
       start_factory Omega::Bot::Factory.get(e.id)

@@ -46,8 +46,6 @@ module Omega
       end
 
       def jump_to(system)
-        # TODO leverage system from a local registry?
-        system = Omega::Client::SolarSystem.get(system) if system.is_a?(String)
         loc    = Motel::Location.new
         loc.update self.location.entity
         loc.parent_id = system.location.id

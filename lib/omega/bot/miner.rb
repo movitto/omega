@@ -17,8 +17,8 @@ module Omega
         # TODO check other systems
         rs = self.solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
                                                       (self.location - b.location) }.
-                                     find { |a| !a.update!.resource_sources.find { |rs|
-                                                              rs.quantity > 0 }.nil? }
+                                     find { |a| !a.resource_sources.find { |rs|
+                                                  rs.quantity > 0 }.nil? }
         rs
       end
 
@@ -83,7 +83,7 @@ module Omega
           if rs.nil?
             @no_more_resources_callback.call self if @no_more_resources_callback
 
-          elsif self.location.entity - rs.entity.location < self.mining_distance
+          elsif self.location.entity - rs.location < self.mining_distance
             rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
             @selected_resource_callback.call self, rs if @selected_resource_callback
             # TODO rescue mining errs?
@@ -91,7 +91,7 @@ module Omega
 
           else
             dst = self.mining_distance / 4
-            nl  = rs.entity.location + [dst,dst,dst]
+            nl  = rs.location + [dst,dst,dst]
             rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
             @selected_resource_callback.call self, rs if @selected_resource_callback
             self.move_to(:location => nl) { |c,dest|
@@ -115,7 +115,7 @@ module Omega
           #entity.get
           # Omega::Client::Tracker.synchronize{
           entity.entity = miner
-          entity.get_associated
+          #entity.get_associated
           entity.start
         }
       end

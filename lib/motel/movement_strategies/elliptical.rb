@@ -349,12 +349,12 @@ class Elliptical < MovementStrategy
                                :eccentricity => eccentricity,
                                :semi_latus_rectum => semi_latus_rectum,
                                :speed => speed,
-                               :direction_major_x => direction_major_x,
-                               :direction_major_y => direction_major_y,
-                               :direction_major_z => direction_major_z,
-                               :direction_minor_x => direction_minor_x,
-                               :direction_minor_y => direction_minor_y,
-                               :direction_minor_z => direction_minor_z
+                               :direction_major_x => direction_major_x.round_to(2),
+                               :direction_major_y => direction_major_y.round_to(2),
+                               :direction_major_z => direction_major_z.round_to(2),
+                               :direction_minor_x => direction_minor_x.round_to(2),
+                               :direction_minor_y => direction_minor_y.round_to(2),
+                               :direction_minor_z => direction_minor_z.round_to(2)
 
      return strategy
    end

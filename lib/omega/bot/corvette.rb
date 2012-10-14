@@ -147,8 +147,8 @@ module Omega
 
       # Initialize corvette
       def init
-        self.get
-        self.get_associated
+        #self.get
+        #self.get_associated
 
         return if @initialized
         @initialized = true

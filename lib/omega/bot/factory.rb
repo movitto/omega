@@ -60,18 +60,18 @@ module Omega
 
       def init
         return if @initialized
-
         @initialized = true
 
         # jump to system w/ fewest stations owned by user
+        # TODO only systems w/ resources
         return if @stay_in_system
         owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
         all_systems    = Omega::Client::SolarSystem.get_all
-        all_systems.sort! { |a,b| owned_stations.select { |st| st.system_name == a.name }.size <=>
-                                  owned_stations.select { |st| st.system_name == b.name }.size }
-        if all_systems.first.name != self.system_name
-          self.jump_to all_systems.first
-        end
+        system_stations = Hash[*all_systems.collect { |sys| [sys.name, 0] }.flatten]
+        owned_stations.each { |st| system_stations[st.system_name] += 1 }
+        target_system = all_systems.sort { |a,b| system_stations[a.name] <=> system_stations[b.name] }.first
+
+        self.jump_to(target_system) if !target_system.nil? && target_system.name != self.system_name
       end
 
       def construct_entity_type=(val)

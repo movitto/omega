@@ -12,6 +12,8 @@ require 'ncursesw'
 require 'active_support/core_ext/string/filters'
 require 'omega'
 
+require File.expand_path(File.dirname(__FILE__) + '/tests')
+
 # ncurses output class
 class OmegaNcurses
   #### Data to display, after setting, call 'refresh'
@@ -93,6 +95,18 @@ class OmegaNcurses
     Ncurses::Panel.set_panel_userptr(panels[-1], panels[0])
   end
 
+  def increment_scroll
+    @scroll_distance += 1
+  end
+
+  def decrement_scroll
+    @scroll_distance -= 1 unless @scroll_distance == 0
+  end
+
+  def reset_scroll
+    @scroll_distance = 0
+  end
+
   def initialize
     # config
     @show_asteroids = false
@@ -125,7 +139,7 @@ class OmegaNcurses
   ##### monitor specific drawing
 
   def draw_titles(window, current_window_title)
-    ["Cosmos", "Users", "Manufactured", "Tests"].each { |t|
+    ["Cosmos", "Users", "Manu", "Tests"].each { |t|
       window.attron(Ncurses::A_UNDERLINE)
       window.attron(Ncurses::A_BOLD)  if t.downcase == current_window_title.to_s
       window.addstr(t)
@@ -142,8 +156,12 @@ class OmegaNcurses
   end
 
   def append_text(window_id, text, y)
-    @view_windows[window_id].move(@win_counters[window_id] += 1, y)
-    @view_windows[window_id].addstr(text.truncate(PANEL_WIDTH - 10))
+    @win_counters[window_id] += 1
+    if (@win_counters[window_id] > (@scroll_distance+1)) && (@win_counters[window_id] < (PANEL_HEIGHT + @scroll_distance - 1))
+      pos = @win_counters[window_id] - @scroll_distance
+      @view_windows[window_id].move(pos, y)
+      @view_windows[window_id].addstr(text.truncate(PANEL_WIDTH - 10))
+    end
   end
 
   def refresh_controls
@@ -270,9 +288,13 @@ class OmegaNcurses
       elsif chin == 'r'.ord
         @show_resources = !@show_resources
       elsif chin == "\t"[0].ord
+        reset_scroll
         set_current_panel next_panel
-      #elsif chin == Ncurses::KEY_UP
-      #elsif chin == Ncurses::KEY_DOWN
+      elsif chin == Ncurses::KEY_UP
+        decrement_scroll
+      elsif chin == Ncurses::KEY_DOWN
+        increment_scroll
+
       end
     end
     return self
@@ -293,13 +315,6 @@ output.tests = []
 # periodically sync entities & resources
 Omega::Client::Tracker.em_repeat_async(10) {
   output.users = Omega::Client::User.get_all
-  output.galaxies.each { |g|
-    g.solar_systems.each { |s|
-      s.asteroids.each { |a|
-        a.update!
-      }
-    }
-  }
   output.refresh
 }
 

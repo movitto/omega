@@ -267,7 +267,10 @@ galaxy 'Zeus' do |g|
 end
 
 jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'), system('Philo'),     :location => Location.new(:x => 150, :y => 150, :z => 150)
+jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 150, :y => 150, :z => 150)
+jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -150, :y => 150, :z => -150)
+jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 150, :y => -150, :z => 150)
+jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 150, :y => -150, :z => 150)
 
 galaxy 'Hera' do |g|
   system 'Agathon', 'JJ7192', :location => Location.new(:x => -88, :y => 219, :z => 499) do |sys|
