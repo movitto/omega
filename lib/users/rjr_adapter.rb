@@ -82,17 +82,36 @@ class RJRAdapter
 
        Users::Registry.instance.create entity
 
-       if entity.is_a?(Users::User)
-         # XXX don't like reaching into omega here but this would be too messy otherwise atm
-         #     perhaps leverage an external hook (or script) to do this
-         Omega::Roles.create_user_role entity, :regular_user
+       if entity.is_a?(Users::User) || entity.is_a?(Users::Alliance)
+         owner = nil
 
-         # mark permant users as such
-         if Users::RJRAdapter.permenant_users.find { |un| entity.id == un }
-           entity.permenant = true
+         if entity.is_a?(Users::User)
+           owner = entity
+
+           # create new user role for user
+           role = Users::Role.new :id => "user_role_#{entity.id}"
+           @@local_node.invoke_request('users::create_entity', role)
+           @@local_node.invoke_request('users::add_role', entity.id, role.id)
+
+           # mark permant users as such
+           if Users::RJRAdapter.permenant_users.find { |un| entity.id == un }
+             entity.permenant = true
+           end
+
+         else
+           owner = entity.members.first
          end
 
-       # TODO grant alliance permissions
+         # add permissions to view & modify entity to owner
+         unless owner.nil?
+           role_id = "user_role_#{owner.id}"
+           @@local_node.invoke_request('users::add_privilege', role_id, 'view',   "users_entity-#{entity.id}")
+           @@local_node.invoke_request('users::add_privilege', role_id, 'view',   "user-#{entity.id}")
+           @@local_node.invoke_request('users::add_privilege', role_id, 'modify', "users_entity-#{entity.id}")
+           @@local_node.invoke_request('users::add_privilege', role_id, 'modify', "user-#{entity.id}")
+         end
+
+
        end
 
 
@@ -204,24 +223,43 @@ class RJRAdapter
        nil
      }
 
+     rjr_dispatcher.add_handler('users::add_role') { |user_id, role_id|
+       unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+         Users::Registry.require_privilege(:privilege => 'modify', :entity => 'users_entities',
+                                           :session   => @headers['session_id'])
+       end
+
+       user = Users::Registry.instance.find(:id => user_id, :type => "Users::User").first
+       role = Users::Registry.instance.find(:id => role_id, :type => "Users::Role").first
+       raise Omega::DataNotFound, "user specified by id #{user_id} not found" if user.nil?
+       raise Omega::DataNotFound, "role specified by id #{role_id} not found" if role.nil?
+       Users::Registry.instance.safely_run {
+         user.add_role role
+       }
+       nil
+     }
+
+     # rjr_dispatcher.add_handler('users::remove_role') { |*args| # TODO
+
      rjr_dispatcher.add_handler('users::add_privilege') { |*args|
        unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
          Users::Registry.require_privilege(:privilege => 'modify', :entity => 'users_entities',
                                            :session   => @headers['session_id'])
        end
 
-       user_id      = args[0]
+       role_id      = args[0]
        privilege_id = args[1]
-       entity_id    = args.length > 2 ? args[2] : nil
-       # TODO verify privilege_id and entity_id are valid values?
+       entity_id    = args.size > 2 ? args[2] : nil
 
-       user = Users::Registry.instance.find(:id => user_id).first
-       raise Omega::DataNotFound, "user specified by id #{user_id} not found" if user.nil?
+       role = Users::Registry.instance.find(:id => role_id, :type => "Users::Role").first
+       raise Omega::DataNotFound, "role specified by id #{role_id} not found" if role.nil?
        Users::Registry.instance.safely_run {
-         user.add_privilege Privilege.new(:id => privilege_id, :entity_id => entity_id)
+         role.add_privilege privilege_id, entity_id
        }
        nil
      }
+
+     # rjr_dispatcher.add_handler('users::remove_privilege') { |*args| # TODO
 
      rjr_dispatcher.add_handler("users::register") { |user|
        raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)

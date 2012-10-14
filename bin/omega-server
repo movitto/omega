@@ -135,17 +135,30 @@ def main()
 
   multi_node = RJR::MultiNode.new :nodes => nodes
 
+  # create the default roles
+  local_node = RJR::LocalNode.new :node_id => 'server_seeder'
+  Omega::Roles::ROLES.keys.collect { |id|
+    role = Users::Role.new :id => id
+    Omega::Roles::ROLES[id].each { |pe|
+      role.add_privilege pe[0], pe[1]
+    }
+    local_node.invoke_request('users::create_entity', role)
+  }
+
   # create an initial superadmin user
-  admin = Omega::Roles.create_user(config.admin_user, config.admin_pass)
-  Omega::Roles.create_user_role(admin, :superadmin)
+  admin = Users::User.new :id => config.admin_user, :password => config.admin_pass
+  local_node.invoke_request('users::create_entity', admin)
+  local_node.invoke_request('users::add_role',       admin.id, 'superadmin')
 
   # create an user for remote location management
-  rlm  = Omega::Roles.create_user(config.remote_location_manager_user, config.remote_location_manager_password)
-  Omega::Roles.create_user_role(rlm, :remote_location_manager)
+  rlm = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_password
+  local_node.invoke_request('users::create_entity', rlm)
+  local_node.invoke_request('users::add_role',       rlm.id, 'remote_location_manager')
 
   # create an user for remote cosmos management
-  rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_password)
-  Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
+  rcm = Users::User.new :id => config.remote_cosmos_manager_user, :password => config.remote_cosmos_manager_password
+  local_node.invoke_request('users::create_entity', rcm)
+  local_node.invoke_request('users::add_role',       rcm.id, 'remote_cosmos_manager')
 
   setup_signals(config)
   multi_node.listen

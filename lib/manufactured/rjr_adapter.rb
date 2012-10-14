@@ -28,13 +28,14 @@ class RJRAdapter
     @@local_node = RJR::LocalNode.new :node_id => 'manufactured'
     @@local_node.message_headers['source_node'] = 'manufactured'
     @@local_node.invoke_request('users::create_entity', self.user)
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'cosmos_entities')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'modify', 'cosmos_entities')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'locations')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'users_entities')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'locations')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'modify', 'locations')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'manufactured_entities')
+    role_id = "user_role_#{self.user.id}"
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'cosmos_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify', 'cosmos_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'create', 'locations')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'users_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'locations')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify', 'locations')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'create', 'manufactured_entities')
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id
@@ -73,10 +74,6 @@ class RJRAdapter
 
       rentity = Manufactured::Registry.instance.create entity
 
-      # add permissions to view & modify entity to owner
-      @@local_node.invoke_request('users::add_privilege', user.id, 'view',   "manufactured_entity-#{entity.id}" )
-      @@local_node.invoke_request('users::add_privilege', user.id, 'modify', "manufactured_entity-#{entity.id}" )
-
       # skip create_location if entity wasn't created in registry
       unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
         Manufactured::Registry.instance.safely_run {
@@ -89,14 +86,12 @@ class RJRAdapter
           # needs to happen after create_location as parent won't be sent in the result
           entity.location.parent    = entity.parent.location if entity.parent
         }
-
-        # add permissions to view location to user that can access entity
-        users = Users::Registry.instance.find(:with_privilege => ['view', 'manufactured_entities']) +
-                Users::Registry.instance.find(:with_privilege => ['view', 'manufactured_entity-' + entity.id])
-        users.each { |user|
-          @@local_node.invoke_request('users::add_privilege', user.id, 'view', "location-#{entity.location.id}")
-        }
       end
+
+      # add permissions to view & modify entity to owner
+      @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',   "manufactured_entity-#{entity.id}" )
+      @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'modify', "manufactured_entity-#{entity.id}" )
+      @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',   "location-#{entity.location.id}" )
 
       rentity
     }

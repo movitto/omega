@@ -7,13 +7,15 @@
 require 'rubygems'
 require 'omega'
 
-include Omega::DSL
+include Omega::Client::DSL
 
 include Motel
 include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
-login 'admin',  :password => 'nimda'
+
+node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+login node, 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|

@@ -6,8 +6,8 @@
 module Users
 
 # Entity central to the Users subsystem representing an end user
-# which may be assigned privileges to query / operate on one or
-# more entities
+# which may be assigned roles containing privleges  to query / operate
+# on one or more entities
 class User
   # [String] unique string identifier of the user
   attr_accessor :id
@@ -18,8 +18,8 @@ class User
   # [Array<Users::Alliance>] array of alliances user belongs to
   attr_accessor :alliances
 
-  # [Array<Users::Privilege>] array of privileges the user has
-  attr_reader :privileges
+  # [Array<Users::Role>] array of roles the user has
+  attr_reader :roles
 
   # [String] user password (encrypted if secure_password is enabled)
   attr_reader :password
@@ -87,7 +87,7 @@ class User
     @secure_password = false
     @permenant       = false
 
-    @privileges = []
+    @roles = []
   end
 
   # Update this users's attributes from other users.
@@ -115,24 +115,18 @@ class User
                                     include?(alliance.id)
   end
 
-  # Clear the privileges the user has
-  def clear_privileges
-    @privileges.clear
+  # Clear the roles the user has
+  def clear_roles
+    @roles.clear
   end
 
-  # Adds the privilege specified by its arguments to the user
+  # Adds the roles specified by its arguments to the user
   #
-  # @param [Array<Users::Privilege>,Array<String,String>] args catch all array of args to use when adding privilege.
-  #   May take one of two forms specifying the instance of the privilege class itself to add, or an id and entity_id
-  #   to create the privilege with
-  def add_privilege(*args)
-    privilege = nil
-    privilege = args.first if args.size == 1 && args.first.is_a?(Users::Privilege)
-    privilege = Privilege.new(:id => args.first, :entity_id => args.last) if privilege.nil? &&
-                                                                             args.size == 2
-    @privileges << privilege unless privilege.nil? ||
-                                     @privileges.include?(privilege) ||
-                                    !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
+  # @param [Users::Role] role role to add to user
+  def add_role(role)
+    @roles << role unless role.nil? ||
+                          @roles.include?(role) ||
+                         !@roles.find { |r| r.id == role.id }.nil?
   end
 
   # Returns boolean indicating if email is valid
@@ -158,7 +152,8 @@ class User
   # @param [String] entity_id id of entity to lookup in local privileges array
   # @return [true, false] indicating if user has / does not have privilege
   def has_privilege_on?(privilege_id, entity_id)
-    ! @privileges.find { |p| p.id == privilege_id && p.entity_id == entity_id }.nil?
+    @roles.each { |r| return true if r.has_privilege_on?(privilege_id, entity_id) }
+    return false
   end
 
   # Returns boolean indicating if the user has the specified privilege

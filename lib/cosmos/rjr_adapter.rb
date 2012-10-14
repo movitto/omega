@@ -29,8 +29,9 @@ class RJRAdapter
     @@local_node = RJR::LocalNode.new :node_id => 'cosmos'
     @@local_node.message_headers['source_node'] = 'cosmos'
     @@local_node.invoke_request('users::create_entity', self.user)
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'view',   'locations')
-    @@local_node.invoke_request('users::add_privilege', self.user.id, 'create', 'locations')
+    role_id = "user_role_#{self.user.id}"
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'locations')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'create', 'locations')
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id
@@ -77,19 +78,13 @@ class RJRAdapter
        else
          Cosmos::Registry.instance.safely_run {
            # entity.location.entity = entity
+           entity.location.restrict_view = false
            entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
            entity.location.parent = rparent.location
            # TODO add all of entities children to location tracker
          }
 
        end
-
-       # add permissions to view location to user that can access entity
-       users = Users::Registry.instance.find(:with_privilege => ['view', 'cosmos_entities'])
-       #users += Users::Registry.instance.find(:with_privilege => ['view', 'cosmos_entity-' + entity.name]) unless entity.is_a?(Cosmos::JumpGate) # probably uncessary so commented
-       users.each { |user|
-         @@local_node.invoke_request('users::add_privilege', user.id, 'view', "location-#{entity.location.id}")
-       }
 
        entity
     }

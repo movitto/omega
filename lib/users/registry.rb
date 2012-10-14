@@ -22,7 +22,7 @@ class Registry
   include Singleton
 
   # Return array of classes of users types
-  VALID_TYPES = [Users::User, Users::Alliance]
+  VALID_TYPES = [Users::User, Users::Alliance, Users::Role]
 
   # Return array of users tracked by this registry
   # @return [Array<Users::User>]
@@ -44,6 +44,15 @@ class Registry
     a
   end
 
+  # Return array of roles tracked by this registry
+  def roles
+    r = []
+    @entities_lock.synchronize {
+      r = @roles.collect { |role| role }
+    }
+    r
+  end
+
   # [Array<Users::Session>] session tracked by this registry
   attr_accessor :sessions
 
@@ -58,6 +67,7 @@ class Registry
   def init
     @users     = []
     @alliances = []
+    @roles     = []
     @sessions  = []
 
     @entities_lock = Mutex.new
@@ -102,7 +112,7 @@ class Registry
 
     to_search = []
     @entities_lock.synchronize {
-      to_search = [@users, @alliances].flatten
+      to_search = [@users, @alliances,@roles].flatten
     }
 
     to_search.each { |entity|
@@ -142,6 +152,14 @@ class Registry
           entity = existing
         end
 
+      elsif entity.is_a?(Users::Role)
+        existing = @roles.find { |r| r.id == entity.id}
+        if existing.nil?
+          @roles << entity
+        else
+          entity = existing
+        end
+
       end
     }
     entity
@@ -153,7 +171,7 @@ class Registry
   def remove(id)
     @entities_lock.synchronize{
       entity = nil
-      [@users, @alliances].each { |entitya|
+      [@users, @alliances, @roles].each { |entitya|
         entity = entitya.find { |entity| entity.id == id }
         unless entity.nil?
           entitya.delete(entity)
@@ -161,6 +179,9 @@ class Registry
           # if removing user, remove sessions
           if entity.is_a?(Users::User)
             destroy_session(:user_id => entity.id)
+          elsif entity.is_a?(Users::Role)
+            # TODO delete roles from users
+            # @users.each
           end
         end
       }
@@ -298,14 +319,18 @@ class Registry
 
   # Save state of the registry to specified io stream
   def save_state(io)
+    roles.each { |role|
+      io.write role.to_json + "\n"
+    }
+
     users.each { |user|
       @entities_lock.synchronize{
         user.secure_password = false
         io.write user.to_json + "\n"
         user.secure_password = true
 
-        user.privileges.each { |priv|
-          io.write priv.to_json + "\n"
+        user.roles.each { |role|
+          io.write role.to_json + "\n"
         }
       }
     }
@@ -323,11 +348,17 @@ class Registry
       if entity.is_a?(Users::User)
         create(entity)
         prev_entity = entity
-      elsif entity.is_a?(Users::Privilege)
-        prev_entity.add_privilege(entity)
+
+      elsif entity.is_a?(Users::Role)
+        if prev_entity
+          # TODO lookup role and add to user
+        else
+          create(entity)
+        end
 
       elsif entity.is_a?(Users::Alliance)
         create(entity)
+
       end
     }
   end

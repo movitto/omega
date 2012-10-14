@@ -7,7 +7,7 @@
 require 'rubygems'
 require 'omega'
 
-include Omega::DSL
+include Omega::Client::DSL
 include Motel
 
 USER_NAME  = ARGV.shift
@@ -15,10 +15,12 @@ PASSWORD   = ARGV.shift
 STARTING_SYSTEM = ARGV.shift
 ROLENAMES   = *ARGV
 
-RJR::Logger.log_level= ::Logger::INFO
-login 'admin',  :password => 'nimda'
+RJR::Logger.log_level= ::Logger::DEBUG
 
-u = user USER_NAME, :password => PASSWORD do
+node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+login node, 'admin', 'nimda'
+
+u = user USER_NAME, PASSWORD do |u|
   ROLENAMES.each { |rn|
     role rn.intern
   }
