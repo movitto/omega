@@ -17,6 +17,10 @@ module Omega
         Omega::Resources.rand_resource
       end
 
+      def rand_location(args={})
+        Motel::Location.random args
+      end
+
       def login(node, username, password)
         Omega::Client::User.login(node, username, password)
       end
@@ -24,7 +28,7 @@ module Omega
       def user(username, password, &bl)
         @user = Users::User.new :id => username, :password => password
         Omega::Client::Tracker.invoke_request('users::create_entity', @user)
-        bl.call @user
+        bl.call @user unless bl.nil?
         @user
       end
 
@@ -46,7 +50,7 @@ module Omega
       def galaxy(name, &bl)
         @galaxy = Cosmos::Galaxy.new :name => name
         Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @galaxy, :universe
-        bl.call @galaxy
+        bl.call @galaxy unless bl.nil?
         @galaxy
       end
 
@@ -63,7 +67,7 @@ module Omega
         unless star_id.nil?
           Omega::Client::Tracker.invoke_request 'cosmos::create_entity', star, @system.name
         end
-        bl.call @system
+        bl.call @system unless bl.nil?
         @system
       end
 
@@ -71,7 +75,7 @@ module Omega
         raise ArgumentError, "system must not be nil" if @system.nil?
         @asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => @system}))
         Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @asteroid, @system.name
-        bl.call @asteroid
+        bl.call @asteroid unless bl.nil?
         @asteroid
       end
 
@@ -86,14 +90,14 @@ module Omega
         raise ArgumentError, "system must not be nil" if @system.nil?
         @planet = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
         Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @planet, @system.name
-        bl.call @planet
+        bl.call @planet unless bl.nil?
         @planet
       end
 
       def moon(id, args={})
         raise ArgumentError, "planet must not be nil" if @planet.nil?
         moon = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', moon, @moon.name
+        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', moon, @planet.name
         moon
       end
 

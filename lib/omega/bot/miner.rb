@@ -15,10 +15,10 @@ module Omega
 
       def closest_resource
         # TODO check other systems
-        rs = self.solar_system.asteroids.sort { |a,b| (self.location - a.location) <=>
-                                                      (self.location - b.location) }.
-                                     find { |a| !a.resource_sources.find { |rs|
-                                                  rs.quantity > 0 }.nil? }
+        rs = self.solar_system.asteroids.
+                  sort { |a,b| (self.location - a.location) <=> (self.location - b.location) }.
+                  find { |a| !a.enable_tracking(true).resource_sources.
+                                find { |rs| rs.quantity > 0 }.nil? }
         rs
       end
 

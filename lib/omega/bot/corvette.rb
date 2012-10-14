@@ -22,7 +22,6 @@ module Omega
       def get_path(from, to, visited=[])
         from.jump_gates.each { |jg|
           ds = Omega::Client::Tracker[Omega::Client::SolarSystem.entity_type + '-' + jg.endpoint]
-          ds = Omega::Client::SolarSystem.get(jg.endpoint) if ds.nil?
           unless visited.include?(ds)
             visited << ds 
             return [from, ds] if to.name == ds.name

@@ -9,13 +9,15 @@
 require 'rubygems'
 require 'omega'
 
-include Omega::DSL
+include Omega::Client::DSL
 
 include Motel
 include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
-login 'admin',  :password => 'nimda'
+
+node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+login node, 'admin',  'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
@@ -232,12 +234,12 @@ galaxy 'Zeus' do |g|
 
   end
 
-  system 'Aphroditus', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
+  system 'Aphroditus', 'V867', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
     planet 'Xenux',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.8, :semi_latus_rectum => 110,
                                                 :direction => Motel.random_axis)
-    planet 'Aesop',
+    planet 'Aesou',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :e => 0.7, :p => 124, :direction => Motel.random_axis)
   end

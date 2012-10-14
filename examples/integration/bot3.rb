@@ -82,14 +82,6 @@ def start_corvette(corvette)
 end
 
 def start_factory(factory)
-  unless @first_factory_constructed
-    factory.construct_entity_type = 'factory'
-    factory.stay_in_system = true
-  else
-    factory.construct_entity_type = 'miner'
-  end
-  @first_factory_constructed = true
-
   puts "registering #{factory.id} events"
   factory.on_event('jumped') { |f|
     puts "station #{f.id.bold.yellow} jumped to system #{f.system_name.green}"
@@ -112,7 +104,15 @@ def start_factory(factory)
       end
     end
   }
-  factory.start
+
+  unless @first_factory_constructed
+    factory.construct_entity_type = 'factory'
+    factory.stay_in_system = true
+    factory.start
+  else
+    factory.construct_entity_type = 'miner'
+  end
+  @first_factory_constructed = true
 end
 
 Omega::Bot::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }

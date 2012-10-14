@@ -9,13 +9,15 @@
 require 'rubygems'
 require 'omega'
 
-include Omega::DSL
+include Omega::Client::DSL
 
 include Motel
 include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
-login 'admin',  :password => 'nimda'
+
+node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+login node, 'admin',  'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
@@ -232,12 +234,12 @@ galaxy 'Zeus' do |g|
 
   end
 
-  system 'Aphroditus', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
+  system 'Aphroditus', 'V867', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
     planet 'Xenux',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.8, :semi_latus_rectum => 110,
                                                 :direction => Motel.random_axis)
-    planet 'Aesop',
+    planet 'Aesou',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :e => 0.7, :p => 124, :direction => Motel.random_axis)
   end
@@ -715,6 +717,7 @@ jump_gate system('Theodosia'),   system('Irene'),       :location => Location.ne
 jump_gate system('Irene'),       system('Photina'),     :location => Location.new(:x => -364, :y => 444,  :z => -274)
 jump_gate system('Photina'),     system('Syntyche'),    :location => Location.new(:x => -454, :y => 399,  :z => 167)
 jump_gate system('Syntyche'),    system('Photina'),     :location => Location.new(:x => 629,  :y => 588,  :z => 499)
+jump_gate system('Syntyche'),    system('Theodosia'),   :location => Location.new(:x => 343,  :y => 388,  :z => -656)
 jump_gate system('Irene'),       system('Zosimus'),     :location => Location.new(:x => -498, :y => -603, :z => 579)
 jump_gate system('Zosimus'),     system('Demetrium'),   :location => Location.new(:x => 520,  :y => 102,  :z => 432)
 jump_gate system('Demetrium'),   system('Athena'),      :location => Location.new(:x => 675,  :y => 576,  :z => -586)
@@ -1218,7 +1221,7 @@ galaxy 'Hera' do |g|
     }
   end
 
-  system 'Metrodora', 'ST875', :location => Location.new(:x => 305, :y => 438, :z => 308) do |sys|
+  system 'Metrodora', 'ST876', :location => Location.new(:x => 305, :y => 438, :z => 308) do |sys|
     planet "Uba",
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.24, :semi_latus_rectum => 194,
@@ -1930,7 +1933,7 @@ galaxy 'Odin' do |g|
   end
 
   system 'Valhalla', 'FE9782', :location => Location.new(:x => -10, :y => -523, :z => -492) do |sys|
-    planet 'Ictinike',
+    planet 'Ictin',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.77, :semi_latus_rectum => 146,
                                                 :direction => Motel.random_axis) do |pl|

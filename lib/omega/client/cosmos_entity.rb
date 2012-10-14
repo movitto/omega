@@ -9,18 +9,46 @@ require 'omega/client/location'
 
 module Omega
   module Client
+    # 1 minute
+    CACHE_TIMEOUT = 60
+
     # remote location retriever mixin
     module RemoteLocationTracker
+      def enable_tracking(val)
+        @tracking_enabled = val
+        return self
+      end
+
       def location
-        Omega::Client::Location.get self.location.id
+        @tracking_enabled ||= false
+        @cached_location  ||= @location
+
+        if @tracking_enabled && (@location_retrieved_timestamp.nil? ||
+           (Time.now - @location_retrieved_timestamp) > CACHE_TIMEOUT)
+          @cached_location = Omega::Client::Location.get @location.id
+          @location_retrieved_timestamp = Time.now
+        end
+        @cached_location
       end
     end
 
     # remote resource sources retriever mixin
-    # TODO support temporary timed cache w/ invalidation mechanism
     module RemoteResourceTracker
+      def enable_tracking(val)
+        @tracking_enabled = val
+        return self
+      end
+
       def resource_sources
-        Omega::Client::Tracker.invoke_request('cosmos::get_resource_sources', self.name)
+        @tracking_enabled  ||= false
+        @cached_resources  ||= []
+
+        if @tracking_enabled && (@resources_retrieved_timestamp.nil? ||
+           (Time.now - @resources_retrieved_timestamp) > CACHE_TIMEOUT)
+          @cached_resources = Omega::Client::Tracker.invoke_request('cosmos::get_resource_sources', self.name)
+          @resources_retrieved_timestamp = Time.now
+        end
+        @cached_resources
       end
     end
 
@@ -51,20 +79,19 @@ module Omega
         @@galaxies ||= super
       end
 
+      def get
+        return self
+      end
+
       def get_associated
         solar_systems  = self.entity.solar_systems.collect { |ss|
-          Omega::Client::SolarSystem.get ss.name
+          Omega::Client::SolarSystem.new(:entity => ss).get_associated
         } if @solar_systems.nil?
         Tracker.synchronize{
           @solar_systems = solar_systems if @solar_systems.nil?
         }
         return self
       end
-
-      def get
-        super if self.entity.nil?
-      end
-
     end
 
     class SolarSystem < CosmosEntity
@@ -77,6 +104,10 @@ module Omega
         @@systems ||= super
       end
 
+      def get
+        return self
+      end
+
       def get_associated
         self.entity.planets.each { |pl|
           pl.extend RemoteLocationTracker
@@ -85,10 +116,6 @@ module Omega
           as.extend RemoteResourceTracker
         }
         return self
-      end
-
-      def get
-        super if self.entity.nil?
       end
     end
 

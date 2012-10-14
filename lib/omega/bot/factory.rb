@@ -33,14 +33,14 @@ module Omega
       # run construction cycle
       def self.schedule_construction_cycle
         # TODO variable cycle interval
-        Omega::Client::Tracker.em_schedule_async(30){
+        Omega::Client::Tracker.em_schedule_async(10){
           Omega::Client::Tracker.select { |k,v|
             k =~ /#{Omega::Client::Station.entity_type}-.*/ 
           }.each { |k,st|
             st.get
-
-            if st.can_construct?(:entity_type => st.entity_to_construct['class'],
-                                 :type        => st.entity_to_construct['type'])
+            if !st.init &&
+                st.can_construct?(:entity_type => st.entity_to_construct['class'], # TODO run in while loop
+                                  :type        => st.entity_to_construct['type'])
 
               st.entity_to_construct['id'] =
                 "#{st.entity_to_construct['idt']}#{Omega::Client::Tracker.next_id}"
@@ -54,24 +54,43 @@ module Omega
       end
 
       def start
-        init
         @@construction_timer ||= self.class.schedule_construction_cycle
       end
 
       def init
-        return if @initialized
-        @initialized = true
+        return false if @stay_in_system || @found_system
 
-        # jump to system w/ fewest stations owned by user
-        # TODO only systems w/ resources
-        return if @stay_in_system
-        owned_stations = Omega::Client::Station.owned_by(self.entity.user_id)
-        all_systems    = Omega::Client::SolarSystem.get_all
-        system_stations = Hash[*all_systems.collect { |sys| [sys.name, 0] }.flatten]
-        owned_stations.each { |st| system_stations[st.system_name] += 1 }
-        target_system = all_systems.sort { |a,b| system_stations[a.name] <=> system_stations[b.name] }.first
+        # stay in system if there are no other stations
+        if Omega::Client::Station.owned_by(self.entity.user_id).
+                                  find { |st| st.system_name == self.system_name &&
+                                              st.id != self.id }.nil?
+          @found_system = true
+          return false
+        end
 
-        self.jump_to(target_system) if !target_system.nil? && target_system.name != self.system_name
+        @visited_systems ||= []
+        @visited_systems << self.solar_system
+        next_system = nil
+
+        self.solar_system.jump_gates.each { |jg|
+          next_system = Omega::Client::Tracker[Omega::Client::SolarSystem.entity_type + '-' + jg.endpoint]
+          next_system = Omega::Client::SolarSystem.get(jg.endpoint) if next_system.nil?
+          if @visited_systems.include?(next_system)
+            next_system = nil
+          else
+            break
+          end
+        }
+        
+        # TODO this might not check all systems + we should also move
+        # to systems w/ fewer stations that others
+        if next_system.nil?
+          @found_system = true
+          return false
+        end
+
+        self.jump_to(next_system)
+        return true
       end
 
       def construct_entity_type=(val)
