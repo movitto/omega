@@ -1,5 +1,5 @@
 ---
-omega_url:  'http://localhost/wotel/'
+omega_url:  'http://localhost/womega/'
 backup_dir: './backups/'
 
 permenant_users: ['admin', 'manufactured', 'cosmos', 'users', 'rlm', 'rcm' ]

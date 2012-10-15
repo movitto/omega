@@ -146,7 +146,7 @@ function OmegaHandlers(){
     }
 
     canvas_ui.setup_scene();
-    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/'+ client.current_system.background +'.png") no-repeat');
+    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/womega/images/'+ client.current_system.background +'.png") no-repeat');
     $('#motel_canvas_container').show();
   }
 
@@ -187,7 +187,7 @@ function OmegaHandlers(){
     }
 
     canvas_ui.setup_scene();
-    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/wotel/images/' + client.current_galaxy.background + '.png") no-repeat');
+    $('#motel_canvas_container canvas').css('background', 'url("http://localhost/womega/images/' + client.current_galaxy.background + '.png") no-repeat');
   }
 
   /////////////////// registerable callbacks

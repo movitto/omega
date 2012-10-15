@@ -12,7 +12,7 @@ function CosmosClient() {
   //this.enemy_users     = [];
 
   this.connect = function(){
-    client.web_node = new WebNode('http://localhost/motel');
+    client.web_node = new WebNode('http://localhost/omega');
     client.ws_node  = new WSNode('127.0.0.1', '8080');
     client.ws_node.open();
 

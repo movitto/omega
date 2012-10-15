@@ -157,17 +157,17 @@ a.jp-pause {
 }
 
 a.jp-play {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 0 no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 0 no-repeat;
 }
 a.jp-play:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -20.5px 0 no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -20.5px 0 no-repeat;
 }
 a.jp-pause {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -21px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -21px no-repeat;
 	display: none;
 }
 a.jp-pause:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -20.5px -21px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -20.5px -21px no-repeat;
 }
 
 a.jp-stop, a.jp-previous, a.jp-next {
@@ -177,27 +177,27 @@ a.jp-stop, a.jp-previous, a.jp-next {
 }
 
 a.jp-stop {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -41.5px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -41.5px no-repeat;
 	margin-left:5px;
 }
 
 a.jp-stop:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -14.5px -41.5px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -14.5px -41.5px no-repeat;
 }
 
 a.jp-previous {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -66px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -66px no-repeat;
 }
 a.jp-previous:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -14.5px -66px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -14.5px -66px no-repeat;
 }
 
 a.jp-next {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -70.5px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -70.5px no-repeat;
 	margin-left:5px;
 }
 a.jp-next:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -14.5px -70.5px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -14.5px -70.5px no-repeat;
 }
 
 /* @end */
@@ -229,13 +229,13 @@ div.jp-video div.jp-progress {
 	height:10px;
 }
 div.jp-seek-bar {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -101px repeat-x;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -101px repeat-x;
 	width:0px;
 	height:100%;
 	cursor: pointer;
 }
 div.jp-play-bar {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -109px repeat-x ;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -109px repeat-x ;
 	width:0px;
 	height:100%;
 }
@@ -290,28 +290,28 @@ div.jp-video a.jp-volume-max {
 }
 
 a.jp-mute {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -85px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -85px no-repeat;
 }
 a.jp-mute:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -9.5px -85px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -9.5px -85px no-repeat;
 }
 a.jp-unmute {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -30px -85px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -30px -85px no-repeat;
 	display: none;
 }
 a.jp-unmute:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -39.5px -85px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -39.5px -85px no-repeat;
 }
 a.jp-volume-max {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -93px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -93px no-repeat;
 }
 a.jp-volume-max:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -9.5px -93px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -9.5px -93px no-repeat;
 }
 
 div.jp-volume-bar {
 	overflow:hidden;
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -125px repeat-x;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -125px repeat-x;
 	width:46px;
 	height:2.5px;
 	cursor: pointer;
@@ -325,7 +325,7 @@ div.jp-video div.jp-volume-bar {
 	left:72px;
 }
 div.jp-volume-bar-value {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -128px repeat-x;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -128px repeat-x;
 	width:0px;
 	height:5px;
 }
@@ -555,55 +555,55 @@ ul.jp-toggles li a {
 }
 
 a.jp-full-screen {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -155px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -155px no-repeat;
 	margin-left: 20px;
 }
 
 a.jp-full-screen:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -15px -155px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -15px -155px no-repeat;
 }
 
 a.jp-restore-screen {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -30px -155px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -30px -155px no-repeat;
 	margin-left: 20px;
 }
 
 a.jp-restore-screen:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -45px -155px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -45px -155px no-repeat;
 }
 
 a.jp-repeat {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -145px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -145px no-repeat;
 }
 
 a.jp-repeat:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -15px -145px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -15px -145px no-repeat;
 }
 
 a.jp-repeat-off {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -30px -145px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -30px -145px no-repeat;
 }
 
 a.jp-repeat-off:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -45px -145px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -45px -145px no-repeat;
 }
 
 a.jp-shuffle {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") 0 -135px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") 0 -135px no-repeat;
 	margin-left: 5px;
 }
 
 a.jp-shuffle:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -15px -135px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -15px -135px no-repeat;
 }
 
 a.jp-shuffle-off {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -30px -135px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -30px -135px no-repeat;
 	margin-left: 5px;
 }
 
 a.jp-shuffle-off:hover {
-	background: url("/wotel/images/jplayer/jplayer.blue.monday.jpg") -45px -135px no-repeat;
+	background: url("/womega/images/jplayer/jplayer.blue.monday.jpg") -45px -135px no-repeat;
 }
 
 

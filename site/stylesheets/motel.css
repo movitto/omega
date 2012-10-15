@@ -206,7 +206,7 @@
   padding-left: 15px;
   padding-top: 25px;
 
-  background: url('http://localhost/wotel/images/logo.png') no-repeat;
+  background: url('http://localhost/womega/images/logo.png') no-repeat;
 }
 
 #user_username,
@@ -291,41 +291,41 @@
 /* specific command icons */
 
 #command_jumpgate_trigger {
-  background: url('http://localhost/wotel/images/icons/trigger-jumpgate.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/trigger-jumpgate.png') no-repeat;
   background-size: 30px;
 }
 
 #command_selection_clear {
-  background: url('http://localhost/wotel/images/icons/clear-selection.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/clear-selection.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_select_destination {
-  background: url('http://localhost/wotel/images/icons/move-ship.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/move-ship.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_select_target {
-  background: url('http://localhost/wotel/images/icons/attack-ship.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/attack-ship.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_select_dock {
-  background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/dock-ship.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_undock {
-  background: url('http://localhost/wotel/images/icons/dock-ship.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/dock-ship.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_select_transfter_resource {
-  background: url('http://localhost/wotel/images/icons/resource-transfer.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/resource-transfer.png') no-repeat;
   background-size: 30px;
 }
 
 #command_ship_select_mining {
-  background: url('http://localhost/wotel/images/icons/start-mining.png') no-repeat;
+  background: url('http://localhost/womega/images/icons/start-mining.png') no-repeat;
   background-size: 30px;
 }
