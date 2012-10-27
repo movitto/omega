@@ -1,0 +1,72 @@
+#omega_canvas_container
+  // should be same width as canvas:
+  width: 900px
+
+canvas
+  border: 1px solid black
+  z-index: -1
+
+#canvas_controls
+  margin-top: 5px
+
+#camera_controls
+  float: left
+  margin-left: 5px
+  padding-left: 5px
+  padding-right: 5px
+  background-color: #00FFFF
+
+#camera_controls img
+  margin-top: 5px
+  height: 15px
+  width:  15px
+
+#camera_controls img:hover
+  cursor: crosshair
+
+.entities_container
+  display: none
+  min-height: 22px
+  min-width: 150px
+  max-width: 150px
+  float: left
+  border-top: 1px solid black
+  border-left: 1px solid black
+  border-right: 1px solid black
+  padding-left: 5px
+  margin-left: 35px
+
+.entities_container
+  cursor: crosshair
+
+.entities_container ul
+  list-style: none
+  margin: 0
+  padding-left: 5px
+  border-bottom: 1px solid black
+  background: white
+
+.entities_container > ul
+  display: none
+
+#grid_control
+  float: right
+
+#close_canvas
+  background: #00AAFF
+  margin-left: 5px
+  padding: 1px
+  float: right
+  color: red
+  font-weight: bold
+
+#show_canvas
+  border: 1px solid black
+  padding: 3px
+  display: none
+  width: 60px
+  background-color: #66CC33
+
+#close_canvas:hover,
+#show_canvas:hover
+  cursor: crosshair

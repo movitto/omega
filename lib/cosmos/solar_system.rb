@@ -227,9 +227,9 @@ class SolarSystem
      {
        'json_class' => self.class.name,
        'data'       =>
-         {:name => name, :location => @location, :background => @background,
+         {:name => name, :location => @location, :galaxy_name => (@galaxy ? @galaxy.name : nil),
           :star => @star, :planets => @planets, :jump_gates => @jump_gates,
-          :asteroids => @asteroids, :remote_queue => remote_queue}
+          :asteroids => @asteroids, :background => @background, :remote_queue => remote_queue}
      }.to_json(*a)
    end
 

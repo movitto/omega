@@ -1,0 +1,11 @@
+- content_for :javascripts do
+  = javascript_include_tag "vendor/purl"
+  = javascript_include_tag "confirm"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "confirm"
+
+.clear_both
+#confirm_account
+  Now activating account...
+  = link_to "back", "index.html"

@@ -1,0 +1,13 @@
+- content_for :javascripts do
+  = javascript_include_tag "chat"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "chat"
+
+#chat_container
+  #chat_input
+    $ 
+    %input{:type => "text"}
+    %input{:type => "button", :value => "send"}
+  #chat_output
+    %textarea{:disabled => "true"}

@@ -1,0 +1,41 @@
+- content_for :javascripts do
+  = javascript_include_tag "vendor/mousehold"
+  = javascript_include_tag "vendor/three"
+  = javascript_include_tag "vendor/helvetiker_font/helvetiker_regular.typeface"
+  = javascript_include_tag "canvas"
+  = javascript_include_tag "omega_renderer"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "canvas"
+
+#omega_canvas_container
+  #canvas_controls
+    #camera_controls
+      = image_tag("/images/camera/rotate_left.png",  :id => "cam_rotate_left")
+      = image_tag("/images/camera/rotate_right.png", :id => "cam_rotate_right")
+      = image_tag("/images/camera/rotate_up.png",    :id => "cam_rotate_up")
+      = image_tag("/images/camera/rotate_down.png",  :id => "cam_rotate_down")
+      = image_tag("/images/camera/zoom_out.png",     :id => "cam_zoom_out")
+      = image_tag("/images/camera/zoom_in.png",      :id => "cam_zoom_in")
+  
+    #locations_list.entities_container
+      %b Locations
+      %ul
+    #alliances_list.entities_container
+    #fleets_list.entities_container
+  
+    - show_close ||= false
+    - if show_close
+      #close_canvas X
+  
+    #show_canvas
+      canvas
+  
+    #grid_control
+      %input#toggle_grid_canvas{:type => "checkbox"} toggle grid
+  
+    .clear_both
+  
+  %canvas#omega_canvas{:width => 900, :height => 400}
+  
+  #omega_entity_container
