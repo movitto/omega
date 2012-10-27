@@ -143,7 +143,6 @@ $scene = {
     this._renderer = new THREE.CanvasRenderer({canvas: this._canvas});
     this._renderer.setSize( 900, 400 );
     $camera._camera.position.z = 500;
-    //$('#omega_canvas_container').append(this._renderer.domElement);
 
     this.target = null;
     this.locations = [];
@@ -325,7 +324,7 @@ function draw_cosmos_jump_gate(scene){
 
   var geometry = new THREE.PlaneGeometry( 50, 50 );
   var mesh = new THREE.Mesh( geometry, planeMat );
-  planeMat.side = THREE.DoubleSide;
+  planeMat.side = THREE.DoubleSide; // relatively new for three.js (mesh.doubleSided = true is old way)
   mesh.position.set( loc.x, loc.y, loc.z );
   loc.scene_entities.push(mesh);
   loc.scene_entities.push(geometry);
@@ -378,10 +377,10 @@ function draw_manufactured_ship(scene){
   scene.add(line);
 
   var geometry = new THREE.PlaneGeometry( ship.size, ship.size );
-  var texture = new THREE.MeshFaceMaterial({ });
+  var texture = new THREE.LineBasicMaterial( { } );
+  //var texture = new THREE.MeshFaceMaterial();
   var mesh = new THREE.Mesh(geometry, texture);
-  mesh.doubleSided = true;
-  mesh.rotation.x = 90 * Math.PI / 180;
+  texture.side = THREE.DoubleSide;
   mesh.position.set(loc.x, loc.y, loc.z);
   loc.scene_entities.push(mesh);
   loc.scene_entities.push(geometry);
@@ -439,10 +438,10 @@ function draw_manufactured_station(scene){
   scene.add(line);
 
   var geometry = new THREE.PlaneGeometry( station.size, station.size );
-  var texture = new THREE.MeshFaceMaterial({ });
+  var texture = new THREE.LineBasicMaterial( { } );
+  //var texture = new THREE.MeshFaceMaterial({ });
   var mesh = new THREE.Mesh(geometry, texture);
-  mesh.doubleSided = true;
-  mesh.rotation.x = 90 * Math.PI / 180;
+  texture.side = THREE.DoubleSide;
   mesh.position.set(loc.x, loc.y, loc.z);
   loc.scene_entities.push(mesh);
   loc.scene_entities.push(geometry);

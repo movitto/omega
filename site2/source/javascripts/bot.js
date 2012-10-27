@@ -8,6 +8,29 @@ function add_to_tracker(entity){
   return is_new_entity;
 }
 
+function calc_planet_orbit(planet){
+  planet.orbit = [];
+  // intercepts
+  var a = planet.location.movement_strategy.semi_latus_rectum / (1 - Math.pow(planet.location.movement_strategy.eccentricity, 2));
+  var b = Math.sqrt(planet.location.movement_strategy.semi_latus_rectum * a);
+  // linear eccentricity
+  var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+  // center (assumes planet's location's movement_strategy.relative to is set to foci
+  var cx = -1 * planet.location.movement_strategy.direction_major_x * le;
+  var cy = -1 * planet.location.movement_strategy.direction_major_y * le;
+  var cz = -1 * planet.location.movement_strategy.direction_major_z * le;
+  // orbit
+  for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+    var ox = cx + a * Math.cos(i) * planet.location.movement_strategy.direction_major_x +
+                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_x ;
+    var oy = cy + a * Math.cos(i) * planet.location.movement_strategy.direction_major_y +
+                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_y ;
+    var oz = cz + a * Math.cos(i) * planet.location.movement_strategy.direction_major_z +
+                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_z ;
+    planet.orbit.push([ox, oy, oz]);
+  }
+}
+
 function set_root_entity(entity_id){
   // explicitly depends on omega_renderer & canvas modules
   var entity = $entity_tracker[entity_id];
@@ -52,6 +75,7 @@ function callback_got_system(system, error){
       }
       for(var p in system.planets){
         p = system.planets[p];
+        calc_planet_orbit(p);
         p.id = p.name;
         add_to_tracker(p);
         for(var m in p.moons){
