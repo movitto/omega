@@ -71,12 +71,41 @@ function update_select_box(args){
   select_box.css('min-height', height);
 }
 
+function show_entity_container(items){
+  hide_entity_container(); // so as to unselect previous
+  var text = "";
+  for(var item in items)
+    text += items[item];
+  $('#entity_container_contents').html(text);
+  $('#omega_entity_container').show();
+}
+
+function append_to_entity_container(items){
+  var text = "";
+  for(var item in items)
+    text += items[item];
+  var container = $('#entity_container_contents');
+  container.html(container.html() + text);
+}
+
+function hide_entity_container(){
+  $('#omega_entity_container').hide();
+  if($entity_container_callback != null)
+    $entity_container_callback();
+}
+
 $(document).ready(function(){ 
   // lock canvas to its current position
   $('#omega_canvas').css({
     position: 'absolute',
     top: $('#omega_canvas').position().top,
     left: $('#omega_canvas').position().left
+  });
+  $('#omega_entity_container').css({
+    position: 'absolute',
+    top: $('#omega_entity_container').position().top,
+    left: $('#omega_entity_container').position().left,
+    display: 'none'
   });
 
   /////////////////////// show/close canvas controls
@@ -136,7 +165,7 @@ $(document).ready(function(){
         loc = $scene.locations[loc];
         if(loc.scene_object == intersects[0].object){
           clicked_on_entity = true;
-          //loc.clicked(e, loc.entity);
+          loc.click(loc.entity);
           break;
         }
       }
@@ -164,6 +193,15 @@ $(document).ready(function(){
 
   $("#omega_canvas, #canvas_select_box").live('mouseup', function(e){
     hide_select_box();
+  });
+
+  /////////////////////// entities container controls
+
+  // if set will be called when entity container is closed
+  $entity_container_callback = null;
+
+  $('#entity_container_close').live('click', function(e){
+    hide_entity_container();
   });
 
   /////////////////////// entities container controls

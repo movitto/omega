@@ -17,6 +17,8 @@ function create_session(session_id, user_id){
   // set session cookies
   $.cookie('omega-session', session_id);
   $.cookie('omega-user',    user_id);
+
+  $user_id = user_id;
 };
 
 function destroy_session(){

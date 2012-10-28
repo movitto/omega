@@ -66,6 +66,24 @@ canvas
 #show_canvas:hover
   cursor: crosshair
 
+#omega_entity_container
+  margin-top: 20px
+  padding-top: 3px
+  display: block
+  float: right
+  border: 1px solid black
+  width: 250px
+  height: 350px
+  background: white
+
+#entity_container_close
+  float: right
+  clear: both
+  cursor: crosshair
+  margin-right: 2px
+  background: #00AAFF
+  color: red
+
 #canvas_select_box
   display: none
   position: absolute
@@ -74,3 +92,45 @@ canvas
   min-width: 0
   min-height: 0
   border: 1px solid red
+
+.cmd_icon
+  border: 1px solid #EEF3E2
+  float: right
+  width: 120px
+  height: 30px
+  text-align: right
+  padding-top: 5px
+  padding-right: 5px
+  margin-top: 5px
+  margin-right: 5px
+
+.cmd_icon:hover 
+  cursor: crosshair
+  text-decoration: blink
+
+// specific command icons
+
+#ship_trigger_jg
+  background: url('/womega/images/icons/trigger-jumpgate.png') no-repeat
+  background-size: 30px
+
+#ship_select_move
+  background: url('/womega/images/icons/move-ship.png') no-repeat
+  background-size: 30px
+
+#ship_select_target
+  background: url('/womega/images/icons/attack-ship.png') no-repeat
+  background-size: 30px
+
+#ship_select_dock,
+#ship_select_undock
+  background: url('/womega/images/icons/dock-ship.png') no-repeat
+  background-size: 30px
+
+#ship_select_transfer
+  background: url('/womega/images/icons/resource-transfer.png') no-repeat
+  background-size: 30px
+
+#ship_select_mine
+  background: url('/womega/images/icons/start-mining.png') no-repeat
+  background-size: 30px
