@@ -161,11 +161,11 @@ $(document).ready(function(){
     var intersects = ray.intersectObjects($scene._scene.__objects);
 
     if(intersects.length > 0){
-      for(var loc in $scene.locations){
-        loc = $scene.locations[loc];
-        if(loc.scene_object == intersects[0].object){
+      for(var entity in $scene.entities){
+        entity = $scene.entities[entity];
+        if(entity.clickable_obj == intersects[0].object){
           clicked_on_entity = true;
-          loc.click(loc.entity);
+          entity.clicked();
           break;
         }
       }
@@ -173,8 +173,6 @@ $(document).ready(function(){
 
     //if(!clicked_on_entity)
     //  controls.clicked_space(x, y);
-
-    $scene.setup(); // appearances may have changed, redraw scene
   });
 
   $("#omega_canvas, #canvas_select_box").live('mousemove', function(e){
