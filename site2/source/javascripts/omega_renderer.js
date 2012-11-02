@@ -1,8 +1,3 @@
-//  loc.toJSON = function(){ return new JRObject("Motel::Location", this, 
-//      ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
-//       "movement_callbacks", "proximity_callbacks"]).toJSON(); };
-//
-
 $camera = {
   _camera : new THREE.PerspectiveCamera(75, 900 / 400, 1, 1000 ),
   //camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
@@ -15,6 +10,7 @@ $camera = {
     var phi = Math.atan2(x,z);
     var theta   = Math.acos(y/dist);
 
+    if((dist + distance) <= 0) return;
     dist += distance;
 
     z = dist * Math.sin(theta) * Math.cos(phi);
@@ -146,6 +142,10 @@ $scene = {
     return this;
   },
 
+  has : function(entity){
+    return this.entities[entity.id] != null;
+  },
+
   add : function(entity){
     load_entity(entity);
     this.entities[entity.id] = entity;
@@ -154,10 +154,11 @@ $scene = {
   remove : function(entity_id){
     var entity = this.entities[entity_id];
     for(var scene_entity in entity.scene_objs){
-      scene_entity = entity.scene_objs[scene_entity];
-      this._scene.remove(scene_entity);
-      delete entity.scene_objs[scene_entity.id];
+      var se = entity.scene_objs[scene_entity];
+      this._scene.remove(se);
+      delete entity.scene_objs[scene_entity];
     }
+    this.entities[entity_id].scene_objs = [];
     delete this.entities[entity_id];
   },
 
@@ -171,9 +172,11 @@ $scene = {
     for(var entity in this.entities){
       entity = this.entities[entity]
       for(var scene_entity in entity.scene_objs){
-        scene_entity = entity.scene_objs[scene_entity];
-        this._scene.remove(scene_entity);
+        var se = entity.scene_objs[scene_entity];
+        this._scene.remove(se);
+        delete entity.scene_objs[scene_entity];
       }
+      this.entities[entity.id].scene_objs = [];
       delete this.entities[entity.id];
     }
     this.entities = [];

@@ -308,7 +308,7 @@ class RJRAdapter
       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
                                                  {:privilege => 'view', :entity => 'locations'}],
-                                        :session   => @headers['session_id'])
+                                        :session   => @headers['session_id']) if loc.restrict_view
 
       raise ArgumentError, "callback_type must be nil, movement, or proximity" unless [nil, 'movement', 'proximity'].include?(callback_type)
 

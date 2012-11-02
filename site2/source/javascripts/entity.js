@@ -3,6 +3,8 @@ function roundTo(number, places){
   return Math.round(number * Math.pow(10,places)) / Math.pow(10,places);
 }
 
+$selected_entity = null;
+
 // encapsulates server side entity
 function OmegaEntity(sentity){
   oentity = {dirty : false};
@@ -26,14 +28,27 @@ function OmegaEntity(sentity){
     this.dirty = true;
     this.modified = true;
 
-    if(this.location)
+    if(this.location){
       this.location.to_s = function(){ return roundTo(this.x, 2) + "/" + roundTo(this.y, 2) + "/" + roundTo(this.z, 2); }
+      this.location.toJSON = function(){ return new JRObject("Motel::Location", this, 
+           ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
+            "movement_callbacks", "proximity_callbacks"]).toJSON(); };
+      this.location.clone = function(){
+        var ret = {};
+        ret.x = this.x; ret.y = this.y; ret.z = this.z;
+        ret.parent_id = this.parent_id; ret.movement_strategy = this.movement_strategy;
+        ret.to_s = this.to_s; ret.toJSON = this.toJSON;
+        return ret;
+      };
+    }
 
     //this.update_children();
 
-    // XXX hack
+    // XXX hacks
     if(entity.name != null && this.id == null)
       this.id = entity.name;
+    if($selected_entity && $selected_entity.id == this.id)
+      $selected_entity.clicked();
 
     if(this.updated) this.updated();
   };
@@ -53,7 +68,7 @@ function OmegaEntity(sentity){
   };
 
   oentity.is_within = function(distance, location){
-    if(this.location == null)
+    if(this.location == null || this.location.parent_id != location.parent_id)
       return false 
     return  this.distance_from(location.x, location.y, location.z) < distance;
   };
@@ -115,7 +130,7 @@ $tracker = {
         if(callback != null)
           callback(entity, error);
       });
-    }else if(type == "Manufactured::Ship"){
+    }else if(type == "Manufactured::Ship" || type == "Manufactured::Station"){
       omega_web_request('manufactured::get_entity', 'with_id', entity_id, function(entity, error){
         if(error == null){
           $tracker.add(entity);
@@ -125,15 +140,23 @@ $tracker = {
           callback(entity, error);
       });
     }
+
+    return null;
   },
 
   matching_entities : function(args){
     var ret = [];
     for(var entity in this.entities){
       var matched = true;
+      if(args.id   && this.entities[entity].id != args.id)
+        matched = false;
       if(args.type && this.entities[entity].json_class != args.type)
         matched = false;
       if(args.within && !this.entities[entity].is_within(args.within[0], args.within[1]))
+        matched = false;
+      if(args.owned_by && this.entities[entity].user_id != args.owned_by)
+        matched = false;
+      if(args.not_owned_by && this.entities[entity].user_id == args.not_owned_by)
         matched = false;
       if(args.location && (!this.entities[entity].location || this.entities[entity].location.id != args.location))
         matched = false;
@@ -272,21 +295,20 @@ function calc_orbit(planet){
 
   planet.move = function(){
     var now = (new Date()).getTime() / 1000;
-    if(planet.last_moved == null){
-      planet.last_moved = now;
+    if(this.last_moved == null){
+      this.last_moved = now;
       return;
     }
-    var elapsed = now - planet.last_moved;
-    var distance = planet.location.movement_strategy.speed * elapsed;
-    planet.last_moved = now;
+    var elapsed = now - this.last_moved;
+    var distance = this.location.movement_strategy.speed * elapsed;
+    this.last_moved = now;
 
     var absd = parseInt(distance * 180 / Math.PI);
-    planet.orbiti += absd;
-    if(planet.orbiti > 360) planet.orbiti -= 360;
-    var nloc = planet.orbit[planet.orbiti];
-    planet.location.x = nloc[0]; planet.location.y = nloc[1]; planet.location.z = nloc[2];
-    planet.updated();
-console.log(planet);
+    this.orbiti += absd;
+    if(this.orbiti > 360) this.orbiti -= 360;
+    var nloc = this.orbit[this.orbiti];
+    this.location.x = nloc[0]; this.location.y = nloc[1]; this.location.z = nloc[2];
+    this.updated();
   }
 
 }
@@ -354,7 +376,6 @@ function updated_planet(){
   this.clickable_obj.position.y = this.location.y;
   this.clickable_obj.position.z = this.location.z;
 
-  // FIXME update moons
   for(var m=0; m<this.moons.length; ++m){
     var moon = this.moons[m];
     moon.scene_obj.position.x = this.location.x + moon.location.x;
@@ -440,11 +461,11 @@ function clicked_jump_gate(){
     ['Jump Gate to ' + jump_gate.endpoint + '<br/>',
      '@ ' + jump_gate.location.to_s() + "<br/><br/>",
      "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
+  show_entity_container(details); // XXX should go before the following as it will invoke hide_entity_container / unselect_jump_gate
   $selected_entity = jump_gate;
   jump_gate.selected = true;
   jump_gate.dirty = true;
   $scene.reload(jump_gate);
-  show_entity_container(details);
   $entity_container_callback = function(){ unselect_jump_gate(jump_gate); };
 }
 
@@ -452,12 +473,18 @@ function load_ship(){
   var ship = this;
   var loc  = ship.location;
 
+  // do not load if ship is destroyed
+  if(ship.hp <= 0)
+    return;
+
   // draw crosshairs representing ship
   var color = '0x';
   if(ship.selected)
     color += "FFFF00";
   else if(ship.docked_at)
     color += "99FFFF";
+  else if(!ship.belongs_to_user())
+    color += "CC0000";
   else
     color += "00CC00";
 
@@ -505,7 +532,7 @@ function load_ship(){
   if(ship.mining){
     geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
-    geometry.vertices.push(new THREE.Vector3(ship.mining.location.x, ship.mining.location.y + 25, ship.mining.location.z));
+    geometry.vertices.push(new THREE.Vector3(ship.mining.entity.location.x, ship.mining.entity.location.y + 25, ship.mining.entity.location.z));
     line = new THREE.Line(geometry, $scene.materials['ship_mining']);
     ship.scene_objs.push(line);
     ship.scene_objs.push(geometry);
@@ -516,7 +543,10 @@ function load_ship(){
 }
 
 function updated_ship(){
-  // TODO
+  // TODO simple refresh coordinates / properties instead of removing
+  // and readding all of the ship's scene objects
+  if($scene.has(this))
+    $scene.reload(this);
 }
 
 function unselect_ship(ship){
@@ -538,13 +568,15 @@ function clicked_ship(){
   }
   details.push(txt);
 
-  // TODO wire up handlers
-  details.push("<div class='cmd_icon' id='ship_select_move'>move</div>");
-  details.push("<div class='cmd_icon' id='ship_select_target'>attack</div>");
-  details.push("<div class='cmd_icon' id='ship_select_dock'>dock</div>");
-  details.push("<div class='cmd_icon' id='ship_undock'>undock</div>");
-  details.push("<div class='cmd_icon' id='ship_select_transfer'>transfer</div>");
-  details.push("<div class='cmd_icon' id='ship_select_mine'>mine</div>");
+  if(ship.belongs_to_user()){
+    details.push("<div class='cmd_icon' id='ship_select_move'>move</div>"); // TODO only if not mining / attacking
+    details.push("<div class='cmd_icon' id='ship_select_target'>attack</div>");
+    details.push("<div class='cmd_icon' id='ship_select_dock'>dock</div>");
+    details.push("<div class='cmd_icon' id='ship_undock'>undock</div>");
+    details.push("<div class='cmd_icon' id='ship_select_transfer'>transfer</div>");
+    details.push("<div class='cmd_icon' id='ship_select_mine'>mine</div>");
+  }
+
   show_entity_container(details);
 
   if(!ship.docked_at){
@@ -571,6 +603,8 @@ function load_station(){
   var color = '0x';
   if(station.selected)
     color += "FFFF00";
+  else if(!station.belongs_to_user())
+    color += "CC0011";
   else
     color += "0000CC";
 
@@ -621,8 +655,10 @@ function clicked_station(){
   }
   details.push(txt);
 
-  // TODO wire up construction handler
-  details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
+  if(station.belongs_to_user()){
+    // TODO wire up construction handler
+    details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
+  }
   show_entity_container(details);
 
   $selected_entity = station;
