@@ -171,6 +171,35 @@ $tracker = {
 
 ///////////////////////////////// specified entity logic
 
+function register_entity(entity){
+  $tracker.add(entity);
+  entity = $tracker.entities[entity.id || entity.name];
+  if(entity.json_class == "Cosmos::Galaxy"){
+    for(var sys in entity.solar_systems){
+      sys = entity.solar_systems[sys];
+      register_entity(sys);
+    }
+  }else if(entity.json_class == "Cosmos::SolarSystem"){
+    if(entity.star != null) register_entity(entity.star);
+    for(var a in entity.asteroids) register_entity(entity.asteroids[a]);
+    for(var p in entity.planets){
+      p = entity.planets[p];
+      register_entity(p);
+    }
+    for(var j in entity.jump_gates){
+      j = entity.jump_gates[j];
+      j.id = j.solar_system + "-" + j.endpoint;
+      register_entity(j);
+    }
+    entity.update_children();
+
+  }else if(entity.json_class == "Cosmos::Planet"){
+    for(var m in entity.moons)
+      register_entity(entity.moons[m]);
+    entity.update_children();
+  }
+}
+
 function load_entity(entity){
   if(entity.json_class == "Cosmos::SolarSystem"){
     entity.clicked = clicked_system;

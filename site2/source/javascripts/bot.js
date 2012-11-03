@@ -142,21 +142,7 @@ function callback_got_system(system, error){
       $('#locations_list ul').append('<li name="'+system.name+'">'+system.name+'</li>');
       $('#locations_list').show();
 
-      if(system.star != null) $tracker.add(system.star);
-      for(var a in system.asteroids) $tracker.add(system.asteroids[a]);
-      for(var p in system.planets){
-        p = system.planets[p];
-        $tracker.add(p);
-        for(var m in p.moons)
-          $tracker.add(p.moons[m]);
-      }
-      for(var j in system.jump_gates){
-        j = system.jump_gates[j];
-        j.id = j.solar_system + "-" + j.endpoint;
-        $tracker.add(j)
-      }
-
-      system.update_children();
+      register_entity(system);
 
       // get additional entities under system
       omega_web_request('manufactured::get_entities', 'under', system.name, callback_got_manufactured_entities);

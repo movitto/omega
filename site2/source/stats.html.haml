@@ -5,21 +5,30 @@
   = stylesheet_link_tag "stats"
 
 - content_for :secondary_navigation do
-  = link_to "register", "#", :id => "create_account_link"
-  = link_to "account",  "account.html", :id => "access_account_link"
+  = link_to "back",   "index.html", :id => "account_info_back"
+  = link_to "register", "#", :id => "register_link"
+  = link_to "account",  "account.html", :id => "account_link"
   = link_to "login",    "#", :id => "login_link"
   = link_to "logout",   "#", :id => "logout_link"
 
 .clear_both
 
-#stats
+#stats.content
   = partial :canvas, :locals => {:show_close => true}
 
   #stats_nav
-    %ul
-      %li#stats_cosmos.omega_display_stats Cosmos
-      %li#stats_users.omega_display_stats Users
-      %li#stats_actions.omega_display_stats Actions
+    #stats_cosmos.omega_display_stats
+      Cosmos
+      %ul
+    #stats_entities.omega_display_stats
+      Entities
+      %ul
+    #stats_users.omega_display_stats
+      Users
+      %ul
+    #stats_actions.omega_display_stats
+      Actions
+      %ul
 
   #stats_content
 

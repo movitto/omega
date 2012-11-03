@@ -9,7 +9,7 @@ function hide_canvas(){
 
 function show_canvas(){
   $('canvas').show();
-  $('.entities_container').show();
+  //$('.entities_container').show(); // TODO we need to individually show each of these
   $('#camera_controls').show();
   $('#grid_control').show();
   $('#close_canvas').show();
