@@ -79,6 +79,9 @@ $(document).ready(function(){
 
   // validate the session
   if(user_id != null){
-    omega_web_request('users::get_entity', 'with_id', user_id, callback_validate_session);
+    // XXX hack, give socket time to open before running client
+    setTimeout(function(){
+      omega_web_request('users::get_entity', 'with_id', user_id, callback_validate_session);
+    }, 250);
   }
 });

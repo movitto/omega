@@ -30,8 +30,6 @@ function set_root_entity(entity_id){
       }
 
       tracking_location = true;
-console.log("tracking");
-console.log(child.location);
       omega_ws_request('motel::track_movement', child.location.id, 20, null);
 
       tracking_manufactured_events = true;
@@ -59,8 +57,6 @@ console.log(child.location);
 
   if(tracking_location){
     add_method_handler('motel::on_movement', function(loc){
-console.log("on_movement");
-console.log(loc);
       var entity = $tracker.matching_entities({location : loc.id});
       entity[0].update({location : loc});
       $scene.animate();

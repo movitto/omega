@@ -152,7 +152,12 @@ class ChatProxy
     @bot.config.server  = @server
     @bot.config.port    = @port
     @bot.config.verbose = true
+  end
+
+  def connect
+    return self if @connected
     @bot.start
+    return self
   end
 
   # Register new callback with the proxy

@@ -191,7 +191,7 @@ class RJRAdapter
        # Users::ChatProxy.proxy_for(user.id).remove_callback # TODO
        #}
 
-       Users::ChatProxy.proxy_for(user.id).add_callback callback
+       Users::ChatProxy.proxy_for(user.id).connect.add_callback callback
        nil
      }
 
