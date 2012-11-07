@@ -55,6 +55,8 @@ class RJRAdapter
 
   # Initialize the Users subsystem and rjr adapter.
   def self.init
+    self.permenant_users = [] if self.permenant_users.nil?
+
     Users::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
     @@local_node = RJR::LocalNode.new :node_id => 'users'

@@ -22,7 +22,8 @@ describe Users::Session do
 
   it "should provide timeout mechanism" do
     Timecop.freeze
-    s = Users::Session.new :id => 'id', :user_id => 'user1'
+    u = Users::User.new :id => 'user1'
+    s = Users::Session.new :id => 'id', :user => u
     s.timed_out?.should be_false
     s.instance_variable_get(:@timeout_timestamp).should == Time.now
     Timecop.freeze Users::Session::SESSION_EXPIRATION + 1

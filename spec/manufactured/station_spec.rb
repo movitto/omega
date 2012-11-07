@@ -304,8 +304,7 @@ describe Manufactured::Station do
     j.should include('"json_class":"Motel::Location"')
     j.should include('"id":20')
     j.should include('"y":-15')
-    j.should include('"json_class":"Cosmos::SolarSystem"')
-    j.should include('"name":"system1"')
+    j.should include('"system_name":"system1"')
   end
 
   it "should be convertable from json" do

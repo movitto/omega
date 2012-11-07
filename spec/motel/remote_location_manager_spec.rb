@@ -22,8 +22,8 @@ describe Motel::RemoteLocationManager do
     user = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_pass
     @local_node = RJR::LocalNode.new :node_id => config.node_id
     @local_node.invoke_request('users::create_entity', user)
-    @local_node.invoke_request('users::add_privilege', user.id, 'create',   'locations')
-    @local_node.invoke_request('users::add_privilege', user.id, 'modify',   'locations')
+    @local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'create',   'locations')
+    @local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'modify',   'locations')
 
     @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {

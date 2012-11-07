@@ -43,6 +43,10 @@ class TestUser
     @@user.id
   end
 
+  def self.privileges
+    @@user.privileges
+  end
+
   def self.login(node = nil)
     self.logout unless @@session.nil?
     @@session = Users::Registry.instance.create_session(@@user)
@@ -59,18 +63,37 @@ class TestUser
   end
 
   def self.clear_privileges
-    @@user.clear_privileges
+    self.clear_roles
+    self
+  end
+
+  def self.clear_roles
+    @@user.clear_roles
     self
   end
 
   def self.add_privilege(privilege_id, entity_id = nil)
-    @@user.add_privilege Users::Privilege.new(:id => privilege_id, :entity_id => entity_id)
+    self.create_user_role
+    @@user.roles.first.add_privilege Users::Privilege.new(:id => privilege_id, :entity_id => entity_id)
+    self
+  end
+
+  def self.create_user_role
+    self.add_role("user_role_#{@@user.id}") if @@user.roles.empty?
     self
   end
 
   def self.add_role(role_id)
-    role = Omega::Roles::ROLES[role_id]
-    role.each { |pe|
+    role = Users::Role.new(:id => role_id)
+    @@user.add_role role
+    Users::Registry.instance.create role
+    self
+  end
+
+  def self.add_omega_role(role_id)
+    permissions = Omega::Roles::ROLES[role_id]
+    self.add_role(role_id)
+    permissions.each { |pe|
       self.add_privilege pe[0], pe[1]
     }
     self

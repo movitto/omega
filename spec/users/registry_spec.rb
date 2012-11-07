@@ -84,8 +84,9 @@ describe Users::Registry do
     Users::Registry.instance.create u2
     Users::Registry.instance.create u3
 
-    u1.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'manufactured_entities')
-    u2.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'manufactured_entities')
+    role1 = Users::Role.new(:id => 'role1', :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'manufactured_entities')])
+    u1.add_role role1 
+    u2.add_role role1
 
     users = Users::Registry.instance.find :with_privilege => ['view', 'manufactured_entities']
     users.size.should == 2
@@ -138,7 +139,8 @@ describe Users::Registry do
                                         :entity    => 'locations'
     }.should raise_error(Omega::PermissionError, "user user42 does not have required privilege view on locations")
 
-    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+    role1 = Users::Role.new(:id => 'role1', :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'locations')])
+    u.add_role role1
 
     lambda{
       Users::Registry.require_privilege :session => session.id,
@@ -152,7 +154,7 @@ describe Users::Registry do
                                                      {:privilege => 'modify'}]
     }.should raise_error(Omega::PermissionError)
 
-    u.add_privilege Users::Privilege.new(:id => 'modify')
+    role1.add_privilege Users::Privilege.new(:id => 'modify')
 
     lambda{
       Users::Registry.require_privilege :session => session.id,
@@ -176,7 +178,8 @@ describe Users::Registry do
                                     :privilege => 'view',
                                     :entity => 'locations').should be_false # no privilege
 
-    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+    role1 = Users::Role.new(:id => 'role1', :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'locations')])
+    u.add_role role1
 
     Users::Registry.check_privilege(:session => session.id,
                                     :privilege => 'view',
@@ -186,7 +189,7 @@ describe Users::Registry do
                                     :any     => [{:privilege => 'modify', :entity    => 'locations'},
                                                  {:privilege => 'modify'}]).should be_false # no privilege
 
-    u.add_privilege Users::Privilege.new(:id => 'modify')
+    role1.add_privilege Users::Privilege.new(:id => 'modify')
 
     Users::Registry.check_privilege(:session => session.id,
                                     :any     => [{:privilege => 'modify', :entity    => 'locations'},
@@ -211,7 +214,8 @@ describe Users::Registry do
     u = Users::User.new :id => 'user42'
     Users::Registry.instance.create u
     session = Users::Registry.instance.create_session u
-    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+    role1 = Users::Role.new(:id => 'role1', :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'locations')])
+    u.add_role role1
 
     lambda{
       Users::Registry.require_privilege :session => session.id,
@@ -248,7 +252,8 @@ describe Users::Registry do
     Users::Registry.instance.init
     u = Users::User.new :id => 'user42'
     Users::Registry.instance.create u
-    u.add_privilege Users::Privilege.new(:id => 'view', :entity_id => 'locations')
+    role1 = Users::Role.new(:id => 'role1', :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'locations')])
+    u.add_role role1
     a = Users::Alliance.new :id => 'aly123'
     Users::Registry.instance.create a
 

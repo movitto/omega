@@ -41,7 +41,7 @@ describe Cosmos::RJRAdapter do
     sys1 = Cosmos::SolarSystem.new :name => 'system42', :location => Motel::Location.new(:id => 51)
     u = TestUser.create.login(@local_node).clear_privileges
 
-    @nu1.add_privilege 'view', 'cosmos_entities'
+    u.add_privilege 'view', 'cosmos_entities'
 
     lambda{
       @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
@@ -70,9 +70,8 @@ describe Cosmos::RJRAdapter do
     gal.name.should == gal1.name
     Motel::Runner.instance.locations.size.should == 1
     Motel::Runner.instance.locations.first.id.should_not be_nil
+    Motel::Runner.instance.locations.first.restrict_view.should be_false
     gal.location.id.should == Motel::Runner.instance.locations.first.id
-    @nu1.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + gal.location.id.to_s }.should_not be_nil
-    @nu2.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + gal.location.id.to_s }.should be_nil
 
     #lambda{
     #  @local_node.invoke_request('cosmos::create_entity', sys1, 'non_existant')
@@ -93,8 +92,7 @@ describe Cosmos::RJRAdapter do
     sys.galaxy.should_not be_nil
     sys.galaxy.should == gal
     sys.location.parent.should == gal.location
-    @nu1.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + sys.location.id.to_s }.should_not be_nil
-    @nu2.privileges.find { |p| p.id == 'view' && p.entity_id == 'location-' + sys.location.id.to_s }.should be_nil
+    sys.location.restrict_view.should be_false
   end
 
   it "should verify entity names are unique when creating entities" do

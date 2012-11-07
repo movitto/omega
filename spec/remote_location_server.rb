@@ -14,7 +14,7 @@ require 'rjr/amqp_node'
 
 require './spec/spec_helper'
 
-#RJR::Logger.log_level = ::Logger::INFO
+#RJR::Logger.log_level = ::Logger::DEBUG
 
 config = Omega::Config.load :amqp_broker => 'localhost'
 config.node_id = 'remote_server'
@@ -25,25 +25,28 @@ Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
 Users::RJRAdapter.init
 Motel::RJRAdapter.init
 
-rlm  = Omega::Roles.create_user(config.remote_location_manager_user, config.remote_location_manager_pass)
-Omega::Roles.create_user_role(rlm, :remote_location_manager)
+local_node = RJR::LocalNode.new  :node_id => config.node_id
+rlm = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_pass
+rlmr = Users::Role.new :id => 'remote_location_manager',
+                       :privileges =>
+                         Omega::Roles::ROLES[:remote_location_manager].collect { |pe|
+                           Users::Privilege.new(:id => pe[0], :entity_id => pe[1])
+                         }
+local_node.invoke_request('users::create_entity', rlm)
+local_node.invoke_request('users::create_entity', rlmr)
+local_node.invoke_request('users::add_role', rlm.id, 'remote_location_manager')
 
 amqp_node  = RJR::AMQPNode.new   :node_id => config.node_id, :broker => config.amqp_broker
 
 amqp_node.listen
 
-sleep 5
+sleep 3
 
-local_node = RJR::LocalNode.new  :node_id => config.node_id
 session = local_node.invoke_request('users::login', rlm)
 local_node.message_headers['session_id'] = session.id
 
 loc3 = Motel::Location.new :id => 3, :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                            :parent_id => 2, :remote_queue => 'motel-rrjr-test-queue'
 local_node.invoke_request('motel::create_location', loc3)
-
-Signal.trap("USR1") {
-  amqp_node.halt
-}
 
 amqp_node.join

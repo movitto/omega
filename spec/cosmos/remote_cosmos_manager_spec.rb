@@ -15,6 +15,7 @@ describe Cosmos::RemoteCosmosManager do
   before(:all) do
     config = Omega::Config.load :amqp_broker => 'localhost'
     config.node_id = 'cosmos-rcm-test'
+
     Cosmos::RemoteCosmosManager.user      = config.remote_cosmos_manager_user
     Cosmos::RemoteCosmosManager.password  = config.remote_cosmos_manager_pass
 
@@ -25,9 +26,9 @@ describe Cosmos::RemoteCosmosManager do
     user = Users::User.new :id => config.remote_cosmos_manager_user, :password => config.remote_cosmos_manager_pass
     @local_node = RJR::LocalNode.new :node_id => config.node_id
     @local_node.invoke_request('users::create_entity', user)
-    @local_node.invoke_request('users::add_privilege', user.id, 'create',   'cosmos_entities')
-    @local_node.invoke_request('users::add_privilege', user.id, 'modify',   'cosmos_entities')
-    @local_node.invoke_request('users::add_privilege', user.id, 'view',     'cosmos_entities')
+    @local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'create',   'cosmos_entities')
+    @local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'modify',   'cosmos_entities')
+    @local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',     'cosmos_entities')
 
     @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {

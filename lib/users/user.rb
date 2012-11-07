@@ -146,6 +146,23 @@ class User
     (@secure_password ? PasswordHelper.check(password, self.password) : password == self.password)
   end
 
+  # Adds the specified privilege to the first user role
+  #
+  # @param [Users::Privilege] privilege Privilege to add to user role
+  #def add_privilege(privilege)
+  #  # TODO select other role, or allow invoker to specify?
+  #  # TODO raise error if no roles
+  #  @roles.first.add_privilege(privilege) unless @roles.empty?
+  #end
+
+  # Return a list of privileges which the roles assigned to
+  # the user provides
+  #
+  # @return [Array<Users::Privilege>] array of privileges the user has
+  def privileges
+    @roles.collect { |r| r.privileges }.flatten.uniq
+  end
+
   # Returns boolean indicating if the user has the specified privilege on the specified entity
   #
   # @param [String] privilege_id id of privilege to lookup in local privileges array

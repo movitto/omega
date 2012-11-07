@@ -27,8 +27,16 @@ Users::RJRAdapter.init
 Motel::RJRAdapter.init
 Cosmos::RJRAdapter.init
 
-rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_pass)
-Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
+local_node = RJR::LocalNode.new  :node_id => config.node_id
+rcm = Users::User.new  :id => config.remote_cosmos_manager_user, :password => config.remote_cosmos_manager_pass
+rcmr = Users::Role.new :id => 'remote_cosmos_manager',
+                       :privileges =>
+                         Omega::Roles::ROLES[:remote_cosmos_manager].collect { |pe|
+                           Users::Privilege.new(:id => pe[0], :entity_id => pe[1])
+                         }
+local_node.invoke_request('users::create_entity', rcm)
+local_node.invoke_request('users::create_entity', rcmr)
+local_node.invoke_request('users::add_role', rcm.id, 'remote_cosmos_manager')
 
 amqp_node  = RJR::AMQPNode.new   :node_id => config.node_id, :broker => config.amqp_broker
 
@@ -36,7 +44,6 @@ amqp_node.listen
 
 sleep 3
 
-local_node = RJR::LocalNode.new  :node_id => config.node_id
 session = local_node.invoke_request('users::login', rcm)
 local_node.message_headers['session_id'] = session.id
 
@@ -49,8 +56,7 @@ local_node.invoke_request('cosmos::create_entity', sys1, 'gal1')
 local_node.invoke_request('cosmos::create_entity', sys2, 'gal1')
 
 Signal.trap("USR1") {
-  amqp_node.halt
+  exit
 }
 
 amqp_node.join
-

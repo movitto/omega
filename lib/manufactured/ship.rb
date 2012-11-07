@@ -66,6 +66,7 @@ class Ship
   # @param [Cosmos::SolarSystem] val solar system parent to assign to the ship
   def solar_system=(val)
     @solar_system = val
+    return if @solar_system.nil?
     @system_name  = @solar_system.name
     @location.parent = parent.location unless parent.nil? || @location.nil?
   end

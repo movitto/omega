@@ -65,7 +65,8 @@ class RemoteLocationManager
   def get_location(location)
     @lock.synchronize{
       node = remote_node_for(location.remote_queue)
-      return node.invoke_request(location.remote_queue, 'motel::get_location', 'with_id', location.id)
+      rloc = node.invoke_request(location.remote_queue, 'motel::get_location', 'with_id', location.id)
+      return rloc
     }
   end
 

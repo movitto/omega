@@ -12,6 +12,7 @@ describe Users::RJRAdapter do
     Users::EmailHelper.email_enabled = false
     Users::RJRAdapter.recaptcha_enabled = false
     Users::RJRAdapter.mediawiki_enabled = false
+    Users::RJRAdapter.permenant_users = ['admin']
     Users::RJRAdapter.init
   end
 
@@ -173,7 +174,7 @@ describe Users::RJRAdapter do
     lambda{
       rus = @local_node.invoke_request('users::get_entities')
       rus.class.should == Array
-      rus.size.should == 4
+      rus.size.should == 5 # 3 we creat above + TestUser & role
       rus.collect { |ru| ru.id }.should include(nu1.id)
       rus.collect { |ru| ru.id }.should include(nu2.id)
       rus.collect { |ru| ru.id }.should include(a1.id)
@@ -277,24 +278,24 @@ describe Users::RJRAdapter do
   end
   
   it "should permit the local node or users with modify users_entities to add_privilege" do
-    nu = Users::User.new :id => 'user43'
+    nr = Users::Role.new :id => 'role43'
     u  = TestUser.create.login(@local_node).clear_privileges
 
-    Users::Registry.instance.create nu
-    Users::Registry.instance.users.size.should == 2
+    Users::Registry.instance.create nr
+    Users::Registry.instance.roles.size.should == 1
 
     # exception for local node needs to be overrided
     @local_node.node_type = 'local-test'
 
     # insufficient permissions
     lambda{
-      @local_node.invoke_request('users::add_privilege', nu.id, 'view', 'all')
+      @local_node.invoke_request('users::add_privilege', nr.id, 'view', 'all')
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
     u.add_privilege('modify', 'users_entities')
 
-    # invalid user
+    # invalid role
     lambda{
       @local_node.invoke_request('users::add_privilege', 'non_existant', 'view', 'all')
     #}.should raise_error(Omega::DataNotFound)
@@ -302,7 +303,7 @@ describe Users::RJRAdapter do
 
     # valid call
     lambda{
-      ret = @local_node.invoke_request('users::add_privilege', nu.id, 'view', 'all')
+      ret = @local_node.invoke_request('users::add_privilege', nr.id, 'view', 'all')
       ret.should be_nil
     }.should_not raise_error
 
@@ -312,19 +313,19 @@ describe Users::RJRAdapter do
 
     # valid call
     lambda{
-      @local_node.invoke_request('users::add_privilege', nu.id, 'modify', 'all')
+      @local_node.invoke_request('users::add_privilege', nr.id, 'modify', 'all')
     }.should_not raise_error
 
     # duplicate call (no error, but no effect)
     lambda{
-      @local_node.invoke_request('users::add_privilege', nu.id, 'modify', 'all')
+      @local_node.invoke_request('users::add_privilege', nr.id, 'modify', 'all')
     }.should_not raise_error
 
-    nu.privileges.size.should == 2
-    nu.privileges.first.id.should == 'view'
-    nu.privileges.first.entity_id.should == 'all'
-    nu.privileges.last.id.should == 'modify'
-    nu.privileges.last.entity_id.should == 'all'
+    nr.privileges.size.should == 2
+    nr.privileges.first.id.should == 'view'
+    nr.privileges.first.entity_id.should == 'all'
+    nr.privileges.last.id.should == 'modify'
+    nr.privileges.last.entity_id.should == 'all'
   end
 
   it "should permit a valid user to register and confirm their registration" do

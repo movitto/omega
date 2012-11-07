@@ -22,8 +22,17 @@ describe Motel::RJRAdapter do
     Users::RJRAdapter.init
     Motel::RJRAdapter.init
 
-    rlm  = Omega::Roles.create_user(config.remote_location_manager_user, config.remote_location_manager_pass)
-    Omega::Roles.create_user_role(rlm, :remote_location_manager)
+    @local_node = RJR::LocalNode.new  :node_id => config.node_id
+
+    rlm = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_pass
+    rlmr = Users::Role.new :id => 'remote_location_manager',
+                           :privileges =>
+                             Omega::Roles::ROLES[:remote_location_manager].collect { |pe|
+                               Users::Privilege.new(:id => pe[0], :entity_id => pe[1])
+                             }
+    @local_node.invoke_request('users::create_entity', rlm)
+    @local_node.invoke_request('users::create_entity', rlmr)
+    @local_node.invoke_request('users::add_role', rlm.id, 'remote_location_manager')
 
     @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {
@@ -41,8 +50,7 @@ describe Motel::RJRAdapter do
                                :parent_id => 1, :remote_queue => 'remote_server-queue'
     loc4 = Motel::Location.new :id => 4, :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                                :parent_id => 3
-    @local_node = RJR::LocalNode.new  :node_id => config.node_id
-    TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
+    TestUser.create.clear_privileges.add_omega_role(:superadmin).login(@local_node)
     @local_node.invoke_request('motel::create_location', loc1)
     @local_node.invoke_request('motel::create_location', loc2)
     sleep 3
@@ -54,7 +62,7 @@ describe Motel::RJRAdapter do
     @amqp_node.halt
     @amqp_node.join
     @server_thread.join
-    Process.kill 'USR1', @remote_server_pid
+    Process.kill 9, @remote_server_pid
   end
 
   it "should get remotely tracked locations" do

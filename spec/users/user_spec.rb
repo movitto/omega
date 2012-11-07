@@ -13,6 +13,7 @@ describe Users::User do
     u.email.should    == 'u@ser.com'
     u.password.should == "foobar"
     u.alliances.size.should == 0
+    u.roles.size.should == 0
     u.privileges.size.should == 0
   end
 
@@ -57,24 +58,24 @@ describe Users::User do
     u.alliances.size.should == 2
   end
 
-  it "should permit adding and removing privileges" do
-    p = Users::Privilege.new
+  it "should permit adding and removing roles" do
+    r = Users::Role.new
     u = Users::User.new
-    u.privileges.size.should == 0
-    u.add_privilege(p)
-    u.privileges.size.should == 1
-    u.privileges.first.should == p
-    u.add_privilege(p)
-    u.privileges.size.should == 1
+    u.roles.size.should == 0
+    u.add_role(r)
+    u.roles.size.should == 1
+    u.roles.first.should == r
+    u.add_role(r)
+    u.roles.size.should == 1
   end
 
-  it "should not permit adding duplicate privileges" do
-    p1 = Users::Privilege.new :id => 'p', :entity_id => 1
-    p2 = Users::Privilege.new :id => 'p', :entity_id => 1
+  it "should not permit adding duplicate roles" do
+    r1 = Users::Role.new :id => 'p', :entity_id => 1
+    r2 = Users::Role.new :id => 'p', :entity_id => 1
     u = Users::User.new
-    u.add_privilege(p1)
-    u.add_privilege(p2)
-    u.privileges.size.should == 1
+    u.add_role(r1)
+    u.add_role(r2)
+    u.roles.size.should == 1
   end
 
   it "should validate emails" do
@@ -109,12 +110,12 @@ describe Users::User do
     u.valid_login?('user1', 'barfoo').should be_false
   end
 
-  it "should validate privileges" do
+  it "should validate roles" do
     u = Users::User.new :id => 'user1', :password => 'foobar'
     p1 = Users::Privilege.new :id => 'view', :entity_id => 'entity1'
     p2 = Users::Privilege.new :id => 'modify'
-    u.add_privilege(p1)
-    u.add_privilege(p2)
+    r  = Users::Role.new :privileges => [p1, p2]
+    u.add_role(r)
 
     u.has_privilege_on?('view', 'entity1').should be_true
     u.has_privilege?('modify').should be_true

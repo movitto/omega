@@ -27,10 +27,15 @@ describe Manufactured::RJRAdapter do
     @testuser2 = Users::User.new :id => 'user43'
     @u1 = Users::User.new :id => 'user1'
     @u2 = Users::User.new :id => 'user2'
+    @ur1 = Users::Role.new :id => 'user_role_user1'
+    @ur2 = Users::Role.new :id => 'user_role_user2'
+    @u1.add_role(@ur1) ; @u2.add_role(@ur2)
     Users::Registry.instance.create @testuser1
     Users::Registry.instance.create @testuser2
     Users::Registry.instance.create @u1
     Users::Registry.instance.create @u2
+    Users::Registry.instance.create @ur1
+    Users::Registry.instance.create @ur2
   end
 
   after(:each) do
@@ -447,7 +452,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entities for_user" do
-    sys = Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new :name => 'system42'
     ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => @testuser1.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
     ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => @testuser2.id, :solar_system => sys, :location => Motel::Location.new(:id => '100')
     u = TestUser.create.login(@local_node).clear_privileges
@@ -494,7 +499,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to subscribe to events" do
-    sys1 = Cosmos::SolarSystem.new
+    sys1 = Cosmos::SolarSystem.new :name => 'system43'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys1, :type => :destroyer,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
     ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2', :solar_system => sys1,
@@ -560,7 +565,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to remove callbacks" do
-    sys = Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new :name => 'system43'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys,
                                    :location => Motel::Location.new(:id => '100', :x => 10, :y => 10, :z => 10)
     ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys,
@@ -1149,7 +1154,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to transfer_resource" do
-    sys = Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new :name => 'system43'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
     resource = Cosmos::Resource.new :type => 'gem', :name => 'diamond'
@@ -1237,7 +1242,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to dock/undock to stations" do
-    sys = Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new :name => 'system43'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0),
                                    :movement_strategy => Motel::MovementStrategies::Linear.new(:speed => 5)
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101', :x => 0, :y => 0, :z => 0)
@@ -1308,7 +1313,7 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit local nodes to save and restore state" do
-    sys = Cosmos::SolarSystem.new
+    sys = Cosmos::SolarSystem.new :name => 'system42'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
     stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '102')

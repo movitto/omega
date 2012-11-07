@@ -23,8 +23,16 @@ describe Cosmos::RJRAdapter do
     Cosmos::RJRAdapter.init
     Cosmos::Registry.instance.init
 
-    rcm  = Omega::Roles.create_user(config.remote_cosmos_manager_user, config.remote_cosmos_manager_pass)
-    Omega::Roles.create_user_role(rcm, :remote_cosmos_manager)
+    @local_node = RJR::LocalNode.new  :node_id => config.node_id
+    rcm = Users::User.new :id => config.remote_cosmos_manager_user, :password => config.remote_cosmos_manager_pass
+    rcmr = Users::Role.new :id => 'remote_cosmos_manager',
+                           :privileges =>
+                             Omega::Roles::ROLES[:remote_cosmos_manager].collect { |pe|
+                               Users::Privilege.new(:id => pe[0], :entity_id => pe[1])
+                             }
+    @local_node.invoke_request('users::create_entity', rcm)
+    @local_node.invoke_request('users::create_entity', rcmr)
+    @local_node.invoke_request('users::add_role', rcm.id, 'remote_cosmos_manager')
 
     @amqp_node = RJR::AMQPNode.new :broker => config.amqp_broker, :node_id => config.node_id
     @server_thread = Thread.new {
@@ -35,12 +43,11 @@ describe Cosmos::RJRAdapter do
       Dir.chdir(File.expand_path(File.dirname(__FILE__) + "/../../"))
       exec "spec/remote_cosmos_server.rb"
     }
-    sleep 2
+    sleep 3
 
     gal1 = Cosmos::Galaxy.new :name => 'gal1', :remote_queue => 'remote_server-queue', :location => Motel::Location.new(:id => 'g1')
     pl1  = Cosmos::Planet.new :name => 'pl1', :location => Motel::Location.new(:id => 'p1')
-    @local_node = RJR::LocalNode.new  :node_id => config.node_id
-    TestUser.create.clear_privileges.add_role(:superadmin).login(@local_node)
+    TestUser.create.clear_privileges.add_omega_role(:superadmin).login(@local_node)
     @local_node.invoke_request('cosmos::create_entity', gal1, :universe)
     sleep 3
     @local_node.invoke_request('cosmos::create_entity', pl1, 'sys2')

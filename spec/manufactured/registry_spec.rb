@@ -30,7 +30,7 @@ describe Manufactured::Registry do
     ship1   = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
     ship1a  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
     ship2   = Manufactured::Ship.new :id => 10101
-    station1   = Manufactured::Ship.new :id => 'station1', :user_id => 'user1', :solar_system => nil
+    station1   = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => nil
 
     # valid
     lambda {
