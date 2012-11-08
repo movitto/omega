@@ -27,8 +27,18 @@ describe Manufactured::Station do
      station.size.should == size
 
      station.parent.should == sys
+     station.system_name.should == sys.name
      station.parent = sys2
      station.parent.should == sys2
+  end
+
+  it "should lookup parent system in registry if name given" do
+     sys  = Cosmos::SolarSystem.new :name => 'system1'
+     gal  = Cosmos::Galaxy.new :name => 'galaxy1', :solar_systems => [sys]
+     Cosmos::Registry.instance.add_child gal
+     station = Manufactured::Station.new :id => 'station1', :system_name => 'system1'
+     station.solar_system.should == sys
+     Cosmos::Registry.instance.init
   end
 
   it "should verify validity of station" do

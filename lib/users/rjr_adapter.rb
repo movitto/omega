@@ -95,7 +95,7 @@ class RJRAdapter
            @@local_node.invoke_request('users::create_entity', role)
            @@local_node.invoke_request('users::add_role', entity.id, role.id)
 
-           # mark permant users as such
+           # mark permenant users as such
            if Users::RJRAdapter.permenant_users.find { |un| entity.id == un }
              entity.permenant = true
            end

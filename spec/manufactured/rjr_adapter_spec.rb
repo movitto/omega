@@ -123,15 +123,20 @@ describe Manufactured::RJRAdapter do
 
     Motel::Runner.instance.locations.size.should == 5 # locations created for system, galaxy, ships, stations
 
-    # verify owner has view / modify permissions on entity
-    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
-    @u1.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
+    # verify owner & role has view / modify permissions on entity
+    [@u1, @ur1].each { |u|
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + ship1.location.id }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + stat1.location.id }.should_not be_nil
+      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + stat2.location.id }.should_not be_nil
+      u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + ship1.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat1.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + stat2.id  }.should_not be_nil
+      u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + fleet1.id }.should_not be_nil
+    }
 
     (Manufactured::Registry.instance.ships + Manufactured::Registry.instance.stations).each { |e|
       Motel::Runner.instance.locations.collect { |l| l.id }.include?(e.location.id).should be_true
@@ -1079,6 +1084,58 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.attack_commands.size.should == 1
     Manufactured::Registry.instance.attack_commands.first.last.hooks[:before].size.should == 1
     # TODO ensure locations are updated b4 attack cycle?
+  end
+
+  it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to stop_entity" do
+    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200', :x => 0, :y => 0, :z => 0)
+    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201', :x => 0, :y => 0, :z => 0)
+    ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100', :x => 0, :y => 0, :z => 0)
+    fl1   = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
+    u = TestUser.create.login(@local_node).clear_privileges
+
+    ship1.location.movement_strategy = Motel::MovementStrategies::Linear.new(:speed => 5)
+
+    gal1.add_child(sys1)
+    ship1.parent = sys1
+    ship1.location.parent = sys1.location
+
+    Motel::Runner.instance.run gal1.location
+    Motel::Runner.instance.run sys1.location
+    Motel::Runner.instance.run ship1.location
+    Cosmos::Registry.instance.add_child gal1
+    Manufactured::Registry.instance.create ship1
+
+    # invalid ship id
+    lambda{
+      @local_node.invoke_request('manufactured::stop_entity', 'non_existant')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
+    lambda{
+      @local_node.invoke_request('manufactured::stop_entity', ship1.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('modify', 'manufactured_entities')
+
+    # cannot specify fleet
+    lambda{
+      @local_node.invoke_request('manufactured::stop_entity', fl1.id)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
+    lambda{
+      rship = @local_node.invoke_request('manufactured::stop_entity', ship1.id)
+      rship.class.should == Manufactured::Ship
+      rship.id.should == ship1.id
+      rship.location.movement_strategy.class.should == Motel::MovementStrategies::Stopped
+    }.should_not raise_error
+
+    # verify ship location is now moving using the stopped movement strategy
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == ship1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Stopped
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to start_mining" do

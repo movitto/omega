@@ -217,15 +217,17 @@ describe Cosmos::SolarSystem do
   end
 
   it "should be convertable to json" do
-    g = Cosmos::SolarSystem.new(:name => 'solar_system1',
+    g = Cosmos::Galaxy.new(:name => 'galaxy1')
+    s = Cosmos::SolarSystem.new(:name => 'solar_system1', :galaxy => g,
                            :location => Motel::Location.new(:x => 50))
-    g.add_child(Cosmos::Planet.new(:name => 'planet1'))
+    s.add_child(Cosmos::Planet.new(:name => 'planet1'))
 
-    j = g.to_json
+    j = s.to_json
     j.should include('"json_class":"Cosmos::SolarSystem"')
     j.should include('"name":"solar_system1"')
     j.should include('"json_class":"Motel::Location"')
     j.should include('"x":50')
+    j.should include('"galaxy_name":"galaxy1"')
     j.should include('"json_class":"Cosmos::Planet"')
     j.should include('"name":"planet1"')
   end

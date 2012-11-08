@@ -12,7 +12,7 @@ describe Users::RJRAdapter do
     Users::EmailHelper.email_enabled = false
     Users::RJRAdapter.recaptcha_enabled = false
     Users::RJRAdapter.mediawiki_enabled = false
-    Users::RJRAdapter.permenant_users = ['admin']
+    Users::RJRAdapter.permenant_users = ['admin', 'rjr-perm-user-test']
     Users::RJRAdapter.init
   end
 
@@ -89,13 +89,33 @@ describe Users::RJRAdapter do
     #  -secure_password is set to true
     #  -user has view & modify privs on self
     #  -pass is encrypted on create_entity
+    #  -role is created for user, and it is assigned to user
     Users::Registry.instance.users[1..2].each { |u|
       u.secure_password.should be_true
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == "users_entity-#{u.id}" }.should_not be_nil
       u.privileges.find { |p| p.id == 'modify' && p.entity_id == "users_entity-#{u.id}" }.should_not be_nil
       u.password.should_not == "foobar"
       PasswordHelper.check("foobar", u.password).should be_true
+
+      r = Users::Registry.instance.roles.find { |r| r.id == "user_role_#{u.id}" }
+      r.should_not be_nil
+      u.roles.should include(r)
     }
+  end
+
+  it "should mark new users in the permenant_users list as permenant" do
+    Users::Registry.instance.users.size.should == 0
+    nu1 = Users::User.new :id => 'rjr-perm-user-test', :password => 'foobar'
+    u  = TestUser.create.login(@local_node).clear_privileges
+
+    Users::Registry.instance.users.size.should == 1
+
+    lambda{
+      ru = @local_node.invoke_request('users::create_entity', nu1)
+    }.should_not raise_error
+
+    Users::Registry.instance.users.size.should == 2
+    Users::Registry.instance.users.last.permenant.should == true
   end
 
   it "should permit users with view users_entities or view user_entity-<id> to get_entity" do
@@ -275,6 +295,66 @@ describe Users::RJRAdapter do
 
     Users::Registry.instance.sessions.size.should == 1
     Users::Registry.instance.sessions.find { |s| s.id == session.id }.should be_nil
+  end
+
+  it "should permit the local node or users with modify users_entities to add_role" do
+    nu1 = Users::User.new :id => 'user44', :password => 'foobar'
+    nr1 = Users::Role.new :id => 'role43'
+    nr2 = Users::Role.new :id => 'role44'
+    u   = TestUser.create.login(@local_node).clear_privileges
+
+    Users::Registry.instance.create nu1
+    Users::Registry.instance.create nr1
+    Users::Registry.instance.create nr2
+    Users::Registry.instance.users.size.should == 2
+    Users::Registry.instance.roles.size.should == 2
+
+    # exception for local node needs to be overrided
+    @local_node.node_type = 'local-test'
+
+    # insufficient permissions
+    lambda{
+      @local_node.invoke_request('users::add_role', nu1.id, nr1.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    u.add_privilege('modify', 'users_entities')
+
+    # invalid user
+    lambda{
+      @local_node.invoke_request('users::add_role', 'non_existant', nr1.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid role
+    lambda{
+      @local_node.invoke_request('users::add_role', nu1.id, 'non_existant')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # valid call
+    lambda{
+      ret = @local_node.invoke_request('users::add_role', nu1.id, nr1.id)
+      ret.should be_nil
+    }.should_not raise_error
+
+    u.clear_privileges
+
+    @local_node.node_type = :local
+
+    # valid call
+    lambda{
+      @local_node.invoke_request('users::add_role', nu1.id, nr2.id)
+    }.should_not raise_error
+
+    # duplicate call (no error, but no effect)
+    lambda{
+      @local_node.invoke_request('users::add_role', nu1.id, nr2.id)
+    }.should_not raise_error
+
+    nu1.roles.size.should == 2
+    nu1.roles.first.should == nr1
+    nu1.roles.last.should  == nr2
   end
   
   it "should permit the local node or users with modify users_entities to add_privilege" do

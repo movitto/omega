@@ -31,6 +31,20 @@ describe Users::Session do
     Timecop.travel
   end
 
+  it "should never timeout permenant users" do
+    Timecop.freeze
+    u = Users::User.new :id => 'user1'
+    u.permenant = true
+
+    s = Users::Session.new :id => 'id', :user => u
+    s.timed_out?.should be_false
+    s.instance_variable_get(:@timeout_timestamp).should == Time.now
+
+    Timecop.freeze Users::Session::SESSION_EXPIRATION + 1
+    s.timed_out?.should be_false
+    Timecop.travel
+  end
+
   it "should be convertable to json" do
     id = '1234'
     s = Users::Session.new :id => id, :user_id => 'user1'

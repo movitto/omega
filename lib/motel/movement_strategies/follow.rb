@@ -19,8 +19,24 @@ module MovementStrategies
 #
 # To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
-   # [Motel::Location] ID of and handle to location which is being tracked
-   attr_accessor :tracked_location_id, :tracked_location
+   # [Motel::Location] ID of location which is being tracked
+   attr_reader :tracked_location_id
+
+   def tracked_location_id=(val)
+     @tracked_location_id = val
+
+     # retireve location we're tracking
+     # XXX don't like doing this here (should permissions be enforced for example?)
+     @tracked_location = Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
+   end
+
+   # [Motel::Location] location being tracked
+   attr_reader :tracked_location
+
+   def tracked_location=(val)
+     @tracked_location = val
+     @tracked_location_id = val.id
+   end
 
    # Distance away from tracked location to try to maintain
    attr_accessor :distance
@@ -36,13 +52,10 @@ class Follow < MovementStrategy
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @tracked_location_id  = args[:tracked_location_id] || args['tracked_location_id']
      @distance             = args[:distance]            || args['distance']
      @speed                = args[:speed]               || args['speed']
 
-     # retireve location we're tracking
-     # XXX don't like doing this here (should permissions be enforced for example?)
-     @tracked_location = Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
+     self.tracked_location_id= args[:tracked_location_id] || args['tracked_location_id']
 
      super(args)
 

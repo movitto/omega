@@ -49,7 +49,7 @@ class Galaxy
   def initialize(args = {})
     @name          = args['name']          || args[:name]
     @location      = args['location']      || args[:location]
-    @solar_systems = args['solar_systems'] || []
+    @solar_systems = args['solar_systems'] || args[:solar_systems] || []
     @remote_queue  = args['remote_queue']  || args[:remote_queue] || nil
 
     @background = "galaxy#{rand(MAX_BACKGROUNDS-1)+1}"

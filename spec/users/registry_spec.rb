@@ -26,6 +26,9 @@ describe Users::Registry do
     u3.registration_code = 'foobar'
     a1  = Users::Alliance.new :id => 'alliance1'
     a2  = Users::Alliance.new :id => 'alliance1'
+    ur1 = Users::Role.new :id => 'user_role1'
+    ur2 = Users::Role.new :id => 'user_role2'
+    ur2a = Users::Role.new :id => 'user_role2'
 
     ct = Time.now
 
@@ -50,6 +53,18 @@ describe Users::Registry do
     Users::Registry.instance.create a2
     Users::Registry.instance.alliances.size.should == 1
 
+    Users::Registry.instance.create ur1
+    Users::Registry.instance.roles.size.should == 1
+
+    Users::Registry.instance.create ur2
+    Users::Registry.instance.roles.size.should == 2
+
+    Users::Registry.instance.create ur2
+    Users::Registry.instance.roles.size.should == 2
+
+    Users::Registry.instance.create ur2a
+    Users::Registry.instance.roles.size.should == 2
+
     found = Users::Registry.instance.find :id => 'user1'
     found.size.should == 1
     found.first.should == u1
@@ -66,6 +81,10 @@ describe Users::Registry do
     found = Users::Registry.instance.find :type => "Users::User",
                                           :id   => "user5"
     found.size.should == 0
+
+    found = Users::Registry.instance.find :id => 'user_role1'
+    found.size.should == 1
+    found.first.should == ur1
 
     # ensure entity removal and removing user destroys session
     session = Users::Registry.instance.create_session u2

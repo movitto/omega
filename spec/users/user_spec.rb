@@ -12,6 +12,7 @@ describe Users::User do
     u.id.should       == 'user1'
     u.email.should    == 'u@ser.com'
     u.password.should == "foobar"
+    u.permenant.should == false
     u.alliances.size.should == 0
     u.roles.size.should == 0
     u.privileges.size.should == 0
@@ -70,8 +71,8 @@ describe Users::User do
   end
 
   it "should not permit adding duplicate roles" do
-    r1 = Users::Role.new :id => 'p', :entity_id => 1
-    r2 = Users::Role.new :id => 'p', :entity_id => 1
+    r1 = Users::Role.new :id => 'r'
+    r2 = Users::Role.new :id => 'r'
     u = Users::User.new
     u.add_role(r1)
     u.add_role(r2)
@@ -139,7 +140,7 @@ describe Users::User do
     j.should include('"id":"alliance1"')
   end
 
-  it "should not include password in json if secure" do
+  it "should not include password or registration code in json if secure" do
     user = Users::User.new :id => 'user42',
                            :email => 'user@42.omega', :password => 'foobar',
                            :alliances => [Users::Alliance.new(:id => 'alliance1')]
@@ -147,6 +148,7 @@ describe Users::User do
 
     j = user.to_json
     j.should_not include('password')
+    j.should_not include('registration_code')
   end
 
   it "should be convertable from json" do

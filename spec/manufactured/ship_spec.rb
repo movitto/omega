@@ -31,6 +31,15 @@ describe Manufactured::Ship do
      ship.parent.should == sys2
   end
 
+  it "should lookup parent system in registry if name given" do
+     sys  = Cosmos::SolarSystem.new :name => 'system1'
+     gal  = Cosmos::Galaxy.new :name => 'galaxy1', :solar_systems => [sys]
+     Cosmos::Registry.instance.add_child gal
+     ship = Manufactured::Ship.new :id => 'station1', :system_name => 'system1'
+     ship.solar_system.should == sys
+     Cosmos::Registry.instance.init
+  end
+
   it "should verify validity of ship" do
     sys = Cosmos::SolarSystem.new
     ship = Manufactured::Ship.new :id => 'ship1', :user_id => 'tu', :solar_system => sys
@@ -104,10 +113,13 @@ describe Manufactured::Ship do
 
   it "should set parent location when setting location" do
     sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
-    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
-    loc = Motel::Location.new
-    ship.location = loc
-    loc.parent.should == sys1.location
+    oloc = Motel::Location.new
+    nloc = Motel::Location.new
+    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1, :location => oloc
+    ship.location = nloc
+    nloc.parent.should == sys1.location
+    sys1.location.children.should include(nloc)
+    sys1.location.children.should_not include(oloc)
   end
 
   it "should set parent location when setting system" do
@@ -263,12 +275,14 @@ describe Manufactured::Ship do
 
     res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     ship.add_resource res.id, ship.cargo_capacity
+    ship.cargo_full?.should be_true
 
     lambda{
       ship.add_resource res.id, 1
     }.should raise_error(Omega::OperationError)
 
     ship.remove_resource res.id, ( 3 * ship.cargo_capacity / 4 )
+    ship.cargo_full?.should be_false
 
     lambda{
       ship.remove_resource res.id, ship.cargo_capacity / 2
@@ -341,6 +355,9 @@ describe Manufactured::Ship do
     station = Manufactured::Station.new :id => 'station42'
     s.dock_at(station)
 
+    res = Cosmos::ResourceSource.new(:id => 'res1')
+    s.start_mining(res)
+
     j = s.to_json
     j.should include('"json_class":"Manufactured::Ship"')
     j.should include('"id":"ship42"')
@@ -352,6 +369,8 @@ describe Manufactured::Ship do
     j.should include('"endpoint":"foobar"')
     j.should include('"json_class":"Manufactured::Station"')
     j.should include('"id":"station42"')
+    j.should include('"json_class":"Cosmos::ResourceSource"')
+    j.should include('"id":"res1"')
     j.should include('"json_class":"Motel::Location"')
     j.should include('"id":20')
     j.should include('"y":-15')
