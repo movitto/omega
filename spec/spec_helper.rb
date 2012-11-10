@@ -100,3 +100,13 @@ class TestUser
   end
 
 end
+
+class TestClientShip < Omega::Client::Entity
+  def self.get_method
+    "manufactured::get_entity"
+  end
+
+  def self.entity_type
+    "Manufactured::Ship"
+  end
+end

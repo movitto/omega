@@ -150,7 +150,7 @@ class Registry
       entities.reject! { |e| e.location.id != location }
     end
 
-    return entities.first unless name.nil? && location.nil?
+    return entities.first if args.has_key?(:name) || args.has_key?(:location)
     return entities
   end
 

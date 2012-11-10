@@ -227,10 +227,23 @@ module Omega
         @id_counter_lock = Mutex.new
       end
 
+      def clear
+        @registry_lock.synchronize{
+          @registry.clear
+        }
+      end
+
       def node=(node)
         @node = node
-        @server_endpoint = node.class::RJR_NODE_TYPE == :amqp ?
-                    'omega-queue' : 'json-rpc://localhost:8181'
+        @server_endpoint = case node.class::RJR_NODE_TYPE
+                             when :amqp then
+                               'omega-queue'
+                             when :tcp then
+                               'json-rpc://localhost:8181'
+                             default
+                               nil
+                           end
+
         @node.message_headers['source_node'] = @node.node_id
         @node.listen
         @node
@@ -283,7 +296,9 @@ module Omega
 
       def invoke_request(method, *args)
         @node_lock.synchronize {
-          @node.invoke_request @server_endpoint, method, *args
+          args.unshift method
+          args.unshift(@server_endpoint) unless @server_endpoint.nil?
+          @node.invoke_request *args
         }
       end
 

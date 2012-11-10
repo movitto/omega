@@ -125,7 +125,7 @@ class RJRAdapter
        while qualifier = args.shift
          raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_id"].include?(qualifier)
          val = args.shift
-         raise ArgumentError, "qualifier #{quanlifier} requires value" if val.nil?
+         raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
          qualifier = case qualifier
                        when "of_type"
                          :type
