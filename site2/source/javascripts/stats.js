@@ -1,20 +1,15 @@
+/* stats page
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+// log all errors to the console
 function errors_to_console(error_msg){
   console.log(error_msg);
 }
 
-function set_root_entity(entity_id){
-console.log(entity_id);
-  var entity = $tracker.entities[entity_id];
-  hide_entity_container();
-  $('#omega_canvas').css('background', 'url("/womega/images/backgrounds/' + entity.background + '.png") no-repeat');
-
-  for(var child in entity.children){
-    child = entity.children[child];
-    $scene.add(child);
-  }
-  $scene.animate();
-}
-
+// repopulate the states panels w/ latest data from the trackers
 function refresh_stats(){
   var cosmos_stats    = $('#stats_cosmos ul');
   var entities_stats  = $('#stats_entities ul');
@@ -43,27 +38,20 @@ function refresh_stats(){
   }
 }
 
-function got_entities(entities, error){
-  if(error == null){
-    for(var entity in entities){
-      entity = entities[entity];
-      register_entity(entity);
-    }
-    refresh_stats();
-  }
-}
-
+// retrieve all entities we can, refresh the stats panels, and
+// schedule this again in 5s
 function refresh_cycle(args){
-  omega_web_request('manufactured::get_entity', got_entities);
-  omega_web_request('cosmos::get_entity', 'of_type', 'Cosmos::Galaxy', got_entities);
-  omega_web_request('users::get_entity', 'of_type', 'Users::User', got_entities);
+  omega_all_entities(refresh_stats);
+  omega_all_galaxies(refresh_stats);
+  omega_all_users(refresh_stats);
   setTimeout(refresh_cycle, 5000);
 }
 
+// initialize the page
 $(document).ready(function(){ 
-  $error_handlers.push(errors_to_console);
-  $validate_session_callbacks.push(refresh_cycle);
-  $login_callbacks.push(refresh_cycle);
+  add_error_handler(errors_to_console);
+  on_session_validated(refresh_cycle);
+  on_login(refresh_cycle);
 
   // lock stats nav to its current position
   $('#stats_nav').css({
@@ -85,9 +73,4 @@ $(document).ready(function(){
     $('#' + container + ' ul').hide();
   });
 
-  $('#stats_cosmos li').live('click', function(event){ 
-    var entity_id = $(event.currentTarget).attr('name');
-    set_root_entity(entity_id);
-    return false;
-  });
 });

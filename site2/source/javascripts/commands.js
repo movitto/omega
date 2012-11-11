@@ -1,37 +1,223 @@
+/* Omega Client Commands
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+/////////////////////////////////////// public methods
+
+/* Detect ships around jump gate and
+ * invoke jump operation on them
+ *
+ * @param {Cosmos::JumpGate} jg jump gate to trigger
+ */
 function trigger_jump_gate(jg){
-  var triggered = false;
+  // get local and remote systems
   var source   = $tracker.matching_entities({location : jg.location.parent_id})[0];
   var endpoint = $tracker.matching_entities({id : jg.endpoint});
+
+  // if remote system isn't loaded yet, load
   if(endpoint.length == 0){
-    // TODO get system
-    $tracker.load('Cosmos::SolarSystem', jg.endpoint, function(sys, err){
-      callback_got_system(sys, err); // XXX
-      trigger_jump_gate($selected_entity);
-    });
+    $tracker.load('Cosmos::SolarSystem', jg.endpoint,
+                  function(sys) { trigger_jump_gate(jg) });
     return;
   }
-  endpoint = endpoint[0];
-  var eloc = endpoint.location;
-  var entities = $tracker.matching_entities({type : "Manufactured::Ship",
-                                             within : [jg.trigger_distance, jg.location],
-                                             owned_by : $user_id});
-  for(var entity in entities){
-    triggered = true;
-    entity = entities[entity];
-    entity.location.parent_id = eloc.id;
-    entity.system_name = endpoint.name;
-    omega_web_request('manufactured::move_entity', entity.id, entity.location, null);
 
-    // update systems and scene
-    source.update_children();
-    endpoint.update_children();
+  // move entities within triggering distance of gate
+  var entities = $tracker.matching_entities({type : "Manufactured::Ship", owned_by : $user_id,
+                                             within : [jg.trigger_distance, jg.location]});
+  endpoint = endpoint[0];
+  for(var entity in entities){
+    entity = entities[entity];
+    omega_jump_ship(entity, endpoint);
+
+    // redraw scene w/out location (XXX don't like doing this here)
     $scene.remove(entity.id);
+    $scene.animate();
   }
-  // redraw scene w/out location
-  if(triggered) $scene.animate();
-    
+
+  // update systems
+  source.update_children();
+  endpoint.update_children();
 }
 
+/* Invoke omega server side manufactured::move_entity 
+ * operation to move ship inbetween systems
+ *
+ * @param {Manufactured::Ship} ship to jump
+ * @param {Cosmos::SolarSystem} sys system to jump to
+ */
+function omega_jump_ship(ship, sys){
+  ship.location.parent_id = sys.location.id;
+  ship.system_name = sys.name;
+  omega_web_request('manufactured::move_entity', ship.id, ship.location, null);
+}
+
+/* Invoke omega server side manufactured::move_entity 
+ * operation to move ship in a system
+ *
+ * @param {Manufactured::Ship} ship ship to move
+ * @param {Float} x x coordinate to move ship to
+ * @param {Float} y y coordinate to move ship to
+ * @param {Float} z z coordinate to move ship to
+ */
+function omega_move_ship_to(ship, x, y, z){
+  hide_dialog();
+  var loc = ship.location.clone();
+  loc.x = x; loc.y = y; loc.z = z;
+  omega_web_request('manufactured::move_entity', ship.id, loc, null);
+}
+
+/* Invoke omega server side manufactured::attack_entity 
+ * operation to attack specified entity
+ *
+ * @param {Manufactured::Ship} attacker ship to launch attack with
+ * @param {String} defender_id id of ship we are attacking
+ */
+function omega_ship_launch_attack(attacker, defender_id){
+  hide_dialog();
+  omega_web_request('manufactured::attack_entity', attacker.id, defender_id, omega_callback());
+}
+
+/* Invoke omega server side manufactured::dock 
+ * operation to dock the ship at the specified station
+ *
+ * @param {Manufactured::Ship} ship ship to dock
+ * @param {String} station_id id of the station we are docking
+ */
+function omega_ship_dock_at(ship, station_id){
+  hide_dialog();
+  omega_web_request('manufactured::dock', ship.id, station_id, omega_callback());
+}
+
+/* Invoke omega server side manufactured::undock 
+ * operation to undock the specified ship
+ *
+ * @param {Manufactured::Ship} ship ship to undock
+ */
+function omega_ship_undock(ship){
+  omega_web_request('manufactured::undock', ship.id, omega_callback());
+}
+
+/* Invoke omega server side manufactured::transfer_resource 
+ * operation to transfer all resources for the specified ship
+ * to the specified station
+ *
+ * @param {Manufactured::Ship} ship ship to transfer resources from
+ * @param {String} station_id id of station to transfer resources to
+ */
+function omega_ship_transfer(ship, station_id){
+  for(var r in ship.resources){
+    omega_web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], omega_callback())
+  }
+  hide_dialog();
+}
+
+/* Invoke omega server side manufactured::start_mining 
+ * operation to start mining the specified resource using
+ * the specified ship
+ *
+ * @param {Manufactured::Ship} ship ship to use to start mining
+ * @param {String} resource_source_id id of the resource source to starting mining
+ */
+function omega_ship_start_mining(ship, resource_source_id){
+  hide_dialog();
+  var ids = resource_source_id.split('_');
+  var entity_id = ids[0];
+  var resource_id  = ids[1];
+  omega_web_request('manufactured::start_mining', ship.id, entity_id, resource_id, omega_callback());
+}
+
+/* Invoke omega server side manufactured::construct 
+ * operation to construct entity using the specified station
+ *
+ * @param {Manufactured::Station} station station to use to construct entity
+ */
+function omega_station_construct(station){
+  omega_web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
+    $scene.add($tracker.entities[constructed.id]);
+    $scene.animate();
+  }));
+}
+
+/* Invoke omega server side manufactured::get_entities 
+ * operation to retrieved all entities
+ *
+ * @param {Callback} callback function to invoke w/ array of galaxies retrieved
+ */
+function omega_all_entities(callback){
+  omega_web_request('manufactured::get_entity', omega_callback(callback));
+}
+
+/* Invoke omega server side manufactured::get_entities 
+ * operation to retrieved entities owned by specified user
+ *
+ * @param {String} user_id id of the user to retrieve entities owned by
+ * @param {Callback} callback function to invoke w/ array of entities retrieved
+ */
+function omega_entities_owned_by(user_id, callback){
+  omega_web_request('manufactured::get_entities', 'owned_by', user_id, omega_callback(callback));
+}
+
+/* Invoke omega server side manufactured::get_entities 
+ * operation to retrieved entities under the specified system
+ *
+ * @param {String} system_name name of the system to retrieve entities under
+ * @param {Callback} callback function to invoke w/ array of entities retrieved
+ */
+function omega_entities_under(system_name, callback){
+  omega_web_request('manufactured::get_entities', 'under', system_name, omega_callback(callback));
+}
+
+
+/* Invoke omega server side manufactured::get_entity
+ * operation to retrieve entity with the specified id
+ *
+ * @param {String} entity_id id of the entity to retrieve
+ */
+function omega_entity(entity_id){
+}
+
+/* Invoke omega server side cosmos::get_entities 
+ * operation to retrieve all galaxies
+ *
+ * @param {Callback} callback function to invoke w/ array of galaxies retrieved
+ */
+function omega_all_galaxies(callback){
+  omega_web_request('cosmos::get_entity', 'of_type', 'Cosmos::Galaxy', omega_callback(callback));
+}
+
+/* Invoke omega server side cosmos::get_entities 
+ * operation to retrieve systems with the specified name
+ *
+ * @param {String} system_name name of the system to retrieve
+ * @param {Callback} callback function to invoke w/ system when retrieved
+ */
+function omega_system(system_name, callback){
+  omega_web_request('cosmos::get_entity', 'with_name', system_name, omega_callback(callback));
+}
+
+/* Invoke omega server side cosmos::get_resource_sources 
+ * operation to retrieve resource sources associated with the specified 
+ * entity
+ *
+ * @param {String} entity_name name of the entity to retireve associated resource sources
+ */
+function omega_resource_sources(entity_name){
+}
+
+/* Invoke omega server side users::get_entity
+ * operation to retrieve all users
+ *
+ * @param {Callback} callback function to invoke w/ array of users retrieved
+ */
+function omega_all_users(callback){
+  omega_web_request('users::get_entity', 'of_type', 'Users::User', omega_callback(callback));
+}
+
+/////// precommands to display dialog to select command
+
+// display dialog w/ coordinate selection
 function select_ship_destination(ship){
   // TODO drop down select box w/ all entities in the local system
   var text = "<div class='dialog_row'>"+ship.id+"</div>"+
@@ -40,13 +226,6 @@ function select_ship_destination(ship){
              "<div class='dialog_row'>Z: <input id='dest_z' type='text' value='"+roundTo(ship.location.z,2)+"'/></div>" +
              "<div class='dialog_row'><input type='button' value='move' id='ship_move_to' /></div>";
   show_dialog('Move Ship', null, text);
-}
-
-function move_ship_to(ship, x, y, z){
-  hide_dialog();
-  var loc = ship.location.clone();
-  loc.x = x; loc.y = y; loc.z = z;
-  omega_web_request('manufactured::move_entity', ship.id, loc, null);
 }
 
 function select_ship_target(ship){
@@ -62,18 +241,7 @@ function select_ship_target(ship){
   show_dialog('Launch Attack', null, text);
 }
 
-function ship_launch_attack(attacker, defender_id){
-  hide_dialog();
-  omega_web_request('manufactured::attack_entity', attacker.id, defender_id, callback_ship_updated);
-}
-
-function callback_ship_updated(ship, error){
-  if(error == null){
-    $tracker.add(ship);
-  }
-}
-
-function ship_select_dock(ship){
+function select_ship_dock(ship){
   var entities = $tracker.matching_entities({type : "Manufactured::Station",
                                              within : [100, ship.location]});
   var text = "<div class='dialog_row'>Dock "+ship.id+" at</div>";
@@ -84,23 +252,7 @@ function ship_select_dock(ship){
   show_dialog('Dock Ship', null, text);
 }
 
-function ship_dock_at(ship, station_id){
-  hide_dialog();
-  omega_web_request('manufactured::dock', ship.id, station_id, callback_ship_updated);
-}
-
-function ship_undock(ship){
-  omega_web_request('manufactured::undock', ship.id, callback_ship_updated);
-}
-
-function callback_ship_transferred(entities, error){
-  if(error == null){
-    $tracker.add(entities[0]);
-    $tracker.add(entities[1]);
-  }
-}
-
-function ship_select_transfer(ship){
+function select_ship_transfer(ship){
   var entities = $tracker.matching_entities({type : "Manufactured::Station",
                                              within : [100, ship.location]});
   var text = "<div class='dialog_row'>Transfer Resources from "+ship.id+" to</div>";
@@ -109,17 +261,9 @@ function ship_select_transfer(ship){
     text += "<div class='dialog_row dialog_clickable_row ship_transfer'>" + entity.id + "</div>";
   }
   show_dialog('Transfer Resources', null, text);
-
 }
 
-function ship_transfer(ship, station_id){
-  for(var r in ship.resources){
-    omega_web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], callback_ship_transferred)
-  }
-  hide_dialog();
-}
-
-function ship_select_mining(ship){
+function select_ship_mining(ship){
   var entities = $tracker.matching_entities({type : "Cosmos::Asteroid",
                                              within : [100, ship.location]});
   var text = "<div class='dialog_row'>Select resource to mine w/"+ship.id+"</div>";
@@ -140,79 +284,29 @@ function ship_select_mining(ship){
   }
 }
 
-function ship_start_mining(ship, resource_source_id){
-  hide_dialog();
-  var ids = resource_source_id.split('_');
-  var entity_id = ids[0];
-  var resource_id  = ids[1];
-  omega_web_request('manufactured::start_mining', ship.id, entity_id, resource_id, callback_ship_updated);
+/////////////////////////////////////// private methods
+
+/* Generate as wrapper that handles the result of rjr
+ * operations and invokes the registered client callback
+ */
+function omega_callback(oc){
+  return function(result, error){
+    // only invoke client callback on success (assuming errors handled elsewhere)
+    if(error == null){
+
+      // register entities w/ the register
+      if(typeof(result) == "object" && result.length > 0 && result[0]){
+        for(var entity in result){
+          entity = result[entity];
+          register_entity(entity);
+        }
+      }else{
+        register_entity(result);
+      }
+
+      // invoke client callback
+      if(oc != null)
+        oc(result);
+    }
+  };
 }
-
-function station_construct(station){
-  // TODO update station as well
-  omega_web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', function(constructed){
-    $tracker.add(constructed);
-    $scene.add($tracker.entities[constructed.id]);
-    $scene.animate();
-  });
-}
-
-
-$(document).ready(function(){ 
-  // FIXME selected_entity may have changed in the meantime
-
-  $('#ship_trigger_jg').live('click', function(e){
-    trigger_jump_gate($selected_entity);
-  });
-
-  $('#ship_select_move').live('click', function(e){
-    select_ship_destination($selected_entity);
-  });
-
-  $('#ship_move_to').live('click', function(e){
-    move_ship_to($selected_entity, $('#dest_x').attr('value'),
-                                   $('#dest_y').attr('value'),
-                                   $('#dest_z').attr('value'));
-  });
-
-  $('#ship_select_target').live('click', function(e){
-    select_ship_target($selected_entity);
-  });
-
-  $('.ship_launch_attack').live('click', function(e){
-    ship_launch_attack($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_select_dock').live('click', function(e){
-    ship_select_dock($selected_entity);
-  });
-
-  $('.ship_dock_at').live('click', function(e){
-    ship_dock_at($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_undock').live('click', function(e){
-    ship_undock($selected_entity);
-  });
-
-  $('#ship_select_transfer').live('click', function(e){
-    ship_select_transfer($selected_entity);
-  });
-
-  $('.ship_transfer').live('click', function(e){
-    ship_transfer($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_select_mine').live('click', function(e){
-    ship_select_mining($selected_entity);
-  });
-
-  $('.ship_start_mining').live('click', function(e){
-    var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
-    ship_start_mining($selected_entity, rsid);
-  });
-
-  $('#station_select_construction').live('click', function(e){
-    station_construct($selected_entity);
-  });
-});

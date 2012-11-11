@@ -1,8 +1,63 @@
+/* Omega Entity Tracker
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+/////////////////////////////////////// public methods
+
+/* Register method to be invoked whenever a entity is
+ * registered with the tracker
+ */
+function on_entity_registration(callback){
+  $entity_registered_callbacks.push(callback);
+}
+
+/////////////////////////////////////// private methods
+
+// clear entity timers
+function clear_entity_timers(){
+  for(var timer in $timers){
+    $timers[timer].stop();
+    delete $timers[timer];
+  }
+  $timers = [];
+}
+
+// add entity timer
+function add_entity_timer(id, time, callback){
+  $timers[id] = $.timer(callback);
+  $timers[id].set({time : time, autostart : true });
+}
+
+
+// retrieve the entities owned by the current user
+function get_user_entities(){
+  omega_entities_owned_by($user_id, get_entities_systems);
+}
+
+// retrieve the systems associated with entities
+function get_entities_systems(entities){
+  for(var entityI in entities){
+    var entity = entities[entityI];
+    var system = $tracker.load('Cosmos::SolarSystem', entity.system_name, get_system_entities);
+    if(system){
+      system.update_children();
+    }
+  }
+}
+
+// get additional entities under system
+function get_system_entities(system){
+  omega_entities_under(system.name);
+}
+
 // helper method
 function roundTo(number, places){
   return Math.round(number * Math.pow(10,places)) / Math.pow(10,places);
 }
 
+// will be set to entity clicked / selected
 $selected_entity = null;
 
 // encapsulates server side entity
@@ -100,6 +155,7 @@ $tracker = {
 
   // adds entity to tracker if new, else update existing entity
   add : function(entity){
+console.log(entity);
     var is_new = false;
     var entity_id = OmegaEntity.entity_id(entity);
     if(this.entities[entity_id] == null){
@@ -122,22 +178,16 @@ $tracker = {
     }
 
     if(type == "Cosmos::SolarSystem"){
-      omega_web_request('cosmos::get_entity', 'with_name', entity_id, function(entity, error){
-        if(error == null){
-          $tracker.add(entity);
-          entity = $tracker.entities[entity.name];
-        }
-        if(callback != null)
-          callback(entity, error);
+      omega_system(entity_id, function(system){
+        $tracker.add(system);
+        system = $tracker.entities[system.name];
+        if(callback != null) callback(system);
       });
     }else if(type == "Manufactured::Ship" || type == "Manufactured::Station"){
-      omega_web_request('manufactured::get_entity', 'with_id', entity_id, function(entity, error){
-        if(error == null){
-          $tracker.add(entity);
-          entity = $tracker.entities[entity.id];
-        }
-        if(callback != null)
-          callback(entity, error);
+      omega_entity(entity_id, function(entity){
+        $tracker.add(entity);
+        entity = $tracker.entities[entity.id];
+        if(callback != null) callback(entity);
       });
     }
 
@@ -168,12 +218,20 @@ $tracker = {
   }
 }
 
-
 ///////////////////////////////// specified entity logic
 
 function register_entity(entity){
+  // add to tracker
   $tracker.add(entity);
   entity = $tracker.entities[entity.id || entity.name];
+
+  // invoke entity registered callbacks
+  for(var cb in $entity_registered_callbacks){
+    cb = $entity_registered_callbacks[cb];
+    cb(entity);
+  }
+
+  // register subentities and update children
   if(entity.json_class == "Cosmos::Galaxy"){
     for(var sys in entity.solar_systems){
       sys = entity.solar_systems[sys];
@@ -202,8 +260,8 @@ function register_entity(entity){
 
 function load_entity(entity){
   if(entity.json_class == "Cosmos::SolarSystem"){
-    entity.clicked = clicked_system;
-    entity.load  = load_system;
+    entity.clicked        = clicked_system;
+    entity.load           = load_system;
 
   }else if(entity.json_class == "Cosmos::Star"){
     entity.clicked = clicked_star;
@@ -213,6 +271,7 @@ function load_entity(entity){
     entity.clicked = clicked_planet;
     entity.load  = load_planet;
     entity.updated = updated_planet;
+    entity.added_to_scene = added_planet_to_scene;
 
   }else if(entity.json_class == "Cosmos::Asteroid"){
     entity.clicked = clicked_asteroid;
@@ -226,6 +285,7 @@ function load_entity(entity){
     entity.clicked = clicked_ship;
     entity.load  = load_ship;
     entity.updated = updated_ship;
+    entity.added_to_scene = added_ship_to_scene;
 
   }else if(entity.json_class == "Manufactured::Station"){
     entity.clicked = clicked_station;
@@ -414,6 +474,11 @@ function updated_planet(){
 }
 
 function clicked_planet(){
+}
+
+function added_planet_to_scene(){
+  omega_ws_request('motel::remove_callbacks', child.location.id,      null);
+  omega_ws_request('motel::track_movement',   child.location.id, 120, null);
 }
 
 function load_asteroid(){
@@ -625,6 +690,20 @@ function clicked_ship(){
   $scene.reload(ship);
 }
 
+function added_ship_to_scene(){
+  // remove & resetup callbacks
+  omega_ws_request('motel::remove_callbacks',        this.location.id,                       null);
+  omega_ws_request('manufactured::remove_callbacks', this.id,                                null);
+  omega_ws_request('motel::track_movement',          this.location.id, 20,                   null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
+  omega_ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
+}
+
 function load_station(){
   var station = this;
   var loc     = station.location;
@@ -696,3 +775,140 @@ function clicked_station(){
   $entity_container_callback = function(){ unselect_station(station); };
   $scene.reload(station);
 }
+
+/////////////////////////////////////// initialization
+
+function scene_changed_callback(){
+  // create a timer to periodically update planet location
+  // inbetween server syncronizations
+  clear_entity_timers();
+  add_entity_timer('planet_movement', 2000, function(){
+    // TODO tracked_planet
+    for(var planet in $tracked_planets){
+      planet = $tracked_planets[planet];
+      planet.move();
+      $scene.animate();
+    }
+  });
+}
+
+$(document).ready(function(){ 
+  $timers = {};
+  $entity_registered_callbacks = [];
+
+  on_session_validated(get_user_entities);
+  on_login(get_user_entities);
+
+  on_scene_change(scene_changed_callback);
+
+  /////////////////////// add handlers to server side tracker callbacks
+
+  add_method_handler('motel::on_movement', function(loc){
+    var entity = $tracker.matching_entities({location : loc.id});
+    entity[0].update({location : loc});
+    $scene.animate();
+  });
+
+  add_method_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
+    var evnt = p0;
+    if(evnt == "resource_collected"){
+      var ship = p1; var resource_source = p2; var quantity = p3;
+      $tracker.add(ship);
+
+    }else if(evnt == "mining_stopped"){
+      var reason = p1; var ship = p2;
+      // XXX hack serverside ship.mining might not be nil at this point
+      ship.mining  = null;
+      $tracker.add(ship);
+
+    }else if(evnt == "attacked"){
+      var attacker = p1; var defender = p2;
+      attacker.attacking = defender;
+      $tracker.add(attacker); $tracker.add(defender);
+
+    }else if(evnt == "attacked_stop"){
+      var attacker = p1; var defender = p2;
+      attacker.attacking = null;
+      $tracker.add(attacker); $tracker.add(defender);
+      
+
+    }else if(evnt == "defended"){
+      var attacker = p1; var defender = p2;
+      attacker.attacking = defender;
+      $tracker.add(attacker); $tracker.add(defender);
+
+    }else if(evnt == "defended_stop"){
+      var attacker = p1;
+      var defender = p2;
+      attacker.attacking = null;
+      $tracker.add(attacker); $tracker.add(defender);
+
+    }else if(evnt == "destroyed"){
+      var attacker = p1;
+      var defender = p2;
+      attacker.attacking = null;
+      $tracker.add(attacker); $tracker.add(defender);
+      $scene.remove(defender.id);
+
+    }
+  });
+
+
+  /////////////////////// specific entities container controls
+  // FIXME selected_entity may have changed in the meantime
+
+  $('#ship_trigger_jg').live('click', function(e){
+    trigger_jump_gate($selected_entity);
+  });
+
+  $('#ship_select_move').live('click', function(e){
+    select_ship_destination($selected_entity);
+  });
+
+  $('#ship_move_to').live('click', function(e){
+    omega_move_ship_to($selected_entity, $('#dest_x').attr('value'),
+                                         $('#dest_y').attr('value'),
+                                         $('#dest_z').attr('value'));
+  });
+
+  $('#ship_select_target').live('click', function(e){
+    select_ship_target($selected_entity);
+  });
+
+  $('.ship_launch_attack').live('click', function(e){
+    omega_ship_launch_attack($selected_entity, $(e.currentTarget).html());
+  });
+
+  $('#ship_select_dock').live('click', function(e){
+    ship_select_dock($selected_entity);
+  });
+
+  $('.ship_dock_at').live('click', function(e){
+    omega_ship_dock_at($selected_entity, $(e.currentTarget).html());
+  });
+
+  $('#ship_undock').live('click', function(e){
+    omega_ship_undock($selected_entity);
+  });
+
+  $('#ship_select_transfer').live('click', function(e){
+    ship_select_transfer($selected_entity);
+  });
+
+  $('.ship_transfer').live('click', function(e){
+    omega_ship_transfer($selected_entity, $(e.currentTarget).html());
+  });
+
+  $('#ship_select_mine').live('click', function(e){
+    ship_select_mining($selected_entity);
+  });
+
+  $('.ship_start_mining').live('click', function(e){
+    var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
+    omega_ship_start_mining($selected_entity, rsid);
+  });
+
+  $('#station_select_construction').live('click', function(e){
+    omega_station_construct($selected_entity);
+  });
+});

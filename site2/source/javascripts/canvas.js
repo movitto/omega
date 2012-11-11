@@ -1,3 +1,57 @@
+/* Omega Canvas Operations
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+/////////////////////////////////////// public methods
+
+/* Show the entity details container with
+ * the specified line items
+ *
+ * @param {Array<String>} items strings to add to entity container
+ */
+function show_entity_container(items){
+  hide_entity_container(); // so as to unselect previous
+  var text = "";
+  for(var item in items)
+    text += items[item];
+  $('#entity_container_contents').html(text);
+  $('#omega_entity_container').show();
+}
+
+/* Append items to the entity details container
+ *
+ * @param {Array<String>} items strings to add to entity container
+ */
+function append_to_entity_container(items){
+  var text = "";
+  for(var item in items)
+    text += items[item];
+  var container = $('#entity_container_contents');
+  container.html(container.html() + text);
+}
+
+/* Hide the entity container, this calls the globally
+ * registered $entity_container_callback method to
+ * handle the entity 'unselection' event
+ */
+function hide_entity_container(){
+  $('#omega_entity_container').hide();
+  if($entity_container_callback != null)
+    $entity_container_callback();
+}
+
+/* Register method to be invoked when canvas scene root is set
+ */
+function on_scene_change(callback){
+  $scene_changed_callback = callback;
+}
+
+/////////////////////////////////////// private methods
+
+/* Hide the omega canvas
+ */
 function hide_canvas(){
   $('canvas').hide();
   $('.entities_container').hide();
@@ -7,6 +61,8 @@ function hide_canvas(){
   $('#show_canvas').show();
 };
 
+/* Show the omega canvas
+ */
 function show_canvas(){
   $('canvas').show();
   //$('.entities_container').show(); // TODO we need to individually show each of these
@@ -16,7 +72,33 @@ function show_canvas(){
   $('#show_canvas').hide();
 };
 
-// pass x,y position of click event relative to screen/window
+/* Set the root canvas entity
+ */
+function set_root_entity(entity_id){
+  var entity = $tracker.entities[entity_id];
+  hide_entity_container();
+  $('#omega_canvas').css('background', 'url("/womega/images/backgrounds/' + entity.background + '.png") no-repeat');
+
+  $scene.clear();
+  for(var child in entity.children){
+    child = entity.children[child];
+    $scene.add(child);
+    if(child.added_to_scene)
+      child.added_to_scene();
+  }
+
+  if($scene_changed_callback)
+    $scene_changed_callback();
+
+  $scene.animate();
+};
+
+
+/* Return coordiantes on canvas corresponding
+ * to absolute screen coordinates.
+ *
+ * Pass x,y position of click event relative to screen/window
+ */
 function canvas_click_coords(x,y){
   var canvas = $('#omega_canvas');
   var nx = Math.floor(x-canvas.offset().left);
@@ -26,12 +108,14 @@ function canvas_click_coords(x,y){
   return [nx, ny];
 }
 
+// Display the canvas select box
 function show_select_box(args){
   $sb_dx = args.x;
   $sb_dy = args.y;
   $("#canvas_select_box").show();
 }
 
+// Hide the canvas select box
 function hide_select_box(args){
   var select_box = $("#canvas_select_box");
   select_box.css('left', 0);
@@ -41,6 +125,7 @@ function hide_select_box(args){
   select_box.hide();
 }
 
+// Update the canvas select box
 function update_select_box(args){
   var canvas = $("#omega_canvas");
   var select_box = $("#canvas_select_box");
@@ -71,30 +156,11 @@ function update_select_box(args){
   select_box.css('min-height', height);
 }
 
-function show_entity_container(items){
-  hide_entity_container(); // so as to unselect previous
-  var text = "";
-  for(var item in items)
-    text += items[item];
-  $('#entity_container_contents').html(text);
-  $('#omega_entity_container').show();
-}
-
-function append_to_entity_container(items){
-  var text = "";
-  for(var item in items)
-    text += items[item];
-  var container = $('#entity_container_contents');
-  container.html(container.html() + text);
-}
-
-function hide_entity_container(){
-  $('#omega_entity_container').hide();
-  if($entity_container_callback != null)
-    $entity_container_callback();
-}
+/////////////////////////////////////// initialization
 
 $(document).ready(function(){ 
+  $scene_changed_callback = null;
+
   // lock canvas to its current position
   $('#omega_canvas').css({
     position: 'absolute',
@@ -112,6 +178,21 @@ $(document).ready(function(){
 
   $('#close_canvas').live('click', function(event){ hide_canvas(); });
   $('#show_canvas').live('click', function(event){ show_canvas(); });
+
+  /////////////////////// entities containers controls
+
+  // if a new system is registered, add to locations list
+  on_entity_registration(function(entity){
+    if(entity.json_class == "Cosmos::SolarSystem" && !entity.modified){
+      $('#locations_list ul').append('<li name="'+entity.name+'">'+entity.name+'</li>');
+      $('#locations_list').show();
+    }
+  });
+
+  $('#locations_list li').live('click', function(event){ 
+    var entity_id = $(event.currentTarget).attr('name');
+    set_root_entity(entity_id);
+  });
 
   /////////////////////// grid controls
 
@@ -151,6 +232,8 @@ $(document).ready(function(){
 
   /////////////////////// canvas mouse controls
 
+  // on canvas click, determine if an item in the scene was clicked,
+  // and if so invoke clicked method on it
   $("#omega_canvas").live('click', function(e){
     var coords = canvas_click_coords(e.pageX, e.pageY);
     var x = coords[0]; var y = coords[1];
@@ -193,7 +276,7 @@ $(document).ready(function(){
     hide_select_box();
   });
 
-  /////////////////////// entities container controls
+  /////////////////////// general entity container controls
 
   // if set will be called when entity container is closed
   $entity_container_callback = null;
@@ -201,8 +284,6 @@ $(document).ready(function(){
   $('#entity_container_close').live('click', function(e){
     hide_entity_container();
   });
-
-  /////////////////////// entities container controls
 
   $('.entities_container').live('mouseenter', function(e){
     var container = $(e.currentTarget).attr('id');
@@ -216,5 +297,4 @@ $(document).ready(function(){
     $('#' + container + ' ul').hide();
     $('#omega_canvas').css('z-index', 0);
   });
-
 });

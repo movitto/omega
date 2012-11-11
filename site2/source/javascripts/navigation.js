@@ -1,3 +1,13 @@
+/* Omega Navigation Operations
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+/////////////////////////////////////// private methods
+
+/* Show login controls, hide logout controls
+ */
 function show_login_controls(){
   $('#register_link').show();
   $('#login_link').show();
@@ -5,6 +15,8 @@ function show_login_controls(){
   $('#account_link').hide();
 }
 
+/* Show logout controls, hide login controls
+ */
 function show_logout_controls(){
   $('#account_link').show();
   $('#logout_link').show();
@@ -12,10 +24,14 @@ function show_logout_controls(){
   $('#register_link').hide();
 }
 
+/* Show the login dialog
+ */
 function show_login_dialog(){
   show_dialog('Login', '#login_dialog');
 }
 
+/* Submit the login dialog
+ */
 function submit_login_dialog(){
   var user_id = $('#omega_dialog #login_username').attr('value');
   var user_password = $('#omega_dialog #login_password').attr('value');
@@ -24,12 +40,16 @@ function submit_login_dialog(){
   login_user(user);
 }
 
+/* Log the user out
+ */
 function handle_logout_click(){
   logout_user();
   destroy_session();
   show_login_controls();
 }
 
+/* Show registration dialog
+ */
 function show_register_dialog(){
   show_dialog('Create Account', '#register_dialog');
 
@@ -39,6 +59,8 @@ function show_register_dialog(){
                    { theme: "red", callback: Recaptcha.focus_response_field});
 }
 
+/* Handle registration submitted response
+ */
 function callback_registration_submitted(user, error){
   if(error){
     show_dialog('Failed to create account', '#registration_failed_dialog', error['message'])
@@ -47,6 +69,8 @@ function callback_registration_submitted(user, error){
   }
 }
 
+/* Submit register user dialog
+ */
 function submit_register_dialog(){
   var user_id = $('#omega_dialog #register_username').attr('value');
   var user_password = $('#omega_dialog #register_password').attr('value');
@@ -61,17 +85,12 @@ function submit_register_dialog(){
   register_user(user, callback_registration_submitted);
 }
 
-function toggle_navigation(result, error){
-  if(error){
-    show_login_controls();
-  }else{
-    show_logout_controls();
-  }
-}
+/////////////////////////////////////// initialization
 
 $(document).ready(function(){ 
-  $validate_session_callbacks.push(toggle_navigation);
-  $login_callbacks.push(toggle_navigation);
+  on_login(show_logout_controls);
+  on_session_validated(show_logout_controls);
+  on_invalid_session(show_login_controls);
 
   $('#login_link').live('click', function(event){ show_login_dialog(); });
   //$('#omega_dialog input').live('keypress', function(e){ if(e.keyCode == 13) submit_login_dialog(); }); // submit on enter

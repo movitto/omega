@@ -1,3 +1,9 @@
+/* registration confirmation page
+ *
+ * Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
 function callback_confirmed_registration(res, error){
   // XXX ugly
   alert("Done... redirecting");
