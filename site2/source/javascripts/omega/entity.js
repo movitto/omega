@@ -797,8 +797,6 @@ $(document).ready(function(){
   $entity_registered_callbacks = [];
 
   on_session_validated(get_user_entities);
-  on_login(get_user_entities);
-
   on_scene_change(scene_changed_callback);
 
   /////////////////////// add handlers to server side tracker callbacks

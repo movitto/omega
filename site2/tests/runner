@@ -11,6 +11,8 @@ end
 
 sleep 2
 
+ exec "#{cd}/seeder"
+
 `firefox http://localhost/omega-test`
 
 sleep 2

@@ -6,21 +6,57 @@
   <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
   <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 
+  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
+
   <script>
   $(document).ready(function(){
 
 // TODO test omega_client
 module("omega_client");
 
-test("", function() {
-  ok('im awesome');
-  equal('', '');
+asyncTest("web_request", 2, function() {
+  var user = new JRObject("Users::User", {id : 'admin', password: 'nimda'});
+  omega_web_request('users::login', user, function(res, err){
+    //ok('im awesome');
+    equal(null, err);
+    equal('Users::Session', res.json_class);
+    start();
+  });
 });
 
-asyncTest("", 0, function() {
-  //start(2); // continue the test runner
-  //stop(1); // pause the testrunner to wait for callback
+asyncTest("ws request", 2, function() {
+  var user = new JRObject("Users::User", {id : 'admin', password: 'nimda'});
+  omega_ws_request('users::login', user, function(res, err){
+    equal(null, err);
+    equal('Users::Session', res.json_class);
+    start();
+  });
 });
+
+asyncTest("global error handlers", 2, function() {
+  var user = new JRObject("Users::User", {id : 'admin', password: 'invalid'});
+  add_error_handler(function(msg){
+    start();
+    equal('invalid user', msg['error']['message']);
+  });
+  omega_web_request('users::login', user, function(res, err){
+    start();
+    equal('invalid user', err['message']);
+  });
+});
+
+asyncTest("method handlers", 1, function() {
+  var user = new JRObject("Users::User", {id : 'admin', password: 'nimda'});
+  omega_ws_request('users::login', user, null);
+  omega_ws_request('motel::track_movement', 12, 5, null); // location 12 corresponds to a planet
+  add_method_handler("motel::on_movement", function(location){
+    equal(12, location.id);
+    start();
+  });
+});
+
   });
   </script>
   

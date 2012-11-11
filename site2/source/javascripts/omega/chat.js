@@ -51,7 +51,6 @@ $(document).ready(function(){
     send_message(message);
   });
 
-  // subscribe to messages when the user logged in and/or session is restored
+  // subscribe to messages on session validation
   on_session_validated(subscribe_to_messages);
-  on_login(subscribe_to_messages);
 });

@@ -51,7 +51,6 @@ function refresh_cycle(args){
 $(document).ready(function(){ 
   add_error_handler(errors_to_console);
   on_session_validated(refresh_cycle);
-  on_login(refresh_cycle);
 
   // lock stats nav to its current position
   $('#stats_nav').css({

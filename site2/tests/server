@@ -12,7 +12,7 @@ end
 
 ################# copied from bin/omega-server
 
-RJR::Logger.log_level = ::Logger::DEBUG
+#RJR::Logger.log_level = ::Logger::DEBUG
 
 config = Omega::Config.load :node_id => 'omega',
                             :amqp_broker => 'localhost',
@@ -79,9 +79,10 @@ local_node.invoke_request('users::add_role',       rcm.id, 'remote_cosmos_manage
 ###################################
 
 
-ws_node    = RJR::WSNode.new    :node_id => 'omega_test', :host   => 'localhost', :port => 8080
-www_node   = RJR::WebNode.new   :node_id => 'omega_test', :host   => 'localhost', :port => 8888
-multi_node = RJR::MultiNode.new :nodes => [ws_node, www_node]
+amqp_node  = RJR::AMQPNode.new  :node_id => 'omega', :broker => 'localhost'
+ws_node    = RJR::WSNode.new    :node_id => 'omega', :host   => 'localhost', :port => 8080
+www_node   = RJR::WebNode.new   :node_id => 'omega', :host   => 'localhost', :port => 8888
+multi_node = RJR::MultiNode.new :nodes => [amqp_node, ws_node, www_node]
 
 setup_signals(multi_node)
 multi_node.listen

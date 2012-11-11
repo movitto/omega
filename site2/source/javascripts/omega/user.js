@@ -12,9 +12,6 @@ $session_validated_callbacks = [];
 // invoked when session validation is not succesful
 $invalid_session_callbacks   = [];
 
-// invoked on login
-$login_callbacks             = [];
-
 /////////////////////////////////////// public methods
 
 /* Register function to be invoked when session is validated
@@ -28,12 +25,6 @@ function on_session_validated(callback){
  */
 function on_invalid_session(callback){
   $invalid_session_callbacks.push(callback);
-}
-
-/* Register function to be invoked on user login
- */
-function on_login(callback){
-  $login_callbacks.push(callback);
 }
 
 /////////////////////////////////////// private methods
@@ -98,8 +89,8 @@ function callback_login_user(session, error){
     destroy_session();
   }else{
     create_session(session.id, session.user_id);
-    for(var i = 0; i < $login_callbacks.length; i++){
-      $login_callbacks[i](session, error);
+    for(var i = 0; i < $session_validated_callbacks.length; i++){
+      $session_validated_callbacks[i]();
     }
   }
 }

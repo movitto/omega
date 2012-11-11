@@ -88,7 +88,6 @@ function submit_register_dialog(){
 /////////////////////////////////////// initialization
 
 $(document).ready(function(){ 
-  on_login(show_logout_controls);
   on_session_validated(show_logout_controls);
   on_invalid_session(show_login_controls);
 
