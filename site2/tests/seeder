@@ -19,42 +19,96 @@ login node, 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => 31, :y => -22, :z => 15) do |ast|
+    asteroid 'ast1', :location => Location.new(:x => 31, :y => -22, :z => 15) do |ast|
       resource :resource => rand_resource, :quantity => 325
     end
-    asteroid gen_uuid, :location => Location.new(:x => 15, :y => 51, :z => 42) do |ast|
+    asteroid 'ast2', :location => Location.new(:x => 15, :y => 51, :z => 42) do |ast|
       resource :resource => rand_resource, :quantity => 500
     end
   end
 
   system 'Aphrodite', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => -25, :y => -17, :z => -32) do |ast|
+    asteroid 'ast3', :location => Location.new(:x => -25, :y => -17, :z => -32) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
-    asteroid gen_uuid, :location => Location.new(:x => 10, :y => -42, :z => -22) do |ast|
+    asteroid 'ast4', :location => Location.new(:x => 10, :y => -42, :z => -22) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
-  end
 
-  system 'Philo', 'HU1792', :location => Location.new(:x => -142, :y => -338, :z => 409) do |sys|
     planet 'Xeno',
            :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
                                                 :eccentricity => 0.16, :semi_latus_rectum => 140,
                                                 :direction => Motel.random_axis) do |pl|
     end
-  
-    asteroid gen_uuid, :location => Location.new(:x => 47, :y => 48, :z => -5) do |ast|
-      resource :resource => rand_resource, :quantity => 550
-    end
-    asteroid gen_uuid, :location => Location.new(:x => 59, :y => -13, :z => -2) do |ast|
-      resource :resource => rand_resource, :quantity => 550
-    end
-
   end
 end
 
 jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 150, :y => 150, :z => 150)
-jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -150, :y => 150, :z => -150)
-jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 150, :y => -150, :z => 150)
-jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 150, :y => -150, :z => 150)
+jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -150, :y =>  150, :z => -150)
+
+#########################################
+
+user 'mmorsi', 'isromm' do |u|
+  role :regular_user
+end
+
+user 'opponent', 'tnenoppo'
+
+starting_system = system('Athena')
+next_system     = system('Aphrodite')
+
+station("mmorsi-manufacturing-station1") do |station|
+  station.type     = :manufacturing
+  station.user_id  = 'mmorsi'
+  station.solar_system = starting_system
+  station.location = Location.new(:x => -160,  :y=> 0,  :z => -160)
+end
+
+station("mmorsi-manufacturing-station2") do |station|
+  station.type     = :manufacturing
+  station.user_id  = 'mmorsi'
+  station.solar_system = starting_system
+  station.location = Location.new(:x => 30,  :y=> -40,  :z => 20)
+end
+
+ship("mmorsi-mining-ship1") do |ship|
+  ship.type     = :mining
+  ship.user_id  = 'mmorsi'
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => 20, :y=> -30, :z => 15)
+end
+
+ship("mmorsi-corvette-ship1") do |ship|
+  ship.type     = :corvette
+  ship.user_id  = 'mmorsi'
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => -130,  :y=> -130,  :z => -130)
+end
+
+ship("mmorsi-corvette-ship2") do |ship|
+  ship.type     = :corvette
+  ship.user_id  = 'mmorsi'
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => 0,  :y=> 0,  :z => 0)
+end
+
+ship("mmorsi-corvette-ship3") do |ship|
+  ship.type     = :corvette
+  ship.user_id  = 'mmorsi'
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => -150,  :y=> 0,  :z => -150)
+end
+
+ship("opponent-mining-ship1") do |ship|
+  ship.type     = :mining
+  ship.user_id  = 'opponent'
+  ship.solar_system = starting_system
+  ship.location = Location.new(:x => -140, :y=> 10, :z => 140)
+end
+
+ship("opponent-mining-ship2") do |ship|
+  ship.type     = :mining
+  ship.user_id  = 'opponent'
+  ship.solar_system = next_system
+  ship.location = Location.new(:x => -130, :y=> 0, :z => 130)
+end

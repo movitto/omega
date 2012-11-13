@@ -4,16 +4,31 @@
 <head>
   <script src="http://localhost/omega-test/omega/vendor/jquery-1.7.1.min.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+  <script src="http://localhost/omega-test/omega/vendor/jquery.cookie.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 
   <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/user.js"></script>
 
   <script>
   $(document).ready(function(){
 
-// TODO test omega_client
+function before_each(details){
+  // logout user
+  logout_user();
+
+  // login user
+  var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
+  login_user(user);
+}
+
+//QUnit.moduleStart(before_all);
+QUnit.testStart(before_each);
+//QUnit.testDone(after_each);
+//QUnit.moduleDone(after_all);
+
 module("omega_client");
 
 asyncTest("web_request", 2, function() {
@@ -50,9 +65,10 @@ asyncTest("global error handlers", 2, function() {
 asyncTest("method handlers", 1, function() {
   var user = new JRObject("Users::User", {id : 'admin', password: 'nimda'});
   omega_ws_request('users::login', user, null);
-  omega_ws_request('motel::track_movement', 12, 5, null); // location 12 corresponds to a planet
+  omega_ws_request('motel::track_movement', 10, 5, null); // location 12 corresponds to a planet
   add_method_handler("motel::on_movement", function(location){
-    equal(12, location.id);
+    equal(10, location.id);
+    omega_ws_request('motel::remove_callbacks', 10, null);
     start();
   });
 });

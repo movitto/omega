@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+                    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <script src="http://localhost/omega-test/omega/vendor/jquery-1.7.1.min.js"></script>
+  <script src="http://localhost/omega-test/omega/vendor/jquery.cookie.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+
+  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/user.js"></script>
+
+  <script>
+  $(document).ready(function(){
+
+module("omega_user");
+
+asyncTest("user login and logout", 6, function() {
+  on_session_validated(function(){
+    var sc = $.cookie('omega-session');
+    var ehc = $web_node.headers['session_id'];
+    var shc = $ws_node.headers['session_id'];
+    ok(sc != null);
+    equal(sc, ehc);
+    equal(sc, shc);
+
+    var uc = $.cookie('omega-user');
+    equal('mmorsi', uc);
+    start();
+  });
+  on_session_destroyed(function(){
+    var sc = $.cookie('omega-session');
+    var uc = $.cookie('omega-user');
+    equal(null, sc);
+    equal(null, uc);
+    start();
+  });
+  var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
+  login_user(user);
+  stop();
+  logout_user();
+});
+
+//asyncTest("user registeration", 2, function() {
+//  var user = new JRObject("Users::User", {id : 'newuser', password: 'resuwen'});
+//  // TODO test
+//});
+
+// TODO test submit dialogs?
+
+  });
+  </script>
+  
+</head>
+<body>
+  <h1 id="qunit-header">QUnit example</h1>
+ <h2 id="qunit-banner"></h2>
+ <div id="qunit-testrunner-toolbar"></div>
+ <h2 id="qunit-userAgent"></h2>
+ <ol id="qunit-tests"></ol>
+ <div id="qunit-fixture">test markup, will be hidden</div>
+</body>
+</html>

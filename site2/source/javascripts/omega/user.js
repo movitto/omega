@@ -12,6 +12,9 @@ $session_validated_callbacks = [];
 // invoked when session validation is not succesful
 $invalid_session_callbacks   = [];
 
+// invoked when session is destroyed
+$session_destroyed_callbacks = [];
+
 /////////////////////////////////////// public methods
 
 /* Register function to be invoked when session is validated
@@ -25,6 +28,13 @@ function on_session_validated(callback){
  */
 function on_invalid_session(callback){
   $invalid_session_callbacks.push(callback);
+}
+
+/* Register function to be invoked when session
+ * is destroyed.
+ */
+function on_session_destroyed(callback){
+  $session_destroyed_callbacks.push(callback);
 }
 
 /////////////////////////////////////// private methods
@@ -71,7 +81,7 @@ function callback_validate_session(user, error){
   if(error){
     destroy_session();
     ret = false;
-    for(var i = 0; i < $session_validated_callbacks.length; i++){
+    for(var i = 0; i < $invalid_session_callbacks.length; i++){
       $invalid_session_callbacks[i]();
     }
   }else{
@@ -95,18 +105,26 @@ function callback_login_user(session, error){
   }
 }
 
+/* Callback invoked on user logout
+ */
+function callback_logout_user(result, error){
+  destroy_session();
+  for(var i = 0; i < $session_destroyed_callbacks.length; i++){
+    $session_destroyed_callbacks[i]();
+  }
+}
+
 /* Login the user
  */
 function login_user(user){
   omega_web_request('users::login', user, callback_login_user)
 };
 
-/* Login the user
+/* Logout the user
  */
 function logout_user(){
-  // TODO issue users::logout
   var session_id = $.cookie('omega-session');
-  omega_web_request('users::logout', session_id, null);
+  omega_web_request('users::logout', session_id, callback_logout_user);
 };
 
 /* Register the user

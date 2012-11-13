@@ -174,8 +174,10 @@ function omega_entities_under(system_name, callback){
  * operation to retrieve entity with the specified id
  *
  * @param {String} entity_id id of the entity to retrieve
+ * @param {Callback} callback function to invoke w/ entity retrieved
  */
-function omega_entity(entity_id){
+function omega_entity(entity_id, callback){
+  omega_web_request('manufactured::get_entities', 'with_id', entity_id, omega_callback(callback));
 }
 
 /* Invoke omega server side cosmos::get_entities 
@@ -202,8 +204,10 @@ function omega_system(system_name, callback){
  * entity
  *
  * @param {String} entity_name name of the entity to retireve associated resource sources
+ * @param {Callback} callback function to invoke w/ resource sources when retrieved
  */
-function omega_resource_sources(entity_name){
+function omega_resource_sources(entity_name, callback){
+  omega_web_request('cosmos::get_resource_sources', entity_name, omega_callback(callback));
 }
 
 /* Invoke omega server side users::get_entity
@@ -300,7 +304,7 @@ function omega_callback(oc){
           entity = result[entity];
           register_entity(entity);
         }
-      }else{
+      }else if(typeof(result) != "object" || Object.keys(result).length != 0){
         register_entity(result);
       }
 

@@ -155,7 +155,6 @@ $tracker = {
 
   // adds entity to tracker if new, else update existing entity
   add : function(entity){
-console.log(entity);
     var is_new = false;
     var entity_id = OmegaEntity.entity_id(entity);
     if(this.entities[entity_id] == null){
