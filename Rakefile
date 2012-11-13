@@ -24,6 +24,8 @@ end
 YARD::Rake::YardocTask.new do |t|
 end
 
+# FIXME doc and test tasks for the js modules under site2
+
 desc 'Print the RJR accessible api'
 task 'rjr_api' do
   puts "RJR API: "

@@ -31,14 +31,14 @@ module Omega
 
       # Generate an return a random uuid
       #
-      # @see {Motel::gen_uuid}
+      # @see Motel.gen_uuid
       def gen_uuid
         Motel.gen_uuid
       end
 
       # Generate an return a new random {Cosmos::Resource}
       #
-      # @see {Omega::Resources::rand_resource}
+      # @see Omega::Resources.rand_resource
       def rand_resource
         Omega::Resources.rand_resource
       end
@@ -46,7 +46,7 @@ module Omega
       # Generate an return a new random {Motel::Location},
       # using the specified arguments
       #
-      # @see {Motel::Location::random}
+      # @see Motel::Location.random
       def rand_location(args={})
         Motel::Location.random args
       end
@@ -57,7 +57,7 @@ module Omega
       # @param [RJR::Node] node instance of rjr node or subclass to use to login the user
       # @param [String] username string id of the user to login
       # @param [String] password password of the user to login
-      # @see {Omega::Client::User::login}
+      # @see Omega::Client::User.login
       def login(node, username, password)
         Omega::Client::User.login(node, username, password)
       end
@@ -151,7 +151,7 @@ module Omega
 
       # Create new asteroid and return it.
       #
-      # @system _must_ be set to the Cosmos::SolarSystem to create the
+      # \@system _must_ be set to the Cosmos::SolarSystem to create the
       # asteroid under
       #
       # @param [String] id string name of asteroid create
@@ -168,7 +168,7 @@ module Omega
 
       # Set new resource on an asteroid and return it.
       #
-      # @asteroid _must_ be set to the Cosmos::Asteroid to assoicate the
+      # \@asteroid _must_ be set to the Cosmos::Asteroid to assoicate the
       # resource with
       #
       # @param [Hash] args hash of options to pass directly to resource initializer
@@ -182,7 +182,7 @@ module Omega
 
       # Create new planet and return it.
       #
-      # @system _must_ be set to the Cosmos::SolarSystem to create the
+      # \@system _must_ be set to the Cosmos::SolarSystem to create the
       # planet under
       #
       # @param [String] id string name of planet create
@@ -199,7 +199,7 @@ module Omega
 
       # Create new moon and return it.
       #
-      # @moon _must_ be set to the Cosmos::Moon to create the
+      # \@planet _must_ be set to the Cosmos::Planet to create the
       # moon under
       #
       # @param [String] id string name of moon create
