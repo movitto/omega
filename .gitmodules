@@ -1,0 +1,7 @@
+[submodule "issac"]
+	path = vendor/issac
+	url = git://github.com/vangberg/isaac.git
+
+[submodule "rjr"]
+	path = lib/rjr
+	url = git://github.com/movitto/rjr.git

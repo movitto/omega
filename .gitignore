@@ -1,0 +1,15 @@
+pkg
+site2/source/images
+site2/source/audio
+BACKUP
+TODO
+VERIFY
+patches
+*.swp
+backups
+lib/rjr*
+.yardoc
+vendor
+contrib
+wiki
+doc
