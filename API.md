@@ -13,6 +13,7 @@
 * manufactured::remove\_callbacks  |entity\_id|
 * manufactured::move\_entity       |id, new\_location|
 * manufactured::follow\_entity     |id, target\_id, distance|
+* manufactured::stop\_entity       |id|
 * manufactured::attack\_entity     |attacker\_entity\_id, defender\_entity\_id|
 * manufactured::dock              |ship\_id, station\_id|
 * manufactured::undock            |ship\_id|
@@ -63,6 +64,7 @@
 ### users:
 
 * users::create\_entity            |entity|
+* users::add\_role                 |user_id,role_id|
 * users::add\_privilege            |*args|
 * users::save\_state               |output|
 * users::restore\_state            |input|
