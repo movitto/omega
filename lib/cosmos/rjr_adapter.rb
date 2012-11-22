@@ -92,12 +92,14 @@ class RJRAdapter
     rjr_dispatcher.add_handler(['cosmos::get_entity', 'cosmos::get_entities']){ |*args|
        filter = {}
        while qualifier = args.shift
-         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_name", "with_location"].include?(qualifier)
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_id", "with_name", "with_location"].include?(qualifier)
          val = args.shift
          raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
          qualifier = case qualifier
                        when "of_type"
                          :type
+                       when "with_id"
+                         :name
                        when "with_name"
                          :name
                        when "with_location"

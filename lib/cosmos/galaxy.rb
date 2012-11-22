@@ -20,6 +20,7 @@ class Galaxy
 
   # Unique name of the galaxy
   attr_accessor :name
+  alias :id :name
 
   # {Motel::Location} in universe which galaxy resides in the universe
   attr_accessor :location

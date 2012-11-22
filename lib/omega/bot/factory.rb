@@ -1,4 +1,3 @@
-#!/usr/bin/ruby
 # omega bot factory station tracker
 #
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>

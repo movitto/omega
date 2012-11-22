@@ -18,6 +18,7 @@ class Asteroid
 
   # Unique name of the asteroid
   attr_accessor :name
+  alias :id :name
 
   # @!group Physical Characteristics
 

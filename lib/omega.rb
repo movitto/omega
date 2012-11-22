@@ -8,6 +8,7 @@ module Omega ; end
 
 require 'rjr'
 
+require 'omega/common'
 require 'omega/exceptions'
 require 'omega/roles'
 require 'omega/names'
@@ -15,16 +16,13 @@ require 'omega/resources'
 require 'omega/client'
 require 'omega/config'
 
-require 'omega/client/base'
-require 'omega/client/user'
-require 'omega/client/location'
-require 'omega/client/cosmos_entity'
-require 'omega/client/ship'
-require 'omega/client/station'
+require 'omega/client2/node'
+require 'omega/client2/mixins'
+require 'omega/client2/bots'
 
-require 'omega/bot/miner'
-require 'omega/bot/corvette'
-require 'omega/bot/factory'
+require 'omega/client2/cosmos_entity'
+require 'omega/client2/ship'
+require 'omega/client2/station'
 
 require 'omega/colored'
 #require 'omega/ncurses'

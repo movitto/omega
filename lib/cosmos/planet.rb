@@ -16,6 +16,7 @@ class Planet
 
   # Unique name of the planet
   attr_accessor :name
+  alias :id :name
 
   # @!group Physical Characteristics
 

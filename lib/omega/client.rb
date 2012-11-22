@@ -3,8 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'omega/client/base'
-require 'omega/client/user'
+require 'cosmos'
+require 'manufactured'
+require 'omega/client2/node'
 
 module Omega
   module Client
@@ -59,7 +60,9 @@ module Omega
       # @param [String] password password of the user to login
       # @see Omega::Client::User.login
       def login(node, username, password)
-        Omega::Client::User.login(node, username, password)
+        Omega::Client::Node.client_username = username
+        Omega::Client::Node.client_password = password
+        Omega::Client::Node.node = node
       end
 
       # Create a new user w/ the specified username and password
@@ -73,7 +76,7 @@ module Omega
       # @return [Users::User] user created
       def user(username, password, &bl)
         @user = Users::User.new :id => username, :password => password
-        Omega::Client::Tracker.invoke_request('users::create_entity', @user)
+        Omega::Client::Node.invoke_request('users::create_entity', @user)
         bl.call @user unless bl.nil?
         @user
       end
@@ -88,10 +91,10 @@ module Omega
       # @param [Users::Role,String] nrole name of role to add to user or Users::Role to create on the server side
       def role(nrole)
         if @user
-          Omega::Client::Tracker.invoke_request('users::add_role', @user.id, nrole)
+          Omega::Client::Node.invoke_request('users::add_role', @user.id, nrole)
 
         else
-          Omega::Client::Tracker.invoke_request('users::create_entity', nrole)
+          Omega::Client::Node.invoke_request('users::create_entity', nrole)
         end
       end
 
@@ -104,7 +107,7 @@ module Omega
       # @return [Users::Alliance] alliance created
       def alliance(id, args = {}, &bl)
         alliance = Users::Alliance.new(args.merge({:id => id}))
-        Omega::Client::Tracker.invoke_request 'users::create_entity', alliance
+        Omega::Client::Node.invoke_request 'users::create_entity', alliance
         alliance
       end
 
@@ -116,7 +119,7 @@ module Omega
       # @return [Cosmos::Galaxy] galaxy created
       def galaxy(name, &bl)
         @galaxy = Cosmos::Galaxy.new :name => name
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @galaxy, :universe
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', @galaxy, :universe
         bl.call @galaxy unless bl.nil?
         @galaxy
       end
@@ -141,9 +144,9 @@ module Omega
         raise ArgumentError, "galaxy must not be nil" if @galaxy.nil?
         @system = Cosmos::SolarSystem.new(args.merge({:name => id, :galaxy => @galaxy}))
         star = Cosmos::Star.new :name => star_id, :solar_system => @system
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @system, @galaxy.name
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', @system, @galaxy.name
         unless star_id.nil?
-          Omega::Client::Tracker.invoke_request 'cosmos::create_entity', star, @system.name
+          Omega::Client::Node.invoke_request 'cosmos::create_entity', star, @system.name
         end
         bl.call @system unless bl.nil?
         @system
@@ -161,7 +164,7 @@ module Omega
       def asteroid(id, args={}, &bl)
         raise ArgumentError, "system must not be nil" if @system.nil?
         @asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => @system}))
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @asteroid, @system.name
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', @asteroid, @system.name
         bl.call @asteroid unless bl.nil?
         @asteroid
       end
@@ -176,7 +179,7 @@ module Omega
       def resource(args = {})
         raise ArgumentError, "asteroid must not be nil" if @asteroid.nil?
         resource = Cosmos::Resource.new(args)
-        Omega::Client::Tracker.invoke_request 'cosmos::set_resource', @asteroid.name, resource, args[:quantity]
+        Omega::Client::Node.invoke_request 'cosmos::set_resource', @asteroid.name, resource, args[:quantity]
         resource
       end
 
@@ -192,7 +195,7 @@ module Omega
       def planet(id, args={}, &bl)
         raise ArgumentError, "system must not be nil" if @system.nil?
         @planet = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', @planet, @system.name
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', @planet, @system.name
         bl.call @planet unless bl.nil?
         @planet
       end
@@ -208,7 +211,7 @@ module Omega
       def moon(id, args={})
         raise ArgumentError, "planet must not be nil" if @planet.nil?
         moon = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', moon, @planet.name
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', moon, @planet.name
         moon
       end
 
@@ -220,7 +223,7 @@ module Omega
       # @return [Cosmos::JumpGate] jump gate created
       def jump_gate(system, endpoint, args = {})
         gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
-        Omega::Client::Tracker.invoke_request 'cosmos::create_entity', gate, system.name
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', gate, system.name
         gate
       end
 
@@ -236,7 +239,7 @@ module Omega
       def station(id, args={}, &bl)
         st = Manufactured::Station.new(args.merge({:id => id}))
         bl.call st unless bl.nil?
-        Omega::Client::Tracker.invoke_request 'manufactured::create_entity', st
+        Omega::Client::Node.invoke_request 'manufactured::create_entity', st
         st
       end
 
@@ -252,7 +255,7 @@ module Omega
       def ship(id, args={}, &bl)
         sh = Manufactured::Ship.new(args.merge({:id => id}))
         bl.call sh unless bl.nil?
-        Omega::Client::Tracker.invoke_request 'manufactured::create_entity', sh
+        Omega::Client::Node.invoke_request 'manufactured::create_entity', sh
         sh
       end
     end

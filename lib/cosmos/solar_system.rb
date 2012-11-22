@@ -12,6 +12,7 @@ module Cosmos
 class SolarSystem
   # Unique name of the solar system
   attr_accessor :name
+  alias :id :name
 
   # {Motel::Location} at which solar system resides in its parent galaxy
   attr_accessor :location

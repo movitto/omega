@@ -12,6 +12,7 @@ class Star
 
   # Unique name of the star
   attr_accessor :name
+  alias :id :name
 
   # {Motel::Location} at which star resides in its parent system
   attr_accessor :location

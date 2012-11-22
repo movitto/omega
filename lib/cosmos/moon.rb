@@ -13,6 +13,7 @@ module Cosmos
 class Moon
   # Unique name of the planet
   attr_accessor :name
+  alias :id :name
 
   # {Motel::Location} around planet which moon is located
   attr_accessor :location

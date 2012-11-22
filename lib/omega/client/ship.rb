@@ -131,14 +131,17 @@ module Omega
         return self
       end
 
+      def transfer_all_to(dest)
+        self.resources.each { |rsid,q| transfer q, :of => rsid, :to => dest }
+      end
+
       def transfer(quantity, args = {})
         resource_id = args[:of]
         target      = args[:to]
 
-        entities = Tracker.invoke_request 'manufactured::transfer_resource',
-                                  self.id, target.id, resource_id, quantity
-        self.entity= entities.first
-        @transferred_callback.call self, target, resource_id, quantity
+        Tracker.invoke_request 'manufactured::transfer_resource',
+                         self.id, target.id, resource_id, quantity
+        raise_event :transferred, target, resource_id, quantity
       end
 
       def get_associated
