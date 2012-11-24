@@ -42,9 +42,17 @@ module Omega
         Node.refresh(self.entity, &bl)
       end
 
+      def invoke_init(&bl)
+        instance_exec self, &bl
+      end
+
       module ClassMethods
         def entity_type(type=nil)
-          return @entity_type if type.nil?
+          if type.nil?
+            return @entity_type unless @entity_type.nil?
+            return self.superclass.entity_type unless self.superclass == Object
+            return nil
+          end
           @entity_type = type
         end
 
@@ -59,7 +67,11 @@ module Omega
         end
 
         def get_method(method_name=nil)
-          return @get_method if method_name.nil?
+          if method_name.nil?
+            return @get_method unless @get_method.nil?
+            return self.superclass.get_method unless self.superclass == Object
+            return nil
+          end
           @get_method = method_name
         end
 
@@ -89,20 +101,20 @@ module Omega
         end
 
         def get_all
-          Node.invoke_request(@get_method, 'of_type', @entity_type).
+          Node.invoke_request(self.get_method, 'of_type', self.entity_type).
                select  { |e| validate_entity(e) }.
                collect { |e| track_entity(e) }
         end
 
         def get(id)
-          e = track_entity Node.invoke_request(@get_method, 'with_id', id)
+          e = track_entity Node.invoke_request(self.get_method, 'with_id', id)
           return nil unless validate_entity(e)
           e
         end
 
         # TODO move into its own module
         def owned_by(user_id)
-          Node.invoke_request(@get_method, 'of_type', @entity_type, 'owned_by', user_id).
+          Node.invoke_request(self.get_method, 'of_type', self.entity_type, 'owned_by', user_id).
                select  { |e| validate_entity(e) }.
                collect { |e| track_entity(e) }
         end
@@ -117,7 +129,7 @@ module Omega
 
         def init_entity(e)
           return if @entity_init.nil?
-          @entity_init.call(e)
+          e.invoke_init(&@entity_init)
         end
 
         def validate_entity(e)
@@ -168,7 +180,7 @@ module Omega
           entities = 
             Node.select { |eid,e| e.is_a?(Manufactured::Station) &&
                                   e.location.parent_id == self.location.parent_id }.
-                 select(user_owned).
+                 select(&user_owned).
                  sort    { |a,b| (self.location - a.location) <=>
                                  (self.location - b.location) }
 

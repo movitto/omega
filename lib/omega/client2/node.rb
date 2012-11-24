@@ -20,14 +20,15 @@ module Omega
         entity.instance_variable_set("@cached_#{attribute}", cval)
 
         entity.class.send(:define_method, attribute.intern){
-          te = cval.tracking_enabled?
-          ts = entity.instance_variable_get("@#{attribute}_timestamp".intern)
-          orig = entity.instance_variable_get("@cached_#{attribute}")
+          te   = cval.tracking_enabled?
+          # FIXME need to store timestamp in a global registry, as entity may be overwritten
+          ts   = self.instance_variable_get("@#{attribute}_timestamp".intern)
+          orig = self.instance_variable_get("@cached_#{attribute}")
           if te && (ts.nil? || (Time.now - ts) > TIMEOUT)
-            entity.instance_variable_set("@#{attribute}_timestamp".intern, Time.now)
-            entity.instance_variable_set("@cached_#{attribute}", callback.call(orig))
+            self.instance_variable_set("@#{attribute}_timestamp".intern, Time.now)
+            self.instance_variable_set("@cached_#{attribute}", instance_exec(orig, &callback))
           end
-          entity.instance_variable_get("@cached_#{attribute}")
+          self.instance_variable_get("@cached_#{attribute}")
         }
       end
 
@@ -217,7 +218,7 @@ Omega::Client::Node.refresh_time = 1
             res.asteroids.each { |ast|
               #set(ast)
               CachedAttribute.cache(ast, :resource_sources) { |rs|
-                Node.invoke_request('cosmos::get_resource_sources', ast.name)
+                Node.invoke_request('cosmos::get_resource_sources', self.name)
               }
             }
             #res.jump_gates.each { |gate|

@@ -109,7 +109,7 @@ module Omega
     class Miner < Ship
       include TrackState
 
-      entity_validation { |e| e.type == 'mining' }
+      entity_validation { |e| e.type == :mining }
 
       server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
                                                   :notification => "manufactured::event_occurred" },
@@ -117,13 +117,13 @@ module Omega
                                                   :notification => "manufactured::event_occurred" }
 
       server_state :cargo_full,
-        :check => lambda { self.cargo_full?       },
-        :on    => lambda { self.offload_resources },
-        :off   => lambda {}
+        :check => lambda { |e| e.cargo_full?       },
+        :on    => lambda { |e| },#e.offload_resources },
+        :off   => lambda { |e|}
 
       def offload_resources
-        st = closest(:station)
-        raise_event(:moving_to, st)
+        st = closest(:station).first
+        Node.raise_event(:moving_to, st)
         if st.location - self.location < self.transfer_distance
           transfer_all_to(st)
           self.select_target
