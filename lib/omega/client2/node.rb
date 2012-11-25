@@ -194,7 +194,7 @@ Omega::Client::Node.refresh_time = 1
       end
 
       # Invoke specified block selecting entities from registry
-      # @params [Callable] bl block specifying selection criterial
+      # @param [Callable] bl block specifying selection criterial
       # @return [Array<Object>] objects in registry for which selection block returned true
       def select(&bl)
         # A local copy of registry is used so as to

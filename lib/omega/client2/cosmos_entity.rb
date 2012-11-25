@@ -9,6 +9,7 @@ require 'cosmos'
 
 module Omega
   module Client
+    # Omega client Cosmos::Galaxy tracker
     class Galaxy
       include RemotelyTrackable
       include HasLocation
@@ -17,6 +18,7 @@ module Omega
       get_method   "cosmos::get_entity"
     end
 
+    # Omega client Cosmos::SolarSystem tracker
     class SolarSystem
       include RemotelyTrackable
       include HasLocation
@@ -24,6 +26,20 @@ module Omega
       entity_type  Cosmos::SolarSystem
       get_method   "cosmos::get_entity"
 
+      # Conveniency utility to return the system containing
+      # the fewest entities of the specified type
+      #
+      # This will issue a server side request to retrieve
+      # entities (and systems they are in via the Client::Node
+      # automatically).
+      #
+      # *note* this will only consider systems w/ entities, systems
+      # w/ none of the specified entity will not be returned
+      #
+      # @param [String] entity_type type of entity to retrieve,
+      #   currently only accepts Manufactured::Station
+      # @return [Cosmos::SolarSystem,nil] system with the fewest entities
+      #   or nil if none found
       def self.with_fewest(entity_type)
         systems = []
         if(entity_type == "Manufactured::Station")

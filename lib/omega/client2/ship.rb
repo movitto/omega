@@ -9,6 +9,7 @@ require 'manufactured'
 
 module Omega
   module Client
+    # Omega client Manufactured::Ship tracker
     class Ship
       include RemotelyTrackable
       include HasLocation
@@ -26,6 +27,7 @@ module Omega
                          :transferred   => {}
     end
 
+    # Omega client corvette ship tracker
     class Corvette < Ship
       entity_validation { |e| e.type == 'corvette' }
 
@@ -34,31 +36,21 @@ module Omega
                          :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
                                              :notification => "manufactured::event_occurred" }
 
-      def check_proximity
-        neighbors = Node.invoke_request 'motel::get_locations',
-                                'within', self.attack_distance,
-                                           'of', self.location
-        neighbors.each { |loc|
-          begin
-            sh = Node.invoke_request 'manufactured::get_entity',
-                                'of_type', 'Manufactured::Ship',
-                                       'with_location', loc.id
-            unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
-              self.stop_moving
-              attack(sh)
-              break
-            end
-          rescue Exception => e
-          end
-        }
+      # Start the omega client bot
+      def start_bot
+        @visited  = []
+        @to_visit = []
 
-        return if @continue_patrol
-        @continue_patrol = true
-        handle(:attacked_stop){ |*args|
-          self.patrol_route
-        }
+        self.patrol_route
       end
 
+      private
+
+      # Internal helper, calculate an inter-system route to patrol
+      # and move through it.
+      #
+      # Periodically will check nearby locations for enemies
+      # @see check_proximity below
       def patrol_route
         # add local system to visited list
         @visited << self.solar_system
@@ -98,14 +90,36 @@ module Omega
         end
       end
 
-      def start_bot
-        @visited  = []
-        @to_visit = []
 
-        self.patrol_route
+      # Internal helper, check nearby locations, if enemy ship is detected
+      # stop movement and attack it. Result patrol route when attack ceases
+      def check_proximity
+        neighbors = Node.invoke_request 'motel::get_locations',
+                                'within', self.attack_distance,
+                                           'of', self.location
+        neighbors.each { |loc|
+          begin
+            sh = Node.invoke_request 'manufactured::get_entity',
+                                'of_type', 'Manufactured::Ship',
+                                       'with_location', loc.id
+            unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
+              self.stop_moving
+              attack(sh)
+              break
+            end
+          rescue Exception => e
+          end
+        }
+
+        return if @continue_patrol
+        @continue_patrol = true
+        handle(:attacked_stop){ |*args|
+          self.patrol_route
+        }
       end
     end
 
+    # Omega client miner ship tracker
     class Miner < Ship
       include TrackState
 
@@ -121,6 +135,19 @@ module Omega
         :on    => lambda { |e| e.offload_resources },
         :off   => lambda { |e|}
 
+      # Start the omega client bot
+      def start_bot
+        if self.cargo_full?
+          offload_resources
+        else
+          select_target
+        end
+      end
+
+      private
+
+      # Internal helper, move to the closest station owned by user and
+      # transfer resources to it
       def offload_resources
         st = closest(:station).first
         Node.raise_event(:moving_to, st)
@@ -136,6 +163,7 @@ module Omega
         end
       end
 
+      # Internal helper, select next resource, move to it, and commence mining
       def select_target
         rs = closest(:resource).first
         raise_event(:no_resources) if rs.nil?
@@ -150,13 +178,6 @@ module Omega
         end
       end
 
-      def start_bot
-        if self.cargo_full?
-          offload_resources
-        else
-          select_target
-        end
-      end
     end
 
   end

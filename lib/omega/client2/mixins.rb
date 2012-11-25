@@ -109,7 +109,7 @@ module Omega
         # an arg is specified, that is used to set it.
         #
         # @param [Class] type server side entity class we are tracking
-        # @returns [Class] server side entity class being tracked
+        # @return [Class] server side entity class being tracked
         def entity_type(type=nil)
           if type.nil?
             return @entity_type unless @entity_type.nil?
@@ -237,7 +237,7 @@ module Omega
         #   Ship.get_all
         #   # => [<Omega::Client::Ship#...>,<Omega::Client::Ship#...>,...]
         #
-        # @returns [Array<RemotelyTrackable>] all entities which server returns
+        # @return [Array<RemotelyTrackable>] all entities which server returns
         def get_all
           Node.invoke_request(self.get_method, 'of_type', self.entity_type).
                select  { |e| validate_entity(e) }.
@@ -257,7 +257,7 @@ module Omega
         #   Ship.get('ship1')
         #   # => <Omega::Client::Ship#...>
         #
-        # @returns [nil,RemotelyTrackable] entity corresponding to id, nil if not found
+        # @return [nil,RemotelyTrackable] entity corresponding to id, nil if not found
         def get(id)
           e = track_entity Node.invoke_request(self.get_method, 'with_id', id)
           return nil unless validate_entity(e)
@@ -279,7 +279,7 @@ module Omega
         #   Ship.owned_by('Anubis')
         #   # => [<Omega::Client::Ship#...>,<Omega::Client::Ship#...>,...]
         #
-        # @returns [Array<RemotelyTrackable>] entities owned by specified user which server returns
+        # @return [Array<RemotelyTrackable>] entities owned by specified user which server returns
         def owned_by(user_id)
           Node.invoke_request(self.get_method, 'of_type', self.entity_type, 'owned_by', user_id).
                select  { |e| validate_entity(e) }.
@@ -546,7 +546,7 @@ module Omega
       # @param [Hash] args hash of optional arguments to use in lookup
       # @option args [true,false] :user_owned boolean indicating if we should only return
       #   entities owned by the logged in user
-      # @returns [Array<Object>] entities in local registry matching criteria
+      # @return [Array<Object>] entities in local registry matching criteria
       def closest(type, args = {})
         entities = []
         if(type == :station)
