@@ -118,7 +118,7 @@ module Omega
 
       server_state :cargo_full,
         :check => lambda { |e| e.cargo_full?       },
-        :on    => lambda { |e| },#e.offload_resources },
+        :on    => lambda { |e| e.offload_resources },
         :off   => lambda { |e|}
 
       def offload_resources
@@ -129,7 +129,7 @@ module Omega
           self.select_target
 
         else
-          move_to :destination => st { |*args|
+          move_to(:destination => st) { |*args|
             transfer_all_to(st)
             self.select_target
           }
@@ -137,7 +137,7 @@ module Omega
       end
 
       def select_target
-        rs = closest(:resource)
+        rs = closest(:resource).first
         raise_event(:no_resources) if rs.nil?
         if rs.location - self.location < self.mining_distance
           rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
@@ -151,7 +151,11 @@ module Omega
       end
 
       def start_bot
-        select_target
+        if self.cargo_full?
+          offload_resources
+        else
+          select_target
+        end
       end
     end
 

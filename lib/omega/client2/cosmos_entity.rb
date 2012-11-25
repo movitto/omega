@@ -35,8 +35,9 @@ module Omega
 
         system_map = Hash.new(0)
         systems.each { |n,s| system_map[n] += 1 }
-        fewest = system_map.sort_by { |n,c| c }.last.first
-        systems[fewest]
+        fewest = system_map.sort_by { |n,c| c }.last
+        return nil if fewest.nil?
+        systems.find { |n,s| n == fewest.first }.last
       end
     end
   end
