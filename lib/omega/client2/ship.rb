@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/client2/mixins'
-require 'omega/client2/bots'
 require 'manufactured'
 
 module Omega

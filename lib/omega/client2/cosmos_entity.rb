@@ -12,7 +12,6 @@ module Omega
     # Omega client Cosmos::Galaxy tracker
     class Galaxy
       include RemotelyTrackable
-      include HasLocation
 
       entity_type  Cosmos::Galaxy
       get_method   "cosmos::get_entity"
@@ -21,7 +20,6 @@ module Omega
     # Omega client Cosmos::SolarSystem tracker
     class SolarSystem
       include RemotelyTrackable
-      include HasLocation
 
       entity_type  Cosmos::SolarSystem
       get_method   "cosmos::get_entity"

@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
+require 'omega/client2/mixins'
 
 CURRENT_DIR=File.dirname(__FILE__)
 $: << File.expand_path(CURRENT_DIR + "/../lib")
@@ -32,7 +33,7 @@ end
 class TestUser
   # always call me first!
   def self.create
-    @@user ||= Users::User.new :id => 'omega-test'
+    @@user ||= Users::User.new :id => 'omega-test', :password => 'tset-agemo'
     @@session ||= nil
     self.logout unless @@session.nil?
     Users::Registry.instance.create @@user
@@ -41,6 +42,10 @@ class TestUser
 
   def self.id
     @@user.id
+  end
+
+  def self.password
+    @@user.password
   end
 
   def self.privileges
@@ -98,15 +103,58 @@ class TestUser
     }
     self
   end
-
 end
 
-class TestClientShip < Omega::Client::Entity
-  def self.get_method
-    "manufactured::get_entity"
+class TestEntity
+  include Omega::Client::RemotelyTrackable
+  include Omega::Client::TrackState
+  entity_type Manufactured::Ship
+  get_method "manufactured::get_entity"
+
+  server_state :test_state =>
+    { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
+      :on    => lambda { |e| @on_toggles_called  = true },
+      :off   => lambda { |e| @off_toggles_called = true } }
+
+  def initialize
+    @@id ||= 0
+    @id = (@@id +=  1)
   end
 
-  def self.entity_type
-    "Manufactured::Ship"
+  def id
+    @id
   end
+
+  def attr
+    0
+  end
+
+  def location(val = nil)
+    @location = val unless val.nil?
+    @location
+  end
+end
+
+class TestShip
+  include Omega::Client::RemotelyTrackable
+  include Omega::Client::TrackState
+  include Omega::Client::InSystem
+  include Omega::Client::HasLocation
+  include Omega::Client::InteractsWithEnvironment
+
+  entity_type Manufactured::Ship
+  get_method "manufactured::get_entity"
+
+  server_event :test => { :setup => lambda { @test_setup_invoked = true } }
+end
+
+class TestStation
+  include Omega::Client::RemotelyTrackable
+  include Omega::Client::TrackState
+  include Omega::Client::InSystem
+  include Omega::Client::HasLocation
+  include Omega::Client::InteractsWithEnvironment
+
+  entity_type Manufactured::Station
+  get_method "manufactured::get_entity"
 end

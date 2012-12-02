@@ -43,7 +43,7 @@ module Omega
         CachedAttribute.cached(entity, attribute,
                                entity.send(attribute.intern)) if entity.class.method_defined?(attribute.intern)
 
-        entity.class.send(:define_method, attribute.intern){
+        entity.eigenclass.send(:define_method, attribute.intern){
           te   = CachedAttribute.enabled?
           ts   = CachedAttribute.timestamp(self.id, attribute)
           orig = CachedAttribute.cached(entity, attribute)
@@ -52,20 +52,14 @@ module Omega
             CachedAttribute.timestamp(self.id, attribute, Time.now)
             CachedAttribute.cached(entity, attribute,
                                    instance_exec(orig, &callback))
-                                       
           end
           self.instance_variable_get("@cached_#{attribute}")
         }
       end
 
-      #######################################################################
-      # private method, end user should not invoke:
-
       # Global enable command flag, defaults to true, set to false
       # to always use local cached copy. May be specified w/out param,
       # will always return value of the flag.
-      #
-      # Shouldn't be called by the end user.
       #
       # @param  [true,false] val optional value to assign to flag
       # @return [true,false] value of the flag
@@ -74,6 +68,10 @@ module Omega
         @enabled = val unless val.nil?
         @enabled
       end
+
+
+      #######################################################################
+      # private method, end user should not invoke:
 
       # Global timestamp registry, set the time the specified attribute
       # for the specified entity was updated. May be called w/out param, will
@@ -88,8 +86,8 @@ module Omega
       # @return [Time] timestamp in registry entity for entity/attribute
       def self.timestamp(entity_id, attribute, new_val=nil)
         @timestamps ||= {}
-        @timestamps[entity_id + '-' + attribute.to_s] = new_val unless new_val.nil?
-        @timestamps[entity_id + '-' + attribute.to_s]
+        @timestamps[entity_id.to_s + '-' + attribute.to_s] = new_val unless new_val.nil?
+        @timestamps[entity_id.to_s + '-' + attribute.to_s]
       end
 
       # Global cached attribute registry, set the cached value of the
@@ -285,6 +283,11 @@ Omega::Client::Node.refresh_time = 1
         RJR::Dispatcher.has_handler_for?(method)
       end
 
+      # Clear method handlers
+      def clear_method_handlers!
+        RJR::Dispatcher.clear!
+      end
+
 
       # Add the specified event to the event queue. Starts up
       # the event processor if it is not already running.
@@ -300,6 +303,7 @@ Omega::Client::Node.refresh_time = 1
       def raise_event(method, *args)
         @event_queue.push([method, args])
 
+        # FIXME simplify, we don't need an external loop
         @lock.synchronize{
           return if @event_cycle
           @event_cycle = true
@@ -409,9 +413,18 @@ Omega::Client::Node.refresh_time = 1
                               (e.class.respond_to?(:entity_type) &&
                                types.include?(e.class.entity_type)) }
         if e.nil? && args.first.is_a?(Motel::Location)
-          e = self.select { |eid,e| types.include?(e.class) &&
-                                    e.location.id == args.first.id }.first.last
+          e = self.select { |eid,e|
+            (types.include?(e.class) ||
+             (e.class.respond_to?(:entity_type) &&
+              types.include?(e.class.entity_type))) &&
+            (e.respond_to?(:location) && e.location &&
+             e.location.id == args.first.id)
+          }.first
+          e = e.last unless e.nil?
         end
+
+        return nil if e.nil?
+
         e.id
       end
 
