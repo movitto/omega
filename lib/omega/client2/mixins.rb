@@ -93,13 +93,15 @@ module Omega
         Node.add_event_handler self.id, event, &bl
       end
 
-      private
-
       # Helper method to invoke initialization callbacks in
       # scope of local instance.
+      #
+      # @scope private
       def invoke_init(&bl)
         instance_exec self, &bl
       end
+
+      private
 
       # Methods that are defined on the class including 
       # the RemotelyTrackable module
@@ -368,10 +370,13 @@ module Omega
         @off_state_callbacks[state] << bl
       end
 
-      private
+      #######################################################################
+      # these methods are private / used internally
 
       # This method is invoked by the tracker module when the entity
       # enters the specified state
+      #
+      # @scope private
       def set_state(state)
         return if @current_states.include?(state) # TODO add flag to disable this check
         @current_states << state
@@ -382,6 +387,8 @@ module Omega
 
       # This method is invoked by the tracker module when the entity
       # leaves the specified state
+      #
+      # @scope private
       def unset_state(state)
         if(@current_states.include?(state))
           @current_states.delete(state)
@@ -421,10 +428,10 @@ module Omega
 
             if args.has_key?(:on)
               on_state(state, &args[:on])
+            end
 
-            elsif args.has_key?(:off)
+            if args.has_key?(:off)
               off_state(state, &args[:off])
-
             end
 
             @condition_checks ||= {}

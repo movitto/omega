@@ -111,7 +111,7 @@ class TestEntity
   entity_type Manufactured::Ship
   get_method "manufactured::get_entity"
 
-  server_state :test_state =>
+  server_state :test_state,
     { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
       :on    => lambda { |e| @on_toggles_called  = true },
       :off   => lambda { |e| @off_toggles_called = true } }
@@ -145,7 +145,16 @@ class TestShip
   entity_type Manufactured::Ship
   get_method "manufactured::get_entity"
 
-  server_event :test => { :setup => lambda { @test_setup_invoked = true } }
+  attr_reader :test_setup_args
+  attr_reader :test_setup_invoked
+
+  server_event :test =>
+    { :setup =>
+      lambda { |*args|
+        @test_setup_args = args
+        @test_setup_invoked = true
+      }
+    }
 end
 
 class TestStation
