@@ -15,16 +15,19 @@ describe Omega::Client::DSL do
     Cosmos::RJRAdapter.init
     Manufactured::RJRAdapter.init
 
+    TestUser.create.clear_privileges.add_omega_role(:superadmin)
+
+    Omega::Client::Node.client_username = TestUser.id
+    Omega::Client::Node.client_password = TestUser.password
+
     @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Tracker.node = @local_node
-    TestUser.create.login(@local_node).clear_privileges.add_omega_role(:superadmin)
+    Omega::Client::Node.node = @local_node
   end
 
   before(:each) do
     Motel::Runner.instance.clear
     Cosmos::Registry.instance.init
     Manufactured::Registry.instance.init
-    Omega::Client::Tracker.instance.clear
   end
 
   it "should create an new user" do
