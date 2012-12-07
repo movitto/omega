@@ -51,7 +51,8 @@ module Omega
         systems.each { |n,s| system_map[n] += 1 }
         fewest = system_map.sort_by { |n,c| c }.last
         return nil if fewest.nil?
-        systems.find { |n,s| n == fewest.first }.last
+        fewest = fewest.first
+        systems.find { |s| s.first == fewest }.last
       end
     end
   end
