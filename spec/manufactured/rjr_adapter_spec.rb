@@ -1370,12 +1370,16 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit local nodes to save and restore state" do
+    FileUtils.rm('/tmp/manufactured-test') if File.exists?('/tmp/manufactured-test')
+
+    gal = Cosmos::Galaxy.new :name => 'galaxy42'
     sys = Cosmos::SolarSystem.new :name => 'system42'
     ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '100')
     stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '101')
     stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :solar_system => sys, :location => Motel::Location.new(:id => '102')
     u = TestUser.create.login(@local_node).clear_privileges
 
+    Cosmos::Registry.instance.add_child(gal) ; gal.add_child(sys)
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create stat1
     Manufactured::Registry.instance.create stat2

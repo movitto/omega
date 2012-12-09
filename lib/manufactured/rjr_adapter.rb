@@ -23,6 +23,7 @@ class RJRAdapter
 
   # Initialize the Manufactured subsystem and rjr adapter.
   def self.init
+    Manufactured::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
     #Manufactured::Registry.instance.init
     @@local_node = RJR::LocalNode.new :node_id => 'manufactured'

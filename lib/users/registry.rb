@@ -351,6 +351,7 @@ class Registry
 
       elsif entity.is_a?(Users::Role)
         if prev_entity
+          prev_entity.add_role(entity)
           # TODO lookup role and add to user
         else
           create(entity)

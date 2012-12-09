@@ -79,7 +79,7 @@ describe Omega::Client::RemotelyTrackable do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
   it "should return tracked entity" do
@@ -237,7 +237,7 @@ describe Omega::Client::TrackState do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
   it "should allow client to register entity states" do
@@ -323,7 +323,7 @@ describe Omega::Client::HasLocation do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
   it "should allow client to track entity movement" do
@@ -363,8 +363,8 @@ describe Omega::Client::InSystem do
     Manufactured::Registry.instance.init
 
     @gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    @sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
-    @sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202')
+    @sys1  = Cosmos::SolarSystem.new :name => 'sys11', :location => Motel::Location.new(:id => '201')
+    @sys2  = Cosmos::SolarSystem.new :name => 'sys21', :location => Motel::Location.new(:id => '202')
     @ast1  = Cosmos::Asteroid.new :name => 'ast1', :location => Motel::Location.new(:id => 203, :x => -200, :y => -200, :z => -200)
     @ast2  = Cosmos::Asteroid.new :name => 'ast2', :location => Motel::Location.new(:id => 204, :x =>  200, :y =>  200, :z =>  200)
     @jg1   = Cosmos::JumpGate.new :solar_system => @sys1,  :endpoint => @sys2, :location => Motel::Location.new(:id => 205, :x =>  150, :y =>  150, :z =>  150)
@@ -420,7 +420,7 @@ describe Omega::Client::InSystem do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
   it "should return closest station to entity" do
@@ -540,7 +540,7 @@ describe Omega::Client::InteractsWithEnvironment do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
 

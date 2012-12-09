@@ -290,7 +290,7 @@ describe Users::Registry do
 
   it "should restore users entities from io object" do
     s = '{"data":{"email":null,"password":null,"id":"user42","alliances":[]},"json_class":"Users::User"}' + "\n" +
-        '{"data":{"entity_id":"locations","id":"view"},"json_class":"Users::Privilege"}' + "\n" +
+        '{"json_class":"Users::Role","data":{"id":"role1","privileges":[{"json_class":"Users::Privilege","data":{"id":"view","entity_id":"locations"}}]}}' + "\n" +
         '{"json_class":"Users::Alliance","data":{"member_ids":["user42"],"enemy_ids":[],"id":"alliance42"}}'
     a = s.split "\n"
 

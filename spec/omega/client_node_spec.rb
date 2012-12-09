@@ -66,6 +66,10 @@ describe Omega::Client::Node do
     Omega::Client::Node.client_password = TestUser.password
   end
 
+  after(:all) do
+    Motel::Runner.instance.clear
+  end
+
   it "should accept rjr node to communicate with server" do
     @local_node = RJR::LocalNode.new :node_id => 'omega-test'
     Node.node = @local_node

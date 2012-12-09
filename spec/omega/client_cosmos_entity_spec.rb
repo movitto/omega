@@ -28,7 +28,7 @@ describe Omega::Client::Galaxy do
   end
 
   after(:all) do
-    Motel::Runner.instance.stop
+    Motel::Runner.instance.clear
   end
 
   it "should be remotely trackable" do

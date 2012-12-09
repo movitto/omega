@@ -218,14 +218,20 @@ describe Users::RJRAdapter do
       rus.collect { |ru| ru.id }.should include(a1.id)
     }.should_not raise_error
 
+    rus = nil
     lambda{
       rus = @local_node.invoke_request('users::get_entities', 'of_type', "Users::User")
-      rus.class.should == Array
-      rus.size.should == 3
-      rus.collect { |ru| ru.id }.should include(nu1.id)
-      rus.collect { |ru| ru.id }.should include(nu2.id)
-      rus.first.password.should be_nil # ensure pass returned by server is nil
     }.should_not raise_error
+
+    rus.class.should == Array
+    rus.size.should == 3
+    ru = rus.find { |ru| ru.id == nu1.id }
+    ru.should_not be_nil
+    ru.password.should be_nil  # ensure pass returned by server is nil
+
+    ru = rus.find { |ru| ru.id == nu2.id }
+    ru.should_not be_nil
+    ru.password.should be_nil
   end
 
   # TODO
