@@ -20,10 +20,10 @@ class Star
   # @!group Physical Characteristics
 
   # Color of the star
-  attr_reader   :color
+  attr_accessor   :color
 
   # Size of the star
-  attr_reader   :size
+  attr_accessor   :size
 
   # @!endgroup
 

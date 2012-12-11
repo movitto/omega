@@ -23,10 +23,10 @@ class Asteroid
   # @!group Physical Characteristics
 
   # Size of the asteroid
-  attr_reader   :size
+  attr_accessor   :size
 
   # Color of the asteroid
-  attr_reader   :color
+  attr_accessor   :color
 
   # @!endgroup
 

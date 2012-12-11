@@ -21,10 +21,10 @@ class Planet
   # @!group Physical Characteristics
 
   # Size of the planet
-  attr_reader :size
+  attr_accessor :size
 
   # Color of the planet
-  attr_reader :color
+  attr_accessor :color
 
   # @!endgroup
 

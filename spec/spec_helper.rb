@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
+require 'factory_girl'
 require 'omega/client2/mixins'
 
 CURRENT_DIR=File.dirname(__FILE__)
@@ -16,6 +17,8 @@ require 'cosmos'
 require 'manufactured'
 require 'users'
 require 'omega'
+
+FactoryGirl.find_definitions
 
 class TestMovementStrategy < Motel::MovementStrategy
    attr_accessor :times_moved

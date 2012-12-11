@@ -22,7 +22,7 @@ describe Omega::Client::Galaxy do
   end
 
   before(:each) do
-    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
+    gal1  = FactoryGirl.build(:gal1)
     Cosmos::Registry.instance.add_child gal1
     Motel::Runner.instance.run gal1.location
   end
