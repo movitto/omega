@@ -146,6 +146,14 @@ class Galaxy
     return @solar_systems.size > 0
   end
 
+  # Returns boolean indicating if galaxy has the specified solar system
+  #
+  # @param [String] system name of child system which to look for
+  # @return [true,false] indicating if galaxy has child system
+  def has_child?(system)
+    return !@solar_systems.find { |s| s.name == system }.nil?
+  end
+
   # Iterates over each child solar_system invoking block w/ the system as a parameter
   #   and then invoking 'each_child' on the system
   #

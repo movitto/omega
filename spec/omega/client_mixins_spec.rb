@@ -6,80 +6,12 @@
 require 'spec_helper'
 
 describe Omega::Client::RemotelyTrackable do
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
   before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
-
-    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
-    sys2  = Cosmos::SolarSystem.new :name => 'sys2', :location => Motel::Location.new(:id => '202')
-    ast1  = Cosmos::Asteroid.new :name => 'ast1', :location => Motel::Location.new(:id => 203, :x => -200, :y => -200, :z => -200)
-    ast2  = Cosmos::Asteroid.new :name => 'ast2', :location => Motel::Location.new(:id => 204, :x =>  200, :y =>  200, :z =>  200)
-    jg1   = Cosmos::JumpGate.new :solar_system => sys1,  :endpoint => sys2, :location => Motel::Location.new(:id => 205, :x =>  150, :y =>  150, :z =>  150)
-    @ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
-    @ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2', :type => :mining, :location => Motel::Location.new(:id => '102', :x => 100, :y => 100, :z => 100), :resources => { 'metal-alluminum' => 50 }
-    @ship3 = Manufactured::Ship.new :id => 'ship3', :user_id => 'user1', :location => Motel::Location.new(:id => '103', :x => 150, :y => 150, :z => 150)
-    @ship4 = Manufactured::Ship.new :id => 'ship4', :user_id => 'user1', :type => :corvette, :location => Motel::Location.new(:id => '104', :x => 90, :y => 90, :z => 90)
-    @ship5 = Manufactured::Ship.new :id => 'ship5', :user_id => 'user2', :type => :corvette, :location => Motel::Location.new(:id => '105', :x => 80, :y => 80, :z => 80)
-    @stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '106', :x => -100, :y => -100, :z => -100)
-    @stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :location => Motel::Location.new(:id => '107', :x => 150,  :y => 150,  :z => 150)
-    @stat3 = Manufactured::Station.new :id => 'station3', :user_id => 'user2', :type => :manufacturing, :location => Motel::Location.new(:id => '108', :x => 100,  :y => 100,  :z => 100), :resources => { 'metal-rock' => 300 }
-    @user1 = Users::User.new :id => 'user1'
-    @user2 = Users::User.new :id => 'user2'
-
-    gal1.add_child(sys1) ; gal1.add_child(sys2)
-    sys1.add_child(ast1) ; sys1.add_child(ast2) ; sys1.add_child(jg1)
-    @ship1.parent = @ship2.parent =
-    @ship3.parent = @ship4.parent = @ship5.parent =
-    @stat1.parent = @stat2.parent = @stat3.parent = sys1
-    Users::Registry.instance.create @user1
-    Users::Registry.instance.create @user2
-    Cosmos::Registry.instance.add_child gal1
-    Motel::Runner.instance.run gal1.location
-    Motel::Runner.instance.run sys1.location
-    Motel::Runner.instance.run sys2.location
-    Motel::Runner.instance.run ast1.location
-    Motel::Runner.instance.run ast2.location
-    Motel::Runner.instance.run jg1.location
-    Motel::Runner.instance.run @ship1.location
-    Motel::Runner.instance.run @ship2.location
-    Motel::Runner.instance.run @ship3.location
-    Motel::Runner.instance.run @ship4.location
-    Motel::Runner.instance.run @ship5.location
-    Motel::Runner.instance.run @stat1.location
-    Motel::Runner.instance.run @stat2.location
-    Motel::Runner.instance.run @stat3.location
-    Manufactured::Registry.instance.create @ship1
-    Manufactured::Registry.instance.create @ship2
-    Manufactured::Registry.instance.create @ship3
-    Manufactured::Registry.instance.create @ship4
-    Manufactured::Registry.instance.create @ship5
-    Manufactured::Registry.instance.create @stat1
-    Manufactured::Registry.instance.create @stat2
-    Manufactured::Registry.instance.create @stat3
-
-    @rs1 = Cosmos::Registry.instance.set_resource(ast1.name,
-                 Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
-  end
-
-  after(:all) do
-    Motel::Runner.instance.clear
+    @ship1 = FactoryGirl.build(:ship1)
+    FactoryGirl.build(:ship2)
+    FactoryGirl.build(:ship3)
+    FactoryGirl.build(:ship4)
+    FactoryGirl.build(:ship5)
   end
 
   it "should return tracked entity" do
@@ -194,7 +126,9 @@ describe Omega::Client::RemotelyTrackable do
   end
 
   it "should retrieve server entities owned by user" do
-    ships = TestShip.owned_by('user1')
+    user1 = FactoryGirl.build(:user1)
+
+    ships = TestShip.owned_by(user1.id)
     ships.size.should == 3
     ships.first.id.should == @ship1.id
   end
@@ -202,42 +136,8 @@ describe Omega::Client::RemotelyTrackable do
 end
 
 describe Omega::Client::TrackState do
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
   before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
-
-    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
-    @ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
-
-    gal1.add_child(sys1)
-    @ship1.parent = sys1
-    Users::Registry.instance.create @user1
-    Cosmos::Registry.instance.add_child gal1
-    Motel::Runner.instance.run gal1.location
-    Motel::Runner.instance.run sys1.location
-    Motel::Runner.instance.run @ship1.location
-    Manufactured::Registry.instance.create @ship1
-  end
-
-  after(:all) do
-    Motel::Runner.instance.clear
+    @ship1 = FactoryGirl.build(:ship1)
   end
 
   it "should allow client to register entity states" do
@@ -288,45 +188,9 @@ describe Omega::Client::TrackState do
 end
 
 describe Omega::Client::HasLocation do
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
-  before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
-
-    gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
-    @ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
-
-    gal1.add_child(sys1)
-    @ship1.parent = sys1
-    Users::Registry.instance.create @user1
-    Cosmos::Registry.instance.add_child gal1
-    Motel::Runner.instance.run gal1.location
-    Motel::Runner.instance.run sys1.location
-    Motel::Runner.instance.run @ship1.location
-    Manufactured::Registry.instance.create @ship1
-  end
-
-  after(:all) do
-    Motel::Runner.instance.clear
-  end
-
   it "should allow client to track entity movement" do
+    @ship1 = FactoryGirl.build(:ship1)
+
     ts = TestShip.get(@ship1.id)
     nloc = ts.location + [50,50,50]
     Omega::Client::Node.invoke_request 'manufactured::move_entity', @ship1.id, nloc
@@ -342,99 +206,38 @@ describe Omega::Client::HasLocation do
 end
 
 describe Omega::Client::InSystem do
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
   before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
+    @ship1 = FactoryGirl.build(:ship1)
+    @ship2 = FactoryGirl.build(:ship2)
+    @ship3 = FactoryGirl.build(:ship3)
 
-    @gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    @sys1  = Cosmos::SolarSystem.new :name => 'sys11', :location => Motel::Location.new(:id => '201')
-    @sys2  = Cosmos::SolarSystem.new :name => 'sys21', :location => Motel::Location.new(:id => '202')
-    @ast1  = Cosmos::Asteroid.new :name => 'ast1', :location => Motel::Location.new(:id => 203, :x => -200, :y => -200, :z => -200)
-    @ast2  = Cosmos::Asteroid.new :name => 'ast2', :location => Motel::Location.new(:id => 204, :x =>  200, :y =>  200, :z =>  200)
-    @jg1   = Cosmos::JumpGate.new :solar_system => @sys1,  :endpoint => @sys2, :location => Motel::Location.new(:id => 205, :x =>  150, :y =>  150, :z =>  150)
-    @ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
-    @ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2', :type => :mining, :location => Motel::Location.new(:id => '102', :x => 100, :y => 100, :z => 100), :resources => { 'metal-alluminum' => 50 }
-    @ship3 = Manufactured::Ship.new :id => 'ship3', :user_id => 'user1', :location => Motel::Location.new(:id => '103', :x => 150, :y => 150, :z => 150)
-    @ship4 = Manufactured::Ship.new :id => 'ship4', :user_id => 'user1', :type => :corvette, :location => Motel::Location.new(:id => '104', :x => 90, :y => 90, :z => 90)
-    @ship5 = Manufactured::Ship.new :id => 'ship5', :user_id => 'user2', :type => :corvette, :location => Motel::Location.new(:id => '105', :x => 80, :y => 80, :z => 80)
-    @stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '106', :x => -100, :y => -100, :z => -100)
-    @stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :location => Motel::Location.new(:id => '107', :x => 150,  :y => 150,  :z => 150)
-    @stat3 = Manufactured::Station.new :id => 'station3', :user_id => 'omega-test', :type => :manufacturing, :location => Motel::Location.new(:id => '108', :x => 100,  :y => 100,  :z => 100), :resources => { 'metal-rock' => 300 }
-    @user1 = Users::User.new :id => 'user1'
-    @user2 = Users::User.new :id => 'user2'
-
-    @gal1.add_child(@sys1) ; @gal1.add_child(@sys2)
-    @sys1.add_child(@ast1) ; @sys1.add_child(@ast2)
-    @sys1.add_child(@jg1)
-    @ship1.parent = @ship2.parent =
-    @ship3.parent = @ship4.parent = @ship5.parent =
-    @stat1.parent = @stat2.parent = @stat3.parent = @sys1
-    Users::Registry.instance.create @user1
-    Users::Registry.instance.create @user2
-    Cosmos::Registry.instance.add_child @gal1
-    Motel::Runner.instance.run @gal1.location
-    Motel::Runner.instance.run @sys1.location
-    Motel::Runner.instance.run @sys2.location
-    Motel::Runner.instance.run @ast1.location
-    Motel::Runner.instance.run @ast2.location
-    Motel::Runner.instance.run @jg1.location
-    Motel::Runner.instance.run @ship1.location
-    Motel::Runner.instance.run @ship2.location
-    Motel::Runner.instance.run @ship3.location
-    Motel::Runner.instance.run @ship4.location
-    Motel::Runner.instance.run @ship5.location
-    Motel::Runner.instance.run @stat1.location
-    Motel::Runner.instance.run @stat2.location
-    Motel::Runner.instance.run @stat3.location
-    Manufactured::Registry.instance.create @ship1
-    Manufactured::Registry.instance.create @ship2
-    Manufactured::Registry.instance.create @ship3
-    Manufactured::Registry.instance.create @ship4
-    Manufactured::Registry.instance.create @ship5
-    Manufactured::Registry.instance.create @stat1
-    Manufactured::Registry.instance.create @stat2
-    Manufactured::Registry.instance.create @stat3
-
-    @rs1 = Cosmos::Registry.instance.set_resource(@ast1.name,
-                 Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
+    @stat1 = FactoryGirl.build(:station1)
+    @stat2 = FactoryGirl.build(:station2)
+    @stat3 = FactoryGirl.build(:station3)
+    @stat4 = FactoryGirl.build(:station4)
+    @stat5 = FactoryGirl.build(:station5)
 
     Omega::Client::Node.set(@stat1)
     Omega::Client::Node.set(@stat2)
     Omega::Client::Node.set(@stat3)
-  end
-
-  after(:all) do
-    Motel::Runner.instance.clear
+    Omega::Client::Node.set(@stat4)
+    Omega::Client::Node.set(@stat5)
   end
 
   it "should return closest station to entity" do
     ts = TestShip.get(@ship2.id)
     st = ts.closest(:station)
-    st.size.should == 3
+    st.size.should == 4
     st.first.id.should == @stat3.id
 
     st = ts.closest(:station, :user_owned => true)
-    st.size.should == 1
+    st.size.should == 2
     st.first.id.should == @stat3.id
   end
 
   it "should return closest resource to entity" do
+    @ast1 = FactoryGirl.build(:asteroid1)
+
     ts = TestShip.get(@ship2.id)
     rs = ts.closest(:resource)
     rs.size.should == 1
@@ -465,84 +268,30 @@ describe Omega::Client::InSystem do
   end
 
   it "jump entity to system" do
+    sys2 = FactoryGirl.build(:sys2)
+    jg   = FactoryGirl.build(:jump_gate1)
+
     ts = TestShip.get(@ship3.id)
     ts.jump_to 'sys2'
     ts = TestShip.get(@ship3.id)
-    ts.location.parent_id.should == @sys2.location.id
-    ts.system_name.should == @sys2.name
+    ts.location.parent_id.should == sys2.location.id
+    ts.system_name.should == sys2.name
   end
 end
 
 describe Omega::Client::InteractsWithEnvironment do
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.create_user_role.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
   before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
+    @ship2 = FactoryGirl.build(:ship2)
+    @ship4 = FactoryGirl.build(:ship4)
+    @ship5 = FactoryGirl.build(:ship5)
 
-    @gal1  = Cosmos::Galaxy.new :name => 'gal1', :location => Motel::Location.new(:id => '200')
-    @sys1  = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => '201')
-    @ast1  = Cosmos::Asteroid.new :name => 'ast1', :location => Motel::Location.new(:id => 203, :x => 110, :y => 110, :z => 110)
-    @ship1 = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :location => Motel::Location.new(:id => '100')
-    @ship2 = Manufactured::Ship.new :id => 'ship2', :user_id => 'user2', :type => :mining, :location => Motel::Location.new(:id => '102', :x => 100, :y => 100, :z => 100), :resources => { 'metal-alluminum' => 50 }
-    @ship3 = Manufactured::Ship.new :id => 'ship3', :user_id => 'user1', :location => Motel::Location.new(:id => '103', :x => 150, :y => 150, :z => 150)
-    @ship4 = Manufactured::Ship.new :id => 'ship4', :user_id => 'user1', :type => :corvette, :location => Motel::Location.new(:id => '104', :x => 90, :y => 90, :z => 90)
-    @ship5 = Manufactured::Ship.new :id => 'ship5', :user_id => 'user2', :type => :corvette, :location => Motel::Location.new(:id => '105', :x => 80, :y => 80, :z => 80)
-    @stat1 = Manufactured::Station.new :id => 'station1', :user_id => 'user1', :location => Motel::Location.new(:id => '106', :x => -100, :y => -100, :z => -100)
-    @stat2 = Manufactured::Station.new :id => 'station2', :user_id => 'user1', :location => Motel::Location.new(:id => '107', :x => 150,  :y => 150,  :z => 150)
-    @stat3 = Manufactured::Station.new :id => 'station3', :user_id => 'omega-test', :type => :manufacturing, :location => Motel::Location.new(:id => '108', :x => 100,  :y => 100,  :z => 100), :resources => { 'metal-rock' => 300 }
-    @user1 = Users::User.new :id => 'user1'
-    @user2 = Users::User.new :id => 'user2'
+    @stat1 = FactoryGirl.build(:station1)
+    @stat3 = FactoryGirl.build(:station3)
 
-    @gal1.add_child(@sys1) ; @sys1.add_child(@ast1)
-    @ship1.parent = @ship2.parent =
-    @ship3.parent = @ship4.parent = @ship5.parent =
-    @stat1.parent = @stat2.parent = @stat3.parent = @sys1
-    Users::Registry.instance.create @user1
-    Users::Registry.instance.create @user2
-    Cosmos::Registry.instance.add_child @gal1
-    Motel::Runner.instance.run @gal1.location
-    Motel::Runner.instance.run @sys1.location
-    Motel::Runner.instance.run @ast1.location
-    Motel::Runner.instance.run @ship1.location
-    Motel::Runner.instance.run @ship2.location
-    Motel::Runner.instance.run @ship3.location
-    Motel::Runner.instance.run @ship4.location
-    Motel::Runner.instance.run @ship5.location
-    Motel::Runner.instance.run @stat1.location
-    Motel::Runner.instance.run @stat2.location
-    Motel::Runner.instance.run @stat3.location
-    Manufactured::Registry.instance.create @ship1
-    Manufactured::Registry.instance.create @ship2
-    Manufactured::Registry.instance.create @ship3
-    Manufactured::Registry.instance.create @ship4
-    Manufactured::Registry.instance.create @ship5
-    Manufactured::Registry.instance.create @stat1
-    Manufactured::Registry.instance.create @stat2
-    Manufactured::Registry.instance.create @stat3
-
-    @rs1 = Cosmos::Registry.instance.set_resource(@ast1.name,
-                 Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
+    @ast1 = FactoryGirl.build(:asteroid1)
+    @rs1  = Cosmos::Registry.instance.set_resource(@ast1.name,
+                  Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
   end
-
-  after(:all) do
-    Motel::Runner.instance.clear
-  end
-
 
   it "should mine resource using entity" do
     ts = TestShip.get(@ship2.id)
@@ -578,6 +327,8 @@ describe Omega::Client::InteractsWithEnvironment do
   end
 
   it "should construct entity" do
+    test_user = FactoryGirl.build(:test_user)
+
     ts = TestStation.get(@stat3.id)
     ts.construct('Manufactured::Ship',
                    'class' => 'Manufactured::Ship',

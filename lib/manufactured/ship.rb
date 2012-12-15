@@ -58,7 +58,7 @@ class Ship
   #
   # Used to reference the solar_system w/out having to pass
   # the entire system around
-  attr_reader :system_name
+  attr_accessor :system_name
 
   # Set solar system the ship is in
   #

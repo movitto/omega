@@ -218,6 +218,16 @@ class SolarSystem
     true
   end
 
+  # Returns boolean indicating if solar system has the specified child
+  #
+  # @param [String] child name of child star,planet,asteroid which to look for
+  # @return [true,false] indicating if system has child
+  def has_child?(child)
+    return (!@star.nil? && @star.name == child) ||
+           !@planets.find { |pl| pl.name == child }.nil? ||
+           !@asteroids.find { |ast| ast.name == child } .nil?
+  end
+
   # Convert solar system to human readable string and return it
   def to_s
     "solar_system-#{@name}"

@@ -182,6 +182,14 @@ Omega::Client::Node.refresh_time = 1
         Node.instance.send method_id, *args, &bl
       end
 
+      # Clear local registry
+      def clear
+        @lock.synchronize{
+          @registry.clear
+        }
+        @event_queue.clear
+      end
+
       # Return local copy of server side entity corresponding to id
       # @param [String] id id of entity to retrieve
       # @return [Object] object corresponding to id, nil if not found
@@ -301,7 +309,8 @@ Omega::Client::Node.refresh_time = 1
       # @param [Array<Object>] all additional params are captured and
       #   registered with event
       def raise_event(method, *args)
-        @event_queue.push([method, args])
+        event = [method, args]
+        @event_queue.push(event)
 
         # FIXME simplify, we don't need an external loop
         @lock.synchronize{

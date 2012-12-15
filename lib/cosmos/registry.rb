@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'singleton'
+
 module Cosmos
 
 # Primary server side entity tracker for Cosmos module.
@@ -212,6 +214,18 @@ class Registry
     ret = nil
     @entities_lock.synchronize{
       ret = @galaxies.size > 0
+    }
+    return ret
+  end
+
+  # Returns boolean indicating if registry has the specified galaxy
+  #
+  # @param [String] galaxy name of child galaxy which to look for
+  # @return [true,false] indicating if registry has child galaxy
+  def has_child?(galaxy)
+    ret = nil
+    @entities_lock.synchronize {
+      ret = !@galaxies.find { |g| g.name == galaxy }.nil?
     }
     return ret
   end

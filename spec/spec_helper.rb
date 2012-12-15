@@ -20,6 +20,33 @@ require 'omega'
 
 FactoryGirl.find_definitions
 
+RSpec.configure do |config|
+  config.before(:all) {
+  }
+  config.before(:each) {
+    Motel::RJRAdapter.init
+    Users::RJRAdapter.init
+    Cosmos::RJRAdapter.init
+    Manufactured::RJRAdapter.init
+
+    #test_user  = FactoryGirl.build(:test_user)
+
+    TestUser.create.clear_privileges.add_omega_role(:superadmin)
+    Omega::Client::Node.client_username = TestUser.id
+    Omega::Client::Node.client_password = TestUser.password
+    Omega::Client::Node.node = RJR::LocalNode.new :node_id => 'omega-test'
+
+    Omega::Client::Node.clear
+  }
+
+  config.after(:each) {
+    Motel::Runner.instance.clear
+  }
+  config.after(:all) {
+  }
+end
+
+
 class TestMovementStrategy < Motel::MovementStrategy
    attr_accessor :times_moved
 
