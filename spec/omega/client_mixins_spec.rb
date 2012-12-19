@@ -12,6 +12,11 @@ describe Omega::Client::RemotelyTrackable do
     FactoryGirl.build(:ship3)
     FactoryGirl.build(:ship4)
     FactoryGirl.build(:ship5)
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
   end
 
   it "should return tracked entity" do
@@ -29,9 +34,10 @@ describe Omega::Client::RemotelyTrackable do
     ts = TestShip.get(@ship1.id)
     ts.location.x.should == @ship1.location.x
 
+    orig = @ship1.location.x
     @ship1.location.x = 5000
     ts = TestShip.get(@ship1.id)
-    ts.location.x.should == @ship1.location.x
+    ts.location.x.should == orig
   end
 
   it "should allow event handlers to be registered" do
@@ -138,6 +144,10 @@ end
 describe Omega::Client::TrackState do
   before(:each) do
     @ship1 = FactoryGirl.build(:ship1)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
   end
 
   it "should allow client to register entity states" do
@@ -189,6 +199,15 @@ end
 
 describe Omega::Client::HasLocation do
   it "should allow client to track entity movement" do
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_LOCATIONS)
+
     @ship1 = FactoryGirl.build(:ship1)
 
     ts = TestShip.get(@ship1.id)
@@ -222,6 +241,13 @@ describe Omega::Client::InSystem do
     Omega::Client::Node.set(@stat3)
     Omega::Client::Node.set(@stat4)
     Omega::Client::Node.set(@stat5)
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
   end
 
   it "should return closest station to entity" do
@@ -291,6 +317,15 @@ describe Omega::Client::InteractsWithEnvironment do
     @ast1 = FactoryGirl.build(:asteroid1)
     @rs1  = Cosmos::Registry.instance.set_resource(@ast1.name,
                   Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_CREATE,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
   end
 
   it "should mine resource using entity" do

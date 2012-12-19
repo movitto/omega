@@ -4,7 +4,7 @@ require 'motel/movement_strategies/stopped'
 require 'motel/movement_strategies/elliptical'
 
 FactoryGirl.define do
-  factory :location, class: Motel::Location do
+  factory :server_location, class: Motel::Location do
     x  0
     y  0
     z  0
@@ -13,11 +13,11 @@ FactoryGirl.define do
     after(:build) { |l| Motel::Runner.instance.run(l) }
   end
 
-  factory :unv_location, parent: :location do
+  factory :unv_location, parent: :server_location do
     id 100
   end
 
-  factory :gal1_location, parent: :location do
+  factory :gal1_location, parent: :server_location do
     id   200
     x    10
     y    10
@@ -26,7 +26,7 @@ FactoryGirl.define do
     parent_id 100
   end
   
-  factory :sys1_location, parent: :location do
+  factory :sys1_location, parent: :server_location do
     id   300
     x    10
     y    10
@@ -35,7 +35,7 @@ FactoryGirl.define do
     parent_id 200
   end
 
-  factory :sys2_location, parent: :location do
+  factory :sys2_location, parent: :server_location do
     id   301
     x    -10
     y    -10
@@ -44,7 +44,7 @@ FactoryGirl.define do
     parent_id 200
   end
 
-  factory :sys3_location, parent: :location do
+  factory :sys3_location, parent: :server_location do
     id   302
     x    -10
     y    -10
@@ -53,7 +53,7 @@ FactoryGirl.define do
     parent_id 200
   end
 
-  factory :star1_location, parent: :location do
+  factory :star1_location, parent: :server_location do
     id   400
     x    10
     y    10
@@ -62,7 +62,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :jump_gate1_location, parent: :location do
+  factory :jump_gate1_location, parent: :server_location do
     id   500
     x    150
     y    150
@@ -71,7 +71,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :planet1_location, parent: :location do
+  factory :planet1_location, parent: :server_location do
     id   600
     x    10
     y    10
@@ -85,7 +85,7 @@ FactoryGirl.define do
         :direction => Motel.random_axis)
   end
 
-  factory :ast1_location, parent: :location do
+  factory :ast1_location, parent: :server_location do
     id   700
     x    10
     y    10
@@ -94,7 +94,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ast2_location, parent: :location do
+  factory :ast2_location, parent: :server_location do
     id   701
     x    -12
     y    -43
@@ -103,7 +103,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :moon1_location, parent: :location do
+  factory :moon1_location, parent: :server_location do
     id   800
     x    10
     y    10
@@ -112,7 +112,7 @@ FactoryGirl.define do
     parent_id 500
   end
 
-  factory :station1_location, parent: :location do
+  factory :station1_location, parent: :server_location do
     id   900
     x    -100
     y    -100
@@ -121,7 +121,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :station2_location, parent: :location do
+  factory :station2_location, parent: :server_location do
     id   901
     x    150
     y    150
@@ -130,7 +130,7 @@ FactoryGirl.define do
     parent_id 301
   end
 
-  factory :station3_location, parent: :location do
+  factory :station3_location, parent: :server_location do
     id   902
     x    70
     y    70
@@ -139,7 +139,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :station4_location, parent: :location do
+  factory :station4_location, parent: :server_location do
     id   903
     x    102
     y    106
@@ -148,7 +148,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :station5_location, parent: :location do
+  factory :station5_location, parent: :server_location do
     id   904
     x    -109
     y    -110
@@ -157,7 +157,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ship1_location, parent: :location do
+  factory :ship1_location, parent: :server_location do
     id   1000
     x    10
     y    10
@@ -166,7 +166,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ship2_location, parent: :location do
+  factory :ship2_location, parent: :server_location do
     id   1001
     x    60
     y    60
@@ -175,7 +175,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ship3_location, parent: :location do
+  factory :ship3_location, parent: :server_location do
     id   1002
     x     150
     y     150
@@ -184,7 +184,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ship4_location, parent: :location do
+  factory :ship4_location, parent: :server_location do
     id   1003
     x     -75
     y     121
@@ -193,7 +193,7 @@ FactoryGirl.define do
     parent_id 300
   end
 
-  factory :ship5_location, parent: :location do
+  factory :ship5_location, parent: :server_location do
     id   1004
     x     -98
     y     135

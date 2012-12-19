@@ -1,7 +1,7 @@
 require 'cosmos/asteroid'
 
 FactoryGirl.define do
-  factory :asteroid, class: Cosmos::Asteroid do
+  factory :server_asteroid, class: Cosmos::Asteroid do
     ignore do
       solar_system :sys1
     end
@@ -13,7 +13,7 @@ FactoryGirl.define do
     }
   end
 
-  factory :asteroid1, parent: :asteroid do
+  factory :asteroid1, parent: :server_asteroid do
     name     'ast1'
     color    'FFEEDD'
     size      20
@@ -26,11 +26,11 @@ FactoryGirl.define do
     }
   end
 
-  factory :asteroid2, parent: :asteroid do
-    name     'ast2'
-    color    'AABBCC'
-    size      25
+  #factory :asteroid2, parent: :server_asteroid do
+  #  name     'ast2'
+  #  color    'AABBCC'
+  #  size      25
 
-    association :location, factory: :ast2_location, :strategy => :build
-  end
+  #  association :location, factory: :ast2_location, :strategy => :build
+  #end
 end

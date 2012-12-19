@@ -1,23 +1,26 @@
 require 'manufactured/ship'
 
 FactoryGirl.define do
-  factory :ship, class: Manufactured::Ship do
+  factory :server_ship, class: Manufactured::Ship do
     after(:build) { |sh| 
       FactoryGirl.build(sh.system_name.intern)
       sh.solar_system = Cosmos::Registry.instance.find_entity(:name => sh.system_name)
-      Manufactured::Registry.instance.create(sh)
+      unless Manufactured::Registry.instance.has_child?(sh.id)
+        Manufactured::Registry.instance.create(sh)
+      end
     }
   end
 
-  factory :ship1, parent: :ship do
+  factory :ship1, parent: :server_ship do
     id      'ship1'
     user_id 'user1'
     system_name 'sys1'
+    type    :destroyer
 
     association :location, factory: :ship1_location, :strategy => :build
   end
 
-  factory :ship2, parent: :ship do
+  factory :ship2, parent: :server_ship do
     id      'ship2'
     user_id 'user1'
     system_name 'sys1'
@@ -28,7 +31,7 @@ FactoryGirl.define do
     after(:build) { |sh| sh.add_resource('metal-alluminum', 50) }
   end
 
-  factory :ship3, parent: :ship do
+  factory :ship3, parent: :server_ship do
     id      'ship3'
     user_id 'user2'
     type    :mining
@@ -37,7 +40,7 @@ FactoryGirl.define do
     association :location, factory: :ship3_location, :strategy => :build
   end
 
-  factory :ship4, parent: :ship do
+  factory :ship4, parent: :server_ship do
     id      'ship4'
     user_id 'user1'
     system_name 'sys1'
@@ -46,7 +49,7 @@ FactoryGirl.define do
     association :location, factory: :ship4_location, :strategy => :build
   end
 
-  factory :ship5, parent: :ship do
+  factory :ship5, parent: :server_ship do
     id      'ship5'
     user_id 'user2'
     system_name 'sys1'

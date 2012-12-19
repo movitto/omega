@@ -1,7 +1,7 @@
 require 'cosmos/jump_gate'
 
 FactoryGirl.define do
-  factory :jump_gate, class: Cosmos::JumpGate do
+  factory :server_jump_gate, class: Cosmos::JumpGate do
     ignore do
       system :sys1
     end
@@ -13,7 +13,7 @@ FactoryGirl.define do
     }
   end
 
-  factory :jump_gate1, parent: :jump_gate do
+  factory :jump_gate1, parent: :server_jump_gate do
     association :solar_system, factory: :sys1, strategy: :build
     association :endpoint,     factory: :sys2, strategy: :build
 

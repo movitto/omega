@@ -165,6 +165,18 @@ class Registry
     children
   end
 
+  # Return boolean indicating if child specified by given id can be found
+  #
+  # @param [String] child_id id of child entity to search for
+  # @return [true,false] indicating if registry has child
+  def has_child?(child_id)
+    @entities_lock.synchronize{
+      return !@ships.find    { |s| s.id == child_id }.nil? ||
+             !@stations.find { |s| s.id == child_id }.nil? ||
+             !@fleets.find   { |f| f.id == child_id }.nil?
+    }
+  end
+
   # Add child manufactured entity to registry
   #
   # Performs basic checks to ensure entity can added to registry

@@ -52,22 +52,7 @@ end
 describe Omega::Client::Node do
 
   before(:each) do
-  end
-
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-  end
-
-  after(:all) do
-    Motel::Runner.instance.clear
+    TestUser.add_role(:superadmin)
   end
 
   it "should accept rjr node to communicate with server" do

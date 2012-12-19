@@ -9,25 +9,8 @@ describe Omega::Client::DSL do
 
   include Omega::Client::DSL
 
-  before(:all) do
-    Motel::RJRAdapter.init
-    Users::RJRAdapter.init
-    Cosmos::RJRAdapter.init
-    Manufactured::RJRAdapter.init
-
-    TestUser.create.clear_privileges.add_omega_role(:superadmin)
-
-    Omega::Client::Node.client_username = TestUser.id
-    Omega::Client::Node.client_password = TestUser.password
-
-    @local_node = RJR::LocalNode.new :node_id => 'omega-test'
-    Omega::Client::Node.node = @local_node
-  end
-
   before(:each) do
-    Motel::Runner.instance.clear
-    Cosmos::Registry.instance.init
-    Manufactured::Registry.instance.init
+    TestUser.add_role(:superadmin)
   end
 
   it "should create an new user" do
@@ -43,6 +26,7 @@ describe Omega::Client::DSL do
   end
 
   it "should add role to user" do
+    role(Users::Role.new(:id => 'foozrole'))
     user('bar', 'foo') { |u|
       u.id.should == 'bar'
       @user.id.should == 'bar'
@@ -69,7 +53,7 @@ describe Omega::Client::DSL do
   end
 
   it "should create a new system" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       s = system('system1') { |s|
         s.name.should == 'system1'
         @system.should_not be_nil
@@ -88,7 +72,7 @@ describe Omega::Client::DSL do
   end
 
   it "should retrieve the specified system" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       system('system1')
     }
     s = system('system1')
@@ -96,27 +80,27 @@ describe Omega::Client::DSL do
   end
 
   it "should create a new asteroid" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       system('system1') { |s|
-        a = asteroid('ast1') { |a|
-          a.name.should == 'ast1'
+        a = asteroid('nast1') { |a|
+          a.name.should == 'nast1'
         }
-        a.name.should == 'ast1'
+        a.name.should == 'nast1'
       }
     }
-    Cosmos::Registry.instance.find_entity(:id => 'ast1', :type => 'Cosmos::Asteroid').first.should_not be_nil
+    Cosmos::Registry.instance.find_entity(:id => 'nast1', :type => 'Cosmos::Asteroid').first.should_not be_nil
   end
 
   it "should raise error if no system is set when creating asteroid" do
     lambda {
-      asteroid('ast1')
+      asteroid('nast1')
     }.should raise_error(ArgumentError)
   end
 
   it "should create a new resource" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       system('system1') { |s|
-        asteroid('ast1') { |a|
+        asteroid('nast1') { |a|
           res = resource(:name => "res1", :type => 'metal', :quantity => 420) { |r|
             r.name.should == 'res1'
           }
@@ -134,7 +118,7 @@ describe Omega::Client::DSL do
   end
 
   it "should create a new planet" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       system('system1') { |s|
         p = planet('pl1') { |p|
           p.name.should == 'pl1'
@@ -151,7 +135,7 @@ describe Omega::Client::DSL do
   end
 
   it "should create a new moon" do
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       system('system1') { |s|
         planet('pl1') { |p|
           m = moon('mn1') { |m|
@@ -172,7 +156,7 @@ describe Omega::Client::DSL do
 
   it "should create a new jump_gate" do
     s1 = s2 = nil
-    galaxy('gal1') { |g|
+    galaxy('ngal1') { |g|
       s1 = system('system1')
       s2 = system('system2')
     }
@@ -185,7 +169,7 @@ describe Omega::Client::DSL do
 
   it "should create a new station" do
     user('user1', '1resu')
-    galaxy('gal1') { |g| system('system1') }
+    galaxy('ngal1') { |g| system('system1') }
     s = station('st1', :user_id => 'user1', :type => :manufacturing,
                        :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
       s.id.should == 'st1'
@@ -196,7 +180,7 @@ describe Omega::Client::DSL do
 
   it "should create a new ship" do
     user('user2', '2resu')
-    galaxy('gal1') { |g| system('system1') }
+    galaxy('ngal1') { |g| system('system1') }
     s = ship('sh1', :user_id => 'user2', :type => :mining,
                     :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
       s.id.should == 'sh1'

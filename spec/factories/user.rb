@@ -1,7 +1,7 @@
 require 'users/user'
 
 FactoryGirl.define do
-  factory :user, class: Users::User do
+  factory :server_user, class: Users::User do
     password          'super_secret_pass'
     permenant         false
     registration_code nil
@@ -21,18 +21,21 @@ FactoryGirl.define do
     }
   end
 
-  factory :admin, parent: :user do
+  factory :admin, parent: :server_user do
     id                'admin'
     password          'nimda'
     email             'ad@mi.n'
-    permentant        true
+    permenant        true
   end
 
-  factory :reg_user, parent: :user do
+  factory :reg_user, parent: :server_user do
+    id       'reg_user'
+    password 'resu_ger'
+    email    're@gu.ser'
     alliances         { [association(id + "_alliance", strategy: :build)] }
   end
 
-  factory :test_user, parent: :user do
+  factory :test_user, parent: :server_user do
     id                'omega-test'
     email             'om@eg.a'
     password          'tset-agemo'
