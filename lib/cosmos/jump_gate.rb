@@ -25,8 +25,8 @@ class JumpGate
   #   gate which entities can trigger it
   attr_reader   :trigger_distance
 
-  # Cosmos::Asteroid intializer
-  # @param [Hash] args hash of options to initialize asteroid with
+  # Cosmos::JumpGate intializer
+  # @param [Hash] args hash of options to initialize jump gate with
   # @option args [Cosmos::SolarSystem,String] :solar_system,'solar_system'
   #   solar_system which jump gate resides in or its name to be looked up
   #   in the {Cosmos::Registry}
@@ -74,8 +74,8 @@ class JumpGate
   # * endpoint is set to a Cosmos::SolarSystem
   def valid?
     !@location.nil? && @location.is_a?(Motel::Location) && @location.movement_strategy.class == Motel::MovementStrategies::Stopped &&
-    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem)) &&
-    (@endpoint.nil? || @endpoint.is_a?(Cosmos::SolarSystem))
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::SolarSystem) || @solar_system.is_a?(String)) && # XXX don't like this string hack (needed for restore state)
+    (@endpoint.nil? || @endpoint.is_a?(Cosmos::SolarSystem) || @endpoint.is_a?(String))
     # && @solar_system.name != @endpoint.name
   end
 

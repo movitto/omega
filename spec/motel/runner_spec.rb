@@ -8,23 +8,33 @@ require 'spec_helper'
 require 'stringio'
 
 describe Motel::Runner do
+  before(:each) do
+    @loc1 = Motel::Location.new :id => 1, :x => 1, :y => 1, :z => 1,
+                                :movement_strategy => TestMovementStrategy.new
+    @loc2 = Motel::Location.new :id => 2, :x => 2, :y => 2, :z => 2,
+                                :movement_strategy => TestMovementStrategy.new
+    @loc3 = Motel::Location.new :id => 3, :x => 3, :y => 3, :z => 3,
+                                :movement_strategy => TestMovementStrategy.new
+
+    @loc050 = Motel::Location.new :id => 050, :x =>  50, :y =>  50, :z =>  50
+    @loc100 = Motel::Location.new :id => 100, :x => 100, :y => 100, :z => 100,
+                                  :movement_strategy => TestMovementStrategy.new
+    @loc200 = Motel::Location.new :id => 200, :x => 200, :y => 200, :z => 200,
+                                  :movement_strategy => TestMovementStrategy.new
+  end
 
   it "manage array of locations to be run" do
-    loc = Motel::Location.new :id => 50
     Motel::Runner.instance.clear
     Motel::Runner.instance.locations.should == []
-    Motel::Runner.instance.run loc
-    Motel::Runner.instance.locations.should == [loc]
-    Motel::Runner.instance.clear
+    Motel::Runner.instance.run @loc050
+    Motel::Runner.instance.locations.should == [@loc050]
   end
 
   it "should run managed locations" do
-    loc1 = Motel::Location.new :id => 100, :movement_strategy => TestMovementStrategy.new
-    loc2 = Motel::Location.new :id => 200, :movement_strategy => TestMovementStrategy.new
-    Motel::Runner.instance.clear
-    Motel::Runner.instance.run loc1
-    Motel::Runner.instance.run loc2
-    Motel::Runner.instance.locations.size.should == 2
+    old = Motel::Runner.instance.locations.size
+    Motel::Runner.instance.run @loc100
+    Motel::Runner.instance.run @loc200
+    Motel::Runner.instance.locations.size.should == old + 2
 
     # TODO ensure movement + proximity callbacks are invoked
 
@@ -36,37 +46,32 @@ describe Motel::Runner do
     # sleep here to allow move to be called
     sleep 2
 
-    Motel::Runner.instance.stop
-    Motel::Runner.instance.terminate.should == true
+    #Motel::Runner.instance.stop
+    #Motel::Runner.instance.terminate.should == true
 
-    Motel::Runner.instance.join
-    Motel::Runner.instance.run_thread.should == nil
+    #Motel::Runner.instance.join
+    #Motel::Runner.instance.run_thread.should == nil
 
-    loc1.movement_strategy.times_moved.should be > 0
-    loc2.movement_strategy.times_moved.should be > 0
+    @loc100.movement_strategy.times_moved.should be > 0
+    @loc200.movement_strategy.times_moved.should be > 0
   end
 
   it "should set id on managed location to be run if missing" do
-    loc1 = Motel::Location.new :id => 1, :movement_strategy => TestMovementStrategy.new
-    loc3 = Motel::Location.new :id => 3, :movement_strategy => TestMovementStrategy.new
-    Motel::Runner.instance.clear
-    Motel::Runner.instance.run loc1
-    Motel::Runner.instance.run loc3
-    Motel::Runner.instance.locations.size.should == 2
+    old = Motel::Runner.instance.locations.size
+    Motel::Runner.instance.run @loc100
+    Motel::Runner.instance.run @loc200
+    Motel::Runner.instance.locations.size.should == old + 2
 
-    loc2 = Motel::Location.new :movement_strategy => TestMovementStrategy.new
-    loc2a = Motel::Runner.instance.run loc2
-    loc2.id.should == 2
-    Motel::Runner.instance.locations.size.should == 3
+    loc2a = Motel::Runner.instance.run @loc2
+    loc2a.id.should == 2
+    Motel::Runner.instance.locations.size.should == old + 3
   end
 
   it "should save running locations to io object" do
-    loc1 = Motel::Location.new :id => 1, :movement_strategy => TestMovementStrategy.new
-    loc3 = Motel::Location.new :id => 3, :movement_strategy => TestMovementStrategy.new
-    Motel::Runner.instance.clear
-    Motel::Runner.instance.run loc1
-    Motel::Runner.instance.run loc3
-    Motel::Runner.instance.locations.size.should == 2
+    old = Motel::Runner.instance.locations.size
+    Motel::Runner.instance.run @loc1
+    Motel::Runner.instance.run @loc2
+    Motel::Runner.instance.locations.size.should == old + 2
 
     sio = StringIO.new
     Motel::Runner.instance.save_state(sio)

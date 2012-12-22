@@ -112,10 +112,7 @@ class RJRAdapter
            @@local_node.invoke_request('users::add_privilege', role_id, 'modify', "users_entity-#{entity.id}")
            @@local_node.invoke_request('users::add_privilege', role_id, 'modify', "user-#{entity.id}")
          end
-
-
        end
-
 
        entity
     }

@@ -148,6 +148,7 @@ module Omega
       def node=(node)
 Omega::Client::Node.refresh_time = 1
         # set default server endpoint depending on node type
+        # TODO this should be configured elsewhere
         Omega::Client::Node.server_endpoint =
           case node.class::RJR_NODE_TYPE
             when :amqp then 'omega-queue'
@@ -180,6 +181,11 @@ Omega::Client::Node.refresh_time = 1
       # invoked directly on class
       def self.method_missing(method_id, *args, &bl)
         Node.instance.send method_id, *args, &bl
+      end
+
+      # Default to rjr node for missing methods
+      def method_missing(method_id, *args, &bl)
+        @node.send method_id, *args, &bl
       end
 
       # Clear local registry
