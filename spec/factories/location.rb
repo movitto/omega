@@ -202,4 +202,6 @@ FactoryGirl.define do
     parent_id 300
   end
 
+  # 2000's reserved for locations in actual specs
+
 end

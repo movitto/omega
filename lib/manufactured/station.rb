@@ -385,9 +385,9 @@ class Station
         dx = (entity.location.x - self.location.x) / distance
         dy = (entity.location.y - self.location.y) / distance
         dz = (entity.location.z - self.location.z) / distance
-        entity.location.x = dx * @construction_distance
-        entity.location.y = dy * @construction_distance
-        entity.location.z = dz * @construction_distance
+        entity.location.x = self.location.x + dx * @construction_distance
+        entity.location.y = self.location.y + dy * @construction_distance
+        entity.location.z = self.location.z + dz * @construction_distance
       end
     end
 
