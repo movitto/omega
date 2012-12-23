@@ -28,7 +28,7 @@ class Runner
     @locations_lock  = Mutex.new
 
     @next_id = 1
-    @delay   = nil
+    @delay   = 1
   end
 
   # Run the specified block of code as a protected operation.
@@ -87,6 +87,8 @@ class Runner
         @locations.sort { |a,b| 
           a.movement_strategy.step_delay <=> b.movement_strategy.step_delay 
         }.first.movement_strategy.step_delay
+
+      # TODO wake up run_thread
     }
     return location
   end
@@ -98,7 +100,8 @@ class Runner
   end
 
   # Start running the locations.
-  def start(args = {})
+  def start
+    return unless @run_thread.nil?
     @terminate = false
 
     RJR::Logger.debug "starting motel runner"
@@ -141,19 +144,17 @@ class Runner
     # Internal helper method performing main runner operations
     def run_cycle
       until @terminate
-        @locations_lock.synchronize{
-          @locations.each { |loc|
-            if (Time.now - @timestamps[loc.id]) > loc.movement_strategy.step_delay
-              RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
-              #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
+        self.locations.each { |loc|
+          if (Time.now - @timestamps[loc.id]) > loc.movement_strategy.step_delay
+            RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
+            #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
 
-              # store the old location coordinates for comparison after the movement
-              old_coords = [loc.x, loc.y, loc.z]
+            # store the old location coordinates for comparison after the movement
+            old_coords = [loc.x, loc.y, loc.z]
 
-              elapsed = Time.now - @timestamps[loc.id]
-              loc.movement_strategy.move loc, elapsed
-              @timestamps[loc.id] = Time.now
-            end
+            elapsed = Time.now - @timestamps[loc.id]
+            loc.movement_strategy.move loc, elapsed
+            @timestamps[loc.id] = Time.now
 
             # TODO invoke these async so as not to hold up the runner
             # TODO delete movement callbacks after they are invoked?
@@ -163,14 +164,14 @@ class Runner
             loc.movement_callbacks.each { |callback|
               callback.invoke(loc, *old_coords)
             }
-          }
+          end
+        }
 
-          # invoke all proximity_callbacks
-          # see comments about movement_callbacks above
-          @locations.each { |loc|
-            loc.proximity_callbacks.each { |callback|
-              callback.invoke(loc)
-            }
+        # invoke all proximity_callbacks
+        # see comments about movement_callbacks above
+        @locations.each { |loc|
+          loc.proximity_callbacks.each { |callback|
+            callback.invoke(loc)
           }
         }
 

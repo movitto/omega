@@ -15,7 +15,7 @@ class RJRAdapter
   # Initialize the Motel subsystem and rjr adapter.
   def self.init
     self.register_handlers(RJR::Dispatcher)
-    Motel::Runner.instance.start :async => true
+    Motel::Runner.instance.start
     @@remote_location_manager = RemoteLocationManager.new
   end
 
