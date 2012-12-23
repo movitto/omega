@@ -143,7 +143,7 @@ module Omega
         end
       end
 
-      private
+      #private
 
       # Internal helper, move to the closest station owned by user and
       # transfer resources to it

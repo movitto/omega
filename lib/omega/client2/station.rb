@@ -27,7 +27,7 @@ module Omega
       # Get/set the type of entity to construct using this station
       def entity_type(val=nil)
         return @entity_type if val.nil?
-        @entity_type = construction_options(entity_type)
+        @entity_type = construction_options(val)
       end
 
       # Start the omega client bot
@@ -36,7 +36,7 @@ module Omega
         self.start_construction
       end
 
-      private
+      #private
 
       # Internal helper, begin construction cycle
       def start_construction
@@ -50,9 +50,9 @@ module Omega
       # Internal helper, pick system with no stations or the fewest stations
       # and jump to it
       def pick_system
-        system = System.with_fewest("Manufactured::Station")
+        system = Omega::Client::SolarSystem.with_fewest("Manufactured::Station")
         # TODO first determine if there are systems w/ no stations
-        self.jump_to(system)
+        self.jump_to(system) if system.name != self.solar_system.name
       end
 
       # Internal helper, generate construction options from high level entity type
