@@ -44,7 +44,10 @@ RSpec.configure do |config|
   }
 
   config.after(:each) {
+    Manufactured::Registry.instance.init
+    Cosmos::Registry.instance.init
     Motel::Runner.instance.clear
+    Users::Registry.instance.init
   }
   config.after(:all) {
   }
