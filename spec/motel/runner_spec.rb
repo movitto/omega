@@ -17,9 +17,9 @@ describe Motel::Runner do
                                 :movement_strategy => TestMovementStrategy.new
 
     @loc050 = Motel::Location.new :id => 050, :x =>  50, :y =>  50, :z =>  50
-    @loc100 = Motel::Location.new :id => 100, :x => 100, :y => 100, :z => 100,
+    @loc100 = Motel::Location.new :id => 2100, :x => 100, :y => 100, :z => 100,
                                   :movement_strategy => TestMovementStrategy.new
-    @loc200 = Motel::Location.new :id => 200, :x => 200, :y => 200, :z => 200,
+    @loc200 = Motel::Location.new :id => 2200, :x => 200, :y => 200, :z => 200,
                                   :movement_strategy => TestMovementStrategy.new
   end
 
@@ -38,18 +38,18 @@ describe Motel::Runner do
 
     # TODO ensure movement + proximity callbacks are invoked
 
-    Motel::Runner.instance.start :async => true, :num_threads => 10
+    Motel::Runner.instance.start
     #Motel::Runner.instance.thread_pool.should_not == nil
     #Motel::Runner.instance.thread_pool.max_size.should == 10
-    Motel::Runner.instance.terminate.should == false
+    Motel::Runner.instance.instance_variable_get(:@terminate).should == false
 
     # sleep here to allow move to be called
     sleep 2
 
-    #Motel::Runner.instance.stop
-    #Motel::Runner.instance.terminate.should == true
+    Motel::Runner.instance.stop
+    Motel::Runner.instance.instance_variable_get(:@terminate).should == true
 
-    #Motel::Runner.instance.join
+    Motel::Runner.instance.join
     #Motel::Runner.instance.run_thread.should == nil
 
     @loc100.movement_strategy.times_moved.should be > 0

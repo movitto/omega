@@ -1,4 +1,4 @@
-# Defines the LocationRunner and Runner classes, core to the motel engine,
+# Defines the Runner class, core to the motel engine,
 # and is responsible for managing locations and moving them according to
 # their corresponding movement_strategies
 #
@@ -12,14 +12,9 @@ require 'rjr/common'
 module Motel
 
 # Motel::Runner is a singleton class/object which acts as the primary
-# mechanism to run locations in the system. It contains a thread pool
-# which contains a specified number of threads which to move the managed
-# locations in accordance to their location strategies.
+# mechanism to run locations in the system.
 class Runner
   include Singleton
-
-  # For testing purposes
-  attr_reader :terminate, :run_thread
 
    # Runner initializer
    #
@@ -28,19 +23,12 @@ class Runner
     # is set to true upon runner termination
     @terminate = false
 
-    # TODO use ruby tree to store locations w/ heirarchy ?
-    # management queues, locations to be scheduled and locations to be run
-    @schedule_queue = []
-    @run_queue = []
+    @locations      = []
+    @timestamps     = {}
+    @locations_lock  = Mutex.new
 
-
-    # locks protecting queues from concurrent access and conditions indicating queues have items
-    @schedule_lock  = Mutex.new
-    @run_lock       = Mutex.new
-    @schedule_cv    = ConditionVariable.new
-    @run_cv         = ConditionVariable.new
-
-    @run_thread = nil
+    @next_id = 1
+    @delay   = nil
   end
 
   # Run the specified block of code as a protected operation.
@@ -51,10 +39,8 @@ class Runner
   # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
   # @param [Callable] bl block to invoke
   def safely_run(*args, &bl)
-    @schedule_lock.synchronize {
-      @run_lock.synchronize {
-        bl.call *args
-      }
+    @locations_lock.synchronize {
+      bl.call *args
     }
   end
 
@@ -63,17 +49,7 @@ class Runner
   #
   # @return [Array<Motel::Location>]
   def locations
-    ret = []
-    # would rather not have to lock these both at the same time,
-    # but if locked independenly, the queues can be maniupulated
-    # inbetween the locks
-    @schedule_lock.synchronize {
-      @run_lock.synchronize {
-        @schedule_queue.each { |l| ret << l }
-        @run_queue.each { |l| ret << l }
-      }
-    }
-    return ret
+    @locations_lock.synchronize { @locations }
   end
 
   # Return boolean indicating if the specified location id is tracked by this runner
@@ -81,16 +57,12 @@ class Runner
   # @param [Integer] id id of location to look for
   # @return [true,false] indicating if location is tracked locally
   def has_location?(id)
-    !locations.find { |l| l.id == id }.nil?
+    !self.locations.find { |l| l.id == id }.nil?
   end
 
   # Empty the list of locations being managed/tracked
   def clear
-    @schedule_lock.synchronize {
-      @run_lock.synchronize {
-        @schedule_queue.clear
-        @run_queue.clear
-    }}
+    @locations_lock.synchronize { @locations.clear }
   end
 
   # Add location to runner to be managed.
@@ -99,22 +71,22 @@ class Runner
   # @param [Motel::Location] location location to add the the run queue
   # @return [Motel::Location] location just added
   def run(location)
-    @schedule_lock.synchronize {
+    @locations_lock.synchronize {
       # autogenerate location.id if nil
       if location.id.nil?
-        @run_lock.synchronize {
-          i = 1
-          until false
-            break if @schedule_queue.find { |l| l.id == i }.nil? && @run_queue.find { |l| l.id == i }.nil?
-            i += 1
-          end
-          location.id = i
-        }
+        @next_id  += 1 until @locations.find { |l| l.id == @next_id }.nil?
+        location.id = @next_id
       end
 
-      RJR::Logger.debug "adding location #{location.id} to runner queue"
-      @schedule_queue.push location
-      @schedule_cv.signal
+      RJR::Logger.debug "adding location #{location.id} to runner"
+      @locations.push location
+      @timestamps[location.id] = Time.now
+
+      # find smallest step_delay
+      @delay =
+        @locations.sort { |a,b| 
+          a.movement_strategy.step_delay <=> b.movement_strategy.step_delay 
+        }.first.movement_strategy.step_delay
     }
     return location
   end
@@ -126,38 +98,17 @@ class Runner
   end
 
   # Start running the locations.
-  #
-  # If :async => true is passed in, this will immediately return,
-  # else this will block until stop is called.
-  #
-  # @param [Hash] args option array of args which can be used to configure runner
-  # @option args [true,false] :async boolean indicating if we should immediately return or not
-  # @option args [Integer] :num_threads the number of worker threads to launch, currently unusued
   def start(args = {})
-    @num_threads = 5
-    @num_threads = args[:num_threads] if args.has_key? :num_threads
     @terminate = false
 
-    if args.has_key?(:async) && args[:async]
-      RJR::Logger.debug "starting async motel runner"
-      @run_thread = Thread.new { run_cycle }
-    else
-      RJR::Logger.debug "starting motel runner"
-      run_cycle
-    end
-
+    RJR::Logger.debug "starting motel runner"
+    @run_thread = Thread.new { run_cycle }
   end
 
   # Stop locations movement
   def stop
     RJR::Logger.debug "stopping motel runner"
     @terminate = true
-    @schedule_lock.synchronize {
-      @schedule_cv.signal
-    }
-    @run_lock.synchronize {
-      @run_cv.signal
-    }
     join
     RJR::Logger.debug "motel runner stopped"
   end
@@ -170,11 +121,8 @@ class Runner
 
   # Save state of the runner to specified io stream
   def save_state(io)
-    locs = locations
-    @schedule_lock.synchronize {
-      @run_lock.synchronize {
-        locs.each { |loc| io.write loc.to_json + "\n" }
-      }
+    @locations_lock.synchronize {
+      @locations.each { |loc| io.write loc.to_json + "\n" }
     }
   end
 
@@ -192,109 +140,43 @@ class Runner
 
     # Internal helper method performing main runner operations
     def run_cycle
-      # location ids which are currently being run -> their run timestamp
-      location_timestamps = {}
+      until @terminate
+        @locations_lock.synchronize{
+          @locations.each { |loc|
+            if (Time.now - @timestamps[loc.id]) > loc.movement_strategy.step_delay
+              RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
+              #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
 
-      # scheduler thread, to add locations to the run queue
-      scheduler = Thread.new {
-        until @terminate
-          tqueue       = []
-          locs_to_run  = []
-          empty_queue  = true
-          min_delay    = nil
+              # store the old location coordinates for comparison after the movement
+              old_coords = [loc.x, loc.y, loc.z]
 
-          @schedule_lock.synchronize {
-            # if no locations are to be scheduled, block until there are
-            @schedule_cv.wait(@schedule_lock) if @schedule_queue.empty?
-            @schedule_queue.each { |l| tqueue << l }
-          }
+              elapsed = Time.now - @timestamps[loc.id]
+              loc.movement_strategy.move loc, elapsed
+              @timestamps[loc.id] = Time.now
+            end
 
-          # run through each location to be scheduled to run, see which ones are due
-          tqueue.each { |loc|
-            location_timestamps[loc.id] = Time.now unless location_timestamps.has_key?(loc.id)
-            locs_to_run << loc if loc.movement_strategy.step_delay < Time.now - location_timestamps[loc.id]
-          }
-
-          # add those the the run queue, signal runner to start operations if blocking
-          @schedule_lock.synchronize {
-            @run_lock.synchronize{
-              locs_to_run.each { |loc| @run_queue << loc ; @schedule_queue.delete(loc) }
-              empty_queue = (@schedule_queue.size == 0)
-              @run_cv.signal unless locs_to_run.empty?
+            # TODO invoke these async so as not to hold up the runner
+            # TODO delete movement callbacks after they are invoked?
+            # TODO prioritize callbacks registered over the local rjr transport
+            #      over others
+            # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
+            loc.movement_callbacks.each { |callback|
+              callback.invoke(loc, *old_coords)
             }
           }
 
-          # if there are locations still to be scheduled, sleep for the smallest step_delay
-          unless empty_queue
-            # we use locations instead of @schedule_queue here since a when the scheduler is
-            # sleeping a loc w/ a smaller step_delay may complete running and be added back to the scheduler
-            min_delay= locations.sort { |a,b| 
-              a.movement_strategy.step_delay <=> b.movement_strategy.step_delay 
-            }.first.movement_strategy.step_delay
-            sleep min_delay
-          end
-        end
-      }
-
-      # until we are told to stop
-      until @terminate
-        locs_to_schedule = []
-        tqueue           = []
-
-        @run_lock.synchronize{
-          # wait until we have locations to run
-          @run_cv.wait(@run_lock) if @run_queue.empty?
-          @run_queue.each { |l| tqueue << l }
-        }
-
-        # run through each location to be run, perform actual movement, invoke callbacks
-        tqueue.each { |loc|
-          RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
-          #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
-
-          # store the old location coordinates for comparison after the movement
-          old_coords = [loc.x, loc.y, loc.z]
-
-          elapsed = Time.now - location_timestamps[loc.id]
-          safely_run { # TODO not a huge fan of using global sync lock here, would rather use a location specific one (so long as other updates to the location make use of it as well)
-            loc.movement_strategy.move loc, elapsed
-          }
-          location_timestamps[loc.id] = Time.now
-
-          # invoke movement_callbacks for location moved
-          # TODO invoke these async so as not to hold up the runner
-          # TODO delete movement callbacks after they are invoked?
-          # TODO prioritize callbacks registered over the local rjr transport
-          #      over others
-          # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
-          loc.movement_callbacks.each { |callback|
-            callback.invoke(loc, *old_coords)
-          }
-
-          locs_to_schedule << loc
-        }
-
-        # invoke all proximity_callbacks
-        # see comments about movement_callbacks above
-        locations.each { |loc|
-          loc.proximity_callbacks.each { |callback|
-            callback.invoke(loc)
+          # invoke all proximity_callbacks
+          # see comments about movement_callbacks above
+          @locations.each { |loc|
+            loc.proximity_callbacks.each { |callback|
+              callback.invoke(loc)
+            }
           }
         }
 
-
-        # add locations back to schedule queue
-        @schedule_lock.synchronize{
-          @run_lock.synchronize{
-            locs_to_schedule.each { |loc| @schedule_queue << loc ; @run_queue.delete(loc) }
-            @schedule_cv.signal unless locs_to_schedule.empty?
-          }
-        }
+        sleep @delay
       end
-
-      scheduler.join
     end
-
 end
 
 end # module motel
