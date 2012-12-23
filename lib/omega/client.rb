@@ -91,9 +91,11 @@ module Omega
       # @param [Users::Role,String] nrole name of role to add to user or Users::Role to create on the server side
       def role(nrole)
         if @user
+          RJR::Logger.info "Adding role #{nrole} to #{@user}"
           Omega::Client::Node.invoke_request('users::add_role', @user.id, nrole)
 
         else
+          RJR::Logger.info "Creating role #{nrole}"
           Omega::Client::Node.invoke_request('users::create_entity', nrole)
         end
       end
@@ -107,6 +109,7 @@ module Omega
       # @return [Users::Alliance] alliance created
       def alliance(id, args = {}, &bl)
         alliance = Users::Alliance.new(args.merge({:id => id}))
+        RJR::Logger.info "Creating alliance #{alliance}"
         Omega::Client::Node.invoke_request 'users::create_entity', alliance
         alliance
       end
@@ -119,6 +122,7 @@ module Omega
       # @return [Cosmos::Galaxy] galaxy created
       def galaxy(name, &bl)
         @galaxy = Cosmos::Galaxy.new :name => name
+        RJR::Logger.info "Creating galaxy #{@galaxy}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', @galaxy, :universe
         bl.call @galaxy unless bl.nil?
         @galaxy
@@ -144,8 +148,10 @@ module Omega
         raise ArgumentError, "galaxy must not be nil" if @galaxy.nil?
         @system = Cosmos::SolarSystem.new(args.merge({:name => id, :galaxy => @galaxy}))
         star = Cosmos::Star.new :name => star_id, :solar_system => @system
+        RJR::Logger.info "Creating solar system #{@system} under #{@galaxy.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', @system, @galaxy.name
         unless star_id.nil?
+          RJR::Logger.info "Creating star #{star} in #{@system.name}"
           Omega::Client::Node.invoke_request 'cosmos::create_entity', star, @system.name
         end
         bl.call @system unless bl.nil?
@@ -164,6 +170,7 @@ module Omega
       def asteroid(id, args={}, &bl)
         raise ArgumentError, "system must not be nil" if @system.nil?
         @asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => @system}))
+        RJR::Logger.info "Creating asteroid #{@asteroid} in #{@system.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', @asteroid, @system.name
         bl.call @asteroid unless bl.nil?
         @asteroid
@@ -179,7 +186,9 @@ module Omega
       def resource(args = {})
         raise ArgumentError, "asteroid must not be nil" if @asteroid.nil?
         resource = Cosmos::Resource.new(args)
-        Omega::Client::Node.invoke_request 'cosmos::set_resource', @asteroid.name, resource, args[:quantity]
+        quantity = args[:quantity]
+        RJR::Logger.info "Adding #{quantity} of resource #{resource.id} to #{@asteroid.name}"
+        Omega::Client::Node.invoke_request 'cosmos::set_resource', @asteroid.name, resource, quantity
         resource
       end
 
@@ -195,6 +204,7 @@ module Omega
       def planet(id, args={}, &bl)
         raise ArgumentError, "system must not be nil" if @system.nil?
         @planet = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
+        RJR::Logger.info "Creating planet #{@planet} under #{@system.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', @planet, @system.name
         bl.call @planet unless bl.nil?
         @planet
@@ -211,6 +221,7 @@ module Omega
       def moon(id, args={})
         raise ArgumentError, "planet must not be nil" if @planet.nil?
         moon = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
+        RJR::Logger.info "Creating moon #{moon} under #{@planet.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', moon, @planet.name
         moon
       end
@@ -223,6 +234,7 @@ module Omega
       # @return [Cosmos::JumpGate] jump gate created
       def jump_gate(system, endpoint, args = {})
         gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
+        RJR::Logger.info "Creating gate #{gate} under #{system.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', gate, system.name
         gate
       end
@@ -239,6 +251,7 @@ module Omega
       def station(id, args={}, &bl)
         st = Manufactured::Station.new(args.merge({:id => id}))
         bl.call st unless bl.nil?
+        RJR::Logger.info "Creating station #{st}"
         Omega::Client::Node.invoke_request 'manufactured::create_entity', st
         st
       end
@@ -255,6 +268,7 @@ module Omega
       def ship(id, args={}, &bl)
         sh = Manufactured::Ship.new(args.merge({:id => id}))
         bl.call sh unless bl.nil?
+        RJR::Logger.info "Creating ship #{sh}"
         Omega::Client::Node.invoke_request 'manufactured::create_entity', sh
         sh
       end
