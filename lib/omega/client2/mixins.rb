@@ -604,11 +604,13 @@ module Omega
         nloc = Motel::Location.new(:parent_id => self.location.parent_id,
                                    :x => loc.x, :y => loc.y, :z => loc.z)
         handle_event :movement, (self.location - nloc), &cb unless cb.nil?
+        RJR::Logger.info "Moving #{self.id} to #{nloc}"
         Node.invoke_request 'manufactured::move_entity', self.id, nloc
       end
 
       # Invoke a server side request to stop movement
       def stop_moving
+        RJR::Logger.info "Stopping movement of #{self.id}"
         Node.invoke_request 'manufactured::stop_entity', self.id
       end
 
@@ -627,6 +629,7 @@ module Omega
         loc    = Motel::Location.new
         loc.update self.location
         loc.parent_id = system.location.id
+        RJR::Logger.info "Jumping #{self.entity.id} to #{system}"
         Node.invoke_request 'manufactured::move_entity', self.entity.id, loc
         Node.raise_event(:jumped, self)
       end
@@ -675,6 +678,7 @@ module Omega
       # @param [Cosmos::ResourceSource] resource_source resource to start mining
       def mine(resource_source)
         # TODO catch start_mining errors ?
+        RJR::Logger.info "Starting to mine #{resource_source.resource.id} at #{resource_source.entity.name} with #{self.id}"
         Node.invoke_request 'manufactured::start_mining',
                    self.id, resource_source.entity.name,
                             resource_source.resource.id
@@ -688,6 +692,7 @@ module Omega
       #
       # @param [Manufactured::Ship,Manufactured::Station] target entity to attack
       def attack(target)
+        RJR::Logger.info "Starting to attack #{target.id} with #{self.id}"
         Node.invoke_request 'manufactured::attack_entity', self.id, target.id
       end
 
@@ -720,6 +725,7 @@ module Omega
         resource_id = args[:of]
         target      = args[:to]
 
+        RJR::Logger.info "Transferring #{quantity} of #{resource_id} from #{self.id} to #{target.id}"
         Node.invoke_request 'manufactured::transfer_resource',
                      self.id, target.id, resource_id, quantity
         Node.raise_event(:transferred, self,   target, resource_id, quantity)
@@ -738,6 +744,7 @@ module Omega
       # @param [Hash] args hash of args to be converted to array and passed to
       #   server construction operation verbatim
       def construct(entity_type, args={})
+        RJR::Logger.info "Constructing #{entity_type} with #{self.entity.id}"
         constructed = Node.invoke_request 'manufactured::construct_entity',
                           self.entity.id, entity_type, *(args.to_a.flatten)
         Node.raise_event(:constructed, self.entity, constructed)
