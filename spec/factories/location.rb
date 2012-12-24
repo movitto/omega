@@ -202,6 +202,15 @@ FactoryGirl.define do
     parent_id 300
   end
 
+  factory :ship6_location, parent: :server_location do
+    id   1005
+    x     -95
+    y     130
+    z     140
+
+    parent_id 300
+  end
+
   # 2000's reserved for locations in actual specs
 
 end

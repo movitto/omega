@@ -121,7 +121,7 @@ describe Omega::Client::RemotelyTrackable do
 
   it "should retrieve all server entities" do
     ships = TestShip.get_all
-    ships.size.should == 5
+    ships.size.should == 6
     ships.first.id.should == @ship1.id
   end
 

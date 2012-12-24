@@ -88,6 +88,8 @@ module Omega
       # @param [Callable] bl callback to be invoked on entity event
       def handle_event(event, *setup_args, &bl)
         event_setup = self.class.instance_variable_get("@event_setup_#{event}".intern)
+        # XXX hack
+        event_setup = self.class.superclass.instance_variable_get("@event_setup_#{event}".intern) if event_setup.nil?
         event_setup.each { |cb| instance_exec(*setup_args, &cb) } unless event_setup.nil?
         #self.class.instance_variable_set("@event_setup_#{event}".intern, nil)
         Node.add_event_handler self.id, event, &bl
@@ -442,7 +444,7 @@ module Omega
             return if @handle_state_updates
             @handle_state_updates = true
 
-            e.handle_event(:updated){
+            e.handle_event('all'){
               #return if @updating_state
               #@updating_state = true
               @condition_checks.each { |st,check|

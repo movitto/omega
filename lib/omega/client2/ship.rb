@@ -173,7 +173,10 @@ module Omega
         else
           dst = self.mining_distance / 4
           nl  = rs.location + [dst,dst,dst]
-          move_to(:location => nl) { |*args| mine(rs) }
+          rs  = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
+          move_to(:location => nl) { |*args|
+            mine(rs)
+          }
         end
       end
 

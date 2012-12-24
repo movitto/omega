@@ -323,13 +323,20 @@ Omega::Client::Node.refresh_time = 1
           return if @event_cycle
           @event_cycle = true
 
+# FIXME schedule once and remove size check from while loop
           @node.em_repeat_async(Omega::Client::Node.refresh_time) {
             while @event_queue.size > 0 && event = @event_queue.pop
               method,args = event.first,event.last
               entity_id = id_from_event_args(args)  # extract id
-              @event_handlers[entity_id][method].each { |cb|
-                cb.call(*args)
-              } if @event_handlers[entity_id] && @event_handlers[entity_id][method]
+              if @event_handlers[entity_id]
+                @event_handlers[entity_id][method].each { |cb|
+                  cb.call(*args)
+                } if @event_handlers[entity_id][method]
+
+                @event_handlers[entity_id]['all'].each { |cb|
+                  cb.call(*args)
+                } if @event_handlers[entity_id]['all']
+              end
             end
           }
         }
