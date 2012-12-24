@@ -124,7 +124,7 @@ describe Omega::Client::Node do
     # XXX need to use a local node instance directly to prevent a deadlock
     # here (invoke_request locks node, and response will try to when setting result)
     Node.instance.instance_variable_get(:@node).invoke_request "motel::on_movement", te.location
-    sleep(Omega::Client::Node.refresh_time + 0.1)
+    sleep 1
     invoked.should == true
   end
 
@@ -138,7 +138,6 @@ describe Omega::Client::Node do
       b.should == :foobar
     }
     Node.raise_event :foovent, te, :foobar
-    sleep(Omega::Client::Node.refresh_time + 0.1)
     invoked.should be_true
   end
 
@@ -149,7 +148,6 @@ describe Omega::Client::Node do
       invoked = true
     }
     Node.set(te)
-    sleep(Omega::Client::Node.refresh_time + 0.1)
     invoked.should be_true
   end
 

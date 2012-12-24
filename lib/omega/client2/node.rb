@@ -118,10 +118,6 @@ module Omega
         # @!scope class
         attr_accessor :server_endpoint
 
-        # Integer seconds which to wait inbetween checking for new events
-        # @!scope class
-        attr_accessor :refresh_time
-
         # Username to use to login to server
         # @!scope class
         attr_accessor :client_username
@@ -136,7 +132,6 @@ module Omega
         @registry       = {}
         @event_handlers = {}
         @refresh_list   = {}
-        @event_queue    = Queue.new
         @lock           = Mutex.new
       end
 
@@ -146,7 +141,6 @@ module Omega
       #
       # @param [RJR::Node] node rjr node subclass to use as transport
       def node=(node)
-Omega::Client::Node.refresh_time = 1
         # set default server endpoint depending on node type
         # TODO this should be configured elsewhere
         Omega::Client::Node.server_endpoint =
@@ -193,7 +187,6 @@ Omega::Client::Node.refresh_time = 1
         @lock.synchronize{
           @registry.clear
         }
-        @event_queue.clear
       end
 
       # Return local copy of server side entity corresponding to id
@@ -303,43 +296,23 @@ Omega::Client::Node.refresh_time = 1
       end
 
 
-      # Add the specified event to the event queue. Starts up
-      # the event processor if it is not already running.
-      #
-      # The event processor will sequentially run through
-      # the events, extracting the entity id from the args,
-      # and invoke the handler registered for the entity/event
-      # (if any)
+      # Raise the specified event, invoking handlers registered
+      # for the event or all events
       #
       # @param [Symbol] method identifier of the event being raised
       # @param [Array<Object>] all additional params are captured and
       #   registered with event
       def raise_event(method, *args)
-        event = [method, args]
-        @event_queue.push(event)
+        entity_id = id_from_event_args(args)  # extract id
+        if @event_handlers[entity_id]
+          @event_handlers[entity_id][method].each { |cb|
+            cb.call(*args)
+          } if @event_handlers[entity_id][method]
 
-        # FIXME simplify, we don't need an external loop
-        @lock.synchronize{
-          return if @event_cycle
-          @event_cycle = true
-
-# FIXME schedule once and remove size check from while loop
-          @node.em_repeat_async(Omega::Client::Node.refresh_time) {
-            while @event_queue.size > 0 && event = @event_queue.pop
-              method,args = event.first,event.last
-              entity_id = id_from_event_args(args)  # extract id
-              if @event_handlers[entity_id]
-                @event_handlers[entity_id][method].each { |cb|
-                  cb.call(*args)
-                } if @event_handlers[entity_id][method]
-
-                @event_handlers[entity_id]['all'].each { |cb|
-                  cb.call(*args)
-                } if @event_handlers[entity_id]['all']
-              end
-            end
-          }
-        }
+          @event_handlers[entity_id]['all'].each { |cb|
+            cb.call(*args)
+          } if @event_handlers[entity_id]['all']
+        end
       end
 
       # Register the block to be invoked upon the specified event

@@ -48,7 +48,6 @@ describe Omega::Client::RemotelyTrackable do
     }
 
     ts = TestShip.get(@ship1.id)
-    sleep(Omega::Client::Node.refresh_time + 0.1)
     invoked.should > 1
   end
 
@@ -162,7 +161,6 @@ describe Omega::Client::TrackState do
     # TODO should check immediately on creation
     toggle.should.should be_true
     Omega::Client::Node.raise_event(:updated, te)
-    sleep(Omega::Client::Node.refresh_time + 0.1)
     toggle.should be_false
   end
 
@@ -179,7 +177,6 @@ describe Omega::Client::TrackState do
 
     # see todo in previous test
     Omega::Client::Node.raise_event(:updated, te)
-    sleep(Omega::Client::Node.refresh_time + 0.1)
 
     te.instance_variable_get(:@toggled).should be_true
     te.instance_variable_get(:@current_states).should include(:test_state)
@@ -189,7 +186,6 @@ describe Omega::Client::TrackState do
     off_called.should be_false
 
     Omega::Client::Node.raise_event(:updated, te)
-    sleep(Omega::Client::Node.refresh_time + 0.1)
     te.instance_variable_get(:@toggled).should be_false
     te.instance_variable_get(:@current_states).should_not include(:test_state)
     te.instance_variable_get(:@off_toggles_called).should be_true

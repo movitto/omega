@@ -44,6 +44,7 @@ RSpec.configure do |config|
   }
 
   config.after(:each) {
+    Omega::Client::Node.clear
     Manufactured::Registry.instance.init
     Cosmos::Registry.instance.init
     Motel::Runner.instance.clear

@@ -61,7 +61,6 @@ describe Omega::Client::Ship do
     cship2.transfer 50, :of => 'metal-alluminum', :to => cship1
     Manufactured::Registry.instance.ships.find { |s| s.id == @ship2.id }.resources.should be_empty
     Manufactured::Registry.instance.ships.find { |s| s.id == @ship1.id }.resources.should_not be_empty
-sleep 1
     transferred_event.should be_true
     # TODO test defended events
   end
@@ -79,6 +78,10 @@ describe Omega::Client::Miner do
                            Omega::Roles::ENTITIES_COSMOS)
     TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
                            Omega::Roles::ENTITIES_MANUFACTURED)
+
+    # XXX need to preload a client station for 'closest' call in miner
+    @stat5  = FactoryGirl.build(:station5)
+    @cstat5 = Omega::Client::Station.get('station5')
   end
 
   it "should validate ship type" do
@@ -91,10 +94,6 @@ describe Omega::Client::Miner do
   # test resource_collected, mining_stopped
 
   it "should detect cargo state" do
-stat5  = FactoryGirl.build(:station5)
-cstat5 = Omega::Client::Station.get('station5')
-##
-
     cship5 = Omega::Client::Ship.get('ship5')
     cship6 = Omega::Client::Miner.get('ship6')
 
@@ -103,7 +102,6 @@ cstat5 = Omega::Client::Station.get('station5')
     cship6.instance_variable_get(:@current_states).should_not include(:cargo_full)
 
     cship5.transfer 100, :of => 'metal-steel', :to => cship6
-sleep 1
     cship6.cargo_full?.should be_true
     cship6.instance_variable_get(:@current_states).should include(:cargo_full)
   end
