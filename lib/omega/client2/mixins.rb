@@ -701,6 +701,9 @@ module Omega
       def attack(target)
         RJR::Logger.info "Starting to attack #{target.id} with #{self.id}"
         Node.invoke_request 'manufactured::attack_entity', self.id, target.id
+
+        # XXX hack, do not return until next iteration of attack cycle
+        sleep Manufactured::Registry::ATTACK_POLL_DELAY + 0.1
       end
 
       #def dock(station)

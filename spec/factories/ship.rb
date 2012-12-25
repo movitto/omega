@@ -76,4 +76,13 @@ FactoryGirl.define do
     association :location, factory: :ship7_location, :strategy => :build
   end
 
+  factory :ship8, parent: :server_ship do
+    id      'ship8'
+    user_id 'user1'
+    system_name 'sys1'
+    type    :destroyer
+
+    association :location, factory: :ship8_location, :strategy => :build
+  end
+
 end

@@ -28,7 +28,7 @@ module Omega
 
     # Omega client corvette ship tracker
     class Corvette < Ship
-      entity_validation { |e| e.type == 'corvette' }
+      entity_validation { |e| e.type == :corvette }
 
       server_event       :attacked      => { :subscribe    => "manufactured::subscribe_to",
                                              :notification => "manufactured::event_occurred" },
@@ -43,7 +43,7 @@ module Omega
         self.patrol_route
       end
 
-      private
+      #private
 
       # Internal helper, calculate an inter-system route to patrol
       # and move through it.
@@ -59,7 +59,8 @@ module Omega
         self.solar_system.jump_gates.each { |jg|
           unless @visited.find  { |sys| sys.name == jg.endpoint } ||
                  @to_visit.find { |sys| sys.name == jg.endpoint }
-            @to_visit << Node.cached(jg.endpoint)
+            #@to_visit << Node.cached(jg.endpoint)
+            @to_visit << jg.endpoint
           end
         }
 
@@ -112,7 +113,7 @@ module Omega
 
         return if @continue_patrol
         @continue_patrol = true
-        handle(:attacked_stop){ |*args|
+        handle_event(:attacked_stop){ |*args|
           self.patrol_route
         }
       end

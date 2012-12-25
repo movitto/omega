@@ -38,6 +38,6 @@ describe Omega::Client::SolarSystem do
 
     sys = Omega::Client::SolarSystem.with_fewest "Manufactured::Station"
     sys.should_not be_nil
-    sys.id.should == 'sys1'
+    sys.id.should == 'sys2'
   end
 end

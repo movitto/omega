@@ -49,7 +49,7 @@ module Omega
 
         system_map = Hash.new(0)
         systems.each { |n,s| system_map[n] += 1 }
-        fewest = system_map.sort_by { |n,c| c }.last
+        fewest = system_map.sort_by { |n,c| c }.first
         return nil if fewest.nil?
         fewest = fewest.first
         systems.find { |s| s.first == fewest }.last

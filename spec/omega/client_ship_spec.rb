@@ -160,5 +160,37 @@ describe Omega::Client::Miner do
 end
 
 describe Omega::Client::Corvette do
-  # ...
+  before(:each) do
+    @ship2    = FactoryGirl.build(:ship2)
+    @ship4    = FactoryGirl.build(:ship4)
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_LOCATIONS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+  end
+
+  it "should validate ship type" do
+    sh2 = Omega::Client::Corvette.get('ship2')
+    sh4 = Omega::Client::Corvette.get('ship4')
+    sh2.should be_nil
+    sh4.should_not be_nil
+  end
+
+  it "should run patrol route" do
+  end
+
+  it "should check proximity for enemies" do
+    cship4 = Omega::Client::Corvette.get('ship4')
+    cship4.check_proximity
+    ac = Manufactured::Registry.instance.attack_commands.find { |i,ac| ac.attacker.id == 'ship4' }.last
+    ac.should_not be_nil
+    ac.attacker.id.should == 'ship4'
+    ac.defender.id.should == 'ship5'
+    # TODO test attacked events
+  end
 end

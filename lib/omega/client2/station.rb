@@ -8,7 +8,6 @@ module Omega
     # Omega client Manufactured::Station tracker
     class Station
       include RemotelyTrackable
-      include HasLocation
       include InSystem
 
       entity_type  Manufactured::Station
@@ -54,6 +53,8 @@ module Omega
         # TODO first determine if there are systems w/ no stations
         self.jump_to(system) if system.name != self.solar_system.name
       end
+
+      private
 
       # Internal helper, generate construction options from high level entity type
       def construction_options(entity_type)
