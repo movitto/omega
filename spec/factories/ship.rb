@@ -67,4 +67,13 @@ FactoryGirl.define do
     after(:build) { |sh| sh.add_resource('metal-steel', 100) }
   end
 
+  factory :ship7, parent: :server_ship do
+    id      'ship7'
+    user_id 'user2'
+    system_name 'sys1'
+    type    :mining
+
+    association :location, factory: :ship7_location, :strategy => :build
+  end
+
 end

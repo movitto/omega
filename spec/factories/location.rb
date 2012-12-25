@@ -96,9 +96,9 @@ FactoryGirl.define do
 
   factory :ast2_location, parent: :server_location do
     id   701
-    x    -12
-    y    -43
-    z     76
+    x     50
+    y    115
+    z    115
 
     parent_id 300
   end
@@ -157,6 +157,15 @@ FactoryGirl.define do
     parent_id 300
   end
 
+  factory :station6_location, parent: :server_location do
+    id   905
+    x    -90
+    y    120
+    z    135
+
+    parent_id 300
+  end
+
   factory :ship1_location, parent: :server_location do
     id   1000
     x    10
@@ -207,6 +216,15 @@ FactoryGirl.define do
     x     -95
     y     130
     z     140
+
+    parent_id 300
+  end
+
+  factory :ship7_location, parent: :server_location do
+    id   1006
+    x      45
+    y     110
+    z     110
 
     parent_id 300
   end

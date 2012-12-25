@@ -34,6 +34,7 @@ RSpec.configure do |config|
     Omega::Client::Node.client_password = 'tset-agemo'
     Omega::Client::Node.node = RJR::LocalNode.new :node_id => 'omega-test'
 
+    Omega::Client::CachedAttribute.clear
     Omega::Client::Node.clear
 
     # preload all server entities
@@ -44,6 +45,7 @@ RSpec.configure do |config|
   }
 
   config.after(:each) {
+    Omega::Client::CachedAttribute.clear
     Omega::Client::Node.clear
     Manufactured::Registry.instance.init
     Cosmos::Registry.instance.init

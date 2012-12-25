@@ -90,6 +90,13 @@ module Omega
         @timestamps[entity_id.to_s + '-' + attribute.to_s]
       end
 
+      # Clear global timestamp registry
+      #
+      # Shouldn't be called by the end user
+      def self.clear
+        @timestamps.clear unless @timestamps.nil?
+      end
+
       # Global cached attribute registry, set the cached value of the
       # entity attribute. May be called w/out value, will always return
       # the cached value of the attribute

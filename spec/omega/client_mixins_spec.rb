@@ -120,7 +120,7 @@ describe Omega::Client::RemotelyTrackable do
 
   it "should retrieve all server entities" do
     ships = TestShip.get_all
-    ships.size.should == 6
+    ships.size.should == 7
     ships.first.id.should == @ship1.id
   end
 
@@ -258,12 +258,10 @@ describe Omega::Client::InSystem do
   end
 
   it "should return closest resource to entity" do
-    @ast1 = FactoryGirl.build(:asteroid1)
-
     ts = TestShip.get(@ship2.id)
     rs = ts.closest(:resource)
-    rs.size.should == 1
-    rs.first.name.should == @ast1.name
+    rs.size.should == 2
+    rs.first.name.should == 'ast2'
   end
 
   it "should move entity in system, invoking callback on arrival" do

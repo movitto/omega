@@ -221,8 +221,8 @@ describe Cosmos::RJRAdapter do
     lambda{
       rrs = Omega::Client::Node.invoke_request('cosmos::get_resource_sources', @ast1.name)
       rrs.class.should == Array
-      rrs.size.should == 2
-      rrs.first.resource.id.should == @res1.id
+      rrs.size.should == 3
+      rrs.first.resource.id.should == 'gem-ruby'
       rrs.last.resource.id.should == @res3.id
     }.should_not raise_error
   end

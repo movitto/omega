@@ -26,11 +26,15 @@ FactoryGirl.define do
     }
   end
 
-  #factory :asteroid2, parent: :server_asteroid do
-  #  name     'ast2'
-  #  color    'AABBCC'
-  #  size      25
+  factory :asteroid2, parent: :server_asteroid do
+    name     'ast2'
+    color    'AABBCC'
+    size      15
 
-  #  association :location, factory: :ast2_location, :strategy => :build
-  #end
+    association :location, factory: :ast2_location, :strategy => :build
+    after(:build) { |ast|
+      Cosmos::Registry.instance.set_resource(ast.name,
+           Cosmos::Resource.new(:name => 'ruby', :type => 'gem'), 500)
+    }
+  end
 end

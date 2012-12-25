@@ -55,4 +55,12 @@ FactoryGirl.define do
     association :location, factory: :station5_location, :strategy => :build
   end
 
+  factory :station6, parent: :server_station do
+    id      'station6'
+    user_id 'user2'
+    system_name 'sys1'
+
+    association :location, factory: :station6_location, :strategy => :build
+  end
+
 end

@@ -684,6 +684,11 @@ module Omega
         Node.invoke_request 'manufactured::start_mining',
                    self.id, resource_source.entity.name,
                             resource_source.resource.id
+
+        # XXX hack, mining target won't be set until next iteration
+        # of mining cycle loop
+        sleep Manufactured::Registry::MINING_POLL_DELAY + 0.1
+        self.get
       end
 
       # Attack the specified target

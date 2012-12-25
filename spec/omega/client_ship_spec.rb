@@ -5,6 +5,8 @@
 
 require 'spec_helper'
 
+#RJR::Logger.log_level = ::Logger::INFO
+
 describe Omega::Client::Ship do
   before(:each) do
     @ship1    = FactoryGirl.build(:ship1)
@@ -72,6 +74,10 @@ describe Omega::Client::Miner do
     @ship2    = FactoryGirl.build(:ship2)
     @ship5    = FactoryGirl.build(:ship5)
     @ship6    = FactoryGirl.build(:ship6)
+    @ship7    = FactoryGirl.build(:ship7)
+    @stat5    = FactoryGirl.build(:station5)
+    @stat6    = FactoryGirl.build(:station6)
+
     TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
                            Omega::Roles::ENTITIES_MANUFACTURED)
     TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
@@ -79,9 +85,6 @@ describe Omega::Client::Miner do
     TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
                            Omega::Roles::ENTITIES_MANUFACTURED)
 
-    # XXX need to preload a client station for 'closest' call in miner
-    @stat5  = FactoryGirl.build(:station5)
-    @cstat5 = Omega::Client::Station.get('station5')
   end
 
   it "should validate ship type" do
@@ -94,6 +97,9 @@ describe Omega::Client::Miner do
   # test resource_collected, mining_stopped
 
   it "should detect cargo state" do
+    # XXX need to preload a client station for 'closest' call in miner
+    cstat5 = Omega::Client::Station.get('station5')
+
     cship5 = Omega::Client::Ship.get('ship5')
     cship6 = Omega::Client::Miner.get('ship6')
 
@@ -107,15 +113,49 @@ describe Omega::Client::Miner do
   end
 
   it "should offload resources" do
+    # load client entities
+    cstat6 = Omega::Client::Station.get('station6')
+    cship6 = Omega::Client::Miner.get('ship6')
+
+    cship6.offload_resources
+    cship6.resources.should be_empty
+    cstat6.resources.keys.should include('metal-steel')
+    cstat6.resources['metal-steel'].should == 100
+    # TODO test moving to next mining target?
   end
 
   it "should move to offload resources" do
+    # load client entities
+    cstat5 = Omega::Client::Station.get('station5')
+    cship3 = Omega::Client::Miner.get('ship3')
+
+    cship3.offload_resources
+    cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
+    # TODO should do this but adds over a minute to tests, perhaps move locations closer
+    #time = ((cship6.location - cstat5.location) / cship6.location.movement_strategy.speed) + 1
+    #sleep time
+    #cship6.resources.should be_empty
+    #cstat6.resources.keys.should include('metal-steel')
+    #cstat6.resources['metal-steel'].should == 100
   end
 
   it "should select mining target" do
+    cship7 = Omega::Client::Miner.get('ship7')
+
+    cship7.select_target
+    cship7.mining?.should be_true
+    cship7.mining.entity.name.should == 'ast2'
   end
 
   it "should move to next mining target" do
+    # XXX need to preload a client station for 'closest' call in miner
+    cstat5 = Omega::Client::Station.get('station5')
+
+    cship3 = Omega::Client::Miner.get('ship3')
+
+    cship3.select_target
+    cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
+    # TODO sleep & then verify mining
   end
 end
 
