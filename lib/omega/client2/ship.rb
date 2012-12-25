@@ -72,7 +72,7 @@ module Omega
 
         else
           visiting = @to_visit.shift
-          jg = self.solar_system.jump_gates.find { |jg| jg.endpoint == visiting.name }
+          jg = self.solar_system.jump_gates.find { |jg| jg.endpoint.name == visiting.name }
 
           dst = jg.trigger_distance / 4
           nl  = jg.location + [dst,dst,dst]

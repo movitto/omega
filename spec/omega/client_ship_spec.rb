@@ -182,6 +182,12 @@ describe Omega::Client::Corvette do
   end
 
   it "should run patrol route" do
+    cship4 = Omega::Client::Corvette.get('ship4')
+    cship4.start_bot # sets up variables then calls patrol_route
+    visited  = cship4.instance_variable_get(:@visited)
+    to_visit = cship4.instance_variable_get(:@to_visit)
+    visited.should include(cship4.solar_system)
+    # TODO test to_visit and visiting
   end
 
   it "should check proximity for enemies" do
