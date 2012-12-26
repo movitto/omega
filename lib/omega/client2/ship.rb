@@ -59,7 +59,7 @@ module Omega
         self.solar_system.jump_gates.each { |jg|
           unless @visited.find  { |sys| sys.name == jg.endpoint } ||
                  @to_visit.find { |sys| sys.name == jg.endpoint }
-            #@to_visit << Node.cached(jg.endpoint)
+            jg.endpoint = Omega::Client::SolarSystem.cached(jg.endpoint) if jg.endpoint.is_a?(String)
             @to_visit << jg.endpoint
           end
         }
@@ -166,7 +166,12 @@ module Omega
       # Internal helper, select next resource, move to it, and commence mining
       def select_target
         rs = closest(:resource).first
-        raise_event(:no_resources) if rs.nil?
+        if rs.nil?
+          Node.raise_event(:no_resources, self)
+        else
+          Node.raise_event(:selected_resource, self, rs)
+        end
+
         if rs.location - self.location < self.mining_distance
           rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
           mine(rs)

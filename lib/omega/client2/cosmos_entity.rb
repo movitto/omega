@@ -24,6 +24,14 @@ module Omega
       entity_type  Cosmos::SolarSystem
       get_method   "cosmos::get_entity"
 
+      # Retrieve the system w/ the specified name from
+      # the local cache or server if not found
+      def self.cached(system_name)
+        Omega::Client::Node.cached(system_name) {
+          Omega::Client::Node.invoke_request 'cosmos::get_entity', 'with_name', system_name
+        }
+      end
+
       # Conveniency utility to return the system containing
       # the fewest entities of the specified type
       #

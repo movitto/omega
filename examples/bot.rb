@@ -10,7 +10,7 @@ require 'omega'
 USER_NAME = ARGV.shift
 PASSWORD = ARGV.shift
 
-RJR::Logger.log_level = ::Logger::INFO
+#RJR::Logger.log_level = ::Logger::INFO
 
 Omega::Client::Node.client_username = USER_NAME
 Omega::Client::Node.client_password = PASSWORD
@@ -20,29 +20,20 @@ Omega::Client::Node.node = RJR::TCPNode.new(:node_id => 'client', :host => 'loca
 
 def start_miner(miner)
   puts "registering #{miner.id} events"
-  miner.handle_event('selected_resource') { |m,rs|
-    puts "ship #{miner.id.bold.yellow} selected #{rs.id.bold.red}, moving to #{rs.entity.location.to_s}"
+  miner.handle_event(:selected_resource) { |m,e|
+    puts "miner #{miner.id.bold.yellow} selected #{e.to_s} to mine"
   }
-  miner.handle_event('resource_collected') { |*args|
+  miner.handle_event(:no_resources) { |m|
+    puts "Miner #{m.id.bold.yellow} could not find any more accessible resources"
+  }
+  miner.handle_event(:resource_collected) { |*args|
     puts "ship #{miner.id.bold.yellow} collected #{args[3]} of resource #{args[2].resource.id.bold.red}"
   }
-  miner.handle_event('mining_stopped') { |*args|
+  miner.handle_event(:mining_stopped) { |*args|
     puts "ship #{miner.id.bold.yellow} stopped mining #{args[3].resource.id.bold.red} due to #{args[1]}"
   }
-  miner.handle_event('moving_to_station') { |m,st|
-    puts "Miner #{m.id.bold.yellow} moving to station #{st.id.bold.yellow}"
-  }
-  miner.handle_event('arrived_at_station') { |m|
-    puts "Miner #{m.id.bold.yellow} arrived at station"
-  }
-  miner.handle_event('transferred') { |m,st,r,q|
+  miner.handle_event(:transferred) { |m,st,r,q|
     puts "Miner #{m.id.bold.yellow} transferred #{q} of #{r.bold.red} to #{st.id.bold.yellow}"
-  }
-  miner.handle_event('arrived_at_resource') { |m|
-    puts "Miner #{m.id.bold.yellow} arrived at resource"
-  }
-  miner.handle_event('no_more_resources') { |m|
-    puts "Miner #{m.id.bold.yellow} could not find any more accessible resources"
   }
   miner.start_bot
 end
@@ -98,6 +89,6 @@ def start_factory(factory)
 end
 
 Omega::Client::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }
-Omega::Client::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
+#Omega::Client::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
 Omega::Client::Miner.owned_by(USER_NAME).each    { |m| start_miner    m }
 Omega::Client::Node.join
