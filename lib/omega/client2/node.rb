@@ -346,6 +346,18 @@ module Omega
         }
       end
 
+      # Clear the handlers registered for the specified event for
+      # the specified entity
+      #
+      # @param [String] entity_id id of the event which to clear event handler
+      # @param [Symbol] event event which to clear handlers for
+      def clear_event_handlers(entity_id, event)
+        @lock.synchronize{
+          @event_handlers[entity_id][event].clear if @event_handlers.has_key?(entity_id) &&
+                                                     @event_handlers[entity_id].has_key?(event)
+        }
+      end
+
       ########################################################################
       # XXX these are the hacky/glue methods that smoothing things out on a
       # case by case basis:

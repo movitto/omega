@@ -150,12 +150,12 @@ module Omega
       # transfer resources to it
       def offload_resources
         st = closest(:station).first
-        Node.raise_event(:moving_to, st)
         if st.location - self.location < self.transfer_distance
           transfer_all_to(st)
           self.select_target
 
         else
+          Node.raise_event(:moving_to, st)
           move_to(:destination => st) { |*args|
             transfer_all_to(st)
             self.select_target

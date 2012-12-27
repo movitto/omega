@@ -95,6 +95,11 @@ module Omega
         Node.add_event_handler self.id, event, &bl
       end
 
+      # Clear the event handlers for the specified event
+      def clear_handlers_for(event)
+        Node.clear_event_handlers self.id, event
+      end
+
       # Helper method to invoke initialization callbacks in
       # scope of local instance.
       #
@@ -602,6 +607,7 @@ module Omega
 
         nloc = Motel::Location.new(:parent_id => self.location.parent_id,
                                    :x => loc.x, :y => loc.y, :z => loc.z)
+        clear_handlers_for :movement
         handle_event :movement, (self.location - nloc), &cb unless cb.nil?
         RJR::Logger.info "Moving #{self.id} to #{nloc}"
         Node.invoke_request 'manufactured::move_entity', self.id, nloc
