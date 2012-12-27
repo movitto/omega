@@ -218,9 +218,6 @@ module Omega
             if events[e].has_key?(:notification) && !Node.has_method_handler_for?(events[e][:notification])
               event_setup << lambda { |*args|
                 Node.add_method_handler(events[e][:notification])
-                Node.add_event_handler(@entity_id, events[e][:notification]) { |*args|
-                  Node.raise_event(e, *args)
-                }
               }
             end
 

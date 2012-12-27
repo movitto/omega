@@ -53,8 +53,16 @@ module Omega
             CachedAttribute.cached(entity, attribute,
                                    instance_exec(orig, &callback))
           end
-          self.instance_variable_get("@cached_#{attribute}")
+          CachedAttribute.cached(self, attribute)
         }
+      end
+
+      # Initialize required attributes
+      def self.init
+        return if @initialized
+        @initialized   = true
+        @cached_lock ||= Mutex.new
+        @timestamps  ||= {}
       end
 
       # Global enable command flag, defaults to true, set to false
@@ -64,6 +72,7 @@ module Omega
       # @param  [true,false] val optional value to assign to flag
       # @return [true,false] value of the flag
       def self.enabled?(val=nil)
+        self.init
         @enabled = true if @enabled.nil? # TODO default false?
         @enabled = val unless val.nil?
         @enabled
@@ -85,16 +94,18 @@ module Omega
       # @param [Time] val option timestamp to register
       # @return [Time] timestamp in registry entity for entity/attribute
       def self.timestamp(entity_id, attribute, new_val=nil)
-        @timestamps ||= {}
-        @timestamps[entity_id.to_s + '-' + attribute.to_s] = new_val unless new_val.nil?
-        @timestamps[entity_id.to_s + '-' + attribute.to_s]
+        @cached_lock.synchronize {
+          @timestamps[entity_id.to_s + '-' + attribute.to_s] = new_val unless new_val.nil?
+          @timestamps[entity_id.to_s + '-' + attribute.to_s]
+        }
       end
 
       # Clear global timestamp registry
       #
       # Shouldn't be called by the end user
       def self.clear
-        @timestamps.clear unless @timestamps.nil?
+        self.init
+        @cached_lock.synchronize{ @timestamps.clear }
       end
 
       # Global cached attribute registry, set the cached value of the
@@ -138,7 +149,7 @@ module Omega
       def initialize(args = {})
         @registry       = {}
         @event_handlers = {}
-        @refresh_list   = {}
+        @event_queue    = Queue.new
         @lock           = Mutex.new
       end
 
@@ -193,6 +204,8 @@ module Omega
       def clear
         @lock.synchronize{
           @registry.clear
+          @event_handlers.clear
+          @event_queue.clear
         }
       end
 
@@ -285,7 +298,8 @@ module Omega
       def add_method_handler(method)
         RJR::Dispatcher.add_handler(method) { |*args|
           Node.set_result(args)
-          Node.raise_event(method, *args)
+          omega_event = Node.omega_event_from_args(args)
+          Node.raise_event(omega_event, *args)
         }
       end
 
@@ -302,24 +316,16 @@ module Omega
         RJR::Dispatcher.clear!
       end
 
-
-      # Raise the specified event, invoking handlers registered
-      # for the event or all events
+      # Raise the specified event, and immediately return
+      #
+      # Launches event loop if not running
       #
       # @param [Symbol] method identifier of the event being raised
       # @param [Array<Object>] all additional params are captured and
       #   registered with event
       def raise_event(method, *args)
-        entity_id = id_from_event_args(args)  # extract id
-        if @event_handlers[entity_id]
-          @event_handlers[entity_id][method].each { |cb|
-            cb.call(*args)
-          } if @event_handlers[entity_id][method]
-
-          @event_handlers[entity_id]['all'].each { |cb|
-            cb.call(*args)
-          } if @event_handlers[entity_id]['all']
-        end
+        @event_queue << [method, args]
+        process_events
       end
 
       # Register the block to be invoked upon the specified event
@@ -401,7 +407,46 @@ module Omega
         end
       end
 
+      # Retrieve the omega event to raise from the event args
+      #
+      # TODO also incorporate rjr method (?)
+      def omega_event_from_args(args)
+        if ["resource_collected", "mining_stopped"].include?(args.first)
+          return args.first.intern
+        elsif args.size == 1 && args.first.is_a?(Motel::Location)
+          return :movement
+        end
+
+        return nil
+      end
+
       private
+
+      # Run the event loop if not already running
+      def process_events
+        return if @event_cycle
+        @event_cycle = true
+
+        # XXX would really like to use em_run_async here
+        # but this is not working right for some reason
+        @event_thread = Thread.new {
+          while event = @event_queue.pop
+            emethod, eargs = *event
+            entity_id = id_from_event_args(eargs)  # extract id
+            handlers  = []
+            @lock.synchronize {
+              if @event_handlers[entity_id]
+                handlers += @event_handlers[entity_id][emethod] if @event_handlers[entity_id][emethod]
+                handlers += @event_handlers[entity_id]['all']   if @event_handlers[entity_id]['all']
+              end
+            }
+
+            handlers.each { |cb|
+              cb.call(*eargs)
+            }
+          end
+        }
+      end
 
       # Retrieve the target entity id from the event args.
       def id_from_event_args(args)
@@ -453,7 +498,6 @@ module Omega
           a
         }
       end
-
     end
   end
 end
