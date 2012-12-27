@@ -61,6 +61,7 @@ describe Omega::Client::Ship do
       transferred_event = true
     }
     cship2.transfer 50, :of => 'metal-alluminum', :to => cship1
+    sleep 0.1
     Manufactured::Registry.instance.ships.find { |s| s.id == @ship2.id }.resources.should be_empty
     Manufactured::Registry.instance.ships.find { |s| s.id == @ship1.id }.resources.should_not be_empty
     transferred_event.should be_true
@@ -104,10 +105,12 @@ describe Omega::Client::Miner do
     cship6 = Omega::Client::Miner.get('ship6')
 
     cship6.transfer 100, :of => 'metal-steel', :to => cship5
+    sleep 0.1
     cship6.cargo_full?.should be_false
     cship6.instance_variable_get(:@current_states).should_not include(:cargo_full)
 
     cship5.transfer 100, :of => 'metal-steel', :to => cship6
+    sleep 0.1
     cship6.cargo_full?.should be_true
     cship6.instance_variable_get(:@current_states).should include(:cargo_full)
   end

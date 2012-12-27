@@ -112,13 +112,13 @@ describe Omega::Client::Node do
     RJR::Dispatcher.has_handler_for?('motel::on_movement').should be_true
   end
 
-  it "should raise events for server messages" do
+  it "should raise events for omega events corresponding to server messages" do
     invoked = false
     te = TestEntity.new
     te.location Motel::Location.new(:id => 424)
     Node.set(te)
     Node.add_method_handler('motel::on_movement')
-    Node.add_event_handler(te.id, "motel::on_movement") { |l|
+    Node.add_event_handler(te.id, :movement) { |l|
       invoked = true
     }
     # XXX need to use a local node instance directly to prevent a deadlock
@@ -138,6 +138,7 @@ describe Omega::Client::Node do
       b.should == :foobar
     }
     Node.raise_event :foovent, te, :foobar
+    sleep 0.1
     invoked.should be_true
   end
 
@@ -148,6 +149,7 @@ describe Omega::Client::Node do
       invoked = true
     }
     Node.set(te)
+    sleep 0.1
     invoked.should be_true
   end
 
