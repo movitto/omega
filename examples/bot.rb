@@ -57,23 +57,23 @@ end
 
 def start_factory(factory)
   puts "registering #{factory.id} events"
-  factory.handle_event('jumped') { |f|
+  factory.handle_event(:jumped) { |f|
     puts "station #{f.id.bold.yellow} jumped to system #{f.system_name.green}"
   }
-  factory.handle_event('on_construction') { |f,e|
+  factory.handle_event(:constructed) { |f,e|
     puts "#{f.id.bold.yellow} constructed #{e.id.bold.yellow}"
     if e.is_a?(Manufactured::Station)
       #factory.entity_type 'miner'
-      start_factory Omega::Bot::Factory.get(e.id)
+      start_factory Omega::Client::Factory.get(e.id)
 
     elsif e.is_a?(Manufactured::Ship)
       if e.type == :mining
         factory.entity_type 'corvette'
-        start_miner Omega::Bot::Miner.get(e.id)
+        start_miner Omega::Client::Miner.get(e.id)
 
       elsif e.type == :corvette
         factory.entity_type 'miner'
-        start_corvette Omega::Bot::Corvette.get(e.id)
+        start_corvette Omega::Client::Corvette.get(e.id)
 
       end
     end
@@ -81,10 +81,10 @@ def start_factory(factory)
 
   unless @first_factory_constructed
     factory.entity_type 'factory'
-    factory.start_bot
   else
     factory.entity_type 'miner'
   end
+  factory.start_bot
   @first_factory_constructed = true
 end
 

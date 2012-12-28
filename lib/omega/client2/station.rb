@@ -23,6 +23,12 @@ module Omega
       server_event       :received      => {},
                          :constructed   => {}
 
+      # Helper method to generate incremental id's
+      def self.next_id
+        @next_id ||= 42
+        @next_id += 1
+      end
+
       # Get/set the type of entity to construct using this station
       def entity_type(val=nil)
         return @entity_type if val.nil?
@@ -33,6 +39,9 @@ module Omega
       def start_bot
         self.pick_system
         self.start_construction
+        self.handle_event(:received) { |*args|
+          self.start_construction
+        }
       end
 
       #private
@@ -40,9 +49,9 @@ module Omega
       # Internal helper, begin construction cycle
       def start_construction
         if self.can_construct?(@entity_type)
-          entity = Hash.new(@entity_type)
-          entity['id'] = entity['idt'] + Node.next_id
-          construct(entity['entity_type'], entity)
+          entity = Hash[@entity_type]
+          entity[:id] = (entity[:idt] + self.class.next_id.to_s)
+          construct(entity[:entity_type], entity)
         end
       end
 
@@ -60,20 +69,20 @@ module Omega
       def construction_options(entity_type)
         case entity_type
           when 'factory' then
-            {'entity_type' => 'Manufactured::Station',
-             'class' => 'Manufactured::Station',
-             'type'  => :manufacturing,
-             'idt'   => "#{Node.user.id}-manufacturing-station"}
+            {:entity_type => 'Manufactured::Station',
+             :class => 'Manufactured::Station',
+             :type  => :manufacturing,
+             :idt   => "#{Node.user.id}-manufacturing-station"}
           when 'miner' then
-            {'entity_type' => 'Manufactured::Ship',
-             'class' => 'Manufactured::Ship',
-             'type'  => :mining,
-             'idt'   => "#{Node.user.id}-mining-ship"}
+            {:entity_type => 'Manufactured::Ship',
+             :class => 'Manufactured::Ship',
+             :type  => :mining,
+             :idt   => "#{Node.user.id}-mining-ship"}
           when 'corvette' then
-            {'entity_type' => 'Manufactured::Ship',
-             'class' => 'Manufactured::Ship',
-             'type'  => :corvette,
-             'idt'   => "#{Node.user.id}-corvette-ship"}
+            {:entity_type => 'Manufactured::Ship',
+             :class => 'Manufactured::Ship',
+             :type  => :corvette,
+             :idt   => "#{Node.user.id}-corvette-ship"}
         end
       end
     end

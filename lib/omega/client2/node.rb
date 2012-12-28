@@ -454,7 +454,11 @@ module Omega
             }
 
             handlers.each { |cb|
-              cb.call(*eargs)
+              begin
+                cb.call(*eargs)
+              rescue Exception => e
+                # TODO how to handle?
+              end
             }
           end
         }
