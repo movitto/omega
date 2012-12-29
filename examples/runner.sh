@@ -11,14 +11,18 @@ BIN_DIR="$CURR_DIR/../.."
 #$BIN_DIR/omega-server
 
 # create the universe
-$CURR_DIR/universe.rb
+#$CURR_DIR/universe.rb
 
 # create two users
-$CURR_DIR/users.rb Anubis sibuna Athena regular_user
-$CURR_DIR/users.rb Osiris siriso Athena regular_user
-$CURR_DIR/users.rb Ra ar Aphrodite regular_user
+#$CURR_DIR/users.rb Anubis sibuna Athena regular_user
+#$CURR_DIR/users.rb Osiris siriso Athena regular_user
+#$CURR_DIR/users.rb Ra ar Aphrodite regular_user
 
 # create bots
-$CURR_DIR/bot2.rb Anubis sibuna
+#$CURR_DIR/bot2.rb Anubis sibuna
 #$CURR_DIR/bot2.rb Obsiris siriso
 #$CURR_DIR/bot2.rb Ra ar
+
+RUBYLIB='lib' ./examples/environment.rb
+RUBYLIB='lib' ./examples/users.rb Anubis sibuna Athena regular_user
+RUBYLIB='lib' ./examples/bot.rb Anubis sibuna

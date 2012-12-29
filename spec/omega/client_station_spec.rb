@@ -62,7 +62,7 @@ describe Omega::Client::Factory do
 
     cstat3 = Omega::Client::Factory.get('station3')
     cstat3.pick_system
-    cstat3.solar_system.name.should == 'sys2'
+    cstat3.solar_system.name.should == 'sys3'
   end
 
   it "should start construction cycle" do

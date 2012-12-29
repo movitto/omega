@@ -37,7 +37,6 @@ module Omega
 
       # Start the omega client bot
       def start_bot
-        self.pick_system
         self.start_construction
         self.handle_event(:received) { |*args|
           self.start_construction
@@ -58,7 +57,9 @@ module Omega
       # Internal helper, pick system with no stations or the fewest stations
       # and jump to it
       def pick_system
-        system = Omega::Client::SolarSystem.with_fewest("Manufactured::Station")
+        system = Omega::Client::SolarSystem.get(self.system_name). # TODO optimize
+                   closest_neighbor_with_no("Manufactured::Station")
+        system = Omega::Client::SolarSystem.with_fewest "Manufactured::Station" if system.nil?
         # TODO first determine if there are systems w/ no stations
         self.jump_to(system) if system.name != self.solar_system.name
       end

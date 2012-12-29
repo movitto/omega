@@ -59,6 +59,7 @@ module Omega
         self.solar_system.jump_gates.each { |jg|
           unless @visited.find  { |sys| sys.name == jg.endpoint } ||
                  @to_visit.find { |sys| sys.name == jg.endpoint }
+            # TODO move this into Omega::Client::Node.set_result
             jg.endpoint = Omega::Client::SolarSystem.cached(jg.endpoint) if jg.endpoint.is_a?(String)
             @to_visit << jg.endpoint
           end

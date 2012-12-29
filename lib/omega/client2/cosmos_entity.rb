@@ -62,6 +62,38 @@ module Omega
         fewest = fewest.first
         systems.find { |s| s.first == fewest }.last
       end
+
+      # Conveniency utility to return the closest neighbor system with
+      # entities of the specified type
+      #
+      # This will issue a server side request to retrieve
+      # entities and systems
+      #
+      # @param [String] entity_type type of entity to retrieve,
+      #   currently only accepts Manufactured::Station
+      # @return [Cosmos::SolarSystem,nil] closest system with no entities
+      #   or nil
+      def closest_neighbor_with_no(entity_type)
+        entities = []
+        entities = Station.owned_by(Node.user.id) if(entity_type == "Manufactured::Station")
+
+        systems = [self]
+        systems.each { |sys|
+          # TODO sort jumpgates by distance from sys to endpoint
+          sys.jump_gates.each { |jg|
+            # TODO move this into Omega::Client::Node.set_result
+            jg.endpoint = Omega::Client::SolarSystem.cached(jg.endpoint) if jg.endpoint.is_a?(String)
+
+            if entities.find { |e| e.solar_system.name == jg.endpoint.name }.nil?
+              return jg.endpoint
+            elsif !systems.include?(jg.endpoint)
+              systems << jg.endpoint
+            end
+          }
+        }
+
+        return nil
+      end
     end
   end
 end

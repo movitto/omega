@@ -26,6 +26,22 @@ describe Omega::Client::SolarSystem do
     s.id.should == 'sys1'
   end
 
+  it "should return closest system with no stations" do
+    stat1 = FactoryGirl.build(:station1)
+    stat2 = FactoryGirl.build(:station2)
+    stat3 = FactoryGirl.build(:station3)
+    sys1  = FactoryGirl.build(:sys1)
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_COSMOS)
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITIES_MANUFACTURED)
+
+    csys1 = Omega::Client::SolarSystem.get('sys1')
+    neighbor = csys1.closest_neighbor_with_no "Manufactured::Station"
+    neighbor.name.should == "sys3"
+  end
+
   it "should return system with the fewest stations" do
     stat1 = FactoryGirl.build(:station1)
     stat2 = FactoryGirl.build(:station2)

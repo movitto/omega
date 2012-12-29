@@ -19,4 +19,11 @@ FactoryGirl.define do
 
     association :location, factory: :jump_gate1_location, :strategy => :build
   end
+
+  factory :jump_gate2, parent: :server_jump_gate do
+    association :solar_system, factory: :sys1, strategy: :build
+    association :endpoint,     factory: :sys3, strategy: :build
+
+    association :location, factory: :jump_gate2_location, :strategy => :build
+  end
 end

@@ -73,19 +73,21 @@ def start_factory(factory)
 
       elsif e.type == :corvette
         factory.entity_type 'miner'
-        start_corvette Omega::Client::Corvette.get(e.id)
+        #start_corvette Omega::Client::Corvette.get(e.id)
 
       end
     end
   }
 
-  unless @first_factory_constructed
+  if @first_factory.nil?
     factory.entity_type 'factory'
+    @first_factory = factory
   else
     factory.entity_type 'miner'
+    factory.pick_system
   end
+
   factory.start_bot
-  @first_factory_constructed = true
 end
 
 Omega::Client::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }

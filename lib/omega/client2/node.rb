@@ -458,6 +458,7 @@ module Omega
                 cb.call(*eargs)
               rescue Exception => e
                 # TODO how to handle?
+                puts "err #{e}"
               end
             }
           end

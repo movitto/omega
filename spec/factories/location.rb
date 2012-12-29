@@ -71,6 +71,15 @@ FactoryGirl.define do
     parent_id 300
   end
 
+  factory :jump_gate2_location, parent: :server_location do
+    id   501
+    x   -150
+    y   -150
+    z   -150
+
+    parent_id 300
+  end
+
   factory :planet1_location, parent: :server_location do
     id   600
     x    10
@@ -164,6 +173,15 @@ FactoryGirl.define do
     z    135
 
     parent_id 300
+  end
+
+  factory :station7_location, parent: :server_location do
+    id   906
+    x    192
+    y     53
+    z   -199
+
+    parent_id 301
   end
 
   factory :ship1_location, parent: :server_location do
