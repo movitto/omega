@@ -79,6 +79,11 @@ module Omega
         @enabled
       end
 
+      # Invalidate specified catched attribute, forcing refresh
+      # on next request
+      def self.invalidate(entity_id, attribute)
+        self.timestamp(entity_id, attribute, nil)
+      end
 
       #######################################################################
       # private method, end user should not invoke:
@@ -92,12 +97,13 @@ module Omega
       #
       # @param [String] entity_id id of the entity whose attribute is being updated
       # @param [Symbol] attribute entity attribute being updated
-      # @param [Time] val option timestamp to register
+      # @param [Array<Object>] args optional, additional arguments will be captured,
+      #   though only the first will be used to set the timestamp
       # @return [Time] timestamp in registry entity for entity/attribute
-      def self.timestamp(entity_id, attribute, new_val=nil)
+      def self.timestamp(entity_id, attribute, *args)
         self.init
         @cached_lock.synchronize {
-          @timestamps[entity_id.to_s + '-' + attribute.to_s] = new_val unless new_val.nil?
+          @timestamps[entity_id.to_s + '-' + attribute.to_s] = args.first if args.size == 1
           @timestamps[entity_id.to_s + '-' + attribute.to_s]
         }
       end

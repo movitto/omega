@@ -161,6 +161,7 @@ module Omega
         rs = closest(:resource).first
         if rs.nil?
           Node.raise_event(:no_resources, self)
+          return
         else
           Node.raise_event(:selected_resource, self, rs)
         end

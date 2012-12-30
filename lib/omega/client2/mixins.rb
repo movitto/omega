@@ -684,6 +684,16 @@ module Omega
       def mine(resource_source)
         # TODO catch start_mining errors ?
         RJR::Logger.info "Starting to mine #{resource_source.resource.id} at #{resource_source.entity.name} with #{self.id}"
+
+        # handle resource collected of entity.mining quantity, invalidating
+        # client side cached copy of resource source
+        unless @track_resources
+          @track_resources = true
+          self.handle_event(:resource_collected) { |*args|
+            CachedAttribute.invalidate(args[2].entity.id, :resource_sources)
+          }
+        end
+
         Node.invoke_request 'manufactured::start_mining',
                    self.id, resource_source.entity.name,
                             resource_source.resource.id
