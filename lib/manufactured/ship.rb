@@ -190,7 +190,7 @@ class Ship
     @attack_rate  = 0.5
     @damage_dealt = 2
     @hp           = 10
-    @mining_rate  = 0.25
+    @mining_rate  = 0.10
     @mining_quantity = 20
     @mining_distance = 100
     @transfer_distance = 100

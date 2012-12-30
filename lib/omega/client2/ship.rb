@@ -37,6 +37,7 @@ module Omega
 
       # Start the omega client bot
       def start_bot
+        # TODO wait till ship & system it's in are fully loaded?
         @visited  = []
         @to_visit = []
 
@@ -75,7 +76,7 @@ module Omega
           nl  = jg.location + [dst,dst,dst]
           move_to(:location => nl)
           
-          handle_event(:movement, 10) { |*args|
+          handle_event(:movement, 20) { |*args|
             if !self.check_proximity &&
                (self.location - jg.location <= jg.trigger_distance)
               self.jump_to(visiting)

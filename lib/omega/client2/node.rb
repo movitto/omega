@@ -254,7 +254,6 @@ module Omega
           @registry[entity.id] = entity
         }
 
-        raise_event(:updated, entity)
         entity
       end
 
@@ -335,6 +334,8 @@ module Omega
       # @param [Array<Object>] all additional params are captured and
       #   registered with event
       def raise_event(method, *args)
+        # TODO support limited rate of raised events and/or
+        # max number of events before queue is flushed or similar
         @event_queue << [method, args]
         process_events
       end
@@ -436,7 +437,9 @@ module Omega
       #
       # TODO also incorporate rjr method (?)
       def omega_event_from_args(args)
-        if ["resource_collected", "mining_stopped"].include?(args.first)
+        if ["resource_collected", "mining_stopped",
+            "attacked", "attacked_stop",
+            "defended", "defended_stop"].include?(args.first)
           return args.first.intern
         elsif args.size == 1 && args.first.is_a?(Motel::Location)
           return :movement
