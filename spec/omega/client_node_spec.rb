@@ -142,16 +142,5 @@ describe Omega::Client::Node do
     invoked.should be_true
   end
 
-  it "should invoke updated event on setting entity" do
-    invoked = false
-    te = TestEntity.new
-    Node.add_event_handler(te.id, :updated) { |l|
-      invoked = true
-    }
-    Node.set(te)
-    sleep 0.1
-    invoked.should be_true
-  end
-
   # TODO test set_result, id_from_event_args, convert_invoke_args ???
 end

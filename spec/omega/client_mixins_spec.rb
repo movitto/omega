@@ -47,9 +47,9 @@ describe Omega::Client::RemotelyTrackable do
       invoked += 1
     }
 
-    ts = TestShip.get(@ship1.id)
+    Omega::Client::Node.raise_event(:updated, @ship1)
     sleep 0.1
-    invoked.should > 1
+    invoked.should == 1
   end
 
   it "should invoke event setup methods when registering an event handler" do
