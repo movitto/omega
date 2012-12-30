@@ -50,8 +50,8 @@ module Omega
 
           if te && (ts.nil? || (Time.now - ts) > TIMEOUT)
             CachedAttribute.timestamp(self.id, attribute, Time.now)
-            CachedAttribute.cached(entity, attribute,
-                                   instance_exec(orig, &callback))
+            nval = instance_exec(orig, &callback)
+            CachedAttribute.cached(entity, attribute, nval)
           end
           CachedAttribute.cached(self, attribute)
         }
@@ -63,6 +63,7 @@ module Omega
         @initialized   = true
         @cached_lock ||= Mutex.new
         @timestamps  ||= {}
+        @cached_values ||= {}
       end
 
       # Global enable command flag, defaults to true, set to false
@@ -94,6 +95,7 @@ module Omega
       # @param [Time] val option timestamp to register
       # @return [Time] timestamp in registry entity for entity/attribute
       def self.timestamp(entity_id, attribute, new_val=nil)
+        self.init
         @cached_lock.synchronize {
           @timestamps[entity_id.to_s + '-' + attribute.to_s] = new_val unless new_val.nil?
           @timestamps[entity_id.to_s + '-' + attribute.to_s]
@@ -120,8 +122,11 @@ module Omega
       #   though only the first will be used to set the cached attribute
       # @return [Object] the value of the cached attribute
       def self.cached(entity, attribute, *args)
-        entity.instance_variable_set("@cached_#{attribute}", args.first) if args.size == 1
-        entity.instance_variable_get("@cached_#{attribute}")
+        self.init
+        @cached_lock.synchronize {
+          @cached_values[entity.id.to_s + '-' + attribute.to_s] = args.first if args.size == 1
+          @cached_values[entity.id.to_s + '-' + attribute.to_s]
+        }
       end
     end
 
@@ -397,9 +402,11 @@ module Omega
                 Node.invoke_request('cosmos::get_resource_sources', self.name)
               }
             }
-            #res.jump_gates.each { |gate|
-            #  gate.endpoint = cached(gate.endpoint)
-            #}
+            res.jump_gates.each { |gate|
+              gate.endpoint = cached(gate.endpoint) {
+                Node.invoke_request 'cosmos::get_entity', 'with_name', gate.endpoint
+              } if gate.endpoint.is_a?(String)
+            }
           end
 
         elsif Manufactured::Registry.instance.entity_types.include?(res.class)
@@ -458,7 +465,7 @@ module Omega
                 cb.call(*eargs)
               rescue Exception => e
                 # TODO how to handle?
-                puts "err #{e}"
+                puts "err #{e} \n#{e.backtrace.join("\n")}".bold
               end
             }
           end

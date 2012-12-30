@@ -81,9 +81,6 @@ module Omega
         systems.each { |sys|
           # TODO sort jumpgates by distance from sys to endpoint
           sys.jump_gates.each { |jg|
-            # TODO move this into Omega::Client::Node.set_result
-            jg.endpoint = Omega::Client::SolarSystem.cached(jg.endpoint) if jg.endpoint.is_a?(String)
-
             if entities.find { |e| e.solar_system.name == jg.endpoint.name }.nil?
               return jg.endpoint
             elsif !systems.include?(jg.endpoint)

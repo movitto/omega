@@ -57,12 +57,8 @@ module Omega
         # add each local neighbors to the to_visit
         # list if not present in either list
         self.solar_system.jump_gates.each { |jg|
-          unless @visited.find  { |sys| sys.name == jg.endpoint } ||
-                 @to_visit.find { |sys| sys.name == jg.endpoint }
-            # TODO move this into Omega::Client::Node.set_result
-            jg.endpoint = Omega::Client::SolarSystem.cached(jg.endpoint) if jg.endpoint.is_a?(String)
-            @to_visit << jg.endpoint
-          end
+          @to_visit << jg.endpoint unless @visited.find  { |sys| sys.name == jg.endpoint.name } ||
+                                          @to_visit.find { |sys| sys.name == jg.endpoint.name }
         }
 
         # if no items in to_visit clear lists
@@ -80,12 +76,10 @@ module Omega
           move_to(:location => nl)
           
           handle_event(:movement, 10) { |*args|
-            if(self.location - jg.location <= dst)
+            if !self.check_proximity &&
+               (self.location - jg.location <= jg.trigger_distance)
               self.jump_to(visiting)
               self.patrol_route
-
-            else
-              self.check_proximity
             end
           }
         end
@@ -95,6 +89,7 @@ module Omega
       # Internal helper, check nearby locations, if enemy ship is detected
       # stop movement and attack it. Result patrol route when attack ceases
       def check_proximity
+        attacking = false
         neighbors = Node.invoke_request 'motel::get_locations',
                                 'within', self.attack_distance,
                                            'of', self.location
@@ -104,19 +99,16 @@ module Omega
                                 'of_type', 'Manufactured::Ship',
                                        'with_location', loc.id
             unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
+              attacking = true
               self.stop_moving
+              handle_event(:attacked_stop){ |*args| self.patrol_route }
               attack(sh)
               break
             end
           rescue Exception => e
           end
         }
-
-        return if @continue_patrol
-        @continue_patrol = true
-        handle_event(:attacked_stop){ |*args|
-          self.patrol_route
-        }
+        return attacking
       end
     end
 

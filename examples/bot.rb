@@ -40,16 +40,13 @@ end
 
 def start_corvette(corvette)
   puts "registering #{corvette.id} events"
-  corvette.handle_event('selected_next_system') { |c, s, jg|
-    puts "corvette #{c.id.bold.yellow} traveling to system #{s.name} via jump gate @ #{jg.location}"
+  corvette.handle_event(:jumped) { |c|
+    puts "corvette #{c.id.bold.yellow} jumped to system #{c.system_name.green}"
   }
-  corvette.handle_event('arrived_in_system') { |c|
-    puts "corvette #{c.id.bold.yellow} arrived in system #{c.system_name.green}"
-  }
-  corvette.handle_event('attacked') { |event, attacker,defender|
+  corvette.handle_event(:attacked) { |event, attacker,defender|
     puts "#{attacker.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
-  corvette.handle_event('defended') { |event, attacker,defender|
+  corvette.handle_event(:defended) { |event, attacker,defender|
     puts "#{defender.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
@@ -63,7 +60,6 @@ def start_factory(factory)
   factory.handle_event(:constructed) { |f,e|
     puts "#{f.id.bold.yellow} constructed #{e.id.bold.yellow}"
     if e.is_a?(Manufactured::Station)
-      #factory.entity_type 'miner'
       start_factory Omega::Client::Factory.get(e.id)
 
     elsif e.is_a?(Manufactured::Ship)
@@ -73,7 +69,7 @@ def start_factory(factory)
 
       elsif e.type == :corvette
         factory.entity_type 'miner'
-        #start_corvette Omega::Client::Corvette.get(e.id)
+        start_corvette Omega::Client::Corvette.get(e.id)
 
       end
     end
@@ -91,6 +87,6 @@ def start_factory(factory)
 end
 
 Omega::Client::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }
-#Omega::Client::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
+Omega::Client::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
 Omega::Client::Miner.owned_by(USER_NAME).each    { |m| start_miner    m }
 Omega::Client::Node.join
