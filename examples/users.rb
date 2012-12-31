@@ -42,7 +42,7 @@ mining   = ship(USER_NAME + "-mining-ship1") do |ship|
              ship.type     = :mining
              ship.user_id  = USER_NAME
              ship.solar_system = starting_system
-             #ship.location = Location.new(:x => 30, :y=> -20, :z => 20)
+             #ship.location = Location.new(:x => -150, :y=> -100, :z => -150)
              ship.location = Location.new(:x => 20, :y=> 40, :z => 40)
            end
 

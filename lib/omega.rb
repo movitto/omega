@@ -19,6 +19,7 @@ require 'omega/config'
 require 'omega/client2/node'
 require 'omega/client2/mixins'
 
+require 'omega/client2/user'
 require 'omega/client2/cosmos_entity'
 require 'omega/client2/ship'
 require 'omega/client2/station'

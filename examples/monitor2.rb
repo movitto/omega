@@ -12,7 +12,7 @@ require 'ncursesw'
 require 'active_support/core_ext/string/filters'
 require 'omega'
 
-require File.expand_path(File.dirname(__FILE__) + '/tests')
+require_relative './tests'
 
 # ncurses output class
 class OmegaNcurses
@@ -261,15 +261,12 @@ class OmegaNcurses
       }
     }
 
-    @tests.each { |i,ta|
-      append_text :tests, i.to_s, 2
-      ta.each { |test|
-        str   = test[:success] ? "success" : "failed"
-        str   = "#{str} #{test[:entity]} #{test[:message]}"
-        color = test[:success] ? get_color(4) : get_color(4)
-        color_text :tests, color {
-          append_text :tests, str, 3
-        }
+    @tests.each { |test|
+      str   = test[:success] ? "success" : "failed"
+      str   = "#{str} #{test[:entity]} #{test[:message]}"
+      color = test[:success] ? get_color(4) : get_color(4)
+      color_text(:tests, color){
+        append_text :tests, str, 2
       }
     }
 
@@ -304,17 +301,17 @@ end
 
 puts "Getting serverside entities"
 
-node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'monitor'
-Omega::Client::User.login node, 'admin', 'nimda'
+Omega::Client::Node.client_username = 'admin'
+Omega::Client::Node.client_password = 'nimda'
+Omega::Client::Node.node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'monitor'
 
 output = OmegaNcurses.new
-output.users = Omega::Client::User.get_all
+output.users    = Omega::Client::User.get_all
 output.galaxies = Omega::Client::Galaxy.get_all
-output.tests = []
+output.tests    = run_tests(output)
 
 # periodically sync entities & resources
-Omega::Client::Tracker.em_repeat_async(10) {
-  output.users = Omega::Client::User.get_all
+Omega::Client::Node.em_repeat_async(10) {
   output.refresh
 }
 
