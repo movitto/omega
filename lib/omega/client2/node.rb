@@ -334,7 +334,7 @@ module Omega
       # @param [Array<Object>] all additional params are captured and
       #   registered with event
       def raise_event(method, *args)
-        # TODO support limited rate of raised events and/or
+        # FIXME support event rate throttling mechanism and/or
         # max number of events before queue is flushed or similar
         @event_queue << [method, args]
         process_events
