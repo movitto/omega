@@ -11,7 +11,7 @@ function callback_confirmed_registration(res, error){
 };
 
 function confirm_registration(code){
-  omega_web_request('users::confirm_register', code, callback_confirmed_registration);
+  $omega_node.web_request('users::confirm_register', code, callback_confirmed_registration);
 };
 
 $(document).ready(function(){ 

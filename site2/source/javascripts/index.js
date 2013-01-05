@@ -22,6 +22,6 @@ function errors_to_console(error_msg){
 
 // initialize the page
 $(document).ready(function(){ 
-  add_error_handler(popup_login_errors);
+  $omega_node.add_error_handler(popup_login_errors);
   add_error_handler(errors_to_console);
 });

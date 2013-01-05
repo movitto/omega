@@ -54,10 +54,8 @@ function User(arg){
  */
 function create_session(session_id, user_id){
   // set session id on rjr nodes
-  $web_node.headers['session_id'] = session_id;
-  $ws_node.headers['session_id']  = session_id;
-  $web_node.headers['source_node']= user_id;
-  $ws_node.headers['source_node'] = user_id;
+  $omega_node.set_header('session_id', session_id)
+  $omega_node.set_header('source_node', user_id);
 
   // set session cookies
   $.cookie('omega-session', session_id);
@@ -117,20 +115,20 @@ function callback_logout_user(result, error){
 /* Login the user
  */
 function login_user(user){
-  omega_web_request('users::login', user, callback_login_user)
+  $omega_node.web_request('users::login', user, callback_login_user)
 };
 
 /* Logout the user
  */
 function logout_user(){
   var session_id = $.cookie('omega-session');
-  omega_web_request('users::logout', session_id, callback_logout_user);
+  $omega_node.web_request('users::logout', session_id, callback_logout_user);
 };
 
 /* Register the user
  */
 function register_user(user, callback){
-  omega_web_request('users::register', user, callback);
+  $omega_node.web_request('users::register', user, callback);
 }
 
 /////////////////////////////////////// initialization
@@ -148,7 +146,7 @@ $(document).ready(function(){
   if(user_id != null){
     // XXX hack, give socket time to open before running client
     setTimeout(function(){
-      omega_web_request('users::get_entity', 'with_id', user_id, callback_validate_session);
+      $omega_node.web_request('users::get_entity', 'with_id', user_id, callback_validate_session);
     }, 250);
   }
 });

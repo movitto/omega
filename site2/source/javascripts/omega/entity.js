@@ -476,8 +476,8 @@ function clicked_planet(){
 }
 
 function added_planet_to_scene(){
-  omega_ws_request('motel::remove_callbacks', child.location.id,      null);
-  omega_ws_request('motel::track_movement',   child.location.id, 120, null);
+  $omega_node.ws_request('motel::remove_callbacks', child.location.id,      null);
+  $omega_node.ws_request('motel::track_movement',   child.location.id, 120, null);
 }
 
 function load_asteroid(){
@@ -500,7 +500,7 @@ function clicked_asteroid(){
                  'Resources: <br/>'];
   show_entity_container(details);
 
-  omega_web_request('cosmos::get_resource_sources', asteroid.name, function(resource_sources, error){
+  $omega_node.web_request('cosmos::get_resource_sources', asteroid.name, function(resource_sources, error){
     if(error == null){
       var details = [];
       for(var r in resource_sources){
@@ -691,16 +691,16 @@ function clicked_ship(){
 
 function added_ship_to_scene(){
   // remove & resetup callbacks
-  omega_ws_request('motel::remove_callbacks',        this.location.id,                       null);
-  omega_ws_request('manufactured::remove_callbacks', this.id,                                null);
-  omega_ws_request('motel::track_movement',          this.location.id, 20,                   null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
-  omega_ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
+  $omega_node.ws_request('motel::remove_callbacks',        this.location.id,                       null);
+  $omega_node.ws_request('manufactured::remove_callbacks', this.id,                                null);
+  $omega_node.ws_request('motel::track_movement',          this.location.id, 20,                   null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
+  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
 }
 
 function load_station(){
@@ -800,13 +800,13 @@ $(document).ready(function(){
 
   /////////////////////// add handlers to server side tracker callbacks
 
-  add_method_handler('motel::on_movement', function(loc){
+  $omega_node.add_request_handler('motel::on_movement', function(loc){
     var entity = $tracker.matching_entities({location : loc.id});
     entity[0].update({location : loc});
     $scene.animate();
   });
 
-  add_method_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
+  $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
     var evnt = p0;
     if(evnt == "resource_collected"){
       var ship = p1; var resource_source = p2; var quantity = p3;

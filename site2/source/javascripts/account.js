@@ -40,7 +40,7 @@ $(document).ready(function(){
   $current_user = null;
 
   on_session_validated(update_account_details);
-  add_error_handler(errors_to_console);
+  $omega_node.add_error_handler(errors_to_console);
 
   // update account info when button clicked
   $('#account_info_update').live('click', function(e){
@@ -53,7 +53,7 @@ $(document).ready(function(){
 
       $current_user.password = pass1;
 
-      omega_web_request('users::update_user', $current_user, function(u, e){
+      $omega_node.web_request('users::update_user', $current_user, function(u, e){
         if(e == null){
           alert("User " + u.id + " updated successfully");
         }

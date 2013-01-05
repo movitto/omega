@@ -13,7 +13,7 @@
 function send_message(message){
   var chat_input  = $('#chat_input input[type=text]');
   var chat_output = $('#chat_output textarea');
-  omega_web_request('users::send_message', message, null);
+  $omega_node.web_request('users::send_message', message, null);
   chat_output.append($user_id + ": " + message + "\n");
   chat_input.attr('value', '');
 }
@@ -24,9 +24,9 @@ function send_message(message){
  */
 function subscribe_to_messages(){
   var chat_output = $('#chat_output textarea');
-  omega_ws_request('users::subscribe_to_messages', null);
+  $omega_node.ws_request('users::subscribe_to_messages', null);
 
-  add_method_handler('users::on_message', function(msg){
+  $omega_node.add_request_handler('users::on_message', function(msg){
     chat_output.append(msg.nick + ": " + msg.message + "\n");
   });
 }

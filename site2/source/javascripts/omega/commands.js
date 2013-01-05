@@ -50,7 +50,7 @@ function trigger_jump_gate(jg){
 function omega_jump_ship(ship, sys){
   ship.location.parent_id = sys.location.id;
   ship.system_name = sys.name;
-  omega_web_request('manufactured::move_entity', ship.id, ship.location, null);
+  $omega_node.web_request('manufactured::move_entity', ship.id, ship.location, null);
 }
 
 /* Invoke omega server side manufactured::move_entity 
@@ -65,7 +65,7 @@ function omega_move_ship_to(ship, x, y, z){
   hide_dialog();
   var loc = ship.location.clone();
   loc.x = x; loc.y = y; loc.z = z;
-  omega_web_request('manufactured::move_entity', ship.id, loc, null);
+  $omega_node.web_request('manufactured::move_entity', ship.id, loc, null);
 }
 
 /* Invoke omega server side manufactured::attack_entity 
@@ -76,7 +76,7 @@ function omega_move_ship_to(ship, x, y, z){
  */
 function omega_ship_launch_attack(attacker, defender_id){
   hide_dialog();
-  omega_web_request('manufactured::attack_entity', attacker.id, defender_id, omega_callback());
+  $omega_node.web_request('manufactured::attack_entity', attacker.id, defender_id, omega_callback());
 }
 
 /* Invoke omega server side manufactured::dock 
@@ -87,7 +87,7 @@ function omega_ship_launch_attack(attacker, defender_id){
  */
 function omega_ship_dock_at(ship, station_id){
   hide_dialog();
-  omega_web_request('manufactured::dock', ship.id, station_id, omega_callback());
+  $omega_node.web_request('manufactured::dock', ship.id, station_id, omega_callback());
 }
 
 /* Invoke omega server side manufactured::undock 
@@ -96,7 +96,7 @@ function omega_ship_dock_at(ship, station_id){
  * @param {Manufactured::Ship} ship ship to undock
  */
 function omega_ship_undock(ship){
-  omega_web_request('manufactured::undock', ship.id, omega_callback());
+  $omega_node.web_request('manufactured::undock', ship.id, omega_callback());
 }
 
 /* Invoke omega server side manufactured::transfer_resource 
@@ -108,7 +108,7 @@ function omega_ship_undock(ship){
  */
 function omega_ship_transfer(ship, station_id){
   for(var r in ship.resources){
-    omega_web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], omega_callback())
+    $omega_node.web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], omega_callback())
   }
   hide_dialog();
 }
@@ -125,7 +125,7 @@ function omega_ship_start_mining(ship, resource_source_id){
   var ids = resource_source_id.split('_');
   var entity_id = ids[0];
   var resource_id  = ids[1];
-  omega_web_request('manufactured::start_mining', ship.id, entity_id, resource_id, omega_callback());
+  $omega_node.web_request('manufactured::start_mining', ship.id, entity_id, resource_id, omega_callback());
 }
 
 /* Invoke omega server side manufactured::construct 
@@ -134,7 +134,7 @@ function omega_ship_start_mining(ship, resource_source_id){
  * @param {Manufactured::Station} station station to use to construct entity
  */
 function omega_station_construct(station){
-  omega_web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
+  $omega_node.web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
     $scene.add($tracker.entities[constructed.id]);
     $scene.animate();
   }));
@@ -146,7 +146,7 @@ function omega_station_construct(station){
  * @param {Callback} callback function to invoke w/ array of galaxies retrieved
  */
 function omega_all_entities(callback){
-  omega_web_request('manufactured::get_entity', omega_callback(callback));
+  $omega_node.web_request('manufactured::get_entity', omega_callback(callback));
 }
 
 /* Invoke omega server side manufactured::get_entities 
@@ -156,7 +156,7 @@ function omega_all_entities(callback){
  * @param {Callback} callback function to invoke w/ array of entities retrieved
  */
 function omega_entities_owned_by(user_id, callback){
-  omega_web_request('manufactured::get_entities', 'owned_by', user_id, omega_callback(callback));
+  $omega_node.web_request('manufactured::get_entities', 'owned_by', user_id, omega_callback(callback));
 }
 
 /* Invoke omega server side manufactured::get_entities 
@@ -166,7 +166,7 @@ function omega_entities_owned_by(user_id, callback){
  * @param {Callback} callback function to invoke w/ array of entities retrieved
  */
 function omega_entities_under(system_name, callback){
-  omega_web_request('manufactured::get_entities', 'under', system_name, omega_callback(callback));
+  $omega_node.web_request('manufactured::get_entities', 'under', system_name, omega_callback(callback));
 }
 
 
@@ -177,7 +177,7 @@ function omega_entities_under(system_name, callback){
  * @param {Callback} callback function to invoke w/ entity retrieved
  */
 function omega_entity(entity_id, callback){
-  omega_web_request('manufactured::get_entities', 'with_id', entity_id, omega_callback(callback));
+  $omega_node.web_request('manufactured::get_entities', 'with_id', entity_id, omega_callback(callback));
 }
 
 /* Invoke omega server side cosmos::get_entities 
@@ -186,7 +186,7 @@ function omega_entity(entity_id, callback){
  * @param {Callback} callback function to invoke w/ array of galaxies retrieved
  */
 function omega_all_galaxies(callback){
-  omega_web_request('cosmos::get_entity', 'of_type', 'Cosmos::Galaxy', omega_callback(callback));
+  $omega_node.web_request('cosmos::get_entity', 'of_type', 'Cosmos::Galaxy', omega_callback(callback));
 }
 
 /* Invoke omega server side cosmos::get_entities 
@@ -196,7 +196,7 @@ function omega_all_galaxies(callback){
  * @param {Callback} callback function to invoke w/ system when retrieved
  */
 function omega_system(system_name, callback){
-  omega_web_request('cosmos::get_entity', 'with_name', system_name, omega_callback(callback));
+  $omega_node.web_request('cosmos::get_entity', 'with_name', system_name, omega_callback(callback));
 }
 
 /* Invoke omega server side cosmos::get_resource_sources 
@@ -207,7 +207,7 @@ function omega_system(system_name, callback){
  * @param {Callback} callback function to invoke w/ resource sources when retrieved
  */
 function omega_resource_sources(entity_name, callback){
-  omega_web_request('cosmos::get_resource_sources', entity_name, omega_callback(callback));
+  $omega_node.web_request('cosmos::get_resource_sources', entity_name, omega_callback(callback));
 }
 
 /* Invoke omega server side users::get_entity
@@ -216,7 +216,7 @@ function omega_resource_sources(entity_name, callback){
  * @param {Callback} callback function to invoke w/ array of users retrieved
  */
 function omega_all_users(callback){
-  omega_web_request('users::get_entity', 'of_type', 'Users::User', omega_callback(callback));
+  $omega_node.web_request('users::get_entity', 'of_type', 'Users::User', omega_callback(callback));
 }
 
 /////// precommands to display dialog to select command
@@ -275,7 +275,7 @@ function select_ship_mining(ship){
 
   for(var entity in entities){
     entity = entities[entity];
-    omega_web_request('cosmos::get_resource_sources', entity.name, function(resource_sources, error){
+    $omega_node.web_request('cosmos::get_resource_sources', entity.name, function(resource_sources, error){
       if(error == null){
         var details = "";
         for(var r in resource_sources){
