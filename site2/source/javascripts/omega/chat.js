@@ -4,46 +4,58 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// public methods
+/////////////////////////////////////// Omega Chat Container
 
-/* Send the specified message to the server
- *
- * @params {String} message message to send to the server
+/* Initialize new Omega Chat Container
  */
-function send_message(message){
-  var chat_input  = $('#chat_input input[type=text]');
-  var chat_output = $('#chat_output textarea');
-  $omega_node.web_request('users::send_message', message, null);
-  chat_output.append($user_id + ": " + message + "\n");
-  chat_input.attr('value', '');
-}
+function OmegaChatContainer(){
 
-/////////////////////////////////////// private methods
+  /////////////////////////////////////// private data
 
-/* Callback to subscribe to messages on login/session-validation
- */
-function subscribe_to_messages(){
-  var chat_output = $('#chat_output textarea');
-  $omega_node.ws_request('users::subscribe_to_messages', null);
+  var chat_container = $('#chat_container');
 
-  $omega_node.add_request_handler('users::on_message', function(msg){
-    chat_output.append(msg.nick + ": " + msg.message + "\n");
-  });
-}
+  var chat_input     = $('#chat_input input[type=text]');
 
-/////////////////////////////////////// initialization
+  var chat_button    = $('#chat_input input[type=button]');
 
-$(document).ready(function(){ 
+  var chat_output    = $('#chat_output textarea');
+
+  /////////////////////////////////////// public methods
+
+  /////////////////////////////////////// private methods
+
+  /* Send the specified message to the server
+   *
+   * @params {String} message message to send to the server
+   */
+  var send_message = function(message){
+    var chat_input  = $('#chat_input input[type=text]');
+    var chat_output = $('#chat_output textarea');
+    $omega_node.web_request('users::send_message', message, null);
+    chat_output.append($user_id + ": " + message + "\n");
+    chat_input.attr('value', '');
+  }
+
+  /* Callback to subscribe to messages on login/session-validation
+   */
+  var subscribe_to_messages = function(){
+    var chat_output = $('#chat_output textarea');
+    $omega_node.ws_request('users::subscribe_to_messages', null);
+
+    $omega_node.add_request_handler('users::on_message', function(msg){
+      chat_output.append(msg.nick + ": " + msg.message + "\n");
+    });
+  }
+
+  /////////////////////////////////////// initialization
+
   // lock chat container to its current position
-  $('#chat_container').css({
+  chat_container.css({
     position: 'absolute',
     top:  $('#chat_container').position().top,
     left: $('#chat_container').position().left
   });
 
-  var chat_input  = $('#chat_input input[type=text]');
-  var chat_button = $('#chat_input input[type=button]');
-  var chat_output = $('#chat_output textarea');
 
   // send messages on chat input
   chat_button.live('click', function(e){
@@ -53,4 +65,11 @@ $(document).ready(function(){
 
   // subscribe to messages on session validation
   on_session_validated(subscribe_to_messages);
+}
+
+/////////////////////////////////////// initialization
+
+$(document).ready(function(){
+  /* initialize global chat container */
+  $omega_chat = new OmegaChatContainer();
 });
