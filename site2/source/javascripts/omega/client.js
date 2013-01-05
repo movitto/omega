@@ -4,9 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// Omega Client Object
+/////////////////////////////////////// Omega Client
 
-/* Initialiaze new omega client
+/* Initialiaze new Omega Client
  */
 function OmegaClient(){
 
@@ -29,7 +29,7 @@ function OmegaClient(){
   // TODO parameterize connection info
   var rjr_ws_node  = new WSNode('127.0.0.1', '8080');
 
-  /////////////////////////////////////// private data initialization
+  /////////////////////////////////////// initialization
 
   rjr_ws_node.open();
 
