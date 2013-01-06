@@ -20,8 +20,6 @@ function OmegaChatContainer(){
 
   var chat_output    = $('#chat_output textarea');
 
-  /////////////////////////////////////// public methods
-
   /////////////////////////////////////// private methods
 
   /* Send the specified message to the server
@@ -29,8 +27,6 @@ function OmegaChatContainer(){
    * @params {String} message message to send to the server
    */
   var send_message = function(message){
-    var chat_input  = $('#chat_input input[type=text]');
-    var chat_output = $('#chat_output textarea');
     $omega_node.web_request('users::send_message', message, null);
     chat_output.append($user_id + ": " + message + "\n");
     chat_input.attr('value', '');
@@ -39,7 +35,6 @@ function OmegaChatContainer(){
   /* Callback to subscribe to messages on login/session-validation
    */
   var subscribe_to_messages = function(){
-    var chat_output = $('#chat_output textarea');
     $omega_node.ws_request('users::subscribe_to_messages', null);
 
     $omega_node.add_request_handler('users::on_message', function(msg){
@@ -52,8 +47,8 @@ function OmegaChatContainer(){
   // lock chat container to its current position
   chat_container.css({
     position: 'absolute',
-    top:  $('#chat_container').position().top,
-    left: $('#chat_container').position().left
+    top:  chat_container.position().top,
+    left: chat_container.position().left
   });
 
 
