@@ -29,7 +29,7 @@ optparse = OptionParser.new do |opts|
   end
 
   opts.on('-p', '--password PASSWORD', 'password to give entity') do |p|
-    parent = p
+    password = p
   end
 
   opts.on('-m', '--email email', 'email to give entity') do |e|
@@ -67,7 +67,7 @@ end
 
 RJR::Logger.log_level= ::Logger::INFO
 
-rjr_node   = RJR::AMQPNode.new :node_id => 'omega-users-create', :broker => 'localhost'
+rjr_node   = RJR::AMQPNode.new :node_id => 'omega-users-create', :broker => 'localhost', :keep_alive => true
 login_user = Users::User.new(:id => 'admin', :password => 'nimda')
 session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
 rjr_node.message_headers['session_id'] = session.id
