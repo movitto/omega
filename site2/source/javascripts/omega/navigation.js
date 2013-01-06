@@ -20,19 +20,6 @@ function OmegaNavigationContainer(){
 
   var account_link        = $('#account_link');
 
-  var login_usernamme     = $('#omega_dialog #login_username');
-
-  var login_password      = $('#omega_dialog #login_password');
-
-  var recaptcha_container = $('#omega_dialog #omega_recaptcha');
-
-  var register_username   = $('#omega_dialog #register_username');
-  
-  var register_password   = $('#omega_dialog #register_password');
-
-  var register_email      = $('#omega_dialog #register_email');
-
-
   /////////////////////////////////////// private methods
 
   /* Show login controls, hide logout controls
@@ -59,8 +46,8 @@ function OmegaNavigationContainer(){
   /* Submit the login dialog
    */
   var submit_login_dialog = function(){
-    var user_id       = login_username.attr('value');
-    var user_password = login_password.attr('value');
+    var user_id       = $('#omega_dialog #login_username').attr('value');
+    var user_password = $('#omega_dialog #login_password').attr('value');
     var user = new OmegaUser({ id : user_id, password : user_password });
     $omega_dialog.hide();
     $omega_session.login_user(user);
@@ -79,7 +66,7 @@ function OmegaNavigationContainer(){
     $omega_dialog.show('Create Account', '#register_dialog');
   
     // FIXME make recaptcha public key variable / configurable
-    recaptcha_container.html('<div id="omega_registration_recaptcha"></div>');
+    $('#omega_dialog #omega_recaptcha').html('<div id="omega_registration_recaptcha"></div>');
     Recaptcha.create("6LflM9QSAAAAAHsPkhWc7OPrwV4_AYZfnhWh3e3n", "omega_registration_recaptcha",
                      { theme: "red", callback: Recaptcha.focus_response_field});
   }
@@ -97,9 +84,9 @@ function OmegaNavigationContainer(){
   /* Submit register user dialog
    */
   var submit_register_dialog = function(){
-    var user_id             = register_username.attr('value');
-    var user_password       = register_password.attr('value');
-    var user_email          = register_email.attr('value');
+    var user_id             = $('#omega_dialog #register_username').attr('value');
+    var user_password       = $('#omega_dialog #register_password').attr('value');
+    var user_email          = $('#omega_dialog #register_email').attr('value');
     var recaptcha_challenge = Recaptcha.get_challenge();
     var recaptcha_response  = Recaptcha.get_response();
 

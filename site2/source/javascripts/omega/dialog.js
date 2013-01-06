@@ -35,7 +35,7 @@ function OmegaDialogContainer(){
   /* Hide omega dialog
    */
   this.hide = function(){
-    omega_dialog.dialog('close');
+    dialog_container.dialog('close');
   };
 
   /* Append text to dialog
@@ -43,7 +43,7 @@ function OmegaDialogContainer(){
    * @param {String} text text to append to dialog
    */
   this.append = function(text){
-    omega_dialog.html(d.html() + text);
+    dialog_container.html(d.html() + text);
   }
 }
 
