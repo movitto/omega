@@ -27,7 +27,7 @@ function show_logout_controls(){
 /* Show the login dialog
  */
 function show_login_dialog(){
-  show_dialog('Login', '#login_dialog');
+  $omega_dialog.show('Login', '#login_dialog');
 }
 
 /* Submit the login dialog
@@ -36,7 +36,7 @@ function submit_login_dialog(){
   var user_id = $('#omega_dialog #login_username').attr('value');
   var user_password = $('#omega_dialog #login_password').attr('value');
   var user = new OmegaUser({ id : user_id, password : user_password });
-  hide_dialog();
+  $omega_dialog.hide();
   $omega_session.login_user(user);
 }
 
@@ -50,7 +50,7 @@ function handle_logout_click(){
 /* Show registration dialog
  */
 function show_register_dialog(){
-  show_dialog('Create Account', '#register_dialog');
+  $omega_dialog.show('Create Account', '#register_dialog');
 
   // FIXME make recaptcha public key variable / configurable
   $('#omega_dialog #omega_recaptcha').html('<div id="omega_registration_recaptcha"></div>');
@@ -62,9 +62,9 @@ function show_register_dialog(){
  */
 function callback_registration_submitted(user, error){
   if(error){
-    show_dialog('Failed to create account', '#registration_failed_dialog', error['message'])
+    $omega_dialog.show('Failed to create account', '#registration_failed_dialog', error['message'])
   }else{
-    show_dialog('Creating Account', '#registration_submitted_dialog')
+    $omega_dialog.show('Creating Account', '#registration_submitted_dialog')
   }
 }
 
@@ -80,7 +80,7 @@ function submit_register_dialog(){
                         recaptcha_challenge : recaptcha_challenge,
                         recaptcha_response : recaptcha_response});
 
-  hide_dialog();
+  $omega_dialog.hide();
   $omega_session.register_user(user, callback_registration_submitted);
 }
 

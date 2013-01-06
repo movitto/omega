@@ -4,37 +4,49 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// public methods
+/////////////////////////////////////// Omega Dialog Container
 
-/* Show the dialog with the specified title,
- * containing the content from the specified select,
- * with additional specified text
- *
- * @param {String} title title to give the dialog
- * @param {String} selector optional css selector of div to populate dialog with
- * @param {String} text optional additional text to add to div
+/* Initialize new Omega Dialog Container
  */
-function show_dialog(title, selector, text){
-  var content = $(selector).html();
-  if(content == null) content = "";
-  if(text == null) text = "";
-  $('#omega_dialog').html(content + text).dialog({title: title, width: '450px'}).
-                                 dialog('option', 'title', title).dialog('open');
-};
+function OmegaDialogContainer(){
 
-/* Append text to dialog
- *
- * @param {String} text text to append to dialog
- */
-function append_to_dialog(text){
-  var d = $('#omega_dialog');
-  d.html(d.html() + text);
+  /////////////////////////////////////// private data
+
+  var dialog_container = $('#omega_dialog');
+
+  /////////////////////////////////////// public methods
+
+  /* Show the dialog with the specified title,
+   * containing the content from the specified select,
+   * with additional specified text
+   *
+   * @param {String} title title to give the dialog
+   * @param {String} selector optional css selector of div to populate dialog with
+   * @param {String} text optional additional text to add to div
+   */
+  this.show = function(title, selector, text){
+    var content = $(selector).html();
+    if(content == null) content = "";
+    if(text == null) text = "";
+    dialog_container.html(content + text).dialog({title: title, width: '450px'}).
+                                   dialog('option', 'title', title).dialog('open');
+  };
+
+  /* Hide omega dialog
+   */
+  this.hide = function(){
+    omega_dialog.dialog('close');
+  };
+
+  /* Append text to dialog
+   *
+   * @param {String} text text to append to dialog
+   */
+  this.append = function(text){
+    omega_dialog.html(d.html() + text);
+  }
 }
 
-/* Hide omega dialog
- */
-function hide_dialog(){
-  $('#omega_dialog').dialog('close');
-};
-
-///////////////////////////////////////
+$(document).ready(function(){
+  $omega_dialog = new OmegaDialogContainer();
+});

@@ -62,7 +62,7 @@ function omega_jump_ship(ship, sys){
  * @param {Float} z z coordinate to move ship to
  */
 function omega_move_ship_to(ship, x, y, z){
-  hide_dialog();
+  $omega_dialog.hide();
   var loc = ship.location.clone();
   loc.x = x; loc.y = y; loc.z = z;
   $omega_node.web_request('manufactured::move_entity', ship.id, loc, null);
@@ -75,7 +75,7 @@ function omega_move_ship_to(ship, x, y, z){
  * @param {String} defender_id id of ship we are attacking
  */
 function omega_ship_launch_attack(attacker, defender_id){
-  hide_dialog();
+  $omega_dialog.hide();
   $omega_node.web_request('manufactured::attack_entity', attacker.id, defender_id, omega_callback());
 }
 
@@ -86,7 +86,7 @@ function omega_ship_launch_attack(attacker, defender_id){
  * @param {String} station_id id of the station we are docking
  */
 function omega_ship_dock_at(ship, station_id){
-  hide_dialog();
+  $omega_dialog.hide();
   $omega_node.web_request('manufactured::dock', ship.id, station_id, omega_callback());
 }
 
@@ -110,7 +110,7 @@ function omega_ship_transfer(ship, station_id){
   for(var r in ship.resources){
     $omega_node.web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], omega_callback())
   }
-  hide_dialog();
+  $omega_dialog.hide();
 }
 
 /* Invoke omega server side manufactured::start_mining 
@@ -121,7 +121,7 @@ function omega_ship_transfer(ship, station_id){
  * @param {String} resource_source_id id of the resource source to starting mining
  */
 function omega_ship_start_mining(ship, resource_source_id){
-  hide_dialog();
+  $omega_dialog.hide();
   var ids = resource_source_id.split('_');
   var entity_id = ids[0];
   var resource_id  = ids[1];
@@ -229,7 +229,7 @@ function select_ship_destination(ship){
              "<div class='dialog_row'>Y: <input id='dest_y' type='text' value='"+roundTo(ship.location.y,2)+"'/></div>" +
              "<div class='dialog_row'>Z: <input id='dest_z' type='text' value='"+roundTo(ship.location.z,2)+"'/></div>" +
              "<div class='dialog_row'><input type='button' value='move' id='ship_move_to' /></div>";
-  show_dialog('Move Ship', null, text);
+  $omega_dialog.show('Move Ship', null, text);
 }
 
 function select_ship_target(ship){
@@ -242,7 +242,7 @@ function select_ship_target(ship){
     entity = entities[entity];
     text += "<div class='dialog_row dialog_clickable_row ship_launch_attack'>" + entity.id + "</div>";
   }
-  show_dialog('Launch Attack', null, text);
+  $omega_dialog.show('Launch Attack', null, text);
 }
 
 function select_ship_dock(ship){
@@ -253,7 +253,7 @@ function select_ship_dock(ship){
     entity = entities[entity];
     text += "<div class='dialog_row dialog_clickable_row ship_dock_at'>" + entity.id + "</div>";
   }
-  show_dialog('Dock Ship', null, text);
+  $omega_dialog.show('Dock Ship', null, text);
 }
 
 function select_ship_transfer(ship){
@@ -264,14 +264,14 @@ function select_ship_transfer(ship){
     entity = entities[entity];
     text += "<div class='dialog_row dialog_clickable_row ship_transfer'>" + entity.id + "</div>";
   }
-  show_dialog('Transfer Resources', null, text);
+  $omega_dialog.show('Transfer Resources', null, text);
 }
 
 function select_ship_mining(ship){
   var entities = $tracker.matching_entities({type : "Cosmos::Asteroid",
                                              within : [100, ship.location]});
   var text = "<div class='dialog_row'>Select resource to mine w/"+ship.id+"</div>";
-  show_dialog('Start Mining', null, text);
+  $omega_dialog.show('Start Mining', null, text);
 
   for(var entity in entities){
     entity = entities[entity];
@@ -282,7 +282,7 @@ function select_ship_mining(ship){
           var res = resource_sources[r];
           details += "<div class='dialog_row dialog_clickable_row ship_start_mining' id='start_mining_rs_" + res.entity.name + "_" + res.resource.id + "'>" + res.resource.type + ": " + res.resource.name + " (" + res.quantity + ")</div>";
         }
-        append_to_dialog(details);
+        $omega_dialog.append(details);
       }
     });
   }

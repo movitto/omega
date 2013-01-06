@@ -95,15 +95,15 @@ test("show/hide/append to entity container", function() {
 ///////////////////////////// dialog.js:
 
 test("show/hide/append to dialog", function() {
-  show_dialog('title', '#omega_dialog_content', '+some');
+  $omega_dialog.show('title', '#omega_dialog_content', '+some');
   var display = $('#omega_dialog').css('display');
   var value   = $('#omega_dialog').html();
   equal("block", display);
   equal("content+some", value);
-  append_to_dialog("evenmore");
+  $omega_dialog.append("evenmore");
   value   = $('#omega_dialog').html();
   equal("content+someevenmore", value);
-  hide_dialog();
+  $omega_dialog.hide();
   display = $('#omega_dialog').css('display');
   // FIXME this isn't working right
   //equal("none", display);
