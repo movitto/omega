@@ -59,7 +59,7 @@ function OmegaChatContainer(){
   });
 
   // subscribe to messages on session validation
-  on_session_validated(subscribe_to_messages);
+  $omega_session.on_session_validated(subscribe_to_messages);
 }
 
 /////////////////////////////////////// initialization

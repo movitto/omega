@@ -39,7 +39,7 @@ function update_account_details(user){
 $(document).ready(function(){ 
   $current_user = null;
 
-  on_session_validated(update_account_details);
+  $omega_session.on_session_validated(update_account_details);
   $omega_node.add_error_handler(errors_to_console);
 
   // update account info when button clicked

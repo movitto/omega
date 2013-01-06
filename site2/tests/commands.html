@@ -26,7 +26,7 @@
 function before_all(details){
   // login user
   var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
-  login_user(user);
+  $omega_session.login_user(user);
 
   // load some serverside data
   omega_system('Athena', null);

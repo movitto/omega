@@ -17,11 +17,11 @@
 
 function before_each(details){
   // logout user
-  logout_user();
+  $omega_session.logout_user();
 
   // login user
   var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
-  login_user(user);
+  $omega_session.login_user(user);
 }
 
 //QUnit.moduleStart(before_all);

@@ -35,16 +35,15 @@ function show_login_dialog(){
 function submit_login_dialog(){
   var user_id = $('#omega_dialog #login_username').attr('value');
   var user_password = $('#omega_dialog #login_password').attr('value');
-  var user = new User({ id : user_id, password : user_password });
+  var user = new OmegaUser({ id : user_id, password : user_password });
   hide_dialog();
-  login_user(user);
+  $omega_session.login_user(user);
 }
 
 /* Log the user out
  */
 function handle_logout_click(){
-  logout_user();
-  destroy_session();
+  $omega_session.logout_user();
   show_login_controls();
 }
 
@@ -77,19 +76,19 @@ function submit_register_dialog(){
   var user_email    = $('#omega_dialog #register_email').attr('value');
   var recaptcha_challenge = Recaptcha.get_challenge();
   var recaptcha_response  = Recaptcha.get_response();
-  var user = new User({ id : user_id, password : user_password, email : user_email,
+  var user = new OmegaUser({ id : user_id, password : user_password, email : user_email,
                         recaptcha_challenge : recaptcha_challenge,
                         recaptcha_response : recaptcha_response});
 
   hide_dialog();
-  register_user(user, callback_registration_submitted);
+  $omega_session.register_user(user, callback_registration_submitted);
 }
 
 /////////////////////////////////////// initialization
 
 $(document).ready(function(){ 
-  on_session_validated(show_logout_controls);
-  on_invalid_session(show_login_controls);
+  $omega_session.on_session_validated(show_logout_controls);
+  $omega_session.on_invalid_session(show_login_controls);
 
   $('#login_link').live('click', function(event){ show_login_dialog(); });
   //$('#omega_dialog input').live('keypress', function(e){ if(e.keyCode == 13) submit_login_dialog(); }); // submit on enter

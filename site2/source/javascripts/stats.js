@@ -50,7 +50,7 @@ function refresh_cycle(args){
 // initialize the page
 $(document).ready(function(){ 
   $omega_node.add_error_handler(errors_to_console);
-  on_session_validated(refresh_cycle);
+  $omega_session.on_session_validated(refresh_cycle);
 
   // lock stats nav to its current position
   $('#stats_nav').css({

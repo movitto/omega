@@ -18,7 +18,7 @@
 module("omega_user");
 
 asyncTest("user login and logout", 6, function() {
-  on_session_validated(function(){
+  $omega_session.on_session_validated(function(){
     var sc = $.cookie('omega-session');
     var ehc = $web_node.headers['session_id'];
     var shc = $ws_node.headers['session_id'];
@@ -30,7 +30,7 @@ asyncTest("user login and logout", 6, function() {
     equal('mmorsi', uc);
     start();
   });
-  on_session_destroyed(function(){
+  $omega_session.on_session_destroyed(function(){
     var sc = $.cookie('omega-session');
     var uc = $.cookie('omega-user');
     equal(null, sc);
@@ -38,9 +38,9 @@ asyncTest("user login and logout", 6, function() {
     start();
   });
   var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
-  login_user(user);
+  $omega_session.login_user(user);
   stop();
-  logout_user();
+  $omega_session.logout_user();
 });
 
 //asyncTest("user registeration", 2, function() {

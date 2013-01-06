@@ -4,136 +4,149 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// global vars
+/////////////////////////////////////// Omega User
 
-// invoked when session validation is successful (eg page refresh when user is logged in)
-$session_validated_callbacks = [];
+function OmegaUser(args){
+  /////////////////////////////////////// private data
 
-// invoked when session validation is not succesful
-$invalid_session_callbacks   = [];
+  this.id                   = args.id;
 
-// invoked when session is destroyed
-$session_destroyed_callbacks = [];
+  this.password             = args.password;
 
-/////////////////////////////////////// public methods
+  this.email                = args.email;
 
-/* Register function to be invoked when session is validated
- */
-function on_session_validated(callback){
-  $session_validated_callbacks.push(callback);
+  this.recaptcha_challenge  = args.recaptcha_challenge;
+
+  this.recaptcha_response   = args.recaptcha_response;
+
+  /////////////////////////////////////// public methods
+
+  this.toJSON = function(){
+    return new JRObject("Users::User", this).toJSON();
+  };
 }
 
-/* Register function to be invoked when invalid session
- * is detected.
+/////////////////////////////////////// Omega Session
+
+/* Initialize new Omega Session
  */
-function on_invalid_session(callback){
-  $invalid_session_callbacks.push(callback);
-}
+function OmegaSession(){
 
-/* Register function to be invoked when session
- * is destroyed.
- */
-function on_session_destroyed(callback){
-  $session_destroyed_callbacks.push(callback);
-}
+  /////////////////////////////////////// private data
 
-/////////////////////////////////////// private methods
+  // invoked when session validation is successful (eg page refresh when user is logged in)
+  var session_validated_callbacks = [];
 
-/* Create new user w/ the specified params
- */
-function User(arg){
-  this.id = arg.id;
-  this.password = arg.password;
-  this.email = arg.email;
-  this.recaptcha_challenge = arg.recaptcha_challenge;
-  this.recaptcha_response = arg.recaptcha_response;
-  this.toJSON = function(){ return new JRObject("Users::User", this).toJSON(); };
-};
+  // invoked when session validation is not succesful
+  var invalid_session_callbacks   = [];
 
-/* Initialize the user session
- */
-function create_session(session_id, user_id){
-  // set session id on rjr nodes
-  $omega_node.set_header('session_id', session_id)
-  $omega_node.set_header('source_node', user_id);
+  // invoked when session is destroyed
+  var session_destroyed_callbacks = [];
 
-  // set session cookies
-  $.cookie('omega-session', session_id);
-  $.cookie('omega-user',    user_id);
+  /////////////////////////////////////// private methods
 
-  $user_id = user_id;
-};
+  /* Initialize the user session
+   */
+  var create_session = function(session_id, user_id){
+    // set session id on rjr nodes
+    $omega_node.set_header('session_id', session_id)
+    $omega_node.set_header('source_node', user_id);
 
-/* Destroy the user session
- */
-function destroy_session(){
-  // delete session cookies
-  $.cookie('omega-session', null);
-  $.cookie('omega-user',    null);
-};
+    // set session cookies
+    $.cookie('omega-session', session_id);
+    $.cookie('omega-user',    user_id);
 
-/* Callback invoked to verify user session
- */
-function callback_validate_session(user, error){
-  var ret = true;
-  if(error){
+    $user_id = user_id;
+  };
+
+  /* Destroy the user session
+   */
+  var destroy_session = function(){
+    // delete session cookies
+    $.cookie('omega-session', null);
+    $.cookie('omega-user',    null);
+  };
+
+  /* Callback invoked to verify user session
+   */
+  var callback_validate_session = function(user, error){
+    var ret = true;
+    if(error){
+      destroy_session();
+      ret = false;
+      for(var i = 0; i < invalid_session_callbacks.length; i++){
+        invalid_session_callbacks[i]();
+      }
+    }else{
+      for(var i = 0; i < session_validated_callbacks.length; i++){
+        session_validated_callbacks[i]();
+      }
+    }
+    return ret;
+  };
+
+  /* Callback invoked on user login
+   */
+  var callback_login_user = function(session, error){
+    if(error){
+      destroy_session();
+    }else{
+      create_session(session.id, session.user_id);
+      for(var i = 0; i < session_validated_callbacks.length; i++){
+        session_validated_callbacks[i]();
+      }
+    }
+  }
+
+  /* Callback invoked on user logout
+   */
+  var callback_logout_user = function(result, error){
     destroy_session();
-    ret = false;
-    for(var i = 0; i < $invalid_session_callbacks.length; i++){
-      $invalid_session_callbacks[i]();
-    }
-  }else{
-    for(var i = 0; i < $session_validated_callbacks.length; i++){
-      $session_validated_callbacks[i]();
+    for(var i = 0; i < session_destroyed_callbacks.length; i++){
+      session_destroyed_callbacks[i]();
     }
   }
-  return ret;
-};
 
-/* Callback invoked on user login
- */
-function callback_login_user(session, error){
-  if(error){
-    destroy_session();
-  }else{
-    create_session(session.id, session.user_id);
-    for(var i = 0; i < $session_validated_callbacks.length; i++){
-      $session_validated_callbacks[i]();
-    }
+  /////////////////////////////////////// public methods
+
+  this.on_session_validated = function(callback){
+    session_validated_callbacks.push(callback);
   }
-}
 
-/* Callback invoked on user logout
- */
-function callback_logout_user(result, error){
-  destroy_session();
-  for(var i = 0; i < $session_destroyed_callbacks.length; i++){
-    $session_destroyed_callbacks[i]();
+  /* Register function to be invoked when invalid session
+   * is detected.
+   */
+  this.on_invalid_session = function(callback){
+    invalid_session_callbacks.push(callback);
   }
-}
 
-/* Login the user
- */
-function login_user(user){
-  $omega_node.web_request('users::login', user, callback_login_user)
-};
+  /* Register function to be invoked when session
+   * is destroyed.
+   */
+  this.on_session_destroyed = function(callback){
+    session_destroyed_callbacks.push(callback);
+  }
 
-/* Logout the user
- */
-function logout_user(){
-  var session_id = $.cookie('omega-session');
-  $omega_node.web_request('users::logout', session_id, callback_logout_user);
-};
+  /* Login the user
+   */
+  this.login_user = function(user){
+    $omega_node.web_request('users::login', user, callback_login_user);
+  };
 
-/* Register the user
- */
-function register_user(user, callback){
-  $omega_node.web_request('users::register', user, callback);
-}
+  /* Logout the user
+   */
+  this.logout_user = function(){
+    var session_id = $.cookie('omega-session');
+    $omega_node.web_request('users::logout', session_id, callback_logout_user);
+  };
 
-/////////////////////////////////////// initialization
+  /* Register the user
+   */
+  this.register_user = function(user, callback){
+    $omega_node.web_request('users::register', user, callback);
+  };
 
-$(document).ready(function(){ 
+  /////////////////////////////////////// initialization
 
   // restore the session from cookies
   var user_id    = $.cookie('omega-user');
@@ -146,7 +159,14 @@ $(document).ready(function(){
   if(user_id != null){
     // XXX hack, give socket time to open before running client
     setTimeout(function(){
-      $omega_node.web_request('users::get_entity', 'with_id', user_id, callback_validate_session);
+      $omega_node.web_request('users::get_entity', 'with_id', user_id,
+                              callback_validate_session);
     }, 250);
   }
+}
+
+/////////////////////////////////////// initialization
+
+$(document).ready(function(){
+  $omega_session = new OmegaSession();
 });
