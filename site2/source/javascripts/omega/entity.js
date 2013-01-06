@@ -331,7 +331,7 @@ function load_system(){
 
 function clicked_system(){
   var system = this;
-  set_root_entity(system.name);
+  $omega_entity.set_root($tracker.entities[system.name]);
 }
 
 function load_star(){
@@ -498,7 +498,7 @@ function clicked_asteroid(){
   var details = ['Asteroid: ' + asteroid.name + "<br/>",
                  '@ ' + asteroid.location.to_s() + '<br/>',
                  'Resources: <br/>'];
-  show_entity_container(details);
+  $omega_entity_container.show(details);
 
   $omega_node.web_request('cosmos::get_resource_sources', asteroid.name, function(resource_sources, error){
     if(error == null){
@@ -507,7 +507,7 @@ function clicked_asteroid(){
         var res = resource_sources[r];
         details.push(res.quantity + " of " + res.resource.name + " (" + res.resource.type + ")<br/>");
       }
-      append_to_entity_container(details);
+      $omega_entity_container.append(details);
     }
   });
 }
@@ -554,7 +554,7 @@ function clicked_jump_gate(){
     ['Jump Gate to ' + jump_gate.endpoint + '<br/>',
      '@ ' + jump_gate.location.to_s() + "<br/><br/>",
      "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
-  show_entity_container(details); // XXX should go before the following as it will invoke hide_entity_container / unselect_jump_gate
+  $omega_entity_container.show(details); // XXX should go before the following as it will invoke $omege_entity_container.hide() / unselect_jump_gate
   $selected_entity = jump_gate;
   jump_gate.selected = true;
   jump_gate.dirty = true;
@@ -670,7 +670,7 @@ function clicked_ship(){
     details.push("<div class='cmd_icon' id='ship_select_mine'>mine</div>");
   }
 
-  show_entity_container(details);
+  $omega_entity_container.show(details);
 
   if(!ship.docked_at){
     $('#ship_select_dock').show();
@@ -766,7 +766,7 @@ function clicked_station(){
     // TODO wire up construction handler
     details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
   }
-  show_entity_container(details);
+  $omega_entity_container.show(details);
 
   $selected_entity = station;
   station.selected = true;
@@ -783,11 +783,11 @@ function scene_changed_callback(){
   clear_entity_timers();
   add_entity_timer('planet_movement', 2000, function(){
     // TODO tracked_planet
-    for(var planet in $tracked_planets){
-      planet = $tracked_planets[planet];
-      planet.move();
-      $omega_scene.animate();
-    }
+    //for(var planet in $tracked_planets){
+    //  planet = $tracked_planets[planet];
+    //  planet.move();
+    //  $omega_scene.animate();
+    //}
   });
 }
 
@@ -796,7 +796,7 @@ $(document).ready(function(){
   $entity_registered_callbacks = [];
 
   $omega_session.on_session_validated(get_user_entities);
-  on_scene_change(scene_changed_callback);
+  $omega_scene.on_scene_change(scene_changed_callback);
 
   /////////////////////// add handlers to server side tracker callbacks
 

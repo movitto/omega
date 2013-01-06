@@ -88,9 +88,41 @@ function OmegaCamera(){
     $omega_scene.animate();
   }
 
-  // XXX scene requires access to three.js camera
+  // XXX OmegaScene and canvas clicked handler requires access to three.js camera
   this.scene_camera = function(){
     return _camera;
+  }
+
+  /////////////////////////////////////// initialization
+
+  // wire up camera controls
+
+  if(jQuery.fn.mousehold){
+
+    $('#cam_rotate_right').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.0, 0.2);
+    });
+
+    $('#cam_rotate_left').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.0, -0.2);
+    });
+
+    $('#cam_rotate_up').mousehold(function(e, ctr){
+      $omega_camera.rotate(-0.2, 0.0);
+    });
+
+    $('#cam_rotate_down').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.2, 0.0);
+    });
+
+    $('#cam_zoom_out').mousehold(function(e, ctr){
+      $omega_camera.zoom(20);
+    });
+
+    $('#cam_zoom_in').mousehold(function(e, ctr){
+      $omega_camera.zoom(-20);
+    });
+
   }
 }
 
@@ -150,6 +182,10 @@ function OmegaGrid(){
   }
 
   var grid_line = new THREE.Line( geometry, material, THREE.LinePieces );
+
+  // wire up grid controls
+  $('#toggle_grid_canvas').live('click', function(e){ $omega_grid.toggle(); });
+  $('#toggle_grid_canvas').attr('checked', false);
 }
 
 
@@ -170,6 +206,8 @@ function OmegaScene(){
   $omega_camera.position({z : 500});
 
   var entities = {};
+
+  var scene_changed_callback = null;
 
   /////////////////////////////////////// public (read-only) data
 
@@ -197,7 +235,45 @@ function OmegaScene(){
   this.geometries = {asteroid : new THREE.TextGeometry( "*", {height: 20, curveSegments: 2, font: 'helvetiker', size: 32}),
                     moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),};
 
+  /////////////////////////////////////// private methods
+
+  var clear = function(){
+    for(var entity in entities){
+      entity = entities[entity]
+      for(var scene_entity in entity.scene_objs){
+        var se = entity.scene_objs[scene_entity];
+        _scene.remove(se);
+        delete entity.scene_objs[scene_entity];
+      }
+      entities[entity.id].scene_objs = [];
+      delete entities[entity.id];
+    }
+    entities = [];
+  }
+
   /////////////////////////////////////// public methods
+
+  this.on_scene_change = function(callback){
+    scene_changed_callback = callback;
+  }
+
+  this.set_root = function(entity){
+    $omega_canvas.set_background(entity);
+    $omega_entity_container.hide();
+
+    clear();
+    for(var child in entity.children){
+      child = entity.children[child];
+      this.add_entity(child);
+      if(child.added_to_scene)
+        child.added_to_scene();
+    }
+
+    if(scene_changed_callback)
+      scene_changed_callback();
+
+    this.animate();
+  }
 
   this.has = function(entity){
     return entities[entity.id] != null;
@@ -230,19 +306,6 @@ function OmegaScene(){
     this.animate();
   }
 
-  this.clear = function(){
-    for(var entity in entities){
-      entity = entities[entity]
-      for(var scene_entity in entity.scene_objs){
-        var se = entity.scene_objs[scene_entity];
-        _scene.remove(se);
-        delete entity.scene_objs[scene_entity];
-      }
-      entities[entity.id].scene_objs = [];
-      delete entities[entity.id];
-    }
-    entities = [];
-  }
 
   this.animate = function(){
     requestAnimationFrame(this.render);
@@ -257,11 +320,20 @@ function OmegaScene(){
     return _scene.position;
   }
 
+  // XXX canvas clicked handler request access to scene objects
+  this.scene_objects = function(){
+    return _scene.__objects;
+  }
+
+  // XXX canvas clicked handler requires scene entities
+  this.entities = function(){
+    return entities;
+  }
+
   /////////////////////////////////////// initialization
 
   this.animate();
 }
-
 
 /////////////////////////////////////// initialization
 

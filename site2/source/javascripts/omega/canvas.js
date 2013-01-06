@@ -4,182 +4,76 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// public methods
+/////////////////////////////////////// Omega Entity Container
 
-/* Show the entity details container with
- * the specified line items
- *
- * @param {Array<String>} items strings to add to entity container
+/* Initialize new Omega Entity Container
  */
-function show_entity_container(items){
-  hide_entity_container(); // so as to unselect previous
-  var text = "";
-  for(var item in items)
-    text += items[item];
-  $('#entity_container_contents').html(text);
-  $('#omega_entity_container').show();
-}
+function OmegaEntityContainer(){
 
-/* Append items to the entity details container
- *
- * @param {Array<String>} items strings to add to entity container
- */
-function append_to_entity_container(items){
-  var text = "";
-  for(var item in items)
-    text += items[item];
-  var container = $('#entity_container_contents');
-  container.html(container.html() + text);
-}
+  /////////////////////////////////////// private data
 
-/* Hide the entity container, this calls the globally
- * registered $entity_container_callback method to
- * handle the entity 'unselection' event
- */
-function hide_entity_container(){
-  $('#omega_entity_container').hide();
-  if($entity_container_callback != null)
-    $entity_container_callback();
-}
+  // if set will be called when entity container is closed
+  var closed_callback  = null;
 
-/* Register method to be invoked when canvas scene root is set
- */
-function on_scene_change(callback){
-  $scene_changed_callback = callback;
-}
+  var entity_container          = $('#omega_entity_container');
 
-/////////////////////////////////////// private methods
+  var entity_container_contents = $('#entity_container_contents');
 
-/* Hide the omega canvas
- */
-function hide_canvas(){
-  $('canvas').hide();
-  $('.entities_container').hide();
-  $('#camera_controls').hide();
-  $('#grid_control').hide();
-  $('#close_canvas').hide();
-  $('#show_canvas').show();
-};
+  /////////////////////////////////////// public methods
 
-/* Show the omega canvas
- */
-function show_canvas(){
-  $('canvas').show();
-  //$('.entities_container').show(); // TODO we need to individually show each of these
-  $('#camera_controls').show();
-  $('#grid_control').show();
-  $('#close_canvas').show();
-  $('#show_canvas').hide();
-};
-
-/* Set the root canvas entity
- */
-function set_root_entity(entity_id){
-  var entity = $tracker.entities[entity_id];
-  hide_entity_container();
-  $('#omega_canvas').css('background', 'url("/womega/images/backgrounds/' + entity.background + '.png") no-repeat');
-
-  $omega_scene.clear();
-  for(var child in entity.children){
-    child = entity.children[child];
-    $omega_scene.add_entity(child);
-    if(child.added_to_scene)
-      child.added_to_scene();
+  /* Register callback to be called when container is closed
+   */
+  this.on_closed = function(callback){
+    closed_callback = callback;
   }
 
-  if($omega_scene_changed_callback)
-    $omega_scene_changed_callback();
+  /* Show the entity details container with
+   * the specified line items
+   *
+   * @param {Array<String>} items strings to add to entity container
+   */
+  this.show = function(items){
+    this.hide(); // so as to unselect previous
+    var text = "";
+    for(var item in items)
+      text += items[item];
+    entity_container_contents.html(text);
+    entity_container.show();
+  }
 
-  $omega_scene.animate();
-};
+  /* Append items to the entity details container
+   *
+   * @param {Array<String>} items strings to add to entity container
+   */
+  this.append = function(items){
+    var text = "";
+    for(var item in items)
+      text += items[item];
+    entity_container_contents.html(entity_container_contents.html() + text);
+  }
 
+  /* Hide the entity container, this calls the globally
+   * registered $entity_container_callback method to
+   * handle the entity 'unselection' event
+   */
+  this.hide = function(){
+    entity_container.hide();
+    if(closed_callback != null)
+      closed_callback();
+  }
 
-/* Return coordiantes on canvas corresponding
- * to absolute screen coordinates.
- *
- * Pass x,y position of click event relative to screen/window
- */
-function canvas_click_coords(x,y){
-  var canvas = $('#omega_canvas');
-  var nx = Math.floor(x-canvas.offset().left);
-  var ny = Math.floor(y-canvas.offset().top);
-  nx = nx / canvas.width() * 2 - 1;
-  ny = - ny / canvas.height() * 2 + 1;
-  return [nx, ny];
-}
+  /////////////////////////////////////// initialization
 
-// Display the canvas select box
-function show_select_box(args){
-  $sb_dx = args.x;
-  $sb_dy = args.y;
-  $("#canvas_select_box").show();
-}
+  // lock entity container to its current position
 
-// Hide the canvas select box
-function hide_select_box(args){
-  var select_box = $("#canvas_select_box");
-  select_box.css('left', 0);
-  select_box.css('top',  0);
-  select_box.css('min-width',  0);
-  select_box.css('min-height', 0);
-  select_box.hide();
-}
-
-// Update the canvas select box
-function update_select_box(args){
-  var canvas = $("#omega_canvas");
-  var select_box = $("#canvas_select_box");
-
-  if(!select_box.is(":visible"))
-    return;
-
-  var tlx = select_box.css('left');
-  var tly = select_box.css('top');
-  var brx = select_box.css('left') + select_box.css('min-width');
-  var bry = select_box.css('top')  + select_box.css('min-height');
-
-  var downX = $sb_dx; var downY = $sb_dy;
-  var currX = args.x; var currY = args.y;
-
-  if(currX < downX){ tlx = currX; brx = downX; }
-  else             { tlx = downX; brx = currX; }
-
-  if(currY < downY){ tly = currY; bry = downY; }
-  else             { tly = downY; bry = currY; }
-
-  var width  = brx - tlx;
-  var height = bry - tly;
-
-  select_box.css('left', canvas.position().left + tlx);
-  select_box.css('top',  canvas.position().top + tly);
-  select_box.css('min-width',  width);
-  select_box.css('min-height', height);
-}
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){ 
-  $omega_scene_changed_callback = null;
-
-  // lock canvas to its current position
-  $('#omega_canvas').css({
+  entity_container.css({
     position: 'absolute',
-    top: $('#omega_canvas').position().top,
-    left: $('#omega_canvas').position().left
-  });
-  $('#omega_entity_container').css({
-    position: 'absolute',
-    top: $('#omega_entity_container').position().top,
-    left: $('#omega_entity_container').position().left,
+    top:     entity_container.position().top,
+    left:    entity_container.position().left,
     display: 'none'
   });
 
-  /////////////////////// show/close canvas controls
-
-  $('#close_canvas').live('click', function(event){ hide_canvas(); });
-  $('#show_canvas').live('click', function(event){ show_canvas(); });
-
-  /////////////////////// entities containers controls
+  // wire up entities containers controls
 
   // if a new system is registered, add to locations list
   on_entity_registration(function(entity){
@@ -191,46 +85,83 @@ $(document).ready(function(){
 
   $('#locations_list li').live('click', function(event){ 
     var entity_id = $(event.currentTarget).attr('name');
-    set_root_entity(entity_id);
+    $omega_scene.set_root($tracker.entities[entity_id]);
   });
 
-  /////////////////////// grid controls
+  $('#entity_container_close').live('click', function(e){
+    $omega_entity_container.hide();
+  });
+}
 
-  // depends on the omega_renderer module
-  $('#toggle_grid_canvas').live('click', function(e){ $omega_grid.toggle(); });
-  $('#toggle_grid_canvas').attr('checked', false);
+/////////////////////////////////////// Omega Canvas
 
-  /////////////////////// camera controls
+/* Initialize new Omega Canvas
+ */
+function OmegaCanvas(){
+
+  /////////////////////////////////////// public methods
+
+  /* Set the canvas background
+   */
+  this.set_background = function(entity){
+    $("#omega_canvas").
+      css('background',
+          'url("/womega/images/backgrounds/' +
+             entity.background + '.png") no-repeat');
+  };
+
+  /* Hide the omega canvas
+   */
+  this.hide = function(){
+    $('canvas').hide();
+    $('.entities_container').hide();
+    $('#camera_controls').hide();
+    $('#grid_control').hide();
+    $('#close_canvas').hide();
+    $('#show_canvas').show();
+  };
   
-  if(jQuery.fn.mousehold){
-  
-    $('#cam_rotate_right').mousehold(function(e, ctr){
-      $omega_camera.rotate(0.0, 0.2);
-    });
-    
-    $('#cam_rotate_left').mousehold(function(e, ctr){
-      $omega_camera.rotate(0.0, -0.2);
-    });
-    
-    $('#cam_rotate_up').mousehold(function(e, ctr){
-      $omega_camera.rotate(-0.2, 0.0);
-    });
-    
-    $('#cam_rotate_down').mousehold(function(e, ctr){
-      $omega_camera.rotate(0.2, 0.0);
-    });
-    
-    $('#cam_zoom_out').mousehold(function(e, ctr){
-      $omega_camera.zoom(20);
-    });
-    
-    $('#cam_zoom_in').mousehold(function(e, ctr){
-      $omega_camera.zoom(-20);
-    });
+  /* Show the omega canvas
+   */
+  this.show = function(){
+    $('canvas').show();
+    //$('.entities_container').show(); // TODO we need to individually show each of these
+    $('#camera_controls').show();
+    $('#grid_control').show();
+    $('#close_canvas').show();
+    $('#show_canvas').hide();
+  };
 
+  /////////////////////////////////////// private methods
+
+  /* Return coordiantes on canvas corresponding
+   * to absolute screen coordinates.
+   *
+   * Pass x,y position of click event relative to screen/window
+   */
+  function canvas_click_coords(x,y){
+    
+    var nx = Math.floor(x-$("#omega_canvas").offset().left);
+    var ny = Math.floor(y-$("#omega_canvas").offset().top);
+    nx =   nx / $("#omega_canvas").width() * 2 - 1;
+    ny = - ny / $("#omega_canvas").height() * 2 + 1;
+    return [nx, ny];
   }
 
-  /////////////////////// canvas mouse controls
+  /////////////////////////////////////// initialization
+
+  // lock canvas to its current position
+  $("#omega_canvas").css({
+    position: 'absolute',
+    top:  $("#omega_canvas").position().top,
+    left: $("#omega_canvas").position().left
+  });
+
+  // wire up show/close canvas controls
+  $('#close_canvas').live('click', function(event){ hide_canvas(); });
+  $('#show_canvas').live('click', function(event){ show_canvas(); });
+
+  // wire up canvas mouse controls
 
   // on canvas click, determine if an item in the scene was clicked,
   // and if so invoke clicked method on it
@@ -240,12 +171,13 @@ $(document).ready(function(){
     var clicked_on_entity = false;
 
     var projector = new THREE.Projector();
-    var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), $camera._camera);
-    var intersects = ray.intersectObjects($omega_scene._scene.__objects);
+    var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), $omega_camera.scene_camera());
+    var intersects = ray.intersectObjects($omega_scene.scene_objects());
 
     if(intersects.length > 0){
-      for(var entity in $omega_scene.entities){
-        entity = $omega_scene.entities[entity];
+      var entities = $omega_scene.entities()
+      for(var entity in entities){
+        entity = entities[entity];
         if(entity.clickable_obj == intersects[0].object){
           clicked_on_entity = true;
           entity.clicked();
@@ -258,43 +190,105 @@ $(document).ready(function(){
     //  controls.clicked_space(x, y);
   });
 
+  // wire up entities container controls
+
+  $('.entities_container').live('mouseenter', function(e){
+    var container = $(e.currentTarget).attr('id');
+    $('#' + container + ' ul').show();
+    $("#omega_canvas").css('z-index', -1);
+  });
+
+  // hide entities container info
+  $('.entities_container').live('mouseleave', function(e){
+    var container = $(e.currentTarget).attr('id');
+    $('#' + container + ' ul').hide();
+    $("#omega_canvas").css('z-index', 0);
+  });
+}
+
+/////////////////////////////////////// Omega Canvas Select Box
+
+/* Initialize new Omega Canvas Select Box
+ */
+function OmegaSelectBox(){
+  /////////////////////////////////////// private methods
+
+  // Display the canvas select box
+  function show(args){
+    $sb_dx = args.x;
+    $sb_dy = args.y;
+    $("#canvas_select_box").show();
+  }
+
+  // Hide the canvas select box
+  function hide(args){
+    var select_box = $("#canvas_select_box");
+    select_box.css('left', 0);
+    select_box.css('top',  0);
+    select_box.css('min-width',  0);
+    select_box.css('min-height', 0);
+    select_box.hide();
+  }
+
+  // Update the canvas select box
+  function update(args){
+    var canvas = $("#omega_canvas");
+    var select_box = $("#canvas_select_box");
+
+    if(!select_box.is(":visible"))
+      return;
+
+    var tlx = select_box.css('left');
+    var tly = select_box.css('top');
+    var brx = select_box.css('left') + select_box.css('min-width');
+    var bry = select_box.css('top')  + select_box.css('min-height');
+
+    var downX = $sb_dx; var downY = $sb_dy;
+    var currX = args.x; var currY = args.y;
+
+    if(currX < downX){ tlx = currX; brx = downX; }
+    else             { tlx = downX; brx = currX; }
+
+    if(currY < downY){ tly = currY; bry = downY; }
+    else             { tly = downY; bry = currY; }
+
+    var width  = brx - tlx;
+    var height = bry - tly;
+
+    select_box.css('left', canvas.position().left + tlx);
+    select_box.css('top',  canvas.position().top + tly);
+    select_box.css('min-width',  width);
+    select_box.css('min-height', height);
+  }
+
+  /////////////////////////////////////// initialization
+
+  // wire up select box mouse controls
+
   $("#omega_canvas, #canvas_select_box").live('mousemove', function(e){
     var c = $('#omega_canvas');
     var x = e.pageX - c.offset().left;
     var y = e.pageY - c.offset().top;
-    update_select_box({x : x, y : y});
+    update({x : x, y : y});
   });
 
   $("#omega_canvas, #canvas_select_box").live('mousedown', function(e){
     var c = $('#omega_canvas');
     var x = e.pageX - c.offset().left;
     var y = e.pageY - c.offset().top;
-    show_select_box({x : x, y : y});
+    show({x : x, y : y});
   });
 
   $("#omega_canvas, #canvas_select_box").live('mouseup', function(e){
-    hide_select_box();
+    hide();
   });
+}
 
-  /////////////////////// general entity container controls
 
-  // if set will be called when entity container is closed
-  $entity_container_callback = null;
+/////////////////////////////////////// initialization
 
-  $('#entity_container_close').live('click', function(e){
-    hide_entity_container();
-  });
-
-  $('.entities_container').live('mouseenter', function(e){
-    var container = $(e.currentTarget).attr('id');
-    $('#' + container + ' ul').show();
-    $('#omega_canvas').css('z-index', -1);
-  });
-  
-  // hide entities container info
-  $('.entities_container').live('mouseleave', function(e){
-    var container = $(e.currentTarget).attr('id');
-    $('#' + container + ' ul').hide();
-    $('#omega_canvas').css('z-index', 0);
-  });
+$(document).ready(function(){
+  $omega_canvas           = new OmegaCanvas();
+  $omega_entity_container = new OmegaEntityContainer();
+  $omega_select_box       = new OmegaSelectBox();
 });
