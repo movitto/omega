@@ -79,18 +79,18 @@ function set_root_entity(entity_id){
   hide_entity_container();
   $('#omega_canvas').css('background', 'url("/womega/images/backgrounds/' + entity.background + '.png") no-repeat');
 
-  $scene.clear();
+  $omega_scene.clear();
   for(var child in entity.children){
     child = entity.children[child];
-    $scene.add(child);
+    $omega_scene.add_entity(child);
     if(child.added_to_scene)
       child.added_to_scene();
   }
 
-  if($scene_changed_callback)
-    $scene_changed_callback();
+  if($omega_scene_changed_callback)
+    $omega_scene_changed_callback();
 
-  $scene.animate();
+  $omega_scene.animate();
 };
 
 
@@ -159,7 +159,7 @@ function update_select_box(args){
 /////////////////////////////////////// initialization
 
 $(document).ready(function(){ 
-  $scene_changed_callback = null;
+  $omega_scene_changed_callback = null;
 
   // lock canvas to its current position
   $('#omega_canvas').css({
@@ -197,7 +197,7 @@ $(document).ready(function(){
   /////////////////////// grid controls
 
   // depends on the omega_renderer module
-  $('#toggle_grid_canvas').live('click', function(e){ $grid.toggle(); });
+  $('#toggle_grid_canvas').live('click', function(e){ $omega_grid.toggle(); });
   $('#toggle_grid_canvas').attr('checked', false);
 
   /////////////////////// camera controls
@@ -205,27 +205,27 @@ $(document).ready(function(){
   if(jQuery.fn.mousehold){
   
     $('#cam_rotate_right').mousehold(function(e, ctr){
-      $camera.rotate(0.0, 0.2);
+      $omega_camera.rotate(0.0, 0.2);
     });
     
     $('#cam_rotate_left').mousehold(function(e, ctr){
-      $camera.rotate(0.0, -0.2);
+      $omega_camera.rotate(0.0, -0.2);
     });
     
     $('#cam_rotate_up').mousehold(function(e, ctr){
-      $camera.rotate(-0.2, 0.0);
+      $omega_camera.rotate(-0.2, 0.0);
     });
     
     $('#cam_rotate_down').mousehold(function(e, ctr){
-      $camera.rotate(0.2, 0.0);
+      $omega_camera.rotate(0.2, 0.0);
     });
     
     $('#cam_zoom_out').mousehold(function(e, ctr){
-      $camera.zoom(20);
+      $omega_camera.zoom(20);
     });
     
     $('#cam_zoom_in').mousehold(function(e, ctr){
-      $camera.zoom(-20);
+      $omega_camera.zoom(-20);
     });
 
   }
@@ -241,11 +241,11 @@ $(document).ready(function(){
 
     var projector = new THREE.Projector();
     var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), $camera._camera);
-    var intersects = ray.intersectObjects($scene._scene.__objects);
+    var intersects = ray.intersectObjects($omega_scene._scene.__objects);
 
     if(intersects.length > 0){
-      for(var entity in $scene.entities){
-        entity = $scene.entities[entity];
+      for(var entity in $omega_scene.entities){
+        entity = $omega_scene.entities[entity];
         if(entity.clickable_obj == intersects[0].object){
           clicked_on_entity = true;
           entity.clicked();

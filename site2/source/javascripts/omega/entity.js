@@ -305,26 +305,26 @@ function load_system(){
     var geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
     geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
-    var line = new THREE.Line(geometry, $scene.materials['line']);
+    var line = new THREE.Line(geometry, $omega_scene.materials['line']);
     system.scene_objs.push(line);
-    $scene._scene.add(line);
+    $omega_scene.add(line);
   }
   
   // draw sphere representing system
   var radius = system.size, segments = 32, rings = 32;
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $scene.materials['system']);
+  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['system']);
   sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
   system.clickable_obj = sphere;
   system.scene_objs.push(sphere);
-  $scene._scene.add(sphere);
+  $omega_scene.add(sphere);
 
   // draw label
   var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
-  var text = new THREE.Mesh( text3d, $scene.materials['system_label'] );
+  var text = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
   text.position.x = loc.x - 50 ; text.position.y = loc.y - 50 ; text.position.z = loc.z - 50;
   text.lookAt($camera._camera.position);
   system.scene_objs.push(text);
-  $scene._scene.add(text);
+  $omega_scene.add(text);
 
   system.load = null;
 }
@@ -340,13 +340,13 @@ function load_star(){
 
   var radius = star.size, segments = 32, rings = 32;
 
-  if($scene.materials['star' + star.color] == null)
-    $scene.materials['star' + star.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + star.color), blending: THREE.AdditiveBlending })
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $scene.materials['star' + star.color]);
+  if($omega_scene.materials['star' + star.color] == null)
+    $omega_scene.materials['star' + star.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + star.color), blending: THREE.AdditiveBlending })
+  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['star' + star.color]);
   sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
   star.clickable_obj = sphere;
   star.scene_objs.push(sphere);
-  $scene._scene.add(sphere);
+  $omega_scene.add(sphere);
 
   star.load = null;
 }
@@ -408,16 +408,16 @@ function load_planet(){
 
   // draw sphere representing planet
   var radius = planet.size, segments = 32, rings = 32;
-  if($scene.geometries['planet' + radius] == null)
-    $scene.geometries['planet' + radius] = new THREE.SphereGeometry(radius, segments, rings);
-  if($scene.materials['planet' + planet.color] == null)
-    $scene.materials['planet' + planet.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + planet.color), blending: THREE.AdditiveBlending});
-  var sphere = new THREE.Mesh($scene.geometries['planet' + radius],
-                              $scene.materials['planet' + planet.color]);
+  if($omega_scene.geometries['planet' + radius] == null)
+    $omega_scene.geometries['planet' + radius] = new THREE.SphereGeometry(radius, segments, rings);
+  if($omega_scene.materials['planet' + planet.color] == null)
+    $omega_scene.materials['planet' + planet.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + planet.color), blending: THREE.AdditiveBlending});
+  var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
+                              $omega_scene.materials['planet' + planet.color]);
   sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
   planet.clickable_obj = sphere;
   planet.scene_objs.push(sphere);
-  $scene._scene.add(sphere);
+  $omega_scene.add(sphere);
 
   // draw orbit
   var geometry = new THREE.Geometry();
@@ -429,22 +429,22 @@ function load_planet(){
       geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
     }
   }
-  var line = new THREE.Line(geometry, $scene.materials['orbit']);
+  var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
   planet.scene_objs.push(line);
   planet.scene_objs.push(geometry);
   // !FIXME! rendering orbits results in a big performance hit,
   // need to figure out a better way and/or make this togglable
-  $scene._scene.add(line);
+  $omega_scene.add(line);
   // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   // draw moons
   for(var m=0; m<planet.moons.length; ++m){
     var moon = planet.moons[m];
-    var sphere = new THREE.Mesh($scene.geometries['moon'], $scene.materials['moon']);
+    var sphere = new THREE.Mesh($omega_scene.geometries['moon'], $omega_scene.materials['moon']);
     sphere.position.x = loc.x + moon.location.x ; sphere.position.y = loc.y + moon.location.y; sphere.position.z = loc.z + moon.location.z;
     moon.scene_obj = sphere;
     planet.scene_objs.push(sphere);
-    $scene._scene.add(sphere);
+    $omega_scene.add(sphere);
   }
 
   planet.load = null;
@@ -484,11 +484,11 @@ function load_asteroid(){
   var asteroid = this;
   var loc      = asteroid.location;
 
-  var text = new THREE.Mesh( $scene.geometries['asteroid'], $scene.materials['asteroid'] );
+  var text = new THREE.Mesh( $omega_scene.geometries['asteroid'], $omega_scene.materials['asteroid'] );
   text.position.x = loc.x ; text.position.y = loc.y ; text.position.z = loc.z;
   asteroid.clickable_obj = text;
   asteroid.scene_objs.push(text);
-  $scene._scene.add(text);
+  $omega_scene.add(text);
 
   asteroid.load = null
 }
@@ -517,20 +517,20 @@ function load_jump_gate(){
   var loc       = jump_gate.location;
 
   var geometry = new THREE.PlaneGeometry( 50, 50 );
-  var mesh = new THREE.Mesh( geometry, $scene.materials['jump_gate'] );
+  var mesh = new THREE.Mesh( geometry, $omega_scene.materials['jump_gate'] );
   mesh.position.set( loc.x, loc.y, loc.z );
   jump_gate.scene_objs.push(mesh);
   jump_gate.scene_objs.push(geometry);
-  $scene._scene.add( mesh );
+  $omega_scene.add( mesh );
 
   // sphere to draw around jump gate when selected
   var radius = jump_gate.trigger_distance, segments = 32, rings = 32;
-  var ssphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $scene.materials['jump_gate_selected'] );
+  var ssphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['jump_gate_selected'] );
   ssphere.position.x = loc.x ; ssphere.position.y = loc.y ; ssphere.position.z = loc.z ;
   jump_gate.scene_objs.push(ssphere);
 
   if(jump_gate.selected){
-    $scene._scene.add(ssphere);
+    $omega_scene.add(ssphere);
     jump_gate.clickable_obj = ssphere;
   }else{
     jump_gate.clickable_obj = mesh;
@@ -542,7 +542,7 @@ function unselect_jump_gate(jump_gate){
   $selected_entity = null;
   jump_gate.selected = false;
   jump_gate.dirty = true;
-  $scene.reload(jump_gate);
+  $omega_scene.reload(jump_gate);
   $entity_container_callback = null;
 }
 
@@ -558,7 +558,7 @@ function clicked_jump_gate(){
   $selected_entity = jump_gate;
   jump_gate.selected = true;
   jump_gate.dirty = true;
-  $scene.reload(jump_gate);
+  $omega_scene.reload(jump_gate);
   $entity_container_callback = function(){ unselect_jump_gate(jump_gate); };
 }
 
@@ -581,32 +581,32 @@ function load_ship(){
   else
     color += "00CC00";
 
-  if($scene.materials['ship' + color] == null)
-    $scene.materials['ship' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
+  if($omega_scene.materials['ship' + color] == null)
+    $omega_scene.materials['ship' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
 
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(loc.x - ship.size/2, loc.y, loc.z));
   geometry.vertices.push(new THREE.Vector3(loc.x + ship.size/2, loc.y, loc.z));
-  var line = new THREE.Line(geometry, $scene.materials['ship' + color]);
+  var line = new THREE.Line(geometry, $omega_scene.materials['ship' + color]);
   ship.scene_objs.push(line);
   ship.scene_objs.push(geometry);
-  $scene._scene.add(line);
+  $omega_scene.add(line);
 
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(loc.x, loc.y - ship.size/2, loc.z));
   geometry.vertices.push(new THREE.Vector3(loc.x, loc.y + ship.size/2, loc.z));
-  var line = new THREE.Line(geometry, $scene.materials['ship' + color]);
+  var line = new THREE.Line(geometry, $omega_scene.materials['ship' + color]);
   ship.scene_objs.push(line);
   ship.scene_objs.push(geometry);
-  $scene._scene.add(line);
+  $omega_scene.add(line);
 
   var geometry = new THREE.PlaneGeometry( ship.size, ship.size );
   //var texture = new THREE.MeshFaceMaterial();
-  var mesh = new THREE.Mesh(geometry, $scene.materials['ship_surface']);
+  var mesh = new THREE.Mesh(geometry, $omega_scene.materials['ship_surface']);
   mesh.position.set(loc.x, loc.y, loc.z);
   ship.scene_objs.push(mesh);
   ship.scene_objs.push(geometry);
-  $scene._scene.add(mesh);
+  $omega_scene.add(mesh);
 
   ship.clickable_obj = mesh;
 
@@ -615,10 +615,10 @@ function load_ship(){
     geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
     geometry.vertices.push(new THREE.Vector3(ship.attacking.location.x, ship.attacking.location.y + 25, ship.attacking.location.z));
-    line = new THREE.Line(geometry, $scene.materials['ship_attacking']);
+    line = new THREE.Line(geometry, $omega_scene.materials['ship_attacking']);
     ship.scene_objs.push(line);
     ship.scene_objs.push(geometry);
-    $scene._scene.add(line);
+    $omega_scene.add(line);
   }
 
   // if ship is mining, draw line to mining target
@@ -626,10 +626,10 @@ function load_ship(){
     geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
     geometry.vertices.push(new THREE.Vector3(ship.mining.entity.location.x, ship.mining.entity.location.y + 25, ship.mining.entity.location.z));
-    line = new THREE.Line(geometry, $scene.materials['ship_mining']);
+    line = new THREE.Line(geometry, $omega_scene.materials['ship_mining']);
     ship.scene_objs.push(line);
     ship.scene_objs.push(geometry);
-    $scene._scene.add(line);
+    $omega_scene.add(line);
   }
 
   ship.load = null;
@@ -638,15 +638,15 @@ function load_ship(){
 function updated_ship(){
   // TODO simple refresh coordinates / properties instead of removing
   // and readding all of the ship's scene objects
-  if($scene.has(this))
-    $scene.reload(this);
+  if($omega_scene.has(this))
+    $omega_scene.reload(this);
 }
 
 function unselect_ship(ship){
   $selected_entity = null;
   ship.selected = false;
   ship.dirty = true;
-  $scene.reload(ship);
+  $omega_scene.reload(ship);
   $entity_container_callback = null;
 }
 
@@ -686,7 +686,7 @@ function clicked_ship(){
   ship.selected = true;
   ship.dirty = true;
   $entity_container_callback = function(){ unselect_ship(ship); };
-  $scene.reload(ship);
+  $omega_scene.reload(ship);
 }
 
 function added_ship_to_scene(){
@@ -715,30 +715,30 @@ function load_station(){
   else
     color += "0000CC";
 
-  if($scene.materials['station' + color] == null)
-    $scene.materials['station' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
+  if($omega_scene.materials['station' + color] == null)
+    $omega_scene.materials['station' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
 
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(loc.x - station.size/2, loc.y, loc.z));
   geometry.vertices.push(new THREE.Vector3(loc.x + station.size/2, loc.y, loc.z));
-  var line = new THREE.Line(geometry, $scene.materials['station'+color]);
+  var line = new THREE.Line(geometry, $omega_scene.materials['station'+color]);
   station.scene_objs.push(line);
-  $scene._scene.add(line);
+  $omega_scene.add(line);
 
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(loc.x, loc.y - station.size/2, loc.z));
   geometry.vertices.push(new THREE.Vector3(loc.x, loc.y + station.size/2, loc.z));
-  var line = new THREE.Line(geometry, $scene.materials['station'+color]);
+  var line = new THREE.Line(geometry, $omega_scene.materials['station'+color]);
   station.scene_objs.push(line);
   station.scene_objs.push(geometry);
-  $scene._scene.add(line);
+  $omega_scene.add(line);
 
   var geometry = new THREE.PlaneGeometry( station.size, station.size );
-  var mesh = new THREE.Mesh(geometry, $scene.materials['station_surface']);
+  var mesh = new THREE.Mesh(geometry, $omega_scene.materials['station_surface']);
   mesh.position.set(loc.x, loc.y, loc.z);
   station.scene_objs.push(mesh);
   station.scene_objs.push(geometry);
-  $scene._scene.add(mesh);
+  $omega_scene.add(mesh);
 
   station.clickable_obj = mesh;
 }
@@ -747,7 +747,7 @@ function unselect_station(station){
   $selected_entity = null;
   station.selected = false;
   station.dirty = true;
-  $scene.reload(station);
+  $omega_scene.reload(station);
   $entity_container_callback = null;
 }
 
@@ -772,7 +772,7 @@ function clicked_station(){
   station.selected = true;
   station.dirty = true;
   $entity_container_callback = function(){ unselect_station(station); };
-  $scene.reload(station);
+  $omega_scene.reload(station);
 }
 
 /////////////////////////////////////// initialization
@@ -786,7 +786,7 @@ function scene_changed_callback(){
     for(var planet in $tracked_planets){
       planet = $tracked_planets[planet];
       planet.move();
-      $scene.animate();
+      $omega_scene.animate();
     }
   });
 }
@@ -803,7 +803,7 @@ $(document).ready(function(){
   $omega_node.add_request_handler('motel::on_movement', function(loc){
     var entity = $tracker.matching_entities({location : loc.id});
     entity[0].update({location : loc});
-    $scene.animate();
+    $omega_scene.animate();
   });
 
   $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
@@ -845,7 +845,7 @@ $(document).ready(function(){
       var defender = p2;
       attacker.attacking = null;
       $tracker.add(attacker); $tracker.add(defender);
-      $scene.remove(defender.id);
+      $omega_scene.remove(defender.id);
 
     }
   });

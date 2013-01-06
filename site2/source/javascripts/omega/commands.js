@@ -135,7 +135,7 @@ function omega_ship_start_mining(ship, resource_source_id){
  */
 function omega_station_construct(station){
   $omega_node.web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
-    $scene.add($tracker.entities[constructed.id]);
+    $scene.add_entity($tracker.entities[constructed.id]);
     $scene.animate();
   }));
 }
