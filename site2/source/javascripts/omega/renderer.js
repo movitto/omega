@@ -302,7 +302,7 @@ function OmegaScene(){
 
   this.reload = function(entity){
     this.remove(entity.id);
-    this.add(entity);
+    this.add_entity(entity);
     this.animate();
   }
 

@@ -543,7 +543,7 @@ function unselect_jump_gate(jump_gate){
   jump_gate.selected = false;
   jump_gate.dirty = true;
   $omega_scene.reload(jump_gate);
-  $entity_container_callback = null;
+  $omega_entity_container.on_closed(null);
 }
 
 function clicked_jump_gate(){
@@ -559,7 +559,9 @@ function clicked_jump_gate(){
   jump_gate.selected = true;
   jump_gate.dirty = true;
   $omega_scene.reload(jump_gate);
-  $entity_container_callback = function(){ unselect_jump_gate(jump_gate); };
+  $omega_entity_container.on_closed(function(){
+    unselect_jump_gate(jump_gate);
+  });
 }
 
 function load_ship(){
@@ -647,7 +649,7 @@ function unselect_ship(ship){
   ship.selected = false;
   ship.dirty = true;
   $omega_scene.reload(ship);
-  $entity_container_callback = null;
+  $omega_entity_container.on_closed(null);
 }
 
 function clicked_ship(){
@@ -685,7 +687,9 @@ function clicked_ship(){
   $selected_entity = ship;
   ship.selected = true;
   ship.dirty = true;
-  $entity_container_callback = function(){ unselect_ship(ship); };
+  $omega_entity_container.on_closed(function(){
+    unselect_ship(ship);
+  });
   $omega_scene.reload(ship);
 }
 
@@ -748,7 +752,7 @@ function unselect_station(station){
   station.selected = false;
   station.dirty = true;
   $omega_scene.reload(station);
-  $entity_container_callback = null;
+  $omega_entity_container.on_closed(null);
 }
 
 function clicked_station(){
@@ -771,7 +775,9 @@ function clicked_station(){
   $selected_entity = station;
   station.selected = true;
   station.dirty = true;
-  $entity_container_callback = function(){ unselect_station(station); };
+  $omega_entity_container.on_closed(function(){
+    unselect_station(station);
+  });
   $omega_scene.reload(station);
 }
 
