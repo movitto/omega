@@ -73,23 +73,56 @@ function OmegaEntityContainer(){
     display: 'none'
   });
 
+}
+
+/////////////////////////////////////// Omega Entities Container
+
+/* Initialize new Omega Entities Container
+ */
+function OmegaEntitiesContainer(){
+
+  /////////////////////////////////////// private data
+
+  var locations   =  {};
+
+  /////////////////////////////////////// initialization
+
   // wire up entities containers controls
 
   // if a new system is registered, add to locations list
-  on_entity_registration(function(entity){
-    if(entity.json_class == "Cosmos::SolarSystem" && !entity.modified){
-      $('#locations_list ul').append('<li name="'+entity.name+'">'+entity.name+'</li>');
+  $omega_registry.on_registration(function(entity){
+    if(entity.json_class == "Cosmos::Galaxy" ||
+       entity.json_class == "Cosmos::SolarSystem"){
+      if(locations[entity.name] == null){
+        locations[entity.name] = entity;
+        $('#locations_list ul').append('<li name="'+entity.name+'">'+entity.name+'</li>');
+      }
       $('#locations_list').show();
     }
   });
 
   $('#locations_list li').live('click', function(event){ 
     var entity_id = $(event.currentTarget).attr('name');
-    $omega_scene.set_root($tracker.entities[entity_id]);
+    $omega_scene.set_root($omega_registry.get(entity_id));
   });
 
   $('#entity_container_close').live('click', function(e){
     $omega_entity_container.hide();
+  });
+
+  // wire up entities container controls
+
+  $('.entities_container').live('mouseenter', function(e){
+    var container = $(e.currentTarget).attr('id');
+    $('#' + container + ' ul').show();
+    $("#omega_canvas").css('z-index', -1);
+  });
+
+  // hide entities container info
+  $('.entities_container').live('mouseleave', function(e){
+    var container = $(e.currentTarget).attr('id');
+    $('#' + container + ' ul').hide();
+    $("#omega_canvas").css('z-index', 0);
   });
 }
 
@@ -190,20 +223,6 @@ function OmegaCanvas(){
     //  controls.clicked_space(x, y);
   });
 
-  // wire up entities container controls
-
-  $('.entities_container').live('mouseenter', function(e){
-    var container = $(e.currentTarget).attr('id');
-    $('#' + container + ' ul').show();
-    $("#omega_canvas").css('z-index', -1);
-  });
-
-  // hide entities container info
-  $('.entities_container').live('mouseleave', function(e){
-    var container = $(e.currentTarget).attr('id');
-    $('#' + container + ' ul').hide();
-    $("#omega_canvas").css('z-index', 0);
-  });
 }
 
 /////////////////////////////////////// Omega Canvas Select Box
@@ -288,7 +307,8 @@ function OmegaSelectBox(){
 /////////////////////////////////////// initialization
 
 $(document).ready(function(){
-  $omega_canvas           = new OmegaCanvas();
-  $omega_entity_container = new OmegaEntityContainer();
-  $omega_select_box       = new OmegaSelectBox();
+  $omega_canvas             = new OmegaCanvas();
+  $omega_entity_container   = new OmegaEntityContainer();
+  $omega_entities_container = new OmegaEntitiesContainer();
+  $omega_select_box         = new OmegaSelectBox();
 });

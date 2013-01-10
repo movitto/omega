@@ -4,805 +4,1016 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/////////////////////////////////////// public methods
+/////////////////////////////////////// Helper Methods
 
-/* Register method to be invoked whenever a entity is
- * registered with the tracker
+/* Round number to specified number of places
  */
-function on_entity_registration(callback){
-  $entity_registered_callbacks.push(callback);
-}
-
-/////////////////////////////////////// private methods
-
-// clear entity timers
-function clear_entity_timers(){
-  for(var timer in $timers){
-    $timers[timer].stop();
-    delete $timers[timer];
-  }
-  $timers = [];
-}
-
-// add entity timer
-function add_entity_timer(id, time, callback){
-  $timers[id] = $.timer(callback);
-  $timers[id].set({time : time, autostart : true });
-}
-
-
-// retrieve the entities owned by the current user
-function get_user_entities(){
-  omega_entities_owned_by($user_id, get_entities_systems);
-}
-
-// retrieve the systems associated with entities
-function get_entities_systems(entities){
-  for(var entityI in entities){
-    var entity = entities[entityI];
-    var system = $tracker.load('Cosmos::SolarSystem', entity.system_name, get_system_entities);
-    if(system){
-      system.update_children();
-    }
-  }
-}
-
-// get additional entities under system
-function get_system_entities(system){
-  omega_entities_under(system.name);
-}
-
-// helper method
 function roundTo(number, places){
   return Math.round(number * Math.pow(10,places)) / Math.pow(10,places);
 }
 
-// will be set to entity clicked / selected
-$selected_entity = null;
+/* Encapsulate result returned from server in its corresponding
+ * client object class
+ */
+function convert_entity(entity){
+  if(entity.json_class == "Motel::Location"){
+    entity = new OmegaLocation(entity);
 
-// encapsulates server side entity
-function OmegaEntity(sentity){
-  oentity = {dirty : false};
+  }else if(entity.json_class == "Cosmos::Galaxy"){
+    for(var solar_system in entity.solar_systems)
+      entity.solar_systems[solar_system] = convert_entity(entity.solar_systems[solar_system]);
+    entity = new OmegaGalaxy(entity);
 
-  oentity.update_children = function(){
-    // set child entities
-    if(this.location){
-      this.children = [];
-      for(var child in $tracker.entities){
-        child = $tracker.entities[child];
-        if(child.location && this.location.id == child.location.parent_id){
-          this.children.push(child);
-        }
-      }
-    }
-  },
-
-  oentity.update = function(entity){
-    for(var p in entity)
-      this[p] = entity[p];
-    this.dirty = true;
-    this.modified = true;
-
-    if(this.location){
-      this.location.to_s = function(){ return roundTo(this.x, 2) + "/" + roundTo(this.y, 2) + "/" + roundTo(this.z, 2); }
-      this.location.toJSON = function(){ return new JRObject("Motel::Location", this, 
-           ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
-            "movement_callbacks", "proximity_callbacks"]).toJSON(); };
-      this.location.clone = function(){
-        var ret = {};
-        ret.x = this.x; ret.y = this.y; ret.z = this.z;
-        ret.parent_id = this.parent_id; ret.movement_strategy = this.movement_strategy;
-        ret.to_s = this.to_s; ret.toJSON = this.toJSON;
-        return ret;
-      };
-    }
-
-    //this.update_children();
-
-    // XXX hacks
-    if(entity.name != null && this.id == null)
-      this.id = entity.name;
-    if($selected_entity && $selected_entity.id == this.id)
-      $selected_entity.clicked();
-
-    if(this.updated) this.updated();
-  };
-
-  oentity.is_a = function(type){
-    return this.json_class == type;
-  };
-
-  oentity.belongs_to_user = function(){
-    return this.user_id == $user_id;
-  };
-
-  oentity.distance_from = function(x, y, z){
-    return Math.sqrt(Math.pow(this.location.x - x, 2) +
-                     Math.pow(this.location.y - y, 2) +
-                     Math.pow(this.location.z - z, 2));
-  };
-
-  oentity.is_within = function(distance, location){
-    if(this.location == null || this.location.parent_id != location.parent_id)
-      return false 
-    return  this.distance_from(location.x, location.y, location.z) < distance;
-  };
-
-  // entity scene properties
-  oentity.load = null; // assign method to load entity resources
-  oentity.clicked = null; // assign method to handle entity clicked event
-  oentity.clickable_obj = null;
-  oentity.scene_objs = [];
-
-  oentity.update(sentity);
-  oentity.modified = false;
-  return oentity;
-}
-
-OmegaEntity.entity_id = function(entity){
-  if(entity.id != null) return entity.id;
-  if(entity.name != null) return entity.name;
-  return null;
-}
-
-// global entity registry
-$tracker = {
-  entities : [],
-
-  has : function(entity_id){
-    return this.entities[entity_id] != null;
-  },
-
-  // adds entity to tracker if new, else update existing entity
-  add : function(entity){
-    var is_new = false;
-    var entity_id = OmegaEntity.entity_id(entity);
-    if(this.entities[entity_id] == null){
-      is_new = true;
-      this.entities[entity_id] = new OmegaEntity(entity);
-    }else{
-      this.entities[entity_id].update(entity);
-    }
-
-    return is_new;
-  },
-
-  // returns entity if present, else load it from server and return
-  // takes optional callback to invoke if/when server side entity is retrieved
-  load : function(type, entity_id, callback){
-    if(this.entities[entity_id] != null){
-      if(callback != null)
-        callback(this.entities[entity_id], null);
-      return this.entities[entity_id];
-    }
-
-    if(type == "Cosmos::SolarSystem"){
-      omega_system(entity_id, function(system){
-        $tracker.add(system);
-        system = $tracker.entities[system.name];
-        if(callback != null) callback(system);
-      });
-    }else if(type == "Manufactured::Ship" || type == "Manufactured::Station"){
-      omega_entity(entity_id, function(entity){
-        $tracker.add(entity);
-        entity = $tracker.entities[entity.id];
-        if(callback != null) callback(entity);
-      });
-    }
-
-    return null;
-  },
-
-  matching_entities : function(args){
-    var ret = [];
-    for(var entity in this.entities){
-      var matched = true;
-      if(args.id   && this.entities[entity].id != args.id)
-        matched = false;
-      if(args.type && this.entities[entity].json_class != args.type)
-        matched = false;
-      if(args.within && !this.entities[entity].is_within(args.within[0], args.within[1]))
-        matched = false;
-      if(args.owned_by && this.entities[entity].user_id != args.owned_by)
-        matched = false;
-      if(args.not_owned_by && this.entities[entity].user_id == args.not_owned_by)
-        matched = false;
-      if(args.location && (!this.entities[entity].location || this.entities[entity].location.id != args.location))
-        matched = false;
-
-      if(matched)
-        ret.push(this.entities[entity]);
-    }
-    return ret;
-  }
-}
-
-///////////////////////////////// specified entity logic
-
-function register_entity(entity){
-  // add to tracker
-  $tracker.add(entity);
-  entity = $tracker.entities[entity.id || entity.name];
-
-  // invoke entity registered callbacks
-  for(var cb in $entity_registered_callbacks){
-    cb = $entity_registered_callbacks[cb];
-    cb(entity);
-  }
-
-  // register subentities and update children
-  if(entity.json_class == "Cosmos::Galaxy"){
-    for(var sys in entity.solar_systems){
-      sys = entity.solar_systems[sys];
-      register_entity(sys);
-    }
   }else if(entity.json_class == "Cosmos::SolarSystem"){
-    if(entity.star != null) register_entity(entity.star);
-    for(var a in entity.asteroids) register_entity(entity.asteroids[a]);
-    for(var p in entity.planets){
-      p = entity.planets[p];
-      register_entity(p);
-    }
-    for(var j in entity.jump_gates){
-      j = entity.jump_gates[j];
-      j.id = j.solar_system + "-" + j.endpoint;
-      register_entity(j);
-    }
-    entity.update_children();
+    entity.star = convert_entity(entity.star);
+    for(var planet in entity.planets)
+      entity.planets[planet] = convert_entity(entity.planets[planet]);
+    for(var asteroid in entity.asteroids)
+      entity.asteroids[asteroid] = convert_entity(entity.asteroids[asteroid]);
+    for(var jump_gate in entity.jump_gates)
+      entity.jump_gates[jump_gate] = convert_entity(entity.jump_gates[jump_gate]);
 
-  }else if(entity.json_class == "Cosmos::Planet"){
-    for(var m in entity.moons)
-      register_entity(entity.moons[m]);
-    entity.update_children();
-  }
-}
-
-function load_entity(entity){
-  if(entity.json_class == "Cosmos::SolarSystem"){
-    entity.clicked        = clicked_system;
-    entity.load           = load_system;
+    entity = new OmegaSolarSystem(entity);
 
   }else if(entity.json_class == "Cosmos::Star"){
-    entity.clicked = clicked_star;
-    entity.load  = load_star;
+    entity = new OmegaStar(entity);
 
   }else if(entity.json_class == "Cosmos::Planet"){
-    entity.clicked = clicked_planet;
-    entity.load  = load_planet;
-    entity.updated = updated_planet;
-    entity.added_to_scene = added_planet_to_scene;
+    for(var moon in entity.moons)
+      entity.moons[moon] = convert_entity(entity.moons[moon]);
+
+    entity = new OmegaPlanet(entity);
 
   }else if(entity.json_class == "Cosmos::Asteroid"){
-    entity.clicked = clicked_asteroid;
-    entity.load  = load_asteroid;
+    entity = new OmegaAsteroid(entity);
 
   }else if(entity.json_class == "Cosmos::JumpGate"){
-    entity.clicked = clicked_jump_gate;
-    entity.load = load_jump_gate;
+    entity = new OmegaJumpGate(entity);
 
   }else if(entity.json_class == "Manufactured::Ship"){
-    entity.clicked = clicked_ship;
-    entity.load  = load_ship;
-    entity.updated = updated_ship;
-    entity.added_to_scene = added_ship_to_scene;
+    entity.location = convert_entity(entity.location);
+    entity = new OmegaShip(entity);
 
   }else if(entity.json_class == "Manufactured::Station"){
-    entity.clicked = clicked_station;
-    entity.load  = load_station;
-  }
+    entity.location = convert_entity(entity.location);
+    entity = new OmegaStation(entity);
 
-  entity.load();
+  }
+  $omega_registry.add(entity);
+
+  return entity;
 }
 
-function load_system(){
-  var system = this;
-  var loc    = system.location;
+/////////////////////////////////////// Omega Timer
 
-  for(var j=0; j<system.jump_gates.length;++j){
-    var jg = system.jump_gates[j];
-    var endpoint = $tracker.load(jg.endpoint);
+/* Initialize new Omega Timer
+ */
+function OmegaTimer(time, callback){
+  /////////////////////////////////////// private data
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
-    geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
-    var line = new THREE.Line(geometry, $omega_scene.materials['line']);
-    system.scene_objs.push(line);
-    $omega_scene.add(line);
+  var timer  = $.timer(callback);
+
+  /////////////////////////////////////// public methods
+
+  /* Stop internal timer */
+  this.stop = function(){
+    timer.stop();
   }
+
+  /////////////////////////////////////// initialization
+
+  timer.set({time : time, autostart : true });
+}
+
+
+/////////////////////////////////////// Omega Registry
+
+/* Initialize new Omega Registry
+ */
+function OmegaRegistry(){
+  /////////////////////////////////////// private data
+
+  var registry               = {};
+
+  var timers                 = {};
+
+  var selected_entities      = [];
+
+  var registration_callbacks = [];
+
+  /////////////////////////////////////// public methods
   
-  // draw sphere representing system
-  var radius = system.size, segments = 32, rings = 32;
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['system']);
-  sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
-  system.clickable_obj = sphere;
-  system.scene_objs.push(sphere);
-  $omega_scene.add(sphere);
-
-  // draw label
-  var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
-  var text = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
-  text.position.x = loc.x - 50 ; text.position.y = loc.y - 50 ; text.position.z = loc.z - 50;
-  text.lookAt($camera._camera.position);
-  system.scene_objs.push(text);
-  $omega_scene.add(text);
-
-  system.load = null;
-}
-
-function clicked_system(){
-  var system = this;
-  $omega_entity.set_root($tracker.entities[system.name]);
-}
-
-function load_star(){
-  var star = this;
-  var loc  = star.location;
-
-  var radius = star.size, segments = 32, rings = 32;
-
-  if($omega_scene.materials['star' + star.color] == null)
-    $omega_scene.materials['star' + star.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + star.color), blending: THREE.AdditiveBlending })
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['star' + star.color]);
-  sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
-  star.clickable_obj = sphere;
-  star.scene_objs.push(sphere);
-  $omega_scene.add(sphere);
-
-  star.load = null;
-}
-
-function clicked_star(){
-}
-
-function calc_orbit(planet){
-  planet.orbit = [];
-  // intercepts
-  var a = planet.location.movement_strategy.semi_latus_rectum / (1 - Math.pow(planet.location.movement_strategy.eccentricity, 2));
-  var b = Math.sqrt(planet.location.movement_strategy.semi_latus_rectum * a);
-  // linear eccentricity
-  var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
-  // center (assumes planet's location's movement_strategy.relative to is set to foci
-  var cx = -1 * planet.location.movement_strategy.direction_major_x * le;
-  var cy = -1 * planet.location.movement_strategy.direction_major_y * le;
-  var cz = -1 * planet.location.movement_strategy.direction_major_z * le;
-  // orbit
-  for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
-    var ox = cx + a * Math.cos(i) * planet.location.movement_strategy.direction_major_x +
-                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_x ;
-    var oy = cy + a * Math.cos(i) * planet.location.movement_strategy.direction_major_y +
-                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_y ;
-    var oz = cz + a * Math.cos(i) * planet.location.movement_strategy.direction_major_z +
-                  b * Math.sin(i) * planet.location.movement_strategy.direction_minor_z ;
-    var absi = parseInt(i * 180 / Math.PI);
-    if(planet.orbiti == null ||
-       planet.distance_from(ox, oy, oz) < planet.distance_from.apply(planet, planet.orbit[absi-1])){
-        planet.orbiti = absi;
-    }
-    planet.orbit.push([ox, oy, oz]);
+  /* Register method to be invoked whenever a entity is
+   * registered with the tracker
+   */
+  this.on_registration = function(callback){
+    registration_callbacks.push(callback);
   }
 
-  planet.move = function(){
+  /* Adds entity to registry
+   */
+  this.add = function(entity){
+    // XXX hacks
+    if(!entity.id && entity.name)
+      entity.id = entity.name;
+    else if(entity.json_class == "Cosmos::JumpGate")
+      entity.id = entity.solar_system + "-" + entity.endpoint;
+
+    //this.entities[entity_id].update(entity); if existing ?
+    registry[entity.id] = entity;
+
+    for(var cb in registration_callbacks)
+      registration_callbacks[cb](entity);
+
+    // TODO ?
+    // if($selected_entity && $selected_entity.id == this.id)
+    //  $selected_entity.clicked();
+  }
+
+  /* Return entity w/ specified id
+   */
+  this.get = function(entity_id){
+    return registry[entity_id];
+  }
+
+  /* Return entities matching specified criteria.
+   * Filters should be an array of callbacks to invoke with
+   * each entity, all of which must return true for an entity
+   * to include it in the return results.
+   */
+  this.select = function(filters){
+    var ret = [];
+
+    for(var entity in registry){
+      entity = registry[entity];
+      var matched = true;
+      for(var filter in filters){
+        filter = filters[filter];
+        if(!filter(entity)){
+          matched = false;
+          break;
+        }
+      }
+
+      if(matched)
+        ret.push(entity);
+    }
+
+    return ret;
+  }
+
+  /* Retrieve and store local copy of server side entity
+   * Takes method to perform retrieval and method to invoke w/
+   * entity when found
+   */
+  this.cached = function(entity_id, retrieval, retrieved){
+    if(registry[entity_id] != null && retrieved != null){
+      retrieved(registry[entity_id]);
+    }
+
+    retrieval(entity_id, retrieved);
+    return null;
+  }
+
+  /* Add new timer to registry
+   */
+  this.add_timer = function(id, time, callback){
+    timers[id] = new OmegaTimer(time, callback);
+  }
+
+  /* Clear all timers
+   */
+  this.clear_timers = function(){
+    for(var timer in timers){
+      timers[timer].stop();
+      delete timers[timer];
+    }
+    timers = [];
+  }
+}
+
+/////////////////////////////////////// Omega Entity
+
+/* Initialize new Omega Entity
+ */
+function OmegaEntity(entity){
+
+  // XXX had to mark the private data and methods below
+  //     as public for things to work properly
+
+  /////////////////////////////////////// private data
+
+  var _entity           = entity;
+
+  // scene properties
+  this.clickable_obj     = null;
+
+  this.scene_objs        = [];
+
+  // copy all attributes from entity to self
+  for(var attr in _entity)
+    this[attr] = _entity[attr];
+
+  /////////////////////////////////////// private methods
+
+  // callbacks (should be set in subclasses)
+
+  this.on_load           = null;
+
+  this.on_clicked        = null;
+
+  /////////////////////////////////////// public methods
+
+  this.load = function(){
+    if(this.on_load) this.on_load();
+  }
+
+  this.clicked = function(){
+    if(this.on_clicked) this.on_clicked();
+  }
+
+  this.is_a = function(type){
+    return _entity.json_class == type;
+  };
+
+  this.belongs_to_user = function(user_id){
+    return _entity.user_id == user_id;
+  };
+
+}
+
+//OmegaEntity.prototype.__noSuchMethod__ = function(id, args) {
+//  _entity.apply(id, args);
+//}
+
+/////////////////////////////////////// Omega Location
+
+/* Initialize new Omega Location
+ */
+function OmegaLocation(loc){
+
+  $.extend(this, new OmegaEntity(loc));
+
+  /////////////////////////////////////// private data
+  
+  var _loc = loc;
+
+  /////////////////////////////////////// public methods
+
+  this.distance_from = function(x, y, z){
+    return Math.sqrt(Math.pow(_loc.x - x, 2) +
+                     Math.pow(_loc.y - y, 2) +
+                     Math.pow(_loc.z - z, 2));
+  };
+
+  this.is_within = function(distance, loc){
+    if(_loc.parent_id != loc.parent_id)
+      return false 
+    return  this.distance_from(loc.x, loc.y, loc.z) < distance;
+  };
+
+  this.to_s = function(){
+    return roundTo(_loc.x, 2) + "/" +
+           roundTo(_loc.y, 2) + "/" +
+           roundTo(_loc.z, 2);
+  }
+
+  this.toJSON = function(){
+    return new JRObject("Motel::Location", _loc, 
+       ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
+        "movement_callbacks", "proximity_callbacks"]).toJSON();
+  };
+
+  this.clone = function(){
+    var nloc = { x                 : _loc.x ,
+                 y                 : _loc.y ,
+                 z                 : _loc.z,
+                 parent_id         : _loc.parent_id,
+                 movement_strategy : _loc.movement_strategy };
+
+    return new OmegaLocation(nloc);
+  };
+
+}
+
+/////////////////////////////////////// Omega Galaxy
+
+/* Initialize new Omega Galaxy
+ */
+function OmegaGalaxy(galaxy){
+
+  $.extend(this, new OmegaEntity(galaxy));
+
+  /////////////////////////////////////// private data
+
+  var _galaxy = galaxy;
+
+  /////////////////////////////////////// public methods
+
+  this.children = function(){
+    return _galaxy.solar_systems;
+  }
+
+}
+
+OmegaGalaxy.cached = function(name, retrieved){
+  var retrieval = function(name, retrieved){
+    OmegaQuery.galaxy_with_name(name, retrieved);
+  };
+  $omega_registry.cached(name, retrieval, retrieved);
+}
+
+/////////////////////////////////////// Omega SolarSystem
+
+/* Initialize new Omega SolarSystem
+ */
+function OmegaSolarSystem(system){
+
+  $.extend(this, new OmegaEntity(system));
+
+  /////////////////////////////////////// private data
+
+  var _system = system;
+
+  /////////////////////////////////////// public methods
+
+  this.children = function(){
+    var ships    = $omega_registry.select([function(e){ return e.system_name == _system.name &&
+                                                               e.json_class  == "Manufactured::Ship" }]);
+    var stations = $omega_registry.select([function(e){ return e.system_name == _system.name &&
+                                                               e.json_class  == "Manufactured::Station" }]);
+
+    return [_system.star].
+            concat(_system.planets).
+            concat(_system.asteroids).
+            concat(_system.jump_gates).
+            concat(ships).
+            concat(stations);
+  }
+
+  /////////////////////////////////////// private methods
+
+  this.on_load = function(){
+    //for(var j=0; j<_system.jump_gates.length;++j){
+    //  var jg = _system.jump_gates[j];
+    //  var endpoint = $tracker.load(jg.endpoint);
+
+    //  var geometry = new THREE.Geometry();
+    //  geometry.vertices.push(new THREE.Vector3(_system.location.x,
+    //                                           _system.location.y,
+    //                                           _system.location.z));
+
+    //  geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
+    //  var line = new THREE.Line(geometry, $omega_scene.materials['line']);
+    //  this.scene_objs.push(line);
+    //  $omega_scene.add(line);
+    //}
+    
+    // draw sphere representing system
+    var radius = system.size, segments = 32, rings = 32;
+    var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['system']);
+    sphere.position.x = _system.location.x;
+    sphere.position.y = _system.location.y;
+    sphere.position.z = _system.location.z ;
+    system.clickable_obj = sphere;
+    this.scene_objs.push(sphere);
+    $omega_scene.add(sphere);
+
+    // draw label
+    var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
+    var text = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
+    text.position.x = _system.location.x - 50;
+    text.position.y = _system.location.y - 50;
+    text.position.z = _system.location.z - 50;
+    text.lookAt($omega_camera.position());
+    this.scene_objs.push(text);
+    $omega_scene.add(text);
+  }
+
+  this.on_clicked = function(){
+    $omega_scene.set_root($omega_registry.entities[_system.id]);
+  }
+}
+
+OmegaSolarSystem.cached = function(name, retrieved){
+  var retrieval = function(name, retrieved){
+    OmegaQuery.system_with_name(name, retrieved);
+  };
+  $omega_registry.cached(name, retrieval, retrieved);
+}
+
+
+/////////////////////////////////////// Omega Star
+
+/* Initialize new Omega Star
+ */
+function OmegaStar(star){
+
+  $.extend(this, new OmegaEntity(star));
+
+  /////////////////////////////////////// private data
+
+  var _star = star;
+
+  /////////////////////////////////////// private methods
+
+  this.on_load = function(){
+    var radius = _star.size, segments = 32, rings = 32;
+
+    if($omega_scene.materials['star' + _star.color] == null)
+      $omega_scene.materials['star' + _star.color] =
+        new THREE.MeshLambertMaterial({color: parseInt('0x' + _star.color),
+                                       blending: THREE.AdditiveBlending })
+
+    var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings),
+                                $omega_scene.materials['star' + _star.color]);
+
+    sphere.position.x = _star.location.x ;
+    sphere.position.y = _star.location.y ;
+    sphere.position.z = _star.location.z ;
+
+    this.clickable_obj = sphere;
+    this.scene_objs.push(sphere);
+    $omega_scene.add(sphere);
+  }
+}
+
+/////////////////////////////////////// Omega Planet
+
+/* Initialize new Omega Planet
+ */
+function OmegaPlanet(planet){
+
+  $.extend(this, new OmegaEntity(planet));
+
+  /////////////////////////////////////// private data
+
+  var _planet = planet;
+
+  /////////////////////////////////////// public methods
+
+  this.children = function(){
+    return _system.moons;
+  }
+
+  /////////////////////////////////////// private methods
+
+  this.on_load = function(){
+    // draw sphere representing planet
+    var radius = _planet.size, segments = 32, rings = 32;
+    if($omega_scene.geometries['planet' + radius] == null)
+       $omega_scene.geometries['planet' + radius] =
+         new THREE.SphereGeometry(radius, segments, rings);
+    if($omega_scene.materials['planet' + _planet.color] == null)
+       $omega_scene.materials['planet' + _planet.color] =
+         new THREE.MeshLambertMaterial({color: parseInt('0x' + _planet.color),
+                                        blending: THREE.AdditiveBlending});
+
+    var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
+                                $omega_scene.materials[ 'planet' + _planet.color]);
+
+    sphere.position.x = _planet.location.x;
+    sphere.position.y = _planet.location.y;
+    sphere.position.z = _planet.location.z;
+
+    this.clickable_obj = sphere;
+    this.scene_objs.push(sphere);
+    $omega_scene.add(sphere);
+
+    // draw orbit
+    this.calc_orbit();
+    var geometry = new THREE.Geometry();
+    for(var o in this.orbit){
+      if(o != 0 & (o % 10 == 0)){
+        var orbit  = this.orbit[o];
+        var porbit = this.orbit[o-1];
+        geometry.vertices.push(new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]));
+        geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
+      }
+    }
+    var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
+    this.scene_objs.push(line);
+    this.scene_objs.push(geometry);
+    // !FIXME! rendering orbits results in a big performance hit,
+    // need to figure out a better way and/or make this togglable
+    $omega_scene.add(line);
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
+    // draw moons
+    for(var m=0; m<_planet.moons.length; ++m){
+      var moon = _planet.moons[m];
+      var sphere = new THREE.Mesh($omega_scene.geometries['moon'],
+                                  $omega_scene.materials['moon']);
+
+      sphere.position.x = _planet.location.x + moon.location.x;
+      sphere.position.y = _planet.location.y + moon.location.y;
+      sphere.position.z = _planet.location.z + moon.location.z;
+
+      moon.scene_obj = sphere;
+      this.scene_objs.push(sphere);
+      $omega_scene.add(sphere);
+    }
+
+    // retrack planet movement
+    $omega_node.ws_request('motel::remove_callbacks', _planet.location.id,      null);
+    $omega_node.ws_request('motel::track_movement',   _planet.location.id, 120, null);
+  }
+
+  var calc_orbit = function(){
+    this.orbit = [];
+
+    // intercepts
+    var a = _planet.location.movement_strategy.semi_latus_rectum /
+              (1 - Math.pow(_planet.location.movement_strategy.eccentricity, 2));
+
+    var b = Math.sqrt(_planet.location.movement_strategy.semi_latus_rectum * a);
+
+    // linear eccentricity
+    var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+
+    // center (assumes planet's location's movement_strategy.relative to is set to foci
+    var cx = -1 * _planet.location.movement_strategy.direction_major_x * le;
+    var cy = -1 * _planet.location.movement_strategy.direction_major_y * le;
+    var cz = -1 * _planet.location.movement_strategy.direction_major_z * le;
+
+    // orbit
+    this.orbiti = 0;
+    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+      var ox = cx + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_x +
+                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_x ;
+
+      var oy = cy + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_y +
+                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_y ;
+
+      var oz = cz + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_z +
+                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_z ;
+
+      var absi = parseInt(i * 180 / Math.PI);
+
+      if(_planet.location.distance_from(ox, oy, oz) <
+         _planet.location.distance_from.apply(_planet.location, this.orbit[absi-1]))
+          this.orbiti = absi;
+      this.orbit.push([ox, oy, oz]);
+    }
+  }
+
+  var move = function(){
     var now = (new Date()).getTime() / 1000;
+
     if(this.last_moved == null){
       this.last_moved = now;
       return;
     }
-    var elapsed = now - this.last_moved;
-    var distance = this.location.movement_strategy.speed * elapsed;
+
+    var elapsed     = now - this.last_moved;
+    var distance    = this.location.movement_strategy.speed * elapsed;
     this.last_moved = now;
 
-    var absd = parseInt(distance * 180 / Math.PI);
+    var absd     = parseInt(distance * 180 / Math.PI);
     this.orbiti += absd;
     if(this.orbiti > 360) this.orbiti -= 360;
-    var nloc = this.orbit[this.orbiti];
-    this.location.x = nloc[0]; this.location.y = nloc[1]; this.location.z = nloc[2];
-    this.updated();
-  }
 
-}
+    var nloc        = this.orbit[this.orbiti];
+    this.location.x = nloc[0];
+    this.location.y = nloc[1];
+    this.location.z = nloc[2];
 
-function load_planet(){
-  var planet = this;
-  var loc    = planet.location;
-  calc_orbit(planet);
+    // updated_planet
+    var di = this.distance_from.apply(this,
+                                      this.orbit[this.orbiti]);
 
-  // draw sphere representing planet
-  var radius = planet.size, segments = 32, rings = 32;
-  if($omega_scene.geometries['planet' + radius] == null)
-    $omega_scene.geometries['planet' + radius] = new THREE.SphereGeometry(radius, segments, rings);
-  if($omega_scene.materials['planet' + planet.color] == null)
-    $omega_scene.materials['planet' + planet.color] = new THREE.MeshLambertMaterial({color: parseInt('0x' + planet.color), blending: THREE.AdditiveBlending});
-  var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
-                              $omega_scene.materials['planet' + planet.color]);
-  sphere.position.x = loc.x ; sphere.position.y = loc.y ; sphere.position.z = loc.z ;
-  planet.clickable_obj = sphere;
-  planet.scene_objs.push(sphere);
-  $omega_scene.add(sphere);
-
-  // draw orbit
-  var geometry = new THREE.Geometry();
-  for(var o in planet.orbit){
-    if(o != 0 & (o % 10 == 0)){
-      var orbit  = planet.orbit[o];
-      var porbit = planet.orbit[o-1];
-      geometry.vertices.push(new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]));
-      geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
-    }
-  }
-  var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
-  planet.scene_objs.push(line);
-  planet.scene_objs.push(geometry);
-  // !FIXME! rendering orbits results in a big performance hit,
-  // need to figure out a better way and/or make this togglable
-  $omega_scene.add(line);
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
-  // draw moons
-  for(var m=0; m<planet.moons.length; ++m){
-    var moon = planet.moons[m];
-    var sphere = new THREE.Mesh($omega_scene.geometries['moon'], $omega_scene.materials['moon']);
-    sphere.position.x = loc.x + moon.location.x ; sphere.position.y = loc.y + moon.location.y; sphere.position.z = loc.z + moon.location.z;
-    moon.scene_obj = sphere;
-    planet.scene_objs.push(sphere);
-    $omega_scene.add(sphere);
-  }
-
-  planet.load = null;
-}
-
-function updated_planet(){
-  var di = this.distance_from.apply(this, this.orbit[this.orbiti]);
-
-  for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
-    var absi = parseInt(i * 180 / Math.PI);
-    if(this.distance_from.apply(this, this.orbit[i]) < di){
-        this.orbiti = absi;
-    }
-  }
-
-  this.clickable_obj.position.x = this.location.x;
-  this.clickable_obj.position.y = this.location.y;
-  this.clickable_obj.position.z = this.location.z;
-
-  for(var m=0; m<this.moons.length; ++m){
-    var moon = this.moons[m];
-    moon.scene_obj.position.x = this.location.x + moon.location.x;
-    moon.scene_obj.position.y = this.location.y + moon.location.y;
-    moon.scene_obj.position.z = this.location.z + moon.location.z;
-  }
-}
-
-function clicked_planet(){
-}
-
-function added_planet_to_scene(){
-  $omega_node.ws_request('motel::remove_callbacks', child.location.id,      null);
-  $omega_node.ws_request('motel::track_movement',   child.location.id, 120, null);
-}
-
-function load_asteroid(){
-  var asteroid = this;
-  var loc      = asteroid.location;
-
-  var text = new THREE.Mesh( $omega_scene.geometries['asteroid'], $omega_scene.materials['asteroid'] );
-  text.position.x = loc.x ; text.position.y = loc.y ; text.position.z = loc.z;
-  asteroid.clickable_obj = text;
-  asteroid.scene_objs.push(text);
-  $omega_scene.add(text);
-
-  asteroid.load = null
-}
-
-function clicked_asteroid(){
-  var asteroid = this;
-  var details = ['Asteroid: ' + asteroid.name + "<br/>",
-                 '@ ' + asteroid.location.to_s() + '<br/>',
-                 'Resources: <br/>'];
-  $omega_entity_container.show(details);
-
-  $omega_node.web_request('cosmos::get_resource_sources', asteroid.name, function(resource_sources, error){
-    if(error == null){
-      var details = [];
-      for(var r in resource_sources){
-        var res = resource_sources[r];
-        details.push(res.quantity + " of " + res.resource.name + " (" + res.resource.type + ")<br/>");
+    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+      var absi = parseInt(i * 180 / Math.PI);
+      if(this.distance_from.apply(this, this.orbit[i]) < di){
+          this.orbiti = absi;
       }
-      $omega_entity_container.append(details);
     }
-  });
-}
 
-function load_jump_gate(){
-  var jump_gate = this;
-  var loc       = jump_gate.location;
+    this.clickable_obj.position.x = _planet.location.x;
+    this.clickable_obj.position.y = _planet.location.y;
+    this.clickable_obj.position.z = _planet.location.z;
 
-  var geometry = new THREE.PlaneGeometry( 50, 50 );
-  var mesh = new THREE.Mesh( geometry, $omega_scene.materials['jump_gate'] );
-  mesh.position.set( loc.x, loc.y, loc.z );
-  jump_gate.scene_objs.push(mesh);
-  jump_gate.scene_objs.push(geometry);
-  $omega_scene.add( mesh );
-
-  // sphere to draw around jump gate when selected
-  var radius = jump_gate.trigger_distance, segments = 32, rings = 32;
-  var ssphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['jump_gate_selected'] );
-  ssphere.position.x = loc.x ; ssphere.position.y = loc.y ; ssphere.position.z = loc.z ;
-  jump_gate.scene_objs.push(ssphere);
-
-  if(jump_gate.selected){
-    $omega_scene.add(ssphere);
-    jump_gate.clickable_obj = ssphere;
-  }else{
-    jump_gate.clickable_obj = mesh;
+    for(var m=0; m<_planet.moons.length; ++m){
+      var moon = _planet.moons[m];
+      moon.scene_obj.position.x = _planet.location.x + moon.location.x;
+      moon.scene_obj.position.y = _planet.location.y + moon.location.y;
+      moon.scene_obj.position.z = _planet.location.z + moon.location.z;
+    }
   }
-  jump_gate.load = null;
 }
 
-function unselect_jump_gate(jump_gate){
-  $selected_entity = null;
-  jump_gate.selected = false;
-  jump_gate.dirty = true;
-  $omega_scene.reload(jump_gate);
-  $omega_entity_container.on_closed(null);
-}
 
-function clicked_jump_gate(){
-  var jump_gate = this;
+/////////////////////////////////////// Omega Asteroid
 
-  // TODO wire up trigger handler
-  var details =
-    ['Jump Gate to ' + jump_gate.endpoint + '<br/>',
-     '@ ' + jump_gate.location.to_s() + "<br/><br/>",
-     "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
-  $omega_entity_container.show(details); // XXX should go before the following as it will invoke $omege_entity_container.hide() / unselect_jump_gate
-  $selected_entity = jump_gate;
-  jump_gate.selected = true;
-  jump_gate.dirty = true;
-  $omega_scene.reload(jump_gate);
-  $omega_entity_container.on_closed(function(){
-    unselect_jump_gate(jump_gate);
-  });
-}
+/* Initialize new Omega Asteroid
+ */
+function OmegaAsteroid(asteroid){
 
-function load_ship(){
-  var ship = this;
-  var loc  = ship.location;
+  $.extend(this, new OmegaEntity(asteroid));
 
-  // do not load if ship is destroyed
-  if(ship.hp <= 0)
-    return;
+  /////////////////////////////////////// private data
 
-  // draw crosshairs representing ship
-  var color = '0x';
-  if(ship.selected)
-    color += "FFFF00";
-  else if(ship.docked_at)
-    color += "99FFFF";
-  else if(!ship.belongs_to_user())
-    color += "CC0000";
-  else
-    color += "00CC00";
+  var _asteroid = asteroid;
 
-  if($omega_scene.materials['ship' + color] == null)
-    $omega_scene.materials['ship' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
+  /////////////////////////////////////// private methods
 
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(loc.x - ship.size/2, loc.y, loc.z));
-  geometry.vertices.push(new THREE.Vector3(loc.x + ship.size/2, loc.y, loc.z));
-  var line = new THREE.Line(geometry, $omega_scene.materials['ship' + color]);
-  ship.scene_objs.push(line);
-  ship.scene_objs.push(geometry);
-  $omega_scene.add(line);
+  this.on_load = function(){
+    var text = new THREE.Mesh($omega_scene.geometries['asteroid'],
+                              $omega_scene.materials['asteroid']   );
 
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(loc.x, loc.y - ship.size/2, loc.z));
-  geometry.vertices.push(new THREE.Vector3(loc.x, loc.y + ship.size/2, loc.z));
-  var line = new THREE.Line(geometry, $omega_scene.materials['ship' + color]);
-  ship.scene_objs.push(line);
-  ship.scene_objs.push(geometry);
-  $omega_scene.add(line);
+    text.position.x = _asteroid.location.x;
+    text.position.y = _asteroid.location.y;
+    text.position.z = _asteroid.location.z;
 
-  var geometry = new THREE.PlaneGeometry( ship.size, ship.size );
-  //var texture = new THREE.MeshFaceMaterial();
-  var mesh = new THREE.Mesh(geometry, $omega_scene.materials['ship_surface']);
-  mesh.position.set(loc.x, loc.y, loc.z);
-  ship.scene_objs.push(mesh);
-  ship.scene_objs.push(geometry);
-  $omega_scene.add(mesh);
-
-  ship.clickable_obj = mesh;
-
-  // if ship is attacking another, draw line of attack
-  if(ship.attacking){
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
-    geometry.vertices.push(new THREE.Vector3(ship.attacking.location.x, ship.attacking.location.y + 25, ship.attacking.location.z));
-    line = new THREE.Line(geometry, $omega_scene.materials['ship_attacking']);
-    ship.scene_objs.push(line);
-    ship.scene_objs.push(geometry);
-    $omega_scene.add(line);
+    this.clickable_obj = text;
+    this.scene_objs.push(text);
+    $omega_scene.add(text);
   }
 
-  // if ship is mining, draw line to mining target
-  if(ship.mining){
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(loc.x, loc.y, loc.z));
-    geometry.vertices.push(new THREE.Vector3(ship.mining.entity.location.x, ship.mining.entity.location.y + 25, ship.mining.entity.location.z));
-    line = new THREE.Line(geometry, $omega_scene.materials['ship_mining']);
-    ship.scene_objs.push(line);
-    ship.scene_objs.push(geometry);
-    $omega_scene.add(line);
-  }
+  this.on_clicked = function(){
+    var details = ['Asteroid: ' + _asteroid.name + "<br/>",
+                   '@ ' + _asteroid.location.to_s() + '<br/>',
+                   'Resources: <br/>'];
+    $omega_entity_container.show(details);
 
-  ship.load = null;
+    $omega_node.web_request('cosmos::get_resource_sources', _asteroid.name,
+      function(resource_sources, error){
+        if(error == null){
+          var details = [];
+          for(var r in resource_sources){
+            var res = resource_sources[r];
+            details.push(res.quantity + " of " + res.resource.name + " (" + res.resource.type + ")<br/>");
+          }
+          $omega_entity_container.append(details);
+        }
+      });
+  }
 }
 
-function updated_ship(){
-  // TODO simple refresh coordinates / properties instead of removing
-  // and readding all of the ship's scene objects
-  if($omega_scene.has(this))
+/////////////////////////////////////// Omega JumpGate
+
+/* Initialize new Omega JumpGate
+ */
+function OmegaJumpGate(jump_gate){
+
+  $.extend(this, new OmegaEntity(jump_gate));
+
+  /////////////////////////////////////// private data
+
+  var _jump_gate = jump_gate;
+
+  /////////////////////////////////////// private methods
+
+  this.on_load = function(){
+    var geometry = new THREE.PlaneGeometry( 50, 50 );
+    var material = $omega_scene.materials['jump_gate']
+    var mesh     = new THREE.Mesh(geometry, material);
+
+    mesh.position.set( _jump_gate.location.x, _jump_gate.location.y, _jump_gate.location.z );
+    this.scene_objs.push(mesh);
+    this.scene_objs.push(geometry);
+    $omega_scene.add( mesh );
+
+    // sphere to draw around jump gate when selected
+    var radius    = _jump_gate.trigger_distance, segments = 32, rings = 32;
+    var sgeometry = new THREE.SphereGeometry(radius, segments, rings);
+    var smaterial = $omega_scene.materials['jump_gate_selected'];
+    var ssphere   = new THREE.Mesh(sgeometry, smaterial);
+                                 
+    ssphere.position.x = _jump_gate.location.x ;
+    ssphere.position.y = _jump_gate.location.y ;
+    ssphere.position.z = _jump_gate.location.z ;
+    this.scene_objs.push(ssphere);
+
+    if(this.selected){
+      $omega_scene.add(ssphere);
+      this.clickable_obj = ssphere;
+    }else{
+      this.clickable_obj = mesh;
+    }
+  }
+
+  var on_unselected = function(){
+    $selected_entity = null;
+    this.selected = false;
     $omega_scene.reload(this);
-}
-
-function unselect_ship(ship){
-  $selected_entity = null;
-  ship.selected = false;
-  ship.dirty = true;
-  $omega_scene.reload(ship);
-  $omega_entity_container.on_closed(null);
-}
-
-function clicked_ship(){
-  var ship = this;
-
-  var details = ['Ship: ' + ship.id + "<br/>", '@ ' + ship.location.to_s() + '<br/>'];
-
-  var txt = 'Resources: <br/>';
-  for(var r in ship.resources){
-    txt += ship.resources[r] + " of " + r + ", ";
-  }
-  details.push(txt);
-
-  if(ship.belongs_to_user()){
-    details.push("<div class='cmd_icon' id='ship_select_move'>move</div>"); // TODO only if not mining / attacking
-    details.push("<div class='cmd_icon' id='ship_select_target'>attack</div>");
-    details.push("<div class='cmd_icon' id='ship_select_dock'>dock</div>");
-    details.push("<div class='cmd_icon' id='ship_undock'>undock</div>");
-    details.push("<div class='cmd_icon' id='ship_select_transfer'>transfer</div>");
-    details.push("<div class='cmd_icon' id='ship_select_mine'>mine</div>");
+    $omega_entity_container.on_closed(null);
   }
 
-  $omega_entity_container.show(details);
+  this.on_clicked = function(){
+    var details = ['Jump Gate to ' + _jump_gate.endpoint + '<br/>',
+                   '@ ' + _jump_gate.location.to_s() + "<br/><br/>",
+                   "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
+    $omega_entity_container.show(details);
 
-  if(!ship.docked_at){
-    $('#ship_select_dock').show();
-    $('#ship_undock').hide();
-    $('#ship_select_transfer').hide();
-  }else{
-    $('#ship_select_dock').hide();
-    $('#ship_undock').show();
-    $('#ship_select_transfer').show();
+    $selected_entity = this;
+    this.selected = true;
+    $omega_scene.reload(this);
+
+    $omega_entity_container.on_closed(this.on_unselected);
   }
 
-  $selected_entity = ship;
-  ship.selected = true;
-  ship.dirty = true;
-  $omega_entity_container.on_closed(function(){
-    unselect_ship(ship);
-  });
-  $omega_scene.reload(ship);
 }
 
-function added_ship_to_scene(){
-  // remove & resetup callbacks
-  $omega_node.ws_request('motel::remove_callbacks',        this.location.id,                       null);
-  $omega_node.ws_request('manufactured::remove_callbacks', this.id,                                null);
-  $omega_node.ws_request('motel::track_movement',          this.location.id, 20,                   null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
-  $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
-}
 
-function load_station(){
-  var station = this;
-  var loc     = station.location;
+/////////////////////////////////////// Omega Ship
 
-  var color = '0x';
-  if(station.selected)
-    color += "FFFF00";
-  else if(!station.belongs_to_user())
-    color += "CC0011";
-  else
-    color += "0000CC";
+/* Initialize new Omega Ship
+ */
+function OmegaShip(ship){
 
-  if($omega_scene.materials['station' + color] == null)
-    $omega_scene.materials['station' + color] = new THREE.LineBasicMaterial({color: parseInt(color)});
+  $.extend(this, new OmegaEntity(ship));
 
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(loc.x - station.size/2, loc.y, loc.z));
-  geometry.vertices.push(new THREE.Vector3(loc.x + station.size/2, loc.y, loc.z));
-  var line = new THREE.Line(geometry, $omega_scene.materials['station'+color]);
-  station.scene_objs.push(line);
-  $omega_scene.add(line);
+  /////////////////////////////////////// private data
 
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(loc.x, loc.y - station.size/2, loc.z));
-  geometry.vertices.push(new THREE.Vector3(loc.x, loc.y + station.size/2, loc.z));
-  var line = new THREE.Line(geometry, $omega_scene.materials['station'+color]);
-  station.scene_objs.push(line);
-  station.scene_objs.push(geometry);
-  $omega_scene.add(line);
+  var _ship = ship;
 
-  var geometry = new THREE.PlaneGeometry( station.size, station.size );
-  var mesh = new THREE.Mesh(geometry, $omega_scene.materials['station_surface']);
-  mesh.position.set(loc.x, loc.y, loc.z);
-  station.scene_objs.push(mesh);
-  station.scene_objs.push(geometry);
-  $omega_scene.add(mesh);
+  /////////////////////////////////////// private methods
 
-  station.clickable_obj = mesh;
-}
+  this.on_load = function(){
+    // do not load if ship is destroyed
+    if(this.hp <= 0) return;
 
-function unselect_station(station){
-  $selected_entity = null;
-  station.selected = false;
-  station.dirty = true;
-  $omega_scene.reload(station);
-  $omega_entity_container.on_closed(null);
-}
+    // draw crosshairs representing ship
+    var color = '0x';
+    if(this.selected)
+      color += "FFFF00";
+    else if(_ship.docked_at)
+      color += "99FFFF";
+    else if(!this.belongs_to_user($user_id))
+      color += "CC0000";
+    else
+      color += "00CC00";
 
-function clicked_station(){
-  var station = this;
+    if($omega_scene.materials['ship' + color] == null)
+       $omega_scene.materials['ship' + color] =
+         new THREE.LineBasicMaterial({color: parseInt(color)});
 
-  var details = ['Station: ' + station.id + "<br/>", '@' + station.location.to_s() + '<br/>'];
+    var material = $omega_scene.materials['ship' + color]
 
-  var txt = 'Resources: <br/>';
-  for(var r in station.resources){
-    txt += station.resources[r] + " of " + r + ", ";
+    var geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(_ship.location.x - _ship.size/2,
+                                             _ship.location.y,
+                                             _ship.location.z));
+    geometry.vertices.push(new THREE.Vector3(_ship.location.x + _ship.size/2,
+                                             _ship.location.y,
+                                             _ship.location.z));
+
+    var line = new THREE.Line(geometry, material);
+    this.scene_objs.push(line);
+    this.scene_objs.push(geometry);
+    $omega_scene.add(line);
+
+    geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(_ship.location.x,
+                                             _ship.location.y - _ship.size/2,
+                                             _ship.location.z));
+    geometry.vertices.push(new THREE.Vector3(_ship.location.x,
+                                             _ship.location.y + _ship.size/2,
+                                             _ship.location.z));
+
+    line = new THREE.Line(geometry, material);
+    this.scene_objs.push(line);
+    this.scene_objs.push(geometry);
+    $omega_scene.add(line);
+
+    geometry = new THREE.PlaneGeometry( ship.size, ship.size );
+    material = $omega_scene.materials['ship_surface']
+
+    //var texture = new THREE.MeshFaceMaterial();
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(_ship.location.x, _ship.location.y, _ship.location.z);
+    this.scene_objs.push(mesh);
+    this.scene_objs.push(geometry);
+    $omega_scene.add(mesh);
+
+    this.clickable_obj = mesh;
+
+    // if ship is attacking another, draw line of attack
+    if(_ship.attacking){
+      material = $omega_scene.materials['ship_attacking'];
+      geometry = new THREE.Geometry();
+      geometry.vertices.push(new THREE.Vector3(_ship.location.x,
+                                               _ship.location.y,
+                                               _ship.location.z));
+      geometry.vertices.push(new THREE.Vector3(_ship.attacking.location.x,
+                                               _ship.attacking.location.y + 25,
+                                               _ship.attacking.location.z));
+
+      line = new THREE.Line(geometry, material);
+      this.scene_objs.push(line);
+      this.scene_objs.push(geometry);
+      $omega_scene.add(line);
+    }
+
+    // if ship is mining, draw line to mining target
+    if(_ship.mining){
+      material = $omega_scene.materials['ship_mining']
+      geometry = new THREE.Geometry();
+      geometry.vertices.push(new THREE.Vector3(_ship.location.x,
+                                               _ship.location.y,
+                                               _ship.location.z));
+      geometry.vertices.push(new THREE.Vector3(_ship.mining.entity.location.x,
+                                               _ship.mining.entity.location.y + 25,
+                                               _ship.mining.entity.location.z));
+
+      line = new THREE.Line(geometry, material);
+      this.scene_objs.push(line);
+      this.scene_objs.push(geometry);
+      $omega_scene.add(line);
+    }
+
+    // remove & resetup callbacks
+    $omega_node.ws_request('motel::remove_callbacks',        _ship.location.id,                       null);
+    $omega_node.ws_request('manufactured::remove_callbacks', _ship.id,                                null);
+    $omega_node.ws_request('motel::track_movement',          _ship.location.id, 20,                   null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'resource_collected', null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'mining_stopped',     null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'attacked',           null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'attacked_stop',      null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'defended',           null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'defended_stop',      null);
+    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'destroyed',          null);
   }
-  details.push(txt);
 
-  if(station.belongs_to_user()){
-    // TODO wire up construction handler
-    details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
+  var on_unselected = function(){
+    this.selected = false;
+    $omega_scene.reload(this);
+    $omega_entity_container.on_closed(null);
   }
-  $omega_entity_container.show(details);
 
-  $selected_entity = station;
-  station.selected = true;
-  station.dirty = true;
-  $omega_entity_container.on_closed(function(){
-    unselect_station(station);
-  });
-  $omega_scene.reload(station);
+  this.on_clicked = function(){
+    var rstxt = 'Resources: <br/>';
+    for(var r in ship.resources){
+      rstxt += ship.resources[r] + " of " + r + ", ";
+    }
+
+    var details = ['Ship: ' + _ship.id +"<br/>",
+                   '@ ' + _ship.location.to_s() + '<br/>',
+                   rstxt];
+
+    if(this.belongs_to_user()){
+      details.push("<div class='cmd_icon' id='ship_select_move'>move</div>"); // TODO only if not mining / attacking
+      details.push("<div class='cmd_icon' id='ship_select_target'>attack</div>");
+      details.push("<div class='cmd_icon' id='ship_select_dock'>dock</div>");
+      details.push("<div class='cmd_icon' id='ship_undock'>undock</div>");
+      details.push("<div class='cmd_icon' id='ship_select_transfer'>transfer</div>");
+      details.push("<div class='cmd_icon' id='ship_select_mine'>mine</div>");
+    }
+
+    $omega_entity_container.show(details);
+
+    if(!_ship.docked_at){
+      $('#ship_select_dock').show();
+      $('#ship_undock').hide();
+      $('#ship_select_transfer').hide();
+    }else{
+      $('#ship_select_dock').hide();
+      $('#ship_undock').show();
+      $('#ship_select_transfer').show();
+    }
+
+    $selected_entity = ship;
+    this.selected = true;
+    $omega_entity_container.on_closed(this.on_unselected);
+    $omega_scene.reload(this);
+  }
+
+}
+
+/////////////////////////////////////// Omega Station
+
+/* Initialize new Omega Station
+ */
+function OmegaStation(station){
+
+  $.extend(this, new OmegaEntity(station));
+
+  /////////////////////////////////////// private data
+
+  var _station = station;
+
+  /////////////////////////////////////// private methods
+
+  this.on_load = function(){
+    var color = '0x';
+    if(this.selected)
+      color += "FFFF00";
+    else if(!this.belongs_to_user($user_id))
+      color += "CC0011";
+    else
+      color += "0000CC";
+
+    if($omega_scene.materials['station' + color] == null)
+      $omega_scene.materials['station' + color] =
+        new THREE.LineBasicMaterial({color: parseInt(color)});
+    var material = $omega_scene.materials['station'+color];
+
+    var geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(_station.location.x - _station.size/2,
+                                             _station.location.y,
+                                             _station.location.z));
+    geometry.vertices.push(new THREE.Vector3(_station.location.x + _station.size/2,
+                                             _station.location.y,
+                                             _station.location.z));
+
+    var line = new THREE.Line(geometry, material);
+    this.scene_objs.push(line);
+    $omega_scene.add(line);
+
+    geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(_station.location.x,
+                                             _station.location.y - _station.size/2,
+                                             _station.location.z));
+    geometry.vertices.push(new THREE.Vector3(_station.location.x,
+                                             _station.location.y + _station.size/2,
+                                             _station.location.z));
+
+    line = new THREE.Line(geometry, material);
+    this.scene_objs.push(line);
+    this.scene_objs.push(geometry);
+    $omega_scene.add(line);
+
+    material = $omega_scene.materials['station_surface'];
+    geometry = new THREE.PlaneGeometry( station.size, station.size );
+
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(_station.location.x,
+                      _station.location.y,
+                      _station.location.z);
+    this.scene_objs.push(mesh);
+    this.scene_objs.push(geometry);
+    $omega_scene.add(mesh);
+
+    this.clickable_obj = mesh;
+  }
+
+  var on_unselected = function(){
+    $selected_entity = null;
+    this.selected = false;
+    $omega_scene.reload(this);
+    $omega_entity_container.on_closed(null);
+  }
+
+  this.on_clicked = function(){
+    var rstxt = 'Resources: <br/>';
+    for(var r in station.resources){
+      rstxt += station.resources[r] + " of " + r + ", ";
+    }
+
+    var details = ['Station: ' + _station.id + "<br/>",
+                   '@' + _station.location.to_s() + '<br/>',
+                   rstxt];
+
+    if(this.belongs_to_user()){
+      details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
+    }
+
+    $omega_entity_container.show(details);
+
+    $selected_entity = this;
+    this.selected = true;
+    $omega_entity_container.on_closed(this.on_unselected)
+    $omega_scene.reload(this);
+  }
 }
 
 /////////////////////////////////////// initialization
 
-function scene_changed_callback(){
-  // create a timer to periodically update planet location
-  // inbetween server syncronizations
-  clear_entity_timers();
-  add_entity_timer('planet_movement', 2000, function(){
-    // TODO tracked_planet
-    //for(var planet in $tracked_planets){
-    //  planet = $tracked_planets[planet];
-    //  planet.move();
-    //  $omega_scene.animate();
-    //}
+$(document).ready(function(){
+  $omega_registry       = new OmegaRegistry();
+});
+
+
+
+/////////////// XXX TODO still need to relocate this stuff
+
+$(document).ready(function(){
+  $omega_session.on_session_validated(function(){
+    OmegaQuery.entities_owned_by($user_id, function(entities){
+      for(var entityI in entities){
+        var entity = entities[entityI];
+        OmegaSolarSystem.cached(entity.system_name, function(system){
+          OmegaQuery.galaxy_with_name(system.galaxy_name);
+          OmegaQuery.entities_under(system.name);
+        });
+      }
+    });
   });
-}
 
-$(document).ready(function(){ 
-  $timers = {};
-  $entity_registered_callbacks = [];
-
-  $omega_session.on_session_validated(get_user_entities);
-  $omega_scene.on_scene_change(scene_changed_callback);
+  $omega_scene.on_scene_change(function(){
+    // create a timer to periodically update planet location
+    // inbetween server syncronizations
+    $omega_registry.clear_timers();
+    $omega_registry.add_timer('planet_movement', 2000, function(){
+      // TODO tracked_planet
+      //for(var planet in $tracked_planets){
+      //  planet = $tracked_planets[planet];
+      //  planet.move();
+      //  $omega_scene.animate();
+      //}
+    });
+  });
 
   /////////////////////// add handlers to server side tracker callbacks
 
@@ -854,64 +1065,5 @@ $(document).ready(function(){
       $omega_scene.remove(defender.id);
 
     }
-  });
-
-
-  /////////////////////// specific entities container controls
-  // FIXME selected_entity may have changed in the meantime
-
-  $('#ship_trigger_jg').live('click', function(e){
-    trigger_jump_gate($selected_entity);
-  });
-
-  $('#ship_select_move').live('click', function(e){
-    select_ship_destination($selected_entity);
-  });
-
-  $('#ship_move_to').live('click', function(e){
-    omega_move_ship_to($selected_entity, $('#dest_x').attr('value'),
-                                         $('#dest_y').attr('value'),
-                                         $('#dest_z').attr('value'));
-  });
-
-  $('#ship_select_target').live('click', function(e){
-    select_ship_target($selected_entity);
-  });
-
-  $('.ship_launch_attack').live('click', function(e){
-    omega_ship_launch_attack($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_select_dock').live('click', function(e){
-    ship_select_dock($selected_entity);
-  });
-
-  $('.ship_dock_at').live('click', function(e){
-    omega_ship_dock_at($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_undock').live('click', function(e){
-    omega_ship_undock($selected_entity);
-  });
-
-  $('#ship_select_transfer').live('click', function(e){
-    ship_select_transfer($selected_entity);
-  });
-
-  $('.ship_transfer').live('click', function(e){
-    omega_ship_transfer($selected_entity, $(e.currentTarget).html());
-  });
-
-  $('#ship_select_mine').live('click', function(e){
-    ship_select_mining($selected_entity);
-  });
-
-  $('.ship_start_mining').live('click', function(e){
-    var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
-    omega_ship_start_mining($selected_entity, rsid);
-  });
-
-  $('#station_select_construction').live('click', function(e){
-    omega_station_construct($selected_entity);
   });
 });

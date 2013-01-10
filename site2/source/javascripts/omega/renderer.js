@@ -18,13 +18,13 @@ function OmegaCamera(){
   /////////////////////////////////////// public methods
 
   this.position = function(position){
-    if(position.x)
+    if(position && position.x)
       _camera.position.x = position.x;
 
-    if(position.y)
+    if(position && position.y)
       _camera.position.y = position.y;
 
-    if(position.z)
+    if(position && position.z)
       _camera.position.z = position.z;
 
     return {x : _camera.position.x,
@@ -212,20 +212,20 @@ function OmegaScene(){
   /////////////////////////////////////// public (read-only) data
 
   // preload textures & other resources
-  var textures  = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/jump_gate.png")};
+  var textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/jump_gate.png")};
   this.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
-                   system    : new THREE.MeshLambertMaterial({color: 0x996600, blending: THREE.AdditiveBlending}),
-                   system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
-                   orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
-                   moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
-                   asteroid : new THREE.MeshBasicMaterial( { color: 0xffffff, overdraw: true }),
-                   jump_gate : new THREE.MeshBasicMaterial( { map: textures['jump_gate'] } ),
-                   jump_gate_selected : new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
-                   ship_surface : new THREE.LineBasicMaterial( { } ), // new THREE.MeshFaceMaterial({ });
-                   ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
-                   ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF}),
-                   station_surface : new THREE.LineBasicMaterial( { } )
-                  };
+                    system    : new THREE.MeshLambertMaterial({color: 0x996600, blending: THREE.AdditiveBlending}),
+                    system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
+                    orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
+                    moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
+                    asteroid : new THREE.MeshBasicMaterial( { color: 0xffffff, overdraw: true }),
+                    jump_gate : new THREE.MeshBasicMaterial( { map: textures['jump_gate'] } ),
+                    jump_gate_selected : new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
+                    ship_surface : new THREE.LineBasicMaterial( { } ), // new THREE.MeshFaceMaterial({ });
+                    ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
+                    ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF}),
+                    station_surface : new THREE.LineBasicMaterial( { } )
+                   };
   // relatively new for three.js (mesh.doubleSided = true is old way):
   this.materials['jump_gate'].side       = THREE.DoubleSide;
   this.materials['ship_surface'].side    = THREE.DoubleSide;
@@ -240,6 +240,7 @@ function OmegaScene(){
   var clear = function(){
     for(var entity in entities){
       entity = entities[entity]
+console.log(entity);
       for(var scene_entity in entity.scene_objs){
         var se = entity.scene_objs[scene_entity];
         _scene.remove(se);
@@ -262,8 +263,9 @@ function OmegaScene(){
     $omega_entity_container.hide();
 
     clear();
-    for(var child in entity.children){
-      child = entity.children[child];
+    var children = entity.children();
+    for(var child in children){
+      child = children[child];
       this.add_entity(child);
       if(child.added_to_scene)
         child.added_to_scene();
@@ -280,7 +282,7 @@ function OmegaScene(){
   }
 
   this.add_entity = function(entity){
-    load_entity(entity);
+    entity.load();
     entities[entity.id] = entity;
   }
 

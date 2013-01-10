@@ -161,7 +161,7 @@ function OmegaSession(){
     setTimeout(function(){
       $omega_node.web_request('users::get_entity', 'with_id', user_id,
                               callback_validate_session);
-    }, 250);
+    }, 1000);
   }
 }
 
