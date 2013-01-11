@@ -209,6 +209,8 @@ function OmegaScene(){
 
   var scene_changed_callback = null;
 
+  var root_entity    = null;
+
   /////////////////////////////////////// public (read-only) data
 
   // preload textures & other resources
@@ -240,7 +242,6 @@ function OmegaScene(){
   var clear = function(){
     for(var entity in entities){
       entity = entities[entity]
-console.log(entity);
       for(var scene_entity in entity.scene_objs){
         var se = entity.scene_objs[scene_entity];
         _scene.remove(se);
@@ -259,6 +260,7 @@ console.log(entity);
   }
 
   this.set_root = function(entity){
+    root_entity = entity;
     $omega_canvas.set_background(entity);
     $omega_entity_container.hide();
 
@@ -275,6 +277,10 @@ console.log(entity);
       scene_changed_callback();
 
     this.animate();
+  }
+
+  this.refresh = function(){
+    this.set_root(root_entity);
   }
 
   this.has = function(entity){

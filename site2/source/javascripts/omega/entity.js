@@ -20,11 +20,13 @@ function convert_entity(entity){
     entity = new OmegaLocation(entity);
 
   }else if(entity.json_class == "Cosmos::Galaxy"){
+    entity.location = convert_entity(entity.location);
     for(var solar_system in entity.solar_systems)
       entity.solar_systems[solar_system] = convert_entity(entity.solar_systems[solar_system]);
     entity = new OmegaGalaxy(entity);
 
   }else if(entity.json_class == "Cosmos::SolarSystem"){
+    entity.location = convert_entity(entity.location);
     entity.star = convert_entity(entity.star);
     for(var planet in entity.planets)
       entity.planets[planet] = convert_entity(entity.planets[planet]);
@@ -36,18 +38,22 @@ function convert_entity(entity){
     entity = new OmegaSolarSystem(entity);
 
   }else if(entity.json_class == "Cosmos::Star"){
+    entity.location = convert_entity(entity.location);
     entity = new OmegaStar(entity);
 
   }else if(entity.json_class == "Cosmos::Planet"){
+    entity.location = convert_entity(entity.location);
     for(var moon in entity.moons)
       entity.moons[moon] = convert_entity(entity.moons[moon]);
 
     entity = new OmegaPlanet(entity);
 
   }else if(entity.json_class == "Cosmos::Asteroid"){
+    entity.location = convert_entity(entity.location);
     entity = new OmegaAsteroid(entity);
 
   }else if(entity.json_class == "Cosmos::JumpGate"){
+    entity.location = convert_entity(entity.location);
     entity = new OmegaJumpGate(entity);
 
   }else if(entity.json_class == "Manufactured::Ship"){
@@ -375,7 +381,7 @@ function OmegaSolarSystem(system){
     sphere.position.x = _system.location.x;
     sphere.position.y = _system.location.y;
     sphere.position.z = _system.location.z ;
-    system.clickable_obj = sphere;
+    this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
     $omega_scene.add(sphere);
 
@@ -391,7 +397,7 @@ function OmegaSolarSystem(system){
   }
 
   this.on_clicked = function(){
-    $omega_scene.set_root($omega_registry.entities[_system.id]);
+    $omega_scene.set_root($omega_registry.get(this.id));
   }
 }
 
@@ -519,7 +525,7 @@ function OmegaPlanet(planet){
     $omega_node.ws_request('motel::track_movement',   _planet.location.id, 120, null);
   }
 
-  var calc_orbit = function(){
+  this.calc_orbit = function(){
     this.orbit = [];
 
     // intercepts
@@ -550,8 +556,11 @@ function OmegaPlanet(planet){
 
       var absi = parseInt(i * 180 / Math.PI);
 
-      if(_planet.location.distance_from(ox, oy, oz) <
-         _planet.location.distance_from.apply(_planet.location, this.orbit[absi-1]))
+      if(absi == 0 ||
+         this.location.distance_from(ox, oy, oz) <
+         this.location.distance_from(this.orbit[absi-1][0],
+                                     this.orbit[absi-1][1],
+                                     this.orbit[absi-1][2]))
           this.orbiti = absi;
       this.orbit.push([ox, oy, oz]);
     }
@@ -1018,9 +1027,15 @@ $(document).ready(function(){
   /////////////////////// add handlers to server side tracker callbacks
 
   $omega_node.add_request_handler('motel::on_movement', function(loc){
-    var entity = $tracker.matching_entities({location : loc.id});
-    entity[0].update({location : loc});
-    $omega_scene.animate();
+    var entity = $omega_registry.select([function(e){ return e.location &&
+                                                             e.location.id == loc.id }])[0];
+    entity.location.x = loc.x;
+    entity.location.y = loc.y;
+    entity.location.z = loc.z;
+    convert_entity(entity);
+
+    // FIXME no need to refresh entire scene, more efficiently do this
+    $omega_scene.refresh();
   });
 
   $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
