@@ -155,7 +155,8 @@ var OmegaCommand = {
     /* Setup the trigger_jump_gate command */
     init : function(){
       $('#ship_trigger_jg').live('click', function(e){
-        trigger_jump_gate($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.trigger_jump_gate.exec(selected);
       });
     }
 
@@ -216,11 +217,13 @@ var OmegaCommand = {
     /* Setup the move_ship command */
     init : function(){
       $('#ship_select_move').live('click', function(e){
-        OmegaCommand.move_ship.pre_exec($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.move_ship.pre_exec(selected);
       });
 
       $('#ship_move_to').live('click', function(e){
-        OmegaCommand.move_ship.exec($selected_entity,
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.move_ship.exec(selected,
                                     $('#dest_x').val(),
                                     $('#dest_y').val(),
                                     $('#dest_z').val());
@@ -265,11 +268,13 @@ var OmegaCommand = {
     /* Setup the launch_attack command */
     init : function(){
       $('#ship_select_target').live('click', function(e){
-        select_ship_target($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        select_ship_target(selected);
       });
 
       $('.ship_launch_attack').live('click', function(e){
-        omega_ship_launch_attack($selected_entity, $(e.currentTarget).html());
+        var selected = $omega_registry.get($omega_selection.selected());
+        omega_ship_launch_attack(selected, $(e.currentTarget).html());
       });
     }
   },
@@ -288,14 +293,18 @@ var OmegaCommand = {
      */
     exec : function(ship, station_id){
       $omega_dialog.hide();
-      $omega_node.web_request('manufactured::dock', ship.id, station_id, omega_callback());
+      $omega_node.web_request('manufactured::dock', ship.id, station_id,
+                              omega_callback(function(ship){
+                                $omega_scene.reload(ship);
+                              }));
     },
 
     /* Display dialog to select station to dock at
      */
     pre_exec : function(ship){
-      var entities = $tracker.matching_entities({type : "Manufactured::Station",
-                                                 within : [100, ship.location]});
+      var entities = $omega_registry.select([function(e) { return e.json_class == 'Manufactured::Station' &&
+                                                                  e.location.is_within(100, ship.location) }])
+
       var text = "<div class='dialog_row'>Dock "+ship.id+" at</div>";
       for(var entity in entities){
         entity = entities[entity];
@@ -307,11 +316,15 @@ var OmegaCommand = {
     /* Setup the dock_ship command */
     init : function(){
       $('#ship_select_dock').live('click', function(e){
-        ship_select_dock($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.dock_ship.pre_exec(selected);
       });
 
       $('.ship_dock_at').live('click', function(e){
-        omega_ship_dock_at($selected_entity, $(e.currentTarget).html());
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.dock_ship.exec(selected, $(e.currentTarget).html());
+
+        $('#ship_select_dock').hide(); $('#ship_undock').show();
       });
     }
 
@@ -330,13 +343,18 @@ var OmegaCommand = {
      * @param {Manufactured::Ship} ship ship to undock
      */
     exec : function(ship){
-      $omega_node.web_request('manufactured::undock', ship.id, omega_callback());
+      $omega_node.web_request('manufactured::undock', ship.id,
+                              omega_callback(function(ship) { 
+                                $omega_scene.reload(ship);
+                              }));
     },
 
     /* Setup the undock_ship command */
     init : function(){
       $('#ship_undock').live('click', function(e){
-        omega_ship_undock($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.undock_ship.exec(selected);
+        $('#ship_select_dock').show(); $('#ship_undock').hide();
       });
     }
   },
@@ -378,11 +396,13 @@ var OmegaCommand = {
     /* Setup the transfer_resources command */
     init : function(){
       $('#ship_select_transfer').live('click', function(e){
-        ship_select_transfer($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        ship_select_transfer(selected);
       });
 
       $('.ship_transfer').live('click', function(e){
-        omega_ship_transfer($selected_entity, $(e.currentTarget).html());
+        var selected = $omega_registry.get($omega_selection.selected());
+        omega_ship_transfer(selected, $(e.currentTarget).html());
       });
     }
 
@@ -436,12 +456,14 @@ var OmegaCommand = {
     /* Setup the start_mining command */
     init : function(){
       $('#ship_select_mine').live('click', function(e){
-        ship_select_mining($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        ship_select_mining(selected);
       });
 
       $('.ship_start_mining').live('click', function(e){
+        var selected = $omega_registry.get($omega_selection.selected());
         var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
-        omega_ship_start_mining($selected_entity, rsid);
+        omega_ship_start_mining(selected, rsid);
       });
     }
   },
@@ -457,15 +479,16 @@ var OmegaCommand = {
      */
     exec : function(station){
       $omega_node.web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
-        $scene.add_entity($tracker.entities[constructed.id]);
-        $scene.animate();
+        $omega_scene.add_entity($omega_registry.get(constructed.id));
+        $omega_scene.animate();
       }));
     },
 
     /* Setup the construct_entity command */
     init : function(){
       $('#station_select_construction').live('click', function(e){
-        omega_station_construct($selected_entity);
+        var selected = $omega_registry.get($omega_selection.selected());
+        OmegaCommand.construct_entity.exec(selected);
       });
     }
   }

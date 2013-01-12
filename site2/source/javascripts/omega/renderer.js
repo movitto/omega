@@ -188,6 +188,47 @@ function OmegaGrid(){
   $('#toggle_grid_canvas').attr('checked', false);
 }
 
+/////////////////////////////////////// Omega Scene Selection
+
+/* Initialize new Omega Selection
+ */
+function OmegaSelection(){
+  /////////////////////////////////////// private data
+
+  var selected_entities   =   [];
+
+  /////////////////////////////////////// public methods
+
+  this.is_selected = function(entity_id){
+    for(var se in selected_entities){
+      if(selected_entities[se] == entity_id)
+        return true;
+    }
+
+    return false;
+  }
+
+  this.select = function(entity_id){
+    if(this.is_selected(entity_id))
+      return;
+    selected_entities.push(entity_id);
+  }
+
+  this.unselect = function(entity_id){
+    for(var index in selected_entities){
+      if(selected_entities[index] == entity_id){
+        selected_entities.splice(index, 1);
+        return;
+      }
+    }
+  }
+
+  // XXX might not be best to expose a 'single' selection, but works for now
+  this.selected = function(){
+    return selected_entities[0];
+  }
+}
+
 
 /////////////////////////////////////// Omega Canvas Scene
 
@@ -352,5 +393,6 @@ function OmegaScene(){
 $(document).ready(function(){ 
   $omega_camera = new OmegaCamera();
   $omega_grid   = new OmegaGrid();
+  $omega_selection = new OmegaSelection();
   $omega_scene  = new OmegaScene();
 });

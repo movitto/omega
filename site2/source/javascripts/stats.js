@@ -18,8 +18,9 @@ function refresh_stats(){
    users_stats.html('');  actions_stats.html('');
   cosmos_stats.html(''); entities_stats.html('');
 
-  for(var entity in $tracker.entities){
-    entity = $tracker.entities[entity];
+  var entities = $omega_registry.entities();
+  for(var entity in entities){
+    var entity = entities[entity];
     if(entity.json_class == "Manufactured::Ship" ||
        entity.json_class == "Manufactured::Station"){
       entities_stats.append('<li>' + entity.id + '@' + entity.location.to_s() + '</li>');
@@ -41,9 +42,9 @@ function refresh_stats(){
 // retrieve all entities we can, refresh the stats panels, and
 // schedule this again in 5s
 function refresh_cycle(args){
-  omega_all_entities(refresh_stats);
-  omega_all_galaxies(refresh_stats);
-  omega_all_users(refresh_stats);
+  OmegaQuery.all_entities(refresh_stats);
+  OmegaQuery.all_galaxies(refresh_stats);
+  OmegaQuery.all_users(refresh_stats);
   setTimeout(refresh_cycle, 5000);
 }
 

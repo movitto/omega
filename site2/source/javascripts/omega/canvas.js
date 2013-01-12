@@ -226,8 +226,8 @@ function OmegaCanvas(){
   });
 
   // wire up show/close canvas controls
-  $('#close_canvas').live('click', function(event){ hide_canvas(); });
-  $('#show_canvas').live('click', function(event){ show_canvas(); });
+  $('#close_canvas').live('click', function(event){ $omega_canvas.hide(); });
+  $('#show_canvas').live( 'click', function(event){ $omega_canvas.show(); });
 
   // wire up canvas mouse controls
 

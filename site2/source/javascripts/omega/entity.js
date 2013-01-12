@@ -110,8 +110,6 @@ function OmegaRegistry(){
 
   var timers                 = {};
 
-  var selected_entities      = [];
-
   var registration_callbacks = [];
 
   /////////////////////////////////////// public methods
@@ -137,16 +135,18 @@ function OmegaRegistry(){
 
     for(var cb in registration_callbacks)
       registration_callbacks[cb](entity);
-
-    // TODO ?
-    // if($selected_entity && $selected_entity.id == this.id)
-    //  $selected_entity.clicked();
   }
 
   /* Return entity w/ specified id
    */
   this.get = function(entity_id){
     return registry[entity_id];
+  }
+
+  /* Return all entities
+   */
+  this.entities = function(){
+    return registry;
   }
 
   /* Return entities matching specified criteria.
@@ -672,7 +672,7 @@ function OmegaJumpGate(jump_gate){
     ssphere.position.z = this.location.z ;
     this.scene_objs.push(ssphere);
 
-    if(this.selected){
+    if($omega_selection.is_selected(this.id)){
       $omega_scene.add(ssphere);
       this.clickable_obj = ssphere;
     }else{
@@ -681,9 +681,9 @@ function OmegaJumpGate(jump_gate){
   }
 
   var on_unselected = function(){
-    $selected_entity.selected = false;
-    $omega_scene.reload($selected_entity);
-    $selected_entity = null;
+    var selected_id = $omega_selection.selected()
+    $omega_selection.unselect(selected_id);
+    $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
 
@@ -693,8 +693,7 @@ function OmegaJumpGate(jump_gate){
                    "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
     $omega_entity_container.show(details);
 
-    $selected_entity = this;
-    this.selected = true;
+    $omega_selection.select(this.id);
     $omega_scene.reload(this);
 
     $omega_entity_container.on_closed(on_unselected);
@@ -719,7 +718,7 @@ function OmegaShip(ship){
 
     // draw crosshairs representing ship
     var color = '0x';
-    if(this.selected)
+    if($omega_selection.is_selected(this.id))
       color += "FFFF00";
     else if(this.docked_at)
       color += "99FFFF";
@@ -820,9 +819,9 @@ function OmegaShip(ship){
   }
 
   var on_unselected = function(){
-    $selected_entity.selected = false;
-    $omega_scene.reload($selected_entity);
-    $selected_entity = null;
+    var selected_id = $omega_selection.selected()
+    $omega_selection.unselect(selected_id);
+    $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
 
@@ -857,8 +856,7 @@ function OmegaShip(ship){
       $('#ship_select_transfer').show();
     }
 
-    $selected_entity = this;
-    this.selected = true;
+    $omega_selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected);
     $omega_scene.reload(this);
   }
@@ -877,7 +875,7 @@ function OmegaStation(station){
 
   this.on_load = function(){
     var color = '0x';
-    if(this.selected)
+    if($omega_selection.is_selected(this.id))
       color += "FFFF00";
     else if(!this.belongs_to_user($user_id))
       color += "CC0011";
@@ -929,9 +927,9 @@ function OmegaStation(station){
   }
 
   var on_unselected = function(){
-    $selected_entity.selected = false;
-    $omega_scene.reload($selected_entity);
-    $selected_entity = null;
+    var selected_id = $omega_selection.selected()
+    $omega_selection.unselect(selected_id);
+    $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
 
@@ -951,8 +949,7 @@ function OmegaStation(station){
 
     $omega_entity_container.show(details);
 
-    $selected_entity = this;
-    this.selected = true;
+    $omega_selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected)
     $omega_scene.reload(this);
   }
