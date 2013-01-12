@@ -7,22 +7,18 @@
 /////////////////////////////////////// Omega User
 
 function OmegaUser(args){
-  /////////////////////////////////////// private data
+  /////////////////////////////////////// public data
 
-  this.id                   = args.id;
-
-  this.password             = args.password;
-
-  this.email                = args.email;
-
-  this.recaptcha_challenge  = args.recaptcha_challenge;
-
-  this.recaptcha_response   = args.recaptcha_response;
+  // copy all attributes from entity to self
+  // XXX needed here since OmegaUser doesn't derive from OmegaEntity
+  for(var attr in args)
+    this[attr] = args[attr];
 
   /////////////////////////////////////// public methods
 
   this.toJSON = function(){
-    return new JRObject("Users::User", this).toJSON();
+    return new JRObject("Users::User", this,
+      ["alliances", "toJSON", "json_class"]).toJSON();
   };
 }
 
@@ -88,20 +84,22 @@ function OmegaSession(){
 
   /* Callback invoked on user login
    */
-  var callback_login_user = function(session, error){
-    if(error){
-      destroy_session();
-    }else{
-      create_session(session.id, session.user_id);
-      for(var i = 0; i < session_validated_callbacks.length; i++){
-        session_validated_callbacks[i]();
-      }
+  var on_user_login = function(session){
+    create_session(session.id, session.user.id);
+    for(var i = 0; i < session_validated_callbacks.length; i++){
+      session_validated_callbacks[i]();
     }
+  };
+
+  /* Callback invoked on login error
+   */
+  var on_login_error = function(error){
+    destroy_session();
   }
 
   /* Callback invoked on user logout
    */
-  var callback_logout_user = function(result, error){
+  var on_user_logout = function(result, error){
     destroy_session();
     for(var i = 0; i < session_destroyed_callbacks.length; i++){
       session_destroyed_callbacks[i]();
@@ -131,14 +129,14 @@ function OmegaSession(){
   /* Login the user
    */
   this.login_user = function(user){
-    $omega_node.web_request('users::login', user, callback_login_user);
+    OmegaCommand.login_user.exec(user, on_user_login, on_login_error);
   };
 
   /* Logout the user
    */
   this.logout_user = function(){
     var session_id = $.cookie('omega-session');
-    $omega_node.web_request('users::logout', session_id, callback_logout_user);
+    OmegaCommand.logout_user.exec(session_id, on_user_logout);
   };
 
   /* Register the user
@@ -159,10 +157,8 @@ function OmegaSession(){
   // validate the session
   if(user_id != null){
     // XXX hack, give socket time to open before running client
-    setTimeout(function(){
-      $omega_node.web_request('users::get_entity', 'with_id', user_id,
-                              callback_validate_session);
-    }, 1000);
+    setTimeout(function(){ OmegaQuery.user_with_id(user_id, callback_validate_session) },
+               1000);
   }
 }
 

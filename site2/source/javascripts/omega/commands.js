@@ -11,9 +11,9 @@
 
 /* Generate a function to handle the result of an rjr
  * operation by storing the result and invoking the registered
- * client callback
+ * success/failure callbacks
  */
-function omega_callback(oc){
+function omega_callback(success_callback, error_callback){
   return function(result, error){
     // only invoke client callback on success (assuming errors handled elsewhere)
     if(error == null && typeof(result) == "object"){
@@ -31,8 +31,12 @@ function omega_callback(oc){
       }
 
       // invoke client callback
-      if(oc != null)
-        oc(unpack ? result[0] : result);
+      if(success_callback != null)
+        success_callback(unpack ? result[0] : result);
+
+    }else if(error != null && error_callback != null){
+      error_callback(error);
+
     }
   };
 }
@@ -53,6 +57,61 @@ var OmegaEvent = {
 /////////////////////////////////////// Omega Command Namespace
 
 var OmegaCommand = {
+
+  /////////////////////////////////////// Login User Command
+
+  /* Log the user into the server
+   */
+  login_user : {
+
+    /* Execute the login_user command.
+     *
+     * @param {Users::User} user to log into the server
+     * @param {Callback} login_callback function to invoke w/ session on login
+     * @param {Callback} error_callback function to invoke if user could not be logged in
+     */
+    exec : function(user, login_callback, error_callback){
+      $omega_node.web_request('users::login', user,
+                              omega_callback(login_callback, error_callback));
+    }
+
+  },
+
+  /////////////////////////////////////// Logout User Command
+
+  /* Log the user out of the server
+   */
+  logout_user : {
+
+    /* Execute the logout_user command.
+     *
+     * @param {String} session_id id of session to use when logging out user
+     * @param {Callback} logout_callback function to invoke on logout
+     */
+    exec : function(session_id, logout_callback){
+      $omega_node.web_request('users::logout', session_id,
+                              omega_callback(logout_callback, logout_callback));
+    }
+
+  },
+
+  /////////////////////////////////////// Update User Command
+
+  /* Update the user on the server
+   */
+  update_user : {
+
+    /* Execute the update_user command.
+     *
+     * @param {Users::User} user to update on the server
+     * @param {Callback} callback function to invoke when user is updated
+     */
+    exec : function(user, callback){
+      $omega_node.web_request('users::update_user', user, omega_callback(callback));
+    }
+
+  },
+
 
   /////////////////////////////////////// Trigger Jump Gate Command
 
@@ -476,7 +535,7 @@ var OmegaQuery = {
     $omega_node.web_request('cosmos::get_entity', 'with_name', galaxy_name, omega_callback(callback));
   },
   
-  /* Invoke omega server side cosmos::get_entities 
+  /* Invoke omega server side cosmos::get_entity
    * operation to retrieve system with the specified name
    *
    * @param {String} system_name name of the system to retrieve
@@ -504,6 +563,16 @@ var OmegaQuery = {
    */
   all_users : function(callback){
     $omega_node.web_request('users::get_entity', 'of_type', 'Users::User', omega_callback(callback));
+  },
+
+  /* Invoke omega server side users::get_entity
+   * operation to retrieve user with the specified id
+   *
+   * @param {String} user_id id of the user to retrieve
+   * @param {Callback} callback function to invoke w/ user when retrieved
+   */
+  user_with_id : function(user_id, callback){
+    $omega_node.web_request('users::get_entity', 'with_id', user_id, omega_callback(callback));
   }
 
 }

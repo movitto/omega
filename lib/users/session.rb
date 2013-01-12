@@ -76,7 +76,7 @@ class Session
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:user_id => user_id, :id => id, :login_time => login_time}
+      'data'       => {:user => user, :id => id, :login_time => login_time}
     }.to_json(*a)
   end
 

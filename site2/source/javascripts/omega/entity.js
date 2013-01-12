@@ -64,7 +64,14 @@ function convert_entity(entity){
     entity.location = convert_entity(entity.location);
     entity = new OmegaStation(entity);
 
+  }else if(entity.json_class == "Users::Session"){
+    entity.user = convert_entity(entity.user);
+
+  }else if(entity.json_class == "Users::User"){
+    entity = new OmegaUser(entity);
+
   }
+
   $omega_registry.add(entity);
 
   return entity;
