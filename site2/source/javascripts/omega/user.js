@@ -78,6 +78,7 @@ function OmegaSession(){
         invalid_session_callbacks[i]();
       }
     }else{
+      $omega_registry.add(user);
       for(var i = 0; i < session_validated_callbacks.length; i++){
         session_validated_callbacks[i]();
       }

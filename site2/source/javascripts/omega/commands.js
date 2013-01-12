@@ -157,13 +157,14 @@ var OmegaCommand = {
     /* Setup the move_ship command */
     init : function(){
       $('#ship_select_move').live('click', function(e){
-        select_ship_destination($selected_entity);
+        OmegaCommand.move_ship.pre_exec($selected_entity);
       });
 
       $('#ship_move_to').live('click', function(e){
-        omega_move_ship_to($selected_entity, $('#dest_x').attr('value'),
-                                             $('#dest_y').attr('value'),
-                                             $('#dest_z').attr('value'));
+        OmegaCommand.move_ship.exec($selected_entity,
+                                    $('#dest_x').val(),
+                                    $('#dest_y').val(),
+                                    $('#dest_z').val());
       });
     }
 
@@ -506,3 +507,13 @@ var OmegaQuery = {
   }
 
 }
+
+/////////////////////////////////////// initialization
+
+$(document).ready(function(){
+  // setup command controls
+  for(var cmd in OmegaCommand){
+    if(OmegaCommand[cmd].init)
+      OmegaCommand[cmd].init();
+  }
+});

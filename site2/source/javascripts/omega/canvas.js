@@ -73,6 +73,11 @@ function OmegaEntityContainer(){
     display: 'none'
   });
 
+  $('#entity_container_close').live('click', function(e){
+    $omega_entity_container.hide();
+  });
+
+
 }
 
 /////////////////////////////////////// Omega Entities Container
@@ -84,6 +89,10 @@ function OmegaEntitiesContainer(){
   /////////////////////////////////////// private data
 
   var locations   =  {};
+
+  var alliances   =  {};
+
+  var fleets      =  {};
 
   /////////////////////////////////////// initialization
 
@@ -97,7 +106,29 @@ function OmegaEntitiesContainer(){
         locations[entity.name] = entity;
         $('#locations_list ul').append('<li name="'+entity.name+'">'+entity.name+'</li>');
       }
+
       $('#locations_list').show();
+
+    }else if(entity.json_class == "Users::User"){
+      for(var a in entity.alliances){
+        var alliance = entity.alliances[a];
+        if(alliances[alliance.id] == null){
+          alliances[alliance.id] = alliance;
+          $('#alliances_list ul').append('<li name="'+alliance.id+'">' + alliance.id + '</li>');
+        }
+      }
+
+      if(entity.alliances.length > 0)
+        $('#alliances_list').show();
+
+    }else if(entity.json_class == "Manufactured::Fleet"){
+      if(fleets[entity.id] == null){
+        locations[entity.id] = entity;
+        $('#fleets_list ul').append('<li name="'+entity.id+'">'+entity.id+'</li>');
+      }
+
+      $('#locations_list').show();
+
     }
   });
 
@@ -106,8 +137,12 @@ function OmegaEntitiesContainer(){
     $omega_scene.set_root($omega_registry.get(entity_id));
   });
 
-  $('#entity_container_close').live('click', function(e){
-    $omega_entity_container.hide();
+  $('#alliances_list li').live('click', function(event){
+    // TODO
+  });
+
+  $('#fleets_list li').live('click', function(event){
+    // TODO
   });
 
   // wire up entities container controls

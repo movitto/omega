@@ -209,16 +209,14 @@ function OmegaEntity(entity){
 
   /////////////////////////////////////// private data
 
-  var _entity           = entity;
-
   // scene properties
   this.clickable_obj     = null;
 
   this.scene_objs        = [];
 
   // copy all attributes from entity to self
-  for(var attr in _entity)
-    this[attr] = _entity[attr];
+  for(var attr in entity)
+    this[attr] = entity[attr];
 
   /////////////////////////////////////// private methods
 
@@ -239,17 +237,17 @@ function OmegaEntity(entity){
   }
 
   this.is_a = function(type){
-    return _entity.json_class == type;
+    return this.json_class == type;
   };
 
   this.belongs_to_user = function(user_id){
-    return _entity.user_id == user_id;
+    return this.user_id == user_id;
   };
 
 }
 
 //OmegaEntity.prototype.__noSuchMethod__ = function(id, args) {
-//  _entity.apply(id, args);
+//  this.apply(id, args);
 //}
 
 /////////////////////////////////////// Omega Location
@@ -260,42 +258,38 @@ function OmegaLocation(loc){
 
   $.extend(this, new OmegaEntity(loc));
 
-  /////////////////////////////////////// private data
-  
-  var _loc = loc;
-
   /////////////////////////////////////// public methods
 
   this.distance_from = function(x, y, z){
-    return Math.sqrt(Math.pow(_loc.x - x, 2) +
-                     Math.pow(_loc.y - y, 2) +
-                     Math.pow(_loc.z - z, 2));
+    return Math.sqrt(Math.pow(this.x - x, 2) +
+                     Math.pow(this.y - y, 2) +
+                     Math.pow(this.z - z, 2));
   };
 
   this.is_within = function(distance, loc){
-    if(_loc.parent_id != loc.parent_id)
+    if(this.parent_id != loc.parent_id)
       return false 
     return  this.distance_from(loc.x, loc.y, loc.z) < distance;
   };
 
   this.to_s = function(){
-    return roundTo(_loc.x, 2) + "/" +
-           roundTo(_loc.y, 2) + "/" +
-           roundTo(_loc.z, 2);
+    return roundTo(this.x, 2) + "/" +
+           roundTo(this.y, 2) + "/" +
+           roundTo(this.z, 2);
   }
 
   this.toJSON = function(){
-    return new JRObject("Motel::Location", _loc, 
+    return new JRObject("Motel::Location", this,
        ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
         "movement_callbacks", "proximity_callbacks"]).toJSON();
   };
 
   this.clone = function(){
-    var nloc = { x                 : _loc.x ,
-                 y                 : _loc.y ,
-                 z                 : _loc.z,
-                 parent_id         : _loc.parent_id,
-                 movement_strategy : _loc.movement_strategy };
+    var nloc = { x                 : this.x ,
+                 y                 : this.y ,
+                 z                 : this.z,
+                 parent_id         : this.parent_id,
+                 movement_strategy : this.movement_strategy };
 
     return new OmegaLocation(nloc);
   };
@@ -310,14 +304,10 @@ function OmegaGalaxy(galaxy){
 
   $.extend(this, new OmegaEntity(galaxy));
 
-  /////////////////////////////////////// private data
-
-  var _galaxy = galaxy;
-
   /////////////////////////////////////// public methods
 
   this.children = function(){
-    return _galaxy.solar_systems;
+    return this.solar_systems;
   }
 
 }
@@ -337,22 +327,19 @@ function OmegaSolarSystem(system){
 
   $.extend(this, new OmegaEntity(system));
 
-  /////////////////////////////////////// private data
-
-  var _system = system;
-
   /////////////////////////////////////// public methods
 
   this.children = function(){
-    var ships    = $omega_registry.select([function(e){ return e.system_name == _system.name &&
+    var system   = this;
+    var ships    = $omega_registry.select([function(e){ return e.system_name == system.name &&
                                                                e.json_class  == "Manufactured::Ship" }]);
-    var stations = $omega_registry.select([function(e){ return e.system_name == _system.name &&
+    var stations = $omega_registry.select([function(e){ return e.system_name == system.name &&
                                                                e.json_class  == "Manufactured::Station" }]);
 
-    return [_system.star].
-            concat(_system.planets).
-            concat(_system.asteroids).
-            concat(_system.jump_gates).
+    return [this.star].
+            concat(this.planets).
+            concat(this.asteroids).
+            concat(this.jump_gates).
             concat(ships).
             concat(stations);
   }
@@ -360,14 +347,14 @@ function OmegaSolarSystem(system){
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
-    //for(var j=0; j<_system.jump_gates.length;++j){
-    //  var jg = _system.jump_gates[j];
+    //for(var j=0; j<this.jump_gates.length;++j){
+    //  var jg = this.jump_gates[j];
     //  var endpoint = $tracker.load(jg.endpoint);
 
     //  var geometry = new THREE.Geometry();
-    //  geometry.vertices.push(new THREE.Vector3(_system.location.x,
-    //                                           _system.location.y,
-    //                                           _system.location.z));
+    //  geometry.vertices.push(new THREE.Vector3(this.location.x,
+    //                                           this.location.y,
+    //                                           this.location.z));
 
     //  geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
     //  var line = new THREE.Line(geometry, $omega_scene.materials['line']);
@@ -378,9 +365,9 @@ function OmegaSolarSystem(system){
     // draw sphere representing system
     var radius = system.size, segments = 32, rings = 32;
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['system']);
-    sphere.position.x = _system.location.x;
-    sphere.position.y = _system.location.y;
-    sphere.position.z = _system.location.z ;
+    sphere.position.x = this.location.x;
+    sphere.position.y = this.location.y;
+    sphere.position.z = this.location.z ;
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
     $omega_scene.add(sphere);
@@ -388,9 +375,9 @@ function OmegaSolarSystem(system){
     // draw label
     var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
     var text = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
-    text.position.x = _system.location.x - 50;
-    text.position.y = _system.location.y - 50;
-    text.position.z = _system.location.z - 50;
+    text.position.x = this.location.x - 50;
+    text.position.y = this.location.y - 50;
+    text.position.z = this.location.z - 50;
     text.lookAt($omega_camera.position());
     this.scene_objs.push(text);
     $omega_scene.add(text);
@@ -417,26 +404,22 @@ function OmegaStar(star){
 
   $.extend(this, new OmegaEntity(star));
 
-  /////////////////////////////////////// private data
-
-  var _star = star;
-
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
-    var radius = _star.size, segments = 32, rings = 32;
+    var radius = this.size, segments = 32, rings = 32;
 
-    if($omega_scene.materials['star' + _star.color] == null)
-      $omega_scene.materials['star' + _star.color] =
-        new THREE.MeshLambertMaterial({color: parseInt('0x' + _star.color),
+    if($omega_scene.materials['star' + this.color] == null)
+      $omega_scene.materials['star' + this.color] =
+        new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
                                        blending: THREE.AdditiveBlending })
 
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings),
-                                $omega_scene.materials['star' + _star.color]);
+                                $omega_scene.materials['star' + this.color]);
 
-    sphere.position.x = _star.location.x ;
-    sphere.position.y = _star.location.y ;
-    sphere.position.z = _star.location.z ;
+    sphere.position.x = this.location.x ;
+    sphere.position.y = this.location.y ;
+    sphere.position.z = this.location.z ;
 
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
@@ -452,35 +435,31 @@ function OmegaPlanet(planet){
 
   $.extend(this, new OmegaEntity(planet));
 
-  /////////////////////////////////////// private data
-
-  var _planet = planet;
-
   /////////////////////////////////////// public methods
 
   this.children = function(){
-    return _system.moons;
+    return this.moons;
   }
 
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
     // draw sphere representing planet
-    var radius = _planet.size, segments = 32, rings = 32;
+    var radius = this.size, segments = 32, rings = 32;
     if($omega_scene.geometries['planet' + radius] == null)
        $omega_scene.geometries['planet' + radius] =
          new THREE.SphereGeometry(radius, segments, rings);
-    if($omega_scene.materials['planet' + _planet.color] == null)
-       $omega_scene.materials['planet' + _planet.color] =
-         new THREE.MeshLambertMaterial({color: parseInt('0x' + _planet.color),
+    if($omega_scene.materials['planet' + this.color] == null)
+       $omega_scene.materials['planet' + this.color] =
+         new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
                                         blending: THREE.AdditiveBlending});
 
     var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
-                                $omega_scene.materials[ 'planet' + _planet.color]);
+                                $omega_scene.materials[ 'planet' + this.color]);
 
-    sphere.position.x = _planet.location.x;
-    sphere.position.y = _planet.location.y;
-    sphere.position.z = _planet.location.z;
+    sphere.position.x = this.location.x;
+    sphere.position.y = this.location.y;
+    sphere.position.z = this.location.z;
 
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
@@ -506,14 +485,14 @@ function OmegaPlanet(planet){
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     // draw moons
-    for(var m=0; m<_planet.moons.length; ++m){
-      var moon = _planet.moons[m];
+    for(var m=0; m<this.moons.length; ++m){
+      var moon = this.moons[m];
       var sphere = new THREE.Mesh($omega_scene.geometries['moon'],
                                   $omega_scene.materials['moon']);
 
-      sphere.position.x = _planet.location.x + moon.location.x;
-      sphere.position.y = _planet.location.y + moon.location.y;
-      sphere.position.z = _planet.location.z + moon.location.z;
+      sphere.position.x = this.location.x + moon.location.x;
+      sphere.position.y = this.location.y + moon.location.y;
+      sphere.position.z = this.location.z + moon.location.z;
 
       moon.scene_obj = sphere;
       this.scene_objs.push(sphere);
@@ -521,38 +500,38 @@ function OmegaPlanet(planet){
     }
 
     // retrack planet movement
-    $omega_node.ws_request('motel::remove_callbacks', _planet.location.id,      null);
-    $omega_node.ws_request('motel::track_movement',   _planet.location.id, 120, null);
+    $omega_node.ws_request('motel::remove_callbacks', this.location.id,      null);
+    $omega_node.ws_request('motel::track_movement',   this.location.id, 120, null);
   }
 
   this.calc_orbit = function(){
     this.orbit = [];
 
     // intercepts
-    var a = _planet.location.movement_strategy.semi_latus_rectum /
-              (1 - Math.pow(_planet.location.movement_strategy.eccentricity, 2));
+    var a = this.location.movement_strategy.semi_latus_rectum /
+              (1 - Math.pow(this.location.movement_strategy.eccentricity, 2));
 
-    var b = Math.sqrt(_planet.location.movement_strategy.semi_latus_rectum * a);
+    var b = Math.sqrt(this.location.movement_strategy.semi_latus_rectum * a);
 
     // linear eccentricity
     var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
 
     // center (assumes planet's location's movement_strategy.relative to is set to foci
-    var cx = -1 * _planet.location.movement_strategy.direction_major_x * le;
-    var cy = -1 * _planet.location.movement_strategy.direction_major_y * le;
-    var cz = -1 * _planet.location.movement_strategy.direction_major_z * le;
+    var cx = -1 * this.location.movement_strategy.direction_major_x * le;
+    var cy = -1 * this.location.movement_strategy.direction_major_y * le;
+    var cz = -1 * this.location.movement_strategy.direction_major_z * le;
 
     // orbit
     this.orbiti = 0;
     for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
-      var ox = cx + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_x +
-                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_x ;
+      var ox = cx + a * Math.cos(i) * this.location.movement_strategy.direction_major_x +
+                    b * Math.sin(i) * this.location.movement_strategy.direction_minor_x ;
 
-      var oy = cy + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_y +
-                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_y ;
+      var oy = cy + a * Math.cos(i) * this.location.movement_strategy.direction_major_y +
+                    b * Math.sin(i) * this.location.movement_strategy.direction_minor_y ;
 
-      var oz = cz + a * Math.cos(i) * _planet.location.movement_strategy.direction_major_z +
-                    b * Math.sin(i) * _planet.location.movement_strategy.direction_minor_z ;
+      var oz = cz + a * Math.cos(i) * this.location.movement_strategy.direction_major_z +
+                    b * Math.sin(i) * this.location.movement_strategy.direction_minor_z ;
 
       var absi = parseInt(i * 180 / Math.PI);
 
@@ -598,15 +577,15 @@ function OmegaPlanet(planet){
       }
     }
 
-    this.clickable_obj.position.x = _planet.location.x;
-    this.clickable_obj.position.y = _planet.location.y;
-    this.clickable_obj.position.z = _planet.location.z;
+    this.clickable_obj.position.x = this.location.x;
+    this.clickable_obj.position.y = this.location.y;
+    this.clickable_obj.position.z = this.location.z;
 
-    for(var m=0; m<_planet.moons.length; ++m){
-      var moon = _planet.moons[m];
-      moon.scene_obj.position.x = _planet.location.x + moon.location.x;
-      moon.scene_obj.position.y = _planet.location.y + moon.location.y;
-      moon.scene_obj.position.z = _planet.location.z + moon.location.z;
+    for(var m=0; m<this.moons.length; ++m){
+      var moon = this.moons[m];
+      moon.scene_obj.position.x = this.location.x + moon.location.x;
+      moon.scene_obj.position.y = this.location.y + moon.location.y;
+      moon.scene_obj.position.z = this.location.z + moon.location.z;
     }
   }
 }
@@ -620,19 +599,15 @@ function OmegaAsteroid(asteroid){
 
   $.extend(this, new OmegaEntity(asteroid));
 
-  /////////////////////////////////////// private data
-
-  var _asteroid = asteroid;
-
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
     var text = new THREE.Mesh($omega_scene.geometries['asteroid'],
                               $omega_scene.materials['asteroid']   );
 
-    text.position.x = _asteroid.location.x;
-    text.position.y = _asteroid.location.y;
-    text.position.z = _asteroid.location.z;
+    text.position.x = this.location.x;
+    text.position.y = this.location.y;
+    text.position.z = this.location.z;
 
     this.clickable_obj = text;
     this.scene_objs.push(text);
@@ -640,12 +615,12 @@ function OmegaAsteroid(asteroid){
   }
 
   this.on_clicked = function(){
-    var details = ['Asteroid: ' + _asteroid.name + "<br/>",
-                   '@ ' + _asteroid.location.to_s() + '<br/>',
+    var details = ['Asteroid: ' + this.name + "<br/>",
+                   '@ ' + this.location.to_s() + '<br/>',
                    'Resources: <br/>'];
     $omega_entity_container.show(details);
 
-    $omega_node.web_request('cosmos::get_resource_sources', _asteroid.name,
+    $omega_node.web_request('cosmos::get_resource_sources', this.name,
       function(resource_sources, error){
         if(error == null){
           var details = [];
@@ -667,10 +642,6 @@ function OmegaJumpGate(jump_gate){
 
   $.extend(this, new OmegaEntity(jump_gate));
 
-  /////////////////////////////////////// private data
-
-  var _jump_gate = jump_gate;
-
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
@@ -678,20 +649,20 @@ function OmegaJumpGate(jump_gate){
     var material = $omega_scene.materials['jump_gate']
     var mesh     = new THREE.Mesh(geometry, material);
 
-    mesh.position.set( _jump_gate.location.x, _jump_gate.location.y, _jump_gate.location.z );
+    mesh.position.set( this.location.x, this.location.y, this.location.z );
     this.scene_objs.push(mesh);
     this.scene_objs.push(geometry);
     $omega_scene.add( mesh );
 
     // sphere to draw around jump gate when selected
-    var radius    = _jump_gate.trigger_distance, segments = 32, rings = 32;
+    var radius    = this.trigger_distance, segments = 32, rings = 32;
     var sgeometry = new THREE.SphereGeometry(radius, segments, rings);
     var smaterial = $omega_scene.materials['jump_gate_selected'];
     var ssphere   = new THREE.Mesh(sgeometry, smaterial);
                                  
-    ssphere.position.x = _jump_gate.location.x ;
-    ssphere.position.y = _jump_gate.location.y ;
-    ssphere.position.z = _jump_gate.location.z ;
+    ssphere.position.x = this.location.x ;
+    ssphere.position.y = this.location.y ;
+    ssphere.position.z = this.location.z ;
     this.scene_objs.push(ssphere);
 
     if(this.selected){
@@ -703,15 +674,15 @@ function OmegaJumpGate(jump_gate){
   }
 
   var on_unselected = function(){
+    $selected_entity.selected = false;
+    $omega_scene.reload($selected_entity);
     $selected_entity = null;
-    this.selected = false;
-    $omega_scene.reload(this);
     $omega_entity_container.on_closed(null);
   }
 
   this.on_clicked = function(){
-    var details = ['Jump Gate to ' + _jump_gate.endpoint + '<br/>',
-                   '@ ' + _jump_gate.location.to_s() + "<br/><br/>",
+    var details = ['Jump Gate to ' + this.endpoint + '<br/>',
+                   '@ ' + this.location.to_s() + "<br/><br/>",
                    "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
     $omega_entity_container.show(details);
 
@@ -719,7 +690,7 @@ function OmegaJumpGate(jump_gate){
     this.selected = true;
     $omega_scene.reload(this);
 
-    $omega_entity_container.on_closed(this.on_unselected);
+    $omega_entity_container.on_closed(on_unselected);
   }
 
 }
@@ -733,10 +704,6 @@ function OmegaShip(ship){
 
   $.extend(this, new OmegaEntity(ship));
 
-  /////////////////////////////////////// private data
-
-  var _ship = ship;
-
   /////////////////////////////////////// private methods
 
   this.on_load = function(){
@@ -747,7 +714,7 @@ function OmegaShip(ship){
     var color = '0x';
     if(this.selected)
       color += "FFFF00";
-    else if(_ship.docked_at)
+    else if(this.docked_at)
       color += "99FFFF";
     else if(!this.belongs_to_user($user_id))
       color += "CC0000";
@@ -761,12 +728,12 @@ function OmegaShip(ship){
     var material = $omega_scene.materials['ship' + color]
 
     var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(_ship.location.x - _ship.size/2,
-                                             _ship.location.y,
-                                             _ship.location.z));
-    geometry.vertices.push(new THREE.Vector3(_ship.location.x + _ship.size/2,
-                                             _ship.location.y,
-                                             _ship.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x - this.size/2,
+                                             this.location.y,
+                                             this.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x + this.size/2,
+                                             this.location.y,
+                                             this.location.z));
 
     var line = new THREE.Line(geometry, material);
     this.scene_objs.push(line);
@@ -774,12 +741,12 @@ function OmegaShip(ship){
     $omega_scene.add(line);
 
     geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(_ship.location.x,
-                                             _ship.location.y - _ship.size/2,
-                                             _ship.location.z));
-    geometry.vertices.push(new THREE.Vector3(_ship.location.x,
-                                             _ship.location.y + _ship.size/2,
-                                             _ship.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                             this.location.y - this.size/2,
+                                             this.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                             this.location.y + this.size/2,
+                                             this.location.z));
 
     line = new THREE.Line(geometry, material);
     this.scene_objs.push(line);
@@ -791,7 +758,7 @@ function OmegaShip(ship){
 
     //var texture = new THREE.MeshFaceMaterial();
     var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(_ship.location.x, _ship.location.y, _ship.location.z);
+    mesh.position.set(this.location.x, this.location.y, this.location.z);
     this.scene_objs.push(mesh);
     this.scene_objs.push(geometry);
     $omega_scene.add(mesh);
@@ -799,15 +766,15 @@ function OmegaShip(ship){
     this.clickable_obj = mesh;
 
     // if ship is attacking another, draw line of attack
-    if(_ship.attacking){
+    if(this.attacking){
       material = $omega_scene.materials['ship_attacking'];
       geometry = new THREE.Geometry();
-      geometry.vertices.push(new THREE.Vector3(_ship.location.x,
-                                               _ship.location.y,
-                                               _ship.location.z));
-      geometry.vertices.push(new THREE.Vector3(_ship.attacking.location.x,
-                                               _ship.attacking.location.y + 25,
-                                               _ship.attacking.location.z));
+      geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                               this.location.y,
+                                               this.location.z));
+      geometry.vertices.push(new THREE.Vector3(this.attacking.location.x,
+                                               this.attacking.location.y + 25,
+                                               this.attacking.location.z));
 
       line = new THREE.Line(geometry, material);
       this.scene_objs.push(line);
@@ -816,15 +783,15 @@ function OmegaShip(ship){
     }
 
     // if ship is mining, draw line to mining target
-    if(_ship.mining){
+    if(this.mining){
       material = $omega_scene.materials['ship_mining']
       geometry = new THREE.Geometry();
-      geometry.vertices.push(new THREE.Vector3(_ship.location.x,
-                                               _ship.location.y,
-                                               _ship.location.z));
-      geometry.vertices.push(new THREE.Vector3(_ship.mining.entity.location.x,
-                                               _ship.mining.entity.location.y + 25,
-                                               _ship.mining.entity.location.z));
+      geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                               this.location.y,
+                                               this.location.z));
+      geometry.vertices.push(new THREE.Vector3(this.mining.entity.location.x,
+                                               this.mining.entity.location.y + 25,
+                                               this.mining.entity.location.z));
 
       line = new THREE.Line(geometry, material);
       this.scene_objs.push(line);
@@ -833,35 +800,36 @@ function OmegaShip(ship){
     }
 
     // remove & resetup callbacks
-    $omega_node.ws_request('motel::remove_callbacks',        _ship.location.id,                       null);
-    $omega_node.ws_request('manufactured::remove_callbacks', _ship.id,                                null);
-    $omega_node.ws_request('motel::track_movement',          _ship.location.id, 20,                   null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'resource_collected', null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'mining_stopped',     null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'attacked',           null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'attacked_stop',      null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'defended',           null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'defended_stop',      null);
-    $omega_node.ws_request('manufactured::subscribe_to',     _ship.id,          'destroyed',          null);
+    $omega_node.ws_request('motel::remove_callbacks',        this.location.id,                       null);
+    $omega_node.ws_request('manufactured::remove_callbacks', this.id,                                null);
+    $omega_node.ws_request('motel::track_movement',          this.location.id, 20,                   null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
+    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
   }
 
   var on_unselected = function(){
-    this.selected = false;
-    $omega_scene.reload(this);
+    $selected_entity.selected = false;
+    $omega_scene.reload($selected_entity);
+    $selected_entity = null;
     $omega_entity_container.on_closed(null);
   }
 
   this.on_clicked = function(){
     var rstxt = 'Resources: <br/>';
-    for(var r in ship.resources){
-      rstxt += ship.resources[r] + " of " + r + ", ";
+    for(var r in this.resources){
+      rstxt += this.resources[r] + " of " + r + ", ";
     }
 
-    var details = ['Ship: ' + _ship.id +"<br/>",
-                   '@ ' + _ship.location.to_s() + '<br/>',
+    var details = ['Ship: ' + this.id +"<br/>",
+                   '@ ' + this.location.to_s() + '<br/>',
                    rstxt];
 
-    if(this.belongs_to_user()){
+    if(this.belongs_to_user($user_id)){
       details.push("<div class='cmd_icon' id='ship_select_move'>move</div>"); // TODO only if not mining / attacking
       details.push("<div class='cmd_icon' id='ship_select_target'>attack</div>");
       details.push("<div class='cmd_icon' id='ship_select_dock'>dock</div>");
@@ -872,7 +840,7 @@ function OmegaShip(ship){
 
     $omega_entity_container.show(details);
 
-    if(!_ship.docked_at){
+    if(!this.docked_at){
       $('#ship_select_dock').show();
       $('#ship_undock').hide();
       $('#ship_select_transfer').hide();
@@ -882,9 +850,9 @@ function OmegaShip(ship){
       $('#ship_select_transfer').show();
     }
 
-    $selected_entity = ship;
+    $selected_entity = this;
     this.selected = true;
-    $omega_entity_container.on_closed(this.on_unselected);
+    $omega_entity_container.on_closed(on_unselected);
     $omega_scene.reload(this);
   }
 
@@ -897,10 +865,6 @@ function OmegaShip(ship){
 function OmegaStation(station){
 
   $.extend(this, new OmegaEntity(station));
-
-  /////////////////////////////////////// private data
-
-  var _station = station;
 
   /////////////////////////////////////// private methods
 
@@ -919,24 +883,24 @@ function OmegaStation(station){
     var material = $omega_scene.materials['station'+color];
 
     var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(_station.location.x - _station.size/2,
-                                             _station.location.y,
-                                             _station.location.z));
-    geometry.vertices.push(new THREE.Vector3(_station.location.x + _station.size/2,
-                                             _station.location.y,
-                                             _station.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x - this.size/2,
+                                             this.location.y,
+                                             this.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x + this.size/2,
+                                             this.location.y,
+                                             this.location.z));
 
     var line = new THREE.Line(geometry, material);
     this.scene_objs.push(line);
     $omega_scene.add(line);
 
     geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(_station.location.x,
-                                             _station.location.y - _station.size/2,
-                                             _station.location.z));
-    geometry.vertices.push(new THREE.Vector3(_station.location.x,
-                                             _station.location.y + _station.size/2,
-                                             _station.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                             this.location.y - this.size/2,
+                                             this.location.z));
+    geometry.vertices.push(new THREE.Vector3(this.location.x,
+                                             this.location.y + this.size/2,
+                                             this.location.z));
 
     line = new THREE.Line(geometry, material);
     this.scene_objs.push(line);
@@ -947,9 +911,9 @@ function OmegaStation(station){
     geometry = new THREE.PlaneGeometry( station.size, station.size );
 
     var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(_station.location.x,
-                      _station.location.y,
-                      _station.location.z);
+    mesh.position.set(this.location.x,
+                      this.location.y,
+                      this.location.z);
     this.scene_objs.push(mesh);
     this.scene_objs.push(geometry);
     $omega_scene.add(mesh);
@@ -958,23 +922,23 @@ function OmegaStation(station){
   }
 
   var on_unselected = function(){
+    $selected_entity.selected = false;
+    $omega_scene.reload($selected_entity);
     $selected_entity = null;
-    this.selected = false;
-    $omega_scene.reload(this);
     $omega_entity_container.on_closed(null);
   }
 
   this.on_clicked = function(){
     var rstxt = 'Resources: <br/>';
-    for(var r in station.resources){
-      rstxt += station.resources[r] + " of " + r + ", ";
+    for(var r in this.resources){
+      rstxt += this.resources[r] + " of " + r + ", ";
     }
 
-    var details = ['Station: ' + _station.id + "<br/>",
-                   '@' + _station.location.to_s() + '<br/>',
+    var details = ['Station: ' + this.id + "<br/>",
+                   '@' + this.location.to_s() + '<br/>',
                    rstxt];
 
-    if(this.belongs_to_user()){
+    if(this.belongs_to_user($user_id)){
       details.push("<div class='cmd_icon' id='station_select_construction'>construct</div>");
     }
 
@@ -982,7 +946,7 @@ function OmegaStation(station){
 
     $selected_entity = this;
     this.selected = true;
-    $omega_entity_container.on_closed(this.on_unselected)
+    $omega_entity_container.on_closed(on_unselected)
     $omega_scene.reload(this);
   }
 }
@@ -1027,15 +991,24 @@ $(document).ready(function(){
   /////////////////////// add handlers to server side tracker callbacks
 
   $omega_node.add_request_handler('motel::on_movement', function(loc){
+console.log("on movement");
     var entity = $omega_registry.select([function(e){ return e.location &&
                                                              e.location.id == loc.id }])[0];
+
     entity.location.x = loc.x;
     entity.location.y = loc.y;
     entity.location.z = loc.z;
     convert_entity(entity);
 
-    // FIXME no need to refresh entire scene, more efficiently do this
-    $omega_scene.refresh();
+    // XXX hack if scene changed remove callbacks
+    if($omega_scene.get_root().location.id != entity.location.parent_id){
+      $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
+
+    }else{
+      // FIXME just update scene_object locations, no need to
+      // reload entire object
+      $omega_scene.reload(entity);
+    }
   });
 
   $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){

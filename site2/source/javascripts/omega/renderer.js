@@ -279,6 +279,10 @@ function OmegaScene(){
     this.animate();
   }
 
+  this.get_root = function(){
+    return root_entity;
+  }
+
   this.refresh = function(){
     this.set_root(root_entity);
   }
