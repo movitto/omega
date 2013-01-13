@@ -4,6 +4,13 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/jquery.timer');
+require('javascripts/vendor/three');
+require('javascripts/vendor/helvetiker_font/helvetiker_regular.typeface');
+require('javascripts/omega/client');
+require('javascripts/omega/renderer');
+require('javascripts/omega/commands');
+
 /////////////////////////////////////// Helper Methods
 
 /* Round number to specified number of places

@@ -4,6 +4,12 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/three');
+require('javascripts/omega/user');
+require('javascripts/omega/renderer');
+require('javascripts/omega/entity');
+require('javascripts/omega/commands');
+
 /////////////////////////////////////// Omega Entity Container
 
 /* Initialize new Omega Entity Container

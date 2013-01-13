@@ -16,19 +16,8 @@
     = yield_content :stylesheets
 
     = javascript_include_tag "vendor/jquery-1.7.1.min"
-    = javascript_include_tag "vendor/jquery-ui-1.7.1.min"
-    = javascript_include_tag "vendor/jquery.cookie"
-    = javascript_include_tag "vendor/rjr/json"
-    = javascript_include_tag "vendor/rjr/jrw"
-    = javascript_include_tag "vendor/three"
-    = javascript_include_tag "vendor/helvetiker_font/helvetiker_regular.typeface"
-    = javascript_include_tag  "omega/client"
-    = javascript_include_tag  "omega/user"
-    = javascript_include_tag  "omega/renderer"
-    = javascript_include_tag  "omega/entity"
-    = javascript_include_tag  "omega/commands"
+    = javascript_include_tag "vendor/require"
     = javascript_include_tag  "omega/navigation"
-    //= javascript_include_tag  "all"
     = yield_content :javascripts
   
   %body{:class => page_classes}

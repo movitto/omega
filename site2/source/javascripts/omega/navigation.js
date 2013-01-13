@@ -4,6 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+// google recaptcha for new accounts
+require('javascripts/vendor/google_recaptcha_ajax.js');
+require('javascripts/omega/user');
+
 /////////////////////////////////////// Omega Navigation Container
 
 /* Initialize new Omega Navigation Container

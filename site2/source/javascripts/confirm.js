@@ -4,6 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/purl');
+require('javascripts/omega/client');
+
 function callback_confirmed_registration(res, error){
   // XXX ugly
   alert("Done... redirecting");

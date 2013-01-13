@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/omega/client');
+
 // show login & registration errors in an alert box
 function popup_login_errors(error_msg){
   if(error_msg['error']['class'] == 'Omega::DataNotFound' &&

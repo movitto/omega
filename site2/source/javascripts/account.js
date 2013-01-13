@@ -4,6 +4,13 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/utf8_encode');
+require('javascripts/vendor/md5');
+require('javascripts/omega/client');
+require('javascripts/omega/user');
+require('javascripts/omega/entity');
+require('javascripts/omega/commands');
+
 $(document).ready(function(){ 
   // log all errors to the console
   $omega_node.add_error_handler(function(error_msg){

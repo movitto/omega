@@ -4,6 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/omega/client');
+require('javascripts/omega/user');
+
 /////////////////////////////////////// Omega Chat Container
 
 /* Initialize new Omega Chat Container

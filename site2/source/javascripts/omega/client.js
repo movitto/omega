@@ -4,6 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/rjr/json');
+require('javascripts/vendor/rjr/jrw');
+
 /////////////////////////////////////// Omega Client
 
 /* Initialiaze new Omega Client

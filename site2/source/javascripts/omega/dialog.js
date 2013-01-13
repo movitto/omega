@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/jquery-ui-1.7.1.min');
+
 /////////////////////////////////////// Omega Dialog Container
 
 /* Initialize new Omega Dialog Container

@@ -4,6 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require("javascripts/vendor/mousehold");
+require('javascripts/vendor/three');
+require('javascripts/vendor/helvetiker_font/helvetiker_regular.typeface');
+
 /////////////////////////////////////// Omega Canvas Camera
 
 /* Initialize new Omega Camera

@@ -4,6 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+require('javascripts/vendor/jquery.cookie');
+require('javascripts/omega/client');
+require('javascripts/omega/entity');
+require('javascripts/omega/commands');
+
 /////////////////////////////////////// Omega User
 
 function OmegaUser(args){
