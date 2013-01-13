@@ -42,6 +42,9 @@ function convert_entity(entity){
     entity = new OmegaStar(entity);
 
   }else if(entity.json_class == "Cosmos::Planet"){
+    // cache omega planet movement
+    OmegaPlanet.cache_movement();
+
     entity.location = convert_entity(entity.location);
     for(var moon in entity.moons)
       entity.moons[moon] = convert_entity(entity.moons[moon]);
@@ -197,6 +200,14 @@ function OmegaRegistry(){
    */
   this.add_timer = function(id, time, callback){
     timers[id] = new OmegaTimer(time, callback);
+  }
+
+  /* Delete specified timer
+   */
+  this.delete_timer = function(id){
+    if(!timers[id]) return;
+    timers[id].stop();
+    delete timers[id];
   }
 
   /* Clear all timers
@@ -618,6 +629,29 @@ function OmegaPlanet(planet){
   }
 }
 
+// Mechanism to move planet around orbit on client side
+// inbetween server syncronizations
+OmegaPlanet.movement_cached = false;
+OmegaPlanet.cache_movement  = function(){
+  if(OmegaPlanet.movement_cached) return;
+  OmegaPlanet.movement_cached = true;
+
+  $omega_scene.on_scene_change(function(){
+    var sloc = $omega_scene.get_root().location;
+
+    $omega_registry.delete_timer('planet_movement');
+    $omega_registry.add_timer('planet_movement', 2000, function(){
+      var planets = $omega_registry.select([function(e){ return e.json_class == "Cosmos::Planet" &&
+                                                                e.location.parent_id == sloc.id }]);
+      for(var planet in planets){
+        planets[planet].move();
+      }
+
+      if(planets.length > 0)
+        $omega_scene.animate();
+    });
+  });
+}
 
 /////////////////////////////////////// Omega Asteroid
 
@@ -999,40 +1033,4 @@ function OmegaStation(station){
 
 $(document).ready(function(){
   $omega_registry       = new OmegaRegistry();
-});
-
-
-
-/////////////// XXX TODO still need to relocate this stuff
-
-$(document).ready(function(){
-  $omega_session.on_session_validated(function(){
-    OmegaQuery.entities_owned_by($user_id, function(entities){
-      for(var entityI in entities){
-        var entity = entities[entityI];
-        OmegaSolarSystem.cached(entity.system_name, function(system){
-          OmegaQuery.galaxy_with_name(system.galaxy_name);
-          OmegaQuery.entities_under(system.name);
-        });
-      }
-    });
-  });
-
-  $omega_scene.on_scene_change(function(){
-    var sloc = $omega_scene.get_root().location;
-
-    // create a timer to periodically update planet location
-    // inbetween server syncronizations
-    $omega_registry.clear_timers();
-    $omega_registry.add_timer('planet_movement', 2000, function(){
-      var planets = $omega_registry.select([function(e){ return e.json_class == "Cosmos::Planet" &&
-                                                                e.location.parent_id == sloc.id }]);
-      for(var planet in planets){
-        planets[planet].move();
-      }
-
-      if(planets.length > 0)
-        $omega_scene.animate();
-    });
-  });
 });

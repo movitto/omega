@@ -132,6 +132,20 @@ function OmegaEntitiesContainer(){
     }
   });
 
+  // retrieve entities owned by user and system / galaxies they are in
+  // TODO move this to index/stats.js?
+  $omega_session.on_session_validated(function(){
+    OmegaQuery.entities_owned_by($user_id, function(entities){
+      for(var entityI in entities){
+        var entity = entities[entityI];
+        OmegaSolarSystem.cached(entity.system_name, function(system){
+          OmegaQuery.galaxy_with_name(system.galaxy_name);
+          OmegaQuery.entities_under(system.name);
+        });
+      }
+    });
+  });
+
   $('#locations_list li').live('click', function(event){ 
     var entity_id = $(event.currentTarget).attr('name');
     $omega_scene.set_root($omega_registry.get(entity_id));
