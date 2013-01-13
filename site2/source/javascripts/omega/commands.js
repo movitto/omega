@@ -478,10 +478,15 @@ var OmegaCommand = {
      * @param {Manufactured::Station} station station to use to construct entity
      */
     exec : function(station){
-      $omega_node.web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship', omega_callback(function(constructed){
-        $omega_scene.add_entity($omega_registry.get(constructed.id));
-        $omega_scene.animate();
-      }));
+      $omega_node.web_request('manufactured::construct_entity', station.id, 'Manufactured::Ship',
+                              omega_callback(function(entities){
+                                // add constructed entity to scene
+                                $omega_scene.add_entity(entities[1]);
+                                $omega_scene.animate();
+
+                                // XXX hacky way to refresh entity container
+                                $omega_registry.get($omega_selection.selected()).clicked();
+                              }));
     },
 
     /* Setup the construct_entity command */

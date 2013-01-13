@@ -139,7 +139,7 @@ class RJRAdapter
 
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
       entity = @@local_node.invoke_request('manufactured::create_entity', entity)
-      entity
+      [station, entity]
     }
 
     rjr_dispatcher.add_handler(['manufactured::get_entity', 'manufactured::get_entities']){ |*args|

@@ -233,6 +233,8 @@ function OmegaEntity(entity){
 
   this.on_clicked        = null;
 
+  this.on_movement       = null;
+
   /////////////////////////////////////// public methods
 
   this.load = function(){
@@ -241,6 +243,10 @@ function OmegaEntity(entity){
 
   this.clicked = function(){
     if(this.on_clicked) this.on_clicked();
+  }
+
+  this.moved = function(){
+    if(this.on_movement) this.on_movement();
   }
 
   this.is_a = function(type){
@@ -501,7 +507,6 @@ function OmegaPlanet(planet){
       sphere.position.y = this.location.y + moon.location.y;
       sphere.position.z = this.location.z + moon.location.z;
 
-      moon.scene_obj = sphere;
       this.scene_objs.push(sphere);
       $omega_scene.add(sphere);
     }
@@ -552,7 +557,35 @@ function OmegaPlanet(planet){
     }
   }
 
-  var move = function(){
+  this.on_movement = function(){
+    // first scene obj is the planet's and moons' sphere
+
+    var sphere = this.scene_objs[0];
+    sphere.position.x = this.location.x;
+    sphere.position.y = this.location.y;
+    sphere.position.z = this.location.z;
+
+    for(var m=0; m<this.moons.length; ++m){
+      var moon = this.moons[m];
+      sphere = moon.scene_objs[0];
+
+      sphere.position.x = this.location.x + moon.location.x;
+      sphere.position.y = this.location.y + moon.location.y;
+      sphere.position.z = this.location.z + moon.location.z;
+    }
+
+    // update orbit index
+    var di = this.location.distance_from.apply(this.location, this.orbit[this.orbiti]);
+    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+      var absi = parseInt(i * 180 / Math.PI);
+      var tdi  = this.location.distance_from.apply(this.location, this.orbit[absi]);
+      if(tdi < di){
+          this.orbiti = absi; di = tdi;
+      }
+    }
+  }
+
+  this.move = function(){
     var now = (new Date()).getTime() / 1000;
 
     if(this.last_moved == null){
@@ -573,27 +606,7 @@ function OmegaPlanet(planet){
     this.location.y = nloc[1];
     this.location.z = nloc[2];
 
-    // updated_planet
-    var di = this.distance_from.apply(this,
-                                      this.orbit[this.orbiti]);
-
-    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
-      var absi = parseInt(i * 180 / Math.PI);
-      if(this.distance_from.apply(this, this.orbit[i]) < di){
-          this.orbiti = absi;
-      }
-    }
-
-    this.clickable_obj.position.x = this.location.x;
-    this.clickable_obj.position.y = this.location.y;
-    this.clickable_obj.position.z = this.location.z;
-
-    for(var m=0; m<this.moons.length; ++m){
-      var moon = this.moons[m];
-      moon.scene_obj.position.x = this.location.x + moon.location.x;
-      moon.scene_obj.position.y = this.location.y + moon.location.y;
-      moon.scene_obj.position.z = this.location.z + moon.location.z;
-    }
+    this.moved();
   }
 }
 
@@ -786,10 +799,9 @@ function OmegaShip(ship){
       this.scene_objs.push(line);
       this.scene_objs.push(geometry);
       $omega_scene.add(line);
-    }
 
     // if ship is mining, draw line to mining target
-    if(this.mining){
+    }else if(this.mining){
       material = $omega_scene.materials['ship_mining']
       geometry = new THREE.Geometry();
       geometry.vertices.push(new THREE.Vector3(this.location.x,
@@ -859,6 +871,35 @@ function OmegaShip(ship){
     $omega_selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected);
     $omega_scene.reload(this);
+  }
+
+  this.on_movement = function(){
+    // scene_objects 1 & 3 are the line geometries (update vertices)
+    this.scene_objs[1].vertices[0].x = this.location.x - this.size/2;
+    this.scene_objs[1].vertices[0].y = this.location.y;
+    this.scene_objs[1].vertices[0].z = this.location.z;
+    this.scene_objs[1].vertices[1].x = this.location.x + this.size/2;
+    this.scene_objs[1].vertices[1].y = this.location.y;
+    this.scene_objs[1].vertices[1].z = this.location.z;
+
+    this.scene_objs[3].vertices[0].x = this.location.x;
+    this.scene_objs[3].vertices[0].y = this.location.y - this.size/2;
+    this.scene_objs[3].vertices[0].z = this.location.z;
+    this.scene_objs[3].vertices[1].x = this.location.x;
+    this.scene_objs[3].vertices[1].y = this.location.y + this.size/2;
+    this.scene_objs[3].vertices[1].z = this.location.z;
+
+    // scene_object 4 is the mesh
+    this.scene_objs[4].position.x = this.location.x;
+    this.scene_objs[4].position.y = this.location.y;
+    this.scene_objs[4].position.z = this.location.z;
+
+    // scene_object 7 is the attack / mining line (if applicable)
+    if(this.scene_objs.length > 6){
+      this.scene_objs[7].vertices[0].x = this.location.x;
+      this.scene_objs[7].vertices[0].y = this.location.y;
+      this.scene_objs[7].vertices[0].z = this.location.z;
+    }
   }
 
 }
@@ -979,16 +1020,20 @@ $(document).ready(function(){
   });
 
   $omega_scene.on_scene_change(function(){
+    var sloc = $omega_scene.get_root().location;
+
     // create a timer to periodically update planet location
     // inbetween server syncronizations
     $omega_registry.clear_timers();
     $omega_registry.add_timer('planet_movement', 2000, function(){
-      // TODO tracked_planet
-      //for(var planet in $tracked_planets){
-      //  planet = $tracked_planets[planet];
-      //  planet.move();
-      //  $omega_scene.animate();
-      //}
+      var planets = $omega_registry.select([function(e){ return e.json_class == "Cosmos::Planet" &&
+                                                                e.location.parent_id == sloc.id }]);
+      for(var planet in planets){
+        planets[planet].move();
+      }
+
+      if(planets.length > 0)
+        $omega_scene.animate();
     });
   });
 
@@ -1002,16 +1047,15 @@ console.log("on movement");
     entity.location.x = loc.x;
     entity.location.y = loc.y;
     entity.location.z = loc.z;
-    convert_entity(entity);
 
     // XXX hack if scene changed remove callbacks
     if($omega_scene.get_root().location.id != entity.location.parent_id){
       $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
 
     }else{
-      // FIXME just update scene_object locations, no need to
-      // reload entire object
-      $omega_scene.reload(entity);
+      // TODO also refresh entity container if entity is selected
+      entity.moved();
+      $omega_scene.animate();
     }
   });
 
