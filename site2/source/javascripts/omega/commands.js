@@ -44,13 +44,154 @@ function omega_callback(success_callback, error_callback){
 /////////////////////////////////////// Omega Event Namespace
 
 var OmegaEvent = {
+
+  /////////////////////////////////////// Movement Event
+
   movement : {
-    subscribe : function(){
+    handled : false,
+
+    handle  : function(){
+      if(OmegaEvent.movement.handled) return;
+      OmegaEvent.movement.handled = true;
+
+      $omega_node.add_request_handler('motel::on_movement', function(loc){
+        var entity = $omega_registry.select([function(e){ return e.location &&
+                                                                 e.location.id == loc.id }])[0];
+
+        entity.location.x = loc.x;
+        entity.location.y = loc.y;
+        entity.location.z = loc.z;
+
+        // XXX hack if scene changed remove callbacks
+        if($omega_scene.get_root().location.id != entity.location.parent_id){
+          $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
+
+        }else{
+          entity.moved();
+          $omega_scene.animate();
+        }
+
+      });
     },
 
+    subscribe : function(location_id, distance){
+      OmegaEvent.movement.handle();
+      $omega_node.ws_request('motel::track_movement', location_id, distance, null);
+    }
+  },
+
+  /////////////////////////////////////// Mining Events
+
+  mining : {
+    handled : false,
+
     handle : function(){
+      if(OmegaEvent.mining.handled) return;
+      OmegaEvent.mining.handled = true;
+
+      $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
+        var evnt = p0;
+        if(evnt == "resource_collected"){
+          var ship = p1; var resource_source = p2; var quantity = p3;
+          convert_entity(ship);
+          $omega_scene.animate();
+
+        }else if(evnt == "mining_stopped"){
+          var reason = p1; var ship = p2;
+          // XXX hack serverside ship.mining might not be nil at this point
+          ship.mining  = null;
+          convert_entity(ship);
+          $omega_scene.animate();
+
+        }
+      });
+    },
+
+    subscribe : function(ship_id){
+      OmegaEvent.mining.handle();
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'resource_collected', null);
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'mining_stopped',     null);
+    }
+  },
+
+  /////////////////////////////////////// Attacked Events
+
+  attacked : {
+    handled : false,
+
+    handle : function(){
+      if(OmegaEvent.attacked.handled) return;
+      OmegaEvent.attacked.handled = true;
+
+      $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
+        var evnt = p0;
+        if(evnt == "attacked"){
+          var attacker = p1; var defender = p2;
+          attacker.attacking = defender;
+          convert_entity(attacker); convert_entity(defender);
+          $omega_scene.animate();
+
+        }else if(evnt == "attacked_stop"){
+          var attacker = p1; var defender = p2;
+          attacker.attacking = null;
+          convert_entity(attacker); convert_entity(defender);
+          $omega_scene.animate();
+
+        }
+      });
+    },
+
+    subscribe : function(ship_id){
+      OmegaEvent.attacked.handle();
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'attacked',      null);
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'attacked_stop', null);
+    }
+  },
+
+  /////////////////////////////////////// Defended Events
+
+  defended : {
+    handled : false,
+
+    handle : function(){
+      if(OmegaEvent.defended.handled) return;
+      OmegaEvent.defended.handled = true;
+
+      $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
+        var evnt = p0;
+        if(evnt == "defended"){
+          var attacker = p1; var defender = p2;
+          attacker.attacking = defender;
+          convert_entity(attacker); convert_entity(defender);
+          $omega_scene.animate();
+
+        }else if(evnt == "defended_stop"){
+          var attacker = p1;
+          var defender = p2;
+          attacker.attacking = null;
+          convert_entity(attacker); convert_entity(defender);
+          $omega_scene.animate();
+
+        }else if(evnt == "destroyed"){
+          var attacker = p1;
+          var defender = p2;
+          attacker.attacking = null;
+          convert_entity(attacker); convert_entity(defender);
+          $omega_scene.remove(defender.id);
+          $omega_scene.animate();
+
+        }
+      });
+    },
+
+    subscribe : function(ship_id){
+      OmegaEvent.defended.handle();
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'defended',      null);
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'defended_stop', null);
+      $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'destroyed',     null);
     }
   }
+
 }
 
 
@@ -201,8 +342,7 @@ var OmegaCommand = {
       var loc = ship.location.clone();
       loc.x = x; loc.y = y; loc.z = z;
 
-      //$omega_node.ws_request('motel::remove_callbacks',    loc.id,     null);
-      $omega_node.ws_request('motel::track_movement',      loc.id, 20, null);
+      OmegaEvent.movement.subscribe(loc.id, 20);
       $omega_node.web_request('manufactured::move_entity', ship.id, loc, null);
     },
 
@@ -249,6 +389,7 @@ var OmegaCommand = {
      * @param {String} defender_id id of ship we are attacking
      */
     exec : function(attacker, defender_id){
+      OmegaEvent.attacked.subscribe(attacker.id);
       $omega_dialog.hide();
       $omega_node.web_request('manufactured::attack_entity',
                               attacker.id, defender_id, omega_callback());
@@ -436,10 +577,7 @@ var OmegaCommand = {
       var entity_id = ids[0];
       var resource_id  = ids[1];
 
-      //$omega_node.ws_request('manufactured::remove_callbacks', this.id,                       null);
-      $omega_node.ws_request('manufactured::subscribe_to',     this.id, 'resource_collected', null);
-      $omega_node.ws_request('manufactured::subscribe_to',     this.id, 'mining_stopped',     null);
-
+      OmegaEvent.mining.subscribe(this.id);
       $omega_node.web_request('manufactured::start_mining',
                               ship.id, entity_id, resource_id,
                               omega_callback(function(){

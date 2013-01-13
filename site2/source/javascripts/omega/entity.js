@@ -518,8 +518,7 @@ function OmegaPlanet(planet){
     }
 
     // retrack planet movement
-    $omega_node.ws_request('motel::remove_callbacks', this.location.id,      null);
-    $omega_node.ws_request('motel::track_movement',   this.location.id, 120, null);
+    OmegaEvent.movement.subscribe(this.location.id, 120);
   }
 
   this.calc_orbit = function(){
@@ -826,12 +825,8 @@ function OmegaShip(ship){
       $omega_scene.add(line);
     }
 
-    // remove & resetup callbacks
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended_stop',      null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'destroyed',          null);
+    // handle events
+    OmegaEvent.defended.subscribe(this.id);
   }
 
   var on_unselected = function(){
@@ -1039,72 +1034,5 @@ $(document).ready(function(){
       if(planets.length > 0)
         $omega_scene.animate();
     });
-  });
-
-  /////////////////////// add handlers to server side tracker callbacks
-
-  $omega_node.add_request_handler('motel::on_movement', function(loc){
-    var entity = $omega_registry.select([function(e){ return e.location &&
-                                                             e.location.id == loc.id }])[0];
-
-    entity.location.x = loc.x;
-    entity.location.y = loc.y;
-    entity.location.z = loc.z;
-
-    // XXX hack if scene changed remove callbacks
-    if($omega_scene.get_root().location.id != entity.location.parent_id){
-      $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
-
-    }else{
-      entity.moved();
-      $omega_scene.animate();
-    }
-
-  });
-
-  $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
-    var evnt = p0;
-    if(evnt == "resource_collected"){
-      var ship = p1; var resource_source = p2; var quantity = p3;
-      convert_entity(ship);
-
-    }else if(evnt == "mining_stopped"){
-      var reason = p1; var ship = p2;
-      // XXX hack serverside ship.mining might not be nil at this point
-      ship.mining  = null;
-      convert_entity(ship);
-
-    }else if(evnt == "attacked"){
-      var attacker = p1; var defender = p2;
-      attacker.attacking = defender;
-      convert_entity(attacker); convert_entity(defender);
-
-    }else if(evnt == "attacked_stop"){
-      var attacker = p1; var defender = p2;
-      attacker.attacking = null;
-      convert_entity(attacker); convert_entity(defender);
-      
-
-    }else if(evnt == "defended"){
-      var attacker = p1; var defender = p2;
-      attacker.attacking = defender;
-      convert_entity(attacker); convert_entity(defender);
-
-    }else if(evnt == "defended_stop"){
-      var attacker = p1;
-      var defender = p2;
-      attacker.attacking = null;
-      convert_entity(attacker); convert_entity(defender);
-
-    }else if(evnt == "destroyed"){
-      var attacker = p1;
-      var defender = p2;
-      attacker.attacking = null;
-      convert_entity(attacker); convert_entity(defender);
-      $omega_scene.remove(defender.id);
-
-    }
-
-    $omega_scene.animate();
   });
 });
