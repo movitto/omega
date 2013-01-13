@@ -126,27 +126,28 @@ var OmegaCommand = {
      */
     exec : function(jg){
       // get local and remote systems
-      var source   = $tracker.matching_entities({location : jg.location.parent_id})[0];
-      var endpoint = $tracker.matching_entities({id : jg.endpoint});
+      var source   = $omega_registry.select([function(e) { return e.json_class == "Cosmos::SolarSystem" &&
+                                                                  e.location.id == jg.location.parent_id; }]);
+      var endpoint = $omega_registry.select([function(e) { return e.id == jg.endpoint; }]);
 
       // if remote system isn't loaded yet, load
       if(endpoint.length == 0){
-        $tracker.load('Cosmos::SolarSystem', jg.endpoint,
-                      function(sys) { trigger_jump_gate(jg) });
+        OmegaSolarSystem.cached(jg.endpoint, function(sys) { trigger_jump_gate(jg) });
         return;
       }
 
       // move entities within triggering distance of gate
-      var entities = $tracker.matching_entities({type : "Manufactured::Ship", owned_by : $user_id,
-                                                 within : [jg.trigger_distance, jg.location]});
+      var entities = $omega_registry.select([function(e) { return e.json_class == "Manufactured::Ship" &&
+                                                                  e.user_id    == $user_id             &&
+                                                                  e.location.is_within(jg.trigger_distance, jg.location); }]);
       endpoint = endpoint[0];
       for(var entity in entities){
         entity = entities[entity];
-        omega_jump_ship(entity, endpoint);
+        OmegaCommand.jump_ship.exec(entity, endpoint);
 
         // redraw scene w/out location (XXX don't like doing this here)
-        $scene.remove(entity.id);
-        $scene.animate();
+        $omega_scene.remove(entity.id);
+        $omega_scene.animate();
       }
 
       // TODO update systems
@@ -199,6 +200,9 @@ var OmegaCommand = {
       $omega_dialog.hide();
       var loc = ship.location.clone();
       loc.x = x; loc.y = y; loc.z = z;
+
+      //$omega_node.ws_request('motel::remove_callbacks',    loc.id,     null);
+      $omega_node.ws_request('motel::track_movement',      loc.id, 20, null);
       $omega_node.web_request('manufactured::move_entity', ship.id, loc, null);
     },
 
@@ -254,9 +258,9 @@ var OmegaCommand = {
      */
     pre_exec : function(ship){
       // TODO also list stations
-      var entities = $tracker.matching_entities({type : "Manufactured::Ship",
-                                                 not_owned_by : $user_id,
-                                                 within : [ship.attack_distance, ship.location]});
+      var entities = $omega_registry.select([function(e) { return e.json_class == 'Manufactured::Ship' &&
+                                                                  e.user_id    != $user_id             &&
+                                                                  e.location.is_within(ship.attack_distance, ship.location) }]);
       var text = "<div class='dialog_row'>Select "+ship.id+" target</div>";
       for(var entity in entities){
         entity = entities[entity];
@@ -269,12 +273,12 @@ var OmegaCommand = {
     init : function(){
       $('#ship_select_target').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
-        select_ship_target(selected);
+        OmegaCommand.launch_attack.pre_exec(selected);
       });
 
       $('.ship_launch_attack').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
-        omega_ship_launch_attack(selected, $(e.currentTarget).html());
+        OmegaCommand.launch_attack.exec(selected, $(e.currentTarget).html());
       });
     }
   },
@@ -324,7 +328,9 @@ var OmegaCommand = {
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.dock_ship.exec(selected, $(e.currentTarget).html());
 
-        $('#ship_select_dock').hide(); $('#ship_undock').show();
+        $('#ship_select_dock').hide();
+        $('#ship_undock').show();
+        $('#ship_select_transfer').show();
       });
     }
 
@@ -354,7 +360,9 @@ var OmegaCommand = {
       $('#ship_undock').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.undock_ship.exec(selected);
-        $('#ship_select_dock').show(); $('#ship_undock').hide();
+        $('#ship_select_dock').show();
+        $('#ship_undock').hide();
+        $('#ship_select_transfer').hide();
       });
     }
   },
@@ -383,8 +391,8 @@ var OmegaCommand = {
     /* Display dialog to select station to transfer resources to
      */
     pre_exec : function(ship){
-      var entities = $tracker.matching_entities({type : "Manufactured::Station",
-                                                 within : [100, ship.location]});
+      var entities = $omega_registry.select([function(e){ return e.json_class == "Manufactured::Station" &&
+                                                                 e.location.is_within(100, ship.location); }]);
       var text = "<div class='dialog_row'>Transfer Resources from "+ship.id+" to</div>";
       for(var entity in entities){
         entity = entities[entity];
@@ -397,12 +405,12 @@ var OmegaCommand = {
     init : function(){
       $('#ship_select_transfer').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
-        ship_select_transfer(selected);
+        OmegaCommand.transfer_resources.pre_exec(selected);
       });
 
       $('.ship_transfer').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
-        omega_ship_transfer(selected, $(e.currentTarget).html());
+        OmegaCommand.transfer_resources.exec(selected, $(e.currentTarget).html());
       });
     }
 
@@ -427,14 +435,23 @@ var OmegaCommand = {
       var ids = resource_source_id.split('_');
       var entity_id = ids[0];
       var resource_id  = ids[1];
-      $omega_node.web_request('manufactured::start_mining', ship.id, entity_id, resource_id, omega_callback());
+
+      //$omega_node.ws_request('manufactured::remove_callbacks', this.id,                       null);
+      $omega_node.ws_request('manufactured::subscribe_to',     this.id, 'resource_collected', null);
+      $omega_node.ws_request('manufactured::subscribe_to',     this.id, 'mining_stopped',     null);
+
+      $omega_node.web_request('manufactured::start_mining',
+                              ship.id, entity_id, resource_id,
+                              omega_callback(function(){
+                                $omega_scene.animate();
+                              }));
     },
 
     /* Display dialog to select mining target
      */
     pre_exec : function(ship){
-      var entities = $tracker.matching_entities({type : "Cosmos::Asteroid",
-                                                 within : [100, ship.location]});
+      var entities = $omega_registry.select([function(e){ return e.json_class == "Cosmos::Asteroid" &&
+                                                                 e.location.is_within(100, ship.location); }]);
       var text = "<div class='dialog_row'>Select resource to mine w/"+ship.id+"</div>";
       $omega_dialog.show('Start Mining', null, text);
     
@@ -457,13 +474,13 @@ var OmegaCommand = {
     init : function(){
       $('#ship_select_mine').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
-        ship_select_mining(selected);
+        OmegaCommand.start_mining.pre_exec(selected);
       });
 
       $('.ship_start_mining').live('click', function(e){
         var selected = $omega_registry.get($omega_selection.selected());
         var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
-        omega_ship_start_mining(selected, rsid);
+        OmegaCommand.start_mining.exec(selected, rsid);
       });
     }
   },
@@ -483,9 +500,6 @@ var OmegaCommand = {
                                 // add constructed entity to scene
                                 $omega_scene.add_entity(entities[1]);
                                 $omega_scene.animate();
-
-                                // XXX hacky way to refresh entity container
-                                $omega_registry.get($omega_selection.selected()).clicked();
                               }));
     },
 

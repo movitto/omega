@@ -43,7 +43,7 @@ function OmegaDialogContainer(){
    * @param {String} text text to append to dialog
    */
   this.append = function(text){
-    dialog_container.html(d.html() + text);
+    dialog_container.html(dialog_container.html() + text);
   }
 }
 

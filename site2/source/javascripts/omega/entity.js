@@ -74,6 +74,11 @@ function convert_entity(entity){
 
   $omega_registry.add(entity);
 
+  // XXX hacky way to refresh entity container
+  var selected = $omega_selection.selected();
+  if(selected) $omega_registry.get(selected).clicked();
+
+
   return entity;
 }
 
@@ -298,7 +303,8 @@ function OmegaLocation(loc){
   };
 
   this.clone = function(){
-    var nloc = { x                 : this.x ,
+    var nloc = { id                : this.id,
+                 x                 : this.x ,
                  y                 : this.y ,
                  z                 : this.z,
                  parent_id         : this.parent_id,
@@ -558,16 +564,19 @@ function OmegaPlanet(planet){
   }
 
   this.on_movement = function(){
-    // first scene obj is the planet's and moons' sphere
+    // first scene obj is the planet's sphere
 
     var sphere = this.scene_objs[0];
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z;
 
+    // next two scene objects belong to planet, rest are the
+    // moon's spheres
+
     for(var m=0; m<this.moons.length; ++m){
       var moon = this.moons[m];
-      sphere = moon.scene_objs[0];
+      sphere = this.scene_objs[3+m];
 
       sphere.position.x = this.location.x + moon.location.x;
       sphere.position.y = this.location.y + moon.location.y;
@@ -818,11 +827,6 @@ function OmegaShip(ship){
     }
 
     // remove & resetup callbacks
-    $omega_node.ws_request('motel::remove_callbacks',        this.location.id,                       null);
-    $omega_node.ws_request('manufactured::remove_callbacks', this.id,                                null);
-    $omega_node.ws_request('motel::track_movement',          this.location.id, 20,                   null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'resource_collected', null);
-    $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'mining_stopped',     null);
     $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked',           null);
     $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'attacked_stop',      null);
     $omega_node.ws_request('manufactured::subscribe_to',     this.id,          'defended',           null);
@@ -1040,7 +1044,6 @@ $(document).ready(function(){
   /////////////////////// add handlers to server side tracker callbacks
 
   $omega_node.add_request_handler('motel::on_movement', function(loc){
-console.log("on movement");
     var entity = $omega_registry.select([function(e){ return e.location &&
                                                              e.location.id == loc.id }])[0];
 
@@ -1053,53 +1056,55 @@ console.log("on movement");
       $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
 
     }else{
-      // TODO also refresh entity container if entity is selected
       entity.moved();
       $omega_scene.animate();
     }
+
   });
 
   $omega_node.add_request_handler('manufactured::event_occurred', function(p0, p1, p2, p3){
     var evnt = p0;
     if(evnt == "resource_collected"){
       var ship = p1; var resource_source = p2; var quantity = p3;
-      $tracker.add(ship);
+      convert_entity(ship);
 
     }else if(evnt == "mining_stopped"){
       var reason = p1; var ship = p2;
       // XXX hack serverside ship.mining might not be nil at this point
       ship.mining  = null;
-      $tracker.add(ship);
+      convert_entity(ship);
 
     }else if(evnt == "attacked"){
       var attacker = p1; var defender = p2;
       attacker.attacking = defender;
-      $tracker.add(attacker); $tracker.add(defender);
+      convert_entity(attacker); convert_entity(defender);
 
     }else if(evnt == "attacked_stop"){
       var attacker = p1; var defender = p2;
       attacker.attacking = null;
-      $tracker.add(attacker); $tracker.add(defender);
+      convert_entity(attacker); convert_entity(defender);
       
 
     }else if(evnt == "defended"){
       var attacker = p1; var defender = p2;
       attacker.attacking = defender;
-      $tracker.add(attacker); $tracker.add(defender);
+      convert_entity(attacker); convert_entity(defender);
 
     }else if(evnt == "defended_stop"){
       var attacker = p1;
       var defender = p2;
       attacker.attacking = null;
-      $tracker.add(attacker); $tracker.add(defender);
+      convert_entity(attacker); convert_entity(defender);
 
     }else if(evnt == "destroyed"){
       var attacker = p1;
       var defender = p2;
       attacker.attacking = null;
-      $tracker.add(attacker); $tracker.add(defender);
+      convert_entity(attacker); convert_entity(defender);
       $omega_scene.remove(defender.id);
 
     }
+
+    $omega_scene.animate();
   });
 });
