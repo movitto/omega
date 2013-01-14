@@ -2,21 +2,17 @@
                     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <script src="http://localhost/omega-test/omega/vendor/jquery-1.7.1.min.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/jquery-ui-1.7.1.min.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/jquery.cookie.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
-  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/commands.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/user.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/entity.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/canvas.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/navigation.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/require.js"></script>
+
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/navigation.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/canvas.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/commands.js"></script>
 
   <script>
   $(document).ready(function(){
@@ -24,7 +20,7 @@
 function before_all(details){
   // login user
   var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
-  login_user(user);
+  $omega_session.login_user(user);
 }
 
 QUnit.moduleStart(before_all);
@@ -37,8 +33,8 @@ module("omega_ui");
 ///////////////////////////// commands.js:
 
 asyncTest("select ship destination", 2, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship2', function(ship){
-    select_ship_destination(ship);
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+    OmegaCommand.move_ship.pre_exec(ship);
     var display = $('#omega_dialog').css('display');
     equal("block", display);
     ok($('#omega_dialog #dest_x') != null);
@@ -47,8 +43,8 @@ asyncTest("select ship destination", 2, function() {
 });
 
 asyncTest("select ship target", 2, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship3', function(ship){
-    select_ship_target(ship);
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+    OmegaCommand.launch_attack.pre_exec(ship);
     var display = $('#omega_dialog').css('display');
     equal("block", display);
     ok($('#omega_dialog .ship_launch_attack[value=opponent-mining-ship1]') != null);
@@ -57,8 +53,8 @@ asyncTest("select ship target", 2, function() {
 });
 
 asyncTest("select ship dock", 2, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship3', function(ship){
-    select_ship_dock(ship);
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+    OmegaCommand.dock_ship.pre_exec(ship);
     var display = $('#omega_dialog').css('display');
     equal("block", display);
     ok($('#omega_dialog .ship_dock[value=mmorsi-manufacturing-station1]') != null);
@@ -75,15 +71,15 @@ asyncTest("select ship dock", 2, function() {
 ///////////////////////////// canvas.js:
 
 test("show/hide/append to entity container", function() {
-  show_entity_container(["foo", "bar"]);
+  $omega_entity_container.append(["foo", "bar"]);
   var display = $('#omega_entity_container').css('display');
   var value   = $('#entity_container_contents').html();
   equal("block", display);
   equal("foobar", value);
-  append_to_entity_container(["aaa", "bbb"]);
+  $omega_entity_container.append(["aaa", "bbb"]);
   value   = $('#entity_container_contents').html();
   equal("foobaraaabbb", value);
-  hide_entity_container();
+  $omega_entity_container.hide();
   display = $('#omega_entity_container').css('display');
   equal("none", display);
 });
@@ -112,12 +108,12 @@ test("show/hide/append to dialog", function() {
 ///////////////////////////// nav.js:
 
 test("show login/logout controls", function() {
-  show_login_controls();
+  $omega_navigation.show_login_controls();
   equal("inline", $('#register_link').css('display'));
   equal("inline", $('#login_link').css('display'));
   equal("none", $('#logout_link').css('display'));
   equal("none", $('#account_link').css('display'));
-  show_logout_controls();
+  $omega_navigation.show_logout_controls();
   equal("none", $('#register_link').css('display'));
   equal("none", $('#login_link').css('display'));
   equal("inline", $('#logout_link').css('display'));
@@ -144,7 +140,7 @@ test("show login/logout controls", function() {
  <div id="qunit-fixture">test markup, will be hidden</div>
 
  <a id="register_link" /><a id="account_link" /><a id="login_link" /><a id="logout_link" />
- <div id="omega_canvas"></div>
+ <canvas id="omega_canvas"></canvas>
  <div id="omega_entity_container"><div id="entity_container_contents"></div></div>
  <div id="omega_dialog"></div>
  <div id="omega_dialog_content">content</div>

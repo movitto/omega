@@ -5,6 +5,7 @@
  */
 
 // FIXME init methods (selected_entity may have changed in the meantime)
+//       $omega_scene.reload (scene may have changed in the meantime):w
 
 require('javascripts/omega/client.js');
 require('javascripts/omega/user.js');
@@ -277,7 +278,7 @@ var OmegaCommand = {
 
       // if remote system isn't loaded yet, load
       if(endpoint.length == 0){
-        OmegaSolarSystem.cached(jg.endpoint, function(sys) { trigger_jump_gate(jg) });
+        OmegaSolarSystem.cached(jg.endpoint, function(sys) { OmegaCommand.trigger_jump_gate.exec(jg) });
         return;
       }
 
@@ -342,7 +343,6 @@ var OmegaCommand = {
      * @param {Float} z z coordinate to move ship to
      */
     exec : function(ship, x, y, z){
-      $omega_dialog.hide();
       var loc = ship.location.clone();
       loc.x = x; loc.y = y; loc.z = z;
 
@@ -370,6 +370,7 @@ var OmegaCommand = {
       });
 
       $('#ship_move_to').live('click', function(e){
+        $omega_dialog.hide();
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.move_ship.exec(selected,
                                     $('#dest_x').val(),
@@ -394,7 +395,6 @@ var OmegaCommand = {
      */
     exec : function(attacker, defender_id){
       OmegaEvent.attacked.subscribe(attacker.id);
-      $omega_dialog.hide();
       $omega_node.web_request('manufactured::attack_entity',
                               attacker.id, defender_id, omega_callback());
     },
@@ -422,6 +422,7 @@ var OmegaCommand = {
       });
 
       $('.ship_launch_attack').live('click', function(e){
+        $omega_dialog.hide();
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.launch_attack.exec(selected, $(e.currentTarget).html());
       });
@@ -441,7 +442,6 @@ var OmegaCommand = {
      * @param {String} station_id id of the station we are docking
      */
     exec : function(ship, station_id){
-      $omega_dialog.hide();
       $omega_node.web_request('manufactured::dock', ship.id, station_id,
                               omega_callback(function(ship){
                                 $omega_scene.reload(ship);
@@ -473,6 +473,7 @@ var OmegaCommand = {
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.dock_ship.exec(selected, $(e.currentTarget).html());
 
+        $omega_dialog.hide();
         $('#ship_select_dock').hide();
         $('#ship_undock').show();
         $('#ship_select_transfer').show();
@@ -530,7 +531,6 @@ var OmegaCommand = {
       for(var r in ship.resources){
         $omega_node.web_request('manufactured::transfer_resource', ship.id, station_id, r, ship.resources[r], omega_callback())
       }
-      $omega_dialog.hide();
     },
 
     /* Display dialog to select station to transfer resources to
@@ -554,6 +554,7 @@ var OmegaCommand = {
       });
 
       $('.ship_transfer').live('click', function(e){
+        $omega_dialog.hide();
         var selected = $omega_registry.get($omega_selection.selected());
         OmegaCommand.transfer_resources.exec(selected, $(e.currentTarget).html());
       });
@@ -576,7 +577,6 @@ var OmegaCommand = {
      * @param {String} resource_source_id id of the resource source to starting mining
      */
     exec : function(ship, resource_source_id){
-      $omega_dialog.hide();
       var ids = resource_source_id.split('_');
       var entity_id = ids[0];
       var resource_id  = ids[1];
@@ -620,6 +620,7 @@ var OmegaCommand = {
       });
 
       $('.ship_start_mining').live('click', function(e){
+        $omega_dialog.hide();
         var selected = $omega_registry.get($omega_selection.selected());
         var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
         OmegaCommand.start_mining.exec(selected, rsid);

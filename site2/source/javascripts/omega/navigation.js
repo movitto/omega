@@ -118,5 +118,5 @@ function OmegaNavigationContainer(){
 }
 
 $(document).ready(function(){ 
-  $omega_navigation = OmegaNavigationContainer();
+  $omega_navigation = new OmegaNavigationContainer();
 });

@@ -120,6 +120,17 @@ function OmegaClient(){
     rjr_web_node.headers[header] = value;
   }
 
+  /* Get specified header value
+   *
+   * @param {String} header name of the header to get
+   */
+  this.get_header = function(header){
+    // since set_header will set header same on web and ws nodes,
+    // just need to access one
+    return rjr_ws_node.headers[header];
+  }
+
+
   /////////////////////////////////////// private methods
 
   /* Method registered w/ websocket::on_message to invoke

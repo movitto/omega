@@ -2,29 +2,27 @@
                     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <script src="http://localhost/omega-test/omega/vendor/jquery-1.7.1.min.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/jquery.cookie.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
-  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/user.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery.cookie.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/require.js"></script>
+
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/client.js"></script>
 
   <script>
   $(document).ready(function(){
 
 module("omega_user");
 
-asyncTest("user login and logout", 6, function() {
+asyncTest("user login and logout", 5, function() {
   $omega_session.on_session_validated(function(){
     var sc = $.cookie('omega-session');
-    var ehc = $web_node.headers['session_id'];
-    var shc = $ws_node.headers['session_id'];
+    var hc = $omega_node.get_header('session_id');
     ok(sc != null);
-    equal(sc, ehc);
-    equal(sc, shc);
+    equal(sc, hc);
 
     var uc = $.cookie('omega-user');
     equal('mmorsi', uc);

@@ -52,6 +52,10 @@ user 'mmorsi', 'isromm' do |u|
   role :regular_user
 end
 
+user 'mmorsi-omegaverse', 'isromm' do |u|
+  role :regular_user
+end
+
 user 'opponent', 'tnenoppo'
 
 starting_system = system('Athena')

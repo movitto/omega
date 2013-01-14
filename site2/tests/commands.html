@@ -2,23 +2,14 @@
                     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <script src="http://localhost/omega-test/omega/vendor/jquery-1.7.1.min.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/jquery-ui-1.7.1.min.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/jquery.cookie.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/three.js"></script>
-  <script src="http://localhost/omega-test/omega/vendor/helvetiker_font/helvetiker_regular.typeface.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
-  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
 
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/json.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/vendor/rjr/jrw.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/client.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/user.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/entity.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/commands.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/canvas.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/omega/omega/renderer.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/require.js"></script>
+
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/commands.js"></script>
 
   <script>
   $(document).ready(function(){
@@ -29,7 +20,7 @@ function before_all(details){
   $omega_session.login_user(user);
 
   // load some serverside data
-  omega_system('Athena', null);
+  OmegaQuery.system_with_name('Athena', null);
 }
 
 QUnit.moduleStart(before_all);
@@ -40,7 +31,7 @@ QUnit.moduleStart(before_all);
 module("omega_commands");
 
 asyncTest("retrieving all entities", 7, function() {
-  omega_all_entities(function(entities){
+  OmegaQuery.all_entities(function(entities){
     ok(entities.length >= 7);
     var ids = [];
     for(var entity in entities) ids.push(entity.id);
@@ -55,7 +46,7 @@ asyncTest("retrieving all entities", 7, function() {
 });
 
 asyncTest("retrieving entities owned by a user", 4, function() {
-  omega_entities_owned_by('mmorsi', function(entities){
+  OmegaQuery.entities_owned_by('mmorsi', function(entities){
     ok(entities.length >= 6);
     var ids = [];
     for(var entity in entities) ids.push(entities[entity].id);
@@ -67,7 +58,7 @@ asyncTest("retrieving entities owned by a user", 4, function() {
 });
 
 asyncTest("retrieving entities under a system", 3, function() {
-  omega_entities_under('Aphrodite', function(entities){
+  OmegaQuery.entities_under('Aphrodite', function(entities){
     ok(entities.length >= 1);
     var ids = [];
     for(var entity in entities) ids.push(entities[entity].id);
@@ -78,14 +69,14 @@ asyncTest("retrieving entities under a system", 3, function() {
 });
 
 asyncTest("retrieve entity by id", 1, function() {
-  omega_entity('mmorsi-corvette-ship1', function(entity){
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship1', function(entity){
     equal('mmorsi-corvette-ship1', entity.id);
     start();
   });
 });
 
 asyncTest("retrieve all galaxies", 2, function() {
-  omega_all_galaxies(function(galaxies){
+  OmegaQuery.all_galaxies(function(galaxies){
     equal(1, galaxies.length);
     equal('Zeus', galaxies[0].name);
     start();
@@ -93,21 +84,21 @@ asyncTest("retrieve all galaxies", 2, function() {
 });
 
 asyncTest("retrieve system by name", 1, function() {
-  omega_system('Athena', function(system){
+  OmegaQuery.system_with_name('Athena', function(system){
     equal('Athena', system.name);
     start();
   });
 });
 
 asyncTest("retrieve resource sources", 1, function() {
-  omega_resource_sources('ast2', function(resource_sources){
+  OmegaQuery.resource_sources('ast2', function(resource_sources){
     equal(1, resource_sources.length);
     start();
   });
 });
 
 asyncTest("retrieve all users", 1, function() {
-  omega_all_users(function(users){
+  OmegaQuery.all_users(function(users){
     equal(1, users.length); // only have access to self
     start();
   });
@@ -117,21 +108,21 @@ asyncTest("retrieve all users", 1, function() {
 
 asyncTest("triggering jump gate", 1, function() {
   // load ship to be pulled in via jg
-  omega_entity('mmorsi-corvette-ship1', null);
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship1', null);
 
   var jg_loc = {parent_id : 2, x : -150, y : -150, z : -150};
   var jg     = {location  : jg_loc, endpoint : 'Aphrodite', trigger_distance: 100};
-  trigger_jump_gate(jg);
-  omega_entity('mmorsi-corvette-ship1', function(ship){
+  OmegaCommand.trigger_jump_gate.exec(jg);
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship1', function(ship){
     equal("Aphrodite", ship.system_name);
     start();
   });
 });
 
 asyncTest("moving ship", 1, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship2', function(ship){
-    omega_move_ship_to(ship, 5000, 5000, 5000);
-    omega_entity('mmorsi-corvette-ship2', function(ship){
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+    OmegaCommand.move_ship.exec(ship, 5000, 5000, 5000);
+    OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
       equal("Motel::MovementStrategies::Linear", ship.location.movement_strategy.json_class);
       start();
     });
@@ -139,9 +130,9 @@ asyncTest("moving ship", 1, function() {
 });
 
 asyncTest("attacking", 1, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship3', function(ship){
-    omega_ship_launch_attack(ship, 'opponent-mining-ship1');
-    omega_entity('mmorsi-corvette-ship3', function(ship){
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+    OmegaCommand.launch_attack.exec(ship, 'opponent-mining-ship1');
+    OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
       // TODO how to test this succeeds? Need to return attacking target as part of ship
       equal(null, null);
       start();
@@ -150,14 +141,14 @@ asyncTest("attacking", 1, function() {
 });
 
 asyncTest("docking and undocking ship", 2, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-corvette-ship3', function(ship){
-    omega_ship_dock_at(ship, 'mmorsi-manufacturing-station1');
-    omega_entity('mmorsi-corvette-ship3', function(ship){
+  OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+    OmegaCommand.dock_ship.exec(ship, 'mmorsi-manufacturing-station1');
+    OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
       equal("mmorsi-manufacturing-station1", ship.docked_at.id);
       start();
     });
-    omega_ship_undock(ship);
-    omega_entity('mmorsi-corvette-ship3', function(ship){
+    OmegaCommand.undock_ship.exec(ship);
+    OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
       equal(null, ship.docked_at);
       start();
     });
@@ -166,10 +157,10 @@ asyncTest("docking and undocking ship", 2, function() {
 });
 
 asyncTest("mining", 2, function() {
-  omega_resource_sources('ast1', function(resource_sources){
-    $tracker.load('Manufactured::Ship', 'mmorsi-mining-ship1', function(ship){
-      omega_ship_start_mining(ship, 'ast1_' + resource_sources[0].resource.id);
-      omega_entity('mmorsi-mining-ship1', function(ship){
+  OmegaQuery.resource_sources('ast1', function(resource_sources){
+    OmegaQuery.entity_with_id('mmorsi-mining-ship1', function(ship){
+      OmegaCommand.start_mining.exec(ship, 'ast1_' + resource_sources[0].resource.id);
+      OmegaQuery.entity_with_id('mmorsi-mining-ship1', function(ship){
         ok(ship.mining != null);
         if(ship.mining != null)
           equal(resource_sources[0].id, ship.mining.id);
@@ -181,13 +172,13 @@ asyncTest("mining", 2, function() {
 });
 
 asyncTest("transferring ship resources", 2, function() {
-  $tracker.load('Manufactured::Ship', 'mmorsi-mining-ship1', function(ship){
-    omega_ship_transfer(ship, 'mmorsi-manufacturing-station2');
-    omega_entity('mmorsi-mining-ship1', function(ship){
+  OmegaQuery.entity_with_id('mmorsi-mining-ship1', function(ship){
+    OmegaCommand.transfer_resources.exec(ship, 'mmorsi-manufacturing-station2');
+    OmegaQuery.entity_with_id('mmorsi-mining-ship1', function(ship){
       equal(0, Object.keys(ship.resources).length);
       start();
     });
-    omega_entity('mmorsi-manufacturing-station2', function(station){
+    OmegaQuery.entity_with_id('mmorsi-manufacturing-station2', function(station){
       // TODO verify specific resources before/after transfer
       ok(0 != station.resources.length);
       start();
@@ -197,8 +188,8 @@ asyncTest("transferring ship resources", 2, function() {
 });
 
 asyncTest("constructing entities", 0, function() {
-  $tracker.load('Manufactured::Station', 'mmorsi-manufacturing-station1', function(station){
-    omega_station_construct(station);
+  OmegaQuery.entity_with_id('mmorsi-manufacturing-station1', function(station){
+    OmegaCommand.construct_entity.exec(station);
     // TODO verify new entity created
     start();
   });

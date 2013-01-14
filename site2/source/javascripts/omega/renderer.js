@@ -348,6 +348,9 @@ function OmegaScene(){
 
   this.remove = function(entity_id){
     var entity = entities[entity_id];
+    if(entity == null)
+      return;
+
     for(var scene_entity in entity.scene_objs){
       var se = entity.scene_objs[scene_entity];
       _scene.remove(se);
