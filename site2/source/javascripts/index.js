@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/omega/client');
+require('javascripts/omega/client.js');
 
 // show login & registration errors in an alert box
 function popup_login_errors(error_msg){

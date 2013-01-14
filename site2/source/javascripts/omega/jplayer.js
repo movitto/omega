@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/vendor/jquery.jplayer.min');
-require('javascripts/vendor/jquery.jplayer.playlist.min');
+require('javascripts/vendor/jquery.jplayer.min.js');
+require('javascripts/vendor/jquery.jplayer.playlist.min.js');
 
 /////////////////////////////////////// initialization 
 

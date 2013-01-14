@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/vendor/purl');
-require('javascripts/omega/client');
+require('javascripts/vendor/purl.js');
+require('javascripts/omega/client.js');
 
 function callback_confirmed_registration(res, error){
   // XXX ugly

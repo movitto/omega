@@ -6,10 +6,10 @@
 
 // FIXME init methods (selected_entity may have changed in the meantime)
 
-require('javascripts/omega/client');
-require('javascripts/omega/user');
-require('javascripts/omega/renderer');
-require('javascripts/omega/entity');
+require('javascripts/omega/client.js');
+require('javascripts/omega/user.js');
+require('javascripts/omega/renderer.js');
+require('javascripts/omega/entity.js');
 
 /////////////////////////////////////// Helper Methods
 

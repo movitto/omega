@@ -4,10 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/omega/client');
-require('javascripts/omega/user');
-require('javascripts/omega/entity');
-require('javascripts/omega/commands');
+require('javascripts/omega/client.js');
+require('javascripts/omega/user.js');
+require('javascripts/omega/entity.js');
+require('javascripts/omega/commands.js');
 
 // log all errors to the console
 function errors_to_console(error_msg){

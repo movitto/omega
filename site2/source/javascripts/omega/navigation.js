@@ -6,7 +6,7 @@
 
 // google recaptcha for new accounts
 require('javascripts/vendor/google_recaptcha_ajax.js');
-require('javascripts/omega/user');
+require('javascripts/omega/user.js');
 
 /////////////////////////////////////// Omega Navigation Container
 

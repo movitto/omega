@@ -4,12 +4,12 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/vendor/jquery.timer');
-require('javascripts/vendor/three');
-require('javascripts/vendor/helvetiker_font/helvetiker_regular.typeface');
-require('javascripts/omega/client');
-require('javascripts/omega/renderer');
-require('javascripts/omega/commands');
+require('javascripts/vendor/jquery.timer.js');
+require('javascripts/vendor/three.js');
+require('javascripts/vendor/helvetiker_font/helvetiker_regular.typeface.js');
+require('javascripts/omega/client.js');
+require('javascripts/omega/renderer.js');
+require('javascripts/omega/commands.js');
 
 /////////////////////////////////////// Helper Methods
 
