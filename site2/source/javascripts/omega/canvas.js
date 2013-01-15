@@ -4,11 +4,199 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/vendor/three.js');
-require('javascripts/omega/user.js');
-require('javascripts/omega/renderer.js');
-require('javascripts/omega/entity.js');
-require('javascripts/omega/commands.js');
+// since chat is loaded in a partial, we assume $omega_node
+// $omega_session, etc have been initialized elsewhere
+//require('javascripts/vendor/three.js');
+//require('javascripts/omega/user.js');
+//require('javascripts/omega/renderer.js');
+//require('javascripts/omega/entity.js');
+//require('javascripts/omega/commands.js');
+require("javascripts/vendor/mousehold.js");
+
+/////////////////////////////////////// Omega Canvas Camera
+
+/* Initialize new Omega Camera
+ */
+function OmegaCamera(){
+
+  /////////////////////////////////////// private data
+
+  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 1000 );
+  //var camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
+
+  /////////////////////////////////////// public methods
+
+  this.position = function(position){
+    if(position && position.x)
+      _camera.position.x = position.x;
+
+    if(position && position.y)
+      _camera.position.y = position.y;
+
+    if(position && position.z)
+      _camera.position.z = position.z;
+
+    return {x : _camera.position.x,
+            y : _camera.position.y,
+            z : _camera.position.z};
+  }
+
+  this.zoom = function(distance){
+    var x = _camera.position.x,
+        y = _camera.position.y,
+        z = _camera.position.z;
+    var dist  = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+    var phi = Math.atan2(x,z);
+    var theta   = Math.acos(y/dist);
+
+    if((dist + distance) <= 0) return;
+    dist += distance;
+
+    z = dist * Math.sin(theta) * Math.cos(phi);
+    x = dist * Math.sin(theta) * Math.sin(phi);
+    y = dist * Math.cos(theta);
+
+    _camera.position.x = x;
+    _camera.position.y = y;
+    _camera.position.z = z;
+
+    _camera.lookAt($omega_scene.position());
+    $omega_scene.animate();
+  }
+
+  this.rotate = function(theta_distance, phi_distance){
+    var x = _camera.position.x,
+        y = _camera.position.y,
+        z = _camera.position.z;
+    var dist  = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+    var phi = Math.atan2(x,z);
+    var theta   = Math.acos(y/dist);
+    if(z < 0) theta = 2 * Math.PI - theta; // adjust for acos loss
+
+    theta += theta_distance;
+    phi   += phi_distance;
+
+    if(z < 0) theta = 2 * Math.PI - theta; // readjust for acos loss
+
+    // prevent camera from going too far up / down
+    if(theta < 0.5)
+      theta = 0.5;
+    else if(theta > (Math.PI - 0.5))
+      theta = Math.PI - 0.5;
+
+    z = dist * Math.sin(theta) * Math.cos(phi);
+    x = dist * Math.sin(theta) * Math.sin(phi);
+    y = dist * Math.cos(theta);
+
+    _camera.position.x = x;
+    _camera.position.y = y;
+    _camera.position.z = z;
+
+    _camera.lookAt($omega_scene.position());
+    _camera.updateMatrix();
+    $omega_scene.animate();
+  }
+
+  // XXX OmegaScene and canvas clicked handler requires access to three.js camera
+  this.scene_camera = function(){
+    return _camera;
+  }
+
+  /////////////////////////////////////// initialization
+
+  // wire up camera controls
+
+  if(jQuery.fn.mousehold){
+
+    $('#cam_rotate_right').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.0, 0.2);
+    });
+
+    $('#cam_rotate_left').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.0, -0.2);
+    });
+
+    $('#cam_rotate_up').mousehold(function(e, ctr){
+      $omega_camera.rotate(-0.2, 0.0);
+    });
+
+    $('#cam_rotate_down').mousehold(function(e, ctr){
+      $omega_camera.rotate(0.2, 0.0);
+    });
+
+    $('#cam_zoom_out').mousehold(function(e, ctr){
+      $omega_camera.zoom(20);
+    });
+
+    $('#cam_zoom_in').mousehold(function(e, ctr){
+      $omega_camera.zoom(-20);
+    });
+
+  }
+}
+
+/////////////////////////////////////// Omega Canvas Grid
+
+/* Initialize new Omega Grid
+ */
+function OmegaGrid(){
+
+  /////////////////////////////////////// private data
+  var size = 250;
+
+  var step = 100;
+
+  var geometry = new THREE.Geometry();
+
+  var material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.4 } );
+
+  var showing_grid = false;
+
+  /////////////////////////////////////// public methods
+
+  this.show = function(){
+    $omega_scene.add( grid_line );
+    showing_grid = true;
+  }
+
+  this.hide = function(){
+    $omega_scene._scene.remove(grid_line);
+    showing_grid = false;
+  }
+
+  this.toggle = function(){
+    var toggle_grid = $('#toggle_grid_canvas');
+    if(toggle_grid){
+      if(toggle_grid.is(':checked'))
+        this.show();
+      else
+        this.hide();
+    }
+    $omega_scene.animate();
+  }
+
+  /////////////////////////////////////// initialization
+
+  for ( var i = - size; i <= size; i += step ) {
+    for ( var j = - size; j <= size; j += step ) {
+      geometry.vertices.push( new THREE.Vector3( - size, j, i ) );
+      geometry.vertices.push( new THREE.Vector3(   size, j, i ) );
+
+      geometry.vertices.push( new THREE.Vector3( i, j, - size ) );
+      geometry.vertices.push( new THREE.Vector3( i, j,   size ) );
+
+      geometry.vertices.push( new THREE.Vector3( i, -size, j ) );
+      geometry.vertices.push( new THREE.Vector3( i, size,  j ) );
+    }
+  }
+
+  var grid_line = new THREE.Line( geometry, material, THREE.LinePieces );
+
+  // wire up grid controls
+  $('#toggle_grid_canvas').live('click', function(e){ $omega_grid.toggle(); });
+  $('#toggle_grid_canvas').attr('checked', false);
+}
+
 
 /////////////////////////////////////// Omega Entity Container
 
@@ -358,12 +546,16 @@ function OmegaSelectBox(){
   });
 }
 
+/////////////////////////////////////// Omega Canvas UI Container
 
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
+/* Initialize new Canvas UI, high level wrapper around all canvas
+ * components
+ */
+function OmegaCanvasUI(){
+  $omega_camera             = new OmegaCamera();
+  $omega_grid               = new OmegaGrid();
   $omega_canvas             = new OmegaCanvas();
   $omega_entity_container   = new OmegaEntityContainer();
   $omega_entities_container = new OmegaEntitiesContainer();
   $omega_select_box         = new OmegaSelectBox();
-});
+}

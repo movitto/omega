@@ -24,6 +24,23 @@ function errors_to_console(error_msg){
 
 // initialize the page
 $(document).ready(function(){ 
+  $omega_node     = new OmegaClient();
+  $omega_session  = new OmegaSession();
+  $omega_registry = new OmegaRegistry();
+  OmegaCommand.init();
+
+  // dependency pulled in via canvas partial
+  $omega_canvas_ui = new OmegaCanvasUI();
+
+  // pulled in via renderer, used in a few modules
+  $omega_scene  = new OmegaScene();
+
+  // dependendency pulled in via site layout
+  $omega_navigation = new OmegaNavigationContainer();
+
+  // dependency pulled in via chat partial
+  $omega_chat = new OmegaChatContainer();
+
   $omega_node.add_error_handler(popup_login_errors);
   $omega_node.add_error_handler(errors_to_console);
 });

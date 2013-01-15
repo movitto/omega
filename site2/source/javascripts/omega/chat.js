@@ -4,8 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-require('javascripts/omega/client');
-require('javascripts/omega/user');
+// since chat is loaded in a partial, we assume $omega_node
+// and $omega_session have been initialized elsewhere
+//require('javascripts/omega/client');
+//require('javascripts/omega/user');
 
 /////////////////////////////////////// Omega Chat Container
 
@@ -64,10 +66,3 @@ function OmegaChatContainer(){
   // subscribe to messages on session validation
   $omega_session.on_session_validated(subscribe_to_messages);
 }
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
-  /* initialize global chat container */
-  $omega_chat = new OmegaChatContainer();
-});

@@ -302,7 +302,7 @@ var OmegaCommand = {
     /* Setup the trigger_jump_gate command */
     init : function(){
       $('#ship_trigger_jg').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.trigger_jump_gate.exec(selected);
       });
     }
@@ -365,13 +365,13 @@ var OmegaCommand = {
     /* Setup the move_ship command */
     init : function(){
       $('#ship_select_move').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.move_ship.pre_exec(selected);
       });
 
       $('#ship_move_to').live('click', function(e){
         $omega_dialog.hide();
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.move_ship.exec(selected,
                                     $('#dest_x').val(),
                                     $('#dest_y').val(),
@@ -417,13 +417,13 @@ var OmegaCommand = {
     /* Setup the launch_attack command */
     init : function(){
       $('#ship_select_target').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.launch_attack.pre_exec(selected);
       });
 
       $('.ship_launch_attack').live('click', function(e){
         $omega_dialog.hide();
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.launch_attack.exec(selected, $(e.currentTarget).html());
       });
     }
@@ -465,12 +465,12 @@ var OmegaCommand = {
     /* Setup the dock_ship command */
     init : function(){
       $('#ship_select_dock').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.dock_ship.pre_exec(selected);
       });
 
       $('.ship_dock_at').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.dock_ship.exec(selected, $(e.currentTarget).html());
 
         $omega_dialog.hide();
@@ -504,7 +504,7 @@ var OmegaCommand = {
     /* Setup the undock_ship command */
     init : function(){
       $('#ship_undock').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.undock_ship.exec(selected);
         $('#ship_select_dock').show();
         $('#ship_undock').hide();
@@ -549,13 +549,13 @@ var OmegaCommand = {
     /* Setup the transfer_resources command */
     init : function(){
       $('#ship_select_transfer').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.transfer_resources.pre_exec(selected);
       });
 
       $('.ship_transfer').live('click', function(e){
         $omega_dialog.hide();
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.transfer_resources.exec(selected, $(e.currentTarget).html());
       });
     }
@@ -615,13 +615,13 @@ var OmegaCommand = {
     /* Setup the start_mining command */
     init : function(){
       $('#ship_select_mine').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.start_mining.pre_exec(selected);
       });
 
       $('.ship_start_mining').live('click', function(e){
         $omega_dialog.hide();
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         var rsid = e.currentTarget.id.replace('start_mining_rs_', '');
         OmegaCommand.start_mining.exec(selected, rsid);
       });
@@ -649,9 +649,19 @@ var OmegaCommand = {
     /* Setup the construct_entity command */
     init : function(){
       $('#station_select_construction').live('click', function(e){
-        var selected = $omega_registry.get($omega_selection.selected());
+        var selected = $omega_registry.get($omega_scene.selection.selected());
         OmegaCommand.construct_entity.exec(selected);
       });
+    }
+  },
+
+  /////////////////////////////////////// Command initialization
+
+  init : function(){
+    // setup command controls
+    for(var cmd in OmegaCommand){
+      if(OmegaCommand[cmd].init)
+        OmegaCommand[cmd].init();
     }
   }
 }
@@ -761,13 +771,3 @@ var OmegaQuery = {
   }
 
 }
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
-  // setup command controls
-  for(var cmd in OmegaCommand){
-    if(OmegaCommand[cmd].init)
-      OmegaCommand[cmd].init();
-  }
-});

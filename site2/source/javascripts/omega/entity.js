@@ -85,7 +85,7 @@ function convert_entity(entity){
   $omega_registry.add(entity);
 
   // XXX hacky way to refresh entity container
-  var selected = $omega_selection.selected();
+  var selected = $omega_scene.selection.selected();
   if(selected) $omega_registry.get(selected).clicked();
 
 
@@ -415,7 +415,7 @@ function OmegaSolarSystem(system){
     text.position.x = this.location.x - 50;
     text.position.y = this.location.y - 50;
     text.position.z = this.location.z - 50;
-    text.lookAt($omega_camera.position());
+    text.lookAt($omega_camera.position()); // XXX dependency on omega_camera
     this.scene_objs.push(text);
     $omega_scene.add(text);
   }
@@ -734,7 +734,7 @@ function OmegaJumpGate(jump_gate){
     ssphere.position.z = this.location.z ;
     this.scene_objs.push(ssphere);
 
-    if($omega_selection.is_selected(this.id)){
+    if($omega_scene.selection.is_selected(this.id)){
       $omega_scene.add(ssphere);
       this.clickable_obj = ssphere;
     }else{
@@ -743,8 +743,8 @@ function OmegaJumpGate(jump_gate){
   }
 
   var on_unselected = function(){
-    var selected_id = $omega_selection.selected()
-    $omega_selection.unselect(selected_id);
+    var selected_id = $omega_scene.selection.selected()
+    $omega_scene.selection.unselect(selected_id);
     $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
@@ -755,7 +755,7 @@ function OmegaJumpGate(jump_gate){
                    "<div class='cmd_icon' id='ship_trigger_jg'>Trigger</div>"];
     $omega_entity_container.show(details);
 
-    $omega_selection.select(this.id);
+    $omega_scene.selection.select(this.id);
     $omega_scene.reload(this);
 
     $omega_entity_container.on_closed(on_unselected);
@@ -780,7 +780,7 @@ function OmegaShip(ship){
 
     // draw crosshairs representing ship
     var color = '0x';
-    if($omega_selection.is_selected(this.id))
+    if($omega_scene.selection.is_selected(this.id))
       color += "FFFF00";
     else if(this.docked_at)
       color += "99FFFF";
@@ -871,8 +871,8 @@ function OmegaShip(ship){
   }
 
   var on_unselected = function(){
-    var selected_id = $omega_selection.selected()
-    $omega_selection.unselect(selected_id);
+    var selected_id = $omega_scene.selection.selected()
+    $omega_scene.selection.unselect(selected_id);
     $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
@@ -908,7 +908,7 @@ function OmegaShip(ship){
       $('#ship_select_transfer').show();
     }
 
-    $omega_selection.select(this.id);
+    $omega_scene.selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected);
     $omega_scene.reload(this);
   }
@@ -956,7 +956,7 @@ function OmegaStation(station){
 
   this.on_load = function(){
     var color = '0x';
-    if($omega_selection.is_selected(this.id))
+    if($omega_scene.selection.is_selected(this.id))
       color += "FFFF00";
     else if(!this.belongs_to_user($user_id))
       color += "CC0011";
@@ -1008,8 +1008,8 @@ function OmegaStation(station){
   }
 
   var on_unselected = function(){
-    var selected_id = $omega_selection.selected()
-    $omega_selection.unselect(selected_id);
+    var selected_id = $omega_scene.selection.selected()
+    $omega_scene.selection.unselect(selected_id);
     $omega_scene.reload($omega_registry.get(selected_id));
     $omega_entity_container.on_closed(null);
   }
@@ -1030,14 +1030,8 @@ function OmegaStation(station){
 
     $omega_entity_container.show(details);
 
-    $omega_selection.select(this.id);
+    $omega_scene.selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected)
     $omega_scene.reload(this);
   }
 }
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
-  $omega_registry       = new OmegaRegistry();
-});

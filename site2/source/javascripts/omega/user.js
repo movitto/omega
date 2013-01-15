@@ -166,9 +166,3 @@ function OmegaSession(){
                1000);
   }
 }
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
-  $omega_session = new OmegaSession();
-});

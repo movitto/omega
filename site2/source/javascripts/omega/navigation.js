@@ -116,7 +116,3 @@ function OmegaNavigationContainer(){
   $('#register_link').live('click', function(event){ show_register_dialog(); });
   $('#register_button').live('click', function(event){ submit_register_dialog(); });
 }
-
-$(document).ready(function(){ 
-  $omega_navigation = new OmegaNavigationContainer();
-});

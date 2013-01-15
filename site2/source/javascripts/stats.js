@@ -55,6 +55,20 @@ function refresh_cycle(args){
 
 // initialize the page
 $(document).ready(function(){ 
+  $omega_node     = new OmegaClient();
+  $omega_session  = new OmegaSession();
+  $omega_registry = new OmegaRegistry();
+  OmegaCommand.init();
+
+  // dependency pulled in via canvas partial
+  $omega_canvas_ui = new OmegaCanvasUI();
+
+  // pulled in via renderer, used in a few modules
+  $omega_scene  = new OmegaScene();
+
+  // dependendency pulled in via site layout
+  $omega_navigation = new OmegaNavigationContainer();
+
   $omega_node.add_error_handler(errors_to_console);
   $omega_session.on_session_validated(refresh_cycle);
 

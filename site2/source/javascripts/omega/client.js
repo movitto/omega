@@ -177,11 +177,3 @@ function OmegaClient(){
     }
   }
 }
-
-
-/////////////////////////////////////// initialization
-
-$(document).ready(function(){
-  /* initialize a global omega client */
-  $omega_node = new OmegaClient();
-});

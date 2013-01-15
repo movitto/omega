@@ -18,6 +18,11 @@ function confirm_registration(code){
 };
 
 $(document).ready(function(){ 
+  $omega_node = new OmegaClient();
+
+  // dependendency pulled in via site layout
+  $omega_navigation = new OmegaNavigationContainer();
+
   var rc = $.url(window.location);
   rc = rc.param('rc');
   confirm_registration(rc);

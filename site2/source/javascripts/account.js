@@ -12,6 +12,14 @@ require('javascripts/omega/entity.js');
 require('javascripts/omega/commands.js');
 
 $(document).ready(function(){ 
+  $omega_node     = new OmegaClient();
+  $omega_session  = new OmegaSession();
+  $omega_registry = new OmegaRegistry();
+  OmegaCommand.init();
+
+  // dependendency pulled in via site layout
+  $omega_navigation = new OmegaNavigationContainer();
+
   // log all errors to the console
   $omega_node.add_error_handler(function(error_msg){
     console.log(error_msg);
