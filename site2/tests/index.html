@@ -3,12 +3,37 @@
 <!-- test: account/bot/stats, chat, commands/entity/user -->
 <html>
 <head>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" type="text/css" media="screen" />
+
+  <script type="text/javascript" src="http://code.jquery.com/qunit/git/qunit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery.cookie.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/require.js"></script>
+
+  <script type="text/javascript">
+    require("tests/setup.js");
+
+    require("tests/client.js");
+    require("tests/user.js");
+    //require("tests/ui.js");
+    //require("tests/commands.js");
+    //require("tests/chat.js");
+  </script>
+
 </head>
+
 <body>
-<!-- TODO embed them all in frames? -->
-<a href="client.html">client tests</a>
-<a href="commands.html">commands tests</a>
-<a href="ui.html">ui tests</a>
-<a href="user.html">user tests</a>
+ <h1 id="qunit-header">QUnit example</h1>
+ <h2 id="qunit-banner"></h2>
+ <div id="qunit-testrunner-toolbar"></div>
+ <h2 id="qunit-userAgent"></h2>
+ <ol id="qunit-tests"></ol>
+ <div id="qunit-fixture">test markup, will be hidden</div>
+
+ <a id="register_link" /><a id="account_link" /><a id="login_link" /><a id="logout_link" />
+ <canvas id="omega_canvas"></canvas>
+ <div id="omega_entity_container"><div id="entity_container_contents"></div></div>
+ <div id="omega_dialog"></div>
+ <div id="omega_dialog_content">content</div>
 </body>
 </html>
