@@ -129,6 +129,10 @@ function OmegaRegistry(){
 
   /////////////////////////////////////// public methods
   
+  this.clear_callbacks = function(){
+    registration_callbacks = [];
+  }
+
   /* Register method to be invoked whenever a entity is
    * registered with the tracker
    */

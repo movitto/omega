@@ -41,6 +41,9 @@ galaxy 'Zeus' do |g|
                                                 :direction => Motel.random_axis) do |pl|
     end
   end
+
+  system 'Philo', 'XXYY', :location => Location.new(:x => 922, :y => -109, :z => 75) do |sys|
+  end
 end
 
 jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
@@ -58,61 +61,69 @@ end
 
 user 'opponent', 'tnenoppo'
 
-starting_system = system('Athena')
-next_system     = system('Aphrodite')
+system_athena    = system('Athena')
+system_aphrodite = system('Aphrodite')
+system_philo     = system('Philo')
 
 station("mmorsi-manufacturing-station1") do |station|
   station.type     = :manufacturing
   station.user_id  = 'mmorsi'
-  station.solar_system = starting_system
+  station.solar_system = system_athena
   station.location = Location.new(:x => -160,  :y=> 0,  :z => -160)
 end
 
 station("mmorsi-manufacturing-station2") do |station|
   station.type     = :manufacturing
   station.user_id  = 'mmorsi'
-  station.solar_system = starting_system
+  station.solar_system = system_athena
   station.location = Location.new(:x => 30,  :y=> -40,  :z => 20)
 end
 
 ship("mmorsi-mining-ship1") do |ship|
   ship.type     = :mining
   ship.user_id  = 'mmorsi'
-  ship.solar_system = starting_system
+  ship.solar_system = system_athena
   ship.location = Location.new(:x => 20, :y=> -30, :z => 15)
 end
 
 ship("mmorsi-corvette-ship1") do |ship|
   ship.type     = :corvette
   ship.user_id  = 'mmorsi'
-  ship.solar_system = starting_system
+  ship.solar_system = system_athena
   ship.location = Location.new(:x => -130,  :y=> -130,  :z => -130)
 end
 
 ship("mmorsi-corvette-ship2") do |ship|
   ship.type     = :corvette
   ship.user_id  = 'mmorsi'
-  ship.solar_system = starting_system
+  ship.solar_system = system_athena
   ship.location = Location.new(:x => 0,  :y=> 0,  :z => 0)
 end
 
 ship("mmorsi-corvette-ship3") do |ship|
   ship.type     = :corvette
   ship.user_id  = 'mmorsi'
-  ship.solar_system = starting_system
+  ship.solar_system = system_athena
+  ship.location = Location.new(:x => -150,  :y=> 0,  :z => -150)
+end
+
+ship("mmorsi-corvette-ship4") do |ship|
+  ship.type     = :corvette
+  ship.user_id  = 'mmorsi'
+  ship.solar_system = system_philo
   ship.location = Location.new(:x => -150,  :y=> 0,  :z => -150)
 end
 
 ship("opponent-mining-ship1") do |ship|
   ship.type     = :mining
   ship.user_id  = 'opponent'
-  ship.solar_system = starting_system
+  ship.solar_system = system_athena
   ship.location = Location.new(:x => -140, :y=> 10, :z => 140)
 end
 
 ship("opponent-mining-ship2") do |ship|
   ship.type     = :mining
   ship.user_id  = 'opponent'
-  ship.solar_system = next_system
+  ship.solar_system = system_aphrodite
   ship.location = Location.new(:x => -130, :y=> 0, :z => 130)
 end

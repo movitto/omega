@@ -15,6 +15,9 @@ function OmegaClient(){
 
   /////////////////////////////////////// private data
 
+  // connection established handlers
+  var connection_established_handlers = [];
+
   // response message handlers
   var response_handlers = [];
 
@@ -34,7 +37,9 @@ function OmegaClient(){
 
   /////////////////////////////////////// initialization
 
-  rjr_ws_node.open();
+  rjr_ws_node.onopen = function(){
+    invoke_connection_established_handlers();
+  }
 
   rjr_ws_node.message_received  = function(jr_msg) { 
     // will launch request/response message handlers depending
@@ -47,7 +52,29 @@ function OmegaClient(){
     invoke_response_handlers(jr_msg);
   }
 
+  rjr_ws_node.open();
+
   /////////////////////////////////////// public methods
+
+  /* Clear all handlers
+   */
+  this.clear_handlers = function(){
+    connection_established_handlers = [];
+    response_handlers               = [];
+    request_handlers                = [];
+    error_handlers                  = [];
+  }
+
+  /* Add a callback to be invoked on connection
+   * being established
+   *
+   * XXX potential race condition if connection is opened before
+   * callbacks can be registered
+   */
+  this.on_connection_established = function(handler){
+    connection_established_handlers.push(handler);
+  }
+
 
   /* Add a error handler
    */
@@ -133,6 +160,14 @@ function OmegaClient(){
 
   /////////////////////////////////////// private methods
 
+  /* Invoke callbacks on connection established
+   */
+  var invoke_connection_established_handlers = function(){
+    for(var i=0; i < connection_established_handlers.length; i++){
+      connection_established_handlers[i]();
+    }
+  }
+
   /* Method registered w/ websocket::on_message to invoke
    * request and notification handlers that the client registered
    */
@@ -166,9 +201,9 @@ function OmegaClient(){
       if(callback == null)
         return;
   
-      if(jr_message['result']){
+      if(typeof(jr_message['result']) !== "undefined"){
         callback(jr_message['result'], null);
-      }else if(jr_message['error']){
+      }else if(typeof(jr_message['error']) !== "undefined"){
         for(var i = 0; i < error_handlers.length; i++){
           error_handlers[i](jr_message);
         }

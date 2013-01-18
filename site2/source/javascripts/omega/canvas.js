@@ -288,12 +288,10 @@ function OmegaEntitiesContainer(){
 
   var fleets      =  {};
 
-  /////////////////////////////////////// initialization
+  /////////////////////////////////////// public methods
 
-  // wire up entities containers controls
-
-  // if a new system is registered, add to locations list
-  $omega_registry.on_registration(function(entity){
+  // Add specified entity to the proper entities container
+  this.add_to_entities_container = function(entity){
     if(entity.json_class == "Cosmos::Galaxy" ||
        entity.json_class == "Cosmos::SolarSystem"){
       if(locations[entity.name] == null){
@@ -324,21 +322,7 @@ function OmegaEntitiesContainer(){
       $('#locations_list').show();
 
     }
-  });
-
-  // retrieve entities owned by user and system / galaxies they are in
-  // TODO move this to index/stats.js?
-  $omega_session.on_session_validated(function(){
-    OmegaQuery.entities_owned_by($user_id, function(entities){
-      for(var entityI in entities){
-        var entity = entities[entityI];
-        OmegaSolarSystem.cached(entity.system_name, function(system){
-          OmegaQuery.galaxy_with_name(system.galaxy_name);
-          OmegaQuery.entities_under(system.name);
-        });
-      }
-    });
-  });
+  };
 
   $('#locations_list li').live('click', function(event){ 
     var entity_id = $(event.currentTarget).attr('name');
@@ -558,4 +542,22 @@ function OmegaCanvasUI(){
   $omega_entity_container   = new OmegaEntityContainer();
   $omega_entities_container = new OmegaEntitiesContainer();
   $omega_select_box         = new OmegaSelectBox();
+
+  $omega_camera.position({z : 500});
+
+  // when entities are registered, add to entities container if appropriate
+  $omega_registry.on_registration($omega_entities_container.add_to_entity_container);
+
+  // retrieve entities owned by user and system / galaxies they are in
+  $omega_session.on_session_validated(function(){
+    OmegaQuery.entities_owned_by($user_id, function(entities){
+      for(var entityI in entities){
+        var entity = entities[entityI];
+        OmegaSolarSystem.cached(entity.system_name, function(system){
+          OmegaQuery.galaxy_with_name(system.galaxy_name);
+          OmegaQuery.entities_under(system.name);
+        });
+      }
+    });
+  });
 }

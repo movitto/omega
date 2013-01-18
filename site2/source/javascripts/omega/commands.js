@@ -32,7 +32,8 @@ function omega_callback(success_callback, error_callback){
 
       // register entities w/ the register
       for(var ei in result){
-        result[ei] = convert_entity(result[ei]);
+        if(result[ei] != null)
+          result[ei] = convert_entity(result[ei]);
       }
 
       // invoke client callback
@@ -269,8 +270,9 @@ var OmegaCommand = {
     /* Execute the trigger_jump_gate command.
      *
      * @param {Cosmos::JumpGate} jg jump gate to trigger
+     * @param {Callback} triggered_callback function to invoke after jump gate is triggered
      */
-    exec : function(jg){
+    exec : function(jg, triggered_callback){
       // get local and remote systems
       var source   = $omega_registry.select([function(e) { return e.json_class == "Cosmos::SolarSystem" &&
                                                                   e.location.id == jg.location.parent_id; }]);
@@ -278,7 +280,7 @@ var OmegaCommand = {
 
       // if remote system isn't loaded yet, load
       if(endpoint.length == 0){
-        OmegaSolarSystem.cached(jg.endpoint, function(sys) { OmegaCommand.trigger_jump_gate.exec(jg) });
+        OmegaSolarSystem.cached(jg.endpoint, function(sys) { OmegaCommand.trigger_jump_gate.exec(jg, triggered_callback) });
         return;
       }
 
@@ -296,7 +298,10 @@ var OmegaCommand = {
         $omega_scene.animate();
       }
 
-      // TODO update systems
+      // XXX might be invoked before all jump_ship commands return results
+      if(triggered_callback){
+        triggered_callback(jg);
+      }
     },
 
     /* Setup the trigger_jump_gate command */
@@ -581,7 +586,7 @@ var OmegaCommand = {
       var entity_id = ids[0];
       var resource_id  = ids[1];
 
-      OmegaEvent.mining.subscribe(this.id);
+      OmegaEvent.mining.subscribe(ship.id);
       $omega_node.web_request('manufactured::start_mining',
                               ship.id, entity_id, resource_id,
                               omega_callback(function(){

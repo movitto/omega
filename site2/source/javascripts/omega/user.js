@@ -113,6 +113,12 @@ function OmegaSession(){
 
   /////////////////////////////////////// public methods
 
+  this.clear_callbacks = function(){
+    session_validated_callbacks = [];
+    invalid_session_callbacks   = [];
+    session_destroyed_callbacks = [];
+  }
+
   this.on_session_validated = function(callback){
     session_validated_callbacks.push(callback);
   }
@@ -161,8 +167,8 @@ function OmegaSession(){
 
   // validate the session
   if(user_id != null){
-    // XXX hack, give socket time to open before running client
-    setTimeout(function(){ OmegaQuery.user_with_id(user_id, callback_validate_session) },
-               1000);
+    $omega_node.on_connection_established(function(){
+      OmegaQuery.user_with_id(user_id, callback_validate_session);
+    });
   }
 }

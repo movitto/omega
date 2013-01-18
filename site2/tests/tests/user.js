@@ -10,17 +10,17 @@ $(document).ready(function(){
       var sc = $.cookie('omega-session');
       var hc = $omega_node.get_header('session_id');
       ok(sc != null);
-      equal(sc, hc);
+      equal(hc, sc);
   
       var uc = $.cookie('omega-user');
-      equal('mmorsi', uc);
+      equal(uc, 'mmorsi');
       start();
     });
     $omega_session.on_session_destroyed(function(){
       var sc = $.cookie('omega-session');
       var uc = $.cookie('omega-user');
-      equal(null, sc);
-      equal(null, uc);
+      equal(sc, null);
+      equal(uc, null);
       start();
     });
     var user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});

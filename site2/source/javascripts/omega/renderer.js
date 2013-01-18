@@ -63,8 +63,6 @@ function OmegaScene(){
   var _renderer = new THREE.CanvasRenderer({canvas: _canvas});
   _renderer.setSize( 900, 400 );
 
-  $omega_camera.position({z : 500});
-
   var entities = {};
 
   var scene_changed_callback = null;
@@ -191,7 +189,8 @@ function OmegaScene(){
   }
 
   this.render = function(){
-    _renderer.render(_scene, $omega_camera.scene_camera());
+    if(typeof($omega_camera) !== "undefined") // XXX hack shouldn't need conditional
+      _renderer.render(_scene, $omega_camera.scene_camera());
   }
 
   // XXX camera requries access to scene position
@@ -211,5 +210,5 @@ function OmegaScene(){
 
   /////////////////////////////////////// initialization
 
-  this.animate();
+  //this.animate();
 }
