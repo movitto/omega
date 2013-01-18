@@ -11,32 +11,38 @@ $(document).ready(function(){
   ///////////////////////////// commands.js:
   
   asyncTest("select ship destination", 2, function() {
-    OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
-      OmegaCommand.move_ship.pre_exec(ship);
-      var display = $('#omega_dialog').css('display');
-      equal("block", display);
-      ok($('#omega_dialog #dest_x') != null);
-      start();
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+        OmegaCommand.move_ship.pre_exec(ship);
+        var display = $('#omega_dialog').css('display');
+        equal(display, 'block');
+        ok($('#omega_dialog #dest_x') != null);
+        start();
+      });
     });
   });
   
   asyncTest("select ship target", 2, function() {
-    OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
-      OmegaCommand.launch_attack.pre_exec(ship);
-      var display = $('#omega_dialog').css('display');
-      equal("block", display);
-      ok($('#omega_dialog .ship_launch_attack[value=opponent-mining-ship1]') != null);
-      start();
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+        OmegaCommand.launch_attack.pre_exec(ship);
+        var display = $('#omega_dialog').css('display');
+        equal(display, 'block');
+        ok($('#omega_dialog .ship_launch_attack[value=opponent-mining-ship1]') != null);
+        start();
+      });
     });
   });
   
   asyncTest("select ship dock", 2, function() {
-    OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
-      OmegaCommand.dock_ship.pre_exec(ship);
-      var display = $('#omega_dialog').css('display');
-      equal("block", display);
-      ok($('#omega_dialog .ship_dock[value=mmorsi-manufacturing-station1]') != null);
-      start();
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+        OmegaCommand.dock_ship.pre_exec(ship);
+        var display = $('#omega_dialog').css('display');
+        equal(display, 'block');
+        ok($('#omega_dialog .ship_dock[value=mmorsi-manufacturing-station1]') != null);
+        start();
+      });
     });
   });
   
@@ -49,17 +55,19 @@ $(document).ready(function(){
   ///////////////////////////// canvas.js:
   
   test("show/hide/append to entity container", function() {
-    $omega_entity_container.append(["foo", "bar"]);
+    var entity_container = new OmegaEntityContainer();
+    entity_container.show();
     var display = $('#omega_entity_container').css('display');
+    equal(display, 'block');
+    entity_container.append(["foo", "bar"]);
     var value   = $('#entity_container_contents').html();
-    equal("block", display);
-    equal("foobar", value);
-    $omega_entity_container.append(["aaa", "bbb"]);
+    equal(value, 'foobar');
+    entity_container.append(["aaa", "bbb"]);
     value   = $('#entity_container_contents').html();
-    equal("foobaraaabbb", value);
-    $omega_entity_container.hide();
+    equal(value, "foobaraaabbb");
+    entity_container.hide();
     display = $('#omega_entity_container').css('display');
-    equal("none", display);
+    equal(display, 'none');
   });
   
   //asyncTest("scene changed callback", 2, function() {
@@ -72,11 +80,11 @@ $(document).ready(function(){
     $omega_dialog.show('title', '#omega_dialog_content', '+some');
     var display = $('#omega_dialog').css('display');
     var value   = $('#omega_dialog').html();
-    equal("block", display);
-    equal("content+some", value);
+    equal(display, 'block');
+    equal(value, "content+some");
     $omega_dialog.append("evenmore");
     value   = $('#omega_dialog').html();
-    equal("content+someevenmore", value);
+    equal(value, "content+someevenmore");
     $omega_dialog.hide();
     display = $('#omega_dialog').css('display');
     // FIXME this isn't working right

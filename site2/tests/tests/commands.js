@@ -293,10 +293,10 @@ $(document).ready(function(){
                       });
 
     login_test_user($admin_user, function(){
-      OmegaQuery.all_entities(function(entities){
-        var old = entities.length;
-        $omega_node.web_request('manufactured::create_entity', new_stat, function(){
-          OmegaCommand.construct_entity.exec(new_stat_id);
+      $omega_node.web_request('manufactured::create_entity', new_stat, function(){
+        OmegaQuery.all_entities(function(entities){
+          var old = entities.length;
+          OmegaCommand.construct_entity.exec({'id' : new_stat_id});
           OmegaQuery.all_entities(function(entities){
             equal(entities.length, old + 1);
             // TODO verify type of newly created entity ?

@@ -4,6 +4,8 @@ require("javascripts/omega/client.js");
 $(document).ready(function(){
 
   module("omega_user");
+
+  // TODO also test on_invalid_session & register_user
   
   asyncTest("user login and logout", 5, function() {
     $omega_session.on_session_validated(function(){

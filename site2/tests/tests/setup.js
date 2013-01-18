@@ -1,3 +1,7 @@
+require("javascripts/omega/client.js");
+require("javascripts/omega/user.js");
+require("javascripts/omega/entity.js");
+
 //////////////////////////////// helper methods
 
 function login_test_user(user, on_login){
@@ -16,7 +20,6 @@ function logout_test_user(on_logout){
   });
   $omega_session.logout_user();
 }
-
 
 //////////////////////////////// test hooks
 
