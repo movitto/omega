@@ -24,6 +24,7 @@ function logout_test_user(on_logout){
 //////////////////////////////// test hooks
 
 function before_all(details){
+  $mmorsio_user = new JRObject("Users::User", {id : 'mmorsi-omegaverse', password: 'isromm'});
   $mmorsi_user = new JRObject("Users::User", {id : 'mmorsi', password: 'isromm'});
   $admin_user  = new JRObject("Users::User", {id : 'admin',  password: 'nimda'});
 }

@@ -207,8 +207,4 @@ function OmegaScene(){
   this.entities = function(){
     return entities;
   }
-
-  /////////////////////////////////////// initialization
-
-  //this.animate();
 }

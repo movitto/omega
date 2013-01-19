@@ -165,7 +165,7 @@ class RJRAdapter
 
        Users::ChatProxy.proxy_for(user.id).proxy_message message
        nil
-     }
+    }
 
     rjr_dispatcher.add_handler('users::subscribe_to_messages') {
        user = Users::Registry.instance.current_user :session => @headers['session_id']
@@ -192,7 +192,18 @@ class RJRAdapter
 
        Users::ChatProxy.proxy_for(user.id).connect.add_callback callback
        nil
-     }
+    }
+
+    rjr_dispatcher.add_handler('users::get_messages') {
+      user = Users::Registry.instance.current_user :session => @headers['session_id']
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user-#{user.id}"},
+                                                 {:privilege => 'view', :entity => "users_entity-#{user.id}"},
+                                                 {:privilege => 'view', :entity => 'users_entities'}],
+                                        :session => @headers['session_id'])
+
+      Users::ChatProxy.proxy_for(user.id).messages
+    }
 
      rjr_dispatcher.add_handler('users::login') { |user|
        raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)

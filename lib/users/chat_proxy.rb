@@ -142,6 +142,7 @@ class ChatProxy
       on :channel do
         proxy = ChatProxy.proxy_for(user)
         proxy.callbacks.each { |c|
+          @messages << message
           cm = ChatMessage.new :message => message, :nick => nick
           c.handler.call cm
         }
@@ -174,11 +175,18 @@ class ChatProxy
   #
   # @param [String] message string message to send to server
   def proxy_message(message)
-    if !@connected || !@inchannel
-      @messages << message
-    else
+    @messages << message
+
+    if @connected && @inchannel
       @bot.msg(@chatroom, message)
     end
+  end
+
+  # Return all messages sent / received by this proxy
+  #
+  # @return [Array<String>] array of chat messages sent/received
+  def messages
+    @messages
   end
 
 end
