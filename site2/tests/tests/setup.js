@@ -27,7 +27,27 @@ function setup_canvas(){
   var scene = new OmegaScene();
   return scene;
 }
-  
+
+// class to test OmegaEntity
+function OmegaTestEntity(attrs){
+  $.extend(this, new OmegaEntity(attrs));
+
+  this.load_called     = false;
+  this.clicked_called  = false;
+  this.movement_called = false;
+
+  this.on_load = function(){
+    this.load_called     = true;
+  }
+
+  this.on_clicked = function(){
+    this.clicked_called  = true;
+  }
+
+  this.on_movement = function(){
+    this.movement_called = true;
+  }
+}
 
 //////////////////////////////// test hooks
 
@@ -54,6 +74,7 @@ function after_each(details){
   $omega_node.clear_handlers();
   $omega_session.clear_callbacks();
   $omega_registry.clear_callbacks();
+  $omega_registry.clear();
   logout_test_user();
 }
 

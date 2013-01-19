@@ -140,6 +140,13 @@ function OmegaRegistry(){
     registration_callbacks.push(callback);
   }
 
+  /* Remove all entities from the registry
+   */
+  this.clear = function(){
+    registry = {};
+  }
+
+
   /* Adds entity to registry
    */
   this.add = function(entity){
@@ -201,6 +208,7 @@ function OmegaRegistry(){
   this.cached = function(entity_id, retrieval, retrieved){
     if(registry[entity_id] != null && retrieved != null){
       retrieved(registry[entity_id]);
+      return registry[entity_id];
     }
 
     retrieval(entity_id, retrieved);
