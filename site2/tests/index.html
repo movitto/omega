@@ -20,6 +20,7 @@
     require("tests/ui.js");
     require("tests/commands.js");
     require("tests/chat.js");
+    require("tests/canvas.js");
   </script>
 
 </head>
@@ -38,8 +39,17 @@
    <input id="login_password" type="password" />
    <input id="login_button"   type="button" />
  </div>
+ <div id="camera_controls"></div>
+ <div id="grid_control"></div>
+ <div id="close_canvas"></div>
+ <div id="show_canvas" ></div>
+ <div id="locations_list" class="entities_container"><ul></ul></div>
+ <div id="alliances_list" class="entities_container"><ul></ul></div>
  <canvas id="omega_canvas"></canvas>
- <div id="omega_entity_container"><div id="entity_container_contents"></div></div>
+ <div id="omega_entity_container">
+   <div id="entity_container_close"></div>
+   <div id="entity_container_contents"></div>
+ </div>
  <div id="omega_dialog"></div>
  <div id="omega_dialog_content">content</div>
  <div id="chat_container">
@@ -49,6 +59,10 @@
    </div>
    <div id="chat_output">
      <textarea></textarea>
+   </div>
+ </div>
+ <div id="omega_entity_container">
+   <div id="entity_container_contents">
    </div>
  </div>
 </body>

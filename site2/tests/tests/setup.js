@@ -21,6 +21,14 @@ function logout_test_user(on_logout){
   $omega_session.logout_user();
 }
 
+function setup_canvas(){
+  $omega_canvas = new OmegaCanvas();
+  $omega_entity_container = new OmegaEntityContainer();
+  var scene = new OmegaScene();
+  return scene;
+}
+  
+
 //////////////////////////////// test hooks
 
 function before_all(details){

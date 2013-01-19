@@ -3,6 +3,8 @@ require("javascripts/omega/commands.js");
 
 $(document).ready(function(){
 
+  // TODO test omega_callback ?
+
   module("omega_commands");
   
   asyncTest("retrieving all entities", 7, function() {

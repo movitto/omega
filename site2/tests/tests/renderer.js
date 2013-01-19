@@ -16,13 +16,6 @@ $(document).ready(function(){
 
   module("omega_scene");
 
-  function setup_canvas(){
-    $omega_canvas = new OmegaCanvas();
-    $omega_entity_container = new OmegaEntityContainer();
-    var scene = new OmegaScene();
-    return scene;
-  }
-  
   test("scene change", function() {
     var scene = setup_canvas();
 
