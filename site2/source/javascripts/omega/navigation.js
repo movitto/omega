@@ -31,7 +31,6 @@ function OmegaNavigationContainer(){
   var show_login_controls = function(){
     register_link.show(); login_link.show();
     account_link.hide();  logout_link.hide();
-    
   }
 
   /* Show logout controls, hide login controls

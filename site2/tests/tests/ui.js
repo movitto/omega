@@ -93,24 +93,48 @@ $(document).ready(function(){
   
   ///////////////////////////// nav.js:
   
-  //test("show login/logout controls", function() {
-  //  $omega_navigation.show_login_controls();
-  //  equal("inline", $('#register_link').css('display'));
-  //  equal("inline", $('#login_link').css('display'));
-  //  equal("none", $('#logout_link').css('display'));
-  //  equal("none", $('#account_link').css('display'));
-  //  $omega_navigation.show_logout_controls();
-  //  equal("none", $('#register_link').css('display'));
-  //  equal("none", $('#login_link').css('display'));
-  //  equal("inline", $('#logout_link').css('display'));
-  //  equal("inline", $('#account_link').css('display'));
-  //});
-  
-  //test("show login/register dialog", function() {
-  //  show_login_dialog();
-  //  show_register_dialog();
-  //});
-  
-  // TODO test submit dialogs?
+  asyncTest("navigation controls", 10, function() {
+    var navigation = new OmegaNavigationContainer();
 
+    // TODO verify intial state of navigation
+    //equal($('#login_link').css('display'),    'inline');
+    //equal($('#register_link').css('display'), 'inline');
+    //equal($('#logout_link').css('display'),   'none');
+    //equal($('#account_link').css('display'),  'none');
+
+    // verify clicking login link brings up dialog
+    $('#login_link').click();
+    equal($('#login_dialog').css('display'),   'block');
+
+    // verify submitting login dialog changes nav
+    $omega_session.on_session_validated(function(){
+      equal($('#login_link').css('display'),     'none');
+      equal($('#register_link').css('display'),  'none');
+      equal($('#logout_link').css('display'),    'inline');
+      equal($('#account_link').css('display'),   'inline');
+      // TODO verify user is actually logged in
+
+    $('#logout_link').click();
+    });
+
+    $('#omega_dialog #login_username').val('mmorsi');
+    $('#omega_dialog #login_password').val('isromm');
+    $('#login_button').click();
+    equal($('#omega_dialog').parent().css('display'),   'none');
+
+    // verify logout link changes nav
+    $omega_session.on_session_destroyed(function(){
+      equal($('#login_link').css('display'),    'inline');
+      equal($('#register_link').css('display'), 'inline');
+      equal($('#logout_link').css('display'),   'none');
+      equal($('#account_link').css('display'),  'none');
+
+      // TODO verify user is actually logged out
+      start();
+    });
+
+
+    // TODO verify a failed login
+  });
+  
 });
