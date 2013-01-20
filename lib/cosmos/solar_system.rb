@@ -214,8 +214,7 @@ class SolarSystem
 
   # Returns boolean indicating if the system has children
   def has_children?
-    # FIXME
-    true
+    !@star.nil? || @planets.size > 0 || @jump_gates.size > 0 || @asteroids.size > 0
   end
 
   # Returns boolean indicating if solar system has the specified child
