@@ -86,9 +86,8 @@ $(document).ready(function(){
     value   = $('#omega_dialog').html();
     equal(value, "content+someevenmore");
     $omega_dialog.hide();
-    display = $('#omega_dialog').css('display');
-    // FIXME this isn't working right
-    //equal("none", display);
+    display = $('#omega_dialog').parent().css('display');
+    equal(display, "none");
   });
   
   ///////////////////////////// nav.js:
