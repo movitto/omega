@@ -57,31 +57,53 @@ class Elliptical < MovementStrategy
    # @option args [Float] :direction_minor_y y coordinate of minor direction vector
    # @option args [Float] :direction_minor_z z coordinate of minor direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @option args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
+   # @ortion args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
    # @option args [Float] :eccentricity,:e eccentricity to assign to elliptical path
    # @option args [Float] :semi_latus_rectum,:p semi latus rectum to assign to elliptical path
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @relative_to        = args[:relative_to]       || RELATIVE_TO_FOCI
-     @speed              = args[:speed]
-     @eccentricity       = args[:eccentricity]      || args[:e]
-     @semi_latus_rectum  = args[:semi_latus_rectum] || args[:p]
+     @relative_to        = args[:relative_to]       || args['relative_to']       || RELATIVE_TO_FOCI
+     @speed              = args[:speed]             || args['speed']
+     @eccentricity       = args[:eccentricity]      || args['eccentricity']      || args['e']           || args[:e]
+     @semi_latus_rectum  = args[:semi_latus_rectum] || args['semi_latus_rectum'] || args['p']           || args[:p]
 
-     @direction_major_x, @direction_major_y, @direction_major_z =
-       *args[:direction][0]  if args.has_key?(:direction)
+     if args.has_key?('direction')
+       @direction_major_x, @direction_major_y, @direction_major_z = *args['direction'][0]
+       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args['direction'][1]
+     end
 
-     @direction_minor_x, @direction_minor_y, @direction_minor_z =
-       *args[:direction][1]  if args.has_key?(:direction)
+     if args.has_key?(:direction)
+       @direction_major_x, @direction_major_y, @direction_major_z = *args[:direction][0]
+       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args[:direction][1]
+     end
 
-     @direction_major_x, @direction_major_y, @direction_major_z =
-       *args[:direction_major]  if args.has_key?(:direction_major)
+     if args.has_key?('direction_major')
+       @direction_major_x, @direction_major_y, @direction_major_z = *args['direction_major']
+     end
 
-     @direction_minor_x, @direction_minor_y, @direction_minor_z =
-       *args[:direction_minor]  if args.has_key?(:direction_minor)
+     if args.has_key?(:direction_major)
+       @direction_major_x, @direction_major_y, @direction_major_z = *args[:direction_major]
+     end
+
+     if args.has_key?('direction_minor')
+       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args['direction_minor']
+     end
+
+     if args.has_key?(:direction_minor)
+       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args[:direction_minor]
+     end
+
+     @direction_major_x   = args['direction_major_x'] if args.has_key? 'direction_major_x'
+     @direction_major_y   = args['direction_major_y'] if args.has_key? 'direction_major_y'
+     @direction_major_z   = args['direction_major_z'] if args.has_key? 'direction_major_z'
 
      @direction_major_x   = args[:direction_major_x] if args.has_key? :direction_major_x
      @direction_major_y   = args[:direction_major_y] if args.has_key? :direction_major_y
      @direction_major_z   = args[:direction_major_z] if args.has_key? :direction_major_z
+
+     @direction_minor_x   = args['direction_minor_x'] if args.has_key? 'direction_minor_x'
+     @direction_minor_y   = args['direction_minor_y'] if args.has_key? 'direction_minor_y'
+     @direction_minor_z   = args['direction_minor_z'] if args.has_key? 'direction_minor_z'
 
      @direction_minor_x   = args[:direction_minor_x] if args.has_key? :direction_minor_x
      @direction_minor_y   = args[:direction_minor_y] if args.has_key? :direction_minor_y

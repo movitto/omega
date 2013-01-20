@@ -24,13 +24,7 @@ class MovementStrategy
    #
    # @param [Hash] args hash of options to initialize movement strategy with
    def initialize(args = {})
-      @step_delay = 1 # TODO make configurable
-
-      # FIXME very insecure
-      args.each { |k,v|
-        inst_attr = ('@' + k.to_s).to_sym
-        instance_variable_set(inst_attr, args[k])
-      }
+      @step_delay = args[:step_delay] || args['step_delay'] || 1
    end
 
    # Moves the given location, specifying the number of seconds which have

@@ -31,10 +31,10 @@ class Linear < MovementStrategy
    # @option args [Float] :speed speed to assign to movement strategy
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @direction_vector_x   = args[:direction_vector_x] || args[:dx] || 1
-     @direction_vector_y   = args[:direction_vector_y] || args[:dy] || 0
-     @direction_vector_z   = args[:direction_vector_z] || args[:dz] || 0
-     @speed                = args[:speed]
+     @direction_vector_x   = args[:direction_vector_x] || args['direction_vector_x'] || args[:dx] || args['dx'] || 1
+     @direction_vector_y   = args[:direction_vector_y] || args['direction_vector_y'] || args[:dy] || args['dy'] || 0
+     @direction_vector_z   = args[:direction_vector_z] || args['direction_vector_z'] || args[:dz] || args['dz'] || 0
+     @speed                = args[:speed] || args['speed']
      super(args)
 
      # normalize direction vector
