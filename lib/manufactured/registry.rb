@@ -134,6 +134,7 @@ class Registry
   # @option args [String] :user_id string user id of entity ownining manufactured entities to match
   # @option args [String,:symbol] :type string class name of entities to match
   # @option args [Integer] :location_id integer location id  to match, if specified first matching result will be returned, nil if none found
+  # @option args [Integer] :include_graveyard boolean indicating if graveyard should be included in search
   # @return [Array<ManufacturedEntity>] matching manufactured entities if any
   def find(args = {})
     id        = args[:id]
@@ -141,10 +142,14 @@ class Registry
     user_id   = args[:user_id]
     type      = args[:type]
     location_id = args[:location_id]
+    include_graveyard = args[:include_graveyard]
 
     entities = []
 
-    children.each { |entity|
+    to_search = children
+    to_search += graveyard if include_graveyard
+
+    to_search.each { |entity|
       entities << entity if (id.nil?        || entity.id         == id)        &&
                             (parent_id.nil? || (entity.parent && (entity.parent.name  == parent_id))) &&
                             (user_id.nil?   || entity.user_id    == user_id)   &&
@@ -163,6 +168,16 @@ class Registry
       children = @ships + @stations + @fleets
     }
     children
+  end
+
+  # Return entities in the ship graveyard
+  # @return [Array<Manufactured::Ship>]
+  def graveyard
+    entities = []
+    @entities_lock.synchronize{
+      entities = Array.new(@ship_graveyard)
+    }
+    entities
   end
 
   # Return boolean indicating if child specified by given id can be found

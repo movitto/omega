@@ -83,7 +83,8 @@ class RJRAdapter
         }
       end
 
-      rentity = Manufactured::Registry.instance.find(:id => entity.id).first
+      rentity = Manufactured::Registry.instance.find(:id => entity.id,
+                                                     :include_graveyard => true).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
 
       user = @@local_node.invoke_request('users::get_entity', 'with_id', entity.user_id)
@@ -436,9 +437,9 @@ class RJRAdapter
     # callback to track_movement in update location
     rjr_dispatcher.add_handler('motel::on_movement') { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-      entity = Manufactured::Registry.instance.find(:location_id => loc.id).first
+      entity = Manufactured::Registry.instance.find(:location_id => loc.id,
+                                                    :include_graveyard => true).first
 
-      # FIXME entity could be nil if ship gets added to graveyard b4 fully stopping for example
       unless entity.nil?
         Manufactured::Registry.instance.safely_run {
           entity.location.update(loc)
