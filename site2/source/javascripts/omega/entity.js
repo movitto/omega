@@ -528,10 +528,8 @@ function OmegaPlanet(planet){
     var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
     this.scene_objs.push(line);
     this.scene_objs.push(geometry);
-    // !FIXME! rendering orbits results in a big performance hit,
-    // need to figure out a better way and/or make this togglable
+    // TODO make orbit rendering togglable
     $omega_scene.add(line);
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     // draw moons
     for(var m=0; m<this.moons.length; ++m){

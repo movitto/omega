@@ -66,6 +66,7 @@ class RJRAdapter
   # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('manufactured::create_entity'){ |entity|
+      # FIXME should be different permission check than construct below
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
                                         :session   => @headers['session_id'])
 
@@ -97,6 +98,8 @@ class RJRAdapter
       # skip create_location if entity wasn't created in registry
       unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
         Manufactured::Registry.instance.safely_run {
+          # FIXME should change / set location & movement strategy (or maybe in construct below)
+
           # needs to happen b4 create_location so motel sets up heirarchy correctly
           entity.location.parent_id = entity.parent.location.id if entity.parent
 

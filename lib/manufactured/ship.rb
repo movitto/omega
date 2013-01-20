@@ -183,7 +183,7 @@ class Ship
     @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = args[:resources] || args['resources'] || {}
 
-    # FIXME make variable
+    # TODO make variable
     @movement_speed = 5
     @cargo_capacity = 100
     @attack_distance = 100
