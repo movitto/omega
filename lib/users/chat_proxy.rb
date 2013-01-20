@@ -90,6 +90,15 @@ class ChatProxy
     # @!scope class
     attr_accessor :default_irc_channel
 
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.default_irc_server  = config.default_irc_server
+      self.default_irc_port    = config.default_irc_port
+      self.default_irc_channel = config.default_irc_channel
+    end
+
     # @!endgroup
   end
 

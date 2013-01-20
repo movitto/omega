@@ -27,6 +27,15 @@ module Users
       # @!scope class
       attr_accessor :smtp_from_address
 
+      # Set config options using Omega::Config instance
+      #
+      # @param [Omega::Config] config object containing config options
+      def set_config(config)
+        self.email_enabled     = config.email_enabled
+        self.smtp_host         = config.smtp_host
+        self.smtp_from_address = config.smtp_from_address
+      end
+
       # @!endgroup
     end
 

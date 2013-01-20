@@ -24,6 +24,14 @@ class RemoteLocationManager
     # @!scope class
     attr_accessor :password
 
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.user     = config.remote_location_manager_user
+      self.password = config.remote_location_manager_password
+    end
+
     # @!endgroup
   end
 

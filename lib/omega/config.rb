@@ -18,6 +18,11 @@ class Config
    # later entries in the array with override those in previous entries
    CONFIG_FILES = ['/etc/omega.yml', '~/.omega.yml', './omega.yml']
 
+   # Omega classes which define the 'set_config' method taking an instance
+   # of Omega::Config containing configuration options to set
+   CONFIG_CLASSES = [Users::RJRAdapter, Users::ChatProxy, Users::EmailHelper,
+                     Motel::RemoteLocationManager, Cosmos::RemoteCosmosManager]
+
   # Instantiate new Config instance and load values from the config files
   #
   # @param [Hash] defaults default config options and their values to set
@@ -94,6 +99,17 @@ class Config
     else
       self[sym]
     end
+  end
+
+  # Set local config on Omega classes specified by CONFIG_CLASSES above.
+  # If specified only the classes given will have their config set.
+  #
+  # @param [Array<Class>] optional array of classes which to restrict
+  #   setting of the configuration to
+  def set_config(classes = CONFIG_CLASSES)
+    classes.each { |kls|
+      kls.set_config(self)
+    }
   end
 
 end

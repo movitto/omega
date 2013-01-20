@@ -24,28 +24,7 @@ config = Omega::Config.load :node_id => 'omega',
                             :tcp_port    => '8181',
                             :node_types  => ['amqp', 'tcp', 'ws', 'www', 'local']
 
-Users::RJRAdapter.recaptcha_enabled    = config.recaptcha_enabled
-Users::RJRAdapter.recaptcha_priv_key   = config.recaptcha_pub_key
-Users::RJRAdapter.recaptcha_priv_key   = config.recaptcha_priv_key
-
-Users::RJRAdapter.mediawiki_enabled    = config.mediawiki_enabled
-Users::RJRAdapter.mediawiki_dir        = config.mediawiki_dir
-
-Users::EmailHelper.email_enabled       = config.email_enabled
-Users::EmailHelper.smtp_host           = config.smtp_host
-Users::EmailHelper.smtp_from_address   = config.smtp_from_address
-
-Users::ChatProxy.default_irc_server    = config.irc_server
-Users::ChatProxy.default_irc_port      = config.irc_port
-Users::ChatProxy.default_irc_channel   = config.irc_channel
-
-Users::RJRAdapter.omega_url            = config.omega_url
-Users::RJRAdapter.permenant_users      = config.permenant_users
-
-Motel::RemoteLocationManager.user      = config.remote_location_manager_user
-Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
-Cosmos::RemoteCosmosManager.user       = config.remote_cosmos_manager_user
-Cosmos::RemoteCosmosManager.password   = config.remote_cosmos_manager_pass
+config.set_config
 
 Motel::RJRAdapter.init
 Users::RJRAdapter.init

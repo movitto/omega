@@ -154,6 +154,8 @@ module Omega
         # Password to use to login to server
         # @!scope class
         attr_accessor :client_password
+
+        # @!endgroup
       end
 
       # Node subsystem

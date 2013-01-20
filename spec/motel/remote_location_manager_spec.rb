@@ -12,9 +12,7 @@
 #  before(:all) do
 #    config = Omega::Config.load :amqp_broker => 'localhost'
 #    config.node_id = 'motel-rlm-test'
-#
-#    Motel::RemoteLocationManager.user      = config.remote_location_manager_user
-#    Motel::RemoteLocationManager.password  = config.remote_location_manager_pass
+#    config.set_config(Motel::RemoteLocationManager)
 #
 #    Motel::RJRAdapter.init
 #    Users::RJRAdapter.init

@@ -19,9 +19,7 @@ require './spec/spec_helper'
 
 config = Omega::Config.load :amqp_broker => 'localhost'
 config.node_id = 'remote_server'
-
-Cosmos::RemoteCosmosManager.user      = config.remote_cosmos_manager_user
-Cosmos::RemoteCosmosManager.password  = config.remote_cosmos_manager_pass
+config.set_config(Cosmos::RemoteCosmosManager)
 
 Users::RJRAdapter.init
 Motel::RJRAdapter.init
