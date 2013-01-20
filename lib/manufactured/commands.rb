@@ -82,8 +82,6 @@ class AttackCommand
   def attack!
     RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
 
-    # FIXME ensure attacker has not been destroyed itself
-    # ensure entities are within attacking distance
     unless @attacker.can_attack?(@defender)
       # invoke attackers's 'attacked_stop' callbacks
       @attacker.notification_callbacks.

@@ -277,7 +277,7 @@ class Ship
     ATTACK_SHIP_TYPES.include?(@type) && !self.docked? &&
     (@location.parent.id == entity.location.parent.id) &&
     (@location - entity.location) <= @attack_distance  &&
-    @user_id != entity.user_id && entity.hp > 0
+    @user_id != entity.user_id && self.hp > 0 && entity.hp > 0
   end
 
   # Return true / false indicating if ship can mine entity
