@@ -210,7 +210,11 @@ class Registry
       raise ArgumentError, "ship id #{entity.id} already taken" if @ships.find{ |sh| sh.id == entity.id }
       raise ArgumentError, "ship #{entity} already created" if @ships.include?(entity)
       raise ArgumentError, "ship #{entity} must be valid" unless entity.valid?
-      container = @ships
+      if entity.hp > 0
+        container = @ships
+      else
+        container = @ship_graveyard
+      end
 
     elsif entity.is_a?(Manufactured::Station)
       raise ArgumentError, "station id #{entity.id} already taken" if @stations.find{ |st| st.id == entity.id }
@@ -348,7 +352,11 @@ class Registry
         io.write entity.to_json + "\n"
       end
     }
-    # FIXME update to store attack + mining commands & ship graveyard
+    graveyard.each { |entity|
+      io.write entity.to_json + "\n"
+    }
+
+    # FIXME update to store attack + mining commands
     nil
   end
 
