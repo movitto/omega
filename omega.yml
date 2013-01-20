@@ -21,6 +21,15 @@ www_port: 8888
 admin_user: 'admin'
 admin_pass: 'nimda'
 
+cosmos_rjr_user: 'comsos'
+cosmos_rjr_pass: 'sosmoc'
+
+manufactured_rjr_user: 'manufactured'
+manufactured_rjr_pass: 'derutcafunam'
+
+users_rjr_user: 'users'
+users_rjr_pass: 'sresu'
+
 remote_location_manager_user: 'rlm'
 remote_location_manager_pass: 'mlr'
 

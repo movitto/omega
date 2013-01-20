@@ -20,7 +20,8 @@ class Config
 
    # Omega classes which define the 'set_config' method taking an instance
    # of Omega::Config containing configuration options to set
-   CONFIG_CLASSES = [Users::RJRAdapter, Users::ChatProxy, Users::EmailHelper,
+   CONFIG_CLASSES = [Cosmos::RJRAdapter, Manufactured::RJRAdapter, Users::RJRAdapter,
+                     Users::ChatProxy, Users::EmailHelper,
                      Motel::RemoteLocationManager, Cosmos::RemoteCosmosManager]
 
   # Instantiate new Config instance and load values from the config files
@@ -110,6 +111,7 @@ class Config
     classes.each { |kls|
       kls.set_config(self)
     }
+    self
   end
 
 end

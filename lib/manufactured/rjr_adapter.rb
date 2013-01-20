@@ -12,13 +12,32 @@ module Manufactured
 # Do not instantiate as interface is defined on the class.
 class RJRAdapter
 
+  class << self
+    # @!group Config options
+
+    # User to use to communicate w/ other modules over the local rjr node
+    attr_accessor :manufactured_rjr_username
+
+    # Password to use to communicate w/ other modules over the local rjr node
+    attr_accessor :manufactured_rjr_password
+
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.manufactured_rjr_username  = config.manufactured_rjr_user
+      self.manufactured_rjr_password  = config.manufactured_rjr_pass
+    end
+
+    # @!endgroup
+  end
+
   # Return user which can invoke privileged manufactured operations over rjr
   #
   # First instantiates user if it doesn't exist.
   def self.user
-    # FIXME set id / pass from config
-    @@manufactured_user ||= Users::User.new(:id => 'manufactured',
-                                            :password => 'changeme')
+    @@manufactured_user ||= Users::User.new(:id       => Manufactured::RJRAdapter.manufactured_rjr_username,
+                                            :password => Manufactured::RJRAdapter.manufactured_rjr_password)
   end
 
   # Initialize the Manufactured subsystem and rjr adapter.

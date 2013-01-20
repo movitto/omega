@@ -43,6 +43,12 @@ class RJRAdapter
     # Array<String> Usernames to mark as permenant on creation
     attr_accessor :permenant_users
 
+    # User to use to communicate w/ other modules over the local rjr node
+    attr_accessor :users_rjr_username
+
+    # Password to use to communicate w/ other modules over the local rjr node
+    attr_accessor :users_rjr_password
+
     # Set config options using Omega::Config instance
     #
     # @param [Omega::Config] config object containing config options
@@ -54,6 +60,8 @@ class RJRAdapter
       self.mediawiki_dir      = config.mediawiki_dir
       self.omega_url          = config.omega_url
       self.permenant_users    = config.permenant_users
+      self.users_rjr_username = config.users_rjr_user
+      self.users_rjr_password = config.users_rjr_pass
     end
 
     # @!endgroup
@@ -63,9 +71,8 @@ class RJRAdapter
   #
   # First instantiates user if it doesn't exist.
   def self.user
-    # FIXME set id / pass from config
-    @@users_user ||= Users::User.new(:id => 'users',
-                                     :password => 'changeme')
+    @@users_user ||= Users::User.new(:id       => Users::RJRAdapter.users_rjr_username,
+                                     :password => Users::RJRAdapter.users_rjr_password)
   end
 
   # Initialize the Users subsystem and rjr adapter.

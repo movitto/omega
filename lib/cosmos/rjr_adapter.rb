@@ -12,13 +12,32 @@ module Cosmos
 # Do not instantiate as interface is defined on the class.
 class RJRAdapter
 
+  class << self
+    # @!group Config options
+
+    # User to use to communicate w/ other modules over the local rjr node
+    attr_accessor :cosmos_rjr_username
+
+    # Password to use to communicate w/ other modules over the local rjr node
+    attr_accessor :cosmos_rjr_password
+
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.cosmos_rjr_username  = config.cosmos_rjr_user
+      self.cosmos_rjr_password  = config.cosmos_rjr_pass
+    end
+
+    # @!endgroup
+  end
+
   # Return user which can invoke privileged cosmos operations over rjr
   #
   # First instantiates user if it doesn't exist.
   def self.user
-    # FIXME
-    @@cosmos_user ||= Users::User.new(:id => 'cosmos',
-                                      :password => 'changeme')
+    @@cosmos_user ||= Users::User.new(:id       => Cosmos::RJRAdapter.cosmos_rjr_username,
+                                      :password => Cosmos::RJRAdapter.cosmos_rjr_password)
   end
 
   # Initialize the Cosmos subsystem and rjr adapter.

@@ -21,6 +21,7 @@ FactoryGirl.find_definitions
 
 RSpec.configure do |config|
   config.before(:all) {
+    Omega::Config.load.set_config
   }
   config.before(:each) {
     Motel::RJRAdapter.init
