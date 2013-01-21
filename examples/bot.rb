@@ -58,18 +58,19 @@ def start_factory(factory)
     puts "station #{f.id.bold.yellow} jumped to system #{f.system_name.green}"
   }
   factory.handle_event(:constructed) { |f,e|
-    puts "#{f.id.bold.yellow} constructed #{e.id.bold.yellow}"
-    if e.is_a?(Manufactured::Station)
-      start_factory Omega::Client::Factory.get(e.id)
+    constructed = e.last
+    puts "#{f.id.bold.yellow} constructed #{constructed.id.bold.yellow}"
+    if constructed.is_a?(Manufactured::Station)
+      start_factory Omega::Client::Factory.get(constructed.id)
 
-    elsif e.is_a?(Manufactured::Ship)
-      if e.type == :mining
+    elsif constructed.is_a?(Manufactured::Ship)
+      if constructed.type == :mining
         factory.entity_type 'corvette'
-        start_miner Omega::Client::Miner.get(e.id)
+        start_miner Omega::Client::Miner.get(constructed.id)
 
-      elsif e.type == :corvette
+      elsif constructed.type == :corvette
         factory.entity_type 'miner'
-        start_corvette Omega::Client::Corvette.get(e.id)
+        start_corvette Omega::Client::Corvette.get(constructed.id)
 
       end
     end
