@@ -120,6 +120,9 @@ class Ship
   # {Manufactured::Station} ship is docked to, nil if not docked
   attr_reader :docked_at
 
+  # {Manufactured::Ship} ship being attacked, nil if not attacking
+  attr_reader :attacking
+
   # {Cosmos::ResourceSource} ship is mining, nil if not mining
   attr_reader :mining
 
@@ -164,6 +167,7 @@ class Ship
   # @option args [SHIP_TYPE] :type,'type' type to assign to ship, if not set a random type will be assigned
   # @option args [Integer] :size,'size' size to assign to ship, if not set will be set to size corresponding to type
   # @option args [Manufactured::Station] :docked_at,'docked_at' station which ship is docket at
+  # @option args [Manufactured::Ship] :attacking,'attacking' manufactured ship which the ship is attacking
   # @option args [Cosmos::ResourceSource] :mining,'mining' resource source which the ship is mining
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
   # @option args [Hash<String,Int>] :resources,'resources' hash of resource ids to quantities contained in the ship
@@ -178,6 +182,7 @@ class Ship
     @type     = SHIP_TYPES[rand(SHIP_TYPES.size)] if @type.nil?
     @size     = args['size']     || args[:size] || (@type.nil? ? nil : SHIP_SIZES[@type])
     @docked_at= args['docked_at']|| args[:docked_at]
+    @attacking= args['attacking']|| args[:attacking]
     @mining   = args['mining']   || args[:mining]
 
     @notification_callbacks = args['notifications'] || args[:notifications] || []
@@ -228,6 +233,7 @@ class Ship
   # * type is one of valid SHIP_TYPES
   # * size corresponds to the correct value for type
   # * docked_at is set to a Manufactured::Station which permits docking
+  # * attacking is set to Manufactured::Ship that can be attacked
   # * mining is set to Cosmos::ResourceSource that can be mined
   # * solar system is set to Cosmos::SolarSystem
   # * notification_callbacks is an array of Manufactured::Callbacks
@@ -239,6 +245,7 @@ class Ship
     !@type.nil? && SHIP_TYPES.include?(@type) &&
     !@size.nil? && @size == SHIP_SIZES[@type] &&
     (@docked_at.nil? || (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at))) &&
+    (@attacking.nil? || (@attacking.is_a?(Manufactured::Ship) && can_attack?(@attacking))) &&
     (@mining.nil? || (@mining.is_a?(Cosmos::ResourceSource) && can_mine?(@mining))) &&
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @notification_callbacks.is_a?(Array) && @notification_callbacks.select { |nc| !nc.kind_of?(Manufactured::Callback) }.empty? && # TODO ensure validity of callbacks
@@ -316,6 +323,26 @@ class Ship
     # TODO check to see if station has given ship undocking clearance
     @docked_at = nil
   end
+
+  # Return boolean indicating if ship is currently attacking
+  #
+  # @return [true,false] indicating if ship is attacking or not
+  def attacking?
+    !@attacking.nil?
+  end
+
+  # Set ship's attack target
+  #
+  # @param [Manufactured::Ship] ship which is being attacked
+  def start_attacking(defender)
+    @attacking = defender
+  end
+
+  # Clear ship's attacking target
+  def stop_attacking
+    @attacking = nil
+  end
+
 
   # Return boolean indicating if ship is currently mining
   #
@@ -404,6 +431,7 @@ class Ship
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,
+         :attacking => @attacking, # TODO pass attacking via reference ?
          :mining    => @mining, # TODO pass mining via reference ?
          :location => @location,
          :system_name => (@solar_system.nil? ? @system_name : @solar_system.name),

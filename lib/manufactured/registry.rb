@@ -297,11 +297,18 @@ class Registry
             hook.call ac
           }
 
-          ac.attack! if ac.attackable?
+          if ac.attackable?
+            ac.attacker.start_attacking(ac.defender) unless ac.attacker.attacking?
+            ac.attack!
+          end
         }
 
         # remove attack commands no longer necessary
-        @attack_commands.reject! { |id, ac| ac.remove? }
+        to_remove = @attack_commands.keys.select { |id| @attack_commands[id].remove? }
+        to_remove.each { |id|
+          @attack_commands[id].attacker.stop_attacking
+          @attack_commands.delete(id)
+        }
 
         # remove ships w/ <= 0 hp and
         # add deleted ships to ship graveyard registry
@@ -356,7 +363,9 @@ class Registry
       io.write entity.to_json + "\n"
     }
 
-    # FIXME update to store attack + mining commands
+    # not storing attack + mining commands
+    #  (storing hooks is not feasible, plus clients
+    #   can relaunch commands when server is brought back up)
     nil
   end
 
@@ -370,7 +379,6 @@ class Registry
     }
     nil
   end
-
 
 end
 
