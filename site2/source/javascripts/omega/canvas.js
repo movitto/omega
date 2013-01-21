@@ -546,7 +546,7 @@ function OmegaCanvasUI(){
   $omega_camera.position({z : 500});
 
   // when entities are registered, add to entities container if appropriate
-  $omega_registry.on_registration($omega_entities_container.add_to_entity_container);
+  $omega_registry.on_registration($omega_entities_container.add_to_entities_container);
 
   // retrieve entities owned by user and system / galaxies they are in
   $omega_session.on_session_validated(function(){
