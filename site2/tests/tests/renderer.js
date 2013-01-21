@@ -35,7 +35,7 @@ $(document).ready(function(){
 
     var changed_called = false;
 
-    scene.on_scene_change(function(){
+    scene.on_scene_change('scene_change_test', function(){
       changed_called = true;
     });
     scene.set_root(system);

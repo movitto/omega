@@ -75,6 +75,7 @@ function after_each(details){
   $omega_session.clear_callbacks();
   $omega_registry.clear_callbacks();
   $omega_registry.clear();
+  $omega_scene.clear_callbacks();
   logout_test_user();
 }
 

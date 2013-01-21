@@ -653,7 +653,7 @@ OmegaPlanet.cache_movement  = function(){
   if(OmegaPlanet.movement_cached) return;
   OmegaPlanet.movement_cached = true;
 
-  $omega_scene.on_scene_change(function(){
+  $omega_scene.on_scene_change('planet_movement', function(){
     var sloc = $omega_scene.get_root().location;
 
     $omega_registry.delete_timer('planet_movement');

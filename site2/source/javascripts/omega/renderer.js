@@ -65,7 +65,7 @@ function OmegaScene(){
 
   var entities = {};
 
-  var scene_changed_callback = null;
+  var scene_changed_callbacks = {};
 
   var root_entity    = null;
 
@@ -117,8 +117,12 @@ function OmegaScene(){
 
   /////////////////////////////////////// public methods
 
-  this.on_scene_change = function(callback){
-    scene_changed_callback = callback;
+  this.clear_callbacks = function(){
+    scene_changed_callbacks = {};
+  }
+
+  this.on_scene_change = function(callback_id, callback){
+    scene_changed_callbacks[callback_id] = callback;
   }
 
   this.set_root = function(entity){
@@ -135,8 +139,11 @@ function OmegaScene(){
         child.added_to_scene();
     }
 
-    if(scene_changed_callback)
-      scene_changed_callback();
+    // XXX hack hide dialog
+    if($omega_dialog) $omega_dialog.hide();
+
+    for(var cb in scene_changed_callbacks)
+      scene_changed_callbacks[cb]();
 
     this.animate();
   }
@@ -178,8 +185,16 @@ function OmegaScene(){
   }
 
   this.reload = function(entity){
+    // remove entity from scene
     this.remove(entity.id);
-    this.add_entity(entity);
+
+    // add entity to scene if parent location
+    // corresponds to scene root
+    if(root_entity &&
+       entity.location.parent_id == root_entity.location.id)
+      this.add_entity(entity);
+
+    // reanimate scene
     this.animate();
   }
 

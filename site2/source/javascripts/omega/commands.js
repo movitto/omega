@@ -4,9 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-// FIXME init methods (selected_entity may have changed in the meantime)
-//       $omega_scene.reload (scene may have changed in the meantime):w
-
 require('javascripts/omega/client.js');
 require('javascripts/omega/user.js');
 require('javascripts/omega/renderer.js');

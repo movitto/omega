@@ -441,6 +441,10 @@ function OmegaCanvas(){
         if(entity.clickable_obj == intersects[0].object){
           clicked_on_entity = true;
           entity.clicked();
+
+          // XXX hack hide dialog
+          if($omega_dialog) $omega_dialog.hide();
+
           break;
         }
       }
