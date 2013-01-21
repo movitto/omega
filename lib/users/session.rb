@@ -45,7 +45,7 @@ class Session
     @id         = args[:id]         || args['id']         || Motel::gen_uuid
     @login_time = args[:login_time] || args['login_time'] || Time.now
 
-    @user = Users::Registry.instance.find(:id => @user_id) if !@user_id.nil? && @user.nil?
+    @user = Users::Registry.instance.find(:id => @user_id).first if !@user_id.nil? && @user.nil?
     @user_id = @user.id if !@user.nil? && @user_id.nil?
     
     @timeout_timestamp = Time.now

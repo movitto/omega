@@ -46,13 +46,17 @@ describe Users::Session do
   end
 
   it "should be convertable to json" do
+    u = Users::User.new :id => 'user1'
+    Users::Registry.instance.create u
+
     id = '1234'
     s = Users::Session.new :id => id, :user_id => 'user1'
 
     j = s.to_json
     j.should include('"json_class":"Users::Session"')
     j.should include('"id":"'+id+'"')
-    j.should include('"user_id":"user1"')
+    j.should include('"json_class":"Users::User"')
+    j.should include('"id":"user1"')
     j.should include('"login_time":')
   end
 

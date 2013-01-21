@@ -221,13 +221,17 @@ describe Manufactured::RJRAdapter do
 
     # valid call
     lambda{
-      rship = Omega::Client::Node.invoke_request('manufactured::construct_entity', @stat1.id, 'Manufactured::Ship', 'type', 'battlecruiser')
-      rship.class.should == Manufactured::Ship
-      rship.parent.name.should == @sys1.name
-      rship.location.should_not be_nil
-      rship.type.should == :battlecruiser
-      rship.size.should == Manufactured::Ship::SHIP_SIZES[:battlecruiser]
-      rship.user_id = TestUser.id
+      rentities = Omega::Client::Node.invoke_request('manufactured::construct_entity', @stat1.id, 'Manufactured::Ship', 'type', 'battlecruiser')
+      rentities.class.should == Array
+      rentities.size.should == 2
+      rentities.first.class.should == Manufactured::Station
+      rentities.first.id.should == @stat1.id
+      rentities.last.class.should == Manufactured::Ship
+      rentities.last.parent.name.should == @sys1.name
+      rentities.last.location.should_not be_nil
+      rentities.last.type.should == :battlecruiser
+      rentities.last.size.should == Manufactured::Ship::SHIP_SIZES[:battlecruiser]
+      rentities.last.user_id = TestUser.id
     }.should_not raise_error
 
     Manufactured::Registry.instance.ships.size.should == oldsh + 1

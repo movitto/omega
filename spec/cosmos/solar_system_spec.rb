@@ -90,7 +90,7 @@ describe Cosmos::SolarSystem do
     jump_gate = Cosmos::JumpGate.new :solar_system => solar_system, :endpoint => solar_system2
 
     # always true, change?
-    solar_system.has_children?.should be_true
+    solar_system.has_children?.should be_false
 
     solar_system.add_child(planet1)
     solar_system.children.size.should == 1
