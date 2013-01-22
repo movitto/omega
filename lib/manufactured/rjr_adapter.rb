@@ -66,7 +66,7 @@ class RJRAdapter
   # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('manufactured::create_entity'){ |entity|
-      # FIXME should be different permission check than construct below
+      # FIXME regular_users are not able to create fleets
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
                                         :session   => @headers['session_id'])
 
@@ -99,8 +99,6 @@ class RJRAdapter
       # skip create_location if entity wasn't created in registry
       unless rentity.nil? || entity.is_a?(Manufactured::Fleet) || entity.location.nil?
         Manufactured::Registry.instance.safely_run {
-          # FIXME should change / set location & movement strategy (or maybe in construct below)
-
           # needs to happen b4 create_location so motel sets up heirarchy correctly
           entity.location.parent_id = entity.parent.location.id if entity.parent
 
@@ -126,14 +124,16 @@ class RJRAdapter
       station = Manufactured::Registry.instance.find(:type => "Manufactured::Station", :id => manufacturer_id).first
       raise Omega::DataNotFound, "station specified by #{manufacturer_id} not found" if station.nil?
 
-      Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
-                                        :session   => @headers['session_id'])
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
 
       # simply convert remaining args into key /
       # value pairs to pass into construct
       argsh = Hash[*args]
 
       # remove params which should not be set by the user
+      # location is validated / modified in station.construct so no need to manipulate here
       ['solar_system','user_id',
        'mining', 'resources', 'notifications',
        'docked_at', 'size'].each { |i| # set docked at to station?

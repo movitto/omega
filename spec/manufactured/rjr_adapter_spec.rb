@@ -198,7 +198,7 @@ describe Manufactured::RJRAdapter do
     #}.should raise_error(Omega::PermissionError)
     }.should raise_error(Exception)
 
-    TestUser.add_privilege('create', 'manufactured_entities')
+    TestUser.add_privilege('modify', 'manufactured_entities')
 
     # station does not have enough resources
     lambda{
@@ -242,7 +242,7 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.init
     Manufactured::Registry.instance.create @stat1
 
-    TestUser.add_privilege('create', 'manufactured_entities')
+    TestUser.add_privilege('modify', 'manufactured_entities')
     @stat1.add_resource('metal-alloy', 5000)
 
     lambda{
