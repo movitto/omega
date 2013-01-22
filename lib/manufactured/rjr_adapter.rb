@@ -575,6 +575,10 @@ class RJRAdapter
           ship.notification_callbacks.delete depleted_callback
         }
       Manufactured::Registry.instance.safely_run {
+        # first remove existing collected/depleted callbacks on local node
+        ship.notification_callbacks.reject!{ |nc| nc.endpoint_id == @@local_node.message_headers['source_node'] &&
+                                                  [:mining_stopped, :resource_collected].include?(nc.type) }
+
         ship.notification_callbacks << collected_callback
         ship.notification_callbacks << depleted_callback
       }
