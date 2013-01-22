@@ -37,7 +37,6 @@ module Omega
 
       # Start the omega client bot
       def start_bot
-        # FIXME wait till ship & system it's in are fully loaded
         @visited  = []
         @to_visit = []
 

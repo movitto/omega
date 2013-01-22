@@ -271,8 +271,11 @@ module Omega
       # @return [Object] object retrieved from registry
       def cached(id, &retrieval)
         entity = get(id)
-        entity = retrieval.call(id) if entity.nil?
-        set(entity)
+        if entity.nil?
+          entity = retrieval.call(id)
+          set_result(entity) # not needed if retrieval calls invoke_request (do we want to rely on this?)
+        end
+        entity
       end
 
       # Use the RJR::Node to invoke the specified server side method
