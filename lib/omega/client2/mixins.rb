@@ -155,8 +155,8 @@ module Omega
         #
         # @param [Callable] bl block to invoke w/ entity after it is initialized
         def on_init(&bl)
-          # TODO allow registration of multiple methods
-          @entity_init = bl
+          @entity_init ||= []
+          @entity_init << bl
         end
 
         # Get/set the method used to retrieve serverside entities.
@@ -305,7 +305,9 @@ module Omega
         # Internal helper to invoke init callbacks on entity
         def init_entity(e)
           return if @entity_init.nil?
-          e.invoke_init(&@entity_init)
+          @entity_init.each { |init_method|
+            e.invoke_init(&init_method)
+          }
         end
 
         # Internal helper to invoke entity validation method on entity
