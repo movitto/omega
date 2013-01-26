@@ -49,23 +49,7 @@ module Omega
         @proximity_thread ||= Thread.new {
           while true
             @corvettes.each { |c|
-              neighbors = Node.invoke_request 'motel::get_locations',
-                                      'within', c.attack_distance,
-                                                 'of', c.location
-              neighbors.each { |loc|
-                begin
-                  sh = Node.invoke_request 'manufactured::get_entity',
-                                      'of_type', 'Manufactured::Ship',
-                                             'with_location', loc.id
-                  unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
-                    c.stop_moving
-                    handle_event(:attacked_stop){ |*args| c.patrol_route }
-                    attack(sh)
-                    break
-                  end
-                rescue Exception => e
-                end
-              }
+              c.check_proximity
             }
             sleep 10
           end
@@ -107,6 +91,28 @@ module Omega
           }
           
         end
+      end
+
+      # Internal helper, check nearby locations, if enemy ship is detected
+      # stop movement and attack it. Result patrol route when attack ceases
+      def check_proximity
+        neighbors = Node.invoke_request 'motel::get_locations',
+                                'within', self.attack_distance,
+                                           'of', self.location
+        neighbors.each { |loc|
+          begin
+            sh = Node.invoke_request 'manufactured::get_entity',
+                                'of_type', 'Manufactured::Ship',
+                                       'with_location', loc.id
+            unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
+              self.stop_moving
+              handle_event(:attacked_stop){ |*args| self.patrol_route }
+              attack(sh)
+              break
+            end
+          rescue Exception => e
+          end
+        }
       end
     end
 

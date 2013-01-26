@@ -290,7 +290,7 @@ module Omega
         entity = get(id)
         if entity.nil?
           entity = retrieval.call(id)
-          set_result(entity) # not needed if retrieval calls invoke_request (do we want to rely on this?)
+          set(entity) # not needed if retrieval calls invoke_request (do we want to rely on this?)
         end
         entity
       end
