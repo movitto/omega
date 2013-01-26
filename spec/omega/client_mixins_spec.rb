@@ -59,6 +59,25 @@ describe Omega::Client::RemotelyTrackable do
     ts.instance_variable_get(:@test_setup_invoked).should be_true
   end
 
+  it "should clear event handlers" do
+    invoked1 = false
+    invoked2 = false
+    ts = TestShip.get(@ship1.id)
+    ts.handle_event(:foobar) {
+      invoked1 = true
+    }
+    ts.handle_event(:barfoo) {
+      invoked2 = true
+    }
+    ts.clear_handlers_for(:foobar)
+
+    Omega::Client::Node.raise_event(:foobar, @ship1)
+    Omega::Client::Node.raise_event(:barfoo, @ship1)
+    sleep 0.1
+    invoked1.should == false
+    invoked2.should == true
+  end
+
   it "should allow client to set/get entity_type to track" do
     old = TestEntity.entity_type
     TestEntity.entity_type(:foobar)
@@ -121,7 +140,7 @@ describe Omega::Client::RemotelyTrackable do
 
   it "should retrieve all server entities" do
     ships = TestShip.get_all
-    ships.size.should == 8
+    ships.size.should == 9
     ships.first.id.should == @ship1.id
   end
 
@@ -135,7 +154,7 @@ describe Omega::Client::RemotelyTrackable do
     user1 = FactoryGirl.build(:user1)
 
     ships = TestShip.owned_by(user1.id)
-    ships.size.should == 4
+    ships.size.should == 5
     ships.first.id.should == @ship1.id
   end
   

@@ -156,7 +156,7 @@ module Omega
           self.select_target
 
         else
-          Node.raise_event(:moving_to, st)
+          Node.raise_event(:moving_to, self, st)
           move_to(:destination => st) { |*args|
             transfer_all_to(st)
             self.select_target

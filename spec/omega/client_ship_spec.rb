@@ -121,10 +121,16 @@ describe Omega::Client::Miner do
     cstat6 = Omega::Client::Station.get('station6')
     cship6 = Omega::Client::Miner.get('ship6')
 
+    invoked = false
+    cship6.handle_event(:moving_to) do
+      invoked = true
+    end
+
     cship6.offload_resources
     cship6.resources.should be_empty
     cstat6.resources.keys.should include('metal-steel')
     cstat6.resources['metal-steel'].should == 100
+    invoked.should == false
     # TODO test moving to next mining target?
   end
 
@@ -133,8 +139,15 @@ describe Omega::Client::Miner do
     cstat5 = Omega::Client::Station.get('station5')
     cship3 = Omega::Client::Miner.get('ship3')
 
+    invoked = false
+    cship3.handle_event(:moving_to) do |sh, st|
+      invoked = true
+    end
+
     cship3.offload_resources
     cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
+    sleep 0.1
+    invoked.should == true
     # TODO should do this but adds over a minute to tests, perhaps move locations closer
     #time = ((cship6.location - cstat5.location) / cship6.location.movement_strategy.speed) + 1
     #sleep time

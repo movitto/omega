@@ -142,5 +142,30 @@ describe Omega::Client::Node do
     invoked.should be_true
   end
 
+  it "should clear event handlers for specified entity" do
+    invoked1 = false
+    invoked2 = false
+    invoked3 = false
+    te1 = TestEntity.new
+    te2 = TestEntity.new
+    Node.add_event_handler(te1.id, :foovent) { |a,b|
+      invoked1 = true
+    }
+    Node.add_event_handler(te1.id, :barvent) { |a,b|
+      invoked2 = true
+    }
+    Node.add_event_handler(te2.id, :bazvent) { |a,b|
+      invoked3 = true
+    }
+    Node.clear_event_handlers(te1.id, :foovent)
+    Node.raise_event :foovent, te1, :foobar
+    Node.raise_event :barvent, te1, :foobar
+    Node.raise_event :bazvent, te2, :foobar
+    sleep 0.1
+    invoked1.should be_false
+    invoked2.should be_true
+    invoked3.should be_true
+  end
+
   # TODO test set_result, id_from_event_args, convert_invoke_args ???
 end
