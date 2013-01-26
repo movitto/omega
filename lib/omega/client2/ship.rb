@@ -35,10 +35,39 @@ module Omega
                          :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
                                              :notification => "manufactured::event_occurred" }
 
+      on_init { |corvette|
+        @corvettes ||= []
+        @corvettes << corvette
+
+        @proximity_thread ||= Thread.new {
+          while true
+            @corvettes.each { |c|
+              neighbors = Node.invoke_request 'motel::get_locations',
+                                      'within', c.attack_distance,
+                                                 'of', c.location
+              neighbors.each { |loc|
+                begin
+                  sh = Node.invoke_request 'manufactured::get_entity',
+                                      'of_type', 'Manufactured::Ship',
+                                             'with_location', loc.id
+                  unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
+                    c.stop_moving
+                    handle_event(:attacked_stop){ |*args| c.patrol_route }
+                    attack(sh)
+                    break
+                  end
+                rescue Exception => e
+                end
+              }
+            }
+            sleep 10
+          end
+        }
+      }
+
       # Start the omega client bot
       def start_bot
         @visited  = []
-        @to_visit = []
 
         self.patrol_route
       end
@@ -52,63 +81,25 @@ module Omega
       # @see check_proximity below
       def patrol_route
         # add local system to visited list
-        @visited << self.solar_system
+        @visited << self.solar_system unless @visited.include?(self.solar_system)
 
-        # add each local neighbors to the to_visit
-        # list if not present in either list
-        self.solar_system.jump_gates.each { |jg|
-          @to_visit << jg.endpoint unless @visited.find  { |sys| sys.name == jg.endpoint.name } ||
-                                          @to_visit.find { |sys| sys.name == jg.endpoint.name }
-        }
+        # grab jump gate of a neighboring system we haven't visited yet
+        jg = self.solar_system.jump_gates.find { |jg| !@visited.include?(jg.endpoint) }
 
         # if no items in to_visit clear lists
-        if @to_visit.empty?
+        if jg.nil?
           @visited  = []
-          @to_visit = []
           patrol_route
 
         else
-          visiting = @to_visit.shift
-          jg = self.solar_system.jump_gates.find { |jg| jg.endpoint.name == visiting.name }
-
           dst = jg.trigger_distance / 4
           nl  = jg.location + [dst,dst,dst]
-          move_to(:location => nl)
-          
-          handle_event(:movement, 20) { |*args|
-            if !self.check_proximity &&
-               (self.location - jg.location <= jg.trigger_distance)
-              self.jump_to(visiting)
-              self.patrol_route
-            end
+          move_to(:location => nl) {
+            self.jump_to(jg.endpoint)
+            self.patrol_route
           }
+          
         end
-      end
-
-
-      # Internal helper, check nearby locations, if enemy ship is detected
-      # stop movement and attack it. Result patrol route when attack ceases
-      def check_proximity
-        attacking = false
-        neighbors = Node.invoke_request 'motel::get_locations',
-                                'within', self.attack_distance,
-                                           'of', self.location
-        neighbors.each { |loc|
-          begin
-            sh = Node.invoke_request 'manufactured::get_entity',
-                                'of_type', 'Manufactured::Ship',
-                                       'with_location', loc.id
-            unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
-              attacking = true
-              self.stop_moving
-              handle_event(:attacked_stop){ |*args| self.patrol_route }
-              attack(sh)
-              break
-            end
-          rescue Exception => e
-          end
-        }
-        return attacking
       end
     end
 
@@ -130,6 +121,10 @@ module Omega
 
       # Start the omega client bot
       def start_bot
+        handle_event(:mining_stopped) { |*args|
+          offload_resources
+        }
+
         if self.cargo_full?
           offload_resources
         else
@@ -168,14 +163,25 @@ module Omega
 
         if rs.location - self.location < self.mining_distance
           rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
-          mine(rs)
+
+          # server resource may by depleted at any point, 
+          # need to catch errors, and try elsewhere
+          begin
+            mine(rs)
+          rescue Exception => e
+            select_target
+          end
 
         else
           dst = self.mining_distance / 4
           nl  = rs.location + [dst,dst,dst]
           rs  = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
           move_to(:location => nl) { |*args|
-            mine(rs)
+            begin
+              mine(rs)
+            rescue Exception => e
+              select_target
+            end
           }
         end
       end

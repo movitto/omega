@@ -164,6 +164,23 @@ module Omega
         @event_handlers = {}
         @event_queue    = Queue.new
         @lock           = Mutex.new
+
+        @entity_event_queues  = Array.new(5)
+        @entity_event_threads = Array.new(5)
+        @queue_mappings = {}
+        @queue_index = 0
+      end
+
+      def event_queue_for(entity_id)
+        @lock.synchronize {
+          if @queue_mappings[entity_id].nil?
+            @queue_mappings[entity_id] = @queue_index
+            @queue_index += 1
+            @queue_index = 0 if @queue_index > @entity_event_queues.size - 1
+          end
+
+          @queue_mappings[entity_id]
+        }
       end
 
       # Set the RJR::Node used to communicated w/ the server.
@@ -293,9 +310,9 @@ module Omega
         args.unshift method
         args.unshift Omega::Client::Node.server_endpoint unless Omega::Client::Node.server_endpoint.nil?
         res = nil
-        @lock.synchronize {
+        #@lock.synchronize {
           res = @node.invoke_request *args
-        }
+        #}
 
         set_result(res)
         res
@@ -342,6 +359,7 @@ module Omega
         # FIXME support event rate throttling mechanism and/or
         # max number of events before queue is flushed or similar
         @event_queue << [method, args]
+#puts "Added event #{method} to global queue #{@event_queue.length}"
         process_events
       end
 
@@ -466,20 +484,33 @@ module Omega
           while event = @event_queue.pop
             emethod, eargs = *event
             entity_id = id_from_event_args(eargs)  # extract id
-            handlers  = []
-            @lock.synchronize {
-              if @event_handlers[entity_id]
-                handlers += @event_handlers[entity_id][emethod] if @event_handlers[entity_id][emethod]
-                handlers += @event_handlers[entity_id]['all']   if @event_handlers[entity_id]['all']
-              end
-            }
 
-            handlers.each { |cb|
-              begin
-                cb.call(*eargs)
-              rescue Exception => e
-                # TODO how to handle?
-                puts "err #{e} \n#{e.backtrace.join("\n")}".bold
+            queue_index = Node.event_queue_for(entity_id)
+            @entity_event_queues[queue_index] ||= Queue.new
+            @entity_event_queues[queue_index]  << [entity_id, emethod, eargs]
+puts "Added event #{emethod} to event queue #{queue_index}: #{@entity_event_queues.collect { |q| q.nil? ? "" : q.length }.join(",")}"
+
+            @entity_event_threads[queue_index] ||= Thread.new(queue_index){ |tqueue_index|
+              while data = @entity_event_queues[tqueue_index].pop
+                tentity_id, temethod, teargs = *data
+#start = Time.now
+                handlers  = []
+                @lock.synchronize {
+                  if @event_handlers[tentity_id]
+                    handlers += @event_handlers[tentity_id][temethod] if @event_handlers[tentity_id][temethod]
+                    handlers += @event_handlers[tentity_id]['all']   if @event_handlers[tentity_id]['all']
+                  end
+                }
+
+                handlers.each { |cb|
+                  begin
+                    cb.call(*teargs)
+                  rescue Exception => e
+                    # TODO how to handle?
+                    puts "err #{e} \n#{e.backtrace.join("\n")}".bold
+                  end
+                }
+#puts "#{temethod} took #{(Time.now - start).to_s.bold} seconds"
               end
             }
           end

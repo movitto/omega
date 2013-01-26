@@ -684,7 +684,6 @@ module Omega
       #
       # @param [Cosmos::ResourceSource] resource_source resource to start mining
       def mine(resource_source)
-        # TODO catch start_mining errors ?
         RJR::Logger.info "Starting to mine #{resource_source.resource.id} at #{resource_source.entity.name} with #{self.id}"
 
         # handle resource collected of entity.mining quantity, invalidating
