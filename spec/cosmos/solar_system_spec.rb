@@ -9,8 +9,9 @@ describe Cosmos::SolarSystem do
 
   it "should successfully accept and set solar_system params" do
      galaxy = Cosmos::Galaxy.new
-     solar_system   = Cosmos::SolarSystem.new :name => 'solar_system1', :galaxy => galaxy
+     solar_system   = Cosmos::SolarSystem.new :name => 'solar_system1', :galaxy => galaxy, :background => 'sysback'
      solar_system.name.should == 'solar_system1'
+     solar_system.background.should == 'sysback'
      solar_system.location.should_not be_nil
      solar_system.location.x.should == 0
      solar_system.location.y.should == 0

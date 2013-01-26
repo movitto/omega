@@ -35,7 +35,7 @@ class SolarSystem
   MAX_BACKGROUNDS = 6
 
   # Background to render solar system w/ (TODO this shouldn't be here / should be up to client)
-  attr_reader :background
+  attr_accessor :background
 
   # Remote queue which to retrieve child entities from if any (may be nil)
   attr_accessor :remote_queue
@@ -64,7 +64,7 @@ class SolarSystem
     @asteroids  = args['asteroids']  || []
     @remote_queue = args['remote_queue'] || args[:remote_queue] || nil
 
-    @background = "system#{rand(MAX_BACKGROUNDS-1)+1}"
+    @background = args['background'] || args[:background] || "system#{rand(MAX_BACKGROUNDS-1)+1}"
 
     if @location.nil?
       @location = Motel::Location.new
