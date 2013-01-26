@@ -56,4 +56,22 @@ describe Omega::Client::SolarSystem do
     sys.should_not be_nil
     sys.id.should == 'sys2'
   end
+
+  it "should cache solar systems" do
+    sys1  = FactoryGirl.build(:sys1)
+    ssys  = Cosmos::Registry.instance.find_entity(:name => 'sys1')
+    ssys.background = 'sys1'
+
+    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
+                           Omega::Roles::ENTITY_COSMOS + sys1.id)
+
+    s = Omega::Client::SolarSystem.cached('sys1')
+    s.id.should == 'sys1'
+    s.background.should == "sys1"
+
+    ssys.background = 'sys2'
+    s = Omega::Client::SolarSystem.cached('sys1')
+    s.id.should == 'sys1'
+    s.background.should == "sys1"
+  end
 end

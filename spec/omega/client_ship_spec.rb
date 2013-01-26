@@ -76,6 +76,7 @@ describe Omega::Client::Miner do
     @ship5    = FactoryGirl.build(:ship5)
     @ship6    = FactoryGirl.build(:ship6)
     @ship7    = FactoryGirl.build(:ship7)
+    @ship9    = FactoryGirl.build(:ship9)
     @stat5    = FactoryGirl.build(:station5)
     @stat6    = FactoryGirl.build(:station6)
 
@@ -145,9 +146,32 @@ describe Omega::Client::Miner do
   it "should select mining target" do
     cship7 = Omega::Client::Miner.get('ship7')
 
+    handler_called = false
+    Omega::Client::Node.add_event_handler('ship7', :selected_resource) { |ship, entity|
+      handler_called = true
+      ship.id.should == 'ship7'
+      entity.name.should == 'ast2'
+    }
+
     cship7.select_target
     cship7.mining?.should be_true
     cship7.mining.entity.name.should == 'ast2'
+    sleep 0.1
+    handler_called.should be_true
+  end
+
+  it "should raise no_resources if no resources found" do
+    cship9 = Omega::Client::Miner.get('ship9')
+
+    handler_called = false
+    Omega::Client::Node.add_event_handler('ship9', :no_resources) { |ship|
+      handler_called = true
+      ship.id.should == 'ship9'
+    }
+
+    cship9.select_target
+    sleep 0.1
+    handler_called.should be_true
   end
 
   it "should move to next mining target" do
