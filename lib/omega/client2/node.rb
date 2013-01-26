@@ -359,7 +359,6 @@ module Omega
         # FIXME support event rate throttling mechanism and/or
         # max number of events before queue is flushed or similar
         @event_queue << [method, args]
-#puts "Added event #{method} to global queue #{@event_queue.length}"
         process_events
       end
 
@@ -488,12 +487,10 @@ module Omega
             queue_index = Node.event_queue_for(entity_id)
             @entity_event_queues[queue_index] ||= Queue.new
             @entity_event_queues[queue_index]  << [entity_id, emethod, eargs]
-puts "Added event #{emethod} to event queue #{queue_index}: #{@entity_event_queues.collect { |q| q.nil? ? "" : q.length }.join(",")}"
 
             @entity_event_threads[queue_index] ||= Thread.new(queue_index){ |tqueue_index|
               while data = @entity_event_queues[tqueue_index].pop
                 tentity_id, temethod, teargs = *data
-#start = Time.now
                 handlers  = []
                 @lock.synchronize {
                   if @event_handlers[tentity_id]
@@ -510,7 +507,6 @@ puts "Added event #{emethod} to event queue #{queue_index}: #{@entity_event_queu
                     puts "err #{e} \n#{e.backtrace.join("\n")}".bold
                   end
                 }
-#puts "#{temethod} took #{(Time.now - start).to_s.bold} seconds"
               end
             }
           end
