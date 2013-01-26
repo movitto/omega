@@ -142,6 +142,21 @@ describe Omega::Client::Node do
     invoked.should be_true
   end
 
+  it "should discard errors in event handler" do
+    # test raise_event, add_event_handler
+    invoked = false
+    te = TestEntity.new
+    Node.add_event_handler(te.id, :foovent) { |a,b|
+      raise Exception, ("arg")
+      invoked = true
+    }
+    lambda{
+      Node.raise_event :foovent, te, :foobar
+    }.should_not raise_error(Exception)
+    sleep 0.1
+    invoked.should be_false
+  end
+
   it "should clear event handlers for specified entity" do
     invoked1 = false
     invoked2 = false

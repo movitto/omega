@@ -35,6 +35,7 @@ end
 describe Omega::Client::Factory do
   before(:each) do
     @station3 = FactoryGirl.build(:station3)
+    @station8 = FactoryGirl.build(:station8)
 
     TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
                            Omega::Roles::ENTITIES_MANUFACTURED)
@@ -66,6 +67,34 @@ describe Omega::Client::Factory do
   end
 
   it "should start construction cycle" do
+    sship6 = FactoryGirl.build(:ship6)
+    cship6 = Omega::Client::Ship.get('ship6')
+
+    sstat8 = Manufactured::Registry.instance.find(:id => 'station8').first
+    cstat8 = Omega::Client::Factory.get('station8')
+    cstat8.entity_type 'miner'
+
+    olds =  Manufactured::Registry.instance.ships.length
+    cstat8.start_construction
+    Manufactured::Registry.instance.ships.length.should == olds
+
+    sstat8.add_resource('metal-rock', 100)
+    cstat8 = Omega::Client::Factory.get('station8')
+    cstat8.entity_type 'miner'
+    cstat8.start_construction
+    Manufactured::Registry.instance.ships.length.should == olds + 1
+
+    olds =  Manufactured::Registry.instance.ships.length
+    cstat8 = Omega::Client::Factory.get('station8')
+    cstat8.entity_type 'miner'
+    cstat8.start_construction
+    Manufactured::Registry.instance.ships.length.should == olds
+
+    olds =  Manufactured::Registry.instance.ships.length
+    cstat8 = Omega::Client::Factory.get('station8')
+    cstat8.entity_type 'miner'
+    cship6.transfer(100, :of => 'metal-steel', :to => cstat8)
+    Manufactured::Registry.instance.ships.length.should == olds
   end
 end
 

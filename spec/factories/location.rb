@@ -184,6 +184,14 @@ FactoryGirl.define do
     parent_id 301
   end
 
+  factory :station8_location, parent: :server_location do
+    id   907
+    x    -95
+    y    130
+    z    150
+
+    parent_id 300
+  end
   factory :ship1_location, parent: :server_location do
     id   1000
     x    10
