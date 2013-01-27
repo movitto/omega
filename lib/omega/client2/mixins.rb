@@ -95,6 +95,11 @@ module Omega
         Node.add_event_handler self.id, event, &bl
       end
 
+      # Return boolean indicating if handler exists for specified envent
+      def has_event_handler?(event)
+        Node.has_event_handler? self.id, event
+      end
+
       # Clear the event handlers for the specified event
       def clear_handlers_for(event)
         Node.clear_event_handlers self.id, event

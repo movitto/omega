@@ -126,6 +126,9 @@ class TestShip
   entity_type Manufactured::Ship
   get_method "manufactured::get_entity"
 
+  server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
+                                              :notification => "manufactured::event_occurred" }
+
   attr_reader :test_setup_args
   attr_reader :test_setup_invoked
 

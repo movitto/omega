@@ -47,6 +47,18 @@ describe Omega::Client::CachedAttribute do
     CachedAttribute.enabled?(true)
     CachedAttribute.enabled?.should == true
   end
+
+  # TODO test invalidation
+  it "should permit entity attribute invalidation" do
+    $te.attr.should == 1
+    $times_invoked.should == 1
+    $te.attr.should == 1
+    $times_invoked.should == 1
+    CachedAttribute.invalidate($te.id, :attr)
+    $te.attr.should == 2
+    $times_invoked.should == 2
+  end
+
 end
 
 describe Omega::Client::Node do
@@ -132,11 +144,13 @@ describe Omega::Client::Node do
     # test raise_event, add_event_handler
     invoked = false
     te = TestEntity.new
+    Node.has_event_handler?(te.id, :foovent).should be_false
     Node.add_event_handler(te.id, :foovent) { |a,b|
       invoked = true
       a.should == te
       b.should == :foobar
     }
+    Node.has_event_handler?(te.id, :foovent).should be_true
     Node.raise_event :foovent, te, :foobar
     sleep 0.1
     invoked.should be_true
@@ -169,13 +183,19 @@ describe Omega::Client::Node do
     Node.add_event_handler(te1.id, :barvent) { |a,b|
       invoked2 = true
     }
-    Node.add_event_handler(te2.id, :bazvent) { |a,b|
+    Node.add_event_handler(te2.id, :foovent) { |a,b|
       invoked3 = true
     }
+    Node.has_event_handler?(te1.id, :foovent).should be_true
+    Node.has_event_handler?(te1.id, :barvent).should be_true
+    Node.has_event_handler?(te2.id, :foovent).should be_true
     Node.clear_event_handlers(te1.id, :foovent)
     Node.raise_event :foovent, te1, :foobar
     Node.raise_event :barvent, te1, :foobar
-    Node.raise_event :bazvent, te2, :foobar
+    Node.raise_event :foovent, te2, :foobar
+    Node.has_event_handler?(te1.id, :foovent).should be_false
+    Node.has_event_handler?(te1.id, :barvent).should be_true
+    Node.has_event_handler?(te2.id, :foovent).should be_true
     sleep 0.1
     invoked1.should be_false
     invoked2.should be_true

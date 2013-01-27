@@ -238,5 +238,6 @@ describe Omega::Client::Corvette do
     ac.attacker.id.should == 'ship4'
     ac.defender.id.should == 'ship5'
     # TODO test attacked events
+    # TODO resume patrol route after attack_stop
   end
 end

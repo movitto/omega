@@ -43,9 +43,11 @@ describe Omega::Client::RemotelyTrackable do
   it "should allow event handlers to be registered" do
     invoked = 0
     ts = TestShip.get(@ship1.id)
+    ts.has_event_handler?(:updated).should be_false
     ts.handle_event(:updated, :foobar) {
       invoked += 1
     }
+    ts.has_event_handler?(:updated).should be_true
 
     Omega::Client::Node.raise_event(:updated, @ship1)
     sleep 0.1
@@ -69,7 +71,11 @@ describe Omega::Client::RemotelyTrackable do
     ts.handle_event(:barfoo) {
       invoked2 = true
     }
+    ts.has_event_handler?(:foobar).should be_true
+    ts.has_event_handler?(:barfoo).should be_true
     ts.clear_handlers_for(:foobar)
+    ts.has_event_handler?(:foobar).should be_false
+    ts.has_event_handler?(:barfoo).should be_true
 
     Omega::Client::Node.raise_event(:foobar, @ship1)
     Omega::Client::Node.raise_event(:barfoo, @ship1)
@@ -347,12 +353,24 @@ describe Omega::Client::InteractsWithEnvironment do
 
   it "should mine resource using entity" do
     ts = TestShip.get(@ship2.id)
+
+    crse = ts.solar_system.asteroids.find { |a| a.name == @rs1.entity.name }
+    crs  = crse.resource_sources.find { |rs| rs.id == @rs1.id }
+    oldq = crs.quantity
+
     ts.mine(@rs1)
     sleep 0.5 # XXX need to wait for mining cycle to begin
 
     ts = TestShip.get(@ship2.id)
     ts.mining.should_not be_nil
     ts.mining.id.should == @rs1.id
+
+    # ensure resource_collected is being tracked
+    ts.has_event_handler?(:resource_collected).should be_true
+
+    # ensure resource sources are invalidated
+    crs  = crse.resource_sources.find { |rs| rs.id == @rs1.id }
+    crs.quantity.should < oldq
   end
 
   it "should attack target using entity" do

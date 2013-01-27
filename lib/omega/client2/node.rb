@@ -380,6 +380,16 @@ module Omega
         }
       end
 
+      # Return boolean indicating if handler exists for the specified event
+      # and entity
+      def has_event_handler?(entity_id, event)
+        @lock.synchronize {
+          @event_handlers.has_key?(entity_id) &&
+          @event_handlers[entity_id].has_key?(event) &&
+          !@event_handlers[entity_id][event].empty?
+        }
+      end
+
       # Clear the handlers registered for the specified event for
       # the specified entity
       #
