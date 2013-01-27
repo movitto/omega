@@ -47,7 +47,7 @@ class Registry
     return ret
   end
 
-  # [Array<Manufactured::Ship>] array of ships that have been destoryed
+  # [Array<Manufactured::Ship>] array of ships that have been destroyed
   attr_reader :ship_graveyard
 
   # [Array<Manufactured::AttackCommand>] attack commands clients has issued to be regularily run

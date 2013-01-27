@@ -15,7 +15,7 @@ describe Manufactured::Ship do
      sys2  = Cosmos::SolarSystem.new :name => 'system2'
      ship = Manufactured::Ship.new :id => 'ship1', :user_id => 5,
                                    :type => type.to_s, :size => size,
-                                   :solar_system => sys
+                                   :solar_system => sys, :hp => 50
                                    
      ship.id.should == 'ship1'
      ship.user_id.should == 5
@@ -25,6 +25,7 @@ describe Manufactured::Ship do
      ship.location.z.should == 0
      ship.type.should == type
      ship.size.should == size
+     ship.hp.should == 50
 
      ship.parent.should == sys
      ship.parent = sys2
@@ -352,6 +353,7 @@ describe Manufactured::Ship do
     cb = Manufactured::Callback.new 'attacked', :endpoint => 'foobar'
     s = Manufactured::Ship.new(:id => 'ship42', :user_id => 420,
                                :type => :frigate, :size => 50, 
+                               :hp   => 500,
                                :solar_system => system1,
                                :location => location,
                                :notifications => [cb])
@@ -368,6 +370,7 @@ describe Manufactured::Ship do
     j.should include('"user_id":420')
     j.should include('"type":"frigate"')
     j.should include('"size":50')
+    j.should include('"hp":500')
     j.should include('"json_class":"Manufactured::Callback"')
     j.should include('"type":"attacked"')
     j.should include('"endpoint":"foobar"')
@@ -382,7 +385,7 @@ describe Manufactured::Ship do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Manufactured::Ship","data":{"type":"frigate","user_id":420,"notifications":[{"json_class":"Manufactured::Callback","data":{"type":"attacked","endpoint":"foobar"}}],"solar_system":{"json_class":"Cosmos::SolarSystem","data":{"star":null,"planets":[],"jump_gates":[],"name":"system1","background":"system1","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true}}}},"size":50,"docked_at":{"json_class":"Manufactured::Station","data":{"type":null,"user_id":null,"solar_system":null,"size":null,"id":"station42","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true}}}},"id":"ship42","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":null,"y":-15,"z":null,"id":20,"restrict_view":true}}}}'
+    j = '{"json_class":"Manufactured::Ship","data":{"type":"frigate","user_id":420,"notifications":[{"json_class":"Manufactured::Callback","data":{"type":"attacked","endpoint":"foobar"}}],"solar_system":{"json_class":"Cosmos::SolarSystem","data":{"star":null,"planets":[],"jump_gates":[],"name":"system1","background":"system1","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true}}}},"size":50,"hp":420,"docked_at":{"json_class":"Manufactured::Station","data":{"type":null,"user_id":null,"solar_system":null,"size":null,"id":"station42","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true}}}},"id":"ship42","location":{"json_class":"Motel::Location","data":{"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"x":null,"y":-15,"z":null,"id":20,"restrict_view":true}}}}'
     s = JSON.parse(j)
 
     s.class.should == Manufactured::Ship
@@ -390,6 +393,7 @@ describe Manufactured::Ship do
     s.user_id.should == 420
     s.type.should == :frigate
     s.size.should == 50
+    s.hp.should == 420
     s.notification_callbacks.size.should == 1
     s.notification_callbacks.first.type == "attacked"
     s.notification_callbacks.first.endpoint_id == "foobar"

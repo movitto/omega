@@ -188,13 +188,13 @@ class Ship
     @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = args[:resources] || args['resources'] || {}
 
-    # TODO make variable
+    # TODO make default values variable
+    @hp           = args[:hp] || args['hp'] || 10
     @movement_speed = 5
     @cargo_capacity = 100
     @attack_distance = 100
     @attack_rate  = 0.5
     @damage_dealt = 2
-    @hp           = 10
     @mining_rate  = 0.10
     @mining_quantity = 20
     @mining_distance = 100
@@ -428,6 +428,7 @@ class Ship
       'data'       =>
         {:id => id, :user_id => user_id,
          :type => type, :size => size,
+         :hp => @hp,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,

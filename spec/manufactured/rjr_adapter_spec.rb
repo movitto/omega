@@ -258,7 +258,7 @@ describe Manufactured::RJRAdapter do
     (@stat1.location - Manufactured::Registry.instance.ships[0].location).should == @stat1.construction_distance
 
     lambda{
-      rship = Omega::Client::Node.invoke_request('manufactured::construct_entity', @stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', 5110)
+      rship = Omega::Client::Node.invoke_request('manufactured::construct_entity', @stat1.id, 'Manufactured::Ship', 'type', 'transport', 'size', 5110, 'hp', 5000)
       rship.should_not be_nil
     }.should_not raise_error
 
@@ -267,6 +267,7 @@ describe Manufactured::RJRAdapter do
     # verify set params
     Manufactured::Registry.instance.ships[1].type.should == :transport
     Manufactured::Registry.instance.ships[1].size.should == Manufactured::Ship::SHIP_SIZES[:transport]
+    Manufactured::Registry.instance.ships[1].hp.should   == 10
   end
 
   it "should permit users with view manufactured_entities or view manufactured_entity-<id> to get_entity" do

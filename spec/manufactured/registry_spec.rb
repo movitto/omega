@@ -315,6 +315,7 @@ describe Manufactured::Registry do
     sys    = Cosmos::SolarSystem.new
     ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
     ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys
+    ship3  = Manufactured::Ship.new :id => 'ship3', :user_id => 'user1', :solar_system => sys
     station  = Manufactured::Station.new :id => 'station', :user_id => 'user1', :solar_system => sys
     fleet  = Manufactured::Fleet.new :id => 'fleet', :user_id => 'user1', :solar_system => sys
 
@@ -325,12 +326,17 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.create fleet
     Manufactured::Registry.instance.children.size.should == 4
 
+    ship3.instance_variable_set(:@hp, 0)
+    Manufactured::Registry.instance.instance_variable_get(:@ship_graveyard) << ship3
+    Manufactured::Registry.instance.graveyard.size.should == 1
+
     sio = StringIO.new
     Manufactured::Registry.instance.save_state(sio)
     s = sio.string
 
     s.should include('"id":"ship1"')
     s.should include('"id":"ship2"')
+    s.should include('"id":"ship3"')
     s.should include('"id":"station"')
     s.should_not include('"id":"fleet"')
   end
@@ -338,7 +344,8 @@ describe Manufactured::Registry do
   it "should restore registered manufactured entities from io object" do
     s = '{"data":{"type":"mining","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"docked_at":null,"size":25,"notifications":[],"id":"ship1","resources":{}},"json_class":"Manufactured::Ship"}' + "\n" +
         '{"data":{"type":"exploration","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"docked_at":null,"size":23,"notifications":[],"id":"ship2","resources":{}},"json_class":"Manufactured::Ship"}' + "\n" +
-        '{"data":{"type":"exploration","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"size":20,"id":"station","resources":{}},"json_class":"Manufactured::Station"}' + "\n"
+        '{"data":{"type":"exploration","user_id":"user1","solar_system":{"data":{"star":null,"planets":[],"background":"system4","jump_gates":[],"remote_queue":null,"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"asteroids":[],"name":null},"json_class":"Cosmos::SolarSystem"},"location":{"data":{"restrict_view":true,"parent_id":null,"restrict_modify":true,"y":0,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"movement_callbacks":[],"children":[],"z":0,"proximity_callbacks":[],"id":null,"x":0},"json_class":"Motel::Location"},"size":20,"id":"station","resources":{}},"json_class":"Manufactured::Station"}' + "\n" +
+        '{"json_class":"Manufactured::Ship","data":{"id":"ship3","user_id":"user1","type":"battlecruiser","size":35,"hp":0,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0,"y":0,"z":0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"remote_queue":null,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"movement_callbacks":[],"proximity_callbacks":[]}},"system_name":null,"resources":{},"notifications":[]}}' + "\n"
     a = s.split "\n"
 
     Manufactured::Registry.instance.restore_state(a)
@@ -348,6 +355,9 @@ describe Manufactured::Registry do
     ids.should include("ship1")
     ids.should include("ship2")
     ids.should include("station")
+
+    gids = Manufactured::Registry.instance.graveyard.collect { |c| c.id }
+    gids.should include("ship3")
   end
 
 end
