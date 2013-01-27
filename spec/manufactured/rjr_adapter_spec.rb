@@ -1021,6 +1021,13 @@ describe Manufactured::RJRAdapter do
 
     Manufactured::Registry.instance.mining_commands.size.should == 1
     Manufactured::Registry.instance.mining_commands.first.last.hooks[:before].size.should == 1
+
+    # ensure subsequent mining commands overrwrite callbacks
+    lambda{
+      rship = Omega::Client::Node.invoke_request('manufactured::start_mining', @ship2.id, @ast1.name, @resource.id)
+      rship.notification_callbacks.size.should == 2
+    }.should_not raise_error
+
     # TODO ensure locations are updated b4 attack cycle?
   end
 
