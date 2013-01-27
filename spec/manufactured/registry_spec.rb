@@ -121,6 +121,29 @@ describe Manufactured::Registry do
     station.should == station1
   end
 
+  it "provide acceses to managed ship graveyard" do
+    system1 = Cosmos::SolarSystem.new :name => 'system1'
+    ship1   = Manufactured::Ship.new :id => 'ship1',
+                           :solar_system => system1,
+                                 :user_id => 'user1'
+
+    Manufactured::Registry.instance.graveyard.size.should == 0
+    Manufactured::Registry.instance.instance_variable_get(:@ship_graveyard) << ship1
+
+    Manufactured::Registry.instance.graveyard.size.should == 1
+    Manufactured::Registry.instance.graveyard.first.should == ship1
+
+    rship = Manufactured::Registry.instance.find(:id => 'ship1')
+    rship.should be_empty
+
+    rship = Manufactured::Registry.instance.find(:id => 'ship1', :include_graveyard => false)
+    rship.should be_empty
+
+    rship = Manufactured::Registry.instance.find(:id => 'ship1', :include_graveyard => true)
+    rship.size.should  == 1
+    rship.first.should == ship1
+  end
+
   it "should permit transferring resources between entities" do
     sys   = Cosmos::SolarSystem.new
     ship  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys
