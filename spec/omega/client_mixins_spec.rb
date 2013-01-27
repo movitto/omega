@@ -112,14 +112,19 @@ describe Omega::Client::RemotelyTrackable do
     TestShip.entity_validation { |e| true }
   end
 
-  it "should allow client to specify additional entity init method" do
-    invoked = 0
+  it "should allow client to specify additional entity init methods" do
+    invoked1 = 0
+    invoked2 = 0
     TestShip.on_init { |e|
-      invoked += 1
+      invoked1 += 1
+    }
+    TestShip.on_init { |e|
+      invoked2 += 1
     }
     ts = TestShip.get(@ship1.id)
     ts.should_not be_nil
-    invoked.should == 1
+    invoked1.should == 1
+    invoked2.should == 1
   end
 
   it "should allow client to specify method to retrieve entity from server" do
