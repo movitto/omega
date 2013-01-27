@@ -157,6 +157,10 @@ describe Manufactured::Ship do
     ship1.can_attack?(ship2).should be_false
     ship1.user_id = 'bob'
 
+    ship1.hp = 0
+    ship1.can_attack?(ship2).should be_false
+    ship1.hp = 50
+
     ship1.can_attack?(ship2).should be_true
   end
 
