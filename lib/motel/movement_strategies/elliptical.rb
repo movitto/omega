@@ -57,7 +57,7 @@ class Elliptical < MovementStrategy
    # @option args [Float] :direction_minor_y y coordinate of minor direction vector
    # @option args [Float] :direction_minor_z z coordinate of minor direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @ortion args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
+   # @option args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
    # @option args [Float] :eccentricity,:e eccentricity to assign to elliptical path
    # @option args [Float] :semi_latus_rectum,:p semi latus rectum to assign to elliptical path
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})

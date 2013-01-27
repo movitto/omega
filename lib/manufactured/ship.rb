@@ -171,6 +171,7 @@ class Ship
   # @option args [Cosmos::ResourceSource] :mining,'mining' resource source which the ship is mining
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
   # @option args [Hash<String,Int>] :resources,'resources' hash of resource ids to quantities contained in the ship
+  # @option args [Float,Int] :hp,'hp' hit points to assign to ship
   # @option args [Cosmos::SolarSystem] :solar_system,'solar_system' solar system which the ship is in
   # @option args [Motel::Location] :location,'location' location of the ship in the solar system
   # @option args [Motel::MovementStrategy] :movement_strategy convenience setter of ship's location's movement strategy

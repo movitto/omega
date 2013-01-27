@@ -42,6 +42,11 @@ module Omega
                          :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
                                              :notification => "manufactured::event_occurred" }
 
+      # Run proximity checks via an external thread for all corvettes
+      # upon first corvette intialization
+      #
+      # TODO introduce a centralized entity thread & cycling management system
+      # in node / mixins and utilize that here
       on_init { |corvette|
         @@corvettes ||= []
         @@corvettes << corvette
@@ -67,9 +72,6 @@ module Omega
 
       # Internal helper, calculate an inter-system route to patrol
       # and move through it.
-      #
-      # Periodically will check nearby locations for enemies
-      # @see check_proximity below
       def patrol_route
         # add local system to visited list
         @visited << self.solar_system unless @visited.include?(self.solar_system)

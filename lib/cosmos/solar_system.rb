@@ -54,6 +54,7 @@ class SolarSystem
   # @option args [Array<Cosmos::JumpGate>] 'jump_gates' array of jump gates to assign to solar system
   # @option args [Array<Cosmos::Asteroid>] 'asteroids' array of asteroids to assign to solar system
   # @option args [String] :remote_queue,'remote_queue' remote_queue to assign to solar system if any
+  # @option args [String] :background,'background' background to assign to the solar system (else randomly generated)
   def initialize(args = {})
     @name       = args['name']       || args[:name]
     @location   = args['location']   || args[:location]

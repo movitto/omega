@@ -50,9 +50,14 @@ var OmegaEvent = {
 
   /////////////////////////////////////// Movement Event
 
+  /* Motel Location movement
+   */
   movement : {
     handled : false,
 
+    /* Handle to motel::on_movement events,
+     * upon receiving look up local entity and invoking 'moved' on it.
+     */
     handle  : function(){
       if(OmegaEvent.movement.handled) return;
       OmegaEvent.movement.handled = true;
@@ -77,6 +82,8 @@ var OmegaEvent = {
       });
     },
 
+    /* Subscribe to motel movement events for the specified location_id / min distance
+     */
     subscribe : function(location_id, distance){
       OmegaEvent.movement.handle();
       $omega_node.ws_request('motel::track_movement', location_id, distance, null);
@@ -85,9 +92,15 @@ var OmegaEvent = {
 
   /////////////////////////////////////// Mining Events
 
+  /* Manufactured Ship mining events
+   */
   mining : {
     handled : false,
 
+    /* Handle mining related manufactured::event_occured callbacks.
+     *
+     * Updates client side entity and animate scene.
+     */
     handle : function(){
       if(OmegaEvent.mining.handled) return;
       OmegaEvent.mining.handled = true;
@@ -110,6 +123,8 @@ var OmegaEvent = {
       });
     },
 
+    /* Subscribe to motel mining events for the specified ship
+     */
     subscribe : function(ship_id){
       OmegaEvent.mining.handle();
       $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'resource_collected', null);
@@ -119,9 +134,15 @@ var OmegaEvent = {
 
   /////////////////////////////////////// Attacked Events
 
+  /* Manufactured Ship attacked events
+   */
   attacked : {
     handled : false,
 
+    /* Handle attacked related manufactured::event_occured callbacks.
+     *
+     * Updates client side entities and animate scene.
+     */
     handle : function(){
       if(OmegaEvent.attacked.handled) return;
       OmegaEvent.attacked.handled = true;
@@ -144,6 +165,8 @@ var OmegaEvent = {
       });
     },
 
+    /* Subscribe to motel attacked events for the specified ship
+     */
     subscribe : function(ship_id){
       OmegaEvent.attacked.handle();
       $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'attacked',      null);
@@ -153,9 +176,15 @@ var OmegaEvent = {
 
   /////////////////////////////////////// Defended Events
 
+  /* Manufactured Ship defended events
+   */
   defended : {
     handled : false,
 
+    /* Handle defended related manufactured::event_occured callbacks.
+     *
+     * Updates client side entities and animate scene.
+     */
     handle : function(){
       if(OmegaEvent.defended.handled) return;
       OmegaEvent.defended.handled = true;
@@ -187,6 +216,8 @@ var OmegaEvent = {
       });
     },
 
+    /* Subscribe to motel defended events for the specified ship
+     */
     subscribe : function(ship_id){
       OmegaEvent.defended.handle();
       $omega_node.ws_request('manufactured::subscribe_to', ship_id, 'defended',      null);

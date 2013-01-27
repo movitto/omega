@@ -18,6 +18,9 @@ function OmegaSelection(){
 
   /////////////////////////////////////// public methods
 
+  /* Return boolean indicating if entity specified by id
+   * is currently selected
+   */
   this.is_selected = function(entity_id){
     for(var se in selected_entities){
       if(selected_entities[se] == entity_id)
@@ -27,12 +30,16 @@ function OmegaSelection(){
     return false;
   }
 
+  /* Select entity specified by id
+   */
   this.select = function(entity_id){
     if(this.is_selected(entity_id))
       return;
     selected_entities.push(entity_id);
   }
 
+  /* Unselect entity specified by id
+   */
   this.unselect = function(entity_id){
     for(var index in selected_entities){
       if(selected_entities[index] == entity_id){
@@ -42,7 +49,10 @@ function OmegaSelection(){
     }
   }
 
-  // XXX might not be best to expose a 'single' selection, but works for now
+  /* Return the first selected item entity
+   *
+   * XXX might not be best to expose a 'single' selection, but works for now
+   */
   this.selected = function(){
     return selected_entities[0];
   }
@@ -101,6 +111,8 @@ function OmegaScene(){
 
   /////////////////////////////////////// private methods
 
+  /* Clear all entities tracked by scene
+   */
   var clear = function(){
     for(var entity in entities){
       entity = entities[entity]
@@ -117,14 +129,26 @@ function OmegaScene(){
 
   /////////////////////////////////////// public methods
 
+  /* Clear all scene changed callbacks
+   */
   this.clear_callbacks = function(){
     scene_changed_callbacks = {};
   }
 
+  /* Register callback to be invoked on scene change.
+   *
+   * A callback id should be specified to track the callback,
+   * overwriting a previously assigned callback w/ the same id
+   */
   this.on_scene_change = function(callback_id, callback){
     scene_changed_callbacks[callback_id] = callback;
   }
 
+  /* Set root entity of the scene.
+   *
+   * Children will be iterated over and added to scene one by one.
+   * Scene changed callbacks will be invoked and scene animated
+   */
   this.set_root = function(entity){
     root_entity = entity;
     $omega_canvas.set_background(entity);
@@ -148,28 +172,44 @@ function OmegaScene(){
     this.animate();
   }
 
+  /* Return root entity of the scene
+   */
   this.get_root = function(){
     return root_entity;
   }
 
+  /* Refresh entities in the current scene
+   */
   this.refresh = function(){
     this.set_root(root_entity);
   }
 
+  /* Return boolean indicating in current scene
+   * has the specified entity
+   */
   this.has = function(entity){
     return entities[entity.id] != null;
   }
 
+  /* Add specified entity to scene
+   */
   this.add_entity = function(entity){
     entity.load();
     entities[entity.id] = entity;
   }
 
-  // XXX would like to remove this
+  /* Add specified scene object to backend three.js scene
+   *
+   * XXX would like to remove this or mark private
+   */
   this.add = function(scene_obj){
     _scene.add(scene_obj);
   }
 
+  /* Remove the entity specifed by entity_id from the scene.
+   *
+   * Will delete all scene objects corresponding to entity
+   */
   this.remove = function(entity_id){
     var entity = entities[entity_id];
     if(entity == null)
@@ -184,6 +224,10 @@ function OmegaScene(){
     delete entities[entity_id];
   }
 
+  /* Manually reload the specified entity in the scene.
+   *
+   * Removes it and readds if appropriate before animating scene
+   */
   this.reload = function(entity){
     // remove entity from scene
     this.remove(entity.id);
@@ -199,26 +243,41 @@ function OmegaScene(){
   }
 
 
+  /* Request animation frame
+   */
   this.animate = function(){
     requestAnimationFrame(this.render);
   }
 
+  /* Internal helper to render scene.
+   *
+   * !private shouldn't be called by end user!
+   */
   this.render = function(){
     if(typeof($omega_camera) !== "undefined") // XXX hack shouldn't need conditional
       _renderer.render(_scene, $omega_camera.scene_camera());
   }
 
-  // XXX camera requries access to scene position
+  /* Return the position of the backend scene
+   *
+   * XXX camera requries access to scene position
+   */
   this.position = function(){
     return _scene.position;
   }
 
-  // XXX canvas clicked handler request access to scene objects
+  /* Return all scene objects in the scene
+   *
+   * XXX canvas clicked handler request access to scene objects
+   */
   this.scene_objects = function(){
     return _scene.__objects;
   }
 
-  // XXX canvas clicked handler requires scene entities
+  /* Return all entities in the scene
+   *
+   * XXX canvas clicked handler requires scene entities
+   */
   this.entities = function(){
     return entities;
   }

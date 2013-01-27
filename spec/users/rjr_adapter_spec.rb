@@ -221,6 +221,7 @@ describe Users::RJRAdapter do
   # TODO
   # send_message
   # subscribe_to_messages
+  # get_messages
 
   it "should permit a user with valid credentials to login and logout" do
     nu1 = Users::User.new :id => 'user44', :password => 'foobar'

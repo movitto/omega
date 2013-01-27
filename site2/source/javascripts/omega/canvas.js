@@ -26,6 +26,11 @@ function OmegaCamera(){
 
   /////////////////////////////////////// public methods
 
+  /* Set/get the camera position.
+   *
+   * Takes option position param to set camera position
+   * before returning current camera position.
+   */
   this.position = function(position){
     if(position && position.x)
       _camera.position.x = position.x;
@@ -41,6 +46,9 @@ function OmegaCamera(){
             z : _camera.position.z};
   }
 
+  /* Zoom the Omega Camera the specified distance from its
+   * current position. Camera currently always faces origin.
+   */
   this.zoom = function(distance){
     var x = _camera.position.x,
         y = _camera.position.y,
@@ -64,6 +72,10 @@ function OmegaCamera(){
     $omega_scene.animate();
   }
 
+  /* Rotate the camera using a spherical coordiante system.
+   * Specify the number of theta and phi degrees to rotate
+   * the camera from its current position
+   */
   this.rotate = function(theta_distance, phi_distance){
     var x = _camera.position.x,
         y = _camera.position.y,
@@ -154,16 +166,23 @@ function OmegaGrid(){
 
   /////////////////////////////////////// public methods
 
+  /* Show the Canvas Grid
+   */
   this.show = function(){
     $omega_scene.add( grid_line );
     showing_grid = true;
   }
 
+  /* Hide the Canvas Grid
+   */
   this.hide = function(){
     $omega_scene._scene.remove(grid_line);
     showing_grid = false;
   }
 
+  /* Toggle showing/hiding the canvas grid based
+   * on checked attribute of the '#toggle_grid_canvas' input
+   */
   this.toggle = function(){
     var toggle_grid = $('#toggle_grid_canvas');
     if(toggle_grid){
@@ -176,6 +195,8 @@ function OmegaGrid(){
   }
 
   /////////////////////////////////////// initialization
+
+  // create line representing entire grid
 
   for ( var i = - size; i <= size; i += step ) {
     for ( var j = - size; j <= size; j += step ) {
@@ -267,6 +288,8 @@ function OmegaEntityContainer(){
     display: 'none'
   });
 
+  // wire up enitity container close button
+
   $('#entity_container_close').live('click', function(e){
     $omega_entity_container.hide();
   });
@@ -324,6 +347,8 @@ function OmegaEntitiesContainer(){
     }
   };
 
+  // wire up various entities containers to their respective actions
+
   $('#locations_list li').live('click', function(event){ 
     var entity_id = $(event.currentTarget).attr('name');
     $omega_scene.set_root($omega_registry.get(entity_id));
@@ -337,7 +362,7 @@ function OmegaEntitiesContainer(){
     // TODO
   });
 
-  // wire up entities container controls
+  // XXX hack so entity always appears over canvas
 
   $('.entities_container').live('mouseenter', function(e){
     var container = $(e.currentTarget).attr('id');
