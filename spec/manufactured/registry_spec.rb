@@ -209,7 +209,10 @@ describe Manufactured::Registry do
     before_hook = lambda { |cmd| before_hook_called = true }
 
     Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender, :before => before_hook
-    sleep 3
+    sleep 1
+    attacker.attacking?.should be_true
+    sleep 2
+    attacker.attacking?.should be_false
 
     Manufactured::Registry.instance.ships.should_not include(defender)
     Manufactured::Registry.instance.ship_graveyard.should include(defender)

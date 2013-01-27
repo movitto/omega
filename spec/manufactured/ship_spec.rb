@@ -95,6 +95,16 @@ describe Manufactured::Ship do
     ship.valid?.should be_true
     ship.start_mining(nil)
 
+    ship.type = :corvette
+    ship.size = Manufactured::Ship::SHIP_SIZES[:corvette]
+    ship.start_attacking(false)
+    ship.valid?.should be_false
+
+    ship2 = Manufactured::Ship.new :location => ship.location
+    ship.start_attacking(ship2)
+    ship.valid?.should be_true
+    ship.start_attacking(nil)
+
     #ship.location.x = 500
     #ship.valid?.should be_false
     #ship.location.x = 0
@@ -251,6 +261,22 @@ describe Manufactured::Ship do
     ship.mining.should be_nil
   end
 
+  it "should be permit attacking ships" do
+    ship1   = Manufactured::Ship.new :id => 'ship1'
+    ship2   = Manufactured::Ship.new :id => 'ship2'
+
+    ship1.attacking?.should be_false
+    ship1.attacking.should be_nil
+
+    ship1.start_attacking(ship2)
+    ship1.attacking?.should be_true
+    ship1.attacking.should == ship2
+
+    ship1.stop_attacking
+    ship1.attacking?.should be_false
+    ship1.attacking.should be_nil
+  end
+
   it "should permit storing resources locally" do
     ship   = Manufactured::Ship.new :id => 'ship1'
     ship.resources.should be_empty
@@ -364,6 +390,10 @@ describe Manufactured::Ship do
     res = Cosmos::ResourceSource.new(:id => 'res1')
     s.start_mining(res)
 
+    s2 = Manufactured::Ship.new :id => 'ship52'
+    s.start_attacking(s2)
+
+
     j = s.to_json
     j.should include('"json_class":"Manufactured::Ship"')
     j.should include('"id":"ship42"')
@@ -378,6 +408,8 @@ describe Manufactured::Ship do
     j.should include('"id":"station42"')
     j.should include('"json_class":"Cosmos::ResourceSource"')
     j.should include('"id":"res1"')
+    j.should include('"json_class":"Manufactured::Ship"')
+    j.should include('"id":"ship52"')
     j.should include('"json_class":"Motel::Location"')
     j.should include('"id":20')
     j.should include('"y":-15')
