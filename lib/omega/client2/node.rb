@@ -80,7 +80,10 @@ module Omega
       end
 
       # Invalidate specified catched attribute, forcing refresh
-      # on next request
+      # on next request.
+      #
+      # @param [String] entity_id id of the entity whose attribute is to be invalidated
+      # @param [Symbol] attribute entity attribute to invalidate
       def self.invalidate(entity_id, attribute)
         self.timestamp(entity_id, attribute, nil)
       end
@@ -165,22 +168,10 @@ module Omega
         @event_queue    = Queue.new
         @lock           = Mutex.new
 
-        @entity_event_queues  = Array.new(5)
+        @entity_event_queues  = Array.new(5) { |i| Queue.new }
         @entity_event_threads = Array.new(5)
         @queue_mappings = {}
         @queue_index = 0
-      end
-
-      def event_queue_for(entity_id)
-        @lock.synchronize {
-          if @queue_mappings[entity_id].nil?
-            @queue_mappings[entity_id] = @queue_index
-            @queue_index += 1
-            @queue_index = 0 if @queue_index > @entity_event_queues.size - 1
-          end
-
-          @queue_mappings[entity_id]
-        }
       end
 
       # Set the RJR::Node used to communicated w/ the server.
@@ -362,6 +353,8 @@ module Omega
         process_events
       end
 
+      # FIXME 'stop' method to terminate event_thread and entity_event_threads
+
       # Register the block to be invoked upon the specified event
       # being raised for the specified entity.
       #
@@ -482,6 +475,23 @@ module Omega
 
       private
 
+      # Return index of entity_event_queues used to handle events
+      # for the entity specified by entity_id.
+      #
+      # Will assign queues in a a round robin fashion for entities
+      # which have not been mapped to queues yet
+      def event_queue_for(entity_id)
+        @lock.synchronize {
+          if @queue_mappings[entity_id].nil?
+            @queue_mappings[entity_id] = @queue_index
+            @queue_index += 1
+            @queue_index = 0 if @queue_index > @entity_event_queues.size - 1
+          end
+
+          @queue_mappings[entity_id]
+        }
+      end
+
       # Run the event loop if not already running
       def process_events
         return if @event_cycle
@@ -495,7 +505,6 @@ module Omega
             entity_id = id_from_event_args(eargs)  # extract id
 
             queue_index = Node.event_queue_for(entity_id)
-            @entity_event_queues[queue_index] ||= Queue.new
             @entity_event_queues[queue_index]  << [entity_id, emethod, eargs]
 
             @entity_event_threads[queue_index] ||= Thread.new(queue_index){ |tqueue_index|
@@ -514,7 +523,7 @@ module Omega
                     cb.call(*teargs)
                   rescue Exception => e
                     # TODO how to handle?
-                    puts "err #{e} \n#{e.backtrace.join("\n")}".bold
+                    #puts "err #{e} \n#{e.backtrace.join("\n")}".bold
                   end
                 }
               end

@@ -378,6 +378,8 @@ class Station
       entity.location.parent = self.location.parent
       entity.location.parent_id = self.location.parent.id
 
+      entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+
       # allow user to specify coordinates unless too far away
       # in which case, construct at closest location to specified location withing construction distance
       distance = entity.location - self.location
