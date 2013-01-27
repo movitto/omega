@@ -43,10 +43,10 @@ module Omega
                                              :notification => "manufactured::event_occurred" }
 
       on_init { |corvette|
-        @corvettes ||= []
-        @corvettes << corvette
+        @@corvettes ||= []
+        @@corvettes << corvette
 
-        @proximity_thread ||= Thread.new {
+        @@proximity_thread ||= Thread.new {
           while true
             @corvettes.each { |c|
               c.check_proximity

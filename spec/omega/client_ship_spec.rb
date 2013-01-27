@@ -131,7 +131,9 @@ describe Omega::Client::Miner do
     cstat6.resources.keys.should include('metal-steel')
     cstat6.resources['metal-steel'].should == 100
     invoked.should == false
-    # TODO test moving to next mining target?
+
+    # ensure moving to next mining target
+    cship6.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
   end
 
   it "should move to offload resources" do
@@ -197,6 +199,44 @@ describe Omega::Client::Miner do
     cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
     # TODO sleep & then verify mining
   end
+
+  it "should offload resource when starting w/ full cargo" do
+    # load client entities
+    cstat6 = Omega::Client::Station.get('station6')
+    cship6 = Omega::Client::Miner.get('ship6')
+    cship6.should_receive(:offload_resources)
+
+    cship6.start_bot
+  end
+
+  it "should select target when starting w/out full cargo" do
+    # load client entities
+    cstat5 = Omega::Client::Station.get('station5')
+    cship3 = Omega::Client::Miner.get('ship3')
+    cship3.should_receive(:select_target)
+
+    cship3.start_bot
+  end
+
+  it "should offload resources on mining stopped" do
+    # load client entities
+    cstat6 = Omega::Client::Station.get('station6')
+    cship6 = Omega::Client::Miner.get('ship6')
+    cship6.should_receive(:offload_resources)
+    cship6.start_bot
+    Omega::Client::Node.raise_event(:mining_stopped, 'cargo_full', cship6, nil)
+  end
+
+  it "should handle mining errors" do
+    # load client entities
+    cship7 = Omega::Client::Miner.get('ship7')
+
+    cship7.select_target
+
+    Cosmos::Registry.instance.set_resource(cship7.mining.entity.name, cship7.mining.resource, 0)
+    cship7.should_receive(:select_target)
+    cship7.select_target
+  end
 end
 
 describe Omega::Client::Corvette do
@@ -240,4 +280,12 @@ describe Omega::Client::Corvette do
     # TODO test attacked events
     # TODO resume patrol route after attack_stop
   end
+
+  it "should start proximity loop" do
+    cship4 = Omega::Client::Corvette.get('ship4')
+    Omega::Client::Corvette.class_variable_get(:@@corvettes).should include(cship4)
+    Omega::Client::Corvette.class_variable_get(:@@proximity_thread).should_not be_nil
+    # TODO ensure check_proximity is actually being called
+  end
+
 end
