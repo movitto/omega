@@ -272,22 +272,44 @@ function OmegaEntity(entity){
 
   /////////////////////////////////////// public methods
 
+  /* Load the local entity's representation, invoked
+   * when the entity is retrieved from the server.
+   *
+   * Invoked on_load callback if set.
+   */
   this.load = function(){
     if(this.on_load) this.on_load();
   }
 
+  /* Called when local entity's representation was clicked.
+   *
+   * Invoked on_clicked callback if set.
+   */
   this.clicked = function(){
     if(this.on_clicked) this.on_clicked();
   }
 
+  /* Called when a location moved.
+   *
+   * Invoked on_movement callback if set.
+   */
   this.moved = function(){
     if(this.on_movement) this.on_movement();
   }
 
+  /* Return boolean indicating if entity's json_class
+   * is equal to the specified type
+   */
   this.is_a = function(type){
     return this.json_class == type;
   };
 
+  /* Return boolean indicating if entity's user_id
+   * is equal to the specified one.
+   *
+   * Make sure 'user_id' is an attribute of the local
+   * entity before invoking
+   */
   this.belongs_to_user = function(user_id){
     return this.user_id == user_id;
   };
@@ -308,30 +330,42 @@ function OmegaLocation(loc){
 
   /////////////////////////////////////// public methods
 
+  /* Return distance location is from the specified x,y,z
+   * coordinates
+   */
   this.distance_from = function(x, y, z){
     return Math.sqrt(Math.pow(this.x - x, 2) +
                      Math.pow(this.y - y, 2) +
                      Math.pow(this.z - z, 2));
   };
 
+  /* Return boolean indicating if location is less than the
+   * specified distance from the specified location
+   */
   this.is_within = function(distance, loc){
     if(this.parent_id != loc.parent_id)
       return false 
     return  this.distance_from(loc.x, loc.y, loc.z) < distance;
   };
 
+  /* Convert location to short, human readable string
+   */
   this.to_s = function(){
     return roundTo(this.x, 2) + "/" +
            roundTo(this.y, 2) + "/" +
            roundTo(this.z, 2);
   }
 
+  /* Convert location to json representation and return it
+   */
   this.toJSON = function(){
     return new JRObject("Motel::Location", this,
        ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
         "movement_callbacks", "proximity_callbacks"]).toJSON();
   };
 
+  /* Create a new location, copy local location attributes, and return it
+   */
   this.clone = function(){
     var nloc = { id                : this.id,
                  x                 : this.x ,
@@ -355,12 +389,17 @@ function OmegaGalaxy(galaxy){
 
   /////////////////////////////////////// public methods
 
+  /* Returns array of all children of galaxy
+   */
   this.children = function(){
     return this.solar_systems;
   }
 
 }
 
+/* Helper class method to return cached galaxy specified by name
+ * or to retrieve galaxy from server if it does not exist clientside
+ */
 OmegaGalaxy.cached = function(name, retrieved){
   var retrieval = function(name, retrieved){
     OmegaQuery.galaxy_with_name(name, retrieved);
@@ -378,6 +417,8 @@ function OmegaSolarSystem(system){
 
   /////////////////////////////////////// public methods
 
+  /* Returns array of all children of solar system
+   */
   this.children = function(){
     var system   = this;
     var ships    = $omega_registry.select([function(e){ return e.system_name == system.name &&
@@ -395,6 +436,12 @@ function OmegaSolarSystem(system){
 
   /////////////////////////////////////// private methods
 
+
+  /* on_load callback, invoked whenever system is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene
+   */
   this.on_load = function(){
     //for(var j=0; j<this.jump_gates.length;++j){
     //  var jg = this.jump_gates[j];
@@ -432,11 +479,18 @@ function OmegaSolarSystem(system){
     $omega_scene.add(text);
   }
 
+  /* on_clicked callback, invoked when system sphere is clicked on canvas
+   *
+   * Sets scene root entity to clicked system
+   */
   this.on_clicked = function(){
     $omega_scene.set_root($omega_registry.get(this.id));
   }
 }
 
+/* Helper class method to return cached solar system specified by name
+ * or to retrieve solar system from server if it does not exist clientside
+ */
 OmegaSolarSystem.cached = function(name, retrieved){
   var retrieval = function(name, retrieved){
     OmegaQuery.system_with_name(name, retrieved);
@@ -455,6 +509,11 @@ function OmegaStar(star){
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever star is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene
+   */
   this.on_load = function(){
     var radius = this.size, segments = 32, rings = 32;
 
@@ -486,12 +545,19 @@ function OmegaPlanet(planet){
 
   /////////////////////////////////////// public methods
 
+  /* Returns array of all children of planet
+   */
   this.children = function(){
     return this.moons;
   }
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever planet is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene
+   */
   this.on_load = function(){
     // draw sphere representing planet
     var radius = this.size, segments = 32, rings = 32;
@@ -549,6 +615,10 @@ function OmegaPlanet(planet){
     OmegaEvent.movement.subscribe(this.location.id, 120);
   }
 
+  /* Calculate and cache the planet's orbit given its movement strategy.
+   *
+   * This doesn't change so can just be calculated and stored.
+   */
   this.calc_orbit = function(){
     this.orbit = [];
 
@@ -590,6 +660,11 @@ function OmegaPlanet(planet){
     }
   }
 
+  /* on_movement callback, invoked whenever planet moves the tracked distance
+   * along its orbit.
+   *
+   * Updates the three.js scene objects
+   */
   this.on_movement = function(){
     // first scene obj is the planet's sphere
 
@@ -621,6 +696,11 @@ function OmegaPlanet(planet){
     }
   }
 
+  /* Manually move the planet, can be used to manually sync the planet
+   * w/ its orbit inbetween on_movement updates subscribed to on the server.
+   *
+   * See 'cache_movement' below
+   */
   this.move = function(){
     var now = (new Date()).getTime() / 1000;
 
@@ -646,9 +726,14 @@ function OmegaPlanet(planet){
   }
 }
 
-// Mechanism to move planet around orbit on client side
-// inbetween server syncronizations
+/* Planet movement loop global lock, see cache_movement below
+ */
 OmegaPlanet.movement_cached = false;
+
+/* Track and manually planet movement inbetween on_movement callbacks.
+ *
+ * Automatically tracks all planets in a scene upon every scene change.
+ */
 OmegaPlanet.cache_movement  = function(){
   if(OmegaPlanet.movement_cached) return;
   OmegaPlanet.movement_cached = true;
@@ -680,6 +765,11 @@ function OmegaAsteroid(asteroid){
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever planet is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene
+   */
   this.on_load = function(){
     var text = new THREE.Mesh($omega_scene.geometries['asteroid'],
                               $omega_scene.materials['asteroid']   );
@@ -693,6 +783,11 @@ function OmegaAsteroid(asteroid){
     $omega_scene.add(text);
   }
 
+  /* on_clicked callback, invoked when asteroid is clicked on canvas
+   *
+   * Pops up entity container w/ asteroid infromation, retreiving resource
+   * sources from server
+   */
   this.on_clicked = function(){
     var details = ['Asteroid: ' + this.name + "<br/>",
                    '@ ' + this.location.to_s() + '<br/>',
@@ -723,6 +818,13 @@ function OmegaJumpGate(jump_gate){
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever system is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene.
+   * If jump gate is selected draw sphere corresponding to the trigger
+   * distance around the jump gate.
+   */
   this.on_load = function(){
     var geometry = new THREE.PlaneGeometry( 50, 50 );
     var material = $omega_scene.materials['jump_gate']
@@ -752,6 +854,9 @@ function OmegaJumpGate(jump_gate){
     }
   }
 
+  /* on_unselected callback, invoked when entity_container is closed
+   * when jump gate is selected
+   */
   var on_unselected = function(){
     var selected_id = $omega_scene.selection.selected()
     $omega_scene.selection.unselect(selected_id);
@@ -759,6 +864,9 @@ function OmegaJumpGate(jump_gate){
     $omega_entity_container.on_closed(null);
   }
 
+  /* on_clicked callback, invoked when jump gate is clicked on canvas
+   *
+   */
   this.on_clicked = function(){
     var details = ['Jump Gate to ' + this.endpoint + '<br/>',
                    '@ ' + this.location.to_s() + "<br/><br/>",
@@ -784,6 +892,12 @@ function OmegaShip(ship){
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever ship is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene.
+   * Ship appearance can vary depending on ship's attributes and actions
+   */
   this.on_load = function(){
     // do not load if ship is destroyed
     if(this.hp <= 0) return;
@@ -880,6 +994,9 @@ function OmegaShip(ship){
     OmegaEvent.defended.subscribe(this.id);
   }
 
+  /* on_unselected callback, invoked when entity_container is closed
+   * when ship is selected
+   */
   var on_unselected = function(){
     var selected_id = $omega_scene.selection.selected()
     $omega_scene.selection.unselect(selected_id);
@@ -887,6 +1004,10 @@ function OmegaShip(ship){
     $omega_entity_container.on_closed(null);
   }
 
+  /* on_clicked callback, invoked when ship is clicked on canvas
+   *
+   * Pops up entity container w/ ship infromation and actions
+   */
   this.on_clicked = function(){
     var rstxt = 'Resources: <br/>';
     for(var r in this.resources){
@@ -923,6 +1044,10 @@ function OmegaShip(ship){
     $omega_scene.reload(this);
   }
 
+  /* on_movement callback, invoked whenever ship moves the tracked distance
+   *
+   * Updates the three.js scene objects
+   */
   this.on_movement = function(){
     // scene_objects 1 & 3 are the line geometries (update vertices)
     this.scene_objs[1].vertices[0].x = this.location.x - this.size/2;
@@ -964,6 +1089,12 @@ function OmegaStation(station){
 
   /////////////////////////////////////// private methods
 
+  /* on_load callback, invoked whenever ship is loaded
+   * from the server.
+   *
+   * Instantiates three.js scene objects and adds them to global scene.
+   * Station's appearance can vary depending on station's attributes and actions
+   */
   this.on_load = function(){
     var color = '0x';
     if($omega_scene.selection.is_selected(this.id))
@@ -1017,6 +1148,9 @@ function OmegaStation(station){
     this.clickable_obj = mesh;
   }
 
+  /* on_unselected callback, invoked when entity_container is closed
+   * when station is selected
+   */
   var on_unselected = function(){
     var selected_id = $omega_scene.selection.selected()
     $omega_scene.selection.unselect(selected_id);
@@ -1024,6 +1158,10 @@ function OmegaStation(station){
     $omega_entity_container.on_closed(null);
   }
 
+  /* on_clicked callback, invoked when station is clicked on canvas
+   *
+   * Pops up entity container w/ station infromation and actions
+   */
   this.on_clicked = function(){
     var rstxt = 'Resources: <br/>';
     for(var r in this.resources){
