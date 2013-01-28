@@ -218,10 +218,70 @@ describe Users::RJRAdapter do
     ru.password.should be_nil
   end
 
-  # TODO
   # send_message
+  it "should permit a user with modify users to send chat message" do
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::send_message', 'send-test-message')
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('modify', 'users')
+
+    lambda{
+      Omega::Client::Node.invoke_request('users::send_message', 'send-test-message')
+    }.should_not raise_error
+
+    Users::ChatProxy.proxy_for(TestUser.id).messages.should include("send-test-message")
+  end
+
+  #  TODO does chat proxy for TestUser actual work?
   # subscribe_to_messages
+  #it "should permit a user with view user_entities to receive message" do
+  #  proxy1 = Users::ChatProxy.proxy_for 'rjrusetes'
+  #  proxy1.connect
+  #  sleep 3 until proxy1.connected && proxy1.inchannel
+
+  #  invoked = false
+  #  RJR::Dispatcher.add_handler("users::on_message") { |msg|
+  #    msg.nick.should == "rjrusetes"
+  #    msg.message.should == "receive-test-message"
+  #    invoked = true
+  #  }
+
+  #  # insufficient permissions
+  #  lambda{
+  #    Omega::Client::Node.invoke_request('users::subscribe_to_messages')
+  #  #}.should raise_error(Omega::PermissionError)
+  #  }.should raise_error(Exception)
+
+  #  TestUser.add_privilege('view', 'users_entities')
+
+  #  lambda{
+  #    Omega::Client::Node.invoke_request('users::subscribe_to_messages')
+  #  }.should_not raise_error
+
+  #  proxy1.proxy_message('receive-test-message')
+  #  invoked.should be_true
+  #end
+
   # get_messages
+  it "should permit a user with view user_entities to get message" do
+    Users::ChatProxy.proxy_for(TestUser.id).messages << "test-message"
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::get_messages')
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('view', 'users_entities')
+
+    lambda{
+      messages = Omega::Client::Node.invoke_request('users::get_messages')
+      messages.should include("test-message")
+    }.should_not raise_error
+  end
 
   it "should permit a user with valid credentials to login and logout" do
     nu1 = Users::User.new :id => 'user44', :password => 'foobar'

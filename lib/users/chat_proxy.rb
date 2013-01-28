@@ -94,9 +94,9 @@ class ChatProxy
     #
     # @param [Omega::Config] config object containing config options
     def set_config(config)
-      self.default_irc_server  = config.default_irc_server
-      self.default_irc_port    = config.default_irc_port
-      self.default_irc_channel = config.default_irc_channel
+      self.default_irc_server  = config.irc_server
+      self.default_irc_port    = config.irc_port
+      self.default_irc_channel = config.irc_channel
     end
 
     # @!endgroup
@@ -113,6 +113,11 @@ class ChatProxy
     @@proxies ||= {}
     @@proxies[user] = ChatProxy.new user unless @@proxies.has_key?(user)
     return @@proxies[user]
+  end
+
+  # Clear chat proxies for all users
+  def self.clear
+    @@proxies = {}
   end
 
   # ChatProxy initializer.
@@ -149,10 +154,10 @@ class ChatProxy
         proxy.inchannel = true
       end
       on :channel do
+        cm = ChatMessage.new :message => message, :nick => nick
         proxy = ChatProxy.proxy_for(user)
+        proxy.messages << message
         proxy.callbacks.each { |c|
-          @messages << message
-          cm = ChatMessage.new :message => message, :nick => nick
           c.handler.call cm
         }
       end
