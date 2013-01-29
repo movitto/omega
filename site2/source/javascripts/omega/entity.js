@@ -459,22 +459,25 @@ function OmegaSolarSystem(system){
     //}
     
     // draw sphere representing system
-    var radius = system.size, segments = 32, rings = 32;
-    var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings), $omega_scene.materials['system']);
+    var radius   = system.size, segments = 32, rings = 32;
+    var geometry = new THREE.SphereGeometry(radius, segments, rings);
+    var sphere   = new THREE.Mesh(geometry, $omega_scene.materials['system']);
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z ;
+    sphere.omega_id   = this.name + '-sphere';
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
     $omega_scene.add(sphere);
 
     // draw label
     var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
-    var text = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
+    var text   = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
     text.position.x = this.location.x - 50;
     text.position.y = this.location.y - 50;
     text.position.z = this.location.z - 50;
     text.lookAt($omega_camera.position()); // XXX dependency on omega_camera
+    text.omega_id = this.name + "-text";
     this.scene_objs.push(text);
     $omega_scene.add(text);
   }
@@ -528,6 +531,7 @@ function OmegaStar(star){
     sphere.position.x = this.location.x ;
     sphere.position.y = this.location.y ;
     sphere.position.z = this.location.z ;
+    sphere.omega_id   = this.name + "-sphere";
 
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
@@ -575,6 +579,7 @@ function OmegaPlanet(planet){
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z;
+    sphere.omega_id   = this.name + '-sphere';
 
     this.clickable_obj = sphere;
     this.scene_objs.push(sphere);
@@ -606,6 +611,7 @@ function OmegaPlanet(planet){
       sphere.position.x = this.location.x + moon.location.x;
       sphere.position.y = this.location.y + moon.location.y;
       sphere.position.z = this.location.z + moon.location.z;
+      sphere.omega_id   = moon.name + '-sphere';
 
       this.scene_objs.push(sphere);
       $omega_scene.add(sphere);
@@ -777,6 +783,7 @@ function OmegaAsteroid(asteroid){
     text.position.x = this.location.x;
     text.position.y = this.location.y;
     text.position.z = this.location.z;
+    text.omega_id = this.name + '-text';
 
     this.clickable_obj = text;
     this.scene_objs.push(text);
@@ -831,6 +838,7 @@ function OmegaJumpGate(jump_gate){
     var mesh     = new THREE.Mesh(geometry, material);
 
     mesh.position.set( this.location.x, this.location.y, this.location.z );
+    //mesh.omega_id = // TODO
     this.scene_objs.push(mesh);
     this.scene_objs.push(geometry);
     $omega_scene.add( mesh );
@@ -1119,6 +1127,7 @@ function OmegaStation(station){
 
     var line = new THREE.Line(geometry, material);
     this.scene_objs.push(line);
+    this.scene_objs.push(geometry);
     $omega_scene.add(line);
 
     geometry = new THREE.Geometry();

@@ -110,9 +110,11 @@ function OmegaCamera(){
   }
 
   // XXX OmegaScene and canvas clicked handler requires access to three.js camera
+  //     canvas_to_xy in tests/setup.js requires access to internal camera
   this.scene_camera = function(){
     return _camera;
   }
+
 
   /////////////////////////////////////// initialization
 
@@ -468,7 +470,7 @@ function OmegaCanvas(){
           entity.clicked();
 
           // XXX hack hide dialog
-          if($omega_dialog) $omega_dialog.hide();
+          if(typeof $omega_dialog !== "undefined") $omega_dialog.hide();
 
           break;
         }

@@ -220,6 +220,8 @@ $(document).ready(function(){
     ok(galaxy.children().indexOf('sys3') == -1);
   });
 
+  // TODO test OmegaGalaxy.cached
+
   module("omega solar system");
   
   test("children", function() {
@@ -268,14 +270,7 @@ $(document).ready(function(){
     ok(children.indexOf(other)   == -1);
   });
 
-  // TODO test system scene data loaded & on clicked ?
-
-  //module("omega star");
-  
-  //test("", function() {
-  //});
-
-  // TODO test star scene data loaded
+  // TODO test OmegaSolarSystem.cached
 
   module("omega planet");
   
@@ -287,33 +282,5 @@ $(document).ready(function(){
     ok(planet.children().indexOf('moon3') == -1);
   });
 
-  // TODO test system scene data loaded, on clicked, on movement, move, and calc_orbit ?
-
-  //module("omega asteroid");
-
-  //test("", function() {
-  //});
-
-  // TODO test asteroid scene data loaded
-
-  //module("omega jump gate");
-  
-  //test("", function() {
-  //});
-
-  // TODO test jump gate scene data loaded, on clicked, and on unselected ?
-
-  //module("omega ship");
-  
-  //test("", function() {
-  //});
-
-  // TODO test ship scene data loaded, on unselected, on clicked, and on movement ?
-
-  //module("omega station");
-  
-  //test("", function() {
-  //});
-
-  // TODO test station scene data loaded, on clicked, and on unselected ?
+  // see tests/canvas_rendered.js for entity loading, click handling, etc
 });

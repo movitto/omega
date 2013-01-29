@@ -4,6 +4,19 @@ require("javascripts/omega/entity.js");
 
 //////////////////////////////// helper methods
 
+// Helper to translate canvas coordiantes from 3d to 2d
+function canvas_to_xy(coords){
+  var pos = coords.clone();
+  projScreenMat = new THREE.Matrix4();
+  projScreenMat.multiply($omega_camera.scene_camera().projectionMatrix,
+                         $omega_camera.scene_camera().matrixWorldInverse );
+  projScreenMat.multiplyVector3( pos );
+
+  var jqdiv = $("#omega_canvas");
+  return { x: ( pos.x + 1 )  * jqdiv.width()  / 2 + jqdiv.offset().left,
+           y: ( - pos.y + 1) * jqdiv.height() / 2 + jqdiv.offset().top  };
+}
+
 function login_test_user(user, on_login){
   $omega_session.on_session_validated(function(){
     $omega_session.clear_callbacks();
@@ -22,6 +35,7 @@ function logout_test_user(on_logout){
 }
 
 function setup_canvas(){
+  $omega_canvas_ui = new OmegaCanvasUI();
   $omega_canvas = new OmegaCanvas();
   $omega_entity_container = new OmegaEntityContainer();
   var scene = new OmegaScene();

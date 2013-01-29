@@ -158,13 +158,15 @@ function OmegaScene(){
     var children = entity.children();
     for(var child in children){
       child = children[child];
-      this.add_entity(child);
-      if(child.added_to_scene)
-        child.added_to_scene();
+      if(child){
+        this.add_entity(child);
+        if(child.added_to_scene)
+          child.added_to_scene();
+      }
     }
 
     // XXX hack hide dialog
-    if($omega_dialog) $omega_dialog.hide();
+    if(typeof $omega_dialog !== "undefined") $omega_dialog.hide();
 
     for(var cb in scene_changed_callbacks)
       scene_changed_callbacks[cb]();
