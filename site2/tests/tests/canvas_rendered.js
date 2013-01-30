@@ -2,6 +2,71 @@ require("javascripts/omega/canvas.js");
 
 $(document).ready(function(){
 
+  module("canvas.js");
+
+  test("show grid", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_grid = new OmegaGrid();
+    $omega_grid.show();
+    equal($omega_scene.scene_objects().length, 1);
+
+    $omega_grid.hide();
+    equal($omega_scene.scene_objects().length, 0);
+  });
+
+  test("rotate camera", function(){
+    $omega_scene = setup_canvas();
+    $omega_camera = new OmegaCamera();
+    var old_pos = $omega_camera.position();
+    $omega_camera.rotate(0.0, 0.2);
+    // need better test of new camera position
+    ok($omega_camera.position() != old_pos);
+
+    old_pos = $omega_camera.position();
+    $omega_camera.rotate(0.2, 0.0);
+    ok($omega_camera.position() != old_pos);
+  });
+
+  test("zoom camera", function(){
+    $omega_scene = setup_canvas();
+    var old_pos = $omega_camera.position();
+    $omega_camera.zoom(20);
+    ok($omega_camera.position() != old_pos);
+  });
+
+  test("canvas rotate controls", function(){
+    $omega_scene = setup_canvas();
+    var old_pos = $omega_camera.position();
+    $("#cam_rotate_right").trigger("click");
+    ok($omega_camera.position() != old_pos);
+
+    old_pos = $omega_camera.position();
+    $("#cam_rotate_left").trigger("click");
+    ok($omega_camera.position() != old_pos);
+
+    old_pos = $omega_camera.position();
+    $("#cam_rotate_up").trigger("click");
+    ok($omega_camera.position() != old_pos);
+
+    old_pos = $omega_camera.position();
+    $("#cam_rotate_down").trigger("click");
+    ok($omega_camera.position() != old_pos);
+  });
+
+  test("canvas zoom controls", function(){
+    $omega_scene = setup_canvas();
+    var old_pos = $omega_camera.position();
+    $("#cam_zoom_out").trigger("click");
+    ok($omega_camera.position() != old_pos);
+
+    old_pos = $omega_camera.position();
+    $("#cam_zoom_in").trigger("click");
+    ok($omega_camera.position() != old_pos);
+  });
+
+  // TODO test select box
+
   module("entity.js");
 
   test("load system", function(){

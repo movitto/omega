@@ -178,7 +178,7 @@ function OmegaGrid(){
   /* Hide the Canvas Grid
    */
   this.hide = function(){
-    $omega_scene._scene.remove(grid_line);
+    $omega_scene.remove_obj(grid_line);
     showing_grid = false;
   }
 

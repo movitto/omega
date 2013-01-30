@@ -207,6 +207,14 @@ function OmegaScene(){
   this.add = function(scene_obj){
     _scene.add(scene_obj);
   }
+  
+  /* Remove specified scene object from backend three.js scene
+   *
+   * XXX would like to remove this or mark private
+   */
+  this.remove_obj = function(scene_obj){
+    _scene.remove(scene_obj);
+  }
 
   /* Remove the entity specifed by entity_id from the scene.
    *
