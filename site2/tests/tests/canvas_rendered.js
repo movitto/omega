@@ -379,7 +379,168 @@ $(document).ready(function(){
                                  
   });
 
-  // TODO test ship docked, attacking, mining, movement
+  asyncTest("load docked ship", function(){
+    $omega_scene = setup_canvas();
+
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+        OmegaCommand.dock_ship.exec(ship, 'mmorsi-manufacturing-station1');
+        OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+          ship.load();
+
+          equal(ship.scene_objs.length, 6);
+          equal(ship.scene_objs[0].material.color.getHex().toString(16), "99ffff");
+          equal(ship.scene_objs[2].material.color.getHex().toString(16), "99ffff");
+
+          OmegaCommand.undock_ship.exec(ship);
+          OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
+            ship.load();
+
+            equal(ship.scene_objs.length, 6);
+            equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc0000");
+            equal(ship.scene_objs[2].material.color.getHex().toString(16), "cc0000");
+            start();
+          });
+        });
+      });
+    });
+  });
+
+  asyncTest("load moving ship", function(){
+    $omega_scene = setup_canvas();
+
+    // XXX create new system to just pull in location
+    var nsys = new OmegaSolarSystem({name : 'Athena',
+                                     location : {id : 2}});
+    $omega_registry.add(nsys);
+    $omega_scene.set_root(nsys);
+
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+        OmegaCommand.move_ship.exec(ship, ship.location.x + 50, ship.location.y + 50, ship.location.z + 50);
+        OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+          $omega_scene.reload(ship);
+          equal(ship.location.movement_strategy.json_class, "Motel::MovementStrategies::Linear");
+
+          equal($omega_scene.scene_objects()[2].position.x, ship.location.x);
+          equal($omega_scene.scene_objects()[2].position.y, ship.location.y);
+          equal($omega_scene.scene_objects()[2].position.z, ship.location.z);
+
+          // wait a few seconds / get updated ship & ensure it moved
+          window.setTimeout(function() {
+            OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(nship){
+              $omega_scene.reload(nship);
+              ok($omega_scene.scene_objects()[2].position.x > ship.location.x);
+              ok($omega_scene.scene_objects()[2].position.y > ship.location.y);
+              ok($omega_scene.scene_objects()[2].position.z > ship.location.z);
+              start();
+            });
+          }, 1000);
+        });
+      });
+    });
+  });
+
+  asyncTest("load attacking ship", function() {
+    $omega_scene = setup_canvas();
+
+    // TODO load ships from fixtures
+    var new_ship1_id = 'mmorsi-ship-' + guid();
+    var new_ship1 = new JRObject('Manufactured::Ship', {
+                      'id'         : new_ship1_id,
+                      'type'       : 'corvette',
+                      'user_id'    : 'mmorsi',
+                      'system_name': 'Athena',
+                      'location'   : new JRObject("Motel::Location",
+                                                  {'x' : -140, 'y' : -140, 'z' : -140})
+                    });
+
+    var new_ship2_id = 'opponent-ship-' + guid();
+    var new_ship2 = new JRObject('Manufactured::Ship', {
+                      'id'         : new_ship2_id,
+                      'type'       : 'corvette',
+                      'user_id'    : 'opponent',
+                      'system_name': 'Athena',
+                      'location'   : new JRObject("Motel::Location",
+                                                  {'x' : -140, 'y' : -140, 'z' : -140})
+                    });
+
+    login_test_user($admin_user, function(){
+      $omega_node.web_request('manufactured::create_entity', new_ship1, function(){
+        $omega_node.web_request('manufactured::create_entity', new_ship2, function(){
+          OmegaCommand.launch_attack.exec(new_ship1['value'], new_ship2_id);
+          // XXX need to wait at least the attacking poll delay before
+          //     attacking commences
+          window.setTimeout(function() {
+            OmegaQuery.entity_with_id(new_ship1_id, function(ship){
+              ship.load();
+
+              // ensure attack line has been added to scene
+              equal(ship.scene_objs.length, 8);
+              equal($omega_scene.scene_objects().length, 4)
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].x, new_ship2['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].y, new_ship2['value'].location['value'].y + 25);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].z, new_ship2['value'].location['value'].z);
+
+              start();
+            });
+          }, 500);
+        });
+      });
+    });
+  });
+
+  asyncTest("load mining ship", function() {
+    $omega_scene = setup_canvas();
+    // TODO load ship / resource source from fixtures
+    var new_ship_id = 'mmorsi-ship-' + guid();
+    var new_ship = new JRObject('Manufactured::Ship', {
+                      'id'         : new_ship_id,
+                      'type'       : 'mining',
+                      'user_id'    : 'mmorsi',
+                      'system_name': 'Athena',
+                      'location'   : new JRObject("Motel::Location",
+                                                  {'x' : 40, 'y' : -30, 'z' : 20})
+                    });
+
+    var new_rs_type = 'metal';
+    var new_rs_name =  guid();
+    var new_rs_id   = new_rs_type + '-' + new_rs_name;
+    var new_rs = new JRObject('Cosmos::Resource', {
+                      'name'       : new_rs_name,
+                      'type'       : new_rs_type
+                    });
+
+    login_test_user($admin_user, function(){
+      $omega_node.web_request('manufactured::create_entity', new_ship, function(){
+        $omega_node.web_request('cosmos::set_resource', 'ast1', new_rs, 100, function(){
+          OmegaCommand.start_mining.exec({ 'id' : new_ship_id }, 'ast1_' + new_rs_id);
+          // XXX need to wait at least the mining poll delay before
+          //     mining commences
+          window.setTimeout(function() {
+            OmegaQuery.entity_with_id(new_ship_id, function(ship){
+              ship.load();
+
+              // ensure attack line has been added to scene
+              equal(ship.scene_objs.length, 8);
+              equal($omega_scene.scene_objects().length, 4)
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].x, new_ship['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].y, new_ship['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[0].z, new_ship['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].x, ship.mining.entity.location.x);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].y, ship.mining.entity.location.y + 25);
+              equal($omega_scene.scene_objects()[3].geometry.vertices[1].z, ship.mining.entity.location.z);
+
+              start();
+            });
+          }, 500);
+        });
+      });
+    });
+  });
 
   test("load station", function(){
     $omega_scene = setup_canvas();

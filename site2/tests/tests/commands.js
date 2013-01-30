@@ -172,8 +172,8 @@ $(document).ready(function(){
       $omega_node.web_request('manufactured::create_entity', new_ship1, function(){
         $omega_node.web_request('manufactured::create_entity', new_ship2, function(){
           OmegaCommand.launch_attack.exec(new_ship1['value'], new_ship2_id);
-          // XXX need to wait at least the mining poll delay before
-          //     mining commences
+          // XXX need to wait at least the attacking poll delay before
+          //     attacking commences
           window.setTimeout(function() {
             OmegaQuery.entity_with_id(new_ship1_id, function(ship){
               ok(ship.attacking != null);
