@@ -305,7 +305,9 @@ $(document).ready(function(){
       equal($('#omega_entity_container').css('display'), 'block');
       ok($('#omega_entity_container').html().indexOf('Jump Gate to sys2') != -1);
 
-      // TODO test jg on_unselected
+      // test jg on_unselected
+      $("#entity_container_close").trigger("click");
+      equal($omega_scene.scene_objects().length, 1)
 
       start();
     }, 250);
@@ -365,12 +367,19 @@ $(document).ready(function(){
       equal(ship.scene_objs[0].material.color.getHex().toString(16), "ffff00");
       equal(ship.scene_objs[2].material.color.getHex().toString(16), "ffff00");
 
+      // unselect ship
+      $("#entity_container_close").trigger("click");
+
+      // ensure ship is 'unselected' color
+      equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
+      equal(ship.scene_objs[2].material.color.getHex().toString(16), "cc00");
+
       start();
     }, 1000);
                                  
   });
 
-  // TODO test ship unselected, docked, attacking, mining, movement
+  // TODO test ship docked, attacking, mining, movement
 
   test("load station", function(){
     $omega_scene = setup_canvas();
@@ -426,11 +435,16 @@ $(document).ready(function(){
       equal(station.scene_objs[0].material.color.getHex().toString(16), "ffff00");
       equal(station.scene_objs[2].material.color.getHex().toString(16), "ffff00");
 
+      // unselect station
+      $("#entity_container_close").trigger("click");
+
+      // ensure station is 'unselected' color
+      equal(station.scene_objs[0].material.color.getHex().toString(16), "cc");
+      equal(station.scene_objs[2].material.color.getHex().toString(16), "cc");
+
       start();
     }, 1000);
                                  
   });
-
-  // TODO test station unselected
 
 });
