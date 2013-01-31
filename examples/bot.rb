@@ -18,6 +18,10 @@ Omega::Client::Node.client_password = PASSWORD
 #node = RJR::AMQPNode.new(:node_id => 'client', :broker => 'localhost')
 Omega::Client::Node.node = RJR::TCPNode.new(:node_id => 'client', :host => 'localhost', :port => '9090')
 
+##########################################
+
+# Global event handlers & bot setup
+
 def start_miner(miner)
   puts "registering #{miner.id} events"
   miner.handle_event(:selected_resource) { |m,e|
@@ -60,17 +64,14 @@ def start_factory(factory)
   factory.handle_event(:constructed) { |f,e|
     constructed = e.last
     puts "#{f.id.bold.yellow} constructed #{constructed.id.bold.yellow}"
-    if constructed.is_a?(Manufactured::Station)
-      start_factory Omega::Client::Factory.get(constructed.id)
+    init_entity constructed
 
-    elsif constructed.is_a?(Manufactured::Ship)
+    if constructed.is_a?(Manufactured::Ship)
       if constructed.type == :mining
         factory.entity_type 'corvette'
-        start_miner Omega::Client::Miner.get(constructed.id)
 
       elsif constructed.type == :corvette
         factory.entity_type 'miner'
-        start_corvette Omega::Client::Corvette.get(constructed.id)
 
       end
     end
@@ -87,7 +88,45 @@ def start_factory(factory)
   factory.start_bot
 end
 
-Omega::Client::Factory.owned_by(USER_NAME).each  { |f| start_factory  f }
-Omega::Client::Corvette.owned_by(USER_NAME).each { |c| start_corvette c }
-Omega::Client::Miner.owned_by(USER_NAME).each    { |m| start_miner    m }
+##########################################
+
+# Run initialization loop so as to free station event handler
+@init_queue = Queue.new
+@init_cycle = Thread.new {
+  while to_init = @init_queue.pop
+    if to_init.is_a?(Omega::Client::Factory)
+      start_factory(to_init)
+
+    elsif to_init.is_a?(Omega::Client::Corvette)
+      start_corvette(to_init)
+
+    elsif to_init.is_a?(Omega::Client::Miner)
+      start_miner(to_init)
+
+    elsif to_init.is_a?(Manufactured::Station)
+      start_factory(Omega::Client::Factory.get(to_init.id))
+
+    elsif to_init.is_a?(Manufactured::Ship)
+      if to_init.type == :mining
+        start_miner(Omega::Client::Miner.get(to_init.id))
+
+      elsif to_init.type == :corvette
+        start_corvette(Omega::Client::Corvette.get(to_init.id))
+
+      end
+    end
+  end
+}
+
+def init_entity(entity)
+  @init_queue << entity
+end
+
+##########################################
+
+# Load and start initial entities and block
+
+Omega::Client::Factory.owned_by(USER_NAME).each  { |f| init_entity f }
+Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
+Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
 Omega::Client::Node.join

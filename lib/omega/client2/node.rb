@@ -165,7 +165,6 @@ module Omega
       def initialize(args = {})
         @registry       = {}
         @event_handlers = {}
-        @event_queue    = Queue.new
         @lock           = Mutex.new
 
         @entity_event_queues  = Array.new(5) { |i| Queue.new }
@@ -226,7 +225,7 @@ module Omega
         @lock.synchronize{
           @registry.clear
           @event_handlers.clear
-          @event_queue.clear
+          @entity_event_queues.each { |q| q.clear }
         }
       end
 
@@ -349,7 +348,9 @@ module Omega
       def raise_event(method, *args)
         # FIXME support event rate throttling mechanism and/or
         # max number of events before queue is flushed or similar
-        @event_queue << [method, args]
+        entity_id = id_from_event_args(args)  # extract id
+        queue_index = Node.event_queue_for(entity_id)
+        @entity_event_queues[queue_index]  << [entity_id, method, args]
         process_events
       end
 
@@ -481,6 +482,7 @@ module Omega
       # Will assign queues in a a round robin fashion for entities
       # which have not been mapped to queues yet
       def event_queue_for(entity_id)
+        # TODO assign queue for entity's location to same queue as entity ?
         @lock.synchronize {
           if @queue_mappings[entity_id].nil?
             @queue_mappings[entity_id] = @queue_index
@@ -499,36 +501,28 @@ module Omega
 
         # XXX would really like to use em_run_async here
         # but this is not working right for some reason
-        @event_thread = Thread.new {
-          while event = @event_queue.pop
-            emethod, eargs = *event
-            entity_id = id_from_event_args(eargs)  # extract id
+        0.upto(@entity_event_threads.size-1) { |i|
+          @entity_event_threads[i] = Thread.new(i){ |tqueue_index|
+            while data = @entity_event_queues[tqueue_index].pop
+              tentity_id, temethod, teargs = *data
+              handlers  = []
+              @lock.synchronize {
+                if @event_handlers[tentity_id]
+                  handlers += @event_handlers[tentity_id][temethod] if @event_handlers[tentity_id][temethod]
+                  handlers += @event_handlers[tentity_id]['all']   if @event_handlers[tentity_id]['all']
+                end
+              }
 
-            queue_index = Node.event_queue_for(entity_id)
-            @entity_event_queues[queue_index]  << [entity_id, emethod, eargs]
-
-            @entity_event_threads[queue_index] ||= Thread.new(queue_index){ |tqueue_index|
-              while data = @entity_event_queues[tqueue_index].pop
-                tentity_id, temethod, teargs = *data
-                handlers  = []
-                @lock.synchronize {
-                  if @event_handlers[tentity_id]
-                    handlers += @event_handlers[tentity_id][temethod] if @event_handlers[tentity_id][temethod]
-                    handlers += @event_handlers[tentity_id]['all']   if @event_handlers[tentity_id]['all']
-                  end
-                }
-
-                handlers.each { |cb|
-                  begin
-                    cb.call(*teargs)
-                  rescue Exception => e
-                    # TODO how to handle?
-                    #puts "err #{e} \n#{e.backtrace.join("\n")}".bold
-                  end
-                }
-              end
-            }
-          end
+              handlers.each { |cb|
+                begin
+                  cb.call(*teargs)
+                rescue Exception => e
+                  # TODO how to handle?
+                  #puts "err #{e} \n#{e.backtrace.join("\n")}".bold
+                end
+              }
+            end
+          }
         }
       end
 
