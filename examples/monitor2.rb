@@ -179,14 +179,16 @@ class OmegaNcurses
     @controls_win.addstr("Arrows to scroll")
     @controls_win.move(4,1)
     @controls_win.addstr("Q to exit");
+    @controls_win.move(5,1)
+    @controls_win.addstr("S to refresh");
     if @current_panel.window == @view_windows[:cosmos]
-      @controls_win.move(5,1)
+      @controls_win.move(6,1)
       @controls_win.addstr("A to toggle asteroids")
     end
 
     if @current_panel.window == @view_windows[:cosmos] ||
        @current_panel.window == @view_windows[:manu]
-      @controls_win.move(6,1)
+      @controls_win.move(7,1)
       @controls_win.addstr("R to toggle resources") 
     end
   end
@@ -284,6 +286,8 @@ class OmegaNcurses
         @show_asteroids = !@show_asteroids
       elsif chin == 'r'.ord
         @show_resources = !@show_resources
+      elsif chin == 's'.ord
+        self.refresh
       elsif chin == "\t"[0].ord
         reset_scroll
         set_current_panel next_panel
@@ -311,7 +315,16 @@ output.galaxies = Omega::Client::Galaxy.get_all
 output.tests    = run_tests(output)
 
 # periodically sync entities & resources
-Omega::Client::Node.em_repeat_async(10) {
+Omega::Client::Node.em_repeat_async(5) {
+  output.users.each    { |u|
+    # FIXME won't get new ships / stations
+    u.get
+    u.ships.each    { |s| s.get }
+    u.stations.each { |s| s.get }
+  }
+  output.galaxies.each { |g| g.get }
+  output.tests = run_tests(output)
+
   output.refresh
 }
 
