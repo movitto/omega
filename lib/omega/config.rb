@@ -32,9 +32,12 @@ class Config
     c = Config.new defaults
 
     CONFIG_FILES.each { |f|
-      ff = File.expand_path(f)
-      if File.file?(ff)
-        c.update! YAML.load(File.open(ff))
+      begin
+        ff = File.expand_path(f)
+        if File.file?(ff)
+          c.update! YAML.load(File.open(ff))
+        end
+      rescue Exception => e
       end
     }
 
