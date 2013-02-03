@@ -7,12 +7,13 @@ require "yard"
 require "rake/packagetask"
 require "rspec/core/rake_task"
 
-Rake::PackageTask.new("omega", "0.1.0") do |p|
+Rake::PackageTask.new("omega", "0.2.0") do |p|
   p.need_tar = true
   p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
-                          "site/**/*", "spec/**/*", "vendor/**/*",
+                          "site2/**/*", "spec/**/*", "vendor/**/*",
                           "omega.yml", "Rakefile",
                           "COPYING", "LICENSE", "README.md")
+  p.package_files.exclude("lib/rjr*", "site2/build/**/*")
 end
 
 desc "Run all specs"
