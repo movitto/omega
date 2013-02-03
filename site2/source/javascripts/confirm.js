@@ -9,6 +9,7 @@ require('javascripts/omega/client.js');
 
 function callback_confirmed_registration(res, error){
   // XXX ugly
+  // FIXME parameterize host
   alert("Done... redirecting");
   window.location = 'http://localhost/womega';
 };

@@ -10,6 +10,7 @@ require('javascripts/vendor/jquery.jplayer.playlist.min.js');
 /////////////////////////////////////// initialization 
 
 // TODO dynamic playlist
+// FIXME parameterize host
 $(document).ready(function(){
     var playlist =
     new jPlayerPlaylist({

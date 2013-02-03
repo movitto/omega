@@ -28,7 +28,7 @@ function OmegaClient(){
   var error_handlers    = [];
 
   // RJR web node
-  // TODO parameterize connection info
+  // FIXME parameterize connection info
   var rjr_web_node = new WebNode('http://localhost/omega');
 
   // RJR websocket node

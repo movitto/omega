@@ -15,6 +15,7 @@ include Motel::MovementStrategies
 RJR::Logger.log_level= ::Logger::INFO
 
 node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+# TODO read credentials from config
 login node, 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
