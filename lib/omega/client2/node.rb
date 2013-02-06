@@ -186,7 +186,6 @@ module Omega
 
         # set default server endpoint depending on node type
         # TODO this should be configured elsewhere
-        # FIXME should be configured elsewhere
         Omega::Client::Node.server_endpoint =
           case node.class::RJR_NODE_TYPE
             when :amqp then "#{config.node_id}-queue"
