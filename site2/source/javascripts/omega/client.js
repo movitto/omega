@@ -6,6 +6,7 @@
 
 require('javascripts/vendor/rjr/json.js');
 require('javascripts/vendor/rjr/jrw.js');
+require('javascripts/omega/config.js');
 
 /////////////////////////////////////// Omega Client
 
@@ -28,12 +29,10 @@ function OmegaClient(){
   var error_handlers    = [];
 
   // RJR web node
-  // FIXME parameterize connection info
-  var rjr_web_node = new WebNode('http://localhost/omega');
+  var rjr_web_node = new WebNode('http://'+$omega_config['host']+'/omega');
 
   // RJR websocket node
-  // TODO parameterize connection info
-  var rjr_ws_node  = new WSNode('127.0.0.1', '8080');
+  var rjr_ws_node  = new WSNode($omega_config['host'], '8080');
 
   /////////////////////////////////////// initialization
 
