@@ -179,13 +179,18 @@ module Omega
       #
       # @param [RJR::Node] node rjr node subclass to use as transport
       def node=(node)
+        # load any accessible config
+        config = Omega::Config.load :node_id  => 'omega',
+                                    :tcp_host => 'localhost',
+                                    :tcp_port =>  8181
+
         # set default server endpoint depending on node type
         # TODO this should be configured elsewhere
         # FIXME should be configured elsewhere
         Omega::Client::Node.server_endpoint =
           case node.class::RJR_NODE_TYPE
-            when :amqp then 'omega-queue'
-            when :tcp  then 'json-rpc://localhost:8181'
+            when :amqp then "#{config.node_id}-queue"
+            when :tcp  then "json-rpc://#{config.tcp_host}:#{config.tcp_port}"
             else nil
           end
 
