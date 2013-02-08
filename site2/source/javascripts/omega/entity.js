@@ -85,8 +85,10 @@ function convert_entity(entity){
   $omega_registry.add(entity);
 
   // XXX hacky way to refresh entity container
-  var selected = $omega_scene.selection.selected();
-  if(selected) $omega_registry.get(selected).clicked();
+  if(typeof $omega_scene !== "undefined"){
+    var selected = $omega_scene.selection.selected();
+    if(selected) $omega_registry.get(selected).clicked();
+  }
 
 
   return entity;

@@ -20,6 +20,7 @@ function confirm_registration(code){
 
 $(document).ready(function(){ 
   $omega_node = new OmegaClient();
+  $omega_session  = new OmegaSession();
 
   // dependendency pulled in via site layout
   $omega_navigation = new OmegaNavigationContainer();

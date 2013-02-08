@@ -54,8 +54,8 @@ class RJRAdapter
     # @param [Omega::Config] config object containing config options
     def set_config(config)
       self.recaptcha_enabled  = config.recaptcha_enabled
-      self.recaptcha_pub_key  = config.recaptch_pub_key
-      self.recaptcha_priv_key = config.recaptch_priv_key
+      self.recaptcha_pub_key  = config.recaptcha_pub_key
+      self.recaptcha_priv_key = config.recaptcha_priv_key
       self.mediawiki_enabled  = config.mediawiki_enabled
       self.mediawiki_dir      = config.mediawiki_dir
       self.omega_url          = config.omega_url
