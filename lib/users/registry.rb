@@ -325,9 +325,7 @@ class Registry
 
     users.each { |user|
       @entities_lock.synchronize{
-        user.secure_password = false
         io.write user.to_json + "\n"
-        user.secure_password = true
 
         user.roles.each { |role|
           io.write role.to_json + "\n"
@@ -346,6 +344,7 @@ class Registry
     io.each { |json|
       entity = JSON.parse(json)
       if entity.is_a?(Users::User)
+        # FIXME secure_password will be set false, should be true
         create(entity)
         prev_entity = entity
 

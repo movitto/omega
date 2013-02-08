@@ -38,6 +38,10 @@ class User
   attr_reader :secure_password
 
   # Set password security on / off
+  #
+  # FIXME since password helper uses one way encryption setting to
+  # false would have no effect, and setting to true multiple times
+  # would render the password invalid. Need to fix this.
   def secure_password=(v)
     v = @secure_password unless [true, false].include?(v)
     @secure_password = v
