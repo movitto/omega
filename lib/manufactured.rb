@@ -7,6 +7,7 @@
 # user/human created entities
 module Manufactured ; end
 
+require 'manufactured/loot'
 require 'manufactured/ship'
 require 'manufactured/station'
 require 'manufactured/fleet'

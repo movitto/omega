@@ -137,6 +137,13 @@ class Ship
 
   # @!endgroup
 
+  # @!group Looting Properties
+
+  # Max distance ship may be from loot to collect it
+  attr_accessor :collection_distance
+
+  # @!endgroup
+
   # General ship classification, used to determine
   # a ship's capabilities
   SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
@@ -200,6 +207,7 @@ class Ship
     @mining_quantity = 20
     @mining_distance = 100
     @transfer_distance = 100
+    @collection_distance = 100
 
     if args.has_key?('solar_system') || args.has_key?(:solar_system)
       self.solar_system = args['solar_system'] || args[:solar_system]
