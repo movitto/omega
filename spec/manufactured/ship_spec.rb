@@ -303,10 +303,12 @@ describe Manufactured::Ship do
   it "should raise error if cannot add or remove resource" do
     ship   = Manufactured::Ship.new :id => 'ship1'
     ship.resources.should be_empty
+    ship.cargo_empty?.should be_true
 
     res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
     ship.add_resource res.id, ship.cargo_capacity
     ship.cargo_full?.should be_true
+    ship.cargo_empty?.should be_false
 
     lambda{
       ship.add_resource res.id, 1
@@ -314,6 +316,7 @@ describe Manufactured::Ship do
 
     ship.remove_resource res.id, ( 3 * ship.cargo_capacity / 4 )
     ship.cargo_full?.should be_false
+    ship.cargo_empty?.should be_false
 
     lambda{
       ship.remove_resource res.id, ship.cargo_capacity / 2

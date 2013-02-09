@@ -309,6 +309,10 @@ class Ship
     resource_source.quantity > 0
   end
 
+  def cargo_empty?
+    cargo_quantity == 0
+  end
+
   def cargo_full?
     cargo_quantity + @mining_quantity >= @cargo_capacity
   end

@@ -47,6 +47,16 @@ class Registry
     return ret
   end
 
+  # Return array of loot being managed
+  # @return [Array<Manufactured::Loot>]
+  def loot
+    ret = []
+    @entities_lock.synchronize {
+      @loot.values.each { |f| ret << f }
+    }
+    return ret
+  end
+
   # [Array<Manufactured::Ship>] array of ships that have been destroyed
   attr_reader :ship_graveyard
 
@@ -79,6 +89,8 @@ class Registry
     @mining_commands = {}
 
     @ship_graveyard = []
+
+    @loot = {}
 
     terminate
     @terminate_cycles = false
@@ -143,11 +155,13 @@ class Registry
     type      = args[:type]
     location_id = args[:location_id]
     include_graveyard = args[:include_graveyard]
+    include_loot      = args[:include_loot]
 
     entities = []
 
     to_search = children
     to_search += graveyard if include_graveyard
+    to_search += loot      if include_loot
 
     to_search.each { |entity|
       entities << entity if (id.nil?        || entity.id         == id)        &&
@@ -312,8 +326,19 @@ class Registry
 
         # remove ships w/ <= 0 hp and
         # add deleted ships to ship graveyard registry
-        destroyed = []
-        @ships.delete_if { |sh| destroyed << sh if sh.hp <= 0 }
+        destroyed = @ships.select { |sh| sh.hp <= 0 }
+        destroyed.each { |sh|
+          @ships.delete(sh)
+
+          # create loot if necessary
+          unless sh.cargo_empty?
+            # two entities (ship/loot) sharing same location
+            loot = Manufactured::Loot.new :id => "#{sh.id}-loot",
+                                          :resources => sh.resources,
+                                          :location  => sh.location
+            @loot[loot.id] = loot
+          end
+        }
         @ship_graveyard += destroyed
       }
 
@@ -350,6 +375,19 @@ class Registry
 
       sleep MINING_POLL_DELAY
     end
+  end
+
+  # Set loot to registry. If empty deletes loot, else adds / updates loot record
+  #
+  # @param [Manufactured::Loot] loot loot to add to / update in registry
+  def set_loot(loot)
+    @entities_lock.synchronize{
+      if loot.quantity == 0
+        @loot.delete(loot.id)
+      else
+        @loot[loot.id] = loot
+      end
+    }
   end
 
   # Save state of the registry to specified io stream

@@ -165,10 +165,11 @@ class RJRAdapter
       [station, entity]
     }
 
-    rjr_dispatcher.add_handler(['manufactured::get_entity', 'manufactured::get_entities']){ |*args|
+    rjr_dispatcher.add_handler(['manufactured::get', 'manufactured::get_entity', 'manufactured::get_entities']){ |*args|
        filter = {}
+       # TODO also include_graveyard option?
        while qualifier = args.shift
-         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "owned_by", "with_id", "with_location", "under"].include?(qualifier)
+         raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "owned_by", "with_id", "with_location", "under", "include_loot"].include?(qualifier)
          val = args.shift
          raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
          qualifier = case qualifier
@@ -182,6 +183,8 @@ class RJRAdapter
                          :location_id
                        when "under"
                          :parent_id
+                       when "include_loot"
+                         :include_loot
                      end
          filter[qualifier] = val
        end
@@ -623,6 +626,42 @@ class RJRAdapter
       entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource_id, quantity)
       raise Omega::OperationError, "problem transferring resources from #{from_entity} to #{to_entity}" if entities.nil?
       entities
+    }
+
+    rjr_dispatcher.add_handler('manufactured::collect_loot') { |ship_id, loot_id|
+      # TODO also allow specification of resource_id / quantity through args
+
+      ship = Manufactured::Registry.instance.find(:id => ship_id, :type => 'Manufactured::Ship').first
+      loot = Manufactured::Registry.instance.loot.find { |l| l.id == loot_id }
+      raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
+      raise Omega::DataNotFound, "loot specified by #{loot_id} not found" if loot.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
+                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
+                                        :session => @headers['session_id'])
+
+      # update from & to entitys' location
+      Manufactured::Registry.instance.safely_run {
+        ship.location = @@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id)
+      }
+
+      # ensure within the transfer distance
+      # TODO add a can_collect? method to ship
+      raise Omega::OperationError, "ship too far from loot" unless ship.location - loot.location <= ship.transfer_distance
+
+      # TODO also support partial transfers
+      raise Omega::OperationError, "ship cannot accept loot" unless ship.can_accept?('', loot.quantity)
+
+      Manufactured::Registry.instance.safely_run {
+        loot.resources.each { |rs,q|
+          ship.add_resource(rs, q)
+          loot.remove_resource(rs, q)
+        }
+      }
+      # FIXME needs to be atomic w/ resource removal just above
+      Manufactured::Registry.instance.set_loot(loot)
+
+      ship
     }
 
     rjr_dispatcher.add_handler('manufactured::save_state') { |output|

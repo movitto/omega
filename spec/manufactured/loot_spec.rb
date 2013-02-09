@@ -88,18 +88,22 @@ describe Manufactured::Loot do
     loot.resources.should_not be_empty
     loot.resources.size.should == 1
     loot.resources[res.id].should == 10
+    loot.quantity.should == 10
 
     loot.add_resource res.id, 60
     loot.resources.size.should == 1
     loot.resources[res.id].should == 70
+    loot.quantity.should == 70
 
     loot.remove_resource res.id, 40
     loot.resources.size.should == 1
     loot.resources[res.id].should == 30
+    loot.quantity.should == 30
 
     # should remove resource if set to 0
     loot.remove_resource res.id, 30
     loot.resources.size.should == 0
+    loot.quantity.should == 0
     loot.should be_empty
   end
 

@@ -144,6 +144,39 @@ describe Manufactured::Registry do
     rship.first.should == ship1
   end
 
+  it "provide acceses to managed loot" do
+    system1 = Cosmos::SolarSystem.new :name => 'system1'
+    loot1   = Manufactured::Loot.new :id => 'loot1', :resources => {'metal-steel' => 50}
+    loot2   = Manufactured::Loot.new :id => 'loot2', :resources => {'metal-steel' => 50}
+
+    Manufactured::Registry.instance.loot.size.should == 0
+    Manufactured::Registry.instance.set_loot(loot1)
+
+    Manufactured::Registry.instance.loot.size.should == 1
+    Manufactured::Registry.instance.loot.first.should == loot1
+
+    Manufactured::Registry.instance.set_loot(loot1)
+    Manufactured::Registry.instance.loot.size.should == 1
+
+    Manufactured::Registry.instance.set_loot(loot2)
+    Manufactured::Registry.instance.loot.size.should == 2
+
+    loot2.remove_resource('metal-steel', 50)
+    Manufactured::Registry.instance.set_loot(loot2)
+    Manufactured::Registry.instance.loot.size.should == 1
+    Manufactured::Registry.instance.loot.first.should == loot1
+
+    lloot1 = Manufactured::Registry.instance.find(:id => 'loot1')
+    lloot1.should be_empty
+
+    lloot1 = Manufactured::Registry.instance.find(:id => 'loot1', :include_loot => false)
+    lloot1.should be_empty
+
+    lloot1 = Manufactured::Registry.instance.find(:id => 'loot1', :include_loot => true)
+    lloot1.size.should  == 1
+    lloot1.first.should == loot1
+  end
+
   it "should permit transferring resources between entities" do
     sys   = Cosmos::SolarSystem.new
     ship  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys

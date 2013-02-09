@@ -65,8 +65,20 @@ describe Manufactured::RJRAdapter do
                                         :location => Motel::Location.new(:id => '2008', :x => -103, :y => -103, :z => -103)
     @fleet1 = Manufactured::Fleet.new   :id => 'nfleet1', :user_id => 'user1'
 
-    @ship1.parent = @ship2.parent = @stat1.parent = @stat2.parent = @sys1
-    @ship1.location.parent = @ship2.location.parent = @stat1.location.parent = @stat2.location.parent = @sys1.location
+    @loot1 = Manufactured::Loot.new :id => 'loot1', :resources => {'metal-steel' => 100},
+                                    :location => Motel::Location.new(:id => '2010', :x => -75, :y => -75, :z => -75)
+    @loot2 = Manufactured::Loot.new :id => 'loot2', :resources => {'metal-titanium' => 100},
+                                    :location => Motel::Location.new(:id => '2011', :x => -75, :y => -75, :z => -75)
+    @loot3 = Manufactured::Loot.new :id => 'loot3', :resources => {'metal-alluminum' => 100},
+                                    :location => Motel::Location.new(:id => '2012', :x =>  75, :y =>  75, :z =>  75)
+
+    @ship1.parent = @ship2.parent =
+    @stat1.parent = @stat2.parent =
+    @loot1.parent = @loot2.parent = @sys1
+
+    @ship1.location.parent = @ship2.location.parent =
+    @stat1.location.parent = @stat2.location.parent =
+    @loot1.location.parent = @loot2.location.parent = @sys1.location
 
     ############## test motel
     @new_loc1 = Motel::Location.new(:id => 2004, :parent_id => @sys1.location.id, :x => -105, :y => -100, :z => -100)
@@ -217,7 +229,6 @@ describe Manufactured::RJRAdapter do
     }.should raise_error(Exception)
 
     @stat1.type = :manufacturing
-
 
     # valid call
     lambda{
@@ -434,6 +445,39 @@ describe Manufactured::RJRAdapter do
       entities.size.should == 1
       entities.first.class.should == Manufactured::Ship
       entities.first.id.should == @ship2.id
+    }.should_not raise_error
+  end
+
+  it "should permit users with view manufactured_entities to get loot" do
+    Motel::Runner.instance.run @loot1.location
+    Motel::Runner.instance.run @loot2.location
+    Manufactured::Registry.instance.set_loot @loot1
+    Manufactured::Registry.instance.set_loot @loot2
+
+    TestUser.add_privilege('view', 'manufactured_entities')
+
+    # valid request, no loot
+    lambda{
+      entities = Omega::Client::Node.invoke_request('manufactured::get', 'of_type', 'Manufactured::Loot', :include_loot, false)
+      entities.class.should == Array
+      entities.size.should == 0
+    }.should_not raise_error
+
+    # valid request, get all loot
+    lambda{
+      entities = Omega::Client::Node.invoke_request('manufactured::get', 'of_type', 'Manufactured::Loot', :include_loot, true)
+      entities.class.should == Array
+      entities.size.should == 2
+      entities.first.class.should == Manufactured::Loot
+      entities.first.id.should == @loot1.id
+      entities.last.id.should == @loot2.id
+    }.should_not raise_error
+
+    # valid request, with id
+    lambda{
+      loot = Omega::Client::Node.invoke_request('manufactured::get', 'with_id', 'loot1', :include_loot, true)
+      loot.class.should == Manufactured::Loot
+      loot.id.should == @loot1.id
     }.should_not raise_error
   end
 
@@ -1173,6 +1217,58 @@ describe Manufactured::RJRAdapter do
     # ship is not docked at station, undock is no longer a valid operation
     lambda{
       Omega::Client::Node.invoke_request('manufactured::undock', @ship1.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+  end
+
+  it "should permit users w/ modify manufactured_entities or modify manufactured_entity-<id> to collect_loot" do
+    Motel::Runner.instance.run @ship1.location
+    Motel::Runner.instance.run @loot1.location
+    Motel::Runner.instance.run @loot2.location
+    Motel::Runner.instance.run @loot3.location
+    Manufactured::Registry.instance.create @ship1
+    Manufactured::Registry.instance.set_loot @loot1
+    Manufactured::Registry.instance.set_loot @loot2
+    Manufactured::Registry.instance.set_loot @loot3
+
+    # invalid ship id
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::collect_loot', 'non_existant', @loot1.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid loot id
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::collect_loot', @ship1.id, 'non-existant')
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::collect_loot', @ship1.id, @loot1.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('modify', 'manufactured_entities')
+
+    # distance too far
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::collect_loot', @ship1.id, @loot3.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    # valid call
+    lambda{
+      oldr = Hash[@loot1.resources]
+      ship = Omega::Client::Node.invoke_request('manufactured::collect_loot', @ship1.id, @loot1.id)
+      ship.class.should == Manufactured::Ship
+      ship.id.should == @ship1.id
+      ship.resources.should == oldr
+    }.should_not raise_error
+
+    # would exceed cargo capacity
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::collect_loot', @ship1.id, @loot2.id)
     #}.should raise_error(Omega::OperationError)
     }.should raise_error(Exception)
   end

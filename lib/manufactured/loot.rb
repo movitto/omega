@@ -71,6 +71,15 @@ class Loot
     @resources.delete(resource_id) if @resources[resource_id] <= 0
   end
 
+  # Return total quantity of resources stored locally
+  #
+  # @return [Integer] quantity total quantity currently stored in loot
+  def quantity
+    tq = 0
+    @resources.each { |r,q| tq += q }
+    tq
+  end
+
   # Return boolean indicating if loot is empty
   def empty?
     @resources.empty?
