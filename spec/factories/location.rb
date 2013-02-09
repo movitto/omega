@@ -275,4 +275,13 @@ FactoryGirl.define do
 
   # 2000's reserved for locations in actual specs
 
+  factory :loot1_location, parent: :server_location do
+    id   3000
+    x     -70
+    y     130
+    z     130
+
+    parent_id 300
+  end
+
 end

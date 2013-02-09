@@ -761,6 +761,14 @@ module Omega
         Node.raise_event(:received,    target, self,   resource_id, quantity)
       end
 
+      # Collect specified loot
+      #
+      # @param [Manufactured::Loot] loot loot which to collect
+      def collect_loot(loot)
+        RJR::Logger.info "Entity #{self.id} collecting loot #{loot.id}"
+        Node.invoke_request 'manufactured::collect_loot', self.id, loot.id
+      end
+
       # Construct the specified entity on the server
       #
       # All server side construction restrictions apply, this method does

@@ -342,6 +342,8 @@ describe Omega::Client::InteractsWithEnvironment do
     @stat1 = FactoryGirl.build(:station1)
     @stat3 = FactoryGirl.build(:station3)
 
+    @loot1 = FactoryGirl.build(:loot1)
+
     @ast1 = FactoryGirl.build(:asteroid1)
     @rs1  = Cosmos::Registry.instance.set_resource(@ast1.name,
                   Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
@@ -399,6 +401,15 @@ describe Omega::Client::InteractsWithEnvironment do
 
     ts = TestStation.get(@stat3.id)
     ts.resources.find { |i,q| i == 'metal-alluminum' }.last.should == 50
+  end
+
+  it "should collect loot" do
+    oldr = Hash[@loot1.resources]
+    ts = TestShip.get(@ship4.id)
+    ts.collect_loot @loot1
+    ts = TestShip.get(@ship4.id)
+    ts.resources.should == oldr
+    @loot1.quantity.should == 0
   end
 
   it "should construct entity" do
