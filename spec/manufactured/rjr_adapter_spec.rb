@@ -245,6 +245,7 @@ describe Manufactured::RJRAdapter do
       rentities.last.user_id = TestUser.id
     }.should_not raise_error
 
+    sleep Manufactured::Ship.construction_time(:battlecruiser) + 1
     Manufactured::Registry.instance.ships.size.should == oldsh + 1
     Motel::Runner.instance.locations.size.should      == oldl  + 1
   end
@@ -261,6 +262,7 @@ describe Manufactured::RJRAdapter do
       rship.should_not be_nil
     }.should_not raise_error
 
+    sleep Manufactured::Ship.construction_time(:frigate) + 1
     Manufactured::Registry.instance.ships.size.should == 1
 
     # verify defaults
@@ -273,6 +275,7 @@ describe Manufactured::RJRAdapter do
       rship.should_not be_nil
     }.should_not raise_error
 
+    sleep Manufactured::Ship.construction_time(:transport) + 2
     Manufactured::Registry.instance.ships.size.should == 2
 
     # verify set params

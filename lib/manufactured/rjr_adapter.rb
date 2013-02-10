@@ -154,6 +154,7 @@ class RJRAdapter
           # XXX unsafely run hack needed as callback will be invoked within
           # registry lock and create_entity will also attempt to obtain lock
           Manufactured::Registry.instance.unsafely_run {
+            station.notification_callbacks.delete(completed_callback)
             @@local_node.invoke_request('manufactured::create_entity', entity)
           }
         }

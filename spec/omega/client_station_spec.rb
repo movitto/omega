@@ -53,6 +53,7 @@ describe Omega::Client::Factory do
     cstat3 = Omega::Client::Factory.get('station3')
 
     cstat3.construct 'Manufactured::Ship', :type => :mining, :id => 'fooship'
+    sleep(Manufactured::Ship.construction_time(:mining)+1)
     Manufactured::Registry.instance.ships.find { |s| s.id == 'fooship' }.should_not be_nil
     # TODO detect constructed event
   end
@@ -82,6 +83,7 @@ describe Omega::Client::Factory do
     cstat8 = Omega::Client::Factory.get('station8')
     cstat8.entity_type 'miner'
     cstat8.start_construction
+    sleep(Manufactured::Ship.construction_time(:mining)+1)
     Manufactured::Registry.instance.ships.length.should == olds + 1
 
     olds =  Manufactured::Registry.instance.ships.length

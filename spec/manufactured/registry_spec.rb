@@ -347,6 +347,33 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.mining_commands[ship.id].resource_source.id.should == source2.id
   end
 
+  it "should run the construction cycle" do
+    Manufactured::Registry.instance.running?.should be_true
+
+    sys      = Cosmos::SolarSystem.new
+    station  = Manufactured::Station.new  :id => 'station1', :solar_system => sys, :user_id => 'user1', :type => :mining
+    ship     = Manufactured::Ship.new     :id => 'ship1',    :solar_system => sys, :user_id => 'user1', :type => :mining
+
+    Manufactured::Registry.instance.create station
+    Manufactured::Registry.instance.create ship
+
+    before_hook_called = false
+    before_hook = lambda { |cmd| before_hook_called = true }
+
+    Manufactured::Registry.instance.schedule_construction :station => station, :entity => ship, :before => before_hook
+    sleep 1
+    Manufactured::Registry.instance.construction_commands.size.should == 1
+    before_hook_called.should be_true
+    sleep 5
+    Manufactured::Registry.instance.construction_commands.size.should == 0
+
+    Manufactured::Registry.instance.terminate
+    Manufactured::Registry.instance.running?.should be_false
+  end
+
+  #it "should replace duplicate construction commands" do
+  #end
+
   it "should save registered manufactured ships and stations to io object" do
     sys    = Cosmos::SolarSystem.new
     ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys

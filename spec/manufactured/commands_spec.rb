@@ -147,6 +147,10 @@ describe Manufactured::AttackCommand do
 end
 
 describe Manufactured::MiningCommand do
+  after(:all) do
+    Timecop.return
+  end
+
   it "should run mining cycle" do
      sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
      ship     = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys1, :type => :mining
@@ -352,6 +356,61 @@ describe Manufactured::MiningCommand do
      cmd.mine!
      stopped_reason.should be_nil
      cmd.remove?.should be_false
+  end
+
+end
+
+describe Manufactured::ConstructionCommand do
+  after(:all) do
+    Timecop.return
+  end
+
+  it "should run construction cycle" do
+     station  = Manufactured::Station.new  :id => 'station1', :type => :mining
+     ship     = Manufactured::Ship.new     :id => 'ship1',    :type => :mining
+
+     cmd = Manufactured::ConstructionCommand.new :station => station, :entity => ship
+
+     cmd.station.should == station
+     cmd.entity.should  == ship
+     cmd.remove?.should be_false
+     cmd.id.should == station.id + '-' + ship.id
+
+     cmd.construction_cycle
+     cmd.remove?.should be_false
+
+     Timecop.travel(ship.class.construction_time(ship.type) + 1)
+
+     cmd.construction_cycle
+     cmd.remove?.should be_true
+  end
+
+  it "should invoke construction cycle callbacks" do
+     station  = Manufactured::Station.new  :id => 'station1', :type => :mining
+     ship     = Manufactured::Ship.new     :id => 'ship1',    :type => :mining
+
+     pc = 0 ; cc = 0
+     station.notification_callbacks << Manufactured::Callback.new('partial_construction')      { pc += 1 }
+     station.notification_callbacks << Manufactured::Callback.new('construction_complete')     { cc += 1 }
+
+     cmd = Manufactured::ConstructionCommand.new :station => station, :entity => ship
+
+     cmd.station.should == station
+     cmd.entity.should  == ship
+     cmd.remove?.should be_false
+     cmd.id.should == station.id + '-' + ship.id
+
+     cmd.construction_cycle
+     cmd.remove?.should be_false
+     pc.should == 1
+     cc.should == 0
+
+     Timecop.travel(ship.class.construction_time(ship.type) + 1)
+
+     cmd.construction_cycle
+     cmd.remove?.should be_true
+     pc.should == 1
+     cc.should == 1
   end
 
 end

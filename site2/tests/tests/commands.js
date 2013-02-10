@@ -303,11 +303,14 @@ $(document).ready(function(){
         OmegaQuery.all_entities(function(entities){
           var old = entities.length;
           OmegaCommand.construct_entity.exec({'id' : new_stat_id});
-          OmegaQuery.all_entities(function(entities){
-            equal(entities.length, old + 1);
-            // TODO verify type of newly created entity ?
-            start();
-          });
+          // need to wait for construction cycle
+          window.setTimeout(function() {
+            OmegaQuery.all_entities(function(entities){
+              equal(entities.length, old + 1);
+              // TODO verify type of newly created entity ?
+              start();
+            });
+          }, 6000);
         });
       });
     });

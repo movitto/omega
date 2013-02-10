@@ -420,6 +420,7 @@ describe Omega::Client::InteractsWithEnvironment do
                    'class' => 'Manufactured::Ship',
                    'type'  => :mining,
                    'id'   => "test-mining-ship")
+    sleep(Manufactured::Ship.construction_time(:mining)+1)
     ts = TestShip.get('test-mining-ship')
     ts.should_not be_nil
   end
