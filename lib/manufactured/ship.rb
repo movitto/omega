@@ -167,6 +167,16 @@ class Ship
     100
   end
 
+  # Return the time (in seconds) to construct a ship of the specified type
+  #
+  # TODO right now just return a fixed time for every ship, eventually make more variable
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction time
+  # @return [Float] seconds which it takes to construct the ship
+  def self.construction_time(type)
+    5
+  end
+
   # Ship initializer
   # @param [Hash] args hash of options to initialize ship with
   # @option args [String] :id,'id' id to assign to the ship

@@ -785,6 +785,7 @@ module Omega
         constructed = Node.invoke_request 'manufactured::construct_entity',
                           self.entity.id, entity_type, *(args.to_a.flatten)
         Node.raise_event(:constructed, self.entity, constructed)
+        constructed
       end
 
       # Currently does not define any class methods

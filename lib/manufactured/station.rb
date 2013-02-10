@@ -126,6 +126,16 @@ class Station
     100
   end
 
+  # Return the time (in seconds) to construct a station of the specified type
+  #
+  # TODO right now just return a fixed time for every station, eventually make more variable
+  #
+  # @param [STATION_TYPE] type type of station which to return construction time
+  # @return [Float] seconds which it takes to construct the station
+  def self.construction_time(type)
+    10
+  end
+
   # Station initializer
   # @param [Hash] args hash of options to initialize attack command with
   # @option args [String] :id,'id' id to assign to the station

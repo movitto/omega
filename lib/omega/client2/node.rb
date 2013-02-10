@@ -470,7 +470,8 @@ module Omega
       def omega_event_from_args(args)
         if ["resource_collected", "mining_stopped",
             "attacked", "attacked_stop",
-            "defended", "defended_stop"].include?(args.first)
+            "defended", "defended_stop",
+            "partial_construction", "construction_complete"].include?(args.first)
           return args.first.intern
         elsif args.size == 1 && args.first.is_a?(Motel::Location)
           return :movement

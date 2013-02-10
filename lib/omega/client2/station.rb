@@ -20,7 +20,11 @@ module Omega
       include InteractsWithEnvironment
       #entity_validation { |e| e.type == 'manufacturing' }
 
-      server_event       :received      => {},
+      server_event       :construction_complete => {:subscribe    => "manufactured::subscribe_to",
+                                                    :notification => "manufactured::event_occurred"},
+                         :partial_construction  => {:subscribe    => "manufactured::subscribe_to",
+                                                    :notification => "manufactured::event_occurred"},
+                         :received      => {},
                          :constructed   => {}
 
       # Helper method to generate incremental id's

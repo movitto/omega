@@ -120,6 +120,8 @@ class RJRAdapter
       rentity
     }
 
+    # entity will be constructed immediately but will not be available for use
+    # until it is processed by the registry construction cycle
     rjr_dispatcher.add_handler('manufactured::construct_entity') { |manufacturer_id, entity_type, *args|
       station = Manufactured::Registry.instance.find(:type => "Manufactured::Station", :id => manufacturer_id).first
       raise Omega::DataNotFound, "station specified by #{manufacturer_id} not found" if station.nil?
@@ -147,6 +149,15 @@ class RJRAdapter
 
       entity = nil
 
+      completed_callback =
+        Callback.new(:construction_complete, :endpoint => @@local_node.message_headers['source_node']){ |*args|
+          # XXX unsafely run hack needed as callback will be invoked within
+          # registry lock and create_entity will also attempt to obtain lock
+          Manufactured::Registry.instance.unsafely_run {
+            @@local_node.invoke_request('manufactured::create_entity', entity)
+          }
+        }
+
       Manufactured::Registry.instance.safely_run {
         station.clear_errors :of_type => :construction
         unless station.can_construct?(argsh)
@@ -158,10 +169,17 @@ class RJRAdapter
 
         # create the entity and return it
         entity = station.construct argsh
+
+        # track delayed station construction
+        station.notification_callbacks << completed_callback
       }
 
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
-      entity = @@local_node.invoke_request('manufactured::create_entity', entity)
+
+      # schedule construction / placement in system in construction cycle
+      Manufactured::Registry.instance.schedule_construction :station => station, :entity => entity
+
+      # Return station and constructed entity
       [station, entity]
     }
 

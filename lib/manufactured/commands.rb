@@ -312,4 +312,93 @@ class MiningCommand
   end
 end
 
+# Represents action of one {Manufactured::Station} constructing another
+# manufactured entity.
+#
+# Checking of resources & the actual construction (eg call to station.construct)
+# should be done prior to invoking this, this will simulate a construction delay
+# for a parameterized durition invoking the registered callbacks on the way.
+#
+# TODO we may want to revisit this at some point
+#
+# Invokes various Manufactured::Callback handlers upon various
+# events.
+class ConstructionCommand
+  # Station {Manufactured::Station station}
+  attr_accessor :station
+
+  # {Manufactured::Entity entity} constructed
+  attr_accessor :entity
+
+  # Time of last time {#construct_cycle} was invoked
+  attr_accessor :last_time_cycled
+
+  # Hash of command sequence events to callbale handlers to invoke on those events.
+  # Valid values for keys include: :before
+  attr_accessor :hooks
+
+  # Manufactured::ConstructedCommand initializer
+  #
+  # @param [Hash] args hash of options to initialize mining command with
+  # @option args [Manufactured::Station] :station constructing station
+  # @option args [Manufactured::Entity] :entity entity constructe
+  # @option args [Callable] :before callable object to register with the 'before' hooks
+  def initialize(args = {})
+    @station  = args[:station]
+    @entity   = args[:entity]
+    @remove   = false
+
+    @hooks = { :before => [] }
+    @hooks[:before] << args[:before] if args.has_key?(:before)
+  end
+
+  # Return the unique id of this construction command.
+  #
+  # Checked by the registry to ensure no two commands correspond to the same operation.
+  def id
+    @station.id + '-' + @entity.id
+  end
+
+  # Ensure construction command is still valid and perform one construction cycle.
+  #
+  # Also invokes {Manufactured::Callback}s registered with the station
+  # before/during/after the construction cycle with the event type,
+  # and various other parameters
+  #
+  # The callback events/types invoked include:
+  # * 'partial_construction'   - invoked upon every iteration of the construction cycle w/ the given fraction of construction completed
+  # * 'construction_complete'  - invoked when construction is fully completed
+  def construction_cycle
+    RJR::Logger.debug "invoking construction cycle #{@station.id} -> #{@entity.id}"
+
+    @first_time_cycled ||= Time.now
+    @last_time_cycled    = Time.now
+    total_time = @last_time_cycled - @first_time_cycled
+
+    if total_time >= @entity.class.construction_time(@entity.type)
+      @remove = true
+      @station.notification_callbacks.
+            select { |c| c.type == :construction_complete }.
+            each { |c|
+                          c.invoke 'construction_complete',
+                                        @station, @entity
+            }
+    else
+      percentage = total_time / @entity.class.construction_time(@entity.type)
+      @station.notification_callbacks.
+            select { |c| c.type == :partial_construction }.
+            each { |c|
+                          c.invoke 'partial_construction',
+                           @station, @entity, percentage
+            }
+    end
+  end
+
+  # Returns boolean indicating if this construction command should be removed
+  # @return [true,false]
+  def remove?
+    @remove
+  end
+end
+
 end

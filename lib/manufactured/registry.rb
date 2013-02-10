@@ -66,11 +66,17 @@ class Registry
   # [Array<Manufactured::MiningCommand>] mining commands clients has issued to be regularily run
   attr_reader :mining_commands
 
+  # [Array<Manufactured::ConstructionCommand>] construction commands clients has issued to be run after a set time
+  attr_reader :construction_commands
+
   # Time attack thread sleeps between attack cycles
   ATTACK_POLL_DELAY = 0.5 # TODO make configurable?
 
-  # Time mining thread sleeps between attack cycles
+  # Time mining thread sleeps between mining cycles
   MINING_POLL_DELAY = 0.5 # TODO make configurable?
+
+  # Time construction thread sleeps between construction cycles
+  CONSTRUCTION_POLL_DELAY = 1.0 # TODO make configurable?
 
   # Manufactured::Registry initializer
   def initialize
@@ -87,6 +93,7 @@ class Registry
     @fleets   = []
     @attack_commands = {}
     @mining_commands = {}
+    @construction_commands = {}
 
     @ship_graveyard = []
 
@@ -97,6 +104,7 @@ class Registry
     @entities_lock = Mutex.new
     @attack_thread = Thread.new { attack_cycle }
     @mining_thread = Thread.new { mining_cycle }
+    @construction_thread = Thread.new { construction_cycle }
   end
 
   # Return array of classes of manufactured entity types
@@ -132,6 +140,18 @@ class Registry
     @entities_lock.synchronize {
       bl.call *args
     }
+  end
+
+  # Unlock the registry lock, run the specified block of code, then lock again
+  #
+  # XXX not the prettiest, see invocations for why its needed
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
+  # @param [Callable] bl block to invoke
+  def unsafely_run(*args, &bl)
+    @entities_lock.unlock
+    bl.call *args
+    @entities_lock.lock
   end
 
   # Lookup and return entities in registry.
@@ -298,6 +318,16 @@ class Registry
     }
   end
 
+  # Register new {Manufactured::ConstructionCommand} to be run during construction cycle
+  #
+  # @param [Hash] args args to intialize the construction command with
+  def schedule_construction(args = {})
+    @entities_lock.synchronize{
+      cmd = ConstructionCommand.new(args)
+      @construction_commands[cmd.id] = cmd
+    }
+  end
+
   # Run attack commands until instructed to stop
   #
   # @see #terminate
@@ -374,6 +404,32 @@ class Registry
       }
 
       sleep MINING_POLL_DELAY
+    end
+  end
+
+  # Run construction commands until instructed to stop
+  #
+  # @see #terminate
+  def construction_cycle
+    until @terminate_cycles
+      @entities_lock.synchronize{
+        # process construction commands
+        @construction_commands.each { |id, cc|
+          # run 'before' hooks
+          cc.hooks[:before].each { |hook|
+            hook.call cc
+          }
+          cc.construction_cycle
+        }
+
+        # remove construction commands no longer necessary
+        to_remove = @construction_commands.keys.select { |id| @construction_commands[id].remove? }
+        to_remove.each { |id|
+          @construction_commands.delete(id)
+        }
+      }
+
+      sleep CONSTRUCTION_POLL_DELAY
     end
   end
 
