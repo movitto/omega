@@ -21,7 +21,7 @@ function OmegaCamera(){
 
   /////////////////////////////////////// private data
 
-  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 1000 );
+  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 10000 );
   //var camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
 
   /////////////////////////////////////// public methods
@@ -380,6 +380,79 @@ function OmegaEntitiesContainer(){
   });
 }
 
+/////////////////////////////////////// Omega Canvas Skybox
+
+/* Initialize new Omega Skybox
+ */
+function OmegaSkybox(){
+
+  /////////////////////////////////////// private data
+
+  var skybox_bg  = null;
+
+  var skyboxMesh = null;
+
+  // to render skybox
+  var texture_placeholder = document.createElement( 'canvas' );
+
+  /////////////////////////////////////// private methods
+
+  var loadTexture = function( path ) {
+
+    var texture = new THREE.Texture( texture_placeholder );
+    var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: true } );
+
+    var image = new Image();
+    image.onload = function () {
+      texture.needsUpdate = true;
+      material.map.image = this;
+      $omega_scene.animate();
+    };
+    image.src = path;
+    return material;
+  }
+
+  /////////////////////////////////////// public methods
+
+  /* Set the skybox background
+   */
+  this.set_background = function(entity){
+    skybox_bg = entity.background;
+    this.show();
+  };
+
+  /* Show the Skybox
+   */
+  this.show = function(){
+    var path   = '/womega/images/skybox/'+skybox_bg+'/';
+    var format = '.png';
+
+    var materials = [
+      loadTexture(path + 'px' + format),
+      loadTexture(path + 'nx' + format),
+      loadTexture(path + 'pz' + format),
+      loadTexture(path + 'nz' + format),
+      loadTexture(path + 'py' + format),
+      loadTexture(path + 'ny' + format)
+    ];
+
+    if(skyboxMesh != null){
+      $omega_scene.remove( skyboxMesh );
+    }
+
+    // build the skybox Mesh
+    skyboxMesh = new THREE.Mesh( new THREE.CubeGeometry( 8192, 8192, 8192, 7, 7, 7, materials ),
+                                 new THREE.MeshFaceMaterial( ) );
+    //skyboxMesh.flipSided = true;
+    skyboxMesh.scale.x = - 1;
+
+    // add it to the scene
+    $omega_scene.add( skyboxMesh );
+    $omega_scene.animate();
+  };
+
+}
+
 /////////////////////////////////////// Omega Canvas
 
 /* Initialize new Omega Canvas
@@ -387,15 +460,6 @@ function OmegaEntitiesContainer(){
 function OmegaCanvas(){
 
   /////////////////////////////////////// public methods
-
-  /* Set the canvas background
-   */
-  this.set_background = function(entity){
-    $("#omega_canvas").
-      css('background',
-          'url("/womega/images/backgrounds/' +
-             entity.background + '.png") no-repeat');
-  };
 
   /* Hide the omega canvas
    */
@@ -569,6 +633,7 @@ function OmegaSelectBox(){
 function OmegaCanvasUI(){
   $omega_camera             = new OmegaCamera();
   $omega_grid               = new OmegaGrid();
+  $omega_skybox             = new OmegaSkybox();
   $omega_canvas             = new OmegaCanvas();
   $omega_entity_container   = new OmegaEntityContainer();
   $omega_entities_container = new OmegaEntitiesContainer();

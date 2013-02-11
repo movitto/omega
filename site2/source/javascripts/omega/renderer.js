@@ -151,7 +151,7 @@ function OmegaScene(){
    */
   this.set_root = function(entity){
     root_entity = entity;
-    $omega_canvas.set_background(entity);
+    $omega_skybox.set_background(entity);
     $omega_entity_container.hide();
 
     clear();
