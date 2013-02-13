@@ -525,6 +525,7 @@ function OmegaStar(star){
     if($omega_scene.materials['star' + this.color] == null)
       $omega_scene.materials['star' + this.color] =
         new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
+                                       map: $omega_scene.textures['star'],
                                        blending: THREE.AdditiveBlending })
 
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings),
@@ -779,17 +780,17 @@ function OmegaAsteroid(asteroid){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    var text = new THREE.Mesh($omega_scene.geometries['asteroid'],
+    var mesh = new THREE.Mesh($omega_scene.geometries['asteroid'],
                               $omega_scene.materials['asteroid']   );
 
-    text.position.x = this.location.x;
-    text.position.y = this.location.y;
-    text.position.z = this.location.z;
-    text.omega_id = this.name + '-text';
+    mesh.position.x = this.location.x;
+    mesh.position.y = this.location.y;
+    mesh.position.z = this.location.z;
+    mesh.omega_id = this.name + '-mesh';
 
-    this.clickable_obj = text;
-    this.scene_objs.push(text);
-    $omega_scene.add(text);
+    this.clickable_obj = mesh;
+    this.scene_objs.push(mesh);
+    $omega_scene.add(mesh);
   }
 
   /* on_clicked callback, invoked when asteroid is clicked on canvas
@@ -835,14 +836,14 @@ function OmegaJumpGate(jump_gate){
    * distance around the jump gate.
    */
   this.on_load = function(){
-    var geometry = new THREE.PlaneGeometry( 50, 50 );
+    //var geometry = new THREE.PlaneGeometry( 50, 50 );
+    var geometry = $omega_scene.geometries['jump_gate'];
     var material = $omega_scene.materials['jump_gate']
     var mesh     = new THREE.Mesh(geometry, material);
 
     mesh.position.set( this.location.x, this.location.y, this.location.z );
     //mesh.omega_id = // TODO
     this.scene_objs.push(mesh);
-    this.scene_objs.push(geometry);
     $omega_scene.add( mesh );
 
     // sphere to draw around jump gate when selected
@@ -929,40 +930,15 @@ function OmegaShip(ship){
 
     var material = $omega_scene.materials['ship' + color]
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(this.location.x - this.size/2,
-                                             this.location.y,
-                                             this.location.z));
-    geometry.vertices.push(new THREE.Vector3(this.location.x + this.size/2,
-                                             this.location.y,
-                                             this.location.z));
+    var mesh = new THREE.Mesh($omega_scene.geometries['ship'],
+                              new THREE.MeshBasicMaterial({color: parseInt(color)}));
 
-    var line = new THREE.Line(geometry, material);
-    this.scene_objs.push(line);
-    this.scene_objs.push(geometry);
-    $omega_scene.add(line);
-
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                             this.location.y - this.size/2,
-                                             this.location.z));
-    geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                             this.location.y + this.size/2,
-                                             this.location.z));
-
-    line = new THREE.Line(geometry, material);
-    this.scene_objs.push(line);
-    this.scene_objs.push(geometry);
-    $omega_scene.add(line);
-
-    geometry = new THREE.PlaneGeometry( ship.size, ship.size );
-    material = $omega_scene.materials['ship_surface']
-
-    //var texture = new THREE.MeshFaceMaterial();
-    var mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(this.location.x, this.location.y, this.location.z);
+    mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+    mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
+    mesh.matrixAutoUpdate = false;
+    mesh.updateMatrix();
     this.scene_objs.push(mesh);
-    this.scene_objs.push(geometry);
     $omega_scene.add(mesh);
 
     this.clickable_obj = mesh;
@@ -1116,44 +1092,17 @@ function OmegaStation(station){
 
     if($omega_scene.materials['station' + color] == null)
       $omega_scene.materials['station' + color] =
-        new THREE.LineBasicMaterial({color: parseInt(color)});
+        new THREE.MeshBasicMaterial({color: parseInt(color)});
     var material = $omega_scene.materials['station'+color];
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(this.location.x - this.size/2,
-                                             this.location.y,
-                                             this.location.z));
-    geometry.vertices.push(new THREE.Vector3(this.location.x + this.size/2,
-                                             this.location.y,
-                                             this.location.z));
+    var mesh = new THREE.Mesh($omega_scene.geometries['station'], material);
 
-    var line = new THREE.Line(geometry, material);
-    this.scene_objs.push(line);
-    this.scene_objs.push(geometry);
-    $omega_scene.add(line);
-
-    geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                             this.location.y - this.size/2,
-                                             this.location.z));
-    geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                             this.location.y + this.size/2,
-                                             this.location.z));
-
-    line = new THREE.Line(geometry, material);
-    this.scene_objs.push(line);
-    this.scene_objs.push(geometry);
-    $omega_scene.add(line);
-
-    material = $omega_scene.materials['station_surface'];
-    geometry = new THREE.PlaneGeometry( station.size, station.size );
-
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(this.location.x,
-                      this.location.y,
-                      this.location.z);
+    mesh.position.set(this.location.x, this.location.y, this.location.z);
+    mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+    mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
+    mesh.matrixAutoUpdate = false;
+    mesh.updateMatrix();
     this.scene_objs.push(mesh);
-    this.scene_objs.push(geometry);
     $omega_scene.add(mesh);
 
     this.clickable_obj = mesh;

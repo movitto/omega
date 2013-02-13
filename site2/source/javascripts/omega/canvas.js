@@ -21,10 +21,26 @@ function OmegaCamera(){
 
   /////////////////////////////////////// private data
 
-  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 10000 );
+  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 15000 );
   //var camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
 
+  var looking_at = null;
+
   /////////////////////////////////////// public methods
+
+  /* Set/get the point the camera is looking at
+   */
+  this.focus = function(focus){
+    if(looking_at == null)
+      looking_at = $omega_scene.position();
+    if(focus != null){
+      looking_at.x = focus.x;
+      looking_at.y = focus.y;
+      looking_at.z = focus.z;
+    }
+    _camera.lookAt(looking_at);
+    return looking_at;
+  }
 
   /* Set/get the camera position.
    *
@@ -68,7 +84,7 @@ function OmegaCamera(){
     _camera.position.y = y;
     _camera.position.z = z;
 
-    _camera.lookAt($omega_scene.position());
+    this.focus();
     $omega_scene.animate();
   }
 
@@ -104,8 +120,8 @@ function OmegaCamera(){
     _camera.position.y = y;
     _camera.position.z = z;
 
-    _camera.lookAt($omega_scene.position());
-    _camera.updateMatrix();
+    this.focus();
+    //_camera.updateMatrix();
     $omega_scene.animate();
   }
 
@@ -122,7 +138,10 @@ function OmegaCamera(){
 
   if(jQuery.fn.mousehold){
 
+    // TODO rename to pan left / right
     $('#cam_rotate_right').mousehold(function(e, ctr){
+      //var focus = $omega_camera.focus();
+      //$omega_camera.focus({x : focus.x + 5, y : focus.y, z : focus.z});
       $omega_camera.rotate(0.0, 0.2);
     });
 
@@ -149,6 +168,93 @@ function OmegaCamera(){
   }
 }
 
+/////////////////////////////////////// Omega Canvas Axis
+
+/* Initialize new Omega Axis
+ */
+function OmegaAxis(){
+  /////////////////////////////////////// private data
+  var size = 250;
+
+  var step = 100;
+
+  var line_geometry = new THREE.Geometry();
+
+  var line_material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.4 } );
+
+  var showing_axis = false;
+
+  var distance_geometries = [new THREE.TorusGeometry(3000, 5, 40, 40),
+                             new THREE.TorusGeometry(2000, 5, 20, 20),
+                             new THREE.TorusGeometry(1000, 5, 20, 20)];
+
+  var distance_material = new THREE.MeshBasicMaterial({color: 0xcccccc });
+
+  /////////////////////////////////////// public methods
+  /* Show the Canvas Grid
+   */
+  this.show = function(){
+    for(var marker in distance_markers){
+      $omega_scene.add(distance_markers[marker]);
+    }
+    $omega_scene.add( axis_line );
+    showing_axis = true;
+  }
+
+  /* Hide the Canvas Grid
+   */
+  this.hide = function(){
+    for(var marker in distance_markers){
+      $omega_scene.remove_obj(distance_markers[marker]);
+    }
+    $omega_scene.remove_obj(axis_line);
+    showing_axis = false;
+  }
+
+  /* Toggle showing/hiding the canvas grid based
+   * on checked attribute of the '#toggle_axis_canvas' input
+   */
+  this.toggle = function(){
+    var toggle_axis = $('#toggle_axis_canvas');
+    if(toggle_axis){
+      if(toggle_axis.is(':checked'))
+        this.show();
+      else
+        this.hide();
+    }
+    $omega_scene.animate();
+  }
+
+  /////////////////////////////////////// initialization
+
+  // create line representing entire axis
+  line_geometry.vertices.push( new THREE.Vector3( 0, 0, -4096 ) );
+  line_geometry.vertices.push( new THREE.Vector3( 0, 0,  4096 ) );
+
+  line_geometry.vertices.push( new THREE.Vector3( 0, -4096, 0 ) );
+  line_geometry.vertices.push( new THREE.Vector3( 0,  4096, 0 ) );
+
+  line_geometry.vertices.push( new THREE.Vector3( -4096, 0, 0 ) );
+  line_geometry.vertices.push( new THREE.Vector3(  4096, 0, 0 ) );
+
+  var axis_line = new THREE.Line( line_geometry, line_material, THREE.LinePieces );
+
+  var distance_markers = [];
+  for(var geometry in distance_geometries){
+    var mesh = new THREE.Mesh(distance_geometries[geometry], distance_material)
+    mesh.position.x = 0;
+    mesh.position.y = 0;
+    mesh.position.z = 0;
+    mesh.rotation.x = 1.57;
+    distance_markers.push(mesh);
+  }
+
+  // wire up axis controls
+  $('#toggle_axis_canvas').live('click', function(e){ $omega_axis.toggle(); });
+  $('#toggle_axis_canvas').attr('checked', false);
+
+}
+
 /////////////////////////////////////// Omega Canvas Grid
 
 /* Initialize new Omega Grid
@@ -156,9 +262,9 @@ function OmegaCamera(){
 function OmegaGrid(){
 
   /////////////////////////////////////// private data
-  var size = 250;
+  var size = 1000;
 
-  var step = 100;
+  var step = 250;
 
   var geometry = new THREE.Geometry();
 
@@ -467,7 +573,7 @@ function OmegaCanvas(){
     $('canvas').hide();
     $('.entities_container').hide();
     $('#camera_controls').hide();
-    $('#grid_control').hide();
+    $('#axis_controls').hide();
     $('#close_canvas').hide();
     $('#show_canvas').show();
   };
@@ -478,7 +584,7 @@ function OmegaCanvas(){
     $('canvas').show();
     //$('.entities_container').show(); // TODO we need to individually show each of these
     $('#camera_controls').show();
-    $('#grid_control').show();
+    $('#axis_controls').show();
     $('#close_canvas').show();
     $('#show_canvas').hide();
   };
@@ -632,6 +738,7 @@ function OmegaSelectBox(){
  */
 function OmegaCanvasUI(){
   $omega_camera             = new OmegaCamera();
+  $omega_axis               = new OmegaAxis();
   $omega_grid               = new OmegaGrid();
   $omega_skybox             = new OmegaSkybox();
   $omega_canvas             = new OmegaCanvas();
@@ -639,7 +746,7 @@ function OmegaCanvasUI(){
   $omega_entities_container = new OmegaEntitiesContainer();
   $omega_select_box         = new OmegaSelectBox();
 
-  $omega_camera.position({z : 500});
+  $omega_camera.position({z : 1000});
 
   // when entities are registered, add to entities container if appropriate
   $omega_registry.on_registration($omega_entities_container.add_to_entities_container);

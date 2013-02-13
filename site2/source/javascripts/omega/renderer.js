@@ -86,28 +86,43 @@ function OmegaScene(){
   /////////////////////////////////////// public (read-only) data
 
   // preload textures & other resources
-  var textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/jump_gate.png")};
+  this.textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/textures/jump_gate.jpg"),
+                     star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg")};
   this.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
                     system    : new THREE.MeshLambertMaterial({color: 0x996600, blending: THREE.AdditiveBlending}),
                     system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
                     orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
                     moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
-                    asteroid : new THREE.MeshBasicMaterial( { color: 0xffffff, overdraw: true }),
-                    jump_gate : new THREE.MeshBasicMaterial( { map: textures['jump_gate'] } ),
+                    asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, overdraw: true }),
+                    jump_gate : new THREE.MeshBasicMaterial( { map: this.textures['jump_gate'] } ),
                     jump_gate_selected : new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
-                    ship_surface : new THREE.LineBasicMaterial( { } ), // new THREE.MeshFaceMaterial({ });
                     ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
-                    ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF}),
-                    station_surface : new THREE.LineBasicMaterial( { } )
+                    ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF})
                    };
   // relatively new for three.js (mesh.doubleSided = true is old way):
-  this.materials['jump_gate'].side       = THREE.DoubleSide;
-  this.materials['ship_surface'].side    = THREE.DoubleSide;
-  this.materials['station_surface'].side = THREE.DoubleSide;
+  //this.materials['jump_gate'].side       = THREE.DoubleSide;
 
   var mnradius = 5, mnsegments = 32, mnrings = 32;
-  this.geometries = {asteroid : new THREE.TextGeometry( "*", {height: 20, curveSegments: 2, font: 'helvetiker', size: 32}),
-                    moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),};
+  this.geometries = {moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),
+                     ship     : null, station : null, asteroid : null, jump_gate : null};
+
+  var loader = new THREE.JSONLoader();
+  loader.load('images/meshes/brigantine.js', function(geometry){
+    geometry.computeTangents();
+    $omega_scene.geometries['ship'] = geometry;
+  });
+  loader.load('images/meshes/research.js', function(geometry){
+    geometry.computeTangents();
+    $omega_scene.geometries['station'] = geometry;
+  });
+  loader.load('images/meshes/asteroids1.js', function(geometry){
+    geometry.computeTangents();
+    $omega_scene.geometries['asteroid'] = geometry;
+  });
+  loader.load('images/meshes/jump_gate.js', function(geometry){
+    geometry.computeTangents();
+    $omega_scene.geometries['jump_gate'] = geometry;
+  });
 
   /////////////////////////////////////// private methods
 
