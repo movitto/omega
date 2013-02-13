@@ -10,8 +10,8 @@ module Cosmos
 # Cosmos entity residing in a solar system orbiting a star.
 class Planet
   # @!group  Size Boundaries
-  MAX_PLANET_SIZE = 20
-  MIN_PLANET_SIZE = 10
+  MAX_PLANET_SIZE = 60
+  MIN_PLANET_SIZE = 50
   # @!endgroup
 
   # Unique name of the planet

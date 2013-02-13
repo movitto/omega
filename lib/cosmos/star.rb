@@ -34,8 +34,8 @@ class Star
   STAR_COLORS = ["FFFF00"]
 
   # @!group  Size Boundaries
-  MAX_STAR_SIZE = 55
-  MIN_STAR_SIZE = 40
+  MAX_STAR_SIZE = 550
+  MIN_STAR_SIZE = 400
   # @!endgroup
 
   # Cosmos::Star intializer

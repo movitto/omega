@@ -20,42 +20,42 @@ login node, 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => 31, :y => -22, :z => 15) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 1922, :y => -930, :z => 2001) do |ast|
       resource :resource => rand_resource, :quantity => 325
     end
-    asteroid gen_uuid, :location => Location.new(:x => 15, :y => 51, :z => 42) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 1533, :y => 998, :z => 640) do |ast|
       resource :resource => rand_resource, :quantity => 500
     end
   end
 
   system 'Aphrodite', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => -25, :y => -17, :z => -32) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => -2500, :y => -137, :z => -320) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
-    asteroid gen_uuid, :location => Location.new(:x => 10, :y => -42, :z => -22) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 343, :y => -492, :z => -2332) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
   end
 
   system 'Philo', 'HU1792', :location => Location.new(:x => -142, :y => -338, :z => 409) do |sys|
     planet 'Xeno',
-           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
-                                                :eccentricity => 0.16, :semi_latus_rectum => 140,
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.02,
+                                                :eccentricity => 0.36, :semi_latus_rectum => 1080,
                                                 :direction => Motel.random_axis) do |pl|
     end
   
-    asteroid gen_uuid, :location => Location.new(:x => 47, :y => 48, :z => -5) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 479, :y => 432, :z => -1005) do |ast|
       resource :resource => rand_resource, :quantity => 550
     end
-    asteroid gen_uuid, :location => Location.new(:x => 59, :y => -13, :z => -2) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 259, :y => -513, :z => -290) do |ast|
       resource :resource => rand_resource, :quantity => 550
     end
 
   end
 end
 
-jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 150, :y => 150, :z => 150)
-jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -150, :y => 150, :z => -150)
-jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 150, :y => -150, :z => 150)
-jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 150, :y => -150, :z => 150)
+jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -950, :y => -950, :z => -950)
+jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 950, :y => 950, :z => 950)
+jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -950, :y => 950, :z => -950)
+jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 950, :y => -950, :z => 950)
+jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 950, :y => -950, :z => 950)
