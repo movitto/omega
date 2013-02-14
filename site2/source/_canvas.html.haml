@@ -6,19 +6,32 @@
 
 #canvas_controls
   #camera_controls
-    = image_tag("/images/camera/rotate_left.png",  :id => "cam_rotate_left")
-    = image_tag("/images/camera/rotate_right.png", :id => "cam_rotate_right")
-    = image_tag("/images/camera/rotate_up.png",    :id => "cam_rotate_up")
-    = image_tag("/images/camera/rotate_down.png",  :id => "cam_rotate_down")
-    = image_tag("/images/camera/zoom_out.png",     :id => "cam_zoom_out")
-    = image_tag("/images/camera/zoom_in.png",      :id => "cam_zoom_in")
+    = image_tag("/images/camera/reset.png",     :id => "cam_reset")
+    .row
+      = image_tag("/images/camera/pan_left.png",     :id => "cam_pan_left")
+      = image_tag("/images/camera/pan_right.png",    :id => "cam_pan_right")
+      = image_tag("/images/camera/pan_up.png",       :id => "cam_pan_up")
+      = image_tag("/images/camera/pan_down.png",     :id => "cam_pan_down")
+      = image_tag("/images/camera/zoom_in.png",      :id => "cam_zoom_in")
+    .row
+      = image_tag("/images/camera/rotate_left.png",  :id => "cam_rotate_left")
+      = image_tag("/images/camera/rotate_right.png", :id => "cam_rotate_right")
+      = image_tag("/images/camera/rotate_up.png",    :id => "cam_rotate_up")
+      = image_tag("/images/camera/rotate_down.png",  :id => "cam_rotate_down")
+      = image_tag("/images/camera/zoom_out.png",     :id => "cam_zoom_out")
 
   #locations_list.entities_container
-    %b Locations
-    %ul
+    .row
+      &nbsp;
+    .row
+      %b Locations
+      %ul
   #alliances_list.entities_container
-    %b Alliances
-    %ul
+    .row
+      &nbsp;
+    .row
+      %b Alliances
+      %ul
   #fleets_list.entities_container
 
   - show_close ||= false
@@ -29,8 +42,10 @@
     canvas
 
   #axis_controls
-    %input#toggle_axis_canvas{:type => "checkbox"} toggle axis
-    %input#toggle_grid_canvas{:type => "checkbox"} toggle grid
+    .row
+      %input#toggle_axis_canvas{:type => "checkbox"} toggle axis
+    .row
+      %input#toggle_grid_canvas{:type => "checkbox"} toggle grid
 
   .clear_both
 

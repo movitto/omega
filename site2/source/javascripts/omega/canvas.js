@@ -28,17 +28,31 @@ function OmegaCamera(){
 
   /////////////////////////////////////// public methods
 
+  /* Set camera to its default position
+   */
+  this.reset = function(){
+    this.position({x : 0, y : 0, z : 1000});
+    if(typeof $omega_scene !== "undefined")
+      this.focus($omega_scene.position());
+  }
+
   /* Set/get the point the camera is looking at
    */
   this.focus = function(focus){
-    if(looking_at == null)
-      looking_at = $omega_scene.position();
+    if(looking_at == null){
+      var pos = $omega_scene.position();
+      looking_at = {x : pos.x, y : pos.y, z : pos.z};
+    }
     if(focus != null){
-      looking_at.x = focus.x;
-      looking_at.y = focus.y;
-      looking_at.z = focus.z;
+      if(typeof focus.x !== "undefined")
+        looking_at.x = focus.x;
+      if(typeof focus.y !== "undefined")
+        looking_at.y = focus.y;
+      if(typeof focus.z !== "undefined")
+        looking_at.z = focus.z;
     }
     _camera.lookAt(looking_at);
+    $omega_scene.animate();
     return looking_at;
   }
 
@@ -48,14 +62,16 @@ function OmegaCamera(){
    * before returning current camera position.
    */
   this.position = function(position){
-    if(position && position.x)
-      _camera.position.x = position.x;
+    if(typeof position !== "undefined"){
+      if(typeof position.x !== "undefined")
+        _camera.position.x = position.x;
 
-    if(position && position.y)
-      _camera.position.y = position.y;
+      if(typeof position.y !== "undefined")
+        _camera.position.y = position.y;
 
-    if(position && position.z)
-      _camera.position.z = position.z;
+      if(typeof position.z !== "undefined")
+        _camera.position.z = position.z;
+    }
 
     return {x : _camera.position.x,
             y : _camera.position.y,
@@ -125,6 +141,25 @@ function OmegaCamera(){
     $omega_scene.animate();
   }
 
+  // Pan the camera along its own X/Y axis
+  this.pan = function(x, y){
+    var pos   = this.position();
+    var focus = this.focus();
+
+    var mat = _camera.matrix;
+    _camera.position.x += mat.elements[0] * x;
+    _camera.position.y += mat.elements[1] * x;
+    _camera.position.z += mat.elements[2] * x;
+    _camera.position.x += mat.elements[4] * y;
+    _camera.position.y += mat.elements[5] * y;
+    _camera.position.z += mat.elements[6] * y;
+
+    var npos   = this.position();
+    this.focus({x : focus.x + (npos.x - pos.x),
+                y : focus.y + (npos.y - pos.y),
+                z : focus.z + (npos.z - pos.z)});
+  }
+
   // XXX OmegaScene and canvas clicked handler requires access to three.js camera
   //     canvas_to_xy in tests/setup.js requires access to internal camera
   this.scene_camera = function(){
@@ -138,10 +173,27 @@ function OmegaCamera(){
 
   if(jQuery.fn.mousehold){
 
-    // TODO rename to pan left / right
+    $('#cam_reset').click(function(e){
+      $omega_camera.reset();
+    });
+
+    $('#cam_pan_right').mousehold(function(e, ctr){
+      $omega_camera.pan(50, 0);
+    });
+
+    $('#cam_pan_left').mousehold(function(e, ctr){
+      $omega_camera.pan(-50, 0);
+    });
+
+    $('#cam_pan_up').mousehold(function(e, ctr){
+      $omega_camera.pan(0, 50);
+    });
+
+    $('#cam_pan_down').mousehold(function(e, ctr){
+      $omega_camera.pan(0, -50);
+    });
+
     $('#cam_rotate_right').mousehold(function(e, ctr){
-      //var focus = $omega_camera.focus();
-      //$omega_camera.focus({x : focus.x + 5, y : focus.y, z : focus.z});
       $omega_camera.rotate(0.0, 0.2);
     });
 
@@ -543,7 +595,7 @@ function OmegaSkybox(){
     ];
 
     if(skyboxMesh != null){
-      $omega_scene.remove( skyboxMesh );
+      $omega_scene.remove_obj( skyboxMesh );
     }
 
     // build the skybox Mesh
@@ -746,7 +798,7 @@ function OmegaCanvasUI(){
   $omega_entities_container = new OmegaEntitiesContainer();
   $omega_select_box         = new OmegaSelectBox();
 
-  $omega_camera.position({z : 1000});
+  $omega_camera.reset();
 
   // when entities are registered, add to entities container if appropriate
   $omega_registry.on_registration($omega_entities_container.add_to_entities_container);
