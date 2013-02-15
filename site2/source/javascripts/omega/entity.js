@@ -526,7 +526,7 @@ function OmegaStar(star){
       $omega_scene.materials['star' + this.color] =
         new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
                                        map: $omega_scene.textures['star'],
-                                       blending: THREE.AdditiveBlending })
+                                       overdraw : true})
 
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings),
                                 $omega_scene.materials['star' + this.color]);
@@ -926,12 +926,11 @@ function OmegaShip(ship){
 
     if($omega_scene.materials['ship' + color] == null)
        $omega_scene.materials['ship' + color] =
-         new THREE.LineBasicMaterial({color: parseInt(color)});
+         new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
 
-    var material = $omega_scene.materials['ship' + color]
+    var material = $omega_scene.materials['ship' + color];
 
-    var mesh = new THREE.Mesh($omega_scene.geometries['ship'],
-                              new THREE.MeshBasicMaterial({color: parseInt(color)}));
+    var mesh = new THREE.Mesh($omega_scene.geometries['ship'], material);
 
     mesh.position.set(this.location.x, this.location.y, this.location.z);
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;

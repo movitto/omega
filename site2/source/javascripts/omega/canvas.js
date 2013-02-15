@@ -32,8 +32,10 @@ function OmegaCamera(){
    */
   this.reset = function(){
     this.position({x : 0, y : 0, z : 1000});
-    if(typeof $omega_scene !== "undefined")
+    if(typeof $omega_scene !== "undefined"){
       this.focus($omega_scene.position());
+      $omega_scene.animate();
+    }
   }
 
   /* Set/get the point the camera is looking at
@@ -52,7 +54,6 @@ function OmegaCamera(){
         looking_at.z = focus.z;
     }
     _camera.lookAt(looking_at);
-    $omega_scene.animate();
     return looking_at;
   }
 
@@ -79,29 +80,33 @@ function OmegaCamera(){
   }
 
   /* Zoom the Omega Camera the specified distance from its
-   * current position. Camera currently always faces origin.
+   * current position along the axis indicated by its focus
    */
   this.zoom = function(distance){
+    var focus = this.focus();
+
     var x = _camera.position.x,
         y = _camera.position.y,
         z = _camera.position.z;
-    var dist  = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-    var phi = Math.atan2(x,z);
-    var theta   = Math.acos(y/dist);
+    var dx = x - focus.x,
+        dy = y - focus.y,
+        dz = z - focus.z;
+    var dist  = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
+    var phi = Math.atan2(dx,dz);
+    var theta   = Math.acos(dy/dist);
 
     if((dist + distance) <= 0) return;
     dist += distance;
 
-    z = dist * Math.sin(theta) * Math.cos(phi);
-    x = dist * Math.sin(theta) * Math.sin(phi);
-    y = dist * Math.cos(theta);
+    dz = dist * Math.sin(theta) * Math.cos(phi);
+    dx = dist * Math.sin(theta) * Math.sin(phi);
+    dy = dist * Math.cos(theta);
 
-    _camera.position.x = x;
-    _camera.position.y = y;
-    _camera.position.z = z;
+    _camera.position.x = dx + focus.x;
+    _camera.position.y = dy + focus.y;
+    _camera.position.z = dz + focus.z;
 
     this.focus();
-    $omega_scene.animate();
   }
 
   /* Rotate the camera using a spherical coordiante system.
@@ -109,18 +114,23 @@ function OmegaCamera(){
    * the camera from its current position
    */
   this.rotate = function(theta_distance, phi_distance){
+    var focus = this.focus();
+
     var x = _camera.position.x,
         y = _camera.position.y,
         z = _camera.position.z;
-    var dist  = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-    var phi = Math.atan2(x,z);
-    var theta   = Math.acos(y/dist);
-    if(z < 0) theta = 2 * Math.PI - theta; // adjust for acos loss
+    var dx = x - focus.x,
+        dy = y - focus.y,
+        dz = z - focus.z;
+    var dist  = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
+    var phi = Math.atan2(dx,dz);
+    var theta   = Math.acos(dy/dist);
+    if(dz < 0) theta = 2 * Math.PI - theta; // adjust for acos loss
 
     theta += theta_distance;
     phi   += phi_distance;
 
-    if(z < 0) theta = 2 * Math.PI - theta; // readjust for acos loss
+    if(dz < 0) theta = 2 * Math.PI - theta; // readjust for acos loss
 
     // prevent camera from going too far up / down
     if(theta < 0.5)
@@ -128,17 +138,15 @@ function OmegaCamera(){
     else if(theta > (Math.PI - 0.5))
       theta = Math.PI - 0.5;
 
-    z = dist * Math.sin(theta) * Math.cos(phi);
-    x = dist * Math.sin(theta) * Math.sin(phi);
-    y = dist * Math.cos(theta);
+    dz = dist * Math.sin(theta) * Math.cos(phi);
+    dx = dist * Math.sin(theta) * Math.sin(phi);
+    dy = dist * Math.cos(theta);
 
-    _camera.position.x = x;
-    _camera.position.y = y;
-    _camera.position.z = z;
+    _camera.position.x = dx + focus.x;
+    _camera.position.y = dy + focus.y;
+    _camera.position.z = dz + focus.z;
 
     this.focus();
-    //_camera.updateMatrix();
-    $omega_scene.animate();
   }
 
   // Pan the camera along its own X/Y axis
@@ -179,42 +187,52 @@ function OmegaCamera(){
 
     $('#cam_pan_right').mousehold(function(e, ctr){
       $omega_camera.pan(50, 0);
+      $omega_scene.animate();
     });
 
     $('#cam_pan_left').mousehold(function(e, ctr){
       $omega_camera.pan(-50, 0);
+      $omega_scene.animate();
     });
 
     $('#cam_pan_up').mousehold(function(e, ctr){
       $omega_camera.pan(0, 50);
+      $omega_scene.animate();
     });
 
     $('#cam_pan_down').mousehold(function(e, ctr){
       $omega_camera.pan(0, -50);
+      $omega_scene.animate();
     });
 
     $('#cam_rotate_right').mousehold(function(e, ctr){
       $omega_camera.rotate(0.0, 0.2);
+      $omega_scene.animate();
     });
 
     $('#cam_rotate_left').mousehold(function(e, ctr){
       $omega_camera.rotate(0.0, -0.2);
+      $omega_scene.animate();
     });
 
     $('#cam_rotate_up').mousehold(function(e, ctr){
       $omega_camera.rotate(-0.2, 0.0);
+      $omega_scene.animate();
     });
 
     $('#cam_rotate_down').mousehold(function(e, ctr){
       $omega_camera.rotate(0.2, 0.0);
+      $omega_scene.animate();
     });
 
     $('#cam_zoom_out').mousehold(function(e, ctr){
       $omega_camera.zoom(20);
+      $omega_scene.animate();
     });
 
     $('#cam_zoom_in').mousehold(function(e, ctr){
       $omega_camera.zoom(-20);
+      $omega_scene.animate();
     });
 
   }
@@ -454,7 +472,6 @@ function OmegaEntityContainer(){
     $omega_entity_container.hide();
   });
 
-
 }
 
 /////////////////////////////////////// Omega Entities Container
@@ -467,7 +484,7 @@ function OmegaEntitiesContainer(){
 
   var locations   =  {};
 
-  var alliances   =  {};
+  var entities    =  {};
 
   var fleets      =  {};
 
@@ -475,26 +492,37 @@ function OmegaEntitiesContainer(){
 
   // Add specified entity to the proper entities container
   this.add_to_entities_container = function(entity){
-    if(entity.json_class == "Cosmos::Galaxy" ||
-       entity.json_class == "Cosmos::SolarSystem"){
+    if(entity.json_class == "Cosmos::Galaxy"){
       if(locations[entity.name] == null){
         locations[entity.name] = entity;
-        $('#locations_list ul').append('<li name="'+entity.name+'">'+entity.name+'</li>');
+        $('#locations_list ul').prepend('<li name="'+entity.name+'" style="color: green; font-weight: bold;">'+entity.name+'</li>');
       }
 
       $('#locations_list').show();
 
-    }else if(entity.json_class == "Users::User"){
-      for(var a in entity.alliances){
-        var alliance = entity.alliances[a];
-        if(alliances[alliance.id] == null){
-          alliances[alliance.id] = alliance;
-          $('#alliances_list ul').append('<li name="'+alliance.id+'">' + alliance.id + '</li>');
-        }
+    }else if(entity.json_class == "Cosmos::SolarSystem"){
+      if(locations[entity.name] == null){
+        locations[entity.name] = entity;
+        $('#locations_list ul').append('<li name="'+entity.name+'" style="color: red; font-weight: bold;">'+entity.name+'</li>');
       }
 
-      if(entity.alliances.length > 0)
-        $('#alliances_list').show();
+      $('#locations_list').show();
+
+    }else if(entity.json_class == "Manufactured::Ship"){
+      if(entities[entity.id] == null){
+        entities[entity.id] = entity;
+        $('#entities_list ul').append('<li name="'+entity.id+'" style="color: green; font-weight: bold;">'+entity.id+'</li>');
+      }
+
+      $('#entities_list').show();
+
+    }else if(entity.json_class == "Manufactured::Station"){
+      if(entities[entity.id] == null){
+        entities[entity.id] = entity;
+        $('#entities_list ul').append('<li name="'+entity.id+'" style="color: blue; font-weight: bold;">'+entity.id+'</li>');
+      }
+
+      $('#entities_list').show();
 
     }else if(entity.json_class == "Manufactured::Fleet"){
       if(fleets[entity.id] == null){
@@ -514,8 +542,15 @@ function OmegaEntitiesContainer(){
     $omega_scene.set_root($omega_registry.get(entity_id));
   });
 
-  $('#alliances_list li').live('click', function(event){
-    // TODO
+  $('#entities_list li').live('click', function(event){
+    var entity_id = $(event.currentTarget).attr('name');
+    var entity = $omega_registry.get(entity_id)
+    var system = $omega_registry.get(entity.system_name);
+
+    $omega_scene.set_root(system);
+    $omega_camera.position({x : entity.location.x, y : entity.location.y, z : entity.location.z + 500});
+    $omega_camera.focus({x : entity.location.x, y : entity.location.y, z : entity.location.z });
+    $omega_scene.animate();
   });
 
   $('#fleets_list li').live('click', function(event){
