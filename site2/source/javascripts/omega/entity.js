@@ -445,25 +445,27 @@ function OmegaSolarSystem(system){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    //for(var j=0; j<this.jump_gates.length;++j){
-    //  var jg = this.jump_gates[j];
-    //  var endpoint = $tracker.load(jg.endpoint);
+    for(var j=0; j<this.jump_gates.length;++j){
+      var system = this;
+      var jg = this.jump_gates[j];
+      OmegaSolarSystem.cached(jg.endpoint, function(sys){
+        var geometry = new THREE.Geometry();
+        geometry.vertices.push(new THREE.Vector3(system.location.x,
+                                                 system.location.y,
+                                                 system.location.z));
 
-    //  var geometry = new THREE.Geometry();
-    //  geometry.vertices.push(new THREE.Vector3(this.location.x,
-    //                                           this.location.y,
-    //                                           this.location.z));
+        geometry.vertices.push(new THREE.Vector3(sys.location.x, sys.location.y, sys.location.z));
+        var line = new THREE.Line(geometry, $omega_scene.materials['line']);
 
-    //  geometry.vertices.push(new THREE.Vector3(endpoint.x, endpoint.y, endpoint.z));
-    //  var line = new THREE.Line(geometry, $omega_scene.materials['line']);
-    //  this.scene_objs.push(line);
-    //  $omega_scene.add(line);
-    //}
+        system.scene_objs.push(line);
+        $omega_scene.add(line);
+      });
+    }
     
     // draw sphere representing system
-    var radius   = system.size, segments = 32, rings = 32;
+    var radius   = 100, segments = 32, rings = 32;
     var geometry = new THREE.SphereGeometry(radius, segments, rings);
-    var sphere   = new THREE.Mesh(geometry, $omega_scene.materials['system']);
+    var sphere   = new THREE.Mesh(geometry, $omega_scene.materials['system_sphere']);
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z ;
@@ -472,13 +474,22 @@ function OmegaSolarSystem(system){
     this.scene_objs.push(sphere);
     $omega_scene.add(sphere);
 
+    var geometry = new THREE.PlaneGeometry(100, 100);
+    var plane = new THREE.Mesh(geometry, $omega_scene.materials['system_plane']);
+    plane.position.x = this.location.x;
+    plane.position.y = this.location.y;
+    plane.position.z = this.location.z;
+    plane.rotation.x = 0.785;
+    plane.lookAt($omega_camera.position()); // XXX dependency on omega_camera
+    this.scene_objs.push(plane);
+    $omega_scene.add(plane);
+
     // draw label
-    var text3d = new THREE.TextGeometry( system.name, {height: 10, width: 3, curveSegments: 2, font: 'helvetiker', size: 16});
+    var text3d = new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 64});
     var text   = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
-    text.position.x = this.location.x - 50;
-    text.position.y = this.location.y - 50;
-    text.position.z = this.location.z - 50;
-    text.lookAt($omega_camera.position()); // XXX dependency on omega_camera
+    text.position.x = this.location.x;
+    text.position.y = this.location.y;
+    text.position.z = this.location.z + 50;
     text.omega_id = this.name + "-text";
     this.scene_objs.push(text);
     $omega_scene.add(text);

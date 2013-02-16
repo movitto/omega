@@ -87,9 +87,11 @@ function OmegaScene(){
 
   // preload textures & other resources
   this.textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/textures/jump_gate.jpg"),
-                     star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg")};
+                     star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg"),
+                     solar_system : THREE.ImageUtils.loadTexture("/womega/images/solar_system.png")};
   this.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
-                    system    : new THREE.MeshLambertMaterial({color: 0x996600, blending: THREE.AdditiveBlending}),
+                    system_sphere : new THREE.MeshBasicMaterial({color: 0x996600, opacity: 0.2}),
+                    system_plane  : new THREE.MeshBasicMaterial({map: this.textures['solar_system']}),
                     system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
                     orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
                     moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
@@ -101,7 +103,12 @@ function OmegaScene(){
                     ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF})
                    };
   // relatively new for three.js (mesh.doubleSided = true is old way):
-  //this.materials['jump_gate'].side       = THREE.DoubleSide;
+  this.materials['system_plane'].side       = THREE.DoubleSide;
+
+  this.textures['jump_gate'].wrapS  = THREE.RepeatWrapping;
+  this.textures['jump_gate'].wrapT  = THREE.RepeatWrapping;
+  this.textures['jump_gate'].repeat.x  = 5;
+  this.textures['jump_gate'].repeat.y  = 5;
 
   var astradius = 256, astsegments = 32, astrings = 32;
   var mnradius = 5, mnsegments = 32, mnrings = 32;
@@ -182,6 +189,8 @@ function OmegaScene(){
           child.added_to_scene();
       }
     }
+
+    // TODO refresh child planets/ships/stations from server
 
     // XXX hack hide dialog
     if(typeof $omega_dialog !== "undefined") $omega_dialog.hide();
