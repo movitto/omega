@@ -272,6 +272,8 @@ function OmegaEntity(entity){
 
   this.on_movement       = null;
 
+  this.added_to_scene    = null;
+
   /////////////////////////////////////// public methods
 
   /* Load the local entity's representation, invoked
@@ -630,9 +632,6 @@ function OmegaPlanet(planet){
       this.scene_objs.push(sphere);
       $omega_scene.add(sphere);
     }
-
-    // retrack planet movement
-    OmegaEvent.movement.subscribe(this.location.id, 120);
   }
 
   /* Calculate and cache the planet's orbit given its movement strategy.
@@ -743,6 +742,20 @@ function OmegaPlanet(planet){
     this.location.z = nloc[2];
 
     this.moved();
+  }
+
+  /* added_to_scene callback, invoked when planet is added to omega_scene
+   *
+   * Updates the planet's location from the server side state, sets up tracking
+   */
+  this.added_to_scene = function(){
+    // FIXME updated planet will not have orbit, scene_objs and such
+    OmegaQuery.planet_with_name(this.name, function(pl){
+      $omega_scene.reload(pl);
+
+      // retrack planet movement
+      OmegaEvent.movement.subscribe(pl.location.id, 120);
+    });
   }
 }
 
@@ -1067,6 +1080,19 @@ function OmegaShip(ship){
     }
   }
 
+  /* added_to_scene callback, invoked when ship is added to omega_scene
+   *
+   * Updates the ship from the server side state, sets up tracking
+   */
+  this.added_to_scene = function(){
+    OmegaQuery.entity_with_id(this.id, function(sh){
+      $omega_scene.reload(sh);
+
+      // retrack ship movement
+      OmegaEvent.movement.subscribe(sh.location.id, 20);
+    });
+  }
+
 }
 
 /////////////////////////////////////// Omega Station
@@ -1145,5 +1171,15 @@ function OmegaStation(station){
     $omega_scene.selection.select(this.id);
     $omega_entity_container.on_closed(on_unselected)
     $omega_scene.reload(this);
+  }
+
+  /* added_to_scene callback, invoked when station is added to omega_scene
+   *
+   * Updates the station from the server side state, to get resources
+   */
+  this.added_to_scene = function(){
+    OmegaQuery.entity_with_id(this.id, function(st){
+      $omega_scene.reload(st);
+    });
   }
 }
