@@ -733,7 +733,6 @@ var OmegaQuery = {
     $omega_node.web_request('manufactured::get_entities', 'under', system_name, omega_callback(callback));
   },
   
-  
   /* Invoke omega server side manufactured::get_entity
    * operation to retrieve entity with the specified id
    *
@@ -742,6 +741,16 @@ var OmegaQuery = {
    */
   entity_with_id : function(entity_id, callback){
     $omega_node.web_request('manufactured::get_entities', 'with_id', entity_id, omega_callback(callback));
+  },
+
+  /* Invoke omega server side motel::get
+   * operation to retrieve location with the specified id
+   *
+   * @param {String} location_id id of the location to retrieve
+   * @param {Callback} callback function to invoke w/ location retrieved
+   */
+  location_with_id : function(location_id, callback){
+    $omega_node.web_request('motel::get', 'with_id', location_id, omega_callback(callback));
   },
   
   /* Invoke omega server side cosmos::get_entities 
@@ -771,6 +780,16 @@ var OmegaQuery = {
    */
   system_with_name : function(system_name, callback){
     $omega_node.web_request('cosmos::get_entity', 'with_name', system_name, omega_callback(callback));
+  },
+
+  /* Invoke omega server side cosmos::get_entity
+   * operation to retrieve planet with the specified name
+   *
+   * @param {String} planet_name name of the planet to retrieve
+   * @param {Callback} callback function to invoke w/ planet when retrieved
+   */
+  planet_with_name : function(planet_name, callback){
+    $omega_node.web_request('cosmos::get_entity', 'with_name', planet_name, omega_callback(callback));
   },
   
   /* Invoke omega server side cosmos::get_resource_sources 

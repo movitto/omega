@@ -190,8 +190,6 @@ function OmegaScene(){
       }
     }
 
-    // TODO refresh child planets/ships/stations from server
-
     // XXX hack hide dialog
     if(typeof $omega_dialog !== "undefined") $omega_dialog.hide();
 
