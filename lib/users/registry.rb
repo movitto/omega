@@ -194,6 +194,13 @@ class Registry
   def create_session(user)
     # just return user session if already existing
     session = @sessions.find { |s| s.user_id == user.id }
+
+    # remove session if timed out
+    if !session.nil? && session.timed_out?
+      destroy_session :session_id => session.id
+      session = nil
+    end
+
     return session unless session.nil?
 
     user.last_login_at = Time.now
