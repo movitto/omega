@@ -30,7 +30,7 @@ class Galaxy
 
   # @group Physical Characteristics
 
-  MAX_BACKGROUNDS = 7
+  MAX_BACKGROUNDS = 4
 
   # Background to render galaxy w/ (TODO this shouldn't be here / should be up to client)
   attr_reader :background

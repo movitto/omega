@@ -788,9 +788,18 @@ function OmegaAsteroid(asteroid){
     mesh.position.z = this.location.z;
     mesh.omega_id = this.name + '-mesh';
 
-    this.clickable_obj = mesh;
+    var sphere   = new THREE.Mesh($omega_scene.geometries['asteroid_container'],
+                                  $omega_scene.materials['asteroid_container']);
+
+    sphere.position.x = this.location.x;
+    sphere.position.y = this.location.y;
+    sphere.position.z = this.location.z;
+
+    this.clickable_obj = sphere;
     this.scene_objs.push(mesh);
+    this.scene_objs.push(sphere);
     $omega_scene.add(mesh);
+    $omega_scene.add(sphere);
   }
 
   /* on_clicked callback, invoked when asteroid is clicked on canvas
@@ -935,7 +944,7 @@ function OmegaShip(ship){
     mesh.position.set(this.location.x, this.location.y, this.location.z);
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
-    mesh.matrixAutoUpdate = false;
+    //mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
     this.scene_objs.push(mesh);
     $omega_scene.add(mesh);
@@ -1034,31 +1043,16 @@ function OmegaShip(ship){
    * Updates the three.js scene objects
    */
   this.on_movement = function(){
-    // scene_objects 1 & 3 are the line geometries (update vertices)
-    this.scene_objs[1].vertices[0].x = this.location.x - this.size/2;
-    this.scene_objs[1].vertices[0].y = this.location.y;
-    this.scene_objs[1].vertices[0].z = this.location.z;
-    this.scene_objs[1].vertices[1].x = this.location.x + this.size/2;
-    this.scene_objs[1].vertices[1].y = this.location.y;
-    this.scene_objs[1].vertices[1].z = this.location.z;
+    // scene_objects 0 is the mesh
+    this.scene_objs[0].position.x = this.location.x;
+    this.scene_objs[0].position.y = this.location.y;
+    this.scene_objs[0].position.z = this.location.z;
 
-    this.scene_objs[3].vertices[0].x = this.location.x;
-    this.scene_objs[3].vertices[0].y = this.location.y - this.size/2;
-    this.scene_objs[3].vertices[0].z = this.location.z;
-    this.scene_objs[3].vertices[1].x = this.location.x;
-    this.scene_objs[3].vertices[1].y = this.location.y + this.size/2;
-    this.scene_objs[3].vertices[1].z = this.location.z;
-
-    // scene_object 4 is the mesh
-    this.scene_objs[4].position.x = this.location.x;
-    this.scene_objs[4].position.y = this.location.y;
-    this.scene_objs[4].position.z = this.location.z;
-
-    // scene_object 7 is the attack / mining line (if applicable)
-    if(this.scene_objs.length > 6){
-      this.scene_objs[7].vertices[0].x = this.location.x;
-      this.scene_objs[7].vertices[0].y = this.location.y;
-      this.scene_objs[7].vertices[0].z = this.location.z;
+    // scene_object 1/2 is the attack / mining line and geometry (if applicable)
+    if(this.scene_objs.length > 2){
+      this.scene_objs[2].vertices[0].x = this.location.x;
+      this.scene_objs[2].vertices[0].y = this.location.y;
+      this.scene_objs[2].vertices[0].z = this.location.z;
     }
   }
 

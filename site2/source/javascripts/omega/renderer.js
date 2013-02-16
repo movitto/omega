@@ -94,6 +94,7 @@ function OmegaScene(){
                     orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
                     moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
                     asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, overdraw: true }),
+                    asteroid_container : new THREE.MeshBasicMaterial( { opacity: 0.0 }),
                     jump_gate : new THREE.MeshBasicMaterial( { map: this.textures['jump_gate'] } ),
                     jump_gate_selected : new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
                     ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
@@ -102,8 +103,10 @@ function OmegaScene(){
   // relatively new for three.js (mesh.doubleSided = true is old way):
   //this.materials['jump_gate'].side       = THREE.DoubleSide;
 
+  var astradius = 256, astsegments = 32, astrings = 32;
   var mnradius = 5, mnsegments = 32, mnrings = 32;
   this.geometries = {moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),
+                     asteroid_container : new THREE.SphereGeometry(astradius, astsegments, astrings),
                      ship     : null, station : null, asteroid : null, jump_gate : null};
 
   var loader = new THREE.JSONLoader();
