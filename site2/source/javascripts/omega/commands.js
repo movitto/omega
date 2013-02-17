@@ -62,7 +62,7 @@ var OmegaEvent = {
       if(OmegaEvent.movement.handled) return;
       OmegaEvent.movement.handled = true;
 
-      $omega_node.add_request_handler('motel::on_movement', function(loc){
+      var handler = function(loc){
         var entity = $omega_registry.select([function(e){ return e.location &&
                                                                  e.location.id == loc.id }])[0];
 
@@ -79,13 +79,17 @@ var OmegaEvent = {
           $omega_scene.animate();
         }
 
-      });
+      };
+
+      $omega_node.add_request_handler('motel::location_stopped', handler);
+      $omega_node.add_request_handler('motel::on_movement', handler);
     },
 
     /* Subscribe to motel movement events for the specified location_id / min distance
      */
     subscribe : function(location_id, distance){
       OmegaEvent.movement.handle();
+      $omega_node.ws_request('motel::track_stops', location_id, null);
       $omega_node.ws_request('motel::track_movement', location_id, distance, null);
     }
   },

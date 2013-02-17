@@ -1067,6 +1067,10 @@ function OmegaShip(ship){
    * Updates the three.js scene objects
    */
   this.on_movement = function(){
+    // TODO need to do without the reload in 'clicked'
+    if($omega_scene.selection.is_selected(this.id))
+      this.clicked();
+
     // scene_objects 0 is the mesh
     this.scene_objs[0].position.x = this.location.x;
     this.scene_objs[0].position.y = this.location.y;

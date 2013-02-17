@@ -66,6 +66,8 @@ class RJRAdapter
                                           :session => @headers['session_id'])
        }
 
+       # TODO support flag to disable remote lookup / to be left to client
+       # TODO only do remote lookup if loc.remote_queue is not set
        locs.each { |loc|
          loc.each_child { |rparent, rchild|
            if rchild.remote_queue
@@ -156,7 +158,19 @@ class RJRAdapter
        # client should explicity set movement_strategy on location to nil to keep movement strategy
        RJR::Logger.info "updating location #{location.id} with #{location}/#{location.movement_strategy}"
        Motel::Runner.instance.safely_run {
+         stopping = (rloc.movement_strategy != Motel::MovementStrategies::Stopped.instance) &&
+                    (location.movement_strategy == Motel::MovementStrategies::Stopped.instance)
          rloc.update(location)
+
+         # if changing movement_strategy to stopped from another,
+         # trigger 'stopped' callbacks
+         # TODO change this into a more generic 'movement strategy changed' callback mechanism
+         if stopping
+           rloc.stopped_callbacks.each { |callback|
+             callback.invoke(rloc);
+           }
+         end
+
        }
 
        # TODO if rloc.remote_queue != location.remote_queue, move ?
@@ -297,6 +311,58 @@ class RJRAdapter
 
        [loc1, loc2]
     }
+
+    rjr_dispatcher.add_handler('motel::track_stops') { |location_id|
+       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
+       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
+
+       # TODO add option to verify request is coming from authenticated source node which current connection was established on
+       # TODO ensure that rjr_node_type supports persistant connections
+
+       on_stopped =
+         Callbacks::Stopped.new :endpoint => @headers['source_node'],
+                                 :handler => lambda{ |loc|
+           begin
+             if loc.restrict_view
+               Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                                          {:privilege => 'view', :entity => 'locations'}],
+                                                 :session   => @headers['session_id'])
+             end
+             @rjr_callback.invoke('motel::location_stopped', loc)
+
+           rescue Omega::PermissionError => e
+             RJR::Logger.warn "client does not have privilege to view movement of #{loc.id}"
+             loc.stopped_callbacks.delete on_stopped
+
+           rescue RJR::Errors::ConnectionError => e
+             RJR::Logger.warn "track_movement client disconnected"
+             loc.stopped_callbacks.delete on_stopped
+
+           rescue Exception => e
+             RJR::Logger.warn "exception raised when invoking track_movmement callback: #{e}"
+             loc.stopped_callbacks.delete on_stopped
+
+           end
+         }
+
+       @rjr_node.on(:closed){ |node|
+         Motel::Runner.instance.safely_run {
+           loc.stopped_callbacks.delete(on_stopped)
+         }
+       }
+
+       Motel::Runner.instance.safely_run {
+         old = loc.stopped_callbacks.find { |m| m.endpoint_id == on_stopped.endpoint_id }
+         unless old.nil?
+           loc.stopped_callbacks.delete(old)
+         end
+
+         loc.stopped_callbacks << on_stopped
+       }
+
+       loc
+    }
+
 
     rjr_dispatcher.add_handler('motel::remove_callbacks') { |*args|
       location_id = args[0]

@@ -16,6 +16,11 @@ class Stopped < MovementStrategy
    def to_s
      "stopped"
    end
+
+   # Return stopped movement strategy singleton instance
+   def self.json_create(o)
+     self.instance
+   end
 end
 
 end # module MovementStrategies

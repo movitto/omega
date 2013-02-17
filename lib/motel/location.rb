@@ -61,6 +61,10 @@ class Location
    # [Array<Motel::ProximityCallback>] Callbacks to be invoked on proximity
    attr_accessor :proximity_callbacks
 
+   # [Array<Motel::StoppedCallback>] Callbacks to be invoked on stopped
+   attr_accessor :stopped_callbacks
+
+
    # Generic association which this location can belong to (not used by motel)
    attr_accessor :entity
 
@@ -85,6 +89,7 @@ class Location
   # @option args [Motel::MovementStrategy] :movement_strategy,'movement_strategy' movement strategy to assign to location
   # @option args [Array<Motel::Callbacks::Movement> :movement_callbacks,'movement_callbacks' array of movement callbacks to assign to location
   # @option args [Array<Motel::Callbacks::Proximity> :proximity_callbacks,'proximity_callbacks' array of proximity callbacks to assign to location
+  # @option args [Array<Motel::Callbacks::Stopped> :stopped_callbacks,'stopped_callbacks' array of stopped callbacks to assign to location
   # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
   # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
   # @option args [String] :remote_queue,'remote_queue' remote_queue to assign to location if any
@@ -99,6 +104,7 @@ class Location
       @movement_strategy   = args[:movement_strategy]   || args['movement_strategy']   || MovementStrategies::Stopped.instance
       @movement_callbacks  = args[:movement_callbacks]  || args['movement_callbacks']  || []
       @proximity_callbacks = args[:proximity_callbacks] || args['proximity_callbacks'] || []
+      @stopped_callbacks   = args[:stopped_callbacks  ] || args['stopped_callbacks']   || []
       @children            = args[:children]            || args['children']            || []
       @parent_id           = args[:parent_id]           || args['parent_id']           || nil
       @parent              = args[:parent]              || args[:parent]
@@ -259,7 +265,8 @@ class Location
           :remote_queue => remote_queue,
           :movement_strategy => movement_strategy,
           :movement_callbacks => movement_callbacks,
-          :proximity_callbacks => proximity_callbacks}
+          :proximity_callbacks => proximity_callbacks,
+          :stopped_callbacks => stopped_callbacks}
      }.to_json(*a)
    end
 

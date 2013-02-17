@@ -247,5 +247,43 @@ class Proximity < Base
   end
 end # class Proximity
 
+# Extends the {Motel::Callbacks::Base} interface to invoke callback
+# when a location stops.
+#
+# Simple wrapper around the callback base interface, does no requirement
+# checking on its own locally
+class Stopped < Base
+  # Motel::Callbacks::Stopped initializer
+  #
+  # @param [Hash] args hash of options to initialize callback with
+  def initialize(args = {}, &block)
+    super(args, &block)
+  end
+
+  def invoke(location)
+    super(location)
+  end
+
+  # Convert callback to human readable string and return it
+  def to_s
+    "stopped"
+  end
+
+  # Convert callback to json representation and return it
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        { :endpoint => @endpoint_id }
+    }.to_json(*a)
+  end
+
+  # Create new callback from json representation
+  def self.json_create(o)
+    callback = new(o['data'])
+    return callback
+  end
+end # class Stopped
+
 end # module Callbacks
 end # module Motel

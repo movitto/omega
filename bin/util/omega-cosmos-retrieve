@@ -78,12 +78,15 @@ end
 def print_callbacks(entity, i=0)
   return if entity.nil?
 
-  puts indent(i) + "Callbacks:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size) > 0
+  puts indent(i) + "Callbacks:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size + entity.location.stopped_callbacks.size) > 0
   entity.location.movement_callbacks.each { |m|
     puts indent(i+1) + "- movement of #{m.to_s} -> #{m.endpoint_id}"
   }
   entity.location.proximity_callbacks.each { |p|
     puts indent(i+1) + "- proximity (#{p.event}) of #{p.to_s}/#{p.to_location} -> #{p.endpoint_id}"
+  }
+  entity.location.stopped_callbacks.each { |s|
+    puts indent(i+1) + "- stopped -> #{s.endpoint_id}"
   }
 end
 
