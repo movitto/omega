@@ -844,7 +844,8 @@ function OmegaCanvasUI(){
       for(var entityI in entities){
         var entity = entities[entityI];
         OmegaSolarSystem.cached(entity.system_name, function(system){
-          OmegaQuery.galaxy_with_name(system.galaxy_name);
+          OmegaGalaxy.cached(system.galaxy_name);
+          // TODO how to cache entities under a system?
           OmegaQuery.entities_under(system.name);
         });
       }

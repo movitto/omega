@@ -58,6 +58,7 @@ $(document).ready(function(){
   $omega_node     = new OmegaClient();
   $omega_session  = new OmegaSession();
   $omega_registry = new OmegaRegistry();
+  $omega_registry.load();
   OmegaCommand.init();
 
   // dependency pulled in via canvas partial

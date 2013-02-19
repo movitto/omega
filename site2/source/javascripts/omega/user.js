@@ -83,6 +83,11 @@ function OmegaSession(){
       for(var i = 0; i < session_validated_callbacks.length; i++){
         session_validated_callbacks[i]();
       }
+
+      // load cached registry entities after session has been validated
+      // TODO figure out a better place?
+      //$omega_registry.clear();
+      $omega_registry.load();
     }
     return ret;
   };
@@ -109,6 +114,8 @@ function OmegaSession(){
     for(var i = 0; i < session_destroyed_callbacks.length; i++){
       session_destroyed_callbacks[i]();
     }
+
+    // TODO clean up canvas & controls somewhere
   }
 
   /////////////////////////////////////// public methods

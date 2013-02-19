@@ -5,6 +5,7 @@
  */
 
 require('javascripts/vendor/jquery.timer.js');
+require('javascripts/vendor/persist-min.js');
 require('javascripts/vendor/three.js');
 require('javascripts/vendor/helvetiker_font/helvetiker_regular.typeface.js');
 require('javascripts/omega/client.js');
@@ -24,6 +25,8 @@ function roundTo(number, places){
  */
 function convert_entity(entity){
   if(entity.json_class == "Motel::Location"){
+    ms     = new OmegaMovementStrategy(entity.movement_strategy);
+    entity.movement_strategy = ms;
     entity = new OmegaLocation(entity);
 
   }else if(entity.json_class == "Cosmos::Galaxy"){
@@ -84,6 +87,10 @@ function convert_entity(entity){
 
   $omega_registry.add(entity);
 
+  // save registry if creating persistent entity
+  if(entity.persistent)
+    $omega_registry.save();
+
   // XXX hacky way to refresh entity container
   if(typeof $omega_scene !== "undefined"){
     var selected = $omega_scene.selection.selected();
@@ -129,6 +136,8 @@ function OmegaRegistry(){
 
   var registration_callbacks = [];
 
+  var registry_store         = new Persist.Store('omega-registry');
+
   /////////////////////////////////////// public methods
   
   this.clear_callbacks = function(){
@@ -145,9 +154,37 @@ function OmegaRegistry(){
   /* Remove all entities from the registry
    */
   this.clear = function(){
+    registry_store.set('omega-registry', null);
     registry = {};
   }
 
+  /* Save registry to persistent cache
+   */
+  this.save = function(){
+    // write persistent registry entities to cookie
+    var pregistry = [];
+    for(var re in registry)
+      if(registry[re].persistent)
+        pregistry.push(registry[re]);
+
+    var registrys = $.toJSON(pregistry);
+    registry_store.set('omega-registry', registrys);
+  }
+
+  /* Restore the registry from the persistent cache
+   */
+  this.load = function(){
+    // load registry from presistent cache if set
+    // TODO expire data eventually, support manual clearing via ui, handle case if server side data changes / local is no longer valid
+    registry_store.get('omega-registry', function(ok, val){
+      if(ok){
+        var registrys = $.evalJSON(val);
+        for(var re in registrys){
+          $omega_registry.add(convert_entity(registrys[re]));
+        }
+      }
+    });
+  }
 
   /* Adds entity to registry
    */
@@ -181,6 +218,8 @@ function OmegaRegistry(){
    * Filters should be an array of callbacks to invoke with
    * each entity, all of which must return true for an entity
    * to include it in the return results.
+   *
+   * TODO optimize use of this as this can potentially take a while
    */
   this.select = function(filters){
     var ret = [];
@@ -208,8 +247,9 @@ function OmegaRegistry(){
    * entity when found
    */
   this.cached = function(entity_id, retrieval, retrieved){
-    if(registry[entity_id] != null && retrieved != null){
-      retrieved(registry[entity_id]);
+    if(registry[entity_id] != null){
+      if(retrieved != null)
+        retrieved(registry[entity_id]);
       return registry[entity_id];
     }
 
@@ -240,6 +280,9 @@ function OmegaRegistry(){
     }
     timers = [];
   }
+
+  /////////////////////////////////////// initialization
+
 }
 
 /////////////////////////////////////// Omega Entity
@@ -261,6 +304,9 @@ function OmegaEntity(entity){
   // copy all attributes from entity to self
   for(var attr in entity)
     this[attr] = entity[attr];
+
+  // boolean indicating if entity should be saved/restored in local persistent cache
+  this.persistent        = false;
 
   /////////////////////////////////////// private methods
 
@@ -324,6 +370,17 @@ function OmegaEntity(entity){
 //  this.apply(id, args);
 //}
 
+/////////////////////////////////////// Omega Movement Strategy
+
+/* Initialize new Omega Movement Strategy
+ */
+function OmegaMovementStrategy(movement_strategy){
+
+  $.extend(this, new OmegaEntity(movement_strategy));
+
+}
+
+
 /////////////////////////////////////// Omega Location
 
 /* Initialize new Omega Location
@@ -360,14 +417,6 @@ function OmegaLocation(loc){
            roundTo(this.z, 2);
   }
 
-  /* Convert location to json representation and return it
-   */
-  this.toJSON = function(){
-    return new JRObject("Motel::Location", this,
-       ["toJSON", "json_class", "entity", "movement_strategy", "notifications",
-        "movement_callbacks", "proximity_callbacks"]).toJSON();
-  };
-
   /* Create a new location, copy local location attributes, and return it
    */
   this.clone = function(){
@@ -390,6 +439,8 @@ function OmegaLocation(loc){
 function OmegaGalaxy(galaxy){
 
   $.extend(this, new OmegaEntity(galaxy));
+
+  this.persistent = true;
 
   /////////////////////////////////////// public methods
 
@@ -418,6 +469,8 @@ OmegaGalaxy.cached = function(name, retrieved){
 function OmegaSolarSystem(system){
 
   $.extend(this, new OmegaEntity(system));
+
+  this.persistent = true;
 
   /////////////////////////////////////// public methods
 
@@ -754,7 +807,7 @@ function OmegaPlanet(planet){
       $omega_scene.reload(pl);
 
       // retrack planet movement
-      OmegaEvent.movement.subscribe(pl.location.id, 120);
+      //OmegaEvent.movement.subscribe(pl.location.id, 120);
     });
   }
 }
@@ -804,6 +857,7 @@ function OmegaAsteroid(asteroid){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
+    // TODO optimize mesh used?
     var mesh = new THREE.Mesh($omega_scene.geometries['asteroid'],
                               $omega_scene.materials['asteroid']   );
 
