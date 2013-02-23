@@ -114,8 +114,6 @@ function OmegaSession(){
     for(var i = 0; i < session_destroyed_callbacks.length; i++){
       session_destroyed_callbacks[i]();
     }
-
-    // TODO clean up canvas & controls somewhere
   }
 
   /////////////////////////////////////// public methods

@@ -139,9 +139,11 @@ function OmegaScene(){
 
   /////////////////////////////////////// private methods
 
+  /////////////////////////////////////// public methods
+
   /* Clear all entities tracked by scene
    */
-  var clear = function(){
+  this.clear = function(){
     for(var entity in entities){
       entity = entities[entity]
       for(var scene_entity in entity.scene_objs){
@@ -155,7 +157,6 @@ function OmegaScene(){
     entities = [];
   }
 
-  /////////////////////////////////////// public methods
 
   /* Clear all scene changed callbacks
    */
@@ -182,7 +183,7 @@ function OmegaScene(){
     $omega_skybox.set_background(entity);
     $omega_entity_container.hide();
 
-    clear();
+    this.clear();
 
     // load the accessible entities under the root
     // TODO should apply to systems only

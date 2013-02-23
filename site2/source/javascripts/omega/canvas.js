@@ -490,6 +490,11 @@ function OmegaEntitiesContainer(){
 
   /////////////////////////////////////// public methods
 
+  // hide all containers
+  this.hide_all = function(){
+    $('.entities_container').hide();
+  }
+
   // Add specified entity to the proper entities container
   this.add_to_entities_container = function(entity){
     if(entity.json_class == "Cosmos::Galaxy"){
@@ -629,9 +634,7 @@ function OmegaSkybox(){
       loadTexture(path + 'ny' + format)
     ];
 
-    if(skyboxMesh != null){
-      $omega_scene.remove_obj( skyboxMesh );
-    }
+    this.hide();
 
     // build the skybox Mesh
     skyboxMesh = new THREE.Mesh( new THREE.CubeGeometry( 8192, 8192, 8192, 7, 7, 7, materials ),
@@ -643,6 +646,14 @@ function OmegaSkybox(){
     $omega_scene.add( skyboxMesh );
     $omega_scene.animate();
   };
+
+  /** Hide the skybox
+   */
+  this.hide = function(){
+    if(skyboxMesh != null){
+      $omega_scene.remove_obj( skyboxMesh );
+    }
+  }
 
 }
 
@@ -851,5 +862,18 @@ function OmegaCanvasUI(){
         });
       }
     });
+  });
+
+  // clean up canvas and controls on logout
+  $omega_session.on_session_destroyed(function(){
+    $omega_registry.delete_timer('planet_movement');
+    $omega_scene.clear();
+    $omega_skybox.hide();
+    $omega_scene.animate();
+
+    $omega_entities_container.hide_all();
+    $omega_entity_container.hide();
+    $omega_axis.hide();
+    $omega_grid.hide();
   });
 }

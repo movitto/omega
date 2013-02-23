@@ -24,11 +24,9 @@ function roundTo(number, places){
  * client object class
  */
 function convert_entity(entity){
-  // XXX hack
-  if(!entity.id && entity.name)
-    entity.id = entity.name;
 
   if(entity.json_class == "Cosmos::Galaxy"){
+    if(!entity.id) entity.id = entity.name;
     entity.location = new OmegaLocation(entity.location);
     for(var solar_system in entity.solar_systems)
       entity.solar_systems[solar_system] = convert_entity(entity.solar_systems[solar_system]);
@@ -39,8 +37,10 @@ function convert_entity(entity){
     if(entity.planets.length > 0)
       OmegaPlanet.cache_movement();
 
+    if(!entity.id) entity.id = entity.name;
     entity.location = new OmegaLocation(entity.location);
 
+    if(!entity.star.id) entity.star.id = entity.star.name;
     entity.star.location = new OmegaLocation(entity.star.location);
     entity.star = new OmegaStar(entity.star);
 
@@ -52,6 +52,7 @@ function convert_entity(entity){
 
     for(var asteroid in entity.asteroids){
       var ast = entity.asteroids[asteroid];
+      ast.id = ast.name;
       ast.location = new OmegaLocation(ast.location);
       entity.asteroids[asteroid] = new OmegaAsteroid(ast);
     }
@@ -60,6 +61,7 @@ function convert_entity(entity){
 
 
   }else if(entity.json_class == "Cosmos::Planet"){
+    if(!entity.id) entity.id = entity.name;
     entity.location = new OmegaLocation(entity.location);
     //for(var moon in pla.moons)
       //pla.moons[moon] = new OmegaMoon(pla.moons[moon]);
@@ -880,7 +882,6 @@ function OmegaAsteroid(asteroid){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    // TODO optimize mesh used?
     var mesh = new THREE.Mesh($omega_scene.geometries['asteroid'],
                               $omega_scene.materials['asteroid']   );
 
