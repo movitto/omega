@@ -719,7 +719,7 @@ function OmegaCanvas(){
     var intersects = ray.intersectObjects($omega_scene.scene_objects());
 
     if(intersects.length > 0){
-      var entities = $omega_scene.entities()
+      var entities = $omega_scene.get_root().children();
       for(var entity in entities){
         entity = entities[entity];
         if(entity.clickable_obj == intersects[0].object){
@@ -844,9 +844,10 @@ function OmegaCanvasUI(){
       for(var entityI in entities){
         var entity = entities[entityI];
         OmegaSolarSystem.cached(entity.system_name, function(system){
-          OmegaGalaxy.cached(system.galaxy_name);
-          // TODO how to cache entities under a system?
-          OmegaQuery.entities_under(system.name);
+          // XXX do not further process if request already issued, and are waiting on cach
+          if(system != null){
+            OmegaGalaxy.cached(system.galaxy_name);
+          }
         });
       }
     });

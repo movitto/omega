@@ -70,8 +70,11 @@ function OmegaScene(){
 
   var _scene    = new THREE.Scene();
 
-  var _renderer = new THREE.CanvasRenderer({canvas: _canvas});
+  //var _renderer = new THREE.CanvasRenderer({canvas: _canvas});
+  var _renderer = new THREE.WebGLRenderer();
+
   _renderer.setSize( 900, 400 );
+  $('#omega_canvas').append(_renderer.domElement);
 
   var entities = {};
 
@@ -94,11 +97,11 @@ function OmegaScene(){
                     system_plane  : new THREE.MeshBasicMaterial({map: this.textures['solar_system']}),
                     system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
                     orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
-                    moon : new THREE.MeshLambertMaterial({color: 0x808080, blending: THREE.AdditiveBlending}),
-                    asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, overdraw: true }),
-                    asteroid_container : new THREE.MeshBasicMaterial( { opacity: 0.0 }),
+                    moon : new THREE.MeshBasicMaterial({color: 0x808080}),
+                    asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false }),
+                    asteroid_container : new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } ),
                     jump_gate : new THREE.MeshBasicMaterial( { map: this.textures['jump_gate'] } ),
-                    jump_gate_selected : new THREE.MeshLambertMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
+                    jump_gate_selected : new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
                     ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
                     ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF})
                    };
@@ -110,7 +113,7 @@ function OmegaScene(){
   this.textures['jump_gate'].repeat.x  = 5;
   this.textures['jump_gate'].repeat.y  = 5;
 
-  var astradius = 256, astsegments = 32, astrings = 32;
+  var astradius = 25, astsegments = 32, astrings = 32;
   var mnradius = 5, mnsegments = 32, mnrings = 32;
   this.geometries = {moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),
                      asteroid_container : new THREE.SphereGeometry(astradius, astsegments, astrings),
@@ -180,6 +183,21 @@ function OmegaScene(){
     $omega_entity_container.hide();
 
     clear();
+
+    // load the accessible entities under the root
+    // TODO should apply to systems only
+    OmegaQuery.entities_under(root_entity.name, function(entities){
+      for(var e in entities){
+        var entity = entities[e];
+        if(!$omega_scene.has(entity)){
+          $omega_scene.add_entity(entity);
+          if(entity.added_to_scene)
+            entity.added_to_scene();
+        }
+      }
+    });
+
+    // load all children under the root
     var children = entity.children();
     for(var child in children){
       child = children[child];
@@ -193,9 +211,11 @@ function OmegaScene(){
     // XXX hack hide dialog
     if(typeof $omega_dialog !== "undefined") $omega_dialog.hide();
 
+    // invoke registered scene changed callbacks
     for(var cb in scene_changed_callbacks)
       scene_changed_callbacks[cb]();
 
+    // animate the scene
     this.animate();
   }
 

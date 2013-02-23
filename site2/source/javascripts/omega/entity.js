@@ -24,57 +24,58 @@ function roundTo(number, places){
  * client object class
  */
 function convert_entity(entity){
-  if(entity.json_class == "Motel::Location"){
-    ms     = new OmegaMovementStrategy(entity.movement_strategy);
-    entity.movement_strategy = ms;
-    entity = new OmegaLocation(entity);
+  // XXX hack
+  if(!entity.id && entity.name)
+    entity.id = entity.name;
 
-  }else if(entity.json_class == "Cosmos::Galaxy"){
-    entity.location = convert_entity(entity.location);
+  if(entity.json_class == "Cosmos::Galaxy"){
+    entity.location = new OmegaLocation(entity.location);
     for(var solar_system in entity.solar_systems)
       entity.solar_systems[solar_system] = convert_entity(entity.solar_systems[solar_system]);
     entity = new OmegaGalaxy(entity);
 
   }else if(entity.json_class == "Cosmos::SolarSystem"){
-    entity.location = convert_entity(entity.location);
-    entity.star = convert_entity(entity.star);
+    // cache omega planet movement
+    if(entity.planets.length > 0)
+      OmegaPlanet.cache_movement();
+
+    entity.location = new OmegaLocation(entity.location);
+
+    entity.star.location = new OmegaLocation(entity.star.location);
+    entity.star = new OmegaStar(entity.star);
+
     for(var planet in entity.planets)
       entity.planets[planet] = convert_entity(entity.planets[planet]);
-    for(var asteroid in entity.asteroids)
-      entity.asteroids[asteroid] = convert_entity(entity.asteroids[asteroid]);
+
     for(var jump_gate in entity.jump_gates)
       entity.jump_gates[jump_gate] = convert_entity(entity.jump_gates[jump_gate]);
 
+    for(var asteroid in entity.asteroids){
+      var ast = entity.asteroids[asteroid];
+      ast.location = new OmegaLocation(ast.location);
+      entity.asteroids[asteroid] = new OmegaAsteroid(ast);
+    }
+
     entity = new OmegaSolarSystem(entity);
 
-  }else if(entity.json_class == "Cosmos::Star"){
-    entity.location = convert_entity(entity.location);
-    entity = new OmegaStar(entity);
 
   }else if(entity.json_class == "Cosmos::Planet"){
-    // cache omega planet movement
-    OmegaPlanet.cache_movement();
-
-    entity.location = convert_entity(entity.location);
-    for(var moon in entity.moons)
-      entity.moons[moon] = convert_entity(entity.moons[moon]);
-
+    entity.location = new OmegaLocation(entity.location);
+    //for(var moon in pla.moons)
+      //pla.moons[moon] = new OmegaMoon(pla.moons[moon]);
     entity = new OmegaPlanet(entity);
 
-  }else if(entity.json_class == "Cosmos::Asteroid"){
-    entity.location = convert_entity(entity.location);
-    entity = new OmegaAsteroid(entity);
-
   }else if(entity.json_class == "Cosmos::JumpGate"){
-    entity.location = convert_entity(entity.location);
+    entity.id = entity.solar_system + "-" + entity.endpoint;
+    entity.location = new OmegaLocation(entity.location);
     entity = new OmegaJumpGate(entity);
 
   }else if(entity.json_class == "Manufactured::Ship"){
-    entity.location = convert_entity(entity.location);
+    entity.location = new OmegaLocation(entity.location);
     entity = new OmegaShip(entity);
 
   }else if(entity.json_class == "Manufactured::Station"){
-    entity.location = convert_entity(entity.location);
+    entity.location = new OmegaLocation(entity.location);
     entity = new OmegaStation(entity);
 
   }else if(entity.json_class == "Users::Session"){
@@ -85,11 +86,15 @@ function convert_entity(entity){
 
   }
 
-  $omega_registry.add(entity);
+  var oentity = $omega_registry.get(entity.id);
+  if(oentity != null){
+    oentity.update(entity);
+    entity = oentity;
 
-  // save registry if creating persistent entity
-  if(entity.persistent)
-    $omega_registry.save();
+  // limit what we store in registry for performance reasons
+  }else if(entity.registerable){
+    $omega_registry.add(entity);
+  }
 
   // XXX hacky way to refresh entity container
   if(typeof $omega_scene !== "undefined"){
@@ -154,7 +159,7 @@ function OmegaRegistry(){
   /* Remove all entities from the registry
    */
   this.clear = function(){
-    registry_store.set('omega-registry', null);
+    registry_store.remove('omega-registry');
     registry = {};
   }
 
@@ -178,7 +183,7 @@ function OmegaRegistry(){
     // TODO expire data eventually, support manual clearing via ui, handle case if server side data changes / local is no longer valid
     registry_store.get('omega-registry', function(ok, val){
       if(ok){
-        var registrys = $.evalJSON(val);
+        var registrys = JRObject.from_json_array(val);
         for(var re in registrys){
           $omega_registry.add(convert_entity(registrys[re]));
         }
@@ -189,12 +194,6 @@ function OmegaRegistry(){
   /* Adds entity to registry
    */
   this.add = function(entity){
-    // XXX hacks
-    if(!entity.id && entity.name)
-      entity.id = entity.name;
-    else if(entity.json_class == "Cosmos::JumpGate")
-      entity.id = entity.solar_system + "-" + entity.endpoint;
-
     //this.entities[entity_id].update(entity); if existing ?
     registry[entity.id] = entity;
 
@@ -218,8 +217,6 @@ function OmegaRegistry(){
    * Filters should be an array of callbacks to invoke with
    * each entity, all of which must return true for an entity
    * to include it in the return results.
-   *
-   * TODO optimize use of this as this can potentially take a while
    */
   this.select = function(filters){
     var ret = [];
@@ -247,11 +244,14 @@ function OmegaRegistry(){
    * entity when found
    */
   this.cached = function(entity_id, retrieval, retrieved){
-    if(registry[entity_id] != null){
+    if(typeof registry[entity_id] !== "undefined"){
       if(retrieved != null)
         retrieved(registry[entity_id]);
       return registry[entity_id];
     }
+
+    // XXX hack create a placeholder to skip subsequent queries while we're waiting for response
+    registry[entity_id] = null;
 
     retrieval(entity_id, retrieved);
     return null;
@@ -305,6 +305,9 @@ function OmegaEntity(entity){
   for(var attr in entity)
     this[attr] = entity[attr];
 
+  // boolean indicating if entity should be stored in local registry
+  this.registerable      = false;
+
   // boolean indicating if entity should be saved/restored in local persistent cache
   this.persistent        = false;
 
@@ -321,6 +324,15 @@ function OmegaEntity(entity){
   this.added_to_scene    = null;
 
   /////////////////////////////////////// public methods
+
+  /* Copy all attributes of specified entity to self
+   */
+  this.update = function(entity){
+    for(var attr in entity)
+      // XXX hack do not update scene_objs
+      if(attr != "scene_objs")
+        this[attr] = entity[attr];
+  }
 
   /* Load the local entity's representation, invoked
    * when the entity is retrieved from the server.
@@ -369,17 +381,6 @@ function OmegaEntity(entity){
 //OmegaEntity.prototype.__noSuchMethod__ = function(id, args) {
 //  this.apply(id, args);
 //}
-
-/////////////////////////////////////// Omega Movement Strategy
-
-/* Initialize new Omega Movement Strategy
- */
-function OmegaMovementStrategy(movement_strategy){
-
-  $.extend(this, new OmegaEntity(movement_strategy));
-
-}
-
 
 /////////////////////////////////////// Omega Location
 
@@ -430,6 +431,12 @@ function OmegaLocation(loc){
     return new OmegaLocation(nloc);
   };
 
+  this.toJSON = function(){
+    return new JRObject("Motel::Location", this,
+       ["toJSON", "json_class", "entity", "notifications",
+        "movement_callbacks", "proximity_callbacks"]).toJSON();
+  };
+
 }
 
 /////////////////////////////////////// Omega Galaxy
@@ -440,7 +447,8 @@ function OmegaGalaxy(galaxy){
 
   $.extend(this, new OmegaEntity(galaxy));
 
-  this.persistent = true;
+  this.registerable = true;
+  this.persistent   = true;
 
   /////////////////////////////////////// public methods
 
@@ -470,7 +478,8 @@ function OmegaSolarSystem(system){
 
   $.extend(this, new OmegaEntity(system));
 
-  this.persistent = true;
+  this.registerable = true;
+  this.persistent   = true;
 
   /////////////////////////////////////// public methods
 
@@ -478,17 +487,15 @@ function OmegaSolarSystem(system){
    */
   this.children = function(){
     var system   = this;
-    var ships    = $omega_registry.select([function(e){ return e.system_name == system.name &&
-                                                               e.json_class  == "Manufactured::Ship" }]);
-    var stations = $omega_registry.select([function(e){ return e.system_name == system.name &&
-                                                               e.json_class  == "Manufactured::Station" }]);
+    var entities = $omega_registry.select([function(e){ return e.system_name  == system.name &&
+                                                               (e.json_class  == "Manufactured::Ship" ||
+                                                                e.json_class  == "Manufactured::Station" )}]);
 
     return [this.star].
             concat(this.planets).
             concat(this.asteroids).
             concat(this.jump_gates).
-            concat(ships).
-            concat(stations);
+            concat(entities);
   }
 
   /////////////////////////////////////// private methods
@@ -586,11 +593,11 @@ function OmegaStar(star){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    var radius = this.size, segments = 32, rings = 32;
+    var radius = this.size/4, segments = 32, rings = 32;
 
     if($omega_scene.materials['star' + this.color] == null)
       $omega_scene.materials['star' + this.color] =
-        new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
+        new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color),
                                        map: $omega_scene.textures['star'],
                                        overdraw : true})
 
@@ -618,6 +625,18 @@ function OmegaPlanet(planet){
 
   /////////////////////////////////////// public methods
 
+  /* Override OmegaEntity.update, preserve orbit/orbiti
+   */
+  this.update = function(entity){
+    for(var attr in entity)
+      // XXX hack do not update scene_objs
+      if(attr != "scene_objs" &&
+         attr != "orbit" &&
+         attr != "orbiti")
+        this[attr] = entity[attr];
+  }
+
+
   /* Returns array of all children of planet
    */
   this.children = function(){
@@ -639,8 +658,7 @@ function OmegaPlanet(planet){
          new THREE.SphereGeometry(radius, segments, rings);
     if($omega_scene.materials['planet' + this.color] == null)
        $omega_scene.materials['planet' + this.color] =
-         new THREE.MeshLambertMaterial({color: parseInt('0x' + this.color),
-                                        blending: THREE.AdditiveBlending});
+         new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color)});
 
     var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
                                 $omega_scene.materials[ 'planet' + this.color]);
@@ -757,15 +775,16 @@ function OmegaPlanet(planet){
       sphere.position.z = this.location.z + moon.location.z;
     }
 
+    // TODO performance hit, not needed until we track planet movement / resync
     // update orbit index
-    var di = this.location.distance_from.apply(this.location, this.orbit[this.orbiti]);
-    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
-      var absi = parseInt(i * 180 / Math.PI);
-      var tdi  = this.location.distance_from.apply(this.location, this.orbit[absi]);
-      if(tdi < di){
-          this.orbiti = absi; di = tdi;
-      }
-    }
+    //var di = this.location.distance_from.apply(this.location, this.orbit[this.orbiti]);
+    //for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+    //  var absi = parseInt(i * 180 / Math.PI);
+    //  var tdi  = this.location.distance_from.apply(this.location, this.orbit[absi]);
+    //  if(tdi < di){
+    //      this.orbiti = absi; di = tdi;
+    //  }
+    //}
   }
 
   /* Manually move the planet, can be used to manually sync the planet
@@ -802,12 +821,11 @@ function OmegaPlanet(planet){
    * Updates the planet's location from the server side state, sets up tracking
    */
   this.added_to_scene = function(){
-    // FIXME updated planet will not have orbit, scene_objs and such
-    OmegaQuery.planet_with_name(this.name, function(pl){
-      $omega_scene.reload(pl);
+    var pl = this;
 
-      // retrack planet movement
-      //OmegaEvent.movement.subscribe(pl.location.id, 120);
+    OmegaQuery.location_with_id(pl.location.id, function(loc){
+      pl.location.update(loc);
+      $omega_scene.reload(pl);
     });
   }
 }
@@ -825,12 +843,17 @@ OmegaPlanet.cache_movement  = function(){
   OmegaPlanet.movement_cached = true;
 
   $omega_scene.on_scene_change('planet_movement', function(){
-    var sloc = $omega_scene.get_root().location;
-
     $omega_registry.delete_timer('planet_movement');
     $omega_registry.add_timer('planet_movement', 2000, function(){
-      var planets = $omega_registry.select([function(e){ return e.json_class == "Cosmos::Planet" &&
-                                                                e.location.parent_id == sloc.id }]);
+      var sroot = $omega_scene.get_root();
+
+      if(sroot.json_class != "Cosmos::SolarSystem"){
+        $omega_registry.delete_timer('planet_movement');
+        return;
+      }
+
+      var planets = sroot.planets;
+
       for(var planet in planets){
         planets[planet].move();
       }
@@ -865,6 +888,7 @@ function OmegaAsteroid(asteroid){
     mesh.position.y = this.location.y;
     mesh.position.z = this.location.z;
     mesh.omega_id = this.name + '-mesh';
+    mesh.scale.x = mesh.scale.y = mesh.scale.z = 15;
 
     var sphere   = new THREE.Mesh($omega_scene.geometries['asteroid_container'],
                                   $omega_scene.materials['asteroid_container']);
@@ -872,6 +896,7 @@ function OmegaAsteroid(asteroid){
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z;
+    sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
 
     this.clickable_obj = sphere;
     this.scene_objs.push(mesh);
@@ -912,6 +937,8 @@ function OmegaAsteroid(asteroid){
 function OmegaJumpGate(jump_gate){
 
   $.extend(this, new OmegaEntity(jump_gate));
+
+  this.registerable = true;
 
   /////////////////////////////////////// private methods
 
@@ -987,6 +1014,8 @@ function OmegaJumpGate(jump_gate){
 function OmegaShip(ship){
 
   $.extend(this, new OmegaEntity(ship));
+
+  this.registerable = true;
 
   /////////////////////////////////////// private methods
 
@@ -1121,7 +1150,7 @@ function OmegaShip(ship){
    * Updates the three.js scene objects
    */
   this.on_movement = function(){
-    // TODO need to do without the reload in 'clicked'
+    // TODO should do without the reload in 'clicked'
     if($omega_scene.selection.is_selected(this.id))
       this.clicked();
 
@@ -1160,6 +1189,8 @@ function OmegaShip(ship){
 function OmegaStation(station){
 
   $.extend(this, new OmegaEntity(station));
+
+  this.registerable = true;
 
   /////////////////////////////////////// private methods
 

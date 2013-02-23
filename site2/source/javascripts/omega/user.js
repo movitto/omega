@@ -87,7 +87,7 @@ function OmegaSession(){
       // load cached registry entities after session has been validated
       // TODO figure out a better place?
       //$omega_registry.clear();
-      $omega_registry.load();
+      //$omega_registry.load();
     }
     return ret;
   };

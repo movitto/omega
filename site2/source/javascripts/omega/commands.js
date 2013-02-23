@@ -29,8 +29,13 @@ function omega_callback(success_callback, error_callback){
 
       // register entities w/ the register
       for(var ei in result){
-        if(result[ei] != null)
+        if(result[ei] != null){
           result[ei] = convert_entity(result[ei]);
+
+          // XXX save registry if creating persistent entity
+          //if(result[ei].persistent)
+            //$omega_registry.save();
+        }
       }
 
       // invoke client callback
@@ -63,18 +68,24 @@ var OmegaEvent = {
       OmegaEvent.movement.handled = true;
 
       var handler = function(loc){
-        var entity = $omega_registry.select([function(e){ return e.location &&
-                                                                 e.location.id == loc.id }])[0];
+        var entity   = null;
 
-        entity.location.x = loc.x;
-        entity.location.y = loc.y;
-        entity.location.z = loc.z;
+        var children = $omega_scene.get_root().children();
+        for(var child in children){
+          if(children[child].location.id == loc.id){
+            entity = children[child];
+            break;
+          }
+        }
 
-        // XXX hack if scene changed remove callbacks
-        if($omega_scene.get_root().location.id != entity.location.parent_id){
+        // if location not in scene, remove callbacks
+        if(entity == null){
           $omega_node.ws_request('motel::remove_callbacks', loc.id, null);
-
         }else{
+          entity.location.x = loc.x;
+          entity.location.y = loc.y;
+          entity.location.z = loc.z;
+
           entity.moved();
           $omega_scene.animate();
         }
@@ -754,7 +765,7 @@ var OmegaQuery = {
    * @param {Callback} callback function to invoke w/ location retrieved
    */
   location_with_id : function(location_id, callback){
-    $omega_node.web_request('motel::get', 'with_id', location_id, omega_callback(callback));
+    $omega_node.web_request('motel::get_location', 'with_id', location_id, omega_callback(callback));
   },
   
   /* Invoke omega server side cosmos::get_entities 
@@ -786,16 +797,6 @@ var OmegaQuery = {
     $omega_node.web_request('cosmos::get_entity', 'with_name', system_name, omega_callback(callback));
   },
 
-  /* Invoke omega server side cosmos::get_entity
-   * operation to retrieve planet with the specified name
-   *
-   * @param {String} planet_name name of the planet to retrieve
-   * @param {Callback} callback function to invoke w/ planet when retrieved
-   */
-  planet_with_name : function(planet_name, callback){
-    $omega_node.web_request('cosmos::get_entity', 'with_name', planet_name, omega_callback(callback));
-  },
-  
   /* Invoke omega server side cosmos::get_resource_sources 
    * operation to retrieve resource sources associated with the specified 
    * entity
