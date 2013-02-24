@@ -1,5 +1,7 @@
 canvas
   border: 1px solid black
+  -moz-border-radius: 15px
+  border-radius: 15px
 
 #canvas_controls
   margin-top: 5px
@@ -72,13 +74,16 @@ img#cam_reset
 
 #omega_entity_container
   margin-top: 20px
-  padding-top: 3px
+  padding: 10px
   display: block
   float: right
   border: 1px solid black
   width: 250px
   height: 350px
-  background: white
+  opacity: 0.9
+  background: #D8D8D8
+  -moz-border-radius: 15px
+  border-radius: 15px
 
 #entity_container_close
   float: right
@@ -86,6 +91,12 @@ img#cam_reset
   cursor: crosshair
   margin-right: 2px
   background: #00AAFF
+  color: red
+
+.entity_container_title
+  font-weight: bold
+
+.entity_container_location
   color: red
 
 #canvas_select_box
@@ -120,7 +131,7 @@ img#cam_reset
 
 #ship_select_move
   background: url('/womega/images/icons/move-ship.png') no-repeat
-  background-size: 30px
+  background-size: 50px
 
 #ship_select_target
   background: url('/womega/images/icons/attack-ship.png') no-repeat
@@ -137,4 +148,8 @@ img#cam_reset
 
 #ship_select_mine
   background: url('/womega/images/icons/start-mining.png') no-repeat
-  background-size: 30px
+  background-size: 50px
+
+//#station_select_construction
+//  background: url('/womega/images/icons/start-construction.png') no-repeat
+//  background-size: 30px

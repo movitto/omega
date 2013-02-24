@@ -549,7 +549,7 @@ function OmegaSolarSystem(system){
     $omega_scene.add(plane);
 
     // draw label
-    var text3d = new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 64});
+    var text3d = new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
     var text   = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
     text.position.x = this.location.x;
     text.position.y = this.location.y;
@@ -1116,8 +1116,8 @@ function OmegaShip(ship){
       rstxt += this.resources[r] + " of " + r + ", ";
     }
 
-    var details = ['Ship: ' + this.id +"<br/>",
-                   '@ ' + this.location.to_s() + '<br/>',
+    var details = ['<span class="entity_container_title">Ship: ' + this.id +"</span><br/>",
+                   '@ <span class="entity_container_location">' + this.location.to_s() + '</span><br/>',
                    rstxt];
 
     if(this.belongs_to_user($user_id)){
@@ -1248,8 +1248,8 @@ function OmegaStation(station){
       rstxt += this.resources[r] + " of " + r + ", ";
     }
 
-    var details = ['Station: ' + this.id + "<br/>",
-                   '@' + this.location.to_s() + '<br/>',
+    var details = ['<span class="entity_container_title">Station: ' + this.id + "</span><br/>",
+                   '@ <span class="entity_container_location">' + this.location.to_s() + '</span><br/>',
                    rstxt];
 
     if(this.belongs_to_user($user_id)){

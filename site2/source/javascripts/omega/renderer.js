@@ -93,8 +93,8 @@ function OmegaScene(){
                      star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg"),
                      solar_system : THREE.ImageUtils.loadTexture("/womega/images/solar_system.png")};
   this.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
-                    system_sphere : new THREE.MeshBasicMaterial({color: 0x996600, opacity: 0.2}),
-                    system_plane  : new THREE.MeshBasicMaterial({map: this.textures['solar_system']}),
+                    system_sphere : new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true}),
+                    system_plane  : new THREE.MeshBasicMaterial({map: this.textures['solar_system'], alphaTest: 0.5}),
                     system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
                     orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
                     moon : new THREE.MeshBasicMaterial({color: 0x808080}),
