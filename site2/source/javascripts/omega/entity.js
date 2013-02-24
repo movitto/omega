@@ -676,15 +676,20 @@ function OmegaPlanet(planet){
 
     // draw orbit
     this.calc_orbit();
+    var first = null, last = null;
     var geometry = new THREE.Geometry();
     for(var o in this.orbit){
-      if(o != 0 & (o % 10 == 0)){
+      if(o != 0 & (o % 3 == 0)){
         var orbit  = this.orbit[o];
         var porbit = this.orbit[o-1];
-        geometry.vertices.push(new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]));
+        if(first == null) first = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
+        last = new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]);
+        geometry.vertices.push(last);
         geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
       }
     }
+    geometry.vertices.push(first);
+    geometry.vertices.push(last);
     var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
     this.scene_objs.push(line);
     this.scene_objs.push(geometry);

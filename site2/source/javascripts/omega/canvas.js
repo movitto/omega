@@ -29,7 +29,7 @@ function OmegaCamera(){
 
   // private initializer
   var new_cam = function(){
-    return new THREE.PerspectiveCamera(75, _width / _height, 1, 15000 );
+    return new THREE.PerspectiveCamera(75, _width / _height, 1, 42000 );
     // new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   }
 
@@ -656,7 +656,7 @@ function OmegaSkybox(){
     this.hide();
 
     // build the skybox Mesh
-    skyboxMesh = new THREE.Mesh( new THREE.CubeGeometry( 8192, 8192, 8192, 7, 7, 7, materials ),
+    skyboxMesh = new THREE.Mesh( new THREE.CubeGeometry( 32768, 32768, 32768, 7, 7, 7, materials ),
                                  new THREE.MeshFaceMaterial( ) );
     //skyboxMesh.flipSided = true;
     skyboxMesh.scale.x = - 1;
