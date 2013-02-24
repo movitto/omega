@@ -68,9 +68,9 @@ function OmegaNavigationContainer(){
   var show_register_dialog = function(){
     $omega_dialog.show('Create Account', '#register_dialog');
   
-    // FIXME make recaptcha public key variable / configurable
+    // TODO if recaptcha_pub is null, skip recaptcha requirement
     $('#omega_dialog #omega_recaptcha').html('<div id="omega_registration_recaptcha"></div>');
-    Recaptcha.create("6LflM9QSAAAAAHsPkhWc7OPrwV4_AYZfnhWh3e3n", "omega_registration_recaptcha",
+    Recaptcha.create($omega_config.recaptcha_pub, "omega_registration_recaptcha",
                      { theme: "red", callback: Recaptcha.focus_response_field});
   }
 
