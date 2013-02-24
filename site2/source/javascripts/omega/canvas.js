@@ -481,7 +481,7 @@ function OmegaEntityContainer(){
   entity_container.css({
     position: 'absolute',
     top:     entity_container.position().top,
-    left:    entity_container.position().left,
+    right:   $(document).width() - entity_container.offset().left - entity_container.width(),
     display: 'none'
   });
 
