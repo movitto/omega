@@ -21,17 +21,36 @@ function OmegaCamera(){
 
   /////////////////////////////////////// private data
 
-  var _camera = new THREE.PerspectiveCamera(75, 900 / 400, 1, 15000 );
-  //var camera = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
+  // width/height are overridden when canvas changes size
+
+  var _width  = $omega_config.canvas_width;
+
+  var _height = $omega_config.canvas_height;
+
+  // private initializer
+  var new_cam = function(){
+    return new THREE.PerspectiveCamera(75, _width / _height, 1, 15000 );
+    // new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
+  }
+
+  var _camera = new_cam();
 
   var looking_at = null;
 
   /////////////////////////////////////// public methods
 
+  /* Set the size of the camera
+   */
+  this.set_size = function(width, height){
+    _width = width; _height = height
+    _camera = new_cam();
+  }
+
   /* Set camera to its default position
    */
   this.reset = function(){
-    this.position({x : 0, y : 0, z : 1000});
+    var z = (20 * Math.sqrt(_width) + 20 * Math.sqrt(_height));
+    this.position({x : 0, y : 0, z : z});
     if(typeof $omega_scene !== "undefined"){
       this.focus($omega_scene.position());
       $omega_scene.animate();
@@ -687,6 +706,15 @@ function OmegaCanvas(){
     $('#show_canvas').hide();
   };
 
+  /* Set canvas size
+   */
+  this.set_size = function(w, h){
+    // resize to specified width/height
+    $("#omega_canvas").height(h);
+    $("#omega_canvas").width(w);
+    $("#omega_canvas").trigger('resize');
+  }
+
   /////////////////////////////////////// private methods
 
   /* Return coordiantes on canvas corresponding
@@ -710,6 +738,19 @@ function OmegaCanvas(){
     position: 'absolute',
     top:  $("#omega_canvas").position().top,
     left: $("#omega_canvas").position().left
+  });
+
+  // make it resizable
+  $("#omega_canvas").resizable();
+  $("#omega_canvas").resize(function(e){
+    var w = $("#omega_canvas").width();
+    var h = $("#omega_canvas").height();
+    $omega_camera.set_size(w, h);
+    $omega_camera.reset();
+    if(typeof $omega_scene !== "undefined"){
+      $omega_scene.set_size(w, h);
+      $omega_scene.animate();
+    }
   });
 
   // wire up show/close canvas controls
@@ -845,6 +886,21 @@ function OmegaCanvasUI(){
   $omega_select_box         = new OmegaSelectBox();
 
   $omega_camera.reset();
+
+  // set canvas to page size
+  // TODO optionally load fixed size from config
+  $omega_canvas.set_size(($(document).width()  - $("#omega_canvas").offset().left - 50),
+                         ($(document).height() - $("#omega_canvas").offset().top  - 50));
+
+  // capture page resize and resize canvas
+  var resizing_window = false;
+  $(window).resize(function(){
+    if(resizing_window) return;
+    resizing_window = true;
+    $omega_canvas.set_size(($(document).width()  - $("#omega_canvas").offset().left - 50),
+                           ($(document).height() - $("#omega_canvas").offset().top  - 50));
+    resizing_window = false;
+  });
 
   // when entities are registered, add to entities container if appropriate
   $omega_registry.on_registration($omega_entities_container.add_to_entities_container);

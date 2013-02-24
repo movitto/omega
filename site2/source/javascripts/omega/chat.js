@@ -17,6 +17,8 @@ function OmegaChatContainer(){
 
   /////////////////////////////////////// private data
 
+  var showing = false;
+
   var chat_container = $('#chat_container');
 
   var chat_input     = $('#chat_input input[type=text]');
@@ -49,13 +51,26 @@ function OmegaChatContainer(){
 
   /////////////////////////////////////// initialization
 
-  // lock chat container to its current position
+  // lock chat container to its current position & hide it
   chat_container.css({
     position: 'absolute',
-    top:  chat_container.position().top,
-    left: chat_container.position().left
+    bottom:  chat_container.position().bottom,
+    right: chat_container.position().right
   });
+  chat_container.hide();
 
+  // wire up chat toggle
+  $("#toggle_chat").click(function(){
+    if(showing){
+      $("#toggle_chat").html("Chat");
+      chat_container.hide();
+      showing = false;
+    }else{
+      $("#toggle_chat").html("Hide Chat");
+      chat_container.show();
+      showing = true;
+    }
+  });
 
   // send messages on chat input
   chat_button.live('click', function(e){
@@ -64,5 +79,12 @@ function OmegaChatContainer(){
   });
 
   // subscribe to messages on session validation
-  $omega_session.on_session_validated(subscribe_to_messages);
+  $omega_session.on_session_validated(function(){
+    $("#toggle_chat").show();
+    subscribe_to_messages();
+  });
+
+  $omega_session.on_session_destroyed(function(){
+    $("#toggle_chat").hide();
+  });
 }

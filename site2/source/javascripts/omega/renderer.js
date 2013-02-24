@@ -73,7 +73,7 @@ function OmegaScene(){
   //var _renderer = new THREE.CanvasRenderer({canvas: _canvas});
   var _renderer = new THREE.WebGLRenderer();
 
-  _renderer.setSize( 900, 400 );
+  _renderer.setSize( $(_canvas).width(), $(_canvas).height() );
   $('#omega_canvas').append(_renderer.domElement);
 
   var entities = {};
@@ -140,6 +140,12 @@ function OmegaScene(){
   /////////////////////////////////////// private methods
 
   /////////////////////////////////////// public methods
+
+  /* Set the size of the scene
+   */
+  this.set_size = function(width, height){
+    _renderer.setSize( width, height );
+  }
 
   /* Clear all entities tracked by scene
    */

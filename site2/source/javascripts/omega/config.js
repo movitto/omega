@@ -5,5 +5,7 @@
  */
 
 $omega_config = {
-  host : 'localhost'
+  host              : 'localhost',
+  canvas_width      :         900,
+  canvas_height     :         400
 }
