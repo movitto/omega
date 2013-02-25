@@ -11,7 +11,6 @@ describe Users::RJRAdapter do
   before(:all) do
     Users::EmailHelper.email_enabled = false
     Users::RJRAdapter.recaptcha_enabled = false
-    Users::RJRAdapter.mediawiki_enabled = false
     Users::RJRAdapter.permenant_users = ['admin', 'rjr-perm-user-test']
   end
 

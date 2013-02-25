@@ -27,15 +27,6 @@ class RJRAdapter
     # @!scope class
     attr_accessor :recaptcha_priv_key
 
-    # Boolean indicating if mediawiki account should be created
-    #   on new user creation. Requires external mediawiki adapter script
-    # @!scope class
-    attr_accessor :mediawiki_enabled
-
-    # String directory of mediawiki installation
-    # @!scope class
-    attr_accessor :mediawiki_dir
-
     # String URL of the omega server
     # @!scope class
     attr_accessor :omega_url
@@ -56,8 +47,6 @@ class RJRAdapter
       self.recaptcha_enabled  = config.recaptcha_enabled
       self.recaptcha_pub_key  = config.recaptcha_pub_key
       self.recaptcha_priv_key = config.recaptcha_priv_key
-      self.mediawiki_enabled  = config.mediawiki_enabled
-      self.mediawiki_dir      = config.mediawiki_dir
       self.omega_url          = config.omega_url
       self.permenant_users    = config.permenant_users
       self.users_rjr_username = config.users_rjr_user
@@ -240,8 +229,6 @@ class RJRAdapter
          raise ArgumentError, "invalid user"
        end
 
-       # FIXME log the user into mediawiki, return session id for them to use, disable explicit mediawiki login / account creation
-
        session
      }
 
@@ -350,13 +337,6 @@ MESSAGE_END
        Users::Registry.instance.safely_run {
          user.registration_code = nil
        }
-
-       # issue request to create mediawiki user
-       # we just use a custom script leveraging the mw api to do this for now
-       if Users::RJRAdapter.mediawiki_enabled
-         # TODO use original / unencrypted pass or different pass ?
-         system("cd #{Users::RJRAdapter.mediawiki_dir} && ./create_user.php #{user.id} #{user.password} #{user.email}")
-       end
 
        nil
      }

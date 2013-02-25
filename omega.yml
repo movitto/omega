@@ -48,9 +48,6 @@ recaptcha_enabled: true
 recaptcha_pub_key:  'CHANGE_ME' # FIXME: not currently used, need to set in javascript client
 recaptcha_priv_key: 'CHANGE_ME'
 
-mediawiki_enabled: false
-mediawiki_dir: '/usr/share/mediawiki/'
-
 # TODO config options for
 # rjr: node threads, node timeout
 # motel: step_delay
