@@ -8,6 +8,45 @@ require('javascripts/vendor/rjr/json.js');
 require('javascripts/vendor/rjr/jrw.js');
 require('javascripts/omega/config.js');
 
+/////////////////////////////////////// Omega Status Notifier
+
+/* Initialiaze new Omega Status Notifier
+ */
+function OmegaStatus(){
+
+  /////////////////////////////////////// private data
+
+  var icon   =  $("#status_icon");
+
+  var states =  [];
+
+  /////////////////////////////////////// initialization
+
+  /////////////////////////////////////// public methods
+
+  this.push_state = function(state){
+    states.push(state);
+    icon.css('background', 'url("/womega/images/status/' + state + '.png") no-repeat');
+  }
+
+  this.pop_state = function(){
+    states.pop();
+    if(states.length > 0){
+      icon.css('background', 'url("/womega/images/status/' + states[states.length-1] + '.png") no-repeat');
+    }else{
+      icon.css('background', '');
+    }
+  }
+
+  /////////////////////////////////////// private methods
+}
+
+OmegaStatus.instance = function(){
+  if(typeof $omega_status === "undefined")
+    $omega_status = new OmegaStatus();
+  return $omega_status;
+}
+
 /////////////////////////////////////// Omega Client
 
 /* Initialiaze new Omega Client
@@ -116,6 +155,7 @@ function OmegaClient(){
     var request  = rjr_web_node.invoke_request.apply(null, args);
     if(callback != null)
       response_handlers.push({'request' : request, 'callback' : callback});
+    OmegaStatus.instance().push_state('loading');
   }
 
   /* Invoke a json-rpc message on the omega server via a web socket request.
@@ -134,6 +174,7 @@ function OmegaClient(){
     var request  = rjr_ws_node.invoke_request.apply(null, args);
     if(callback != null)
       response_handlers.push({'request' : request, 'callback' : callback});
+    OmegaStatus.instance().push_state('loading');
   }
 
   /* Set header of the rjr nodes.
@@ -189,6 +230,7 @@ function OmegaClient(){
   var invoke_response_handlers = function(jr_message){
     // ensure this is a response message
     if(jr_message && !jr_message['method']){
+      OmegaStatus.instance().pop_state();
       var id = jr_message['id'];
       var callback = null;
       for(var i=0; i < response_handlers.length; i++){
