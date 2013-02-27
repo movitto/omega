@@ -35,7 +35,7 @@ function logout_test_user(on_logout){
 }
 
 function setup_canvas(){
-  $omega_canvas_ui = new OmegaCanvasUI();
+  $omega_canvas_ui = new OmegaCanvasUI({noresize : true});
   $omega_canvas = new OmegaCanvas();
   $omega_entity_container = new OmegaEntityContainer();
   var scene = new OmegaScene();

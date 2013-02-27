@@ -46,9 +46,8 @@ $(document).ready(function(){
     // ensure root is set
     equal(scene.get_root().name, 'Athena');
 
-    // ensure canvas background is set
-    equal($("#omega_canvas").css('backgroundImage'),
-          'url("http://localhost/womega/images/backgrounds/foobar.png")');
+    // ensure skybox background is set
+    equal($omega_skybox.get_background(), 'foobar');
 
     // ensure entity container is hidden
     equal($('#omega_entity_container').css('display'), 'none');

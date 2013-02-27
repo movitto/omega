@@ -30,7 +30,7 @@ $(document).ready(function(){
   test("get/set entities", function() {
     // TODO load data from fixtures
     var entity1 = { 'id'   : 'entity1' };
-    var entity2 = { 'name' : 'entity2' };
+    var entity2 = { 'id'   : 'entity2' };
 
     var registry = new OmegaRegistry();
     registry.add(entity1);
@@ -42,7 +42,6 @@ $(document).ready(function(){
 
     rentity = registry.get('entity2');
     equal(rentity, entity2);
-    equal(rentity.id, rentity.name);
   });
 
   test("registration callbacks", function() {

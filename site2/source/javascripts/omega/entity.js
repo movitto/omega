@@ -493,10 +493,10 @@ function OmegaSolarSystem(system){
                                                                (e.json_class  == "Manufactured::Ship" ||
                                                                 e.json_class  == "Manufactured::Station" )}]);
 
-    return [this.star].
-            concat(this.planets).
-            concat(this.asteroids).
-            concat(this.jump_gates).
+    return (this.star ? [this.star] : []).
+            concat(this.planets    ? this.planets    : []).
+            concat(this.asteroids  ? this.asteroids  : []).
+            concat(this.jump_gates ? this.jump_gates : []).
             concat(entities);
   }
 
@@ -509,27 +509,30 @@ function OmegaSolarSystem(system){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    for(var j=0; j<this.jump_gates.length;++j){
-      var system = this;
-      var jg = this.jump_gates[j];
-      OmegaSolarSystem.cached(jg.endpoint, function(sys){
-        var geometry = new THREE.Geometry();
-        geometry.vertices.push(new THREE.Vector3(system.location.x,
-                                                 system.location.y,
-                                                 system.location.z));
+    var system = this;
 
-        geometry.vertices.push(new THREE.Vector3(sys.location.x, sys.location.y, sys.location.z));
-        var line = new THREE.Line(geometry, $omega_scene.materials['line']);
+    if(this.jump_gates){
+      for(var j=0; j<this.jump_gates.length;++j){
+        var jg = this.jump_gates[j];
+        OmegaSolarSystem.cached(jg.endpoint, function(sys){
+          var geometry = new THREE.Geometry();
+          geometry.vertices.push(new THREE.Vector3(system.location.x,
+                                                   system.location.y,
+                                                   system.location.z));
 
-        system.scene_objs.push(line);
-        $omega_scene.add(line);
-      });
+          geometry.vertices.push(new THREE.Vector3(sys.location.x, sys.location.y, sys.location.z));
+          var line = new THREE.Line(geometry, OmegaScene.materials['line']);
+
+          system.scene_objs.push(line);
+          $omega_scene.add(line);
+        });
+      }
     }
     
     // draw sphere representing system
     var radius   = 100, segments = 32, rings = 32;
     var geometry = new THREE.SphereGeometry(radius, segments, rings);
-    var sphere   = new THREE.Mesh(geometry, $omega_scene.materials['system_sphere']);
+    var sphere   = new THREE.Mesh(geometry, OmegaScene.materials['system_sphere']);
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z ;
@@ -539,18 +542,19 @@ function OmegaSolarSystem(system){
     $omega_scene.add(sphere);
 
     var geometry = new THREE.PlaneGeometry(100, 100);
-    var plane = new THREE.Mesh(geometry, $omega_scene.materials['system_plane']);
+    var plane = new THREE.Mesh(geometry, OmegaScene.materials['system_plane']);
     plane.position.x = this.location.x;
     plane.position.y = this.location.y;
     plane.position.z = this.location.z;
     plane.rotation.x = 0.785;
     plane.lookAt($omega_camera.position()); // XXX dependency on omega_camera
+    plane.omega_id   = this.name + '-plane';
     this.scene_objs.push(plane);
     $omega_scene.add(plane);
 
     // draw label
     var text3d = new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
-    var text   = new THREE.Mesh( text3d, $omega_scene.materials['system_label'] );
+    var text   = new THREE.Mesh( text3d, OmegaScene.materials['system_label'] );
     text.position.x = this.location.x;
     text.position.y = this.location.y;
     text.position.z = this.location.z + 50;
@@ -597,14 +601,14 @@ function OmegaStar(star){
   this.on_load = function(){
     var radius = this.size/4, segments = 32, rings = 32;
 
-    if($omega_scene.materials['star' + this.color] == null)
-      $omega_scene.materials['star' + this.color] =
+    if(OmegaScene.materials['star' + this.color] == null)
+      OmegaScene.materials['star' + this.color] =
         new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color),
-                                       map: $omega_scene.textures['star'],
+                                       map: OmegaScene.textures['star'],
                                        overdraw : true})
 
     var sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, segments, rings),
-                                $omega_scene.materials['star' + this.color]);
+                                OmegaScene.materials['star' + this.color]);
 
     sphere.position.x = this.location.x ;
     sphere.position.y = this.location.y ;
@@ -655,15 +659,15 @@ function OmegaPlanet(planet){
   this.on_load = function(){
     // draw sphere representing planet
     var radius = this.size, segments = 32, rings = 32;
-    if($omega_scene.geometries['planet' + radius] == null)
-       $omega_scene.geometries['planet' + radius] =
+    if(OmegaScene.geometries['planet' + radius] == null)
+       OmegaScene.geometries['planet' + radius] =
          new THREE.SphereGeometry(radius, segments, rings);
-    if($omega_scene.materials['planet' + this.color] == null)
-       $omega_scene.materials['planet' + this.color] =
+    if(OmegaScene.materials['planet' + this.color] == null)
+       OmegaScene.materials['planet' + this.color] =
          new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color)});
 
-    var sphere = new THREE.Mesh($omega_scene.geometries['planet' + radius],
-                                $omega_scene.materials[ 'planet' + this.color]);
+    var sphere = new THREE.Mesh(OmegaScene.geometries['planet' + radius],
+                                     OmegaScene.materials[ 'planet' + this.color]);
 
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
@@ -690,7 +694,7 @@ function OmegaPlanet(planet){
     }
     geometry.vertices.push(first);
     geometry.vertices.push(last);
-    var line = new THREE.Line(geometry, $omega_scene.materials['orbit']);
+    var line = new THREE.Line(geometry, OmegaScene.materials['orbit']);
     this.scene_objs.push(line);
     this.scene_objs.push(geometry);
     // TODO make orbit rendering togglable
@@ -699,8 +703,8 @@ function OmegaPlanet(planet){
     // draw moons
     for(var m=0; m<this.moons.length; ++m){
       var moon = this.moons[m];
-      var sphere = new THREE.Mesh($omega_scene.geometries['moon'],
-                                  $omega_scene.materials['moon']);
+      var sphere = new THREE.Mesh(OmegaScene.geometries['moon'],
+                                  OmegaScene.materials['moon']);
 
       sphere.position.x = this.location.x + moon.location.x;
       sphere.position.y = this.location.y + moon.location.y;
@@ -887,8 +891,8 @@ function OmegaAsteroid(asteroid){
    * Instantiates three.js scene objects and adds them to global scene
    */
   this.on_load = function(){
-    var mesh = new THREE.Mesh($omega_scene.geometries['asteroid'],
-                              $omega_scene.materials['asteroid']   );
+    var mesh = new THREE.Mesh(OmegaScene.geometries['asteroid'],
+                              OmegaScene.materials['asteroid']   );
 
     mesh.position.x = this.location.x;
     mesh.position.y = this.location.y;
@@ -896,12 +900,13 @@ function OmegaAsteroid(asteroid){
     mesh.omega_id = this.name + '-mesh';
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 15;
 
-    var sphere   = new THREE.Mesh($omega_scene.geometries['asteroid_container'],
-                                  $omega_scene.materials['asteroid_container']);
+    var sphere   = new THREE.Mesh(OmegaScene.geometries['asteroid_container'],
+                                  OmegaScene.materials['asteroid_container']);
 
     sphere.position.x = this.location.x;
     sphere.position.y = this.location.y;
     sphere.position.z = this.location.z;
+    sphere.omega_id = this.name + '-sphere';
     sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
 
     this.clickable_obj = sphere;
@@ -957,8 +962,8 @@ function OmegaJumpGate(jump_gate){
    */
   this.on_load = function(){
     //var geometry = new THREE.PlaneGeometry( 50, 50 );
-    var geometry = $omega_scene.geometries['jump_gate'];
-    var material = $omega_scene.materials['jump_gate']
+    var geometry = OmegaScene.geometries['jump_gate'];
+    var material = OmegaScene.materials['jump_gate']
     var mesh     = new THREE.Mesh(geometry, material);
 
     mesh.position.set( this.location.x, this.location.y, this.location.z );
@@ -969,7 +974,7 @@ function OmegaJumpGate(jump_gate){
     // sphere to draw around jump gate when selected
     var radius    = this.trigger_distance, segments = 32, rings = 32;
     var sgeometry = new THREE.SphereGeometry(radius, segments, rings);
-    var smaterial = $omega_scene.materials['jump_gate_selected'];
+    var smaterial = OmegaScene.materials['jump_gate_selected'];
     var ssphere   = new THREE.Mesh(sgeometry, smaterial);
                                  
     ssphere.position.x = this.location.x ;
@@ -1046,13 +1051,13 @@ function OmegaShip(ship){
     else
       color += "00CC00";
 
-    if($omega_scene.materials['ship' + color] == null)
-       $omega_scene.materials['ship' + color] =
+    if(OmegaScene.materials['ship' + color] == null)
+       OmegaScene.materials['ship' + color] =
          new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
 
-    var material = $omega_scene.materials['ship' + color];
+    var material = OmegaScene.materials['ship' + color];
 
-    var mesh = new THREE.Mesh($omega_scene.geometries['ship'], material);
+    var mesh = new THREE.Mesh(OmegaScene.geometries['ship'], material);
 
     mesh.position.set(this.location.x, this.location.y, this.location.z);
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
@@ -1066,7 +1071,7 @@ function OmegaShip(ship){
 
     // if ship is attacking another, draw line of attack
     if(this.attacking){
-      material = $omega_scene.materials['ship_attacking'];
+      material = OmegaScene.materials['ship_attacking'];
       geometry = new THREE.Geometry();
       geometry.vertices.push(new THREE.Vector3(this.location.x,
                                                this.location.y,
@@ -1082,7 +1087,7 @@ function OmegaShip(ship){
 
     // if ship is mining, draw line to mining target
     }else if(this.mining){
-      material = $omega_scene.materials['ship_mining']
+      material = OmegaScene.materials['ship_mining']
       geometry = new THREE.Geometry();
       geometry.vertices.push(new THREE.Vector3(this.location.x,
                                                this.location.y,
@@ -1215,12 +1220,12 @@ function OmegaStation(station){
     else
       color += "0000CC";
 
-    if($omega_scene.materials['station' + color] == null)
-      $omega_scene.materials['station' + color] =
+    if(OmegaScene.materials['station' + color] == null)
+      OmegaScene.materials['station' + color] =
         new THREE.MeshBasicMaterial({color: parseInt(color)});
-    var material = $omega_scene.materials['station'+color];
+    var material = OmegaScene.materials['station'+color];
 
-    var mesh = new THREE.Mesh($omega_scene.geometries['station'], material);
+    var mesh = new THREE.Mesh(OmegaScene.geometries['station'], material);
 
     mesh.position.set(this.location.x, this.location.y, this.location.z);
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;

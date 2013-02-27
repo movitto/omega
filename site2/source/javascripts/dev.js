@@ -44,8 +44,8 @@ $(document).ready(function(){
   $omega_session.on_session_validated(function(){
     $("#omega_canvas").css('background', 'url("/womega/images/backgrounds/galaxy1.png") no-repeat');
     for(var i = 0; i < 50; i++){
-      var sphere   = new THREE.Mesh($omega_scene.geometries['asteroid_container'],
-                                    $omega_scene.materials['asteroid_container']);
+      var sphere   = new THREE.Mesh(OmegaScene.geometries['asteroid_container'],
+                                    OmegaScene.materials['asteroid_container']);
 
       sphere.position.x = i*50;
       sphere.position.y = i*50;

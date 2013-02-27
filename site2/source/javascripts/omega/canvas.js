@@ -631,6 +631,12 @@ function OmegaSkybox(){
 
   /////////////////////////////////////// public methods
 
+  /* Get the skybox background
+   */
+  this.get_background = function(){
+    return skybox_bg;
+  };
+
   /* Set the skybox background
    */
   this.set_background = function(entity){
@@ -875,7 +881,7 @@ function OmegaSelectBox(){
 /* Initialize new Canvas UI, high level wrapper around all canvas
  * components
  */
-function OmegaCanvasUI(){
+function OmegaCanvasUI(args){
   $omega_camera             = new OmegaCamera();
   $omega_axis               = new OmegaAxis();
   $omega_grid               = new OmegaGrid();
@@ -892,15 +898,17 @@ function OmegaCanvasUI(){
   $omega_canvas.set_size(($(document).width()  - $("#omega_canvas").offset().left - 50),
                          ($(document).height() - $("#omega_canvas").offset().top  - 50));
 
-  // capture page resize and resize canvas
-  var resizing_window = false;
-  $(window).resize(function(){
-    if(resizing_window) return;
-    resizing_window = true;
-    $omega_canvas.set_size(($(document).width()  - $("#omega_canvas").offset().left - 50),
-                           ($(document).height() - $("#omega_canvas").offset().top  - 50));
-    resizing_window = false;
-  });
+  if(!args || !args.noresize){
+    // capture page resize and resize canvas
+    var resizing_window = false;
+    $(window).resize(function(){
+      if(resizing_window) return;
+      resizing_window = true;
+      $omega_canvas.set_size(($(document).width()  - $("#omega_canvas").offset().left - 50),
+                             ($(document).height() - $("#omega_canvas").offset().top  - 50));
+      resizing_window = false;
+    });
+  }
 
   // when entities are registered, add to entities container if appropriate
   $omega_registry.on_registration($omega_entities_container.add_to_entities_container);

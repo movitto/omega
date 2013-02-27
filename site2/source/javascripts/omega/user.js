@@ -25,6 +25,11 @@ function OmegaUser(args){
     return new JRObject("Users::User", this,
       ["alliances", "toJSON", "json_class"]).toJSON();
   };
+
+  this.update = function(nuser){
+    for(var attr in nuser)
+      this[attr] = nuser[attr];
+  }
 }
 
 /////////////////////////////////////// Omega Session

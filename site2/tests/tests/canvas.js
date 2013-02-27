@@ -53,28 +53,21 @@ $(document).ready(function(){
                    'children'   : function() { return []; }
                  };
 
-    var user   = {
-                   'name'       : 'foobar',
-                   'json_class' : 'Users::User',
-                   'alliances' : [{ 'id' : 'ally1' }]
-                 };
-
     var entities_container = new OmegaEntitiesContainer();
     //equal($('#locations_list').css('display'), 'none');
     //equal($('#alliances_list').css('display'), 'none');
 
     entities_container.add_to_entities_container(galaxy);
-    ok($('#locations_list ul').html().indexOf('<li name="Zeus">Zeus</li>') != -1)
+    ok(/\s*<li name="Zeus".*>Zeus<\/li>\s*/.test($('#locations_list ul').html()))
     equal($('#locations_list').css('display'), 'block');
 
-    entities_container.add_to_entities_container(user);
-    ok($('#alliances_list ul').html().indexOf('<li name="ally1">ally1</li>') != -1)
-    equal($('#alliances_list').css('display'), 'block');
+    // TODO test fleet and entity lists
   });
 
   test("click entities container", function() {
     // TODO load entities from fixtures
     var galaxy = {
+                   'id'         : 'Zeus',
                    'name'       : 'Zeus',
                    'json_class' : 'Cosmos::Galaxy',
                    'children'   : function() { return []; }
@@ -95,16 +88,17 @@ $(document).ready(function(){
 
   module("omega_canvas");
 
-  test("set canvas background", function() {
-    // TODO load from fixtures
-    var system  = { 'background': 'foobar' };
+  // TODO move to skybox tests
+  //test("set canvas background", function() {
+  //  // TODO load from fixtures
+  //  var system  = { 'background': 'foobar' };
 
-    var omega_canvas = new OmegaCanvas();
-    omega_canvas.set_background(system);
+  //  var omega_canvas = new OmegaCanvas();
+  //  omega_canvas.set_background(system);
 
-    equal($("#omega_canvas").css('backgroundImage'),
-          'url("http://localhost/womega/images/backgrounds/foobar.png")');
-  });
+  //  equal($("#omega_canvas").css('backgroundImage'),
+  //        'url("http://localhost/womega/images/backgrounds/foobar.png")');
+  //});
   
   test("show/hide canvas", function() {
     var omega_canvas = new OmegaCanvas();
@@ -112,14 +106,14 @@ $(document).ready(function(){
     equal($('canvas').css('display'),              'none');
     equal($('.entities_container').css('display'), 'none');
     equal($('#camera_controls').css('display'),    'none');
-    equal($('#grid_control').css('display'),       'none');
+    equal($('#axis_controls').css('display'),      'none');
     equal($('#close_canvas').css('display'),       'none');
     equal($('#show_canvas').css('display'),        'block');
 
     omega_canvas.show();
-    equal($('canvas').css('display'),              'block');
+    equal($('canvas').css('display'),              'inline');
     equal($('#camera_controls').css('display'),    'block');
-    equal($('#grid_control').css('display'),       'block');
+    equal($('#axis_controls').css('display'),      'block');
     equal($('#close_canvas').css('display'),       'block');
     equal($('#show_canvas').css('display'),        'none');
   });
@@ -134,7 +128,7 @@ $(document).ready(function(){
     equal($('#show_canvas').css('display'),        'block');
 
     $('#show_canvas').click();
-    equal($('canvas').css('display'),              'block');
+    equal($('canvas').css('display'),              'inline');
     equal($('#close_canvas').css('display'),       'block');
     equal($('#show_canvas').css('display'),        'none');
   });

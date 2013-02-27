@@ -66,15 +66,12 @@ function OmegaSelection(){
 function OmegaScene(){
   /////////////////////////////////////// private data
 
+  $('#omega_canvas canvas').remove();
   var _canvas   = $('#omega_canvas').get()[0];
+  OmegaScene._renderer.setSize( $(_canvas).width(), $(_canvas).height() );
+  $(_canvas).append(OmegaScene._renderer.domElement);
 
   var _scene    = new THREE.Scene();
-
-  //var _renderer = new THREE.CanvasRenderer({canvas: _canvas});
-  var _renderer = new THREE.WebGLRenderer();
-
-  _renderer.setSize( $(_canvas).width(), $(_canvas).height() );
-  $('#omega_canvas').append(_renderer.domElement);
 
   var entities = {};
 
@@ -86,65 +83,12 @@ function OmegaScene(){
 
   this.selection  = new OmegaSelection();
 
-  /////////////////////////////////////// public (read-only) data
-
-  // preload textures & other resources
-  this.textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/textures/jump_gate.jpg"),
-                     star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg"),
-                     solar_system : THREE.ImageUtils.loadTexture("/womega/images/solar_system.png")};
-  this.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
-                    system_sphere : new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true}),
-                    system_plane  : new THREE.MeshBasicMaterial({map: this.textures['solar_system'], alphaTest: 0.5}),
-                    system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
-                    orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
-                    moon : new THREE.MeshBasicMaterial({color: 0x808080}),
-                    asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false }),
-                    asteroid_container : new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } ),
-                    jump_gate : new THREE.MeshBasicMaterial( { map: this.textures['jump_gate'] } ),
-                    jump_gate_selected : new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
-                    ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
-                    ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF})
-                   };
-  // relatively new for three.js (mesh.doubleSided = true is old way):
-  this.materials['system_plane'].side       = THREE.DoubleSide;
-
-  this.textures['jump_gate'].wrapS  = THREE.RepeatWrapping;
-  this.textures['jump_gate'].wrapT  = THREE.RepeatWrapping;
-  this.textures['jump_gate'].repeat.x  = 5;
-  this.textures['jump_gate'].repeat.y  = 5;
-
-  var astradius = 25, astsegments = 32, astrings = 32;
-  var mnradius = 5, mnsegments = 32, mnrings = 32;
-  this.geometries = {moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),
-                     asteroid_container : new THREE.SphereGeometry(astradius, astsegments, astrings),
-                     ship     : null, station : null, asteroid : null, jump_gate : null};
-
-  var loader = new THREE.JSONLoader();
-  loader.load('images/meshes/brigantine.js', function(geometry){
-    geometry.computeTangents();
-    $omega_scene.geometries['ship'] = geometry;
-  });
-  loader.load('images/meshes/research.js', function(geometry){
-    geometry.computeTangents();
-    $omega_scene.geometries['station'] = geometry;
-  });
-  loader.load('images/meshes/asteroids1.js', function(geometry){
-    geometry.computeTangents();
-    $omega_scene.geometries['asteroid'] = geometry;
-  });
-  loader.load('images/meshes/jump_gate.js', function(geometry){
-    geometry.computeTangents();
-    $omega_scene.geometries['jump_gate'] = geometry;
-  });
-
-  /////////////////////////////////////// private methods
-
   /////////////////////////////////////// public methods
 
   /* Set the size of the scene
    */
   this.set_size = function(width, height){
-    _renderer.setSize( width, height );
+    OmegaScene._renderer.setSize( width, height );
   }
 
   /* Clear all entities tracked by scene
@@ -317,7 +261,7 @@ function OmegaScene(){
    */
   this.render = function(){
     if(typeof($omega_camera) !== "undefined") // XXX hack shouldn't need conditional
-      _renderer.render(_scene, $omega_camera.scene_camera());
+      OmegaScene._renderer.render(_scene, $omega_camera.scene_camera());
   }
 
   /* Return the position of the backend scene
@@ -344,3 +288,55 @@ function OmegaScene(){
     return entities;
   }
 }
+
+//OmegaScene._renderer = new THREE.CanvasRenderer({canvas: _canvas});
+OmegaScene._renderer = new THREE.WebGLRenderer();
+
+// preload textures & other resources
+OmegaScene.textures   = {jump_gate : THREE.ImageUtils.loadTexture("/womega/images/textures/jump_gate.jpg"),
+                   star      : THREE.ImageUtils.loadTexture("/womega/images/textures/greensun.jpg"),
+                   solar_system : THREE.ImageUtils.loadTexture("/womega/images/solar_system.png")};
+OmegaScene.materials = {line      : new THREE.LineBasicMaterial({color: 0xFFFFFF}),
+                  system_sphere : new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true}),
+                  system_plane  : new THREE.MeshBasicMaterial({map: OmegaScene.textures['solar_system'], alphaTest: 0.5}),
+                  system_label : new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
+                  orbit : new THREE.LineBasicMaterial({color: 0xAAAAAA}),
+                  moon : new THREE.MeshBasicMaterial({color: 0x808080}),
+                  asteroid : new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false }),
+                  asteroid_container : new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } ),
+                  jump_gate : new THREE.MeshBasicMaterial( { map: OmegaScene.textures['jump_gate'] } ),
+                  jump_gate_selected : new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
+                  ship_attacking : new THREE.LineBasicMaterial({color: 0xFF0000}),
+                  ship_mining : new THREE.LineBasicMaterial({color: 0x0000FF})
+                 };
+// relatively new for three.js (mesh.doubleSided = true is old way):
+OmegaScene.materials['system_plane'].side       = THREE.DoubleSide;
+
+OmegaScene.textures['jump_gate'].wrapS  = THREE.RepeatWrapping;
+OmegaScene.textures['jump_gate'].wrapT  = THREE.RepeatWrapping;
+OmegaScene.textures['jump_gate'].repeat.x  = 5;
+OmegaScene.textures['jump_gate'].repeat.y  = 5;
+
+var astradius = 25, astsegments = 32, astrings = 32;
+var mnradius = 5, mnsegments = 32, mnrings = 32;
+OmegaScene.geometries = {moon     : new THREE.SphereGeometry(mnradius, mnsegments, mnrings),
+                   asteroid_container : new THREE.SphereGeometry(astradius, astsegments, astrings),
+                   ship     : null, station : null, asteroid : null, jump_gate : null};
+
+var loader = new THREE.JSONLoader();
+loader.load('images/meshes/brigantine.js', function(geometry){
+  geometry.computeTangents();
+  OmegaScene.geometries['ship'] = geometry;
+});
+loader.load('images/meshes/research.js', function(geometry){
+  geometry.computeTangents();
+  OmegaScene.geometries['station'] = geometry;
+});
+loader.load('images/meshes/asteroids1.js', function(geometry){
+  geometry.computeTangents();
+  OmegaScene.geometries['asteroid'] = geometry;
+});
+loader.load('images/meshes/jump_gate.js', function(geometry){
+  geometry.computeTangents();
+  OmegaScene.geometries['jump_gate'] = geometry;
+});

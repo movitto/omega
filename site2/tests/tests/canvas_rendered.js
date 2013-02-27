@@ -78,7 +78,7 @@ $(document).ready(function(){
 
     // test scene_objs have been added to system
 
-    equal(system.scene_objs.length, 2);
+    equal(system.scene_objs.length, 3);
     equal(system.scene_objs[0].omega_id, system.name + "-sphere");
     // TODO should also:
     //equal(typeof system.scene_objs[0], THREE.Mesh);
@@ -87,31 +87,43 @@ $(document).ready(function(){
     equal(system.scene_objs[0].position.y, 20);
     equal(system.scene_objs[0].position.z, -30);
 
-    equal(system.scene_objs[1].omega_id, system.name + "-text");
-    equal(system.scene_objs[1].position.x, 10 - 50);
-    equal(system.scene_objs[1].position.y, 20 - 50);
-    equal(system.scene_objs[1].position.z, -30 - 50);
+    equal(system.scene_objs[1].omega_id, system.name + "-plane");
+    equal(system.scene_objs[1].position.x, 10);
+    equal(system.scene_objs[1].position.y, 20);
+    equal(system.scene_objs[1].position.z, -30);
+
+    equal(system.scene_objs[2].omega_id, system.name + "-text");
+    equal(system.scene_objs[2].position.x, 10);
+    equal(system.scene_objs[2].position.y, 20);
+    equal(system.scene_objs[2].position.z, -30 + 50);
 
     // test scene_objs are rendered to scene
-    equal($omega_scene.scene_objects().length, 2)
+    equal($omega_scene.scene_objects().length, 3)
     equal($omega_scene.scene_objects()[0].omega_id, system.name + "-sphere");
     equal($omega_scene.scene_objects()[0].position.x, 10);
     equal($omega_scene.scene_objects()[0].position.y, 20);
     equal($omega_scene.scene_objects()[0].position.z, -30);
 
-    equal($omega_scene.scene_objects()[1].omega_id, system.name + "-text");
-    equal($omega_scene.scene_objects()[1].position.x, 10 - 50);
-    equal($omega_scene.scene_objects()[1].position.y, 20 - 50);
-    equal($omega_scene.scene_objects()[1].position.z, -30 - 50);
+    equal($omega_scene.scene_objects()[1].omega_id, system.name + "-plane");
+    equal($omega_scene.scene_objects()[1].position.x, 10);
+    equal($omega_scene.scene_objects()[1].position.y, 20);
+    equal($omega_scene.scene_objects()[1].position.z, -30);
+
+    equal($omega_scene.scene_objects()[2].omega_id, system.name + "-text");
+    equal($omega_scene.scene_objects()[2].position.x, 10);
+    equal($omega_scene.scene_objects()[2].position.y, 20);
+    equal($omega_scene.scene_objects()[2].position.z, -30 + 50);
   });
 
   asyncTest("system clicked", function(){
     $omega_scene = setup_canvas();
 
-    var system = new OmegaSolarSystem({name       : 'system1',
+    var system = new OmegaSolarSystem({id         : 'system1',
+                                       name       : 'system1',
                                        location   : { x : 10, y : 20, z : -30}});
+    var galaxy = new OmegaGalaxy({name : 'galaxy1', solar_systems : [system] });
     $omega_registry.add(system);
-    $omega_scene.add_entity(system);
+    $omega_scene.set_root(galaxy);
 
     // need to animate scene and wait till its ready
     $omega_scene.animate();
@@ -209,45 +221,60 @@ $(document).ready(function(){
 
     // test scene_objs have been added to system
 
-    equal(ast.scene_objs.length, 1);
-    equal(ast.scene_objs[0].omega_id, ast.name + "-text");
+    equal(ast.scene_objs.length, 2);
+    equal(ast.scene_objs[0].omega_id, ast.name + "-mesh");
     equal(ast.scene_objs[0].position.x, 10);
     equal(ast.scene_objs[0].position.y,  0);
     equal(ast.scene_objs[0].position.z, -10);
 
-    equal($omega_scene.scene_objects().length, 1)
-    equal($omega_scene.scene_objects()[0].omega_id, ast.name + "-text");
+    equal(ast.scene_objs[1].omega_id, ast.name + "-sphere");
+    equal(ast.scene_objs[1].position.x, 10);
+    equal(ast.scene_objs[1].position.y,  0);
+    equal(ast.scene_objs[1].position.z, -10);
+
+    equal($omega_scene.scene_objects().length, 2)
+    equal($omega_scene.scene_objects()[0].omega_id, ast.name + "-mesh");
     equal($omega_scene.scene_objects()[0].position.x, 10);
     equal($omega_scene.scene_objects()[0].position.y,  0);
     equal($omega_scene.scene_objects()[0].position.z, -10);
+
+    equal($omega_scene.scene_objects()[1].omega_id, ast.name + "-sphere");
+    equal($omega_scene.scene_objects()[1].position.x, 10);
+    equal($omega_scene.scene_objects()[1].position.y,  0);
+    equal($omega_scene.scene_objects()[1].position.z, -10);
   });
 
   asyncTest("clicked asteroid", function(){
     $omega_scene = setup_canvas();
 
-    var ast = new OmegaAsteroid({name     : 'ast1',
-                                 location : new OmegaLocation({ x : 50, y : 50, z : -30})});
-    $omega_registry.add(ast);
-    $omega_scene.add_entity(ast);
-
-    // need to animate scene and wait till its ready
-    $omega_scene.animate();
+    // XXX need to wait till asteroid geometry is loaded
     window.setTimeout(function() {
+      var ast = new OmegaAsteroid({name     : 'ast1',
+                                   location : new OmegaLocation({ x : 50, y : 50, z : -30})});
+      var system = new OmegaSolarSystem({name       : 'system1',
+                                         location   : { x : 10, y : 20, z : -30},
+                                         asteroids  : [ast] });
+      $omega_scene.set_root(system);
 
-      var pos = ast.scene_objs[0].position;
-      var c = canvas_to_xy(pos);
-      c.x += 10; c.y -= 10;
-      var e = new jQuery.Event('click');
-      e.pageX = c.x;
-      e.pageY = c.y;
+      // need to animate scene and wait till its ready
+      $omega_scene.animate();
+      window.setTimeout(function() {
 
-      $("#omega_canvas").trigger(e);
+        var pos = ast.scene_objs[0].position;
+        var c = canvas_to_xy(pos);
+        c.x += 10; c.y -= 10;
+        var e = new jQuery.Event('click');
+        e.pageX = c.x;
+        e.pageY = c.y;
 
-      equal($('#omega_entity_container').css('display'), 'block');
-      ok($('#omega_entity_container').html().indexOf('Asteroid: ast1') != -1);
-      // TODO also verify resources are retrieved
+        $("#omega_canvas").trigger(e);
 
-      start();
+        equal($('#omega_entity_container').css('display'), 'block');
+        ok($('#omega_entity_container').html().indexOf('Asteroid: ast1') != -1);
+        // TODO also verify resources are retrieved
+
+        start();
+      }, 250);
     }, 250);
   });
 
@@ -261,7 +288,7 @@ $(document).ready(function(){
 
     // test scene_objs have been added to jump gate
 
-    equal(jg.scene_objs.length, 3);
+    equal(jg.scene_objs.length, 2);
     equal(jg.scene_objs[0].position.x, 50);
     equal(jg.scene_objs[0].position.y, 50);
     equal(jg.scene_objs[0].position.z, -10);
@@ -275,41 +302,44 @@ $(document).ready(function(){
   asyncTest("clicked jump gate", function(){
     $omega_scene = setup_canvas();
 
-    var sys1 = new OmegaSolarSystem({id : 'sys1',
-                                     location : new OmegaLocation({id : 42})});
-    var jg = new OmegaJumpGate({id : "sys1-sys2", endpoint : "sys2",
-                                location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
-    $omega_registry.add(sys1);
-    $omega_registry.add(jg);
-    $omega_scene.set_root(sys1);
-    $omega_scene.add_entity(jg);
-
-    // need to animate scene and wait till its ready
-    $omega_scene.animate();
+    // XXX need to wait till jump gate geometry is loaded
     window.setTimeout(function() {
+      var jg = new OmegaJumpGate({id : "sys1-sys2", endpoint : "sys2",
+                                  location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
+      var sys1 = new OmegaSolarSystem({id : 'sys1',
+                                       location : new OmegaLocation({id : 42}),
+                                       jump_gates : [jg] });
+      $omega_registry.add(jg);
+      $omega_scene.set_root(sys1);
+      $omega_skybox.hide();
 
-      var pos = jg.scene_objs[0].position;
-      var c = canvas_to_xy(pos);
-      var e = new jQuery.Event('click');
-      e.pageX = c.x;
-      e.pageY = c.y;
-      $("#omega_canvas").trigger(e);
+      // need to animate scene and wait till its ready
+      $omega_scene.animate();
+      window.setTimeout(function() {
 
-      // additional selection sphere
-      var so = $omega_scene.scene_objects();
-      equal(so.length, 2)
-      equal(so[1].position.x, 50);
-      equal(so[1].position.y, 50);
-      equal(so[1].position.z, -10);
+        var pos = jg.scene_objs[0].position;
+        var c = canvas_to_xy(pos);
+        var e = new jQuery.Event('click');
+        e.pageX = c.x;
+        e.pageY = c.y;
+        $("#omega_canvas").trigger(e);
 
-      equal($('#omega_entity_container').css('display'), 'block');
-      ok($('#omega_entity_container').html().indexOf('Jump Gate to sys2') != -1);
+        // additional selection sphere
+        var so = $omega_scene.scene_objects();
+        equal(so.length, 2)
+        equal(so[1].position.x, 50);
+        equal(so[1].position.y, 50);
+        equal(so[1].position.z, -10);
 
-      // test jg on_unselected
-      $("#entity_container_close").trigger("click");
-      equal($omega_scene.scene_objects().length, 1)
+        equal($('#omega_entity_container').css('display'), 'block');
+        ok($('#omega_entity_container').html().indexOf('Jump Gate to sys2') != -1);
 
-      start();
+        // test jg on_unselected
+        $("#entity_container_close").trigger("click");
+        equal($omega_scene.scene_objects().length, 1)
+
+        start();
+      }, 250);
     }, 250);
   });
 
@@ -322,83 +352,85 @@ $(document).ready(function(){
                                  
     ship.load();
 
-    // test scene_objs have been added to jump gate
+    // test scene_objs have been added to ship
 
-    equal(ship.scene_objs.length, 6);
+    equal(ship.scene_objs.length, 1);
     equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
-    equal(ship.scene_objs[2].material.color.getHex().toString(16), "cc00");
-    // ensure geometry's vertices are at the correct locations
+    // TODO verify ship mesh's geometry
 
-    equal($omega_scene.scene_objects().length, 3)
-    equal($omega_scene.scene_objects()[2].position.x, 50);
-    equal($omega_scene.scene_objects()[2].position.y, 50);
-    equal($omega_scene.scene_objects()[2].position.z, -10);
+    equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects()[0].position.x, 50);
+    equal($omega_scene.scene_objects()[0].position.y, 50);
+    equal($omega_scene.scene_objects()[0].position.z, -10);
   });
 
   asyncTest("clicked ship", function(){
     $omega_scene = setup_canvas();
     $user_id = 'rendered-user';
 
-    var sys1 = new OmegaSolarSystem({id : 'sys1',
-                                     location : new OmegaLocation({id : 42})});
-    var ship = new OmegaShip({id : "ship1", user_id : 'rendered-user', hp : 500, size: 20,
-                              location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
-
-    $omega_registry.add(sys1);
-    $omega_registry.add(ship);
-    $omega_scene.set_root(sys1);
-    $omega_scene.add_entity(ship);
-
-    // need to animate scene and wait till its ready
-    $omega_scene.animate();
+    // XXX need to wait till ship geometry is loaded
     window.setTimeout(function() {
-      var pos = ship.scene_objs[4].position;
-      var c = canvas_to_xy(pos);
-      var e = new jQuery.Event('click');
-      e.pageX = c.x;
-      e.pageY = c.y;
+      var sys1 = new OmegaSolarSystem({id : 'sys1', name : 'sys1',
+                                       location : new OmegaLocation({id : 42})});
+      var ship = new OmegaShip({id : "ship1", user_id : 'rendered-user', hp : 500, size: 20,
+                                system_name : 'sys1', json_class : "Manufactured::Ship",
+                                location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
 
-      $("#omega_canvas").trigger(e);
+      $omega_registry.add(sys1);
+      $omega_registry.add(ship);
+      $omega_scene.set_root(sys1);
 
-      equal($('#omega_entity_container').css('display'), 'block');
-      ok($('#omega_entity_container').html().indexOf('Ship: ship1') != -1);
+      // need to animate scene and wait till its ready
+      $omega_scene.animate();
+      window.setTimeout(function() {
+        var pos = ship.scene_objs[0].position;
+        var c = canvas_to_xy(pos);
+        var e = new jQuery.Event('click');
+        e.pageX = c.x;
+        e.pageY = c.y;
 
-      // ensure ship is 'selected' color
-      equal(ship.scene_objs[0].material.color.getHex().toString(16), "ffff00");
-      equal(ship.scene_objs[2].material.color.getHex().toString(16), "ffff00");
+        $("#omega_canvas").trigger(e);
 
-      // unselect ship
-      $("#entity_container_close").trigger("click");
+        equal($('#omega_entity_container').css('display'), 'block');
+        ok($('#omega_entity_container').html().indexOf('Ship: ship1') != -1);
 
-      // ensure ship is 'unselected' color
-      equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
-      equal(ship.scene_objs[2].material.color.getHex().toString(16), "cc00");
+        // ensure ship is 'selected' color
+        equal(ship.scene_objs[0].material.color.getHex().toString(16), "ffff00");
 
-      start();
-    }, 1000);
+        // unselect ship
+        $("#entity_container_close").trigger("click");
+
+        // ensure ship is 'unselected' color
+        equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
+
+        start();
+      }, 1000);
+    }, 250);
                                  
   });
 
   asyncTest("load docked ship", function(){
     $omega_scene = setup_canvas();
 
+    // create new system / set root location
+    var nsys = new OmegaSolarSystem({name : 'Athena',
+                                     location : {id : 2}});
+    $omega_registry.add(nsys);
+    $omega_scene.set_root(nsys);
+
     login_test_user($admin_user, function(){
       OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
         OmegaCommand.dock_ship.exec(ship, 'mmorsi-manufacturing-station1');
         OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
-          ship.load();
-
-          equal(ship.scene_objs.length, 6);
+          $omega_scene.reload(ship);
+          equal(ship.scene_objs.length, 1);
           equal(ship.scene_objs[0].material.color.getHex().toString(16), "99ffff");
-          equal(ship.scene_objs[2].material.color.getHex().toString(16), "99ffff");
 
           OmegaCommand.undock_ship.exec(ship);
           OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
-            ship.load();
-
-            equal(ship.scene_objs.length, 6);
+            $omega_scene.reload(ship);
+            equal(ship.scene_objs.length, 1);
             equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc0000");
-            equal(ship.scene_objs[2].material.color.getHex().toString(16), "cc0000");
             start();
           });
         });
@@ -409,11 +441,12 @@ $(document).ready(function(){
   asyncTest("load moving ship", function(){
     $omega_scene = setup_canvas();
 
-    // XXX create new system to just pull in location
+    // create new system / set root location
     var nsys = new OmegaSolarSystem({name : 'Athena',
                                      location : {id : 2}});
     $omega_registry.add(nsys);
     $omega_scene.set_root(nsys);
+    $omega_skybox.hide();
 
     login_test_user($admin_user, function(){
       OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
@@ -422,17 +455,18 @@ $(document).ready(function(){
           $omega_scene.reload(ship);
           equal(ship.location.movement_strategy.json_class, "Motel::MovementStrategies::Linear");
 
-          equal($omega_scene.scene_objects()[2].position.x, ship.location.x);
-          equal($omega_scene.scene_objects()[2].position.y, ship.location.y);
-          equal($omega_scene.scene_objects()[2].position.z, ship.location.z);
+          equal($omega_scene.scene_objects()[0].position.x, ship.location.x);
+          equal($omega_scene.scene_objects()[0].position.y, ship.location.y);
+          equal($omega_scene.scene_objects()[0].position.z, ship.location.z);
+          var oposx = ship.location.x, oposy = ship.location.y, oposz = ship.location.z;
 
           // wait a few seconds / get updated ship & ensure it moved
           window.setTimeout(function() {
             OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(nship){
               $omega_scene.reload(nship);
-              ok($omega_scene.scene_objects()[2].position.x > ship.location.x);
-              ok($omega_scene.scene_objects()[2].position.y > ship.location.y);
-              ok($omega_scene.scene_objects()[2].position.z > ship.location.z);
+              ok($omega_scene.scene_objects()[0].position.x > oposx);
+              ok($omega_scene.scene_objects()[0].position.y > oposy);
+              ok($omega_scene.scene_objects()[0].position.z > oposz);
               start();
             });
           }, 1000);
@@ -465,6 +499,13 @@ $(document).ready(function(){
                                                   {'x' : -140, 'y' : -140, 'z' : -140})
                     });
 
+    // create new system / set root location
+    var nsys = new OmegaSolarSystem({name : 'Athena',
+                                     location : {id : 2}});
+    $omega_registry.add(nsys);
+    $omega_scene.set_root(nsys);
+    $omega_skybox.hide();
+
     login_test_user($admin_user, function(){
       $omega_node.web_request('manufactured::create_entity', new_ship1, function(){
         $omega_node.web_request('manufactured::create_entity', new_ship2, function(){
@@ -476,14 +517,14 @@ $(document).ready(function(){
               ship.load();
 
               // ensure attack line has been added to scene
-              equal(ship.scene_objs.length, 8);
-              equal($omega_scene.scene_objects().length, 4)
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].x, new_ship2['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].y, new_ship2['value'].location['value'].y + 25);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].z, new_ship2['value'].location['value'].z);
+              equal(ship.scene_objs.length, 3);
+              equal($omega_scene.scene_objects().length, 2)
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].x, new_ship2['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].y, new_ship2['value'].location['value'].y + 25);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].z, new_ship2['value'].location['value'].z);
 
               start();
             });
@@ -514,6 +555,13 @@ $(document).ready(function(){
                       'type'       : new_rs_type
                     });
 
+    // create new system / set root location
+    var nsys = new OmegaSolarSystem({name : 'Athena',
+                                     location : {id : 2}});
+    $omega_registry.add(nsys);
+    $omega_scene.set_root(nsys);
+    $omega_skybox.hide();
+
     login_test_user($admin_user, function(){
       $omega_node.web_request('manufactured::create_entity', new_ship, function(){
         $omega_node.web_request('cosmos::set_resource', 'ast1', new_rs, 100, function(){
@@ -525,14 +573,14 @@ $(document).ready(function(){
               ship.load();
 
               // ensure attack line has been added to scene
-              equal(ship.scene_objs.length, 8);
-              equal($omega_scene.scene_objects().length, 4)
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].x, new_ship['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].y, new_ship['value'].location['value'].y);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[0].z, new_ship['value'].location['value'].z);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].x, ship.mining.entity.location.x);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].y, ship.mining.entity.location.y + 25);
-              equal($omega_scene.scene_objects()[3].geometry.vertices[1].z, ship.mining.entity.location.z);
+              equal(ship.scene_objs.length, 3);
+              equal($omega_scene.scene_objects().length, 2)
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].x, ship.mining.entity.location.x);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].y, ship.mining.entity.location.y + 25);
+              equal($omega_scene.scene_objects()[1].geometry.vertices[1].z, ship.mining.entity.location.z);
 
               start();
             });
@@ -553,58 +601,58 @@ $(document).ready(function(){
 
     // test scene_objs have been added to jump gate
 
-    equal(station.scene_objs.length, 6);
+    equal(station.scene_objs.length, 1);
     equal(station.scene_objs[0].material.color.getHex().toString(16), "cc00");
-    equal(station.scene_objs[2].material.color.getHex().toString(16), "cc00");
     // ensure geometry's vertices are at the correct locations
 
-    equal($omega_scene.scene_objects().length, 3)
-    equal($omega_scene.scene_objects()[2].position.x, 50);
-    equal($omega_scene.scene_objects()[2].position.y, 50);
-    equal($omega_scene.scene_objects()[2].position.z, -10);
+    equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects()[0].position.x, 50);
+    equal($omega_scene.scene_objects()[0].position.y, 50);
+    equal($omega_scene.scene_objects()[0].position.z, -10);
   });
 
   asyncTest("clicked station", function(){
     $omega_scene = setup_canvas();
     $user_id = 'rendered-user';
 
-    var sys1 = new OmegaSolarSystem({id : 'sys1',
-                                     location : new OmegaLocation({id : 42})});
-    var station = new OmegaStation({id : "station1", user_id : 'rendered-user', size: 20,
-                              location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
-
-    $omega_registry.add(sys1);
-    $omega_registry.add(station);
-    $omega_scene.set_root(sys1);
-    $omega_scene.add_entity(station);
-
-    // need to animate scene and wait till its ready
-    $omega_scene.animate();
+    // XXX need to wait till ship geometry is loaded
     window.setTimeout(function() {
-      var pos = station.scene_objs[4].position;
-      var c = canvas_to_xy(pos);
-      var e = new jQuery.Event('click');
-      e.pageX = c.x;
-      e.pageY = c.y;
+      var sys1 = new OmegaSolarSystem({id : 'sys1', name : 'sys1',
+                                       location : new OmegaLocation({id : 42})});
+      var station = new OmegaStation({id : "station1", user_id : 'rendered-user', size: 20,
+                                system_name : 'sys1', json_class : 'Manufactured::Station',
+                                location : new OmegaLocation({ x : 50, y : 50, z : -10, parent_id : 42})});
 
-      $("#omega_canvas").trigger(e);
+      $omega_registry.add(sys1);
+      $omega_registry.add(station);
+      $omega_scene.set_root(sys1);
 
-      equal($('#omega_entity_container').css('display'), 'block');
-      ok($('#omega_entity_container').html().indexOf('Station: station1') != -1);
+      // need to animate scene and wait till its ready
+      $omega_scene.animate();
+      window.setTimeout(function() {
+        var pos = station.scene_objs[0].position;
+        var c = canvas_to_xy(pos);
+        var e = new jQuery.Event('click');
+        e.pageX = c.x;
+        e.pageY = c.y;
 
-      // ensure station is 'selected' color
-      equal(station.scene_objs[0].material.color.getHex().toString(16), "ffff00");
-      equal(station.scene_objs[2].material.color.getHex().toString(16), "ffff00");
+        $("#omega_canvas").trigger(e);
 
-      // unselect station
-      $("#entity_container_close").trigger("click");
+        equal($('#omega_entity_container').css('display'), 'block');
+        ok($('#omega_entity_container').html().indexOf('Station: station1') != -1);
 
-      // ensure station is 'unselected' color
-      equal(station.scene_objs[0].material.color.getHex().toString(16), "cc");
-      equal(station.scene_objs[2].material.color.getHex().toString(16), "cc");
+        // ensure station is 'selected' color
+        equal(station.scene_objs[0].material.color.getHex().toString(16), "ffff00");
 
-      start();
-    }, 1000);
+        // unselect station
+        $("#entity_container_close").trigger("click");
+
+        // ensure station is 'unselected' color
+        equal(station.scene_objs[0].material.color.getHex().toString(16), "cc");
+
+        start();
+      }, 1000);
+    }, 250);
                                  
   });
 
