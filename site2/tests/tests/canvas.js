@@ -2,8 +2,6 @@ require("javascripts/omega/canvas.js");
 
 $(document).ready(function(){
 
-  // TODO test camera / grid / canvas ui / select box ?
-
   module("entity_container");
   
   test("modify entity container", function() {

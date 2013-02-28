@@ -4,15 +4,125 @@ $(document).ready(function(){
 
   module("canvas.js");
 
+  test("get/set skybox", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_skybox = new OmegaSkybox();
+    $omega_skybox.set_background({background : 'system1'});
+    equal($omega_skybox.get_background(), 'system1');
+  });
+
+  test("show/hide skybox", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_skybox = new OmegaSkybox();
+    $omega_skybox.set_background({background : 'system1'});
+    $omega_skybox.show();
+    equal($omega_scene.scene_objects().length, 1);
+    equal($omega_scene.scene_objects()[0].omega_id, "skybox-mesh");
+    equal($omega_scene.scene_objects()[0].position.x, 0);
+    equal($omega_scene.scene_objects()[0].position.y, 0);
+    equal($omega_scene.scene_objects()[0].position.z, 0);
+    // verify skybox mesh,geometry,materials ?
+
+    $omega_skybox.hide();
+    equal($omega_scene.scene_objects().length, 0);
+  });
+
   test("show grid", function(){
     $omega_scene = setup_canvas();
 
     $omega_grid = new OmegaGrid();
     $omega_grid.show();
     equal($omega_scene.scene_objects().length, 1);
+    equal($omega_scene.scene_objects()[0].omega_id, "grid-line");
 
     $omega_grid.hide();
     equal($omega_scene.scene_objects().length, 0);
+  });
+
+  test("toggle grid", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_grid = new OmegaGrid();
+    equal($omega_grid.is_showing(), false);
+    equal($omega_scene.scene_objects().length, 0);
+
+    $('#toggle_grid_canvas').attr('checked', true); // XXX not sure why this is needed
+    $('#toggle_grid_canvas').trigger('click');
+    equal($omega_grid.is_showing(), true);
+    equal($omega_scene.scene_objects().length, 1);
+    equal($omega_scene.scene_objects()[0].omega_id, "grid-line");
+
+    $('#toggle_grid_canvas').trigger('click');
+    equal($omega_grid.is_showing(), false);
+    equal($omega_scene.scene_objects().length, 0);
+  });
+
+  test("show axis", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_axis = new OmegaAxis();
+    $omega_axis.show();
+    equal($omega_axis.is_showing(), true);
+    equal($omega_scene.scene_objects().length, $omega_axis.num_markers + 1);
+    equal($omega_scene.scene_objects()[0].omega_id, "axis-line");
+    for(var i = 0; i < $omega_axis.num_markers; i++)
+      equal($omega_scene.scene_objects()[i+1].omega_id, "distance-marker-" + i);
+
+    $omega_axis.hide();
+    equal($omega_axis.is_showing(), false);
+    equal($omega_scene.scene_objects().length, 0);
+  });
+
+  test("toggle axis", function(){
+    $omega_scene = setup_canvas();
+
+    $omega_axis = new OmegaAxis();
+    equal($omega_axis.is_showing(), false);
+    equal($omega_scene.scene_objects().length, 0);
+
+    $('#toggle_axis_canvas').attr('checked', true); // XXX not sure why this is needed
+    $('#toggle_axis_canvas').trigger('click');
+    equal($omega_axis.is_showing(), true);
+    equal($omega_scene.scene_objects().length, $omega_axis.num_markers + 1);
+    equal($omega_scene.scene_objects()[0].omega_id, "axis-line");
+    for(var i = 0; i < $omega_axis.num_markers; i++)
+      equal($omega_scene.scene_objects()[i+1].omega_id, "distance-marker-" + i);
+
+    $('#toggle_axis_canvas').trigger('click');
+    equal($omega_axis.is_showing(), false);
+    equal($omega_scene.scene_objects().length, 0);
+  });
+
+  test("reset camera", function(){
+    $omega_scene = setup_canvas();
+    $omega_camera = new OmegaCamera();
+    var pos = $omega_camera.position({x : 100, y : -200, z : 300});
+    equal(pos.x,  100);
+    equal(pos.y, -200);
+    equal(pos.z,  300);
+
+    $omega_camera.reset();
+    var pos = $omega_camera.position();
+    equal(pos.x,  0);
+    equal(pos.y,  0);
+    equal(pos.z,  1000);
+  });
+
+  test("focus camera", function(){
+    $omega_scene = setup_canvas();
+    $omega_camera = new OmegaCamera();
+    var focus = $omega_camera.focus();
+    var pos = $omega_scene.position();
+    equal(focus.x, pos.x);
+    equal(focus.y, pos.y);
+    equal(focus.z, pos.z);
+
+    var focus = $omega_camera.focus({x: 100, y : -200});
+    equal(focus.x,  100);
+    equal(focus.y, -200);
+    equal(focus.z, pos.z);
   });
 
   test("rotate camera", function(){
@@ -20,49 +130,125 @@ $(document).ready(function(){
     $omega_camera = new OmegaCamera();
     var old_pos = $omega_camera.position();
     $omega_camera.rotate(0.0, 0.2);
+    var npos    = $omega_camera.position();
     // need better test of new camera position
-    ok($omega_camera.position() != old_pos);
+    ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
+    // TODO also ensure that we're focusing in the same direction
 
     old_pos = $omega_camera.position();
     $omega_camera.rotate(0.2, 0.0);
-    ok($omega_camera.position() != old_pos);
+    var npos= $omega_camera.position();
+    ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
   });
 
   test("zoom camera", function(){
     $omega_scene = setup_canvas();
     var old_pos = $omega_camera.position();
     $omega_camera.zoom(20);
-    ok($omega_camera.position() != old_pos);
+    var npos= $omega_camera.position();
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
+  });
+
+  test("pan camera", function(){
+    $omega_scene = setup_canvas();
+    var old_pos = $omega_camera.position();
+    $omega_camera.pan(20, 30);
+    var npos= $omega_camera.position();
+    ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+
+    $omega_camera.position({x : 0, y : 0, z : 1000});
+    $omega_camera.focus({x : 0, y : 0, z : 0});
+    $omega_camera.pan(20, -20)
+    npos = $omega_camera.position();
+    equal(npos.x,   20);
+    equal(npos.y,  -20);
+    equal(npos.z, 1000);
   });
 
   test("canvas rotate controls", function(){
     $omega_scene = setup_canvas();
     var old_pos = $omega_camera.position();
     $("#cam_rotate_right").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    var npos = $omega_camera.position();
+    ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
 
-    old_pos = $omega_camera.position();
+    $omega_camera.reset();
     $("#cam_rotate_left").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    npos = $omega_camera.position();
+    ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
 
-    old_pos = $omega_camera.position();
+    $omega_camera.reset();
     $("#cam_rotate_up").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    npos = $omega_camera.position();
+    //ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
 
-    old_pos = $omega_camera.position();
+    $omega_camera.reset();
     $("#cam_rotate_down").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    npos = $omega_camera.position();
+    //ok(npos.x != old_pos.x);
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
   });
 
   test("canvas zoom controls", function(){
     $omega_scene = setup_canvas();
     var old_pos = $omega_camera.position();
     $("#cam_zoom_out").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    var npos = $omega_camera.position();
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
 
     old_pos = $omega_camera.position();
     $("#cam_zoom_in").trigger("click");
-    ok($omega_camera.position() != old_pos);
+    npos = $omega_camera.position();
+    ok(npos.y != old_pos.y);
+    ok(npos.z != old_pos.z);
+  });
+
+  test("canvas pan controls", function(){
+    $omega_scene = setup_canvas();
+    var old_pos = $omega_camera.position();
+    $("#cam_pan_right").trigger("click");
+    ok($omega_camera.position().x != old_pos.x);
+
+    old_pos = $omega_camera.position();
+    $("#cam_pan_up").trigger("click");
+    ok($omega_camera.position().y != old_pos.y);
+
+    var old_pos = $omega_camera.position();
+    $("#cam_pan_left").trigger("click");
+    ok($omega_camera.position().x != old_pos.x);
+
+    old_pos = $omega_camera.position();
+    $("#cam_pan_down").trigger("click");
+    ok($omega_camera.position().y != old_pos.y);
+  });
+
+  test("camera reset control", function(){
+    $omega_scene = setup_canvas();
+    $omega_camera = new OmegaCamera();
+    var pos = $omega_camera.position({x : 100, y : -200, z : 300});
+    equal(pos.x,  100);
+    equal(pos.y, -200);
+    equal(pos.z,  300);
+
+    $("#cam_reset").trigger("click");
+    var pos = $omega_camera.position();
+    equal(pos.x,  0);
+    equal(pos.y,  0);
+    equal(pos.z,  1000);
   });
 
   // TODO test select box
@@ -262,7 +448,6 @@ $(document).ready(function(){
 
         var pos = ast.scene_objs[0].position;
         var c = canvas_to_xy(pos);
-        c.x += 10; c.y -= 10;
         var e = new jQuery.Event('click');
         e.pageX = c.x;
         e.pageY = c.y;
@@ -289,11 +474,17 @@ $(document).ready(function(){
     // test scene_objs have been added to jump gate
 
     equal(jg.scene_objs.length, 2);
+    equal(jg.scene_objs[0].omega_id, jg.id + "-mesh");
     equal(jg.scene_objs[0].position.x, 50);
     equal(jg.scene_objs[0].position.y, 50);
     equal(jg.scene_objs[0].position.z, -10);
+    equal(jg.scene_objs[1].omega_id, jg.id + "-sphere");
+    equal(jg.scene_objs[1].position.x, 50);
+    equal(jg.scene_objs[1].position.y, 50);
+    equal(jg.scene_objs[1].position.z, -10);
 
     equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects()[0].omega_id, jg.id + "-mesh");
     equal($omega_scene.scene_objects()[0].position.x, 50);
     equal($omega_scene.scene_objects()[0].position.y, 50);
     equal($omega_scene.scene_objects()[0].position.z, -10);
@@ -356,9 +547,11 @@ $(document).ready(function(){
 
     equal(ship.scene_objs.length, 1);
     equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
-    // TODO verify ship mesh's geometry
+    equal(ship.scene_objs[0].omega_id, "ship1-mesh");
+    // verify ship mesh's geometry ?
 
     equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects()[0].omega_id, "ship1-mesh");
     equal($omega_scene.scene_objects()[0].position.x, 50);
     equal($omega_scene.scene_objects()[0].position.y, 50);
     equal($omega_scene.scene_objects()[0].position.z, -10);
@@ -519,6 +712,7 @@ $(document).ready(function(){
               // ensure attack line has been added to scene
               equal(ship.scene_objs.length, 3);
               equal($omega_scene.scene_objects().length, 2)
+              equal($omega_scene.scene_objects()[1].omega_id, new_ship1_id + "-attacking-line");
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
@@ -575,6 +769,7 @@ $(document).ready(function(){
               // ensure attack line has been added to scene
               equal(ship.scene_objs.length, 3);
               equal($omega_scene.scene_objects().length, 2)
+              equal($omega_scene.scene_objects()[1].omega_id, new_ship_id + "-mining-line");
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship['value'].location['value'].x);
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship['value'].location['value'].y);
               equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship['value'].location['value'].z);
@@ -603,9 +798,11 @@ $(document).ready(function(){
 
     equal(station.scene_objs.length, 1);
     equal(station.scene_objs[0].material.color.getHex().toString(16), "cc00");
+    equal(station.scene_objs[0].omega_id, "stat1-mesh");
     // ensure geometry's vertices are at the correct locations
 
     equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects()[0].omega_id, "stat1-mesh");
     equal($omega_scene.scene_objects()[0].position.x, 50);
     equal($omega_scene.scene_objects()[0].position.y, 50);
     equal($omega_scene.scene_objects()[0].position.z, -10);

@@ -85,6 +85,7 @@ function before_each(details){
 }
 
 function after_each(details){
+  if(typeof $omega_canvas !== "undefined") $omega_canvas.hide();
   $omega_node.clear_handlers();
   $omega_session.clear_callbacks();
   $omega_registry.clear_callbacks();

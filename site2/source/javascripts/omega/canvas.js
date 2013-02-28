@@ -204,8 +204,18 @@ function OmegaCamera(){
       $omega_camera.reset();
     });
 
+    $('#cam_pan_right').click(function(e){
+      $omega_camera.pan(50, 0);
+      $omega_scene.animate();
+    });
+
     $('#cam_pan_right').mousehold(function(e, ctr){
       $omega_camera.pan(50, 0);
+      $omega_scene.animate();
+    });
+
+    $('#cam_pan_left').click(function(e){
+      $omega_camera.pan(-50, 0);
       $omega_scene.animate();
     });
 
@@ -214,8 +224,18 @@ function OmegaCamera(){
       $omega_scene.animate();
     });
 
+    $('#cam_pan_up').click(function(e){
+      $omega_camera.pan(0, 50);
+      $omega_scene.animate();
+    });
+
     $('#cam_pan_up').mousehold(function(e, ctr){
       $omega_camera.pan(0, 50);
+      $omega_scene.animate();
+    });
+
+    $('#cam_pan_down').click(function(e){
+      $omega_camera.pan(0, -50);
       $omega_scene.animate();
     });
 
@@ -224,8 +244,18 @@ function OmegaCamera(){
       $omega_scene.animate();
     });
 
+    $('#cam_rotate_right').click(function(e){
+      $omega_camera.rotate(0.0, 0.2);
+      $omega_scene.animate();
+    });
+
     $('#cam_rotate_right').mousehold(function(e, ctr){
       $omega_camera.rotate(0.0, 0.2);
+      $omega_scene.animate();
+    });
+
+    $('#cam_rotate_left').click(function(e){
+      $omega_camera.rotate(0.0, -0.2);
       $omega_scene.animate();
     });
 
@@ -234,8 +264,18 @@ function OmegaCamera(){
       $omega_scene.animate();
     });
 
+    $('#cam_rotate_up').click(function(e){
+      $omega_camera.rotate(-0.2, 0.0);
+      $omega_scene.animate();
+    });
+
     $('#cam_rotate_up').mousehold(function(e, ctr){
       $omega_camera.rotate(-0.2, 0.0);
+      $omega_scene.animate();
+    });
+
+    $('#cam_rotate_down').click(function(e){
+      $omega_camera.rotate(0.2, 0.0);
       $omega_scene.animate();
     });
 
@@ -244,8 +284,18 @@ function OmegaCamera(){
       $omega_scene.animate();
     });
 
+    $('#cam_zoom_out').click(function(e){
+      $omega_camera.zoom(20);
+      $omega_scene.animate();
+    });
+
     $('#cam_zoom_out').mousehold(function(e, ctr){
       $omega_camera.zoom(20);
+      $omega_scene.animate();
+    });
+
+    $('#cam_zoom_in').click(function(e){
+      $omega_camera.zoom(-20);
       $omega_scene.animate();
     });
 
@@ -279,18 +329,30 @@ function OmegaAxis(){
 
   var distance_material = new THREE.MeshBasicMaterial({color: 0xcccccc });
 
+  /////////////////////////////////////// public data
+
+  // should be set to number of elements in distance_geometries
+  this.num_markers = 3;
+
   /////////////////////////////////////// public methods
-  /* Show the Canvas Grid
+
+  /* Return boolean indicating if axis is showing
+   */
+  this.is_showing = function(){
+    return showing_axis;
+  }
+
+  /* Show the Canvas Axis
    */
   this.show = function(){
+    $omega_scene.add( axis_line );
     for(var marker in distance_markers){
       $omega_scene.add(distance_markers[marker]);
     }
-    $omega_scene.add( axis_line );
     showing_axis = true;
   }
 
-  /* Hide the Canvas Grid
+  /* Hide the Canvas Axis
    */
   this.hide = function(){
     for(var marker in distance_markers){
@@ -300,7 +362,7 @@ function OmegaAxis(){
     showing_axis = false;
   }
 
-  /* Toggle showing/hiding the canvas grid based
+  /* Toggle showing/hiding the canvas axis based
    * on checked attribute of the '#toggle_axis_canvas' input
    */
   this.toggle = function(){
@@ -327,6 +389,7 @@ function OmegaAxis(){
   line_geometry.vertices.push( new THREE.Vector3(  4096, 0, 0 ) );
 
   var axis_line = new THREE.Line( line_geometry, line_material, THREE.LinePieces );
+  axis_line.omega_id = 'axis-line';
 
   var distance_markers = [];
   for(var geometry in distance_geometries){
@@ -335,6 +398,7 @@ function OmegaAxis(){
     mesh.position.y = 0;
     mesh.position.z = 0;
     mesh.rotation.x = 1.57;
+    mesh.omega_id = 'distance-marker-' + geometry
     distance_markers.push(mesh);
   }
 
@@ -362,6 +426,13 @@ function OmegaGrid(){
   var showing_grid = false;
 
   /////////////////////////////////////// public methods
+
+  /* Return boolean indicating if grid is showing
+   */
+  this.is_showing = function(){
+    return showing_grid;
+  }
+
 
   /* Show the Canvas Grid
    */
@@ -409,6 +480,7 @@ function OmegaGrid(){
   }
 
   var grid_line = new THREE.Line( geometry, material, THREE.LinePieces );
+  grid_line.omega_id = 'grid-line';
 
   // wire up grid controls
   $('#toggle_grid_canvas').live('click', function(e){ $omega_grid.toggle(); });
@@ -666,6 +738,7 @@ function OmegaSkybox(){
                                  new THREE.MeshFaceMaterial( ) );
     //skyboxMesh.flipSided = true;
     skyboxMesh.scale.x = - 1;
+    skyboxMesh.omega_id = 'skybox-mesh';
 
     // add it to the scene
     $omega_scene.add( skyboxMesh );

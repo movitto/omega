@@ -967,7 +967,7 @@ function OmegaJumpGate(jump_gate){
     var mesh     = new THREE.Mesh(geometry, material);
 
     mesh.position.set( this.location.x, this.location.y, this.location.z );
-    //mesh.omega_id = // TODO
+    mesh.omega_id = this.id + '-mesh';
     this.scene_objs.push(mesh);
     $omega_scene.add( mesh );
 
@@ -980,6 +980,7 @@ function OmegaJumpGate(jump_gate){
     ssphere.position.x = this.location.x ;
     ssphere.position.y = this.location.y ;
     ssphere.position.z = this.location.z ;
+    ssphere.omega_id = this.id + '-sphere';
     this.scene_objs.push(ssphere);
 
     if($omega_scene.selection.is_selected(this.id)){
@@ -1062,6 +1063,7 @@ function OmegaShip(ship){
     mesh.position.set(this.location.x, this.location.y, this.location.z);
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
+    mesh.omega_id = this.id + '-mesh';
     //mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
     this.scene_objs.push(mesh);
@@ -1081,6 +1083,7 @@ function OmegaShip(ship){
                                                this.attacking.location.z));
 
       line = new THREE.Line(geometry, material);
+      line.omega_id = this.id + '-attacking-line';
       this.scene_objs.push(line);
       this.scene_objs.push(geometry);
       $omega_scene.add(line);
@@ -1097,6 +1100,7 @@ function OmegaShip(ship){
                                                this.mining.entity.location.z));
 
       line = new THREE.Line(geometry, material);
+      line.omega_id = this.id + '-mining-line';
       this.scene_objs.push(line);
       this.scene_objs.push(geometry);
       $omega_scene.add(line);
@@ -1232,6 +1236,7 @@ function OmegaStation(station){
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
     mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
+    mesh.omega_id = this.id + '-mesh';
     this.scene_objs.push(mesh);
     $omega_scene.add(mesh);
 
