@@ -301,6 +301,32 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects()[2].position.z, -30 + 50);
   });
 
+  test("load system jump gates", function(){
+    $omega_scene = setup_canvas();
+
+    var system1 = new OmegaSolarSystem({id : 'system1', name       : 'system1',
+                                        location   : { x : -10, y : -20, z :  30}});
+    var system2 = new OmegaSolarSystem({id : 'system2', name       : 'system2',
+                                        location   : { x :  10, y :  20, z : -30},
+                                        jump_gates : [{endpoint : 'system1' }]});
+    $omega_registry.add(system1);
+    $omega_registry.add(system2);
+
+    system2.load();
+
+    equal(system2.scene_objs.length, 4);
+    equal(system2.scene_objs[0].omega_id, 'system2-system1');
+    equal(system2.scene_objs[0].geometry.vertices[0].x, system2.location.x);
+    equal(system2.scene_objs[0].geometry.vertices[0].y, system2.location.y);
+    equal(system2.scene_objs[0].geometry.vertices[0].z, system2.location.z);
+    equal(system2.scene_objs[0].geometry.vertices[1].x, system1.location.x);
+    equal(system2.scene_objs[0].geometry.vertices[1].y, system1.location.y);
+    equal(system2.scene_objs[0].geometry.vertices[1].z, system1.location.z);
+
+    equal($omega_scene.scene_objects().length, 4);
+    equal($omega_scene.scene_objects()[0].omega_id, 'system2-system1');
+  });
+
   asyncTest("system clicked", function(){
     $omega_scene = setup_canvas();
 
@@ -326,7 +352,7 @@ $(document).ready(function(){
       //equal($('#omega_dialog').parent().css('display'), "none");
 
       // ensure scene root set
-      equal($omega_scene.get_root().name, system.name)
+      equal($omega_scene.get_root().name, system.name);
       start();
     }, 250);
   });
@@ -394,6 +420,33 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects()[2].position.x, 10 - 20);
     equal($omega_scene.scene_objects()[2].position.y,  0 + 20);
     equal($omega_scene.scene_objects()[2].position.z, -10 - 20);
+  });
+
+  asyncTest("planet added to scene", 2, function(){
+    $omega_scene = setup_canvas();
+    var planet = new OmegaPlanet({id : 'Xeno', name     : 'Xeno', color: '101010',
+                                  location : new OmegaLocation({ id: 8, x : 10, y : 0, z : -10,
+                                    movement_strategy : { semi_latus_rectum : 30, eccentricity: 0.5,
+                                                          direction_major_x : 1, direction_major_y : 0, direction_major_z : 0,
+                                                          direction_minor_x : 0, direction_minor_y : 1, direction_minor_z : 0 } })});
+    var system = new OmegaSolarSystem({id : 'Athena', name       : 'Athena',
+                                       location   : { id: 6, x : 10, y : 20, z : -30},
+                                       planets  : [planet] });
+
+    $omega_registry.add(system);
+    $omega_registry.add(planet);
+
+    // so we can be sure of difference below
+    equal($omega_registry.get('Xeno').location.parent_id, null);
+
+    $omega_scene.set_root(system);
+
+    // ensure added_to_scene callback is invoked, for now
+    // this just ensures location is updated from server
+    window.setTimeout(function() {
+      equal($omega_registry.get('Xeno').location.parent_id, 6);
+      start();
+    }, 250);
   });
 
   // TODO test planet on_movement / move / cache_movement
@@ -555,6 +608,46 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects()[0].position.x, 50);
     equal($omega_scene.scene_objects()[0].position.y, 50);
     equal($omega_scene.scene_objects()[0].position.z, -10);
+  });
+
+  asyncTest("ship added to scene", 4, function(){
+    //$user_id = 'mmorsi';
+    $omega_scene = setup_canvas();
+    var ship = new OmegaShip({id : 'mmorsi-mining-ship1', system_name : 'Athena', json_class : 'Manufactured::Ship',
+                              location : new OmegaLocation({ id: 17 } )});;
+    var system = new OmegaSolarSystem({id : 'Athena', name       : 'Athena',
+                                       location   : { id: 2 }});
+
+    $omega_registry.add(system);
+    $omega_registry.add(ship);
+
+    // so we can be sure of difference below
+    equal($omega_registry.get('mmorsi-mining-ship1').location.parent_id, null);
+
+    // login test user so as to be able to query for manufactured entities
+    login_test_user($admin_user, function(){
+      $omega_scene.set_root(system);
+
+      // ensure entity will be picked up by motel::on_movement handler
+      var entity   = null;
+      var children = $omega_scene.get_root().children();
+      for(var child in children){
+        if(children[child].id == 'mmorsi-mining-ship1'){
+          entity = children[child];
+          break;
+        }
+      }
+      ok(entity != null);
+
+      // ensure added_to_scene callback is invoked, for now
+      // this just ensures entity/location is updated from server
+      // and we've subscribed to location updates
+      window.setTimeout(function() {
+        equal($omega_registry.get('mmorsi-mining-ship1').location.parent_id, 2);
+        equal($omega_node.has_request_handler('motel::on_movement'), true)
+        start();
+      }, 250);
+    });
   });
 
   asyncTest("clicked ship", function(){
@@ -851,6 +944,34 @@ $(document).ready(function(){
       }, 1000);
     }, 250);
                                  
+  });
+
+  asyncTest("station added to scene", 2, function(){
+    $omega_scene = setup_canvas();
+    var station = new OmegaShip({id : 'mmorsi-manufacturing-station1', system_name : 'Athena',
+                                 json_class : 'Manufacturing::Station',
+                                 location : new OmegaLocation({ id: 15 } )});
+    var system = new OmegaSolarSystem({id : 'Athena', name       : 'Athena',
+                                       location   : { id: 2 }});
+
+    $omega_registry.add(system);
+    $omega_registry.add(station);
+
+    // so we can be sure of difference below
+    equal($omega_registry.get('mmorsi-manufacturing-station1').location.parent_id, null);
+
+    // login test user so as to be able to query for manufactured entities
+    login_test_user($admin_user, function(){
+      $omega_scene.set_root(system);
+
+      // ensure added_to_scene callback is invoked, for now
+      // this just ensures entity/location is updated from server
+      // and we've subscribed to location updates
+      window.setTimeout(function() {
+        equal($omega_registry.get('mmorsi-manufacturing-station1').location.parent_id, 2);
+        start();
+      }, 250);
+    });
   });
 
 });

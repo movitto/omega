@@ -59,6 +59,16 @@ $(document).ready(function(){
       });
     });
   });
+
+  asyncTest("retrieve location by id", 2, function() {
+    login_test_user($admin_user, function(){
+      OmegaQuery.location_with_id(1, function(loc){
+        equal(loc.id, 1);
+        equal(loc.json_class, 'Motel::Location');
+        start();
+      });
+    });
+  });
   
   asyncTest("retrieve all galaxies", 2, function() {
     login_test_user($admin_user, function(){

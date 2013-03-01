@@ -38,14 +38,16 @@ $(document).ready(function(){
     });
   });
   
-  asyncTest("method handlers", 1, function() {
+  asyncTest("method handlers", 3, function() {
     login_test_user($admin_user, function(){
       $omega_node.ws_request('motel::track_movement', 10, 5, null); // location 12 corresponds to a planet
+      equal($omega_node.has_request_handler('motel::on_movement'), false)
       $omega_node.add_request_handler("motel::on_movement", function(location){
         equal(location.id, 10);
         $omega_node.ws_request('motel::remove_callbacks', 10, null);
         start();
       });
+      equal($omega_node.has_request_handler('motel::on_movement'), true)
     });
   });
 

@@ -133,6 +133,15 @@ function OmegaClient(){
     request_handlers[method].push(handler);
   }
 
+  /* Return bool indicating if handler has been registered for specified
+   * method
+   *
+   * @param {String} method name of method which to lookup
+   */
+  this.has_request_handler = function(method){
+    return (request_handlers[method] != null);
+  }
+
   /* Clear all registered request handlers.
    */
   this.clear_request_handlers = function(){

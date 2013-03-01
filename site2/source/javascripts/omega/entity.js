@@ -522,6 +522,7 @@ function OmegaSolarSystem(system){
 
           geometry.vertices.push(new THREE.Vector3(sys.location.x, sys.location.y, sys.location.z));
           var line = new THREE.Line(geometry, OmegaScene.materials['line']);
+          line.omega_id = system.name + '-' + sys.name;
 
           system.scene_objs.push(line);
           $omega_scene.add(line);
@@ -701,18 +702,20 @@ function OmegaPlanet(planet){
     $omega_scene.add(line);
     
     // draw moons
-    for(var m=0; m<this.moons.length; ++m){
-      var moon = this.moons[m];
-      var sphere = new THREE.Mesh(OmegaScene.geometries['moon'],
-                                  OmegaScene.materials['moon']);
+    if(this.moons){
+      for(var m=0; m<this.moons.length; ++m){
+        var moon = this.moons[m];
+        var sphere = new THREE.Mesh(OmegaScene.geometries['moon'],
+                                    OmegaScene.materials['moon']);
 
-      sphere.position.x = this.location.x + moon.location.x;
-      sphere.position.y = this.location.y + moon.location.y;
-      sphere.position.z = this.location.z + moon.location.z;
-      sphere.omega_id   = moon.name + '-sphere';
+        sphere.position.x = this.location.x + moon.location.x;
+        sphere.position.y = this.location.y + moon.location.y;
+        sphere.position.z = this.location.z + moon.location.z;
+        sphere.omega_id   = moon.name + '-sphere';
 
-      this.scene_objs.push(sphere);
-      $omega_scene.add(sphere);
+        this.scene_objs.push(sphere);
+        $omega_scene.add(sphere);
+      }
     }
   }
 

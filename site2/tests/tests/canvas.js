@@ -51,13 +51,20 @@ $(document).ready(function(){
                    'children'   : function() { return []; }
                  };
 
+    var ship = { id : 'ship1', json_class : 'Manufactured::Ship' };
+
     var entities_container = new OmegaEntitiesContainer();
     //equal($('#locations_list').css('display'), 'none');
     //equal($('#alliances_list').css('display'), 'none');
+    //equal($('#entities_list').css('display'), 'none');
 
     entities_container.add_to_entities_container(galaxy);
     ok(/\s*<li name="Zeus".*>Zeus<\/li>\s*/.test($('#locations_list ul').html()))
     equal($('#locations_list').css('display'), 'block');
+
+    entities_container.add_to_entities_container(ship);
+    ok(/\s*<li name="ship1".*>ship1<\/li>\s*/.test($('#entities_list ul').html()))
+    equal($('#entities_list').css('display'), 'block');
 
     // TODO test fleet and entity lists
   });
@@ -71,17 +78,33 @@ $(document).ready(function(){
                    'children'   : function() { return []; }
                  };
 
+    var system = { 'id'         : 'Athena',
+                   'name'       : 'Athena',
+                   'json_class' : 'Cosmos::SolarSystem',
+                   'children'   : function() { return []; }
+                 };
+
+    var ship = { id : 'ship1', json_class : 'Manufactured::Ship',
+                 system_name : system.name,
+                 location : { x : 10, y : 10, z : 10} };
+
     // necessary intialization
     setup_canvas();
     $omega_registry.add(galaxy);
+    $omega_registry.add(system);
+    $omega_registry.add(ship);
 
     equal($omega_scene.get_root(), null);
 
     var entities_container = new OmegaEntitiesContainer();
     entities_container.add_to_entities_container(galaxy);
-    $('#locations_list ul li:first').click();
+    entities_container.add_to_entities_container(ship);
 
+    $('#locations_list ul li:first').click();
     equal($omega_scene.get_root().name, 'Zeus');
+
+    $('#entities_list ul li:first').click();
+    equal($omega_scene.get_root().name, 'Athena');
   });
 
   module("omega_canvas");

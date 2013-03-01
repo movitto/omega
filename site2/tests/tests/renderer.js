@@ -67,8 +67,8 @@ $(document).ready(function(){
   test("add/remove children", function() {
     var scene = setup_canvas();
 
-    // TODO test w/ callback on planet2
-    var added_to_scene = false;
+    var added1_to_scene = false;
+    var added2_to_scene = false;
 
     // TODO load system/children from fixtures
     var star1   = { 'id'         : 'star1',
@@ -76,7 +76,8 @@ $(document).ready(function(){
                     'load'       : function() {} };
     var planet1 = { 'id'         : 'planet1',
                     'name'       : 'planet1',
-                    'load'       : function() {} };
+                    'load'       : function() {},
+                    'added_to_scene' : function(){ added1_to_scene = true ; } };
     var system  = { 'id'         : 'Athena',
                     'name'       : 'Athena',
                     'background' : 'foobar',
@@ -84,17 +85,22 @@ $(document).ready(function(){
                   };
     var planet2 = { 'id'   : 'planet2',
                     'name' : 'planet2',
-                    'load' : function() {}};
+                    'load' : function() {},
+                    'added_to_scene' : function(){ added2_to_scene = true ; } };
 
 
     scene.set_root(system);
 
     equal(Object.keys(scene.entities()).length, 2);
     equal(scene.has(planet2), false);
+    equal(added1_to_scene, true);
 
     scene.add_entity(planet2);
     equal(Object.keys(scene.entities()).length, 3);
     equal(scene.has(planet2), true);
+
+    // atm only children added through set_root have their 'added_to_scene' callback invoked
+    equal(added2_to_scene, false);
 
     scene.remove(planet2.id);
     equal(Object.keys(scene.entities()).length, 2);
