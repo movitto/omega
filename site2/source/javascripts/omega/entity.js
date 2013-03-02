@@ -166,6 +166,8 @@ function OmegaRegistry(){
   }
 
   /* Save registry to persistent cache
+   *
+   * TODO tests for this method
    */
   this.save = function(){
     // write persistent registry entities to cookie
@@ -179,6 +181,8 @@ function OmegaRegistry(){
   }
 
   /* Restore the registry from the persistent cache
+   *
+   * TODO tests for this method
    */
   this.load = function(){
     // load registry from presistent cache if set

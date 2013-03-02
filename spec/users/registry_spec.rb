@@ -139,6 +139,22 @@ describe Users::Registry do
     Users::Registry.instance.sessions.should_not include(session)
   end
 
+  it "should manage session timeouts" do
+    Users::Registry.instance.init
+    u = Users::User.new :id => 'user42'
+    Users::Registry.instance.create u
+
+    session1 = Users::Registry.instance.create_session u
+    session2 = Users::Registry.instance.create_session u
+    Users::Registry.instance.sessions.should include(session1)
+    session1.should == session2
+
+    session1.instance_variable_set(:@timeout_timestamp, Time.now - Users::Session::SESSION_EXPIRATION - 10) # XXX
+    session2 = Users::Registry.instance.create_session u
+    Users::Registry.instance.sessions.should include(session2)
+    session1.should_not == session2
+  end
+
   it "should provide means to enforce user privileges" do
     Users::Registry.instance.init
     u = Users::User.new :id => 'user42'

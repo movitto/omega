@@ -237,6 +237,30 @@ describe Motel::RJRAdapter do
     rloc1.x.should == 70
   end
 
+  it "should invoke stopped callbacks if location movement strategy is set to stopped" do
+    stop_called = false
+    scb  = Motel::Callbacks::Stopped.new :handler => lambda { |loc| loc.id.should == 42
+                                                                    stop_called = true }
+    loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
+                               :stopped_callbacks => [scb], :restrict_modify => true
+    loc1a = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new
+
+    Motel::Runner.instance.run loc1
+    TestUser.add_privilege('modify', 'locations')
+
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stop_called.should be_false
+
+    loc1a.movement_strategy = Motel::MovementStrategies::Stopped.instance
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stop_called.should be_true
+
+    # callbacks only should be invoked when changing to stopped strategy from another
+    stop_called = false
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stop_called.should be_false
+  end
+
   it "should validate and initialize locations to be updated" do
     loc1 = Motel::Location.new :id => 42, :movement_strategy => TestMovementStrategy.new,
                                :parent_id => 'nonexistant'
@@ -439,6 +463,76 @@ describe Motel::RJRAdapter do
 
     TestUser.clear_privileges
     sleep 2
+    loc1.proximity_callbacks.size.should == 0
+  end
+
+  it "should permit users with view locations or view location-<id> to track stops of location" do
+    linear = Motel::MovementStrategies::Linear.new(:speed => 1,
+                                                   :direction_vector_x => 1,
+                                                   :direction_vector_y => 0,
+                                                   :direction_vector_z => 0)
+    loc1 = Motel::Location.new :id => 42, :x => 0, :y => 0, :z => 0,
+                               :movement_strategy => linear,
+                               :restrict_view => true
+    loc1a = Motel::Location.new :id => 42, :movement_strategy => linear
+    TestUser.add_privilege('view', 'locations')
+
+    stopped_notifications = 0
+    RJR::Dispatcher.add_handler('motel::location_stopped') { |nloc1|
+      nloc1.id.should == loc1.id
+      stopped_notifications += 1
+    }
+
+    # invalid location id
+    lambda{
+      Omega::Client::Node.invoke_request('motel::track_stops', loc1.id)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    loc1.stopped_callbacks.size.should == 0
+
+    Motel::Runner.instance.run loc1
+
+    # valid call
+    rloc = nil
+    lambda{
+      rloc = Omega::Client::Node.invoke_request('motel::track_stops', loc1.id)
+    }.should_not raise_error
+    rloc.class.should == Motel::Location
+    rloc.id.should == loc1.id
+
+    loc1.stopped_callbacks.size.should == 1
+
+    # ensure subsequent trackings are overwritten
+    rloc = nil
+    lambda{
+      rloc = Omega::Client::Node.invoke_request('motel::track_stops', loc1.id)
+    }.should_not raise_error
+    rloc.class.should == Motel::Location
+    rloc.id.should == loc1.id
+
+    loc1.stopped_callbacks.size.should == 1
+
+    TestUser.add_privilege('modify', 'locations')
+
+    stopped_notifications.should == 0
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stopped_notifications.should == 0
+
+    loc1a.movement_strategy = Motel::MovementStrategies::Stopped.instance
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stopped_notifications.should == 1
+
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    stopped_notifications.should == 1
+
+    # ensure that if user looses view location(s), callback gets deleted
+    # next time it is invoked
+    TestUser.clear_privileges.add_privilege('modify', 'locations')
+    loc1a.movement_strategy = linear
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
+    loc1a.movement_strategy = Motel::MovementStrategies::Stopped.instance
+    Omega::Client::Node.invoke_request('motel::update_location', loc1a)
     loc1.proximity_callbacks.size.should == 0
   end
 

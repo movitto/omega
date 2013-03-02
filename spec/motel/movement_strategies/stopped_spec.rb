@@ -36,4 +36,11 @@ describe "Motel::MovementStrategies::Stopped" do
 
   end
 
+  it "should be convertable from json" do
+    j  = '{"json_class":"Motel::MovementStrategies::Stopped","data":{}}'
+
+    ms = JSON.parse j
+    ms.should == Motel::MovementStrategies::Stopped.instance
+  end
+
 end

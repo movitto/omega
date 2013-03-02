@@ -619,7 +619,7 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects()[1].position.z, -10);
   });
 
-  asyncTest("ship added to scene", 4, function(){
+  asyncTest("ship added to scene", 5, function(){
     //$user_id = 'mmorsi';
     $omega_scene = setup_canvas();
     var ship = new OmegaShip({id : 'mmorsi-mining-ship1', system_name : 'Athena', json_class : 'Manufactured::Ship',
@@ -653,6 +653,7 @@ $(document).ready(function(){
       // and we've subscribed to location updates
       window.setTimeout(function() {
         equal($omega_registry.get('mmorsi-mining-ship1').location.parent_id, 2);
+        equal($omega_node.has_request_handler('motel::location_stopped'), true)
         equal($omega_node.has_request_handler('motel::on_movement'), true)
         start();
       }, 250);
@@ -756,13 +757,65 @@ $(document).ready(function(){
           equal($omega_scene.scene_objects()[0].position.z, ship.location.z);
           var oposx = ship.location.x, oposy = ship.location.y, oposz = ship.location.z;
 
+          // select ship
+          $omega_scene.selection.select(ship.id);
+
           // wait a few seconds / get updated ship & ensure it moved
           window.setTimeout(function() {
             OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(nship){
+
               $omega_scene.reload(nship);
               ok($omega_scene.scene_objects()[0].position.x > oposx);
               ok($omega_scene.scene_objects()[0].position.y > oposy);
               ok($omega_scene.scene_objects()[0].position.z > oposz);
+
+              // ensure ship remains selected
+              ok($omega_scene.selection.is_selected(ship.id));
+              equal($omega_scene.scene_objects()[0].material.color.getHex().toString(16),
+                    "ffff00");
+              // TODO ensure coords in entity_container are updated
+
+              start();
+            });
+          }, 1000);
+        });
+      });
+    });
+  });
+
+  asyncTest("detect ship stopped", function(){
+    $omega_scene = setup_canvas();
+
+    // create new system / set root location
+    var nsys = new OmegaSolarSystem({name : 'Athena',
+                                     location : {id : 2}});
+    $omega_registry.add(nsys);
+    $omega_scene.set_root(nsys);
+    $omega_skybox.hide();
+
+    login_test_user($admin_user, function(){
+      OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+        OmegaCommand.move_ship.exec(ship, ship.location.x + 50, ship.location.y + 50, ship.location.z + 50);
+        OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+          $omega_scene.reload(ship);
+          equal(ship.location.movement_strategy.json_class, "Motel::MovementStrategies::Linear");
+
+          equal($omega_scene.scene_objects()[0].position.x, ship.location.x);
+          equal($omega_scene.scene_objects()[0].position.y, ship.location.y);
+          equal($omega_scene.scene_objects()[0].position.z, ship.location.z);
+          var oposx = ship.location.x, oposy = ship.location.y, oposz = ship.location.z;
+
+          // wait a few seconds & stop ship
+          window.setTimeout(function() {
+            OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(nship){
+              // XXX should have a better way to stop ship
+              OmegaCommand.move_ship.exec(nship, nship.location.x, nship.location.y, nship.location.z);
+
+              // wait a few seconds & verify stopped
+              window.setTimeout(function() {
+                equal(ship.movement_stategy.json_class, "Motel::MovementStrategies::Stopped");
+              }, 1000);
+
               start();
             });
           }, 1000);

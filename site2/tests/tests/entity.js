@@ -192,9 +192,36 @@ $(document).ready(function(){
     equal(loc.to_s(), '123.46/234.57/345.68');
   });
 
-  //test("toJSON", function() {
-  // TODO
-  //});
+  test("toJSON", function() {
+    var l = new OmegaLocation({id : 42, x : 10, y : -20, z : 0.5,
+                               parent_id : 15, movement_strategy : {speed : 51}})
+
+    var s = $.toJSON(l);
+
+    var matcher = new RegExp('"json_class":"Motel::Location"');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"id":42');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"x":10');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"y":-20');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"z":0.5');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"parent_id":15');
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"movement_strategy":'); // TODO further test?
+    ok(matcher.test(s));
+
+    matcher = new RegExp('"speed":51');
+    ok(matcher.test(s));
+  });
 
   test("clone", function() {
     var loc = new OmegaLocation({id: 'loc123', parent_id: '420',

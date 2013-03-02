@@ -18,6 +18,8 @@ describe Motel::Location do
      location.parent.should == parent
      location.children.should == []
      location.movement_callbacks.should == []
+     location.proximity_callbacks.should == []
+     location.stopped_callbacks.should == []
      location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
 
      ms = TestMovementStrategy.new
@@ -197,6 +199,7 @@ describe Motel::Location do
     mc1 = Motel::Callbacks::Movement.new :min_distance => 20
     mc2 = Motel::Callbacks::Movement.new :min_y => 30
     pc  = Motel::Callbacks::Proximity.new :max_distance => 50
+    sc  = Motel::Callbacks::Stopped.new
     l = Motel::Location.new(:id => 42,
                             :x => 10, :y => -20, :z => 0.5,
                             :restrict_view => false, :restrict_modify => true,
@@ -206,6 +209,7 @@ describe Motel::Location do
     l.movement_callbacks  << mc1
     l.movement_callbacks  << mc2
     l.proximity_callbacks << pc
+    l.stopped_callbacks   << sc
 
     j = l.to_json
     j.should include('"json_class":"Motel::Location"')
@@ -227,6 +231,8 @@ describe Motel::Location do
     j.should include('"proximity_callbacks":[')
     j.should include('"json_class":"Motel::Callbacks::Proximity"')
     j.should include('"max_distance":50')
+    j.should include('"stopped_callbacks":[')
+    j.should include('"json_class":"Motel::Callbacks::Stopped"')
   end
 
   it "should be convertable from json" do

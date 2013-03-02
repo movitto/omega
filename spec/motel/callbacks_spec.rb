@@ -210,3 +210,32 @@ describe Motel::Callbacks::Proximity do
     cb.event.should == :entered_proximity
   end
 end
+
+describe Motel::Callbacks::Stopped do
+  it "should invoke handler when specified" do
+    invoked = false
+    loc = Motel::Location.new :x => 0, :y => 0, :z => 0
+
+    callback = Motel::Callbacks::Stopped.new :handler => lambda { |loc|
+      invoked = true
+    }
+    callback.invoke(loc)
+    invoked.should be_true
+  end
+
+  it "should be convertable to json" do
+    cb = Motel::Callbacks::Stopped.new :endpoint => 'baz'
+
+    j = cb.to_json
+    j.should include('"json_class":"Motel::Callbacks::Stopped"')
+    j.should include('"endpoint":"baz"')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::Callbacks::Stopped","data":{"endpoint":"baz"}}'
+    cb = JSON.parse(j)
+
+    cb.class.should == Motel::Callbacks::Stopped
+    cb.endpoint_id.should == "baz"
+  end
+end
