@@ -589,6 +589,9 @@ $(document).ready(function(){
 
   test("load ship", function(){
     $omega_scene = setup_canvas();
+
+    // XXX ship.load makes use of $user_id, need to manually set
+    // or invoke login_test_user as in other specs below
     $user_id = 'rendered-user';
 
     var ship = new OmegaShip({id : "ship1", user_id : 'rendered-user',
@@ -598,16 +601,22 @@ $(document).ready(function(){
 
     // test scene_objs have been added to ship
 
-    equal(ship.scene_objs.length, 1);
+    equal(ship.scene_objs.length, 2);
     equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc00");
     equal(ship.scene_objs[0].omega_id, "ship1-mesh");
+    equal(ship.scene_objs[1].omega_id, "ship1-sphere");
     // verify ship mesh's geometry ?
 
-    equal($omega_scene.scene_objects().length, 1)
+    equal($omega_scene.scene_objects().length, 2)
     equal($omega_scene.scene_objects()[0].omega_id, "ship1-mesh");
     equal($omega_scene.scene_objects()[0].position.x, 50);
     equal($omega_scene.scene_objects()[0].position.y, 50);
     equal($omega_scene.scene_objects()[0].position.z, -10);
+
+    equal($omega_scene.scene_objects()[1].omega_id, "ship1-sphere");
+    equal($omega_scene.scene_objects()[1].position.x, 50);
+    equal($omega_scene.scene_objects()[1].position.y, 50);
+    equal($omega_scene.scene_objects()[1].position.z, -10);
   });
 
   asyncTest("ship added to scene", 4, function(){
@@ -664,6 +673,7 @@ $(document).ready(function(){
 
       $omega_registry.add(sys1);
       $omega_registry.add(ship);
+
       $omega_scene.set_root(sys1);
 
       // need to animate scene and wait till its ready
@@ -709,13 +719,13 @@ $(document).ready(function(){
         OmegaCommand.dock_ship.exec(ship, 'mmorsi-manufacturing-station1');
         OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
           $omega_scene.reload(ship);
-          equal(ship.scene_objs.length, 1);
+          equal(ship.scene_objs.length, 2);
           equal(ship.scene_objs[0].material.color.getHex().toString(16), "99ffff");
 
           OmegaCommand.undock_ship.exec(ship);
           OmegaQuery.entity_with_id('mmorsi-corvette-ship3', function(ship){
             $omega_scene.reload(ship);
-            equal(ship.scene_objs.length, 1);
+            equal(ship.scene_objs.length, 2);
             equal(ship.scene_objs[0].material.color.getHex().toString(16), "cc0000");
             start();
           });
@@ -803,15 +813,15 @@ $(document).ready(function(){
               ship.load();
 
               // ensure attack line has been added to scene
-              equal(ship.scene_objs.length, 3);
-              equal($omega_scene.scene_objects().length, 2)
-              equal($omega_scene.scene_objects()[1].omega_id, new_ship1_id + "-attacking-line");
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].x, new_ship2['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].y, new_ship2['value'].location['value'].y + 25);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].z, new_ship2['value'].location['value'].z);
+              equal(ship.scene_objs.length, 4);
+              equal($omega_scene.scene_objects().length, 3)
+              equal($omega_scene.scene_objects()[2].omega_id, new_ship1_id + "-attacking-line");
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].x, new_ship1['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].y, new_ship1['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].z, new_ship1['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].x, new_ship2['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].y, new_ship2['value'].location['value'].y + 25);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].z, new_ship2['value'].location['value'].z);
 
               start();
             });
@@ -860,15 +870,15 @@ $(document).ready(function(){
               ship.load();
 
               // ensure attack line has been added to scene
-              equal(ship.scene_objs.length, 3);
-              equal($omega_scene.scene_objects().length, 2)
-              equal($omega_scene.scene_objects()[1].omega_id, new_ship_id + "-mining-line");
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].x, new_ship['value'].location['value'].x);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].y, new_ship['value'].location['value'].y);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[0].z, new_ship['value'].location['value'].z);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].x, ship.mining.entity.location.x);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].y, ship.mining.entity.location.y + 25);
-              equal($omega_scene.scene_objects()[1].geometry.vertices[1].z, ship.mining.entity.location.z);
+              equal(ship.scene_objs.length, 4);
+              equal($omega_scene.scene_objects().length, 3)
+              equal($omega_scene.scene_objects()[2].omega_id, new_ship_id + "-mining-line");
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].x, new_ship['value'].location['value'].x);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].y, new_ship['value'].location['value'].y);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[0].z, new_ship['value'].location['value'].z);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].x, ship.mining.entity.location.x);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].y, ship.mining.entity.location.y + 25);
+              equal($omega_scene.scene_objects()[2].geometry.vertices[1].z, ship.mining.entity.location.z);
 
               start();
             });
@@ -882,7 +892,7 @@ $(document).ready(function(){
     $omega_scene = setup_canvas();
     $user_id = 'rendered-user';
 
-    var station = new OmegaShip({id : "stat1", user_id : 'rendered-user',
+    var station = new OmegaStation({id : "stat1", user_id : 'rendered-user',
                               location : new OmegaLocation({ x : 50, y : 50, z : -10})});
                                  
     station.load();
@@ -890,7 +900,7 @@ $(document).ready(function(){
     // test scene_objs have been added to jump gate
 
     equal(station.scene_objs.length, 1);
-    equal(station.scene_objs[0].material.color.getHex().toString(16), "cc00");
+    equal(station.scene_objs[0].material.color.getHex().toString(16), "cc");
     equal(station.scene_objs[0].omega_id, "stat1-mesh");
     // ensure geometry's vertices are at the correct locations
 

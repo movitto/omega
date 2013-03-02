@@ -78,15 +78,15 @@ $(document).ready(function(){
   
   test("show/hide/append to dialog", function() {
     $omega_dialog.show('title', '#omega_dialog_content', '+some');
-    var display = $('#omega_dialog').css('display');
-    var value   = $('#omega_dialog').html();
+    var display = $('.ui-dialog #omega_dialog').css('display');
+    var value   = $('.ui-dialog #omega_dialog').html();
     equal(display, 'block');
     equal(value, "content+some");
     $omega_dialog.append("evenmore");
-    value   = $('#omega_dialog').html();
+    value   = $('.ui-dialog #omega_dialog').html();
     equal(value, "content+someevenmore");
     $omega_dialog.hide();
-    display = $('#omega_dialog').parent().css('display');
+    display = $('.ui-dialog #omega_dialog').parent().css('display');
     equal(display, "none");
   });
   
@@ -107,19 +107,19 @@ $(document).ready(function(){
 
     // verify submitting login dialog changes nav
     $omega_session.on_session_validated(function(){
-      equal($('#login_link').css('display'),     'none');
       equal($('#register_link').css('display'),  'none');
+      equal($('#login_link').css('display'),     'none');
       equal($('#logout_link').css('display'),    'inline');
       equal($('#account_link').css('display'),   'inline');
       // TODO verify user is actually logged in
 
-    $('#logout_link').click();
+      $('#logout_link').click();
     });
 
     $('#omega_dialog #login_username').val('mmorsi');
     $('#omega_dialog #login_password').val('isromm');
     $('#login_button').click();
-    equal($('#omega_dialog').parent().css('display'),   'none');
+    equal($('.ui-dialog #omega_dialog').parent().css('display'),   'none');
 
     // verify logout link changes nav
     $omega_session.on_session_destroyed(function(){

@@ -1,0 +1,14 @@
+#qunit-fixture {
+  height: auto;
+  left: auto;
+  position: relative;
+  top: auto;
+  width: auto;
+}
+
+/* stylings of specific omega elements here
+ * will not works since qunit-fixture gets
+ * reset every time test runs (good for unit
+ * tests), apply styling directly to elements
+ * in tests/index.html
+ */

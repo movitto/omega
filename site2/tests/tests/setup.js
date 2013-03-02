@@ -36,7 +36,7 @@ function logout_test_user(on_logout){
 
 function setup_canvas(){
   $omega_canvas_ui = new OmegaCanvasUI({noresize : true});
-  $omega_canvas = new OmegaCanvas();
+  //$omega_canvas = new OmegaCanvas();
   $omega_entity_container = new OmegaEntityContainer();
   var scene = new OmegaScene();
   return scene;
@@ -77,6 +77,10 @@ function before_each(details){
   $omega_registry = new OmegaRegistry();
   $omega_scene    = new OmegaScene();
 
+  for(var evnt in OmegaEvent){
+    OmegaEvent[evnt].handled = false;
+  }
+
   $omega_node.on_connection_established(function(){
     start();
   });
@@ -85,7 +89,8 @@ function before_each(details){
 }
 
 function after_each(details){
-  if(typeof $omega_canvas !== "undefined") $omega_canvas.hide();
+  //if(typeof $omega_canvas !== "undefined") $omega_canvas.hide();
+  $omega_dialog.hide();
   $omega_node.clear_handlers();
   $omega_session.clear_callbacks();
   $omega_registry.clear_callbacks();

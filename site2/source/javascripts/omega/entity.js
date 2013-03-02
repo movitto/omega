@@ -1067,12 +1067,24 @@ function OmegaShip(ship){
     mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
     mesh.omega_id = this.id + '-mesh';
+
+    var sphere   = new THREE.Mesh(OmegaScene.geometries['ship_container'],
+                                  OmegaScene.materials['ship_container']);
+
+    sphere.position.x = this.location.x;
+    sphere.position.y = this.location.y;
+    sphere.position.z = this.location.z;
+    sphere.omega_id = this.id + '-sphere';
+    sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
+
     //mesh.matrixAutoUpdate = false;
     mesh.updateMatrix();
     this.scene_objs.push(mesh);
     $omega_scene.add(mesh);
 
-    this.clickable_obj = mesh;
+    this.scene_objs.push(sphere);
+    $omega_scene.add(sphere);
+    this.clickable_obj = sphere;
 
     // if ship is attacking another, draw line of attack
     if(this.attacking){

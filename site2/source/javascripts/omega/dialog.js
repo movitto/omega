@@ -14,7 +14,16 @@ function OmegaDialogContainer(){
 
   /////////////////////////////////////// private data
 
-  var dialog_container = $('#omega_dialog');
+  var dialog_element = null;
+
+  /////////////////////////////////////// private methods
+
+  /* Return the dialog container element
+   */
+  var get_dialog = function(){
+    if(dialog_element == null) dialog_element = $('#omega_dialog');
+    return dialog_element;
+  }
 
   /////////////////////////////////////// public methods
 
@@ -30,14 +39,15 @@ function OmegaDialogContainer(){
     var content = $(selector).html();
     if(content == null) content = "";
     if(text == null) text = "";
-    dialog_container.html(content + text).dialog({title: title, width: '450px'}).
-                                   dialog('option', 'title', title).dialog('open');
+    get_dialog().html(content + text).dialog({title: title, width: '450px'}).
+                                      dialog('option', 'title', title).
+                                      dialog('open');
   };
 
   /* Hide omega dialog
    */
   this.hide = function(){
-    dialog_container.dialog('close');
+    get_dialog().dialog('close');
   };
 
   /* Append text to dialog
@@ -45,7 +55,8 @@ function OmegaDialogContainer(){
    * @param {String} text text to append to dialog
    */
   this.append = function(text){
-    dialog_container.html(dialog_container.html() + text);
+    var dialog = get_dialog();
+    dialog.html(dialog.html() + text);
   }
 }
 
