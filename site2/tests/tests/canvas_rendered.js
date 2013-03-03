@@ -95,6 +95,14 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects().length, 0);
   });
 
+  test("set camera size", function(){
+    $omega_scene = setup_canvas();
+    var omega_camera = new OmegaCamera();
+    omega_camera.set_size(100, 200);
+    equal(omega_camera.scene_camera().width,  100);
+    equal(omega_camera.scene_camera().height, 200);
+  });
+
   test("reset camera", function(){
     $omega_scene = setup_canvas();
     $omega_camera = new OmegaCamera();
@@ -782,6 +790,8 @@ $(document).ready(function(){
       });
     });
   });
+
+  // TODO ensure if scene changed when tracking moving ship, remove_callbacks for ship is called
 
   asyncTest("detect ship stopped", function(){
     $omega_scene = setup_canvas();

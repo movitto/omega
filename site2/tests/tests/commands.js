@@ -5,6 +5,8 @@ $(document).ready(function(){
 
   // TODO test omega_callback ?
 
+  // TODO test subscribing to omega events
+
   module("omega_commands");
   
   asyncTest("retrieving all entities", 7, function() {

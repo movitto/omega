@@ -24,5 +24,7 @@ $(document).ready(function(){
 
     // TODO would be nice to test receiving message sent by other user
   });
+
+  // TODO test showing/hiding chat container, clicking/displaying chat button
   
 });

@@ -106,6 +106,7 @@ $(document).ready(function(){
     };
 
     registry.cached(entity1.id, retrieval, retrieved);
+    equal($registry.entities()['entity1'], null); // ensure null placeholder created
     equal(retrieval_called, 1);
     equal(retrieved_called, 0);
 
@@ -136,6 +137,8 @@ $(document).ready(function(){
     var ote = new OmegaTestEntity({'id' : 'foobar'});
     equal(ote.id, 'foobar');
   });
+
+  // TODO test entity update
 
   test("on load", function() {
     var ote = new OmegaTestEntity();
@@ -309,4 +312,6 @@ $(document).ready(function(){
   });
 
   // see tests/canvas_rendered.js for entity loading, click handling, etc
+
+  // TODO test planet update , timer , ensure timer is disabled if scene set to galaxy
 });

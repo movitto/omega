@@ -3,6 +3,8 @@ require("javascripts/omega/client.js");
 
 $(document).ready(function(){
 
+  // TODO test status icon, status set to 'loading' on requests
+
   module("omega_client");
   
   asyncTest("web_request", 3, function() {

@@ -42,6 +42,18 @@ $(document).ready(function(){
   });
 
   module("entities_container");
+
+  test("hide all entities containers", function() {
+    $("#locations_list").show();
+    $("#entities_list").show();
+    equal($("#locations_list").css('display'), 'block');
+    equal($("#entities_list").css('display'),  'block');
+
+    var entities_container = new OmegaEntitiesContainer();
+    entities_container.hide_all();
+    equal($("#locations_list").css('display'), 'none');
+    equal($("#entities_list").css('display'),  'none');
+  });
   
   test("modify entities container", function() {
     // TODO load entities from fixtures
@@ -109,18 +121,6 @@ $(document).ready(function(){
 
   module("omega_canvas");
 
-  // TODO move to skybox tests
-  //test("set canvas background", function() {
-  //  // TODO load from fixtures
-  //  var system  = { 'background': 'foobar' };
-
-  //  var omega_canvas = new OmegaCanvas();
-  //  omega_canvas.set_background(system);
-
-  //  equal($("#omega_canvas").css('backgroundImage'),
-  //        'url("http://localhost/womega/images/backgrounds/foobar.png")');
-  //});
-  
   test("show/hide canvas", function() {
     var omega_canvas = new OmegaCanvas();
     omega_canvas.hide();
@@ -154,5 +154,11 @@ $(document).ready(function(){
     equal($('#show_canvas').css('display'),        'none');
   });
 
+  // TODO test on canvas resize, camera and scene are adjusted accordingly and
+  //      on page resize, canvas resize
+
   // TODO test click canvas
+
+  // TODO verify on login entities owned by user retrieved & systems / galaxyes
+  //      and on logout ui is cleaned up
 });
