@@ -123,6 +123,10 @@ $(document).ready(function(){
 
     // log in as admin and create new ship to test jumping w/
     login_test_user($admin_user, function(){
+      // needed so as to remove the login handler currently being executed
+      // before invoking login below
+      $omega_session.clear_callbacks();
+
       $omega_node.web_request('manufactured::create_entity', new_ship, function(){
 
         // need to logout then login as mmorsi as trigger_jump_gate gets all user

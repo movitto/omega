@@ -95,13 +95,14 @@ $(document).ready(function(){
     equal($omega_scene.scene_objects().length, 0);
   });
 
-  test("set camera size", function(){
-    $omega_scene = setup_canvas();
-    var omega_camera = new OmegaCamera();
-    omega_camera.set_size(100, 200);
-    equal(omega_camera.scene_camera().width,  100);
-    equal(omega_camera.scene_camera().height, 200);
-  });
+  //test("set camera size", function(){
+  //  $omega_scene = setup_canvas();
+  //  var omega_camera = new OmegaCamera();
+  //  omega_camera.set_size(100, 200);
+  //  // TODO how to test
+  //  //equal(omega_camera.scene_camera().width,  100);
+  //  //equal(omega_camera.scene_camera().height, 200);
+  //});
 
   test("reset camera", function(){
     $omega_scene = setup_canvas();
@@ -746,11 +747,14 @@ $(document).ready(function(){
   asyncTest("load moving ship", function(){
     $omega_scene = setup_canvas();
 
-    // create new system / set root location
-    var nsys = new OmegaSolarSystem({name : 'Athena',
+    // create systems / set root location
+    var nsys1 = new OmegaSolarSystem({name : 'Athena',
                                      location : {id : 2}});
-    $omega_registry.add(nsys);
-    $omega_scene.set_root(nsys);
+    var nsys2 = new OmegaSolarSystem({name : 'Aphrodite',
+                                     location : {id : 3}});
+    $omega_registry.add(nsys1);
+    $omega_registry.add(nsys2);
+    $omega_scene.set_root(nsys1);
     $omega_skybox.hide();
 
     login_test_user($admin_user, function(){
@@ -783,6 +787,18 @@ $(document).ready(function(){
                     "ffff00");
               // TODO ensure coords in entity_container are updated
 
+              // change scene
+              $omega_scene.set_root(nsys2);
+
+              // delay to ensure movement handler invoked,
+              window.setTimeout(function() {
+                // ensure remove_callbacks for ship is called,
+                // eg ship does not have movement callbacks
+                OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(ship){
+                  equal(ship.location.movement_callbacks.length, 0);
+                });
+              }, 2000);
+
               start();
             });
           }, 1000);
@@ -790,8 +806,6 @@ $(document).ready(function(){
       });
     });
   });
-
-  // TODO ensure if scene changed when tracking moving ship, remove_callbacks for ship is called
 
   asyncTest("detect ship stopped", function(){
     $omega_scene = setup_canvas();
@@ -819,14 +833,15 @@ $(document).ready(function(){
           window.setTimeout(function() {
             OmegaQuery.entity_with_id('mmorsi-corvette-ship2', function(nship){
               // XXX should have a better way to stop ship
-              OmegaCommand.move_ship.exec(nship, nship.location.x, nship.location.y, nship.location.z);
+              OmegaCommand.move_ship.exec(nship, nship.location.x + 1, nship.location.y, nship.location.z);
 
               // wait a few seconds & verify stopped
               window.setTimeout(function() {
-                equal(ship.movement_stategy.json_class, "Motel::MovementStrategies::Stopped");
+                equal($omega_registry.get('mmorsi-corvette-ship2').
+                        location.movement_strategy.json_class,
+                      "Motel::MovementStrategies::Stopped");
+                start();
               }, 1000);
-
-              start();
             });
           }, 1000);
         });

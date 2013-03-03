@@ -85,6 +85,7 @@ var OmegaEvent = {
           entity.location.x = loc.x;
           entity.location.y = loc.y;
           entity.location.z = loc.z;
+          entity.location.movement_strategy = loc.movement_strategy;
 
           entity.moved();
           $omega_scene.animate();

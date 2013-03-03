@@ -16,19 +16,41 @@ function OmegaStatus(){
 
   /////////////////////////////////////// private data
 
+  // graphical represents current status
   var icon   =  $("#status_icon");
 
+  // stack of states which are currently set
   var states =  [];
 
   /////////////////////////////////////// initialization
 
   /////////////////////////////////////// public methods
 
+  /* Return boolean indicating if state is currently represented locally
+   */
+  this.has_state = function(state){
+    for(var s in states)
+      if(states[s] == state)
+        return true;
+    return false;
+  }
+
+  /* Return boolean indicating if topmost state on stack is the specified state
+   */
+  this.is_state = function(state){
+    if(states.length == 0) return false;
+    return states[states.length-1] == state;
+  };
+
+  /* Push a new state onto the stack, this updates the status icon background
+   */
   this.push_state = function(state){
     states.push(state);
     icon.css('background', 'url("/womega/images/status/' + state + '.png") no-repeat');
   }
 
+  /* Pop a new state of the stack, this updates the status icon background
+   */
   this.pop_state = function(){
     states.pop();
     if(states.length > 0){
@@ -41,6 +63,8 @@ function OmegaStatus(){
   /////////////////////////////////////// private methods
 }
 
+/* Return singleton OmegaStatus instance
+ */
 OmegaStatus.instance = function(){
   if(typeof $omega_status === "undefined")
     $omega_status = new OmegaStatus();

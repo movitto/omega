@@ -16,8 +16,8 @@ $(document).ready(function(){
 
   module("omega_scene");
 
-  test("scene change", function() {
-    var scene = setup_canvas();
+  asyncTest("scene change", function() {
+    $omega_scene = setup_canvas();
 
     // TODO load system/children from fixtures
     var star1   = { 'id'        : 'star1',
@@ -30,40 +30,51 @@ $(document).ready(function(){
     var system  = { 'id'        : 'Athena',
                     'name'      : 'Athena',
                     'background': 'foobar',
+                    'location'  : {id : '2' },
                     'children'  : function(){ return [planet1, star1]; }
                   };
 
     var changed_called = false;
 
-    scene.on_scene_change('scene_change_test', function(){
+    $omega_scene.on_scene_change('scene_change_test', function(){
       changed_called = true;
     });
-    scene.set_root(system);
 
-    // ensure scene changed called was invoked
-    equal(changed_called, true);
+    // login user so as to be able to retrieve
+    // manu entities user system from server
+    login_test_user($admin_user, function(){
+      $omega_scene.set_root(system);
 
-    // ensure root is set
-    equal(scene.get_root().name, 'Athena');
+      // ensure scene changed called was invoked
+      equal(changed_called, true);
 
-    // ensure skybox background is set
-    equal($omega_skybox.get_background(), 'foobar');
+      // ensure root is set
+      equal($omega_scene.get_root().name, 'Athena');
 
-    // ensure entity container is hidden
-    equal($('#omega_entity_container').css('display'), 'none');
+      // ensure skybox background is set
+      equal($omega_skybox.get_background(), 'foobar');
 
-    // ensure scene has child entities
-    equal(Object.keys(scene.entities()).length, 2);
-    equal(scene.has({ 'id' : 'planet1' }), true);
-    equal(scene.has({ 'id' : 'planet2' }), false);
+      // ensure entity container is hidden
+      equal($('#omega_entity_container').css('display'), 'none');
 
-    // TODO test manu entities loaded from server
+      // ensure scene has child entities (cosmos & manu)
+      equal($omega_scene.has({ 'id' : 'planet1' }), true);
+      equal($omega_scene.has({ 'id' : 'planet2' }), false);
 
-    // refresh scene, reensure tests
-    changed_called = false;
-    scene.refresh();
-    equal(changed_called, true);
-    equal(scene.get_root().name, 'Athena');
+      // refresh scene, reensure tests
+      changed_called = false;
+      $omega_scene.refresh();
+      equal(changed_called, true);
+      equal($omega_scene.get_root().name, 'Athena');
+
+      // ensure manufactured entities retrieved
+      // give entities query time to respond
+      window.setTimeout(function() {
+        ok(Object.keys($omega_scene.entities()).length > 2);
+        equal($omega_scene.has({ 'id' : 'mmorsi-mining-ship1' }), true);
+        start();
+      }, 250);
+    });
   });
 
   test("add/remove children", function() {
@@ -119,7 +130,7 @@ $(document).ready(function(){
     var system  = { 'id'         : 'Athena',
                     'name'       : 'Athena',
                     'background' : 'foobar',
-                    'children'   : function(){ return [star1]; }
+                    'children'   : function(){ return [star1]; } };
     scene.set_root(system);
     equal(Object.keys(scene.entities()).length, 1);
 
@@ -127,6 +138,12 @@ $(document).ready(function(){
     equal(Object.keys(scene.entities()).length, 0);
   });
 
-  // TODO test set_size
+  //test("set renderer size", function(){
+  //  var scene = new OmegaScene();
+  //  scene.set_size(100, 200);
+  //  // TODO how to verify?
+  //  //equal(OmegaScene._renderer.width,  100);
+  //  //equal(OmegaScene._renderer.height, 200);
+  //});
 
 });

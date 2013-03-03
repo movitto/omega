@@ -443,6 +443,14 @@ function OmegaLocation(loc){
         "movement_callbacks", "proximity_callbacks"]).toJSON();
   };
 
+  // TODO also clone / update movement strategy seperately / explicitly?
+  if(this.movement_strategy){
+    this.movement_strategy.toJSON = function(){
+      return new JRObject(this.json_class, this,
+        ["toJSON", "json_class"]).toJSON();
+    };
+  }
+
 }
 
 /////////////////////////////////////// Omega Galaxy

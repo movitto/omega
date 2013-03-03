@@ -25,6 +25,30 @@ $(document).ready(function(){
     // TODO would be nice to test receiving message sent by other user
   });
 
-  // TODO test showing/hiding chat container, clicking/displaying chat button
+  // test showing/hiding chat container when button clicked
+  test("show/hide chat container", function(){
+    var chat = new OmegaChatContainer();
+    equal($("#chat_container").css('display'), 'none');
+
+    $("#toggle_chat").trigger('click');
+    equal($("#chat_container").css('display'), 'block');
+
+    $("#toggle_chat").trigger('click');
+    equal($("#chat_container").css('display'), 'none');
+  });
+
+  // ensure visibility of toggle chat button is dependent on user session
+  asyncTest('chat toggle button visibility', function(){
+    var chat = new OmegaChatContainer();
+    equal($("#toggle_chat").css('display'), 'none')
+
+    login_test_user($mmorsio_user, function(){
+      equal($("#toggle_chat").css('display'), 'block')
+      logout_test_user(function(){
+        equal($("#toggle_chat").css('display'), 'none')
+        start();
+      });
+    });
+  });
   
 });

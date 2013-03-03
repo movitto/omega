@@ -3,7 +3,47 @@ require("javascripts/omega/client.js");
 
 $(document).ready(function(){
 
-  // TODO test status icon, status set to 'loading' on requests
+  module("omega_status");
+
+  test("push/pop state", function(){
+    var os = new OmegaStatus();
+    ok(!os.has_state('loading'));
+    ok(!os.is_state('loading'));
+    ok(!os.has_state('foobar'));
+    ok(!os.is_state('foobar'));
+
+    os.push_state('loading');
+    equal($('#status_icon').css('background-image'), 'url("http://localhost/womega/images/status/loading.png")');
+    ok(os.has_state('loading'));
+    ok(os.is_state('loading'));
+    ok(!os.has_state('foobar'));
+    ok(!os.is_state('foobar'));
+
+    os.push_state('foobar');
+    equal($('#status_icon').css('background-image'), 'url("http://localhost/womega/images/status/foobar.png")');
+    ok(os.has_state('loading'));
+    ok(!os.is_state('loading'));
+    ok(os.has_state('foobar'));
+    ok(os.is_state('foobar'));
+
+    os.pop_state();
+    equal($('#status_icon').css('background-image'), 'url("http://localhost/womega/images/status/loading.png")');
+    ok(os.has_state('loading'));
+    ok(os.is_state('loading'));
+    ok(!os.has_state('foobar'));
+    ok(!os.is_state('foobar'));
+
+    os.pop_state();
+    equal($('#status_icon').css('background-image'), 'none');
+    ok(!os.has_state('loading'));
+    ok(!os.is_state('loading'));
+    ok(!os.has_state('foobar'));
+    ok(!os.is_state('foobar'));
+  });
+
+  test("provide singleton access", function(){
+    equal(OmegaStatus.instance(), OmegaStatus.instance());
+  });
 
   module("omega_client");
   
@@ -28,6 +68,26 @@ $(document).ready(function(){
       });
     });
   });
+
+  asyncTest("should set loading state when issuing remote requests", 5, function(){
+    login_test_user($admin_user, function(){
+      ok(!OmegaStatus.instance().has_state('loading'));
+      var first   = true;
+      var handler = function(res, err){
+        ok(!OmegaStatus.instance().has_state('loading'));
+        if(first){
+          first = false;
+          $omega_node.web_request('cosmos::get_entities', 'with_id', 'Zeus', handler);
+          ok(OmegaStatus.instance().has_state('loading'));
+        }else{
+          start();
+        }
+      }
+
+      $omega_node.ws_request('cosmos::get_entities', 'with_id', 'Zeus', handler);
+      ok(OmegaStatus.instance().has_state('loading'));
+    });
+  });
   
   asyncTest("global error handlers", 2, function() {
     var user = new JRObject("Users::User", {id : 'admin', password: 'invalid'});
@@ -40,7 +100,7 @@ $(document).ready(function(){
     });
   });
   
-  asyncTest("method handlers", 3, function() {
+  asyncTest("method handlers", function() {
     login_test_user($admin_user, function(){
       $omega_node.ws_request('motel::track_movement', 10, 5, null); // location 12 corresponds to a planet
       equal($omega_node.has_request_handler('motel::on_movement'), false)

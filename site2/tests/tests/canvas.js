@@ -159,6 +159,53 @@ $(document).ready(function(){
 
   // TODO test click canvas
 
-  // TODO verify on login entities owned by user retrieved & systems / galaxyes
-  //      and on logout ui is cleaned up
+  // verify on login entities owned by user retrieved & systems / galaxyes
+  asyncTest("retrieve entities on login", function(){
+    setup_canvas();
+
+    var ships = $omega_registry.select([function(e){ return e.json_class == "Manufactured::Ship"; }]);
+    equal(ships.length, 0);
+
+    login_test_user($mmorsi_user, function(){
+      // wait for entity / cosmos responses to be invoked/returned
+      window.setTimeout(function() {
+        ships = $omega_registry.select([function(e){ return e.json_class == "Manufactured::Ship"; }]);
+        ok(ships.length > 0);
+        for(var s in ships){
+          var sys = $omega_registry.get(ships[s].system_name);
+          ok(sys != null);
+          var gal = $omega_registry.get(sys.galaxy_name);
+          ok(gal != null);
+        }
+        start();
+      }, 1000);
+    });
+  });
+
+  // verify on logout ui is cleaned up
+  asyncTest("cleanup ui on logout", function(){
+    $omega_scene = setup_canvas();
+
+    var ast = new OmegaAsteroid({name     : 'ast1',
+                                 location : new OmegaLocation({ x : 50, y : 50, z : -30})});
+    $omega_scene.add_entity(ast);
+    ok($omega_scene.scene_objects().length > 0)
+
+    login_test_user($mmorsi_user, function(){
+      // wait for entity / cosmos responses to be invoked/returned
+      window.setTimeout(function() {
+
+        logout_test_user(function(){
+          equal($omega_scene.scene_objects().length, 0);
+          equal($(".entities_container").css('display'), 'none');
+          equal($('#omega_entity_container').css('display'), 'none');
+          equal($omega_axis.is_showing(), false);
+          equal($omega_grid.is_showing(), false);
+          // TODO omega skybox.is_showing, omega_registry.has_timer('planet_movement')
+
+          start();
+        });
+      }, 250);
+    });
+  });
 });

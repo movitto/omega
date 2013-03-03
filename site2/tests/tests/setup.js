@@ -19,7 +19,6 @@ function canvas_to_xy(coords){
 
 function login_test_user(user, on_login){
   $omega_session.on_session_validated(function(){
-    $omega_session.clear_callbacks();
     on_login();
   });
   $omega_session.login_user(user);
@@ -27,7 +26,6 @@ function login_test_user(user, on_login){
 
 function logout_test_user(on_logout){
   $omega_session.on_session_destroyed(function(){
-    $omega_session.clear_callbacks();
     if(on_logout)
       on_logout();
   });

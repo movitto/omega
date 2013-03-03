@@ -106,13 +106,38 @@ $(document).ready(function(){
     };
 
     registry.cached(entity1.id, retrieval, retrieved);
-    equal($registry.entities()['entity1'], null); // ensure null placeholder created
     equal(retrieval_called, 1);
     equal(retrieved_called, 0);
 
     registry.cached(entity1.id, retrieval, retrieved);
     equal(retrieval_called, 1);
     equal(retrieved_called, 1);
+  });
+
+  asyncTest("cache entity placeholder", 2, function(){
+    // TODO load data from fixtures
+    var entity1 = { 'id'        : 'entity1',
+                    'property1' : true,
+                    'property2' : true };
+
+    var registry = new OmegaRegistry();
+
+    var retrieved = function(entity_id){
+    }
+
+    var retrieval = function(entity_id, rretrieved){
+      setTimeout(function(){
+        registry.add(entity1);
+      }, 250);
+    };
+
+    registry.cached(entity1.id, retrieval, retrieved);
+    equal(registry.entities()['entity1'], null); // ensure null placeholder created
+
+    setTimeout(function(){
+      ok(registry.entities()['entity1'] != null);
+      start();
+    }, 350);
   });
 
   test("clear registry", function() {
@@ -138,7 +163,17 @@ $(document).ready(function(){
     equal(ote.id, 'foobar');
   });
 
-  // TODO test entity update
+  test("updating entity properties", function() {
+    var ote = new OmegaTestEntity({'id' : 'foobar', scene_objs : ['orig']});
+    equal(ote.id, 'foobar');
+
+    ote.update({'id' : 'barfoo'});
+    equal(ote.id, 'barfoo');
+
+    // ensure scene objects are not overwritten
+    ote.update({'scene_objs' : ['new']});
+    equal(ote.scene_objs[0], 'orig');
+  });
 
   test("on load", function() {
     var ote = new OmegaTestEntity();
@@ -311,7 +346,28 @@ $(document).ready(function(){
     ok(planet.children().indexOf('moon3') == -1);
   });
 
+  test("updating planet properties", function() {
+    var planet = new OmegaPlanet({'id' : 'foobar', scene_objs : ['orig'],
+                                  'orbiti' : 50  , orbit      : ['origo'] });
+    equal(planet.id, 'foobar');
+
+    planet.update({'id' : 'barfoo'});
+    equal(planet.id, 'barfoo');
+
+    // ensure scene objects are not overwritten
+    planet.update({'scene_objs' : ['new']});
+    equal(planet.scene_objs[0], 'orig');
+
+    // ensure orbiti is not overwritten
+    planet.update({'orbiti' : 42});
+    equal(planet.orbiti, 50);
+
+    // ensure orbit is not overwritten
+    planet.update({'orbit' : ['newo']});
+    equal(planet.orbit[0], 'origo');
+  });
+
   // see tests/canvas_rendered.js for entity loading, click handling, etc
 
-  // TODO test planet update , timer , ensure timer is disabled if scene set to galaxy
+  // TODO test planet timer , ensure timer is disabled if scene set to galaxy
 });
