@@ -57,5 +57,13 @@ def self.rand_resource
   Cosmos::Resource.new :type => type, :name => name
 end
 
+# Return All {Cosmos::Resource}s instantiated from master list
+def self.all_resources
+  RESOURCE_IDS.collect { |i|
+    type,name = *(id.split('-'))
+    Cosmos::Resource.new :type => type, :name => name
+  }
+end
+
 end # module Resources
 end # module Omega

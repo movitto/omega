@@ -272,6 +272,30 @@ module Omega
         Omega::Client::Node.invoke_request 'manufactured::create_entity', sh
         sh
       end
+
+      # Schedule new periodic Missions Event
+      #
+      # @param [Integer] interval which event should occur
+      # @param [Missions::Event] event event which to run at specified interval
+      def schedule_event(interval, event)
+        evnt = Missions::Event::Periodic.new :id => event.id + '-scheduler',
+                                             :interval => interval, :event => event
+        RJR::Logger.info "Scheduling event #{evnt}(#{event})"
+        Omega::Client::Node.invoke_request 'missions::create_event', evnt
+        evnt
+      end
+
+      # Create a new Missions::Mission
+      #
+      # @param [String] id id to assign to new mission
+      # @param[Hash[ args hash of options to pass directly to mission initializer
+      def mission(id, args={})
+        mission = Missions::Mission.new(args.merge({:id => id}))
+        RJR::Logger.info "Creating mission #{mission}"
+        Omega::Client::Node.invoke_request 'missions::create_mission', mission
+        mission
+      end
+
     end
   end
 end

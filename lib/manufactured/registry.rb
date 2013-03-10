@@ -116,9 +116,11 @@ class Registry
 
   # Return boolean indicating if registry is running its various worker threads
   def running?
-    !@terminate_cycles && !@attack_thread.nil? && !@mining_thread.nil? &&
-    (@attack_thread.status == 'run' || @attack_thread.status == 'sleep') &&
-    (@mining_thread.status == 'run' || @mining_thread.status == 'sleep')
+    !@terminate_cycles &&
+    !@attack_thread.nil? && !@mining_thread.nil? && !@construction_thread.nil? &&
+    (@attack_thread.status == 'run'       || @attack_thread.status == 'sleep') &&
+    (@mining_thread.status == 'run'       || @mining_thread.status == 'sleep') &&
+    (@construction_thread.status == 'run' || @construction_thread.status == 'sleep')
   end
 
   # Terminate registry worker threads
@@ -127,6 +129,7 @@ class Registry
 
     @attack_thread.join unless @attack_thread.nil?
     @mining_thread.join unless @mining_thread.nil?
+    @construction_thread.join unless @construction_thread.nil?
   end
 
   # Run the specified block of code as a protected operation.

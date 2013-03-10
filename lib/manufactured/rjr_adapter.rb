@@ -44,7 +44,6 @@ class RJRAdapter
   def self.init
     Manufactured::Registry.instance.init
     self.register_handlers(RJR::Dispatcher)
-    #Manufactured::Registry.instance.init
     @@local_node = RJR::LocalNode.new :node_id => 'manufactured'
     @@local_node.message_headers['source_node'] = 'manufactured'
     @@local_node.invoke_request('users::create_entity', self.user)
@@ -83,6 +82,7 @@ class RJRAdapter
         }
       end
 
+      # FIXME race condition if entity is created elsewhere after this call but before adding to registry below
       rentity = Manufactured::Registry.instance.find(:id => entity.id,
                                                      :include_graveyard => true).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
@@ -305,6 +305,32 @@ class RJRAdapter
 
       entity
     }
+
+    # adds the specified resource to the specified entity,
+    # XXX would rather not have but needed by other subsystems
+    rjr_dispatcher.add_handler('manufactured::add_resource'){ |entity_id, resource_id, quantity|
+      # require local transport
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+
+      # require modify manufactured_resources
+      # also require modify on the entity ?
+      Users::Registry.require_privilege(:privilege => 'modify', :entity => 'manufactured_resources',
+                                        :session   => @headers['session_id'])
+
+      entity = Manufactured::Registry.instance.find(:id => id).first
+      raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found"  if entity.nil?
+
+      raise ArgumentError, "quantity must be an int / float > 0" if (!quantity.is_a?(Integer) && !quantity.is_a?(Float)) || quantity <= 0
+
+      # TODO validate resource_id
+
+      Manufactured::Registry.instance.safely_run {
+        entity.add_resource resource_id, quantity
+      }
+
+      entity
+    }
+
 
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, new_location|
       entity = Manufactured::Registry.instance.find(:id => id).first

@@ -27,6 +27,9 @@ cosmos_rjr_pass: 'sosmoc'
 manufactured_rjr_user: 'manufactured'
 manufactured_rjr_pass: 'derutcafunam'
 
+missions_rjr_user: 'missions'
+missions_rjr_pass: 'snoissim'
+
 users_rjr_user: 'users'
 users_rjr_pass: 'sresu'
 

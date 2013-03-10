@@ -54,8 +54,17 @@ galaxy 'Zeus' do |g|
   end
 end
 
-jump_gate system('Athena'), system('Aphrodite'), :location => Location.new(:x => -950, :y => -950, :z => -950)
-jump_gate system('Athena'), system('Philo'), :location => Location.new(:x => 950, :y => 950, :z => 950)
-jump_gate system('Aphrodite'), system('Athena'), :location => Location.new(:x => -950, :y => 950, :z => -950)
-jump_gate system('Aphrodite'), system('Philo'), :location => Location.new(:x => 950, :y => -950, :z => 950)
-jump_gate system('Philo'), system('Aphrodite'), :location => Location.new(:x => 950, :y => -950, :z => 950)
+athena    = system('Athena')
+aphrodite = system('Aphrodite')
+philo     = system('Philo')
+
+jump_gate athena, aphrodite, :location => Location.new(:x => -950, :y => -950, :z => -950)
+jump_gate athena, philo, :location => Location.new(:x => 950, :y => 950, :z => 950)
+jump_gate aphrodite, athena, :location => Location.new(:x => -950, :y => 950, :z => -950)
+jump_gate aphrodite, philo, :location => Location.new(:x => 950, :y => -950, :z => 950)
+jump_gate philo, aphrodite, :location => Location.new(:x => 950, :y => -950, :z => 950)
+
+schedule_event 60,
+               Missions::Events::PopulateResources.new(:id => 'populate-resources',
+                                                       :from_resources => Omega::Resources.all_resources,
+                                                       :from_entities  => athena.asteroids + aphrodite.asteroids + philo.asteroids)
