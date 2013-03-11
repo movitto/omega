@@ -589,6 +589,45 @@ describe Manufactured::RJRAdapter do
   end
 
   it "should permit users with modify manufactured_resources to add resource directly to an entity" do
+    Manufactured::Registry.instance.create @ship1
+
+    # node type is not local node
+    Omega::Client::Node.node_type = 'local-test'
+
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::add_resource', @ship1.id, 'metal-steel', 500)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    Omega::Client::Node.node_type = :local
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::add_resource', @ship1.id, 'metal-steel', 500)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('modify', 'manufactured_resources')
+
+    # invalid entity id
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::add_resource', 'non_existant', 'metal-steel', 500)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid quantity
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::add_resource', @ship1.id, 'metal-steel', -500)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::add_resource', @ship1.id, 'metal-steel', 100)
+    }.should_not raise_error
+
+    rship = Manufactured::Registry.instance.find(:id => @ship1.id).first
+    rship.resources['metal-steel'].should == 100
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity within a system" do
@@ -677,8 +716,6 @@ describe Manufactured::RJRAdapter do
     rship.first.location.y.should == rloc.y
     rship.first.location.z.should == rloc.z
   end
-
-
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity between systems" do
     Motel::Runner.instance.run @ship1.location

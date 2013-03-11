@@ -317,7 +317,7 @@ class RJRAdapter
       Users::Registry.require_privilege(:privilege => 'modify', :entity => 'manufactured_resources',
                                         :session   => @headers['session_id'])
 
-      entity = Manufactured::Registry.instance.find(:id => id).first
+      entity = Manufactured::Registry.instance.find(:id => entity_id).first
       raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found"  if entity.nil?
 
       raise ArgumentError, "quantity must be an int / float > 0" if (!quantity.is_a?(Integer) && !quantity.is_a?(Float)) || quantity <= 0

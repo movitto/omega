@@ -41,7 +41,7 @@ class Event
   # @option args [Array<Callable>] :callbacks, 'callbacks' callbacks to be run when processing this event
   def initialize(args = {})
     @id        = args[:id]        || args['id']        || ""
-    @timestamp = args[:timestamp] || args['timestamp'] || nil
+    @timestamp = args[:timestamp] || args['timestamp'] || Time.now
     @callbacks = args[:callbacks] || args['callbacks'] || []
 
     if @timestamp.is_a?(String)

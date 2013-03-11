@@ -49,6 +49,17 @@ class Registry
     }
   end
 
+  # Return registered handlers for specified event
+  #
+  # @param [String] event_id id of the event which to return handlers for
+  # @return [Hash{String,Callable}] mapping of handler ids to callable handlers
+  def handlers_for(event_id)
+    @registry_lock.synchronize{
+      @event_handlers.has_key?(event_id) ?
+               @event_handlers[event_id] : {}
+    }
+  end
+
   # Remove all global event handlers registered for the specified event
   def remove_event_handlers(event_id)
     @registry_lock.synchronize{
@@ -82,27 +93,19 @@ class Registry
     }
   end
 
-  # Wrapper around create to create a new event w/ the specified params
+  # Remove entity w/ the specified id from the registry
   #
-  # @param [String] event_id id of the event to create
-  # @param [Time] timestamp time to assign to the event
-  # @param [Callable] &bl optional callback block to assign to event
-  def add_event(id, timestamp, &bl)
-    evnt = Missions::Event.new :id => id, :timestamp => timestamp
-    evnt.callbacks << bl unless bl.nil?
-    create(evnt)
-  end
-
-  # Remove event w/ the specified id
+  # For events, will still remove if timeout expired but event
+  # hadn't been processed by loop yet, and will ignore
+  # if event is no longer on loop (eg already processed
+  # and moved to history)
   #
-  # @param [String] event_id id of the event to remove
-  def remove_event(event_id)
-    # Will still remove if timeout expired but event
-    # hadn't been processed by loop yet, and will ignore
-    # if event is no longer on loop (eg already processed
-    # and moved to history)
+  # @param [String] entity id of the entity to remove
+  def remove(entity_id)
     @registry_lock.synchronize{
-      @events.reject! { |e| e.id == event_id }
+      # XXX implies global missions & event id namespace
+      @missions.reject! { |m| m.id == entity_id }
+      @events.reject!   { |e| e.id == entity_id }
     }
   end
 
@@ -169,15 +172,25 @@ class Registry
     @event_thread.join unless @event_thread.nil?
   end
 
-
   # Save state of the registry to specified io stream
   def save_state(io)
-    # TODO
+    missions.each { |m|
+      io.write m.to_json + "\n"
+    }
+    events.each { |e|
+      io.write e.to_json + "\n"
+    }
+    # TODO store event history
   end
 
   # Restore state of the registry from the specified io stream
   def restore_state(io)
-    # TODO
+    io.each { |json|
+      entity = JSON.parse(json)
+      if entity.is_a?(Missions::Mission) || entity.is_a?(Missions::Event)
+        create(entity)
+      end
+    }
   end
 
 end

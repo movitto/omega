@@ -121,7 +121,7 @@ describe Manufactured::Registry do
     station.should == station1
   end
 
-  it "provide acceses to managed ship graveyard" do
+  it "provide access to managed ship graveyard" do
     system1 = Cosmos::SolarSystem.new :name => 'system1'
     ship1   = Manufactured::Ship.new :id => 'ship1',
                            :solar_system => system1,

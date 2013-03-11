@@ -190,9 +190,19 @@ describe Omega::Client::DSL do
   end
 
   it "should schedule a new periodic missions event" do
+    e = schedule_event 10, Missions::Event.new(:id => 'event123')
+    e.id.should == 'event123-scheduler'
+    Missions::Registry.instance.events.find { |e|
+      e.id == 'event123-scheduler' && e.interval == 10 && e.template_event.id == 'event123'
+    }.should_not be_nil
   end
 
   it "should create a new mission" do
+    m = mission 'mission123', :title => 'test mission'
+    m.id.should == 'mission123'
+    Missions::Registry.instance.missions.find { |m|
+      m.id == 'mission123' && m.title == 'test mission'
+    }.should_not be_nil
   end
 
 end

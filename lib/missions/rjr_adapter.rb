@@ -64,7 +64,7 @@ class RJRAdapter
   # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('missions::create_event'){ |event|
-      Users::Registry.require_privilege(:privilege => 'create', :entity => 'missions_events',
+      Users::Registry.require_privilege(:privilege => 'create', :entity => 'mission_events',
                                         :session   => @headers['session_id'])
 
       raise ArgumentError, "Invalid #{event.class} event specified, must be Missions::Event subclass" unless event.kind_of?(Missions::Event)
@@ -77,14 +77,14 @@ class RJRAdapter
     rjr_dispatcher.add_handler('missions::create_mission'){ |mission|
       # XXX be very careful who can do this as missions currently use SProcs
       # to evaluate arbitrary ruby code
-      Users::Registry.require_privilege(:privilege => 'create', :entity => 'missions_missions',
+      Users::Registry.require_privilege(:privilege => 'create', :entity => 'missions',
                                         :session   => @headers['session_id'])
 
-      raise ArgumentError, "Invalid #{mission.class} mission specified, must be Missions::Mission subclass" unless event.kind_of?(Missions::Mission)
-      # TODO err if existing event w/ duplicate id ?
+      raise ArgumentError, "Invalid #{mission.class} mission specified, must be Missions::Mission subclass" unless mission.kind_of?(Missions::Mission)
+      # TODO err if existing mission w/ duplicate id ?
 
-      rmission = Missions::Registry.instance.create :mission => mission,
-                                                    :node    => @@local_node
+      rmission = Missions::Registry.instance.create mission
+      rmission.node = @@local_node
       rmission
     }
 
@@ -101,6 +101,21 @@ class RJRAdapter
 
       event = Missions::Events::Manufactured.new *args
       Missions::Registry.instance.create event
+      nil
+    }
+
+    rjr_dispatcher.add_handler('missions::save_state') { |output|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      output_file = File.open(output, 'a+')
+      Missions::Registry.instance.save_state(output_file)
+      output_file.close
+    }
+
+    rjr_dispatcher.add_handler('missions::restore_state') { |input|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+      input_file = File.open(input, 'r')
+      Missions::Registry.instance.restore_state(input_file)
+      input_file.close
     }
   end
 

@@ -278,7 +278,7 @@ module Omega
       # @param [Integer] interval which event should occur
       # @param [Missions::Event] event event which to run at specified interval
       def schedule_event(interval, event)
-        evnt = Missions::Event::Periodic.new :id => event.id + '-scheduler',
+        evnt = Missions::Events::Periodic.new :id => event.id + '-scheduler',
                                              :interval => interval, :event => event
         RJR::Logger.info "Scheduling event #{evnt}(#{event})"
         Omega::Client::Node.invoke_request 'missions::create_event', evnt

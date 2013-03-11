@@ -63,15 +63,17 @@ mission gen_uuid, :title => 'Kill Duncan',
           node.invoke_request('manufactured::create_entity', duncan_ship)
 
           # add event for mission expiration
-          Missions::Registry.instance.add_event("mission-#{mission.id}-expired",
-                                                Time.now + mission.timeout) { |e|
-            mission.failed!
-          }
+          expired = Missions::Event.new(:id      => "mission-#{mission.id}-expired",
+                                        :timeout => Time.now + mission.timeout) { |e|
+                                           mission.failed! # if mission.expired?
+                                         }
+          Missions::Registry.instance.create expired
 
           # handle dunan ship being destroyed event
           Missions::Registry.instance.handle_event("#{duncan_ship.id}-_destroyed") { |e|
-            mission.victory!
-            Missions::Registry.instance.add_event("mission-#{mission.id}-succeeded", Time.now)
+            mission.victory! # if mission.completed?
+            victory = Missions::Event.new(:id => "mission-#{mission.id}-succeeded", :timeout => Time.now)
+            Missions::Registry.instance.create victory
             # can create more ships or whatever instead
           }
 
@@ -89,13 +91,13 @@ mission gen_uuid, :title => 'Kill Duncan',
           # add resources to player's cargo
           # TODO better way to get user ship than this
           entity = node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'owned_by', mission.assigned_to_id).first
-          node.invoke_request('manufactured::add_resource', entity.id, 'metal-steel', 100)
+          node.invoke_request('manufactured::add_resource', entity.id, 'metal-steel', 50)
 
           # from this point same logic as failure callbacks below
           duncan_ship = mission.mission_data['duncan_ship']
           node.invoke_request('manufactured::remove_callbacks', duncan_ship.id)
           Missions::Registry.instance.remove_event_handler("#{duncan_ship.id}_destroyed")
-          Missions::Registry.instance.remove_event("mission-#{mission.id}-expired")
+          Missions::Registry.instance.remove("mission-#{mission.id}-expired")
           node.invoke_request('missions::create_mission', mission.clone(:id => Motel.gen_uuid))
         }],
 
@@ -110,7 +112,7 @@ mission gen_uuid, :title => 'Kill Duncan',
           Missions::Registry.instance.remove_event_handler("#{duncan_ship.id}_destroyed")
 
           # remove mission expiration event
-          Missions::Registry.instance.remove_event("mission-#{mission.id}-expired")
+          Missions::Registry.instance.remove("mission-#{mission.id}-expired")
 
           # TODO flush other mission related events?
 

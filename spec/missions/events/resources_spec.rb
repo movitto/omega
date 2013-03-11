@@ -5,14 +5,14 @@
 
 require 'spec_helper'
 
-describe Missions::Events::Populate::Resources do
+describe Missions::Events::PopulateResource do
   it "should set populate resource defaults" do
     event = Missions::Events::PopulateResource.new
     event.resource.should == :random
     event.entity.should   == :random
     event.quantity.should == :random
-    entity.from_entities.should  == []
-    entity.from_resources.should == []
+    event.from_entities.should  == []
+    event.from_resources.should == []
   end
 
   it "should accept populate resource event args" do
@@ -31,24 +31,46 @@ describe Missions::Events::Populate::Resources do
     event.callbacks.size.should == 1
   end
 
-  it "should select random entity from list if specified" do
-  end
-
-  it "should select random resource from list if specified" do
-  end
-
-  it "should default to random quantity if not specified" do
+  it "should select random entity,resource,quantity" do
+    # TODO
   end
 
   it "should be convertable to json" do
-    event = Missions::Events::PopulateResource.new
+    t = Time.now
+    event = Missions::Events::PopulateResource.new :id => 'pre123', :timestamp => t,
+                                                   :callbacks => [:cb1],
+                                                   :resource  => :res1,
+                                                   :entity    => :random,
+                                                   :quantity  =>   123,
+                                                   :from_entities  => [:ent2, :ent3],
+                                                   :from_resources => [:res2, :res3]
 
     j = event.to_json
+    j.should include('"json_class":"Missions::Events::PopulateResource"')
+    j.should include('"id":"pre123"')
+    j.should include('"timestamp":"'+t.to_s+'"')
+    j.should include('"callbacks":["cb1"]')
+    j.should include('"resource":"res1"')
+    j.should include('"entity":"random"')
+    j.should include('"quantity":123')
+    j.should include('"from_entities":["ent2","ent3"]')
+    j.should include('"from_resources":["res2","res3"]')
   end
 
   it "should be convertable from json" do
-    j = ''
+    t = Time.new('2013-03-10 15:33:41 -0400')
+    j = '{"json_class":"Missions::Events::PopulateResource","data":{"id":"pre123","timestamp":"2013-03-10 15:50:16 -0400","callbacks":["cb1"],"resource":"res1","entity":"random","quantity":123,"from_entities":["ent2","ent3"],"from_resources":["res2","res3"]}}'
 
     event = JSON.parse(j)
+    event.class.should == Missions::Events::PopulateResource
+    event.id.should == 'pre123'
+    event.timestamp.should == t
+    event.callbacks.size.should == 2
+    event.callbacks.last.should == 'cb1'
+    event.resource.should == 'res1'
+    event.entity.should == :random
+    event.quantity.should == 123
+    event.from_entities.should  == ['ent2', 'ent3']
+    event.from_resources.should == ['res2', 'res3']
   end
 end

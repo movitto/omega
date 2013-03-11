@@ -11,6 +11,9 @@ module Missions
 # completed (or timeout expires). Also incorporates callbacks to run handlers
 # at various points during the mission cycle.
 class Mission
+  # Node to use to query other subsystems
+  attr_accessor :node
+
   # Unique string id of the mission
   attr_accessor :id
 

@@ -25,7 +25,7 @@ class PopulateResource < Missions::Event
   attr_accessor :from_entities
 
   # Quantity which to populate or random
-  attr_accessor :entity
+  attr_accessor :quantity
 
   # PopulateResource Event Initializer
   def initialize(args = {})
@@ -35,11 +35,15 @@ class PopulateResource < Missions::Event
     @from_entities = args[:from_entities]  || args['from_entities']  || []
     @from_resources= args[:from_resources] || args['from_resources'] || []
 
+    @resource = :random if @resource == 'random'
+    @entity   = :random if @entity   == 'random'
+    @quantity = :random if @quantity == 'random'
+
     super(args)
-    @callbacks << lambda { |e|
-      @resource = from_resources[rand(from_resources.size)] if @resource == :random
-      @entity   = from_entities[rand(from_entities.size)]   if @entity   == :random
-      @quantity = rand(DEFAULT_QUANTITY)                    if @quantity == :random
+    @callbacks.unshift lambda { |e|
+      @resource = (@resource == :random ? from_resources[rand(from_resources.size)] : @resource)
+      @entity   = (@entity   == :random ? from_entities[rand(from_entities.size)]   : @entity)
+      @quantity = (@quantity == :random ? rand(DEFAULT_QUANTITY)                    : @quantity)
       Missions::Event.node.invoke_request('cosmos::set_resource', @entity.id, @resource, @quantity)
     }
   end
@@ -48,8 +52,9 @@ class PopulateResource < Missions::Event
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :timestamp => timestamp,:callbacks => callbacks,
-                       :resource => resource, :entity => entity}
+      'data'       => {:id => id, :timestamp => timestamp,:callbacks => callbacks[1..-1],
+                       :resource => resource, :entity => entity, :quantity => @quantity,
+                       :from_entities => @from_entities, :from_resources => @from_resources}
     }.to_json(*a)
   end
 end
