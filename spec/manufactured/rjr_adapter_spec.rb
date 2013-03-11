@@ -588,6 +588,9 @@ describe Manufactured::RJRAdapter do
     @ship2.notification_callbacks.size.should == 0
   end
 
+  it "should permit users with modify manufactured_resources to add resource directly to an entity" do
+  end
+
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity within a system" do
     Motel::Runner.instance.run @ship1.location
     Manufactured::Registry.instance.create @ship1

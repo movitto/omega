@@ -20,6 +20,8 @@ PRIVILEGE_DELETE = 'delete'
 
 PRIVILEGES        = [PRIVILEGE_VIEW, PRIVILEGE_CREATE, PRIVILEGE_MODIFY, PRIVILEGE_DELETE]
 
+# TODO missions module
+
 ENTITIES_LOCATIONS    = 'locations'
 ENTITIES_COSMOS       = 'cosmos_entities'
 ENTITIES_MANUFACTURED = 'manufactured_entities'

@@ -12,29 +12,35 @@ class PopulateResource < Missions::Event
   # Default quantity of resource that will be added if not specified
   DEFAULT_QUANTITY = 1000
 
+  # Resource which to populate or random
+  attr_accessor :resource
+
+  # List of resources which to pick random resource from
+  attr_accessor :from_resources
+
+  # Entity which to populate or random
+  attr_accessor :entity
+
+  # List of entities which to pick random entity from
+  attr_accessor :from_entities
+
+  # Quantity which to populate or random
+  attr_accessor :entity
+
   # PopulateResource Event Initializer
   def initialize(args = {})
     @resource      = args[:resource]       || args['resource']       || :random
     @entity        = args[:entity]         || args['entity']         || :random
     @quantity      = args[:quantity]       || args['quantity']       || :random
-    from_entities  = args[:from_entities]  || args['from_entities']  || []
-    from_resources = args[:from_resources] || args['from_resources'] || []
-
-    if @resource.nil? || @resource == :random
-      @resource = from_resources[rand(from_resources.size)]
-    end
-
-    if @entity.nil? || @entity == :random
-      @entity = from_entities[rand(from_entities.size)]
-    end
-
-    if @quantity.nil? || @quantity == :random
-      @quantity = DEFAULT_QUANTITY
-    end
+    @from_entities = args[:from_entities]  || args['from_entities']  || []
+    @from_resources= args[:from_resources] || args['from_resources'] || []
 
     super(args)
     @callbacks << lambda { |e|
-      Missions::Event.node.invoke_request 'cosmos::set_resource', @entity.id, @resource, @quantity)
+      @resource = from_resources[rand(from_resources.size)] if @resource == :random
+      @entity   = from_entities[rand(from_entities.size)]   if @entity   == :random
+      @quantity = rand(DEFAULT_QUANTITY)                    if @quantity == :random
+      Missions::Event.node.invoke_request('cosmos::set_resource', @entity.id, @resource, @quantity)
     }
   end
 

@@ -44,7 +44,7 @@ class Registry
     @registry_lock.synchronize{
       handler_id = Motel.gen_uuid
       @event_handlers[event_id] ||= {}
-      @event_handlers[event_id][handler_id] handler
+      @event_handlers[event_id][handler_id] = handler
       handler_id
     }
   end

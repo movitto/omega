@@ -56,9 +56,9 @@ class Mission
   def assign_to(user)
     return unless self.assignable_to?(user)
     if user.is_a?(String)
-      # XXX don't like reaching into registry here
-      @assigned_to    = user
-      @assigned_to_id = Users::Registry.instance.find(:id => user).first
+      # XXX don't like reaching into registry here (perhaps node should be used?)
+      @assigned_to_id = user
+      @assigned_to    = Users::Registry.instance.find(:id => user).first
 
     else
       @assigned_to    = user
@@ -66,8 +66,10 @@ class Mission
 
     end
 
-    @assigned_to_callbacks.each { |acb|
-      abc.call self, @node
+    @assigned_time = Time.now
+
+    @assignment_callbacks.each { |acb|
+      acb.call self, @node
     }
   end
 
@@ -138,16 +140,20 @@ class Mission
     @id                   = ""
     @title                = ""
     @description          = ""
-    @creator_id           = nil
+    @creator_user_id      = nil
     @assigned_to_id       = nil
     @assigned_time        = nil
     @timeout              = nil
-    @requirements         = nil
-    @assignment_callbacks = nil
-    @victory_conditions   = nil
-    @victory_callbacks    = nil
-    @failure_callbacks    = nil
+    @requirements         = []
+    @assignment_callbacks = []
+    @victory_conditions   = []
+    @victory_callbacks    = []
+    @failure_callbacks    = []
     update(args)
+
+    if @assigned_time.is_a?(String)
+      @assigned_time = Time.new(@assigned_time)
+    end
   end
 
   # Update the mission from the specified args
@@ -156,7 +162,7 @@ class Mission
   # @option args [String] :id,'id' id to assign to the mission
   # @option args [String] :title,'title' title of the mission
   # @option args [String] :description,'description' description of the mission
-  # @option args [String] :creator_id,'creator_id' id of user that created the mission
+  # @option args [String] :creator_user_id,'creator_user_id' id of user that created the mission
   # @option args [String] :assigned_to_id,'assigned_to_id' id of user that the mission is assigned to
   # @option args [Time]   :assigned_time,'assigned_time' time the mission was assigned to user
   # @option args [Integer] :timeout,'timeout' seconds which mission assignment is valid for
@@ -171,7 +177,7 @@ class Mission
     @id                    =  args[:id]                   || args['id']                   || @id
     @title                 =  args[:title]                || args['title']                || @title
     @description           =  args[:description]          || args['description']          || @description
-    @creator_id            =  args[:creator_id]           || args['creator_id']           || @creator_id
+    @creator_user_id       =  args[:creator_user_id]      || args['creator_user_id']      || @creator_user_id
     @assigned_to_id        =  args[:assigned_to_id]       || args['assigned_to_id']       || @assigned_to_id
     @assigned_time         =  args[:assigned_time]        || args['assigned_time']        || @assigned_time
     @timeout               =  args[:timeout]              || args['timeout']              || @timeout
@@ -183,18 +189,18 @@ class Mission
 
     [:mission, 'mission'].each { |mission|
       if args[mission]
-        update(:id                   = args[mission].id,
-               :title                = args[mission].title,
-               :description          = args[mission].description,
-               :creator_id           = args[mission].creator_id,
-               :assigned_to_id       = args[mission].assigned_to_id,
-               :assigned_time        = args[mission].assigned_time,
-               :timeout              = args[mission].timeout,
-               :requirements         = args[mission].requirements,
-               :assignment_callbacks = args[mission].assignment_callbacks,
-               :victory_conditions   = args[mission].victory_conditions,
-               :victory_callbacks    = args[mission].victory_callbacks,
-               :failure_callbacks    = args[mission].failure_callbacks)
+        update(:id                   => args[mission].id,
+               :title                => args[mission].title,
+               :description          => args[mission].description,
+               :creator_user_id      => args[mission].creator_user_id,
+               :assigned_to_id       => args[mission].assigned_to_id,
+               :assigned_time        => args[mission].assigned_time,
+               :timeout              => args[mission].timeout,
+               :requirements         => args[mission].requirements,
+               :assignment_callbacks => args[mission].assignment_callbacks,
+               :victory_conditions   => args[mission].victory_conditions,
+               :victory_callbacks    => args[mission].victory_callbacks,
+               :failure_callbacks    => args[mission].failure_callbacks)
       end
     }
   end
@@ -210,7 +216,15 @@ class Mission
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id}
+      'data'       => {:id => id,
+                       :title => title, :description => description,
+                       :creator_user_id => creator_user_id, :assigned_to_id => assigned_to_id,
+                       :timeout => timeout, :assigned_time => assigned_time,
+                       :requirements         => requirements,
+                       :assignment_callbacks => assignment_callbacks,
+                       :victory_conditions   => victory_conditions,
+                       :victory_callbacks    => victory_callbacks,
+                       :failure_callbacks    => failure_callbacks}
     }.to_json(*a)
   end
 

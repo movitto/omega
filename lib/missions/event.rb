@@ -43,6 +43,10 @@ class Event
     @id        = args[:id]        || args['id']        || ""
     @timestamp = args[:timestamp] || args['timestamp'] || nil
     @callbacks = args[:callbacks] || args['callbacks'] || []
+
+    if @timestamp.is_a?(String)
+      @timestamp = Time.new(@timestamp)
+    end
   end
 
   # Convert event to json representation and return it
@@ -65,4 +69,5 @@ class Event
     return event
   end
 
+end
 end

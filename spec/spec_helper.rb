@@ -15,6 +15,7 @@ require 'motel'
 require 'cosmos'
 require 'manufactured'
 require 'users'
+require 'missions'
 require 'omega'
 
 FactoryGirl.find_definitions
@@ -28,6 +29,7 @@ RSpec.configure do |config|
     Users::RJRAdapter.init
     Cosmos::RJRAdapter.init
     Manufactured::RJRAdapter.init
+    Missions::RJRAdapter.init
 
     TestUser.create.clear_privileges
 
@@ -48,6 +50,7 @@ RSpec.configure do |config|
   config.after(:each) {
     Omega::Client::CachedAttribute.clear
     Omega::Client::Node.clear
+    Missions::Registry.instance.init
     Manufactured::Registry.instance.init
     Cosmos::Registry.instance.init
     Motel::Runner.instance.clear

@@ -189,4 +189,10 @@ describe Omega::Client::DSL do
     Manufactured::Registry.instance.find(:id => 'sh1', :type => 'Manufactured::Ship').first.should_not be_nil
   end
 
+  it "should schedule a new periodic missions event" do
+  end
+
+  it "should create a new mission" do
+  end
+
 end

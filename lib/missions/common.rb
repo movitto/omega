@@ -10,6 +10,8 @@
 # https://github.com/ngty/sourcify
 require 'sourcify'
 
+require 'delegate'
+
 # Wrapper around a block of code to autoserialize
 # its source to a string and support conversion to json
 class SProc  < DelegateClass(Proc)
@@ -38,6 +40,9 @@ class SProc  < DelegateClass(Proc)
     if sblock.nil? && block.nil?
       raise RuntimeError, "must specify code block or string representation"
     end
+
+    # TODO ensure block is a lambda/proc/other callable?
+    super(@block)
   end
 
   # Implementation of Object::==
@@ -49,7 +54,11 @@ class SProc  < DelegateClass(Proc)
   def inspect
     "#<SProc: #{@sblock.inspect}>"
   end
-  alias :to_s :inspect
+
+  # Return string representation of code block
+  def to_s
+    @sblock
+  end
 
   # Convert SProc to json representation and return it
   def to_json(*a)
@@ -61,7 +70,7 @@ class SProc  < DelegateClass(Proc)
 
   # Create new SProc from json representation and return it
   def self.json_create(o)
-    sproc = new(o['data'][:sblock])
+    sproc = new(o['data']['sblock'])
     return sproc
   end
 

@@ -21,21 +21,21 @@ class Manufactured < Missions::Event
     id =
       case manu_event
       when 'attacked_stopped','attacked'                       then
-        manufactured_args[1].id
+        manufactured_event_args[1].id
 
       when 'defended_stopped','defended','destroyed'           then
-        manufactured_args[2].id
+        manufactured_event_args[2].id
 
       when 'resource_depleted','resource_collected'            then
         # TODO also incoporate resource_source_id (param 2) ?
-        manufactured_args[1].id
+        manufactured_event_args[1].id
 
       when 'mining_stopped'                                    then
         # TODO also incoporate resource_source_id (param 3) ?
-        manufactured_args[2].id
+        manufactured_event_args[2].id
 
       when 'construction_complete','partial_construction'      then
-        manufactured_args[1].id
+        manufactured_event_args[1].id
 
       end
     id += "_" + manu_event

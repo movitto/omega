@@ -24,7 +24,7 @@ class Periodic < Missions::Event
     @template_event = args[:event]    || args['event']    || nil
 
     super(args)
-    @callbacks << lambda { |e|
+    @callbacks << proc { |e|
       # TODO event ids
 
       # XXX bit of a hacky way to copy template event but works

@@ -7,7 +7,12 @@
 # story missions and events
 module Missions ; end
 
+require 'missions/common'
 require 'missions/mission'
 require 'missions/event'
 require 'missions/registry'
 require 'missions/rjr_adapter'
+
+require 'missions/events/manufactured'
+require 'missions/events/resources'
+require 'missions/events/periodic'

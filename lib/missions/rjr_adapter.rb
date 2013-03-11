@@ -34,7 +34,7 @@ class RJRAdapter
   #
   # First instantiates user if it doesn't exist.
   def self.user
-    @@missions_user ||= Users::User.new(:id       => Missions::RJRAdapter.missions_rjr_user,
+    @@missions_user ||= Users::User.new(:id       => Missions::RJRAdapter.missions_rjr_username,
                                         :password => Missions::RJRAdapter.missions_rjr_password)
   end
 
