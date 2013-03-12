@@ -60,7 +60,7 @@ end
 # Return All {Cosmos::Resource}s instantiated from master list
 def self.all_resources
   RESOURCE_IDS.collect { |i|
-    type,name = *(id.split('-'))
+    type,name = *(i.split('-'))
     Cosmos::Resource.new :type => type, :name => name
   }
 end

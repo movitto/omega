@@ -27,11 +27,11 @@ duncan   = user 'Duncan',       'nacnud',       :npc => true
 
 castle_macbeth = station('castle-macbeth', :user_id => 'Macbeth',
                          :solar_system => starting_system, 
-                         :location     => Location.new(:x => 750, :y => 750, :z => 750))
+                         :location     => Motel::Location.new(:x => 750, :y => 750, :z => 750))
 
 macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
                       :solar_system => starting_system, 
-                      :location     => Location.new(:x => 760, :y => 760, :z => 760))
+                      :location     => Motel::Location.new(:x => 760, :y => 760, :z => 760))
 macbeth_ship.dock_at(castle_macbeth)
 
 
@@ -39,7 +39,7 @@ mission gen_uuid, :title => 'Kill Duncan',
         :user        => macbeth, :time_to_complete => 360,
         :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
 
-        :requirements => [ proc{ |mission, assigning_to, node|
+        :requirements => proc{ |mission, assigning_to, node|
           # ensure users have a ship docked at a common station
           created_by = mission.creator
           centities  = node.invoke_request('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', created_by.id)
@@ -49,22 +49,22 @@ mission gen_uuid, :title => 'Kill Duncan',
           astats     = aentities.collect { |s| s.docked_at }.compact
 
           !(cstats & astats).empty?
-        }],
+        },
 
-        :assignment_callbacks => [ proc{ |mission, node|
+        :assignment_callbacks =>  proc{ |mission, node|
           # create new ship for duncan at random location in system
           athena  = node.invoke_request('cosmos::get_entity', 'with_id', 'Athena')
-          duncan_ship = Manufactured::Ship.new(:id => 'duncan_ship-' + Motel.gen_uuid,
+          duncan_ship = Manufactured::Ship.new :id => 'duncan_ship-' + Motel.gen_uuid,
                                                :type => :corvette, # TODO autodefend on attack
                                                :user_id       => 'Duncan',
                                                :system_name   => 'Athena',
-                                               :location      => Motel::Location.random)
+                                               :location      => Motel::Location.random
           mission.mission_data['duncan_ship'] = duncan_ship
           node.invoke_request('manufactured::create_entity', duncan_ship)
 
           # add event for mission expiration
-          expired = Missions::Event.new(:id      => "mission-#{mission.id}-expired",
-                                        :timeout => Time.now + mission.timeout) { |e|
+          expired = Missions::Event.new :id      => "mission-#{mission.id}-expired",
+                                        :timeout => Time.now + mission.timeout { |e|
                                            mission.failed! # if mission.expired?
                                          }
           Missions::Registry.instance.create expired
@@ -72,22 +72,22 @@ mission gen_uuid, :title => 'Kill Duncan',
           # handle dunan ship being destroyed event
           Missions::Registry.instance.handle_event("#{duncan_ship.id}-_destroyed") { |e|
             mission.victory! # if mission.completed?
-            victory = Missions::Event.new(:id => "mission-#{mission.id}-succeeded", :timeout => Time.now)
+            victory = Missions::Event.new :id => "mission-#{mission.id}-succeeded", :timeout => Time.now
             Missions::Registry.instance.create victory
             # can create more ships or whatever instead
           }
 
           # subscribe to server side events
           node.invoke_request('manufactured::subscribe_to', duncan_ship.id, 'destroyed')
-        }],
+        },
 
-        :victory_conditions => [ proc{ |mission, node|
+        :victory_conditions => proc{ |mission, node|
           # check if duncan's ship is destroyed
           entity = node.invoke_request('manufactured::get_entity', mission.mission_data['duncan_ship'].id)
           entity.nil? # or also search graveyard and verify hp == 0
-        }],
+        },
 
-        :victory_callbacks => [ proc{ |mission, node|
+        :victory_callbacks => proc{ |mission, node|
           # add resources to player's cargo
           # TODO better way to get user ship than this
           entity = node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'owned_by', mission.assigned_to_id).first
@@ -98,10 +98,11 @@ mission gen_uuid, :title => 'Kill Duncan',
           node.invoke_request('manufactured::remove_callbacks', duncan_ship.id)
           Missions::Registry.instance.remove_event_handler("#{duncan_ship.id}_destroyed")
           Missions::Registry.instance.remove("mission-#{mission.id}-expired")
-          node.invoke_request('missions::create_mission', mission.clone(:id => Motel.gen_uuid))
-        }],
+          new_mission = mission.clone :id => Motel.gen_uuid
+          node.invoke_request('missions::create_mission', new_mission)
+        },
 
-        :failure_callbacks => [proc{ |mission, node|
+        :failure_callbacks => proc{ |mission, node|
           # grab handle to duncan ship
           duncan_ship = mission.mission_data['duncan_ship']
 
@@ -117,5 +118,6 @@ mission gen_uuid, :title => 'Kill Duncan',
           # TODO flush other mission related events?
 
           # create a new mission based on this one
-          node.invoke_request('missions::create_mission', mission.clone(:id => Motel.gen_uuid))
-        }]
+          new_mission = mission.clone :id => Motel.gen_uuid
+          node.invoke_request('missions::create_mission', new_mission)
+        }

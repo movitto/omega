@@ -52,8 +52,7 @@ class RJRAdapter
 
     @@local_node.invoke_request('users::create_entity', self.user)
     role_id = "user_role_#{self.user.id}"
-    # TODO add privileges needed by missions user
-    #@@local_node.invoke_request('users::add_privilege', role_id, '',   '')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'cosmos_entities')
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id

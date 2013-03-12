@@ -65,6 +65,6 @@ jump_gate aphrodite, philo, :location => Location.new(:x => 950, :y => -950, :z 
 jump_gate philo, aphrodite, :location => Location.new(:x => 950, :y => -950, :z => 950)
 
 schedule_event 60,
-               Missions::Events::PopulateResources.new(:id => 'populate-resources',
-                                                       :from_resources => Omega::Resources.all_resources,
-                                                       :from_entities  => athena.asteroids + aphrodite.asteroids + philo.asteroids)
+               Missions::Events::PopulateResource.new(:id => 'populate-resources',
+                                                      :from_resources => Omega::Resources.all_resources,
+                                                      :from_entities  => athena.asteroids + aphrodite.asteroids + philo.asteroids)

@@ -14,7 +14,6 @@ require 'omega/roles'
 require 'omega/names'
 require 'omega/resources'
 require 'omega/client'
-require 'omega/config'
 
 require 'omega/client2/node'
 require 'omega/client2/mixins'
@@ -32,3 +31,5 @@ require 'cosmos'
 require 'manufactured'
 require 'users'
 require 'missions'
+
+require 'omega/config'

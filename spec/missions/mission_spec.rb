@@ -53,6 +53,25 @@ describe Missions::Mission do
     mission.failure_callbacks.should == [:fc1]
   end
 
+  it "should convert proc parameters to callable members into sprocs" do
+    mission = Missions::Mission.new :requirements         => [proc { 1 + 1}],
+                                    :assignment_callbacks => [proc { 2 + 2}],
+                                    :victory_conditions   => [proc { 3 + 3}],
+                                    :victory_callbacks    => [proc { 4 + 4}],
+                                    :failure_callbacks    => [proc { 5 + 5}]
+
+    mission.requirements.first.class.should        == SProc
+    mission.assignment_callbacks.first.class.should == SProc
+    mission.victory_conditions.first.class.should   == SProc
+    mission.victory_callbacks.first.class.should    == SProc
+    mission.failure_callbacks.first.class.should    == SProc
+
+    mission = Missions::Mission.new :requirements => proc { 1 + 1}
+    mission.requirements.class.should       == Array
+    mission.requirements.size.should        == 1
+    mission.requirements.first.class.should == SProc
+  end
+
   it "should copy attributes from given mission" do
      t = Time.now
      mission1 = Missions::Mission.new :id   => "mission123", 

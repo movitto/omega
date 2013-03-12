@@ -13,9 +13,13 @@ describe Users::User do
     u.email.should    == 'u@ser.com'
     u.password.should == "foobar"
     u.permenant.should == false
+    u.npc.should       == false
     u.alliances.size.should == 0
     u.roles.size.should == 0
     u.privileges.size.should == 0
+
+    u = Users::User.new :npc => true
+    u.npc.should       == true
   end
 
   it "should properly secure user password" do
@@ -138,6 +142,8 @@ describe Users::User do
     j.should include('"password":"foobar"')
     j.should include('"json_class":"Users::Alliance"')
     j.should include('"id":"alliance1"')
+    j.should include('"permenant":false')
+    j.should include('"npc":false')
   end
 
   it "should not include password or registration code in json if secure" do

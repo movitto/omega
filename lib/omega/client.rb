@@ -74,8 +74,8 @@ module Omega
       # @param [String] password password to assign to the new user
       # @param [Callable] bl option callback block parameter to call w/ the newly created user
       # @return [Users::User] user created
-      def user(username, password, &bl)
-        @user = Users::User.new :id => username, :password => password
+      def user(username, password, args = {}, &bl)
+        @user = Users::User.new args.merge({:id => username, :password => password})
         Omega::Client::Node.invoke_request('users::create_entity', @user)
         bl.call @user unless bl.nil?
         @user

@@ -112,18 +112,29 @@ class Registry
   # Run event cycle to process events
   def event_cycle
     until @terminate_cycles
+      run_events = []
+
       @registry_lock.synchronize{
         # process events which have elapsed timestamps
-        run_events = []
         @events.delete_if { |e| run_events << e if e.time_elapsed? }
+      }
 
-        run_events.each   { |e|
-          # grab global event handlers, add them to callbacks
-          e.callbacks += @event_handlers[e.id].values if @event_handlers.has_key?(e.id)
+      run_events.each   { |e|
+        RJR::Logger.debug "running missions event #{e}"
 
-          # invoke callbacks
+        # grab global event handlers, add them to callbacks
+        e.callbacks += @event_handlers[e.id].values if @event_handlers.has_key?(e.id)
+
+        # invoke callbacks
+        begin
           e.callbacks.each { |ecb| ecb.call(e) }
+        rescue Exception => err
+          RJR::Logger.warn "error in event #{e}: #{err}"
+        end
+      }
 
+      @registry_lock.synchronize{
+        run_events.each   { |e|
           # add to event history
           @event_history << e
         }

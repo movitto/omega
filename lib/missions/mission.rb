@@ -157,6 +157,20 @@ class Mission
     if @assigned_time.is_a?(String)
       @assigned_time = Time.new(@assigned_time)
     end
+
+    @requirements         = [@requirements]         unless @requirements.is_a?(Array)
+    @assignment_callbacks = [@assignment_callbacks] unless @assignment_callbacks.is_a?(Array)
+    @victory_conditions   = [@victory_conditions]   unless @victory_conditions.is_a?(Array)
+    @victory_callbacks    = [@victory_callbacks]    unless @victory_callbacks.is_a?(Array)
+    @failure_callbacks    = [@failure_callbacks]    unless @failure_callbacks.is_a?(Array)
+
+    [@requirements, @assignment_callbacks,
+     @victory_conditions, @victory_callbacks,
+     @failure_callbacks].each { |callable_q|
+      callable_q.each_index { |cqi|
+        callable_q[cqi] = SProc.new(&callable_q[cqi]) if callable_q[cqi].is_a?(Proc)
+      }
+    }
   end
 
   # Update the mission from the specified args

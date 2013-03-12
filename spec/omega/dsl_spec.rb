@@ -19,6 +19,15 @@ describe Omega::Client::DSL do
     Users::Registry.instance.find(:id => 'foo', :type => 'Users::User').first.should_not be_nil
   end
 
+  it "should allow user to specify args when creating new user" do
+    u = user('foo1', 'bar', :npc => true)
+    u.id.should == 'foo1'
+
+    ru = Users::Registry.instance.find(:id => 'foo1', :type => 'Users::User').first
+    ru.should_not be_nil
+    ru.npc.should be_true
+  end
+
   it "should create a new role" do
     u = role(Users::Role.new(:id => 'foozrole'))
     u.id.should == 'foozrole'

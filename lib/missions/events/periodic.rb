@@ -34,9 +34,9 @@ class Periodic < Missions::Event
       Missions::Registry.instance.create nevent
 
       # schedule next periodic event
-      Mission::Registry.instance.create Periodic.new(:interval  => @interval,
-                                                     :event     => @template_event,
-                                                     :timestamp => Time.now + @interval)
+      Missions::Registry.instance.create Periodic.new(:interval  => @interval,
+                                                      :event     => @template_event,
+                                                      :timestamp => Time.now + @interval)
     }
   end
 
@@ -44,7 +44,7 @@ class Periodic < Missions::Event
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :timestamp => timestamp,:callbacks => callbacks,
+      'data'       => {:id => id, :timestamp => timestamp,:callbacks => callbacks[1..-1],
                        :interval => interval, :event => template_event}
     }.to_json(*a)
   end

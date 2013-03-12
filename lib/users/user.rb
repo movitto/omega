@@ -73,6 +73,11 @@ class User
   # [Boolean] indicating if this user is permenantly logged in
   attr_accessor :permenant
 
+  # [Boolean] indicating if this user is a npc
+  # TODO prohibit npcs from logging in?
+  attr_accessor :npc
+
+
   # User initializer
   # @param [Hash] args hash of options to initialize user with
   # @option args [String] :id,'id' id to assign to the user
@@ -90,6 +95,7 @@ class User
     @registration_code   = args['registration_code'] || args[:registration_code]
     @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
     @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
+    @npc             = args[:npc]  || args['npc'] || false
     @secure_password = false
     @permenant       = false
 
@@ -197,6 +203,7 @@ class User
     {
       'json_class' => self.class.name,
       'data'       => {:id => id, :email => email, :alliances => alliances,
+                       :permenant => permenant, :npc => npc,
                       }.merge(@secure_password ? {} : {:password => password, :registration_code => registration_code})
     }.to_json(*a)
   end

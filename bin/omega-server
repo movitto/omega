@@ -94,6 +94,7 @@ def main()
   Users::RJRAdapter.init
   Cosmos::RJRAdapter.init
   Manufactured::RJRAdapter.init
+  Missions::RJRAdapter.init
 
   nodes = []
 

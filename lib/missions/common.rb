@@ -8,6 +8,9 @@
 # XXX we use sourcify to move blocks of code pertaining to Mission
 # system operations around, be careful who has write access to this!
 # https://github.com/ngty/sourcify
+#
+# XXX bug w/ sourcify 0.5.0 and double quotes, use 0.6.0.rc2
+# https://github.com/ngty/sourcify/issues/25
 require 'sourcify'
 
 require 'delegate'
