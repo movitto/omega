@@ -34,7 +34,6 @@ macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
                       :location     => Motel::Location.new(:x => 760, :y => 760, :z => 760))
 macbeth_ship.dock_at(castle_macbeth)
 
-
 mission gen_uuid, :title => 'Kill Duncan',
         :user        => macbeth, :time_to_complete => 360,
         :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',

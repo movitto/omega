@@ -41,6 +41,7 @@ class Mission
   # Return boolean indicating if user meets requirements
   # to be assigned to this mission
   def assignable_to?(user)
+    !@assigned_to_id &&
     @requirements.all? { |req|
       req.call self, user, @node
     }
@@ -59,9 +60,9 @@ class Mission
   def assign_to(user)
     return unless self.assignable_to?(user)
     if user.is_a?(String)
-      # XXX don't like reaching into registry here (perhaps node should be used?)
+      # XXX don't like reaching into registry here
       @assigned_to_id = user
-      @assigned_to    = Users::Registry.instance.find(:id => user).first
+      @assigned_to    = @node.invoke_request('users::get_entity', 'with_id', user) unless @node.nil?
 
     else
       @assigned_to    = user
@@ -70,6 +71,14 @@ class Mission
     end
 
     @assigned_time = Time.now
+
+    # use node to create new view-mission-id permission
+    unless @node.nil?
+      begin
+        @node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view', "mission-#{self.id}")
+      rescue Exception => e
+      end
+    end
 
     @assignment_callbacks.each { |acb|
       acb.call self, @node
@@ -93,6 +102,12 @@ class Mission
 
   # Boolean indicating if user was failed mission
   attr_reader :failed
+
+  # Retuns boolean indicating if mission is active, eg
+  # not expired and not victorious / failed
+  def active?
+    !self.expired? && !self.victorious && !self.failed
+  end
 
   # Array of mission victory conditions
   attr_accessor :victory_conditions

@@ -1,0 +1,49 @@
+#!/usr/bin/ruby
+# Retrieve missions entity
+#
+# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+#events        = false
+id            = nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-i', '--id ID', 'id of mission to retrieve') do |i|
+    id = i
+  end
+
+  #opts.on('-e', '--events', 'also retrieve mission events') do
+  #  events = true
+  #end
+end
+
+optparse.parse!
+
+RJR::Logger.log_level= ::Logger::INFO
+
+$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+$rjr_node.message_headers['session_id'] = session.id
+
+missions = id.nil? ? $rjr_node.invoke_request('omega-queue', 'missions::get_missions') :
+                     $rjr_node.invoke_request('omega-queue', 'missions::get_mission', 'with_id', id.to_s)
+missions = [missions] unless missions.is_a?(Array)
+
+missions.each { |mission|
+  puts "Mission: " + mission.to_s
+  puts mission.to_json
+}
+
+#if events
+#end

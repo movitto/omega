@@ -205,6 +205,12 @@ describe Missions::Mission do
                   return true
                 }
 
+     mission = Missions::Mission.new :node => node
+     mission.assignable_to?(user).should be_true
+
+     mission = Missions::Mission.new :node => node, :assigned_to_id => 'user42'
+     mission.assignable_to?(user).should be_false
+
      mission = Missions::Mission.new :node => node, :requirements => [req1]
      mission.assignable_to?(user).should be_false
      req1_n.should == 1
@@ -241,21 +247,26 @@ describe Missions::Mission do
      mission.assigned_to_id.should be_nil
      mission.assigned_to.should be_nil
 
-     mission = Missions::Mission.new
-     mission.assign_to(user)
-     mission.assigned_to_id.should == user.id
-     mission.assigned_to.should == user
-
-  end
-
-  it "should lookup user in registry if assigning to user id" do
-     user     = Users::User.new :id => 'user42'
-     Users::Registry.instance.create user
-
      mission = Missions::Mission.new :node => Omega::Client::Node
      mission.assign_to(user)
      mission.assigned_to_id.should == user.id
      mission.assigned_to.should == user
+  end
+
+  it "should lookup user in registry if assigning to user id" do
+     user = Users::User.new :id => 'user42'
+     role = Users::Role.new :id => 'user_role_user42'
+     user.add_role(role)
+     Users::Registry.instance.create role
+     Users::Registry.instance.create user
+
+     mission = Missions::Mission.new :id => 'mission111', :node => Omega::Client::Node
+     mission.assign_to(user)
+     mission.assigned_to_id.should == user.id
+     mission.assigned_to.should == user
+
+    # ensure permission to view mission created
+    user.privileges.find { |p| p.id == 'view' && p.entity_id == 'mission-mission111' }.should_not be_nil
   end
 
   it "should return boolean indicating if mission is expired" do
@@ -317,7 +328,7 @@ describe Missions::Mission do
   it "should set mission victory to true" do
      mission  = nil
      user     = Users::User.new :id => 'user42'
-     node     = :node
+     node     = Omega::Client::Node
 
      vic1_n   = 0
      vic1     = lambda { |m,n|
@@ -367,7 +378,7 @@ describe Missions::Mission do
   it "should set mission failure to true" do
      mission  = nil
      user     = Users::User.new :id => 'user42'
-     node     = :node
+     node     = Omega::Client::Node
 
      fai1_n   = 0
      fai1     = lambda { |m,n|

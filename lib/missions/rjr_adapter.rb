@@ -52,6 +52,7 @@ class RJRAdapter
 
     @@local_node.invoke_request('users::create_entity', self.user)
     role_id = "user_role_#{self.user.id}"
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',     'users_entities')
     @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'cosmos_entities')
 
     session = @@local_node.invoke_request('users::login', self.user)
@@ -87,14 +88,68 @@ class RJRAdapter
       rmission
     }
 
-    #rjr_dispatcher.add_handler(['missions::get_mission','missions::get']){ |*args|
-    #}
+    rjr_dispatcher.add_handler(['missions::get_mission','missions::get_missions']){ |*args|
+      return_first = false
+      missions =
+        Missions::Registry.instance.missions.select { |m|
+           privs = [{:privilege => 'view', :entity => 'missions'},
+                    {:privilege => 'view', :entity => "mission-#{m.id}"}]
+           privs << {:privilege => 'view', :entity => 'unassigned_missions'} if m.assigned_to_id.nil?
+           Users::Registry.check_privilege(:any => privs,
+                                           :session   => @headers['session_id'])
+        }
 
-    #rjr_dispatcher.add_handler('missions::assign_mission'){ ||
-    #}
+      while qualifier = args.shift
+        raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "assignable_to"].include?(qualifier)
+        val = args.shift
+        raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
+        missions.select! { |m|
+          case qualifier
+          when "with_id"
+            return_first = true
+            m.id == val
+          when "assignable_to"
+            m.assignable_to?(val)
+          end
+        }
+      end
 
-    # callback to track manufactured events and generate corresponding
-    # mission system events
+      return_first ? missions.first : missions
+    }
+
+    rjr_dispatcher.add_handler('missions::assign_mission'){ |mission_id,user_id|
+      mission = Missions::Registry.instance.missions.find { |m| m.id == mission_id }
+      user    =  @@local_node.invoke_request('users::get_entity', 'with_id', user_id)
+
+      raise ArgumentError, "mission with id #{mission_id} could not be found" if mission.nil?
+      raise ArgumentError, "user with id #{user_id} could not be found"       if user.nil?
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => 'users'},
+                                                 {:privilege => 'modify', :entity => "user-#{user.id}"}],
+                                        :session   => @headers['session_id'])
+
+      # TODO modify missions here?
+      #Users::Registry.require_privilege(:privilege => 'modify', :entity => 'missions',
+      #                                  :session   => @headers['session_id'])
+
+      user_missions = Missions::Registry.instance.missions.select { |m| m.assigned_to_id == user.id }
+      active         = user_missions.select { |m| m.active? }
+
+      # right now do not allow users to be assigned to more than one mission at a time
+      raise Omega::OperationError, "user #{user_id} already has an active mission" unless active.empty?
+
+      # assign mission to user and return it
+      Missions::Registry.instance.safely_run {
+        # raise error if not assignable to user
+        raise Omega::OperationError, "mission #{mission_id} not assignable to user" unless mission.assignable_to?(user)
+
+        mission.assign_to user
+      }
+
+      mission
+    }
+
+    # callback to track manufactured events and generate corresponding mission system events
     rjr_dispatcher.add_handler('manufactured::event_occurred'){ |*args|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
 

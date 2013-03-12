@@ -77,6 +77,126 @@ describe Missions::RJRAdapter do
     Missions::Registry.instance.missions.collect { |e| e.id }.should include(@mission1.id)
   end
 
+  it "should permit users with view missions or view mission-<id> to get_missions" do
+    Missions::Registry.instance.init
+
+    mission123 = Missions::Mission.new :id   => "mission123"
+    mission234 = Missions::Mission.new :id   => "mission234"
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    missions = Omega::Client::Node.invoke_request('missions::get_missions')
+    missions.size.should == 0
+
+    TestUser.add_privilege('view', 'missions')
+    missions = Omega::Client::Node.invoke_request('missions::get_missions')
+    missions.size.should == 2
+    missions.collect { |m| m.id }.should include(mission123.id)
+    missions.collect { |m| m.id }.should include(mission234.id)
+
+    TestUser.clear_privileges
+
+    TestUser.add_privilege('view', 'mission-mission123')
+    missions = Omega::Client::Node.invoke_request('missions::get_missions')
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission123.id)
+  end
+
+  it "should permit users with view unassigned missions to get_missions that are unassigned" do
+    Missions::Registry.instance.init
+
+    mission123 = Missions::Mission.new :id   => "mission123"
+    mission234 = Missions::Mission.new :id   => "mission234", :assigned_to_id => 'user123'
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    TestUser.add_privilege('view', 'unassigned_missions')
+    missions = Omega::Client::Node.invoke_request('missions::get_missions')
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission123.id)
+  end
+
+  it "should get_mission by id" do
+    Missions::Registry.instance.init
+
+    mission123 = Missions::Mission.new :id   => "mission123"
+    mission234 = Missions::Mission.new :id   => "mission234"
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    TestUser.add_privilege('view', 'missions')
+    mission = Omega::Client::Node.invoke_request('missions::get_mission', 'with_id', 'mission123')
+    mission.class.should == Missions::Mission
+    mission.id.should == mission123.id
+  end
+
+  it "should get missions assignable to the specified user" do
+    Missions::Registry.instance.init
+
+    mission123 = Missions::Mission.new :id   => "mission123", :requirements => proc { |m,u,n| false }
+    mission234 = Missions::Mission.new :id   => "mission234"
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    TestUser.add_privilege('view', 'missions')
+    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'assignable_to', TestUser)
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission234.id)
+  end
+
+  it "should permit users with modify users or modify user-<id> to assign mission to user" do
+    Missions::Registry.instance.init
+
+    testuser1 = Users::User.new :id => 'user42'
+    Users::Registry.instance.create testuser1
+
+    mission123 = Missions::Mission.new :id   => "mission123"
+    mission234 = Missions::Mission.new :id   => "mission234"
+    mission345 = Missions::Mission.new :id   => "mission345", :requirements => proc { |m,u,n| false }
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+    Missions::Registry.instance.create mission345
+
+    # invalid mission id
+    lambda{
+      Omega::Client::Node.invoke_request('missions::assign_mission', 'invalid', testuser1.id)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid user id
+    lambda{
+      Omega::Client::Node.invoke_request('missions::assign_mission', mission123.id, 'invalid')
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('missions::assign_mission', mission123.id, testuser1.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('modify', 'users')
+
+    # not assignable to user
+    lambda{
+      Omega::Client::Node.invoke_request('missions::assign_mission', mission345.id, testuser1.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+
+    # valid call
+    mission = nil
+    lambda{
+      mission = Omega::Client::Node.invoke_request('missions::assign_mission', mission123.id, testuser1.id)
+    }.should_not raise_error
+    mission.id.should == mission123.id
+
+    # should not permit more that one mission to be assigned to a user at a time
+    lambda{
+      Omega::Client::Node.invoke_request('missions::assign_mission', mission234.id, testuser1.id)
+    #}.should raise_error(Omega::OperationError)
+    }.should raise_error(Exception)
+  end
+
   it "should handle manufactured events and run them as mission events" do
     attacker = Manufactured::Ship.new      :id => 'attacker'
     defender = Manufactured::Ship.new      :id => 'defender'
