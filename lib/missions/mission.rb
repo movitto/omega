@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO catch errors in callbacks ?
+
 module Missions
 
 # Represents a set of objectives created by a user (usually a npc) and
@@ -80,8 +82,12 @@ class Mission
       end
     end
 
-    @assignment_callbacks.each { |acb|
-      acb.call self, @node
+    # XXX unsafely run hack needed as callback will be invoked within
+    # registry lock and assignment callbacks may also attempt to obtain lock
+    Missions::Registry.instance.unsafely_run {
+      @assignment_callbacks.each { |acb|
+        acb.call self, @node
+      }
     }
   end
 
@@ -158,6 +164,7 @@ class Mission
     @id                   = ""
     @title                = ""
     @description          = ""
+    @mission_data         = {}
     @creator_user_id      = nil
     @assigned_to_id       = nil
     @assigned_time        = nil
@@ -209,6 +216,7 @@ class Mission
     @id                    =  args[:id]                   || args['id']                   || @id
     @title                 =  args[:title]                || args['title']                || @title
     @description           =  args[:description]          || args['description']          || @description
+    @mission_data          =  args[:mission_data]         || args['mission_data']         || @mission_data
     @creator_user_id       =  args[:creator_user_id]      || args['creator_user_id']      || @creator_user_id
     @assigned_to_id        =  args[:assigned_to_id]       || args['assigned_to_id']       || @assigned_to_id
     @assigned_time         =  args[:assigned_time]        || args['assigned_time']        || @assigned_time
@@ -250,6 +258,7 @@ class Mission
       'json_class' => self.class.name,
       'data'       => {:id => id,
                        :title => title, :description => description,
+                       :mission_data => mission_data,
                        :creator_user_id => creator_user_id, :assigned_to_id => assigned_to_id,
                        :timeout => timeout, :assigned_time => assigned_time,
                        :requirements         => requirements,

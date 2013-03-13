@@ -2,7 +2,7 @@
 omega_url:  'http://localhost/womega/'
 backup_dir: './backups/'
 
-permenant_users: ['admin', 'manufactured', 'cosmos', 'users', 'rlm', 'rcm' ]
+permenant_users: ['admin', 'manufactured', 'cosmos', 'users', 'missions', 'rlm', 'rcm' ]
 
 node_id: 'omega'
 node_types: ['amqp', 'tcp', 'ws', 'www', 'local']

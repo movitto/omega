@@ -52,8 +52,15 @@ class RJRAdapter
 
     @@local_node.invoke_request('users::create_entity', self.user)
     role_id = "user_role_#{self.user.id}"
+    # all in all missions is a pretty powerful role/user in terms
+    #  of what it can do w/ the simulation
     @@local_node.invoke_request('users::add_privilege', role_id, 'view',     'users_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',     'cosmos_entities')
     @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'cosmos_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',     'manufactured_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'create',   'manufactured_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'manufactured_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'create',   'missions')
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id

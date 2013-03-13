@@ -35,7 +35,7 @@ macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
 macbeth_ship.dock_at(castle_macbeth)
 
 mission gen_uuid, :title => 'Kill Duncan',
-        :user        => macbeth, :time_to_complete => 360,
+        :user        => macbeth, :timeout => 360,
         :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
 
         :requirements => proc{ |mission, assigning_to, node|
@@ -58,7 +58,9 @@ mission gen_uuid, :title => 'Kill Duncan',
                                                :user_id       => 'Duncan',
                                                :system_name   => 'Athena',
                                                :location      => Motel::Location.random
-          mission.mission_data['duncan_ship'] = duncan_ship
+          Missions::Registry.instance.safely_run { # XXX
+            mission.mission_data['duncan_ship'] = duncan_ship
+          }
           node.invoke_request('manufactured::create_entity', duncan_ship)
 
           # add event for mission expiration

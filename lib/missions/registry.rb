@@ -171,6 +171,18 @@ class Registry
     }
   end
 
+  # Unlock the registry lock, run the specified block of code, then lock again
+  #
+  # XXX not the prettiest, see invocations for why its needed
+  #
+  # @param [Array<Object>] args catch-all array of arguments to pass to block on invocation
+  # @param [Callable] bl block to invoke
+  def unsafely_run(*args, &bl)
+    @registry_lock.unlock
+    bl.call *args
+    @registry_lock.lock
+  end
+
   # Return boolean indicating if registry is running its various worker threads
   def running?
     !@terminate_cycles && !@event_thread.nil? &&

@@ -4,6 +4,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'pp'
 require 'rubygems'
 require 'optparse'
 
@@ -38,11 +39,27 @@ $rjr_node.message_headers['session_id'] = session.id
 
 missions = id.nil? ? $rjr_node.invoke_request('omega-queue', 'missions::get_missions') :
                      $rjr_node.invoke_request('omega-queue', 'missions::get_mission', 'with_id', id.to_s)
+
+if missions.nil?
+  puts "Mission #{id} could not be found"
+  exit 1
+end
+
 missions = [missions] unless missions.is_a?(Array)
 
 missions.each { |mission|
   puts "Mission: " + mission.to_s
-  puts mission.to_json
+  formatted = JSON.parse(mission.to_json, :create_additions => false)
+
+  # XXX trunate long sproc text
+  ['requirements', 'assignment_callbacks', 'victory_conditions',
+   'victory_callbacks', 'failure_callbacks'].each { |cb_q|
+    formatted['data'][cb_q].each { |cb|
+      cb['data']['sblock'] = cb['data']['sblock'].slice!(0, 50) + "..."
+    }
+  }
+
+  pp formatted
 }
 
 #if events

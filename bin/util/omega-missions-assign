@@ -1,0 +1,53 @@
+#!/usr/bin/ruby
+# Assign mission to user
+#
+# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+id    =  nil
+useri =  nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-i', '--id ID', 'id of mission to assign') do |i|
+    id = i
+  end
+
+  opts.on('-u', '--user ID', 'id of the user to assign the mission to') do |u|
+    useri = u
+  end
+end
+
+optparse.parse!
+
+RJR::Logger.log_level= ::Logger::INFO
+
+$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+$rjr_node.message_headers['session_id'] = session.id
+
+if id.nil? || useri.nil?
+  puts "Must specify mission id and user id"
+  exit 1
+end
+
+mission = $rjr_node.invoke_request('omega-queue', 'missions::get_mission', 'with_id', id)
+user    = $rjr_node.invoke_request('omega-queue', 'users::get_entity',     'with_id', useri)
+
+if mission.nil? || user.nil?
+  puts "Must specify valid mission and user"
+  exit 1
+end
+
+nmission = $rjr_node.invoke_request('omega-queue', 'missions::assign_mission', id, useri)
+puts "Mission Assigned: " + mission.to_s
