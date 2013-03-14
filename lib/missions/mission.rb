@@ -52,6 +52,16 @@ class Mission
   # Id of user who is assigned to the mission
   attr_accessor :assigned_to_id
 
+  # Return boolean indicating if mission is assigned
+  # to the the specified user
+  def assigned_to?(user)
+    if user.is_a?(Users::User)
+      return @assigned_to_id == user.id
+    end
+
+    return @assigned_to_id == user
+  end
+
   # Handle to Users::User who is assigned to the mission
   attr_accessor :assigned_to
 
@@ -100,7 +110,7 @@ class Mission
   # Returns boolean indicating if time to complete
   # mission has expired
   def expired?
-    (@assigned_time + @timeout) < Time.now
+    @assigned_time && ((@assigned_time + @timeout) < Time.now)
   end
 
   # Boolean indicating if user was victorious in mission
@@ -174,6 +184,8 @@ class Mission
     @victory_conditions   = []
     @victory_callbacks    = []
     @failure_callbacks    = []
+    @victorious           = false
+    @failed               = false
     update(args)
 
     if @assigned_time.is_a?(String)
@@ -226,6 +238,8 @@ class Mission
     @victory_conditions    =  args[:victory_conditions]   || args['victory_conditions']   || @victory_conditions
     @victory_callbacks     =  args[:victory_callbacks]    || args['victory_callbacks']    || @victory_callbacks
     @failure_callbacks     =  args[:failure_callbacks]    || args['failure_callbacks']    || @failure_callbacks
+    @victorious            =  args[:victorious]           || args['victorious']           || @victorious
+    @failed                =  args[:failed]               || args['failed']               || @failed
 
     [:mission, 'mission'].each { |mission|
       if args[mission]
@@ -240,7 +254,9 @@ class Mission
                :assignment_callbacks => args[mission].assignment_callbacks,
                :victory_conditions   => args[mission].victory_conditions,
                :victory_callbacks    => args[mission].victory_callbacks,
-               :failure_callbacks    => args[mission].failure_callbacks)
+               :failure_callbacks    => args[mission].failure_callbacks,
+               :victorious           => args[mission].victorious,
+               :failed               => args[mission].failed)
       end
     }
   end
@@ -265,7 +281,8 @@ class Mission
                        :assignment_callbacks => assignment_callbacks,
                        :victory_conditions   => victory_conditions,
                        :victory_callbacks    => victory_callbacks,
-                       :failure_callbacks    => failure_callbacks}
+                       :failure_callbacks    => failure_callbacks,
+                       :victorious => victorious, :failed => failed}
     }.to_json(*a)
   end
 

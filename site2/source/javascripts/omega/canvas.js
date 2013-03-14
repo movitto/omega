@@ -584,6 +584,7 @@ function OmegaEntitiesContainer(){
   // hide all containers
   this.hide_all = function(){
     $('.entities_container').hide();
+    $('.canvas_button').hide();
   }
 
   // Add specified entity to the proper entities container
@@ -628,6 +629,8 @@ function OmegaEntitiesContainer(){
 
       $('#locations_list').show();
 
+    }else if(entity.json_class == "Missions::Mission"){
+      $("#missions_button").show();
     }
   };
 
@@ -651,6 +654,38 @@ function OmegaEntitiesContainer(){
 
   $('#fleets_list li').live('click', function(event){
     // TODO
+  });
+
+  $('#missions_button').live('click', function(event){
+    var missions = $omega_registry.select([function(e){ return e.json_class == "Missions::Mission"; }]);
+    var missions_text = '';
+    var assigned = null;
+    for(var m in missions){
+      var mission = missions[m];
+
+      // TODO display 'completed' / 'failed' if mission expired, victorious, or failed
+      if(!mission.expired()){
+        if(mission.assigned_to_user() &&
+          !mission.victorious && !mission.failed){
+          assigned = mission;
+
+        }else if(!mission.assigned_to_id){
+          missions_text += mission.id;
+          missions_text += "<a href=\"#\" id=\""+missions[m].id+"\" class=\"assign_mission\">assign</a>";
+          missions_text += "<br/>";
+
+        }
+      }
+    }
+    if(assigned){
+      $omega_dialog.show('Assigned mission', '',
+                         '<b>' + assigned.title + '</b><br/>' +
+                         assigned.description + '<br/><hr/>' +
+                         'Accepted at: ' + assigned.assigned_time + '<br/>' +
+                         'Expires at: ' + assigned.expires().toString());
+    }else{
+      $omega_dialog.show('Missions', '', missions_text);
+    }
   });
 
   // XXX hack so entity always appears over canvas
@@ -768,6 +803,7 @@ function OmegaCanvas(){
   this.hide = function(){
     $('canvas').hide();
     $('.entities_container').hide();
+    $('.canvas_button').hide();
     $('#camera_controls').hide();
     $('#axis_controls').hide();
     $('#close_canvas').hide();
@@ -779,6 +815,7 @@ function OmegaCanvas(){
   this.show = function(){
     $('canvas').show();
     //$('.entities_container').show(); // TODO we need to individually show each of these
+    //$('.canvas_button').show(); // TODO we need to individually show each of these
     $('#camera_controls').show();
     $('#axis_controls').show();
     $('#close_canvas').show();
@@ -999,6 +1036,9 @@ function OmegaCanvasUI(args){
         });
       }
     });
+
+    // retrieve missions
+    OmegaQuery.all_missions();
   });
 
   // clean up canvas and controls on logout

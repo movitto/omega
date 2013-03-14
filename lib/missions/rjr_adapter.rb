@@ -107,7 +107,7 @@ class RJRAdapter
         }
 
       while qualifier = args.shift
-        raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "assignable_to"].include?(qualifier)
+        raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "assignable_to", "assigned_to", 'is_active'].include?(qualifier)
         val = args.shift
         raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
         missions.select! { |m|
@@ -117,6 +117,11 @@ class RJRAdapter
             m.id == val
           when "assignable_to"
             m.assignable_to?(val)
+          when "assigned_to"
+            return_first = true # relies on logic in assign_mission below restricting active mission assignment to one per user
+            m.assigned_to?(val)
+          when 'is_active'
+            m.active? == val
           end
         }
       end
@@ -155,6 +160,9 @@ class RJRAdapter
 
       mission
     }
+
+    # TODO ?
+    #rjr_dispatcher.add_handler('missions::unassign_mission'){ |mission_id|
 
     # callback to track manufactured events and generate corresponding mission system events
     rjr_dispatcher.add_handler('manufactured::event_occurred'){ |*args|

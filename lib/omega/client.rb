@@ -65,8 +65,8 @@ module Omega
         Omega::Client::Node.node = node
       end
 
-      # Create a new user w/ the specified username and password
-      # and return it.
+      # Return user w/ the given username, else if it is not found create
+      # it w/ the specified password and attributes
       #
       # Calls the specified block w/ the newly created user.
       #
@@ -74,7 +74,12 @@ module Omega
       # @param [String] password password to assign to the new user
       # @param [Callable] bl option callback block parameter to call w/ the newly created user
       # @return [Users::User] user created
-      def user(username, password, args = {}, &bl)
+      def user(username, password = nil, args = {}, &bl)
+        begin
+          return Omega::Client::User.get(username)
+        rescue Exception => e
+        end
+
         @user = Users::User.new args.merge({:id => username, :password => password})
         Omega::Client::Node.invoke_request('users::create_entity', @user)
         bl.call @user unless bl.nil?
@@ -239,7 +244,8 @@ module Omega
         gate
       end
 
-      # Create new station and return it.
+      # Return station with the specified id if it exists, else
+      # create new station and return it.
       #
       # Note callback will be invoked *before* station is created,
       # you may use it to set station parameters for creation
@@ -249,6 +255,11 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ station before it is created
       # @return [Manufactured::Station] station created
       def station(id, args={}, &bl)
+        begin
+          return Omega::Client::Station.get(id)
+        rescue Exception => e
+        end
+
         st = Manufactured::Station.new(args.merge({:id => id}))
         bl.call st unless bl.nil?
         RJR::Logger.info "Creating station #{st}"
@@ -256,7 +267,8 @@ module Omega
         st
       end
 
-      # Create new ship and return it.
+      # Retrieve ship with the specified id if it exists,
+      # else create new ship and return it.
       #
       # Note callback will be invoked *before* ship is created,
       # you may use it to set ship parameters for creation
@@ -266,6 +278,11 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ ship before it is created
       # @return [Manufactured::Ship] ship created
       def ship(id, args={}, &bl)
+        begin
+          return Omega::Client::Ship.get(id)
+        rescue Exception => e
+        end
+
         sh = Manufactured::Ship.new(args.merge({:id => id}))
         bl.call sh unless bl.nil?
         RJR::Logger.info "Creating ship #{sh}"

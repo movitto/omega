@@ -86,6 +86,10 @@ function convert_entity(entity){
   }else if(entity.json_class == "Users::User"){
     entity = new OmegaUser(entity);
 
+  }else if(entity.json_class == "Missions::Mission"){
+    entity = new OmegaMission(entity);
+    OmegaMission.cache_missions();
+
   }
 
   var oentity = $omega_registry.get(entity.id);
@@ -387,6 +391,59 @@ function OmegaEntity(entity){
 //OmegaEntity.prototype.__noSuchMethod__ = function(id, args) {
 //  this.apply(id, args);
 //}
+
+/////////////////////////////////////// Omega Mission
+
+/* Initialize new Omega Mission
+ */
+function OmegaMission(mission){
+
+  $.extend(this, new OmegaEntity(mission));
+
+  this.registerable = true;
+
+  /////////////////////////////////////// public methods
+
+  /* Return time which this mission expires
+   */
+  this.expires = function(){
+    // XXX create parsable date
+    var d = new Date(Date.parse(this.assigned_time.replace(/-/g, '/').slice(0, 19)));
+    d.setSeconds(d.getSeconds() + this.timeout);
+    return d;
+  }
+
+  /* Return boolean indicating if this mission is expired
+   */
+  this.expired = function(){
+    return (this.assigned_time != null) && (this.expires() < new Date());
+  }
+
+  /* Return boolean indicating if mission is assigned to current user
+   */
+  this.assigned_to_user = function(){
+    return this.assigned_to_id == $user_id;
+  }
+
+}
+
+/* Mission cache loop global lock, see cache_missions below
+ */
+OmegaMission.cached = false;
+
+/* Periodically track missions user has access to
+ */
+OmegaMission.cache_missions  = function(){
+  if(OmegaMission.cached) return;
+  OmegaMission.cached = true;
+
+  $omega_registry.delete_timer('missions_tracker');
+  // 60s loop TODO make this configurable
+  $omega_registry.add_timer('missions_tracker', 60000, function(){
+    OmegaQuery.all_missions();
+  });
+}
+
 
 /////////////////////////////////////// Omega Location
 

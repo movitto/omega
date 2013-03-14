@@ -35,7 +35,7 @@ macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
 macbeth_ship.dock_at(castle_macbeth)
 
 mission gen_uuid, :title => 'Kill Duncan',
-        :user        => macbeth, :timeout => 360,
+        :creator_user_id => macbeth.id, :timeout => 360,
         :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
 
         :requirements => proc{ |mission, assigning_to, node|

@@ -704,6 +704,32 @@ var OmegaCommand = {
     }
   },
 
+  /////////////////////////////////////// Assign Mission Command
+
+  assign_mission : {
+
+    /* Invoke omega server side missions::assign_mission
+     * operation to assign the specified mission to the specified user
+     *
+     * @param {String} mission_id id of mission to assign to the user
+     * @param {String} user_id id of user to assign the mission to
+     */
+    exec : function(mission_id, user_id){
+      // TODO use callback to update mission in ui
+      $omega_node.web_request('missions::assign_mission', mission_id, user_id, omega_callback());
+    },
+
+    /* Setup the assign_mission command */
+    init : function(){
+      // wire up mission assign buttons
+      $('.assign_mission').live('click', function(e){
+        var i = e.currentTarget.id;
+        OmegaCommand.assign_mission.exec(i, $user_id);
+        $omega_dialog.hide();
+      });
+    }
+  },
+
   /////////////////////////////////////// Command initialization
 
   init : function(){
@@ -826,6 +852,41 @@ var OmegaQuery = {
    */
   user_with_id : function(user_id, callback){
     $omega_node.web_request('users::get_entity', 'with_id', user_id, omega_callback(callback));
+  },
+
+  /* Retrieve all missions accessible to the user
+   *
+   * @param {Callback} callback function to invoke w/ array of missions retrieved
+   */
+  all_missions : function(callback){
+    $omega_node.web_request('missions::get_missions', omega_callback(callback));
+  },
+
+  /* Invoke omega server side missions::get_missions
+   * operation to retrieve mission currently
+   * assigned to the specified user
+   *
+   * @param {String} user_id id of the user to retrieved assigned mission
+   * @param {Callback} callback function to invoke w/ array of missions retrieved
+   */
+  active_mission_assigned_to : function(user_id, callback){
+    $omega_node.web_request('missions::get_mission',
+                            'assigned_to', user_id,
+                            'is_active', true,
+                            omega_callback(callback));
+  },
+
+  /* Invoke omega server side missions::get_missions
+   * operation to retrieve all missions which are currently
+   * assignable to the specified user
+   *
+   * @param {String} user_id id of the user to validate mission is assignable to
+   * @param {Callback} callback function to invoke w/ array of missions retrieved
+   */
+  missions_assignable_to : function(user_id, callback){
+    $omega_node.web_request('missions::get_missions',
+                            'assignable_to', user_id,
+                            omega_callback(callback));
   }
 
 }
