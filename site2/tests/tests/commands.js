@@ -7,6 +7,8 @@ $(document).ready(function(){
 
   // TODO test subscribing to omega events
 
+  // TODO test command triggering ui elements
+
   module("omega_commands");
   
   asyncTest("retrieving all entities", 7, function() {
@@ -103,7 +105,20 @@ $(document).ready(function(){
   asyncTest("retrieve all users", 1, function() {
     login_test_user($admin_user, function(){
       OmegaQuery.all_users(function(users){
-        equal(users.length, 9);
+        equal(users.length, 10);
+        start();
+      });
+    });
+  });
+
+  asyncTest("retrieve all missions", 3, function() {
+    login_test_user($admin_user, function(){
+      OmegaQuery.all_missions(function(missions){
+        ok(missions.length >= 2);
+        var ids = [];
+        for(var m in missions) ids.push(missions[m].id);
+        ok(ids.indexOf('mission1') != null);
+        ok(ids.indexOf('mission2') != null);
         start();
       });
     });
@@ -327,6 +342,27 @@ $(document).ready(function(){
               start();
             });
           }, 6000);
+        });
+      });
+    });
+  });
+
+  asyncTest("assign mission", 1, function() {
+    var new_mission_id = 'new_mission_' + guid();
+    var new_mission    = new JRObject('Missions::Mission', {
+                                   'id'      : new_mission_id,
+                                   'timeout' : 5 });
+    login_test_user($admin_user, function(){
+      $omega_node.web_request('missions::create_mission', new_mission, function(){
+        OmegaCommand.assign_mission.exec(new_mission_id, 'mmorsi');
+        OmegaQuery.all_missions(function(missions){
+          for(var m in missions){
+            if(missions[m].id == new_mission_id){
+              equal(missions[m].assigned_to_id, 'mmorsi');
+              break;
+            }
+          }
+          start();
         });
       });
     });

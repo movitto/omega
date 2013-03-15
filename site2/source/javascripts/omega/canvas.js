@@ -670,7 +670,7 @@ function OmegaEntitiesContainer(){
           assigned = mission;
 
         }else if(!mission.assigned_to_id){
-          missions_text += mission.id;
+          missions_text += mission.title;
           missions_text += "<a href=\"#\" id=\""+missions[m].id+"\" class=\"assign_mission\">assign</a>";
           missions_text += "<br/>";
 

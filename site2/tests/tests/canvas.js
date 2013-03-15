@@ -46,13 +46,16 @@ $(document).ready(function(){
   test("hide all entities containers", function() {
     $("#locations_list").show();
     $("#entities_list").show();
+    $("#missions_button").show();
     equal($("#locations_list").css('display'), 'block');
     equal($("#entities_list").css('display'),  'block');
+    equal($("#missions_button").css('display'),  'block');
 
     var entities_container = new OmegaEntitiesContainer();
     entities_container.hide_all();
     equal($("#locations_list").css('display'), 'none');
     equal($("#entities_list").css('display'),  'none');
+    equal($("#missions_button").css('display'),  'none');
   });
   
   test("modify entities container", function() {
@@ -65,10 +68,13 @@ $(document).ready(function(){
 
     var ship = { id : 'ship1', json_class : 'Manufactured::Ship' };
 
+    var mission = { id : 'mission1', json_class : 'Missions::Mission' };
+
     var entities_container = new OmegaEntitiesContainer();
     //equal($('#locations_list').css('display'), 'none');
     //equal($('#alliances_list').css('display'), 'none');
     //equal($('#entities_list').css('display'), 'none');
+    //equal($('#missions_button').css('display'), 'none');
 
     entities_container.add_to_entities_container(galaxy);
     ok(/\s*<li name="Zeus".*>Zeus<\/li>\s*/.test($('#locations_list ul').html()))
@@ -79,6 +85,9 @@ $(document).ready(function(){
     equal($('#entities_list').css('display'), 'block');
 
     // TODO test fleet and entity lists
+
+    entities_container.add_to_entities_container(mission);
+    equal($('#missions_button').css('display'), 'block');
   });
 
   test("click entities container", function() {
@@ -119,6 +128,19 @@ $(document).ready(function(){
     equal($omega_scene.get_root().name, 'Athena');
   });
 
+  test("click missions button", function() {
+    $user_id = 'mmorsi';
+    setup_canvas();
+
+    var mission = new OmegaMission({ id : 'mission1', title : 'mission1', json_class : 'Missions::Mission' });
+    $omega_registry.add(mission);
+
+    $('#missions_button').click();
+    ok($('.ui-dialog #omega_dialog').html().indexOf('mission1') != -1);
+
+    // TODO test unassigned, assigned to different user, assigned & victorious/failed, assigned and active
+  });
+
   module("omega_canvas");
 
   test("show/hide canvas", function() {
@@ -126,6 +148,7 @@ $(document).ready(function(){
     omega_canvas.hide();
     equal($('canvas').css('display'),              'none');
     equal($('.entities_container').css('display'), 'none');
+    equal($('.canvas_button').css('display'),      'none');
     equal($('#camera_controls').css('display'),    'none');
     equal($('#axis_controls').css('display'),      'none');
     equal($('#close_canvas').css('display'),       'none');
@@ -177,6 +200,24 @@ $(document).ready(function(){
           var gal = $omega_registry.get(sys.galaxy_name);
           ok(gal != null);
         }
+        start();
+      }, 1000);
+    });
+  });
+
+  // verify on login all missions accessible to user retrieved
+  asyncTest("retrieve missions on login", function(){
+    setup_canvas();
+
+    var missions = $omega_registry.select([function(e){ return e.json_class == "Missions::Mission"; }]);
+    equal(missions.length, 0);
+
+    login_test_user($mmorsi_user, function(){
+      // wait for entity / cosmos responses to be invoked/returned
+      window.setTimeout(function() {
+        missions = $omega_registry.select([function(e){ return e.json_class == "Missions::Mission"; }]);
+        ok(missions.length > 1);
+        // TODO ensure missions in seeder retrieved
         start();
       }, 1000);
     });

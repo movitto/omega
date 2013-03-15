@@ -127,3 +127,6 @@ ship("opponent-mining-ship2") do |ship|
   ship.solar_system = system_aphrodite
   ship.location = Location.new(:x => -130, :y=> 0, :z => 130)
 end
+
+mission 'mission1', :timeout => 60
+mission 'mission2', :timeout => 60

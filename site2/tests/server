@@ -30,6 +30,7 @@ Motel::RJRAdapter.init
 Users::RJRAdapter.init
 Cosmos::RJRAdapter.init
 Manufactured::RJRAdapter.init
+Missions::RJRAdapter.init
 
 local_node = RJR::LocalNode.new :node_id => 'server_seeder'
 Omega::Roles::ROLES.keys.collect { |id|

@@ -211,8 +211,43 @@ $(document).ready(function(){
     ok(!ote.belongs_to_user('admin'));
   });
 
+  module("omega mission");
+
+  test("expires", function() {
+    var mission = new OmegaMission({assigned_time : '2013-03-14 08:01:01 -0400', timeout : 0});
+    equal(mission.expires().toString(), new Date(Date.parse('2013/03/14 08:01:01')).toString());
+  });
+
+  test("expired", function() {
+    var pre = new Date();
+    var nex = new Date();
+    pre.setSeconds(pre.getSeconds() - 10000);
+    nex.setSeconds(nex.getSeconds() + 10000);
+
+    var mission = new OmegaMission({assigned_time : pre.toString(), timeout : 0});
+    equal(mission.expired(), true);
+
+    mission = new OmegaMission({assigned_time : nex.toString(), timeout : 0});
+    equal(mission.expired(), false);
+  });
+
+  test("assigned_to_user", function() {
+    $user_id = 'mmorsi';
+
+    var mission = new OmegaMission();
+    ok(!mission.assigned_to_user());
+
+    var mission = new OmegaMission({assigned_to_id : 'foobar'});
+    ok(!mission.assigned_to_user());
+
+    var mission = new OmegaMission({assigned_to_id : 'mmorsi'});
+    ok(mission.assigned_to_user());
+  });
+
+  // TODO test mission caching timer
+
   module("omega location");
-  
+
   test("distance_from", function() {
     var loc = new OmegaLocation({x: 100, y: 100, z: 100});
     equal(loc.distance_from(110, 100, 100), 10);
