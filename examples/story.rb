@@ -58,24 +58,27 @@ mission gen_uuid, :title => 'Kill Duncan',
                                                :user_id       => 'Duncan',
                                                :system_name   => 'Athena',
                                                :location      => Motel::Location.random
-          Missions::Registry.instance.safely_run { # XXX
-            mission.mission_data['duncan_ship'] = duncan_ship
-          }
+          mission.mission_data['duncan_ship'] = duncan_ship
           node.invoke_request('manufactured::create_entity', duncan_ship)
 
           # add event for mission expiration
           expired = Missions::Event.new :id      => "mission-#{mission.id}-expired",
                                         :timeout => Time.now + mission.timeout { |e|
+                                           # TODO ensure not victorious, move this to new event class, lock registry
                                            mission.failed! # if mission.expired?
                                          }
-          Missions::Registry.instance.create expired
 
-          # handle dunan ship being destroyed event
-          Missions::Registry.instance.handle_event("#{duncan_ship.id}-_destroyed") { |e|
-            mission.victory! # if mission.completed?
-            victory = Missions::Event.new :id => "mission-#{mission.id}-succeeded", :timeout => Time.now
-            Missions::Registry.instance.create victory
-            # can create more ships or whatever instead
+          Missions::Registry.instance.unsafely_run { # XXX need to unlock registry
+            Missions::Registry.instance.create expired
+
+            # handle dunan ship being destroyed event
+            Missions::Registry.instance.handle_event("#{duncan_ship.id}-_destroyed") { |e|
+              # TODO ensure not failed, check victory conditions, lock registry
+              mission.victory! # if mission.completed?
+              victory = Missions::Event.new :id => "mission-#{mission.id}-succeeded", :timeout => Time.now
+              Missions::Registry.instance.create victory
+              # can create more ships or whatever instead
+            }
           }
 
           # subscribe to server side events

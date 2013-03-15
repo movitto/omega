@@ -92,12 +92,8 @@ class Mission
       end
     end
 
-    # XXX unsafely run hack needed as callback will be invoked within
-    # registry lock and assignment callbacks may also attempt to obtain lock
-    Missions::Registry.instance.unsafely_run {
-      @assignment_callbacks.each { |acb|
-        acb.call self, @node
-      }
+    @assignment_callbacks.each { |acb|
+      acb.call self, @node
     }
   end
 
@@ -120,9 +116,9 @@ class Mission
   attr_reader :failed
 
   # Retuns boolean indicating if mission is active, eg
-  # not expired and not victorious / failed
+  # assigned, not expired and not victorious / failed
   def active?
-    !self.expired? && !self.victorious && !self.failed
+    !self.assigned_time.nil? && !self.expired? && !self.victorious && !self.failed
   end
 
   # Array of mission victory conditions

@@ -133,13 +133,59 @@ describe Missions::RJRAdapter do
   it "should get missions assignable to the specified user" do
     Missions::Registry.instance.init
 
+    user1 = Users::User.new :id => 'user1'
+    Users::Registry.instance.create user1
+
     mission123 = Missions::Mission.new :id   => "mission123", :requirements => proc { |m,u,n| false }
     mission234 = Missions::Mission.new :id   => "mission234"
     Missions::Registry.instance.create mission123
     Missions::Registry.instance.create mission234
 
     TestUser.add_privilege('view', 'missions')
-    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'assignable_to', TestUser)
+    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'assignable_to', user1)
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission234.id)
+
+    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'assignable_to', user1.id)
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission234.id)
+  end
+
+  it "should get mission assigned to the specified user" do
+    Missions::Registry.instance.init
+
+    user1 = Users::User.new :id => 'user1'
+    Users::Registry.instance.create user1
+
+    mission123 = Missions::Mission.new :id   => "mission123", :assigned_to_id => user1.id
+    mission234 = Missions::Mission.new :id   => "mission234"
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    TestUser.add_privilege('view', 'missions')
+    mission = Omega::Client::Node.invoke_request('missions::get_mission', 'assigned_to', user1)
+    mission.class.should == Missions::Mission
+    mission.id.should == mission123.id
+
+    mission = Omega::Client::Node.invoke_request('missions::get_mission', 'assigned_to', user1.id)
+    mission.class.should == Missions::Mission
+    mission.id.should == mission123.id
+  end
+
+  it "should get active missions" do
+    Missions::Registry.instance.init
+
+    mission123 = Missions::Mission.new :id   => "mission123", :assigned_time => Time.now, :timeout => 10
+    mission234 = Missions::Mission.new :id   => "mission234"
+    Missions::Registry.instance.create mission123
+    Missions::Registry.instance.create mission234
+
+    TestUser.add_privilege('view', 'missions')
+    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'is_active', true)
+    missions.size.should == 1
+    missions.collect { |m| m.id }.should include(mission123.id)
+
+    missions = Omega::Client::Node.invoke_request('missions::get_mission', 'is_active', false)
     missions.size.should == 1
     missions.collect { |m| m.id }.should include(mission234.id)
   end

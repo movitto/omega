@@ -21,6 +21,8 @@ describe Missions::Mission do
      mission.victory_conditions.should == []
      mission.victory_callbacks.should == []
      mission.failure_callbacks.should == []
+     mission.victorious.should == false
+     mission.failed.should == false
   end
 
   it "should successfully accept and set mission params" do
@@ -37,7 +39,9 @@ describe Missions::Mission do
                                     :assignment_callbacks => [:asi1],
                                     :victory_conditions => [:vco1],
                                     :victory_callbacks => [:vca1],
-                                    :failure_callbacks => [:fc1]
+                                    :failure_callbacks => [:fc1],
+                                    :victorious        => true,
+                                    :failed            => true
     mission.instance_variable_get(:@node).should == :new_node
     mission.id.should == "mission123"
     mission.title.should == "test_mission"
@@ -51,6 +55,8 @@ describe Missions::Mission do
     mission.victory_conditions.should == [:vco1]
     mission.victory_callbacks.should == [:vca1]
     mission.failure_callbacks.should == [:fc1]
+    mission.victorious.should == true
+    mission.failed.should == true
   end
 
   it "should convert proc parameters to callable members into sprocs" do
@@ -85,7 +91,9 @@ describe Missions::Mission do
                                       :assignment_callbacks => [:asi1],
                                       :victory_conditions => [:vco1],
                                       :victory_callbacks => [:vca1],
-                                      :failure_callbacks => [:fc1]
+                                      :failure_callbacks => [:fc1],
+                                      :victorious => true,
+                                      :failed => true
     mission2 = Missions::Mission.new :mission => mission1
     mission2.id.should == "mission123"
     mission2.title.should == "test_mission"
@@ -99,6 +107,8 @@ describe Missions::Mission do
     mission2.victory_conditions.should == [:vco1]
     mission2.victory_callbacks.should == [:vca1]
     mission2.failure_callbacks.should == [:fc1]
+    mission2.victorious.should == true
+    mission2.failed.should == true
   end
 
   it "should update mission" do
@@ -114,7 +124,9 @@ describe Missions::Mission do
                                      :assignment_callbacks => [:asi1],
                                      :victory_conditions => [:vco1],
                                      :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1]
+                                     :failure_callbacks => [:fc1],
+                                     :victorious => true,
+                                     :failed => true
 
      mission.update(:id   => "mission124", 
                     :title => "test_missionu",
@@ -127,7 +139,9 @@ describe Missions::Mission do
                     :assignment_callbacks => [:asi2],
                     :victory_conditions => [:vco2],
                     :victory_callbacks => [:vca2],
-                    :failure_callbacks => [:fc2])
+                    :failure_callbacks => [:fc2],
+                    :victorious => :maybe,
+                    :failed => :maybe)
 
     mission.id.should == "mission124"
     mission.title.should == "test_missionu"
@@ -141,6 +155,8 @@ describe Missions::Mission do
     mission.victory_conditions.should == [:vco2]
     mission.victory_callbacks.should == [:vca2]
     mission.failure_callbacks.should == [:fc2]
+    mission.victorious.should == :maybe
+    mission.failed.should == :maybe
   end
 
   it "should clone mission" do
@@ -156,7 +172,9 @@ describe Missions::Mission do
                                      :assignment_callbacks => [:asi1],
                                      :victory_conditions => [:vco1],
                                      :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1]
+                                     :failure_callbacks => [:fc1],
+                                     :victorious => true,
+                                     :failed => true
     mission1 = mission.clone
     mission1.id.should == "mission123"
     mission1.title.should == "test_mission"
@@ -170,6 +188,8 @@ describe Missions::Mission do
     mission1.victory_conditions.should == [:vco1]
     mission1.victory_callbacks.should == [:vca1]
     mission1.failure_callbacks.should == [:fc1]
+    mission1.victorious.should == true
+    mission1.failed.should == true
   end
 
   it "should convert string assignment time into time" do
@@ -246,11 +266,15 @@ describe Missions::Mission do
      mission.assign_to(user)
      mission.assigned_to_id.should be_nil
      mission.assigned_to.should be_nil
+     mission.assigned_to?(user).should be_false
+     mission.assigned_to?(user.id).should be_false
 
      mission = Missions::Mission.new :node => Omega::Client::Node
      mission.assign_to(user)
      mission.assigned_to_id.should == user.id
      mission.assigned_to.should == user
+     mission.assigned_to?(user).should be_true
+     mission.assigned_to?(user.id).should be_true
   end
 
   it "should lookup user in registry if assigning to user id" do
@@ -282,6 +306,32 @@ describe Missions::Mission do
      # not really needed but w/e:
      mission = Missions::Mission.new :assigned_time => Time.now + 5, :timeout => 10
      mission.should_not be_expired
+
+     # if not assigned, should not be expired
+     mission = Missions::Mission.new
+     mission.should_not be_expired
+  end
+
+  it "should return boolean indicating if mission is active" do
+     # unassigned mission
+     mission = Missions::Mission.new
+     mission.should_not be_active
+
+     # expired mission
+     mission = Missions::Mission.new :assigned_time => Time.now - 5, :timeout => 0
+     mission.should_not be_active
+
+     # victorious mission
+     mission = Missions::Mission.new :victorious => true
+     mission.should_not be_active
+
+     # failed mission
+     mission = Missions::Mission.new :failed => true
+     mission.should_not be_active
+
+     # active mission
+     mission = Missions::Mission.new :assigned_time => Time.now, :timeout => 10
+     mission.should be_active
   end
 
   it "should return boolean indicating if mission is completed" do
@@ -438,7 +488,9 @@ describe Missions::Mission do
                                      :requirements => [:req1],
                                      :victory_conditions => [:vco1],
                                      :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1]
+                                     :failure_callbacks => [:fc1],
+                                     :victorious => true,
+                                     :failed => true
     j = mission.to_json
     j.should include('"json_class":"Missions::Mission"')
     j.should include('"id":"mission123"')
@@ -452,11 +504,13 @@ describe Missions::Mission do
     j.should include('"victory_conditions":["vco1"]')
     j.should include('"victory_callbacks":["vca1"]')
     j.should include('"failure_callbacks":["fc1"]')
+    j.should include('"victorious":true')
+    j.should include('"failed":true')
   end
 
   it "should be convertable from json" do
     t = Time.new('2013-03-10 15:33:41 -0400')
-    j = '{"json_class":"Missions::Mission","data":{"id":"mission123","title":"test_mission","description":"test_missiond","creator_user_id":"user42","assigned_to_id":"user43","timeout":500,"assigned_time":"'+t.to_s+'","requirements":["req1"],"assignment_callbacks":[],"victory_conditions":["vco1"],"victory_callbacks":["vca1"],"failure_callbacks":["fc1"]}}'
+    j = '{"json_class":"Missions::Mission","data":{"id":"mission123","title":"test_mission","description":"test_missiond","creator_user_id":"user42","assigned_to_id":"user43","timeout":500,"assigned_time":"'+t.to_s+'","requirements":["req1"],"assignment_callbacks":[],"victory_conditions":["vco1"],"victory_callbacks":["vca1"],"failure_callbacks":["fc1"],"victorious":true,"failed":true}}'
     m = JSON.parse(j)
 
     m.class.should == Missions::Mission
@@ -471,5 +525,7 @@ describe Missions::Mission do
     m.victory_conditions.should == ['vco1']
     m.victory_callbacks.should == ['vca1']
     m.failure_callbacks.should == ['fc1']
+    m.victorious.should == true
+    m.failed.should == true
   end
 end

@@ -28,6 +28,13 @@ describe Omega::Client::DSL do
     ru.npc.should be_true
   end
 
+  it "should retrieve the specified user" do
+    user('foo2', 'foo2')
+    u = user('foo2')
+    u.id.should == 'foo2'
+  end
+
+
   it "should create a new role" do
     u = role(Users::Role.new(:id => 'foozrole'))
     u.id.should == 'foozrole'
@@ -187,6 +194,15 @@ describe Omega::Client::DSL do
     Manufactured::Registry.instance.find(:id => 'st1', :type => 'Manufactured::Station').first.should_not be_nil
   end
 
+  it "should retrieve the specified station" do
+    user('user1', '1resu')
+    galaxy('ngal1') { |g| system('system1') }
+    station('st1', :user_id => 'user1', :type => :manufacturing,
+            :solar_system => system('system1'), :location => Motel::Location.new())
+    s = station('st1')
+    s.id.should == 'st1'
+  end
+
   it "should create a new ship" do
     user('user2', '2resu')
     galaxy('ngal1') { |g| system('system1') }
@@ -196,6 +212,15 @@ describe Omega::Client::DSL do
     }
     s.id.should == 'sh1'
     Manufactured::Registry.instance.find(:id => 'sh1', :type => 'Manufactured::Ship').first.should_not be_nil
+  end
+
+  it "should retrieve the specified ship" do
+    user('user1', '1resu')
+    galaxy('ngal1') { |g| system('system1') }
+    ship('sh1', :user_id => 'user1', :type => :mining,
+         :solar_system => system('system1'), :location => Motel::Location.new())
+    s = ship('sh1')
+    s.id.should == 'sh1'
   end
 
   it "should schedule a new periodic missions event" do
