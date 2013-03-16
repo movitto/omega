@@ -108,7 +108,7 @@ describe Users::Registry do
     u2.add_role role1
 
     users = Users::Registry.instance.find :with_privilege => ['view', 'manufactured_entities']
-    users.size.should == 2
+    users.size.should == 3
     users.should include(u1)
     users.should include(u2)
     users.should_not include(u3)
