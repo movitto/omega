@@ -241,7 +241,7 @@ module Omega
       def jump_gate(system, endpoint, args = {})
         gate = Cosmos::JumpGate.new(args.merge({:solar_system => system, :endpoint => endpoint}))
         RJR::Logger.info "Creating gate #{gate} under #{system.name}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', gate, system.name
+        gate = Omega::Client::Node.invoke_request 'cosmos::create_entity', gate, system.name
         gate
       end
 

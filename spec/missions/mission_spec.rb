@@ -293,6 +293,19 @@ describe Missions::Mission do
     user.privileges.find { |p| p.id == 'view' && p.entity_id == 'mission-mission111' }.should_not be_nil
   end
 
+  it "should clear mission assignment" do
+     user = Users::User.new :id => 'user42'
+     mission = Missions::Mission.new
+     mission.assigned_to    = user
+     mission.assigned_to_id = user.id
+     mission.assigned_time  = Time.now
+
+     mission.clear_assignment!
+     mission.assigned_to.should    == nil
+     mission.assigned_to_id.should == nil
+     mission.assigned_time.should  == nil
+  end
+
   it "should return boolean indicating if mission is expired" do
      mission = Missions::Mission.new :assigned_time => Time.now - 5, :timeout => 0
      mission.should be_expired

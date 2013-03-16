@@ -389,6 +389,10 @@ describe Omega::Client::InteractsWithEnvironment do
     Manufactured::Registry.instance.attack_commands[@ship4.id].defender.id.should == @ship5.id
   end
 
+  #it "should dock/undock from station" do
+    # TODO
+  #end
+
   #it "should transfer all entity resources to target" do
     # TODO
   #end

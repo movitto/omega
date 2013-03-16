@@ -588,6 +588,10 @@ describe Manufactured::RJRAdapter do
     @ship2.notification_callbacks.size.should == 0
   end
 
+  #it "should permit removal of callbacks of a ship in the graveyard" do
+    # TODO
+  #end
+
   it "should permit users with modify manufactured_resources to add resource directly to an entity" do
     Manufactured::Registry.instance.create @ship1
 

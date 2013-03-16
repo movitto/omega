@@ -75,6 +75,7 @@ describe Omega::Client::DSL do
         @system.should_not be_nil
         @system.name.should == 'system1'
       }
+      s.class.should == Omega::Client::SolarSystem
       s.id.should == 'system1'
     }
     Cosmos::Registry.instance.find_entity(:id => 'system1', :type => 'Cosmos::SolarSystem').first.should_not be_nil
@@ -92,6 +93,7 @@ describe Omega::Client::DSL do
       system('system1')
     }
     s = system('system1')
+    s.class.should == Omega::Client::SolarSystem
     s.name.should == 'system1'
   end
 
@@ -190,6 +192,7 @@ describe Omega::Client::DSL do
                        :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
       s.id.should == 'st1'
     }
+    s.class.should == Omega::Client::Station
     s.id.should == 'st1'
     Manufactured::Registry.instance.find(:id => 'st1', :type => 'Manufactured::Station').first.should_not be_nil
   end
@@ -200,6 +203,7 @@ describe Omega::Client::DSL do
     station('st1', :user_id => 'user1', :type => :manufacturing,
             :solar_system => system('system1'), :location => Motel::Location.new())
     s = station('st1')
+    s.class.should == Omega::Client::Station
     s.id.should == 'st1'
   end
 
@@ -210,6 +214,7 @@ describe Omega::Client::DSL do
                     :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
       s.id.should == 'sh1'
     }
+    s.class.should == Omega::Client::Ship
     s.id.should == 'sh1'
     Manufactured::Registry.instance.find(:id => 'sh1', :type => 'Manufactured::Ship').first.should_not be_nil
   end
@@ -220,6 +225,7 @@ describe Omega::Client::DSL do
     ship('sh1', :user_id => 'user1', :type => :mining,
          :solar_system => system('system1'), :location => Motel::Location.new())
     s = ship('sh1')
+    s.class.should == Omega::Client::Ship
     s.id.should == 'sh1'
   end
 
