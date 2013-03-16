@@ -159,6 +159,7 @@ module Omega
           RJR::Logger.info "Creating star #{star} in #{@system.name}"
           Omega::Client::Node.invoke_request 'cosmos::create_entity', star, @system.name
         end
+        @system = Omega::Client::SolarSystem.get(id)
         bl.call @system unless bl.nil?
         @system
       end
@@ -264,7 +265,7 @@ module Omega
         bl.call st unless bl.nil?
         RJR::Logger.info "Creating station #{st}"
         Omega::Client::Node.invoke_request 'manufactured::create_entity', st
-        st
+        Omega::Client::Station.get(id)
       end
 
       # Retrieve ship with the specified id if it exists,
@@ -287,7 +288,7 @@ module Omega
         bl.call sh unless bl.nil?
         RJR::Logger.info "Creating ship #{sh}"
         Omega::Client::Node.invoke_request 'manufactured::create_entity', sh
-        sh
+        Omega::Client::Ship.get(id)
       end
 
       # Schedule new periodic Missions Event

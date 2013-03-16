@@ -60,6 +60,7 @@ class RJRAdapter
     @@local_node.invoke_request('users::add_privilege', role_id, 'view',     'manufactured_entities')
     @@local_node.invoke_request('users::add_privilege', role_id, 'create',   'manufactured_entities')
     @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'manufactured_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify',   'manufactured_resources')
     @@local_node.invoke_request('users::add_privilege', role_id, 'create',   'missions')
 
     session = @@local_node.invoke_request('users::login', self.user)
@@ -89,6 +90,14 @@ class RJRAdapter
 
       raise ArgumentError, "Invalid #{mission.class} mission specified, must be Missions::Mission subclass" unless mission.kind_of?(Missions::Mission)
       # TODO err if existing mission w/ duplicate id ?
+
+      # set creator user,
+      # could possibly go into missions model
+      creator = mission.creator_user_id.nil? ?
+        Users::Registry.current_user(:session => @headers['session_id']) :
+        @@local_node.invoke_request('users::get_entity', 'with_id', mission.creator_user_id)
+      mission.creator_user    = creator
+      mission.creator_user_id = creator.id
 
       rmission = Missions::Registry.instance.create mission
       rmission.node = @@local_node
@@ -145,7 +154,7 @@ class RJRAdapter
       #                                  :session   => @headers['session_id'])
 
       user_missions = Missions::Registry.instance.missions.select { |m| m.assigned_to_id == user.id }
-      active         = user_missions.select { |m| m.active? }
+      active        = user_missions.select { |m| m.active? }
 
       # right now do not allow users to be assigned to more than one mission at a time
       raise Omega::OperationError, "user #{user_id} already has an active mission" unless active.empty?

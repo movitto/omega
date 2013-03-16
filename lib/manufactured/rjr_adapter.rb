@@ -293,7 +293,7 @@ class RJRAdapter
       source_node = @headers['source_node']
       # TODO add option to verify request is coming from authenticated source node which current connection was established on
 
-      entity = Manufactured::Registry.instance.find(:id => entity_id).first
+      entity = Manufactured::Registry.instance.find(:id => entity_id, :include_graveyard => true).first
       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
       Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
@@ -547,9 +547,10 @@ class RJRAdapter
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
-      Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
-                                                 {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                        :session => @headers['session_id'])
+      # anyone can dock at stations?
+      #Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
+      #                                           {:privilege => 'modify', :entity => 'manufactured_entities'}],
+      #                                  :session => @headers['session_id'])
 
       # update ship / station location
       ship.location = @@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id)

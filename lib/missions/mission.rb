@@ -5,6 +5,8 @@
 
 # TODO catch errors in callbacks ?
 
+require 'time'
+
 module Missions
 
 # Represents a set of objectives created by a user (usually a npc) and
@@ -36,6 +38,7 @@ class Mission
 
   # Handle to Users::User who created the mission
   attr_accessor :creator_user
+  alias :creator :creator_user
 
   # Array of mission assignment requirements
   attr_accessor :requirements
@@ -45,6 +48,7 @@ class Mission
   def assignable_to?(user)
     !@assigned_to_id &&
     @requirements.all? { |req|
+      # TODO catch exceptions (return false if any?)
       req.call self, user, @node
     }
   end
@@ -72,7 +76,7 @@ class Mission
   def assign_to(user)
     return unless self.assignable_to?(user)
     if user.is_a?(String)
-      # XXX don't like reaching into registry here
+      # XXX don't like reaching into registry here (and probably don't need to)
       @assigned_to_id = user
       @assigned_to    = @node.invoke_request('users::get_entity', 'with_id', user) unless @node.nil?
 
@@ -107,6 +111,13 @@ class Mission
   # mission has expired
   def expired?
     @assigned_time && ((@assigned_time + @timeout) < Time.now)
+  end
+
+  # Clear mission assignment
+  def clear_assignment!
+    @assigned_to    = nil
+    @assigned_to_id = nil
+    @assigned_time  = nil
   end
 
   # Boolean indicating if user was victorious in mission
@@ -185,7 +196,7 @@ class Mission
     update(args)
 
     if @assigned_time.is_a?(String)
-      @assigned_time = Time.new(@assigned_time)
+      @assigned_time = Time.parse(@assigned_time)
     end
 
     @requirements         = [@requirements]         unless @requirements.is_a?(Array)

@@ -725,11 +725,19 @@ module Omega
         sleep Manufactured::Registry::ATTACK_POLL_DELAY + 0.1
       end
 
-      #def dock(station)
-      #end
+      # Dock at the specified station
+      # TODO test
+      def dock_to(station)
+        RJR::Logger.info "Docking #{self.id} at #{station.id}"
+        Node.invoke_request 'manufactured::dock', self.id, station.id
+      end
 
-      #def undock
-      #end
+      # Undock
+      # TODO test
+      def undock
+        RJR::Logger.info "Unocking #{self.id}"
+        Node.invoke_request 'manufactured::undock', self.id
+      end
 
       # Transfer all resource sources to target.
       #

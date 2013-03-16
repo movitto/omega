@@ -120,7 +120,7 @@ class Registry
       }
 
       run_events.each   { |e|
-        RJR::Logger.debug "running missions event #{e}"
+        RJR::Logger.info "running missions event #{e}"
 
         # grab global event handlers, add them to callbacks
         e.callbacks += @event_handlers[e.id].values if @event_handlers.has_key?(e.id)

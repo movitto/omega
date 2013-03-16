@@ -12,6 +12,8 @@ describe Missions::RJRAdapter do
     @event1   = Missions::Event.new   :id => 'nevent1', :timestamp => Time.now
     @event2   = Missions::Event.new   :id => 'nevent2', :timestamp => (Time.now + 100)
     @mission1 = Missions::Mission.new :id => 'nmission1'
+    @mission2 = Missions::Mission.new :id => 'nmission1', :creator_user_id => 'user42'
+    @user42   = Users::User.new :id => 'user42'
   end
 
   after(:each) do
@@ -75,6 +77,25 @@ describe Missions::RJRAdapter do
 
     Missions::Registry.instance.missions.size.should    == 1
     Missions::Registry.instance.missions.collect { |e| e.id }.should include(@mission1.id)
+  end
+
+  it "should set creator user when creating mission" do
+    Missions::Registry.instance.init
+
+    Users::Registry.instance.create @user42
+
+    TestUser.add_privilege('create', 'missions')
+    smission = Omega::Client::Node.invoke_request('missions::create_mission', @mission1)
+    smission.creator_user_id.should == TestUser.id
+
+    Missions::Registry.instance.missions.size.should == 1
+    Missions::Registry.instance.missions.first.creator_user.id.should == TestUser.id
+
+    smission = Omega::Client::Node.invoke_request('missions::create_mission', @mission2)
+    smission.creator_user_id.should == @user42.id
+
+    Missions::Registry.instance.missions.size.should == 2
+    Missions::Registry.instance.missions.last.creator_user.id.should == @user42.id
   end
 
   it "should permit users with view missions or view mission-<id> to get_missions" do
