@@ -355,6 +355,30 @@ MESSAGE_END
        user_entity
      }
 
+    rjr_dispatcher.add_handler('users::update_attribute') { |user_id,attribute_id,change|
+      raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+
+      Users::Registry.require_privilege(:privilege => 'modify', :entity => "user_attributes",
+                                        :session   => @headers['session_id'])
+
+      user = Users::Registry.instance.find(:id => user_id, :type => "Users::User").first
+      raise Omega::DataNotFound, "user specified by user_id #{user_id} not found" if user.nil?
+
+      #Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
+      #                                           {:privilege => 'modify', :entity => 'users'}],
+      #                                  :session   => @headers['session_id'])
+
+      Users::Registry.instance.safely_run {
+        user.update_attribute!(attribute_id, change)
+      }
+
+      user
+    }
+
+    # TODO
+    # rjr_dispatcher.add_handler('users::has_attribute') { |args|
+    # rjr_dispatcher.add_handler('users::subscribe_to_progression') ...
+
     rjr_dispatcher.add_handler('users::save_state') { |output|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       output_file = File.open(output, 'a+')

@@ -77,6 +77,16 @@ class User
   # TODO prohibit npcs from logging in?
   attr_accessor :npc
 
+  # List of attributes currently owned by the user
+  attr_accessor :attributes
+
+  # Callbacks to invoke on various attribute related events TODO
+  # attr_accessor :attribute_callbacks
+
+  # Return overall user level calculated from attributes
+  def level
+    # TODO
+  end
 
   # User initializer
   # @param [Hash] args hash of options to initialize user with
@@ -96,13 +106,14 @@ class User
     @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
     @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
     @npc             = args[:npc]  || args['npc'] || false
+    @attributes      = args[:attributes] || args['attributes'] || []
     @secure_password = false
     @permenant       = false
 
     @roles = []
   end
 
-  # Update this users's attributes from other users.
+  # Update this users's properties from other users.
   #
   # Currently this only copies the password and secure_password
   # attributes.
@@ -115,6 +126,29 @@ class User
     # XXX hack, ensure password is salted after updating if necessary
     self.secure_password=@secure_password
   end
+
+  # Updates user attribute with specified change
+  #
+  # @param [String] attribute_id id of attribute to update
+  # @param [Integer,Float] change positive/negative amount to change attribute progression by
+  def update_attribute!(attribute_id, change)
+    attribute = @attributes.find { |a| a.id == attribute_id }
+
+    if attribute.nil?
+      attribute = AttributeClass.create_attribute(attribute_id)
+      raise ArgumentError, "invalid attribute #{attribute_id}" if attribute.type.nil?
+      @attributes << attribute
+    end
+
+    attribute.update!(change)
+    attribute
+  end
+
+  # Return boolean indicating if the user has the specified attribute
+  # at an optional minimum level
+  # TODO
+  #def has_attribute?(attribute_id, level = nil)
+  #end
 
   # Adds an alliance to user.
   #
@@ -193,7 +227,7 @@ class User
     has_privilege_on?(privilege_id, nil)
   end
 
-   # Convert user to human readable string and return it
+  # Convert user to human readable string and return it
   def to_s
     "user-#{@id}"
   end
@@ -203,7 +237,7 @@ class User
     {
       'json_class' => self.class.name,
       'data'       => {:id => id, :email => email, :alliances => alliances,
-                       :permenant => permenant, :npc => npc,
+                       :permenant => permenant, :npc => npc, :attributes => attributes,
                       }.merge(@secure_password ? {} : {:password => password, :registration_code => registration_code})
     }.to_json(*a)
   end

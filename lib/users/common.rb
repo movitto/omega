@@ -18,3 +18,10 @@ def self.random_string(length)
 end
 
 end
+
+# http://stackoverflow.com/a/436724
+class Class
+  def subclasses
+    ObjectSpace.each_object(Class).select { |klass| klass < self }
+  end
+end

@@ -7,7 +7,7 @@ require 'spec_helper'
 
 describe Users::User do
 
-  it "should properly initialze user" do
+  it "should properly initialize user" do
     u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
     u.id.should       == 'user1'
     u.email.should    == 'u@ser.com'

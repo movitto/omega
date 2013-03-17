@@ -28,6 +28,7 @@ ENTITIES_MANUFACTURED = 'manufactured_entities'
 ENTITIES_MANUFACTURED_RESOURCES = 'manufactured_resources'
 ENTITIES_USERS        = 'users_entities'
 ENTITIES_USER         = 'users'
+ENTITIES_USER_ATTRIBUTES = 'user_attributes'
 ENTITIES_PRIVILEGES   = 'privileges'
 ENTITIES_MISSIONS     = 'missions'
 ENTITIES_UNASSIGNED_MISSIONS = "unassigned_missions"

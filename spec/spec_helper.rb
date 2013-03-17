@@ -169,3 +169,11 @@ class TestMovementStrategy < Motel::MovementStrategy
      @times_moved += 1
    end
 end
+
+####################################################
+
+class TestAttribute < Users::AttributeClass
+  id :test_attribute
+  description 'test attribute description'
+  multiplier 5
+end

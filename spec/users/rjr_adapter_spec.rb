@@ -556,6 +556,56 @@ describe Users::RJRAdapter do
     PasswordHelper.check('foozbar', nu1.password).should be_true
   end
 
+  it "should permit a user with modify user_attributes to update_attribute" do
+    nu1 = Users::User.new :id => 'user43', :password => 'foobar'
+    nu1.secure_password = true
+
+    Users::Registry.instance.create nu1
+
+    # node type is not local node
+    Omega::Client::Node.node_type = 'local-test'
+
+    lambda{
+      Omega::Client::Node.invoke_request('users::update_attribute', nu1.id, TestAttribute.id, 1.5)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    Omega::Client::Node.node_type = :local
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::update_attribute', nu1.id, TestAttribute.id, 1.5)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('modify', 'user_attributes')
+
+    # invalid user id
+    lambda{
+      Omega::Client::Node.invoke_request('users::update_attribute', 'uu', TestAttribute.id, 1.5)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # invalid attribute
+    lambda{
+      Omega::Client::Node.invoke_request('users::update_attribute', nu1.id, 'aa', 1.5)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # valid call
+    user = nil
+    lambda{
+      user = Omega::Client::Node.invoke_request('users::update_attribute', nu1.id, TestAttribute.id, 1.5)
+    }.should_not raise_error
+
+    user.class.should == Users::User
+    user.id.should == nu1.id
+    attr = user.attributes.find { |a| a.type == TestAttribute }
+    attr.should_not be_nil
+    attr.level.should == 1
+    attr.progression.should == 0.5
+  end
+
   it "should permit local nodes to save and restore state" do
     nu1 = Users::User.new :id => 'user43'
     nu2 = Users::User.new :id => 'user44'
