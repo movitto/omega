@@ -22,6 +22,12 @@ describe Users::User do
     u.npc.should       == true
   end
 
+  it "should set user on attributes" do
+    a = Users::Attribute.new :type => TestAttribute
+    u = Users::User.new :attributes => [a]
+    a.user.should == u
+  end
+
   it "should properly secure user password" do
     u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
     u.secure_password = true
@@ -45,6 +51,37 @@ describe Users::User do
     u.last_modified_at.class.should == Time
     u.last_modified_at.should > ct
     u.last_modified_at.should < Time.now
+  end
+
+  it "should permit attributes to be updated" do
+    a = Users::Attribute.new :type => TestAttribute
+    u = Users::User.new :attributes => [a]
+    u.update_attribute!(TestAttribute.id, 5)
+    a.level.should == 5
+    a.user.should == u
+  end
+
+  it "should create attributes if they do not exist when updating" do
+    u = Users::User.new
+    u.update_attribute!(TestAttribute.id, 5)
+    a = u.attributes.find { |a| a.type == TestAttribute }
+    a.level.should == 5
+    a.user.should == u
+  end
+
+  it "should permit querying for attributes" do
+    a = Users::Attribute.new :type => TestAttribute
+    u = Users::User.new :attributes => [a]
+    u.has_attribute?(TestAttribute.id).should be_true
+    u.has_attribute?(:fooz).should be_false
+  end
+
+  it "should permit querying for attributes of a specified level" do
+    a = Users::Attribute.new :type => TestAttribute, :level => 5
+    u = Users::User.new :attributes => [a]
+    u.has_attribute?(TestAttribute.id, 4).should be_true
+    u.has_attribute?(TestAttribute.id, 5).should be_true
+    u.has_attribute?(TestAttribute.id, 6).should be_false
   end
 
   it "should permit adding an alliance" do

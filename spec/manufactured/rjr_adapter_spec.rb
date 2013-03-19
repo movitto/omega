@@ -7,8 +7,19 @@ require 'spec_helper'
 require 'rjr/local_node'
 
 describe Manufactured::RJRAdapter do
+  before(:all) do
+    @old_uattrs = Users::RJRAdapter.user_attrs_enabled 
+  end
+
+  after(:all) do
+    Users::RJRAdapter.user_attrs_enabled= @old_uattrs
+  end
 
   before(:each) do
+    # disable restrictions based on user attributes
+    # (may be explicitly enabled in tests below)
+    Users::RJRAdapter.user_attrs_enabled= false
+
     ############## test users
     @testuser1 = Users::User.new :id => 'user42'
     @testuser2 = Users::User.new :id => 'user43'
@@ -190,6 +201,40 @@ describe Manufactured::RJRAdapter do
 
     Manufactured::Registry.instance.ships.size.should    == olds + 1
   end
+
+  it "should validate user creation attributes if user attr system is enabled" do
+    Users::RJRAdapter.user_attrs_enabled= true
+    Manufactured::Registry.instance.init
+
+    TestUser.add_privilege('create', 'manufactured_entities')
+
+    oldsh = Manufactured::Registry.instance.ships.size
+
+    # user does not have construction attribute
+    lambda {
+      Omega::Client::Node.invoke_request('manufactured::create_entity', @ship1)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    Manufactured::Registry.instance.create @stat1
+    @u1.update_attribute!(Users::Attributes::NumberOfEntities.id, 1)
+
+    # user can only have one entity (the station)
+    lambda {
+      Omega::Client::Node.invoke_request('manufactured::create_entity', @ship1)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    @u1.update_attribute!(Users::Attributes::NumberOfEntities.id, 2)
+
+    # valid call
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::create_entity', @ship1)
+    }.should_not raise_error
+
+    Manufactured::Registry.instance.ships.size.should == oldsh + 1
+  end
+
 
   it "should permit users with create manufactured_entities to construct_entity" do
     Manufactured::Registry.instance.init
@@ -1017,7 +1062,38 @@ describe Manufactured::RJRAdapter do
 
     Manufactured::Registry.instance.attack_commands.size.should == 1
     Manufactured::Registry.instance.attack_commands.first.last.hooks[:before].size.should == 1
+    Manufactured::Registry.instance.attack_commands.first.last.hooks[:after].size.should == 1
     # TODO ensure locations are updated b4 attack cycle?
+  end
+
+  it "should update user attack attributes on completion of attack cycle" do
+    Users::RJRAdapter.user_attrs_enabled= true
+    Manufactured::Registry.instance.init
+
+    Manufactured::Registry.instance.create @ship1
+    Manufactured::Registry.instance.create @ship2
+    Manufactured::Registry.instance.create @stat1
+    Motel::Runner.instance.run @ship1.location
+    Motel::Runner.instance.run @ship2.location
+    Motel::Runner.instance.run @stat1.location
+    Manufactured::Registry.instance.attack_commands.size.should == 0
+
+    TestUser.add_privilege('modify', 'manufactured_entities')
+    TestUser.add_privilege('view',   'manufactured_entities')
+
+    lambda{
+      Omega::Client::Node.invoke_request('manufactured::attack_entity',
+                                                  @ship1.id, @ship2.id)
+    }.should_not raise_error
+    Manufactured::Registry.instance.attack_commands.size.should == 1
+
+    # manually setup defender's destruction
+    @ship2.hp = 0
+    @ship2.destroyed_by = @ship1
+    sleep 1
+
+    @u1.has_attribute?(Users::Attributes::ShipsUserDestroyed.id, 1).should == true
+    @testuser2.has_attribute?(Users::Attributes::UserShipsDestroyed.id, 1).should == true
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to stop_entity" do

@@ -52,6 +52,8 @@ class RJRAdapter
     @@local_node.invoke_request('users::add_privilege', role_id, 'modify', 'cosmos_entities')
     @@local_node.invoke_request('users::add_privilege', role_id, 'create', 'locations')
     @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'users_entities')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'user_attributes')
+    @@local_node.invoke_request('users::add_privilege', role_id, 'modify', 'user_attributes')
     @@local_node.invoke_request('users::add_privilege', role_id, 'view',   'locations')
     @@local_node.invoke_request('users::add_privilege', role_id, 'modify', 'locations')
     @@local_node.invoke_request('users::add_privilege', role_id, 'create', 'manufactured_entities')
@@ -93,6 +95,14 @@ class RJRAdapter
       # XXX hack - give new stations enough resources
       # to construct a preliminary helper
       entity.resources['metal-steel'] = 100 if entity.is_a?(Manufactured::Station)
+
+      # ensure user can own another entity (also subject to race condition, see above)
+      n = Manufactured::Registry.instance.find(:user_id => entity.user_id).size
+      can_create = @@local_node.invoke_request('users::has_attribute?',
+                                               entity.user_id,
+                                               Users::Attributes::NumberOfEntities.id,
+                                               n + 1)
+      raise Omega::PermissionError, "User #{entity.user_id} cannot own any more entities (max #{n})" unless can_create
 
       rentity = Manufactured::Registry.instance.create entity
 
@@ -147,6 +157,8 @@ class RJRAdapter
       argsh[:solar_system] = station.solar_system
       argsh[:user_id] = Users::Registry.current_user(:session => @headers['session_id']).id # TODO set permissions on entity? # TODO change to station's owner ?
 
+      # TODO also check construction related user attributes (construction class, parallel construction)
+
       entity = nil
 
       completed_callback =
@@ -155,6 +167,8 @@ class RJRAdapter
           # registry lock and create_entity will also attempt to obtain lock
           Manufactured::Registry.instance.unsafely_run {
             station.notification_callbacks.delete(completed_callback)
+
+            # FIXME how to handle if create_entity fails for whatever reason?
             @@local_node.invoke_request('manufactured::create_entity', entity)
           }
         }
@@ -528,8 +542,17 @@ class RJRAdapter
         cmd.defender.location = @@local_node.invoke_request('motel::get_location', 'with_id', cmd.defender.location.id)
       }
 
+      # after destroyed, invoke 'users::set_attribute' to set
+      # 'ships_user_destroyed' and 'user_ships_destroyed' user attributes
+      after_attack = lambda { |cmd|
+        if cmd.defender.hp == 0 && cmd.defender.destroyed_by.id == cmd.attacker.id
+          @@local_node.invoke_request('users::update_attribute', cmd.attacker.user_id, Users::Attributes::ShipsUserDestroyed.id, 1)
+          @@local_node.invoke_request('users::update_attribute', cmd.defender.user_id, Users::Attributes::UserShipsDestroyed.id, 1)
+        end
+      }
+
       Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender,
-                                                      :before   => before_attack
+                                                      :before   => before_attack, :after => after_attack
 
       [attacker, defender]
     }

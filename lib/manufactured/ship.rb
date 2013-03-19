@@ -102,6 +102,9 @@ class Ship
   # Hit points the ship has
   attr_accessor :hp
 
+  # Ship which destroyed this one (or its id) if applicable
+  attr_accessor :destroyed_by
+
   # @!endgroup
 
   # @!group Mining Properties

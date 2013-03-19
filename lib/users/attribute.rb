@@ -20,6 +20,14 @@ class Attribute
   # Progression to the next level
   attr_accessor :progression
 
+  # Handle to user owning this attribute
+  attr_accessor :user
+
+  # Return the attribute 'total' or the level + progression
+  def total
+    @level + @progression
+  end
+
   # Attribute initializer
   # @param [Hash] args hash of options to initialize attribute instance with
   # @option args [AttributeClass] :type,'type' type to assign to the attribute
@@ -44,6 +52,8 @@ class Attribute
   # invokes attribute_callbacks (and/or in Attribute)
   def update!(change)
     return if change < 0 && @level == 0 && @progression == 0
+    old_l = @level ; old_p = @progression ; old_t = self.total
+    # TODO if change type multiplier is set, scale change down by multipler&level
     @progression += change
     until (0...1.0).include?(@progression)
       if @progression >= 1.00
@@ -60,7 +70,28 @@ class Attribute
       @progression = 0
     end
 
-    # TODO callbacks
+    # invoke callbacks
+    unless @type.nil?
+      if @level > old_l
+        # level_up, progression
+        @type.invoke_callbacks(:level_up, self)
+        @type.invoke_callbacks(:progression, self)
+
+      elsif @level < old_l
+        # level_down, regression
+        @type.invoke_callbacks(:level_down, self)
+        @type.invoke_callbacks(:regression, self)
+
+      elsif @progression > old_p
+        # progression
+        @type.invoke_callbacks(:progression, self)
+
+      elsif @progression < old_p
+        # regression
+        @type.invoke_callbacks(:regression, self)
+
+      end
+    end
   end
 
   # Convert attribute to human readable string and return it
@@ -125,14 +156,25 @@ class AttributeClass
     @requirements
   end
 
-  # array of callbacks to invoke on various events including
-  # * :attribute_progression
-  # * :attribute_regression
+  # hash of callbacks to invoke on various events including
+  # * :progression
+  # * :regression
   # * :level_up
   # * :level_down
   def self.callbacks(callbacks = nil)
-    @callbacks = callbacks unless callbacks.nil?
+    unless callbacks.nil?
+      @callbacks = callbacks
+      @callbacks.each { |k,v| @callbacks[k] = v.is_a?(Array) ? v : [v] }
+    end
     @callbacks
+  end
+
+  # invoke callbacks registered for the specified event
+  def self.invoke_callbacks(event, attribute)
+    @callbacks ||= {}
+    @callbacks[event].each { |cb|
+      cb.call attribute
+    } if @callbacks.has_key?(event)
   end
 end
 

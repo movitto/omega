@@ -239,9 +239,12 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.ship_graveyard.size.should == 0
 
     before_hook_called = false
+    after_hook_called  = false
     before_hook = lambda { |cmd| before_hook_called = true }
+    after_hook  = lambda { |cmd| after_hook_called  = true }
 
-    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender, :before => before_hook
+    Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender,
+                                                    :before => before_hook, :after => after_hook
     sleep 1
     attacker.attacking?.should be_true
     sleep 2
@@ -250,6 +253,7 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.ships.should_not include(defender)
     Manufactured::Registry.instance.ship_graveyard.should include(defender)
     before_hook_called.should be_true
+    after_hook_called.should  be_true
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.running?.should be_false

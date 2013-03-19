@@ -348,6 +348,11 @@ class Registry
             ac.attacker.start_attacking(ac.defender) unless ac.attacker.attacking?
             ac.attack!
           end
+
+          # run 'after' hooks
+          ac.hooks[:after].each { |hook|
+            hook.call ac
+          }
         }
 
         # remove attack commands no longer necessary
@@ -372,6 +377,7 @@ class Registry
             @loot[loot.id] = loot
           end
         }
+        # FIXME stop mining, movement, attacking, etc
         @ship_graveyard += destroyed
       }
 

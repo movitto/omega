@@ -606,6 +606,134 @@ describe Users::RJRAdapter do
     attr.progression.should == 0.5
   end
 
+  it "should skip updating attribute if user attributes are disabled" do
+    nu1 = Users::User.new :id => 'user43', :password => 'foobar'
+    Users::Registry.instance.create nu1
+    TestUser.add_privilege('modify', 'user_attributes')
+
+    old = Users::RJRAdapter.user_attrs_enabled
+    Users::RJRAdapter.user_attrs_enabled = false
+    user = Omega::Client::Node.invoke_request('users::update_attribute', nu1.id, TestAttribute.id, 1.5)
+    Users::RJRAdapter.user_attrs_enabled = old
+
+    user.has_attribute?(TestAttribute.id).should be_false
+  end
+
+  it "should permit users with view user_attributes to query attributes" do
+    # TODO test view user_attributes, view user_attribute-<user_id>, view user_attribute-<user_id>_<attribute_id>
+    nu1 = Users::User.new :id => 'user43',
+                          :attributes => [Users::Attribute.new(:type => TestAttribute)]
+    nu2 = Users::User.new :id => 'user44'
+    Users::Registry.instance.create nu1
+    Users::Registry.instance.create nu2
+
+    # invalid user id
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nil, TestAttribute.id)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid attribute id
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, nil)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid level
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id, nil)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid level
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id, -1)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.add_privilege('view', 'user_attributes')
+
+    # invalid entity id
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', 'nun', TestAttribute.id)
+    # }.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    # valid call
+    ret = nil
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id)
+    }.should_not raise_error
+    ret.should be_true
+
+    # valid call
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu2.id, TestAttribute.id)
+    }.should_not raise_error
+    ret.should be_false
+
+    # valid call
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, 'fooz')
+    }.should_not raise_error
+    ret.should be_false
+
+    # valid call
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id, 10)
+    }.should_not raise_error
+    ret.should be_false
+
+    TestUser.clear_privileges.add_privilege('view', "user_attributes-#{nu1.id}")
+
+    # valid call
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id)
+    }.should_not raise_error
+    ret.should be_true
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu2.id, TestAttribute.id)
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+
+    TestUser.clear_privileges.add_privilege('view', "user_attribute-#{nu1.id}_#{TestAttribute.id}")
+
+    # valid call
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id)
+    }.should_not raise_error
+    ret.should be_true
+
+    # insufficient permissions
+    lambda{
+      Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, 'fooz')
+    #}.should raise_error(Omega::PermissionError)
+    }.should raise_error(Exception)
+  end
+
+  it "should always return true when checking for attributes when user attributes are disabled" do
+    nu1 = Users::User.new :id => 'user44'
+    Users::Registry.instance.create nu1
+    TestUser.add_privilege('view', 'user_attributes')
+
+    old = Users::RJRAdapter.user_attrs_enabled
+    Users::RJRAdapter.user_attrs_enabled = false
+    ret = nil
+    lambda{
+      ret = Omega::Client::Node.invoke_request('users::has_attribute?', nu1.id, TestAttribute.id)
+    }.should_not raise_error
+    Users::RJRAdapter.user_attrs_enabled = old
+    ret.should be_true
+  end
+
   it "should permit local nodes to save and restore state" do
     nu1 = Users::User.new :id => 'user43'
     nu2 = Users::User.new :id => 'user44'

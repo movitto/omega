@@ -4,6 +4,8 @@ backup_dir: './backups/'
 
 permenant_users: ['admin', 'manufactured', 'cosmos', 'users', 'missions', 'rlm', 'rcm' ]
 
+user_attrs_enabled: true
+
 node_id: 'omega'
 node_types: ['amqp', 'tcp', 'ws', 'www', 'local']
 

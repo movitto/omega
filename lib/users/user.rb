@@ -111,6 +111,10 @@ class User
     @permenant       = false
 
     @roles = []
+
+    @attributes.each { |attr|
+      attr.user = self
+    }
   end
 
   # Update this users's properties from other users.
@@ -132,10 +136,12 @@ class User
   # @param [String] attribute_id id of attribute to update
   # @param [Integer,Float] change positive/negative amount to change attribute progression by
   def update_attribute!(attribute_id, change)
-    attribute = @attributes.find { |a| a.id == attribute_id }
+    attribute = @attributes.find { |a| a.type.id == attribute_id }
 
     if attribute.nil?
+      # TODO also need to assign permissions to view attribute to user
       attribute = AttributeClass.create_attribute(attribute_id)
+      attribute.user = self
       raise ArgumentError, "invalid attribute #{attribute_id}" if attribute.type.nil?
       @attributes << attribute
     end
@@ -146,9 +152,10 @@ class User
 
   # Return boolean indicating if the user has the specified attribute
   # at an optional minimum level
-  # TODO
-  #def has_attribute?(attribute_id, level = nil)
-  #end
+  def has_attribute?(attribute_id, level = nil)
+    !@attributes.find { |a| a.type.id == attribute_id.intern &&
+                           (level.nil? || a.level >= level ) }.nil?
+  end
 
   # Adds an alliance to user.
   #

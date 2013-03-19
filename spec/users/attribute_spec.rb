@@ -28,6 +28,20 @@ describe Users::Attribute do
     a.type.should  == Users::Attributes::NumberOfShips
   end
 
+  it "should return total value of attribute" do
+    a = Users::Attribute.new
+    a.total.should == 0
+
+    a = Users::Attribute.new :level => 1
+    a.total.should == 1
+
+    a = Users::Attribute.new :progression => 0.75
+    a.total.should == 0.75
+
+    a = Users::Attribute.new :level => 2, :progression => 0.25
+    a.total.should == 2.25
+  end
+
   it "should be updatable" do
     a = Users::Attribute.new :level => 0, :progression => 0
     a.update! 0
@@ -85,6 +99,50 @@ describe Users::Attribute do
     a.progression.should == 0
   end
 
+  it "should invoke callbacks on update" do
+    # TODO verify attribute gets passed to test attribute callbacks
+
+    TestAttribute.reset_callbacks
+    a = Users::Attribute.new :level => 0, :progression => 0, :type => TestAttribute
+    a.update! 1
+     TestAttribute.level_up.should be_true
+     TestAttribute.progression.should be_true
+     TestAttribute.level_down.should be_false
+     TestAttribute.regression.should be_false
+
+    TestAttribute.reset_callbacks
+    a = Users::Attribute.new :level => 0, :progression => 0, :type => TestAttribute
+    a.update! 0.25
+     TestAttribute.level_up.should be_false
+     TestAttribute.progression.should be_true
+     TestAttribute.level_down.should be_false
+     TestAttribute.regression.should be_false
+
+    TestAttribute.reset_callbacks
+    a = Users::Attribute.new :level => 1, :progression => 0, :type => TestAttribute
+    a.update! -0.25
+     TestAttribute.level_up.should be_false
+     TestAttribute.progression.should be_false
+     TestAttribute.level_down.should be_true
+     TestAttribute.regression.should be_true
+
+    TestAttribute.reset_callbacks
+    a = Users::Attribute.new :level => 0, :progression => 0.75, :type => TestAttribute
+    a.update! -0.25
+     TestAttribute.level_up.should be_false
+     TestAttribute.progression.should be_false
+     TestAttribute.level_down.should be_false
+     TestAttribute.regression.should be_true
+
+    TestAttribute.reset_callbacks
+    a = Users::Attribute.new :level => 0, :progression => 0, :type => TestAttribute
+    a.update! -0.25
+     TestAttribute.level_up.should be_false
+     TestAttribute.progression.should be_false
+     TestAttribute.level_down.should be_false
+     TestAttribute.regression.should be_false
+  end
+
   it "should be convertable to json" do
     a = Users::Attribute.new :type        => Users::Attributes::NumberOfShips,
                              :level       => 50,
@@ -114,6 +172,16 @@ describe Users::AttributeClass do
     TestAttribute.id.should == :test_attribute
     TestAttribute.description.should == 'test attribute description'
     TestAttribute.multiplier.should == 5
+
+    TestAttribute.callbacks.size.should == 4
+    TestAttribute.callbacks.keys.should include(:level_up)
+    TestAttribute.callbacks.keys.should include(:level_down)
+    TestAttribute.callbacks.keys.should include(:progression)
+    TestAttribute.callbacks.keys.should include(:regression)
+    TestAttribute.callbacks[:level_up].size.should == 1
+    TestAttribute.callbacks[:level_down].size.should == 1
+    TestAttribute.callbacks[:progression].size.should == 1
+    TestAttribute.callbacks[:regression].size.should == 1
   end
 
   it "should instantiate attribute w/ type of attribute class w/ specified id" do
@@ -121,4 +189,12 @@ describe Users::AttributeClass do
     a.type.should == TestAttribute
   end
 
+  it "should permit invoking of registered callbacks" do
+    TestAttribute.reset_callbacks
+    TestAttribute.invoke_callbacks(:level_up, :attr)
+    TestAttribute.level_up.should be_true
+    TestAttribute.progression.should be_false
+    TestAttribute.level_down.should be_false
+    TestAttribute.regression.should be_false
+  end
 end

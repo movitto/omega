@@ -15,6 +15,11 @@ class RJRAdapter
   class << self
     # @!group Config options
 
+    # Boolean toggling if user attribute system is enabled / disabled.
+    # Disabling attributes will result in setting attributes having
+    # no effect and all has_attribute? calls returning true
+    attr_accessor :user_attrs_enabled
+
     # Boolean toggling if recaptchas are enabled / required for user registration
     # @!scope class
     attr_accessor :recaptcha_enabled
@@ -44,6 +49,7 @@ class RJRAdapter
     #
     # @param [Omega::Config] config object containing config options
     def set_config(config)
+      self.user_attrs_enabled = config.user_attrs_enabled
       self.recaptcha_enabled  = config.recaptcha_enabled
       self.recaptcha_pub_key  = config.recaptcha_pub_key
       self.recaptcha_priv_key = config.recaptcha_priv_key
@@ -368,15 +374,42 @@ MESSAGE_END
       #                                           {:privilege => 'modify', :entity => 'users'}],
       #                                  :session   => @headers['session_id'])
 
-      Users::Registry.instance.safely_run {
-        user.update_attribute!(attribute_id, change)
-      }
+
+      if Users::RJRAdapter.user_attrs_enabled
+        Users::Registry.instance.safely_run {
+          user.update_attribute!(attribute_id, change)
+        }
+      end
 
       user
     }
 
-    # TODO
-    # rjr_dispatcher.add_handler('users::has_attribute') { |args|
+    rjr_dispatcher.add_handler('users::has_attribute?') { |*args|
+      user_id = args[0]
+      attr_id = args[1]
+      level   = args.size > 2 ? args[2] : 0
+      raise ArgumentError, "must specify a valid user id"      unless user_id.is_a?(String)
+      raise ArgumentError, "must specify a valid attribute id" unless attr_id.is_a?(String)
+      raise ArgumentError, "must specify a valid level"        unless level.is_a?(Integer) && level >= 0
+
+      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "user_attributes"},
+                                                 {:privilege => 'view', :entity => "user_attributes-#{user_id}"},
+                                                 {:privilege => 'view', :entity => "user_attribute-#{user_id}_#{attr_id}"}],
+                                        :session   => @headers['session_id'])
+
+      user = Users::Registry.instance.find(:id => user_id, :type => "Users::User").first
+      raise Omega::DataNotFound, "user specified by user_id #{user_id} not found" if user.nil?
+
+      if Users::RJRAdapter.user_attrs_enabled
+        Users::Registry.instance.safely_run {
+          user.has_attribute?(attr_id, level)
+        }
+      else
+        true
+      end
+    }
+
+    # TODO allow client to subscribe to attribute changes
     # rjr_dispatcher.add_handler('users::subscribe_to_progression') ...
 
     rjr_dispatcher.add_handler('users::save_state') { |output|

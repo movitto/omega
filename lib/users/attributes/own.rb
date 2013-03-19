@@ -9,6 +9,8 @@ module Attributes
 
 # Permits a user to own a specified number of entities
 class NumberOfEntities < Users::AttributeClass
+  id           :number_of_entities
+  description  "Maximum number of manufactured entities a user may own"
 end
 
 # Permits a user to own a entities of a specified type

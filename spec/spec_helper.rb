@@ -176,4 +176,20 @@ class TestAttribute < Users::AttributeClass
   id :test_attribute
   description 'test attribute description'
   multiplier 5
+  callbacks :level_up    => lambda { |attr| @level_up_invoked    = true },
+            :level_down  => lambda { |attr| @level_down_invoked  = true },
+            :progression => lambda { |attr| @progression_invoked = true },
+            :regression  => lambda { |attr| @regression_invoked  = true }
+
+  def self.reset_callbacks
+    @level_up_invoked    = false
+    @level_down_invoked  = false
+    @progression_invoked = false
+    @regression_invoked  = false
+  end
+
+  def self.level_up ; @level_up_invoked ; end
+  def self.level_down ; @level_down_invoked ; end
+  def self.progression ; @progression_invoked ; end
+  def self.regression ; @regression_invoked ; end
 end

@@ -27,7 +27,7 @@ class AttackCommand
   attr_accessor :last_attack_time
 
   # Hash of command sequence events to callbale handlers to invoke on those events.
-  # Valid values for keys include: :before
+  # Valid values for keys include: :before, :after
   attr_accessor :hooks
 
   # Manufactured::AttackCommand initializer
@@ -35,13 +35,15 @@ class AttackCommand
   # @option args [Manufactured::Ship] :attacker ship attacking the defender
   # @option args [Manufactured::Ship] :defender ship receiving attack from the attacker
   # @option args [Callable] :before callable object to register with the 'before' hooks
+  # @option args [Callable] :after callable object to register with the 'after' hooks
   def initialize(args = {})
     @attacker = args[:attacker]
     @defender = args[:defender]
     @remove   = false
 
-    @hooks = { :before => [] }
+    @hooks = { :before => [], :after => [] }
     @hooks[:before] << args[:before] if args.has_key?(:before)
+    @hooks[:after]  << args[:after]  if args.has_key?(:after)
   end
 
   # Return the unique id of this attack command.
@@ -127,6 +129,8 @@ class AttackCommand
 
     # check if defender has been destroyed
     if @defender.hp <= 0
+      @defender.destroyed_by = @attacker
+
       RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}, marking for removal"
 
       # invoke defender's 'destroyed' callbacks

@@ -20,6 +20,7 @@ require 'users/role'
 require 'users/rjr_adapter'
 require 'users/registry'
 
+require 'users/attributes/stats'
 require 'users/attributes/own'
 require 'users/attributes/interact'
 require 'users/attributes/pilot'

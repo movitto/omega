@@ -28,13 +28,17 @@ describe Manufactured::AttackCommand do
      defender.hp = 10
 
      before_hook = lambda { |c| }
+     after_hook = lambda { |c| }
 
-     cmd = Manufactured::AttackCommand.new :attacker => attacker, :defender => defender, :before => before_hook
+     cmd = Manufactured::AttackCommand.new :attacker => attacker,    :defender => defender,
+                                           :before   => before_hook, :after    => after_hook
 
      cmd.attacker.should == attacker
      cmd.defender.should == defender
      cmd.hooks[:before].size.should == 1
      cmd.hooks[:before].first.should == before_hook
+     cmd.hooks[:after].size.should == 1
+     cmd.hooks[:after].first.should == after_hook
      cmd.id.should == attacker.id
      cmd.remove?.should be_false
      cmd.attackable?.should be_true
@@ -42,12 +46,14 @@ describe Manufactured::AttackCommand do
      cmd.attack!
      cmd.attackable?.should be_false
      defender.hp.should == 5
+     defender.destroyed_by.should be_nil
      cmd.remove?.should be_false
 
      Timecop.travel(2)
      cmd.attackable?.should be_true
      cmd.attack!
      defender.hp.should == 0
+     defender.destroyed_by.should == attacker
      cmd.remove?.should be_true
   end
 
