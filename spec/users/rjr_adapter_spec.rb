@@ -557,6 +557,7 @@ describe Users::RJRAdapter do
   end
 
   it "should permit a user with modify user_attributes to update_attribute" do
+    Users::RJRAdapter.user_attrs_enabled = true
     nu1 = Users::User.new :id => 'user43', :password => 'foobar'
     nu1.secure_password = true
 
@@ -620,6 +621,8 @@ describe Users::RJRAdapter do
   end
 
   it "should permit users with view user_attributes to query attributes" do
+    Users::RJRAdapter.user_attrs_enabled = true
+
     # TODO test view user_attributes, view user_attribute-<user_id>, view user_attribute-<user_id>_<attribute_id>
     nu1 = Users::User.new :id => 'user43',
                           :attributes => [Users::Attribute.new(:type => TestAttribute)]
