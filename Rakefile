@@ -3,10 +3,7 @@
 # Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require "yard"
 require "rake/packagetask"
-require "rspec/core/rake_task"
-
 Rake::PackageTask.new("omega", "0.2.0") do |p|
   p.need_tar = true
   p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
@@ -16,16 +13,27 @@ Rake::PackageTask.new("omega", "0.2.0") do |p|
   p.package_files.exclude("lib/rjr*", "site2/build/**/*")
 end
 
-desc "Run all specs"
-RSpec::Core::RakeTask.new(:specs) do |spec|
-  spec.pattern = 'spec/**/*_spec.rb'
-  spec.rspec_opts = ['--backtrace', '-fd', '-c']
+begin
+  require 'parallel_tests'
+  desc "Run all specs"
+  task :specs do |task, args|
+    require 'parallel_tests/tasks'
+    Rake::Task['parallel:spec'].invoke
+  end
+
+rescue LoadError => e
+  require "rspec/core/rake_task"
+  desc "Run all specs"
+  RSpec::Core::RakeTask.new(:specs) do |spec|
+    spec.pattern = 'spec/**/*_spec.rb'
+    spec.rspec_opts = ['--backtrace', '-fd', '-c']
+  end
+
 end
 
+require "yard"
 YARD::Rake::YardocTask.new do |t|
 end
-
-# FIXME doc and test tasks for the js modules under site2
 
 desc 'Print the RJR accessible api'
 task 'rjr_api' do
@@ -40,6 +48,8 @@ task 'rjr_api' do
       }
 end
 
+# TODO task to output api callback methods client can handle
+
 namespace :site do
   desc 'Preview the site'
   task 'preview' do
@@ -53,4 +63,6 @@ namespace :site do
     Dir.chdir 'site2'
     system("middleman build")
   end
+
+  # FIXME doc and test tasks for site
 end
