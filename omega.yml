@@ -36,6 +36,9 @@ missions_rjr_pass: 'snoissim'
 users_rjr_user: 'users'
 users_rjr_pass: 'sresu'
 
+stats_rjr_user: 'stats'
+stats_rjr_pass: 'stats'
+
 remote_location_manager_user: 'rlm'
 remote_location_manager_pass: 'mlr'
 

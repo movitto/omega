@@ -30,6 +30,7 @@ RSpec.configure do |config|
     Cosmos::RJRAdapter.init
     Manufactured::RJRAdapter.init
     Missions::RJRAdapter.init
+    Stats::RJRAdapter.init
 
     TestUser.create.clear_privileges
 

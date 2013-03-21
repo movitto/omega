@@ -31,5 +31,6 @@ require 'cosmos'
 require 'manufactured'
 require 'users'
 require 'missions'
+require 'stats'
 
 require 'omega/config'
