@@ -32,6 +32,7 @@ class Registry
 
        # Return number of specified entity
        Stat.new(:id => :num_of,
+                :description => 'Total number of entities',
                 :generator => proc { |entity_type|
                                 # currently suppor users entity types
                                 # TODO add support for manufactured, cosmos, missions, etc
@@ -47,6 +48,7 @@ class Registry
        # Return list of up to <num_to_return> user ids sorted
        # by the number of manufactued enties the users own
        Stat.new(:id => :most_entities,
+                :description => 'Users w/ the most entities',
                 :generator => proc { |num_to_return|
                                 # get all ships
                                 entities = Registry.instance.node.invoke_request 'manufactured::get_entities'
@@ -55,6 +57,8 @@ class Registry
                                 eu = entities.inject(Hash.new(0)) { |h,e|
                                   h[e.user_id] += 1; h
                                 }.sort_by { |k,v| v }.reverse
+
+                                num_to_return ||= eu.size
 
                                 # return 
                                 eu[0...num_to_return].collect { |eui| eui.first }

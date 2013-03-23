@@ -12,6 +12,9 @@ class Stat
   # id of the statistic
   attr_accessor :id
 
+  # description of the statistic
+  attr_accessor :description
+
   # method used to generator the statistic
   attr_accessor :generator
 
@@ -19,24 +22,44 @@ class Stat
   def generate(*args)
     # TODO support for caching results for a period (would require concurrent access protection)
     value = @generator.call(*args)
-    StatResult.new :stat_id => self.id, :args => args, :value => value
+    StatResult.new :stat_id => self.id, :stat => self,
+                   :args    => args,    :value => value
   end
 
   # Statistic initializer
   # @param [Hash] args hash of options to initialize stat with
   # @option args [String] :id,'id' id to assign to the stat
+  # @option args [String] :description,'description' description to assign to the stat
   # @option args [Callable] :generator,'generator' generator to assign to the stat
   def initialize(args = {})
-    @id        = args[:id]        || args['id']        || nil
-    @generator = args[:generator] || args['generator'] || nil
+    @id          = args[:id]          || args['id']          || nil
+    @description = args[:description] || args['description'] || nil
+    @generator   = args[:generator]   || args['generator']   || nil
   end
 
+  # Convert stat to json representation and return it
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        {:id => id, :description => description}
+    }.to_json(*a)
+  end
+
+  # Create new stat from json representation
+  def self.json_create(o)
+    stat = new(o['data'])
+    return stat
+  end
 end
 
 # Encapsultates a statistic result
 class StatResult
   # id of the statistic this result belongs to
   attr_accessor :stat_id
+
+  # handle to the stat this result belongs to
+  attr_accessor :stat
 
   # array of args used to generated the stat
   attr_accessor :args
@@ -50,8 +73,13 @@ class StatResult
   # @option args [Object] :value,'value' value to assign to the result
   def initialize(args = {})
     @stat_id   = args[:stat_id]   || args['stat_id']   || nil
+    @stat      = args[:stat]      || args['stat']      || nil
     @args      = args[:args]      || args['args']      || []
     @value     = args[:value]     || args['value']     || nil
+  end
+
+  def to_s
+    "stat-result-#{stat_id} (#{value})"
   end
 
   # Convert stat result to json representation and return it
@@ -59,11 +87,11 @@ class StatResult
     {
       'json_class' => self.class.name,
       'data'       =>
-        {:stat_id => stat_id, :args => args, :value => value}
+        {:stat_id => stat_id, :stat => stat, :args => args, :value => value}
     }.to_json(*a)
   end
 
-  # Create new stat resultfrom json representation
+  # Create new stat result from json representation
   def self.json_create(o)
     res = new(o['data'])
     return res

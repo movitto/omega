@@ -80,8 +80,10 @@ function OmegaChatContainer(){
 
   // subscribe to messages on session validation
   $omega_session.on_session_validated(function(){
-    $("#toggle_chat").show();
-    subscribe_to_messages();
+    if(!$omega_user.is_anon()){
+      $("#toggle_chat").show();
+      subscribe_to_messages();
+    }
   });
 
   $omega_session.on_session_destroyed(function(){

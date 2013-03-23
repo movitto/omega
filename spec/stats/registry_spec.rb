@@ -61,6 +61,11 @@ describe Stats::Registry do
       r.value.size.should == 2
       r.value.first.should == 'user1'
       r.value.last.should == 'user2'
+
+      r = s.generate
+      r.value.size.should == 2
+      r.value.first.should == 'user1'
+      r.value.last.should == 'user2'
     end
   end
 

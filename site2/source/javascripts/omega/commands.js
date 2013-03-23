@@ -862,31 +862,9 @@ var OmegaQuery = {
     $omega_node.web_request('missions::get_missions', omega_callback(callback));
   },
 
-  /* Invoke omega server side missions::get_missions
-   * operation to retrieve mission currently
-   * assigned to the specified user
-   *
-   * @param {String} user_id id of the user to retrieved assigned mission
-   * @param {Callback} callback function to invoke w/ array of missions retrieved
-   */
-  //active_mission_assigned_to : function(user_id, callback){
-  //  $omega_node.web_request('missions::get_mission',
-  //                          'assigned_to', user_id,
-  //                          'is_active', true,
-  //                          omega_callback(callback));
-  //},
-
-  /* Invoke omega server side missions::get_missions
-   * operation to retrieve all missions which are currently
-   * assignable to the specified user
-   *
-   * @param {String} user_id id of the user to validate mission is assignable to
-   * @param {Callback} callback function to invoke w/ array of missions retrieved
-   */
-  //missions_assignable_to : function(user_id, callback){
-  //  $omega_node.web_request('missions::get_missions',
-  //                          'assignable_to', user_id,
-  //                          omega_callback(callback));
-  //}
+  stat : function(stat_id, stat_args, callback){
+    // TODO explode stat_args if array
+    $omega_node.web_request('stats::get', stat_id, stat_args, omega_callback(callback));
+  }
 
 }

@@ -47,6 +47,11 @@ admin = Users::User.new :id => config.admin_user, :password => config.admin_pass
 local_node.invoke_request('users::create_entity', admin)
 local_node.invoke_request('users::add_role',       admin.id, 'superadmin')
 
+# create an initial anonymous user
+anon = Users::User.new :id => config.anon_user, :password => config.anon_pass
+local_node.invoke_request('users::create_entity', anon)
+local_node.invoke_request('users::add_role',      anon.id, 'anonymous_user')
+
 # create an user for remote location management
 rlm = Users::User.new :id => config.remote_location_manager_user, :password => config.remote_location_manager_password
 local_node.invoke_request('users::create_entity', rlm)

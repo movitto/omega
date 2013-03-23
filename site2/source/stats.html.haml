@@ -6,30 +6,8 @@
 
 - content_for :secondary_navigation do
   = link_to "back",   "index.html", :id => "account_info_back"
-  = link_to "register", "#", :id => "register_link"
-  = link_to "account",  "account.html", :id => "account_link"
-  = link_to "login",    "#", :id => "login_link"
-  = link_to "logout",   "#", :id => "logout_link"
 
 .clear_both
 
 #stats.content
-  = partial :canvas, :locals => {:show_close => true}
-
-  #stats_nav
-    #stats_cosmos.omega_display_stats
-      Cosmos
-      %ul
-    #stats_entities.omega_display_stats
-      Entities
-      %ul
-    #stats_users.omega_display_stats
-      Users
-      %ul
-    #stats_actions.omega_display_stats
-      Actions
-      %ul
-
-  #stats_content
-
-= partial :dialog
+  %ul

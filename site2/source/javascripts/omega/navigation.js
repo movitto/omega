@@ -36,8 +36,10 @@ function OmegaNavigationContainer(){
   /* Show logout controls, hide login controls
    */
   var show_logout_controls = function(){
-    account_link.show();  logout_link.show();
-    register_link.hide(); login_link.hide();
+    if(!$omega_user.is_anon()){ // XXX prolly should go elsewhere
+      account_link.show();  logout_link.show();
+      register_link.hide(); login_link.hide();
+    }
   }
 
   /* Show the login dialog

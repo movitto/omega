@@ -218,6 +218,7 @@ class Registry
     @sessions.delete_if { |session|
       session.id == args[:session_id] ||
       session.user.id == args[:user_id]
+      # TODO skip if user is permenant?
     }
   end
 

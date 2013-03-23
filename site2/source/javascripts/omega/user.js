@@ -9,6 +9,7 @@ require('javascripts/omega/client.js');
 require('javascripts/omega/entity.js');
 require('javascripts/omega/commands.js');
 
+
 /////////////////////////////////////// Omega User
 
 function OmegaUser(args){
@@ -30,6 +31,14 @@ function OmegaUser(args){
     for(var attr in nuser)
       this[attr] = nuser[attr];
   }
+
+  /* Return bool indicating if the current user
+   * is the anonymous user
+   */
+  this.is_anon = function(){
+    return this.id == $omega_config['anon_user'];
+  }
+
 }
 
 /////////////////////////////////////// Omega Session
@@ -83,8 +92,12 @@ function OmegaSession(){
       for(var i = 0; i < invalid_session_callbacks.length; i++){
         invalid_session_callbacks[i]();
       }
+      login_as_anon();
+
     }else{
-      $omega_registry.add(user);
+      $omega_user = user;
+      if(typeof $omega_registry !== "undefined")
+        $omega_registry.add(user);
       for(var i = 0; i < session_validated_callbacks.length; i++){
         session_validated_callbacks[i]();
       }
@@ -119,6 +132,15 @@ function OmegaSession(){
     for(var i = 0; i < session_destroyed_callbacks.length; i++){
       session_destroyed_callbacks[i]();
     }
+    login_as_anon();
+  }
+
+  /* Login the anonymous user
+   */
+  var login_as_anon = function(){
+    var user = new OmegaUser({ id : $omega_config.anon_user,
+                               password : $omega_config.anon_pass });
+    OmegaCommand.login_user.exec(user, on_user_login, on_login_error);
   }
 
   /////////////////////////////////////// public methods
@@ -180,5 +202,8 @@ function OmegaSession(){
     $omega_node.on_connection_established(function(){
       OmegaQuery.user_with_id(user_id, callback_validate_session);
     });
+
+  }else{
+    login_as_anon();
   }
 }

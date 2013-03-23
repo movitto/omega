@@ -90,22 +90,24 @@ function convert_entity(entity){
     entity = new OmegaMission(entity);
     OmegaMission.cache_missions();
 
-  }
+  }// else if(entity.json_class == "Stats::StatResult") TODO
 
-  var oentity = $omega_registry.get(entity.id);
-  if(oentity != null){
-    oentity.update(entity);
-    entity = oentity;
+  if(typeof $omega_registry !== "undefined"){
+    var oentity = $omega_registry.get(entity.id);
+    if(oentity != null){
+      oentity.update(entity);
+      entity = oentity;
 
-  // limit what we store in registry for performance reasons
-  }else if(entity.registerable){
-    $omega_registry.add(entity);
-  }
+    // limit what we store in registry for performance reasons
+    }else if(entity.registerable){
+      $omega_registry.add(entity);
+    }
 
-  // XXX hacky way to refresh entity container
-  if(typeof $omega_scene !== "undefined"){
-    var selected = $omega_scene.selection.selected();
-    if(selected) $omega_registry.get(selected).clicked();
+    // XXX hacky way to refresh entity container
+    if(typeof $omega_scene !== "undefined"){
+      var selected = $omega_scene.selection.selected();
+      if(selected) $omega_registry.get(selected).clicked();
+    }
   }
 
 

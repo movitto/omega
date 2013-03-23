@@ -26,6 +26,18 @@ $(document).ready(function(){
   });
 
   $omega_session.on_session_validated(function(){
+    // get stats, display badges
+    OmegaQuery.stat("most_entities", 10, function(stat_result){
+      var badges = $('#account_info_badges');
+      for(var i = 1; i < stat_result.value.length; i++){
+        if(stat_result.value[i] == $user_id){
+          // display top n badge
+          badges.append("<div class='badge' style='background: url(\""+$omega_config['prefix'] +"/images/badges/most_ships_top.png\");'>"+stat_result.stat.description + ': ' + (i+1)+"</div>");
+          break;
+        }
+      }
+    });
+
     var user = $omega_registry.get($user_id);
 
     //$('#account_info_last_login');
