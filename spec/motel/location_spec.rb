@@ -9,12 +9,19 @@ describe Motel::Location do
 
   it "should successfully accept and set location params" do
      parent = Motel::Location.new
-     location = Motel::Location.new :id => 1, :parent_id => 2, :parent => parent, :x => 3, :y => 4, :z => 5
+     location = Motel::Location.new :id => 1, :parent_id => 2, :parent => parent,
+                                    :x => 3, :y => 4, :z => 5,
+                                    :orientation_x => 1,
+                                    :orientation_y => 0,
+                                    :orientation_z => 0
      location.id.should == 1
      location.parent_id.should == 2
      location.x.should == 3
      location.y.should == 4
      location.z.should == 5
+     location.orientation_x.should == 1
+     location.orientation_y.should == 0
+     location.orientation_z.should == 0
      location.parent.should == parent
      location.children.should == []
      location.movement_callbacks.should == []
@@ -31,12 +38,15 @@ describe Motel::Location do
      p1 = Motel::Location.new
      p2 = Motel::Location.new
 
-     orig = Motel::Location.new :x => 1, :y => 2, :movement_strategy => 'foobar', :parent_id => 5, :parent => p1
-     new  = Motel::Location.new :x => 5, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
+     orig = Motel::Location.new :x => 1, :y => 2, :orientation_z => -0.5, :movement_strategy => 'foobar', :parent_id => 5, :parent => p1
+     new  = Motel::Location.new :x => 5, :orientation_y => -1, :movement_strategy => 'foomoney', :parent_id => 10, :parent => p2
      orig.update(new)
      orig.x.should == 5
      orig.y.should == 2
      orig.z.should be_nil
+     orig.orientation_x.should be_nil
+     orig.orientation_y.should == -1
+     orig.orientation_z.should == -0.5
      orig.movement_strategy.should == "foomoney"
      orig.parent_id.should be(10)
      orig.parent.should be(p2)
@@ -51,6 +61,20 @@ describe Motel::Location do
     loc = Motel::Location.new :x => 10, :y => 20, :z => -30
     coords = loc.coordinates
     coords.should == [10, 20, -30]
+  end
+
+  it "should retrieve a location's orientation" do
+    loc = Motel::Location.new :orientation_x => 50, :orientation_y => -50, :orientation_z => 100
+    orientation = loc.orientation
+    orientation.should == [50, -50, 100]
+  end
+
+  it "should retrieve a location's orientation in spherical coordinates" do
+    loc = Motel::Location.new :orientation_x => 1, :orientation_y => 0, :orientation_z => 0
+    orientation = loc.spherical_orientation
+    orientation.size.should == 2
+    (orientation[0] - 1.57).should < 0.001
+     orientation[1].should == 0
   end
 
   it "should retrieve root location" do
@@ -202,6 +226,7 @@ describe Motel::Location do
     sc  = Motel::Callbacks::Stopped.new
     l = Motel::Location.new(:id => 42,
                             :x => 10, :y => -20, :z => 0.5,
+                            :orientation => [0, 0, -1],
                             :restrict_view => false, :restrict_modify => true,
                             :parent_id => 15, :remote_queue => 'foobar',
                             :movement_strategy =>
@@ -217,6 +242,9 @@ describe Motel::Location do
     j.should include('"x":10')
     j.should include('"y":-20')
     j.should include('"z":0.5')
+    j.should include('"orientation_x":0')
+    j.should include('"orientation_y":0')
+    j.should include('"orientation_z":-1')
     j.should include('"restrict_view":false')
     j.should include('"restrict_modify":true')
     j.should include('"parent_id":15')
@@ -236,7 +264,7 @@ describe Motel::Location do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"id":42}}'
+    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"orientation_z":0.5,"id":42}}'
     l = JSON.parse(j)
 
     l.class.should == Motel::Location
@@ -244,6 +272,7 @@ describe Motel::Location do
     l.x.should  == 10
     l.y.should  == -20
     l.z.should  == 0.5
+    l.orientation_z.should  == 0.5
     l.restrict_view.should be_false
     l.restrict_modify.should be_true
     l.parent_id.should == 15

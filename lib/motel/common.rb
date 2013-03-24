@@ -60,6 +60,32 @@ def self.orthogonal?(x1,y1,z1, x2,y2,z2)
   return (x1 * x2 + y1 * y2 + z1 * z2).abs < 0.00001 # TODO close enough?
 end
 
+# Covert coordinates to array of spherical coordinates in form of [theta,phi,distance]
+#
+# @param [Integer,Float] x x coordinate to convert
+# @param [Integer,Float] y y coordinate to convert
+# @param [Integer,Float] z z coordinate to convert
+# @return [Array<Float>] array containing three elements, theta, phi, and distance
+def self.to_spherical(x, y, z)
+  dist = Math.sqrt(x ** 2 + y ** 2 + z ** 2)
+  phi   = Math.atan2(y, x)
+  theta = dist == 0 ? 0 : Math.acos(z/dist)
+  [theta, phi, dist]
+end
+
+# Convert spherical coordinates to an array of cartesian coordinates
+#
+# @param [Integer,Float] theta theta angle to convert
+# @param [Integer,Float] phi phi angle to convert
+# @param [Integer,Float] distance distance to convert
+# @return [Array<Float>] array containing converted x,y,z coordinates
+def self.from_spherical(theta, phi, dist)
+    x = dist * Math.sin(theta) * Math.cos(phi);
+    y = dist * Math.sin(theta) * Math.sin(phi);
+    z = dist * Math.cos(theta);
+    [x,y,z]
+end
+
 # Generate and return two orthogonal, normalized vectors
 #
 # @param [Hash] args hash of options to use when generating axis

@@ -52,6 +52,9 @@ class Location
      @parent_id = @parent.id unless @parent.nil?
    end
 
+   # Unit vector corresponding to Orientation of the location
+   attr_accessor :orientation_x, :orientation_y, :orientation_z
+
    # [Motel::MovementStrategy] Movement strategy through which to move location
    attr_accessor :movement_strategy
 
@@ -86,6 +89,9 @@ class Location
   # @option args [Integer,Float] :x,'x' x coodinate of location
   # @option args [Integer,Float] :y,'y' y coodinate of location
   # @option args [Integer,Float] :z,'z' z coodinate of location
+  # @option args [Integer,Float] :orientation_x,'orientation_x' orientation_x coodinate of location
+  # @option args [Integer,Float] :orientation_y,'orientation_y' orientation_y coodinate of location
+  # @option args [Integer,Float] :orientation_z,'orientation_z' orientation_z coodinate of location
   # @option args [Motel::MovementStrategy] :movement_strategy,'movement_strategy' movement strategy to assign to location
   # @option args [Array<Motel::Callbacks::Movement> :movement_callbacks,'movement_callbacks' array of movement callbacks to assign to location
   # @option args [Array<Motel::Callbacks::Proximity> :proximity_callbacks,'proximity_callbacks' array of proximity callbacks to assign to location
@@ -114,6 +120,12 @@ class Location
       @y                   = args[:y]                   || args['y']                   || nil
       @z                   = args[:z]                   || args['z']                   || nil
 
+      @orientation_x, @orientation_y, @orientation_z =
+                          *(args[:orientation]          || args['orientation']         || [])
+      @orientation_x      = args[:orientation_x]        || args['orientation_x']       || @orientation_x
+      @orientation_y      = args[:orientation_y]        || args['orientation_y']       || @orientation_y
+      @orientation_z      = args[:orientation_z]        || args['orientation_z']       || @orientation_z
+
       @restrict_view       = true
       @restrict_view       = args[:restrict_view]  if args.has_key?(:restrict_view)
       @restrict_view       = args['restrict_view'] if args.has_key?('restrict_view')
@@ -128,6 +140,9 @@ class Location
       @x = @x.to_f unless @x.nil?
       @y = @y.to_f unless @y.nil?
       @z = @z.to_f unless @z.nil?
+      @orientation_x = @orientation_x.to_f unless @orientation_x.nil?
+      @orientation_y = @orientation_y.to_f unless @orientation_y.nil?
+      @orientation_z = @orientation_z.to_f unless @orientation_z.nil?
 
       @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
    end
@@ -141,6 +156,9 @@ class Location
       @x = location.x unless location.x.nil?
       @y = location.y unless location.y.nil?
       @z = location.z unless location.z.nil?
+      @orientation_x = location.orientation_x unless location.orientation_x.nil?
+      @orientation_y = location.orientation_y unless location.orientation_y.nil?
+      @orientation_z = location.orientation_z unless location.orientation_z.nil?
       @movement_strategy = location.movement_strategy unless location.movement_strategy.nil?
       @parent = location.parent unless location.parent.nil?
       @parent_id = location.parent_id unless location.parent_id.nil?
@@ -154,6 +172,16 @@ class Location
    # @return [Array<Float,Float,Float>] array containing this location's x,y,z coordiantes
    def coordinates
      [@x, @y, @z]
+   end
+
+   # Return this location's orientation in an array
+   def orientation
+     [@orientation_x, @orientation_y, @orientation_z]
+   end
+
+   # Return this location's orientation as spherical theta/phi coordinates
+   def spherical_orientation
+     Motel.to_spherical(@orientation_x, @orientation_y, @orientation_z)[0..1]
    end
 
    # Return the root location on this location's heirarchy tree
@@ -259,6 +287,9 @@ class Location
        'data'       =>
          {:id => id,
           :x => x, :y => y, :z => z,
+          :orientation_x => orientation_x,
+          :orientation_y => orientation_y,
+          :orientation_z => orientation_z,
           :restrict_view => restrict_view, :restrict_modify => restrict_modify,
           :parent_id => parent_id,
           :children  => children,

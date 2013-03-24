@@ -131,6 +131,70 @@ describe "orthogonal?" do
  end
 end
 
+describe "spherical" do
+  it "should convert cartestian coordinates to spherical" do
+    spherical = Motel.to_spherical(0, 0, 0)
+    spherical.size.should == 3
+    spherical[0].round_to(2).should == 0
+    spherical[1].round_to(2).should == 0
+    spherical[2].round_to(2).should == 0
+
+    spherical = Motel.to_spherical(1, 0, 0)
+    spherical.size.should == 3
+    spherical[0].round_to(2).should == 1.57
+    spherical[1].round_to(2).should == 0
+    spherical[2].round_to(2).should == 1
+
+    spherical = Motel.to_spherical(0, 2, 0)
+    spherical.size.should == 3
+    spherical[0].round_to(2).should == 1.57
+    spherical[1].round_to(2).should == 1.57
+    spherical[2].round_to(2).should == 2
+
+    spherical = Motel.to_spherical(0, 0, 1)
+    spherical.size.should == 3
+    spherical[0].round_to(2).should == 0
+    spherical[1].round_to(2).should == 0
+    spherical[2].round_to(2).should == 1
+
+    # TODO test more coords
+  end
+
+  it "should convert spherical coordinates to cartesion" do
+    cartesian = Motel.from_spherical(0, 0, 0)
+    cartesian.size.should == 3
+    cartesian[0].round_to(2).should == 0
+    cartesian[1].round_to(2).should == 0
+    cartesian[2].round_to(2).should == 0
+
+    cartesian = Motel.from_spherical(-1.57, 0, 1)
+    cartesian.size.should == 3
+    cartesian[0].round_to(2).should == -1
+    cartesian[1].round_to(2).should == 0
+    cartesian[2].round_to(2).should == 0
+
+    cartesian = Motel.from_spherical(0, -2.356, 2)
+    cartesian.size.should == 3
+    cartesian[0].round_to(2).should == 0
+    cartesian[1].round_to(2).should == 0
+    cartesian[2].round_to(2).should == 2
+
+    # TODO test more coords
+  end
+
+  it "should be symmetrical" do
+    o = [9, -8, 5]
+    n = Motel.from_spherical(*Motel.to_spherical(*o))
+    #n.should == o
+    0.upto(2) { |i| (o[i] - n[i]).abs.should < 0.1 }
+
+    o = [0.45, 2.33, 2]
+    n = Motel.to_spherical(*Motel.from_spherical(*o))
+    #n.should == o
+    0.upto(2) { |i| (o[i] - n[i]).abs.should < 0.1 }
+  end
+end
+
 describe Float do
   it "should correctly round to specified percision" do
       5.12345.round_to(1).should == 5.1
