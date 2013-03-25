@@ -67,6 +67,7 @@ end
 # @param [Integer,Float] z z coordinate to convert
 # @return [Array<Float>] array containing three elements, theta, phi, and distance
 def self.to_spherical(x, y, z)
+  return [] if x.nil? || y.nil? || z.nil?
   dist = Math.sqrt(x ** 2 + y ** 2 + z ** 2)
   phi   = Math.atan2(y, x)
   theta = dist == 0 ? 0 : Math.acos(z/dist)
