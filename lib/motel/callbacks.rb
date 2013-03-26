@@ -142,7 +142,13 @@ class Movement < Base
   end
 end # class Movement
 
-# TODO
+# Extends the {Motel::Callbacks::Base} interface to only invoke callback
+# if a location rotates a specified minimum angle.
+#
+# The client may specify the minimum overall angle and/or the minimum
+# theta or phi angles in the spherical coordinate system
+#
+# *note* *all* minimum conditions will need to be met to trigger handler!
 class Rotation < Base
   # Minimum total rotation location needs to have performed to trigger the event
   attr_accessor :min_rotation
@@ -153,7 +159,7 @@ class Rotation < Base
   # Minimum rotation of phi the location needs to have performated to trigger the event
   attr_accessor :min_phi
 
-  # Motel::Callbacks::Movement initializer
+  # Motel::Callbacks::Rotation initializer
   #
   # @param [Hash] args hash of options to initialize callback with
   # @option args [Float] :min_rotation,'min_rotation' minium rotation location
@@ -172,7 +178,7 @@ class Rotation < Base
     super(args, &block)
   end
 
-  # Calculate distance between location and old coordinates, and
+  # Calculate rotation between location and old orientation, and
   # invoke handler w/ location if minimums are true
   #
   # @param [Integer, Float] old_ox old x orientation of location
