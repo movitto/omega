@@ -26,6 +26,7 @@ describe Motel::Location do
      location.children.should == []
      location.movement_callbacks.should == []
      location.proximity_callbacks.should == []
+     location.rotation_callbacks.should == []
      location.stopped_callbacks.should == []
      location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
 
@@ -223,6 +224,7 @@ describe Motel::Location do
     mc1 = Motel::Callbacks::Movement.new :min_distance => 20
     mc2 = Motel::Callbacks::Movement.new :min_y => 30
     pc  = Motel::Callbacks::Proximity.new :max_distance => 50
+    rc  = Motel::Callbacks::Rotation.new :min_theta => 0.001
     sc  = Motel::Callbacks::Stopped.new
     l = Motel::Location.new(:id => 42,
                             :x => 10, :y => -20, :z => 0.5,
@@ -234,6 +236,7 @@ describe Motel::Location do
     l.movement_callbacks  << mc1
     l.movement_callbacks  << mc2
     l.proximity_callbacks << pc
+    l.rotation_callbacks  << rc
     l.stopped_callbacks   << sc
 
     j = l.to_json
@@ -259,6 +262,8 @@ describe Motel::Location do
     j.should include('"proximity_callbacks":[')
     j.should include('"json_class":"Motel::Callbacks::Proximity"')
     j.should include('"max_distance":50')
+    j.should include('"json_class":"Motel::Callbacks::Rotation"')
+    j.should include('"min_theta":0.001')
     j.should include('"stopped_callbacks":[')
     j.should include('"json_class":"Motel::Callbacks::Stopped"')
   end

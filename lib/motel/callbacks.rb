@@ -142,6 +142,83 @@ class Movement < Base
   end
 end # class Movement
 
+# TODO
+class Rotation < Base
+  # Minimum total rotation location needs to have performed to trigger the event
+  attr_accessor :min_rotation
+
+  # Minimum rotation of theta the location needs to have performated to trigger the event
+  attr_accessor :min_theta
+
+  # Minimum rotation of phi the location needs to have performated to trigger the event
+  attr_accessor :min_phi
+
+  # Motel::Callbacks::Movement initializer
+  #
+  # @param [Hash] args hash of options to initialize callback with
+  # @option args [Float] :min_rotation,'min_rotation' minium rotation location
+  #   needs to undergo before handler in invoked
+  # @option args [Float] :min_theta,'min_theta' minium theta rotation location
+  #   needs to undergo before handler in invoked
+  # @option args [Float] :min_phi,'min_phi' minium phi rotation location
+  #   needs to undergo before handler in invoked
+  def initialize(args = {}, &block)
+    @min_rotation = args[:min_rotation] || args['min_rotation'] || 0
+    @min_theta    = args[:min_theta]    || args['min_theta']    || 0
+    @min_phi      = args[:min_phi]      || args['min_phi']      || 0
+
+    @orig_ox = @orig_oy = @orig_oz = nil
+
+    super(args, &block)
+  end
+
+  # Calculate distance between location and old coordinates, and
+  # invoke handler w/ location if minimums are true
+  #
+  # @param [Integer, Float] old_ox old x orientation of location
+  # @param [Integer, Float] old_oy old y orientation of location
+  # @param [Integer, Float] old_oz old z orientation of location
+  def invoke(new_location, old_ox, old_oy, old_oz)
+    if @orig_ox.nil?
+      @orig_ox = old_ox
+      @orig_oy = old_oy
+      @orig_oz = old_oz
+    end
+
+    new_theta,new_phi = new_location.spherical_orientation
+    old_theta,old_phi,dist = Motel.to_spherical(@orig_ox, @orig_oy, @orig_oz)
+    dt = new_theta - old_theta
+    dp = new_phi   - old_phi
+    da = dt + dp
+
+    if da.abs >= @min_rotation && dt.abs >= @min_theta && dp.abs >= @min_phi
+      super(new_location, da, dt, dp)
+      @orig_ox = @orig_ox = @orig_oz = nil
+    end
+  end
+
+  # Convert callback to human readable string and return it
+  def to_s
+    "(#{@min_rotation},#{@min_theta},#{@min_phi})"
+  end
+
+  # Convert callback to json representation and return it
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        { :endpoint => @endpoint_id, :min_rotation => @min_rotation,
+          :min_theta => @min_theta, :min_phi => @min_phi}
+    }.to_json(*a)
+  end
+
+  # Create new callback from json representation
+  def self.json_create(o)
+    callback = new(o['data'])
+    return callback
+  end
+end
+
 # Extends the {Motel::Callbacks::Base} interface to only invoke callback
 # if two locations are within the specified maximum distance of each other.
 #

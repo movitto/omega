@@ -16,6 +16,7 @@ require 'motel/location'
 require 'motel/movement_strategy'
 
 require 'motel/movement_strategies/stopped'
+require 'motel/movement_strategies/rotate'
 require 'motel/movement_strategies/linear'
 require 'motel/movement_strategies/elliptical'
 require 'motel/movement_strategies/follow'

@@ -3,10 +3,9 @@
 # Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# TODO extract rotation bits into a seperate mixinable module
-
 require 'motel/common'
 require 'motel/movement_strategy'
+require 'motel/movement_strategies/rotate'
 
 module Motel
 module MovementStrategies
@@ -16,16 +15,17 @@ module MovementStrategies
 # unit direction vector and a floating point
 # speed.
 #
-# Also supports location rotation as it moved along the linear path
 class Linear < MovementStrategy
+
+  # Supports location rotation as it moves along the linear path
+  include Rotatable
+
    # Unit vector corresponding to the linear movement direction
    attr_accessor :direction_vector_x, :direction_vector_y, :direction_vector_z
    
    # Distance the location moves per second
    attr_accessor :speed
 
-   # Angular speed which location is rotating
-   attr_accessor :dtheta, :dphi
 
    # Motel::MovementStrategies::Linear initializer
    #
@@ -42,8 +42,7 @@ class Linear < MovementStrategy
      @direction_vector_y   = args[:direction_vector_y] || args['direction_vector_y'] || args[:dy] || args['dy'] || 0
      @direction_vector_z   = args[:direction_vector_z] || args['direction_vector_z'] || args[:dz] || args['dz'] || 0
      @speed                = args[:speed] || args['speed']
-     @dtheta               = args[:dtheta]|| args['dtheta'] || 0
-     @dphi                 = args[:dphi]  || args['dphi']   || 0
+     init_rotation(args)
      super(args)
 
      # normalize direction vector
@@ -60,11 +59,11 @@ class Linear < MovementStrategy
    # Currently tests
    # * direction vector is normalized
    # * speed is a valid float/fixnum > 0
+   # * rotation parameters
    def valid?
-     Motel::normalized?(@direction_vector_x, @direction_vector_y, @direction_vector_z)             &&
-                      [Float, Fixnum].include?(@speed.class)  && @speed > 0                        &&
-     (@dtheta.nil? || ([Float, Fixnum].include?(@dtheta.class) && @dtheta >= 0 && @dtheta < 6.28)) &&
-     (@dphi.nil?   || ([Float, Fixnum].include?(@dphi.class)   && @dphi   >= 0 && @dphi   < 6.28))
+     Motel::normalized?(@direction_vector_x, @direction_vector_y, @direction_vector_z) &&
+                                 [Float, Fixnum].include?(@speed.class)  && @speed > 0 &&
+                                                                       valid_rotation?
    end
 
 
@@ -85,14 +84,7 @@ class Linear < MovementStrategy
      location.y += distance * direction_vector_y
      location.z += distance * direction_vector_z
 
-     # update location's orientation
-     loct, locp = location.spherical_orientation
-     unless loct.nil? || locp.nil?
-       loct += dtheta * elapsed_seconds
-       locp += dphi   * elapsed_seconds
-       location.orientation_x,location.orientation_y,location.orientation_z =
-         Motel.from_spherical(loct, locp, 1)
-     end
+     rotate(location, elapsed_seconds)
    end
 
    # Convert movement strategy to json representation and return it
@@ -100,10 +92,9 @@ class Linear < MovementStrategy
      { 'json_class' => self.class.name,
        'data'       => { :step_delay => step_delay,
                          :speed => speed,
-                         :dtheta => dtheta, :dphi => dphi,
                          :direction_vector_x => direction_vector_x,
                          :direction_vector_y => direction_vector_y,
-                         :direction_vector_z => direction_vector_z }
+                         :direction_vector_z => direction_vector_z }.merge(rotation_json)
      }.to_json(*a)
    end
 

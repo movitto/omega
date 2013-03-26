@@ -36,7 +36,7 @@ describe Motel::Runner do
     Motel::Runner.instance.run @loc200
     Motel::Runner.instance.locations.size.should == old + 2
 
-    # TODO ensure movement + proximity callbacks are invoked
+    # TODO ensure movement + rotation + proximity callbacks are invoked
 
     Motel::Runner.instance.start
     #Motel::Runner.instance.thread_pool.should_not == nil

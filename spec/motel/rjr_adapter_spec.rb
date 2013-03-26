@@ -466,6 +466,76 @@ describe Motel::RJRAdapter do
     loc1.proximity_callbacks.size.should == 0
   end
 
+  it "should permit users with view locations or view location-<id> to track rotation of locations" do
+    rot = Motel::MovementStrategies::Rotate.new(:dtheta => 0.76)
+    loc1 = Motel::Location.new :id => 42, :x => 0, :y => 0, :z => 0,
+                               :orientation => [1, 0, 0],
+                               :movement_strategy => rot,
+                               :restrict_view => true
+    TestUser.add_privilege('view', 'locations')
+
+    Motel::Runner.instance.run loc1
+    rloc1 = Motel::Runner.instance.locations.find { |l| l.id == 42 }
+
+    times_rotated = 0
+    RJR::Dispatcher.add_handler('motel::on_rotation') { |nloc|
+      nloc.id.should == loc1.id
+      times_rotated += 1
+    }
+
+    # invalid location id
+    lambda{
+      Omega::Client::Node.invoke_request('motel::track_rotation', 'nonexistant', 5)
+    #}.should raise_error(Omega::DataNotFound)
+    }.should raise_error(Exception)
+
+    rloc1.rotation_callbacks.size.should == 0
+
+    # invalid distance
+    lambda{
+      Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, "1.2")
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    rloc1.rotation_callbacks.size.should == 0
+
+    # invalid distance
+    lambda{
+      Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, -0.4)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    rloc1.rotation_callbacks.size.should == 0
+
+    # valid call
+    lambda{
+      rloc = Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, 0.2)
+      rloc.class.should == Motel::Location
+      rloc.id.should == loc1.id
+    }.should_not raise_error
+
+    rloc1.rotation_callbacks.size.should == 1
+    rloc1.rotation_callbacks.first.min_rotation.should == 0.2
+
+    # ensure subsequent trackings are overwritten
+    lambda{
+      rloc = Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, 0.1)
+      rloc.class.should == Motel::Location
+      rloc.id.should == loc1.id
+    }.should_not raise_error
+
+    rloc1.rotation_callbacks.size.should == 1
+    rloc1.rotation_callbacks.first.min_rotation.should == 0.1
+
+    sleep 2
+    times_rotated.should > 0
+
+    # verify when user no longer has access to location, callbacks are discontinued
+    TestUser.clear_privileges
+    sleep 2
+    rloc1.rotation_callbacks.size.should == 0
+  end
+
   it "should permit users with view locations or view location-<id> to track stops of location" do
     linear = Motel::MovementStrategies::Linear.new(:speed => 1,
                                                    :direction_vector_x => 1,

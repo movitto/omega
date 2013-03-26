@@ -151,18 +151,23 @@ class Runner
 
             # store the old location coordinates for comparison after the movement
             old_coords = [loc.x, loc.y, loc.z]
+            old_orientation = loc.orientation
 
             elapsed = Time.now - @timestamps[loc.id]
             loc.movement_strategy.move loc, elapsed
             @timestamps[loc.id] = Time.now
 
+            # invoke any movement and rotation callbacks
+
             # TODO invoke these async so as not to hold up the runner
-            # TODO delete movement callbacks after they are invoked?
             # TODO prioritize callbacks registered over the local rjr transport
             #      over others
             # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
             loc.movement_callbacks.each { |callback|
               callback.invoke(loc, *old_coords)
+            }
+            loc.rotation_callbacks.each { |callback|
+              callback.invoke(loc, *old_orientation)
             }
           end
         }

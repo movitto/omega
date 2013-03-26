@@ -122,6 +122,107 @@ describe Motel::Callbacks::Movement do
     cb.min_y.should == 0
     cb.min_z.should == 0
   end
+end
+
+describe Motel::Callbacks::Rotation do
+  it "should invoke handler w/out restriction by default" do
+    invoked = false
+    loc = Motel::Location.new :orientation => [0,0,1]
+    Motel::Callbacks::Rotation.new(:handler => lambda { |loc, da, dt, dp|
+      invoked = true
+      loc.should == loc
+      da.should == 0
+      dt.should == 0
+      dp.should == 0
+    }).invoke(loc, 0, 0, 0)
+    invoked.should be_true
+  end
+
+  it "should invoke handler only when location rotates min rotation" do
+    invoked = false
+    loc = Motel::Location.new :orientation => [0,0,1]
+    cb  = Motel::Callbacks::Rotation.new :min_rotation => 3.13,
+                                         :handler => lambda { |loc, da, dt, dp|
+      invoked = true
+    }
+    cb.invoke(loc, 0, 0, 1)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil) # XXX ugly hack need to reset orig_ox so that new 'old coordinates' get accepted
+
+    cb.invoke(loc, 0.57, 0.57, 0.57)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil)
+
+    cb.invoke(loc, 0, 0, -1)
+    invoked.should be_true
+  end
+
+  it "should invoke handler only when location rotates min theta" do
+    invoked = false
+    loc = Motel::Location.new :orientation => [0,0,1]
+    cb  = Motel::Callbacks::Rotation.new :min_theta => 3.14,
+                                         :handler => lambda { |loc, da, dt, dp|
+      invoked = true
+    }
+    cb.invoke(loc, 0, 0, 1)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil) # XXX ugly hack need to reset orig_ox so that new 'old coordinates' get accepted
+
+    cb.invoke(loc, 0.57, 0.57, 0.57)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil)
+
+    cb.invoke(loc, 0, -1, 1)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil)
+
+    cb.invoke(loc, 0, 0, -1)
+    invoked.should be_true
+  end
+
+  it "should invoke handler only when location rotates min phi" do
+    invoked = false
+    loc = Motel::Location.new :orientation => [0,0,1]
+    cb  = Motel::Callbacks::Rotation.new :min_phi => 3.13,
+                                         :handler => lambda { |loc, da, dt, dp|
+      invoked = true
+    }
+    cb.invoke(loc, 0, 0, 1)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil) # XXX ugly hack need to reset orig_x so that new 'old coordinates' get accepted
+
+    cb.invoke(loc, 0.57, 0.57, 0.57)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil)
+
+    cb.invoke(loc, 0, 0, -1)
+    invoked.should be_false
+    cb.instance_variable_set(:@orig_ox, nil)
+
+    cb.invoke(loc, -1, 0, 0)
+    invoked.should be_true
+  end
+
+  it "should be convertable to json" do
+    cb = Motel::Callbacks::Rotation.new :endpoint => 'baz',
+                                        'min_rotation' => 3.14,
+                                        'min_theta'    => 0.56
+
+    j = cb.to_json
+    j.should include('"json_class":"Motel::Callbacks::Rotation"')
+    j.should include('"endpoint":"baz"')
+    j.should include('"min_rotation":3.14')
+    j.should include('"min_theta":0.56')
+  end
+
+  it "should be convertable from json" do
+    j = '{"json_class":"Motel::Callbacks::Rotation","data":{"endpoint":"baz","min_phi":1.78}}'
+    cb = JSON.parse(j)
+
+    cb.class.should == Motel::Callbacks::Rotation
+    cb.endpoint_id.should == "baz"
+    cb.min_phi.should == 1.78
+  end
 
 end
 

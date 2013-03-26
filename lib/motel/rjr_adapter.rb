@@ -312,6 +312,61 @@ class RJRAdapter
        [loc1, loc2]
     }
 
+    rjr_dispatcher.add_handler('motel::track_rotation') { |location_id, min_rotation|
+       loc = Runner.instance.locations.find { |loc| loc.id == location_id }
+       raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
+
+       raise ArgumentError, "min_rotation must be an float between 0 and 2*PI" unless min_rotation.is_a?(Float) && min_rotation > 0 && min_rotation < 2*Math::PI
+
+       # TODO add option to verify request is coming from authenticated source node which current connection was established on
+       # TODO ensure that rjr_node_type supports persistant connections
+
+       on_rotation = 
+         Callbacks::Rotation.new :endpoint => @headers['source_node'],
+                                 :min_rotation => min_rotation,
+                                 :handler => lambda{ |loc, da, dt, dp|
+           begin
+             if loc.restrict_view
+               Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                                          {:privilege => 'view', :entity => 'locations'}],
+                                                 :session   => @headers['session_id'])
+             end
+             @rjr_callback.invoke('motel::on_rotation', loc)
+
+           rescue Omega::PermissionError => e
+             RJR::Logger.warn "client does not have privilege to view rotation of #{loc.id}"
+             loc.rotation_callbacks.delete on_rotation
+
+           rescue RJR::Errors::ConnectionError => e
+             RJR::Logger.warn "track_rotation client disconnected"
+             loc.rotation_callbacks.delete on_rotation
+
+           rescue Exception => e
+             RJR::Logger.warn "exception raised when invoking track_rotation callback: #{e}"
+             loc.rotation_callbacks.delete on_rotation
+
+           end
+         }
+
+       @rjr_node.on(:closed){ |node|
+         Motel::Runner.instance.safely_run {
+           loc.rotation_callbacks.delete(on_rotation)
+         }
+       }
+
+       Motel::Runner.instance.safely_run {
+         # TODO this ignores rotation angle differences, do anything about this?
+         old = loc.rotation_callbacks.find { |r| r.endpoint_id == on_rotation.endpoint_id }
+         unless old.nil?
+           loc.rotation_callbacks.delete(old)
+         end
+
+         loc.rotation_callbacks << on_rotation
+       }
+
+       loc
+    }
+
     rjr_dispatcher.add_handler('motel::track_stops') { |location_id|
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?

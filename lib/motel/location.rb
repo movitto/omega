@@ -61,12 +61,16 @@ class Location
    # [Array<Motel::MovementCallback>] Callbacks to be invoked on movement
    attr_accessor :movement_callbacks
 
+   # [Array<Motel::RotationCallback>] Callbacks to be invoked on rotation
+   attr_accessor :rotation_callbacks
+
    # [Array<Motel::ProximityCallback>] Callbacks to be invoked on proximity
    attr_accessor :proximity_callbacks
 
+   # TODO [Array<Motel::StrategyCallback>] Callbacks to be invoked when movement strategy is changed
+
    # [Array<Motel::StoppedCallback>] Callbacks to be invoked on stopped
    attr_accessor :stopped_callbacks
-
 
    # Generic association which this location can belong to (not used by motel)
    attr_accessor :entity
@@ -110,6 +114,7 @@ class Location
       @movement_strategy   = args[:movement_strategy]   || args['movement_strategy']   || MovementStrategies::Stopped.instance
       @movement_callbacks  = args[:movement_callbacks]  || args['movement_callbacks']  || []
       @proximity_callbacks = args[:proximity_callbacks] || args['proximity_callbacks'] || []
+      @rotation_callbacks  = args[:rotation_callbacks]  || args['rotation_callbacks']  || []
       @stopped_callbacks   = args[:stopped_callbacks  ] || args['stopped_callbacks']   || []
       @children            = args[:children]            || args['children']            || []
       @parent_id           = args[:parent_id]           || args['parent_id']           || nil
@@ -297,6 +302,7 @@ class Location
           :movement_strategy => movement_strategy,
           :movement_callbacks => movement_callbacks,
           :proximity_callbacks => proximity_callbacks,
+          :rotation_callbacks => rotation_callbacks,
           :stopped_callbacks => stopped_callbacks}
      }.to_json(*a)
    end
