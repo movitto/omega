@@ -528,7 +528,8 @@ class RJRAdapter
           entity.location.movement_strategy = entity.next_movement_strategy
         }
         @@local_node.invoke_request('motel::update_location', entity.location)
-        @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)
+        @@local_node.invoke_request('motel::remove_callbacks', entity.location.id,
+                                    @rjr_method == 'motel::on_movement' ? :movement : :rotation)
       end
     }
 
@@ -571,8 +572,12 @@ class RJRAdapter
         end
       }
 
-      Manufactured::Registry.instance.schedule_attack :attacker => attacker, :defender => defender,
-                                                      :before   => before_attack, :after => after_attack
+      cmd = Manufactured::Registry.instance.schedule_attack   :attacker  => attacker,
+                                                              :defender  => defender,
+                                                              :before    => before_attack, :after => after_attack
+
+      Manufactured::Registry.instance.schedule_shield_refresh :entity    => defender,
+                                                              :check_command => cmd
 
       [attacker, defender]
     }

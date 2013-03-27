@@ -69,6 +69,9 @@ class Registry
   # [Array<Manufactured::ConstructionCommand>] construction commands clients has issued to be run after a set time
   attr_reader :construction_commands
 
+  # [Array<Manufactured::SheildRefreshCommand>] shield refresh commands to be regularily run
+  attr_reader :shield_refresh_commands
+
   # Time attack thread sleeps between attack cycles
   ATTACK_POLL_DELAY = 0.5 # TODO make configurable?
 
@@ -77,6 +80,9 @@ class Registry
 
   # Time construction thread sleeps between construction cycles
   CONSTRUCTION_POLL_DELAY = 1.0 # TODO make configurable?
+
+  # Time shield takes to refresh
+  SHIELD_REFRESH_DELAY = 0.5 # TODO make configurable?
 
   # Manufactured::Registry initializer
   def initialize
@@ -94,6 +100,7 @@ class Registry
     @attack_commands = {}
     @mining_commands = {}
     @construction_commands = {}
+    @shield_refresh_commands = {}
 
     @ship_graveyard = []
 
@@ -105,6 +112,7 @@ class Registry
     @attack_thread = Thread.new { attack_cycle }
     @mining_thread = Thread.new { mining_cycle }
     @construction_thread = Thread.new { construction_cycle }
+    @shield_thread = Thread.new { shield_refresh_cycle }
   end
 
   # Return array of classes of manufactured entity types
@@ -117,10 +125,11 @@ class Registry
   # Return boolean indicating if registry is running its various worker threads
   def running?
     !@terminate_cycles &&
-    !@attack_thread.nil? && !@mining_thread.nil? && !@construction_thread.nil? &&
+    !@attack_thread.nil? && !@mining_thread.nil? && !@construction_thread.nil? && !@shield_thread.nil? &&
     (@attack_thread.status == 'run'       || @attack_thread.status == 'sleep') &&
     (@mining_thread.status == 'run'       || @mining_thread.status == 'sleep') &&
-    (@construction_thread.status == 'run' || @construction_thread.status == 'sleep')
+    (@construction_thread.status == 'run' || @construction_thread.status == 'sleep') &&
+    (@shield_thread.status == 'run'       || @shield_thread.status == 'sleep')
   end
 
   # Terminate registry worker threads
@@ -130,6 +139,7 @@ class Registry
     @attack_thread.join unless @attack_thread.nil?
     @mining_thread.join unless @mining_thread.nil?
     @construction_thread.join unless @construction_thread.nil?
+    @shield_thread.join unless @shield_thread.nil?
   end
 
   # Run the specified block of code as a protected operation.
@@ -331,6 +341,16 @@ class Registry
     }
   end
 
+  # Register new {Manufactured::ShieldRefreshCommand} to be run duning shield refresh cycle
+  #
+  # @param [Hash] args args to initialize the shield refresh command with
+  def schedule_shield_refresh(args = {})
+    @entities_lock.synchronize{
+      cmd = ShieldRefreshCommand.new(args)
+      @shield_refresh_commands[cmd.id] = cmd
+    }
+  end
+
   # Run attack commands until instructed to stop
   #
   # @see #terminate
@@ -439,6 +459,25 @@ class Registry
       }
 
       sleep CONSTRUCTION_POLL_DELAY
+    end
+  end
+
+  # Run shield refresh cycle until instructed to stop
+  def shield_refresh_cycle
+    until @terminate_cycles
+      @entities_lock.synchronize{
+        # run shield refresh command
+        @shield_refresh_commands.each { |id, src|
+          src.run!
+        }
+
+        # remove commands no longer necessary
+        to_remove = @shield_refresh_commands.keys.select { |id| @shield_refresh_commands[id].remove? }
+        to_remove.each { |id|
+          @shield_refresh_commands.delete(id)
+        }
+      }
+      sleep SHIELD_REFRESH_DELAY
     end
   end
 

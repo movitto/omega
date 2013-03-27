@@ -57,6 +57,41 @@ describe Manufactured::AttackCommand do
      cmd.remove?.should be_true
   end
 
+  it "should attack shield first" do
+     attacker = Manufactured::Ship.new  :id => 'ship1', :type => :corvette, :user_id => 'user1'
+     defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
+
+     sys1  = Cosmos::SolarSystem.new :name => 'sys1'
+     attacker.parent = sys1
+     defender.parent = sys1
+
+     # 1 hit every 2 seconds
+     attacker.attack_rate = 0.5
+
+     # need 3 hits to destroy defender
+     attacker.damage_dealt = 3
+     defender.current_shield_level = defender.max_shield_level = 4
+     defender.hp = 4
+
+     cmd = Manufactured::AttackCommand.new :attacker => attacker,    :defender => defender
+
+     cmd.attack!
+     defender.hp.should == 4
+     defender.current_shield_level.should == 1
+
+     Timecop.travel(2)
+     cmd.attack!
+     defender.hp.should == 2
+     defender.current_shield_level.should == 0
+     cmd.remove?.should be_false
+
+     Timecop.travel(2)
+     cmd.attack!
+     defender.hp.should == 0
+     defender.current_shield_level.should == 0
+     cmd.remove?.should be_true
+  end
+
   it "should invoke attack cycle callbacks" do
      attacker = Manufactured::Ship.new  :id => 'ship1', :type => :bomber, :user_id => 'user1'
      defender = Manufactured::Ship.new  :id => 'ship2', :user_id => 'user2'
@@ -419,4 +454,64 @@ describe Manufactured::ConstructionCommand do
      cc.should == 1
   end
 
+end
+
+describe Manufactured::ShieldRefreshCommand do
+  it "should run ship shield refresh cycle" do
+    ship     = Manufactured::Ship.new  :id => 'ship1'
+    ship.shield_refresh_rate = 1
+    ship.current_shield_level = 0
+    ship.max_shield_level = 2
+
+    ac  = Manufactured::AttackCommand.new
+    src = Manufactured::ShieldRefreshCommand.new :entity => ship, :check_command => ac
+
+    src.entity.should    == ship
+    src.check_command.should == ac
+    src.id.should == ship.id
+    src.remove?.should be_false
+
+    src.run!
+    ship.current_shield_level.should > -0.1
+    ship.current_shield_level.should < 0.1
+
+    Timecop.travel(1)
+    src.run!
+    ship.current_shield_level.should > 0.9
+    ship.current_shield_level.should < 1.1
+
+    Timecop.travel(1)
+    src.run!
+    ship.current_shield_level.should > 1.9
+    ship.current_shield_level.should < 2.1
+
+    Timecop.travel(1)
+    src.run!
+    ship.current_shield_level.should > 1.9
+    ship.current_shield_level.should < 2.1
+  end
+
+  it "should terminate cycle if ship has 0 hp" do
+    ship     = Manufactured::Ship.new  :id => 'ship1'
+    ship.hp = 0
+
+    ac  = Manufactured::AttackCommand.new
+    src = Manufactured::ShieldRefreshCommand.new :entity => ship, :check_command => ac
+
+    src.remove?.should be_false
+    src.run!
+    src.remove?.should be_true
+  end
+  
+  it "should terminate cycle if check cmd stops" do
+    ship     = Manufactured::Ship.new  :id => 'ship1', :hp => 10
+
+    ac  = Manufactured::AttackCommand.new
+    ac.instance_variable_set(:@remove, true)
+    src = Manufactured::ShieldRefreshCommand.new :entity => ship, :check_command => ac
+
+    src.remove?.should be_false
+    src.run!
+    src.remove?.should be_true
+  end
 end

@@ -378,6 +378,49 @@ describe Manufactured::Registry do
   #it "should replace duplicate construction commands" do
   #end
 
+  it "should run the shield refresh cycle" do
+    Manufactured::Registry.instance.running?.should be_true
+    ac   = Manufactured::AttackCommand.new
+    sys = Cosmos::SolarSystem.new :name => 'sys1'
+    ship = Manufactured::Ship.new     :id => 'ship1',    :solar_system => sys, :user_id => 'user1', :type => :mining
+    Manufactured::Registry.instance.create ship
+
+    ship.current_shield_level = 5
+    ship.max_shield_level = 10
+
+    src = Manufactured::Registry.instance.schedule_shield_refresh :entity => ship, :check_cmd => ac
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 1
+    sleep 1.6
+    ship.current_shield_level.should > 6
+
+    src.instance_variable_set(:@remove, true)
+    sleep 1.6
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 0
+
+    Manufactured::Registry.instance.terminate
+    Manufactured::Registry.instance.running?.should be_false
+  end
+
+  it "should replace duplicate shield refresh commands" do
+    Manufactured::Registry.instance.running?.should be_true
+    ac   = Manufactured::AttackCommand.new
+    sys = Cosmos::SolarSystem.new :name => 'sys1'
+    ship = Manufactured::Ship.new  :id => 'ship1', :solar_system => sys, :user_id => 'user1'
+    Manufactured::Registry.instance.create ship
+
+    ship.current_shield_level = 5
+    ship.max_shield_level = 10
+
+    Manufactured::Registry.instance.schedule_shield_refresh :entity => ship, :check_cmd => ac
+
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 1
+    Manufactured::Registry.instance.shield_refresh_commands[ship.id].entity.should == ship
+
+    Manufactured::Registry.instance.schedule_shield_refresh :entity => ship, :check_cmd => ac
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 1
+    Manufactured::Registry.instance.shield_refresh_commands[ship.id].entity.should == ship
+  end
+
   it "should save registered manufactured ships and stations to io object" do
     sys    = Cosmos::SolarSystem.new
     ship1  = Manufactured::Ship.new :id => 'ship1', :user_id => 'user1', :solar_system => sys

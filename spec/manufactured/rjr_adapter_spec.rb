@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO test handlers of motel on_movmement, on_rotate methods?
+
 require 'spec_helper'
 require 'rjr/local_node'
 
@@ -1011,6 +1013,7 @@ describe Manufactured::RJRAdapter do
     Motel::Runner.instance.run @ship2.location
     Motel::Runner.instance.run @stat1.location
     Manufactured::Registry.instance.attack_commands.size.should == 0
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 0
 
     # attacker cannot be defender
     lambda{
@@ -1090,7 +1093,12 @@ describe Manufactured::RJRAdapter do
     Manufactured::Registry.instance.attack_commands.size.should == 1
     Manufactured::Registry.instance.attack_commands.first.last.hooks[:before].size.should == 1
     Manufactured::Registry.instance.attack_commands.first.last.hooks[:after].size.should == 1
+    Manufactured::Registry.instance.attack_commands.first.last.attacker.should == @ship1
+    Manufactured::Registry.instance.attack_commands.first.last.defender.should == @ship2
     # TODO ensure locations are updated b4 attack cycle?
+
+    Manufactured::Registry.instance.shield_refresh_commands.size.should == 1
+    Manufactured::Registry.instance.shield_refresh_commands.first.last.entity.should == @ship2
   end
 
   it "should update user attack attributes on completion of attack cycle" do

@@ -1265,6 +1265,8 @@ function OmegaShip(ship){
     this.scene_objs[0].position.y = this.location.y;
     this.scene_objs[0].position.z = this.location.z;
 
+    // FIXME need to update sphere as well
+
     // update orientation
     this.scene_objs[0].rotation.x = this.location.orientation_x;
     this.scene_objs[0].rotation.y = this.location.orientation_y;

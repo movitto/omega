@@ -431,7 +431,7 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'locations'}],
                                         :session   => @headers['session_id']) if loc.restrict_view
 
-      raise ArgumentError, "callback_type must be nil, movement, or proximity" unless [nil, 'movement', 'proximity'].include?(callback_type)
+      raise ArgumentError, "callback_type must be nil, movement, proximity, rotation, or stopped" unless [nil, 'movement', 'proximity', 'rotation', 'stopped'].include?(callback_type)
 
       Motel::Runner.instance.safely_run {
         if callback_type.nil? || callback_type == 'movement'
@@ -440,6 +440,14 @@ class RJRAdapter
 
         if callback_type.nil? || callback_type == 'proximity'
           loc.proximity_callbacks.reject!{ |mc| mc.endpoint_id == source_node }
+        end
+
+        if callback_type.nil? || callback_type == 'rotation'
+          loc.rotation_callbacks.reject!{ |rc| rc.endpoint_id == source_node }
+        end
+
+        if callback_type.nil? || callback_type == 'stopped'
+          loc.stopped_callbacks.reject!{ |sc| sc.endpoint_id == source_node }
         end
       }
       loc

@@ -126,6 +126,15 @@ class Ship
   # Hit points the ship has
   attr_accessor :hp
 
+  # Max shield level of the ship
+  attr_accessor :max_shield_level
+
+  # Current shield level of the ship
+  attr_accessor :current_shield_level
+
+  # Shield refresh rate in units per second
+  attr_accessor :shield_refresh_rate
+
   # Ship which destroyed this one (or its id) if applicable
   attr_accessor :destroyed_by
 
@@ -216,6 +225,8 @@ class Ship
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
   # @option args [Hash<String,Int>] :resources,'resources' hash of resource ids to quantities contained in the ship
   # @option args [Float,Int] :hp,'hp' hit points to assign to ship
+  # @option args [Float,Int] :max_shield_level,'max_shield_level' max_shield_level to assign to ship
+  # @option args [Float,Int] :current_shield_level,'current_shield_level' current_shield_level to assign to ship
   # @option args [Cosmos::SolarSystem] :solar_system,'solar_system' solar system which the ship is in
   # @option args [Motel::Location] :location,'location' location of the ship in the solar system
   # @option args [Motel::MovementStrategy] :movement_strategy convenience setter of ship's location's movement strategy
@@ -234,7 +245,11 @@ class Ship
     @resources = args[:resources] || args['resources'] || {}
 
     # TODO make default values variable
+    #@level = TODO (combine type/level w/ centralized registry to generate these attrs?)
     @hp           = args[:hp] || args['hp'] || 10
+    @current_shield_level = args[:current_shield_level] || args['current_shield_level'] || 0
+    @max_shield_level = 0
+    @shield_refresh_rate = 1
     @movement_speed = 5
     @rotation_speed = Math::PI / 8
     @cargo_capacity = 100
@@ -294,6 +309,7 @@ class Ship
     !@user_id.nil? && @user_id.is_a?(String) && # ensure user id corresponds to actual user ?
     !@type.nil? && SHIP_TYPES.include?(@type) &&
     !@size.nil? && @size == SHIP_SIZES[@type] &&
+     @current_shield_level <= @max_shield_level &&
     (@docked_at.nil? || (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at))) &&
     (@attacking.nil? || (@attacking.is_a?(Manufactured::Ship) && can_attack?(@attacking))) &&
     (@mining.nil? || (@mining.is_a?(Cosmos::ResourceSource) && can_mine?(@mining))) &&
@@ -482,7 +498,7 @@ class Ship
       'data'       =>
         {:id => id, :user_id => user_id,
          :type => type, :size => size,
-         :hp => @hp,
+         :hp => @hp, :current_shield_level => @current_shield_level,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,

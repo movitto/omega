@@ -688,6 +688,8 @@ describe Motel::RJRAdapter do
 
     rloc1.movement_callbacks.size.should == 1
     rloc1.proximity_callbacks.size.should == 0
+
+    # TODO test removing movement, rotation, stopped only
   end
 
   it "should permit local nodes to save and restore state" do

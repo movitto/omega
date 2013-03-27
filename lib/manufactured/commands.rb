@@ -62,7 +62,7 @@ class AttackCommand
   # for the attacker's attack rate
   # @return [true,false] indicating if attack! can / cannot be called
   def attackable?
-    # elapsed time between mining cycles is less than ship's attack rate
+    # elapsed time between attack cycles is less than ship's attack rate
     return @last_attack_time.nil? || ((Time.now - @last_attack_time) > 1 / @attacker.attack_rate)
   end
 
@@ -106,12 +106,22 @@ class AttackCommand
     @last_attack_time = Time.now
 
     # TODO incorporate a hit / miss probability into this
-    # TODO incorporate shields / AC / other defense mechanisms into this
+    # TODO incorporate AC / other defense mechanisms into this
     # TODO delay between launching attack and it arriving at defender
     #   (depending on distance and projectile speed)
 
-    # reduce defender's hp
-    @defender.hp -= @attacker.damage_dealt
+    # first reduce defender's shield then hp
+    if @attacker.damage_dealt <= @defender.current_shield_level
+      @defender.current_shield_level -= @attacker.damage_dealt
+
+    else
+      pips = (@attacker.damage_dealt - @defender.current_shield_level)
+      @defender.hp -= pips
+      @defender.current_shield_level = 0
+
+      @defender.hp = 0 if @defender.hp < 0
+
+    end
 
     # invoke attacker's 'attacked' callbacks
     @attacker.notification_callbacks.
@@ -396,6 +406,66 @@ class ConstructionCommand
                            @station, @entity, percentage
             }
     end
+  end
+
+  # Returns boolean indicating if this construction command should be removed
+  # @return [true,false]
+  def remove?
+    @remove
+  end
+end
+
+# Represents action of shield recharging on a {Manufactured::Ship}
+class ShieldRefreshCommand
+  # {Manufactured::Entity entity} whose shield is being refreshed
+  attr_accessor :entity
+
+  # {Manufacuted::Command} which to check to determine if we should continue refreshing shield
+  # If remove? is true on command remove? will be set to true locally after shield has fully refreshed
+  attr_accessor :check_command
+
+  # Time of last time {#run!} was invoked
+  attr_accessor :last_time_cycled
+
+  # Manufactured::ShieldRefershCommand initializer
+  #
+  # @param [Hash] args hash of options to initialize command with
+  # @option args [Manufactured::Entity] :entity entity
+  # @option args [Manufactured::Command] :check_command command which to checked to determine whether or not to continue
+  def initialize(args = {})
+    @entity   = args[:entity]
+    @check_command   = args[:check_command]
+    @remove   = false
+  end
+
+  # Return the unique id of this command.
+  #
+  # Checked by the registry to ensure no two commands correspond to the same operation.
+  def id
+    @entity.id
+  end
+
+  # Ensure command is still valid and perform one refresh cycle
+  def run!
+    RJR::Logger.debug "refreshing shield of #{@entity.id}"
+
+    @last_time_cycled ||= Time.now
+
+    if entity.hp == 0
+      @remove = true
+    else
+      if entity.current_shield_level < entity.max_shield_level # 'if' not technically needed here
+        pips =  (Time.now - @last_time_cycled) * @entity.shield_refresh_rate
+        entity.current_shield_level += pips
+        entity.current_shield_level  = entity.max_shield_level if entity.current_shield_level > entity.max_shield_level
+
+      elsif @check_command.remove?
+        @remove = true
+
+      end
+    end
+
+    @last_time_cycled = Time.now
   end
 
   # Returns boolean indicating if this construction command should be removed
