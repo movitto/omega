@@ -316,7 +316,7 @@ class RJRAdapter
        loc = Runner.instance.locations.find { |loc| loc.id == location_id }
        raise Omega::DataNotFound, "location specified by #{location_id} not found" if loc.nil?
 
-       raise ArgumentError, "min_rotation must be an float between 0 and 2*PI" unless min_rotation.is_a?(Float) && min_rotation > 0 && min_rotation < 2*Math::PI
+       raise ArgumentError, "min_rotation must be an float between 0 and 4*PI" unless min_rotation.is_a?(Float) && min_rotation > 0 && min_rotation < 4*Math::PI
 
        # TODO add option to verify request is coming from authenticated source node which current connection was established on
        # TODO ensure that rjr_node_type supports persistant connections

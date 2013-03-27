@@ -67,7 +67,7 @@ describe Manufactured::RJRAdapter do
 
     ############## test manu
     @ship1  = Manufactured::Ship.new    :id => 'nship1', :user_id => 'user1', :type => :corvette,
-                                        :location => Motel::Location.new(:id => '2005', :x => -100, :y => -100, :z => -100)
+                                        :location => Motel::Location.new(:id => '2005', :x => -100, :y => -100, :z => -100, :orientation => [-1, 0, 0])
     @ship2  = Manufactured::Ship.new    :id => 'nship2', :user_id => @testuser2.id, :solar_system => @sys, :type => :mining,
                                         :location => Motel::Location.new(:id => '2006', :x => -101, :y => -101, :z => -101)
     @stat1  = Manufactured::Station.new :id => 'nstation1', :user_id => 'user1', :type => :manufacturing,
@@ -94,6 +94,7 @@ describe Manufactured::RJRAdapter do
     ############## test motel
     @new_loc1 = Motel::Location.new(:id => 2004, :parent_id => @sys1.location.id, :x => -105, :y => -100, :z => -100)
     @new_loc2 = Motel::Location.new(:id => 2004, :parent_id => @sys2.location.id, :x => -125, :y => -100, :z => -100)
+    @new_loc3 = Motel::Location.new(:id => 2004, :parent_id => @sys1.location.id, :x => -105, :y => -100, :z => -105)
   end
 
   after(:each) do
@@ -764,6 +765,32 @@ describe Manufactured::RJRAdapter do
     rship.first.location.x.should == rloc.x
     rship.first.location.y.should == rloc.y
     rship.first.location.z.should == rloc.z
+  end
+
+  it "should orient ship towards destination before moving" do
+    Motel::Runner.instance.run @ship1.location
+    Manufactured::Registry.instance.create @ship1
+
+    TestUser.add_privilege('modify', 'manufactured_entities')
+
+    rship = nil
+    lambda{
+      rship = Omega::Client::Node.invoke_request('manufactured::move_entity', @ship1.id, @new_loc3)
+    }.should_not raise_error
+
+    rship.class.should == Manufactured::Ship
+    rship.id.should == @ship1.id
+
+    # verify ship is now rotating towards orientation
+    rloc = Motel::Runner.instance.locations.find { |l| l.id == @ship1.location.id }
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Rotate
+    #rloc.dtheta # TODO verify dtheta, dphi
+
+    sleep 3
+    # verify ship is now has new orientation and
+    # is moving using a linear movement strategy towards new location
+    #rloc.orientation_difference(*@new_loc3.coordinates).should == [0, 0] # TODO
+    rloc.movement_strategy.class.should == Motel::MovementStrategies::Linear
   end
 
   it "should permit users with modify manufactured_entities or modify manufactured_entity-<id> to move_entity between systems" do

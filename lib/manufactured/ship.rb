@@ -39,6 +39,27 @@ class Ship
     end
   end
 
+  # Helper utility to store movement strategies which to set ship's
+  # location to.
+  #
+  # Not used / enforced here, simply provides a centralized location
+  # to register one or more movement strategies for future use
+  def next_movement_strategy(ms = nil)
+    @movement_strategies ||= []
+
+    if ms.nil?
+      return @movement_strategies.shift
+
+    #elsif ms == []
+    #  @movement_strategies = [] # TODO clear in this case?
+
+    else
+      @movement_strategies << ms
+      return nil
+
+    end
+  end
+
   # [SHIP_TYPE] General category / classification of ship
   attr_reader :type
 
@@ -78,6 +99,9 @@ class Ship
 
   # Distance ship travels during a single movement cycle
   attr_accessor :movement_speed
+
+  # Max angle ship can rotate in a single movmeent cycle
+  attr_accessor :rotation_speed
 
   # @!endgroup
 
@@ -212,6 +236,7 @@ class Ship
     # TODO make default values variable
     @hp           = args[:hp] || args['hp'] || 10
     @movement_speed = 5
+    @rotation_speed = Math::PI / 8
     @cargo_capacity = 100
     @attack_distance = 100
     @attack_rate  = 0.5
@@ -239,6 +264,9 @@ class Ship
     @location.x = 0 if @location.x.nil?
     @location.y = 0 if @location.y.nil?
     @location.z = 0 if @location.z.nil?
+    @location.orientation_x = 1 if @location.orientation_x.nil?
+    @location.orientation_y = 0 if @location.orientation_y.nil?
+    @location.orientation_z = 0 if @location.orientation_z.nil?
 
     @location.movement_strategy = args[:movement_strategy] if args.has_key?(:movement_strategy)
   end

@@ -121,9 +121,12 @@ class Location
       @parent              = args[:parent]              || args[:parent]
 
       @id                  = args[:id]                  || args['id']                  || nil
-      @x                   = args[:x]                   || args['x']                   || nil
-      @y                   = args[:y]                   || args['y']                   || nil
-      @z                   = args[:z]                   || args['z']                   || nil
+
+      @x, @y, @z           =
+                           *(args[:coordinates]         || args['coordinates']         || [])
+      @x                   = args[:x]                   || args['x']                   || @x
+      @y                   = args[:y]                   || args['y']                   || @y
+      @z                   = args[:z]                   || args['z']                   || @z
 
       @orientation_x, @orientation_y, @orientation_z =
                           *(args[:orientation]          || args['orientation']         || [])
@@ -187,6 +190,23 @@ class Location
    # Return this location's orientation as spherical theta/phi coordinates
    def spherical_orientation
      Motel.to_spherical(@orientation_x, @orientation_y, @orientation_z)[0..1]
+   end
+
+   # Return boolean indicating if location is oriented towards the specified coordinate
+   def oriented_towards?(x, y, z)
+     orientation_difference(x, y, z).all? { |od| od == 0 }
+   end
+
+   # Return angle between location's orientation and the specified coordinate.
+   #
+   # Angle is returned as an array containing spherical theta, phi coordinates.
+   #
+   # Angle differences returned may be positive or negative indicating relative
+   # position of the orientation to the specified coordinate
+   def orientation_difference(x, y, z)
+     t,p = self.spherical_orientation
+     ct,cp = Motel.to_spherical(x - @x, y - @y, z - @z)[0..1]
+     [ct-t,cp-p]
    end
 
    # Return the root location on this location's heirarchy tree

@@ -368,6 +368,8 @@ class RJRAdapter
         entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id)
       }
 
+      # TODO may want to incorporate fuel into this at some point
+
       # if parents don't match, we are moving entity between systems
       if entity.parent.id != parent.id
         # if moving ship ensure it is within trigger distance of gate to new system and is not docked
@@ -405,16 +407,34 @@ class RJRAdapter
 
         raise Omega::OperationError, "Ship or station #{entity} is already at location" if distance < 1
 
-        # move to location using a linear movement strategy
+        # Move to location using a linear movement strategy.
+        # If not oriented towards destination (or at least close enough), rotate first, then move
+        linear =  Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
+                                                        :direction_vector_y => dy/distance,
+                                                        :direction_vector_z => dz/distance,
+                                                        :speed => entity.movement_speed
+        rot_a  = nil
+
         Manufactured::Registry.instance.safely_run {
-          entity.location.movement_strategy =
-            Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
-                                                  :direction_vector_y => dy/distance,
-                                                  :direction_vector_z => dz/distance,
-                                                  :speed => entity.movement_speed
+          or_diff = entity.location.orientation_difference(*new_location.coordinates)
+
+          if or_diff.all? { |od| od.abs < (Math::PI / 8) }
+            entity.location.movement_strategy = linear
+
+          else
+            rot_a = or_diff[0].abs + or_diff[1].abs
+            rotate = Motel::MovementStrategies::Rotate.new :dtheta => (or_diff[0] * entity.rotation_speed / rot_a),
+                                                           :dphi   => (or_diff[1] * entity.rotation_speed / rot_a)
+            entity.location.movement_strategy = rotate
+            entity.next_movement_strategy linear
+          end
+
+          entity.next_movement_strategy Motel::MovementStrategies::Stopped.instance
+
         }
         @@local_node.invoke_request('motel::update_location', entity.location)
 
+        @@local_node.invoke_request('motel::track_rotation', entity.location.id,    rot_a) unless rot_a.nil?
         @@local_node.invoke_request('motel::track_movement', entity.location.id, distance)
       end
 
@@ -496,8 +516,8 @@ class RJRAdapter
       entity
     }
 
-    # callback to track_movement in update location
-    rjr_dispatcher.add_handler('motel::on_movement') { |loc|
+    # callback to track_movement and track_rotation in move_entity
+    rjr_dispatcher.add_handler(['motel::on_movement', 'motel::on_rotation']) { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id,
                                                     :include_graveyard => true).first
@@ -505,7 +525,7 @@ class RJRAdapter
       unless entity.nil?
         Manufactured::Registry.instance.safely_run {
           entity.location.update(loc)
-          entity.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+          entity.location.movement_strategy = entity.next_movement_strategy
         }
         @@local_node.invoke_request('motel::update_location', entity.location)
         @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, :movement)

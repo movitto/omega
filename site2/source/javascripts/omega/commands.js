@@ -60,7 +60,7 @@ var OmegaEvent = {
   movement : {
     handled : false,
 
-    /* Handle to motel::on_movement events,
+    /* Handle to motel::on_movement and motel::on_rotation events,
      * upon receiving look up local entity and invoking 'moved' on it.
      */
     handle  : function(){
@@ -85,6 +85,9 @@ var OmegaEvent = {
           entity.location.x = loc.x;
           entity.location.y = loc.y;
           entity.location.z = loc.z;
+          entity.location.orientation_x = loc.orientation_x;
+          entity.location.orientation_y = loc.orientation_y;
+          entity.location.orientation_z = loc.orientation_z;
           entity.location.movement_strategy = loc.movement_strategy;
 
           entity.moved();
@@ -95,6 +98,7 @@ var OmegaEvent = {
 
       $omega_node.add_request_handler('motel::location_stopped', handler);
       $omega_node.add_request_handler('motel::on_movement', handler);
+      $omega_node.add_request_handler('motel::on_rotation', handler);
     },
 
     /* Subscribe to motel movement events for the specified location_id / min distance
@@ -102,6 +106,7 @@ var OmegaEvent = {
     subscribe : function(location_id, distance){
       OmegaEvent.movement.handle();
       $omega_node.ws_request('motel::track_stops', location_id, null);
+      $omega_node.ws_request('motel::track_rotation', location_id,      0.1, null);
       $omega_node.ws_request('motel::track_movement', location_id, distance, null);
     }
   },

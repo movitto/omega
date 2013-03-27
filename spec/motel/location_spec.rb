@@ -78,6 +78,26 @@ describe Motel::Location do
      orientation[1].should == 0
   end
 
+  it "should indicate if location is oriented towards specified point" do
+    loc = Motel::Location.new :coordinates => [0, 0, 0], :orientation => [0.57, 0.57, 0.57]
+    loc.oriented_towards?(0.57, 0.57, 0.57).should be_true
+    loc.oriented_towards?(1.14, 1.14, 1.14).should be_true
+    loc.oriented_towards?(0.285, 0.285, 0.285).should be_true
+
+    loc.oriented_towards?(0, 0, 0).should be_false
+    loc.oriented_towards?(1, 0, 0).should be_false
+    loc.oriented_towards?(-100, 50, 100).should be_false
+  end
+
+  it "should return difference between orientations" do
+    loc = Motel::Location.new :coordinates => [0, 0, 0], :orientation => [0, 0, 1]
+    loc.orientation_difference(0, 0, 1).should == [0, 0]
+    loc.orientation_difference(0, 0, 2).should == [0, 0]
+
+    loc.orientation_difference(0, 1, 0).should == [Math::PI/2, Math::PI/2]
+    loc.orientation_difference(1, 1, 0).should == [Math::PI/2, Math::PI/4]
+  end
+
   it "should retrieve root location" do
     ggp = Motel::Location.new
     gp  = Motel::Location.new :parent => ggp

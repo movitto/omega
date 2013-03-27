@@ -20,8 +20,8 @@ module MovementStrategies
 
     # Return boolean indicating if rotation parameters are valid
     def valid_rotation?
-     (@dtheta.nil? || ([Float, Fixnum].include?(@dtheta.class) && @dtheta >= 0 && @dtheta < 6.28)) &&
-     (@dphi.nil?   || ([Float, Fixnum].include?(@dphi.class)   && @dphi   >= 0 && @dphi   < 6.28))
+     (@dtheta.nil? || ([Float, Fixnum].include?(@dtheta.class) && @dtheta > -6.28 && @dtheta < 6.28)) &&
+     (@dphi.nil?   || ([Float, Fixnum].include?(@dphi.class)   && @dphi   > -6.28 && @dphi   < 6.28))
     end
 
     # Rotate the specified location. Takes same parameters
@@ -63,7 +63,7 @@ class Rotate < MovementStrategy
   # Implementation of {Motel::MovementStrategy#move}
   def move(location, elapsed_seconds)
     unless valid?
-      RJR::Logger.warn "rotate movement strategy not valid, not proceeding with move"
+      RJR::Logger.warn "rotate movement strategy (#{self.to_s}) not valid, not proceeding with move"
       return
     end
 

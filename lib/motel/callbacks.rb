@@ -185,6 +185,8 @@ class Rotation < Base
   # @param [Integer, Float] old_oy old y orientation of location
   # @param [Integer, Float] old_oz old z orientation of location
   def invoke(new_location, old_ox, old_oy, old_oz)
+    return if (new_location.orientation + [old_ox, old_oy, old_oz]).any? { |o| o.nil? }
+
     if @orig_ox.nil?
       @orig_ox = old_ox
       @orig_oy = old_oy

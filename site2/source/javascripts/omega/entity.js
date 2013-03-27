@@ -1139,6 +1139,11 @@ function OmegaShip(ship){
     mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
     mesh.omega_id = this.id + '-mesh';
 
+    // set orientation
+    mesh.rotation.x = this.location.orientation_x;
+    mesh.rotation.y = this.location.orientation_y;
+    mesh.rotation.z = this.location.orientation_z;
+
     var sphere   = new THREE.Mesh(OmegaScene.geometries['ship_container'],
                                   OmegaScene.materials['ship_container']);
 
@@ -1259,6 +1264,11 @@ function OmegaShip(ship){
     this.scene_objs[0].position.x = this.location.x;
     this.scene_objs[0].position.y = this.location.y;
     this.scene_objs[0].position.z = this.location.z;
+
+    // update orientation
+    this.scene_objs[0].rotation.x = this.location.orientation_x;
+    this.scene_objs[0].rotation.y = this.location.orientation_y;
+    this.scene_objs[0].rotation.z = this.location.orientation_z;
 
     // scene_object 1/2 is the attack / mining line and geometry (if applicable)
     if(this.scene_objs.length > 2){

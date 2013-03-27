@@ -23,7 +23,7 @@ describe Motel::MovementStrategies::Rotatable do
      rot.dtheta = :foo
      rot.valid?.should be_false
 
-     rot.dtheta = -0.5
+     rot.dtheta = -10.11
      rot.valid?.should be_false
 
      rot.dtheta = 9.89
@@ -33,13 +33,14 @@ describe Motel::MovementStrategies::Rotatable do
      rot.dphi = :foo
      rot.valid?.should be_false
 
-     rot.dphi = -0.15
+     rot.dphi = -10.11
      rot.valid?.should be_false
 
      rot.dphi = 10.22
      rot.valid?.should be_false
 
-     rot.dphi = 0.35
+     rot.dtheta = -0.45
+     rot.dphi   = 0.35
      rot.valid?.should be_true
   end
 

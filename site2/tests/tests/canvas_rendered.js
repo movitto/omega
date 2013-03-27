@@ -744,6 +744,8 @@ $(document).ready(function(){
     });
   });
 
+  //asyncTest("load rotating ship", function(){ TODO ensure orientation is updated
+
   asyncTest("load moving ship", function(){
     $omega_scene = setup_canvas();
 

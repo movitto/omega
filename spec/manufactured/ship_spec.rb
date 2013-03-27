@@ -142,6 +142,25 @@ describe Manufactured::Ship do
     ship.location.parent.should == sys2.location
   end
 
+  it "should allow registering and retrieval of sequential movement strategies" do
+    ms1 = Motel::MovementStrategies::Stopped.instance
+    ms2 = Motel::MovementStrategies::Linear.new :speed => 1
+    ms3 = Motel::MovementStrategies::Rotate.new
+
+    ship = Manufactured::Ship.new :id => 'ship1'
+    ship.next_movement_strategy.should be_nil
+
+    ship.next_movement_strategy(ms1)
+    ship.next_movement_strategy.should == ms1
+    ship.next_movement_strategy.should be_nil
+
+    ship.next_movement_strategy(ms2)
+    ship.next_movement_strategy(ms3)
+    ship.next_movement_strategy.should == ms2
+    ship.next_movement_strategy.should == ms3
+    ship.next_movement_strategy.should be_nil
+  end
+
   it "should return bool indicating if it can attack another entity" do
     sys1  = Cosmos::SolarSystem.new :name => "sys1", :location => Motel::Location.new(:id => 1)
     sys2  = Cosmos::SolarSystem.new :name => "sys2", :location => Motel::Location.new(:id => 2)

@@ -491,7 +491,7 @@ describe Motel::RJRAdapter do
 
     rloc1.rotation_callbacks.size.should == 0
 
-    # invalid distance
+    # invalid rotation
     lambda{
       Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, "1.2")
     #}.should raise_error(ArgumentError)
@@ -499,9 +499,15 @@ describe Motel::RJRAdapter do
 
     rloc1.rotation_callbacks.size.should == 0
 
-    # invalid distance
+    # invalid rotation
     lambda{
       Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, -0.4)
+    #}.should raise_error(ArgumentError)
+    }.should raise_error(Exception)
+
+    # invalid rotation
+    lambda{
+      Omega::Client::Node.invoke_request('motel::track_rotation', loc1.id, 5 * Math::PI)
     #}.should raise_error(ArgumentError)
     }.should raise_error(Exception)
 
