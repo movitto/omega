@@ -104,6 +104,8 @@ class RJRAdapter
                                                n + 1)
       raise Omega::PermissionError, "User #{entity.user_id} cannot own any more entities (max #{n})" unless can_create
 
+# FIXME creation of location needs to happen before creation of entity
+
       rentity = Manufactured::Registry.instance.create entity
 
       # skip create_location if entity wasn't created in registry
@@ -348,12 +350,12 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('manufactured::move_entity'){ |id, new_location|
       entity = Manufactured::Registry.instance.find(:id => id).first
-      parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_location', new_location.parent_id)
+      parent = new_location.parent_id.nil? ? nil : @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_location', new_location.parent_id)
 
       raise ArgumentError, "invalid location #{new_location} specified" unless new_location.is_a?(Motel::Location)
 
       raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
-      raise Omega::DataNotFound, "parent system specified by location #{new_location.id} not found" if parent.nil?
+      raise Omega::DataNotFound, "parent system specified by location #{new_location.parent_id} not found" if !new_location.parent_id.nil? && parent.nil?
 
       Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
@@ -361,7 +363,7 @@ class RJRAdapter
 
       # raise exception if entity or parent is invalid
       raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
-      raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
+      raise ArgumentError, "Must specify system to move ship to"  unless parent.nil? || parent.is_a?(Cosmos::SolarSystem)
 
       # update the entity's location
       Manufactured::Registry.instance.safely_run {
@@ -371,7 +373,7 @@ class RJRAdapter
       # TODO may want to incorporate fuel into this at some point
 
       # if parents don't match, we are moving entity between systems
-      if entity.parent.id != parent.id
+      if !parent.nil? && entity.parent.id != parent.id
         # if moving ship ensure it is within trigger distance of gate to new system and is not docked
         #   (TODO currently stations don't have this restriction though we may want to put others in place, or a transport delay / time)
         if entity.is_a?(Manufactured::Ship)
@@ -459,7 +461,7 @@ class RJRAdapter
                                                  {:privilege => 'view', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      # raise exception if entity or parent is invalid
+      # raise exception if entity or target is invalid
       raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
       raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
 

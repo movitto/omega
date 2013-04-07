@@ -701,6 +701,8 @@ describe Manufactured::RJRAdapter do
     #}.should raise_error(Omega::DataNotFound)
     }.should raise_error(Exception)
 
+    # TODO ensure manufactured::move_to works if parent_id is nil
+
     @new_loc1.parent_id = @sys1.id
 
     # insufficient permissions
