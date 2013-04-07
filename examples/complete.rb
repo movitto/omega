@@ -10,13 +10,14 @@ require 'rubygems'
 require 'omega'
 
 include Omega::Client::DSL
+Omega::Client::DSL.parallel true
 
 include Motel
 include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
 
-node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
+node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost', :host => 'localhost', :port => 6999)
 login node, 'admin',  'nimda'
 
 galaxy 'Zeus' do |g|
@@ -697,30 +698,30 @@ galaxy 'Zeus' do |g|
       end
     }
   end
-end
 
-jump_gate system('Athena'),      system('Aphrodite'),   :location => Location.new(:x => -150, :y => -150, :z => -150)
-jump_gate system('Athena'),      system('Philo'),       :location => Location.new(:x => 150,  :y => 150,  :z => 150)
-jump_gate system('Philo'),       system('Nike'),        :location => Location.new(:x => -192, :y => 429,  :z => 184)
-jump_gate system('Nike'),        system('Phokas'),      :location => Location.new(:x => 160,  :y => 432,  :z => 524)
-jump_gate system('Phokas'),      system('Dorisi'),      :location => Location.new(:x => 150,  :y => -160, :z => 223)
-jump_gate system('Nike'),        system('Dorisi'),      :location => Location.new(:x => -539, :y => -283, :z => -188)
-jump_gate system('Nike'),        system('Syntyche'),    :location => Location.new(:x => -472, :y => -385, :z => -223)
-jump_gate system('Nike'),        system('Theodosia'),   :location => Location.new(:x => 655,  :y => 335,  :z => 390)
-jump_gate system('Dorisi'),      system('Aristocoles'), :location => Location.new(:x => 567,  :y => -511, :z => 534)
-jump_gate system('Aristocoles'), system('Philo'),       :location => Location.new(:x => 112,  :y => -132, :z => -545)
-jump_gate system('Dorisi'),      system('Aphroditus'),  :location => Location.new(:x => 436,  :y => 123,  :z => 529)
-jump_gate system('Aphroditus'),  system('Athena'),      :location => Location.new(:x => -334, :y => -139, :z => -148)
-jump_gate system('Dorisi'),      system('Aristocoles'), :location => Location.new(:x => 353,  :y => 75,   :z => -353)
-jump_gate system('Aphrodite'),   system('Aphroditus'),  :location => Location.new(:x => -109, :y => -384, :z => -132)
-jump_gate system('Theodosia'),   system('Irene'),       :location => Location.new(:x => 484,  :y => -103, :z => -332)
-jump_gate system('Irene'),       system('Photina'),     :location => Location.new(:x => -364, :y => 444,  :z => -274)
-jump_gate system('Photina'),     system('Syntyche'),    :location => Location.new(:x => -454, :y => 399,  :z => 167)
-jump_gate system('Syntyche'),    system('Photina'),     :location => Location.new(:x => 629,  :y => 588,  :z => 499)
-jump_gate system('Syntyche'),    system('Theodosia'),   :location => Location.new(:x => 343,  :y => 388,  :z => -656)
-jump_gate system('Irene'),       system('Zosimus'),     :location => Location.new(:x => -498, :y => -603, :z => 579)
-jump_gate system('Zosimus'),     system('Demetrium'),   :location => Location.new(:x => 520,  :y => 102,  :z => 432)
-jump_gate system('Demetrium'),   system('Athena'),      :location => Location.new(:x => 675,  :y => 576,  :z => -586)
+  jump_gate system('Athena'),      system('Aphrodite'),   :location => Location.new(:x => -150, :y => -150, :z => -150)
+  jump_gate system('Athena'),      system('Philo'),       :location => Location.new(:x => 150,  :y => 150,  :z => 150)
+  jump_gate system('Philo'),       system('Nike'),        :location => Location.new(:x => -192, :y => 429,  :z => 184)
+  jump_gate system('Nike'),        system('Phokas'),      :location => Location.new(:x => 160,  :y => 432,  :z => 524)
+  jump_gate system('Phokas'),      system('Dorisi'),      :location => Location.new(:x => 150,  :y => -160, :z => 223)
+  jump_gate system('Nike'),        system('Dorisi'),      :location => Location.new(:x => -539, :y => -283, :z => -188)
+  jump_gate system('Nike'),        system('Syntyche'),    :location => Location.new(:x => -472, :y => -385, :z => -223)
+  jump_gate system('Nike'),        system('Theodosia'),   :location => Location.new(:x => 655,  :y => 335,  :z => 390)
+  jump_gate system('Dorisi'),      system('Aristocoles'), :location => Location.new(:x => 567,  :y => -511, :z => 534)
+  jump_gate system('Aristocoles'), system('Philo'),       :location => Location.new(:x => 112,  :y => -132, :z => -545)
+  jump_gate system('Dorisi'),      system('Aphroditus'),  :location => Location.new(:x => 436,  :y => 123,  :z => 529)
+  jump_gate system('Aphroditus'),  system('Athena'),      :location => Location.new(:x => -334, :y => -139, :z => -148)
+  jump_gate system('Dorisi'),      system('Aristocoles'), :location => Location.new(:x => 353,  :y => 75,   :z => -353)
+  jump_gate system('Aphrodite'),   system('Aphroditus'),  :location => Location.new(:x => -109, :y => -384, :z => -132)
+  jump_gate system('Theodosia'),   system('Irene'),       :location => Location.new(:x => 484,  :y => -103, :z => -332)
+  jump_gate system('Irene'),       system('Photina'),     :location => Location.new(:x => -364, :y => 444,  :z => -274)
+  jump_gate system('Photina'),     system('Syntyche'),    :location => Location.new(:x => -454, :y => 399,  :z => 167)
+  jump_gate system('Syntyche'),    system('Photina'),     :location => Location.new(:x => 629,  :y => 588,  :z => 499)
+  jump_gate system('Syntyche'),    system('Theodosia'),   :location => Location.new(:x => 343,  :y => 388,  :z => -656)
+  jump_gate system('Irene'),       system('Zosimus'),     :location => Location.new(:x => -498, :y => -603, :z => 579)
+  jump_gate system('Zosimus'),     system('Demetrium'),   :location => Location.new(:x => 520,  :y => 102,  :z => 432)
+  jump_gate system('Demetrium'),   system('Athena'),      :location => Location.new(:x => 675,  :y => 576,  :z => -586)
+end
 
 galaxy 'Hera' do |g|
   system 'Agathon', 'JJ7192', :location => Location.new(:x => -88, :y => 219, :z => 499) do |sys|
@@ -1369,41 +1370,41 @@ galaxy 'Hera' do |g|
       end
     }
   end
-end
 
-jump_gate system('Agathon'),      system('Isocrates'), :location => Location.new(:x => -132, :y => 394,  :z => -417)
-jump_gate system('Isocrates'),    system('Thais'),     :location => Location.new(:x => 351,  :y => 141,  :z => -121)
-jump_gate system('Thais'),        system('Timon'),     :location => Location.new(:x => 447,  :y => -108, :z => -202)
-jump_gate system('Thais'),        system('Epaphras'),  :location => Location.new(:x => -130, :y => 327,  :z => -261)
-jump_gate system('Timon'),        system('Myron'),     :location => Location.new(:x => 182,  :y => -464, :z => 361)
-jump_gate system('Timon'),        system('Pelagia'),   :location => Location.new(:x => -24,  :y => -61,  :z => 454)
-jump_gate system('Myron'),        system('Lysander'),  :location => Location.new(:x => 297,  :y => -403, :z => -206)
-jump_gate system('Myron'),        system('Thales'),    :location => Location.new(:x => -345, :y => 192,  :z => -107)
-jump_gate system('Myron'),        system('Nikias'),    :location => Location.new(:x => 67,   :y => -224, :z => -328)
-jump_gate system('Pelagia'),      system('Pericles'),  :location => Location.new(:x => 208,  :y => -204, :z => 82)
-jump_gate system('Pelagia'),      system('Tycho'),     :location => Location.new(:x => -401, :y => -188, :z => -105)
-jump_gate system('Pelagia'),      system('Kleon'),     :location => Location.new(:x => -51,  :y => 273,  :z => 141)
-jump_gate system('Pericles'),     system('Theodora'),  :location => Location.new(:x => -343, :y => 408,  :z => 361)
-jump_gate system('Theodora'),     system('Tycho'),     :location => Location.new(:x => 17,   :y => -253, :z => 3)
-jump_gate system('Theodora'),     system('Agathon'),   :location => Location.new(:x => -2,   :y => 467,  :z => 283)
-jump_gate system('Tycho'),        system('Stephanos'), :location => Location.new(:x => 42,   :y => -8,   :z => -203)
-jump_gate system('Tycho'),        system('Zenobia'),   :location => Location.new(:x => 463,  :y => 172,  :z => -207)
-jump_gate system('Stephanos'),    system('Kleon'),     :location => Location.new(:x => -169, :y => -10,  :z => -498)
-jump_gate system('Stephanos'),    system('Epaphras'),  :location => Location.new(:x => -316, :y => -495, :z => -455)
-jump_gate system('Kleon'),        system('Zenobia'),   :location => Location.new(:x => 216,  :y => 321,  :z => -232)
-jump_gate system('Kleon'),        system('Panther'),   :location => Location.new(:x => 474,  :y => 142,  :z => 99)
-jump_gate system('Kleon'),        system('Xenia'),     :location => Location.new(:x => 353,  :y => -115, :z => -426)
-jump_gate system('Zenobia'),      system('Panther'),   :location => Location.new(:x => -431, :y => -174, :z => 208)
-jump_gate system('Panther'),      system('Xenia'),     :location => Location.new(:x => 10,   :y => 48,   :z => 488)
-jump_gate system('Xenia'),        system('Thales'),    :location => Location.new(:x => 363,  :y => 241,  :z => -274)
-jump_gate system('Thales'),       system('Nikias'),    :location => Location.new(:x => 86,   :y => -482, :z => -177)
-jump_gate system('Nikias'),       system('Metrodora'), :location => Location.new(:x => -134, :y => 190,  :z => 241)
-jump_gate system('Metrodora'),    system('Lycus'),     :location => Location.new(:x => 325,  :y => -403, :z => 140)
-jump_gate system('Metrodora'),    system('Zenobia'),   :location => Location.new(:x => 193,  :y => -226, :z => -132)
-jump_gate system('Lycus'),        system('Epaphras'),  :location => Location.new(:x => 301,  :y => 37,   :z => -449)
-jump_gate system('Lycus'),        system('Isocrates'), :location => Location.new(:x => -8,   :y => 238,  :z => -179)
-jump_gate system('Epaphras'),     system('Eugina'),    :location => Location.new(:x => 393,  :y => -29,  :z => -153)
-jump_gate system('Eugina'),       system('Thais'),     :location => Location.new(:x => 476,  :y => -174, :z => -303)
+  jump_gate system('Agathon'),      system('Isocrates'), :location => Location.new(:x => -132, :y => 394,  :z => -417)
+  jump_gate system('Isocrates'),    system('Thais'),     :location => Location.new(:x => 351,  :y => 141,  :z => -121)
+  jump_gate system('Thais'),        system('Timon'),     :location => Location.new(:x => 447,  :y => -108, :z => -202)
+  jump_gate system('Thais'),        system('Epaphras'),  :location => Location.new(:x => -130, :y => 327,  :z => -261)
+  jump_gate system('Timon'),        system('Myron'),     :location => Location.new(:x => 182,  :y => -464, :z => 361)
+  jump_gate system('Timon'),        system('Pelagia'),   :location => Location.new(:x => -24,  :y => -61,  :z => 454)
+  jump_gate system('Myron'),        system('Lysander'),  :location => Location.new(:x => 297,  :y => -403, :z => -206)
+  jump_gate system('Myron'),        system('Thales'),    :location => Location.new(:x => -345, :y => 192,  :z => -107)
+  jump_gate system('Myron'),        system('Nikias'),    :location => Location.new(:x => 67,   :y => -224, :z => -328)
+  jump_gate system('Pelagia'),      system('Pericles'),  :location => Location.new(:x => 208,  :y => -204, :z => 82)
+  jump_gate system('Pelagia'),      system('Tycho'),     :location => Location.new(:x => -401, :y => -188, :z => -105)
+  jump_gate system('Pelagia'),      system('Kleon'),     :location => Location.new(:x => -51,  :y => 273,  :z => 141)
+  jump_gate system('Pericles'),     system('Theodora'),  :location => Location.new(:x => -343, :y => 408,  :z => 361)
+  jump_gate system('Theodora'),     system('Tycho'),     :location => Location.new(:x => 17,   :y => -253, :z => 3)
+  jump_gate system('Theodora'),     system('Agathon'),   :location => Location.new(:x => -2,   :y => 467,  :z => 283)
+  jump_gate system('Tycho'),        system('Stephanos'), :location => Location.new(:x => 42,   :y => -8,   :z => -203)
+  jump_gate system('Tycho'),        system('Zenobia'),   :location => Location.new(:x => 463,  :y => 172,  :z => -207)
+  jump_gate system('Stephanos'),    system('Kleon'),     :location => Location.new(:x => -169, :y => -10,  :z => -498)
+  jump_gate system('Stephanos'),    system('Epaphras'),  :location => Location.new(:x => -316, :y => -495, :z => -455)
+  jump_gate system('Kleon'),        system('Zenobia'),   :location => Location.new(:x => 216,  :y => 321,  :z => -232)
+  jump_gate system('Kleon'),        system('Panther'),   :location => Location.new(:x => 474,  :y => 142,  :z => 99)
+  jump_gate system('Kleon'),        system('Xenia'),     :location => Location.new(:x => 353,  :y => -115, :z => -426)
+  jump_gate system('Zenobia'),      system('Panther'),   :location => Location.new(:x => -431, :y => -174, :z => 208)
+  jump_gate system('Panther'),      system('Xenia'),     :location => Location.new(:x => 10,   :y => 48,   :z => 488)
+  jump_gate system('Xenia'),        system('Thales'),    :location => Location.new(:x => 363,  :y => 241,  :z => -274)
+  jump_gate system('Thales'),       system('Nikias'),    :location => Location.new(:x => 86,   :y => -482, :z => -177)
+  jump_gate system('Nikias'),       system('Metrodora'), :location => Location.new(:x => -134, :y => 190,  :z => 241)
+  jump_gate system('Metrodora'),    system('Lycus'),     :location => Location.new(:x => 325,  :y => -403, :z => 140)
+  jump_gate system('Metrodora'),    system('Zenobia'),   :location => Location.new(:x => 193,  :y => -226, :z => -132)
+  jump_gate system('Lycus'),        system('Epaphras'),  :location => Location.new(:x => 301,  :y => 37,   :z => -449)
+  jump_gate system('Lycus'),        system('Isocrates'), :location => Location.new(:x => -8,   :y => 238,  :z => -179)
+  jump_gate system('Epaphras'),     system('Eugina'),    :location => Location.new(:x => 393,  :y => -29,  :z => -153)
+  jump_gate system('Eugina'),       system('Thais'),     :location => Location.new(:x => 476,  :y => -174, :z => -303)
+end
 
 galaxy 'Thor' do |g|
   system 'Loki', 'B78915', :location => Location.new(:x => 57, :y => -530, :z => -116) do |sys|
@@ -1866,24 +1867,25 @@ galaxy 'Thor' do |g|
       moon 'Gluscabi I',   :location => rand_location(:min => pl.size, :max => pl.size * 2.3)
     end
   end
-end
 
-jump_gate system('Loki'),     system('Heimdall'), :location => Location.new(:x => -464,  :y => 147,  :z => -162)
-jump_gate system('Loki'),     system('Modi'),     :location => Location.new(:x => -480,  :y => 76,   :z => 380)
-jump_gate system('Heimdall'), system('Nidhogg'),  :location => Location.new(:x => -376,  :y => -131, :z => 77)
-jump_gate system('Modi'),     system('Nanna'),    :location => Location.new(:x => 175,   :y => 215,  :z => 94)
-jump_gate system('Nanna'),    system('Fulla'),    :location => Location.new(:x => -225,  :y => -425, :z => 427)
-jump_gate system('Fulla'),    system('Heimdall'), :location => Location.new(:x => 240,   :y => 484,  :z => 398)
-jump_gate system('Fulla'),    system('Var'),      :location => Location.new(:x => -166,  :y => 51,   :z => 371)
-jump_gate system('Nidhogg'),  system('Tyr'),      :location => Location.new(:x => 316,   :y => -459, :z => -4)
-jump_gate system('Nidhogg'),  system('Ran'),      :location => Location.new(:x => -65,   :y => -13,  :z => 440)
-jump_gate system('Tyr'),      system('Ran'),      :location => Location.new(:x => 35,    :y => 328,  :z => 2)
-jump_gate system('Tyr'),      system('Loki'),     :location => Location.new(:x => 480,   :y => -73,  :z => -89)
-jump_gate system('Ran'),      system('Var'),      :location => Location.new(:x => -338,  :y => 376,  :z => 133)
-jump_gate system('Var'),      system('Ymi'),      :location => Location.new(:x => -82,   :y => -388, :z => -45)
-jump_gate system('Var'),      system('Ran'),      :location => Location.new(:x => 112,   :y => 100,  :z => 132)
-jump_gate system('Ymi'),      system('Nanna'),    :location => Location.new(:x => 436,   :y => -191, :z => -482)
-jump_gate system('Ymi'),      system('Modi'),     :location => Location.new(:x => 106,   :y => 389,  :z => 149)
+  jump_gate system('Loki'),     system('Heimdall'), :location => Location.new(:x => -464,  :y => 147,  :z => -162)
+  jump_gate system('Loki'),     system('Modi'),     :location => Location.new(:x => -480,  :y => 76,   :z => 380)
+  jump_gate system('Heimdall'), system('Nidhogg'),  :location => Location.new(:x => -376,  :y => -131, :z => 77)
+  jump_gate system('Modi'),     system('Nanna'),    :location => Location.new(:x => 175,   :y => 215,  :z => 94)
+  jump_gate system('Nanna'),    system('Fulla'),    :location => Location.new(:x => -225,  :y => -425, :z => 427)
+  jump_gate system('Fulla'),    system('Heimdall'), :location => Location.new(:x => 240,   :y => 484,  :z => 398)
+  jump_gate system('Fulla'),    system('Var'),      :location => Location.new(:x => -166,  :y => 51,   :z => 371)
+  jump_gate system('Nidhogg'),  system('Tyr'),      :location => Location.new(:x => 316,   :y => -459, :z => -4)
+  jump_gate system('Nidhogg'),  system('Ran'),      :location => Location.new(:x => -65,   :y => -13,  :z => 440)
+  jump_gate system('Tyr'),      system('Ran'),      :location => Location.new(:x => 35,    :y => 328,  :z => 2)
+  jump_gate system('Tyr'),      system('Loki'),     :location => Location.new(:x => 480,   :y => -73,  :z => -89)
+  jump_gate system('Ran'),      system('Var'),      :location => Location.new(:x => -338,  :y => 376,  :z => 133)
+  jump_gate system('Var'),      system('Ymi'),      :location => Location.new(:x => -82,   :y => -388, :z => -45)
+  jump_gate system('Var'),      system('Ran'),      :location => Location.new(:x => 112,   :y => 100,  :z => 132)
+  jump_gate system('Ymi'),      system('Nanna'),    :location => Location.new(:x => 436,   :y => -191, :z => -482)
+  jump_gate system('Ymi'),      system('Modi'),     :location => Location.new(:x => 106,   :y => 389,  :z => 149)
+
+end
 
 galaxy 'Odin' do |g|
   system 'Asgrad', 'FE8331', :location => Location.new(:x => 253, :y => -753, :z => -112) do |sys|
@@ -2630,43 +2632,43 @@ galaxy 'Odin' do |g|
     end
 
   end
+
+  jump_gate system('Asgrad'),   system('Valhalla'),  :location => Location.new(:x => 329,  :y => -115, :z => 135)
+  jump_gate system('Saga'),     system('Valhalla'),  :location => Location.new(:x => -418, :y => -361, :z => 180)
+  jump_gate system('Norn'),     system('Valhalla'),  :location => Location.new(:x => -92,  :y => -46,  :z => 258)
+  jump_gate system('Ulle'),     system('Valhalla'),  :location => Location.new(:x => 367,  :y => -443, :z => -352)
+  jump_gate system('Syn'),      system('Valhalla'),  :location => Location.new(:x => -368, :y => 421,  :z => 168)
+  jump_gate system('Surtr'),    system('Valhalla'),  :location => Location.new(:x => -121, :y => -70,  :z => 142)
+  jump_gate system('Woden'),    system('Valhalla'),  :location => Location.new(:x => -432, :y => -144, :z => -366)
+  jump_gate system('Hlin'),     system('Valhalla'),  :location => Location.new(:x => -233, :y => -48,  :z => 411)
+  jump_gate system('Hel'),      system('Valhalla'),  :location => Location.new(:x => -428, :y => -166, :z => 231)
+  jump_gate system('Valhalla'), system('Hel'),       :location => Location.new(:x => -491, :y => 213,  :z => 287)
+  jump_gate system('Runic'),    system('Hel'),       :location => Location.new(:x => 473,  :y => 9,    :z => -335)
+  jump_gate system('Jord'),     system('Hel'),       :location => Location.new(:x => -496, :y => 17,   :z => 395)
+  jump_gate system('Ogres'),    system('Hel'),       :location => Location.new(:x => -468, :y => -312, :z => 210)
+  jump_gate system('Njord'),    system('Hel'),       :location => Location.new(:x => 47,   :y => 225,  :z => -346)
+  jump_gate system('Skadi'),    system('Hel'),       :location => Location.new(:x => 147,  :y => -242, :z => -93)
+  jump_gate system('Hermoda'),  system('Hel'),       :location => Location.new(:x => 362,  :y => 33,   :z => -388)
+  
+  jump_gate system('Hel'),      system('Njord'),  :location => Location.new(:x => 387,     :y => -83,  :z => 33)
+  jump_gate system('Valhalla'), system('Asgrad'), :location => Location.new(:x => 157,     :y => 351,  :z => -110)
+  
+  jump_gate system('Njord'),    system('Skadi'),      :location => Location.new(:x => 14,    :y => -448, :z => -70)
+  jump_gate system('Njord'),    system('Jord'),       :location => Location.new(:x => 190,   :y => 44,   :z => 383)
+  jump_gate system('Jord'),     system('Ogres'),      :location => Location.new(:x => -452,  :y => 482,  :z => 272)
+  jump_gate system('Jord'),     system('Runic'),      :location => Location.new(:x => 481,   :y => -175, :z => -322)
+  jump_gate system('Jord'),     system('Hermoda'),    :location => Location.new(:x => 336,   :y => -448, :z => 387)
+  jump_gate system('Hermoda'),  system('Ogres'),      :location => Location.new(:x => 498,   :y => -482, :z => 53)
+  jump_gate system('Runic'),    system('Ogres'),      :location => Location.new(:x => 58,    :y => 251,  :z => 209)
+  
+  jump_gate system('Asgrad'),  system('Saga'),       :location => Location.new(:x => -254, :y => 263,  :z => 250)
+  jump_gate system('Asgrad'),  system('Norn'),       :location => Location.new(:x => 492,  :y => 438,  :z => -22)
+  jump_gate system('Asgrad'),  system('Woden'),      :location => Location.new(:x => 311,  :y => 279,  :z => 119)
+  jump_gate system('Asgrad'),  system('Hlin'),       :location => Location.new(:x => -489, :y => -274, :z => -335)
+  jump_gate system('Woden'),   system('Ulle'),       :location => Location.new(:x => 248,  :y => 37,   :z => 60)
+  jump_gate system('Woden'),   system('Syn'),        :location => Location.new(:x => -209, :y => -157, :z => 412)
+  jump_gate system('Hlin'),    system('Surtr'),      :location => Location.new(:x => -431, :y => -271, :z => 160)
 end
-
-jump_gate system('Asgrad'),   system('Valhalla'),  :location => Location.new(:x => 329,  :y => -115, :z => 135)
-jump_gate system('Saga'),     system('Valhalla'),  :location => Location.new(:x => -418, :y => -361, :z => 180)
-jump_gate system('Norn'),     system('Valhalla'),  :location => Location.new(:x => -92,  :y => -46,  :z => 258)
-jump_gate system('Ulle'),     system('Valhalla'),  :location => Location.new(:x => 367,  :y => -443, :z => -352)
-jump_gate system('Syn'),      system('Valhalla'),  :location => Location.new(:x => -368, :y => 421,  :z => 168)
-jump_gate system('Surtr'),    system('Valhalla'),  :location => Location.new(:x => -121, :y => -70,  :z => 142)
-jump_gate system('Woden'),    system('Valhalla'),  :location => Location.new(:x => -432, :y => -144, :z => -366)
-jump_gate system('Hlin'),     system('Valhalla'),  :location => Location.new(:x => -233, :y => -48,  :z => 411)
-jump_gate system('Hel'),      system('Valhalla'),  :location => Location.new(:x => -428, :y => -166, :z => 231)
-jump_gate system('Valhalla'), system('Hel'),       :location => Location.new(:x => -491, :y => 213,  :z => 287)
-jump_gate system('Runic'),    system('Hel'),       :location => Location.new(:x => 473,  :y => 9,    :z => -335)
-jump_gate system('Jord'),     system('Hel'),       :location => Location.new(:x => -496, :y => 17,   :z => 395)
-jump_gate system('Ogres'),    system('Hel'),       :location => Location.new(:x => -468, :y => -312, :z => 210)
-jump_gate system('Njord'),    system('Hel'),       :location => Location.new(:x => 47,   :y => 225,  :z => -346)
-jump_gate system('Skadi'),    system('Hel'),       :location => Location.new(:x => 147,  :y => -242, :z => -93)
-jump_gate system('Hermoda'),  system('Hel'),       :location => Location.new(:x => 362,  :y => 33,   :z => -388)
-
-jump_gate system('Hel'),      system('Njord'),  :location => Location.new(:x => 387,     :y => -83,  :z => 33)
-jump_gate system('Valhalla'), system('Asgrad'), :location => Location.new(:x => 157,     :y => 351,  :z => -110)
-
-jump_gate system('Njord'),    system('Skadi'),      :location => Location.new(:x => 14,    :y => -448, :z => -70)
-jump_gate system('Njord'),    system('Jord'),       :location => Location.new(:x => 190,   :y => 44,   :z => 383)
-jump_gate system('Jord'),     system('Ogres'),      :location => Location.new(:x => -452,  :y => 482,  :z => 272)
-jump_gate system('Jord'),     system('Runic'),      :location => Location.new(:x => 481,   :y => -175, :z => -322)
-jump_gate system('Jord'),     system('Hermoda'),    :location => Location.new(:x => 336,   :y => -448, :z => 387)
-jump_gate system('Hermoda'),  system('Ogres'),      :location => Location.new(:x => 498,   :y => -482, :z => 53)
-jump_gate system('Runic'),    system('Ogres'),      :location => Location.new(:x => 58,    :y => 251,  :z => 209)
-
-jump_gate system('Asgrad'),  system('Saga'),       :location => Location.new(:x => -254, :y => 263,  :z => 250)
-jump_gate system('Asgrad'),  system('Norn'),       :location => Location.new(:x => 492,  :y => 438,  :z => -22)
-jump_gate system('Asgrad'),  system('Woden'),      :location => Location.new(:x => 311,  :y => 279,  :z => 119)
-jump_gate system('Asgrad'),  system('Hlin'),       :location => Location.new(:x => -489, :y => -274, :z => -335)
-jump_gate system('Woden'),   system('Ulle'),       :location => Location.new(:x => 248,  :y => 37,   :z => 60)
-jump_gate system('Woden'),   system('Syn'),        :location => Location.new(:x => -209, :y => -157, :z => 412)
-jump_gate system('Hlin'),    system('Surtr'),      :location => Location.new(:x => -431, :y => -271, :z => 160)
 
 galaxy 'Freya' do |g|
   system 'Fenrir', 'AA5521', :location => Location.new(:x => -323, :y => -360, :z => 369) do |sys|
@@ -2913,28 +2915,30 @@ galaxy 'Freya' do |g|
       end
     }
   end
+
+  jump_gate system('Fenrir'), system('Garm'),      :location => Location.new(:x => -427,  :y => 116,  :z => 474)
+  jump_gate system('Vithar'), system('Garm'),      :location => Location.new(:x => -415,  :y => 126,  :z => -209)
+  jump_gate system('Eir'),    system('Garm'),      :location => Location.new(:x => 264,  :y => 290,  :z => -262)
+  jump_gate system('Vili'),   system('Garm'),      :location => Location.new(:x => 165,  :y => -387,  :z => -148)
+  jump_gate system('Gunlad'), system('Garm'),      :location => Location.new(:x => 33,  :y => 449,  :z => -7)
+  jump_gate system('Edda'),   system('Garm'),      :location => Location.new(:x => -194,  :y => 38,  :z => 209)
+  
+  jump_gate system('Garm'),   system('Fenrir'),    :location => Location.new(:x => -93,  :y => -30,  :z => -294)
+  jump_gate system('Garm'),   system('Vithar'),    :location => Location.new(:x => 83,  :y => 260,  :z => -309)
+  jump_gate system('Garm'),   system('Eir'),       :location => Location.new(:x => 456,  :y => 455,  :z => -43)
+  jump_gate system('Garm'),   system('Vili'),      :location => Location.new(:x => 80,  :y => -433,  :z => 78)
+  jump_gate system('Garm'),   system('Gunlad'),    :location => Location.new(:x => -140,  :y => 367,  :z => -319)
+  jump_gate system('Garm'),   system('Edda'),      :location => Location.new(:x => 23,  :y => -11,  :z => -121)
+  
+  jump_gate system('Vili'),   system('Edda'),      :location => Location.new(:x => -34,  :y => 495,  :z => 68)
+  jump_gate system('Edda'),   system('Eir'),       :location => Location.new(:x => -95,  :y => 130,  :z => -226)
+  jump_gate system('Edda'),   system('Gunlad'),    :location => Location.new(:x => 272,  :y => -21,  :z => 433)
+  jump_gate system('Edda'),   system('Fenrir'),    :location => Location.new(:x => -322, :y => 8,    :z => 140)
+  jump_gate system('Edda'),   system('Vithar'),    :location => Location.new(:x => 341,  :y => 281,  :z => 445)
+  jump_gate system('Vithar'), system('Eir'),       :location => Location.new(:x => 59,   :y => -301, :z => 472)
+  jump_gate system('Vithar'), system('Gunlad'),    :location => Location.new(:x => 17,   :y => -163, :z => -142)
+  jump_gate system('Vithar'), system('Vili'),      :location => Location.new(:x => 177,  :y => 379,  :z => 430)
+  jump_gate system('Eir'),    system('Vili'),      :location => Location.new(:x => -473, :y => 20,   :z => 173)
 end
 
-jump_gate system('Fenrir'), system('Garm'),      :location => Location.new(:x => -427,  :y => 116,  :z => 474)
-jump_gate system('Vithar'), system('Garm'),      :location => Location.new(:x => -415,  :y => 126,  :z => -209)
-jump_gate system('Eir'),    system('Garm'),      :location => Location.new(:x => 264,  :y => 290,  :z => -262)
-jump_gate system('Vili'),   system('Garm'),      :location => Location.new(:x => 165,  :y => -387,  :z => -148)
-jump_gate system('Gunlad'), system('Garm'),      :location => Location.new(:x => 33,  :y => 449,  :z => -7)
-jump_gate system('Edda'),   system('Garm'),      :location => Location.new(:x => -194,  :y => 38,  :z => 209)
-
-jump_gate system('Garm'),   system('Fenrir'),    :location => Location.new(:x => -93,  :y => -30,  :z => -294)
-jump_gate system('Garm'),   system('Vithar'),    :location => Location.new(:x => 83,  :y => 260,  :z => -309)
-jump_gate system('Garm'),   system('Eir'),       :location => Location.new(:x => 456,  :y => 455,  :z => -43)
-jump_gate system('Garm'),   system('Vili'),      :location => Location.new(:x => 80,  :y => -433,  :z => 78)
-jump_gate system('Garm'),   system('Gunlad'),    :location => Location.new(:x => -140,  :y => 367,  :z => -319)
-jump_gate system('Garm'),   system('Edda'),      :location => Location.new(:x => 23,  :y => -11,  :z => -121)
-
-jump_gate system('Vili'),   system('Edda'),      :location => Location.new(:x => -34,  :y => 495,  :z => 68)
-jump_gate system('Edda'),   system('Eir'),       :location => Location.new(:x => -95,  :y => 130,  :z => -226)
-jump_gate system('Edda'),   system('Gunlad'),    :location => Location.new(:x => 272,  :y => -21,  :z => 433)
-jump_gate system('Edda'),   system('Fenrir'),    :location => Location.new(:x => -322, :y => 8,    :z => 140)
-jump_gate system('Edda'),   system('Vithar'),    :location => Location.new(:x => 341,  :y => 281,  :z => 445)
-jump_gate system('Vithar'), system('Eir'),       :location => Location.new(:x => 59,   :y => -301, :z => 472)
-jump_gate system('Vithar'), system('Gunlad'),    :location => Location.new(:x => 17,   :y => -163, :z => -142)
-jump_gate system('Vithar'), system('Vili'),      :location => Location.new(:x => 177,  :y => 379,  :z => 430)
-jump_gate system('Eir'),    system('Vili'),      :location => Location.new(:x => -473, :y => 20,   :z => 173)
+dsl_join

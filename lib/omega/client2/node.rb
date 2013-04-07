@@ -313,6 +313,18 @@ module Omega
         res
       end
 
+      # Use the RJR::Node to send a notification message invoking the specified server
+      # side method with the given arguments, ignoring the result.
+      #
+      # @param [String] method to invoke on the server
+      # @param [Array<Object>] args all other arguments will be passed to server
+      def send_notification(method, *args)
+        args = convert_invoke_args(args)
+        args.unshift method
+        args.unshift Omega::Client::Node.server_endpoint unless Omega::Client::Node.server_endpoint.nil?
+        @node.send_notification *args
+      end
+
       # Register jsonrpc method to be handled by the local node.
       #
       # Methods are captured and raised as an event on the entity

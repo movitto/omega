@@ -29,6 +29,30 @@ module Omega
     #     end
     #   end
     module DSL
+      # Get/set parallel dsl config option.
+      #
+      # If this is set to true make sure to invoke
+      # dsl_join at the end of your script below
+      def self.parallel(val=nil)
+        @parallel ||= false
+        @parallel = val unless val.nil?
+        @parallel
+      end
+
+      # Wait till all dsl threads are completed
+      def dsl_join
+        @dsl_threads << nil
+        while dt = @dsl_threads.pop
+          dt.join 
+        end
+      end
+
+      # Create new dsl thread, private method, should not be
+      # invoked by the end user
+      def dsl_thread(th)
+        @dsl_threads ||= Queue.new
+        @dsl_threads << th
+      end
 
       # Generate an return a random uuid
       #
@@ -126,17 +150,27 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created galaxy
       # @return [Cosmos::Galaxy] galaxy created
       def galaxy(name, &bl)
-        @galaxy = Cosmos::Galaxy.new :name => name
-        RJR::Logger.info "Creating galaxy #{@galaxy}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', @galaxy, :universe
-        bl.call @galaxy unless bl.nil?
-        @galaxy
+        current_galaxy = Cosmos::Galaxy.new :name => name
+        RJR::Logger.info "Creating galaxy #{current_galaxy}"
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', current_galaxy, :universe
+        unless bl.nil?
+          if Omega::Client::DSL.parallel
+            dsl_thread Thread.new {
+              Thread.current["current_galaxy"] = current_galaxy
+              bl.call current_galaxy
+            }
+          else
+            Thread.current["current_galaxy"] = current_galaxy
+            bl.call current_galaxy
+          end
+        end
+        current_galaxy
       end
 
       # Return the system specified corresponding to the given id, else if not found
       # created it and return it.
       #
-      # If system does not exist, and we are creating a new one, @galaxy and star_id
+      # If system does not exist, and we are creating a new one, current_galaxy and star_id
       # _must_ be set.
       #
       # @param [String] id string name of system to return or create
@@ -150,23 +184,34 @@ module Omega
         rescue Exception => e
         end
 
-        raise ArgumentError, "galaxy must not be nil" if @galaxy.nil?
-        @system = Cosmos::SolarSystem.new(args.merge({:name => id, :galaxy => @galaxy}))
-        star = Cosmos::Star.new :name => star_id, :solar_system => @system
-        RJR::Logger.info "Creating solar system #{@system} under #{@galaxy.name}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', @system, @galaxy.name
+        current_galaxy = Thread.current["current_galaxy"]
+        raise ArgumentError, "current_galaxy must not be nil" if current_galaxy.nil?
+        current_system = Cosmos::SolarSystem.new(args.merge({:name => id, :galaxy => current_galaxy}))
+        star = Cosmos::Star.new :name => star_id, :solar_system => current_system
+        RJR::Logger.info "Creating solar system #{current_system} under #{current_galaxy.name}"
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', current_system, current_galaxy.name
         unless star_id.nil?
-          RJR::Logger.info "Creating star #{star} in #{@system.name}"
-          Omega::Client::Node.invoke_request 'cosmos::create_entity', star, @system.name
+          RJR::Logger.info "Creating star #{star} in #{current_system.name}"
+          Omega::Client::Node.send_notification 'cosmos::create_entity', star, current_system.name
         end
-        @system = Omega::Client::SolarSystem.get(id)
-        bl.call @system unless bl.nil?
-        @system
+        current_system = Omega::Client::SolarSystem.get(id)
+        unless bl.nil?
+          if Omega::Client::DSL.parallel
+            dsl_thread Thread.new {
+              Thread.current["current_system"] = current_system
+              bl.call current_system
+            }
+          else
+            Thread.current["current_system"] = current_system
+            bl.call current_system
+          end
+        end
+        current_system
       end
 
       # Create new asteroid and return it.
       #
-      # \@system _must_ be set to the Cosmos::SolarSystem to create the
+      # current_system _must_ be set to the Cosmos::SolarSystem to create the
       # asteroid under
       #
       # @param [String] id string name of asteroid create
@@ -174,33 +219,36 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroid
       # @return [Cosmos::Asteroid] asteroid created
       def asteroid(id, args={}, &bl)
-        raise ArgumentError, "system must not be nil" if @system.nil?
-        @asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => @system}))
-        RJR::Logger.info "Creating asteroid #{@asteroid} in #{@system.name}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', @asteroid, @system.name
-        bl.call @asteroid unless bl.nil?
-        @asteroid
+        current_system = Thread.current["current_system"]
+        raise ArgumentError, "current_system must not be nil" if current_system.nil?
+        current_asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => current_system}))
+        RJR::Logger.info "Creating asteroid #{current_asteroid} in #{current_system.name}"
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', current_asteroid, current_system.name
+        Thread.current["current_asteroid"] = current_asteroid
+        bl.call current_asteroid unless bl.nil?
+        current_asteroid
       end
 
       # Set new resource on an asteroid and return it.
       #
-      # \@asteroid _must_ be set to the Cosmos::Asteroid to assoicate the
+      # current_asteroid _must_ be set to the Cosmos::Asteroid to assoicate the
       # resource with
       #
       # @param [Hash] args hash of options to pass directly to resource initializer
       # @return [Cosmos::Resource] resource created
       def resource(args = {})
-        raise ArgumentError, "asteroid must not be nil" if @asteroid.nil?
-        resource = Cosmos::Resource.new(args)
+        current_asteroid = Thread.current["current_asteroid"]
+        raise ArgumentError, "asteroid must not be nil" if current_asteroid.nil?
+        rsc = Cosmos::Resource.new(args)
         quantity = args[:quantity]
-        RJR::Logger.info "Adding #{quantity} of resource #{resource.id} to #{@asteroid.name}"
-        Omega::Client::Node.invoke_request 'cosmos::set_resource', @asteroid.name, resource, quantity
-        resource
+        RJR::Logger.info "Adding #{quantity} of resource #{rsc.id} to #{current_asteroid.name}"
+        Omega::Client::Node.send_notification 'cosmos::set_resource', current_asteroid.name, rsc, quantity
+        rsc
       end
 
       # Create new planet and return it.
       #
-      # \@system _must_ be set to the Cosmos::SolarSystem to create the
+      # current_system _must_ be set to the Cosmos::SolarSystem to create the
       # planet under
       #
       # @param [String] id string name of planet create
@@ -208,27 +256,30 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created planet
       # @return [Cosmos::Planet] planet created
       def planet(id, args={}, &bl)
-        raise ArgumentError, "system must not be nil" if @system.nil?
-        @planet = Cosmos::Planet.new(args.merge({:name => id, :solar_system => @system}))
-        RJR::Logger.info "Creating planet #{@planet} under #{@system.name}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', @planet, @system.name
-        bl.call @planet unless bl.nil?
-        @planet
+        current_system = Thread.current["current_system"]
+        raise ArgumentError, "current_system must not be nil" if current_system.nil?
+        current_planet = Cosmos::Planet.new(args.merge({:name => id, :solar_system => current_system}))
+        RJR::Logger.info "Creating planet #{current_planet} under #{current_system.name}"
+        Omega::Client::Node.invoke_request 'cosmos::create_entity', current_planet, current_system.name
+        Thread.current["current_planet"] = current_planet
+        bl.call current_planet unless bl.nil?
+        current_planet
       end
 
       # Create new moon and return it.
       #
-      # \@planet _must_ be set to the Cosmos::Planet to create the
+      # current_planet _must_ be set to the Cosmos::Planet to create the
       # moon under
       #
       # @param [String] id string name of moon create
       # @param [Hash] args hash of options to pass directly to moon initializer
       # @return [Cosmos::Moon] moon created
       def moon(id, args={})
-        raise ArgumentError, "planet must not be nil" if @planet.nil?
-        moon = Cosmos::Moon.new(args.merge({:name => id, :planet => @planet}))
-        RJR::Logger.info "Creating moon #{moon} under #{@planet.name}"
-        Omega::Client::Node.invoke_request 'cosmos::create_entity', moon, @planet.name
+        current_planet = Thread.current["current_planet"]
+        raise ArgumentError, "planet must not be nil" if current_planet.nil?
+        moon = Cosmos::Moon.new(args.merge({:name => id, :planet => current_planet}))
+        RJR::Logger.info "Creating moon #{moon} under #{current_planet.name}"
+        Omega::Client::Node.send_notification 'cosmos::create_entity', moon, current_planet.name
         moon
       end
 
@@ -299,7 +350,7 @@ module Omega
         evnt = Missions::Events::Periodic.new :id => event.id + '-scheduler',
                                              :interval => interval, :event => event
         RJR::Logger.info "Scheduling event #{evnt}(#{event})"
-        Omega::Client::Node.invoke_request 'missions::create_event', evnt
+        Omega::Client::Node.send_notification 'missions::create_event', evnt
         evnt
       end
 
@@ -310,7 +361,7 @@ module Omega
       def mission(id, args={})
         mission = Missions::Mission.new(args.merge({:id => id}))
         RJR::Logger.info "Creating mission #{mission}"
-        Omega::Client::Node.invoke_request 'missions::create_mission', mission
+        Omega::Client::Node.send_notification 'missions::create_mission', mission
         mission
       end
 

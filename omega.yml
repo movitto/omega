@@ -2,6 +2,8 @@
 omega_url:  'http://localhost/womega/'
 backup_dir: './backups/'
 
+log_level: 'debug'
+
 # TODO should admin/anon be permenant?
 permenant_users: ['admin', 'anon', 'manufactured', 'cosmos', 'users', 'missions', 'stats', 'rlm', 'rcm' ]
 

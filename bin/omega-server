@@ -68,8 +68,6 @@ def main()
     exit
   end
 
-  RJR::Logger.log_level = ::Logger::INFO
-
   config = Omega::Config.load :node_id => 'omega',
                               :amqp_broker => 'localhost',
                               :ws_host     => 'localhost',
@@ -89,6 +87,9 @@ def main()
   end
 
   config.set_config
+
+  RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
+  require 'rjr/inspect' if config[:log_level] == 'debug'
 
   Motel::RJRAdapter.init
   Users::RJRAdapter.init

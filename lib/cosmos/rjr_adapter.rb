@@ -85,17 +85,12 @@ class RJRAdapter
          raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
        end
 
-       # TODO rparent.can_add?(entity)
-       Cosmos::Registry.instance.safely_run {
-         entity.parent= rparent
-         rparent.add_child entity
-       }
-
        if entity.class.remotely_trackable? && entity.remote_queue
          @@remote_cosmos_manager.create_entity(entity, parent_name)
 
        else
          Cosmos::Registry.instance.safely_run {
+           # setting location must occur before entity is added to parent
            # entity.location.entity = entity
            entity.location.restrict_view = false
            entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
@@ -104,6 +99,13 @@ class RJRAdapter
          }
 
        end
+
+
+       # TODO rparent.can_add?(entity)
+       Cosmos::Registry.instance.safely_run {
+         entity.parent= rparent
+         rparent.add_child entity
+       }
 
        entity
     }
