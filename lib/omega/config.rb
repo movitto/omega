@@ -22,7 +22,7 @@ class Config
    # of Omega::Config containing configuration options to set
    CONFIG_CLASSES = [Cosmos::RJRAdapter, Manufactured::RJRAdapter,
                      Missions::RJRAdapter, Users::RJRAdapter,
-                     Stats::RJRAdapter,
+                     Stats::RJRAdapter, Users::Registry,
                      Users::ChatProxy, Users::EmailHelper,
                      Motel::RemoteLocationManager, Cosmos::RemoteCosmosManager]
 

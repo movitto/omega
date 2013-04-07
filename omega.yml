@@ -7,7 +7,7 @@ log_level: 'debug'
 # TODO should admin/anon be permenant?
 permenant_users: ['admin', 'anon', 'manufactured', 'cosmos', 'users', 'missions', 'stats', 'rlm', 'rcm' ]
 
-# user_perms_enabled: true # TODO
+user_perms_enabled: true
 user_attrs_enabled: false
 
 node_id: 'omega'

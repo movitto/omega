@@ -21,6 +21,28 @@ module Users
 class Registry
   include Singleton
 
+  class << self
+    # @!group Config options
+
+    # Boolean toggling if user permission system is enabled / disabled.
+    # Disabling permissions will result in all require/check privileges
+    # calls returning true
+    #
+    # TODO ideally would have this in rjr adapter like user_attributes.
+    # To do this, all require/check privilege calls (as invoked by other subsystems)
+    # would have to go through rjr
+    attr_accessor :user_perms_enabled
+
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.user_perms_enabled = config.user_perms_enabled
+    end
+
+    # @!endgroup
+  end
+
   # Return array of classes of users types
   VALID_TYPES = [Users::User, Users::Alliance, Users::Role]
 
@@ -241,6 +263,8 @@ class Registry
   #   no error will be raised.
   # @raise [Omega::PermissionError] if none of the specified privileges can be found
   def require_privilege(args = {})
+    return unless Users::Registry.user_perms_enabled
+
     # TODO incorporate session privilege checks into a larger generic rjr ACL subsystem (allow generic acl validation objects to be registered for each handler)
     session_id    = args[:session]
     privilege_ids = Array(args[:privilege])
