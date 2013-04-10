@@ -54,8 +54,6 @@ class RJRAdapter
 
     session = @@local_node.invoke_request('users::login', self.user)
     @@local_node.message_headers['session_id'] = session.id
-
-    @@remote_cosmos_manager = RemoteCosmosManager.new
   end
 
   # Register handlers with the RJR::Dispatcher to invoke various cosmos operations
@@ -85,20 +83,14 @@ class RJRAdapter
          raise ArgumentError, "#{entity.class} name #{entity.name} already taken" unless rentity.nil?
        end
 
-       if entity.class.remotely_trackable? && entity.remote_queue
-         @@remote_cosmos_manager.create_entity(entity, parent_name)
-
-       else
-         Cosmos::Registry.instance.safely_run {
-           # setting location must occur before entity is added to parent
-           # entity.location.entity = entity
-           entity.location.restrict_view = false
-           entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
-           entity.location.parent = rparent.location
-           # TODO add all of entities children to location tracker
-         }
-
-       end
+       Cosmos::Registry.instance.safely_run {
+         # setting location must occur before entity is added to parent
+         # entity.location.entity = entity
+         entity.location.restrict_view = false
+         entity.location = @@local_node.invoke_request('motel::create_location', entity.location)
+         entity.location.parent = rparent.location
+         # TODO add all of entities children to location tracker
+       }
 
 
        # TODO rparent.can_add?(entity)
@@ -158,35 +150,21 @@ class RJRAdapter
        entities.each{ |entity|
          if entity.has_children?
            entity.each_child { |parent, child|
-             if child.class.remotely_trackable? && child.remote_queue
-               rchild = @@remote_cosmos_manager.get_entity(child)
-               Cosmos::Registry.instance.safely_run {
-                 parent.remove_child(child)
-                 parent.add_child(rchild)
-               }
-
-             else
-               Cosmos::Registry.instance.safely_run {
-                 child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
-                 child.location.parent = parent.location
-               }
-             end
-
+             Cosmos::Registry.instance.safely_run {
+               child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
+               child.location.parent = parent.location
+             }
            }
          end
        }
 
        0.upto(entities.size-1) { |i|
          entity = entities[i]
-         if entity.class.remotely_trackable? && entity.remote_queue
-             entities[i] = @@remote_cosmos_manager.get_entity(entity)
-         else
-           Cosmos::Registry.instance.safely_run {
-             # update locations w/ latest from the tracker
-             entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
-             entity.location.parent = entity.parent.location if entity.parent
-           }
-         end
+         Cosmos::Registry.instance.safely_run {
+           # update locations w/ latest from the tracker
+           entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
+           entity.location.parent = entity.parent.location if entity.parent
+         }
        }
 
        return_first ? entities.first : entities

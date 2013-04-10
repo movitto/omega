@@ -16,7 +16,6 @@ class RJRAdapter
   def self.init
     self.register_handlers(RJR::Dispatcher)
     Motel::Runner.instance.start
-    @@remote_location_manager = RemoteLocationManager.new
   end
 
   # Register handlers with the RJR::Dispatcher to invoke various motel operations
@@ -50,8 +49,6 @@ class RJRAdapter
        locs = Runner.instance.locations
        filters.each { |f| locs = locs.select &f }
 
-       # TODO pull in remote location if loc.remote_queue is set
-
        if return_first
          raise Omega::DataNotFound, "location specified by id not found" if locs.empty?
          Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{locs.first.id}"},
@@ -64,24 +61,6 @@ class RJRAdapter
          !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
                                                    {:privilege => 'view', :entity => 'locations'}],
                                           :session => @headers['session_id'])
-       }
-
-       # TODO support flag to disable remote lookup / to be left to client
-       # TODO only do remote lookup if loc.remote_queue is not set
-       locs.each { |loc|
-         loc.each_child { |rparent, rchild|
-           if rchild.remote_queue
-             remote_child = @@remote_location_manager.get_location(rchild)
-
-             # swap child for remote_child
-             # we lose attributes of original child's not sent over rjr
-             # TODO just update rchild ?
-             Motel::Runner.instance.safely_run {
-               rparent.remove_child(rchild.id)
-               rparent.add_child(remote_child)
-             }
-           end
-         }
        }
 
        return_first ? locs.first : locs
@@ -112,10 +91,6 @@ class RJRAdapter
          new_location.proximity_callbacks = []
          new_location.children = []
        }
-
-       if new_location.remote_queue
-         @@remote_location_manager.create_location(new_location)
-       end
 
        # id gets set here
        # if id exists, throw error? or invoke update_location?
@@ -149,7 +124,6 @@ class RJRAdapter
 
        # setup attributes which should not be overwritten
        location.parent = rloc.parent
-       location.remote_queue = rloc.remote_queue
        location.x = 0 unless location.x.is_a?(Integer) || location.x.is_a?(Float)
        location.y = 0 unless location.y.is_a?(Integer) || location.y.is_a?(Float)
        location.z = 0 unless location.z.is_a?(Integer) || location.z.is_a?(Float)
@@ -173,18 +147,7 @@ class RJRAdapter
 
        }
 
-       # TODO if rloc.remote_queue != location.remote_queue, move ?
-       if rloc.remote_queue
-         @@remote_location_manager.update_location(rloc)
-       end
-
-       # TODO invoke callbacks as appropriate
-       #rloc.movement_callbacks.each { |callback|
-       #  callback.invoke(rloc, *old_coords)
-       #}
-       #rloc.proximity_callbacks.each { |callback|
-       #  callback.invoke(rloc)
-       #}
+       # TODO invoke movement/rotation/proximity callbacks as appropriate
 
        location
     }
