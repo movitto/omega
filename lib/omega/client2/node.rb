@@ -195,7 +195,7 @@ module Omega
 
         @node = node
         @node.message_headers['source_node'] = @node.node_id
-        @node.listen
+        #@node.listen # shouldn't listen by default (eg client may only be sending notifications)
 
         @user =
           Users::User.new(:id => Omega::Client::Node.client_username,

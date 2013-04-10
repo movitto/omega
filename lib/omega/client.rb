@@ -31,6 +31,9 @@ module Omega
     module DSL
       # Get/set parallel dsl config option.
       #
+      # *Note* if setting to true keep_alive will
+      # be set on the node being used
+      #
       # If this is set to true make sure to invoke
       # dsl_join at the end of your script below
       def self.parallel(val=nil)
@@ -47,11 +50,17 @@ module Omega
         end
       end
 
-      # Create new dsl thread, private method, should not be
-      # invoked by the end user
-      def dsl_thread(th)
+      # Create new dsl thread, invoking
+      # dsl_join will block on all registered
+      # dsl threads
+      def dsl_thread(&th)
+        # just ignore thread and invoke block if parallel is not set
+        return th.call unless Omega::Client::DSL.parallel
+
         @dsl_threads ||= Queue.new
-        @dsl_threads << th
+        # TODO use thread pool?
+        thd = Thread.new(&th)
+        @dsl_threads << thd
       end
 
       # Generate an return a random uuid
@@ -84,6 +93,7 @@ module Omega
       # @param [String] password password of the user to login
       # @see Omega::Client::User.login
       def login(node, username, password)
+        node.keep_alive = true if Omega::Client::DSL.parallel # needs to occur b4 login
         Omega::Client::Node.client_username = username
         Omega::Client::Node.client_password = password
         Omega::Client::Node.node = node
@@ -155,7 +165,7 @@ module Omega
         Omega::Client::Node.invoke_request 'cosmos::create_entity', current_galaxy, :universe
         unless bl.nil?
           if Omega::Client::DSL.parallel
-            dsl_thread Thread.new {
+            dsl_thread {
               Thread.current["current_galaxy"] = current_galaxy
               bl.call current_galaxy
             }
@@ -164,6 +174,7 @@ module Omega
             bl.call current_galaxy
           end
         end
+        Thread.current['current_galaxy'] = nil
         current_galaxy
       end
 
@@ -180,7 +191,15 @@ module Omega
       # @return [Cosmos::SolarSystem] system found or created
       def system(id, star_id = nil, args = {}, &bl)
         begin
-          return Omega::Client::SolarSystem.get(id)
+          sys = Omega::Client::SolarSystem.get(id)
+          unless bl.nil?
+            dsl_thread {
+              Thread.current["current_system"] = sys.entity
+              bl.call sys.entity
+              Thread.current['current_system'] = nil
+            }
+          end
+          return sys
         rescue Exception => e
         end
 
@@ -196,15 +215,11 @@ module Omega
         end
         current_system = Omega::Client::SolarSystem.get(id)
         unless bl.nil?
-          if Omega::Client::DSL.parallel
-            dsl_thread Thread.new {
-              Thread.current["current_system"] = current_system
-              bl.call current_system
-            }
-          else
+          dsl_thread {
             Thread.current["current_system"] = current_system
             bl.call current_system
-          end
+            Thread.current['current_system'] = nil
+          }
         end
         current_system
       end
@@ -219,13 +234,14 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroid
       # @return [Cosmos::Asteroid] asteroid created
       def asteroid(id, args={}, &bl)
-        current_system = Thread.current["current_system"]
+        current_system = Thread.current["current_system"] || args[:system]
         raise ArgumentError, "current_system must not be nil" if current_system.nil?
         current_asteroid = Cosmos::Asteroid.new(args.merge({:name => id, :solar_system => current_system}))
         RJR::Logger.info "Creating asteroid #{current_asteroid} in #{current_system.name}"
         Omega::Client::Node.invoke_request 'cosmos::create_entity', current_asteroid, current_system.name
         Thread.current["current_asteroid"] = current_asteroid
         bl.call current_asteroid unless bl.nil?
+        Thread.current['current_asteroid'] = nil
         current_asteroid
       end
 
@@ -263,6 +279,7 @@ module Omega
         Omega::Client::Node.invoke_request 'cosmos::create_entity', current_planet, current_system.name
         Thread.current["current_planet"] = current_planet
         bl.call current_planet unless bl.nil?
+        Thread.current['current_planet'] = nil
         current_planet
       end
 
