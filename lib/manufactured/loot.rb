@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'cosmos'
+
 module Manufactured
 
 # Free floating groups of items (resources/etc) in a {Cosmos::SolarSystem}

@@ -66,7 +66,6 @@ class Linear < MovementStrategy
                                                                        valid_rotation?
    end
 
-
    # Implementation of {Motel::MovementStrategy#move}
    def move(location, elapsed_seconds)
      unless valid?

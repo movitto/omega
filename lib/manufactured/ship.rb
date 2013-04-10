@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'cosmos'
+
 module Manufactured
 
 # A player owned vehicle, residing in a {Cosmos::SolarSystem}.
@@ -252,7 +254,7 @@ class Ship
     @shield_refresh_rate = 1
     @movement_speed = 5
     @rotation_speed = Math::PI / 8
-    @cargo_capacity = 100
+    @cargo_capacity = args[:cargo_capacity] || args['cargo_capacity'] || 100
     @attack_distance = 100
     @attack_rate  = 0.5
     @damage_dealt = 2
@@ -358,6 +360,7 @@ class Ship
   # @param [Cosmos::ResourceSource] resource_source entity to check if ship can mine
   # @return [true,false] indicating if ship can mine resource source
   def can_mine?(resource_source)
+
     # TODO eventually filter per specific resource mining capabilities
     @type == :mining && !self.docked? &&
     (@location.parent.id == resource_source.entity.location.parent.id) &&
@@ -499,6 +502,7 @@ class Ship
         {:id => id, :user_id => user_id,
          :type => type, :size => size,
          :hp => @hp, :current_shield_level => @current_shield_level,
+         :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,

@@ -346,7 +346,7 @@ class Elliptical < MovementStrategy
    # Generate and return a random elliptical movement strategy
    def self.random(args = {})
      dimensions  = args[:dimensions]  || 3
-     relative_to = args[:relative_to] || :center
+     relative_to = args[:relative_to] || RELATIVE_TO_CENTER
 
      min_e = min_l = min_s = 0
      min_e = args[:min_e] if args.has_key?(:min_e)
@@ -371,12 +371,12 @@ class Elliptical < MovementStrategy
                                :eccentricity => eccentricity,
                                :semi_latus_rectum => semi_latus_rectum,
                                :speed => speed,
-                               :direction_major_x => direction_major_x.round_to(2),
-                               :direction_major_y => direction_major_y.round_to(2),
-                               :direction_major_z => direction_major_z.round_to(2),
-                               :direction_minor_x => direction_minor_x.round_to(2),
-                               :direction_minor_y => direction_minor_y.round_to(2),
-                               :direction_minor_z => direction_minor_z.round_to(2)
+                               :direction_major_x => direction_major_x,
+                               :direction_major_y => direction_major_y,
+                               :direction_major_z => direction_major_z,
+                               :direction_minor_x => direction_minor_x,
+                               :direction_minor_y => direction_minor_y,
+                               :direction_minor_z => direction_minor_z
 
      return strategy
    end

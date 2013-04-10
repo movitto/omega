@@ -5,6 +5,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# FIXME problem w/ runner as evident through the stress test
+
 require 'thread'
 require 'singleton'
 require 'rjr/common'
@@ -114,6 +116,11 @@ class Runner
     @terminate = true
     join
     RJR::Logger.debug "motel runner stopped"
+  end
+
+  # Return boolean indicating if the runner is running
+  def running?
+    ['sleep', 'run'].include?(@run_thread.status)
   end
 
   # Block until runner is shutdown before returning

@@ -149,8 +149,8 @@ class RJRAdapter
       # remove params which should not be set by the user
       # location is validated / modified in station.construct so no need to manipulate here
       ['solar_system','user_id', 'hp',
-       'mining', 'resources', 'notifications',
-       'docked_at', 'size'].each { |i| # set docked at to station?
+       'mining', 'attacking', 'cargo_capacity', 'resources', 'notifications',
+       'current_shield_level', 'docked_at', 'size'].each { |i| # set docked at to station?
         argsh.delete(i)
       }
 

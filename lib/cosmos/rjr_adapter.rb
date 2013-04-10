@@ -197,7 +197,7 @@ class RJRAdapter
        raise ArgumentError, "#{resource} must be a resource" unless resource.is_a?(Cosmos::Resource)
 
        entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
-       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
+       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
 
        valid_types = Cosmos::Registry.instance.entity_types
        raise ArgumentError, "Invalid #{entity.class} entity specified, must be one of #{valid_types.inspect}" unless valid_types.include?(entity.class)
@@ -213,7 +213,7 @@ class RJRAdapter
 
     rjr_dispatcher.add_handler('cosmos::get_resource_sources') { |entity_id|
        entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
-       raise Omega::DataNotFound, "entity of specified by #{entity_id} not found" if entity.nil?
+       raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
                                                   {:privilege => 'view', :entity => 'cosmos_entities'}],
                                          :session => @headers['session_id'])
