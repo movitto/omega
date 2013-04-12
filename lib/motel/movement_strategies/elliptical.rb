@@ -39,8 +39,23 @@ class Elliptical < MovementStrategy
    # Direction vector corresponding to the major axis of the elliptical path
    attr_accessor :direction_major_x, :direction_major_y, :direction_major_z
 
+   # Combined major direction vector
+   def direction_major
+     [@direction_major_x, @direction_major_x, @direction_major_z]
+   end
+
    # Direction vector corresponding to the minor axis of the elliptical path
    attr_accessor :direction_minor_x, :direction_minor_y, :direction_minor_z
+
+   # Combined minor direction vector
+   def direction_minor
+     [@direction_minor_x, @direction_minor_x, @direction_minor_z]
+   end
+
+   # Combined direction vector
+   def direction
+     direction_major + direction_minor
+   end
 
    # Motel::MovementStrategies::Elliptical initializer
    #
@@ -219,8 +234,7 @@ class Elliptical < MovementStrategy
 
    # Convert movement strategy to human readable string and return it
    def to_s
-     # TODO flush out
-     "elliptical-()"
+     "elliptical-(rt_#{relative_to}/s#{speed}/e#{eccentricity}/l#{semi_latus_rectum}/d#{direction})"
    end
 
   private
@@ -298,7 +312,7 @@ class Elliptical < MovementStrategy
       below = ocY < ((direction_minor_x * ocX + direction_minor_z * ocZ) / (-direction_minor_y)) 
 
       # adjust to compenate for acos loss if necessary
-      theta = (3 * Math::PI / 2) + (Math::PI / 2 - theta) if (below) 
+      theta = 2 * Math::PI - theta if (below) 
 
       return theta;
     end

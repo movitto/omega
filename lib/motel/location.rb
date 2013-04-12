@@ -331,6 +331,7 @@ class Location
    def to_s
      s = "location-#{id}(@#{parent_id}:"
      s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}" unless x.nil? || y.nil? || z.nil?
+     s += " via #{movement_strategy}"
      s += ")"
      s
    end
