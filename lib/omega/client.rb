@@ -31,9 +31,6 @@ module Omega
     module DSL
       # Get/set parallel dsl config option.
       #
-      # *Note* if setting to true keep_alive will
-      # be set on the node being used
-      #
       # If this is set to true make sure to invoke
       # dsl_join at the end of your script below
       def self.parallel(val=nil)
@@ -44,7 +41,9 @@ module Omega
 
       # Wait till all dsl threads are completed
       def dsl_join
+        return unless @dsl_threads
         @dsl_threads << nil
+
         while dt = @dsl_threads.pop
           dt.join 
         end
@@ -93,7 +92,6 @@ module Omega
       # @param [String] password password of the user to login
       # @see Omega::Client::User.login
       def login(node, username, password)
-        node.keep_alive = true if Omega::Client::DSL.parallel # needs to occur b4 login
         Omega::Client::Node.client_username = username
         Omega::Client::Node.client_password = password
         Omega::Client::Node.node = node
