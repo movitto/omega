@@ -19,6 +19,7 @@ rjr_method \
       {
         # runner
         :runner => { :running => Motel::Runner.instance.running?,
-                     :num_locations => Motel::Runner.instance.locations.size }
+                     :num_locations => Motel::Runner.instance.locations.size,
+                     :errors  => Motel::Runner.instance.errors }
       }
     }

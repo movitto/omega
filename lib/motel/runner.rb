@@ -5,8 +5,6 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# FIXME problem w/ runner as evident through the stress test
-
 require 'thread'
 require 'singleton'
 require 'rjr/common'
@@ -28,6 +26,8 @@ class Runner
     @locations      = []
     @timestamps     = {}
     @locations_lock  = Mutex.new
+
+    @errors = []
 
     @next_id = 1
     @delay   = 1
@@ -52,6 +52,13 @@ class Runner
   # @return [Array<Motel::Location>]
   def locations
     @locations_lock.synchronize { @locations }
+  end
+
+  # Return list of errors encountered during operations
+  #
+  # @return [Array<String>]
+  def errors
+    @locations_lock.synchronize { @errors }
   end
 
   # Return boolean indicating if the specified location id is tracked by this runner
@@ -151,43 +158,59 @@ class Runner
     # Internal helper method performing main runner operations
     def run_cycle
       until @terminate
-        self.locations.each { |loc|
-          if (Time.now - @timestamps[loc.id]) > loc.movement_strategy.step_delay
-            RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
-            #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
+        delay = nil
+        @locations_lock.synchronize{
+          @locations.each { |loc|
+            if (Time.now - @timestamps[loc.id]) > loc.movement_strategy.step_delay
+              RJR::Logger.debug "runner moving location #{loc.id} at #{loc.coordinates.join(",")} via #{loc.movement_strategy.to_s}"
+              #RJR::Logger.debug "#{loc.movement_callbacks.length} movement callbacks, #{loc.proximity_callbacks.length} proximity callbacks"
 
-            # store the old location coordinates for comparison after the movement
-            old_coords = [loc.x, loc.y, loc.z]
-            old_orientation = loc.orientation
+              # store the old location coordinates for comparison after the movement
+              old_coords = [loc.x, loc.y, loc.z]
+              old_orientation = loc.orientation
 
-            elapsed = Time.now - @timestamps[loc.id]
-            loc.movement_strategy.move loc, elapsed
-            @timestamps[loc.id] = Time.now
+              begin
+                elapsed = Time.now - @timestamps[loc.id]
+                loc.movement_strategy.move loc, elapsed
+                @timestamps[loc.id] = Time.now
 
-            # invoke any movement and rotation callbacks
+                # invoke any movement and rotation callbacks
 
-            # TODO invoke these async so as not to hold up the runner
-            # TODO prioritize callbacks registered over the local rjr transport
-            #      over others
-            # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
-            loc.movement_callbacks.each { |callback|
-              callback.invoke(loc, *old_coords)
-            }
-            loc.rotation_callbacks.each { |callback|
-              callback.invoke(loc, *old_orientation)
-            }
-          end
-        }
-
-        # invoke all proximity_callbacks
-        # see comments about movement_callbacks above
-        @locations.each { |loc|
-          loc.proximity_callbacks.each { |callback|
-            callback.invoke(loc)
+                # TODO invoke these async so as not to hold up the runner
+                # TODO prioritize callbacks registered over the local rjr transport
+                #      over others
+                # FIXME catch/log errors in callbacks
+                # make sure to keep these in sync w/ those invoked in the rjr adapter "update_location" handler
+                loc.movement_callbacks.each { |callback|
+                  callback.invoke(loc, *old_coords)
+                }
+                loc.rotation_callbacks.each { |callback|
+                  callback.invoke(loc, *old_orientation)
+                }
+              rescue Exception => e
+                err = "#{e.to_s} (#{loc.to_s})\n #{e.backtrace.join("\n ")}"
+                @errors << err
+              end
+            end
           }
+
+          # invoke all proximity_callbacks
+          # see comments about movement_callbacks above
+          begin
+            @locations.each { |loc|
+              loc.proximity_callbacks.each { |callback|
+                callback.invoke(loc)
+              }
+            }
+          rescue Exception => e
+            err = "#{e.to_s} (#{loc.to_s})\n #{e.backtrace.join("\n ")}"
+            @errors << err
+          end
+
+          delay = @delay
         }
 
-        sleep @delay
+        sleep delay
       end
     end
 end
