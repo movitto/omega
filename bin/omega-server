@@ -89,7 +89,12 @@ def main()
   config.set_config
 
   RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
-  require 'rjr/inspect' if config[:log_level] == 'debug'
+  if RJR::Logger.debug?
+    require 'rjr/inspect'
+    require 'motel/rjr_inspect'
+    require 'manufactured/rjr_inspect'
+    # TODO other subsystems
+  end
 
   Motel::RJRAdapter.init
   Users::RJRAdapter.init
