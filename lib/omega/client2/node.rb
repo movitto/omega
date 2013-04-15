@@ -189,7 +189,8 @@ module Omega
         Omega::Client::Node.server_endpoint =
           case node.class::RJR_NODE_TYPE
             when :amqp then "#{config.node_id}-queue"
-            when :tcp  then "json-rpc://#{config.tcp_host}:#{config.tcp_port}"
+            when :tcp  then "jsonrpc://#{config.tcp_host}:#{config.tcp_port}"
+            when :ws   then "jsonrpc://#{config.ws_host}:#{config.ws_port}"
             else nil
           end
 

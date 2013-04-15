@@ -10,6 +10,11 @@ require 'logger'
 
 module Motel
 
+CLOSE_ENOUGH=0.0001
+MAJOR_CARTESIAN_AXIS=[1,0,0]
+MINOR_CARTESIAN_AXIS=[0,1,0]
+CARTESIAN_NORMAL_VECTOR=[0,0,1]
+
 # Generate and return a random id
 def self.gen_uuid
   ["%02x"*4, "%02x"*2, "%02x"*2, "%02x"*2, "%02x"*6].join("-") %
@@ -44,6 +49,138 @@ def self.normalized?(x,y,z)
   return false if x.nil? || y.nil? || z.nil?
   l = Math.sqrt(x**2 + y**2 + z**2)
   l.to_f.round_to(1) == 1  # XXX not quite sure why to_f.round_to(1) is needed
+end
+
+# Return the cross product of the specified vectors
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+# @return [Array<Float>] array containing x,y,z coordinates of normal vector
+def self.cross_product(x1, y1, z1, x2, y2, z2)
+  x3 = y1 * z2 - z1 * y2
+  y3 = z1 * x2 - x1 * z2
+  z3 = x1 * y2 - y1 * x2
+  [x3, y3, z3]
+end
+class << self; alias :normal_vector :cross_product ; end
+
+# Return dot product of two vectors
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+# @return [Float] angle between specified vectors
+def self.dot_product(x1, y1, z1, x2, y2, z2)
+  x1 * x2 + y1 * y2 + z1 * z2
+end
+
+# Return the angle between vectors
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+# @return [Float] angle between specified vectors
+def self.angle_between(x1, y1, z1, x2, y2, z2)
+  x1, y1, z1 = normalize(x1, y1, z1)
+  x2, y2, z2 = normalize(x2, y2, z2)
+  d  = dot_product(x1, y1, z1, x2, y2, z2)
+  a  = Math.acos(d)
+  na = -1 * a
+
+  x  = cross_product(x1, y1, z1, x2, y2, z2)
+  d  = dot_product(*(x + CARTESIAN_NORMAL_VECTOR))
+  d < 0 ? na : a
+end
+
+# Return matrix representing the rotation between vectors
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+#def self.rotation_between(x1, y1, z1, x2, y2, z2)
+#  # convert axis angle between vectors to euler angles
+#  # FIXME not working 100% right
+#
+#  rotation = []
+#
+#  # calc axis angle between vectors
+#  x1, y1, z1 = normalize(x1, y1, z1)
+#  x2, y2, z2 = normalize(x2, y2, z2)
+#  angle = angle_between(x1, y1, z1, x2, y2, z2)
+#  rot_axis = cross_product(x1, y1, z1, x2, y2, z2)
+#  x,y,z = *rot_axis
+#  s = Math.sin(angle) ; c = Math.cos(angle) ; t = 1 - c
+#
+#  # edge cases
+#  if (x * y * t + z * s) > (1-CLOSE_ENOUGH)
+#    rotation << 2 * Math.atan2(x * Math.sin(angle/2),Math.cos(angle/2))
+#    rotation << Math::PI / 2
+#    rotation << 0
+#  elsif (x * y * t + z * s < (CLOSE_ENOUGH))
+#    rotation << -2 * Math.atan2(x * Math.sin(angle/2),Math.cos(angle/2))
+#    rotation << -Math::PI / 2
+#    rotation << 0
+#
+#  # convert axis angle to euler rotation
+#  else
+#    rotation << Math.atan2(y * s - x * z * t, 1 - (y**2 + z**2) * t)
+#    rotation << Math.asin(x * y * t + z * 2)
+#    rotation << Math.atan2(x * s - y * z * t, 1 - (x**2 + z**2) * t)
+#  end
+#
+#  rotation
+#end
+
+# Retrieve the axis angle representation of the rotation
+# between the two specified vectors.
+#
+# @param [Integer,Float] x1 x component of first vector
+# @param [Integer,Float] y1 y component of first vector
+# @param [Integer,Float] z1 z component of first vector
+# @param [Integer,Float] x2 x component of second vector
+# @param [Integer,Float] y2 y component of second vector
+# @param [Integer,Float] z2 z component of second vector
+# @return [Array<Float>] array containing angle and x,y,z components of rotation axis
+def self.axis_angle(x1, y1, z1, x2, y2, z2)
+  a  = angle_between(x1, y1, z1, x2, y2, z2)
+  ax = normal_vector(x1, y1, z1, x2, y2, z2)
+  [a] + ax
+end
+
+# Rotate specified point by angle around specified axis angle
+#
+# @param [Integer,Float] x x component of location to rotate
+# @param [Integer,Float] y y component of location to rotate
+# @param [Integer,Float] z z component of location to rotate
+# @param [Float] angle angle which to rotation location
+# @param [Integer,Float] ax x component of rotation axis
+# @param [Integer,Float] ay y component of rotation axis
+# @param [Integer,Float] az z component of rotation axis
+# @return [Array<Float>] x,y,z components of rotated location
+def self.rotate(x, y, z, angle, ax, ay, az)
+  # also support rotating x,y,z via specified euler rotation (each axis individually?)
+  # use rodrigues rotation fomula
+  # rotated = orig * cos(a) + (axis x orig) * sin(a) + axis(axis . orig)(1-cos(a))
+  c = Math.cos(angle) ; s = Math.sin(angle)
+  dot = dot_product(x, y, z, ax, ay, az)
+
+  rx = x * c + ax * s + ax * dot * (1-c)
+  ry = y * c + ay * s + ay * dot * (1-c)
+  rz = z * c + az * s + az * dot * (1-c)
+  [rx, ry, rz]
 end
 
 # Return boolean inidicating if two vectors are orthogonal

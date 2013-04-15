@@ -1,0 +1,40 @@
+#!/usr/bin/ruby
+# Retrieve omega server status
+#
+# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+
+transport = :tcp
+url       = 'jsonrpc://localhost:8181'
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-t', '--transport value', 'transport to use') do |t|
+    transport = t
+  end
+
+  opts.on('-d', '--dst url', 'server to contact') do |u|
+    url = u
+  end
+
+end
+
+optparse.parse!
+
+# TODO verify transport/url params
+
+# TODO support other transports
+node = RJR::TCPNode.new :node_id => 'omega-status-retrieve'
+puts node.invoke_request(url, 'rjr::status')
+puts node.invoke_request(url, 'motel::status')
+puts node.invoke_request(url, 'manufactured::status')

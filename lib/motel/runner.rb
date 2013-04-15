@@ -188,6 +188,7 @@ class Runner
                   callback.invoke(loc, *old_orientation)
                 }
               rescue Exception => e
+                RJR::Logger.warn "error running location #{loc.id}: #{e.to_s}"
                 err = "#{e.to_s} (#{loc.to_s})\n #{e.backtrace.join("\n ")}"
                 @errors << err
               end

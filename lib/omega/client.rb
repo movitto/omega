@@ -52,13 +52,13 @@ module Omega
       # Create new dsl thread, invoking
       # dsl_join will block on all registered
       # dsl threads
-      def dsl_thread(&th)
+      def dsl_thread(*args, &th)
         # just ignore thread and invoke block if parallel is not set
         return th.call unless Omega::Client::DSL.parallel
 
         @dsl_threads ||= Queue.new
         # TODO use thread pool?
-        thd = Thread.new(&th)
+        thd = Thread.new(*args, &th)
         @dsl_threads << thd
       end
 

@@ -41,7 +41,7 @@ class Elliptical < MovementStrategy
 
    # Combined major direction vector
    def direction_major
-     [@direction_major_x, @direction_major_x, @direction_major_z]
+     [@direction_major_x, @direction_major_y, @direction_major_z]
    end
 
    # Direction vector corresponding to the minor axis of the elliptical path
@@ -49,7 +49,7 @@ class Elliptical < MovementStrategy
 
    # Combined minor direction vector
    def direction_minor
-     [@direction_minor_x, @direction_minor_x, @direction_minor_z]
+     [@direction_minor_x, @direction_minor_y, @direction_minor_z]
    end
 
    # Combined direction vector
@@ -201,6 +201,7 @@ class Elliptical < MovementStrategy
      unless location_valid? location
         cx,cy,cz = closest_coordinates location
         RJR::Logger.warn "location #{location} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
+        # FIXME raise error if cx,cy,cz is nil
         location.x,location.y,location.z = cx,cy,cz
      end
 
@@ -240,6 +241,15 @@ class Elliptical < MovementStrategy
   private
 
     ### internal helper movement methods
+
+    # return the axis-angle representing the rotation of the
+    # direction axis from the standard cartesian axis
+    def axis_rotation
+      vectors = Motel::CARTESIAN_NORMAL_VECTOR +
+                Motel.normal_vector(direction_major_x, direction_major_y, direction_major_z,
+                                    direction_minor_x, direction_minor_y, direction_minor_z)
+      aa = Motel.axis_angle(*vectors)
+    end
 
     # return the a,b intercepts of the ellipse
     # p = a(1 - e^2) = b^2 / a
@@ -299,22 +309,26 @@ class Elliptical < MovementStrategy
     #  derived formula for theta from x,y,z elliptical path equations (see below) and linear transformations:
     #  theta = acos((minY * (x-cX) - minX * (y-cY))/(a*(minY * majX - minX * majY)))
     def theta(location)
+      # center coordinate
+      nx,ny,nz = origin_centered_coordinates location
+
+      # rotate it into 2d cartesian coordiante system
+      aa = axis_rotation
+      aa[0] *= -1
+      nx,ny,nz = Motel.rotate(nx, ny, nz, *aa)
+      # assert nz == 0
+
+      # calculate theta
       a,b = intercepts
-      ocX,ocY,ocZ = origin_centered_coordinates location
+      t = Math.acos(nx/a) # should also == Math.asin(ny/b)
 
-      t = (direction_minor_y * ocX - direction_minor_x * ocY) /
-           (a * (direction_minor_y * direction_major_x - direction_minor_x * direction_major_y))
-      t= 1.0  if(t>1.0) 
-      t= -1.0 if(t<-1.0)
-      theta = Math.acos(t)
+      # determine if current point is in negative quadrants of coordinate system
+      below = ny < 0
 
-      # determine if current point is in negative quadrants of min axis coordinate system
-      below = ocY < ((direction_minor_x * ocX + direction_minor_z * ocZ) / (-direction_minor_y)) 
+      # adjust to compensate for acos loss if necessary
+      t = 2 * Math::PI - t if (below) 
 
-      # adjust to compenate for acos loss if necessary
-      theta = 2 * Math::PI - theta if (below) 
-
-      return theta;
+      return t
     end
 
     # calculate the x,y,z coordinates of a location on the elliptical
@@ -324,19 +338,27 @@ class Elliptical < MovementStrategy
     # [x,y,z] = a * cos(theta) * maj + b * sin(theta) * min 
     #   (if centered at origin)
     def coordinates_from_theta(theta)
-       a,b      = intercepts
-       cX,cY,cZ = center
+      # calculate coordinates in 2d system
+      a,b = intercepts
+      x = a * Math.cos(theta)
+      y = b * Math.sin(theta)
 
-       x = cX + a * Math.cos(theta) * direction_major_x + b * Math.sin(theta) * direction_minor_x
-       y = cY + a * Math.cos(theta) * direction_major_y + b * Math.sin(theta) * direction_minor_y
-       z = cZ + a * Math.cos(theta) * direction_major_z + b * Math.sin(theta) * direction_minor_z
+      # rotate it into 3d space
+      aa = axis_rotation
+      nx,ny,nz = Motel.rotate(x, y, 0, *aa)
 
-       # round to two decimal places
-       x = x.round_to(2)
-       y = y.round_to(2)
-       z = z.round_to(2)
+      # center coordinate
+      cX,cY,cZ = center
+      nx = nx + cX
+      ny = ny + cY
+      nz = nz + cZ
 
-       return x,y,z
+      # round to two decimal places
+      nx = nx.round_to(2)
+      ny = ny.round_to(2)
+      nz = nz.round_to(2)
+
+      return nx,ny,nz
     end
 
    # return x,y,z coordinates of the closest point on the ellipse to the given location
@@ -352,6 +374,7 @@ class Elliptical < MovementStrategy
    def location_valid?(location)
       x,y,z = closest_coordinates(location)
 
+      return false if x.nil? || y.nil? || z.nil?
       return (x - location.x).round_to(4) == 0 &&
              (y - location.y).round_to(4) == 0 &&
              (z - location.z).round_to(4) == 0

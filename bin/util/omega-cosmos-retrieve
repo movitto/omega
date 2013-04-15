@@ -131,7 +131,7 @@ def print_star(star, i=0)
 end
 
 def print_planet(planet, i=0)
-  puts indent(i) + "planet " + planet.name + " (@" + planet.location.to_s + " with strategy " + planet.location.movement_strategy.to_s + ")"
+  puts indent(i) + "planet " + planet.name + " (@" + planet.location.to_s + ")"
   print_callbacks(planet, i+1)
   planet.moons.each { |m|
     print_moon(m, i+1)

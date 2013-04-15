@@ -376,6 +376,7 @@ class RJRAdapter
       if !parent.nil? && entity.parent.id != parent.id
         # if moving ship ensure it is within trigger distance of gate to new system and is not docked
         #   (TODO currently stations don't have this restriction though we may want to put others in place, or a transport delay / time)
+        # TODO support skipping this check if user has sufficient privs (perhaps modify-manufactured_entities ?)
         if entity.is_a?(Manufactured::Ship)
           near_jg = !entity.solar_system.jump_gates.select { |jg| jg.endpoint.name == parent.name &&
                                                                   (jg.location - entity.location) < jg.trigger_distance }.empty?

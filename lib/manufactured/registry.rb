@@ -122,14 +122,29 @@ class Registry
      Manufactured::Fleet]
   end
 
+  # Return boolean indicating if the various subsystem is running
+  def subsys_running?(subsys)
+    statuses = ['run', 'sleep']
+
+    !@terminate_cycles &&
+    case subsys
+    when :attack then
+      !@attack_thread.nil? && statuses.include?(@attack_thread.status)
+    when :mining then
+      !@mining_thread.nil? && statuses.include?(@mining_thread.status)
+    when :construction then
+      !@construction_thread.nil? && statuses.include?(@construction_thread.status)
+    when :shield then
+      !@shield_thread.nil? && statuses.include?(@shield_thread.status)
+    else
+      false
+    end
+  end
+
   # Return boolean indicating if registry is running its various worker threads
   def running?
-    !@terminate_cycles &&
-    !@attack_thread.nil? && !@mining_thread.nil? && !@construction_thread.nil? && !@shield_thread.nil? &&
-    (@attack_thread.status == 'run'       || @attack_thread.status == 'sleep') &&
-    (@mining_thread.status == 'run'       || @mining_thread.status == 'sleep') &&
-    (@construction_thread.status == 'run' || @construction_thread.status == 'sleep') &&
-    (@shield_thread.status == 'run'       || @shield_thread.status == 'sleep')
+    subsys_running?(:attack) && subsys_running?(:mining) &&
+    subsys_running?(:construction) && subsys_running?(:shield)
   end
 
   # Terminate registry worker threads
