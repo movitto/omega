@@ -174,12 +174,13 @@ def self.rotate(x, y, z, angle, ax, ay, az)
   # also support rotating x,y,z via specified euler rotation (each axis individually?)
   # use rodrigues rotation fomula
   # rotated = orig * cos(a) + (axis x orig) * sin(a) + axis(axis . orig)(1-cos(a))
+  ax,ay,az = normalize(ax,ay,az)
   c = Math.cos(angle) ; s = Math.sin(angle)
   dot = dot_product(x, y, z, ax, ay, az)
-
-  rx = x * c + ax * s + ax * dot * (1-c)
-  ry = y * c + ay * s + ay * dot * (1-c)
-  rz = z * c + az * s + az * dot * (1-c)
+  cross = cross_product(ax, ay, az, x, y, z)
+  rx = x * c + cross[0] * s + ax * dot * (1-c)
+  ry = y * c + cross[1] * s + ay * dot * (1-c)
+  rz = z * c + cross[2] * s + az * dot * (1-c)
   [rx, ry, rz]
 end
 

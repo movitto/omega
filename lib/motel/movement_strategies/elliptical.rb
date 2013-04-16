@@ -333,10 +333,6 @@ class Elliptical < MovementStrategy
 
     # calculate the x,y,z coordinates of a location on the elliptical
     # path given its theta
-    #
-    # Elliptical path equation:
-    # [x,y,z] = a * cos(theta) * maj + b * sin(theta) * min 
-    #   (if centered at origin)
     def coordinates_from_theta(theta)
       # calculate coordinates in 2d system
       a,b = intercepts
@@ -352,11 +348,6 @@ class Elliptical < MovementStrategy
       nx = nx + cX
       ny = ny + cY
       nz = nz + cZ
-
-      # round to two decimal places
-      nx = nx.round_to(2)
-      ny = ny.round_to(2)
-      nz = nz.round_to(2)
 
       return nx,ny,nz
     end
