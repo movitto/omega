@@ -369,7 +369,6 @@ class Ship
   # @param [Cosmos::ResourceSource] resource_source entity to check if ship can mine
   # @return [true,false] indicating if ship can mine resource source
   def can_mine?(resource_source)
-
     # TODO eventually filter per specific resource mining capabilities
     @type == :mining && !self.docked? &&
     (@location.parent.id == resource_source.entity.location.parent.id) &&

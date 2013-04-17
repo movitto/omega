@@ -176,6 +176,8 @@ class Registry
   # tracked by the registry. Takes a hash of arguments to filter entities
   # by.
   #
+  # TODO params to check / require privileges and raise error if entities not found
+  #
   # @param [Hash] args arguments to filter manufatured entities with
   # @option args [String] :id string id to match
   # @option args [String] :parent_id string name of entity containing manufactured entities to match
@@ -317,6 +319,11 @@ class Registry
   def schedule_attack(args = {})
     @entities_lock.synchronize{
       cmd = AttackCommand.new(args)
+
+      cmd.hooks[:first].each { |hook|
+        hook.call cmd
+      }
+
       # TODO if replacing old command, invoke old command 'stopped' callbacks
       @attack_commands[cmd.id] = cmd
     }
@@ -328,6 +335,11 @@ class Registry
   def schedule_mining(args = {})
     @entities_lock.synchronize{
       cmd = MiningCommand.new(args)
+
+      cmd.hooks[:first].each { |hook|
+        hook.call cmd
+      }
+
       @mining_commands[cmd.id] = cmd
     }
   end

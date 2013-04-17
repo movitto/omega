@@ -467,7 +467,6 @@ module Omega
             invoke_request 'cosmos::get_entity',
                   'with_name', res.system_name
           }
-          end
 
         elsif Users::Registry::VALID_TYPES.include?(res.class) ||
               res.is_a?(Motel::Location)

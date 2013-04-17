@@ -10,7 +10,6 @@ module Manufactured ; end
 require 'manufactured/loot'
 require 'manufactured/ship'
 require 'manufactured/station'
-require 'manufactured/fleet'
 require 'manufactured/commands'
 require 'manufactured/callbacks'
 require 'manufactured/rjr_adapter'

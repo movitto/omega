@@ -27,13 +27,14 @@ class AttackCommand
   attr_accessor :last_attack_time
 
   # Hash of command sequence events to callbale handlers to invoke on those events.
-  # Valid values for keys include: :before, :after
+  # Valid values for keys include: :before, :after, :first
   attr_accessor :hooks
 
   # Manufactured::AttackCommand initializer
   # @param [Hash] args hash of options to initialize attack command with
   # @option args [Manufactured::Ship] :attacker ship attacking the defender
   # @option args [Manufactured::Ship] :defender ship receiving attack from the attacker
+  # @option args [Callable] :first callable object to register with the 'first' hooks
   # @option args [Callable] :before callable object to register with the 'before' hooks
   # @option args [Callable] :after callable object to register with the 'after' hooks
   def initialize(args = {})
@@ -41,9 +42,10 @@ class AttackCommand
     @defender = args[:defender]
     @remove   = false
 
-    @hooks = { :before => [], :after => [] }
+    @hooks = { :before => [], :after => [], :first => [] }
     @hooks[:before] << args[:before] if args.has_key?(:before)
     @hooks[:after]  << args[:after]  if args.has_key?(:after)
+    @hooks[:first]  << args[:first]  if args.has_key?(:first)
   end
 
   # Return the unique id of this attack command.
@@ -197,7 +199,7 @@ class MiningCommand
   attr_accessor :last_time_mined
 
   # Hash of command sequence events to callbale handlers to invoke on those events.
-  # Valid values for keys include: :before
+  # Valid values for keys include: :before, :first
   attr_accessor :hooks
 
   # Manufactured::MiningCommand initializer
@@ -205,13 +207,15 @@ class MiningCommand
   # @option args [Manufactured::Ship] :ship miner ship
   # @option args [Cosmos::ResourceSource] :resource_source resource source being mined
   # @option args [Callable] :before callable object to register with the 'before' hooks
+  # @option args [Callable] :first callable object to register with the 'first' hooks
   def initialize(args = {})
     @ship            = args[:ship]
     @resource_source = args[:resource_source]
     @remove          = false
 
-    @hooks = { :before => [] }
+    @hooks = { :before => [], :first => [] }
     @hooks[:before] << args[:before] if args.has_key?(:before)
+    @hooks[:first] << args[:first] if args.has_key?(:first)
   end
 
   # Return the unique id of this mining command.
