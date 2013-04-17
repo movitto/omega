@@ -76,7 +76,6 @@ describe Manufactured::RJRAdapter do
                                         :location => Motel::Location.new(:id => '2007', :x => -102, :y => -102, :z => -102)
     @stat2  = Manufactured::Station.new :id => 'nstation2', :user_id => 'user1',
                                         :location => Motel::Location.new(:id => '2008', :x => -103, :y => -103, :z => -103)
-    @fleet1 = Manufactured::Fleet.new   :id => 'nfleet1', :user_id => 'user1'
 
     @loot1 = Manufactured::Loot.new :id => 'loot1', :resources => {'metal-steel' => 100},
                                     :location => Motel::Location.new(:id => '2010', :x => -75, :y => -75, :z => -75)
@@ -142,7 +141,6 @@ describe Manufactured::RJRAdapter do
       ship1 = Omega::Client::Node.invoke_request('manufactured::create_entity', @ship1)
       stat1 = Omega::Client::Node.invoke_request('manufactured::create_entity', @stat1)
       stat2 = Omega::Client::Node.invoke_request('manufactured::create_entity', @stat2)
-      fleet = Omega::Client::Node.invoke_request('manufactured::create_entity', @fleet1)
 
       ship1.class.should == Manufactured::Ship
       ship1.id.should == @ship1.id
@@ -150,13 +148,10 @@ describe Manufactured::RJRAdapter do
       stat1.id.should == @stat1.id
       stat2.class.should == Manufactured::Station
       stat2.id.should == @stat2.id
-      fleet.class.should == Manufactured::Fleet
-      fleet == @fleet1.id
     }.should_not raise_error
 
     Manufactured::Registry.instance.ships.size.should    == 1
     Manufactured::Registry.instance.stations.size.should == 2
-    Manufactured::Registry.instance.fleets.size.should   == 1
 
     Motel::Runner.instance.locations.size.should == oldl + 3 # locations created for ships, stations
 
@@ -165,14 +160,12 @@ describe Manufactured::RJRAdapter do
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + @ship1.id  }.should_not be_nil
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + @stat1.id  }.should_not be_nil
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + @stat2.id  }.should_not be_nil
-      u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'manufactured_entity-' + @fleet1.id }.should_not be_nil
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + @ship1.location.id }.should_not be_nil
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + @stat1.location.id }.should_not be_nil
       u.privileges.find { |p| p.id == 'view'   && p.entity_id == 'location-' + @stat2.location.id }.should_not be_nil
       u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + @ship1.id  }.should_not be_nil
       u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + @stat1.id  }.should_not be_nil
       u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + @stat2.id  }.should_not be_nil
-      u.privileges.find { |p| p.id == 'modify' && p.entity_id == 'manufactured_entity-' + @fleet1.id }.should_not be_nil
     }
 
     (Manufactured::Registry.instance.ships + Manufactured::Registry.instance.stations).each { |e|
@@ -713,12 +706,6 @@ describe Manufactured::RJRAdapter do
 
     TestUser.add_privilege('modify', 'manufactured_entities')
 
-    # cannot specify fleet
-    lambda{
-      Omega::Client::Node.invoke_request('manufactured::move_entity', fl1.id, @new_loc1)
-    #}.should raise_error(ArgumentError)
-    }.should raise_error(Exception)
-
     @new_loc1.parent_id = @gal1.name
 
     # invalid destination (galaxy)
@@ -1151,12 +1138,6 @@ describe Manufactured::RJRAdapter do
     }.should raise_error(Exception)
 
     TestUser.add_privilege('modify', 'manufactured_entities')
-
-    # cannot specify fleet
-    lambda{
-      Omega::Client::Node.invoke_request('manufactured::stop_entity', fl1.id)
-    #}.should raise_error(ArgumentError)
-    }.should raise_error(Exception)
 
     # valid call
     lambda{

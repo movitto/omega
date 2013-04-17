@@ -21,7 +21,6 @@ describe Manufactured::Registry do
     valid_types = Manufactured::Registry.instance.entity_types
     valid_types.should include(Manufactured::Ship)
     valid_types.should include(Manufactured::Station)
-    valid_types.should include(Manufactured::Fleet)
     valid_types.should_not include(Integer)
   end
 
@@ -64,13 +63,11 @@ describe Manufactured::Registry do
 
     Manufactured::Registry.instance.ships.size.should == 1
     Manufactured::Registry.instance.stations.size.should == 0
-    Manufactured::Registry.instance.fleets.size.should == 0
   end
 
   it "provide acceses to managed manufactured entities" do
     Manufactured::Registry.instance.ships.size.should == 0
     Manufactured::Registry.instance.stations.size.should == 0
-    Manufactured::Registry.instance.fleets.size.should == 0
 
 
     system1 = Cosmos::SolarSystem.new :name => 'system1'
@@ -79,8 +76,6 @@ describe Manufactured::Registry do
     ship2  = Manufactured::Ship.new :id => 'ship2', :solar_system => system2, :user_id => 'user2'
     station1  = Manufactured::Station.new :id => 'station1', :solar_system => system1, :user_id => 'user1', :location => Motel::Location.new(:id => 5)
     station2  = Manufactured::Station.new :id => 'station2', :solar_system => system2, :user_id => 'user1', :location => Motel::Location.new(:id => 10)
-    fleet1  = Manufactured::Fleet.new :id => 'fleet1', :user_id => 'user1'
-    fleet2  = Manufactured::Fleet.new :id => 'fleet2', :user_id => 'user1'
 
     Manufactured::Registry.instance.create(ship1)
     begin ; Manufactured::Registry.instance.create(ship1) ; rescue Exception => e ; end
@@ -88,9 +83,6 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.create(station1)
     begin ; Manufactured::Registry.instance.create(station1) ; rescue Exception => e ; end
     Manufactured::Registry.instance.create(station2)
-    Manufactured::Registry.instance.create(fleet1)
-    begin ; Manufactured::Registry.instance.create(fleet1) ; rescue Exception => e ; end
-    Manufactured::Registry.instance.create(fleet2)
     begin ; Manufactured::Registry.instance.create(Object.new) ; rescue Exception => e ; end
 
     Manufactured::Registry.instance.ships.size.should == 2
@@ -100,10 +92,6 @@ describe Manufactured::Registry do
     Manufactured::Registry.instance.stations.size.should == 2
     Manufactured::Registry.instance.stations.should include(station1)
     Manufactured::Registry.instance.stations.should include(station2)
-
-    Manufactured::Registry.instance.fleets.size.should == 2
-    Manufactured::Registry.instance.fleets.should include(fleet1)
-    Manufactured::Registry.instance.fleets.should include(fleet2)
 
     Manufactured::Registry.instance.children.size.should == 6
 
@@ -427,13 +415,11 @@ describe Manufactured::Registry do
     ship2  = Manufactured::Ship.new :id => 'ship2', :user_id => 'user1', :solar_system => sys
     ship3  = Manufactured::Ship.new :id => 'ship3', :user_id => 'user1', :solar_system => sys
     station  = Manufactured::Station.new :id => 'station', :user_id => 'user1', :solar_system => sys
-    fleet  = Manufactured::Fleet.new :id => 'fleet', :user_id => 'user1', :solar_system => sys
 
     Manufactured::Registry.instance.terminate
     Manufactured::Registry.instance.create ship1
     Manufactured::Registry.instance.create ship2
     Manufactured::Registry.instance.create station
-    Manufactured::Registry.instance.create fleet
     Manufactured::Registry.instance.children.size.should == 4
 
     ship3.instance_variable_set(:@hp, 0)
@@ -448,7 +434,6 @@ describe Manufactured::Registry do
     s.should include('"id":"ship2"')
     s.should include('"id":"ship3"')
     s.should include('"id":"station"')
-    s.should_not include('"id":"fleet"')
   end
 
   it "should restore registered manufactured entities from io object" do

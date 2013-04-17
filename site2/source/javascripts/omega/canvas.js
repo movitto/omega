@@ -577,8 +577,6 @@ function OmegaEntitiesContainer(){
 
   var entities    =  {};
 
-  var fleets      =  {};
-
   /////////////////////////////////////// public methods
 
   // hide all containers
@@ -621,14 +619,6 @@ function OmegaEntitiesContainer(){
 
       $('#entities_list').show();
 
-    }else if(entity.json_class == "Manufactured::Fleet"){
-      if(fleets[entity.id] == null){
-        locations[entity.id] = entity;
-        $('#fleets_list ul').append('<li name="'+entity.id+'">'+entity.id+'</li>');
-      }
-
-      $('#locations_list').show();
-
     }else if(entity.json_class == "Missions::Mission"){
       $("#missions_button").show();
     }
@@ -650,10 +640,6 @@ function OmegaEntitiesContainer(){
     $omega_camera.position({x : entity.location.x, y : entity.location.y, z : entity.location.z + 500});
     $omega_camera.focus({x : entity.location.x, y : entity.location.y, z : entity.location.z });
     $omega_scene.animate();
-  });
-
-  $('#fleets_list li').live('click', function(event){
-    // TODO
   });
 
   $('#missions_button').live('click', function(event){

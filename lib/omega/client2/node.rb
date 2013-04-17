@@ -462,12 +462,11 @@ module Omega
 
         elsif Manufactured::Registry.instance.entity_types.include?(res.class)
           set(res)
-          unless res.is_a?(Manufactured::Fleet)
-            set(res.location)
-            res.solar_system = cached(res.system_name) { |id|
-              invoke_request 'cosmos::get_entity',
-                    'with_name', res.system_name
-            }
+          set(res.location)
+          res.solar_system = cached(res.system_name) { |id|
+            invoke_request 'cosmos::get_entity',
+                  'with_name', res.system_name
+          }
           end
 
         elsif Users::Registry::VALID_TYPES.include?(res.class) ||

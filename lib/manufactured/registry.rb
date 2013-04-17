@@ -37,16 +37,6 @@ class Registry
     return ret
   end
 
-  # Return array of fleets being managed
-  # @return [Array<Manufactured::Fleet>]
-  def fleets
-    ret = []
-    @entities_lock.synchronize {
-      @fleets.each { |f| ret << f }
-    }
-    return ret
-  end
-
   # Return array of loot being managed
   # @return [Array<Manufactured::Loot>]
   def loot
@@ -96,7 +86,6 @@ class Registry
   def init
     @ships    = []
     @stations = []
-    @fleets   = []
     @attack_commands = {}
     @mining_commands = {}
     @construction_commands = {}
@@ -118,8 +107,7 @@ class Registry
   # Return array of classes of manufactured entity types
   def entity_types
     [Manufactured::Ship,
-     Manufactured::Station,
-     Manufactured::Fleet]
+     Manufactured::Station]
   end
 
   # Return boolean indicating if the various subsystem is running
@@ -223,12 +211,12 @@ class Registry
     to_search.select { |e| reqs.all? { |r| r.call(e) } }
   end
 
-  # Return child ships, stations, fleets tracked by the registry
-  # @return [Array<Manufactured::Ship,Manfuactured::Station,Manufactured::Fleet>]
+  # Return child ships and stations tracked by the registry
+  # @return [Array<Manufactured::Ship,Manfuactured::Station>]
   def children
     children = []
     @entities_lock.synchronize{
-      children = @ships + @stations + @fleets
+      children = @ships + @stations
     }
     children
   end
@@ -250,8 +238,7 @@ class Registry
   def has_child?(child_id)
     @entities_lock.synchronize{
       return !@ships.find    { |s| s.id == child_id }.nil? ||
-             !@stations.find { |s| s.id == child_id }.nil? ||
-             !@fleets.find   { |f| f.id == child_id }.nil?
+             !@stations.find { |s| s.id == child_id }.nil?
     }
   end
 
@@ -267,9 +254,8 @@ class Registry
   # @raise ArgumentError if entity cannot be added to registry for whatever reason
   # @return [Cosmos::ManufacturedEntity] entity added to the registry
   def create(entity, &bl)
-    raise ArgumentError, "entity must be a ship, station, or fleet" if ![Manufactured::Ship,
-                                                                         Manufactured::Station,
-                                                                         Manufactured::Fleet].include?(entity.class)
+    raise ArgumentError, "entity must be a ship or station" if ![Manufactured::Ship,
+                                                                 Manufactured::Station].include?(entity.class)
 
     container = nil
     if entity.is_a?(Manufactured::Ship)
@@ -288,11 +274,6 @@ class Registry
       raise ArgumentError, "station #{entity} must be valid" unless entity.valid?
       container = @stations
 
-    elsif entity.is_a?(Manufactured::Fleet)
-      raise ArgumentError, "fleet id #{entity.id} already taken" if @fleets.find{ |fl| fl.id == entity.id }
-      raise ArgumentError, "fleet #{entity} already created" if @fleets.include?(entity)
-      raise ArgumentError, "fleet #{entity} must be valid" unless entity.valid?
-      container = @fleets
     end
 
     return nil if container.nil?
@@ -517,9 +498,7 @@ class Registry
   # Save state of the registry to specified io stream
   def save_state(io)
     children.each { |entity| 
-      unless entity.is_a?(Manufactured::Fleet)
-        io.write entity.to_json + "\n"
-      end
+      io.write entity.to_json + "\n"
     }
     graveyard.each { |entity|
       io.write entity.to_json + "\n"

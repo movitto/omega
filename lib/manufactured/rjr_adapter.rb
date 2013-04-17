@@ -69,7 +69,6 @@ class RJRAdapter
   # @param rjr_dispatcher dispatcher to register handlers with
   def self.register_handlers(rjr_dispatcher)
     rjr_dispatcher.add_handler('manufactured::create_entity'){ |entity|
-      # FIXME regular_users are not able to create fleets
       Users::Registry.require_privilege(:privilege => 'create', :entity => 'manufactured_entities',
                                         :session   => @headers['session_id'])
 
@@ -77,7 +76,7 @@ class RJRAdapter
       raise ArgumentError, "Invalid #{entity.class} entity specified, must be one of #{valid_types.inspect}" unless valid_types.include?(entity.class)
 
       # swap out the parent w/ the one stored in the cosmos registry
-      if !entity.is_a?(Manufactured::Fleet) && entity.parent
+      if entity.parent
         parent = @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_name', entity.parent.name)
         raise Omega::DataNotFound, "parent system specified by #{entity.parent.name} not found" if parent.nil?
         # TODO parent.can_add?(entity)
@@ -108,7 +107,7 @@ class RJRAdapter
 
       eloc = nil
 
-      unless entity.is_a?(Manufactured::Fleet) || entity.location.nil?
+      unless entity.location.nil?
         # needs to happen b4 create_location so motel sets up heirarchy correctly
         entity.location.parent_id = entity.parent.location.id if entity.parent
         # creation of location needs to happen before creation of entity
@@ -126,9 +125,7 @@ class RJRAdapter
       # add permissions to view & modify entity to owner
       @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',   "manufactured_entity-#{entity.id}" )
       @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'modify', "manufactured_entity-#{entity.id}" )
-      unless entity.is_a?(Manufactured::Fleet)
-        @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',   "location-#{entity.location.id}" )
-      end
+      @@local_node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view',   "location-#{entity.location.id}" )
 
       rentity
     }
@@ -250,11 +247,9 @@ class RJRAdapter
        }
 
        entities.each { |entity|
-         unless entity.is_a?(Manufactured::Fleet)
-           Manufactured::Registry.instance.safely_run {
-             entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
-           }
-         end
+         Manufactured::Registry.instance.safely_run {
+           entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
+         }
        }
 
        if return_first
