@@ -55,6 +55,10 @@ class Ship
     #elsif ms == []
     #  @movement_strategies = [] # TODO clear in this case?
 
+    elsif ms.is_a?(Array)
+      @movement_strategies = ms
+      return nil
+
     else
       @movement_strategies << ms
       return nil
@@ -213,6 +217,11 @@ class Ship
   # @return [Float] seconds which it takes to construct the ship
   def self.construction_time(type)
     5
+  end
+
+  # Return boolean indicating if the ship is currently 'doing something' eg
+  # engaged in any activity
+  def doing_something?
   end
 
   # Ship initializer

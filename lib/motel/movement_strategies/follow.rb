@@ -99,7 +99,7 @@ class Follow < MovementStrategy
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
 
      elsif distance_to_cover <= @distance
-       RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
+       #RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
      else

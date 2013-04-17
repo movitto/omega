@@ -197,29 +197,30 @@ class Registry
   # @option args [Integer] :include_graveyard boolean indicating if graveyard should be included in search
   # @return [Array<ManufacturedEntity>] matching manufactured entities if any
   def find(args = {})
-    id        = args[:id]
-    parent_id = args[:parent_id]
-    user_id   = args[:user_id]
-    type      = args[:type]
-    location_id = args[:location_id]
-    include_graveyard = args[:include_graveyard]
-    include_loot      = args[:include_loot]
-
-    entities = []
-
     to_search = children
-    to_search += graveyard if include_graveyard
-    to_search += loot      if include_loot
+    reqs      = []
 
-    to_search.each { |entity|
-      entities << entity if (id.nil?        || entity.id         == id)        &&
-                            (parent_id.nil? || (entity.parent && (entity.parent.name  == parent_id))) &&
-                            (user_id.nil?   || entity.user_id    == user_id)   &&
-                            (location_id.nil? || (entity.location && entity.location.id == location_id)) &&
-                            (type.nil?      || entity.class.to_s == type)
-
+    args.keys.each { |k|
+      case k
+      when :id then
+        reqs << proc { |e| e.id == args[:id] }
+      when :parent_id then
+        reqs << proc { |e| e.parent && e.parent.name == args[:parent_id] }
+      when :user_id then
+        reqs << proc { |e| e.user_id == args[:user_id] }
+      when :type then
+        reqs << proc { |e| e.class.to_s == args[:type] }
+      when :location_id then
+        reqs << proc { |e| e.location && e.location.id == args[:location_id] }
+      when :include_graveyard then
+        to_search += graveyard
+      when :include_loot then
+        to_search += loot
+      end
     }
-    entities
+
+    # FIXME not protected while entity attributes may be being modified elsewhere (and in other registries)
+    to_search.select { |e| reqs.all? { |r| r.call(e) } }
   end
 
   # Return child ships, stations, fleets tracked by the registry
@@ -257,12 +258,15 @@ class Registry
   # Add child manufactured entity to registry
   #
   # Performs basic checks to ensure entity can added to registry
-  # before adding to appropriate array
+  # before adding to appropriate array.
+  #
+  # Invokes optional block if specified
   #
   # @param [Cosmos::ManufacturedEntity] entity entity to add to registry
+  # @param [Callable] &bl block to call atomically upon entity being added to registry
   # @raise ArgumentError if entity cannot be added to registry for whatever reason
   # @return [Cosmos::ManufacturedEntity] entity added to the registry
-  def create(entity)
+  def create(entity, &bl)
     raise ArgumentError, "entity must be a ship, station, or fleet" if ![Manufactured::Ship,
                                                                          Manufactured::Station,
                                                                          Manufactured::Fleet].include?(entity.class)
@@ -295,6 +299,7 @@ class Registry
 
     @entities_lock.synchronize{
       container << entity
+      bl.call entity if bl
     }
 
     return entity

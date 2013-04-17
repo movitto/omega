@@ -18,7 +18,11 @@ rjr_method \
     lambda {
       {
         # registry
-        :registry => { :running   => Manufactured::Registry.instance.running?,
+        :registry => { :running   => { :all => Manufactured::Registry.instance.running?,
+                                       :attack => Manufactured::Registry.instance.subsys_running?(:attack),
+                                       :mining => Manufactured::Registry.instance.subsys_running?(:mining),
+                                       :construction => Manufactured::Registry.instance.subsys_running?(:construction),
+                                       :shield => Manufactured::Registry.instance.subsys_running?(:shield) },
                        :num_ships => Manufactured::Registry.instance.ships.size,
                        :num_stations => Manufactured::Registry.instance.stations.size }
         # TODO loot, ship graveyard, commands etc
