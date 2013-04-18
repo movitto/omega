@@ -3,7 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# FIXME replace w/ rjr web node / em http request:
 require 'curb'
+
 require 'active_support/inflector'
 
 module Users

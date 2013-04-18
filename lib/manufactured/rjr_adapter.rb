@@ -85,7 +85,6 @@ class RJRAdapter
         }
       end
 
-# FIXME race condition if entity is created elsewhere after this call but before adding to registry below
       rentity = Manufactured::Registry.instance.find(:id => entity.id,
                                                      :include_graveyard => true).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
@@ -97,7 +96,8 @@ class RJRAdapter
       # to construct a preliminary helper
       entity.resources['metal-steel'] = 100 if entity.is_a?(Manufactured::Station)
 
-      # ensure user can own another entity (also subject to race condition, see above)
+      # FIXME needs to be run atomically before/during entity being added to registry
+      # ensure user can own another entity
       n = Manufactured::Registry.instance.find(:user_id => entity.user_id).size
       can_create = @@local_node.invoke_request('users::has_attribute?',
                                                entity.user_id,
@@ -182,11 +182,11 @@ class RJRAdapter
                 "due to errors: #{station.errors[:construction]} "
         end
 
-        # create the entity and return it
-        entity = station.construct argsh
-
         # track delayed station construction
         station.notification_callbacks << completed_callback
+
+        # create the entity and return it
+        entity = station.construct argsh
       }
 
       raise ArgumentError, "could not construct #{entity_type} at #{station} with args #{args.inspect}" if entity.nil?
@@ -512,7 +512,6 @@ class RJRAdapter
     # callback to track_movement and track_rotation in move_entity
     rjr_dispatcher.add_handler(['motel::on_movement', 'motel::on_rotation']) { |loc|
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-# FIXME issue here
       entity = Manufactured::Registry.instance.find(:location_id => loc.id,
                                                     :include_graveyard => true).first
 
@@ -672,9 +671,9 @@ class RJRAdapter
           }
         depleted_callback =
           Callback.new(:mining_stopped, :endpoint => @@local_node.message_headers['source_node']){ |*args|
-# FIXME is cmd.ship still a valid reference here?
-            cmd.ship.notification_callbacks.delete collected_callback
-            cmd.ship.notification_callbacks.delete depleted_callback
+            ship = args[2]
+            ship.notification_callbacks.delete collected_callback
+            ship.notification_callbacks.delete depleted_callback
           }
         cmd.ship.notification_callbacks << collected_callback
         cmd.ship.notification_callbacks << depleted_callback

@@ -209,8 +209,10 @@ class Registry
       end
     }
 
-    # FIXME not protected while entity attributes may be being modified elsewhere (and in other registries)
+# FIXME not protected while entity attributes may be being modified elsewhere (and in other registries)
+@entities_lock.synchronize{
     to_search.select { |e| reqs.all? { |r| r.call(e) } }
+}
   end
 
   # Return child ships and stations tracked by the registry
