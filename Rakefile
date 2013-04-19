@@ -4,11 +4,11 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require "rake/packagetask"
-Rake::PackageTask.new("omega", "0.2.0") do |p|
+Rake::PackageTask.new("omega", "0.3.0") do |p|
   p.need_tar = true
   p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
                           "site2/**/*", "spec/**/*", "vendor/**/*",
-                          "omega.yml", "Rakefile",
+                          "tests/**/*", "omega.yml", "Rakefile",
                           "COPYING", "LICENSE", "README.md")
   p.package_files.exclude("lib/rjr*", "site2/build/**/*")
 end

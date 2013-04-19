@@ -3,6 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO is this needed
 require 'active_support/inflector'
 
 # TODO alot of invoke_request calls can be swapped w/ send_notification calls (and in other modules)

@@ -35,6 +35,7 @@ optparse.parse!
 
 # TODO support other transports
 node = RJR::TCPNode.new :node_id => 'omega-status-retrieve'
+#node = RJR::AMQPNode.new :node_id => 'omega-status-retrieve', :broker => 'localhost'
 puts node.invoke_request(url, 'rjr::status')
 puts node.invoke_request(url, 'motel::status')
 puts node.invoke_request(url, 'manufactured::status')
