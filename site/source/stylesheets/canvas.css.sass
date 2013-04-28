@@ -1,0 +1,158 @@
+canvas
+  border: 1px solid black
+  -moz-border-radius: 15px
+  border-radius: 15px
+
+#canvas_controls
+  margin-top: 5px
+
+#camera_controls
+  float: left
+  margin-left: 5px
+  padding-left: 5px
+  padding-right: 5px
+
+#camera_controls img
+  margin-top: 5px
+  height: 15px
+  width:  15px
+
+#camera_controls img:hover
+  cursor: crosshair
+
+img#cam_reset
+  float: left
+  height: 15px
+
+.entities_container,
+.canvas_button
+  display: none
+  min-height: 22px
+  min-width: 125px
+  float: left
+  padding-left: 5px
+  margin-left: 35px
+  cursor: crosshair
+
+.entities_container ul
+  list-style: none
+  margin: 0
+  padding-left: 5px
+  padding-right: 5px
+  display: none
+  border-top: 1px solid black
+  border-left: 1px solid black
+  border-right: 1px solid black
+  border-bottom: 1px solid black
+  background: white
+
+#axis_controls
+  float: right
+
+#axis_controls input
+  margin-left: 10px
+
+#close_canvas
+  background: #00AAFF
+  margin-left: 5px
+  padding: 1px
+  float: right
+  color: red
+  font-weight: bold
+
+#show_canvas
+  border: 1px solid black
+  padding: 3px
+  display: none
+  width: 60px
+  background-color: #66CC33
+
+#close_canvas:hover,
+#show_canvas:hover
+  cursor: crosshair
+
+#omega_entity_container
+  margin-top: 20px
+  padding: 10px
+  display: block
+  float: right
+  border: 1px solid black
+  width: 250px
+  height: 350px
+  opacity: 0.9
+  background: #D8D8D8
+  -moz-border-radius: 15px
+  border-radius: 15px
+
+#entity_container_close
+  float: right
+  clear: both
+  cursor: crosshair
+  margin-right: 2px
+  background: #00AAFF
+  color: red
+
+.entity_container_title
+  font-weight: bold
+
+.entity_container_location
+  color: red
+
+#canvas_select_box
+  display: none
+  position: absolute
+  top: 0
+  left: 0
+  min-width: 0
+  min-height: 0
+  border: 1px solid red
+
+.cmd_icon
+  border: 1px solid #EEF3E2
+  float: right
+  width: 120px
+  height: 30px
+  text-align: right
+  padding-top: 5px
+  padding-right: 5px
+  margin-top: 5px
+  margin-right: 5px
+
+.cmd_icon:hover 
+  cursor: crosshair
+  text-decoration: blink
+
+// specific command icons
+
+#ship_trigger_jg
+  background: url('/womega/images/icons/trigger-jumpgate.png') no-repeat
+  background-size: 30px
+
+#ship_select_move
+  background: url('/womega/images/icons/move-ship.png') no-repeat
+  background-size: 50px
+
+#ship_select_target
+  background: url('/womega/images/icons/attack-ship.png') no-repeat
+  background-size: 30px
+
+#ship_select_dock,
+#ship_select_undock
+  background: url('/womega/images/icons/dock-ship.png') no-repeat
+  background-size: 30px
+
+#ship_select_transfer
+  background: url('/womega/images/icons/resource-transfer.png') no-repeat
+  background-size: 30px
+
+#ship_select_mine
+  background: url('/womega/images/icons/start-mining.png') no-repeat
+  background-size: 50px
+
+.assign_mission
+  float: right
+  text-decoration: underline
+
+//#station_select_construction
+//  background: url('/womega/images/icons/start-construction.png') no-repeat
+//  background-size: 30px

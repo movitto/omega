@@ -1,0 +1,41 @@
+.dialog_content
+  display: none
+
+.dialog_row
+  width: 100%
+  margin-top: 20px
+
+.dialog_row input
+  width: 70%
+  float: right
+
+.dialog_row input[type=text],
+.dialog_row input[type=password]
+  text-align: right
+
+.dialog_clickable_row
+  cursor: crosshair
+  color: blue
+
+// XXX override jquery-ui dialog images to point to vendor dir
+.ui-widget-content
+  background: #ffffff url(../images/vendor/ui-bg_glass_75_ffffff_1x400.png) 0 0 repeat-x
+
+.ui-widget-header
+  background: #cccccc url(../images/vendor/ui-bg_highlight-soft_75_cccccc_1x100.png) 0 50% repeat-x
+
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus
+  background: #dadada url(../images/vendor/ui-bg_glass_75_dadada_1x400.png) 0 50% repeat-x
+
+.ui-icon
+  background-image: url(../images/vendor/ui-icons_222222_256x240.png)
+
+.ui-widget-content .ui-icon
+  background-image: url(../images/vendor/ui-icons_222222_256x240.png)
+
+.ui-widget-header .ui-icon
+  background-image: url(../images/vendor/ui-icons_222222_256x240.png)
+
