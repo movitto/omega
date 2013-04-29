@@ -44,11 +44,15 @@ function EventTracker(){
   /* Raise event w/ the specified args
    */
   this.raise_event = function(){
-    var evnt = arguments.shift();
-    arguments.unshift(this);
+    // Create a new array from the contents of arguments
+    // http://shifteleven.com/articles/2007/06/28/array-like-objects-in-javascript
+    var args = Array.prototype.slice.call(arguments);
+
+    var evnt = args.shift();
+    args.unshift(this);
     if(this.callbacks[evnt])
       for(var e in this.callbacks[evnt])
-        this.callbacks[evnt].apply(this, arguments);
+        this.callbacks[evnt][e].apply(this, args);
   }
 }
 
@@ -71,7 +75,7 @@ function Registry(){
    this.cached = function(id, cb){
      var val = this.get(id);
      if(val == null){
-       val = cb.apply(null, id);
+       val = cb.apply(null, [id]);
        if(val != null) this.set(id, val);
      }
      return val;

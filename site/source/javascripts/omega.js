@@ -10,9 +10,12 @@
 //= require "omega/command"
 //= require "omega/registry"
 //= require "omega/node"
+//= require "omega/entity"
 //= require "omega/ui"
 
-//= require "vendor/google_recaptcha_ajax.js"
+//= require "vendor/google_recaptcha_ajax"
+//= require 'vendor/jquery.jplayer.min'
+//= require 'vendor/jquery.jplayer.playlist.min'
 
 ////////////////////////////////////////// session
 
@@ -21,13 +24,12 @@
 this.restore_session = function(ui, node, cb){
   var session = Session.restore_from_cookie();
   if(session == null){
-    Session.login(User.anon_user);
-    if(cb) cb();
+    Session.login(User.anon_user, node, cb);
 
   }else{
     session.validate(node, function(result){
       if(result.error){
-        Session.login(User.anon_user);
+        Session.login(User.anon_user, node);
 
       }else{
         session_established(ui, node, session, result.result);
@@ -259,7 +261,7 @@ var handle_events = function(ui, node, entity){
     }else if(entity.json_class == "Manufactured::Station"){
       clicked_station(ui, node, entity);
     }
-  }
+  });
 }
 
 /* Internal helper to handle any click event
@@ -361,7 +363,7 @@ var load_cosmos = function(type, name, callback){
   // we need this here as callback won't be invoked otherwise
   var entity = Entities().get(name);
   if(entity){
-    callback.apply(null, entity);
+    callback.apply(null, [entity]);
     return;
   }
 
@@ -375,7 +377,7 @@ var load_cosmos = function(type, name, callback){
       // load from server
       SolarSystem.with_name(c, function(s){
         sys.update(s);
-        callback.apply(null, s);
+        callback.apply(null, [s]);
 
         // wire up asteroid, jump gate events
         handle_events(ui, node, s.asteroids);
@@ -404,7 +406,7 @@ var load_cosmos = function(type, name, callback){
         // retrieve galaxy
         load_cosmos('Cosmos::Galaxy', s.galaxy_name, function(g){
           s.galaxy = g;
-          callback.apply(null, g);
+          callback.apply(null, [g]);
         })
       });
 
@@ -417,7 +419,7 @@ var load_cosmos = function(type, name, callback){
       // load from server
       Galaxy.with_name(c, function(g){
         gal.update(g);
-        callback.apply(null, g);
+        callback.apply(null, [g]);
       });
       
       return gal;
@@ -445,7 +447,7 @@ this.wire_up_ui = function(ui, node){
  */
 var wire_up_nav = function(ui, node){
   // show login dialog on login link click
-  ui.navigation_container.
+  ui.nav_container.
      login_link.on('click', function(){
        ui.dialog.title = 'Login';
        ui.dialog.text  = '';
@@ -455,7 +457,7 @@ var wire_up_nav = function(ui, node){
     
   // login on login dialog submit
   ui.nav_container.
-     login_button.on('click', function(){
+     login_link.on('click', function(){
        ui.dialog.close();
        var user_id       = $('#login_username').attr('value');
        var user_password = $('#login_password').attr('value');
@@ -466,7 +468,7 @@ var wire_up_nav = function(ui, node){
      });
 
   // show register dialog on register link click
-  ui.navigation_container.
+  ui.nav_container.
      register_link.on('click', function(){
        ui.dialog.title = 'Register';
        ui.dialog.text  = '';
@@ -481,7 +483,7 @@ var wire_up_nav = function(ui, node){
      });
     
   ui.nav_container.
-     register_button.on('click', function(){
+     register_link.on('click', function(){
        ui.dialog.close();
        var user_id             = $('#register_username').attr('value');
        var user_password       = $('#register_password').attr('value');
@@ -510,10 +512,10 @@ var wire_up_nav = function(ui, node){
        });
      });
 
-  ui.navigation_container.
+  ui.nav_container.
      logout_link.on('click', function(){
        Session.logout(node, function(){
-         Session.login(User.anon_user);
+         Session.login(User.anon_user, node);
        });
 
        // hide everything (almost)
@@ -539,9 +541,9 @@ var wire_up_nav = function(ui, node){
 
 ////////////////////////////////////////// status indicator
 
-/* Internal helper to wire up navigation
+/* Internal helper to wire up status indicator
  */
-var wire_up_nav = function(ui, node){
+var wire_up_status = function(ui, node){
   node.on('request', function(req){
     ui.status_indicator.push_state('loading');
   });
@@ -643,8 +645,9 @@ var show_missions = function(missions, ui){
 /* Internal helper to wire up the canvas
  */
 var wire_up_canvas = function(ui, node){
+  // FIXME capture page resize and resize canvas
   // when setting scene to solar system, get all entities under it
-  ui.scene.on('set', function(s){
+  ui.canvas.scene.on('set', function(s){
     // remove event callbacks of entities in old system not beloning to user
     var old_entities =
       Entities().select(function(e){
@@ -662,6 +665,7 @@ var wire_up_canvas = function(ui, node){
     if(s.get().json_class == "Cosmos::SolarSystem")
       SolarSystem.entities_under(s.get().name, process_entities);
   });
+}
 
 ////////////////////////////////////////// chat
 

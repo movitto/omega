@@ -7,10 +7,10 @@ require "rake/packagetask"
 Rake::PackageTask.new("omega", "0.3.0") do |p|
   p.need_tar = true
   p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
-                          "site2/**/*", "spec/**/*", "vendor/**/*",
+                          "site/**/*", "spec/**/*", "vendor/**/*",
                           "tests/**/*", "omega.yml", "Rakefile",
                           "COPYING", "LICENSE", "README.md")
-  p.package_files.exclude("lib/rjr*", "site2/build/**/*")
+  p.package_files.exclude("lib/rjr*", "site/build/**/*")
 end
 
 begin
@@ -54,13 +54,13 @@ namespace :site do
   desc 'Preview the site'
   task 'preview' do
     puts "Starting middleman at http://localhost:4567"
-    Dir.chdir 'site2'
+    Dir.chdir 'site'
     system("middleman server -p 4567 --verbose")
   end
 
   desc 'Build the site'
   task 'build' do
-    Dir.chdir 'site2'
+    Dir.chdir 'site'
     system("middleman build")
   end
 

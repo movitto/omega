@@ -13,8 +13,8 @@ var custom_operations = function(ui, node){
 // initialize the page
 $(document).ready(function(){ 
   // initialize top level components
-  var ui   = UI();
-  var node = Node();
+  var ui   = new UI();
+  var node = new Node();
 
   node.on_error(function(e){
     // log all errors to the console

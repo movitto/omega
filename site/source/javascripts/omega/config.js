@@ -17,14 +17,14 @@ $omega_config = {
   recaptcha_pub     : 'replace me',
 
   // ui
-  canvas_width      :         900,
-  canvas_height     :         400,
+  //canvas_width      :         900,
+  //canvas_height     :         400,
 
   // event tracking
   ship_movement     :          10,
   ship_rotation     :         0.1,
-  planet_movement   :          50
+  planet_movement   :          50,
 
   // stats
-  stats             : [['num_of', 'users'], ['most_entities', 10]],
+  stats             : [['num_of', 'users'], ['most_entities', 10]]
 }

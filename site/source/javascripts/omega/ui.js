@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/jquery-ui-1.7.1.min"
 //= require "vendor/three"
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
@@ -22,16 +23,21 @@ function UI(){
   this.entity_container    = new EntityContainer();
 
   this.locations_container = new EntitiesContainer();
+  this.locations_container.div_id = '#locations_list ul'
   this.locations_container.sort = function(a,b){ a.item.json_class < b.item.json_class }
 
   this.entities_container  = new EntitiesContainer();
+  this.entities_container.div_id = '#entities_list ul'
   this.entities_container.sort = function(a,b){ a.item.json_class < b.item.json_class }
 
   this.missions_button     = new UIComponent();
   this.missions_button.div_id = '#missions_button';
 
   this.account_info = new AccountInfoContainer();
+
+  return this;
 }
+
 
 /* UI Resources registry.
  *
@@ -76,9 +82,11 @@ function UIResources(){
   this.load_geometry = function(path, cb){
     loader.load(path, function(geometry){
       geometry.computeTangents();
-      cb.apply(null, geometry)
+      cb.apply(null, [geometry]);
     });
   }
+
+  return this;
 }
 
 /* UI component base class.
@@ -89,7 +97,6 @@ function UIResources(){
  * Subclasses may define the 'toggle_control_id' to reference
  * a checkable page element controlling the display of the
  * component on the canvas
- */
  */
 function UIComponent(args){
   $.extend(this, new EventTracker());
@@ -104,28 +111,28 @@ function UIComponent(args){
 
     var comp = this;
     if(cb_id == 'resize'){
-      this.component().resizable();
-      this.component.resize(function(e){
+      comp.component().resizable();
+      comp.component().resize(function(e){
         comp.raise_event('resize', e);
       });
 
     }else if(cb_id == "click"){
-      this.component.live('click', function(e){
+      this.component().live('click', function(e){
         comp.raise_event('click', e);
       });
 
     }else if(cb_id == "mousemove"){
-      this.component.live('mousemove', function(e){
+      this.component().live('mousemove', function(e){
         comp.raise_event('mousemove', e);
       });
 
     }else if(cb_id == "mousedown"){
-      this.component.live('mousedown', function(e){
+      this.component().live('mousedown', function(e){
         comp.raise_event('mousedown', e);
       });
 
     }else if(cb_id == "mouseup"){
-      this.component.live('mouseup', function(e){
+      this.component().live('mouseup', function(e){
         comp.raise_event('mouseup', e);
       });
     }
@@ -318,14 +325,14 @@ function CanvasComponent(args){
       this.scene.remove_component(this.components[component]);
     }
     showing = false;
-    $(this.toggle_canvas_id).attr(':checked', false)
+    this.toggle_canvas().attr(':checked', false)
   }
 
   /* Show the Component in the scene
    */
   this.sshow = function(){
     showing = true;
-    $(this.toggle_canvas_id).attr(':checked', true)
+    this.toggle_canvas().attr(':checked', true)
     for(var component in this.components){
       this.scene.add_component(this.components[component]);
     }
@@ -335,7 +342,7 @@ function CanvasComponent(args){
    * on checked attribute of the toggle_canvas input
    */
   this.toggle = function(){
-    var to_toggle = $(this.toggle_canvas_id);
+    var to_toggle = this.toggle_canvas();
     if(to_toggle){
       if(to_toggle.is(':checked'))
         this.sshow();
@@ -349,8 +356,8 @@ function CanvasComponent(args){
    */
   this.wire_up = function(){
     // wire up axis controls
-    $(this.toggle_canvas_id).live('click', function(e){ this.stoggle(); });
-    $(this.toggle_canvas_id.attr('checked', false);
+    this.toggle_canvas().live('click', function(e){ this.stoggle(); });
+    this.toggle_canvas().attr('checked', false);
   }
 }
 
@@ -369,13 +376,23 @@ function Canvas(args){
   this.subcomponents.push(this.scene)
   this.subcomponents.push(this.select_box)
 
-  this.scene.set_size(this.component().width(), this.component.height());
+  this.canvas_component = function(){
+    return $(this.div_id + ' canvas');
+  };
+
+  //this.width  = $omega_config.canvas_width;
+  //this.height = $omega_config.canvas_height;
+  this.width  = $(document).width()  - this.component().offset().left - 50;
+  this.height = $(document).height() - this.component().offset().top  - 50;
+  this.scene.set_size(this.width, this.height);
 
   this.on('show', function(c){ this.toggle_control().html('Hide'); });
   this.on('hide', function(c){ this.toggle_control().html('Show'); });
 
   this.on('resize', function(c, e){
-    this.scene.set_size(this.component().width(), this.component().height());
+    this.width  = this.component().width() - 3;
+    this.height = this.component().height() - 5;
+    this.scene.set_size(this.width, this.height);
     this.scene.animate();
   });
 
@@ -385,9 +402,22 @@ function Canvas(args){
     this.scene.clicked(x, y)
   });
 
-  this.on('mousemove', function(c, e){ this.select_box.trigger('mousemove'); });
-  this.on('mousedown', function(c, e){ this.select_box.trigger('mousedown'); });
-  this.on('mouseup', function(c, e){   this.select_box.trigger('mouseup');   });
+  // XXX need to trigger mouse movement events on canvas itself, not
+  // the container as that should respond to resize events,
+  // temporarily store and set to canvas to wire up callbacks before restoring
+  var old_component = this.component;
+  this.component    = this.canvas_component;
+
+  // delegate move movement events to select box
+  var delegate_to_select = function(c, e){
+    e.target = this.select_box.component()[0];
+    this.select_box.component().trigger(e);
+  }
+  this.on('mousemove', delegate_to_select);
+  this.on('mousedown', delegate_to_select);
+  this.on('mouseup', delegate_to_select);
+
+  this.component    = old_component;
 }
 
 /* Scene containing entities to render and renderer
@@ -400,7 +430,7 @@ function Scene(args){
   var entities = {};
   var root = null;
 
-  var _scene    = new THREE.Scene();
+  this._scene    = new THREE.Scene();
 
   var nargs   = $.extend({scene : this}, args);
   this.canvas = nargs['canvas'];
@@ -416,11 +446,12 @@ function Scene(args){
 
   //this.renderer = new THREE.CanvasRenderer({canvas: _canvas});
   this.renderer = new THREE.WebGLRenderer();
+  this.canvas.component().append(this.renderer.domElement);
 
   /* override set size to map canvas resizing to renderer resizing
    */
   this.set_size = function(w, h){
-    this.renderer.set_size(w, h);
+    this.renderer.setSize(w, h);
     this.camera.set_size(w, h);
     this.camera.reset();
   }
@@ -430,7 +461,7 @@ function Scene(args){
   this.add_entity = function(entity){
     entities[entity.id] = entity;
     for(var comp in entity.components)
-      _scene.add_component(entity.components[comp]);
+      this._scene.add_component(entity.components[comp]);
     entity.added_to(this);
   }
 
@@ -479,15 +510,15 @@ function Scene(args){
    * XXX would like to remove this or mark private
    */
   this.add_component = function(component){
-    _scene.add(component);
+    this._scene.add(component);
   }
-  
+
   /* Remove specified component from backend three.js scene
    *
    * XXX would like to remove this or mark private
    */
   this.remove_component = function(component){
-    _scene.remove(component);
+    this._scene.remove(component);
   }
 
   /* Set root entity of the scene.
@@ -526,7 +557,7 @@ function Scene(args){
     var projector = new THREE.Projector();
     var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5),
                                    this.camera._camera);
-    var intersects = ray.intersectObjects(_scene.__objects);
+    var intersects = ray.intersectObjects(this._scene.__objects);
 
     if(intersects.length > 0){
       var entities = this.get().children();
@@ -563,8 +594,9 @@ function Scene(args){
    *
    * !private shouldn't be called by end user!
    */
+  var _this = this;
   this.render = function(){
-    this._renderer.render(_scene, this.camera._camera());
+    _this.renderer.render(_this._scene, _this.camera._camera);
   }
 
   /* Return the position of the backend scene
@@ -572,57 +604,9 @@ function Scene(args){
    * XXX camera requries access to scene position
    */
   this.position = function(){
-    return _scene.position;
+    return this._scene.position;
   }
 }
-
-/* Selected entities in a scene
- */
-//function SceneSelection(){
-//  /////////////////////////////////////// private data
-//  var selected_entities = [];
-//
-//  /////////////////////////////////////// public methods
-//
-//  /* Return boolean indicating if entity specified by id
-//   * is currently selected
-//   */
-//  this.is_selected = function(entity_id){
-//    for(var se in selected_entities){
-//      if(selected_entities[se] == entity_id)
-//        return true;
-//    }
-//
-//    return false;
-//  }
-//
-//  /* Select entity specified by id
-//   */
-//  this.select = function(entity_id){
-//    if(this.is_selected(entity_id))
-//      return;
-//    selected_entities.push(entity_id);
-//  }
-//
-//  /* Unselect entity specified by id
-//   */
-//  this.unselect = function(entity_id){
-//    for(var index in selected_entities){
-//      if(selected_entities[index] == entity_id){
-//        selected_entities.splice(index, 1);
-//        return;
-//      }
-//    }
-//  }
-//
-//  /* Return the first selected item entity
-//   *
-//   * XXX might not be best to expose a 'single' selection, but works for now
-//   */
-//  this.selected = function(){
-//    return selected_entities[0];
-//  }
-//}
 
 /* Instantiate and return a new Camera
  */
@@ -647,8 +631,8 @@ function Camera(args){
 
   /////////////////////////////////////// private data
 
-  var _width  = $omega_config.canvas_width;
-  var _height = $omega_config.canvas_height;
+  var _width  = this.scene.canvas.width;
+  var _height = this.scene.canvas.height;
 
   // private initializer
   var new_cam = function(){
@@ -656,7 +640,7 @@ function Camera(args){
     // new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   }
 
-  var _camera = new_cam();
+  this._camera = new_cam();
   var looking_at = null;
 
   /////////////////////////////////////// public methods
@@ -665,7 +649,7 @@ function Camera(args){
    */
   this.set_size = function(width, height){
     _width = width; _height = height
-    _camera = new_cam();
+    this._camera = new_cam();
   }
 
   /* Set camera to its default position
@@ -692,7 +676,7 @@ function Camera(args){
       if(typeof focus.z !== "undefined")
         looking_at.z = focus.z;
     }
-    _camera.lookAt(looking_at);
+    this._camera.lookAt(looking_at);
     return looking_at;
   }
 
@@ -704,18 +688,18 @@ function Camera(args){
   this.position = function(position){
     if(typeof position !== "undefined"){
       if(typeof position.x !== "undefined")
-        _camera.position.x = position.x;
+        this._camera.position.x = position.x;
 
       if(typeof position.y !== "undefined")
-        _camera.position.y = position.y;
+        this._camera.position.y = position.y;
 
       if(typeof position.z !== "undefined")
-        _camera.position.z = position.z;
+        this._camera.position.z = position.z;
     }
 
-    return {x : _camera.position.x,
-            y : _camera.position.y,
-            z : _camera.position.z};
+    return {x : this._camera.position.x,
+            y : this._camera.position.y,
+            z : this._camera.position.z};
   }
 
   /* Zoom the Camera the specified distance from its
@@ -724,9 +708,9 @@ function Camera(args){
   this.zoom = function(distance){
     var focus = this.focus();
 
-    var x = _camera.position.x,
-        y = _camera.position.y,
-        z = _camera.position.z;
+    var x = this._camera.position.x,
+        y = this._camera.position.y,
+        z = this._camera.position.z;
     var dx = x - focus.x,
         dy = y - focus.y,
         dz = z - focus.z;
@@ -741,9 +725,9 @@ function Camera(args){
     dx = dist * Math.sin(theta) * Math.sin(phi);
     dy = dist * Math.cos(theta);
 
-    _camera.position.x = dx + focus.x;
-    _camera.position.y = dy + focus.y;
-    _camera.position.z = dz + focus.z;
+    this._camera.position.x = dx + focus.x;
+    this._camera.position.y = dy + focus.y;
+    this._camera.position.z = dz + focus.z;
 
     this.focus();
   }
@@ -755,9 +739,9 @@ function Camera(args){
   this.rotate = function(theta_distance, phi_distance){
     var focus = this.focus();
 
-    var x = _camera.position.x,
-        y = _camera.position.y,
-        z = _camera.position.z;
+    var x = this._camera.position.x,
+        y = this._camera.position.y,
+        z = this._camera.position.z;
     var dx = x - focus.x,
         dy = y - focus.y,
         dz = z - focus.z;
@@ -781,9 +765,9 @@ function Camera(args){
     dx = dist * Math.sin(theta) * Math.sin(phi);
     dy = dist * Math.cos(theta);
 
-    _camera.position.x = dx + focus.x;
-    _camera.position.y = dy + focus.y;
-    _camera.position.z = dz + focus.z;
+    this._camera.position.x = dx + focus.x;
+    this._camera.position.y = dy + focus.y;
+    this._camera.position.z = dz + focus.z;
 
     this.focus();
   }
@@ -793,13 +777,13 @@ function Camera(args){
     var pos   = this.position();
     var focus = this.focus();
 
-    var mat = _camera.matrix;
-    _camera.position.x += mat.elements[0] * x;
-    _camera.position.y += mat.elements[1] * x;
-    _camera.position.z += mat.elements[2] * x;
-    _camera.position.x += mat.elements[4] * y;
-    _camera.position.y += mat.elements[5] * y;
-    _camera.position.z += mat.elements[6] * y;
+    var mat = this._camera.matrix;
+    this._camera.position.x += mat.elements[0] * x;
+    this._camera.position.y += mat.elements[1] * x;
+    this._camera.position.z += mat.elements[2] * x;
+    this._camera.position.x += mat.elements[4] * y;
+    this._camera.position.y += mat.elements[5] * y;
+    this._camera.position.z += mat.elements[6] * y;
 
     var npos   = this.position();
     this.focus({x : focus.x + (npos.x - pos.x),
@@ -811,109 +795,109 @@ function Camera(args){
    */
   this.wire_up = function(){
     // wire up camera controls
-    
+
     if(jQuery.fn.mousehold){
       var _cam = this;
-    
+
       $(this.control_ids['reset']).click(function(e){
         _cam.reset();
       });
-    
+
       $(this.control_ids['pan_right']).click(function(e){
         _cam.pan(50, 0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_right']).mousehold(function(e, ctr){
         _cam.pan(50, 0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_left']).click(function(e){
         _cam.pan(-50, 0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_left']).mousehold(function(e, ctr){
         _cam.pan(-50, 0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_up']).click(function(e){
         _cam.pan(0, 50);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_up']).mousehold(function(e, ctr){
         _cam.pan(0, 50);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_down']).click(function(e){
         _cam.pan(0, -50);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['pan_down']).mousehold(function(e, ctr){
         _cam.pan(0, -50);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_right']).click(function(e){
         _cam.rotate(0.0, 0.2);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_right']).mousehold(function(e, ctr){
         _cam.rotate(0.0, 0.2);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_left']).click(function(e){
         _cam.rotate(0.0, -0.2);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_left']).mousehold(function(e, ctr){
         _cam.rotate(0.0, -0.2);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_up']).click(function(e){
         _cam.rotate(-0.2, 0.0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_up']).mousehold(function(e, ctr){
         _cam.rotate(-0.2, 0.0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_down']).click(function(e){
         _cam.rotate(0.2, 0.0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['rotate_down']).mousehold(function(e, ctr){
         _cam.rotate(0.2, 0.0);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['zoom_out']).click(function(e){
         _cam.zoom(20);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['zoom_out']).mousehold(function(e, ctr){
         _cam.zoom(20);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['zoom_in']).click(function(e){
         _cam.zoom(-20);
         _cam.scene.animate();
       });
-    
+
       $(this.control_ids['zoom_in']).mousehold(function(e, ctr){
         _cam.zoom(-20);
         _cam.scene.animate();
@@ -956,15 +940,14 @@ function Skybox(args){
 
       var skybox_mesh =
         UIResources().cached('skybox_mesh',
-                             function(i){
-                               var skyboxMesh =
-                                 new THREE.Mesh(
-                                   new THREE.CubeGeometry( size, size, size,
-                                                           7, 7, 7, materials ),
-                                   new THREE.MeshFaceMaterial( ) );
-                               skyboxMesh.scale.x = - 1;
-                               return skyboxMesh;
-                             });
+          function(i){
+            var skyboxMesh =
+              new THREE.Mesh(new THREE.CubeGeometry( size, size, size,
+                                                     7, 7, 7, materials ),
+                             new THREE.MeshFaceMaterial());
+            skyboxMesh.scale.x = - 1;
+            return skyboxMesh;
+          });
       this.components.push(skybox_mesh);
     }
     return this.background;
@@ -991,69 +974,65 @@ function Axis(args){
 
   var line_geometry =
     UIResources().cached('axis_geometry',
-                         function(i) {
-                           var geo = new THREE.Geometry();
-                           geo.vertices.push( new THREE.Vector3( 0, 0, -4096 ) );
-                           geo.vertices.push( new THREE.Vector3( 0, 0,  4096 ) );
+      function(i) {
+        var geo = new THREE.Geometry();
+        geo.vertices.push( new THREE.Vector3( 0, 0, -4096 ) );
+        geo.vertices.push( new THREE.Vector3( 0, 0,  4096 ) );
 
-                           geo.vertices.push( new THREE.Vector3( 0, -4096, 0 ) );
-                           geo.vertices.push( new THREE.Vector3( 0,  4096, 0 ) );
+        geo.vertices.push( new THREE.Vector3( 0, -4096, 0 ) );
+        geo.vertices.push( new THREE.Vector3( 0,  4096, 0 ) );
 
-                           geo.vertices.push( new THREE.Vector3( -4096, 0, 0 ) );
-                           geo.vertices.push( new THREE.Vector3(  4096, 0, 0 ) );
+        geo.vertices.push( new THREE.Vector3( -4096, 0, 0 ) );
+        geo.vertices.push( new THREE.Vector3(  4096, 0, 0 ) );
 
-                           return geo;
-                         });
+        return geo;
+      });
 
   var line_material =
     UIResources().cached('axis_material',
-                         function(i) {
-                           return \
-                             new THREE.LineBasicMaterial( { color: 0xcccccc,
-                                                            opacity: 0.4 } );
-                         })
+      function(i) {
+        return new THREE.LineBasicMaterial( { color: 0xcccccc,
+                                              opacity: 0.4 } );
+      })
 
-  var distance_geometries = 
+  var distance_geometries =
     UIResources().cached('axis_distance_geometries',
-                         function(i) {
-                           return \
-                             [new THREE.TorusGeometry(3000, 5, 40, 40),
-                              new THREE.TorusGeometry(2000, 5, 20, 20),
-                              new THREE.TorusGeometry(1000, 5, 20, 20)];
-                         });
+      function(i) {
+        return [new THREE.TorusGeometry(3000, 5, 40, 40),
+                new THREE.TorusGeometry(2000, 5, 20, 20),
+                new THREE.TorusGeometry(1000, 5, 20, 20)];
+      });
 
   var distance_material =
     UIResources().cached('axis_distance_material',
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({color: 0xcccccc });
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: 0xcccccc });
+      });
 
-  var axis_line =
+  var line =
     UIResources().cached('axis_line',
-                         function(i){
-                           return \
-                             new THREE.Line(line_geometry, line_material,
-                                            THREE.LinePieces );
-                         });
-  this.components.push(axis_line);
+      function(i){
+        return new THREE.Line(line_geometry, line_material,
+                              THREE.LinePieces );
+      });
+  this.subcomponents.push(line);
 
   var distance_markers =
     UIResources().cached('axis_distance_markers',
-                         function(i){
-                           var dm = [];
-                           for(var geometry in distance_geometries){
-                             var mesh = new THREE.Mesh(distance_geometries[geometry],
-                                                       distance_material);
-                             mesh.position.x = 0;
-                             mesh.position.y = 0;
-                             mesh.position.z = 0;
-                             mesh.rotation.x = 1.57;
-                             dm.push(mesh);
-                           }
+      function(i){
+        var dm = [];
+        for(var geometry in distance_geometries){
+          var mesh = new THREE.Mesh(distance_geometries[geometry],
+                                    distance_material);
+          mesh.position.x = 0;
+          mesh.position.y = 0;
+          mesh.position.z = 0;
+          mesh.rotation.x = 1.57;
+          dm.push(mesh);
+        }
 
-                           return dm
-                         });
+        return dm
+      });
   for(var dm in distance_markers)
     this.components.push(distance_markers[dm]);
 }
@@ -1097,19 +1076,17 @@ function Grid(args){
 
   var line_material =
     UIResources().cached('grid_material',
-                         function(i) {
-                           return \
-                             new THREE.LineBasicMaterial( { color: 0xcccccc,
-                                                            opacity: 0.4 } );
-                         })
+      function(i) {
+        return new THREE.LineBasicMaterial( { color: 0xcccccc,
+                                              opacity: 0.4 } );
+      })
 
   var grid_line =
     UIResources().cached('grid_line',
-                         function(i){
-                           return \
-                             new THREE.Line(line_geometry, line_material,
-                                            THREE.LinePieces );
-                         });
+      function(i){
+        return new THREE.Line(line_geometry, line_material,
+                              THREE.LinePieces );
+      });
   this.components.push(grid_line);
 }
 
@@ -1128,14 +1105,14 @@ function SelectBox(args){
 
   /* start showing the select box at the specified coords
    */
-  function start_showing = function(x,y){
+  var start_showing = function(x,y){
     this.dx = x; this.dy = y;
     this.component().show();
   }
 
   /* stop showing and hide the select box
    */
-  function stop_showing = function(){
+  var stop_showing = function(){
     var comp = this.component();
     comp.css('left', 0);
     comp.css('top',  0);
@@ -1146,7 +1123,7 @@ function SelectBox(args){
 
   /* update the select box
    */
-  function update_area = function(x,y){
+  var update_area = function(x,y){
     var comp = this.component();
     if(!comp.is(":visible")) return;
     var tlx = comp.css('left');
@@ -1166,33 +1143,36 @@ function SelectBox(args){
     var width  = brx - tlx;
     var height = bry - tly;
 
-    select_box.css('left', canvas.position().left + tlx);
-    select_box.css('top',  canvas.position().top + tly);
-    select_box.css('min-width',  width);
-    select_box.css('min-height', height);
+    var left = this.canvas.component().position().left + tlx;
+    var top  = this.canvas.component().position().top + tly;
+
+    this.component().css('left', left);
+    this.component().css('top',   top);
+    this.component().css('min-width',  width);
+    this.component().css('min-height', height);
   }
 
   this.on('mousemove', function(sb, e){
     var x = e.pageX - this.canvas.component().offset().left;
     var y = e.pageY - this.canvas.component().offset().top;
-    update_area({x : x, y : y})
+    update_area.apply(this, [x, y])
   });
 
   this.on('mousedown', function(sb, e){
     var x = e.pageX - this.canvas.component().offset().left;
     var y = e.pageY - this.canvas.component().offset().top;
-    start_showing({x : x, y : y})
+    start_showing.apply(this, [x, y]);
   });
 
   this.on('mouseup', function(sb, e){
-    stop_showing();
+    stop_showing.apply(this);
   });
 
 }
 
 /* Instantiate and return a new Entity Container
  */
-function EntityContainer(){
+function EntityContainer(args){
   $.extend(this, new UIComponent(args));
 
   this.div_id = '#omega_entity_container';
@@ -1221,14 +1201,16 @@ function Dialog(args){
 
   this.div_id = '#omega_dialog';
 
-  // title to assign to dialog
-  this.title = args['title'];
+  if(args){
+    // title to assign to dialog
+    this.title = args['title'];
 
-  // selector of div to populate dialog content from
-  this.selector = args['selector'];
+    // selector of div to populate dialog content from
+    this.selector = args['selector'];
 
-  // additional text to add to dialog
-  this.text = args['text'];
+    // additional text to add to dialog
+    this.text = args['text'];
+  }
 
   /* Show the dialog
    *
@@ -1258,7 +1240,9 @@ function Dialog(args){
 function EntitiesContainer(args){
   $.extend(this, new UIListComponent(args));
 
-  this.div_id = args['id'];
+  if(args){
+    this.div_id = args['id'];
+  }
 }
 
 EntitiesContainer.hide_all = function(){
@@ -1313,7 +1297,7 @@ function StatusIndicator(args){
    */
   this.push_state = function(state){
     states.push(state);
-    this.set_bg(state);
+    set_bg.apply(this, [state]);
   }
 
   /* Pop a new state of the stack, this updates the status icon background
@@ -1321,10 +1305,10 @@ function StatusIndicator(args){
   this.pop_state = function(){
     states.pop();
     if(states.length > 0){
-      this.set_bg(states[states.length-1])
+      set_bg.apply(this, [states[states.length-1]])
 
     }else{
-      this.set_bg(null);
+      set_bg.apply(this, [null]);
     }
   }
 }
@@ -1336,15 +1320,15 @@ function ChatContainer(args){
 
   this.div_id       = '#chat_container';
 
-  this.input         = UIComponent();
+  this.input         = new UIComponent();
   this.input.div_id  = '#chat_input input[type=text]';
   this.input.container = this;
 
-  this.button        = UIComponent();
+  this.button        = new UIComponent();
   this.button.div_id = '#chat_input input[type=button]';
   this.button.container = this;
 
-  this.output        = UIComponent();
+  this.output        = new UIComponent();
   this.output.div_id = '#chat_output textarea';
   this.output.container = this;
 
@@ -1365,16 +1349,16 @@ function NavContainer(args){
 
   // navigation components
 
-  this.register_link = UIComponent();
+  this.register_link = new UIComponent();
   this.register_link.div_id = '#register_link';
 
-  this.login_link = UIComponent();
+  this.login_link = new UIComponent();
   this.login_link.div_id = '#login_link';
 
-  this.logout_link = UIComponent();
+  this.logout_link = new UIComponent();
   this.logout_link.div_id = '#logout_link';
 
-  this.account_link = UIComponent();
+  this.account_link = new UIComponent();
   this.account_link.div_id = '#account_link';
 
   this.subcomponents.push(this.register_link)

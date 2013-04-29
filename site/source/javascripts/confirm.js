@@ -20,8 +20,8 @@ function confirm_registration(node, code){
 
 $(document).ready(function(){ 
   // initialize top level components
-  var ui   = UI();
-  var node = Node();
+  var ui   = new UI();
+  var node = new Node();
 
   var rc = $.url(window.location);
   rc = rc.param('rc');

@@ -26,6 +26,8 @@ function Entities(){
     if(new_node != null) this._node = new_node;
     return this._node;
   }
+
+  return this;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ function Location(args){
    */
   this.is_within = function(distance, loc){
     if(this.parent_id != loc.parent_id)
-      return false 
+      return false
     return  this.distance_from(loc.x, loc.y, loc.z) < distance;
   };
 
@@ -163,7 +165,7 @@ Galaxy.with_name = function(name, cb){
   Entities().node().web_request('cosmos::get_entity', 'with_name', name, function(res){
     if(res.result){
       var gal = new Galaxy(res.result);
-      cb.apply(null, gal);
+      cb.apply(null, [gal]);
     }
   });
 }
@@ -237,15 +239,13 @@ function SolarSystem(args){
     var line_material =
       UIResources().cached("jump_gate_line_material",
         function(i) {
-          return \
-            new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true}),
+          return new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true});
       });
 
     var line =
       UIResources().cached("jump_gate_" + this.name + "-" + endpoint.name + "_line",
         function(i) {
           return new THREE.Line(line_geometry, line_material);
-        }
       });
 
     this.components.push(line);
@@ -254,29 +254,27 @@ function SolarSystem(args){
   // instantiate sphere to represent system on canvas
   var sphere_geometry =
     UIResources().cached('solar_system_sphere_geometry',
-                         function(i) {
-                           var radius   = 100, segments = 32, rings = 32;
-                           return \
-                             new THREE.SphereGeometry(radius, segments, rings);
-                         });
+      function(i) {
+        var radius   = 100, segments = 32, rings = 32;
+        return new THREE.SphereGeometry(radius, segments, rings);
+      });
 
   var sphere_material =
     UIResources().cached("solar_system_sphere_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true}),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true});
+      });
 
   var sphere =
     UIResources().cached("solar_system_" + this.id + "_sphere",
-                         function(i) {
-                           var sphere   = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z ;
-                           this.clickable_obj = sphere;
-                           return sphere;
-                         });
+      function(i) {
+        var sphere   = new THREE.Mesh(sphere_geometry, sphere_material);
+        sphere.position.x = this.location.x;
+        sphere.position.y = this.location.y;
+        sphere.position.z = this.location.z ;
+        this.clickable_obj = sphere;
+        return sphere;
+      });
 
   this.components.push(sphere);
 
@@ -296,10 +294,9 @@ function SolarSystem(args){
 
   var plane_material =
     UIResources().cached("solar_system_plane_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({map: plane_texture, alphaTest: 0.5});
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({map: plane_texture, alphaTest: 0.5});
+      });
 
   var plane =
     UIResources().cached("solar_system_" + this.id + "_plane_geometry",
@@ -316,24 +313,21 @@ function SolarSystem(args){
   // instantiate text to draw system name to canvas
   var text3d =
     UIResources().cached("solar_system_" + this.id + "label_geometry",
-                         function(i) {
-                           return \
-                             new THREE.TextGeometry( this.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
-                         });
+      function(i) {
+        return new THREE.TextGeometry( this.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
+      });
 
   var text_material =
     UIResources().cached("solar_system_text_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } ),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial( { color: 0x3366FF, overdraw: true } );
+      });
 
   var text =
     UIResources().cached("solar_system_" + this.id + "label",
-                         function(i) {
-                           return \
-                             new THREE.Mesh( text3d, text_material );
-                         });
+      function(i) {
+        return new THREE.Mesh( text3d, text_material );
+      });
 
   this.components.push(text);
 
@@ -341,7 +335,7 @@ function SolarSystem(args){
   /* Return solar systems children
    */
   this.children = function(){
-    var entities = Registry().select(function(e){
+    var entities = Entities().select(function(e){
       return e.system_name  == this.name &&
             (e.json_class  == "Manufactured::Ship" ||
              e.json_class  == "Manufactured::Station" )
@@ -372,7 +366,7 @@ SolarSystem.with_name = function(name, cb){
   Entities().node().web_request('cosmos::get_entity', 'with_name', name, function(res){
     if(res.result){
       var sys = new SolarSystem(res.result);
-      cb.apply(null, sys)
+      cb.apply(null, [sys])
     }
   });
 }
@@ -391,11 +385,11 @@ SolarSystem.entities_under = function(name, cb){
           entity = new Station(entity);
         else
           entity = null;
-        
+
         if(entity != null)
           cbv.push(entity);
       }
-      cb.apply(null, cbv);
+      cb.apply(null, [cbv]);
     }
   });
 }
@@ -415,27 +409,26 @@ function Star(args){
   // instantiate sphere to draw star with on canvas
   var sphere_geometry =
     UIResources().cached('star_sphere_' + this.size + '_geometry',
-                         function(i) {
-                           var radius = this.size/4, segments = 32, rings = 32;
-                           return new THREE.SphereGeometry(radius, segments, rings),
-                         });
+      function(i) {
+        var radius = this.size/4, segments = 32, rings = 32;
+        return new THREE.SphereGeometry(radius, segments, rings);
+      });
 
   var sphere_texture =
     UIResources().cached("star_sphere_texture",
-                         function(i) {
-                           var path = UIResources().images_path +
-                                         '/textures/greensun.jpg';
-                           return UIResources().load_texture(path);
-                         });
+      function(i) {
+        var path = UIResources().images_path +
+                      '/textures/greensun.jpg';
+        return UIResources().load_texture(path);
+      });
 
   var sphere_material =
     UIResources().cached("star_sphere_" + this.color + "_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color),
-                                                            map: sphere_texture,
-                                                            overdraw : true});
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color),
+                                            map: sphere_texture,
+                                            overdraw : true});
+      });
 
   var sphere =
     UIResources().cached("star_" + this.id + "_sphere_geometry",
@@ -469,7 +462,7 @@ function Planet(args){
   this.update = function(args){
     if(args.location && this.location){
       this.location.update(args.location);
-  
+
       this.sphere.position.x = this.location.x;
       this.sphere.position.y = this.location.y;
       this.sphere.position.z = this.location.z;
@@ -491,89 +484,86 @@ function Planet(args){
   // instantiate sphere to draw planet with on canvas
   var sphere_geometry =
     UIResources().cached('planet_sphere_' + this.size + '_geometry',
-                         function(i) {
-                           var radius = this.size, segments = 32, rings = 32;
-                           return new THREE.SphereGeometry(radius, segments, rings),
-                         });
+      function(i) {
+        var radius = this.size, segments = 32, rings = 32;
+        return new THREE.SphereGeometry(radius, segments, rings);
+      });
 
   var sphere_material =
     UIResources().cached("planet_sphere_" + this.color + "_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color)});
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color)});
+      });
 
   this.sphere =
     UIResources().cached("planet_" + this.id + "_sphere_geometry",
-                         function(i) {
-                           var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z;
-                           this.clickable_obj = sphere;
-                           return sphere;
-                         });
+      function(i) {
+        var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
+        sphere.position.x = this.location.x;
+        sphere.position.y = this.location.y;
+        sphere.position.z = this.location.z;
+        this.clickable_obj = sphere;
+        return sphere;
+      });
 
   this.components.push(this.sphere);
 
   // calculate the planet's orbit
   this.orbit =
     UIResources().cached("planet_" + this.id + "_orbit",
-                         function(i) {
-                           return elliptical_path(this.location.movement_strategy);
-                         });
+      function(i) {
+        return elliptical_path(this.location.movement_strategy);
+      });
 
   // instantiate line to draw orbit with on canvas
   var orbit_material =
     UIResources().cached("planet_orbit_material",
-                         function(i) {
-                           return \
-                             new THREE.LineBasicMaterial({color: 0xAAAAAA}),
-                         });
+      function(i) {
+        return new THREE.LineBasicMaterial({color: 0xAAAAAA});
+      });
 
 
   var orbit_geometry =
     UIResources().cached("planet_" + this.id + "_orbit_geometry",
-                         function(i) {
-                           var geometry = new THREE.Geometry();
-                           var first = null, last = null;
-                           for(var o in this.orbit){
-                             if(o != 0){ // && (o % 3 == 0)){
-                               var orbit  = this.orbit[o];
-                               var porbit = this.orbit[o-1];
-                               if(first == null) first = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
-                               last = new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]);
-                               geometry.vertices.push(last);
-                               geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
-                             }
-                           }
-                           geometry.vertices.push(first);
-                           geometry.vertices.push(last);
-                           return geometry;
-                         });
+      function(i) {
+        var geometry = new THREE.Geometry();
+        var first = null, last = null;
+        for(var o in this.orbit){
+          if(o != 0){ // && (o % 3 == 0)){
+            var orbit  = this.orbit[o];
+            var porbit = this.orbit[o-1];
+            if(first == null) first = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
+            last = new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]);
+            geometry.vertices.push(last);
+            geometry.vertices.push(new THREE.Vector3(porbit[0], porbit[1], porbit[2]));
+          }
+        }
+        geometry.vertices.push(first);
+        geometry.vertices.push(last);
+        return geometry;
+      });
 
   var orbit_line =
     UIResources().cached("planet_" + this.id + "_orbit_line",
-                         function(i) {
-                           return new THREE.Line(orbit_geometry, orbit_material);
-                         });
+      function(i) {
+        return new THREE.Line(orbit_geometry, orbit_material);
+      });
 
   this.components.push(orbit_line);
 
   // draw spheres representing moons
   var sphere_material =
     UIResources().cached("moon_sphere__material",
-                         function(i) {
-                           return \
-                             new new THREE.MeshBasicMaterial({color: 0x808080}),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: 0x808080});
+      });
 
   var sphere_geometry =
     UIResources().cached("moon_sphere_geometry",
-                         function(i) {
-                           var mnradius = 5, mnsegments = 32, mnrings = 32;
-                           return new THREE.SphereGeometry(mnradius, mnsegments, mnrings);
-                         });
+      function(i) {
+        var mnradius = 5, mnsegments = 32, mnrings = 32;
+        return new THREE.SphereGeometry(mnradius, mnsegments, mnrings);
+      });
 
 
   var moon_spheres = [];
@@ -608,10 +598,9 @@ function Asteroid(args){
   // instantiate mesh to draw asteroid on canvas
   var mesh_material =
     UIResources().cached("asteroid_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false }),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false });
+      });
 
   // comments related to / around create_mesh and geometry also apply to JumpGate,Ship,Asteroid below
   var create_mesh = function(geometry){
@@ -644,36 +633,34 @@ function Asteroid(args){
                            })
                            return null;
                          });
-  
+
   if(mesh_geometry != null) create_mesh(mesh_geometry);
 
   // instantiate sphere to draw around asteroid on canvas
   var sphere_geometry =
     UIResources().cached('asteroid_container_geometry',
-                         function(i) {
-                           return \
-                             var astradius = 25, astsegments = 32, astrings = 32;
-                             new THREE.SphereGeometry(astradius, astsegments, astrings);
-                         });
+      function(i) {
+        var astradius = 25, astsegments = 32, astrings = 32;
+        return new THREE.SphereGeometry(astradius, astsegments, astrings);
+      });
 
   var sphere_material =
     UIResources().cached("asteroid_container_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } );
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } );
+      });
 
   var sphere =
     UIResources().cached("asteroid_" + this.id + "_container",
-                         function(i) {
-                           var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z;
-                           sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
-                           this.clickable_obj = sphere;
-                           return sphere;
-                         });
+      function(i) {
+        var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
+        sphere.position.x = this.location.x;
+        sphere.position.y = this.location.y;
+        sphere.position.z = this.location.z;
+        sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
+        this.clickable_obj = sphere;
+        return sphere;
+      });
 
   this.components.push(sphere);
 
@@ -709,34 +696,33 @@ function JumpGate(args){
   // instantiate mesh to draw jump gate on canvas
   var mesh_texture =
     UIResources().cached("jump_gate_mesh_texture",
-                         function(i) {
-                           var path = UIResources().images_path + '/textures/jump_gate.jpg';
-                           var texture = UIResources().load_texture(path);
-                           texture.wrapS  = THREE.RepeatWrapping;
-                           texture.wrapT  = THREE.RepeatWrapping;
-                           texture.repeat.x  = 5;
-                           texture.repeat.y  = 5;
-                           return texture;
-                         });
+      function(i) {
+        var path = UIResources().images_path + '/textures/jump_gate.jpg';
+        var texture = UIResources().load_texture(path);
+        texture.wrapS  = THREE.RepeatWrapping;
+        texture.wrapT  = THREE.RepeatWrapping;
+        texture.repeat.x  = 5;
+        texture.repeat.y  = 5;
+        return texture;
+      });
 
   var mesh_material =
     UIResources().cached("jump_gate_mesh_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial( { map: mesh_texture } ),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial( { map: mesh_texture } );
+      });
 
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
     var mesh =
       UIResources().cached("jump_gate_" + this.id + "_mesh",
-                           function(i) {
-                             var mesh = new THREE.Mesh(geometry, mesh_material);
-                             mesh.position.x = this.location.x;
-                             mesh.position.y = this.location.y;
-                             mesh.position.z = this.location.z;
-                             return mesh;
-                           });
+        function(i) {
+          var mesh = new THREE.Mesh(geometry, mesh_material);
+          mesh.position.x = this.location.x;
+          mesh.position.y = this.location.y;
+          mesh.position.z = this.location.z;
+          return mesh;
+        });
 
     this.clickable_obj = mesh;
     this.components.push(mesh);
@@ -747,32 +733,33 @@ function JumpGate(args){
 
   var mesh_geometry =
     UIResources().cached('jump_gate_mesh_geometry',
-                         function(i) {
-                           var path = UIResources().images_path + '/meshes/jump_gate.js';
-                           UIResources().load_geometry(path, function(geometry){
-                             UIResources().set('jump_gate_mesh_geometry', geometry)
-                             create_mesh(geometry);
-                           })
-                           return null;
-                         });
-  
+      function(i) {
+        var path = UIResources().images_path + '/meshes/jump_gate.js';
+        UIResources().load_geometry(path, function(geometry){
+          UIResources().set('jump_gate_mesh_geometry', geometry);
+          create_mesh(geometry);
+        })
+        return null;
+      });
+
   if(mesh_geometry != null) create_mesh(mesh_geometry);
 
   // instantiate sphere to draw around jump_gate on canvas
   var sphere_geometry =
     UIResources().cached('jump_gate_' + this.trigger_distance + '_container_geometry',
-                         function(i) {
-                           var radius    = this.trigger_distance, segments = 32, rings = 32;
-                           return \
-                             new THREE.SphereGeometry(radius, segments, rings);
-                         });
+      function(i) {
+        var radius    = this.trigger_distance, segments = 32, rings = 32;
+        return new THREE.SphereGeometry(radius, segments, rings);
+      });
 
   var sphere_material =
     UIResources().cached("jump_gate_container_material",
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.4}),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: 0xffffff,
+                                            transparent: true,
+                                            opacity: 0.4});
+
+      });
 
   var sphere =
     UIResources().cached("jump_gate_" + this.id + "_container",
@@ -842,7 +829,7 @@ function Ship(args){
   this.update = function(args){
     if(args.location && this.location){
       this.location.update(args.location);
-  
+
       this.mesh.position.x = this.location.x;
       this.mesh.position.y = this.location.y;
       this.mesh.position.z = this.location.z;
@@ -905,10 +892,9 @@ function Ship(args){
 
     this.mesh_material =
       UIResources().cached("ship_"+color +"_material",
-                           function(i) {
-                             return \
-                               new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
-                           });
+        function(i) {
+          return new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
+        });
     if(this.mesh) this.mesh.material = this.mesh_material;
   }
   this.set_color();
@@ -950,23 +936,22 @@ function Ship(args){
                            })
                            return null;
                          });
-  
+
   if(mesh_geometry != null) create_mesh(mesh_geometry);
 
   // instantiate sphere to draw around ship on canvas
   var sphere_material =
     UIResources().cached('ship_container_material',
-                         function(i) {
-                           return \
-                             new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } ),
-                         });
+      function(i) {
+        return new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } );
+      });
 
   var sphere_geometry =
     UIResources().cached('ship_container_geometry',
-                         function(i) {
-                           var shipradius = 25, shipsegments = 32, shiprings = 32;
-                           return new THREE.SphereGeometry(shipradius, shipsegments, shiprings);
-                         });
+      function(i) {
+        var shipradius = 25, shipsegments = 32, shiprings = 32;
+        return new THREE.SphereGeometry(shipradius, shipsegments, shiprings);
+      });
 
   this.sphere =
     UIResources().cached("ship_" + this.id + "_container",
@@ -985,10 +970,10 @@ function Ship(args){
   // setup attack vector
   var line_material =
     UIResources().cached('ship_attacking_material',
-                         function(i) {
-                           return \
-                             new THREE.LineBasicMaterial({color: 0xFF0000 })
-                         });
+      function(i) {
+        return new THREE.LineBasicMaterial({color: 0xFF0000 })
+
+      });
 
   this.attack_line_geo =
     UIResources().cached('ship_'+this.id+'_attacking_geometry',
@@ -1003,7 +988,7 @@ function Ship(args){
 
                            return geometry;
                          });
-  this.attack_line = 
+  this.attack_line =
     UIResources().cached('ship_'+this.id+'_attacking_line',
                          function(i) {
                            var line = new THREE.Line(this.attack_line_geo, line_material);
@@ -1012,10 +997,9 @@ function Ship(args){
 
   var line_material =
     UIResources().cached('ship_mining_material',
-                         function(i) {
-                           return \
-                             new THREE.LineBasicMaterial({color: 0x0000FF})
-                         });
+      function(i) {
+        return new THREE.LineBasicMaterial({color: 0x0000FF});
+      });
 
   this.mining_line_geo =
     UIResources().cached('ship_'+this.id+'_mining_geometry',
@@ -1030,7 +1014,7 @@ function Ship(args){
 
                            return geometry;
                          });
-  this.mining_line = 
+  this.mining_line =
     UIResources().cached('ship_'+this.id+'_mining_line',
                          function(i) {
                            var line = new THREE.Line(this.mining_line_geo, line_material);
@@ -1089,12 +1073,15 @@ function Ship(args){
           return text;
         }],
 
-      'cmd_dock_select' : 
+      'cmd_dock_select' :
         ['Dock Ship',
          function(){
           // load dock target selection from stations in the vicinity
-          var entities = Entities().select(function(e) { return e.json_class == 'Manufactured::Station' &&
-                                                                e.location.is_within(100 this.location) });
+          var entities = Entities().select(function(e) {
+            return e.json_class == 'Manufactured::Station' &&
+                   e.location.is_within(100, this.location);
+          });
+
           var text = 'Dock ' + this.id + ' at<br/>';
           for(var e in entities){
             var entity = entities[e];
@@ -1104,11 +1091,13 @@ function Ship(args){
         }],
 
       'cmd_mine_select' :
-        ['Start Mining':
+        ['Start Mining',
          function(){
           // load mining target selection from resource sources in the vicinity
-          var entities = Entities().select(function(e) { return e.json_class == 'Cosmos::Asteroid' &&
-                                                                e.location.is_within(100 this.location) });
+          var entities = Entities().select(function(e) {
+            return e.json_class == 'Cosmos::Asteroid' &&
+                   e.location.is_within(100, this.location);
+          });
 
           var text = "Select resource to mine with "+ this.id +" <br/>";
           for(var e in entities){
@@ -1128,6 +1117,7 @@ function Ship(args){
                   }
                 }
             });
+          }
           return text;
         }]
     };
@@ -1149,12 +1139,12 @@ function Ship(args){
           var cmd     = e.target.id;
           var cmds    = the.selection[cmd];
           var title   = cmds[0];
-          var content = cmds[1].apply(ship, null)
+          var content = cmds[1].apply(ship)
           ship.raise_event(cmd, ship, title, content);
         });
 
     // wire up command page elements
-    $('#cmd_move').live('click', function('e'){
+    $('#cmd_move').live('click', function(e){
       Commands.move_ship(ship,
                          $('#dest_x').val(),
                          $('#dest_y').val(),
@@ -1249,7 +1239,7 @@ Ship.owned_by = function(user_id, cb){
       for(var e in res.result){
         ships.push(new Ship(res.result[e]));
       }
-      cb.apply(null, ships)
+      cb.apply(null, [ships])
     }
   });
 }
@@ -1284,10 +1274,9 @@ function Station(args){
 
     this.mesh_material =
       UIResources().cached("station_"+color +"_material",
-                           function(i) {
-                             return \
-                               new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
-                           });
+        function(i) {
+          return new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
+        });
     if(this.mesh) this.mesh.material = this.mesh_material;
   }
   this.set_color();
@@ -1324,7 +1313,7 @@ function Station(args){
                            })
                            return null;
                          });
-  
+
   if(mesh_geometry != null) create_mesh(mesh_geometry);
 
   // some text to render in details box on click
@@ -1377,7 +1366,7 @@ Station.owned_by = function(user_id, cb){
       for(var e in res.result){
         stations.push(new Station(res.result[e]));
       }
-      cb.apply(null, stations)
+      cb.apply(null, [stations])
     }
   });
 }
@@ -1425,7 +1414,7 @@ Mission.all = function(cb){
       for(var m in result){
         missions.push(new Mission(res.result[m]));
       }
-      cb.apply(null, missions);
+      cb.apply(null, [missions]);
     }
   });
 }
@@ -1447,7 +1436,7 @@ Statistic.with_id = function(id, args, cb){
                                 function(res){
     if(res.result){
       var stat = new Statistic(res.result);
-      cb.apply(null, stat);
+      cb.apply(null, [stat]);
     }
   });
 }

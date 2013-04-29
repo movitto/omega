@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require 'vendor/jquery.cookie'
 //= require "vendor/rjr/json"
 //= require "vendor/rjr/jrw"
 
@@ -94,6 +95,7 @@ function Node(){
   }
 
 
+  return this;
 }
 
 /* Logged in user session
@@ -118,6 +120,8 @@ function Session(args){
     $.cookie('omega-session', null);
     $.cookie('omega-user',    null);
   }
+
+  return this;
 }
 
 Session.restore_from_cookie = function(){
@@ -136,7 +140,7 @@ Session.login = function(user, node, cb){
       Session.current_session = 
         Session({id : response.result.id, user_id : response.result.user_id });
       if(cb)
-        cb.apply(Session.current_session, Session.current_session);
+        cb.apply(Session.current_session, [Session.current_session]);
     }
   });
 }
@@ -144,6 +148,6 @@ Session.login = function(user, node, cb){
 Session.logout = function(node, cb){
   node.web_request('users::logout', Session.current_session.id, function(response){
     Session.current_session = null;
-    if(cb) cb.apply(null, null)
+    if(cb) cb();
   });
 }

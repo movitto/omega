@@ -88,13 +88,13 @@ var Events = {
    */
   stop_track_movement : function(location_id){
     Entities().node().ws_request('motel::remove_callbacks', location_id);
-  }
+  },
 
   /////////////////////////////////////// Mining Events
 
   /* Manufactured Ship mining events
    */
-  track_mining :function(ship_id){ 
+  track_mining : function(ship_id){
     // handle server events
     ServerEvents().handle('manufactured::event_occurred');
 
@@ -126,7 +126,7 @@ var Events = {
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'defended');
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'defended_stop');
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'destroyed');
-  }
+  },
 
   /////////////////////////////////////// Stop tracking manufactured events
 
@@ -167,13 +167,13 @@ var Commands = {
 
     // XXX might be invoked before all jump_ship commands return results
     if(cb)
-      cb.apply(null, jg, entities);
+      cb.apply(null, [jg, entities]);
 
   },
 
   /////////////////////////////////////// Jump Ship Command
 
-  /* Invoke omega server side manufactured::move_entity 
+  /* Invoke omega server side manufactured::move_entity
    * operation to move ship inbetween systems
    *
    * @param {Manufactured::Ship} ship to jump
@@ -190,7 +190,7 @@ var Commands = {
 
   /////////////////////////////////////// Move Ship Command
 
-  /* Invoke omega server side manufactured::move_entity 
+  /* Invoke omega server side manufactured::move_entity
    * operation to move ship in a system
    *
    * @param {Manufactured::Ship} ship ship to move
@@ -209,7 +209,7 @@ var Commands = {
 
   /////////////////////////////////////// Launch Attack Command
 
-  /* Invoke omega server side manufactured::attack_entity 
+  /* Invoke omega server side manufactured::attack_entity
    * operation to attack specified entity
    *
    * @param {Manufactured::Ship} attacker ship to launch attack with
@@ -224,7 +224,7 @@ var Commands = {
 
   /////////////////////////////////////// Dock Ship Command
 
-  /* Invoke omega server side manufactured::dock 
+  /* Invoke omega server side manufactured::dock
    * operation to dock the ship at the specified station
    *
    * @param {Manufactured::Ship} ship ship to dock
@@ -238,7 +238,7 @@ var Commands = {
 
   /////////////////////////////////////// Undock Ship Command
 
-  /* Invoke omega server side manufactured::undock 
+  /* Invoke omega server side manufactured::undock
    * operation to undock the specified ship
    *
    * @param {Manufactured::Ship} ship ship to undock
@@ -251,7 +251,7 @@ var Commands = {
 
   /////////////////////////////////////// Transfer Resources Command
 
-  /* Invoke omega server side manufactured::transfer_resource 
+  /* Invoke omega server side manufactured::transfer_resource
    * operation to transfer all resources for the specified ship
    * to the specified station
    *
@@ -269,7 +269,7 @@ var Commands = {
 
   /////////////////////////////////////// Start Mining Command
 
-  /* Invoke omega server side manufactured::start_mining 
+  /* Invoke omega server side manufactured::start_mining
    * operation to start mining the specified resource using
    * the specified ship
    *
@@ -290,7 +290,7 @@ var Commands = {
 
   /////////////////////////////////////// Construct Entity Command
 
-  /* Invoke omega server side manufactured::construct 
+  /* Invoke omega server side manufactured::construct
    * operation to construct entity using the specified station
    *
    * @param {Manufactured::Station} station station to use to construct entity
