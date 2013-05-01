@@ -60,10 +60,18 @@ function Entity(args){
   this.clicked_in    = function(scene){}
   this.unselected_in = function(scene){}
 
+  /* add properties to ignore in json conversion
+   */
+  this.ignore_properties = [];
+  this.ignore_properties.push('toJSON');
+  this.ignore_properties.push('json_class');
+  this.ignore_properties.push('ignore_properties');
+  this.ignore_properties.push('callbacks');
+
   /* Convert entity to json respresentation
    */
   this.toJSON = function(){
-    return new JRObject(this.json_class, this).toJSON();
+    return new JRObject(this.json_class, this, this.ignore_properties).toJSON();
   };
 }
 
@@ -85,9 +93,8 @@ function User(args){
 }
 
 User.anon_user =
-  new JRObject("Users::User",
-               { id : $omega_config.anon_user,
-                 password : $omega_config.anon_pass });
+  new User({ id : $omega_config.anon_user,
+             password : $omega_config.anon_pass });
 
 /////////////////////////////////////////////////////////////////////
 
@@ -179,6 +186,7 @@ function SolarSystem(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Cosmos::SolarSystem';
+  var system = this;
 
   /* override update to update all children instead of overwriting
    */
@@ -227,9 +235,9 @@ function SolarSystem(args){
       UIResources().cached("jump_gate_" + this.name + "-" + endpoint.name + "_line_geometry",
         function(i) {
           var geometry = new THREE.Geometry();
-          geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                                   this.location.y,
-                                                   this.location.z));
+          geometry.vertices.push(new THREE.Vector3(system.location.x,
+                                                   system.location.y,
+                                                   system.location.z));
 
           geometry.vertices.push(new THREE.Vector3(endpoint.location.x,
                                                    endpoint.location.y,
@@ -269,10 +277,10 @@ function SolarSystem(args){
     UIResources().cached("solar_system_" + this.id + "_sphere",
       function(i) {
         var sphere   = new THREE.Mesh(sphere_geometry, sphere_material);
-        sphere.position.x = this.location.x;
-        sphere.position.y = this.location.y;
-        sphere.position.z = this.location.z ;
-        this.clickable_obj = sphere;
+        sphere.position.x = system.location.x;
+        sphere.position.y = system.location.y;
+        sphere.position.z = system.location.z ;
+        system.clickable_obj = sphere;
         return sphere;
       });
 
@@ -302,9 +310,9 @@ function SolarSystem(args){
     UIResources().cached("solar_system_" + this.id + "_plane_geometry",
                          function(i) {
                            var plane = new THREE.Mesh(plane_geometry, plane_material);
-                           plane.position.x = this.location.x;
-                           plane.position.y = this.location.y;
-                           plane.position.z = this.location.z;
+                           plane.position.x = system.location.x;
+                           plane.position.y = system.location.y;
+                           plane.position.z = system.location.z;
                            return plane;
                          });
 
@@ -314,7 +322,7 @@ function SolarSystem(args){
   var text3d =
     UIResources().cached("solar_system_" + this.id + "label_geometry",
       function(i) {
-        return new THREE.TextGeometry( this.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
+        return new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
       });
 
   var text_material =
@@ -403,6 +411,7 @@ function Star(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Cosmos::Star';
+  var star = this;
 
   this.location = new Location(this.location);
 
@@ -434,10 +443,10 @@ function Star(args){
     UIResources().cached("star_" + this.id + "_sphere_geometry",
                          function(i) {
                            var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z;
-                           this.clickable_obj = sphere;
+                           sphere.position.x = star.location.x;
+                           sphere.position.y = star.location.y;
+                           sphere.position.z = star.location.z;
+                           star.clickable_obj = sphere;
                            return sphere;
                          });
 
@@ -453,6 +462,7 @@ function Planet(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Cosmos::Planet';
+  var planet = this;
 
   this.location = new Location(this.location);
 
@@ -499,10 +509,10 @@ function Planet(args){
     UIResources().cached("planet_" + this.id + "_sphere_geometry",
       function(i) {
         var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-        sphere.position.x = this.location.x;
-        sphere.position.y = this.location.y;
-        sphere.position.z = this.location.z;
-        this.clickable_obj = sphere;
+        sphere.position.x = planet.location.x;
+        sphere.position.y = planet.location.y;
+        sphere.position.z = planet.location.z;
+        planet.clickable_obj = sphere;
         return sphere;
       });
 
@@ -512,7 +522,7 @@ function Planet(args){
   this.orbit =
     UIResources().cached("planet_" + this.id + "_orbit",
       function(i) {
-        return elliptical_path(this.location.movement_strategy);
+        return elliptical_path(planet.location.movement_strategy);
       });
 
   // instantiate line to draw orbit with on canvas
@@ -528,10 +538,10 @@ function Planet(args){
       function(i) {
         var geometry = new THREE.Geometry();
         var first = null, last = null;
-        for(var o in this.orbit){
+        for(var o in planet.orbit){
           if(o != 0){ // && (o % 3 == 0)){
-            var orbit  = this.orbit[o];
-            var porbit = this.orbit[o-1];
+            var orbit  = planet.orbit[o];
+            var porbit = planet.orbit[o-1];
             if(first == null) first = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
             last = new THREE.Vector3(orbit[0],  orbit[1],  orbit[2]);
             geometry.vertices.push(last);
@@ -573,9 +583,9 @@ function Planet(args){
       UIResources().cached("moon_"+ moon.id +"sphere",
                            function(i) {
                              var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                             sphere.position.x = this.location.x + moon.location.x;
-                             sphere.position.y = this.location.y + moon.location.y;
-                             sphere.position.z = this.location.z + moon.location.z;
+                             sphere.position.x = planet.location.x + moon.location.x;
+                             sphere.position.y = planet.location.y + moon.location.y;
+                             sphere.position.z = planet.location.z + moon.location.z;
                              return sphere;
                            });
     this.components.push(sphere);
@@ -592,6 +602,7 @@ function Asteroid(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Cosmos::Asteroid';
+  var asteroid = this;
 
   this.location = new Location(this.location);
 
@@ -605,19 +616,19 @@ function Asteroid(args){
   // comments related to / around create_mesh and geometry also apply to JumpGate,Ship,Asteroid below
   var create_mesh = function(geometry){
     var mesh =
-      UIResources().cached("asteroid_" + this.id + "_mesh",
+      UIResources().cached("asteroid_" + asteroid.id + "_mesh",
                            function(i) {
                              var mesh = new THREE.Mesh(geometry, mesh_material);
-                             mesh.position.x = this.location.x;
-                             mesh.position.y = this.location.y;
-                             mesh.position.z = this.location.z;
+                             mesh.position.x = asteroid.location.x;
+                             mesh.position.y = asteroid.location.y;
+                             mesh.position.z = asteroid.location.z;
                              return mesh;
                            });
 
-    this.components.push(mesh);
+    asteroid.components.push(mesh);
 
-    // reload entity if already in scene
-    if(this.current_scene) this.current_scene.reload(this);
+    // reload asteroid if already in scene
+    if(asteroid.current_scene) asteroid.current_scene.reload(asteroid);
   }
 
   var mesh_geometry =
@@ -654,11 +665,11 @@ function Asteroid(args){
     UIResources().cached("asteroid_" + this.id + "_container",
       function(i) {
         var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-        sphere.position.x = this.location.x;
-        sphere.position.y = this.location.y;
-        sphere.position.z = this.location.z;
+        sphere.position.x = asteroid.location.x;
+        sphere.position.y = asteroid.location.y;
+        sphere.position.z = asteroid.location.z;
         sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
-        this.clickable_obj = sphere;
+        asteroid.clickable_obj = sphere;
         return sphere;
       });
 
@@ -690,6 +701,7 @@ function JumpGate(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Cosmos::JumpGate';
+  var jg = this;
 
   this.location = new Location(this.location);
 
@@ -715,20 +727,20 @@ function JumpGate(args){
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
     var mesh =
-      UIResources().cached("jump_gate_" + this.id + "_mesh",
+      UIResources().cached("jump_gate_" + jg.id + "_mesh",
         function(i) {
           var mesh = new THREE.Mesh(geometry, mesh_material);
-          mesh.position.x = this.location.x;
-          mesh.position.y = this.location.y;
-          mesh.position.z = this.location.z;
+          mesh.position.x = jg.location.x;
+          mesh.position.y = jg.location.y;
+          mesh.position.z = jg.location.z;
           return mesh;
         });
 
-    this.clickable_obj = mesh;
-    this.components.push(mesh);
+    jg.clickable_obj = mesh;
+    jg.components.push(mesh);
 
     // reload entity if already in scene
-    if(this.current_scene) this.current_scene.reload(this);
+    if(jg.current_scene) jg.current_scene.reload(jg);
   }
 
   var mesh_geometry =
@@ -765,9 +777,9 @@ function JumpGate(args){
     UIResources().cached("jump_gate_" + this.id + "_container",
                          function(i) {
                            var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z;
+                           sphere.position.x = jg.location.x;
+                           sphere.position.y = jg.location.y;
+                           sphere.position.z = jg.location.z;
                            sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
                            return sphere;
                          });
@@ -782,7 +794,6 @@ function JumpGate(args){
   this.clicked_in = function(scene){
     this.current_scene = scene;
 
-    var jg = this;
     $('#cmd_trigger_jg').live('click', function(e){
       Commands.trigger_jump_gate(jg, function(j, entities){
         // remove entities from scene
@@ -820,6 +831,7 @@ function Ship(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Manufactured::Ship';
+  var ship = this;
 
   this.location = new Location(this.location);
 
@@ -902,28 +914,28 @@ function Ship(args){
   // instantiate mesh to draw ship on canvas
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
-    this.mesh =
-      UIResources().cached("ship_" + this.id + "_mesh",
+    ship.mesh =
+      UIResources().cached("ship_" + ship.id + "_mesh",
                            function(i) {
-                             var mesh = new THREE.Mesh(geometry, this.mesh_material);
-                             mesh.position.x = this.location.x;
-                             mesh.position.y = this.location.y;
-                             mesh.position.z = this.location.z;
+                             var mesh = new THREE.Mesh(geometry, ship.mesh_material);
+                             mesh.position.x = ship.location.x;
+                             mesh.position.y = ship.location.y;
+                             mesh.position.z = ship.location.z;
                              mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
                              mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
 
                              // set orientation
-                             mesh.rotation.x = this.location.orientation_x;
-                             mesh.rotation.y = this.location.orientation_y;
-                             mesh.rotation.z = this.location.orientation_z;
+                             mesh.rotation.x = ship.location.orientation_x;
+                             mesh.rotation.y = ship.location.orientation_y;
+                             mesh.rotation.z = ship.location.orientation_z;
 
                              return mesh;
                            });
 
-    if(this.hp > 0) this.components.push(this.mesh);
+    if(ship.hp > 0) ship.components.push(ship.mesh);
 
     // reload entity if already in scene
-    if(this.current_scene) this.current_scene.reload(this);
+    if(ship.current_scene) ship.current_scene.reload(ship);
   }
 
   var mesh_geometry =
@@ -957,9 +969,9 @@ function Ship(args){
     UIResources().cached("ship_" + this.id + "_container",
                          function(i) {
                            var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = this.location.x;
-                           sphere.position.y = this.location.y;
-                           sphere.position.z = this.location.z;
+                           sphere.position.x = ship.location.x;
+                           sphere.position.y = ship.location.y;
+                           sphere.position.z = ship.location.z;
                            sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
                            return sphere;
                          });
@@ -979,11 +991,11 @@ function Ship(args){
     UIResources().cached('ship_'+this.id+'_attacking_geometry',
                          function(i) {
                            var geometry = new THREE.Geometry();
-                           var av = this.attacking ?
-                                    this.attacking.location : {x:0, y:0, z:0};
-                           geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                                                    this.location.y,
-                                                                    this.location.z));
+                           var av = ship.attacking ?
+                                    ship.attacking.location : {x:0, y:0, z:0};
+                           geometry.vertices.push(new THREE.Vector3(ship.location.x,
+                                                                    ship.location.y,
+                                                                    ship.location.z));
                            geometry.vertices.push(new THREE.Vector3(av[0], av[1], av[2]));
 
                            return geometry;
@@ -991,7 +1003,7 @@ function Ship(args){
   this.attack_line =
     UIResources().cached('ship_'+this.id+'_attacking_line',
                          function(i) {
-                           var line = new THREE.Line(this.attack_line_geo, line_material);
+                           var line = new THREE.Line(ship.attack_line_geo, line_material);
                            return line;
                          });
 
@@ -1005,11 +1017,11 @@ function Ship(args){
     UIResources().cached('ship_'+this.id+'_mining_geometry',
                          function(i) {
                            var geometry = new THREE.Geometry();
-                           var av = this.mining ?
-                                    this.mining.location : {x:0, y:0, z:0};
-                           geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                                                    this.location.y,
-                                                                    this.location.z));
+                           var av = ship.mining ?
+                                    ship.mining.location : {x:0, y:0, z:0};
+                           geometry.vertices.push(new THREE.Vector3(ship.location.x,
+                                                                    ship.location.y,
+                                                                    ship.location.z));
                            geometry.vertices.push(new THREE.Vector3(av[0], av[1], av[2]));
 
                            return geometry;
@@ -1017,7 +1029,7 @@ function Ship(args){
   this.mining_line =
     UIResources().cached('ship_'+this.id+'_mining_line',
                          function(i) {
-                           var line = new THREE.Line(this.mining_line_geo, line_material);
+                           var line = new THREE.Line(ship.mining_line_geo, line_material);
                            return line;
                          });
 
@@ -1033,13 +1045,13 @@ function Ship(args){
   // some text to render in details box on click
   this.details = ['Ship: ' + this.id + '<br/>',
                   '@ ' + this.location.to_s() + '<br/>'];
-  if(this.belongs_to_user($user_id)){
-    details.push("<span id='cmd_move_select' class='commands'>move</span>");
-    details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
-    details.push("<span id='cmd_dock_select' class='commands'>dock</span>");
-    details.push("<span id='cmd_undock' class='commands'>undock</span>");
-    details.push("<span id='cmd_transfer' class='commands'>transfer</span>");
-    details.push("<span id='cmd_mine_select' class='commands'>mine</span>");
+  if(this.belongs_to_user(Session.current_session.user_id)){
+    this.details.push("<span id='cmd_move_select' class='commands'>move</span>");
+    this.details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
+    this.details.push("<span id='cmd_dock_select' class='commands'>dock</span>");
+    this.details.push("<span id='cmd_undock' class='commands'>undock</span>");
+    this.details.push("<span id='cmd_transfer' class='commands'>transfer</span>");
+    this.details.push("<span id='cmd_mine_select' class='commands'>mine</span>");
   }
 
   // text to render in popup on selection command click
@@ -1126,7 +1138,6 @@ function Ship(args){
    */
   this.clicked_in = function(scene){
     this.current_scene = scene;
-    var ship = this;
 
     // wire up selection command page elements,
     $('#cmd_move_select',
@@ -1231,9 +1242,9 @@ function Ship(args){
 /* Return ships owned by the specified user
  */
 Ship.owned_by = function(user_id, cb){
-  Entities().node().web_request('manufactured::get_entities', 'owned_by',
+  Entities().node().web_request('manufactured::get_entities',
                                 'of_type', 'Manufactured::Ship',
-                                user_id, function(res){
+                                'owned_by', user_id, function(res){
     if(res.result){
       var ships = [];
       for(var e in res.result){
@@ -1253,6 +1264,7 @@ function Station(args){
   $.extend(this, new CanvasComponent(args));
 
   this.json_class = 'Manufactured::Station';
+  var station = this;
 
   this.location = new Location(this.location);
 
@@ -1285,22 +1297,22 @@ function Station(args){
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
     this.mesh =
-      UIResources().cached("station_" + this.id + "_mesh",
+      UIResources().cached("station_" + station.id + "_mesh",
                            function(i) {
-                             var mesh = new THREE.Mesh(geometry, this.mesh_material);
-                             mesh.position.x = this.location.x;
-                             mesh.position.y = this.location.y;
-                             mesh.position.z = this.location.z;
+                             var mesh = new THREE.Mesh(geometry, station.mesh_material);
+                             mesh.position.x = station.location.x;
+                             mesh.position.y = station.location.y;
+                             mesh.position.z = station.location.z;
                              mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
                              mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
                              return mesh;
                            });
 
-    this.clickable_obj = this.mesh;
-    this.components.push(this.mesh);
+    station.clickable_obj = station.mesh;
+    station.components.push(station.mesh);
 
-    // reload entity if already in scene
-    if(this.current_scene) this.current_scene.reload(this);
+    // reload station if already in scene
+    if(station.current_scene) station.current_scene.reload(station);
   }
 
   var mesh_geometry =
@@ -1319,15 +1331,14 @@ function Station(args){
   // some text to render in details box on click
   this.details = ['Station: ' + this.id + '<br/>',
                   '@ ' + this.location.to_s() + '<br/>'];
-  if(this.belongs_to_user($user_id))
-    details.push("<span id='cmd_construct' class='commands'>construct</span>");
+  if(this.belongs_to_user(Session.current_session.user_id))
+    this.details.push("<span id='cmd_construct' class='commands'>construct</span>");
 
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
     this.current_scene = scene;
 
-    var station = this;
     $('#cmd_construct').live('click', function(e){
       Commands.construct_entity(station,
                                 function(res){
@@ -1358,9 +1369,9 @@ function Station(args){
 /* Return stations owned by the specified user
  */
 Station.owned_by = function(user_id, cb){
-  Entities().node().web_request('manufactured::get_entities', 'owned_by',
+  Entities().node().web_request('manufactured::get_entities',
                                 'of_type', 'Manufactured::Station',
-                                user_id, function(res){
+                                'owned_by', user_id, function(res){
     if(res.result){
       var stations = [];
       for(var e in res.result){
@@ -1411,7 +1422,7 @@ Mission.all = function(cb){
                                 function(res){
     if(res.result){
       var missions = [];
-      for(var m in result){
+      for(var m in res.result){
         missions.push(new Mission(res.result[m]));
       }
       cb.apply(null, [missions]);

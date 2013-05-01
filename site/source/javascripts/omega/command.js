@@ -59,6 +59,8 @@ function ServerEvents(){
     Entities().node.clear_handlers(server_event);
     this.callbacks[server_event] = null;
   }
+
+  return this;
 }
 
 /////////////////////////////////////// Events Namespace

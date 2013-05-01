@@ -13,6 +13,7 @@
 function Node(){
   $.extend(this, new EventTracker());
 
+  var node         = this;
   var rjr_web_node = new WebNode('http://'+$omega_config['host']+'/omega');
   var rjr_ws_node  = new WSNode($omega_config['host'], '8080');
 
@@ -36,11 +37,11 @@ function Node(){
 
   // handle requests/notifications received over websocket
   rjr_ws_node.message_received  = function(jr_msg) { 
-    this.raise_event('msg_received', jr_msg);
+    node.raise_event('msg_received', jr_msg);
 
     // ensure this is a request message
     if(jr_msg && jr_msg['method']){
-      var handlers = this.handlers[jr_msg['method']];
+      var handlers = node.handlers[jr_msg['method']];
       if(handlers != null){
         for(var i=0; i < handlers.length; i++){
           handlers[i].apply(null, jr_message['params']);
@@ -51,15 +52,15 @@ function Node(){
 
   // client web node doesn't support incoming requests/notifications
   rjr_web_node.message_received  = function(jr_msg) { 
-    this.raise_event('msg_received', jr_msg);
+    node.raise_event('msg_received', jr_msg);
   }
 
   // catch errors and handle
   rjr_web_node.onerror = 
   rjr_ws_node.onerror  = 
     function(err){
-      for(var eh in this.error_handlers)
-        this.error_handlers[eh](err);
+      for(var eh in node.error_handlers)
+        node.error_handlers[eh](err);
     }
 
   /* Invoke a json-rpc message on the omega server via a web socket request.
@@ -94,6 +95,8 @@ function Node(){
     rjr_web_node.headers[header] = value;
   }
 
+  // automatically open ws socket connection (move elsewhere?)
+  rjr_ws_node.open();
 
   return this;
 }
@@ -101,17 +104,31 @@ function Node(){
 /* Logged in user session
  */
 function Session(args){
-  var id      = args['id'];
-  var user_id = args['user'];
+  this.id      = args['id'];
+  this.user_id = args['user_id'];
 
-  $.cookie('omega-session', id);
-  $.cookie('omega-user',    user_id);
+  $.cookie('omega-session', this.id);
+  $.cookie('omega-user',    this.user_id);
+
+  /* set session headers on the node
+   */
+  this.set_headers_on = function(node){
+    node.set_header('session_id',  this.id);
+    node.set_header('source_node', this.user_id);
+  }
+
+  /* clear session headers on the node
+   */
+  this.clear_headers_on = function(node){
+    node.set_header('session_id',  null);
+    node.set_header('source_node', null);
+  }
 
   /* validate the session, specify callback to be invoked w/ result
    */
   this.validate = function(node, callback){
     node.web_request('users::get_entity',
-                     'with_id', user_id, callback);
+                     'with_id', this.user_id, callback);
   }
 
   /* destroy session
@@ -129,7 +146,8 @@ Session.restore_from_cookie = function(){
   var session_id = $.cookie('omega-session');
 
   if(user_id != null && session_id != null){
-    return new Session({id : session_id, user_id : user_id})
+    Session.current_session = new Session({id : session_id, user_id : user_id});
+    return Session.current_session;
   }
 }
 
@@ -138,7 +156,8 @@ Session.login = function(user, node, cb){
     if(response.error){
     }else{
       Session.current_session = 
-        Session({id : response.result.id, user_id : response.result.user_id });
+        new Session({id : response.result.id, user_id : response.result.user.id });
+      Session.current_session.set_headers_on(node);
       if(cb)
         cb.apply(Session.current_session, [Session.current_session]);
     }
@@ -147,6 +166,7 @@ Session.login = function(user, node, cb){
 
 Session.logout = function(node, cb){
   node.web_request('users::logout', Session.current_session.id, function(response){
+    Session.current_session.clear_headers_on(node)
     Session.current_session = null;
     if(cb) cb();
   });

@@ -16,6 +16,12 @@ Object.values = function(obj){
   return vals;
 }
 
+/* round a fload to the specified number of decimal places
+ */
+function roundTo(number, places){
+  return Math.round(number * Math.pow(10,places)) / Math.pow(10,places);
+}
+
 // normalize vector
 var nrml = function(x,y,z){
   var l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
@@ -44,7 +50,7 @@ var abwn = function(x1, y1, z1, x2, y2, z2){
   n = nrml(x2, y2, z2);
   x2 = n[0]; y2 = n[1]; z2 = n[2];
 
-  var d = dp(x1. y1, z1, x2, y2, z2);
+  var d = dp(x1, y1, z1, x2, y2, z2);
   var a = Math.acos(d);
   var na = -1 * a;
 
@@ -59,17 +65,18 @@ var rot = function(x, y, z, angle, ax, ay, az){
   var n = nrml(ax, ay, az);
   ax = n[0]; ay = n[1]; az = n[2];
 
-  var c = Math.cos(angle); var s = Math.sin(angle);
-  var d = dp(x, y, z, ax, ay, az);
-  var x = cp(ax, ay, az, x, y, z);
-  var rx = x * c + x[0] * s + ax * d * (1-c);
-  var ry = y * c + x[1] * s + ay * d * (1-c);
-  var rz = z * c + x[2] * s + az * d * (1-c);
+  var c  = Math.cos(angle); var s = Math.sin(angle);
+  var d  = dp(x, y, z, ax, ay, az);
+  var xp = cp(ax, ay, az, x, y, z);
+  var rx = x * c + xp[0] * s + ax * d * (1-c);
+  var ry = y * c + xp[1] * s + ay * d * (1-c);
+  var rz = z * c + xp[2] * s + az * d * (1-c);
+  return [rx, ry, rz];
 }
 
 // calc elliptical path given elliptical movement strategy
 var elliptical_path = function(ms){
-  var orbit = [];
+  var path = [];
 
   // intercepts
   var a = ms.semi_latus_rectum / (1 - Math.pow(ms.eccentricity, 2));
@@ -90,13 +97,13 @@ var elliptical_path = function(ms){
   var ab = abwn(0, 0, 1, nv[0], nv[1], nv[2]);
   var ax = nrml(0, 0, 1, nv[0], nv[1], nv[2])
 
-  // orbit
+  // path
   for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
     var x = a * Math.cos(i);
     var y = a * Math.sin(i);
     var n = rot(x, y, 0, ab, ax[0], ax[1], ax[2]);
-    orbit.push(n);
+    path.push(n);
   }
 
-  return orbit;
+  return path;
 }

@@ -51,7 +51,7 @@ function UIResources(){
   $.extend(this, new Registry());
 
   // to render textures
-  var texture_placeholder = document.createElement( 'canvas' );
+  //var texture_placeholder = document.createElement( 'canvas' );
 
   // to load mesh geometries
   var loader = new THREE.JSONLoader();
@@ -63,17 +63,7 @@ function UIResources(){
   /* Load a remote texture resource from the specified path
    */
   this.load_texture = function(path){
-    var texture  = new THREE.Texture( texture_placeholder );
-    var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: true } );
-
-    var image = new Image();
-    image.onload = function () {
-      texture.needsUpdate = true;
-      material.map.image = this;
-//$omega_scene.animate(); animation needed?
-    };
-    image.src = path;
-    return material;
+    return THREE.ImageUtils.loadTexture(path);
   }
 
   /* Load a remote mesh geometry resource from the specified path
@@ -94,9 +84,13 @@ function UIResources(){
  * Subclasses should set 'id' attribut to css id of div corresponding
  * to component. Setting to null inidicates this component has no div
  *
+ * Subclasses may define the 'close_control_id' to reference
+ * a page element which when clicked should hide the
+ * component on the page
+ *
  * Subclasses may define the 'toggle_control_id' to reference
- * a checkable page element controlling the display of the
- * component on the canvas
+ * a page element which when clicked will toggle the
+ * component on the page
  */
 function UIComponent(args){
   $.extend(this, new EventTracker());
@@ -111,8 +105,8 @@ function UIComponent(args){
 
     var comp = this;
     if(cb_id == 'resize'){
-      comp.component().resizable();
-      comp.component().resize(function(e){
+      this.component().resizable();
+      this.component().resize(function(e){
         comp.raise_event('resize', e);
       });
 
@@ -151,8 +145,15 @@ function UIComponent(args){
     this.component().append(content);
   }
 
+  /* Return the page component corresponding to the close control
+   */
+  this.close_control = function(){
+    return $(this.close_control_id)
+  }
+
   /* Return the page component corresponding to the toggle control
    */
+  var toggled = false;
   this.toggle_control = function(){
     return $(this.toggle_control_id)
   }
@@ -160,20 +161,28 @@ function UIComponent(args){
   /* Show the omega component
    */
   this.show = function(){
+    this.toggled = true;
+    if(this.toggle_control())
+      this.toggle_control().attr('checked', true);
+
     if(this.component())
       this.component().show();
     for(var cmp in this.subcomponents)
-      this.subcomponent.show();
+      this.subcomponents[cmp].show();
     this.raise_event('show');
   }
 
   /* Hide the component
    */
   this.hide = function(){
+    this.toggled = false;
+    if(this.toggle_control())
+      this.toggle_control().attr('checked', false);
+
     if(this.component())
       this.component().hide();
     for(var cmp in this.subcomponents)
-      this.subcomponent.hide();
+      this.subcomponents[cmp].hide();
     this.raise_event('hide');
   }
 
@@ -181,14 +190,14 @@ function UIComponent(args){
    * on checked attribute of the toggle_control input
    */
   this.toggle = function(){
-    var to_toggle = $(this.toggle_control_id);
-    if(to_toggle){
-      if(to_toggle.is(':checked'))
-        this.show();
-      else
-        this.hide();
-    }
-    this.scene.animate();
+    this.toggled = !this.toggled;
+
+    if(this.toggled)
+      this.show();
+    else
+      this.hide();
+
+    this.raise_event('toggle');
   }
 
   /* Set component size
@@ -233,6 +242,20 @@ function UIComponent(args){
       //else if(sides[side] == 'bottom')
     }
   }
+
+  /* Wire up the controls to the page
+   */
+  this.wire_up = function(){
+    this.close_control().die();
+    this.toggle_control().die();
+
+    var comp = this;
+    this.close_control().live('click',  function(e) { comp.hide();   });
+    this.toggle_control().live('click', function(e) { comp.toggle(); })
+
+    this.toggled = true;
+    this.toggle();
+  }
 }
 
 /* UI List Component
@@ -259,19 +282,22 @@ function UIListComponent(args){
 
   /* Add item to this list
    */
-  this.add_item = function(items){
-    for(var i in items){
-      var item = items[i];
-      this.items.push(item);
-
-      // wire up clicked handler
-      // XXX probably should go into 'on' function
-      // as in UIComponent callbacks, but this is
-      // simple/clean/works for now
-      $('#' + item.id).live('click', function(e){
-        this.raise_event('click_item', item, e);
-      })
+  this.add_item = function(item){
+    if($.isArray(item)){
+      for(var i in items)
+        this.add_item(items[i]);
+      return;
     }
+
+    this.items.push(item);
+
+    // wire up clicked handler
+    // XXX probably should go into 'on' function
+    // as in UIComponent callbacks, but this is
+    // simple/clean/works for now
+    $('#' + item.id).live('click', function(e){
+      this.raise_event('click_item', item, e);
+    })
 
     this.refresh();
   }
@@ -302,7 +328,8 @@ function CanvasComponent(args){
 
   var showing = false;
 
-  this.scene = args['scene'];
+  if(args)
+    this.scene = args['scene'];
 
   this.components = [];
 
@@ -352,11 +379,12 @@ function CanvasComponent(args){
     this.scene.animate();
   }
 
-  /* Wire up the controls to the page
+  /* Wire up the canvas controls
    */
-  this.wire_up = function(){
-    // wire up axis controls
-    this.toggle_canvas().live('click', function(e){ this.stoggle(); });
+  this.cwire_up = function(){
+    // wire up canvas controls
+    var comp = this;
+    this.toggle_canvas().live('click', function(e){ comp.stoggle(); });
     this.toggle_canvas().attr('checked', false);
   }
 }
@@ -792,9 +820,12 @@ function Camera(args){
   }
 
   /* Wire up the camera to the page
+   *
+   * @overloaded
    */
+  this.old_wire_up = this.wire_up;
   this.wire_up = function(){
-    // wire up camera controls
+    this.old_wire_up();
 
     if(jQuery.fn.mousehold){
       var _cam = this;
@@ -961,8 +992,11 @@ function Axis(args){
   $.extend(this, new UIComponent(args));
   $.extend(this, new CanvasComponent(args));
 
+  this.scene = args['scene'];
+
   this.div_id = '#toggle_axis_canvas';
   this.toggle_canvas_id = this.div_id;
+  this.on('toggle', function(a){ this.scene.animate(); });
 
   this.num_markers = 3; // should be set to number of
                         // elements in distance_geometries
@@ -1015,7 +1049,7 @@ function Axis(args){
         return new THREE.Line(line_geometry, line_material,
                               THREE.LinePieces );
       });
-  this.subcomponents.push(line);
+  this.components.push(line);
 
   var distance_markers =
     UIResources().cached('axis_distance_markers',
@@ -1044,8 +1078,11 @@ function Grid(args){
   $.extend(this, new UIComponent(args));
   $.extend(this, new CanvasComponent(args));
 
+  this.scene = args['scene'];
+
   this.div_id = '#toggle_grid_canvas';
   this.toggle_canvas_id = this.div_id;
+  this.on('toggle', function(a){ this.scene.animate(); });
 
   /////////////////////////////////////// private data
   var size = 1000;
@@ -1101,7 +1138,8 @@ function SelectBox(args){
 
   /* disable explicity show / hide
    */
-  this.show = this.hide = this.toggle = null;
+  this.show = this.hide = this.toggle = function(){};
+  
 
   /* start showing the select box at the specified coords
    */
@@ -1182,16 +1220,7 @@ function EntityContainer(args){
   this.contents.div_id = '#entity_container_contents';
   this.subcomponents.push(this.contents);
 
-  this.close_id = '#entity_container_close';
-
-  /* Wire up the controls to the page
-   */
-  this.wire_up = function(){
-    var container = this;
-    $(this.close_id).live('click', function(e){
-      container.hide();
-    })
-  }
+  this.close_control_id = '#entity_container_close';
 }
 
 /* Instantiate and return a new Dialog
@@ -1200,6 +1229,12 @@ function Dialog(args){
   $.extend(this, new UIComponent(args));
 
   this.div_id = '#omega_dialog';
+
+  /* return the specified div under the dialog
+   */
+  this.subdiv = function(id){
+    return $(this.div_id + ' ' + id);
+  }
 
   if(args){
     // title to assign to dialog
@@ -1220,9 +1255,9 @@ function Dialog(args){
     var content = $(this.selector).html();
     if(content == null) content = "";
     if(this.text == null) this.text = "";
-    this.component().html(content + text).
-                     dialog({title: title, width: '450px'}).
-                     dialog('option', 'title', title).
+    this.component().html(content + this.text).
+                     dialog({title: this.title, width: '450px'}).
+                     dialog('option', 'title', this.title).
                      dialog('open');
   };
 
@@ -1266,15 +1301,16 @@ function StatusIndicator(args){
   // Helper set icon background
   var set_bg = function(bg){
     if(bg == null){
-      icon.css('background', '');
+      this.component().css('background', '');
       return;
     }
 
     this.component().
          css('background',
-             'url(' + $omega_config['host'] +
-                      $omega_config['prefix'] +
-                      '"/images/status/' + bg + '.png") no-repeat');
+             'url("http://' +
+                  $omega_config['host'] +
+                  $omega_config['prefix'] +
+                  '/images/status/' + bg + '.png") no-repeat');
   }
 
   /* Return boolean indicating if state is currently represented locally
@@ -1352,8 +1388,14 @@ function NavContainer(args){
   this.register_link = new UIComponent();
   this.register_link.div_id = '#register_link';
 
+  this.register_button = new UIComponent();
+  this.register_button.div_id = '#register_button';
+
   this.login_link = new UIComponent();
   this.login_link.div_id = '#login_link';
+
+  this.login_button = new UIComponent();
+  this.login_button.div_id = '#login_button';
 
   this.logout_link = new UIComponent();
   this.logout_link.div_id = '#logout_link';

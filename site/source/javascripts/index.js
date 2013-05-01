@@ -17,16 +17,19 @@ $(document).ready(function(){
     console.log(e);
 
     // show login & registration errors in an alert box
-    if(error_msg['error']['class'] == 'Omega::DataNotFound' &&
-       error_msg['error']['message'].slice(0,4) == "user")
-         alert(error_msg['error']['message']);
+    if(e['error']['class'] == 'Omega::DataNotFound' &&
+       e['error']['message'].slice(0,4) == "user")
+         alert(e['error']['message']);
 
-    else if(error_msg['error']['class'] == 'ArgumentError' &&
-            error_msg['error']['message'] == "invalid user")
+    else if(e['error']['class'] == 'ArgumentError' &&
+            e['error']['message'] == "invalid user")
          alert("invalid user credentials");
   });
 
   // setup interface and restore session
   wire_up_ui(ui, node);
   restore_session(ui, node);
+
+  // show the canvas by default on the index page
+  ui.canvas.show();
 });

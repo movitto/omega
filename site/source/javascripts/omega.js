@@ -17,6 +17,8 @@
 //= require 'vendor/jquery.jplayer.min'
 //= require 'vendor/jquery.jplayer.playlist.min'
 
+// TODO rather not pass ui, node around everywhere
+
 ////////////////////////////////////////// session
 
 /* Public helper to attempt to restore user session
@@ -24,14 +26,15 @@
 this.restore_session = function(ui, node, cb){
   var session = Session.restore_from_cookie();
   if(session == null){
-    Session.login(User.anon_user, node, cb);
+    login_anon(node, cb);
 
   }else{
+    session.set_headers_on(node);
     session.validate(node, function(result){
       if(result.error){
-        Session.login(User.anon_user, node);
+        login_anon(node);
 
-      }else{
+      }else if(result.result.id != User.anon_user.id){
         session_established(ui, node, session, result.result);
       }
       if(cb) cb();
@@ -39,16 +42,25 @@ this.restore_session = function(ui, node, cb){
   }
 }
 
+/* Internal helpers to login as anon and invoke callback
+ */
+var login_anon = function(node, cb){
+  Session.login(User.anon_user, node,
+                function(session){
+                  if(cb) cb();
+                });
+}
+
 /* Internal helper to be invoked upon a non-anon user
  * session being established
  */
 var session_established = function(ui, node, session, user){
-  // set node headers
-  node.set_header('session_id', session.id);
-  node.set_header('source_node', user.id);
+  // set node in entities registry
+  // XXX don't like this approach but works for now
+  Entities().node(node);
 
   // show logout controls
-  ui.navigaton.show_logout_controls();
+  ui.nav_container.show_logout_controls();
 
   // subscribe to chat messages
   if(!node.handlers['users::on_message']) node.handlers['users::on_message'] = [];
@@ -58,15 +70,14 @@ var session_established = function(ui, node, session, user){
   node.ws_request('users::subscribe_to_messages');
 
   // show chat
-  ui.chat_container.toggle_control.show();
-  ui.chat_container.show();
+  ui.chat_container.toggle_control().show();
 
   // show missions button
   ui.missions_button.show();
 
   // get all entities owned by the user
-  Ship.owned_by(user.id,    process_entities);
-  Station.owned_by(user.id, process_entities);
+  Ship.owned_by(user.id,    function(e){ process_entities(ui, node, e); });
+  Station.owned_by(user.id, function(e){ process_entities(ui, node, e); });
 
   // populate account information
   ui.account_info.username(user.id);
@@ -82,7 +93,7 @@ var session_established = function(ui, node, session, user){
 /* Internal helper to process manufactured entities,
  * eg add them to the ui, retrieve additional related data
  */
-var process_entities = function(entities){
+var process_entities = function(ui, node, entities){
   // set user owned entities in account info
   var uowned = $.grep(entities, function(e) {
     return e.belongs_to_current_user();
@@ -115,9 +126,9 @@ var process_entities = function(entities){
               manufactured_event);
 
     // retrieve system and galaxy which entity is in
-    load_cosmos(entity.system_name, function(cosmos){
+    load_cosmos('Cosmos::SolarSystem', entity.system_name, ui, node, function(cosmos){
       if(cosmos.json_class == 'Cosmos::SolarSystem')
-        entity.solar_system = sys;
+        entity.solar_system = cosmos;
 
       if(entity.belongs_to_current_user()){
         ui.locations_container.add_item({ item : cosmos,
@@ -243,7 +254,7 @@ var process_stats = function(stats){
 /* Internal helper to tie various ui entities together through events
  */
 var handle_events = function(ui, node, entity){
-  if(typeof entity === "array"){
+  if($.isArray(entity)){
     for(var e in entity) handle_events(ui, node, entity[e]);
     return;
   }
@@ -331,7 +342,7 @@ var clicked_ship = function(ui, node, ship){
   entity.clear_callbacks(finsihed_select_cmds);
   entity.on(finished_select_cmds,
     function(sh){
-      ui.dialog.close();
+      ui.dialog.hide();
       ui.canvas.scene.animate();
     });
 
@@ -358,7 +369,7 @@ var clicked_station = function(ui, node, station){
 
 /* Internal helper to load cosmos entity
  */
-var load_cosmos = function(type, name, callback){
+var load_cosmos = function(type, name, ui, node, callback){
   // if already loaded cosmos entity, apply callback and return.
   // we need this here as callback won't be invoked otherwise
   var entity = Entities().get(name);
@@ -395,7 +406,7 @@ var load_cosmos = function(type, name, callback){
 
         // load jump gate endpoints
         for(var jg in s.jump_gates){
-          load_cosmos('Cosmos::SolarSystem', jg.endpoint, function(jgs){
+          load_cosmos('Cosmos::SolarSystem', jg.endpoint, ui, node, function(jgs){
             if(jgs.json_class == 'Cosmos::SolarSystem'){
               jg.endpoint_system = jgs;
               s.add_jump_gate(jg, jgs);
@@ -404,7 +415,7 @@ var load_cosmos = function(type, name, callback){
         }
 
         // retrieve galaxy
-        load_cosmos('Cosmos::Galaxy', s.galaxy_name, function(g){
+        load_cosmos('Cosmos::Galaxy', s.galaxy_name, ui, node, function(g){
           s.galaxy = g;
           callback.apply(null, [g]);
         })
@@ -457,11 +468,11 @@ var wire_up_nav = function(ui, node){
     
   // login on login dialog submit
   ui.nav_container.
-     login_link.on('click', function(){
-       ui.dialog.close();
-       var user_id       = $('#login_username').attr('value');
-       var user_password = $('#login_password').attr('value');
-       var user = new OmegaUser({ id : user_id, password : user_password });
+     login_button.on('click', function(){
+       ui.dialog.hide();
+       var user_id       = ui.dialog.subdiv('#login_username').attr('value');
+       var user_password = ui.dialog.subdiv('#login_password').attr('value');
+       var user = new User({ id : user_id, password : user_password });
        Session.login(user, node, function(session){
          session_established(ui, node, session, user)
        });
@@ -483,15 +494,15 @@ var wire_up_nav = function(ui, node){
      });
     
   ui.nav_container.
-     register_link.on('click', function(){
-       ui.dialog.close();
+     register_button.on('click', function(){
+       ui.dialog.hide();
        var user_id             = $('#register_username').attr('value');
        var user_password       = $('#register_password').attr('value');
        var user_email          = $('#register_email').attr('value');
        var recaptcha_challenge = Recaptcha.get_challenge();
        var recaptcha_response  = Recaptcha.get_response();
 
-       var user = new OmegaUser({ id : user_id, password : user_password, email : user_email,
+       var user = new User({ id : user_id, password : user_password, email : user_email,
                              recaptcha_challenge : recaptcha_challenge,
                              recaptcha_response : recaptcha_response});
 
@@ -515,7 +526,7 @@ var wire_up_nav = function(ui, node){
   ui.nav_container.
      logout_link.on('click', function(){
        Session.logout(node, function(){
-         Session.login(User.anon_user, node);
+         login_anon(node);
        });
 
        // hide everything (almost)
@@ -535,7 +546,7 @@ var wire_up_nav = function(ui, node){
        ui.canvas.scene.grid.shide();
        ui.canvas.scene.camera.reset();
 
-       ui.navigaton.show_login_controls();
+       ui.nav_container.show_login_controls();
      });
 };
 
@@ -544,11 +555,11 @@ var wire_up_nav = function(ui, node){
 /* Internal helper to wire up status indicator
  */
 var wire_up_status = function(ui, node){
-  node.on('request', function(req){
+  node.on('request', function(node, req){
     ui.status_indicator.push_state('loading');
   });
 
-  node.on('msg_received', function(req){
+  node.on('msg_received', function(node, res){
     ui.status_indicator.pop_state();
   });
 
@@ -645,7 +656,15 @@ var show_missions = function(missions, ui){
 /* Internal helper to wire up the canvas
  */
 var wire_up_canvas = function(ui, node){
+  // wire up canvas and related components to page
+  ui.canvas.wire_up();
+  ui.canvas.scene.camera.wire_up();
+  ui.canvas.scene.axis.wire_up();
+  ui.canvas.scene.grid.wire_up();
+  ui.entity_container.wire_up();
+
   // FIXME capture page resize and resize canvas
+
   // when setting scene to solar system, get all entities under it
   ui.canvas.scene.on('set', function(s){
     // remove event callbacks of entities in old system not beloning to user
@@ -663,7 +682,7 @@ var wire_up_canvas = function(ui, node){
                                                               
     // refresh entities under the system
     if(s.get().json_class == "Cosmos::SolarSystem")
-      SolarSystem.entities_under(s.get().name, process_entities);
+      SolarSystem.entities_under(s.get().name, function(e){ process_entities(ui, node, e); });
   });
 }
 
@@ -672,6 +691,10 @@ var wire_up_canvas = function(ui, node){
 /* Internal helper to wire up chat container
  */
 var wire_up_chat = function(ui, node){
+  // wire up chat to page
+  ui.chat_container.wire_up();
+
+  // send message via node when user clicks send button
   ui.chat_container.
     button.on('click', function(b, e){
       var message = ui.chat_container.input.attr('value');
@@ -682,7 +705,7 @@ var wire_up_chat = function(ui, node){
     });
 };
 
-////////////////////////////////////////// canvas
+////////////////////////////////////////// account info
 
 /* Internal helper to wire up account info container
  */

@@ -54,6 +54,8 @@ function EventTracker(){
       for(var e in this.callbacks[evnt])
         this.callbacks[evnt][e].apply(this, args);
   }
+
+  return this;
 }
 
 /* Instantiate and return a new Registry instance
