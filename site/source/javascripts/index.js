@@ -32,4 +32,6 @@ $(document).ready(function(){
 
   // show the canvas by default on the index page
   ui.canvas.show();
+  ui.canvas.lock(['top', 'left']);
+
 });

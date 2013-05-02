@@ -93,6 +93,6 @@ function Registry(){
     * those that match true
     */
    this.select = function(callback){
-     return $.grep(entities.values(), callback);
+     return $.grep(obj_values(entities), callback);
    }
 }

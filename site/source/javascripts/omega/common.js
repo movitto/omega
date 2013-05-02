@@ -6,7 +6,7 @@
 
 /* retrieve all values of an object
  */
-Object.values = function(obj){
+var obj_values = function(obj){
   var vals = [];
   for(var key in obj ){
     if(obj.hasOwnProperty(key)){

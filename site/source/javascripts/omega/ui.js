@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "vendor/jquery-ui-1.7.1.min"
+//= require "vendor/jquery-ui-1.10.2.min"
 //= require "vendor/three"
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
@@ -22,13 +22,11 @@ function UI(){
   this.canvas              = new Canvas();
   this.entity_container    = new EntityContainer();
 
-  this.locations_container = new EntitiesContainer();
-  this.locations_container.div_id = '#locations_list ul'
-  this.locations_container.sort = function(a,b){ a.item.json_class < b.item.json_class }
+  this.locations_container = new EntitiesContainer({div_id : '#locations_list'});
+  this.locations_container.sort = function(a,b){ a.item.json_class < b.item.json_class };
 
-  this.entities_container  = new EntitiesContainer();
-  this.entities_container.div_id = '#entities_list ul'
-  this.entities_container.sort = function(a,b){ a.item.json_class < b.item.json_class }
+  this.entities_container  = new EntitiesContainer({div_id : '#entities_list'});
+  this.entities_container.sort = function(a,b){ a.item.json_class < b.item.json_class };
 
   this.missions_button     = new UIComponent();
   this.missions_button.div_id = '#missions_button';
@@ -46,9 +44,11 @@ function UI(){
 function UIResources(){
   if ( arguments.callee._singletonInstance )
     return arguments.callee._singletonInstance;
-  arguments.callee._singletonInstance = this;
+  var reg = {};
+  arguments.callee._singletonInstance = reg;
 
-  $.extend(this, new Registry());
+  $.extend(reg, new Registry());
+  $.extend(reg, new EventTracker());
 
   // to render textures
   //var texture_placeholder = document.createElement( 'canvas' );
@@ -58,25 +58,44 @@ function UIResources(){
 
   /* Path to images directory
    */
-  this.images_path = $omega_config['prefix'] + $omega_config['images_path'];
+  reg.images_path = $omega_config['prefix'] + $omega_config['images_path'];
 
   /* Load a remote texture resource from the specified path
    */
-  this.load_texture = function(path){
-    return THREE.ImageUtils.loadTexture(path);
+  reg.load_texture = function(path){
+    return THREE.ImageUtils.loadTexture(path, function(t){
+      reg.raise_event('texture_loaded', t)
+    });
+  }
+
+  /* Loads a textured material from the specified path
+   */
+  var texture_placeholder    = document.createElement( 'canvas' );
+  reg.load_texture_material = function(path){
+    var texture  = new THREE.Texture( texture_placeholder );
+    var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: true } );
+
+    var image = new Image();
+    image.onload = function () {
+      texture.needsUpdate = true;
+      material.map.image = this;
+      reg.raise_event('texture_loaded', this)
+    };
+    image.src = path;
+    return material;
   }
 
   /* Load a remote mesh geometry resource from the specified path
    * and invoke callback when it is loaded
    */
-  this.load_geometry = function(path, cb){
+  reg.load_geometry = function(path, cb){
     loader.load(path, function(geometry){
       geometry.computeTangents();
       cb.apply(null, [geometry]);
     });
   }
 
-  return this;
+  return reg;
 }
 
 /* UI component base class.
@@ -97,7 +116,7 @@ function UIComponent(args){
 
   this.subcomponents = [];
 
-  /* Overload callback registration to track page events
+  /* Override callback registration to track page events
    */
   this.old_on = this.on;
   this.on = function(cb_id, cb){
@@ -113,6 +132,16 @@ function UIComponent(args){
     }else if(cb_id == "click"){
       this.component().live('click', function(e){
         comp.raise_event('click', e);
+      });
+
+    }else if(cb_id == "mouseenter"){
+      this.component().live('mouseenter', function(e){
+        comp.raise_event('mouseenter', e);
+      });
+
+    }else if(cb_id == "mouseleave"){
+      this.component().live('mouseleave', function(e){
+        comp.raise_event('mouseleave', e);
       });
 
     }else if(cb_id == "mousemove"){
@@ -231,11 +260,12 @@ function UIComponent(args){
     comp.css({position: 'absolute'});
     if(typeof sides === "str")
       sides = [sides];
+
     for(var side in sides){
       if(sides[side] == 'top')
         comp.css({top : comp.position().top});
       else if(sides[side] == 'left')
-        comp.css({left: $("#omega_canvas").position().left});
+        comp.css({left: comp.position().left});
       else if(sides[side] == 'right')
         comp.css({right: $(document).width() - comp.offset().left - comp.width()});
         //comp.css({right: comp.position().right});
@@ -265,6 +295,10 @@ function UIComponent(args){
 function UIListComponent(args){
   $.extend(this, new UIComponent(args));
 
+  /* html element to wrap items in
+   */
+  this.item_wrapper = 'span';
+
   /* Each item should be an object containing
    * 'item', 'id', and 'text' attributes
    */
@@ -289,15 +323,24 @@ function UIListComponent(args){
       return;
     }
 
-    this.items.push(item);
+    var overwrote = false
+    for(var i in this.items){
+      if(this.items[i].id == item.id){
+        this.items[i] = item;
+        overwrote = true;
+        break;
+      }
+    }
+    if(!overwrote) this.items.push(item);
 
     // wire up clicked handler
     // XXX probably should go into 'on' function
     // as in UIComponent callbacks, but this is
     // simple/clean/works for now
+    var comp = this;
     $('#' + item.id).live('click', function(e){
-      this.raise_event('click_item', item, e);
-    })
+      comp.raise_event('click_item', item, e);
+    });
 
     this.refresh();
   }
@@ -308,7 +351,8 @@ function UIListComponent(args){
     var text = '';
     this.items.sort(this.sort);
     for(var i in this.items)
-      text += '<span id="' + this.items[i].id + '">' + this.items[i].text + '</span>';
+      text += '<' +this.item_wrapper+ ' id="' + this.items[i].id + '">' +
+              this.items[i].text + '</' +this.item_wrapper + '>';
     this.component().html(text);
   }
 }
@@ -368,7 +412,7 @@ function CanvasComponent(args){
   /* Toggle showing/hiding the component in the scene based
    * on checked attribute of the toggle_canvas input
    */
-  this.toggle = function(){
+  this.stoggle = function(){
     var to_toggle = this.toggle_canvas();
     if(to_toggle){
       if(to_toggle.is(':checked'))
@@ -408,6 +452,7 @@ function Canvas(args){
     return $(this.div_id + ' canvas');
   };
 
+  //TODO (also w/ page resize)
   //this.width  = $omega_config.canvas_width;
   //this.height = $omega_config.canvas_height;
   this.width  = $(document).width()  - this.component().offset().left - 50;
@@ -489,7 +534,7 @@ function Scene(args){
   this.add_entity = function(entity){
     entities[entity.id] = entity;
     for(var comp in entity.components)
-      this._scene.add_component(entity.components[comp]);
+      this.add_component(entity.components[comp]);
     entity.added_to(this);
   }
 
@@ -574,7 +619,7 @@ function Scene(args){
   /* Refresh entities in the current scene
    */
   this.refresh = function(){
-    this.set_root(root_entity);
+    this.set(root_entity);
   }
 
   /* handle canvas clicked event
@@ -821,7 +866,7 @@ function Camera(args){
 
   /* Wire up the camera to the page
    *
-   * @overloaded
+   * @overrideed
    */
   this.old_wire_up = this.wire_up;
   this.wire_up = function(){
@@ -957,16 +1002,17 @@ function Skybox(args){
     if(new_background){
       this.background = new_background;
 
+      var size   = 32768;
       var format = 'png';
       var path   = UIResources().images_path +
-                   '/skybox' + this_background + '/';
+                   '/skybox/' + this.background + '/';
       var materials = [
-        UIResources().load_texture(path + 'px.' + format),
-        UIResources().load_texture(path + 'nx.' + format),
-        UIResources().load_texture(path + 'pz.' + format),
-        UIResources().load_texture(path + 'nz.' + format),
-        UIResources().load_texture(path + 'py.' + format),
-        UIResources().load_texture(path + 'ny.' + format)
+        UIResources().load_texture_material(path + 'px.' + format),
+        UIResources().load_texture_material(path + 'nx.' + format),
+        UIResources().load_texture_material(path + 'pz.' + format),
+        UIResources().load_texture_material(path + 'nz.' + format),
+        UIResources().load_texture_material(path + 'py.' + format),
+        UIResources().load_texture_material(path + 'ny.' + format)
       ];
 
       var skybox_mesh =
@@ -979,7 +1025,7 @@ function Skybox(args){
             skyboxMesh.scale.x = - 1;
             return skyboxMesh;
           });
-      this.components.push(skybox_mesh);
+      this.components = [skybox_mesh];
     }
     return this.background;
   }
@@ -1249,21 +1295,21 @@ function Dialog(args){
 
   /* Show the dialog
    *
-   * @overloaded
+   * @overrideed
    */
   this.show = function(){
     var content = $(this.selector).html();
     if(content == null) content = "";
     if(this.text == null) this.text = "";
     this.component().html(content + this.text).
-                     dialog({title: this.title, width: '450px'}).
+                     dialog({title: this.title, width: '450px', closeText: ''}).
                      dialog('option', 'title', this.title).
                      dialog('open');
   };
 
   /* Hide omega dialog
    *
-   * @overloaded
+   * @overrideed
    */
   this.hide = function(){
     this.component().dialog('close');
@@ -1275,9 +1321,28 @@ function Dialog(args){
 function EntitiesContainer(args){
   $.extend(this, new UIListComponent(args));
 
-  if(args){
-    this.div_id = args['id'];
+  this.div_id = args['div_id'];
+  this.item_wrapper = 'li';
+
+  /* XXX override refresh to apply items to ul under div
+   * @override
+   */
+  this.old_refresh = this.refresh;
+  this.refresh = function(){
+    this.old_div_id = this.div_id;
+    this.div_id += ' ul';
+    this.old_refresh();
+    this.div_id = this.old_div_id;
   }
+
+  // show entities container on hover
+  this.on('mouseenter', function(c, e){
+    $(this.div_id + ' ul').show();
+    //this.component().css('z-index', 1)
+  });
+  this.on('mouseleave', function(c, e){
+    $(this.div_id + ' ul').hide();
+  });
 }
 
 EntitiesContainer.hide_all = function(){

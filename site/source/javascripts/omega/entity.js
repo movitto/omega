@@ -41,17 +41,13 @@ function Entity(args){
 
   // copy all args to local attributes
   this.update = function(args){
-    for(var attr in args)
-      this[attr] = args[attr];
+    $.extend(this, args);
     this.raise_event('updated', this);
   }
   this.update(args);
 
   // XXX hack but works
   if(this.id == null && this.name != null) this.id = this.name;
-
-  // automatically set all entities in the registry
-  Entities().set(this.id, this);
 
   /* Scene callbacks
    */
@@ -140,6 +136,9 @@ function Galaxy(args){
 
   this.json_class = 'Cosmos::Galaxy';
 
+  // store galaxies in the registry
+  Entities().set(this.id, this);
+
   /* override update to update all children instead of overwriting
    */
   this.old_update = this.update;
@@ -187,6 +186,9 @@ function SolarSystem(args){
 
   this.json_class = 'Cosmos::SolarSystem';
   var system = this;
+
+  // store solar systems in the registry
+  Entities().set(this.id, this);
 
   /* override update to update all children instead of overwriting
    */
@@ -351,7 +353,8 @@ function SolarSystem(args){
 
     return [this.star].concat(this.planets).
                        concat(this.asteroids).
-                       concat(this.jump_gates + entities);
+                       concat(this.jump_gates).
+                       concat(entities);
   }
 
   /* added_to scene callback
@@ -833,6 +836,9 @@ function Ship(args){
   this.json_class = 'Manufactured::Ship';
   var ship = this;
 
+  // store ships in the registry
+  Entities().set(this.id, this);
+
   this.location = new Location(this.location);
 
   /* override update
@@ -1265,6 +1271,9 @@ function Station(args){
 
   this.json_class = 'Manufactured::Station';
   var station = this;
+
+  // store stations in the registry
+  Entities().set(this.id, this);
 
   this.location = new Location(this.location);
 

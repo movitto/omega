@@ -42,7 +42,7 @@ this.restore_session = function(ui, node, cb){
   }
 }
 
-/* Internal helpers to login as anon and invoke callback
+/* Internal helper to login as anon and invoke callback
  */
 var login_anon = function(node, cb){
   Session.login(User.anon_user, node,
@@ -126,16 +126,8 @@ var process_entities = function(ui, node, entities){
               manufactured_event);
 
     // retrieve system and galaxy which entity is in
-    load_cosmos('Cosmos::SolarSystem', entity.system_name, ui, node, function(cosmos){
-      if(cosmos.json_class == 'Cosmos::SolarSystem')
-        entity.solar_system = cosmos;
-
-      if(entity.belongs_to_current_user()){
-        ui.locations_container.add_item({ item : cosmos,
-                                          id   : "locations_container-" + cosmos.id,
-                                          text : cosmos.id });
-        ui.locations_container.show();
-      }
+    load_system(entity.system_name, ui, node, function(sys){
+      entity.solar_system = sys;
     });
   }
 };
@@ -268,7 +260,7 @@ var handle_events = function(ui, node, entity){
 
     }else if(entity.json_class == "Manufactured::Ship"){
       clicked_ship(ui, node, entity);
-      
+
     }else if(entity.json_class == "Manufactured::Station"){
       clicked_station(ui, node, entity);
     }
@@ -367,28 +359,20 @@ var clicked_station = function(ui, node, station){
   });
 };
 
-/* Internal helper to load cosmos entity
+/* Internal helper to load system
  */
-var load_cosmos = function(type, name, ui, node, callback){
-  // if already loaded cosmos entity, apply callback and return.
-  // we need this here as callback won't be invoked otherwise
-  var entity = Entities().get(name);
-  if(entity){
-    callback.apply(null, [entity]);
-    return;
-  }
-
-  Entities().cached(name, function(c){
-    if(type == "Cosmos::SolarSystem"){
-      // create a temp system so that subsequent calls to
-      // cached return a value while we are still waiting
-      // for with_name request to return
-      var sys = new SolarSystem({name : name});
-
+var load_system = function(name, ui, node, callback){
+  var entity =
+    Entities().cached(name, function(c){
       // load from server
       SolarSystem.with_name(c, function(s){
-        sys.update(s);
         callback.apply(null, [s]);
+
+        // show in the locations container
+        ui.locations_container.add_item({ item : s,
+                                          id   : "locations_container-" + s.id,
+                                          text : s.id });
+        ui.locations_container.show();
 
         // wire up asteroid, jump gate events
         handle_events(ui, node, s.asteroids);
@@ -406,7 +390,7 @@ var load_cosmos = function(type, name, ui, node, callback){
 
         // load jump gate endpoints
         for(var jg in s.jump_gates){
-          load_cosmos('Cosmos::SolarSystem', jg.endpoint, ui, node, function(jgs){
+          load_system(jg.endpoint, ui, node, function(jgs){
             if(jgs.json_class == 'Cosmos::SolarSystem'){
               jg.endpoint_system = jgs;
               s.add_jump_gate(jg, jgs);
@@ -415,27 +399,50 @@ var load_cosmos = function(type, name, ui, node, callback){
         }
 
         // retrieve galaxy
-        load_cosmos('Cosmos::Galaxy', s.galaxy_name, ui, node, function(g){
+        load_galaxy(s.galaxy_name, ui, node, function(g){
           s.galaxy = g;
-          callback.apply(null, [g]);
         })
       });
 
-      return sys;
+     // XXX so as to handle multiple parallal invocations of load_system
+     // while we are waiting for remote retrieval
+      return -1;
+    });
 
-    }else if(type == "Cosmos::Galaxy"){
-      // same comment as w/ temp system above
-      var gal = new Galaxy({name : name});
+  if(entity != null){
+    if(entity != -1)
+      callback.apply(null, [entity]);
+    else
+      ; // FIXME store callback and execute when system retrieval returns
+  }
+}
 
-      // load from server
+/* Internal helper to load galaxy
+ */
+var load_galaxy = function(name, ui, node, callback){
+  // load from server
+  var entity =
+    Entities().cached(name, function(c){
       Galaxy.with_name(c, function(g){
-        gal.update(g);
         callback.apply(null, [g]);
+
+        // show in the locations container
+        ui.locations_container.add_item({ item : g,
+                                          id   : "locations_container-" + g.id,
+                                          text : g.id });
+        ui.locations_container.show();
       });
-      
-      return gal;
-    }
-  });
+
+      // XXX same hack as in load_system above
+      return -1;
+    });
+
+  if(entity != null){
+    if(entity != -1)
+      callback.apply(null, [entity]);
+    else
+      ; // FIXME see above
+  }
 }
 
 ////////////////////////////////////////// ui
@@ -465,7 +472,7 @@ var wire_up_nav = function(ui, node){
        ui.dialog.selector = '#login_dialog';
        ui.dialog.show();
      });
-    
+
   // login on login dialog submit
   ui.nav_container.
      login_button.on('click', function(){
@@ -492,7 +499,7 @@ var wire_up_nav = function(ui, node){
                           { theme: "red", callback: Recaptcha.focus_response_field});
        }
      });
-    
+
   ui.nav_container.
      register_button.on('click', function(){
        ui.dialog.hide();
@@ -573,7 +580,7 @@ var wire_up_jplayer = function(ui, node){
   // TODO dynamic playlist
   var audio_path = "http://" + $omega_config["host"]    +
                                $omega_config["prefix"]  + "/audio";
-  var playlist = 
+  var playlist =
     new jPlayerPlaylist({
           jPlayer: "#jquery_jplayer_1",
           cssSelectorAncestor: "#jplayer_container"},
@@ -589,13 +596,12 @@ var wire_up_jplayer = function(ui, node){
 var wire_up_entities_lists = function(ui, node){
   // set scene when location is clicked
   ui.locations_container.on('click_item', function(c, i, e){
-    ui.canvas.scene.set(i.item);
+    set_scene(ui, i.item);
   });
 
   // set scene and focus on entity when entity is clicked
   ui.entities_container.on('click_item', function(c, i, e){
-    ui.canvas.scene.camera.focus(i.item.location);
-    ui.canvas.scene.set(i.item.solar_system);
+    set_scene(ui, i.item.solar_system, i.item.location);
   });
 
   // popup dialog w/ missions info when missions button is clicked
@@ -617,6 +623,25 @@ var wire_up_entities_lists = function(ui, node){
     ui.dialog.hide();
   });
 };
+
+/* Internal helper to set scene
+ */
+var set_scene = function(ui, entity, location){
+  // remove old skybox
+  ui.canvas.scene.remove_component(ui.canvas.scene.skybox.components[0]);
+
+  // set root entity
+  ui.canvas.scene.set(entity);
+
+  // focus on location if specified
+  if(location) ui.canvas.scene.camera.focus(location);
+
+  // set new skybox background
+  ui.canvas.scene.skybox.background(entity.background)
+
+  // add new skybox
+  ui.canvas.scene.add_component(ui.canvas.scene.skybox.components[0]);
+}
 
 /* Internal helper to show missions dialog
  */
@@ -659,11 +684,23 @@ var wire_up_canvas = function(ui, node){
   // wire up canvas and related components to page
   ui.canvas.wire_up();
   ui.canvas.scene.camera.wire_up();
-  ui.canvas.scene.axis.wire_up();
-  ui.canvas.scene.grid.wire_up();
+  ui.canvas.scene.axis.cwire_up();
+  ui.canvas.scene.grid.cwire_up();
   ui.entity_container.wire_up();
 
-  // FIXME capture page resize and resize canvas
+  // capture window resize and resize canvas
+  var rw = false;
+  $(window).resize(function(){
+    if(rw) return;
+    rw = true;
+    var c = ui.canvas;
+    c.set_size(($(document).width()  - c.component().offset().left - 50),
+               ($(document).height() - c.component().offset().top  - 50));
+    rw = false;
+  });
+
+  // refresh scene whenever texture is loaded
+  UIResources().on('texture_loaded', function(t){ ui.canvas.scene.animate(); })
 
   // when setting scene to solar system, get all entities under it
   ui.canvas.scene.on('set', function(s){
@@ -679,7 +716,7 @@ var wire_up_canvas = function(ui, node){
       Events.stop_track_movement(entity.location.id);
       Events.stop_track_manufactured(entity.id);
     }
-                                                              
+
     // refresh entities under the system
     if(s.get().json_class == "Cosmos::SolarSystem")
       SolarSystem.entities_under(s.get().name, function(e){ process_entities(ui, node, e); });
@@ -724,3 +761,4 @@ var wire_up_account_info = function(ui, node){
       }
     });
 };
+
