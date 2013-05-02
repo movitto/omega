@@ -40,11 +40,11 @@ function Node(){
     node.raise_event('msg_received', jr_msg);
 
     // ensure this is a request message
-    if(jr_msg && jr_msg['method']){
-      var handlers = node.handlers[jr_msg['method']];
+    if(jr_msg && jr_msg['rpc_method']){
+      var handlers = node.handlers[jr_msg['rpc_method']];
       if(handlers != null){
         for(var i=0; i < handlers.length; i++){
-          handlers[i].apply(null, jr_message['params']);
+          handlers[i].apply(null, jr_msg['params']);
         }
       }
     }

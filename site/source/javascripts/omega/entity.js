@@ -346,7 +346,7 @@ function SolarSystem(args){
    */
   this.children = function(){
     var entities = Entities().select(function(e){
-      return e.system_name  == this.name &&
+      return e.system_name  == system.name &&
             (e.json_class  == "Manufactured::Ship" ||
              e.json_class  == "Manufactured::Station" )
    });
@@ -437,7 +437,7 @@ function Star(args){
   var sphere_material =
     UIResources().cached("star_sphere_" + this.color + "_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color),
+        return new THREE.MeshBasicMaterial({color: parseInt('0x' + star.color),
                                             map: sphere_texture,
                                             overdraw : true});
       });
@@ -682,15 +682,15 @@ function Asteroid(args){
   this.details = ['Asteroid: ' + this.name + "<br/>",
                   '@ ' + this.location.to_s() + '<br/>'];
 
-  /* clicked_in scene callback
+  /* added_to scene callback
    */
-  this.clicked_in = function(scene){
+  this.added_to = function(scene){
     this.current_scene = scene;
   }
 
-  /* unselected in scene callback
+  /* removed_from scene callback
    */
-  this.unselected_in = function(scene){
+  this.removed_from = function(scene){
     this.current_scene = null;
   }
 }
@@ -792,11 +792,15 @@ function JumpGate(args){
                   '@ ' + this.location.to_s() + "<br/><br/>",
                   "<span class='command' id='cmd_trigger_jg'>Trigger</div>"];
 
+  /* added_to scene callback
+   */
+  this.added_to = function(scene){
+    this.current_scene = scene;
+  }
+
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
-    this.current_scene = scene;
-
     $('#cmd_trigger_jg').live('click', function(e){
       Commands.trigger_jump_gate(jg, function(j, entities){
         // remove entities from scene
@@ -815,14 +819,20 @@ function JumpGate(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    this.current_scene = null;
-
     $('#command_trigger_jg').die();
 
     this.components.splice(this.components.indexOf(sphere), 1);
     this.clickable_obj = mesh;
     scene.reload_entity(this);
   }
+
+  /* removed_from scene callback
+   */
+  this.removed_from = function(scene){
+    this.current_scene = null;
+
+  }
+
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1080,7 +1090,7 @@ function Ship(args){
           var entities = Entities().select(function(e) {
             return e.json_class == 'Manufactured::Ship'            &&
                    e.user_id    != Session.current_session.user_id &&
-                   e.location.is_within(this.attack_distance, this.location);
+                   e.location.is_within(ship.attack_distance, ship.location);
           });
 
           var text = "Select " + this.id + " target<br/>";
@@ -1097,7 +1107,7 @@ function Ship(args){
           // load dock target selection from stations in the vicinity
           var entities = Entities().select(function(e) {
             return e.json_class == 'Manufactured::Station' &&
-                   e.location.is_within(100, this.location);
+                   e.location.is_within(100, ship.location);
           });
 
           var text = 'Dock ' + this.id + ' at<br/>';
@@ -1114,7 +1124,7 @@ function Ship(args){
           // load mining target selection from resource sources in the vicinity
           var entities = Entities().select(function(e) {
             return e.json_class == 'Cosmos::Asteroid' &&
-                   e.location.is_within(100, this.location);
+                   e.location.is_within(100, ship.location);
           });
 
           var text = "Select resource to mine with "+ this.id +" <br/>";
@@ -1140,11 +1150,15 @@ function Ship(args){
         }]
     };
 
+  /* added_to scene callback
+   */
+  this.added_to = function(scene){
+    this.current_scene = scene;
+  }
+
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
-    this.current_scene = scene;
-
     // wire up selection command page elements,
     $('#cmd_move_select',
       '#cmd_attack_select',
@@ -1230,8 +1244,6 @@ function Ship(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    this.current_scene = null;
-
     $('#cmd_move_select',
       '#cmd_attack_select',
       '#cmd_dock_select',
@@ -1242,6 +1254,12 @@ function Ship(args){
     this.selected = false;
     this.set_color();
     scene.reload_entity(this);
+  }
+
+  /* removed_from scene callback
+   */
+  this.removed_from = function(scene){
+    this.current_scene = null;
   }
 }
 
@@ -1305,7 +1323,7 @@ function Station(args){
   // instantiate mesh to draw station on canvas
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
-    this.mesh =
+    station.mesh =
       UIResources().cached("station_" + station.id + "_mesh",
                            function(i) {
                              var mesh = new THREE.Mesh(geometry, station.mesh_material);
@@ -1343,11 +1361,15 @@ function Station(args){
   if(this.belongs_to_user(Session.current_session.user_id))
     this.details.push("<span id='cmd_construct' class='commands'>construct</span>");
 
+  /* added_to scene callback
+   */
+  this.added_to = function(scene){
+    this.current_scene = scene;
+  }
+
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
-    this.current_scene = scene;
-
     $('#cmd_construct').live('click', function(e){
       Commands.construct_entity(station,
                                 function(res){
@@ -1365,13 +1387,17 @@ function Station(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    this.current_scene = null;
-
     $('#cmd_construct').die();
 
     this.selected = false;
     this.set_color();
     scene.reload_entity(this);
+  }
+
+  /* removed_from scene callback
+   */
+  this.removed_from = function(scene){
+    this.current_scene = null;
   }
 }
 
@@ -1402,6 +1428,9 @@ function Mission(args){
 
   this.assign_cmd = '<span id="'+this.id+'" class="assign_mission">assign</span>';
 
+  // store missions in the registry
+  Entities().set(this.id, this);
+
   /* Return time which this mission expires
    */
   this.expires = function(){
@@ -1422,6 +1451,12 @@ function Mission(args){
   this.assigned_to_user = function(user_id){
     return this.assigned_to_id == user_id;
   }
+
+  /* Return boolean indicating if mission is assigned to the current user
+   */
+  this.assigned_to_current_user = function(){
+    return this.assigned_to_user(Session.current_session.user_id);
+  }
 }
 
 /* Return all missions
@@ -1429,13 +1464,11 @@ function Mission(args){
 Mission.all = function(cb){
   Entities().node().web_request('missions::get_missions',
                                 function(res){
-    if(res.result){
-      var missions = [];
-      for(var m in res.result){
+    var missions = [];
+    if(res.result)
+      for(var m in res.result)
         missions.push(new Mission(res.result[m]));
-      }
-      cb.apply(null, [missions]);
-    }
+    cb.apply(null, [missions]);
   });
 }
 

@@ -452,6 +452,9 @@ function Canvas(args){
     return $(this.div_id + ' canvas');
   };
 
+  // if current page does not have a canvas, return
+  if(this.component().length == 0) return;
+
   //TODO (also w/ page resize)
   //this.width  = $omega_config.canvas_width;
   //this.height = $omega_config.canvas_height;
@@ -536,6 +539,14 @@ function Scene(args){
     for(var comp in entity.components)
       this.add_component(entity.components[comp]);
     entity.added_to(this);
+  }
+
+  /* Only add entity if not present
+   */
+  this.add_new_entity = function(entity){
+    var oentity = entities[entity.id];
+    if(oentity) return;
+    this.add_entity(entity);
   }
 
   /* Remove the entity specifed by entity_id from the scene.
@@ -1000,12 +1011,12 @@ function Skybox(args){
 
   this.background = function(new_background){
     if(new_background){
-      this.background = new_background;
+      this.bg = new_background;
 
       var size   = 32768;
       var format = 'png';
       var path   = UIResources().images_path +
-                   '/skybox/' + this.background + '/';
+                   '/skybox/' + this.bg + '/';
       var materials = [
         UIResources().load_texture_material(path + 'px.' + format),
         UIResources().load_texture_material(path + 'nx.' + format),
@@ -1027,7 +1038,7 @@ function Skybox(args){
           });
       this.components = [skybox_mesh];
     }
-    return this.background;
+    return this.bg;
   }
 }
 
@@ -1276,6 +1287,8 @@ function Dialog(args){
 
   this.div_id = '#omega_dialog';
 
+  this.opend = false;
+
   /* return the specified div under the dialog
    */
   this.subdiv = function(id){
@@ -1301,6 +1314,7 @@ function Dialog(args){
     var content = $(this.selector).html();
     if(content == null) content = "";
     if(this.text == null) this.text = "";
+    this.opend = true;
     this.component().html(content + this.text).
                      dialog({title: this.title, width: '450px', closeText: ''}).
                      dialog('option', 'title', this.title).
@@ -1312,6 +1326,8 @@ function Dialog(args){
    * @overrideed
    */
   this.hide = function(){
+    if(!this.opend) return;
+    this.opend = false;
     this.component().dialog('close');
   };
 }
@@ -1438,8 +1454,6 @@ function ChatContainer(args){
   this.subcomponents.push(this.button)
 
   this.toggle_control_id = '#toggle_chat';
-
-  this.button.on('click', function(b){ b.attr('value', ''); });
 }
 
 /* Instantiate and return a new Nav Container

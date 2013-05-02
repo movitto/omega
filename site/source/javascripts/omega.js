@@ -91,7 +91,6 @@ var session_established = function(ui, node, session, user){
 ////////////////////////////////////////// manufactured entities
 
 /* Internal helper to process manufactured entities,
- * eg add them to the ui, retrieve additional related data
  */
 var process_entities = function(ui, node, entities){
   // set user owned entities in account info
@@ -100,37 +99,46 @@ var process_entities = function(ui, node, entities){
   });
   ui.account_info.entities(uowned);
 
-  for(var e in entities){
-    var entity = entities[e];
-    ui.entities_container.add_item({ item : entity,
-                                     id   : "entities_container-" + entity.id,
-                                     text : entity.id });
-    ui.entities_container.show();
-
-    // wire up entity page events
-    handle_events(ui, node, entity);
-
-    // track all applicable server side events, update entity
-    Events.track_movement(entity.location_id,
-                          $omega_config.ship_movement,
-                          $omega_config.ship_rotation);
-    entity.location.on(['motel::on_movement',
-                        'motel::on_rotation',
-                        'motel::location_stopped'],
-                        motel_event);
-
-    Events.track_mining(entity.id);
-    Events.track_offense(entity.id);
-    Events.track_defense(entity.id);
-    entity.on('manufactured::event_occurred',
-              manufactured_event);
-
-    // retrieve system and galaxy which entity is in
-    load_system(entity.system_name, ui, node, function(sys){
-      entity.solar_system = sys;
-    });
-  }
+  for(var e in entities)
+    process_entity(ui, node, entities[e]);
 };
+
+/* Internal helper to process a single manufactured entity
+ */
+var process_entity = function(ui, node, entity){
+  ui.entities_container.add_item({ item : entity,
+                                   id   : "entities_container-" + entity.id,
+                                   text : entity.id });
+  ui.entities_container.show();
+
+  // wire up entity page events
+  handle_events(ui, node, entity);
+
+  // track all applicable server side events, update entity
+  Events.track_movement(entity.location_id,
+                        $omega_config.ship_movement,
+                        $omega_config.ship_rotation);
+  entity.location.on(['motel::on_movement',
+                      'motel::on_rotation',
+                      'motel::location_stopped'],
+                      motel_event);
+
+  Events.track_mining(entity.id);
+  Events.track_offense(entity.id);
+  Events.track_defense(entity.id);
+  entity.on('manufactured::event_occurred',
+            manufactured_event);
+
+  // retrieve system and galaxy which entity is in
+  load_system(entity.system_name, ui, node, function(sys){
+    entity.solar_system = sys;
+
+    // if system currently displayed on canvas, add to scene if not present
+    if(ui.canvas.scene.get() &&
+       ui.canvas.scene.get().name == sys.name)
+      ui.canvas.scene.add_new_entity(entity);
+  });
+}
 
 /* Callback invoked on motel related event
  */
@@ -362,11 +370,20 @@ var clicked_station = function(ui, node, station){
 /* Internal helper to load system
  */
 var load_system = function(name, ui, node, callback){
+  // XXX use a global to store callbacks for systems
+  // which we have requested but not yet retrieved
+  if(typeof $system_callbacks === "undefined")
+    $system_callbacks = {}
+  if(typeof $system_callbacks[name] === "undefined")
+    $system_callbacks[name] = []
+
   var entity =
     Entities().cached(name, function(c){
       // load from server
       SolarSystem.with_name(c, function(s){
-        callback.apply(null, [s]);
+        for(var cb in $system_callbacks[s.name])
+          $system_callbacks[s.name][cb].apply(s, [s]);
+        $system_callbacks[s.name] = [];
 
         // show in the locations container
         ui.locations_container.add_item({ item : s,
@@ -389,7 +406,8 @@ var load_system = function(name, ui, node, callback){
         }
 
         // load jump gate endpoints
-        for(var jg in s.jump_gates){
+        for(var j in s.jump_gates){
+          var jg = s.jump_gates[j];
           load_system(jg.endpoint, ui, node, function(jgs){
             if(jgs.json_class == 'Cosmos::SolarSystem'){
               jg.endpoint_system = jgs;
@@ -409,22 +427,29 @@ var load_system = function(name, ui, node, callback){
       return -1;
     });
 
-  if(entity != null){
-    if(entity != -1)
-      callback.apply(null, [entity]);
-    else
-      ; // FIXME store callback and execute when system retrieval returns
-  }
+  if(entity != -1)
+    callback.apply(null, [entity]);
+  else
+    $system_callbacks[name].push(callback);
 }
 
 /* Internal helper to load galaxy
  */
 var load_galaxy = function(name, ui, node, callback){
+  // XXX use a global to store callbacks for systems
+  // which we have requested but not yet retrieved
+  if(typeof $galaxy_callbacks === "undefined")
+    $galaxy_callbacks = [];
+  if(typeof $galaxy_callbacks[name] === "undefined")
+    $galaxy_callbacks[name] = []
+
   // load from server
   var entity =
     Entities().cached(name, function(c){
       Galaxy.with_name(c, function(g){
-        callback.apply(null, [g]);
+        for(var cb in $galaxy_callbacks[g.name])
+          $galaxy_callbacks[g.name][cb].apply(g, [g]);
+        $galaxy_callbacks[g.name] = []
 
         // show in the locations container
         ui.locations_container.add_item({ item : g,
@@ -437,12 +462,10 @@ var load_galaxy = function(name, ui, node, callback){
       return -1;
     });
 
-  if(entity != null){
-    if(entity != -1)
-      callback.apply(null, [entity]);
-    else
-      ; // FIXME see above
-  }
+  if(entity != -1)
+    callback.apply(null, [entity]);
+  else
+    $galaxy_callbacks.push(callback);
 }
 
 ////////////////////////////////////////// ui
@@ -608,9 +631,7 @@ var wire_up_entities_lists = function(ui, node){
   ui.missions_button.on('click', function(e){
     // get latest mission data from server
     Mission.all(function(missions){
-      if(missions.result){
-        show_missions(mission.result, ui);
-      }
+      show_missions(missions, ui);
     })
   });
 
@@ -618,9 +639,15 @@ var wire_up_entities_lists = function(ui, node){
   $('.assign_mission').live('click', function(e){
     var i = e.currentTarget.id;
     Commands.assign_mission(i, Session.current_session.user_id, function(m){
-      Entities().get(m.id).update(m);
+      if(m.error){
+        ui.dialog.title    = 'Could not assign mission';
+        ui.dialog.text     = m.error.message;
+        ui.dialog.show();
+      }else{
+        Entities().get(m.result.id).update(m.result);
+        ui.dialog.hide();
+      }
     });
-    ui.dialog.hide();
   });
 };
 
@@ -646,26 +673,33 @@ var set_scene = function(ui, entity, location){
 /* Internal helper to show missions dialog
  */
 var show_missions = function(missions, ui){
-  // grab mission data or assigned mission
-  var assigned = $.grep(missions,
-                        function(m) { m.assigned_to_user() &&
-                                       !mission.victorious &&
-                                       !mission.failed});
+  // grab various mission subsets
+  var unassigned = $.grep(missions,
+                          function(m) { return !m.assigned_to_id && !m.expired(); });
+  var assigned   = $.grep(missions,
+                          function(m) { return m.assigned_to_current_user(); });
+  var victorious = $.grep(assigned,
+                          function(m) { return m.victorious; });
+  var failed     = $.grep(assigned,
+                          function(m) { return m.failed; });
+  var current    = $.grep(assigned,
+                          function(m) { return !m.victorious && !m.failed; })[0];
 
-  if(assigned){
+
+  if(current){
     ui.dialog.title    = 'Assigned Mission'
-    ui.dialog.text     = assigned.title + '<br/>' + assigned.description +
-                         '(' + assigned.assigned_time + '/' + assigned.expires().toString() + ')';
+    ui.dialog.text     = '<b>' + current.title         + '</b><br/>' +
+                         current.description   + '<br/><hr/>' +
+                         '<b>Assigned</b>: ' + current.assigned_time + '<br/>' +
+                         '<b>Expires</b>: ' + current.expires().toString();
     ui.dialog.selector = null;
 
   }else{
     var missions_text = '';
-    for(var m in missions){
-      var mission = missions[m];
-        if(!mission.expired() && !mission.assigned_to_id){
-          missions_text += mission.assign_cmd;
-      }
-    }
+    for(var m in unassigned)
+      missions_text += unassigned[m].title + ' ' +
+                       unassigned[m].assign_cmd + '<br/>';
+    missions_text += '<br/>(Victorious: ' + victorious.length + ' / Failed: ' + failed.length + ')'
 
     ui.dialog.title    = 'Missions';
     ui.dialog.text     = missions_text;
@@ -689,14 +723,11 @@ var wire_up_canvas = function(ui, node){
   ui.entity_container.wire_up();
 
   // capture window resize and resize canvas
-  var rw = false;
-  $(window).resize(function(){
-    if(rw) return;
-    rw = true;
+  $(window).resize(function(e){
+    if(e.target != window) return;
     var c = ui.canvas;
     c.set_size(($(document).width()  - c.component().offset().left - 50),
                ($(document).height() - c.component().offset().top  - 50));
-    rw = false;
   });
 
   // refresh scene whenever texture is loaded
@@ -734,11 +765,12 @@ var wire_up_chat = function(ui, node){
   // send message via node when user clicks send button
   ui.chat_container.
     button.on('click', function(b, e){
-      var message = ui.chat_container.input.attr('value');
+      var message = ui.chat_container.input.component().attr('value');
       var user_id = Session.current_session.user_id;
 
       node.web_request('users::send_message', message);
-      ui.output.append(user_id + ": " + message + "\n");
+      ui.chat_container.output.component().append(user_id + ": " + message + "\n");
+      ui.chat_container.input.component().attr('value', '');
     });
 };
 
@@ -753,8 +785,10 @@ var wire_up_account_info = function(ui, node){
         alert("Passwords do not match");
 
       else{
-        node.web_request('users::update_user', ui.account_info.user(),
+        var user = ui.account_info.user()
+        node.web_request('users::update_user', user,
           function(res){
+console.log(res)
             if(res.result)
               alert("User " + user.id + " updated successfully");
           });
