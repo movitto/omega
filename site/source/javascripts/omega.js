@@ -19,6 +19,12 @@
 
 // TODO rather not pass ui, node around everywhere
 
+////////////////////////////////////////// global vars
+
+// XXX rather not use but they are strictly limited to this module
+$system_callbacks = {};
+$galaxy_callbacks = {};
+
 ////////////////////////////////////////// session
 
 /* Public helper to attempt to restore user session
@@ -115,13 +121,13 @@ var process_entity = function(ui, node, entity){
   handle_events(ui, node, entity);
 
   // track all applicable server side events, update entity
-  Events.track_movement(entity.location_id,
+  Events.track_movement(entity.location.id,
                         $omega_config.ship_movement,
                         $omega_config.ship_rotation);
   entity.location.on(['motel::on_movement',
                       'motel::on_rotation',
                       'motel::location_stopped'],
-                      motel_event);
+                      function(){ motel_event(ui, node, arguments); });
 
   Events.track_mining(entity.id);
   Events.track_offense(entity.id);
@@ -140,15 +146,33 @@ var process_entity = function(ui, node, entity){
   });
 }
 
+/* Internal helper to refresh entity container
+ */
+var refresh_entity_container = function(ui, node, entity){
+  // populate entity container w/ details from entity
+  ui.entity_container.contents.clear();
+  ui.entity_container.contents.add_text(entity.details())
+
+  ui.entity_container.show();
+}
+
 /* Callback invoked on motel related event
  */
-var motel_event = function(){
-  var loc = arguments[0];
+var motel_event = function(ui, node, eargs){
+  // update entity owning location
+  //var oloc = eargs[0];
+  var nloc = eargs[1];
   var entity =
-    Entities().select(function(e){ return e.location && e.location.id == loc.id })[0];
-  entity.location.update(loc);
+    Entities().select(function(e){ return e.location && e.location.id == nloc.id })[0];
+  entity.update({location : nloc});
+
+  // refresh scene if contains entity
   if(ui.canvas.scene.has(entity.id))
     ui.canvas.scene.animate();
+
+  // refresh popup if showing entity
+  var selected = Entities().select(function(e){ return e.selected; })[0]
+  if(selected == entity) refresh_entity_container(ui, node, entity);
 };
 
 /* Callback to be invoked on manufactured related event
@@ -261,7 +285,22 @@ var handle_events = function(ui, node, entity){
 
   // popup details on click
   entity.on('click', function(e, scene){
-    clicked_entity(ui, node, scene, e);
+    clicked_entity(ui, node, e);
+  });
+}
+
+/* Internal helper to handle entity click
+ */
+var clicked_entity = function(ui, node, entity){
+  // unselect currently selected entity
+  var selected = Entities().select(function(e){ return (e.id != entity.id) && e.selected; })[0]
+  if(selected) ui.canvas.scene.unselect(selected.id);
+
+  if(entity.json_class == "Cosmos::SolarSystem"){
+    clicked_system(ui, node, entity);
+
+  }else{
+    popup_entity_container(ui, node, entity);
 
     if(entity.json_class == "Cosmos::Asteroid"){
       clicked_asteroid(ui, node, entity);
@@ -272,30 +311,39 @@ var handle_events = function(ui, node, entity){
     }else if(entity.json_class == "Manufactured::Station"){
       clicked_station(ui, node, entity);
     }
-  });
+  }
 }
 
-/* Internal helper to handle any click event
+/* Internal helper to popup entity container
  */
-var clicked_entity = function(ui, node, scene, entity){
-  // hide entity container so as to unselect previous
-  ui.entity_container.hide();
-
+var popup_entity_container = function(ui, node, entity){
   // setup the entity container
   ui.entity_container.clear_callbacks();
   ui.entity_container.on('hide', function(e){
     // unselect entity in scene
-    scene.unselect(e);
+    ui.canvas.scene.unselect(entity.id);
 
     // always hide the dialog when hiding entity
     ui.dialog.hide();
+
+  })
+  entity.on('unselected', function(e){
+    // hide entity container
+    if(ui.entity_container.visible())
+      ui.entity_container.hide();
   })
 
   // populate entity container w/ details from entity
   ui.entity_container.contents.clear();
-  ui.entity_container.contents.add_item(e.details)
+  ui.entity_container.contents.add_text(entity.details())
 
   ui.entity_container.show();
+}
+
+/* Internal helper to handle click solar system event
+ */
+var clicked_system = function(ui, node, solar_system){
+  set_scene(ui, solar_system);
 }
 
 /* Internal helper to handle click asteroid event
@@ -327,9 +375,9 @@ var clicked_ship = function(ui, node, ship){
   var select_cmds =
     ['cmd_move_select', 'cmd_attack_select',
      'cmd_dock_select', 'cmd_mine_select'];
-  entity.clear_callbacks(select_cmds);
-  entity.on(select_cmds,
-    function(sh, title, content){
+  ship.clear_callbacks(select_cmds);
+  ship.on(select_cmds,
+    function(cmd, sh, title, content){
       ui.dialog.title    = title;
       ui.dialog.text     = content;
       ui.dialog.selector = null;
@@ -339,16 +387,16 @@ var clicked_ship = function(ui, node, ship){
   var finished_select_cmds =
     ['cmd_move', 'cmd_attack',
      'cmd_dock', 'cmd_mine']
-  entity.clear_callbacks(finsihed_select_cmds);
-  entity.on(finished_select_cmds,
-    function(sh){
+  ship.clear_callbacks(finished_select_cmds);
+  ship.on(finished_select_cmds,
+    function(cmd, sh){
       ui.dialog.hide();
       ui.canvas.scene.animate();
     });
 
   var reload_cmds = ['cmd_dock', 'cmd_undock'];
-  entity.clear_callbacks(reload_cmds);
-  entity.on(reload_cmds,
+  ship.clear_callbacks(reload_cmds);
+  ship.on(reload_cmds,
     function(sh){
       ui.canvas.scene.reload(sh);
     });
@@ -361,7 +409,7 @@ var clicked_station = function(ui, node, station){
   if(!station.belongs_to_current_user()) return;
 
   // add entity to scene on construction
-  entity.on('cmd_construct',
+  station.on('cmd_construct',
     function(st, entity){
       ui.canvas.scene.add_entity(entity);
   });
@@ -372,8 +420,6 @@ var clicked_station = function(ui, node, station){
 var load_system = function(name, ui, node, callback){
   // XXX use a global to store callbacks for systems
   // which we have requested but not yet retrieved
-  if(typeof $system_callbacks === "undefined")
-    $system_callbacks = {}
   if(typeof $system_callbacks[name] === "undefined")
     $system_callbacks[name] = []
 
@@ -398,11 +444,12 @@ var load_system = function(name, ui, node, callback){
         // track planet movement
         for(var p in s.planets){
           var planet = s.planets[p];
-          Events.track_movement(planet.location_id, $omega_config.planet_movement);
-          planet.location.on(['motel::on_movement',
-                              'motel::on_rotation',
-                              'motel::location_stopped'],
-                              motel_event);
+          Events.track_movement(planet.location.id, $omega_config.planet_movement);
+// TODO uncomment
+          //planet.location.on(['motel::on_movement',
+          //                    'motel::on_rotation',
+          //                    'motel::location_stopped'],
+          //                    motel_event);
         }
 
         // load jump gate endpoints
@@ -438,8 +485,6 @@ var load_system = function(name, ui, node, callback){
 var load_galaxy = function(name, ui, node, callback){
   // XXX use a global to store callbacks for systems
   // which we have requested but not yet retrieved
-  if(typeof $galaxy_callbacks === "undefined")
-    $galaxy_callbacks = [];
   if(typeof $galaxy_callbacks[name] === "undefined")
     $galaxy_callbacks[name] = []
 
@@ -450,6 +495,9 @@ var load_galaxy = function(name, ui, node, callback){
         for(var cb in $galaxy_callbacks[g.name])
           $galaxy_callbacks[g.name][cb].apply(g, [g]);
         $galaxy_callbacks[g.name] = []
+
+        // wire up solar system events
+        handle_events(ui, node, g.solar_systems);
 
         // show in the locations container
         ui.locations_container.add_item({ item : g,
@@ -465,7 +513,7 @@ var load_galaxy = function(name, ui, node, callback){
   if(entity != -1)
     callback.apply(null, [entity]);
   else
-    $galaxy_callbacks.push(callback);
+    $galaxy_callbacks[name].push(callback);
 }
 
 ////////////////////////////////////////// ui
@@ -517,7 +565,8 @@ var wire_up_nav = function(ui, node){
        ui.dialog.show();
 
        if($omega_config.recaptcha_enabled){
-         $('#omega_recaptcha').html('<div id="registration_recaptcha"></div>');
+         // XXX populate the recaptcha underneath the dialog
+         $('#omega_dialog #omega_recaptcha').html('<div id="registration_recaptcha"></div>');
          Recaptcha.create($omega_config.recaptcha_pub, "registration_recaptcha",
                           { theme: "red", callback: Recaptcha.focus_response_field});
        }
@@ -526,9 +575,9 @@ var wire_up_nav = function(ui, node){
   ui.nav_container.
      register_button.on('click', function(){
        ui.dialog.hide();
-       var user_id             = $('#register_username').attr('value');
-       var user_password       = $('#register_password').attr('value');
-       var user_email          = $('#register_email').attr('value');
+       var user_id             = $('#omega_dialog #register_username').attr('value');
+       var user_password       = $('#omega_dialog #register_password').attr('value');
+       var user_email          = $('#omega_dialog #register_email').attr('value');
        var recaptcha_challenge = Recaptcha.get_challenge();
        var recaptcha_response  = Recaptcha.get_response();
 
@@ -540,7 +589,7 @@ var wire_up_nav = function(ui, node){
          if(res.error){
            ui.dialog.title    = 'Failed to create account';
            ui.dialog.selector = '#registration_failed_dialog';
-           ui.dialog.text     = error['message'];
+           ui.dialog.text     = res.error['message'];
          }
 
          else{
@@ -656,6 +705,9 @@ var wire_up_entities_lists = function(ui, node){
 var set_scene = function(ui, entity, location){
   // remove old skybox
   ui.canvas.scene.remove_component(ui.canvas.scene.skybox.components[0]);
+
+  // remove old entities
+  ui.canvas.scene.clear_entities();
 
   // set root entity
   ui.canvas.scene.set(entity);
@@ -788,7 +840,6 @@ var wire_up_account_info = function(ui, node){
         var user = ui.account_info.user()
         node.web_request('users::update_user', user,
           function(res){
-console.log(res)
             if(res.result)
               alert("User " + user.id + " updated successfully");
           });

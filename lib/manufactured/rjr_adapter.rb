@@ -386,6 +386,8 @@ class RJRAdapter
           new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance
           entity.location.update(new_location)
 
+          # TODO add subscriptions to cosmos system to detect when ships jump in / out
+
           @@local_node.invoke_request('motel::update_location', entity.location)
           # TODO why do we remove callbacks? should we remove them all ? or leave them be?
           @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
@@ -601,7 +603,7 @@ class RJRAdapter
       Manufactured::Registry.instance.safely_run {
         # update ship / station location
         ship.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id))
-        station.location.udpate(@@local_node.invoke_request('motel::get_location', 'with_id', station.location.id))
+        station.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', station.location.id))
 
         raise Omega::OperationError, "#{ship} cannot dock at #{station}" unless station.dockable?(ship)
 

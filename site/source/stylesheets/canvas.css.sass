@@ -79,7 +79,6 @@ img#cam_reset
   margin-top: 20px
   padding: 10px
   display: none
-  float: right
   border: 1px solid black
   width: 250px
   height: 350px
@@ -87,6 +86,9 @@ img#cam_reset
   background: #D8D8D8
   -moz-border-radius: 15px
   border-radius: 15px
+  position: absolute
+  right: 60px
+  top: 17%
 
 #entity_container_close
   float: right
@@ -111,7 +113,7 @@ img#cam_reset
   min-height: 0
   border: 1px solid red
 
-.cmd_icon
+.commands
   border: 1px solid #EEF3E2
   float: right
   width: 120px
@@ -122,36 +124,41 @@ img#cam_reset
   margin-top: 5px
   margin-right: 5px
 
-.cmd_icon:hover 
+.commands:hover 
   cursor: crosshair
   text-decoration: blink
 
 // specific command icons
 
-#ship_trigger_jg
+#cmd_trigger_jg
   background: url('/womega/images/icons/trigger-jumpgate.png') no-repeat
   background-size: 30px
 
-#ship_select_move
+#cmd_move_select
   background: url('/womega/images/icons/move-ship.png') no-repeat
   background-size: 50px
 
-#ship_select_target
+#cmd_attack_select
   background: url('/womega/images/icons/attack-ship.png') no-repeat
   background-size: 30px
 
-#ship_select_dock,
-#ship_select_undock
+#cmd_dock_select,
+#cmd_undock
   background: url('/womega/images/icons/dock-ship.png') no-repeat
   background-size: 30px
 
-#ship_select_transfer
+#cmd_transfer
   background: url('/womega/images/icons/resource-transfer.png') no-repeat
   background-size: 30px
 
-#ship_select_mine
+#cmd_mine_select
   background: url('/womega/images/icons/start-mining.png') no-repeat
   background-size: 50px
+
+//#cmd_construct
+//  background: url('/womega/images/icons/start-construction.png') no-repeat
+//  background-size: 30px
+
 
 .assign_mission
   float: right
@@ -159,7 +166,3 @@ img#cam_reset
 
 .assign_mission:hover
   cursor: crosshair
-
-//#station_select_construction
-//  background: url('/womega/images/icons/start-construction.png') no-repeat
-//  background-size: 30px

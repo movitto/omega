@@ -193,7 +193,6 @@ function OmegaCamera(){
     return _camera;
   }
 
-
   /////////////////////////////////////// initialization
 
   // wire up camera controls

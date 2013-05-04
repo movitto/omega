@@ -165,7 +165,7 @@ def print_jump_gate(jump_gate, i=0)
 end
 
 def print_manufactured_entity(mu, i=0)
-  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (w/" + mu.hp.to_s + "hp @" + mu.location.to_s + " -> " + mu.location.orientation.to_s + " with strategy " + mu.location.movement_strategy.to_s + ")"
+  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (w/" + mu.hp.to_s + "hp @" + mu.location.to_s + " -> " + mu.location.orientation.to_s + ")"
   puts indent(i+1) + "resources: " if mu.resources.size > 0
   mu.resources.each { |id,q|
     puts indent(i+2) + "#{q} of #{id.to_s.red}"

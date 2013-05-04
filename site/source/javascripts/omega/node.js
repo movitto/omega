@@ -20,10 +20,11 @@ function Node(){
   // request/notification handlers
   this.handlers  = {};
   this.add_handler = function(method, handler){
-    this.handlers[method] = handler;
+    if(!this.handlers[method]) this.handlers[method] = [];
+    this.handlers[method].push(handler);
   }
   this.clear_handlers = function(method){
-    delete this.handlers[method];
+    this.handlers[method] = [];
   }
 
   // error handlers

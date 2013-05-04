@@ -34,7 +34,9 @@ function ServerEvents(){
     }
 
     this.callbacks[server_event] = function(){
-      this.raise_event(server_event, arguments)
+      // Create a new array from the contents of arguments
+      var nargs = [server_event].concat(Array.prototype.slice.call(arguments));
+      this.raise_event.apply(this, nargs);
 
       // also attempt to identify the 'primary' object which
       // the event is occurring on and raise it there
@@ -43,7 +45,7 @@ function ServerEvents(){
         if(arg.id){
           var entity = Entities().select(function(e){ return e.id == arg.id; })[0];
           if(entity != null){
-            entity.raise_event(server_event, arguments);
+            entity.raise_event.apply(entity, nargs);
             break;
           }
         }

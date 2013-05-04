@@ -63,6 +63,7 @@ function UIResources(){
   /* Load a remote texture resource from the specified path
    */
   reg.load_texture = function(path){
+    // TODO cache path locally ?
     return THREE.ImageUtils.loadTexture(path, function(t){
       reg.raise_event('texture_loaded', t)
     });
@@ -215,6 +216,12 @@ function UIComponent(args){
     this.raise_event('hide');
   }
 
+  /* Return component visibility
+   */
+  this.visible = function(){
+    return this.component().is(':visible');
+  }
+
   /* Toggle showing/hiding the component in on the page based
    * on checked attribute of the toggle_control input
    */
@@ -318,8 +325,8 @@ function UIListComponent(args){
    */
   this.add_item = function(item){
     if($.isArray(item)){
-      for(var i in items)
-        this.add_item(items[i]);
+      for(var i in item)
+        this.add_item(item[i]);
       return;
     }
 
@@ -355,6 +362,22 @@ function UIListComponent(args){
               this.items[i].text + '</' +this.item_wrapper + '>';
     this.component().html(text);
   }
+
+  /* Add text to the list w/ interally generated id
+   */
+  this.add_text = function(text){
+    if($.isArray(text)){
+      for(var i in text)
+        this.add_text(text[i]);
+      return;
+    }
+
+    if(!this.id_inc) this.id_inc = 0;
+    this.id_inc += 1;
+
+    var item = {id : this.id_inc, text : text, item : null};
+    this.add_item(item);
+  };
 }
 
 /* Canvas component base class
@@ -560,13 +583,18 @@ function Scene(args){
     entity.removed_from(this);
   }
 
-  /* Remove / readd entity to scene
+  /* Remove / readd entity to scene.
+   *
+   * Takes an optional callback to be invoked between
+   * removing of entity and adding of entity so that
+   * entity may be adjusted if necessary (components added/removed)
    */
-  this.reload_entity = function(entity){
+  this.reload_entity = function(entity, cb){
     var oentity = entities[entity.id];
     if(!oentity) return;
 
     this.remove_entity(entity.id);
+    if(cb) cb.apply(null, [this, entity])
     this.add_entity(entity);
     this.animate();
   }
@@ -657,6 +685,22 @@ function Scene(args){
     }
 
     //if(!clicked_on_entity) controls.clicked_space(x, y);
+  }
+
+  /* return 2d page coordinates of 3d coordinate in scene
+   */
+  this.page_coordinate = function(x, y, z){
+    // http://zachberry.com/blog/tracking-3d-objects-in-2d-with-three-js/
+    var p, v, percX, percY, left, top;
+    var projector = new THREE.Projector();
+    p = new THREE.Vector3(x, y, z);
+    v = projector.projectVector(p, this.camera._camera);
+    percX = (v.x + 1) / 2;
+    percY = (-v.y + 1) / 2;
+    left = percX * this.canvas.width;
+    top  = percY * this.canvas.height;
+
+    return [left, top];
   }
 
   /* unselect entity specified by id entity
@@ -1027,7 +1071,7 @@ function Skybox(args){
       ];
 
       var skybox_mesh =
-        UIResources().cached('skybox_mesh',
+        UIResources().cached('skybox_'+this.bg+'_mesh',
           function(i){
             var skyboxMesh =
               new THREE.Mesh(new THREE.CubeGeometry( size, size, size,
@@ -1311,7 +1355,7 @@ function Dialog(args){
    * @overrideed
    */
   this.show = function(){
-    var content = $(this.selector).html();
+    var content = this.selector ? $(this.selector).html() : null;
     if(content == null) content = "";
     if(this.text == null) this.text = "";
     this.opend = true;

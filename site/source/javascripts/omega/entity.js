@@ -40,11 +40,17 @@ function Entity(args){
   $.extend(this, new EventTracker());
 
   // copy all args to local attributes
+  // http://api.jquery.com/jQuery.extend/
   this.update = function(args){
     $.extend(this, args);
     this.raise_event('updated', this);
   }
   this.update(args);
+
+  // return new copy of this
+  this.clone = function(){
+    return $.extend(true, {}, this);
+  }
 
   // XXX hack but works
   if(this.id == null && this.name != null) this.id = this.name;
@@ -99,6 +105,15 @@ User.anon_user =
 function Location(args){
   $.extend(this, new Entity(args));
   this.json_class = 'Motel::Location';
+
+  this.ignore_properties.push('movement_strategy');
+  this.ignore_properties.push('movement_callbacks');
+  this.ignore_properties.push('rotation_callbacks');
+  this.ignore_properties.push('stopped_callbacks');
+  this.ignore_properties.push('proximity_callbacks');
+
+  // store locations in the registry
+  Entities().set(this.id, this);
 
   /* Return distance location is from the specified x,y,z
    * coordinates
@@ -158,7 +173,14 @@ function Galaxy(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var sys in this.solar_systems) this.solar_systems[sys] = new SolarSystem(this.solar_systems[sys])
+  for(var sys in this.solar_systems){
+    var nsys = this.solar_systems[sys];
+// FIXME rsys may be -1
+    var rsys = Entities().cached(nsys.name,
+                 function(s){ return new SolarSystem(nsys); });
+    rsys.update(nsys);
+    this.solar_systems[sys] = rsys;
+  }
 
   this.children = function(){
     return this.solar_systems;
@@ -206,17 +228,17 @@ function SolarSystem(args){
     // (though individual properties such as location may be)
     if(args.planets && this.planets){
       for(var p in args.planets)
-        this.planets.update(args.planets[p]);
+        this.planets[p].update(args.planets[p]);
       delete args.planets
     }
     if(args.asteroids && this.asteroids){
       for(var a in args.asteroids)
-        this.asteroids.update(args.asteroids[a]);
+        this.asteroids[a].update(args.asteroids[a]);
       delete args.asteroids
     }
     if(args.jump_gates && this.jump_gates){
       for(var j in args.jump_gates)
-        this.jump_gates.update(args.jump_gates[j]);
+        this.jump_gates[j].update(args.jump_gates[j]);
       delete args.jump_gates
     }
 
@@ -244,12 +266,13 @@ function SolarSystem(args){
           geometry.vertices.push(new THREE.Vector3(endpoint.location.x,
                                                    endpoint.location.y,
                                                    endpoint.location.z));
+          return geometry;
       });
 
     var line_material =
       UIResources().cached("jump_gate_line_material",
         function(i) {
-          return new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true});
+          return new THREE.LineBasicMaterial({color: 0xFFFFFF});
       });
 
     var line =
@@ -259,6 +282,9 @@ function SolarSystem(args){
       });
 
     this.components.push(line);
+
+    // if current scene is set, reload
+    if(this.current_scene) this.current_scene.reload_entity(this);
   }
 
   // instantiate sphere to represent system on canvas
@@ -282,10 +308,10 @@ function SolarSystem(args){
         sphere.position.x = system.location.x;
         sphere.position.y = system.location.y;
         sphere.position.z = system.location.z ;
-        system.clickable_obj = sphere;
         return sphere;
       });
 
+  this.clickable_obj = sphere;
   this.components.push(sphere);
 
   // instantiate plane to draw system image on canvas
@@ -305,7 +331,9 @@ function SolarSystem(args){
   var plane_material =
     UIResources().cached("solar_system_plane_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({map: plane_texture, alphaTest: 0.5});
+        var mat = new THREE.MeshBasicMaterial({map: plane_texture, alphaTest: 0.5});
+        mat.side = THREE.DoubleSide;
+        return mat;
       });
 
   var plane =
@@ -315,6 +343,7 @@ function SolarSystem(args){
                            plane.position.x = system.location.x;
                            plane.position.y = system.location.y;
                            plane.position.z = system.location.z;
+                           plane.rotation.x = 0.785;
                            return plane;
                          });
 
@@ -336,7 +365,11 @@ function SolarSystem(args){
   var text =
     UIResources().cached("solar_system_" + this.id + "label",
       function(i) {
-        return new THREE.Mesh( text3d, text_material );
+        var text = new THREE.Mesh( text3d, text_material );
+        text.position.x = system.location.x;
+        text.position.y = system.location.y;
+        text.position.z = system.location.z + 50;
+        return text;
       });
 
   this.components.push(text);
@@ -360,14 +393,14 @@ function SolarSystem(args){
   /* added_to scene callback
    */
   this.added_to = function(scene){
+    this.current_scene = scene;
     plane.lookAt(scene.camera.position());
   }
 
-  /* clicked_in scene callback
+  /* removed_from scene callback
    */
-  this.clicked_in = function(scene){
-    scene.set(this);
-    //scene.animate();
+  this.removed_from = function(scene){
+    this.current_scene = null;
   }
 }
 
@@ -631,7 +664,7 @@ function Asteroid(args){
     asteroid.components.push(mesh);
 
     // reload asteroid if already in scene
-    if(asteroid.current_scene) asteroid.current_scene.reload(asteroid);
+    if(asteroid.current_scene) asteroid.current_scene.reload_entity(asteroid);
   }
 
   var mesh_geometry =
@@ -679,8 +712,10 @@ function Asteroid(args){
   this.components.push(sphere);
 
   // some text to render in details box on click
-  this.details = ['Asteroid: ' + this.name + "<br/>",
-                  '@ ' + this.location.to_s() + '<br/>'];
+  this.details = function(){
+    return ['Asteroid: ' + this.name + "<br/>",
+            '@ ' + this.location.to_s() + '<br/>'];
+  }
 
   /* added_to scene callback
    */
@@ -729,7 +764,7 @@ function JumpGate(args){
 
   // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
-    var mesh =
+    this.mesh =
       UIResources().cached("jump_gate_" + jg.id + "_mesh",
         function(i) {
           var mesh = new THREE.Mesh(geometry, mesh_material);
@@ -739,11 +774,11 @@ function JumpGate(args){
           return mesh;
         });
 
-    jg.clickable_obj = mesh;
-    jg.components.push(mesh);
+    jg.clickable_obj = this.mesh;
+    jg.components.push(this.mesh);
 
     // reload entity if already in scene
-    if(jg.current_scene) jg.current_scene.reload(jg);
+    if(jg.current_scene) jg.current_scene.reload_entity(jg);
   }
 
   var mesh_geometry =
@@ -776,7 +811,7 @@ function JumpGate(args){
 
       });
 
-  var sphere =
+  this.sphere =
     UIResources().cached("jump_gate_" + this.id + "_container",
                          function(i) {
                            var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
@@ -788,9 +823,11 @@ function JumpGate(args){
                          });
 
   // some text to render in details box on click
-  this.details = ['Jump Gate to ' + this.endpoint + '<br/>',
-                  '@ ' + this.location.to_s() + "<br/><br/>",
-                  "<span class='command' id='cmd_trigger_jg'>Trigger</div>"];
+  this.details = function(){
+    return ['Jump Gate to ' + this.endpoint + '<br/>',
+            '@ ' + this.location.to_s() + "<br/><br/>",
+            "<span class='commands' id='cmd_trigger_jg'>Trigger</div>"];
+  }
 
   /* added_to scene callback
    */
@@ -801,6 +838,7 @@ function JumpGate(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
+    $('#cmd_trigger_jg').die();
     $('#cmd_trigger_jg').live('click', function(e){
       Commands.trigger_jump_gate(jg, function(j, entities){
         // remove entities from scene
@@ -811,19 +849,18 @@ function JumpGate(args){
       });
     })
 
-    this.components.push(sphere);
-    this.clickable_obj = sphere;
+    this.components.push(this.sphere);
+    this.clickable_obj = this.sphere;
     scene.reload_entity(this);
   }
 
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    $('#command_trigger_jg').die();
-
-    this.components.splice(this.components.indexOf(sphere), 1);
-    this.clickable_obj = mesh;
-    scene.reload_entity(this);
+    scene.reload_entity(this, function(s,e){
+      e.components.splice(e.components.indexOf(e.sphere), 1);
+      e.clickable_obj = e.mesh;
+    });
   }
 
   /* removed_from scene callback
@@ -858,39 +895,46 @@ function Ship(args){
     if(args.location && this.location){
       this.location.update(args.location);
 
-      this.mesh.position.x = this.location.x;
-      this.mesh.position.y = this.location.y;
-      this.mesh.position.z = this.location.z;
+      if(this.mesh){
+        this.mesh.position.x = this.location.x;
+        this.mesh.position.y = this.location.y;
+        this.mesh.position.z = this.location.z;
 
-      this.mesh.rotation.x = this.location.orientation_x;
-      this.mesh.rotation.y = this.location.orientation_y;
-      this.mesh.rotation.z = this.location.orientation_z;
+        this.mesh.rotation.x = this.location.orientation_x;
+        this.mesh.rotation.y = this.location.orientation_y;
+        this.mesh.rotation.z = this.location.orientation_z;
 
-      this.sphere.position.x = this.location.x;
-      this.sphere.position.y = this.location.y;
-      this.sphere.position.z = this.location.z;
-
-      this.attack_line_geo.vertices[0].x = this.location.x;
-      this.attack_line_geo.vertices[0].y = this.location.y;
-      this.attack_line_geo.vertices[0].z = this.location.z;
-
-      this.mining_line_geo.vertices[0].x = this.location.x;
-      this.mining_line_geo.vertices[0].y = this.location.y;
-      this.mining_line_geo.vertices[0].z = this.location.z;
-
-      // handle attack/mining state changes
-      if(args.attacking && !this.attacking){
-        this.components.push(this.attack_line);
-
-      }else if(this.attacking && !args.attacking){
-        this.components.splice(this.components.indexOf(this.attack_line), 1);
+        this.sphere.position.x = this.location.x;
+        this.sphere.position.y = this.location.y;
+        this.sphere.position.z = this.location.z;
       }
 
-      if(args.mining && !this.mining){
-        this.components.push(this.mining_line);
+      // handle attack state changes
+      if(this.attack_line){
+        if(args.attacking && !this.attacking){
+          this.components.push(this.attack_line);
 
-      }else if(this.mining && !args.mining){
-        this.components.splice(this.components.indexOf(this.mining_line), 1);
+        }else if(this.attacking && !args.attacking){
+          this.components.splice(this.components.indexOf(this.attack_line), 1);
+        }
+
+        this.attack_line_geo.vertices[0].x = this.location.x;
+        this.attack_line_geo.vertices[0].y = this.location.y;
+        this.attack_line_geo.vertices[0].z = this.location.z;
+      }
+
+      // handle mining state changes
+      if(this.mining_line){
+        if(args.mining && !this.mining){
+          this.components.push(this.mining_line);
+
+        }else if(this.mining && !args.mining){
+          this.components.splice(this.components.indexOf(this.mining_line), 1);
+        }
+
+        this.mining_line_geo.vertices[0].x = this.location.x;
+        this.mining_line_geo.vertices[0].y = this.location.y;
+        this.mining_line_geo.vertices[0].z = this.location.z;
       }
 
       delete args.location;
@@ -951,7 +995,7 @@ function Ship(args){
     if(ship.hp > 0) ship.components.push(ship.mesh);
 
     // reload entity if already in scene
-    if(ship.current_scene) ship.current_scene.reload(ship);
+    if(ship.current_scene) ship.current_scene.reload_entity(ship);
   }
 
   var mesh_geometry =
@@ -1059,15 +1103,20 @@ function Ship(args){
     this.components.push(this.mining_line);
 
   // some text to render in details box on click
-  this.details = ['Ship: ' + this.id + '<br/>',
-                  '@ ' + this.location.to_s() + '<br/>'];
-  if(this.belongs_to_user(Session.current_session.user_id)){
-    this.details.push("<span id='cmd_move_select' class='commands'>move</span>");
-    this.details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
-    this.details.push("<span id='cmd_dock_select' class='commands'>dock</span>");
-    this.details.push("<span id='cmd_undock' class='commands'>undock</span>");
-    this.details.push("<span id='cmd_transfer' class='commands'>transfer</span>");
-    this.details.push("<span id='cmd_mine_select' class='commands'>mine</span>");
+  this.details = function(){
+    var details = ['Ship: ' + this.id + '<br/>',
+                   '@ ' + this.location.to_s() + '<br/>'];
+
+    if(this.belongs_to_user(Session.current_session.user_id)){
+      details.push("<span id='cmd_move_select' class='commands'>move</span>");
+      details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
+      details.push("<span id='cmd_dock_select' class='commands'>dock</span>");
+      details.push("<span id='cmd_undock' class='commands'>undock</span>");
+      details.push("<span id='cmd_transfer' class='commands'>transfer</span>");
+      details.push("<span id='cmd_mine_select' class='commands'>mine</span>");
+    }
+
+    return details;
   }
 
   // text to render in popup on selection command click
@@ -1076,11 +1125,11 @@ function Ship(args){
         ['Move Ship',
          function(){
           // coordinate specification
-          return this.id + "<br/>" +
-                 "X: <input id='dest_x' type='text' value='"+roundTo(this.location.x,2)+"'/><br/>" +
-                 "Y: <input id='dest_y' type='text' value='"+roundTo(this.location.y,2)+"'/><br/>" +
-                 "Z: <input id='dest_z' type='text' value='"+roundTo(this.location.z,2)+"'/><br/>" +
-                 "<input type='button' value='move' id='cmd_move' />"
+          return "<div class='dialog_row'>" + this.id + "</div>" +
+                 "<div class='dialog_row'>X: <input id='dest_x' type='text' value='"+roundTo(this.location.x,2)+"'/></div>" +
+                 "<div class='dialog_row'>Y: <input id='dest_y' type='text' value='"+roundTo(this.location.y,2)+"'/></div>" +
+                 "<div class='dialog_row'>Z: <input id='dest_z' type='text' value='"+roundTo(this.location.z,2)+"'/></div>" +
+                 "<div class='dialog_row'><input type='button' value='move' id='cmd_move' /></div>";
          }] ,
 
       'cmd_attack_select' :
@@ -1096,6 +1145,7 @@ function Ship(args){
           var text = "Select " + this.id + " target<br/>";
           for(var e in entities){
             var entity = entities[e];
+// dialog_row / dialog_clickable_row
             text += '<span id="cmd_attack_'+entity.id+'" class="cmd_attack">' + entity.id + '</span>';
           }
           return text;
@@ -1159,16 +1209,18 @@ function Ship(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
+    $('#cmd_move_select,#cmd_attack_select,#cmd_dock_select,' +
+      '#cmd_mine_select,#cmd_move,.cmd_attack,' +
+      '#cmd_dock,#cmd_undock,#cmd_transfer,#cmd_mine').die();
+
     // wire up selection command page elements,
-    $('#cmd_move_select',
-      '#cmd_attack_select',
-      '#cmd_dock_select',
-      '#cmd_mine_select').
+    $('#cmd_move_select,#cmd_attack_select,' +
+      '#cmd_dock_select,#cmd_mine_select').
         live('click', function(e){
           // just raise the corresponding event w/ content to display,
           // up to another component to take this and render it
           var cmd     = e.target.id;
-          var cmds    = the.selection[cmd];
+          var cmds    = ship.selection[cmd];
           var title   = cmds[0];
           var content = cmds[1].apply(ship)
           ship.raise_event(cmd, ship, title, content);
@@ -1244,13 +1296,6 @@ function Ship(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    $('#cmd_move_select',
-      '#cmd_attack_select',
-      '#cmd_dock_select',
-      '#cmd_mine_select',
-      '#cmd_move', '.cmd_attack',
-      '#cmd_dock', '#cmd_undock',
-      '#cmd_transfer', '#cmd_mine').die();
     this.selected = false;
     this.set_color();
     scene.reload_entity(this);
@@ -1356,10 +1401,13 @@ function Station(args){
   if(mesh_geometry != null) create_mesh(mesh_geometry);
 
   // some text to render in details box on click
-  this.details = ['Station: ' + this.id + '<br/>',
-                  '@ ' + this.location.to_s() + '<br/>'];
-  if(this.belongs_to_user(Session.current_session.user_id))
-    this.details.push("<span id='cmd_construct' class='commands'>construct</span>");
+  this.details = function(){
+    var details = ['Station: ' + this.id + '<br/>',
+                   '@ ' + this.location.to_s() + '<br/>'];
+    if(this.belongs_to_user(Session.current_session.user_id))
+      details.push("<span id='cmd_construct' class='commands'>construct</span>");
+    return details;
+  }
 
   /* added_to scene callback
    */
@@ -1370,6 +1418,7 @@ function Station(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
+    $('#cmd_construct').die();
     $('#cmd_construct').live('click', function(e){
       Commands.construct_entity(station,
                                 function(res){
@@ -1387,8 +1436,6 @@ function Station(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
-    $('#cmd_construct').die();
-
     this.selected = false;
     this.set_color();
     scene.reload_entity(this);
