@@ -52,7 +52,6 @@ function Entity(args){
     return $.extend(true, {}, this);
   }
 
-  // XXX hack but works
   if(this.id == null && this.name != null) this.id = this.name;
 
   /* Scene callbacks
@@ -112,9 +111,6 @@ function Location(args){
   this.ignore_properties.push('stopped_callbacks');
   this.ignore_properties.push('proximity_callbacks');
 
-  // store locations in the registry
-  Entities().set(this.id, this);
-
   /* Return distance location is from the specified x,y,z
    * coordinates
    */
@@ -151,9 +147,6 @@ function Galaxy(args){
 
   this.json_class = 'Cosmos::Galaxy';
 
-  // store galaxies in the registry
-  Entities().set(this.id, this);
-
   /* override update to update all children instead of overwriting
    */
   this.old_update = this.update;
@@ -173,14 +166,8 @@ function Galaxy(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var sys in this.solar_systems){
-    var nsys = this.solar_systems[sys];
-// FIXME rsys may be -1
-    var rsys = Entities().cached(nsys.name,
-                 function(s){ return new SolarSystem(nsys); });
-    rsys.update(nsys);
-    this.solar_systems[sys] = rsys;
-  }
+  for(var sys in this.solar_systems)
+    this.solar_systems[sys] = new SolarSystem(this.solar_systems[sys]);
 
   this.children = function(){
     return this.solar_systems;
@@ -208,9 +195,6 @@ function SolarSystem(args){
 
   this.json_class = 'Cosmos::SolarSystem';
   var system = this;
-
-  // store solar systems in the registry
-  Entities().set(this.id, this);
 
   /* override update to update all children instead of overwriting
    */
@@ -252,7 +236,7 @@ function SolarSystem(args){
   for(var ast in this.asteroids) this.asteroids[ast] = new Asteroid(this.asteroids[ast])
   for(var jg in this.jump_gates) this.jump_gates[jg] = new JumpGate(this.jump_gates[jg])
 
-  // XXX adding jump gates lines is defered to later when we
+  // adding jump gates lines is defered to later when we
   // can remotely retrieve endpoint systems
   this.add_jump_gate = function(jg, endpoint){
     var line_geometry =
@@ -649,7 +633,7 @@ function Asteroid(args){
         return new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false });
       });
 
-  // comments related to / around create_mesh and geometry also apply to JumpGate,Ship,Asteroid below
+  // instantiate mesh to draw station on canvas
   var create_mesh = function(geometry){
     var mesh =
       UIResources().cached("asteroid_" + asteroid.id + "_mesh",
@@ -658,6 +642,7 @@ function Asteroid(args){
                              mesh.position.x = asteroid.location.x;
                              mesh.position.y = asteroid.location.y;
                              mesh.position.z = asteroid.location.z;
+                             mesh.scale.x = mesh.scale.y = mesh.scale.z = 15;
                              return mesh;
                            });
 
@@ -672,8 +657,6 @@ function Asteroid(args){
                          function(i) {
                            // will invoke callback when geometry is loaded
                            var path = UIResources().images_path + '/meshes/asteroids1.js';
-                           // TODO race condition if multiple requests are invoked before first returns
-                           //  (not biggest issue as geometry will be overwritten, but would be good to resolve)
                            UIResources().load_geometry(path, function(geometry){
                              UIResources().set('asteroid_geometry', geometry)
                              create_mesh(geometry);
@@ -705,10 +688,10 @@ function Asteroid(args){
         sphere.position.y = asteroid.location.y;
         sphere.position.z = asteroid.location.z;
         sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
-        asteroid.clickable_obj = sphere;
         return sphere;
       });
 
+  this.clickable_obj = sphere;
   this.components.push(sphere);
 
   // some text to render in details box on click
@@ -738,10 +721,23 @@ function JumpGate(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
+  this.id = this.solar_system + '-' + this.endpoint;
+
   this.json_class = 'Cosmos::JumpGate';
   var jg = this;
 
   this.location = new Location(this.location);
+
+  /* override update to update children
+   */
+  this.old_update = this.update;
+  this.update = function(args){
+    if(args.location && this.location){
+      this.location.update(args.location);
+      delete args.location;
+    }
+    this.old_update(args);
+  }
 
   // instantiate mesh to draw jump gate on canvas
   var mesh_texture =
@@ -762,9 +758,9 @@ function JumpGate(args){
         return new THREE.MeshBasicMaterial( { map: mesh_texture } );
       });
 
-  // see comments related to / around create_mesh and geometry in Asteroid above
+  // instantiate mesh to draw gate on canvas
   var create_mesh = function(geometry){
-    this.mesh =
+    jg.mesh =
       UIResources().cached("jump_gate_" + jg.id + "_mesh",
         function(i) {
           var mesh = new THREE.Mesh(geometry, mesh_material);
@@ -774,8 +770,8 @@ function JumpGate(args){
           return mesh;
         });
 
-    jg.clickable_obj = this.mesh;
-    jg.components.push(this.mesh);
+    jg.clickable_obj = jg.mesh;
+    jg.components.push(jg.mesh);
 
     // reload entity if already in scene
     if(jg.current_scene) jg.current_scene.reload_entity(jg);
@@ -838,18 +834,15 @@ function JumpGate(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
+    this.selected = true;
+
     $('#cmd_trigger_jg').die();
     $('#cmd_trigger_jg').live('click', function(e){
-      Commands.trigger_jump_gate(jg, function(j, entities){
-        // remove entities from scene
-        for(var e in entities)
-          scene.remove_entity(entities[e]);
+      Commands.trigger_jump_gate(jg);
+    });
 
-        jg.raise_event('cmd_trigger_jg', j, entities)
-      });
-    })
-
-    this.components.push(this.sphere);
+    if(this.components.indexOf(this.sphere) == -1)
+      this.components.push(this.sphere);
     this.clickable_obj = this.sphere;
     scene.reload_entity(this);
   }
@@ -857,8 +850,11 @@ function JumpGate(args){
   /* unselected in scene callback
    */
   this.unselected_in = function(scene){
+    this.selected = false;
+
     scene.reload_entity(this, function(s,e){
-      e.components.splice(e.components.indexOf(e.sphere), 1);
+      var si = e.components.indexOf(e.sphere);
+      if(si != -1) e.components.splice(si, 1);
       e.clickable_obj = e.mesh;
     });
   }
@@ -883,9 +879,6 @@ function Ship(args){
   this.json_class = 'Manufactured::Ship';
   var ship = this;
 
-  // store ships in the registry
-  Entities().set(this.id, this);
-
   this.location = new Location(this.location);
 
   /* override update
@@ -909,13 +902,20 @@ function Ship(args){
         this.sphere.position.z = this.location.z;
       }
 
+      var to_remove = [];
+
       // handle attack state changes
       if(this.attack_line){
-        if(args.attacking && !this.attacking){
-          this.components.push(this.attack_line);
+        if(args.attacking){
+          if(this.components.indexOf(this.attack_line) == -1)
+            this.components.push(this.attack_line);
+
+          this.attack_line_geo.vertices[1].x = args.attacking.location.x;
+          this.attack_line_geo.vertices[1].y = args.attacking.location.y;
+          this.attack_line_geo.vertices[1].z = args.attacking.location.z;
 
         }else if(this.attacking && !args.attacking){
-          this.components.splice(this.components.indexOf(this.attack_line), 1);
+          to_remove.push(this.attack_line)
         }
 
         this.attack_line_geo.vertices[0].x = this.location.x;
@@ -925,11 +925,16 @@ function Ship(args){
 
       // handle mining state changes
       if(this.mining_line){
-        if(args.mining && !this.mining){
-          this.components.push(this.mining_line);
+        if(args.mining){
+          if(this.components.indexOf(this.mining_line) == -1)
+            this.components.push(this.mining_line);
+
+          this.mining_line_geo.vertices[1].x = args.mining.entity.location.x;
+          this.mining_line_geo.vertices[1].y = args.mining.entity.location.y;
+          this.mining_line_geo.vertices[1].z = args.mining.entity.location.z;
 
         }else if(this.mining && !args.mining){
-          this.components.splice(this.components.indexOf(this.mining_line), 1);
+          to_remove.push(this.mining_line);
         }
 
         this.mining_line_geo.vertices[0].x = this.location.x;
@@ -939,6 +944,11 @@ function Ship(args){
 
       delete args.location;
     }
+
+    if(this.current_scene) this.current_scene.reload_entity(this, function(s, e){
+      for(var r in to_remove)
+        e.components.splice(e.components.indexOf(to_remove[r]), 1);
+    });
 
     this.old_update(args);
   }
@@ -954,13 +964,13 @@ function Ship(args){
     var color = '0x';
     if(this.selected)
       color += "FFFF00";
-    else if(!this.belongs_to_current_user()){
+    else if(this.belongs_to_current_user()){
       if(this.docked_at)
         color += "99FFFF";
       else
-        color += "CC0000";
+        color += "00CC00";
     }else
-      color += "00CC00";
+      color += "CC0000";
 
     this.mesh_material =
       UIResources().cached("ship_"+color +"_material",
@@ -972,7 +982,6 @@ function Ship(args){
   this.set_color();
 
   // instantiate mesh to draw ship on canvas
-  // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
     ship.mesh =
       UIResources().cached("ship_" + ship.id + "_mesh",
@@ -1032,10 +1041,11 @@ function Ship(args){
                            sphere.position.x = ship.location.x;
                            sphere.position.y = ship.location.y;
                            sphere.position.z = ship.location.z;
-                           sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
+                           sphere.scale.x = sphere.scale.y = sphere.scale.z = 2;
                            return sphere;
                          });
 
+  // TODO is sphere necessary?
   this.clickable_obj = this.sphere;
   this.components.push(this.sphere);
 
@@ -1110,9 +1120,11 @@ function Ship(args){
     if(this.belongs_to_user(Session.current_session.user_id)){
       details.push("<span id='cmd_move_select' class='commands'>move</span>");
       details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
-      details.push("<span id='cmd_dock_select' class='commands'>dock</span>");
-      details.push("<span id='cmd_undock' class='commands'>undock</span>");
-      details.push("<span id='cmd_transfer' class='commands'>transfer</span>");
+      var dcss = this.docked_at ? 'display: none' : '';
+      var ucss = this.docked_at ? '' : 'display: none';
+      details.push("<span id='cmd_dock_select' class='commands' style='" + dcss + "'>dock</span>");
+      details.push("<span id='cmd_undock' class='commands' style='" + ucss + "'>undock</span>");
+      details.push("<span id='cmd_transfer' class='commands' style='" + ucss + "'>transfer</span>");
       details.push("<span id='cmd_mine_select' class='commands'>mine</span>");
     }
 
@@ -1145,8 +1157,7 @@ function Ship(args){
           var text = "Select " + this.id + " target<br/>";
           for(var e in entities){
             var entity = entities[e];
-// dialog_row / dialog_clickable_row
-            text += '<span id="cmd_attack_'+entity.id+'" class="cmd_attack">' + entity.id + '</span>';
+            text += '<span id="cmd_attack_'+entity.id+'" class="cmd_attack dialog_cmds">' + entity.id + '</span>';
           }
           return text;
         }],
@@ -1157,13 +1168,14 @@ function Ship(args){
           // load dock target selection from stations in the vicinity
           var entities = Entities().select(function(e) {
             return e.json_class == 'Manufactured::Station' &&
+                   e.belongs_to_current_user() &&
                    e.location.is_within(100, ship.location);
           });
 
           var text = 'Dock ' + this.id + ' at<br/>';
           for(var e in entities){
             var entity = entities[e];
-            text += '<span id="cmd_dock_' + entity.id + '" class="cmd_dock">' + entity.id + '</span>';
+            text += '<span id="cmd_dock_' + entity.id + '" class="cmd_dock dialog_cmds">' + entity.id + '</span>';
           }
           return text;
         }],
@@ -1171,32 +1183,7 @@ function Ship(args){
       'cmd_mine_select' :
         ['Start Mining',
          function(){
-          // load mining target selection from resource sources in the vicinity
-          var entities = Entities().select(function(e) {
-            return e.json_class == 'Cosmos::Asteroid' &&
-                   e.location.is_within(100, ship.location);
-          });
-
-          var text = "Select resource to mine with "+ this.id +" <br/>";
-          for(var e in entities){
-            var entity = entities[e];
-
-            // refresh lastest asteroid resources
-            // XXX rlly don't like using the node here, but simplest / least hacky solution
-            Entities().node().web_request('cosmos::get_resource_sources', e.name,
-              function(res){
-                if(!res.error){
-                  for(var r in res.result){
-                    var res    = res.result[r];
-                    var resid  = res.entity.name + '_' + res.resource.id
-                    var restxt = res.resource.type + ": " + res.resource.name + " (" + res.quantity + ")";
-                    text += '<span id="cmd_mine_' + rsid + '" class="cmd_mine">'+
-                             restxt + '</span>';
-                  }
-                }
-            });
-          }
-          return text;
+          return "Select resource to mine with "+ ship.id +" <br/>";
         }]
     };
 
@@ -1209,9 +1196,14 @@ function Ship(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
-    $('#cmd_move_select,#cmd_attack_select,#cmd_dock_select,' +
-      '#cmd_mine_select,#cmd_move,.cmd_attack,' +
-      '#cmd_dock,#cmd_undock,#cmd_transfer,#cmd_mine').die();
+    $('#cmd_move_select,#cmd_attack_select,' +
+      '#cmd_dock_select,#cmd_mine_select').die();
+    $('#cmd_move').die()
+    $('.cmd_attack').die()
+    $('.cmd_dock').die();
+    $('#cmd_undock').die();
+    $('#cmd_transfer').die();
+    $('.cmd_mine').die();
 
     // wire up selection command page elements,
     $('#cmd_move_select,#cmd_attack_select,' +
@@ -1238,7 +1230,7 @@ function Ship(args){
     })
 
     $('.cmd_attack').live('click', function(e){
-      var eid = e.target.id.substr(11, -1);
+      var eid = e.currentTarget.id.substr(11);
       var entity = Entities().get(eid);
       Commands.launch_attack(ship, entity,
                              function(res){
@@ -1247,7 +1239,7 @@ function Ship(args){
     })
 
     $('.cmd_dock').live('click', function(e){
-      var eid = e.target.id.substr(9, -1);
+      var eid = e.currentTarget.id.substr(9);
       var entity = Entities().get(eid);
       Commands.dock_ship(ship, entity,
                          function(res){
@@ -1271,15 +1263,15 @@ function Ship(args){
     })
 
     $('#cmd_transfer').live('click', function(e){
-      Commands.transfer_resources(ship, ship.docked_at,
+      Commands.transfer_resources(ship, ship.docked_at.id,
                                   function(res){
                                     ship.raise_event('cmd_transfer', ship);
                                   });
     })
 
     $('.cmd_mine').live('click', function(e){
-      var rsid = e.target.id.substr(8, -1);
-      Commands.start_mining(selected, rsid,
+      var rsid = e.currentTarget.id.substr(9);
+      Commands.start_mining(ship, rsid,
                             function(res){
                               ship.raise_event('cmd_mine', ship, rsid);
                             });
@@ -1308,6 +1300,17 @@ function Ship(args){
   }
 }
 
+/* Return ship w/ the specified id
+ */
+Ship.with_id = function(id, cb){
+  Entities().node().web_request('manufactured::get_entity', 'with_id', id, function(res){
+    if(res.result){
+      var ship = new Ship(res.result);
+      cb.apply(null, [ship]);
+    }
+  });
+};
+
 /* Return ships owned by the specified user
  */
 Ship.owned_by = function(user_id, cb){
@@ -1334,9 +1337,6 @@ function Station(args){
 
   this.json_class = 'Manufactured::Station';
   var station = this;
-
-  // store stations in the registry
-  Entities().set(this.id, this);
 
   this.location = new Location(this.location);
 
@@ -1366,7 +1366,6 @@ function Station(args){
   this.set_color();
 
   // instantiate mesh to draw station on canvas
-  // see comments related to / around create_mesh and geometry in Asteroid above
   var create_mesh = function(geometry){
     station.mesh =
       UIResources().cached("station_" + station.id + "_mesh",
@@ -1384,7 +1383,7 @@ function Station(args){
     station.components.push(station.mesh);
 
     // reload station if already in scene
-    if(station.current_scene) station.current_scene.reload(station);
+    if(station.current_scene) station.current_scene.reload_entity(station);
   }
 
   var mesh_geometry =
@@ -1422,9 +1421,10 @@ function Station(args){
     $('#cmd_construct').live('click', function(e){
       Commands.construct_entity(station,
                                 function(res){
-                                  station.raise_event('cmd_construct',
-                                                      res.result[0],
-                                                      res.result[1]);
+                                  if(res.error) ; // TODO
+                                  else
+                                    station.raise_event('cmd_construct',
+                                                        new Ship(res.result[1]));
                                 });
     });
 
@@ -1474,9 +1474,6 @@ function Mission(args){
   this.json_class = 'Missions::Mission'
 
   this.assign_cmd = '<span id="'+this.id+'" class="assign_mission">assign</span>';
-
-  // store missions in the registry
-  Entities().set(this.id, this);
 
   /* Return time which this mission expires
    */

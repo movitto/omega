@@ -54,7 +54,7 @@ var abwn = function(x1, y1, z1, x2, y2, z2){
   var a = Math.acos(d);
   var na = -1 * a;
 
-  var x = cp(x1, x2, y1, x2, y2, z2);
+  var x = cp(x1, y1, z1, x2, y2, z2);
   d = dp(x[0], x[1], x[2], 0, 0, 1)
   return d < 0 ? na : a;
 }
@@ -92,18 +92,20 @@ var elliptical_path = function(ms){
   var cz = -1 * ms.direction_major_z * le;
 
   // axis rotation
-  var nv = cp(ms.direction_major_x, ms.direction_major_z, ms.direction_major_z,
-              ms.direction_minor_x, ms.direction_minor_z, ms.direction_minor_z);
+  var nv = cp(ms.direction_major_x, ms.direction_major_y, ms.direction_major_z,
+              ms.direction_minor_x, ms.direction_minor_y, ms.direction_minor_z);
   var ab = abwn(0, 0, 1, nv[0], nv[1], nv[2]);
-  var ax = nrml(0, 0, 1, nv[0], nv[1], nv[2])
+  var ax = cp(0, 0, 1, nv[0], nv[1], nv[2])
 
   // path
   for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
     var x = a * Math.cos(i);
-    var y = a * Math.sin(i);
+    var y = b * Math.sin(i);
     var n = rot(x, y, 0, ab, ax[0], ax[1], ax[2]);
+    n[0] += cx; n[1] += cy; n[2] += cz;
     path.push(n);
   }
+console.log(path);
 
   return path;
 }

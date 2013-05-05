@@ -3,7 +3,7 @@
   z-index: -1
 
 canvas
-  border: 1px solid black
+  border: 1px solid gray
   -moz-border-radius: 15px
   border-radius: 15px
 
@@ -37,6 +37,7 @@ img#cam_reset
   padding-left: 5px
   margin-left: 35px
   cursor: crosshair
+  //background: gray
 
 .entities_container ul
   list-style: none
@@ -89,6 +90,7 @@ img#cam_reset
   position: absolute
   right: 60px
   top: 17%
+  overflow: hidden
 
 #entity_container_close
   float: right
@@ -127,6 +129,9 @@ img#cam_reset
 .commands:hover 
   cursor: crosshair
   text-decoration: blink
+
+.dialog_cmds:hover 
+  cursor: crosshair
 
 // specific command icons
 

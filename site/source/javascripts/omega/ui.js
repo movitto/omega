@@ -51,7 +51,7 @@ function UIResources(){
   $.extend(reg, new EventTracker());
 
   // to render textures
-  //var texture_placeholder = document.createElement( 'canvas' );
+  var texture_placeholder = document.createElement( 'canvas' );
 
   // to load mesh geometries
   var loader = new THREE.JSONLoader();
@@ -71,7 +71,6 @@ function UIResources(){
 
   /* Loads a textured material from the specified path
    */
-  var texture_placeholder    = document.createElement( 'canvas' );
   reg.load_texture_material = function(path){
     var texture  = new THREE.Texture( texture_placeholder );
     var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: true } );
@@ -90,10 +89,16 @@ function UIResources(){
    * and invoke callback when it is loaded
    */
   reg.load_geometry = function(path, cb){
+    var evnt = 'geometry_'+path+'_loaded';
+    var loading = false;
+    if(reg.callbacks[evnt] && reg.callbacks[evnt].length > 0) loading = true;
+    reg.on(evnt, function(r, g){ cb.apply(null, [g]); })
+    if(loading) return;
+
     loader.load(path, function(geometry){
-      geometry.computeTangents();
-      cb.apply(null, [geometry]);
-    });
+      reg.raise_event(evnt, geometry);
+      reg.clear_callbacks(evnt);
+    }, UIResources().images_path + '/meshes');
   }
 
   return reg;

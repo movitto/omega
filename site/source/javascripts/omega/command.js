@@ -52,6 +52,7 @@ function ServerEvents(){
       }
     }
 
+    Entities().node().clear_handlers(server_event);
     Entities().node().add_handler(server_event, this.callbacks[server_event]);
   }
 
@@ -132,6 +133,18 @@ var Events = {
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'destroyed');
   },
 
+  /////////////////////////////////////// Construction Events
+
+  /* Manufactured Station construction events
+   */
+  track_construction : function(station_id){
+    // handle server events
+    ServerEvents().handle('manufactured::event_occurred');
+
+    Entities().node().ws_request('manufactured::subscribe_to', station_id, 'construction_complete');
+    Entities().node().ws_request('manufactured::subscribe_to', station_id, 'partial_construction');
+  },
+
   /////////////////////////////////////// Stop tracking manufactured events
 
   /* Stop tracking  manufactured events
@@ -163,10 +176,10 @@ var Commands = {
     // we are assuming endpoint system is loaded from server
     //   (we do this in the clicked jump gate callback)
     var endpoint = jg.endpoint_system;
-
     for(var entity in entities){
       entity = entities[entity];
       Commands.jump_ship(entity, endpoint);
+      jg.raise_event('triggered', entity);
     }
 
     // XXX might be invoked before all jump_ship commands return results
@@ -186,10 +199,13 @@ var Commands = {
   jump_ship : function(ship, sys){
     var old_sys = ship.solar_system;
     ship.location.parent_id = sys.location.id;
-    ship.system_name = sys.name;
-    Entities().node().web_request('manufactured::move_entity', ship.id, ship.location);
-    ship.raise_event('jumped', old_sys, sys);
-    jg.raise_event('triggered', ship);
+    Entities().node().web_request('manufactured::move_entity', ship.id, ship.location, function(res){
+      if(!res.error){
+        ship.system_name  = sys.name;
+        ship.solar_system = sys
+        ship.raise_event('jumped', old_sys, sys);
+      }
+    });
   },
 
   /////////////////////////////////////// Move Ship Command
@@ -248,7 +264,7 @@ var Commands = {
    * @param {Manufactured::Ship} ship ship to undock
    * @param [Callable] cb optional callback to invoke upon request returning
    */
-  undock_ship : function(ship){
+  undock_ship : function(ship, cb){
     if(cb == null) cb = function(res){};
     Entities().node().web_request('manufactured::undock', ship.id, cb);
   },
@@ -287,7 +303,6 @@ var Commands = {
     var entity_id = ids[0];
     var resource_id  = ids[1];
 
-    OmegaEvents.mining.subscribe(ship.id);
     Entities().node().web_request('manufactured::start_mining',
                             ship.id, entity_id, resource_id, cb);
   },
