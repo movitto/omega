@@ -85,6 +85,21 @@ function UIResources(){
     return material;
   }
 
+  /* Loads specified json
+   */
+  reg.load_json = function(path, cb){
+    var evnt = 'json_'+path+'_loaded';
+    var loading = false;
+    if(reg.callbacks[evnt] && reg.callbacks[evnt].length > 0) loading = true;
+    reg.on(evnt, function(r, j){ cb.apply(null, [j]); });
+    if(loading) return;
+
+    loader.load(path, function(j){
+      reg.raise_event(evnt, j);
+      reg.clear_callbacks(evnt);
+    });
+  }
+
   /* Load a remote mesh geometry resource from the specified path
    * and invoke callback when it is loaded
    */
@@ -516,6 +531,8 @@ function Canvas(args){
   var delegate_to_select = function(c, e){
     e.target = this.select_box.component()[0];
     this.select_box.component().trigger(e);
+    // TODO if select box not active & hovering over a component,
+    // invoke a callback (entity.hovered_in(scene))
   }
   this.on('mousemove', delegate_to_select);
   this.on('mousedown', delegate_to_select);

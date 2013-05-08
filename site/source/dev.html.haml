@@ -8,24 +8,8 @@ title: The Omegaverse Development Platform
   = stylesheet_link_tag "dev"
 
 - content_for :secondary_navigation do
-  = link_to "Login",    "#", :id => "login_link"
-  = link_to "Logout",   "#", :id => "logout_link"
+  Dev
 
 .clear_both
 
-= partial :dialog
-
-#index.content
-  = partial :canvas
-
-#login_dialog.dialog_content
-  .dialog_row
-    Username:
-    %input#login_username{:type => "text"}
-
-  .dialog_row
-    Password:
-    %input#login_password{:type => "password"}
-
-  .dialog_row
-    %input#login_button{:type => "button", :value => "login"}
+= partial :canvas

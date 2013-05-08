@@ -282,7 +282,9 @@ function SolarSystem(args){
   var sphere_material =
     UIResources().cached("solar_system_sphere_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({opacity: 0.0, transparent: true});
+        return new THREE.MeshBasicMaterial({color: 0xABABAB,
+                                            opacity: 0.1,
+                                            transparent: true});
       });
 
   var sphere =
@@ -301,35 +303,38 @@ function SolarSystem(args){
   // instantiate plane to draw system image on canvas
   var plane_geometry =
     UIResources().cached('solar_system_plane_geometry',
-                         function(i) {
-                           return new THREE.PlaneGeometry(100, 100);
-                         });
+      function(i) {
+        return new THREE.PlaneGeometry(100, 100);
+      });
 
   var plane_texture =
     UIResources().cached("solar_system_plane_texture",
-                         function(i) {
-                           var path = UIResources().images_path + '/solar_system.png';
-                           return UIResources().load_texture(path);
-                         });
+      function(i) {
+        var path = UIResources().images_path +
+                   $omega_config.resources['solar_system']['material'];
+        return UIResources().load_texture(path);
+      });
 
   var plane_material =
     UIResources().cached("solar_system_plane_material",
       function(i) {
-        var mat = new THREE.MeshBasicMaterial({map: plane_texture, alphaTest: 0.5});
+        var mat = new THREE.MeshBasicMaterial({map: plane_texture,
+                                               alphaTest: 0.5});
         mat.side = THREE.DoubleSide;
         return mat;
       });
 
   var plane =
-    UIResources().cached("solar_system_" + this.id + "_plane_geometry",
-                         function(i) {
-                           var plane = new THREE.Mesh(plane_geometry, plane_material);
-                           plane.position.x = system.location.x;
-                           plane.position.y = system.location.y;
-                           plane.position.z = system.location.z;
-                           plane.rotation.x = 0.785;
-                           return plane;
-                         });
+    UIResources().cached("solar_system_" + this.id + "_plane_mesh",
+      function(i) {
+        var plane = new THREE.Mesh(plane_geometry, plane_material);
+        plane.position.x = system.location.x;
+        plane.position.y = system.location.y;
+        plane.position.z = system.location.z;
+
+        plane.rotation.x = -0.5;
+        return plane;
+      });
 
   this.components.push(plane);
 
@@ -378,7 +383,6 @@ function SolarSystem(args){
    */
   this.added_to = function(scene){
     this.current_scene = scene;
-    plane.lookAt(scene.camera.position());
   }
 
   /* removed_from scene callback
@@ -439,37 +443,37 @@ function Star(args){
   var sphere_geometry =
     UIResources().cached('star_sphere_' + this.size + '_geometry',
       function(i) {
-        var radius = this.size/4, segments = 32, rings = 32;
+        var radius = star.size/2, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 
   var sphere_texture =
     UIResources().cached("star_sphere_texture",
       function(i) {
-        var path = UIResources().images_path +
-                      '/textures/greensun.jpg';
+        var path = UIResources().images_path + $omega_config.resources['star']['material'];
         return UIResources().load_texture(path);
       });
 
   var sphere_material =
     UIResources().cached("star_sphere_" + this.color + "_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({color: parseInt('0x' + star.color),
+        return new THREE.MeshBasicMaterial({//color: parseInt('0x' + star.color),
                                             map: sphere_texture,
                                             overdraw : true});
       });
 
   var sphere =
     UIResources().cached("star_" + this.id + "_sphere_geometry",
-                         function(i) {
-                           var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = star.location.x;
-                           sphere.position.y = star.location.y;
-                           sphere.position.z = star.location.z;
-                           star.clickable_obj = sphere;
-                           return sphere;
-                         });
+      function(i) {
+        var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
+        sphere.position.x = star.location.x;
+        sphere.position.y = star.location.y;
+        sphere.position.z = star.location.z;
 
+        return sphere;
+      });
+
+  star.clickable_obj = sphere;
   this.components.push(sphere);
 }
 
@@ -515,14 +519,24 @@ function Planet(args){
   var sphere_geometry =
     UIResources().cached('planet_sphere_' + this.size + '_geometry',
       function(i) {
-        var radius = this.size, segments = 32, rings = 32;
+        var radius = planet.size, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 
-  var sphere_material =
-    UIResources().cached("planet_sphere_" + this.color + "_material",
+  // generate mesh texture from color mapping
+  var ti = parseInt('0x' + this.color) % 5;
+
+  var sphere_texture =
+    UIResources().cached("planet_"+ti+"_sphere_texture",
       function(i) {
-        return new THREE.MeshBasicMaterial({color: parseInt('0x' + this.color)});
+        var path = UIResources().images_path + $omega_config.resources['planet'+ti]['material'];
+        return UIResources().load_texture(path);
+      });
+
+  var sphere_material =
+    UIResources().cached("planet_sphere_" + planet.color + "_material",
+      function(i) {
+        return new THREE.MeshBasicMaterial({map: sphere_texture});
       });
 
   this.sphere =
@@ -532,10 +546,10 @@ function Planet(args){
         sphere.position.x = planet.location.x;
         sphere.position.y = planet.location.y;
         sphere.position.z = planet.location.z;
-        planet.clickable_obj = sphere;
         return sphere;
       });
 
+  this.clickable_obj = sphere;
   this.components.push(this.sphere);
 
   // calculate the planet's orbit
@@ -627,44 +641,51 @@ function Asteroid(args){
   this.location = new Location(this.location);
 
   // instantiate mesh to draw asteroid on canvas
-  var mesh_material =
+  this.create_mesh = function(){
+    if(this.mesh_geometry == null) return;
+    var mesh =
+      UIResources().cached("asteroid_" + this.id + "_mesh",
+        function(i) {
+          var mesh = new THREE.Mesh(asteroid.mesh_geometry, asteroid.mesh_material);
+          mesh.position.x = asteroid.location.x;
+          mesh.position.y = asteroid.location.y;
+          mesh.position.z = asteroid.location.z;
+
+          var scale = $omega_config.resources['asteroid'].scale;
+          if(scale){
+            mesh.scale.x = scale[0];
+            mesh.scale.y = scale[1];
+            mesh.scale.z = scale[2];
+          }
+
+          return mesh;
+        });
+
+    this.components.push(mesh);
+
+    // reload asteroid if already in scene
+    if(this.current_scene) this.current_scene.reload_entity(this);
+  }
+
+  this.mesh_material =
     UIResources().cached("asteroid_material",
       function(i) {
         return new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false });
       });
 
-  // instantiate mesh to draw station on canvas
-  var create_mesh = function(geometry){
-    var mesh =
-      UIResources().cached("asteroid_" + asteroid.id + "_mesh",
-                           function(i) {
-                             var mesh = new THREE.Mesh(geometry, mesh_material);
-                             mesh.position.x = asteroid.location.x;
-                             mesh.position.y = asteroid.location.y;
-                             mesh.position.z = asteroid.location.z;
-                             mesh.scale.x = mesh.scale.y = mesh.scale.z = 15;
-                             return mesh;
-                           });
-
-    asteroid.components.push(mesh);
-
-    // reload asteroid if already in scene
-    if(asteroid.current_scene) asteroid.current_scene.reload_entity(asteroid);
-  }
-
-  var mesh_geometry =
+  this.mesh_geometry =
     UIResources().cached('asteroid_geometry',
-                         function(i) {
-                           // will invoke callback when geometry is loaded
-                           var path = UIResources().images_path + '/meshes/asteroids1.js';
-                           UIResources().load_geometry(path, function(geometry){
-                             UIResources().set('asteroid_geometry', geometry)
-                             create_mesh(geometry);
-                           })
-                           return null;
-                         });
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources['asteroid']['geometry'];
+        UIResources().load_json(path, function(geo){
+          asteroid.mesh_geometry = geo;
+          UIResources().set('asteroid_geometry', asteroid.mesh_geometry);
+          asteroid.create_mesh();
+        })
+        return null;
+      });
 
-  if(mesh_geometry != null) create_mesh(mesh_geometry);
+  this.create_mesh();
 
   // instantiate sphere to draw around asteroid on canvas
   var sphere_geometry =
@@ -739,11 +760,46 @@ function JumpGate(args){
     this.old_update(args);
   }
 
-  // instantiate mesh to draw jump gate on canvas
+  // instantiate mesh to draw gate on canvas
+  this.create_mesh = function(){
+    if(this.mesh_geometry == null) return;
+    this.mesh =
+      UIResources().cached("jump_gate_" + this.id + "_mesh",
+        function(i) {
+          var mesh = new THREE.Mesh(jg.mesh_geometry, jg.mesh_material);
+          mesh.position.x = jg.location.x;
+          mesh.position.y = jg.location.y;
+          mesh.position.z = jg.location.z;
+
+          var scale = $omega_config.resources['jump_gate'].scale;
+          if(scale){
+            mesh.scale.x = scale[0];
+            mesh.scale.y = scale[1];
+            mesh.scale.z = scale[2];
+          }
+
+          var rotation = $omega_config.resources['jump_gate'].rotation;
+          if(rotation){
+            mesh.rotation.x = rotation[0];
+            mesh.rotation.y = rotation[1];
+            mesh.rotation.z = rotation[2];
+            mesh.matrix.setRotationFromEuler(mesh.rotation);
+          }
+
+          return mesh;
+        });
+
+    this.clickable_obj = this.mesh;
+    this.components.push(this.mesh);
+
+    // reload entity if already in scene
+    if(this.current_scene) this.current_scene.reload_entity(this);
+  }
+
   var mesh_texture =
     UIResources().cached("jump_gate_mesh_texture",
       function(i) {
-        var path = UIResources().images_path + '/textures/jump_gate.jpg';
+        var path = UIResources().images_path + $omega_config.resources['jump_gate']['material'];
         var texture = UIResources().load_texture(path);
         texture.wrapS  = THREE.RepeatWrapping;
         texture.wrapT  = THREE.RepeatWrapping;
@@ -752,43 +808,25 @@ function JumpGate(args){
         return texture;
       });
 
-  var mesh_material =
+  this.mesh_material =
     UIResources().cached("jump_gate_mesh_material",
       function(i) {
         return new THREE.MeshBasicMaterial( { map: mesh_texture } );
       });
 
-  // instantiate mesh to draw gate on canvas
-  var create_mesh = function(geometry){
-    jg.mesh =
-      UIResources().cached("jump_gate_" + jg.id + "_mesh",
-        function(i) {
-          var mesh = new THREE.Mesh(geometry, mesh_material);
-          mesh.position.x = jg.location.x;
-          mesh.position.y = jg.location.y;
-          mesh.position.z = jg.location.z;
-          return mesh;
-        });
-
-    jg.clickable_obj = jg.mesh;
-    jg.components.push(jg.mesh);
-
-    // reload entity if already in scene
-    if(jg.current_scene) jg.current_scene.reload_entity(jg);
-  }
-
-  var mesh_geometry =
+  this.mesh_geometry =
     UIResources().cached('jump_gate_mesh_geometry',
       function(i) {
-        var path = UIResources().images_path + '/meshes/jump_gate.js';
+        var path = UIResources().images_path + $omega_config.resources['jump_gate']['geometry'];
         UIResources().load_geometry(path, function(geometry){
+          jg.mesh_geometry = geometry;
           UIResources().set('jump_gate_mesh_geometry', geometry);
-          create_mesh(geometry);
+          jg.create_mesh();
         })
         return null;
       });
 
-  if(mesh_geometry != null) create_mesh(mesh_geometry);
+  this.create_mesh();
 
   // instantiate sphere to draw around jump_gate on canvas
   var sphere_geometry =
@@ -893,9 +931,7 @@ function Ship(args){
         this.mesh.position.y = this.location.y;
         this.mesh.position.z = this.location.z;
 
-        this.mesh.rotation.x = this.location.orientation_x;
-        this.mesh.rotation.y = this.location.orientation_y;
-        this.mesh.rotation.z = this.location.orientation_z;
+        this.set_orientation(this.mesh)
 
         this.sphere.position.x = this.location.x;
         this.sphere.position.y = this.location.y;
@@ -960,65 +996,85 @@ function Ship(args){
     return this.belongs_to_user(Session.current_session.user_id);
   }
 
-  this.set_color = function(){
-    var color = '0x';
-    if(this.selected)
-      color += "FFFF00";
-    else if(this.belongs_to_current_user()){
-      if(this.docked_at)
-        color += "99FFFF";
-      else
-        color += "00CC00";
-    }else
-      color += "CC0000";
+  /* helper to set orientation
+   */
+  this.set_orientation = function(mesh){
+    // apply base mesh rotation
+    var rotation = $omega_config.resources[this.type].rotation
+    mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+    if(rotation){
+      mesh.rotation.x = rotation[0];
+      mesh.rotation.y = rotation[1];
+      mesh.rotation.z = rotation[2];
+    }
+    mesh.matrix.setRotationFromEuler(mesh.rotation);
 
-    this.mesh_material =
-      UIResources().cached("ship_"+color +"_material",
-        function(i) {
-          return new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
-        });
-    if(this.mesh) this.mesh.material = this.mesh_material;
+    // set location orientation
+    var oax = cp(0, 0, 1, this.location.orientation_x,
+                          this.location.orientation_y,
+                          this.location.orientation_z);
+    var oab = abwn(0, 0, 1, this.location.orientation_x,
+                            this.location.orientation_y,
+                            this.location.orientation_z);
+
+    // XXX edge case if facing straight back to preserve 'top'
+    // TODO expand this to cover all cases where oab > 1.57 or < -1.57
+    if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
+    var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
+    orm.multiplySelf(mesh.matrix);
+    mesh.rotation.setEulerFromRotationMatrix(orm);
   }
-  this.set_color();
+
 
   // instantiate mesh to draw ship on canvas
-  var create_mesh = function(geometry){
-    ship.mesh =
-      UIResources().cached("ship_" + ship.id + "_mesh",
-                           function(i) {
-                             var mesh = new THREE.Mesh(geometry, ship.mesh_material);
-                             mesh.position.x = ship.location.x;
-                             mesh.position.y = ship.location.y;
-                             mesh.position.z = ship.location.z;
-                             mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
-                             mesh.scale.x = mesh.scale.y = mesh.scale.z = 10;
+  this.create_mesh = function(){
+    if(this.mesh_geometry == null) return;
+    this.mesh =
+      UIResources().cached("ship_" + this.id + "_mesh",
+        function(i) {
+          var mesh = new THREE.Mesh(ship.mesh_geometry, ship.mesh_material);
+          mesh.position.x = ship.location.x;
+          mesh.position.y = ship.location.y;
+          mesh.position.z = ship.location.z;
 
-                             // set orientation
-                             mesh.rotation.x = ship.location.orientation_x;
-                             mesh.rotation.y = ship.location.orientation_y;
-                             mesh.rotation.z = ship.location.orientation_z;
+          var scale = $omega_config.resources[ship.type].scale;
+          if(scale){
+            mesh.scale.x = scale[0];
+            mesh.scale.y = scale[1];
+            mesh.scale.z = scale[2];
+          }
 
-                             return mesh;
-                           });
+          ship.set_orientation(mesh);
+          return mesh;
+        });
 
-    if(ship.hp > 0) ship.components.push(ship.mesh);
+    if(this.hp > 0) this.components.push(this.mesh);
 
     // reload entity if already in scene
-    if(ship.current_scene) ship.current_scene.reload_entity(ship);
+    if(this.current_scene) this.current_scene.reload_entity(this);
   }
 
-  var mesh_geometry =
-    UIResources().cached('ship_mesh_geometry',
-                         function(i) {
-                           var path = UIResources().images_path + '/meshes/brigantine.js';
-                           UIResources().load_geometry(path, function(geometry){
-                             UIResources().set('ship_mesh_geometry', geometry)
-                             create_mesh(geometry);
-                           })
-                           return null;
-                         });
+  this.mesh_material =
+    UIResources().cached("ship_"+this.type+"_mesh_material",
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[ship.type]['material'];
+        var t = UIResources().load_texture(path);
+        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
+      });
 
-  if(mesh_geometry != null) create_mesh(mesh_geometry);
+  this.mesh_geometry =
+    UIResources().cached('ship_'+this.type+'_mesh_geometry',
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[ship.type]['geometry'];
+        UIResources().load_json(path, function(geo){
+          ship.mesh_geometry = geo;
+          UIResources().set('ship_'+this.type+'_mesh_geometry', ship.mesh_geometry)
+          ship.create_mesh();
+        })
+        return null;
+      });
+
+  this.create_mesh();
 
   // instantiate sphere to draw around ship on canvas
   var sphere_material =
@@ -1347,57 +1403,50 @@ function Station(args){
     return this.belongs_to_user(Session.current_session.user_id);
   }
 
-  this.set_color = function(){
-    var color = '0x';
-    if(this.selected)
-      color += "FFFF00";
-    else if(!this.belongs_to_current_user())
-      color += "CC0011";
-    else
-      color += "0000CC";
-
-    this.mesh_material =
-      UIResources().cached("station_"+color +"_material",
-        function(i) {
-          return new THREE.MeshBasicMaterial({color: parseInt(color), overdraw : true});
-        });
-    if(this.mesh) this.mesh.material = this.mesh_material;
-  }
-  this.set_color();
-
   // instantiate mesh to draw station on canvas
-  var create_mesh = function(geometry){
-    station.mesh =
-      UIResources().cached("station_" + station.id + "_mesh",
-                           function(i) {
-                             var mesh = new THREE.Mesh(geometry, station.mesh_material);
-                             mesh.position.x = station.location.x;
-                             mesh.position.y = station.location.y;
-                             mesh.position.z = station.location.z;
-                             mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
-                             mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
-                             return mesh;
-                           });
+  this.create_mesh = function(){
+    if(this.mesh_geometry == null) return;
 
-    station.clickable_obj = station.mesh;
-    station.components.push(station.mesh);
+    this.mesh =
+      UIResources().cached("station_" + this.id + "_mesh",
+        function(i) {
+          var mesh = new THREE.Mesh(station.mesh_geometry, station.mesh_material);
+          mesh.position.x = station.location.x;
+          mesh.position.y = station.location.y;
+          mesh.position.z = station.location.z;
+          mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+          mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
+          return mesh;
+        });
+
+    this.clickable_obj = this.mesh;
+    this.components.push(this.mesh);
 
     // reload station if already in scene
-    if(station.current_scene) station.current_scene.reload_entity(station);
+    if(this.current_scene) this.current_scene.reload_entity(this);
   }
 
-  var mesh_geometry =
-    UIResources().cached('station_mesh_geometry',
-                         function(i) {
-                           var path = UIResources().images_path + '/meshes/research.js';
-                           UIResources().load_geometry(path, function(geometry){
-                             UIResources().set('station_mesh_geometry', geometry)
-                             create_mesh(geometry);
-                           })
-                           return null;
-                         });
+  this.mesh_material =
+    UIResources().cached("station_"+station.type +"_material",
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[station.type]['material'];
+        var t = UIResources().load_texture(path);
+        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
+    });
 
-  if(mesh_geometry != null) create_mesh(mesh_geometry);
+  var mesh_geometry =
+    UIResources().cached('station_'+station.type+'_mesh_geometry',
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[station.type]['geometry'];
+        UIResources().load_json(path, function(geo){
+          station.mesh_geometry = geo;
+          UIResources().set('station_'+station.type+'_mesh_geometry', station.mesh_geometry);
+          station.create_mesh();
+        });
+        return null;
+    });
+
+  this.create_mesh();
 
   // some text to render in details box on click
   this.details = function(){
