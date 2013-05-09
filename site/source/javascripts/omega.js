@@ -106,8 +106,14 @@ var process_entities = function(ui, node, entities){
 /* Internal helper to process a single manufactured entity
  */
 var process_entity = function(ui, node, entity){
-  // store in registry
-  Entities().set(entity.id, entity);
+  // store or update in registry
+  var rentity = Entities().get(entity.id);
+  if(rentity == null){
+    Entities().set(entity.id, entity);
+  }else{
+    rentity.update(entity);
+    entity = rentity;
+  }
 
   // store location in registry
   Entities().set(entity.location.id, entity.location);
@@ -942,6 +948,9 @@ var wire_up_canvas = function(ui, node){
     // refresh entities under the system
     if(s.get().json_class == "Cosmos::SolarSystem")
       SolarSystem.entities_under(s.get().name, function(e){ process_entities(ui, node, e); });
+
+    // reset the camera
+    ui.canvas.scene.camera.reset();
   });
 }
 

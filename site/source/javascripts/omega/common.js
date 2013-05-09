@@ -4,6 +4,13 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/* Create new array from args
+ * http://shifteleven.com/articles/2007/06/28/array-like-objects-in-javascript
+ */
+var args_to_arry = function(oargs){
+  return Array.prototype.slice.call(oargs);
+}
+
 /* retrieve all values of an object
  */
 var obj_values = function(obj){
@@ -105,7 +112,6 @@ var elliptical_path = function(ms){
     n[0] += cx; n[1] += cy; n[2] += cz;
     path.push(n);
   }
-console.log(path);
 
   return path;
 }

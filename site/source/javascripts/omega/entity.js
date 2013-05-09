@@ -150,7 +150,9 @@ function Galaxy(args){
   /* override update to update all children instead of overwriting
    */
   this.old_update = this.update;
-  this.update = function(args){
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
     if(args.location && this.location){
       this.location.update(args.location);
       delete args.location;
@@ -199,7 +201,9 @@ function SolarSystem(args){
   /* override update to update all children instead of overwriting
    */
   this.old_update = this.update;
-  this.update = function(args){
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
     if(args.location && this.location){
       this.location.update(args.location);
       delete args.location;
@@ -225,6 +229,9 @@ function SolarSystem(args){
         this.jump_gates[j].update(args.jump_gates[j]);
       delete args.jump_gates
     }
+
+    // do not update components
+    if(args.components) delete args.components;
 
     this.old_update(args);
   }
@@ -493,7 +500,9 @@ function Planet(args){
   /* override update
    */
   this.old_update = this.update;
-  this.update = function(args){
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
     if(args.location && this.location){
       this.location.update(args.location);
 
@@ -661,6 +670,7 @@ function Asteroid(args){
           return mesh;
         });
 
+    this.clickable_obj = mesh;
     this.components.push(mesh);
 
     // reload asteroid if already in scene
@@ -686,34 +696,6 @@ function Asteroid(args){
       });
 
   this.create_mesh();
-
-  // instantiate sphere to draw around asteroid on canvas
-  var sphere_geometry =
-    UIResources().cached('asteroid_container_geometry',
-      function(i) {
-        var astradius = 25, astsegments = 32, astrings = 32;
-        return new THREE.SphereGeometry(astradius, astsegments, astrings);
-      });
-
-  var sphere_material =
-    UIResources().cached("asteroid_container_material",
-      function(i) {
-        return new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } );
-      });
-
-  var sphere =
-    UIResources().cached("asteroid_" + this.id + "_container",
-      function(i) {
-        var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-        sphere.position.x = asteroid.location.x;
-        sphere.position.y = asteroid.location.y;
-        sphere.position.z = asteroid.location.z;
-        sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
-        return sphere;
-      });
-
-  this.clickable_obj = sphere;
-  this.components.push(sphere);
 
   // some text to render in details box on click
   this.details = function(){
@@ -752,7 +734,9 @@ function JumpGate(args){
   /* override update to update children
    */
   this.old_update = this.update;
-  this.update = function(args){
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
     if(args.location && this.location){
       this.location.update(args.location);
       delete args.location;
@@ -770,6 +754,13 @@ function JumpGate(args){
           mesh.position.x = jg.location.x;
           mesh.position.y = jg.location.y;
           mesh.position.z = jg.location.z;
+
+          var offset = $omega_config.resources['jump_gate'].offset;
+          if(offset){
+            mesh.position.x += offset[0];
+            mesh.position.y += offset[1];
+            mesh.position.z += offset[2];
+          }
 
           var scale = $omega_config.resources['jump_gate'].scale;
           if(scale){
@@ -922,7 +913,9 @@ function Ship(args){
   /* override update
    */
   this.old_update = this.update;
-  this.update = function(args){
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
     if(args.location && this.location){
       this.location.update(args.location);
 
@@ -932,10 +925,6 @@ function Ship(args){
         this.mesh.position.z = this.location.z;
 
         this.set_orientation(this.mesh)
-
-        this.sphere.position.x = this.location.x;
-        this.sphere.position.y = this.location.y;
-        this.sphere.position.z = this.location.z;
       }
 
       var to_remove = [];
@@ -985,6 +974,9 @@ function Ship(args){
       for(var r in to_remove)
         e.components.splice(e.components.indexOf(to_remove[r]), 1);
     });
+
+    // do not update components from args
+    if(args.components) delete args.components;
 
     this.old_update(args);
   }
@@ -1048,7 +1040,10 @@ function Ship(args){
           return mesh;
         });
 
-    if(this.hp > 0) this.components.push(this.mesh);
+    if(this.hp > 0){
+      this.clickable_obj = this.mesh;
+      this.components.push(this.mesh);
+    }
 
     // reload entity if already in scene
     if(this.current_scene) this.current_scene.reload_entity(this);
@@ -1075,35 +1070,6 @@ function Ship(args){
       });
 
   this.create_mesh();
-
-  // instantiate sphere to draw around ship on canvas
-  var sphere_material =
-    UIResources().cached('ship_container_material',
-      function(i) {
-        return new THREE.MeshBasicMaterial( { opacity: 0.0, transparent: true } );
-      });
-
-  var sphere_geometry =
-    UIResources().cached('ship_container_geometry',
-      function(i) {
-        var shipradius = 25, shipsegments = 32, shiprings = 32;
-        return new THREE.SphereGeometry(shipradius, shipsegments, shiprings);
-      });
-
-  this.sphere =
-    UIResources().cached("ship_" + this.id + "_container",
-                         function(i) {
-                           var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = ship.location.x;
-                           sphere.position.y = ship.location.y;
-                           sphere.position.z = ship.location.z;
-                           sphere.scale.x = sphere.scale.y = sphere.scale.z = 2;
-                           return sphere;
-                         });
-
-  // TODO is sphere necessary?
-  this.clickable_obj = this.sphere;
-  this.components.push(this.sphere);
 
   // setup attack vector
   var line_material =
@@ -1252,6 +1218,8 @@ function Ship(args){
   /* clicked_in scene callback
    */
   this.clicked_in = function(scene){
+    // remove existing command page element handlers
+    // XXX should be exact same selectors as w/ live handlers below:
     $('#cmd_move_select,#cmd_attack_select,' +
       '#cmd_dock_select,#cmd_mine_select').die();
     $('#cmd_move').die()
@@ -1335,7 +1303,6 @@ function Ship(args){
 
     // change color
     this.selected = true;
-    this.set_color();
 
     // reload ship in scene
     scene.reload_entity(this);
@@ -1345,7 +1312,6 @@ function Ship(args){
    */
   this.unselected_in = function(scene){
     this.selected = false;
-    this.set_color();
     scene.reload_entity(this);
   }
 
@@ -1401,6 +1367,22 @@ function Station(args){
   }
   this.belongs_to_current_user = function(){
     return this.belongs_to_user(Session.current_session.user_id);
+  }
+
+  /* override update
+   */
+  this.old_update = this.update;
+  this.update = function(oargs){
+    var args = $.extend({}, oargs); // copy args
+
+    if(args.location && this.location){
+      this.location.update(args.location);
+    }
+
+    // do not update components from args
+    if(args.components) delete args.components;
+
+    this.old_update(args);
   }
 
   // instantiate mesh to draw station on canvas
@@ -1478,7 +1460,6 @@ function Station(args){
     });
 
     this.selected = true;
-    this.set_color();
     scene.reload_entity(this);
   }
 
@@ -1486,7 +1467,6 @@ function Station(args){
    */
   this.unselected_in = function(scene){
     this.selected = false;
-    this.set_color();
     scene.reload_entity(this);
   }
 

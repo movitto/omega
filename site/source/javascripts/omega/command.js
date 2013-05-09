@@ -35,7 +35,7 @@ function ServerEvents(){
 
     this.callbacks[server_event] = function(){
       // Create a new array from the contents of arguments
-      var nargs = [server_event].concat(Array.prototype.slice.call(arguments));
+      var nargs = [server_event].concat(args_to_arry(arguments));
       this.raise_event.apply(this, nargs);
 
       // also attempt to identify the 'primary' object which

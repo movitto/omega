@@ -44,9 +44,7 @@ function EventTracker(){
   /* Raise event w/ the specified args
    */
   this.raise_event = function(){
-    // Create a new array from the contents of arguments
-    // http://shifteleven.com/articles/2007/06/28/array-like-objects-in-javascript
-    var args = Array.prototype.slice.call(arguments);
+    var args = args_to_arry(arguments);
 
     var evnt = args.shift();
     args.unshift(this);
