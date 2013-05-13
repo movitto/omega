@@ -136,7 +136,7 @@ class AttributeClass
 
   # description of the attribute class
   def self.description(description = nil)
-    @description = description unless description.nil?
+    @description = description.gsub(/\s+/, " ") unless description.nil?
     @description
   end
 

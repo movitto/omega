@@ -100,6 +100,9 @@ class Station
   # Max distance a ship can be from station to dock with it
   attr_reader :docking_distance
 
+  # TODO number of ships which may be docked to the station at any one time
+  #attr_reader :ports
+
   # Max cargo capacity of station
   # @see #cargo_quantity
   attr_accessor :cargo_capacity
@@ -216,9 +219,7 @@ class Station
   # @param [Manufactured::Ship] ship ship which to give or deny docking clearance
   # @return [true,false] indicating if ship is allowed to dock at station
   def dockable?(ship)
-    # TODO at some point we may want to limit
-    # the number of ships able to be ported at a station at a given time,
-    # restrict this via station type, add a toggleable flag, etc
+    # TODO incorporate # of ports
     (ship.location.parent.id == @location.parent.id) &&
     (ship.location - @location) <= @docking_distance &&
     !ship.docked?

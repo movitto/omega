@@ -11,6 +11,8 @@ include Omega::Client::DSL
 
 include Missions
 
+##################################################### init
+
 STARTING_SYSTEM = ARGV.shift
 
 RJR::Logger.log_level= ::Logger::INFO
@@ -21,20 +23,40 @@ login node, 'admin', 'nimda'
 
 starting_system = system(STARTING_SYSTEM)
 
+##################################################### users
+
 macbeth  = user 'Macbeth',      'htebcam',      :npc => true
-#lmacbeth = user 'Lady Macbeth', 'htebcam ydal', :npc => true
 duncan   = user 'Duncan',       'nacnud',       :npc => true
+
+hamlet   = user 'Hamlet',       'telmah',       :npc => true
+claudius = user 'Claudius',     'suidualc',     :npc => true
+
+othello  = user 'Othello',      'ollehto',      :npc => true
+iago     = user 'Iago',         'ogai',         :npc => true
+
+##################################################### entities
+
+# TODO logout as admin, login as macbeth/hamlet/othello so as to properly set creator_user_id
 
 castle_macbeth = station('castle-macbeth', :user_id => 'Macbeth',
                          :solar_system => starting_system, 
                          :location     => Motel::Location.new(:x => -950, :y => 450, :z => -750))
 
 macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
-                      :solar_system => starting_system, 
+                      :solar_system => starting_system,
                       :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
 macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
 
-# TODO logout as admin, login as macbeth so as to properly set creator_user_id
+hamlet_ship    = ship('hamlet-ship', :user_id => 'Hamlet',
+                      :solar_system => starting_system,
+                      :location     => Motel::Location.new(:x => 342, :y => -1132, -286))
+
+othello_ship   = ship('othello-ship', :user_id => 'Othello',
+                      :solar_system => starting_system,
+                      :location     => Motel::Location.new(:x => 501, :y => 466, :z => -2495)
+
+
+##################################################### attack missions
 
 mission gen_uuid, :title => 'Kill Duncan',
         :creator_user_id => macbeth.id, :timeout => 360,
@@ -130,3 +152,128 @@ mission gen_uuid, :title => 'Kill Duncan',
           new_mission.clear_assignment!
           node.invoke_request('missions::create_mission', new_mission)
         }
+
+mission gen_uuid, :title => 'Take Claudius Down',
+        :creator_user_id => hamlet.id, :timeout => 360,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+mission gen_uuid, :title => 'Put an End to Iago'
+        :creator_user_id => othello.id, :timeout => 360,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+mission gen_uuid, :title => 'TODO',
+        :creator_user_id => , :timeout => 360,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+
+mission gen_uuid, :title => 'TODO',
+        :creator_user_id => , :timeout => 360,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+##################################################### mining/transport/loot missions
+
+[['metal-steel', 500, 500, 100], ['metal-plantinum', 100, 100, 250],
+ ['gem-diamond', 100, 200, 200], ['fuel-uranium',   1000, 200, 100],
+ ['adhesive-cellulose', 5000, 1000, 50]].each { |res,q1,q2,q3|
+
+# mining
+mission gen_uuid, :title => "Collect #{q1} of #{res}",
+        :creator_user_id => , :timeout => 3600,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+# transport
+mission gen_uuid, :title => "Move #{q2} of #{res} from ...",
+        :creator_user_id => , :timeout => 3600,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+
+# loot
+mission gen_uuid, :title => "Scavange #{q3} of #{res}",
+        :creator_user_id => , :timeout => 3600,
+        :description => '',
+
+        :assignment_callbacks =>  proc{ |mission, node|
+        },
+
+        :victory_conditions => proc{ |mission, node|
+        },
+
+        :victory_callbacks => proc{ |mission, node|
+        },
+
+        :failure_callbacks => proc{ |mission, node|
+        }
+}
+
+##################################################### research missions (TODO)

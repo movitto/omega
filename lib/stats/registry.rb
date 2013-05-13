@@ -33,42 +33,131 @@ class Registry
        # Return number of specified entity
        Stat.new(:id => :num_of,
                 :description => 'Total number of entities',
-                :generator => proc { |entity_type|
-                                # currently suppor users entity types
-                                # TODO add support for manufactured, cosmos, missions, etc
-                                case entity_type
-                                when "users" then
-                                  Registry.instance.node.invoke_request('users::get_entities',
-                                                                        'of_type', 'Users::User').size
-                                else
-                                  nil
-                                end
-                              }),
+                :generator =>
+           proc { |entity_type|
+              case entity_type
+              when "users" then
+                Registry.instance.node.invoke_request('users::get_entities',
+                                                      'of_type', 'Users::User').size
+
+              when "entities" then
+                Registry.instance.node.invoke_request('manufactured::get_entities').size
+
+              when "ships" then
+                Registry.instance.node.invoke_request('manufactured::get_entities',
+                                                      'of_type', 'Manufactured::Ship').size
+
+              when "stations" then
+                Registry.instance.node.invoke_request('manufactured::get_entities',
+                                                      'of_type', 'Manufactured::Station').size
+
+              when "galaxies" then
+                Registry.instance.node.invoke_request('cosmos::get_entities',
+                                                      'of_type', 'Cosmos::Galaxy').size
+
+              when "solar_systems" then
+                Registry.instance.node.invoke_request('cosmos::get_entities',
+                                                      'of_type', 'Cosmos::SolarSystem').size
+
+              when "planets" then
+                Registry.instance.node.invoke_request('cosmos::get_entities',
+                                                      'of_type', 'Cosmos::Planet').size
+
+              when "missions" then
+                Registry.instance.node.invoke_request('missions::get_missions').size
+
+              else
+                nil
+              end
+           }),
 
        # Return list of up to <num_to_return> user ids sorted
-       # by the number of manufactued enties the users own
-       Stat.new(:id => :most_entities,
+       # by the number of the specified entity they are associated with
+       Stat.new(:id => :with_most,
                 :description => 'Users w/ the most entities',
-                :generator => proc { |num_to_return|
-                                # get all ships
-                                entities = Registry.instance.node.invoke_request 'manufactured::get_entities'
+                :generator =>
+           proc { |entity_type, num_to_return|
+             user_ids = []
 
-                                # count ships per user, sort
-                                eu = entities.inject(Hash.new(0)) { |h,e|
-                                  h[e.user_id] += 1; h
-                                }.sort_by { |k,v| v }.reverse
+             case entity_type
+             when "entities" then
+               # count entities per user sort
+               user_ids =
+                 Registry.instance.node.
+                          invoke_request('manufactured::get_entities').
+                          inject(Hash.new(0)) { |h,e|
+                            h[e.user_id] += 1; h
+                          }.sort_by { |k,v| v }.reverse.
+                          collect { |e| e.first }
 
-                                num_to_return ||= eu.size
+             when "kills" then
+             when "times_killed" then
+             when "resources_collected" then
+             when "loot_collected" then
+             when "distance_moved" then
+               attr_map = {
+                 'kills'               => Users::Attributes::ShipsUserDestroyed.id,
+                 'times_killed'        => Users::Attributes::UserShipsDestroyed.id,
+                 'resources_collected' => Users::Attributes::ResourcesCollected.id,
+                 'loot_collect'        => Users::Attributes::LootCollected.id,
+                 'distance_moved'      => Users::Attributes::DistanceTravelled.id
+               }
+               # TODO limit request to just return users w/ the specified attribute
+               user_ids =
+                 Registry.instance.node.
+                          invoke_request('users::get_entities').
+                          sort_by { |u|
+                            u.attribute.find { |a|
+                              a.type.id == attr_map[entity_type]
+                            }.level
+                          }
 
-                                # return 
-                                eu[0...num_to_return].collect { |eui| eui.first }
-                              }),
+             when "missions_completed" then
+               user_ids =
+                 Registry.instance.node.
+                          invoke_request('missions::get_missions', 'is_active', false).
+                          inject(Hash.new(0)) { |h,m|
+                            h[m.assigned_to.id] += 1 if m.assigned_to
+                            h
+                          }.sort_by { |k,v| v }.reverse.
+                          collect { |e| e.first }
 
-       # ...
-       # ownership of systems/empires, others ...
-       Stat.new(:id => :todo,
-                :generator => proc {
-                              })
+             # TODO 'diverse_entities' type
+             end
+
+             num_to_return ||= user_ids.size
+
+             # return
+             user_ids[0...num_to_return]
+           }),
+
+       # Return list of up to <num_to_return> user ids sorted in reverse
+       # by the number of the specified entity they are associated with
+       Stat.new(:id => :with_least,
+                :description => 'Users w/ the least entities',
+                :generator =>
+           proc { |entity_type, num_to_return|
+             user_ids = []
+             case entity_type
+             when "times_killed" then
+               user_ids =
+                 Registry.instance.node.
+                          invoke_request('users::get_entities').
+                          sort_by { |u|
+                            u.attribute.find { |a|
+                              a.type.id == Users::Attributes::UserShipsDestroyed.id
+                            }.level
+                          }
+             end
+
+             num_to_return ||= user_ids.size
+
+             # return
+             user_ids[0...num_to_return]
+           });
+
+
+       # TODO ownership of systems/empires, others ...
 
     ].each { |s| @stats << s }
   end

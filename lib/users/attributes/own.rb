@@ -7,14 +7,19 @@ module Users
 
 module Attributes
 
-# Permits a user to own a specified number of entities
-class NumberOfEntities < Users::AttributeClass
+# Controls number of entities a user may own and max level which
+# they may be upgraded to
+class EntityManagementLevel < Users::AttributeClass
   id           :number_of_entities
-  description  "Maximum number of manufactured entities a user may own"
+  description  "Competency at managing user controlled entities"
+  multiplier   3
 end
 
 # Permits a user to own a entities of a specified type
+# TODO needs to be parameterized
 class EntityClass < Users::AttributeClass
+  id          :entity_class
+  description ""
 end
 
 end
