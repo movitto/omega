@@ -157,6 +157,11 @@ class User
                            (level.nil? || a.level >= level ) }.nil?
   end
 
+  # Return attribute w/ the specified id, else null
+  def attribute(attribute_id)
+    @attributes.find { |a| a.type.id == attribute_id.intern }
+  end
+
   # Adds an alliance to user.
   #
   # Will just ignore and return if alliance is already associated with user

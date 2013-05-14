@@ -13,6 +13,15 @@ class EntityManagementLevel < Users::AttributeClass
   id           :number_of_entities
   description  "Competency at managing user controlled entities"
   multiplier   3
+  callbacks    :level_up  =>
+    lambda { |attr|
+      attr.user.update_attribute!(EntityClass.id, 0.1)
+    },
+               :level_down =>
+    lambda { |attr|
+      attr.user.update_attribute!(EntityClass.id, -0.1)
+    }
+
 end
 
 # Permits a user to own a entities of a specified type

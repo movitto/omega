@@ -86,24 +86,45 @@ class RJRAdapter
         }
       end
 
+      # ensure entity id not already taken
       rentity = Manufactured::Registry.instance.find(:id => entity.id,
                                                      :include_graveyard => true).first
       raise ArgumentError, "#{entity.class} with id #{entity.id} already taken" unless rentity.nil?
 
+      # grab user who is being set as entity owner
       user = @@local_node.invoke_request('users::get_entity', 'with_id', entity.user_id)
       raise Omega::DataNotFound, "user specified by #{entity.user_id} not found" if user.nil?
+
+      # modify base entity attributes from user attributes
+      pli = Users::Attributes::PilotLevel.id
+      oli = Users::Attributes::OffenseLevel.id
+      dli = Users::Attributes::DefenseLevel.id
+      mli = Users::Attributes::MiningLevel.id
+      entity.movement_speed   +=
+        (user.attribute(pli).level / 20) if user.has_attribute?(pli)
+      entity.damage_dealt     +=
+        (user.attribute(oli).level / 10) if user.has_attribute?(oli)
+      entity.max_shield_level +=
+        (user.attribute(dli).level / 10) if user.has_attribute?(dli)
+      entity.mining_quantity  +=
+        (user.attribute(mli).level / 10) if user.has_attribute?(mli)
+
 
       # XXX hack - give new stations enough resources
       # to construct a preliminary helper
       entity.resources['metal-steel'] = 100 if entity.is_a?(Manufactured::Station)
 
+      # TODO ensue user has attribute enabling them to create entity
+      # of the specified type
+
+      # Ensure user can create another entity
       # FIXME needs to be run atomically before/during entity being added to registry
       # ensure user can own another entity
       n = Manufactured::Registry.instance.find(:user_id => entity.user_id).size
       can_create = @@local_node.invoke_request('users::has_attribute?',
-                                               entity.user_id,
-                                               Users::Attributes::NumberOfEntities.id,
-                                               n + 1)
+                                                        entity.user_id,
+                           Users::Attributes::EntityManagementLevel.id,
+                                                                  n + 1)
       raise Omega::PermissionError, "User #{entity.user_id} cannot own any more entities (max #{n})" unless can_create
 
       eloc = nil
@@ -149,7 +170,7 @@ class RJRAdapter
       # location is validated / modified in station.construct so no need to manipulate here
       ['solar_system','user_id', 'hp',
        'mining', 'attacking', 'cargo_capacity', 'resources', 'notifications',
-       'current_shield_level', 'docked_at', 'size'].each { |i| # set docked at to station?
+       'current_shield_level', 'docked_at', 'size', 'speed'].each { |i| # set docked at to station?
         argsh.delete(i)
       }
 
@@ -428,6 +449,10 @@ class RJRAdapter
                                                            :dphi   => (or_diff[1] * entity.rotation_speed / rot_a)
             entity.location.movement_strategy = rotate
             entity.next_movement_strategy linear
+
+            # FIXME will overwrite any inprogress movement from a previous
+            # move_entity command before it is used in on_movement below
+            entity.distance_moved = distance
           end
 
           entity.next_movement_strategy Motel::MovementStrategies::Stopped.instance
@@ -517,16 +542,32 @@ class RJRAdapter
       raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
       entity = Manufactured::Registry.instance.find(:location_id => loc.id,
                                                     :include_graveyard => true).first
-
       unless entity.nil?
         Manufactured::Registry.instance.safely_run {
           # XXX location may have been updated in the meantime
           entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
+
+          # update user attributes
+          if(entity.location.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
+            @@local_node.invoke_request('users::update_attribute', entity.user_id,
+                                        Users::Attributes::DistanceTravelled.id,
+                                        entity.distance_moved)
+            entity.distance_moved = 0
+          end
+
+          # update movement strategy
           entity.location.movement_strategy = entity.next_movement_strategy
+
+          # update location
           loc = entity.location
           @@local_node.invoke_request('motel::update_location', loc)
-          @@local_node.invoke_request('motel::remove_callbacks', loc.id,
-                                      @rjr_method == 'motel::on_movement' ? :movement : :rotation)
+
+          # remove callbacks if stopped
+          if(entity.location.movement_strategy ==
+             Motel::MovementStrategies::Stopped.instance)
+            @@local_node.invoke_request('motel::remove_callbacks', loc.id, :movement)
+            @@local_node.invoke_request('motel::remove_callbacks', loc.id, :rotation)
+          end
         }
       end
     }
@@ -665,12 +706,17 @@ class RJRAdapter
         cmd.ship.notification_callbacks.reject!{ |nc| nc.endpoint_id == @@local_node.message_headers['source_node'] &&
                                                       [:mining_stopped, :resource_collected].include?(nc.type) }
 
-        # resource_source is a copy of actual resource_source
-        # stored in cosmos registry, wire up callbacks to update original
+        # Resource_source is a copy of actual resource_source
+        # stored in cosmos registry, wire up callbacks to update original.
+        # Also update user attributes
         collected_callback =
           Callback.new(:resource_collected, :endpoint => @@local_node.message_headers['source_node']){ |*args|
+            sh = args[1]
             rs = args[2]
             @@local_node.invoke_request('cosmos::set_resource', rs.entity.name, rs.resource, rs.quantity)
+
+            @@local_node.invoke_request('users::update_attribute', sh.user_id,
+                                        Users::Attributes::ResourcesCollected.id, rs.quantity)
           }
         depleted_callback =
           Callback.new(:mining_stopped, :endpoint => @@local_node.message_headers['source_node']){ |*args|
@@ -738,8 +784,9 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      # update from & to entitys' location
+      total = 0
       Manufactured::Registry.instance.safely_run {
+        # update entity's location
         ship.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id))
 
         # ensure within the transfer distance
@@ -750,10 +797,15 @@ class RJRAdapter
         raise Omega::OperationError, "ship cannot accept loot" unless ship.can_accept?('', loot.quantity)
 
         loot.resources.each { |rs,q|
+          total += q
           ship.add_resource(rs, q)
           loot.remove_resource(rs, q)
         }
       }
+
+      # update user attributes
+      @@local_node.invoke_request('users::update_attribute', sh.user_id,
+                                  Users::Attributes::LootCollected.id, total)
 
       # FIXME this is what deletes empty loot, need to uncomment
       # and make atomic w/ loot transfer operation above

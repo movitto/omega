@@ -157,6 +157,7 @@ class RJRAdapter
       active        = user_missions.select { |m| m.active? }
 
       # right now do not allow users to be assigned to more than one mission at a time
+      # TODO incorporate MissionAgent attribute allowing user to accept > 1 mission at a time
       raise Omega::OperationError, "user #{user_id} already has an active mission" unless active.empty?
 
       # assign mission to user and return it

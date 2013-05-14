@@ -41,6 +41,12 @@ class Ship
     end
   end
 
+  # Helper utility to track distance ship is set to move
+
+  # Not used/enforced here, simply provides a centralized location
+  # to track movement distance
+  attr_accessor :distance_moved
+
   # Helper utility to store movement strategies which to set ship's
   # location to.
   #
@@ -106,8 +112,31 @@ class Ship
   # Distance ship travels during a single movement cycle
   attr_accessor :movement_speed
 
+  # Base movement speed of a ship of the specified type.
+  #
+  # TODO right now just return a fixed speed for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base movement speed of the ship type
+  def self.base_movement_speed(type)
+    5
+  end
+
+
   # Max angle ship can rotate in a single movmeent cycle
   attr_accessor :rotation_speed
+
+  # Base rotation speed of a ship of the specified type.
+  #
+  # TODO right now just return a fixed speed for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base rotation speed of the ship type
+  def self.base_rotation_speed(type)
+    Math::PI / 8
+  end
 
   # @!endgroup
 
@@ -123,23 +152,90 @@ class Ship
   # Max distance ship may be for a target to attack it
   attr_accessor :attack_distance
 
+  # Base attack distance of a ship of the specified type.
+  #
+  # TODO right now just return a fixed distance for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base attack distance which to assign to the ship
+  def self.base_attack_distance(type)
+    100
+  end
+
   # Number of attacks per second ship can launch
   attr_accessor :attack_rate
+
+  # Base attack rate of a ship of the specified type.
+  #
+  # TODO right now just return a fixed rate for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base attack rate which to assign to the ship
+  def self.base_attack_rate(type)
+    0.5
+  end
 
   # Damage ship deals per hit
   attr_accessor :damage_dealt
 
+  # Base damage dealt by a ship of the specified type.
+  #
+  # TODO right now just return a fixed value for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base damage dealt which to assign to the ship
+  def self.base_damage_dealt(type)
+    2
+  end
+
   # Hit points the ship has
   attr_accessor :hp
 
+  # Base hp of a ship of the specified type.
+  #
+  # TODO right now just return a fixed hp for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base hp which to assign to the ship
+  def self.base_hp(type)
+    0
+  end
+
   # Max shield level of the ship
   attr_accessor :max_shield_level
+
+  # Base shield level of a ship of the specified type.
+  #
+  # TODO right now just return a fixed level for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base shield level which to assign to the ship
+  def self.base_shield_level(type)
+    0
+  end
 
   # Current shield level of the ship
   attr_accessor :current_shield_level
 
   # Shield refresh rate in units per second
   attr_accessor :shield_refresh_rate
+
+  # Base shield refresh rate of a ship of the specified type.
+  #
+  # TODO right now just return a fixed rate for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base shield raresh rate which to assign to the ship
+  def self.base_shield_refresh_rate(type)
+    1
+  end
+
 
   # Ship which destroyed this one (or its id) if applicable
   attr_accessor :destroyed_by
@@ -151,11 +247,44 @@ class Ship
   # Number of mining operations per second ship can perform
   attr_accessor :mining_rate
 
+  # Base mining rate of a ship of the specified type.
+  #
+  # TODO right now just return a fixed rate for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base attack rate which to assign to the ship
+  def self.base_mining_rate(type)
+    0.10
+  end
+
   # Quatity of resource being mined that can be extracted each time mining operation is performed
   attr_accessor :mining_quantity 
 
+  # Base mining quantity of a ship of the specified type.
+  #
+  # TODO right now just return a fixed quantity for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base mining quantity which to assign to the ship
+  def self.base_mining_quantity(type)
+    20
+  end
+
   # Max distance ship may be from entity to mine it
   attr_accessor :mining_distance
+
+  # Base mining distance of a ship of the specified type.
+  #
+  # TODO right now just return a fixed distance for every ship,
+  # eventually make more variable.
+  #
+  # @param [SHIP_TYPE] type type of ship which to return construction cost
+  # @return [Integer] base mining distance which to assign to the ship
+  def self.base_mining_distance(type)
+    100
+  end
 
   # @!endgroup
 
@@ -199,7 +328,7 @@ class Ship
                 :destroyer => 30, :bomber => 25, :corvette => 25,
                 :battlecruiser => 35, :exploration => 23, :mining => 25}
 
-  # Return the cost to construct a ship of the specified type
+  # Cost to construct a ship of the specified type
   #
   # TODO right now just return a fixed cost for every ship, eventually make more variable
   #
@@ -209,7 +338,7 @@ class Ship
     100
   end
 
-  # Return the time (in seconds) to construct a ship of the specified type
+  # Time (in seconds) to construct a ship of the specified type
   #
   # TODO right now just return a fixed time for every ship, eventually make more variable
   #
@@ -252,25 +381,26 @@ class Ship
     @attacking= args['attacking']|| args[:attacking]
     @mining   = args['mining']   || args[:mining]
 
+    @movement_speed       = Ship.base_movement_speed(@type)
+    @rotation_speed       = Ship.base_rotation_speed(@type)
+    @hp                   = args[:hp] || args['hp'] || Ship.base_hp(@type)
+    @attack_distance      = Ship.base_attack_distance(@type)
+    @attack_rate          = Ship.base_attack_rate(@type)
+    @damage_dealt         = Ship.base_damage_dealt(@type)
+    @mining_rate          = Ship.base_mining_rate(@type)
+    @mining_quantity      = Ship.base_mining_quantity(@type)
+    @mining_distance      = Ship.base_mining_distance(@type)
+    @max_shield_level     = Ship.base_shield_level(@type)
+    @shield_refresh_rate  = Ship.base_sheild_refresh_rate(@type)
+    @current_shield_level = args[:current_shield_level]   ||
+                            args['current_shield_level']  || 0
+
     @notification_callbacks = args['notifications'] || args[:notifications] || []
     @resources = args[:resources] || args['resources'] || {}
 
-    # TODO make default values variable
-    #@level = TODO (combine type/level w/ centralized registry to generate these attrs?)
-    @hp           = args[:hp] || args['hp'] || 10
-    @current_shield_level = args[:current_shield_level] || args['current_shield_level'] || 0
-    @max_shield_level = 0
-    @shield_refresh_rate = 1
-    @movement_speed = 5
-    @rotation_speed = Math::PI / 8
-    @cargo_capacity = args[:cargo_capacity] || args['cargo_capacity'] || 100
-    @attack_distance = 100
-    @attack_rate  = 0.5
-    @damage_dealt = 2
-    @mining_rate  = 0.10
-    @mining_quantity = 20
-    @mining_distance = 100
-    @transfer_distance = 100
+    # TODO parameterize default values of these as well?
+    @cargo_capacity      = args[:cargo_capacity] || args['cargo_capacity'] || 100
+    @transfer_distance   = 100
     @collection_distance = 100
 
     if args.has_key?('solar_system') || args.has_key?(:solar_system)
