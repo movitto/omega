@@ -305,14 +305,56 @@ class Registry
                 !from_entity.can_transfer?(to_entity, resource_id, quantity) ||
                 !to_entity.can_accept?(resource_id, quantity)
       begin
+        # transfer resource
         to_entity.add_resource(resource_id, quantity)
         from_entity.remove_resource(resource_id, quantity)
+
+        # invoke callbacks
+        [from_entity, to_entity].each { |e|
+          e.notification_callbacks.
+          select { |c| c.type == :transfer }.
+          each { |c|
+            c.invoke 'transfer', from_entity, to_entity
+          }
+        }
       rescue Exception => e
         return nil
       end
 
       return [from_entity, to_entity]
     }
+  end
+
+  # Collect loot using manufactured entity
+  #
+  # @param [Manufactured::Entity] entity entity to collect resource with
+  # @param [Manufactured::Loot] loot loot to collect
+  def collect_loot(entity, loot)
+    total = 0
+    @entities_lock.synchronize{
+      begin
+        # copy of loot for use in callbacks
+        oloot = Loot.new
+
+        # transfer loot
+        loot.resources.each { |rs,q|
+          total += q
+          entity.add_resource(rs, q)
+          oloot.add_resource(rs, q)
+          loot.remove_resource(rs, q)
+        }
+
+        # invoke callbacks
+        entity.notification_callbacks.
+          select { |c| c.type == :collected_loot }.
+          each { |c|
+            c.invoke 'collected_loot', entity, oloot
+          }
+
+      rescue Exception => e
+      end
+    }
+    return total
   end
 
   # Register new {Manufactured::AttackCommand} to be run during attack cycle

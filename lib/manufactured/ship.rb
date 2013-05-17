@@ -107,6 +107,8 @@ class Ship
   # Array of callbacks to invoke on certain events relating to ship
   attr_accessor :notification_callbacks
 
+  # TODO def send_notification(evnt_id, *event_args) (& helper methods to add/remove callbacks)
+
   # @!group Movement Properties
 
   # Distance ship travels during a single movement cycle

@@ -9,11 +9,10 @@ require 'omega'
 
 include Omega::Client::DSL
 
-include Missions
+include Missions::Generators
 
 ##################################################### init
 
-STARTING_SYSTEM = ARGV.shift
 
 RJR::Logger.log_level= ::Logger::INFO
 
@@ -21,9 +20,15 @@ node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
 # TODO read credentials from config
 login node, 'admin', 'nimda'
 
-starting_system = system(STARTING_SYSTEM)
+STARTING_SYSTEMS = ARGV.collect { |s| system(s) }
+def rand_system ; STARTING_SYSTEMS.sample ; end
 
 ##################################################### users
+
+ceasar   = user 'Ceasar',       'rasaec',       :npc => true
+
+shennong = user 'Shennong',     'gnonnehs',     :npc => true
+chiyou   = user 'ChiYou',       'ouyihc',       :npc => true
 
 macbeth  = user 'Macbeth',      'htebcam',      :npc => true
 duncan   = user 'Duncan',       'nacnud',       :npc => true
@@ -34,246 +39,255 @@ claudius = user 'Claudius',     'suidualc',     :npc => true
 othello  = user 'Othello',      'ollehto',      :npc => true
 iago     = user 'Iago',         'ogai',         :npc => true
 
+octavius = user 'Octavius',     'suivatco',     :npc => true
+marcus   = user 'Marcus',       'sucram',       :npc => true
+
+titus    = user 'Titus',        'sutit',        :npc => true
+tamora   = user 'tamora',       'aromat',       :npc => true
+
 ##################################################### entities
 
 # TODO logout as admin, login as macbeth/hamlet/othello so as to properly set creator_user_id
 
-castle_macbeth = station('castle-macbeth', :user_id => 'Macbeth',
-                         :solar_system => starting_system, 
-                         :location     => Motel::Location.new(:x => -950, :y => 450, :z => -750))
+castle_macbeth =
+  station('castle-macbeth', :user_id => 'Macbeth',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => -950, :y => 450, :z => -750))
 
-macbeth_ship   = ship('macbeth-ship', :user_id => 'Macbeth',
-                      :solar_system => starting_system,
-                      :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
+macbeth_ship =
+  ship('macbeth-ship', :user_id => 'Macbeth',
+       :solar_system => castle_macbeth.solar_system,
+       :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
 macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
 
-hamlet_ship    = ship('hamlet-ship', :user_id => 'Hamlet',
-                      :solar_system => starting_system,
-                      :location     => Motel::Location.new(:x => 342, :y => -1132, -286))
+elsinore =
+  station('elsinore', :user_id => 'Hamlet',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => 928, :y => -67, :z => 102))
 
-othello_ship   = ship('othello-ship', :user_id => 'Othello',
-                      :solar_system => starting_system,
-                      :location     => Motel::Location.new(:x => 501, :y => 466, :z => -2495)
+hamlet_ship =
+  ship('hamlet-ship', :user_id => 'Hamlet',
+       :solar_system => castle_hamlet.solar_system,
+       :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
+hamlet_ship.dock_to(elsinore) if hamlet_ship.docked_at.nil?
 
+cyprus =
+  station('cyprus', :user_id => 'Othello',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => -1950, :y => 1718, :z => 418))
+
+othello_ship =
+  ship('othello-ship', :user_id => 'Othello',
+       :solar_system => cyprus.solar_system,
+       :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
+othello_ship.dock_to(cyprus) if othello_ship.docked_at.nil?
+
+rome =
+  station('rome', :user_id => 'Ceasar',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => 250, :y => 250, :z => 250))
+
+octavius_ship =
+  ship('octavius-ship', :user_id => 'Octavius',
+       :solar_system => rome.solar_system,
+       :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
+octavius_ship.dock_to(rome) if octavius_ship.docked_at.nil?
+
+titus_ship =
+  ship('titus-ship', :user_id => 'Titus',
+       :solar_system => rome.solar_system,
+       :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
+titus_ship.dock_to(rome) if titus_ship.docked_at.nil?
+
+penglai =
+  station('penglai', :user_id => 'Shennong',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => 2950, :y => 2950, :z => 2950))
+
+youdu =
+  station('youdu', :user_id => 'Shennong',
+          :solar_system => rand_system, 
+          :location     => Motel::Location.new(:x => -1950, :y => -1950, :z => -1950))
 
 ##################################################### attack missions
 
-mission gen_uuid, :title => 'Kill Duncan',
-        :creator_user_id => macbeth.id, :timeout => 360,
-        :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
+[{:title       => 'Kill Duncan',
+  :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
+  :creator     =>  macbeth,
+  :opponent    =>  duncan,
+  :location    =>  Motel::Location.random(:max => 2000),
+  :reward      => 'metal-steel' },
 
-        :requirements => proc{ |mission, assigning_to, node|
-          # ensure users have a ship docked at a common station
-          created_by = mission.creator
-          centities  = node.invoke_request('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', created_by.id)
-          cstats     = centities.collect { |s| s.docked_at.nil? ? nil : s.docked_at.id }.compact
+ {:title       => 'Take Claudius Down',
+  :description => 'The time for vengance is at hand, help Hamlet seek retribution for his father',
+  :creator     =>  hamlet,
+  :opponent    =>  claudius,
+  :location    =>  Motel::Location.random(:max => 2000),
+  :reward      => 'metal-steel' },
 
-          aentities  = node.invoke_request('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', assigning_to.id)
-          astats     = aentities.collect { |s| s.docked_at.nil? ? nil : s.docked_at.id }.compact
+ {:title       => 'Put an End to Iago',
+  :description => 'Alas Iago succeeded with his evil schemes, but he needs to be punished for his acts.',
+  :creator     =>  othello,
+  :opponent    =>  iago,
+  :location    =>  Motel::Location.random(:max => 2000),
+  :reward      => 'metal-steel' },
 
-          !(cstats & astats).empty?
-        },
+ {:title       => 'Eliminate Marcus Antonius',
+  :description => 'Help Octavius defeat Mark Antony to consolidate power and form the empire',
+  :creator     => octavius,
+  :opponent    => marcus,
+  :location    =>  Motel::Location.random(:max => 2000),
+  :reward      => 'metal-steel' },
 
-        :assignment_callbacks =>  proc{ |mission, node|
-          # create new ship for duncan at random location in system
-          athena  = node.invoke_request('cosmos::get_entity', 'with_id', 'Athena')
-          duncan_ship = Manufactured::Ship.new :id => 'duncan_ship-' + Motel.gen_uuid,
-                                               :type => :corvette, # TODO autodefend on attack
-                                               :user_id       => 'Duncan',
-                                               :system_name   => 'Athena',
-                                               :location      => Motel::Location.new({:x => -930, :y => 470, :z => -720}) #Motel::Location.random
-          mission.mission_data['duncan_ship'] = duncan_ship
-          # TODO only if ship does not exist
-          node.invoke_request('manufactured::create_entity', duncan_ship)
+ {:title       => 'Finish off Tamora',
+  :description => 'The bloodshed has gone on for too long, put an end to the Queen of the Goths',
+  :creator     => titus,
+  :opponent    => tamora,
+  :location    =>  Motel::Location.random(:max => 2000),
+  :reward      => 'metal-steel' }
 
-          # add event for mission expiration
-          expired = Missions::Event.new :id      => "mission-#{mission.id}-expired",
-                                        :timestamp => mission.assigned_time + mission.timeout, :callbacks => [proc{ |e|
-                                           # TODO ensure not victorious, move this to new event class, lock registry
-                                           mission.failed! # if mission.expired?
-                                         }]
+].each { |msn|
 
-          Missions::Registry.instance.unsafely_run { # XXX need to unlock registry
-            Missions::Registry.instance.create expired
+es = msn[:opponent].id.downcase + '_ship'
 
-            # handle dunan ship being destroyed event
-            Missions::Registry.instance.handle_event("#{duncan_ship.id}_destroyed") { |e|
-              # TODO ensure not failed, check victory conditions, lock registry
-              mission.victory! # if mission.completed?
-              victory = Missions::Event.new :id => "mission-#{mission.id}-succeeded", :timestamp => Time.now
-              Missions::Registry.instance.create victory
-              # can create more ships or whatever instead
-            }
-          }
+mission gen_uuid, :title => msn[:title]
+  :creator_user_id => msn[:creator].id, :timeout => 360,
+  :description => msn[:description],
 
-          # subscribe to server side events
-          node.invoke_request('manufactured::subscribe_to', duncan_ship.id, 'destroyed')
-        },
+  :requirements => Requirement.shared_station,
 
-        :victory_conditions => proc{ |mission, node|
-          # check if duncan's ship is destroyed
-          entity = node.invoke_request('manufactured::get_entity', mission.mission_data['duncan_ship'].id)
-          entity.nil? # or also search graveyard and verify hp == 0
-        },
+  :assignment_callbacks =>
+    [Assignment.create_entity(es,
+      :id       => "#{es}-" + Motel.gen_uuid,
+      :type     => :corvette, # TODO autodefend on attack
+      :user_id  => msn[:opponent].id,
+      :system_name => rand_system,
+      :location    => msn[:location])
+     Event.schedule_expiration_event,
+     Assignment.subscribe_to(es, "destroyed",
+                             Event.create_victory_event)],
 
-        :victory_callbacks => proc{ |mission, node|
-          # add resources to player's cargo
-          # TODO better way to get user ship than this
-          entity = node.invoke_request('manufactured::get_entity', 'of_type', 'Manufactured::Ship', 'owned_by', mission.assigned_to_id).first
-          node.invoke_request('manufactured::add_resource', entity.id, 'metal-steel', 50)
+  :victory_conditions =>
+    Query.check_entity_hp(es)
 
-          # from this point same logic as failure callbacks below
-          duncan_ship = mission.mission_data['duncan_ship']
-          node.invoke_request('manufactured::remove_callbacks', duncan_ship.id)
-          Missions::Registry.instance.remove_event_handler("#{duncan_ship.id}_destroyed")
-          Missions::Registry.instance.remove("mission-#{mission.id}-expired")
-          new_mission = mission.clone :id => Motel.gen_uuid
-          new_mission.clear_assignment!
-          node.invoke_request('missions::create_mission', new_mission)
-        },
+  :victory_callbacks => 
+    [Resolution.add_resource(msn[:reward], 50),
+     Resolution.update_user_attributes,
+     Resolution.cleanup_events(es, 'destroyed'),
+     Resolution.recycle_mission]
 
-        :failure_callbacks => proc{ |mission, node|
-          # grab handle to duncan ship
-          duncan_ship = mission.mission_data['duncan_ship']
-
-          # remove server side events
-          node.invoke_request('manufactured::remove_callbacks', duncan_ship.id)
-
-          # remove duncan ship destroyed event handler
-          Missions::Registry.instance.remove_event_handler("#{duncan_ship.id}_destroyed")
-
-          # remove mission expiration event
-          Missions::Registry.instance.remove("mission-#{mission.id}-expired")
-
-          # TODO flush other mission related events?
-
-          # create a new mission based on this one
-          new_mission = mission.clone :id => Motel.gen_uuid
-          new_mission.clear_assignment!
-          node.invoke_request('missions::create_mission', new_mission)
-        }
-
-mission gen_uuid, :title => 'Take Claudius Down',
-        :creator_user_id => hamlet.id, :timeout => 360,
-        :description => '',
-
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
-
-        :victory_conditions => proc{ |mission, node|
-        },
-
-        :victory_callbacks => proc{ |mission, node|
-        },
-
-        :failure_callbacks => proc{ |mission, node|
-        }
-
-mission gen_uuid, :title => 'Put an End to Iago'
-        :creator_user_id => othello.id, :timeout => 360,
-        :description => '',
-
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
-
-        :victory_conditions => proc{ |mission, node|
-        },
-
-        :victory_callbacks => proc{ |mission, node|
-        },
-
-        :failure_callbacks => proc{ |mission, node|
-        }
-
-mission gen_uuid, :title => 'TODO',
-        :creator_user_id => , :timeout => 360,
-        :description => '',
-
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
-
-        :victory_conditions => proc{ |mission, node|
-        },
-
-        :victory_callbacks => proc{ |mission, node|
-        },
-
-        :failure_callbacks => proc{ |mission, node|
-        }
-
-
-mission gen_uuid, :title => 'TODO',
-        :creator_user_id => , :timeout => 360,
-        :description => '',
-
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
-
-        :victory_conditions => proc{ |mission, node|
-        },
-
-        :victory_callbacks => proc{ |mission, node|
-        },
-
-        :failure_callbacks => proc{ |mission, node|
-        }
+  :failure_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(es, 'destroyed'),
+     Resolution.recycle_mission]
+}
 
 ##################################################### mining/transport/loot missions
 
-[['metal-steel', 500, 500, 100], ['metal-plantinum', 100, 100, 250],
- ['gem-diamond', 100, 200, 200], ['fuel-uranium',   1000, 200, 100],
- ['adhesive-cellulose', 5000, 1000, 50]].each { |res,q1,q2,q3|
+[['metal',    'steel',     500,  500, 100, youdu, penglai],
+ ['metal',    'plantinum', 100,  100, 250, youdu, penglai],
+ ['gem',      'diamond',   100,  200, 200, youdu, penglai],
+ ['fuel',     'uranium',   1000, 200, 100, youdu, penglai],
+ ['adhesive', 'cellulose', 5000, 1000, 50]].each { |type,name,q1,q2,q3,src,dst|
+
+mid = gen_uuid
 
 # mining
-mission gen_uuid, :title => "Collect #{q1} of #{res}",
-        :creator_user_id => , :timeout => 3600,
-        :description => '',
+mission mid, :title => "Collect #{q1} of #{type}-#{name}",
+  :creator_user_id => shennong.id, :timeout => 3600,
+  :description => 'The emperor needs you to collect resources for the good of the people',
+  :mission_data => { :target => "#{type}-#{name}", :quantity => q1, :resources => Hash.new(0) },
 
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
+  :assignment_callbacks =>
+    [Assignment.store(mid + '-mining-ships',
+        Query.user_ships { |s| s.type == :mining }), # FIXME misses any mining ships created after assignment
+     Assignment.create_asteroid(mid + '-asteroid',
+      :name => mid,
+      :solar_system => rand_system,
+      :location => Motel::Location.random(:max => 2000)),
+     Assignment.create_resource(mid + '-asteroid', type, name, q1),
+     Event.schedule_expiration_event,
+     Assignment.subscribe_to(mid + '-mining-ships', "resource_collected",
+                                         Event.resource_collected]]
 
-        :victory_conditions => proc{ |mission, node|
-        },
+  :victory_conditions =>
+    Query.check_mining_quantity,
 
-        :victory_callbacks => proc{ |mission, node|
-        },
+  # TODO also support a consolidated victory/failure callbacks mechanism ('completed_callbacks)
 
-        :failure_callbacks => proc{ |mission, node|
-        }
+  :victory_callbacks => 
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.recycle_mission]
+
+  :failure_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.recycle_mission]
 
 # transport
-mission gen_uuid, :title => "Move #{q2} of #{res} from ...",
-        :creator_user_id => , :timeout => 3600,
-        :description => '',
+mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.id}",
+  :creator_user_id => shennong.id, :timeout => 3600,
+  :description => "The will of the people dictates resources be moved from #{src} to #{dst}",
+  :mission_data => { :check_transfer => { :dst => dst, :q => q2, :rs => res } },
 
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
+  :requirements => Requirement.docked_at(src),
+                   # TODO also that ship has capacity for resources
 
-        :victory_conditions => proc{ |mission, node|
-        },
+  :assignment_callbacks => 
+    [Assignment.store(mid + '-ship',
+       Query.user_ships { |s| s.docked_at.id == src.id }.first),
+     Assignment.add_resource(mid + '-ship', type, name, q2)
+     Event.schedule_expiration_event,
+     Assignment.subscribe_to(mid + '-ship', 'transfer',
+                             Event.transfer)]
 
-        :victory_callbacks => proc{ |mission, node|
-        },
+  :victory_conditions => Query.check_transfer,
 
-        :failure_callbacks => proc{ |mission, node|
-        }
+  :victory_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-ship', 'transfer'),
+     Resolution.recycle_mission]
+
+  :failure_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-ship', 'transfer'),
+     Resolution.recycle_mission]
 
 # loot
-mission gen_uuid, :title => "Scavange #{q3} of #{res}",
-        :creator_user_id => , :timeout => 3600,
-        :description => '',
+eid = "#{mid}-enemy-#{rand(2)}"
+mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
+  :creator_user_id => shennong.id, :timeout => 3600,
+  :description => 'Shennong commands you retrieve resource from the tyrant Chi You, will you heed his call?',
+  :mission_data => { :loot => [], :check_loot => {:res => "#{type}-#{name}", :q => q3} },
 
-        :assignment_callbacks =>  proc{ |mission, node|
-        },
+  :assignment_callbacks =>
+    [Assignment.store(mid + '-ships',
+                      Query.user_ships)] + # FIXME misses any ships created after assignment
+    Array.new(3) { |i|
+      Assignment.create_entity("#{mid}-enemy-#{i}"
+        :id       => Motel.gen_uuid,
+        :type     => :corvette, # TODO autodefend on attack
+        :user_id  => chiyou.id,
+        :system_name => rand_system,
+        :location    => msn[:location]
+    } +
+    [Assignment.add_resource(eid, type, name, q3),
+     Event.schedule_expiration_event,
+     Assignment.subscribe_to(mid + '-ships', 'collected_loot',
+                             Event.collected_loot)],
 
-        :victory_conditions => proc{ |mission, node|
-        },
+  :victory_conditions => Query.check_loot,
 
-        :victory_callbacks => proc{ |mission, node|
-        },
+  :victory_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-ships', 'collected_loot'),
+     Resolution.recycle_mission],
 
-        :failure_callbacks => proc{ |mission, node|
-        }
+  :failure_callbacks =>
+    [Resolution.update_user_attributes,
+     Resolution.cleanup_events(mid + '-ships', 'collected_loot'),
+     Resolution.recycle_mission]
 }
 
 ##################################################### research missions (TODO)

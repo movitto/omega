@@ -16,3 +16,5 @@ require 'missions/rjr_adapter'
 require 'missions/events/manufactured'
 require 'missions/events/resources'
 require 'missions/events/periodic'
+
+require 'missions/callbacks'

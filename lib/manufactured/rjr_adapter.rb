@@ -784,24 +784,20 @@ class RJRAdapter
                                                  {:privilege => 'modify', :entity => 'manufactured_entities'}],
                                         :session => @headers['session_id'])
 
-      total = 0
       Manufactured::Registry.instance.safely_run {
         # update entity's location
         ship.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id))
-
-        # ensure within the transfer distance
-        # TODO add a can_collect? method to ship
-        raise Omega::OperationError, "ship too far from loot" unless ship.location - loot.location <= ship.transfer_distance
-
-        # TODO also support partial transfers
-        raise Omega::OperationError, "ship cannot accept loot" unless ship.can_accept?('', loot.quantity)
-
-        loot.resources.each { |rs,q|
-          total += q
-          ship.add_resource(rs, q)
-          loot.remove_resource(rs, q)
-        }
       }
+
+      # ensure within the transfer distance
+      # TODO add a can_collect? method to ship
+      raise Omega::OperationError, "ship too far from loot" unless ship.location - loot.location <= ship.transfer_distance
+
+      # TODO also support partial transfers
+      raise Omega::OperationError, "ship cannot accept loot" unless ship.can_accept?('', loot.quantity)
+
+      # TODO move to a registry operation, add 'collected' notification callbacks
+      total = Manufactured::Registry.instance.collect_loot(ship, loot)
 
       # update user attributes
       @@local_node.invoke_request('users::update_attribute', sh.user_id,
