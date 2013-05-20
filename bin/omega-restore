@@ -1,8 +1,8 @@
 #!/usr/bin/ruby
-# Backup Utility
+# Omega Restoration Utility
 #
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 pid = `ps -C omega-server -o pid`.split.last
-`kill -USR1 #{pid}`
+`kill -USR2 #{pid}`
