@@ -40,10 +40,6 @@ describe Cosmos::Asteroid do
      asteroid.valid?.should be_false
   end
 
-  it "should be not able to be remotely trackable" do
-    Cosmos::Asteroid.remotely_trackable?.should be_false
-  end
-
   it "should be convertable to json" do
     a = Cosmos::Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50,
                              :location => Motel::Location.new(:x => 50)
@@ -58,7 +54,7 @@ describe Cosmos::Asteroid do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"color":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Asteroid"}'
+    j = '{"data":{"color":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Asteroid"}'
     a = JSON.parse(j)
 
     a.class.should == Cosmos::Asteroid

@@ -23,9 +23,6 @@ module Motel
 # by default {Motel::MovementStrategies::Stopped}. The movement_strategy#move
 # method is invoked by the {Motel::Runner} with the location instance
 # on every run cycle.
-#
-# A location many optionally specify a remote_queue through which children
-# will be retreived from (currently via json-rpc over amqp)
 class Location
 
    # ID of location
@@ -81,9 +78,6 @@ class Location
    # Boolean flag indicating if permission checks should restrict modification of this location
    attr_accessor :restrict_modify
 
-   # Remote queue which to retrieve child locations from if any (may be nil)
-   attr_accessor :remote_queue
-
   # Location initializer
   # @param [Hash] args hash of options to initialize location with
   # @option args [Integer] :id,'id' id to assign to the location
@@ -102,7 +96,6 @@ class Location
   # @option args [Array<Motel::Callbacks::Stopped> :stopped_callbacks,'stopped_callbacks' array of stopped callbacks to assign to location
   # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
   # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
-  # @option args [String] :remote_queue,'remote_queue' remote_queue to assign to location if any
   #
   # @example
   #   system = Motel::Location.new :id => 42
@@ -142,8 +135,6 @@ class Location
       @restrict_modify     = args[:restrict_modify]  if args.has_key?(:restrict_modify)
       @restrict_modify     = args['restrict_modify'] if args.has_key?('restrict_modify')
 
-      @remote_queue        = args[:remote_queue]        || args['remote_queue']        || nil
-
       # no parsing errors will be raised (invalid conversions will be set to 0), use alternate conversions / raise error ?
       @x = @x.to_f unless @x.nil?
       @y = @y.to_f unless @y.nil?
@@ -172,7 +163,6 @@ class Location
       @parent_id = location.parent_id unless location.parent_id.nil?
       @restrict_view   = location.restrict_view
       @restrict_modify = location.restrict_modify
-      @remote_queue    = location.remote_queue
    end
 
    # Return this location's coordinates in an array
@@ -318,7 +308,6 @@ class Location
           :restrict_view => restrict_view, :restrict_modify => restrict_modify,
           :parent_id => parent_id,
           :children  => children,
-          :remote_queue => remote_queue,
           :movement_strategy => movement_strategy,
           :movement_callbacks => movement_callbacks,
           :proximity_callbacks => proximity_callbacks,

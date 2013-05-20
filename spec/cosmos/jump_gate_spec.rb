@@ -38,10 +38,6 @@ describe Cosmos::JumpGate do
   end
 
 
-  it "should be not able to be remotely trackable" do
-    Cosmos::JumpGate.remotely_trackable?.should be_false
-  end
-
   it "should be convertable to json" do
      system      = Cosmos::SolarSystem.new
      endpoint    = Cosmos::SolarSystem.new
@@ -54,7 +50,7 @@ describe Cosmos::JumpGate do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"solar_system":null,"endpoint":null,"location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"remote_queue":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::JumpGate"}'
+    j = '{"data":{"solar_system":null,"endpoint":null,"location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::JumpGate"}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::JumpGate

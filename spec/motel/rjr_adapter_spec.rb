@@ -283,8 +283,8 @@ describe Motel::RJRAdapter do
     Motel::Runner.instance.run loc33
     Motel::Runner.instance.run loc1
 
-    loc1a = Motel::Location.new :id => 42, :x => 50, :y => '-10', :movement_strategy => 'invalid',
-                                           :remote_queue => 'queue', :parent_id => 33
+    loc1a = Motel::Location.new :id => 42, :x => 50, :y => '-10',
+                                :movement_strategy => 'invalid', :parent_id => 33
 
     lambda{
       rloc1 = Omega::Client::Node.invoke_request('motel::update_location', loc1a)
@@ -297,7 +297,6 @@ describe Motel::RJRAdapter do
     rloc1.x.should == 50
     rloc1.y.should == -10
     rloc1.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
-    rloc1.remote_queue.should be_nil
     rloc1.parent.should == rloc33
   end
 

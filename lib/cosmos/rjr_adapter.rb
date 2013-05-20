@@ -70,10 +70,6 @@ class RJRAdapter
        parent_type = entity.class.parent_type
 
        rparent = Cosmos::Registry.instance.find_entity(:type => parent_type, :name => parent_name)
-       if rparent.nil?
-         # create placeholder parent
-         rparent = Cosmos::Registry.instance.create_parent entity, parent_name
-       end
        raise Omega::DataNotFound, "parent entity of type #{parent_type} with name #{parent_name} not found" if rparent.nil?
 
        # XXX ugly but allows us to lookup entities by name for the time being

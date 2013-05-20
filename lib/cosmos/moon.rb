@@ -79,12 +79,6 @@ class Moon
     :planet
   end
 
-  # Returns boolean indicating if remote cosmos retrieval can be performed for entity's children
-  # @return [false]
-  def self.remotely_trackable?
-    false
-  end
-
   # Returns boolean indicating if moon has children (always false)
   def has_children?
     false

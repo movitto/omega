@@ -94,7 +94,7 @@ describe Cosmos::ResourceSource do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Cosmos::ResourceSource","data":{"entity":{"json_class":"Cosmos::Asteroid","data":{"color":"0a6613","size":10,"name":"asteroid1","location":{"json_class":"Motel::Location","data":{"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"y":0,"parent_id":null,"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"id":null,"remote_queue":null}}}},"resource":{"json_class":"Cosmos::Resource","data":{"type":"metal","name":"titanium"}},"quantity":50,"id":"fooz"}}'
+    j = '{"json_class":"Cosmos::ResourceSource","data":{"entity":{"json_class":"Cosmos::Asteroid","data":{"color":"0a6613","size":10,"name":"asteroid1","location":{"json_class":"Motel::Location","data":{"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"y":0,"parent_id":null,"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"id":null}}}},"resource":{"json_class":"Cosmos::Resource","data":{"type":"metal","name":"titanium"}},"quantity":50,"id":"fooz"}}'
     r = JSON.parse(j)
 
     r.class.should == Cosmos::ResourceSource

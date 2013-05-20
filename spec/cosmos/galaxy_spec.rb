@@ -45,12 +45,6 @@ describe Cosmos::Galaxy do
      galaxy.valid?.should be_false
   end
 
-  it "should be able to be remotely trackable" do
-    Cosmos::Galaxy.remotely_trackable?.should be_true
-    galaxy = Cosmos::Galaxy.new :remote_queue => 'foozbar'
-    galaxy.remote_queue.should == 'foozbar'
-  end
-
   it "should permit adding children" do
     galaxy    = Cosmos::Galaxy.new :name => 'gal1'
     system1   = Cosmos::SolarSystem.new :name => 'sys1'
@@ -169,7 +163,7 @@ describe Cosmos::Galaxy do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"background":"galaxy4","name":"galaxy1","solar_systems":[{"data":{"background":"system5","planets":[],"jump_gates":[],"name":"system1","star":null,"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"z":0,"parent_id":null,"x":0,"restrict_view":true,"id":null,"restrict_modify":true,"y":0},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"}],"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Galaxy"}'
+    j = '{"data":{"background":"galaxy4","name":"galaxy1","solar_systems":[{"data":{"background":"system5","planets":[],"jump_gates":[],"name":"system1","star":null,"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":0,"parent_id":null,"x":0,"restrict_view":true,"id":null,"restrict_modify":true,"y":0},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"}],"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Galaxy"}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::Galaxy

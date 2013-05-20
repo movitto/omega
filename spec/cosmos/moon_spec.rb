@@ -37,10 +37,6 @@ describe Cosmos::Moon do
      moon.valid?.should be_false
   end
 
-  it "should be not able to be remotely trackable" do
-    Cosmos::Moon.remotely_trackable?.should be_false
-  end
-
   it "should be convertable to json" do
     g = Cosmos::Moon.new(:name => 'moon1',
                          :location => Motel::Location.new(:x => 50))
@@ -53,7 +49,7 @@ describe Cosmos::Moon do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"name":"moon1","location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"remote_queue":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Moon"}'
+    j = '{"data":{"name":"moon1","location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Moon"}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::Moon

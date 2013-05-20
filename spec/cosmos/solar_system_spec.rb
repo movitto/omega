@@ -75,12 +75,6 @@ describe Cosmos::SolarSystem do
      sys.jump_gates.clear
   end
 
-  it "should be able to be remotely trackable" do
-    Cosmos::SolarSystem.remotely_trackable?.should be_true
-    ss = Cosmos::SolarSystem.new :remote_queue => 'foozbar'
-    ss.remote_queue.should == 'foozbar'
-  end
-
   it "should permit adding children" do
     solar_system    = Cosmos::SolarSystem.new :name => 'sys1'
     solar_system2   = Cosmos::SolarSystem.new :name => 'sys2'
@@ -234,7 +228,7 @@ describe Cosmos::SolarSystem do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Cosmos::SolarSystem","data":{"star":null,"planets":[{"json_class":"Cosmos::Planet","data":{"moons":[],"color":"21f798","size":14,"name":"planet1","location":{"json_class":"Motel::Location","data":{"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"id":null,"y":0}}}}],"name":"solar_system1","jump_gates":[],"background":"system5","location":{"json_class":"Motel::Location","data":{"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"id":null,"y":null}}}}'
+    j = '{"json_class":"Cosmos::SolarSystem","data":{"star":null,"planets":[{"json_class":"Cosmos::Planet","data":{"moons":[],"color":"21f798","size":14,"name":"planet1","location":{"json_class":"Motel::Location","data":{"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":0}}}}],"name":"solar_system1","jump_gates":[],"background":"system5","location":{"json_class":"Motel::Location","data":{"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":null}}}}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::SolarSystem

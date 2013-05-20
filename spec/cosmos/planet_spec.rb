@@ -57,10 +57,6 @@ describe Cosmos::Planet do
     planet.location.movement_strategy.p.should == 10
   end
 
-  it "should be not able to be remotely trackable" do
-    Cosmos::Planet.remotely_trackable?.should be_false
-  end
-
   it "should permit adding children" do
     planet    = Cosmos::Planet.new :name => 'pl1'
     moon1   = Cosmos::Moon.new :name => 'mn1'
@@ -170,7 +166,7 @@ describe Cosmos::Planet do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Cosmos::Planet","data":{"moons":[{"json_class":"Cosmos::Moon","data":{"name":"moon1","location":{"json_class":"Motel::Location","data":{"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"id":null,"y":0}}}}],"color":"e806c5","size":10,"name":"planet1","location":{"json_class":"Motel::Location","data":{"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"remote_queue":null,"parent_id":null,"id":null,"y":null}}}}'
+    j = '{"json_class":"Cosmos::Planet","data":{"moons":[{"json_class":"Cosmos::Moon","data":{"name":"moon1","location":{"json_class":"Motel::Location","data":{"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":0}}}}],"color":"e806c5","size":10,"name":"planet1","location":{"json_class":"Motel::Location","data":{"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":null}}}}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::Planet

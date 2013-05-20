@@ -168,12 +168,6 @@ class Registry
     nil
   end
 
-  # Returns boolean indicating if remote cosmos retrieval can be performed for registry's children, for entity compat reasons
-  # @return [false]
-  def self.remotely_trackable?
-    false
-  end
-
   # Return children galaxies
   # @return [Array<Cosmos::Galaxy>]
   def children
@@ -242,33 +236,6 @@ class Registry
         g.each_child &bl
       }
     }
-  end
-
-  # Helper method to create a new parent for the entity if it doesn't exist.
-  #
-  # Should be invoked before a entity is added to the registry or to another
-  # entity on the heirarchy. Mostly intended to provide a mechanism to create
-  # a parent to reference for remotely tracked entities (for example to create a
-  # local parent for a solar system being tracked on a different server than its
-  # galaxy).
-  #
-  # @param [CosmosEntity] entity entity to create
-  # @param [String] parent_name name of entity's parent, will be looked up, not created if found
-  def create_parent(entity, parent_name)
-    if entity.is_a?(Cosmos::Galaxy)
-      return :universe
-
-    elsif entity.is_a?(Cosmos::SolarSystem)
-      parent = find_entity :type => entity.class.parent_type, :name => parent_name
-      if parent.nil?
-        parent = Cosmos::Galaxy.new :name => parent_name, :remote_queue => ''
-        add_child(parent)
-      end
-
-      return parent
-    end
-
-    return nil
   end
 
   # Return an array of {Cosmos::ResourceSource}s matching the specified criteria

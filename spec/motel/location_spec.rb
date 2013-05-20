@@ -250,7 +250,7 @@ describe Motel::Location do
                             :x => 10, :y => -20, :z => 0.5,
                             :orientation => [0, 0, -1],
                             :restrict_view => false, :restrict_modify => true,
-                            :parent_id => 15, :remote_queue => 'foobar',
+                            :parent_id => 15,
                             :movement_strategy =>
                               Motel::MovementStrategies::Linear.new(:speed => 51))
     l.movement_callbacks  << mc1
@@ -271,7 +271,6 @@ describe Motel::Location do
     j.should include('"restrict_view":false')
     j.should include('"restrict_modify":true')
     j.should include('"parent_id":15')
-    j.should include('"remote_queue":"foobar"')
     j.should include('"movement_strategy":{')
     j.should include('"json_class":"Motel::MovementStrategies::Linear"')
     j.should include('"speed":51')
@@ -289,7 +288,7 @@ describe Motel::Location do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"remote_queue":"foobar","x":10,"orientation_z":0.5,"id":42}}'
+    j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"x":10,"orientation_z":0.5,"id":42}}'
     l = JSON.parse(j)
 
     l.class.should == Motel::Location
@@ -301,7 +300,6 @@ describe Motel::Location do
     l.restrict_view.should be_false
     l.restrict_modify.should be_true
     l.parent_id.should == 15
-    l.remote_queue.should == 'foobar'
     l.movement_strategy.class.should == Motel::MovementStrategies::Linear
     l.movement_strategy.speed.should == 51
   end

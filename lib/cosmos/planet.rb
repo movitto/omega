@@ -91,12 +91,6 @@ class Planet
     :solarsystem
   end
 
-  # Returns boolean indicating if remote cosmos retrieval can be performed for entity's children
-  # @return [false]
-  def self.remotely_trackable?
-    false
-  end
-
   # Return boolean indicating if this planet can accept the specified resource
   # @return false 
   # TODO change?

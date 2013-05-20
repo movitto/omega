@@ -9,7 +9,6 @@
 require 'motel/exceptions'
 require 'motel/callbacks'
 require 'motel/runner'
-require 'motel/remote_location_manager'
 require 'motel/rjr_adapter'
 
 require 'motel/location'

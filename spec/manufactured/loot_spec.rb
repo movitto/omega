@@ -149,7 +149,7 @@ describe Manufactured::Loot do
   end
 
   it "should be convertable from json" do
-    j = '{"json_class":"Manufactured::Loot","data":{"id":"loot1","location":{"json_class":"Motel::Location","data":{"id":20,"x":0,"y":-15.0,"z":0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"remote_queue":null,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"movement_callbacks":[],"proximity_callbacks":[]}},"system_name":"system1","resources":{"metal-titanium":100}}}'
+    j = '{"json_class":"Manufactured::Loot","data":{"id":"loot1","location":{"json_class":"Motel::Location","data":{"id":20,"x":0,"y":-15.0,"z":0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"movement_callbacks":[],"proximity_callbacks":[]}},"system_name":"system1","resources":{"metal-titanium":100}}}'
     l = JSON.parse(j)
 
     l.class.should == Manufactured::Loot

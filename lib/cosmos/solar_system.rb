@@ -37,9 +37,6 @@ class SolarSystem
   # Background to render solar system w/ (TODO this shouldn't be here / should be up to client)
   attr_accessor :background
 
-  # Remote queue which to retrieve child entities from if any (may be nil)
-  attr_accessor :remote_queue
-
   def id
     return @name
   end
@@ -53,7 +50,6 @@ class SolarSystem
   # @option args [Array<Cosmos::Planet>] 'planets' array of planets to assign to solar system
   # @option args [Array<Cosmos::JumpGate>] 'jump_gates' array of jump gates to assign to solar system
   # @option args [Array<Cosmos::Asteroid>] 'asteroids' array of asteroids to assign to solar system
-  # @option args [String] :remote_queue,'remote_queue' remote_queue to assign to solar system if any
   # @option args [String] :background,'background' background to assign to the solar system (else randomly generated)
   def initialize(args = {})
     @name       = args['name']       || args[:name]
@@ -63,7 +59,6 @@ class SolarSystem
     @planets    = args['planets']    || []
     @jump_gates = args['jump_gates'] || []
     @asteroids  = args['asteroids']  || []
-    @remote_queue = args['remote_queue'] || args[:remote_queue] || nil
 
     @background = args['background'] || args[:background] || "system#{rand(MAX_BACKGROUNDS-1)+1}"
 
@@ -106,12 +101,6 @@ class SolarSystem
   # @return [:galaxy]
   def self.parent_type
     :galaxy
-  end
-
-  # Returns boolean indicating if remote cosmos retrieval can be performed for entity's children
-  # @return [true]
-  def self.remotely_trackable?
-    true
   end
 
   # Return galaxy parent of the SolarSystem
@@ -240,7 +229,7 @@ class SolarSystem
        'data'       =>
          {:name => name, :location => @location, :galaxy_name => (@galaxy ? @galaxy.name : nil),
           :star => @star, :planets => @planets, :jump_gates => @jump_gates,
-          :asteroids => @asteroids, :background => @background, :remote_queue => remote_queue}
+          :asteroids => @asteroids, :background => @background}
      }.to_json(*a)
    end
 

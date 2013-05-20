@@ -90,12 +90,6 @@ class Asteroid
     :solarsystem
   end
 
-  # Returns boolean indicating if remote cosmos retrieval can be performed for entity's children
-  # @return [false]
-  def self.remotely_trackable?
-    false
-  end
-
   # Return solar_system parent of the Asteroid
   # @return [Cosmos::SolarSystem]
   def parent

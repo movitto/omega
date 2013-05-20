@@ -8,8 +8,7 @@ module Cosmos
 # http://en.wikipedia.org/wiki/Galaxy
 #
 # Cosmos entity residing in the Universe, added directly to the
-# {Cosmos::Registry}. May contain local solar_system children or
-# reference a remote server which children should be retrieved from.
+# {Cosmos::Registry}. May contain local solar_system children
 #
 # These are the top level objects in the entity heirarchies and their
 # corresponding location heirarchies. In the Cosmos subsystem, the
@@ -37,21 +36,16 @@ class Galaxy
 
   # @endgroup
 
-  # Remote queue which to retrieve child solar_systems from if any (may be nil)
-  attr_accessor :remote_queue
-
   # Cosmos::Galaxy intializer
   # @param [Hash] args hash of options to initialize galaxy with
   # @option args [String] :name,'name' unqiue name to assign to the galaxy
   # @option args [Motel::Location] :location,'location' location of the galaxy,
   #   if not specified will automatically be created with coordinates (0,0,0)
   # @option args [Array<Cosmos::SolarSystem>] :solar_systems,'solar_systems' array of solar systems to assign to galaxy
-  # @option args [String] :remote_queue,'remote_queue' remote_queue to assign to galaxy if any
   def initialize(args = {})
     @name          = args['name']          || args[:name]
     @location      = args['location']      || args[:location]
     @solar_systems = args['solar_systems'] || args[:solar_systems] || []
-    @remote_queue  = args['remote_queue']  || args[:remote_queue] || nil
 
     @background = "galaxy#{rand(MAX_BACKGROUNDS-1)+1}"
 
@@ -87,12 +81,6 @@ class Galaxy
   # @return [:universe]
   def self.parent_type
     :universe
-  end
-
-  # Returns boolean indicating if remote cosmos retrieval can be performed for entity's children
-  # @return [true]
-  def self.remotely_trackable?
-    true
   end
 
   # Return parent of the Galaxy
@@ -172,7 +160,6 @@ class Galaxy
        'data'       =>
          {:name => @name,
           :background => @background,
-          :remote_queue => @remote_queue,
           :location => @location, :solar_systems => @solar_systems}
      }.to_json(*a)
    end

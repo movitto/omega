@@ -39,10 +39,6 @@ describe Cosmos::Star do
      star.valid?.should be_false
   end
 
-  it "should be not able to be remotely trackable" do
-    Cosmos::Star.remotely_trackable?.should be_false
-  end
-
   it "should be convertable to json" do
     g = Cosmos::Star.new(:name => 'star1',
                          :location => Motel::Location.new(:x => 50))
@@ -55,7 +51,7 @@ describe Cosmos::Star do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"color":"FFFF00","size":49,"name":"star1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Star"}'
+    j = '{"data":{"color":"FFFF00","size":49,"name":"star1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Star"}'
     g = JSON.parse(j)
 
     g.class.should == Cosmos::Star

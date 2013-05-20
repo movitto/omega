@@ -15,7 +15,6 @@ parent = nil
 xcoord = nil
 ycoord = nil
 zcoord = nil
-remote_queue = nil
 size = nil
 color = nil
 
@@ -47,10 +46,6 @@ optparse = OptionParser.new do |opts|
     zcoord = z
   end
 
-  opts.on('-r', '--remote QUEUE', 'name of remote queue to track entities (galaxy/system only)') do |r|
-    remote_queue = r
-  end
-
   opts.on('-s', '--size SIZE', 'size of entity') do |s|
     size = s
   end
@@ -76,11 +71,6 @@ if !['galaxy'].include?(entity) && parent.nil?
   exit 1
 end
 
-if !['galaxy', 'solarsystem'].include?(entity) && !remote_queue.nil?
-  puts "Cannot specify remote_queue with #{entity}"
-  exit 1
-end
-
 if !['asteroid', 'planet', 'star'].include?(entity) && (!size.nil? || !color.nil?)
   puts "Cannot specify size or color with #{entity}"
   exit 1
@@ -94,11 +84,9 @@ end
 entity_obj = nil
 case entity
 when 'galaxy'
-  entity_obj = Cosmos::Galaxy.new :name => name,
-                                  :remote_queue => remote_queue
+  entity_obj = Cosmos::Galaxy.new :name => name
 when 'solarsystem'
   entity_obj = Cosmos::SolarSystem.new :name => name,
-                                       :remote_queue => remote_queue,
                                        :location => Motel::Location.new(:x => xcoord,
                                                                         :y => ycoord,
                                                                         :z => zcoord)

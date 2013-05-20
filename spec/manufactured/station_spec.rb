@@ -318,7 +318,7 @@ describe Manufactured::Station do
   end
 
   it "should be convertable from json" do
-    j = '{"data":{"type":"science","user_id":420,"solar_system":{"data":{"star":null,"planets":[],"jump_gates":[],"name":"system1","background":"system1","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"},"size":50,"id":"station42","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"remote_queue":null,"parent_id":null,"x":null,"y":-15,"z":null,"id":20,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
+    j = '{"data":{"type":"science","user_id":420,"solar_system":{"data":{"star":null,"planets":[],"jump_gates":[],"name":"system1","background":"system1","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"},"size":50,"id":"station42","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"x":null,"y":-15,"z":null,"id":20,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
     s = JSON.parse(j)
 
     s.class.should == Manufactured::Station
