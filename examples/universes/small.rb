@@ -1,5 +1,5 @@
 #!/usr/bin/ruby
-# smaller environment than universe for testing specific aspects of integration
+# A smaller universe
 #
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt

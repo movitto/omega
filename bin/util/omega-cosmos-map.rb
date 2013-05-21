@@ -10,6 +10,7 @@
 require 'rgl/adjacency'
 require 'rgl/dot'
 
+UNIVERSE = ARGV.shift || "examples/universes/complete.rb"
 
 $current_graph = current_galaxy = current_system = 
 current_star = current_planet = current_moon = nil
@@ -31,7 +32,7 @@ def graph_galaxy
   }
 end
 
-inf = File.open("examples/integration/complete.rb")
+inf = File.open(UNIVERSE)
 inf.each_line { |l|
   if l =~ /\s*galaxy '(.*)'.*/
     graph_galaxy unless $current_graph.nil?

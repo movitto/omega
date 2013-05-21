@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
-# single integration test bot (rev 4)
+# example bot, uses omega client api to automatically run ships and
+# stations according to a simple algorithm
 #
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt

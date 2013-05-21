@@ -1,7 +1,8 @@
 #!/usr/bin/ruby
-# monitors the integration framework for status / errors
+# Continously monitors Omega for status / errors
+# and displays report using ncurses
 #
-# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 #
 # to use rbcurse (currently not used):
@@ -12,7 +13,23 @@ require 'ncursesw'
 require 'active_support/core_ext/string/filters'
 require 'omega'
 
-require_relative './tests'
+# Allow user to define custom tests to run via
+# a 'run_test' method in the module they specify
+test_module = ARGV.shift
+if !test_module.nil?
+  require_relative test_module
+
+else
+  test_module = File.join(File.dirname(__FILE__), '..', '..',
+                          'examples', 'bot_tests.rb')
+  if File.exists?(test_module)
+    require_relative test_module
+
+  else
+    def run_tests(output) ; end
+
+  end
+end
 
 # ncurses output class
 class OmegaNcurses

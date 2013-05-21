@@ -1,5 +1,5 @@
 #!/usr/bin/ruby
-# simple example to demonstrate entity construction
+# Example to demonstrate entity construction
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
