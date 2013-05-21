@@ -1,4 +1,11 @@
 #!/usr/bin/ruby
+#
+# Uses the Omega DSL to seed the omega-server w/ simulation data including
+# a universe and multiple users w/ ships / stations
+#
+# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
 require 'rubygems'
 require 'omega'
 
