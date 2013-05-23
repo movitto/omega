@@ -8,8 +8,8 @@ require 'motel/location'
 
 module Motel
 
-# A MovementStrategy is registered with (set on) a {Motel::Location}
-# and used by the {Motel::Runner} to update the location's coordinates
+# A MovementStrategy is registered with a {Motel::Location}
+# and used by the {Motel::Registry} to update the location's coordinates
 # in accordance to the algorithm and parameters of the strategy.
 #
 # This is the base class that defines the movement strategy interface,
@@ -25,7 +25,12 @@ class MovementStrategy
    # @param [Hash] args hash of options to initialize movement strategy with
    # @option args [Float,Integer] :step_delay base step delay which runner will wait before moving entity
    def initialize(args = {})
-      @step_delay = args[:step_delay] || args['step_delay'] || 1
+      attr_from_args args, :step_delay => 1
+   end
+
+   # Validate movement strategy, default to false, must be subclassed
+   def valid?
+     false
    end
 
    # Moves the given location, specifying the number of seconds which have

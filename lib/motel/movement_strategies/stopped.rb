@@ -13,6 +13,10 @@ module MovementStrategies
 class Stopped < MovementStrategy
    include Singleton
 
+   def valid?
+     true
+   end
+
    def to_s
      "stopped"
    end

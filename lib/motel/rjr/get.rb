@@ -4,47 +4,50 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 get_location = proc { |*args|
-  return_first = false
-  filters = []
-  while qualifier = args.shift
-    raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "within"].include?(qualifier)
-    filter = case qualifier
-               when "with_id"
-                 return_first = true
-                 val = args.shift
-                 raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
-                 lambda { |loc| loc.id == val }
-               when "within"
-                 distance = args.shift
-                 raise ArgumentError, "qualifier #{qualifier} requires int or float distance > 0" if distance.nil? || (!distance.is_a?(Integer) && !distance.is_a?(Float)) || distance <= 0
-                 qualifier = args.shift
-                 plocation  = args.shift
-                 raise ArgumentError, "must specify 'of location' when specifing 'within distance'" if qualifier != "of" || plocation.nil? || !plocation.is_a?(Motel::Location)
-                 lambda { |loc| loc.parent_id == plocation.parent_id &&
-                                (loc - plocation) <= distance }
-               # when "of_type" # allow & ensure "Motel::Location" for compatability reasons?
-             end
-    filters << filter
-  end
+  # retrieve locations matching filters specified by args
+  filters = filters_from_args args,
+    :with_id => proc { |l, id| l.id == id },
+    :within  => proc { |l, d, of, loc|
+      if !(d.numeric? && d > 0)
+        raise ValidationError, "distance must be > 0"
 
-  locs = Runner.instance.locations
-  filters.each { |f| locs = locs.select &f }
+      elsif of != "of"
+        raise ValidationError, "filter must be: within <distance> of <loc>"
 
+      elsif !loc.is_a?(Location)
+        raise ValidationError, "valid location must be specified"
+
+      end
+
+      l.parent_id == loc.parent_id && l - loc <= d
+    }
+  locs = self.entities.select { |e| filters.all? { |f| f.call(e) }}
+
+  # if id of location to retrieve is specified, only return a single location
+  return_first = args.include?(:with_id)
   if return_first
-    raise Omega::DataNotFound, "location specified by id not found" if locs.empty?
-    Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "location-#{locs.first.id}"},
-                                               {:privilege => 'view', :entity => 'locations'}],
-                                      :session => @headers['session_id']) if locs.first.restrict_view
+    locs = locs.first
+
+    # make sure the location was found
+    id = args[args.index(:with_id) + 1]
+    raise DataNotFound, (id) if locs.nil
+
+    # make sure the user has privileges on the specified location
+    require_privilege :any =>
+      [{:privilege => 'view', :entity => "location-#{locs.id}"},
+       {:privilege => 'view', :entity => 'locations'}] if locs.restrict_view
+
+  # else return an array of locations which the user has access to
+  else
+    locs.reject! { |loc|
+      loc.restrict_view &&
+      !check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
+                                {:privilege => 'view', :entity => 'locations'}])
+    }
+
   end
 
-  locs.reject! { |loc|
-    loc.restrict_view &&
-    !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
-                                              {:privilege => 'view', :entity => 'locations'}],
-                                     :session => @headers['session_id'])
-  }
-
-  return_first ? locs.first : locs
+  locs
 }
 
 def dispatch_get(dispatcher)

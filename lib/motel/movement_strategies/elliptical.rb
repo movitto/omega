@@ -23,6 +23,12 @@ module MovementStrategies
 # To be valid you must specify eccentricity, semi_latus_rectum, and speed
 # at a minimum
 class Elliptical < MovementStrategy
+   # Indicates that parent location is at center of elliptical path
+   RELATIVE_TO_CENTER = "center"
+
+   # Indicates that parent location is at one of the focis of the elliptical path
+   RELATIVE_TO_FOCI   = "foci"
+
    # [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] value indicates if the parent
    #   of the location tracked by this strategy is at the center or the foci
    #   of the ellipse.
@@ -34,22 +40,26 @@ class Elliptical < MovementStrategy
    attr_accessor :speed
 
    # Describes the elliptical path through which the location moves
-   attr_accessor :eccentricity, :semi_latus_rectum
+   attr_accessor :e, :p
+   alias :eccentricity :e
+   alias :eccentricity= :e=
+   alias :semi_latus_rectum :p
+   alias :semi_latus_rectum= :p=
 
    # Direction vector corresponding to the major axis of the elliptical path
-   attr_accessor :direction_major_x, :direction_major_y, :direction_major_z
+   attr_accessor :dmajx, :dmajy, :dmajz
 
    # Combined major direction vector
-   def direction_major
-     [@direction_major_x, @direction_major_y, @direction_major_z]
+   def dmaj
+     [@dmajx, @dmajy, @dmajz]
    end
 
    # Direction vector corresponding to the minor axis of the elliptical path
-   attr_accessor :direction_minor_x, :direction_minor_y, :direction_minor_z
+   attr_accessor :dminx, :dminy, :dminz
 
    # Combined minor direction vector
-   def direction_minor
-     [@direction_minor_x, @direction_minor_y, @direction_minor_z]
+   def dmin
+     [@dminx, @dminy, @dminz]
    end
 
    # Combined direction vector
@@ -62,83 +72,34 @@ class Elliptical < MovementStrategy
    # Direction vectors will be normalized if not already
    #
    # @param [Hash] args hash of options to initialize the elliptical movement strategy with
-   # @option args [Array<Array<Float,Float,Float>,Array<Float,Float,Float>>] :direction array containing two arrays containing x,y,z coords of major/minor direction vectors
-   # @option args [Float] :direction_major array containing x,y,z coords of major direction vector
-   # @option args [Float] :direction_minor array containing x,y,z coords of minor direction vector
-   # @option args [Float] :direction_major_x x coordinate of major direction vector
-   # @option args [Float] :direction_major_y y coordinate of major direction vector
-   # @option args [Float] :direction_major_z z coordinate of major direction vector
-   # @option args [Float] :direction_minor_x x coordinate of minor direction vector
-   # @option args [Float] :direction_minor_y y coordinate of minor direction vector
-   # @option args [Float] :direction_minor_z z coordinate of minor direction vector
+   # @option args [Array<Float>] :direction array containing x,y,z coords of major and minor direction vectors
+   # @option args [Float] :dmajx x coordinate of major direction vector
+   # @option args [Float] :dmajy y coordinate of major direction vector
+   # @option args [Float] :dmajz z coordinate of major direction vector
+   # @option args [Float] :dminx x coordinate of minor direction vector
+   # @option args [Float] :dminy y coordinate of minor direction vector
+   # @option args [Float] :dminz z coordinate of minor direction vector
    # @option args [Float] :speed speed to assign to movement strategy
    # @option args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
-   # @option args [Float] :eccentricity,:e eccentricity to assign to elliptical path
-   # @option args [Float] :semi_latus_rectum,:p semi latus rectum to assign to elliptical path
+   # @option args [Float] :e eccentricity to assign to elliptical path
+   # @option args [Float] :p semi latus rectum to assign to elliptical path
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @relative_to        = args[:relative_to]       || args['relative_to']       || RELATIVE_TO_FOCI
-     @speed              = args[:speed]             || args['speed']
-     @eccentricity       = args[:eccentricity]      || args['eccentricity']      || args['e']           || args[:e]
-     @semi_latus_rectum  = args[:semi_latus_rectum] || args['semi_latus_rectum'] || args['p']           || args[:p]
+      @dmajx, @dmajx, @dmajz, @dminx, @dminy, @dminz =
+        (args[:direction] || args['direction'] || []).flatten
 
-     if args.has_key?('direction')
-       @direction_major_x, @direction_major_y, @direction_major_z = *args['direction'][0]
-       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args['direction'][1]
-     end
+     attrs_from_args args,
+       :relative_to  => RELATIVE_TO_FOCI,
+       :speed => nil, :e => nil, :p => nil,
+       :dmajx =>   1, :dmajy =>   0, :dmajz =>   0,
+       :dminx =>   0, :dminy =>   0, :dminz =>   0
 
-     if args.has_key?(:direction)
-       @direction_major_x, @direction_major_y, @direction_major_z = *args[:direction][0]
-       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args[:direction][1]
-     end
-
-     if args.has_key?('direction_major')
-       @direction_major_x, @direction_major_y, @direction_major_z = *args['direction_major']
-     end
-
-     if args.has_key?(:direction_major)
-       @direction_major_x, @direction_major_y, @direction_major_z = *args[:direction_major]
-     end
-
-     if args.has_key?('direction_minor')
-       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args['direction_minor']
-     end
-
-     if args.has_key?(:direction_minor)
-       @direction_minor_x, @direction_minor_y, @direction_minor_z = *args[:direction_minor]
-     end
-
-     @direction_major_x   = args['direction_major_x'] if args.has_key? 'direction_major_x'
-     @direction_major_y   = args['direction_major_y'] if args.has_key? 'direction_major_y'
-     @direction_major_z   = args['direction_major_z'] if args.has_key? 'direction_major_z'
-
-     @direction_major_x   = args[:direction_major_x] if args.has_key? :direction_major_x
-     @direction_major_y   = args[:direction_major_y] if args.has_key? :direction_major_y
-     @direction_major_z   = args[:direction_major_z] if args.has_key? :direction_major_z
-
-     @direction_minor_x   = args['direction_minor_x'] if args.has_key? 'direction_minor_x'
-     @direction_minor_y   = args['direction_minor_y'] if args.has_key? 'direction_minor_y'
-     @direction_minor_z   = args['direction_minor_z'] if args.has_key? 'direction_minor_z'
-
-     @direction_minor_x   = args[:direction_minor_x] if args.has_key? :direction_minor_x
-     @direction_minor_y   = args[:direction_minor_y] if args.has_key? :direction_minor_y
-     @direction_minor_z   = args[:direction_minor_z] if args.has_key? :direction_minor_z
-
-     @direction_major_x   = 1 if @direction_major_x.nil?
-     @direction_major_y   = 0 if @direction_major_y.nil?
-     @direction_major_z   = 0 if @direction_major_z.nil?
-     @direction_minor_x   = 0 if @direction_minor_x.nil?
-     @direction_minor_y   = 1 if @direction_minor_y.nil?
-     @direction_minor_z   = 0 if @direction_minor_z.nil?
      super(args)
 
-     @direction_major_x, @direction_major_y, @direction_major_z = 
-         Motel::normalize(@direction_major_x, @direction_major_y, @direction_major_z)
-
-     @direction_minor_x, @direction_minor_y, @direction_minor_z = 
-        Motel::normalize(@direction_minor_x, @direction_minor_y, @direction_minor_z)
-
-     raise InvalidMovementStrategy.new("elliptical movement strategy not valid") unless valid?
+     @dmajx, @dmajy, @dmajz = Motel::normalize(@dmajx, @dmajy, @dmajz)
+     @dminx, @dminy, @dminz = Motel::normalize(@dminx, @dminy, @dminz)
+     raise InvalidMovementStrategy,
+       "elliptical movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -149,48 +110,22 @@ class Elliptical < MovementStrategy
    # Currently tests
    # * direction vectors are normalized
    # * direction vectors are orthogonal
-   # * eccentricity is a valid float/fixnum > 0
-   # * semi latus rectum is a valid float/fixnum > 0
-   # * speed is a valid float/fixnum > 0
+   # * eccentricity is a valid numeric > 0
+   # * semi latus rectum is a valid numeric > 0
+   # * speed is a valid numeric > 0
    # * relative_to is RELATIVE_TO_CENTER or RELATIVE_TO_FOCI
    def valid?
-     Motel::normalized?(@direction_major_x, @direction_major_y, @direction_major_z) &&
-     Motel::normalized?(@direction_minor_x, @direction_minor_y, @direction_minor_z) &&
-     Motel::orthogonal?(@direction_major_x, @direction_major_y, @direction_major_z, @direction_minor_x, @direction_minor_y, @direction_minor_z) &&
-     [Float, Fixnum].include?(@eccentricity.class) && @eccentricity >= 0 && @eccentricity <= 1 &&
-     [Float, Fixnum].include?(@semi_latus_rectum.class) && @semi_latus_rectum > 0 &&
-     [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
+     Motel::normalized?(@dmajx, @dmajy, @dmajz) &&
+     Motel::normalized?(@dminx, @dminy, @dminz) &&
+     Motel::orthogonal?(@dmajx, @dmajy, @dmajz, @dminx, @dminy, @dminz) &&
+     @e.numeric? && @e >= 0 && @e <= 1 &&
+     @p.numeric? && @p > 0 &&
+     @speed.numeric? && @speed > 0 &&
      [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI].include?(@relative_to)
    end
 
-   # Return the eccentricity of the elliptical path
-   def e
-     self.eccentricity
-   end
-
-   # Set the eccentricity of the elliptical path
-   def e=(v)
-    self.eccentricity= v
-   end
-
-   # Return the semi latus rectum of the elliptical path
-   def p
-     self.semi_latus_rectum
-   end
-
-   # Set the semi latus rectum of the elliptical path
-   def p=(v)
-     self.semi_latus_rectum = v
-   end
-
-   # Indicates that parent location is at center of elliptical path
-   RELATIVE_TO_CENTER = "center"
-
-   # Indicates that parent location is at one of the focis of the elliptical path
-   RELATIVE_TO_FOCI   = "foci"
-
    # Implementation of {Motel::MovementStrategy#move}
-   def move(location, elapsed_seconds)
+   def move(loc, elapsed_seconds)
      # make sure this movement strategy is valid
      unless valid?
         RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
@@ -198,22 +133,22 @@ class Elliptical < MovementStrategy
      end
 
      # make sure location is on ellipse
-     unless location_valid? location
-        cx,cy,cz = closest_coordinates location
-        RJR::Logger.warn "location #{location} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
+     unless location_valid? loc
+        cx,cy,cz = closest_coordinates loc
+        RJR::Logger.warn "location #{loc} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
         # FIXME raise error if cx,cy,cz is nil
-        location.x,location.y,location.z = cx,cy,cz
+        loc.x,loc.y,loc.z = cx,cy,cz
      end
 
-     RJR::Logger.debug "moving location #{location.id} via elliptical movement strategy"
+     RJR::Logger.debug "moving location #{loc.id} via elliptical movement strategy"
 
      # calculate distance moved and update x,y,z accordingly
      distance = speed * elapsed_seconds
 
-     nX,nY,nZ = coordinates_from_theta(theta(location) + distance)
-     location.x = nX
-     location.y = nY
-     location.z = nZ
+     nX,nY,nZ = coordinates_from_theta(theta(loc) + distance)
+     loc.x = nX
+     loc.y = nY
+     loc.z = nZ
    end
 
    # Convert movement strategy to json representation and return it
@@ -222,20 +157,20 @@ class Elliptical < MovementStrategy
        'data'       => { :step_delay   => step_delay,
                          :speed        => speed,
                          :relative_to  => relative_to,
-                         :eccentricity => eccentricity,
-                         :semi_latus_rectum => semi_latus_rectum,
-                         :direction_major_x => direction_major_x,
-                         :direction_major_y => direction_major_y,
-                         :direction_major_z => direction_major_z,
-                         :direction_minor_x => direction_minor_x,
-                         :direction_minor_y => direction_minor_y,
-                         :direction_minor_z => direction_minor_z }
+                         :e => e,
+                         :p => p,
+                         :dmajx => dmajx,
+                         :dmajy => dmajy,
+                         :dmajz => dmajz,
+                         :dminx => dminx,
+                         :dminy => dminy,
+                         :dminz => dminz }
      }.to_json(*a)
    end
 
    # Convert movement strategy to human readable string and return it
    def to_s
-     "elliptical-(rt_#{relative_to}/s#{speed}/e#{eccentricity}/l#{semi_latus_rectum}/d#{direction})"
+     "elliptical-(rt_#{relative_to}/s#{speed}/e#{e}/p#{p}/d#{direction})"
    end
 
   private
@@ -246,8 +181,8 @@ class Elliptical < MovementStrategy
     # direction axis from the standard cartesian axis
     def axis_rotation
       vectors = Motel::CARTESIAN_NORMAL_VECTOR +
-                Motel.normal_vector(direction_major_x, direction_major_y, direction_major_z,
-                                    direction_minor_x, direction_minor_y, direction_minor_z)
+                Motel.normal_vector(dmajx, dmajy, dmajz,
+                                    dminx, dminy, dminz)
       aa = Motel.axis_angle(*vectors)
     end
 
@@ -275,9 +210,9 @@ class Elliptical < MovementStrategy
       a,b = intercepts
       le  = linear_eccentricity
 
-      centerX = -1 * direction_major_x * le; 
-      centerY = -1 * direction_major_y * le; 
-      centerZ = -1 * direction_major_z * le;
+      centerX = -1 * dmajx * le; 
+      centerY = -1 * dmajy * le; 
+      centerZ = -1 * dmajz * le;
       return centerX, centerY, centerZ
     end
 
@@ -289,9 +224,9 @@ class Elliptical < MovementStrategy
       a,b = intercepts
       le  = linear_eccentricity
 
-      focusX = direction_major_x * le; 
-      focusY = direction_major_y * le; 
-      focusZ = direction_major_z * le;
+      focusX = dmajx * le; 
+      focusY = dmajy * le; 
+      focusZ = dmajz * le;
       return focusX, focusY, focusZ
     end
 
@@ -392,19 +327,19 @@ class Elliptical < MovementStrategy
      semi_latus_rectum = max_l.nil? ? rand : (min_l + rand(max_l - min_l))
 
      axis = Motel::random_axis :dimensions => dimensions
-     direction_major_x, direction_major_y, direction_major_z = *axis[0]
-     direction_minor_x, direction_minor_y, direction_minor_z = *axis[1]
+     dmajx, dmajy, dmajz = *axis[0]
+     dminx, dminy, dminz = *axis[1]
 
      strategy = Elliptical.new :relative_to => relative_to,
-                               :eccentricity => eccentricity,
-                               :semi_latus_rectum => semi_latus_rectum,
+                               :e => eccentricity,
+                               :p => semi_latus_rectum,
                                :speed => speed,
-                               :direction_major_x => direction_major_x,
-                               :direction_major_y => direction_major_y,
-                               :direction_major_z => direction_major_z,
-                               :direction_minor_x => direction_minor_x,
-                               :direction_minor_y => direction_minor_y,
-                               :direction_minor_z => direction_minor_z
+                               :dmajx => dmajx,
+                               :dmajy => dmajy,
+                               :dmajz => dmajz,
+                               :dminx => dminx,
+                               :dminy => dminy,
+                               :dminz => dminz
 
      return strategy
    end

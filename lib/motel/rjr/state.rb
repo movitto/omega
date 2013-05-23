@@ -5,31 +5,21 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 save_state = proc { |output|
-  raise Omega::PermissionError,
-               "invalid client" unless @rjr_node_type ==
-                                       RJR::LocalNode::RJR_NODE_TYPE
-  output_file = File.open(output, 'a+')
-  Motel::Runner.instance.save_state(output_file)
-  output_file.close
-  nil
+  raise PermissionError, "invalid client" unless is_node?(RJR::Nodes::Local)
+  File.open(output, 'a+') { |f| Registry.instance.save(f) }
 }
 
 restore_state = proc { |input|
-  raise Omega::PermissionError,
-               "invalid client" unless @rjr_node_type ==
-                                       RJR::LocalNode::RJR_NODE_TYPE
-  input_file = File.open(input, 'r')
-  Motel::Runner.instance.restore_state(input_file)
-  input_file.close
-  nil
+  raise PermissionError, "invalid client" unless is_node?(RJR::Nodes::Local)
+  File.open(input, 'r') { |f| Registry.instance.restore(f) }
 }
 
 motel_status = proc { ||
   # Retrieve the overall status of this node
   {
-    :running       => Motel::Runner.instance.running?,
-    :num_locations => Motel::Runner.instance.locations.size,
-    :errors        => Motel::Runner.instance.errors }
+    :running       => Registry.instance.running?,
+    :num_locations => Registry.instance.locations.size,
+    :errors        => Registry.instance.errors }
   }
 }
 

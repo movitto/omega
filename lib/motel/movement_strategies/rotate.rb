@@ -14,26 +14,25 @@ module MovementStrategies
 
     # Initialize rotation params from args hash
     def init_rotation(args = {})
-     @dtheta               = args[:dtheta]|| args['dtheta'] || 0
-     @dphi                 = args[:dphi]  || args['dphi']   || 0
+      attr_from_args args, :dtheta => 0, :dphi => 0
     end
 
     # Return boolean indicating if rotation parameters are valid
     def valid_rotation?
-     (@dtheta.nil? || ([Float, Fixnum].include?(@dtheta.class) && @dtheta > -6.28 && @dtheta < 6.28)) &&
-     (@dphi.nil?   || ([Float, Fixnum].include?(@dphi.class)   && @dphi   > -6.28 && @dphi   < 6.28))
+     @dtheta.numeric? && @dtheta > -6.28 && @dtheta < 6.28 &&
+     @dphi.numeric?   && @dphi   > -6.28 && @dphi   < 6.28
     end
 
     # Rotate the specified location. Takes same parameters
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
-    def rotate(location, elapsed_seconds)
+    def rotate(loc, elapsed_seconds)
       # update location's orientation
-      loct, locp = location.spherical_orientation
+      loct, locp = loc.spherical_orientation
       unless loct.nil? || locp.nil?
         loct += dtheta * elapsed_seconds
         locp += dphi   * elapsed_seconds
-        location.orientation_x,location.orientation_y,location.orientation_z =
+        loc.orientation_x,loc.orientation_y,loc.orientation_z =
           Motel.from_spherical(loct, locp, 1)
       end
     end
@@ -61,14 +60,14 @@ class Rotate < MovementStrategy
   end
 
   # Implementation of {Motel::MovementStrategy#move}
-  def move(location, elapsed_seconds)
+  def move(loc, elapsed_seconds)
     unless valid?
       RJR::Logger.warn "rotate movement strategy (#{self.to_s}) not valid, not proceeding with move"
       return
     end
 
-    RJR::Logger.debug "moving location #{location.id} via rotate movement strategy #{dtheta}/#{dphi}"
-    rotate(location, elapsed_seconds)
+    RJR::Logger.debug "moving location #{loc.id} via rotate movement strategy #{dtheta}/#{dphi}"
+    rotate(loc, elapsed_seconds)
   end
 
   # Convert movement strategy to json representation and return it

@@ -21,7 +21,7 @@ class Linear < MovementStrategy
   include Rotatable
 
    # Unit vector corresponding to the linear movement direction
-   attr_accessor :direction_vector_x, :direction_vector_y, :direction_vector_z
+   attr_accessor :dx, :dy, :dz
    
    # Distance the location moves per second
    attr_accessor :speed
@@ -32,23 +32,21 @@ class Linear < MovementStrategy
    # Direction vector will be normalized if not already
    #
    # @param [Hash] args hash of options to initialize the linear movement strategy with
-   # @option args [Float] :direction_vector_x,:dx x coordinate of direction vector
-   # @option args [Float] :direction_vector_y,:dy y coordinate of direction vector
-   # @option args [Float] :direction_vector_z,:dz z coordinate of direction vector
+   # @option args [Float] x coordinate of direction vector
+   # @option args [Float] :dy coordinate of direction vector
+   # @option args [Float] :dz z coordinate of direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
+   # @raise [Motel::InvalidMovementStrategy] 
+   # if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @direction_vector_x   = args[:direction_vector_x] || args['direction_vector_x'] || args[:dx] || args['dx'] || 1
-     @direction_vector_y   = args[:direction_vector_y] || args['direction_vector_y'] || args[:dy] || args['dy'] || 0
-     @direction_vector_z   = args[:direction_vector_z] || args['direction_vector_z'] || args[:dz] || args['dz'] || 0
-     @speed                = args[:speed] || args['speed']
+     attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil
      init_rotation(args)
      super(args)
 
      # normalize direction vector
-     @direction_vector_x, @direction_vector_y, @direction_vector_z =
-       Motel::normalize(@direction_vector_x, @direction_vector_y, @direction_vector_z)
-     raise InvalidMovementStrategy.new("linear movement strategy not valid") unless valid?
+     @dx, @dy, @dz = Motel::normalize(@dx, @dy, @dz)
+     raise InvalidMovementStrategy, 
+       "linear movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -58,30 +56,30 @@ class Linear < MovementStrategy
    #
    # Currently tests
    # * direction vector is normalized
-   # * speed is a valid float/fixnum > 0
+   # * speed is a valid numeric > 0
    # * rotation parameters
    def valid?
-     Motel::normalized?(@direction_vector_x, @direction_vector_y, @direction_vector_z) &&
-                                 [Float, Fixnum].include?(@speed.class)  && @speed > 0 &&
-                                                                       valid_rotation?
+     Motel::normalized?(@dx, @dy, @dz) &&
+     @speed.numeric? && @speed > 0 && valid_rotation?
    end
 
    # Implementation of {Motel::MovementStrategy#move}
-   def move(location, elapsed_seconds)
+   def move(loc, elapsed_seconds)
      unless valid?
        RJR::Logger.warn "linear movement strategy not valid, not proceeding with move"
        return
      end
 
-     RJR::Logger.debug "moving location #{location.id} via linear movement strategy " +
-                  "#{speed} #{direction_vector_x}/#{direction_vector_y}/#{direction_vector_z}"
+     RJR::Logger.debug \
+       "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
+                  
 
      # calculate distance and update x,y,z accordingly
      distance = speed * elapsed_seconds
 
-     location.x += distance * direction_vector_x
-     location.y += distance * direction_vector_y
-     location.z += distance * direction_vector_z
+     loc.x += distance * dx
+     loc.y += distance * dy
+     loc.z += distance * dz
 
      rotate(location, elapsed_seconds)
    end
@@ -91,16 +89,16 @@ class Linear < MovementStrategy
      { 'json_class' => self.class.name,
        'data'       => { :step_delay => step_delay,
                          :speed => speed,
-                         :direction_vector_x => direction_vector_x,
-                         :direction_vector_y => direction_vector_y,
-                         :direction_vector_z => direction_vector_z }.merge(rotation_json)
+                         :dx => dx,
+                         :dy => dy,
+                         :dz => dz }.merge(rotation_json)
      }.to_json(*a)
    end
 
    # Convert movement strategy to human readable string and return it
    def to_s
      s = "linear-("
-     s += "#{@direction_vector_x.round_to(2)},#{@direction_vector_y.round_to(2)},#{@direction_vector_z.round_to(2)})" unless @direction_vector_x.nil? || @direction_vector_y.nil? || @direction_vector_z.nil?
+     s += "#{@speed}->#{@dx.round_to(2)},#{@dy.round_to(2)},#{@dz.round_to(2)})"
      s += ")"
      s
    end

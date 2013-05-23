@@ -51,31 +51,27 @@ class Location
 
    # Unit vector corresponding to Orientation of the location
    attr_accessor :orientation_x, :orientation_y, :orientation_z
+   alias :orx :orientation_x
+   alias :orx= :orientation_x=
+   alias :ory :orientation_y
+   alias :ory= :orientation_y=
+   alias :orz :orientation_z
+   alias :orz= :orientation_z=
 
    # [Motel::MovementStrategy] Movement strategy through which to move location
    attr_accessor :movement_strategy
+   alias :ms :movement_strategy
+   alias :ms= :movement_strategy=
 
-   # [Array<Motel::MovementCallback>] Callbacks to be invoked on movement
-   attr_accessor :movement_callbacks
+   # [Hash<String, Motel::Callback>] Callbacks to be invoked on various events
+   attr_accessor :callbacks
 
-   # [Array<Motel::RotationCallback>] Callbacks to be invoked on rotation
-   attr_accessor :rotation_callbacks
-
-   # [Array<Motel::ProximityCallback>] Callbacks to be invoked on proximity
-   attr_accessor :proximity_callbacks
-
-   # TODO [Array<Motel::StrategyCallback>] Callbacks to be invoked when movement strategy is changed
-
-   # [Array<Motel::StoppedCallback>] Callbacks to be invoked on stopped
-   attr_accessor :stopped_callbacks
-
-   # Generic association which this location can belong to (not used by motel)
-   attr_accessor :entity
-
-   # Boolean flag indicating if permission checks should restrict access to this location
+   # Boolean flag indicating if permission checks
+   # should restrict access to this location
    attr_accessor :restrict_view
 
-   # Boolean flag indicating if permission checks should restrict modification of this location
+   # Boolean flag indicating if permission checks
+   # should restrict modification of this location
    attr_accessor :restrict_modify
 
   # Location initializer
@@ -91,83 +87,75 @@ class Location
   # @option args [Integer,Float] :orientation_y,'orientation_y' orientation_y coodinate of location
   # @option args [Integer,Float] :orientation_z,'orientation_z' orientation_z coodinate of location
   # @option args [Motel::MovementStrategy] :movement_strategy,'movement_strategy' movement strategy to assign to location
-  # @option args [Array<Motel::Callbacks::Movement> :movement_callbacks,'movement_callbacks' array of movement callbacks to assign to location
-  # @option args [Array<Motel::Callbacks::Proximity> :proximity_callbacks,'proximity_callbacks' array of proximity callbacks to assign to location
-  # @option args [Array<Motel::Callbacks::Stopped> :stopped_callbacks,'stopped_callbacks' array of stopped callbacks to assign to location
+  # @option args [Hash<String,Motel::Callbacks> :callbacks,'callbacks' hash of events/callbacks to assign to location
   # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
   # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
-  #
-  # @example
-  #   system = Motel::Location.new :id => 42
-  #   planet = Motel::Location.new :id => 43, :parent => system,
-  #                                :x => 100, :y => -200.5, :z => 400,
-  #                                :movement_strategy => Motel::MovementStrategies::Elliptical.new(:l => 100, :e => 0.5)
    def initialize(args = {})
-      # default to the stopped movement strategy
-      @movement_strategy   = args[:movement_strategy]   || args['movement_strategy']   || MovementStrategies::Stopped.instance
-      @movement_callbacks  = args[:movement_callbacks]  || args['movement_callbacks']  || []
-      @proximity_callbacks = args[:proximity_callbacks] || args['proximity_callbacks'] || []
-      @rotation_callbacks  = args[:rotation_callbacks]  || args['rotation_callbacks']  || []
-      @stopped_callbacks   = args[:stopped_callbacks  ] || args['stopped_callbacks']   || []
-      @children            = args[:children]            || args['children']            || []
-      @parent_id           = args[:parent_id]           || args['parent_id']           || nil
-      @parent              = args[:parent]              || args[:parent]
-
-      @id                  = args[:id]                  || args['id']                  || nil
-
-      @x, @y, @z           =
-                           *(args[:coordinates]         || args['coordinates']         || [])
-      @x                   = args[:x]                   || args['x']                   || @x
-      @y                   = args[:y]                   || args['y']                   || @y
-      @z                   = args[:z]                   || args['z']                   || @z
+      @x, @y, @z = *(args[:coordinates] || args['coordinates'] || [0,0,0])
 
       @orientation_x, @orientation_y, @orientation_z =
-                          *(args[:orientation]          || args['orientation']         || [])
-      @orientation_x      = args[:orientation_x]        || args['orientation_x']       || @orientation_x
-      @orientation_y      = args[:orientation_y]        || args['orientation_y']       || @orientation_y
-      @orientation_z      = args[:orientation_z]        || args['orientation_z']       || @orientation_z
+        *(args[:orientation] || args['orientation'] || [])
 
-      @restrict_view       = true
-      @restrict_view       = args[:restrict_view]  if args.has_key?(:restrict_view)
-      @restrict_view       = args['restrict_view'] if args.has_key?('restrict_view')
+      # default to the stopped movement strategy
+      attr_from_args args,
+        :movement_strategy => MovementStrategies::Stopped.instance,
+        :callbacks         => Hash.new([]),
+        :children          => [],
+        :parent_id         => nil
+        :parent            => nil,
+        :id                => nil,
+        :x                 => @x,
+        :y                 => @y,
+        :z                 => @z,
+        :orientation_x     => @orientation_x,
+        :orientation_y     => @orientation_y,
+        :orientation_z     => @orientation_z,
+        :restrict_view     => true,
+        :retrict_modify    => true
 
-      @restrict_modify     = true
-      @restrict_modify     = args[:restrict_modify]  if args.has_key?(:restrict_modify)
-      @restrict_modify     = args['restrict_modify'] if args.has_key?('restrict_modify')
-
-      # no parsing errors will be raised (invalid conversions will be set to 0), use alternate conversions / raise error ?
-      @x = @x.to_f unless @x.nil?
-      @y = @y.to_f unless @y.nil?
-      @z = @z.to_f unless @z.nil?
-      @orientation_x = @orientation_x.to_f unless @orientation_x.nil?
-      @orientation_y = @orientation_y.to_f unless @orientation_y.nil?
-      @orientation_z = @orientation_z.to_f unless @orientation_z.nil?
-
-      @parent.children.push self unless @parent.nil? || @parent.children.include?(self)
+      # no parsing errors will be raised (invalid conversions will be set to 0),
+      # TODO use alternate conversions / raise error ?
+      [:@x, :@y, :@z,
+       :@orientation_x, :@orientation_y, :@orientation_z].each { |p|
+        v = self.instance_variable_get(p)
+        self.instance_variable_set(p, v.to_f)
+      }
    end
-
-   # TODO add validation method
 
    # Update this location's attributes from other location
    #
    # @param [Motel::Location] location location from which to copy values from
    def update(location)
-      @x = location.x unless location.x.nil?
-      @y = location.y unless location.y.nil?
-      @z = location.z unless location.z.nil?
-      @orientation_x = location.orientation_x unless location.orientation_x.nil?
-      @orientation_y = location.orientation_y unless location.orientation_y.nil?
-      @orientation_z = location.orientation_z unless location.orientation_z.nil?
-      @movement_strategy = location.movement_strategy unless location.movement_strategy.nil?
-      @parent = location.parent unless location.parent.nil?
-      @parent_id = location.parent_id unless location.parent_id.nil?
-      @restrict_view   = location.restrict_view
-      @restrict_modify = location.restrict_modify
+      update_from(location, :x, :y, :z,
+                            :orientation_x, :orientation_y, :orientation_z,
+                            :movement_strategy, :parent, :parent_id,
+                            :restrict_view, :restrict_modify)
+   end
+
+   # Validate the location's properties
+   # 
+   # @return bool indicating if the location is valid or not
+   def valid?
+     !@id.nil? &&
+
+     [@x, @y, @z, @orientation_x, @orientation_y, @orientation_z].all? { |i|
+       i.numeric? } &&
+
+     @movement_strategy.kind_of?(MovementStrategy) &&
+     @movement_strategy.valid? &&
+   end
+
+   # Invoke callbacks for the specified event
+   def raise_event(evnt, *args)
+     @callbacks[evnt].each { |cb|
+       cb.invoke *args
+     } if @callbacks.has_key?(evnt)
    end
 
    # Return this location's coordinates in an array
    #
-   # @return [Array<Float,Float,Float>] array containing this location's x,y,z coordiantes
+   # @return [Array<Float,Float,Float>] array containing this 
+   # location's x,y,z coordiantes
    def coordinates
      [@x, @y, @z]
    end
@@ -225,17 +213,14 @@ class Location
    #
    # @param [Motel::Location] child location to add under this one
    def add_child(child)
-     child.parent.remove_child(child) if child.parent
-     child.parent = self
-     @children << child unless @children.include?(child) || !@children.find { |ch| ch.id == child.id }.nil?
+     @children << child unless @children.include?(child)
    end
 
    # Remove child from location
    #
    # @param [Motel::Location,Integer] child child location to move or its string id
    def remove_child(child)
-     @children.reject!{ |ch| (child.is_a?(Motel::Location) && ch == child) ||
-                             (child == ch.id) }
+     @children.reject!{ |ch| ch == child || ch.id == child }
    end
 
    # Return the absolute 'x' value of this location,
@@ -309,17 +294,14 @@ class Location
           :parent_id => parent_id,
           :children  => children,
           :movement_strategy => movement_strategy,
-          :movement_callbacks => movement_callbacks,
-          :proximity_callbacks => proximity_callbacks,
-          :rotation_callbacks => rotation_callbacks,
-          :stopped_callbacks => stopped_callbacks}
+          :callbacks => callbacks}
      }.to_json(*a)
    end
 
    # Convert location to human readable string and return it
    def to_s
      s = "location-#{id}(@#{parent_id}:"
-     s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}" unless x.nil? || y.nil? || z.nil?
+     s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
      s += " via #{movement_strategy}"
      s += ")"
      s

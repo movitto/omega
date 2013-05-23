@@ -30,17 +30,23 @@ class Base
   # Endpoing (rjr node) which this callback is being used for
   attr_accessor :endpoint_id
 
+  # Store the rjr method which this callback should invoke
+  attr_accessor :rjr_event
+
+  # Store the LOCATION_EVENT which this callback is used for
+  attr_accessor :event_type
+
   # Motel::Callbacks::Base initializer
   #
   # @param [Hash] args hash of options to initialize callback with
   # @option args [Callable] :handler,'handler' handler to invoke on the event
   # @param [Callable] block handler to invoke on the event (will be set to the block parameter passed in if specified)
-  # @option args [String] :endpoint,'endpoint' endpoint registering this callback
+  # @option args [String] :endpoint_id,'endpoint_id' endpoint_id registering this callback
+  # @option args [String] :event_type, 'event_type' LOCATION_EVENT which this callback represents
+  # @option args [String] :rjr_event, 'rjr_event' event which callback handler should invoke
   def initialize(args = {}, &block)
-    @handler = args[:handler] if args.has_key?(:handler)
-    @handler = block if block_given?
-
-    @endpoint_id = args[:endpoint] || args['endpoint']
+    attrs_from_args args, :handler => block,
+                          :endpoint_id => nil, :event_type => nil
   end
 
   # Invoke the registered handler w/ the specified args
@@ -81,10 +87,8 @@ class Movement < Base
   # @option args [Integer] :min_z,'min_z' minium distance location
   #   needs to move along z axis before handler in invoked
   def initialize(args = {}, &block)
-    @min_distance = args[:min_distance] || args['min_distance'] || 0
-    @min_x        = args[:min_x]        || args['min_x']        || 0
-    @min_y        = args[:min_y]        || args['min_y']        || 0
-    @min_z        = args[:min_z]        || args['min_z']        || 0
+    attr_from_args args, :min_distance => 0,
+                         :min_x => 0, :min_y => 0, :min_z => 0
 
     # store original coordinates internally,
     # until minimum distances are satified
@@ -130,7 +134,7 @@ class Movement < Base
     {
       'json_class' => self.class.name,
       'data'       =>
-        { :endpoint => @endpoint_id, :min_distance => @min_distance,
+        { :endpoint_id => @endpoint_id, :min_distance => @min_distance,
           :min_x => @min_x, :min_y => @min_y, :min_z => @min_z }
     }.to_json(*a)
   end
@@ -169,10 +173,7 @@ class Rotation < Base
   # @option args [Float] :min_phi,'min_phi' minium phi rotation location
   #   needs to undergo before handler in invoked
   def initialize(args = {}, &block)
-    @min_rotation = args[:min_rotation] || args['min_rotation'] || 0
-    @min_theta    = args[:min_theta]    || args['min_theta']    || 0
-    @min_phi      = args[:min_phi]      || args['min_phi']      || 0
-
+    attrs_from_args args, :min_rotation => 0, :min_theta => 0, :min_phi => 0
     @orig_ox = @orig_oy = @orig_oz = nil
 
     super(args, &block)
@@ -215,7 +216,7 @@ class Rotation < Base
     {
       'json_class' => self.class.name,
       'data'       =>
-        { :endpoint => @endpoint_id, :min_rotation => @min_rotation,
+        { :endpoint_id => @endpoint_id, :min_rotation => @min_rotation,
           :min_theta => @min_theta, :min_phi => @min_phi}
     }.to_json(*a)
   end
@@ -273,13 +274,9 @@ class Proximity < Base
     @to_location = nil
     @event = :proximity
 
-    @max_distance = args[:max_distance] || args['max_distance'] || 0
-    @max_x = args[:max_x] || args['max_x'] || 0
-    @max_y = args[:max_y] || args['max_y'] || 0
-    @max_z = args[:max_z] || args['max_z'] || 0
-    @to_location = args[:to_location] || args['to_location']
-    @event = args[:event].intern  if args.has_key?(:event)  && args[:event].is_a?(String)
-    @event = args['event'].intern if args.has_key?('event') && args['event'].is_a?(String)
+    attrs_from_args :max_distance => 0,
+                    :max_x => 0, :max_y => 0, :max_z => 0,
+                    :to_location => nil, :event => nil
 
     # keep track of proximity state internally for different event types
     @locations_in_proximity = false
@@ -319,7 +316,7 @@ class Proximity < Base
     {
       'json_class' => self.class.name,
       'data'       =>
-        { :endpoint => @endpoint_id, :max_distance => @max_distance,
+        { :endpoint_id => @endpoint_id, :max_distance => @max_distance,
           :max_x => @max_x, :max_y => @max_y, :max_z => @max_z,
           :to_location => @to_location, :event => @event}
     }.to_json(*a)
@@ -359,7 +356,7 @@ class Stopped < Base
     {
       'json_class' => self.class.name,
       'data'       =>
-        { :endpoint => @endpoint_id }
+        { :endpoint_id => @endpoint_id }
     }.to_json(*a)
   end
 

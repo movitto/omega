@@ -19,19 +19,15 @@ module MovementStrategies
 #
 # To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
-   # [Motel::Location] ID of location which is being tracked
+   # [String] ID of location which is being tracked
    attr_reader :tracked_location_id
-
-   def tracked_location_id=(val)
-     @tracked_location_id = val
-
-     # retireve location we're tracking
-     # XXX don't like doing this here (should permissions be enforced for example?)
-     @tracked_location = Runner.instance.locations.find { |loc| loc.id == @tracked_location_id }
-   end
 
    # [Motel::Location] location being tracked
    attr_reader :tracked_location
+
+   def tracked_location_id=(val)
+     @tracked_location_id = val
+   end
 
    def tracked_location=(val)
      @tracked_location = val
@@ -48,18 +44,18 @@ class Follow < MovementStrategy
    #
    # @param [Hash] args hash of options to initialize the follow movement strategy with
    # @option args [Integer] :tracked_location_id,'tracked_location_id' id of the location to track
+   # @option args [Integer] :tracked_location,'tracked_location' handle to the location to track
    # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     @distance             = args[:distance]            || args['distance']
-     @speed                = args[:speed]               || args['speed']
-
-     self.tracked_location_id= args[:tracked_location_id] || args['tracked_location_id']
+     attrs_from_args args, :distance => nil, :speed => nil,
+                           :tracked_location_id     => nil
 
      super(args)
 
-     raise InvalidMovementStrategy.new("follow movement strategy not valid") unless valid?
+     raise InvalidMovementStrategy,
+       "follow movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -69,51 +65,47 @@ class Follow < MovementStrategy
    #
    # Currently tests
    # * tracked location id is not nil
-   # * speed is a valid float/fixnum > 0
-   # * distance is a valid float/fixnum > 0
+   # * speed is a valid numeric > 0
+   # * distance is a valid numeric > 0
    def valid?
      !@tracked_location_id.nil? &&
-     [Float, Fixnum].include?(@speed.class) && @speed > 0 &&
-     [Float, Fixnum].include?(@distance.class) && @distance > 0
+     @speed.numeric? && @speed > 0 &&
+     @distance.numeric? && @distance > 0
    end
 
    # Implementation of {Motel::MovementStrategy#move}
-   def move(location, elapsed_seconds)
+   def move(loc, elapsed_seconds)
      unless valid? && !tracked_location.nil?
        RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
        return
      end
 
      tl = tracked_location
-     unless tl.parent_id == location.parent_id
+     unless tl.parent_id == loc.parent_id
        RJR::Logger.warn "follow movement strategy is set to track location with different parent than the one being moved"
        return
      end
 
-     RJR::Logger.debug "moving location #{location.id} via follow movement strategy " +
+     RJR::Logger.debug "moving location #{loc.id} via follow movement strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     distance_to_cover  = location - tl
-
-     if location.parent_id != tl.parent_id
-       RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
-
-     elsif distance_to_cover <= @distance
+     distance_to_cover  = loc - tl
+     if distance_to_cover <= @distance
        #RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
      else
        # calculate direction of tracked location
-       direction_vector_x = (tl.x - location.x) / distance_to_cover
-       direction_vector_y = (tl.y - location.y) / distance_to_cover
-       direction_vector_z = (tl.z - location.z) / distance_to_cover
+       dx = (tl.x - loc.x) / distance_to_cover
+       dy = (tl.y - loc.y) / distance_to_cover
+       dz = (tl.z - loc.z) / distance_to_cover
 
        # calculate distance and update x,y,z accordingly
        distance = speed * elapsed_seconds
 
-       location.x += distance * direction_vector_x
-       location.y += distance * direction_vector_y
-       location.z += distance * direction_vector_z
+       location.x += distance * dx
+       location.y += distance * dy
+       location.z += distance * dz
      end
    end
 

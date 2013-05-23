@@ -14,8 +14,8 @@ end
 
 # Raised if user requests data which cannot be found
 class DataNotFound < BaseError
-  def initialize(msg)
-    super(msg)
+  def initialize(filter)
+    super("entity specified by #{filter} not found")
   end
 end
 
@@ -34,12 +34,10 @@ class OperationError < BaseError
   end
 end
 
-# Currently unused
-#
-# TODO remove
-class RPCError < BaseError
-  def initialize(msg)
-    super(msg)
+# Raise if user data cannot be validated
+class ValidationError < BaseError
+  def initialize(entity, type='entity')
+    super("#{entity} must be a valid #{type}")
   end
 end
 
