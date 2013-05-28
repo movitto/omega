@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# retrieve locations filtered by args
 get_location = proc { |*args|
   # retrieve locations matching filters specified by args
   filters = filters_from_args args,
@@ -21,7 +22,7 @@ get_location = proc { |*args|
 
       l.parent_id == loc.parent_id && l - loc <= d
     }
-  locs = self.entities.select { |e| filters.all? { |f| f.call(e) }}
+  locs = self.entities { |e| filters.all? { |f| f.call(e) }}
 
   # if id of location to retrieve is specified, only return a single location
   return_first = args.include?(:with_id)

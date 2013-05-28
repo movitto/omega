@@ -56,7 +56,7 @@ class Registry
 
     # invoke all proximity_callbacks afterwards
     begin
-      self.entities.each { |loc| loc.raise_event(:proximity) }
+      self.entities.each { |loc| self.raise_event(:proximity, loc) }
     rescue Exception => e
       RJR::Logger.warn "error running proximity callbacks for #{loc.id}: #{e.to_s}"
     end
@@ -69,13 +69,14 @@ class Registry
       nparent = @entities.find { |l| l.id == nloc.parent_id }
       oparent = oloc.nil? ? nil : @entities.find { |l| l.id == oloc.parent_id }
 
-      if oparent != nill && oparent != nparent 
-        oparent.remove_child(nloc)
+      if oparent != nparent 
+        oparent.remove_child(nloc) unless oparent.nil?
+
+        # TODO if nparent.nil? throw error?
+        nparent.add_child(nloc) unless nparent.nil?
+        nloc.parent = nparent
       end
 
-      # TODO if nparent.nil? throw error?
-      nparent.add_child(nloc) unless nparent.nil?
-      nloc.parent = nparent
     }
   end
 
@@ -87,6 +88,16 @@ class Registry
           @entities.find { |l|
             l.id == node.ms.tracked_location_d
           }
+      end
+
+      # if changing movement strategy
+      if !oloc.nil? && oloc.ms != nloc.ms
+        # if changing to stopped movement strategy
+        if nloc.ms.is_a?(Stopped)
+          self.raise_event(:stops, nloc)
+        end
+
+        # self.raise_event(:strategy) # TODO
       end
     }
   end

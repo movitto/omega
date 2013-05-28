@@ -3,13 +3,14 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# update location specified by id
 update_location = proc { |loc|
   # ensure param is valid location / has valid id
   raise ValidationError, loc unless loc.is_a?(Motel::Location) &&
                                     loc.valid? && !loc.id.nil?
 
   # retrieve location from registry
-  rloc = Registry.instance.entities.find { |l| l.id == loc.id}
+  rloc = Registry.instance.entities { |l| l.id == loc.id }.first
   raise DataNotFound, loc.id if rloc.nil?
 
   # ensure user has permission to modify location
@@ -24,9 +25,7 @@ update_location = proc { |loc|
 
   # update the location
   RJR::Logger.info "updating location #{rloc}"
-  #stopping = !rloc.ms.is_a?(Stopped) && loc.ms.is_a?(Stopped)
   Registry.instance.update(rloc, loc)
-  #rloc.raise(:stopped) if stopping
 
   # return the location
   loc

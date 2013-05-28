@@ -5,6 +5,7 @@
 
 include Omega::Server::DSL
 
+# create specified location in the registry
 create_location = proc { |loc|
   # require create locations
   require_privilege(:privilege => 'create', :entity => 'locations')
@@ -16,9 +17,7 @@ create_location = proc { |loc|
   loc = filter_properties(loc, :allow => [:x, :y, :z, :parent_id])
 
   # store location, throw error if not added
-  added = Registry.instance.add_if loc { |r|
-    r.entities.find { |e| e.id == loc.id }.nil?
-  }
+  added = Registry.instance << loc
   raise OperationError, "#{loc.id} already exists" if !added
 
   # return loc

@@ -33,7 +33,7 @@ def cb_from_args(rjr_method, args)
                              
   when :proximity
     olid = args.shift
-    oloc = Registry.instance.entities.find { |l| l.id == olid }
+    oloc = Registry.instance.entities { |l| l.id == olid }.first
     raise Omega::DataNotFound, "loc specified by #{olid} not found" if oloc.nil?
 
     pevent = args.shift
@@ -54,15 +54,16 @@ def cb_from_args(rjr_method, args)
     Callbacks::Stopped.new :rjr_event   => 'motel::location_stopped'.
                            :event_type  => :stops
 
-  when :strategy
-    # TODO
+  #when :strategy
+  # TODO changed strategy callback
   end
 end
 
+# subscribe rjr client to location events of the specified type
 track_handler = proc { |*args|
   # location is first param, make sure it is valid
   loc_id = args.shift
-  loc    = Registry.entities.find { |l| l.id == loc_id }
+  loc    = Registry.entities { |l| l.id == loc_id }.first
   raise DataNotFound, loc_id if loc.nil?
 
   # TODO verify request is coming from
@@ -129,10 +130,11 @@ track_handler = proc { |*args|
   loc
 }
 
+# remove callbacks (of optional type)
 remove_callbacks = proc { |*args|
   # location is first param, make sure it is valid
   loc_id  = args[0]
-  loc = Registry.instance.entities.find { |l| l.id == loc_id }
+  loc = Registry.instance.entities { |l| l.id == loc_id }.first
   raise Omega::DataNotFound,
     "location specified by #{loc_id} not found" if loc.nil?
 

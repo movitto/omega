@@ -4,5 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 def dispatch_init(dispatcher)
-  Motel::Runner.instance.start
+  Motel::Registry.instance.start
+  Motel::Registry.instance.validation =
+    proc { |r,e| !r.collect { |l| l.id }.include?(e.id) }
 end
