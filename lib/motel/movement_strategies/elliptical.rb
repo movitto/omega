@@ -4,7 +4,10 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/common'
+require 'motel/errors'
 require 'motel/movement_strategy'
+
+require 'omega/common'
 
 module Motel
 module MovementStrategies
@@ -85,14 +88,14 @@ class Elliptical < MovementStrategy
    # @option args [Float] :p semi latus rectum to assign to elliptical path
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-      @dmajx, @dmajx, @dmajz, @dminx, @dminy, @dminz =
+      @dmajx, @dmajy, @dmajz, @dminx, @dminy, @dminz =
         (args[:direction] || args['direction'] || []).flatten
 
-     attrs_from_args args,
+     attr_from_args args,
        :relative_to  => RELATIVE_TO_FOCI,
        :speed => nil, :e => nil, :p => nil,
        :dmajx =>   1, :dmajy =>   0, :dmajz =>   0,
-       :dminx =>   0, :dminy =>   0, :dminz =>   0
+       :dminx =>   0, :dminy =>   1, :dminz =>   0
 
      super(args)
 

@@ -5,6 +5,4 @@
 
 def dispatch_init(dispatcher)
   Motel::Registry.instance.start
-  Motel::Registry.instance.validation =
-    proc { |r,e| !r.collect { |l| l.id }.include?(e.id) }
 end

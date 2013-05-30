@@ -4,6 +4,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+include Omega::Server::DSL
+
 # save state of motel subsystem
 save_state = proc { |output|
   raise PermissionError, "invalid client" unless is_node?(RJR::Nodes::Local)

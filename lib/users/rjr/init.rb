@@ -3,7 +3,18 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-class << self
+require 'users/chat_proxy'
+require 'users/registry'
+require 'rjr/nodes/local'
+require 'omega/exceptions'
+require 'omega/server/dsl'
+
+module Users::RJR
+  include Omega#::Exceptions
+  include Users
+  include Omega::Server::DSL
+
+  class << self
   # @!group Config options
 
   # Boolean toggling if user attribute system is enabled / disabled.
@@ -36,10 +47,13 @@ class << self
   # Password to use to communicate w/ other modules over the local rjr node
   attr_accessor :users_rjr_password
 
+  # @!endgroup
+end
+
   # Set config options using Omega::Config instance
   #
   # @param [Omega::Config] config object containing config options
-  def set_config(config)
+  def self.set_config(config)
     self.user_attrs_enabled = config.user_attrs_enabled
     self.recaptcha_enabled  = config.recaptcha_enabled
     self.recaptcha_pub_key  = config.recaptcha_pub_key
@@ -50,23 +64,27 @@ class << self
     self.users_rjr_password = config.users_rjr_pass
   end
 
-  # @!endgroup
+def self.user
+  user ||= Users::User.new(:id       => self.users_rjr_username,
+                           :password => self.users_rjr_password)
 end
 
-def users_user
-  user ||= Users::User.new(:id       => Users::RJRAdapter.users_rjr_username,
-                           :password => Users::RJRAdapter.users_rjr_password)
-end
+end # module Users::RJR
 
 def dispatch_init(dispatcher)
-  self.permenant_users = [] if self.permenant_users.nil?
-  
   Users::ChatProxy.clear
-  Users::Registry.instance.init
-  node = RJR::LocalNode.new :node_id => 'users'
+
+  Users::RJR.permenant_users ||= []
+  node = ::RJR::Nodes::Local.new :node_id => 'users'
+  node.dispatcher = dispatcher
+  node.dispatcher.env /users::.*/, Users::RJR
+
   node.message_headers['source_node'] = 'users'
-  node.invoke_request('users::create_entity', self.user)
-  
-  session = node.invoke_request('users::login', self.user)
+
+  # ignore err if user already created
+  begin node.invoke('users::create_user', Users::RJR.user)
+  rescue Exception => e ; end
+
+  session = node.invoke('users::login', Users::RJR.user)
   node.message_headers['session_id'] = session.id
 end

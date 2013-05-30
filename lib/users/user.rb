@@ -17,9 +17,6 @@ class User
   # [String] string email of the user
   attr_accessor :email
 
-  # [Array<Users::Alliance>] array of alliances user belongs to
-  attr_accessor :alliances
-
   # [Array<Users::Role>] array of roles the user has
   attr_reader :roles
 
@@ -93,7 +90,6 @@ class User
   # @option args [String] :id,'id' id to assign to the user
   # @option args [String] :email,'email' email to assign to the user
   # @option args [String] :password,'password' password to assign to the user
-  # @option args [Array<Users::Alliance>] :alliances,'alliances' alliances to assign to user
   # @option args [String] :registration_code,'registration_code' registration_code to assign to the user
   # @option args [String] :recaptcha_challenge,'recaptcha_challenge' recaptcha_challenge to assign to the user
   # @option args [String] :recaptcha_response,'recaptcha_response' recaptcha_response to assign to the user
@@ -101,34 +97,39 @@ class User
     @id        = args['id']        || args[:id]
     @email     = args['email']     || args[:email]
     @password  = args['password']  || args[:password]
-    @alliances = args['alliances'] || args[:alliances] || []
     @registration_code   = args['registration_code'] || args[:registration_code]
     @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
     @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
     @npc             = args[:npc]  || args['npc'] || false
-    @attributes      = args[:attributes] || args['attributes'] || []
+    @attributes      = args[:attributes] || args['attributes']
     @secure_password = false
     @permenant       = false
 
-    @roles = []
+    @roles = args[:roles] || args['roles']
 
     @attributes.each { |attr|
       attr.user = self
-    }
+    } if @attributes
   end
 
-  # Update this users's properties from other users.
+  # Update this users's properties from other user.
   #
-  # Currently this only copies the password and secure_password
-  # attributes.
-  #
-  # @param [Motel::Users] new_user user from which to copy values from
-  def update!(new_user)
+  # @param [Users::User] new_user user from which to copy values from
+  def update(new_user)
     @last_modified_at = Time.now
-    @password = new_user.password
 
-    # XXX hack, ensure password is salted after updating if necessary
-    self.secure_password=@secure_password
+    # update select attributes
+    #@email             = new_user.email
+    @registration_code = new_user.registration_code
+    @roles             = new_user.roles unless new_user.roles.nil?
+    @attributes        = new_user.attributes unless new_user.attributes.nil?
+
+    if new_user.password
+      @password = new_user.password
+
+      # XXX hack, ensure password is salted after updating if necessary
+      self.secure_password=@secure_password
+    end
   end
 
   # Updates user attribute with specified change
@@ -136,6 +137,7 @@ class User
   # @param [String] attribute_id id of attribute to update
   # @param [Integer,Float] change positive/negative amount to change attribute progression by
   def update_attribute!(attribute_id, change)
+    @attributes ||= []
     attribute = @attributes.find { |a| a.type.id == attribute_id }
 
     if attribute.nil?
@@ -153,28 +155,20 @@ class User
   # Return boolean indicating if the user has the specified attribute
   # at an optional minimum level
   def has_attribute?(attribute_id, level = nil)
+    @attributes ||= []
     !@attributes.find { |a| a.type.id == attribute_id.intern &&
                            (level.nil? || a.level >= level ) }.nil?
   end
 
   # Return attribute w/ the specified id, else null
   def attribute(attribute_id)
+    @attributes ||= []
     @attributes.find { |a| a.type.id == attribute_id.intern }
-  end
-
-  # Adds an alliance to user.
-  #
-  # Will just ignore and return if alliance is already associated with user
-  #
-  # @param [Users::Alliance] alliance to add to the user
-  def add_alliance(alliance)
-    @alliances << alliance unless !alliance.is_a?(Users::Alliance) ||
-                                  @alliances.collect{ |a| a.id }.
-                                    include?(alliance.id)
   end
 
   # Clear the roles the user has
   def clear_roles
+    @roles ||= []
     @roles.clear
   end
 
@@ -182,9 +176,27 @@ class User
   #
   # @param [Users::Role] role role to add to user
   def add_role(role)
+    @roles ||= []
     @roles << role unless role.nil? ||
                           @roles.include?(role) ||
                          !@roles.find { |r| r.id == role.id }.nil?
+  end
+
+  # Return boolean indicating if the user is valid.
+  #
+  # Note special users such as the admin aren't constrained
+  # to these retrictions
+  #
+  # Currently tests:
+  # * email is valid
+  # * id is valid
+  # * password is valid
+  #
+  # @return bool indicating if the user is valid or not
+  def valid?
+    valid_email?          &&
+    id.is_a?(String)      && !id.empty? &&
+    password.is_a(String) && !password.empty?
   end
 
   # Returns boolean indicating if email is valid
@@ -218,6 +230,7 @@ class User
   #
   # @return [Array<Users::Privilege>] array of privileges the user has
   def privileges
+    @roles ||= []
     @roles.collect { |r| r.privileges }.flatten.uniq
   end
 
@@ -227,6 +240,7 @@ class User
   # @param [String] entity_id id of entity to lookup in local privileges array
   # @return [true, false] indicating if user has / does not have privilege
   def has_privilege_on?(privilege_id, entity_id)
+    @roles ||= []
     @roles.each { |r| return true if r.has_privilege_on?(privilege_id, entity_id) }
     return false
   end
@@ -248,7 +262,7 @@ class User
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :email => email, :alliances => alliances,
+      'data'       => {:id => id, :email => email, :roles => roles,
                        :permenant => permenant, :npc => npc, :attributes => attributes,
                       }.merge(@secure_password ? {} : {:password => password, :registration_code => registration_code})
     }.to_json(*a)

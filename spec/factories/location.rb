@@ -1,4 +1,4 @@
-require 'motel/runner'
+#require 'motel/runner'
 require 'motel/location'
 require 'motel/movement_strategies/stopped'
 require 'motel/movement_strategies/elliptical'
@@ -90,7 +90,7 @@ FactoryGirl.define do
     movement_strategy \
       Motel::MovementStrategies::Elliptical.new(
         :relative_to => Motel::MovementStrategies::Elliptical::RELATIVE_TO_FOCI,
-        :speed => 0.1, :eccentricity => 0.6, :semi_latus_rectum => 150,
+        :speed => 0.1, :e => 0.6, :p => 150,
         :direction => Motel.random_axis)
   end
 

@@ -101,7 +101,7 @@ class Location
         :movement_strategy => MovementStrategies::Stopped.instance,
         :callbacks         => Hash.new([]),
         :children          => [],
-        :parent_id         => nil
+        :parent_id         => nil,
         :parent            => nil,
         :id                => nil,
         :x                 => @x,
@@ -135,6 +135,12 @@ class Location
    # Validate the location's properties
    # 
    # @return bool indicating if the location is valid or not
+   #
+   # Currently tests
+   # * id is set
+   # * x, y, z are numeric
+   # * orientation is numeric
+   # * movement strategy is valid
    def valid?
      !@id.nil? &&
 
@@ -142,7 +148,7 @@ class Location
        i.numeric? } &&
 
      @movement_strategy.kind_of?(MovementStrategy) &&
-     @movement_strategy.valid? &&
+     @movement_strategy.valid?
    end
 
    # Invoke callbacks for the specified event

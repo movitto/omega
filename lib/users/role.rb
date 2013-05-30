@@ -25,6 +25,14 @@ class Role
     @privileges = args['privileges'] || args[:privileges] || []
   end
 
+  # Update this roles's properties from other roles.
+  #
+  # @param [Users::Role] new_role role from which to copy values from
+  def update(new_role)
+    #@id = new_role.id
+    @privileges = new_role.privileges
+  end
+
   # Clear the privileges the role has
   def clear_privileges
     @privileges.clear

@@ -5,6 +5,11 @@
 
 require 'yaml'
 
+require 'users/rjr/init'
+require 'users/registry'
+require 'users/chat_proxy'
+require 'users/email_helper'
+
 module Omega
 
 # Omega configuration manager, loads configuration options from
@@ -20,11 +25,10 @@ class Config
 
    # Omega classes which define the 'set_config' method taking an instance
    # of Omega::Config containing configuration options to set
-   CONFIG_CLASSES = [Cosmos::RJRAdapter, Manufactured::RJRAdapter,
-                     Missions::RJRAdapter, Users::RJRAdapter,
-                     Stats::RJRAdapter, Users::Registry,
-                     Users::ChatProxy, Users::EmailHelper,
-                     Motel::RemoteLocationManager, Cosmos::RemoteCosmosManager]
+   CONFIG_CLASSES = [#Cosmos::RJR, Manufactured::RJR,
+                     #Missions::RJR, Stats::RJR, 
+                     Users::RJR, Users::Registry,
+                     Users::ChatProxy, Users::EmailHelper]
 
   # Instantiate new Config instance and load values from the config files
   #

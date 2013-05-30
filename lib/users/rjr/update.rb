@@ -3,20 +3,39 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-update_server = proc { |user|
-  raise ArgumentError, "user must be an instance of Users::User" unless user.is_a?(Users::User)
+module Users::RJR
 
-  user_entity = Users::Registry.instance.find(:id => user.id).first
-  raise Omega::DataNotFound, "user specified by id #{user.id} not found" if user_entity.nil?
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "user-#{user.id}"},
-                                             {:privilege => 'modify', :entity => 'users'}],
-                                    :session   => @headers['session_id'])
-  Users::Registry.instance.safely_run {
-    user_entity.update!(user)
-  }
-  user_entity
+update_user = proc { |user|
+  # ensure user is valid
+  raise ValidationError,
+    user unless user.is_a?(Users::User) && user.valid?
+
+  # lookup user in the registry
+  ruser = Registry.instance.entity with_id(user.id)
+
+  # ensure user was found
+  raise DataNotFound, user.id if ruser.nil?
+
+  # require modify on user
+  require_privilege :any =>
+    [{:privilege => 'modify', :entity => "user-#{user.id}"},
+     {:privilege => 'modify', :entity => 'users'}]
+
+  # filter properties not able to be set by the user
+  user = filter_properties(user, :allow => [:password])
+
+  # safely update user in registry
+  Registry.instance.update(user, &with_id(ruser.id))
+
+  # return user
+  ruser
 }
 
+UPDATE_METHODS = { :udpate => update_user }
+
+end # module Users::RJR
+
 def dispatch_update(dispatcher)
-  dispatcher.handle 'users::update_user', &update_user
+  m = Users::RJR::UPDATE_METHODS
+  dispatcher.handle 'users::update_user', &m[:update]
 end

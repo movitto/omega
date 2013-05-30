@@ -3,9 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'thread'
 require 'singleton'
 require 'rjr/common'
+require 'omega/server/registry'
 
 module Motel
 
@@ -106,6 +106,9 @@ class Registry
 
   def initialize
     init_registry
+
+    # validate location ids are unique before creating
+    self.validation = proc { |r,e| !r.collect { |l| l.id }.include?(e.id) }
 
     # perform a few sanity checks on location / update any attributes needing it
     on(:added)   { |loc| check_location(nloc)}

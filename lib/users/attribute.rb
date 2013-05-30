@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'users/common'
+
 module Users
 
 # Attributes belong to users and reference a specific class
@@ -35,14 +37,13 @@ class Attribute
   # @option args [Integer] :level,'level' level to assign to attribute
   # @option args [Float] :progression,'progression' progression to assign to attribute
   def initialize(args = {})
-    @type        =   args[:type]        ||   args["type"]        || nil
-    @level       =   args[:level]       ||   args["level"]       || 0
-    @progression =   args[:progression] ||   args["progression"] || 0
+    attr_from_args args, :type => nil, :level => 0, :progression => 0
 
     [:type_id, 'type_id'].each { |type_id|
-      if args[type_id]
-        @type = AttributeClass.subclasses.find { |ac| ac.id == args[type_id].intern }
-      end
+      @type =
+        AttributeClass.subclasses.find { |ac|
+          ac.id == args[type_id].intern
+      } if args[type_id]
     }
   end
 

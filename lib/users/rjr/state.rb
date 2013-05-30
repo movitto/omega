@@ -4,21 +4,24 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+module Users::RJR
+
 save_state = proc { |output|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  output_file = File.open(output, 'a+')
-  Users::Registry.instance.save_state(output_file)
-  output_file.close
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(output, 'a+') { |f| Registry.instance.save(f) }
 }
 
 restore_state = proc { |input|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  input_file = File.open(input, 'r')
-  Users::Registry.instance.restore_state(input_file)
-  input_file.close
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(input, 'r') { |f| Registry.instance.restore(f) }
 }
 
+STATE_METHODS = { :save => save_state, :restore => restore_state }
+
+end # module Users::RJR
+
 def dispatch_state(dispatcher)
-  dispatcher.handle "users::save_state",    &save_state
-  dispatcher.handle "users::restore_state", &restore_state
+  m = Users::RJR::STATE_METHODS
+  dispatcher.handle "users::save_state",    &m[:save]
+  dispatcher.handle "users::restore_state", &m[:restore]
 end

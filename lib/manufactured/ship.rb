@@ -3,7 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'cosmos'
+require 'cosmos/registry'
+require 'cosmos/solar_system'
+require 'cosmos/resource'
 
 module Manufactured
 

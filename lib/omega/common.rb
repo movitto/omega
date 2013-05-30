@@ -10,6 +10,7 @@ class Object
 
   def attr_from_args(args, params = {})
     params.keys.each { |p|
+      getter = "#{p}".intern
       setter = "#{p}=".intern
       if args.has_key?(p)
         self.send(setter, args[p])
@@ -18,7 +19,8 @@ class Object
         self.send(setter, args[p.to_s])
 
       else
-        self.send(setter, params[p])
+        v = self.send(getter)
+        self.send(setter, v || params[p])
 
       end
     }

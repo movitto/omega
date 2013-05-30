@@ -3,44 +3,49 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-users_get_entities = proc { |*args|
-  filter = {}
-  while qualifier = args.shift
-    raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_id"].include?(qualifier)
-    val = args.shift
-    raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
-    qualifier = case qualifier
-                  when "of_type"
-                    :type
-                  when "with_id"
-                    :id
-                end
-    filter[qualifier] = val
-  end
+module Users::RJR
 
-  return_first = filter.has_key?(:id)
+# Retrieve all entities in registry matching criteria
+get_entities = proc { |*args|
+  # retrieve entities matching filters specified by args
+  filters = filters_from_args args,
+    :with_id  => proc { |e, id| e.id         == id },
+    :of_type  => proc { |e, t|  e.class.to_s == t  }
+  entities = Registry.instance.entities { |e| filters.all? { |f| f.call(e) }}
 
-  entities = Users::Registry.instance.find(filter)
-
+  # if id of entity is specified, only return single entity
+  return_first = args.include?('with_id')
   if return_first
     entities = entities.first
-    raise Omega::DataNotFound, "users entity specified by #{filter.inspect} not found" if entities.nil?
-    Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entities.id}"},
-                                               {:privilege => 'view', :entity => 'users_entities'}],
-                                      :session   => @headers['session_id'])
 
+    # make sure entity was found
+    id = args[args.index('with_id') + 1]
+    raise DataNotFound, id if entities.nil?
+
+    # make sure user has view privileges on entity
+    # FIXME should be users/roles
+    require_privilege :any =>
+      [{:privilege => 'view', :entity => "users_entity-#{entities.id}"},
+       {:privilege => 'view', :entity => 'users_entities'}]
+
+  # else return array of entities which user has access to
   else
     entities.reject! { |entity|
-      !Users::Registry.check_privilege(:any => [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
-                                                {:privilege => 'view', :entity => 'users_entities'}],
-                                       :session => @headers['session_id'])
+      !check_privilege :any =>
+        [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
+         {:privilege => 'view', :entity => 'users_entities'}]
     }
   end
 
   entities
 }
 
+GET_METHODS = { :get_entities => get_entities  }
+
+end # module Users::RJR
+
 def dispatch_get(dispatcher)
+  m = Users::RJR::GET_METHODS
   dispatcher.handle ['users::get_entity', 'users::get_entities'],
-                                             &users_get_entities
+                                               &m[:get_entities]
 end

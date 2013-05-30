@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'users/user'
-require 'rjr/local_node'
 
 module Omega
 

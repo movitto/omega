@@ -6,16 +6,26 @@
 CURRENT_DIR=File.dirname(__FILE__)
 $: << File.expand_path(CURRENT_DIR + "/../lib")
 
-#require 'factory_girl'
-#FactoryGirl.find_definitions
+require 'factory_girl'
+FactoryGirl.find_definitions
 
-require 'omega/common' # for attr_from_args
+require 'omega/common'
+require 'omega/server/config'
+
+require 'users/attribute'
 
 RSpec.configure do |config|
+  config.include FactoryGirl::Syntax::Methods
+
   config.before(:all) {
+    Omega::Config.load.set_config
   }
 
   config.before(:each) {
+    Users::Registry.instance.clear!
+
+    @n = RJR::Nodes::Local.new
+    @n.dispatcher.add_module('lib/users/rjr')
   }
 
   config.after(:each) {
@@ -23,6 +33,28 @@ RSpec.configure do |config|
 
   config.after(:all) {
   }
+end
+
+# Build is used to construct entity locally,
+# create used to construct on server
+FactoryGirl.define do
+  trait :server_entity do
+    # entities which use this should define the rjr create_method
+    ignore do
+      create_method nil
+    end
+
+    # skip traditonal save! based creation
+    skip_create
+
+    # register custom hook to construct the entity serverside
+    before(:create) { |e,i|
+      node = RJR::Nodes::Local.new
+      node.dispatcher.add_module('lib/users/rjr')
+      node.invoke(i.create_method, e)
+    }
+
+  end
 end
 
 ######################################
@@ -49,7 +81,31 @@ module OmegaTest
     end
   end
 
+  class Attribute < Users::AttributeClass
+    id :test_attribute
+    description 'test attribute description'
+    multiplier 5
+    callbacks :level_up    => lambda { |attr| @level_up_invoked    = true },
+              :level_down  => lambda { |attr| @level_down_invoked  = true },
+              :progression => lambda { |attr| @progression_invoked = true },
+              :regression  => lambda { |attr| @regression_invoked  = true }
+  
+    def self.reset_callbacks
+      @level_up_invoked    = false
+      @level_down_invoked  = false
+      @progression_invoked = false
+      @regression_invoked  = false
+    end
+  
+    def self.level_up ; @level_up_invoked ; end
+    def self.level_down ; @level_down_invoked ; end
+    def self.progression ; @progression_invoked ; end
+    def self.regression ; @regression_invoked ; end
+  end
+
 end
+
+######################################
 
 #RSpec.configure do |config|
 #  config.before(:all) {
@@ -204,24 +260,3 @@ end
 #
 #####################################################
 #
-#class TestAttribute < Users::AttributeClass
-#  id :test_attribute
-#  description 'test attribute description'
-#  multiplier 5
-#  callbacks :level_up    => lambda { |attr| @level_up_invoked    = true },
-#            :level_down  => lambda { |attr| @level_down_invoked  = true },
-#            :progression => lambda { |attr| @progression_invoked = true },
-#            :regression  => lambda { |attr| @regression_invoked  = true }
-#
-#  def self.reset_callbacks
-#    @level_up_invoked    = false
-#    @level_down_invoked  = false
-#    @progression_invoked = false
-#    @regression_invoked  = false
-#  end
-#
-#  def self.level_up ; @level_up_invoked ; end
-#  def self.level_down ; @level_down_invoked ; end
-#  def self.progression ; @progression_invoked ; end
-#  def self.regression ; @regression_invoked ; end
-#end

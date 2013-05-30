@@ -5,8 +5,6 @@
 
 require 'spec_helper'
 
-include Omega::Client
-
 describe Omega::Config do
   before(:each) do
   end

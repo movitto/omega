@@ -22,7 +22,7 @@ get_location = proc { |*args|
 
       l.parent_id == loc.parent_id && l - loc <= d
     }
-  locs = self.entities { |e| filters.all? { |f| f.call(e) }}
+  locs = Registry.instance.entities { |e| filters.all? { |f| f.call(e) }}
 
   # if id of location to retrieve is specified, only return a single location
   return_first = args.include?(:with_id)
@@ -31,7 +31,7 @@ get_location = proc { |*args|
 
     # make sure the location was found
     id = args[args.index(:with_id) + 1]
-    raise DataNotFound, (id) if locs.nil
+    raise DataNotFound, id if locs.nil
 
     # make sure the user has privileges on the specified location
     require_privilege :any =>
