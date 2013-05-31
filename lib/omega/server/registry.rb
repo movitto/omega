@@ -85,12 +85,13 @@ module Registry
     return add
   end
 
-  def delete(entity)
+  def delete(&selector)
     init_registry
     delete = false
     @lock.synchronize {
-      delete = @entities.include?(delete)
-      @entities.delete(entity)
+      entity = @entities.find(&selector)
+      delete = !entity.nil?
+      @entities.delete(entity) if delete
     }
     self.raise_event(:deleted, entity) if delete
     return delete

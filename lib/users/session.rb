@@ -3,8 +3,10 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'singleton'
+require 'time'
 require 'motel/common'
+
+require 'omega/common'
 
 module Users
 
@@ -19,11 +21,8 @@ class Session
   # Unique identifier of the session
   attr_accessor :id
 
-  # ID of the user which this session belongs to
-  attr_accessor :user_id
-
-  # Time the session was established
-  attr_accessor :login_time
+  # Time the session was last refreshed
+  attr_accessor :refreshed_time
 
   # Handle to the user which established the session
   attr_accessor :user
@@ -36,19 +35,16 @@ class Session
   # Session initializer
   # @param [Hash] args hash of options to initialize the session with
   # @option args [Users::User] :user,'user' user owner of the session
-  # @option args [String] :user_id,'user_id' id of user owner of the session
   # @option args [String] :id,'id' id to assign to session
-  # @option args [Time] :login_time,'login_time' time session was established
+  # @option args [Time] :refreshed_time,'refreshed_time' time session was established
   def initialize(args = {})
-    @user       = args[:user]       || args['user']
-    @user_id    = args[:user_id]    || args['user_id']
-    @id         = args[:id]         || args['id']         || Motel::gen_uuid
-    @login_time = args[:login_time] || args['login_time'] || Time.now
+    attr_from_args args,
+                   :user => nil,
+                   :id   => Motel::gen_uuid,
+                   :refreshed_time => Time.now
 
-    @user = Users::Registry.instance.find(:id => @user_id).first if !@user_id.nil? && @user.nil?
-    @user_id = @user.id if !@user.nil? && @user_id.nil?
-    
-    @timeout_timestamp = Time.now
+    @refreshed_time =
+      Time.parse(@refreshed_time) if @refreshed_time.is_a?(String)
   end
 
   # Return boolean indicating if this session is no longer valid.
@@ -60,10 +56,10 @@ class Session
   # @return [true,false] if the session has timed out or not
   def timed_out?
     ct = Time.now
-    return true if ct - @timeout_timestamp > SESSION_EXPIRATION &&
+    return true if ct - @refreshed_time > SESSION_EXPIRATION &&
                    !@user.permenant
 
-    @timeout_timestamp = ct
+    @refreshed_time = ct
     return false
   end
 
@@ -76,7 +72,7 @@ class Session
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:user => user, :id => id, :login_time => login_time}
+      'data'       => {:user => user, :id => id, :refreshed_time => refreshed_time}
     }.to_json(*a)
   end
 

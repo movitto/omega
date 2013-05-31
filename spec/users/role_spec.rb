@@ -5,70 +5,119 @@
 
 require 'spec_helper'
 
-describe Users::Role do
+require 'users/role'
+require 'users/privilege'
 
-  it "should properly initialize role" do
-    r = Users::Role.new :id => 'role1',
-                        :privileges =>
-                          [Users::Privilege.new(:id => 'view', :entity_id => 'all')]
-    r.id.should       == 'role1'
-    r.privileges.size.should == 1
+module Users
+describe Role do
+
+  describe "#initialize" do
+    it "sets attributes" do
+      r = Role.new :id => 'role1',
+                   :privileges =>
+                     [Privilege.new(:id => 'view', :entity_id => 'all')]
+      r.id.should       == 'role1'
+      r.privileges.size.should == 1
+    end
   end
 
-  it "should permit adding and removing privileges" do
-    r = Users::Role.new
-    p = Users::Privilege.new
-    r.privileges.size.should == 0
-    r.add_privilege(p)
-    r.privileges.size.should == 1
-    r.privileges.first.should == p
-    r.add_privilege(p)
-    r.privileges.size.should == 1
+  describe "#add_privilege" do
+    it "adds privilege" do
+      r = Role.new
+      p = Privilege.new
+      r.privileges.size.should == 0
+      r.add_privilege(p)
+      r.privileges.size.should == 1
+      r.privileges.first.should == p
+    end
+
+    it "does not add duplicate privileges" do
+      p1 = Privilege.new :id => 'view', :entity_id => '111'
+      p2 = Privilege.new :id => 'view', :entity_id => '111'
+      r  = Role.new
+      r.add_privilege(p1)
+      r.add_privilege(p2)
+      r.privileges.size.should == 1
+    end
   end
 
-  it "should not permit adding duplicate privileges" do
-    p1 = Users::Privilege.new :id => 'view', :entity_id => '111'
-    p2 = Users::Privilege.new :id => 'view', :entity_id => '111'
-    r  = Users::Role.new
-    r.add_privilege(p1)
-    r.add_privilege(p2)
-    r.privileges.size.should == 1
+  #describe "#remove_privilege" do
+  #  it "removes privilege" do
+  #    r = Users::Role.new
+  #    p = Users::Privilege.new
+  #    r.add_privilege(p)
+  #    r.remove_privilege
+  #  end
+  #end
+
+  describe "#has_privilege_on" do
+    before(:each) do
+      p1 = Privilege.new :id => 'view', :entity_id => 'entity1'
+      p2 = Privilege.new :id => 'modify'
+      @r  = Role.new :privileges => [p1, p2]
+    end
+
+    context "has privilege" do
+      it "returns true" do
+        @r.has_privilege_on?('view', 'entity1').should be_true
+      end
+    end
+
+    context "does not have privilege" do
+      it "return false" do
+        @r.has_privilege_on?('view', 'entity2').should be_false
+        @r.has_privilege_on?('modify', 'entity1').should be_false
+      end
+    end
   end
 
-  it "should validate privileges" do
-    p1 = Users::Privilege.new :id => 'view', :entity_id => 'entity1'
-    p2 = Users::Privilege.new :id => 'modify'
-    r  = Users::Role.new :privileges => [p1, p2]
+  describe "#has_privilege" do
+    before(:each) do
+      p1 = Privilege.new :id => 'view', :entity_id => 'entity1'
+      p2 = Privilege.new :id => 'modify'
+      @r  = Role.new :privileges => [p1, p2]
+    end
 
-    r.has_privilege_on?('view', 'entity1').should be_true
-    r.has_privilege?('modify').should be_true
+    context "has privilege" do
+      it "returns true" do
+        @r.has_privilege?('modify').should be_true
+      end
+    end
 
-    r.has_privilege?('view').should be_false
-    r.has_privilege_on?('view', 'entity2').should be_false
-    r.has_privilege_on?('modify', 'entity1').should be_false
+    context "does not have privilege" do
+      it "return false" do
+        @r.has_privilege?('view').should be_false
+      end
+    end
   end
 
-  it "should be convertable to json" do
-    role = Users::Role.new :id => 'role42',
-                           :privileges => [Users::Privilege.new(:id => 'view', :entity_id => 'users')]
+  describe "#to_json" do
+    it "should return role in json format" do
+      role = Role.new :id => 'role42',
+                      :privileges => [Privilege.new(:id => 'view', :entity_id => 'users')]
 
-    j = role.to_json
-    j.should include('"json_class":"Users::Role"')
-    j.should include('"id":"role42"')
-    j.should include('"json_class":"Users::Privilege"')
-    j.should include('"id":"view"')
-    j.should include('"entity_id":"users"')
+      j = role.to_json
+      j.should include('"json_class":"Users::Role"')
+      j.should include('"id":"role42"')
+      j.should include('"json_class":"Users::Privilege"')
+      j.should include('"id":"view"')
+      j.should include('"entity_id":"users"')
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"json_class":"Users::Role","data":{"id":"role42","privileges":[{"json_class":"Users::Privilege","data":{"id":"view","entity_id":"users"}}]}}'
-    r = JSON.parse(j)
+  describe "#json_create" do
+    it "should return role from json" do
+      j = '{"json_class":"Users::Role","data":{"id":"role42","privileges":[{"json_class":"Users::Privilege","data":{"id":"view","entity_id":"users"}}]}}'
+      r = JSON.parse(j)
 
-    r.class.should == Users::Role
-    r.id.should == "role42"
-    r.privileges.size.should == 1
-    r.privileges.first.id.should == 'view'
-    r.privileges.first.entity_id.should == 'users'
+      r.class.should == Users::Role
+      r.id.should == "role42"
+      r.privileges.size.should == 1
+      r.privileges.first.id.should == 'view'
+      r.privileges.first.entity_id.should == 'users'
+    end
   end
 
-end
+
+end # describe Role
+end # module users

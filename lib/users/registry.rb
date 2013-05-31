@@ -3,7 +3,6 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'singleton'
 require 'rjr/common'
 require 'users/session'
 require 'omega/server/registry'
@@ -19,7 +18,6 @@ module Users
 #
 # Singleton class, access via Users::Registry.instance.
 class Registry
-  include Singleton
   include Omega::Server::Registry
 
   class << self
@@ -46,6 +44,8 @@ class Registry
 
   private
 
+  # TODO raise errors if references can't be resolved?
+
   def check_user(nuser, ouser=nil)
     @lock.synchronize {
       # ensure roles reference roles in registry
@@ -60,6 +60,19 @@ class Registry
     }
   end
 
+  def check_session(session)
+    @lock.synchronize {
+      # ensure session references user in registry
+      rsession = @entities.find { |e|
+          e.is_a?(Users::Session) && e.id == session.id
+        }
+      ruser = @entities.find { |e|
+          e.is_a?(Users::User) && e.id == rsession.user.id
+        }
+      rsession.user = ruser
+    }
+  end
+
   public
 
   # Users::Registry intitializer
@@ -70,7 +83,7 @@ class Registry
     self.validation = proc { |r,e|
       e.is_a?(Session) ?
         r.select  { |re| re.is_a?(Session)      }.
-          find    { |s|  s.user_id == e.user_id }.nil? :
+          find    { |s|  s.user.id == e.user.id }.nil? :
         r.find    { |re| re.id == e.id          }.nil?
     }
     
@@ -85,6 +98,9 @@ class Registry
     # sanity checks on user
     on(:added)   { |e|    check_user(e)    if e.is_a?(Users::User) }
     on(:updated) { |e,oe| check_user(e,oe) if e.is_a?(Users::User) }
+
+    # sanity checks on session
+    on(:added)   { |e|    check_session(e) if e.is_a?(Users::Session) }
   end
 
   # Return boolean indicating if login credentials for the specified user are valid
@@ -106,7 +122,7 @@ class Registry
   def create_session(user)
     # just return user session if already existing
     session = self.entities { |e|
-      e.is_a?(Session) && e.user_id == user.id
+      e.is_a?(Session) && e.user.id == user.id
     }.first
 
     # remove session if timed out
@@ -118,7 +134,7 @@ class Registry
     return session unless session.nil?
 
     user.last_login_at = Time.now
-    session = Session.new :user => user
+    session = Session.new :user => user, :refreshed_time => user.last_login_at
     self << session
     return session
   end
@@ -129,12 +145,11 @@ class Registry
   # @option [String] session_id id of the session to delete
   # @option [String] user_id id of the user to delete sessions for
   def destroy_session(args = {})
-    session = self.entities { |e|
+    self.delete { |e|
       e.is_a?(Session) &&
       (e.id      == args[:session_id] ||
        e.user.id == args[:user_id])
     }
-    self.delete(session)
   end
 
   # Wrapper around {#check_privilege} that raises error

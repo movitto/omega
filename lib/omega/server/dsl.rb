@@ -37,22 +37,29 @@ module Omega
         !@rjr_node.nil? && @rjr_node.node_type == type::RJR_NODE_TYPE
       end
 
-      # Require privileges using the local users registry
+      # Require rjr node of the specified type, else raise a permission err
+      def require_node!(type)
+        # TODO
+      end
+
+      # Require privileges using the specified registry
       def require_privilege(args = {})
+        registry = args[:registry] || args[:user_registry]
         rargs = args.merge(:session => @rjr_node.message_headers['session_id'])
-        Users::Registry.instance.require_privilege rargs
+        registry.require_privilege rargs
       end
 
-      # Check privileges using the local users registry
+      # Check privileges using the specified registry
       def check_privilege(args = {})
+        registry = args[:registry] || args[:user_registry]
         rargs = args.merge(:session => @rjr_node.message_headers['session_id'])
-        Users::Registry.instance.check_privilege rargs
+        registry.check_privilege rargs
       end
 
-      # Return current logged in user using local users registry
-      def current_user
-        Users::Registry.instance.
-          current_user :session => @rjr_node.message_headers['session_id']
+      # Return current logged in user using the specified registry
+      def current_user(args = {})
+        registry = args[:registry] || args[:user_registry]
+        registry.current_user :session => @rjr_node.message_headers['session_id']
       end
 
       # Filter properties able / not able to be set by the end user

@@ -34,6 +34,7 @@ class Object
       self.send(setter, v) unless v.nil?
     }
   end
+
 end
 
 class Array
@@ -45,5 +46,15 @@ class Array
       transforms[t] = true
       should_keep
     end
+  end
+end
+
+class String
+  def demodulize
+    self.split('::').last
+  end
+
+  def modulize
+    self.split('::')[0..-2].join('::')
   end
 end

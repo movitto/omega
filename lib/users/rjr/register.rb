@@ -57,7 +57,7 @@ MESSAGE_END
 confirm_register = proc { |registration_code|
   # retrieve user from registry
   user =
-    Registry.instance.find { |e|
+    registry.find { |e|
       e.registration_code == registration_code
     }.first
 
@@ -66,7 +66,7 @@ confirm_register = proc { |registration_code|
 
   # safely nullify registration code
   user.registration_code = nil
-  Registry.instance.update(user, &with_id(user.id))
+  registry.update(user, &with_id(user.id))
 
   # return nil
   nil

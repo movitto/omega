@@ -7,6 +7,8 @@
 
 require 'isaac/bot' # make sure to use isaac >= 0.3.0 (latest on rubygems.org is 0.2.6)
 
+require 'omega/common'
+
 module Users
 
 # Encapsulates message sent from user to chat server
@@ -62,8 +64,8 @@ class ChatProxy
   # IRC server connection parameters
   attr_accessor :server, :port
 
-  # Chatroom which to send/receive messages to/from
-  attr_accessor :chatroom
+  # Channel which to send/receive messages to/from
+  attr_accessor :channel
 
   # Boolean indicating if client is connected to server
   attr_accessor :connected
@@ -132,11 +134,12 @@ class ChatProxy
   # @option args [Integer] :port,'port' port of chat server to connect to
   # @option args [String] :channel,'channel' chat channel to join
   def initialize(user, args={})
-    @user     = user
-    @server   = args[:server ] || args['server']  || self.class.default_irc_server
-    @port     = args[:port ]   || args['port']    || self.class.default_irc_port
-    @chatroom = args[:channel] || args['channel'] || self.class.default_irc_channel
+    attr_from_args args,
+      :server  => self.class.default_irc_server,
+      :port    => self.class.default_irc_port,
+      :channel => self.class.default_irc_channel
 
+    @user      = user
     @inchannel = false
     @connected = false
     @messages  = []
@@ -145,13 +148,13 @@ class ChatProxy
     @bot = Isaac::Bot.new do
       on :connect do
         proxy = ChatProxy.proxy_for(user)
-        join proxy.chatroom
+        join proxy.channel
         proxy.connected = true
       end
       on :join do
         proxy = ChatProxy.proxy_for(user)
         proxy.messages.each { |pm|
-          msg proxy.chatroom, pm
+          msg proxy.channel, pm
         }
         proxy.inchannel = true
       end
@@ -194,7 +197,7 @@ class ChatProxy
     @messages << message
 
     if @connected && @inchannel
-      @bot.msg(@chatroom, message)
+      @bot.msg(@channel, message)
     end
   end
 

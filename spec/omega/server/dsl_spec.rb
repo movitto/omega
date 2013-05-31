@@ -10,7 +10,6 @@ require 'omega/server/dsl'
 
 require 'rjr/nodes/local'
 require 'rjr/nodes/tcp'
-require 'users/registry'
 require 'users/session'
 
 module Omega
@@ -27,7 +26,7 @@ describe DSL do
     it "invokes remote login" do
       lambda {
         login @n, @anon.id, @anon.password
-      }.should change{Users::Registry.instance.entities.size}.by(1)
+      }.should change{Users::RJR.registry.entities.size}.by(1)
     end
 
     it "returns session" do
@@ -55,6 +54,10 @@ describe DSL do
     end
   end
 
+  describe "#require_node!" do
+    it "TODO"
+  end
+
   describe "#require_privilege" do
     before(:each) do
       login @n, @anon.id, @anon.password
@@ -63,7 +66,8 @@ describe DSL do
     context "user has privilege" do
       it "does not throw error" do
         lambda {
-          require_privilege :privilege => 'view', :entity => "user-#{@anon.id}"
+          require_privilege :registry => Users::RJR.registry,
+                            :privilege => 'view', :entity => "user-#{@anon.id}"
         }.should_not raise_error
       end
     end
@@ -71,7 +75,8 @@ describe DSL do
     context "user does not have privilege" do
       it "throws error" do
         lambda {
-          require_privilege :privilege => 'modify', :entity => 'users'
+          require_privilege :registry => Users::RJR.registry,
+                            :privilege => 'modify', :entity => 'users'
         }.should raise_error(Omega::PermissionError)
       end
     end
@@ -84,15 +89,21 @@ describe DSL do
 
     context "user has privilege" do
       it "returns true" do
-        check_privilege(:privilege => 'view', :entity => "user-#{@anon.id}").should be_true
+        check_privilege(:registry => Users::RJR.registry,
+                        :privilege => 'view', :entity => "user-#{@anon.id}").should be_true
       end
     end
 
     context "user does not have privilege" do
       it "return false" do
-        check_privilege(:privilege => 'modify', :entity => 'users').should be_false
+        check_privilege(:registry => Users::RJR.registry,
+                        :privilege => 'modify', :entity => 'users').should be_false
       end
     end
+  end
+
+  describe "#current_user" do
+    it "TODO"
   end
 
   describe "#filter_properites" do
@@ -154,6 +165,10 @@ describe DSL do
         }.should raise_error(Omega::ValidationError)
       end
     end
+  end
+
+  describe "#with_id" do
+    it "TODO"
   end
 
 end

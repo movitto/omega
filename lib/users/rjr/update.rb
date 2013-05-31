@@ -11,13 +11,13 @@ update_user = proc { |user|
     user unless user.is_a?(Users::User) && user.valid?
 
   # lookup user in the registry
-  ruser = Registry.instance.entity with_id(user.id)
+  ruser = registry.entity with_id(user.id)
 
   # ensure user was found
   raise DataNotFound, user.id if ruser.nil?
 
   # require modify on user
-  require_privilege :any =>
+  require_privilege :registry => registry, :any =>
     [{:privilege => 'modify', :entity => "user-#{user.id}"},
      {:privilege => 'modify', :entity => 'users'}]
 
@@ -25,7 +25,7 @@ update_user = proc { |user|
   user = filter_properties(user, :allow => [:password])
 
   # safely update user in registry
-  Registry.instance.update(user, &with_id(ruser.id))
+  registry.update(user, &with_id(ruser.id))
 
   # return user
   ruser

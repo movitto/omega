@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/common'
+
 module Users
 
 # Access control mechanism entailing unique identifier
@@ -13,18 +15,17 @@ module Users
 # users may be assigned privileges.
 class Privilege
   # Identifier of privilege this represents
-  attr_reader :id
+  attr_accessor :id
 
   # Identifier of entity which this privilege applies to
-  attr_reader :entity_id
+  attr_accessor :entity_id
 
   # Privilege initializer
   # @param [Hash] args hash of options to initialize privilege with
   # @option args [String] :id,'id' id to assign to the privilege
   # @option args [String] :entity_id,'entity_id' entity_id to assign to the privilege
   def initialize(args = {})
-    @id        = args['id']         || args[:id]
-    @entity_id = args['entity_id']  || args[:entity_id]
+    attr_from_args args, :id => nil, :entity_id => nil
   end
 
   # Return boolean indicating if local attributes match those of specified privilege

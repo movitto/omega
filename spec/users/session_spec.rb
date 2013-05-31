@@ -6,68 +6,84 @@
 require 'spec_helper'
 require 'timecop'
 
-describe Users::Session do
+require 'users/session'
 
+module Users
+describe Session do
   after(:all) do
     Timecop.return
   end
 
-  it "should properly initialze session" do
-    id = Motel.gen_uuid
-    s = Users::Session.new :id => id, :user_id => 'user1'
-    s.id.should == id
-    s.user_id.should == 'user1'
-    s.login_time.should_not be_nil
+  describe "#initialize" do
+    it "sets attributes" do
+      id = Motel.gen_uuid
+      u = User.new :id => 'user1'
+      s = Session.new :id => id, :user => u
+      s.id.should == id
+      s.user.id.should == 'user1'
+      s.refreshed_time.should_not be_nil
+    end
   end
 
-  it "should provide timeout mechanism" do
-    Timecop.freeze
-    u = Users::User.new :id => 'user1'
-    s = Users::Session.new :id => 'id', :user => u
-    s.timed_out?.should be_false
-    s.instance_variable_get(:@timeout_timestamp).should == Time.now
-    Timecop.freeze Users::Session::SESSION_EXPIRATION + 1
-    s.timed_out?.should be_true
-    Timecop.travel
+  describe "#timed_out" do
+    before(:each) do
+      Timecop.freeze
+      @u = User.new :id => 'user1'
+      @s = Session.new :id => 'id', :user => @u
+    end
+
+    after(:each) do
+      Timecop.travel
+    end
+
+    context "timeout has passed" do
+      it "returns true" do
+        Timecop.freeze Session::SESSION_EXPIRATION + 1
+        @s.timed_out?.should be_true
+      end
+    end
+
+    context "timeout has not passed" do
+      it "returns false" do
+        @s.timed_out?.should be_false
+        @s.instance_variable_get(:@refreshed_time).should == Time.now
+      end
+    end
+
+    context "user is permenant" do
+      it "always returns false" do
+        @u.permenant = true
+        Timecop.freeze Session::SESSION_EXPIRATION + 1
+        @s.timed_out?.should be_false
+      end
+    end
   end
 
-  it "should never timeout permenant users" do
-    Timecop.freeze
-    u = Users::User.new :id => 'user1'
-    u.permenant = true
+  describe "#to_json" do
+    it "returns json representation of session" do
+      u = User.new :id => 'user1'
+      s = Session.new :id => '1234', :user => u
 
-    s = Users::Session.new :id => 'id', :user => u
-    s.timed_out?.should be_false
-    s.instance_variable_get(:@timeout_timestamp).should == Time.now
-
-    Timecop.freeze Users::Session::SESSION_EXPIRATION + 1
-    s.timed_out?.should be_false
-    Timecop.travel
+      j = s.to_json
+      j.should include('"json_class":"Users::Session"')
+      j.should include('"id":"1234"')
+      j.should include('"json_class":"Users::User"')
+      j.should include('"id":"user1"')
+      j.should include('"refreshed_time":')
+    end
   end
 
-  it "should be convertable to json" do
-    u = Users::User.new :id => 'user1'
-    Users::Registry.instance.create u
+  describe "#json_create" do
+    it "returns session from json format" do
+      j = '{"json_class":"Users::Session","data":{"user":{"json_class":"Users::User","data":{"id":"user1","email":null,"roles":null,"permenant":false,"npc":false,"attributes":null,"password":null,"registration_code":null}},"id":"1234","refreshed_time":"2013-05-30 00:43:54 -0400"}}'
+      s = JSON.parse(j)
 
-    id = '1234'
-    s = Users::Session.new :id => id, :user_id => 'user1'
-
-    j = s.to_json
-    j.should include('"json_class":"Users::Session"')
-    j.should include('"id":"'+id+'"')
-    j.should include('"json_class":"Users::User"')
-    j.should include('"id":"user1"')
-    j.should include('"login_time":')
+      s.class.should == Users::Session
+      s.id.should == "1234"
+      s.user.id.should == 'user1'
+      s.refreshed_time.should_not be_nil
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"data":{"login_time":"Wed Mar 28 16:23:02 -0400 2012","id":"1234","user_id":"user1"},"json_class":"Users::Session"}'
-    s = JSON.parse(j)
-
-    s.class.should == Users::Session
-    s.id.should == "1234"
-    s.user_id.should == 'user1'
-    s.login_time.should_not be_nil
-  end
-
-end
+end # describe Session
+end # module Users

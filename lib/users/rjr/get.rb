@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/common'
+
 module Users::RJR
 
 # Retrieve all entities in registry matching criteria
@@ -11,7 +13,7 @@ get_entities = proc { |*args|
   filters = filters_from_args args,
     :with_id  => proc { |e, id| e.id         == id },
     :of_type  => proc { |e, t|  e.class.to_s == t  }
-  entities = Registry.instance.entities { |e| filters.all? { |f| f.call(e) }}
+  entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
   # if id of entity is specified, only return single entity
   return_first = args.include?('with_id')
@@ -23,17 +25,18 @@ get_entities = proc { |*args|
     raise DataNotFound, id if entities.nil?
 
     # make sure user has view privileges on entity
-    # FIXME should be users/roles
-    require_privilege :any =>
-      [{:privilege => 'view', :entity => "users_entity-#{entities.id}"},
-       {:privilege => 'view', :entity => 'users_entities'}]
+    prive = entities.class.to_s.demodulize.downcase
+    require_privilege :registry => registry, :any =>
+      [{:privilege => 'view', :entity => "#{prive}-#{entities.id}"},
+       {:privilege => 'view', :entity => "#{prive}s"}]
 
   # else return array of entities which user has access to
   else
     entities.reject! { |entity|
-      !check_privilege :any =>
-        [{:privilege => 'view', :entity => "users_entity-#{entity.id}"},
-         {:privilege => 'view', :entity => 'users_entities'}]
+      prive = entity.class.to_s.demodulize.downcase
+      !check_privilege :registry => registry, :any =>
+        [{:privilege => 'view', :entity => "#{prive}-#{entity.id}"},
+         {:privilege => 'view', :entity => "#{prive}s"}]
     }
   end
 

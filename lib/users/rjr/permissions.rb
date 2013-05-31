@@ -8,22 +8,23 @@ module Users::RJR
 # Add new role to user
 add_role = proc { |user_id, role_id|
   # require modify roles unless on the local node
-  require_privilege :privilege => 'modify',
+  require_privilege :registry  => registry,
+                    :privilege => 'modify',
                     :entity    => 'roles' unless is_node?(::RJR::Nodes::Local)
 
   # retrieve the user and role from the registry
-  user = Registry.instance.entities { |e| e.id == user_id }.first
-  role = Registry.instance.entities { |e| e.id == role_id }.first
+  user = registry.entity &with_id(user_id)
+  role = registry.entity &with_id(role_id)
 
   # ensure user/role were found
   raise Omega::DataNotFound, user_id if user.nil?
   raise Omega::DataNotFound, role_id if role.nil?
 
   # safely execute operation
-  # XXX role is a reference to registry role,
+  # XXX role is a copy of registry role,
   # relies on registry :updated hook to correctly reference role
   user.add_role role
-  Registry.instance.update(user, &with_id(user.id))
+  registry.update user, &with_id(user.id)
 
   # return nil
   nil
@@ -32,7 +33,8 @@ add_role = proc { |user_id, role_id|
 # Add new privilege (on optional entity) to user
 add_privilege = proc { |*args|
   # return modify roles unless on the local node
-  require_privilege :privilege => 'modify',
+  require_privilege :registry  => registry,
+                    :privilege => 'modify',
                     :entity    => 'roles' unless is_node?(::RJR::Nodes::Local)
 
   # retrieve args (entity_id is optional)
@@ -41,14 +43,14 @@ add_privilege = proc { |*args|
   entity_id    = args.size > 2 ? args[2] : nil
 
   # retrieve role from registry
-  role = Registry.instance.entities { |e| e.id == role_id }.first
+  role = registry.entity &with_id(role_id)
 
   # ensure role was found
   raise Omega::DataNotFound, role_id if role.nil?
 
   # safely execute operation
   role.add_privilege privilege_id, entity_id
-  Registry.instance.update(role, &with_id(role.id))
+  registry.update role, &with_id(role.id)
 
   # return nil
   nil

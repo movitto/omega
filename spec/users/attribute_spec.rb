@@ -84,7 +84,7 @@ describe Attribute do
       a = Attribute.new :level => 0, :progression => 0.5
       a.update! -0.4
       a.level.should == 0
-      (a.progression - 0.1).should < OmegaTest::CLOSE_ENOUGH
+      a.progression.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.1)
 
       a = Attribute.new :level => 0, :progression => 0.5
       a.update! -0.6
@@ -94,7 +94,7 @@ describe Attribute do
       a = Attribute.new :level => 1, :progression => 0
       a.update! 1.1
       a.level.should == 2
-      (a.progression - 0.1).should < OmegaTest::CLOSE_ENOUGH
+      a.progression.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.1)
 
       a = Attribute.new :level => 1, :progression => 0
       a.update! -0.25

@@ -5,205 +5,415 @@
 
 require 'spec_helper'
 
-describe Users::User do
+require 'users/user'
 
-  it "should properly initialize user" do
-    u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
-    u.id.should       == 'user1'
-    u.email.should    == 'u@ser.com'
-    u.password.should == "foobar"
-    u.permenant.should == false
-    u.npc.should       == false
-    u.alliances.size.should == 0
-    u.roles.size.should == 0
-    u.privileges.size.should == 0
+module Users
+describe User do
 
-    u = Users::User.new :npc => true
-    u.npc.should       == true
+  describe "#initialize" do
+    it "sets attributes" do
+      u = User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
+      u.id.should        == 'user1'
+      u.email.should     == 'u@ser.com'
+      u.password.should  == "foobar"
+      u.permenant.should == false
+      u.npc.should       == false
+      u.roles.should     == nil
+      u.privileges.size.should == 0
+
+      u = User.new :npc => true
+      u.npc.should       == true
+    end
+
+    it "sets user on attributes" do
+      a = Attribute.new :type => OmegaTest::Attribute
+      u = User.new :attributes => [a]
+      a.user.should == u
+    end
   end
 
-  it "should set user on attributes" do
-    a = Users::Attribute.new :type => TestAttribute
-    u = Users::User.new :attributes => [a]
-    a.user.should == u
+  describe "secure_password" do
+    context "set to true" do
+      it "encrypts password" do
+        u = User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
+        u.secure_password = true
+
+        # password should be salted
+        u.password.should_not == "foobar"
+        PasswordHelper.check('foobar', u.password)
+      end
+    end
   end
 
-  it "should properly secure user password" do
-    u = Users::User.new :id => 'user1', :email => 'u@ser.com', :password => 'foobar'
-    u.secure_password = true
+  describe "#update" do
+    it "updates password" do
+      u = User.new :password => 'foobar'
+      n = User.new :password => 'barfoo'
+      u.secure_password = true
 
-    # password should be salted
-    u.password.should_not == "foobar"
-    PasswordHelper.check('foobar', u.password)
+      PasswordHelper.check('foobar', u.password).should be_true
+      u.update(n)
+      PasswordHelper.check('barfoo', u.password).should be_true
+    end
+
+    it "updates registration code" do
+      u = User.new :registration_code => 'foobar'
+      n = User.new :registration_code => nil
+
+      u.registration_code.should == 'foobar'
+      u.update(n)
+      u.registration_code.should be_nil
+    end
+
+    context "roles are set" do
+      it "updates roles" do
+        u = User.new :roles => [Role.new(:id => 'role1')]
+        n = User.new :roles => [Role.new(:id => 'role2')]
+
+        u.roles.first.id.should == 'role1'
+        u.update(n)
+        u.roles.first.id.should == 'role2'
+      end
+    end
+
+    context "roles are not set" do
+      it "does not update roles" do
+        u = User.new :roles => [Role.new(:id => 'role1')]
+        n = User.new
+
+        u.roles.first.id.should == 'role1'
+        u.update(n)
+        u.roles.first.id.should == 'role1'
+      end
+    end
+
+    context "attributes are set" do
+      it "updates attributes" do
+        a1 = Attribute.new
+        a2 = Attribute.new
+        u = User.new :attributes => [a1]
+        n = User.new :attributes => [a2]
+
+        u.attributes.first.should == a1
+        u.update(n)
+        u.attributes.first.should == a2
+      end
+    end
+
+    context "attributes are not set" do
+      it "does not update attributes" do
+        a = Attribute.new
+        u = User.new :attributes => [a]
+        n = User.new
+
+        u.attributes.first.should == a
+        u.update(n)
+        u.attributes.first.should == a
+      end
+    end
+
+    it "sets last modified time" do
+      u = User.new :password => 'foobar'
+      ct = Time.now
+      u.update(User.new)
+      u.last_modified_at.should_not be_nil
+      u.last_modified_at.class.should == Time
+      u.last_modified_at.should > ct
+      u.last_modified_at.should < Time.now
+    end
   end
 
-  it "should permit password to be update" do
-    u = Users::User.new :password => 'foobar'
-    u.password.should == 'foobar'
+  describe "#update_attribute" do
+    it "updates attribute" do
+      a = Attribute.new :type => OmegaTest::Attribute
+      u = User.new :attributes => [a]
+      u.update_attribute!(OmegaTest::Attribute.id, 5)
+      a.level.should == 5
+      a.user.should == u
+    end
 
-    ct = Time.now
-    n = Users::User.new :password => 'barfoo'
-    u.secure_password = true
-    u.update!(n)
-    PasswordHelper.check('barfoo', u.password).should be_true
-
-    u.last_modified_at.should_not be_nil
-    u.last_modified_at.class.should == Time
-    u.last_modified_at.should > ct
-    u.last_modified_at.should < Time.now
+    it "creates missing attributes" do
+      u = User.new
+      u.update_attribute!(OmegaTest::Attribute.id, 5)
+      a = u.attributes.find { |a| a.type == OmegaTest::Attribute }
+      a.level.should == 5
+      a.user.should == u
+    end
   end
 
-  it "should permit attributes to be updated" do
-    a = Users::Attribute.new :type => TestAttribute
-    u = Users::User.new :attributes => [a]
-    u.update_attribute!(TestAttribute.id, 5)
-    a.level.should == 5
-    a.user.should == u
+  describe "#has_attribute?" do
+    context "level not specified" do
+      context "user has attribute" do
+        it "returns true" do
+          a = Attribute.new :type => OmegaTest::Attribute
+          u = User.new :attributes => [a]
+          u.has_attribute?(OmegaTest::Attribute.id).should be_true
+        end
+      end
+
+      context "user does not have attribute" do
+        it "returns false" do
+          a = Attribute.new :type => OmegaTest::Attribute
+          u = User.new :attributes => [a]
+          u.has_attribute?(:fooz).should be_false
+        end
+      end
+    end
+
+    context "level specified" do
+      context "user has attribute >= level" do
+        it "returns true" do
+          a = Attribute.new :type => OmegaTest::Attribute, :level => 5
+          u = User.new :attributes => [a]
+          u.has_attribute?(OmegaTest::Attribute.id, 4).should be_true
+          u.has_attribute?(OmegaTest::Attribute.id, 5).should be_true
+        end
+      end
+
+      context "user does not have attribute >= level" do
+        it "returns false" do
+          a = Attribute.new :type => OmegaTest::Attribute, :level => 5
+          u = User.new :attributes => [a]
+          u.has_attribute?(OmegaTest::Attribute.id, 6).should be_false
+        end
+      end
+    end
   end
 
-  it "should create attributes if they do not exist when updating" do
-    u = Users::User.new
-    u.update_attribute!(TestAttribute.id, 5)
-    a = u.attributes.find { |a| a.type == TestAttribute }
-    a.level.should == 5
-    a.user.should == u
+  describe "#clear_roles" do
+    it "empties role list"
   end
 
-  it "should permit querying for attributes" do
-    a = Users::Attribute.new :type => TestAttribute
-    u = Users::User.new :attributes => [a]
-    u.has_attribute?(TestAttribute.id).should be_true
-    u.has_attribute?(:fooz).should be_false
+  describe "#add_role" do
+    it "adds role" do
+      r = Role.new
+      u = User.new
+      u.roles.should be_nil
+      u.add_role(r)
+      u.roles.size.should == 1
+      u.roles.first.should == r
+      u.add_role(r)
+      u.roles.size.should == 1
+    end
+
+    it "only adds role once" do
+      r1 = Role.new :id => 'r'
+      r2 = Role.new :id => 'r'
+      u = User.new
+      u.add_role(r1)
+      u.add_role(r2)
+      u.roles.size.should == 1
+    end
   end
 
-  it "should permit querying for attributes of a specified level" do
-    a = Users::Attribute.new :type => TestAttribute, :level => 5
-    u = Users::User.new :attributes => [a]
-    u.has_attribute?(TestAttribute.id, 4).should be_true
-    u.has_attribute?(TestAttribute.id, 5).should be_true
-    u.has_attribute?(TestAttribute.id, 6).should be_false
+  describe "#valid?" do
+    before(:each) do
+      @u = User.new :id => 'foobar', :password => 'barfoo',
+                    :email => 'foo@b.ar'
+    end
+
+    context "valid user" do
+      it "returns true" do
+        @u.should be_valid
+      end
+    end
+
+    context "invalid email" do
+      it "returns false" do
+        @u.email = 'in@valid'
+        @u.should_not be_valid
+      end
+    end
+
+    context "indvalid id" do
+      it "returns false" do
+        @u.id = 123
+        @u.should_not be_valid
+        @u.id = ""
+        @u.should_not be_valid
+        @u.id = nil
+        @u.should_not be_valid
+      end
+    end
+
+    context "invalid password" do
+      it "returns false" do
+        @u.password = 123
+        @u.should_not be_valid
+        @u.password = ""
+        @u.should_not be_valid
+        @u.password = nil
+        @u.should_not be_valid
+      end
+    end
   end
 
-  it "should permit adding an alliance" do
-    a = Users::Alliance.new :id => 'a1'
-    b = Users::Alliance.new :id => 'a2'
-    u = Users::User.new
-    u.alliances.size.should == 0
-    u.add_alliance(a)
-    u.alliances.size.should == 1
-    u.alliances.first.should == a
-    u.add_alliance(a)
-    u.alliances.size.should == 1
-    u.add_alliance(u)
-    u.alliances.size.should == 1
-    u.add_alliance(b)
-    u.alliances.size.should == 2
+  describe "#valid_email?" do
+    context "email is valid" do
+      it "returns true" do
+        u = User.new
+        u.email = 'foo@bar.com'
+        u.valid_email?.should be_true
+      end
+    end
+
+    context "email is not valid" do
+      it "returns false" do
+        u = User.new
+        u.valid_email?.should be_false
+
+        u.email = 'foobar'
+        u.valid_email?.should be_false
+
+        u.email = 'foo@bar'
+        u.valid_email?.should be_false
+      end
+    end
   end
 
-  it "should permit adding and removing roles" do
-    r = Users::Role.new
-    u = Users::User.new
-    u.roles.size.should == 0
-    u.add_role(r)
-    u.roles.size.should == 1
-    u.roles.first.should == r
-    u.add_role(r)
-    u.roles.size.should == 1
+  describe "#valid_login?" do
+    context "credentials are valid" do
+      it "returns true" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        u.valid_login?('user1', 'foobar').should be_true
+
+        u.secure_password = true
+        u.valid_login?('user1', 'foobar').should be_true
+      end
+    end
+
+    context "credentials are not valid" do
+      it "return false" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        u.valid_login?('user1', 'barfoo').should be_false
+        u.valid_login?('user2', 'foobar').should be_false
+
+        u.secure_password = true
+        u.valid_login?('user1', 'barfoo').should be_false
+      end
+    end
+
+    context "registration code is set" do
+      it "always returns false" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        u.registration_code = '1111'
+        u.valid_login?('user1', 'foobar').should be_false
+      end
+    end
   end
 
-  it "should not permit adding duplicate roles" do
-    r1 = Users::Role.new :id => 'r'
-    r2 = Users::Role.new :id => 'r'
-    u = Users::User.new
-    u.add_role(r1)
-    u.add_role(r2)
-    u.roles.size.should == 1
+  describe "#privileges" do
+    it "returns privileges in all assigned roles" do
+      r1 = Role.new :privileges => [:p1]
+      r2 = Role.new :privileges => [:p2]
+      u = User.new :roles => [r1, r2]
+      u.privileges.should == [:p1, :p2]
+    end
+
+    it "removes duplicate privileges" do
+      r1 = Role.new :privileges => [:p1, :p2]
+      r2 = Role.new :privileges => [:p2, :p3]
+      u = User.new :roles => [r1, r2]
+      u.privileges.should == [:p1, :p2, :p3]
+    end
   end
 
-  it "should validate emails" do
-    u = Users::User.new
-    u.valid_email?.should be_false
+  describe "#has_privilege_on?" do
+    context "user has role with privilege on entity" do
+      it "returns true" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        p = Privilege.new :id => 'view', :entity_id => 'entity1'
+        r = Role.new :privileges => [p]
+        u.add_role(r)
 
-    u.email = 'foobar'
-    u.valid_email?.should be_false
+        u.has_privilege_on?('view', 'entity1').should be_true
+      end
+    end
 
-    u.email = 'foo@bar'
-    u.valid_email?.should be_false
-
-    u.email = 'foo@bar.com'
-    u.valid_email?.should be_true
+    context "user does not have role with privilege on entity" do
+      it "returns false" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        p = Privilege.new :id => 'view', :entity_id => 'entity1'
+        r = Role.new :privileges => [p]
+        u.add_role(r)
+        u.has_privilege_on?('view', 'entity2').should be_false
+        u.has_privilege_on?('modify', 'entity1').should be_false
+      end
+    end
   end
 
-  it "should validate login" do
-    u = Users::User.new :id => 'user1', :password => 'foobar'
-    u.valid_login?('user1', 'foobar').should be_true
+  describe "#has_privilege" do
+    context "user has role with privilege" do
+      it "returns true" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        p = Privilege.new :id => 'modify'
+        r = Role.new :privileges => [p]
+        u.add_role(r)
+        u.has_privilege?('modify').should be_true
+      end
+    end
 
-    u.valid_login?('user1', 'barfoo').should be_false
-    u.valid_login?('user2', 'foobar').should be_false
-
-    u.registration_code = '1111'
-    u.valid_login?('user2', 'foobar').should be_false
+    context "user does not have role with privilege on entity" do
+      it "returns false" do
+        u = User.new :id => 'user1', :password => 'foobar'
+        p = Privilege.new :id => 'modify'
+        r = Role.new :privileges => [p]
+        u.add_role(r)
+        u.has_privilege_on?('view', 'entity2').should be_false
+        u.has_privilege_on?('modify', 'entity1').should be_false
+        u.has_privilege?('view').should be_false
+      end
+    end
   end
 
-  it "should validate login when password is secure" do
-    u = Users::User.new :id => 'user1', :password => 'foobar'
-    u.secure_password = true
-    u.valid_login?('user1', 'foobar').should be_true
-    u.valid_login?('user1', 'barfoo').should be_false
+  describe "#to_json" do
+    it "returns user in json format" do
+      user = User.new :id => 'user42',
+                             :email => 'user@42.omega', :password => 'foobar'
+
+      j = user.to_json
+      j.should include('"json_class":"Users::User"')
+      j.should include('"id":"user42"')
+      j.should include('"email":"user@42.omega"')
+      j.should include('"password":"foobar"')
+      j.should include('"permenant":false')
+      j.should include('"npc":false')
+    end
+
+    context "secure_password set true" do
+      it "does not encode password" do
+        user = User.new :id => 'user42',
+                        :email => 'user@42.omega', :password => 'foobar'
+        user.secure_password = true
+        j = user.to_json
+        j.should_not include('password')
+      end
+
+      it "does not encode registration code" do
+        user = User.new :id => 'user42',
+                        :email => 'user@42.omega', :password => 'foobar'
+        user.secure_password = true
+        j = user.to_json
+        j.should_not include('registration_code')
+      end
+    end
   end
 
-  it "should validate roles" do
-    u = Users::User.new :id => 'user1', :password => 'foobar'
-    p1 = Users::Privilege.new :id => 'view', :entity_id => 'entity1'
-    p2 = Users::Privilege.new :id => 'modify'
-    r  = Users::Role.new :privileges => [p1, p2]
-    u.add_role(r)
+  describe "#json_create" do
+    it "returns user from json format" do
+      j = '{"data":{"email":"user@42.omega","password":"foobar","id":"user42"},"json_class":"Users::User"}'
+      u = JSON.parse(j)
 
-    u.has_privilege_on?('view', 'entity1').should be_true
-    u.has_privilege?('modify').should be_true
-
-    u.has_privilege?('view').should be_false
-    u.has_privilege_on?('view', 'entity2').should be_false
-    u.has_privilege_on?('modify', 'entity1').should be_false
+      u.class.should == Users::User
+      u.id.should == "user42"
+      u.email.should == 'user@42.omega'
+      u.password.should == 'foobar'
+    end
   end
 
-  it "should be convertable to json" do
-    user = Users::User.new :id => 'user42',
-                           :email => 'user@42.omega', :password => 'foobar',
-                           :alliances => [Users::Alliance.new(:id => 'alliance1')]
-
-    j = user.to_json
-    j.should include('"json_class":"Users::User"')
-    j.should include('"id":"user42"')
-    j.should include('"email":"user@42.omega"')
-    j.should include('"password":"foobar"')
-    j.should include('"json_class":"Users::Alliance"')
-    j.should include('"id":"alliance1"')
-    j.should include('"permenant":false')
-    j.should include('"npc":false')
+  describe "#random_registration_code" do
+    it "generates random 8 char string"
   end
 
-  it "should not include password or registration code in json if secure" do
-    user = Users::User.new :id => 'user42',
-                           :email => 'user@42.omega', :password => 'foobar',
-                           :alliances => [Users::Alliance.new(:id => 'alliance1')]
-    user.secure_password = true
-
-    j = user.to_json
-    j.should_not include('password')
-    j.should_not include('registration_code')
-  end
-
-  it "should be convertable from json" do
-    j = '{"data":{"email":"user@42.omega","password":"foobar","alliances":[{"data":{"enemy_ids":[],"member_ids":[],"id":"alliance1"},"json_class":"Users::Alliance"}],"id":"user42"},"json_class":"Users::User"}'
-    u = JSON.parse(j)
-
-    u.class.should == Users::User
-    u.id.should == "user42"
-    u.email.should == 'user@42.omega'
-    u.password.should == 'foobar'
-    u.alliances.size.should == 1
-    u.alliances.first.id.should == 'alliance1'
-  end
-
-end
+end # describe User
+end # module Users

@@ -5,6 +5,8 @@
 
 require 'users/password_helper'
 
+require 'omega/common'
+
 module Users
 
 # Entity central to the Users subsystem representing an end user
@@ -18,7 +20,7 @@ class User
   attr_accessor :email
 
   # [Array<Users::Role>] array of roles the user has
-  attr_reader :roles
+  attr_accessor :roles
 
   # [String] user password (encrypted if secure_password is enabled)
   attr_reader :password
@@ -94,18 +96,14 @@ class User
   # @option args [String] :recaptcha_challenge,'recaptcha_challenge' recaptcha_challenge to assign to the user
   # @option args [String] :recaptcha_response,'recaptcha_response' recaptcha_response to assign to the user
   def initialize(args = {})
-    @id        = args['id']        || args[:id]
-    @email     = args['email']     || args[:email]
-    @password  = args['password']  || args[:password]
-    @registration_code   = args['registration_code'] || args[:registration_code]
-    @recaptcha_challenge = args['recaptcha_challenge']  || args[:recaptcha_challenge]
-    @recaptcha_response  = args['recaptcha_response']  || args[:recaptcha_response]
-    @npc             = args[:npc]  || args['npc'] || false
-    @attributes      = args[:attributes] || args['attributes']
-    @secure_password = false
-    @permenant       = false
-
-    @roles = args[:roles] || args['roles']
+    attr_from_args args,
+                   :id => nil, :email => nil, :password => nil,
+                   :registration_code => nil,
+                   :recaptcha_challenge => nil,
+                   :recaptcha_response  => nil,
+                   :npc => false, :attributes => nil,
+                   :secure_password => false, :permenant => false,
+                   :roles => roles
 
     @attributes.each { |attr|
       attr.user = self
@@ -196,14 +194,14 @@ class User
   def valid?
     valid_email?          &&
     id.is_a?(String)      && !id.empty? &&
-    password.is_a(String) && !password.empty?
+    password.is_a?(String) && !password.empty?
   end
 
   # Returns boolean indicating if email is valid
   #
   # @return [true, false] if email matches valid regex
   def valid_email?
-    self.email =~ (/\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i)
+    !(self.email =~ (/\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i)).nil?
   end
 
   # Returns boolean indicating if login credentials are valid for the current user

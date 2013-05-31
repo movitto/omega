@@ -12,20 +12,17 @@ login = proc { |user|
     user unless user.is_a?(Users::User)
 
   # retrieve user from registry
-  ruser =
-    Registry.instance.entities { |e|
-      e.id == user.id
-    }.first
+  ruser = registry.entity &with_id(user.id)
 
   # ensure user can be found
-  raise DataNotFound, user.id if user.nil?
+  raise DataNotFound, user.id if ruser.nil?
 
   session = nil
 
   # validate login
-  if Registry.instance.valid_login?(user.id, user.password)
+  if registry.valid_login?(user.id, user.password)
     # create the session
-    session = Registry.instance.create_session(ruser)
+    session = registry.create_session(ruser)
 
     # TODO store the rjr node which this user session was
     # established on for use in other handlers
@@ -42,21 +39,18 @@ login = proc { |user|
 # Logout the specified session
 logout = proc { |session_id|
   # Retrieve user corresponding to session
-  user =
-    Registry.instance.entities { |e|
-      e.session_id == session_id
-    }.first
+  user = registry.entities &with_id(session_id)
 
   # ensure user was found
   raise DataNotFound, session_id if user.nil?
 
   # require modify on the user
-  require_privilege :any =>
+  require_privilege :registry => registry, :any =>
     [{:privilege => 'modify', :entity => "user-#{user.id}"},
      {:privilege => 'modify', :entity => 'users'}]
 
   # Destroy the sesion
-  Registry.instance.destroy_session(:session_id => session_id)
+  registry.destroy_session(:session_id => session_id)
 
   # return nil
   nil

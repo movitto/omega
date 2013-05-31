@@ -48,7 +48,11 @@ describe Registry do
     end
   end
 
-  describe "#clear" do
+  describe "#entity" do
+    it "TODO"
+  end
+
+  describe "#clear!" do
     it "empties entities list" do
       @registry << 1
       @registry << 2
@@ -139,6 +143,10 @@ describe Registry do
         end
       end
     end
+  end
+
+  describe "#delete" do
+    it "TODO"
   end
 
   describe "#update" do

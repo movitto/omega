@@ -8,12 +8,12 @@ module Users::RJR
 
 save_state = proc { |output|
   raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
-  File.open(output, 'a+') { |f| Registry.instance.save(f) }
+  File.open(output, 'a+') { |f| registry.save(f) }
 }
 
 restore_state = proc { |input|
   raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
-  File.open(input, 'r') { |f| Registry.instance.restore(f) }
+  File.open(input, 'r') { |f| registry.restore(f) }
 }
 
 STATE_METHODS = { :save => save_state, :restore => restore_state }

@@ -11,26 +11,25 @@ update_attribute = proc { |user_id, attribute_id, change|
   raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
 
   # ensure user has modify attributes
-  require_privilege(:privilege => 'modify', :entity => "user_attributes")
+  require_privilege(:registry => registry,
+                    :privilege => 'modify',
+                    :entity => "user_attributes")
 
   # retrieve specified user from registry
-  user = 
-    Registry.instance.entities { |e|
-      e.is_a?(Users::User) && e.id == user_id
-    }.first
+  user = registry.entity &with_id(user_id)
 
   # valid user id must be specified
   raise DataNotFound, user_id if user.nil?
 
   # require modify privs on user or all users
-  require_privilege :any =>
+  require_privilege :registry => registry, :any =>
     [{:privilege => 'modify', :entity => "user-#{user.id}"},
      {:privilege => 'modify', :entity => 'users'}]
 
   # only update attribute if user attributes are enabled
   if Users::RJR.user_attrs_enabled
     user.update_attribute!(attribute_id, change)
-    Registry.instance.update(user, &with_id(user.id)) # safe update
+    registry.update(user, &with_id(user.id)) # safe update
   end
 
   user
@@ -52,22 +51,19 @@ has_attribute = proc { |*args|
     "must specify a valid level"   unless level.is_a?(Integer) && level >= 0
 
   # require view on user or all users
-  require_privilege :any =>
+  require_privilege :registry => registry, :any =>
     [{:privilege => 'view', :entity => "user-#{user_id}"},
      {:privilege => 'view', :entity => "users"}]
 
   # retrieve user
-  user = 
-    Registry.instance.entities { |e|
-      e.is_a?(Users::User) && e.id == user_id
-    }.first
+  user = registry.entities &with_id(user_id)
 
   # valid user_id must be specified
   raise DataNotFound, user_id if user.nil?
 
   # lookup attribute if user attributes enabled
   if Users::RJR.user_attrs_enabled
-    Registry.instance.safe_exec {
+    registry.safe_exec {
       user.has_attribute?(attr_id, level)
     }
 

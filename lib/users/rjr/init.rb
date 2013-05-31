@@ -48,7 +48,7 @@ module Users::RJR
   attr_accessor :users_rjr_password
 
   # @!endgroup
-end
+  end
 
   # Set config options using Omega::Config instance
   #
@@ -65,26 +65,51 @@ end
   end
 
 def self.user
-  user ||= Users::User.new(:id       => self.users_rjr_username,
-                           :password => self.users_rjr_password)
+  @user ||= Users::User.new(:id       => Users::RJR::users_rjr_username,
+                            :password => Users::RJR::users_rjr_password)
+end
+
+def user
+  Users::RJR.user
+end
+
+def self.node
+  @node ||= ::RJR::Nodes::Local.new :node_id => self.user.id
+end
+
+def node
+  Users::RJR.node
+end
+
+def self.registry
+  @registry ||= Users::Registry.new
+end
+
+def registry
+  Users::RJR.registry
+end
+
+def self.reset
+  Users::RJR.registry.clear!
+  Users::ChatProxy.clear
 end
 
 end # module Users::RJR
 
 def dispatch_init(dispatcher)
-  Users::ChatProxy.clear
-
+  # init defaults
   Users::RJR.permenant_users ||= []
-  node = ::RJR::Nodes::Local.new :node_id => 'users'
-  node.dispatcher = dispatcher
-  node.dispatcher.env /users::.*/, Users::RJR
 
-  node.message_headers['source_node'] = 'users'
+  # setup Users::RJR module
+  rjr = Object.new.extend(Users::RJR)
+  rjr.node.dispatcher = dispatcher
+  rjr.node.dispatcher.env /users::.*/, Users::RJR
+  rjr.node.message_headers['source_node'] = 'users'
 
   # ignore err if user already created
-  begin node.invoke('users::create_user', Users::RJR.user)
+  begin rjr.node.invoke('users::create_user', rjr.user)
   rescue Exception => e ; end
 
-  session = node.invoke('users::login', Users::RJR.user)
-  node.message_headers['session_id'] = session.id
+  session = rjr.node.invoke('users::login', rjr.user)
+  rjr.node.message_headers['session_id'] = session.id
 end

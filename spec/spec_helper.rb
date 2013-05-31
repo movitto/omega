@@ -13,6 +13,7 @@ require 'omega/common'
 require 'omega/server/config'
 
 require 'users/attribute'
+require 'users/session'
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
@@ -22,10 +23,16 @@ RSpec.configure do |config|
   }
 
   config.before(:each) {
-    Users::Registry.instance.clear!
-
+    # setup a node to dispatch requests
     @n = RJR::Nodes::Local.new
     @n.dispatcher.add_module('lib/users/rjr')
+
+    # setup a server which to invoke handlers
+    @s = Object.new
+    @s.extend(Omega::Server::DSL)
+    @s.instance_variable_set(:@rjr_node, @n)
+
+    Users::RJR.reset
   }
 
   config.after(:each) {
@@ -58,6 +65,35 @@ FactoryGirl.define do
 end
 
 ######################################
+
+# Helper method to dispatch server methods to handlers
+def dispatch_to(server, rjr_module, dispatcher_id)
+  server.extend(rjr_module)
+  dispatcher = rjr_module.const_get(dispatcher_id)
+  dispatcher.keys.each { |mid|
+    server.eigenclass.send(:define_method, mid, &dispatcher[mid])
+  }
+end
+
+# Helper to add privilege on entity (optional) 
+# to the specified role
+def add_privilege(role_id, priv_id, entity_id=nil)
+  # change node type to local here to ensure this goes through
+  o = @n.node_type
+  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
+  r = @n.invoke 'users::add_privilege', role_id, priv_id, entity_id
+  @n.node_type = o
+  r
+end
+
+# Extend session to include a method that forces timeout
+module Users
+class Session
+  def expire!
+    @refreshed_time = Time.now - Session::SESSION_EXPIRATION - 100
+  end
+end
+end
 
 module OmegaTest
   CLOSE_ENOUGH=0.000001

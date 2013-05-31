@@ -15,7 +15,7 @@ send_message = proc { |message|
     "message must be valid" unless message.is_a?(String) && message != ""
 
   # ensure logged in user can be modified
-  require_privilege :any =>
+  require_privilege :registry => registry, :any =>
     [{:privilege => 'modify', :entity => "user-#{current_user.id}"},
      {:privilege => 'modify', :entity => 'users'}]
 
