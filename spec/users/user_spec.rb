@@ -274,7 +274,8 @@ describe User do
   describe "#valid_login?" do
     context "credentials are valid" do
       it "returns true" do
-        u = User.new :id => 'user1', :password => 'foobar'
+        u = User.new :id => 'user1', :password => 'foobar',
+                     :registration_code => nil
         u.valid_login?('user1', 'foobar').should be_true
 
         u.secure_password = true
@@ -293,11 +294,14 @@ describe User do
       end
     end
 
-    context "registration code is set" do
+    context "registration code is not nil" do
       it "always returns false" do
         u = User.new :id => 'user1', :password => 'foobar'
+        u.valid_login?('user1', 'foobar').should be_false
         u.registration_code = '1111'
         u.valid_login?('user1', 'foobar').should be_false
+        u.registration_code = nil
+        u.valid_login?('user1', 'foobar').should be_true
       end
     end
   end

@@ -99,14 +99,13 @@ module Registry
 
   def update(entity, &selector)
     init_registry
-    updated = false
+    rentity = nil
     old_entity = nil
     @lock.synchronize {
       # select entity from registry
       rentity = @entities.find &selector
-      updated = !rentity.nil?
 
-      if updated
+      unless rentity.nil?
         # copy it
         old_entity = JSON.parse(rentity.to_json)
 
@@ -116,8 +115,8 @@ module Registry
 
     }
 
-    self.raise_event(:updated, entity, old_entity) if updated
-    return updated
+    self.raise_event(:updated, rentity, old_entity) unless rentity.nil?
+    return !rentity.nil?
   end
 
   ####################### execution

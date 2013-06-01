@@ -86,6 +86,11 @@ def add_privilege(role_id, priv_id, entity_id=nil)
   r
 end
 
+# Helper to set session id
+def session_id(id)
+  @n.message_headers['session_id'] = id
+end
+
 # Extend session to include a method that forces timeout
 module Users
 class Session

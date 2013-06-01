@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'users/rjr/init'
+
 module Users::RJR
 
 # Update the attribute for the specified user by the specified amount
@@ -50,16 +52,16 @@ has_attribute = proc { |*args|
   raise ArgumentError,
     "must specify a valid level"   unless level.is_a?(Integer) && level >= 0
 
+  # retrieve user
+  user = registry.entity &with_id(user_id)
+
+  # valid user_id must be specified
+  raise DataNotFound, user_id if user.nil?
+
   # require view on user or all users
   require_privilege :registry => registry, :any =>
     [{:privilege => 'view', :entity => "user-#{user_id}"},
      {:privilege => 'view', :entity => "users"}]
-
-  # retrieve user
-  user = registry.entities &with_id(user_id)
-
-  # valid user_id must be specified
-  raise DataNotFound, user_id if user.nil?
 
   # lookup attribute if user attributes enabled
   if Users::RJR.user_attrs_enabled

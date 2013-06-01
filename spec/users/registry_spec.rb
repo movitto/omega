@@ -86,7 +86,8 @@ describe Registry do
     before(:each) do
       @r = Registry.new
       @u = User.new :id => 'user1', :password => 'foobar',
-                    :secure_password => true
+                    :secure_password => true,
+                    :registration_code => nil
       @r << @u
     end
 

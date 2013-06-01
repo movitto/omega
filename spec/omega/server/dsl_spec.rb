@@ -167,7 +167,16 @@ describe DSL do
     end
   end
 
+  describe "#with" do
+    it "TODO"
+  end
+
+
   describe "#with_id" do
+    it "TODO"
+  end
+
+  describe "#matching" do
     it "TODO"
   end
 

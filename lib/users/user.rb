@@ -98,7 +98,7 @@ class User
   def initialize(args = {})
     attr_from_args args,
                    :id => nil, :email => nil, :password => nil,
-                   :registration_code => nil,
+                   :registration_code => -1, # nil registration code has special value
                    :recaptcha_challenge => nil,
                    :recaptcha_response  => nil,
                    :npc => false, :attributes => nil,
@@ -118,7 +118,8 @@ class User
 
     # update select attributes
     #@email             = new_user.email
-    @registration_code = new_user.registration_code
+    @registration_code =
+      new_user.registration_code unless new_user.registration_code == -1
     @roles             = new_user.roles unless new_user.roles.nil?
     @attributes        = new_user.attributes unless new_user.attributes.nil?
 
@@ -129,6 +130,10 @@ class User
       self.secure_password=@secure_password
     end
   end
+
+  #def ==(user)
+    # TODO!
+  #end
 
   # Updates user attribute with specified change
   #

@@ -43,7 +43,7 @@ module Users::RJR
           role = create(:role)
           lambda {
             @s.add_role(user.id, role.id)
-          }.should_not raise_error
+          }.should_not raise_error(PermissionError)
         end
       end
     end
@@ -115,7 +115,7 @@ module Users::RJR
           role = create(:role)
           lambda {
             @s.add_privilege(role.id, 'view')
-          }.should_not raise_error
+          }.should_not raise_error(PermissionError)
         end
       end
     end

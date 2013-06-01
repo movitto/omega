@@ -21,9 +21,9 @@ module Users::RJR
 
     it "returns list of all entities" do
       # grant user permissions to view all users types
-      add_privilege @n, @login_role, 'view', 'roles'
-      add_privilege @n, @login_role, 'view', 'users'
-      add_privilege @n, @login_role, 'view', 'sessions'
+      add_privilege @login_role, 'view', 'roles'
+      add_privilege @login_role, 'view', 'users'
+      add_privilege @login_role, 'view', 'sessions'
 
       create(:user)
       create(:user)
@@ -62,7 +62,7 @@ module Users::RJR
     context "entity id not specified" do
       it "filters entities user does not have permission to" do
         # only view privilege on users
-        add_privilege @n, @login_role, 'view', 'users'
+        add_privilege @login_role, 'view', 'users'
 
         u = Users::RJR.registry.entities.select { |e| e.is_a?(User) }
         n = u.size
@@ -73,8 +73,8 @@ module Users::RJR
     context "entity type specified" do
       it "only returns entities of the specified type" do
         # privileges on roles/users
-        add_privilege @n, @login_role, 'view', 'roles'
-        add_privilege @n, @login_role, 'view', 'users'
+        add_privilege @login_role, 'view', 'roles'
+        add_privilege @login_role, 'view', 'users'
 
         u = Users::RJR.registry.entities.select { |e| e.is_a?(User) }
         n = u.size

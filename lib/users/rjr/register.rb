@@ -3,6 +3,10 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'curb' # XXX replace
+
+require 'users/rjr/init'
+
 module Users::RJR
 
 # Register new user
@@ -12,7 +16,7 @@ register = proc { |user|
     "user must be valid" unless user.is_a?(Users::User) && user.valid?
 
   # if recaptcha enabled, validate
-  if Users::RJRAdapter.recaptcha_enabled
+  if Users::RJR.recaptcha_enabled
     # TODO move elsewhere, ensure client_ip is avaliable, recaptcha is valid
     recaptcha_response =
       Curl::Easy.http_post 'http://www.google.com/recaptcha/api/verify',
@@ -28,8 +32,7 @@ register = proc { |user|
   user.registration_code = Users::User.random_registration_code
 
   # create new user (raises err if id already taken)
-  # FIXME node
-  secure_user = node.invoke('users::create_entity', user)
+  secure_user = node.invoke('users::create_user', user)
 
   # create new email w/ users::confirm_register link
   message = <<MESSAGE_END
@@ -56,10 +59,9 @@ MESSAGE_END
 # Confirm the registration code sent by email
 confirm_register = proc { |registration_code|
   # retrieve user from registry
-  user =
-    registry.find { |e|
-      e.registration_code == registration_code
-    }.first
+  user = registry.entity &matching {|e|
+    e.registration_code == registration_code
+  }
 
   # ensure user can be found
   raise DataNotFound, registration_code if user.nil?
@@ -79,6 +81,6 @@ end # module Users::RJR
 
 def dispatch_register(dispatcher)
   m = Users::RJR::REGISTER_METHODS
-  dispatcher.handle 'users::register',         &m[:users_register]
-  dispatcher.handle 'users::confirm_register', &m[:users_confirm_register]
+  dispatcher.handle 'users::register',         &m[:register]
+  dispatcher.handle 'users::confirm_register', &m[:confirm_register]
 end

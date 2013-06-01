@@ -3,13 +3,14 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'users/rjr/init'
+
 module Users::RJR
 
 # Login the specified user
 login = proc { |user|
   # ensure a valid user was specified
-  raise Omega::ValidationError,
-    user unless user.is_a?(Users::User)
+  raise ValidationError, user unless user.is_a?(Users::User)
 
   # retrieve user from registry
   ruser = registry.entity &with_id(user.id)
@@ -38,11 +39,15 @@ login = proc { |user|
 
 # Logout the specified session
 logout = proc { |session_id|
-  # Retrieve user corresponding to session
-  user = registry.entities &with_id(session_id)
+  # Retrieve session corresponding to id
+  session = registry.entity &with_id(session_id)
 
-  # ensure user was found
-  raise DataNotFound, session_id if user.nil?
+  # ensure session was found
+  raise DataNotFound, session_id if session.nil?
+
+  # retrieve user corresponding to session
+  user = registry.entity &with_id(session.user.id)
+  # assert !user.nil?
 
   # require modify on the user
   require_privilege :registry => registry, :any =>

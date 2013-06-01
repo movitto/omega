@@ -66,7 +66,8 @@ module Users::RJR
 
 def self.user
   @user ||= Users::User.new(:id       => Users::RJR::users_rjr_username,
-                            :password => Users::RJR::users_rjr_password)
+                            :password => Users::RJR::users_rjr_password,
+                            :registration_code => nil)
 end
 
 def user

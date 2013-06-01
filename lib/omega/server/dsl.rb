@@ -134,9 +134,19 @@ module Omega
         filters
       end
 
+      # Generate a selector from block which is called to determine selection
+      def matching(&bl)
+        proc { |e| bl.call(e) }
+      end
+
+      # Generate a selector which compares entity w/ specified attribute
+      def with(attr, val)
+        proc { |e| e.respond_to?(attr.intern) && e.send(attr.intern) == val }
+      end
+
       # Generate a selector which matches entity w/ specified id
       def with_id(eid)
-        proc { |e| e.id == eid }
+        with(:id, eid)
       end
 
       # Generate a selector
