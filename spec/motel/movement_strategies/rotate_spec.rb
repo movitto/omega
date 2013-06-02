@@ -4,104 +4,139 @@
 # See COPYING for the License of this software
 
 require 'spec_helper'
+require 'motel/location'
+require 'motel/movement_strategies/rotate'
 
-#describe Motel::MovementStrategies::Rotatable do
-#end
-#
-describe Motel::MovementStrategies::Rotatable do
+module Motel::MovementStrategies
+describe Rotatable do
 
-  it "should accept params for angular rotation" do
-     rot = Motel::MovementStrategies::Rotate.new :speed => 5, :dtheta => 0.25, :dphi => 0.56
-     rot.dtheta = 0.25
-     rot.dphi   = 0.56
+  describe "#valid_rotation?" do
+    before(:each) do
+      @r = Rotate.new
+    end
+
+    context "dtheta is invalid" do
+      it "returns false" do
+        @r.dtheta = :foo
+        @r.should_not be_valid
+        @r.dtheta = -10.11
+        @r.valid?.should be_false
+
+        @r.dtheta = 9.89
+        @r.valid?.should be_false
+      end
+    end
+
+    context "dphi is nil" do
+      it "returns false" do
+        @r.dphi = :foo
+        @r.valid?.should be_false
+
+        @r.dphi = -10.11
+        @r.valid?.should be_false
+
+        @r.dphi = 10.22
+        @r.valid?.should be_false
+
+        @r.dtheta = -0.45
+        @r.dphi   = 0.35
+        @r.valid?.should be_true
+      end
+    end
+
+    it "returns true" do
+      @r.should be_valid
+    end
   end
 
-  it "should return bool indicating validity of movement_strategy" do
-     rot = Motel::MovementStrategies::Rotate.new
-     rot.valid?.should be_true
+  describe "#rotate" do
+    it "rotates location by dtheta / dphi * elapsed time" do
+      rot = Rotate.new :speed => 5, :step_delay => 5, :dtheta => 0.11, :dphi => 0.22
+      dt,dp  = rot.dtheta, rot.dphi
 
-     rot.dtheta = :foo
-     rot.valid?.should be_false
+      p   = Motel::Location.new
+      orientation  = [1,0,0]
+      sorientation = Motel::to_spherical(*orientation)
+      l = Motel::Location.new(:parent => p,
+                              :movement_strategy => rot,
+                              :orientation  => orientation)
 
-     rot.dtheta = -10.11
-     rot.valid?.should be_false
+      # move and validate
+      rot.move l, 1
+      l.orientation.should ==
+        Motel.from_spherical(sorientation[0] + dt, sorientation[1] + dp, 1)
 
-     rot.dtheta = 9.89
-     rot.valid?.should be_false
-     rot.dtheta = 0.15
+      orientation  = l.orientation
+      sorientation = l.spherical_orientation
 
-     rot.dphi = :foo
-     rot.valid?.should be_false
-
-     rot.dphi = -10.11
-     rot.valid?.should be_false
-
-     rot.dphi = 10.22
-     rot.valid?.should be_false
-
-     rot.dtheta = -0.45
-     rot.dphi   = 0.35
-     rot.valid?.should be_true
+      rot.move l, 5
+      l.orientation.should ==
+        Motel.from_spherical(sorientation[0] + dt * 5, sorientation[1] + dp * 5, 1)
+    end
   end
 
-  it "should rotate location" do
-     rot = Motel::MovementStrategies::Rotate.new :speed => 5, :step_delay => 5, :dtheta => 0.11, :dphi => 0.22
-     dt,dp  = rot.dtheta, rot.dphi
+end # describe Rotatable
 
-     parent   = Motel::Location.new
-     x = y = z = 20
-     orientation  = [1,0,0]
-     sorientation = Motel::to_spherical(*orientation)
-     location = Motel::Location.new(:parent => parent,
-                                    :movement_strategy => rot,
-                                    :orientation  => orientation,
-                                    :x => x, :y => y, :z => z)
+describe Rotate do
+  describe "#initialize" do
+    it "sets defaults" do
+      r = Rotate.new
+      r.dtheta.should == 0
+      r.dphi.should == 0
+    end
 
-     # move and validate
-     rot.move location, 1
-     location.orientation.should == Motel.from_spherical(sorientation[0] + dt, sorientation[1] + dp, 1)
-
-     orientation  = location.orientation
-     sorientation = location.spherical_orientation
-
-     rot.move location, 5
-     location.orientation.should == Motel.from_spherical(sorientation[0] + dt * 5, sorientation[1] + dp * 5, 1)
+    it "sets arguments" do
+      rot = Rotate.new :speed => 5, :dtheta => 0.25, :dphi => 0.56
+      rot.dtheta = 0.25
+      rot.dphi   = 0.56
+    end
   end
 
-  it "should not rotate location if strategy is invalid" do
-     rot = Motel::MovementStrategies::Rotate.new :dtheta => 0.1
-     parent   = Motel::Location.new
-     x = y = z = 20
-     location = Motel::Location.new(:parent => parent, :movement_strategy => rot,
-                                    :x => x, :y => y, :z => z)
-
-     rot.dtheta = -10
-     rot.valid?.should be_false
-
-     rot.move location, 5
-     location.x.should == x
-     location.y.should == y
-     location.z.should == z
+  describe "#valid?" do
+    it "dispatches to valid_rotation?" do
+      r = Rotate.new
+      r.should_receive(:valid_rotation?)
+      r.valid?
+    end
   end
 
-  it "should be convertable to json" do
-    rot = Motel::MovementStrategies::Rotate.new :dtheta => 0.1, :dphi => 0.2, :step_delay => 1
+  describe "#rotate" do
+    context "rotate is not valid" do
+      it "does not rotate location" do
+        rot = Rotate.new :dtheta => -10
+        l = build(:location)
 
-    j = rot.to_json
-    j.should include('"json_class":"Motel::MovementStrategies::Rotate"')
-    j.should include('"step_delay":1')
-    j.should include('"dtheta":0.1')
-    j.should include('"dphi":0.2')
+        lambda {
+          rot.move l, 5
+        }.should_not change(l, :coordinates)
+      end
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"json_class":"Motel::MovementStrategies::Rotate","data":{"step_delay":1,"dtheta":0.1,"dphi":0.2}}'
-    m = JSON.parse(j)
+  describe "#to_json" do
+    it "returns rotate in json format" do
+      rot = Rotate.new :dtheta => 0.1, :dphi => 0.2, :step_delay => 1
 
-    m.class.should == Motel::MovementStrategies::Rotate
-    m.step_delay.should == 1
-    m.dtheta.should == 0.1
-    m.dphi.should == 0.2
+      j = rot.to_json
+      j.should include('"json_class":"Motel::MovementStrategies::Rotate"')
+      j.should include('"step_delay":1')
+      j.should include('"dtheta":0.1')
+      j.should include('"dphi":0.2')
+    end
   end
 
-end
+  describe "#json_create" do
+    it "returns linear from json format" do
+      j = '{"json_class":"Motel::MovementStrategies::Rotate","data":{"step_delay":1,"dtheta":0.1,"dphi":0.2}}'
+      m = JSON.parse(j)
+
+      m.class.should == Motel::MovementStrategies::Rotate
+      m.step_delay.should == 1
+      m.dtheta.should == 0.1
+      m.dphi.should == 0.2
+    end
+  end
+
+end # describe Rotate
+
+end # Motel::MovementStrategies

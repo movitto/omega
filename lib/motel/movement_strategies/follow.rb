@@ -49,13 +49,10 @@ class Follow < MovementStrategy
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     attrs_from_args args, :distance => nil, :speed => nil,
-                           :tracked_location_id     => nil
+     attr_from_args args, :distance => nil, :speed => nil,
+                          :tracked_location_id     => nil
 
      super(args)
-
-     raise InvalidMovementStrategy,
-       "follow movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -103,9 +100,9 @@ class Follow < MovementStrategy
        # calculate distance and update x,y,z accordingly
        distance = speed * elapsed_seconds
 
-       location.x += distance * dx
-       location.y += distance * dy
-       location.z += distance * dz
+       loc.x += distance * dx
+       loc.y += distance * dy
+       loc.z += distance * dz
      end
    end
 

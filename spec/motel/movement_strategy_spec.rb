@@ -5,35 +5,49 @@
 
 require 'spec_helper'
 
-describe Motel::MovementStrategy do
+module Motel
+describe MovementStrategy do
+  describe "#initialize" do
+    it "sets default step delay" do
+      m = MovementStrategy.new
+      m.step_delay.should == 1
+    end
 
-  it "should successfully accept and set movement strategy params" do
-     ms = Motel::MovementStrategy.new :step_delay => 10
-     ms.step_delay.should == 10
+    it "sets attributes" do
+      ms = MovementStrategy.new :step_delay => 10
+      ms.step_delay.should == 10
+    end
   end
 
-  it "should default to no movement" do
-     loc = Motel::Location.new :x => 100, :y => -200, :z => 300
-     ms = Motel::MovementStrategy.new
-     ms.move loc, 2000
-     loc.x.should == 100
-     loc.y.should == -200
-     loc.z.should == 300
+  describe "#move" do
+    it "does nothing" do
+      l = Location.new :x => 100, :y => -200, :z => 300
+      ms = MovementStrategy.new
+      ms.move l, 2000
+      l.x.should ==  100
+      l.y.should == -200
+      l.z.should ==  300
+    end
   end
 
-  it "should be convertable to json" do
-    m = Motel::MovementStrategy.new :step_delay => 20
-    j = m.to_json
-    j.should include('"json_class":"Motel::MovementStrategy"')
-    j.should include('"data":{"step_delay":20}')
+  describe "#to_json" do
+    it "returns movement strategy in json format" do
+      m = MovementStrategy.new :step_delay => 20
+      j = m.to_json
+      j.should include('"json_class":"Motel::MovementStrategy"')
+      j.should include('"data":{"step_delay":20}')
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"json_class":"Motel::MovementStrategy","data":{"step_delay":20}}'
-    m = JSON.parse(j)
+  describe "#json_create" do
+    it "should return movement strategy from json" do
+      j = '{"json_class":"Motel::MovementStrategy","data":{"step_delay":20}}'
+      m = JSON.parse(j)
 
-    m.class.should == Motel::MovementStrategy
-    m.step_delay.should == 20
+      m.should be_an_instance_of(MovementStrategy)
+      m.step_delay.should == 20
+    end
   end
 
-end
+end # describe MovementStrategy
+end # module Motel

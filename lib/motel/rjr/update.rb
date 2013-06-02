@@ -23,6 +23,8 @@ update_location = proc { |loc|
   # filter properties not able to be set by user
   loc = filter_properties(loc, :allow => [:x, :y, :z, :parent_id, :movement_strategy])
 
+  # TODO pause the location first?
+
   # update the location
   RJR::Logger.info "updating location #{rloc}"
   Registry.instance.update(rloc, loc)

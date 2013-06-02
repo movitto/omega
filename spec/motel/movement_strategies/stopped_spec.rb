@@ -1,46 +1,50 @@
 # stopped movement strategy tests
 #
-# Copyright (C) 2009-2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2009-2013 Mohammed Morsi <mo@morsi.org>
 # See COPYING for the License of this software
 
 require 'spec_helper'
+require 'motel/movement_strategies/stopped'
 
-describe "Motel::MovementStrategies::Stopped" do
-
-  it "should not move location" do
-     # setup test
-     stopped = Motel::MovementStrategies::Stopped.instance
-     parent   = Motel::Location.new
-     x = 50
-     y = 100 
-     z = 200 
-     location = Motel::Location.new(:parent => parent,
-                             :movement_strategy => stopped,
-                             :x => 50, :y => 100, :z => 200)
-
-     # make sure location does not move
-     stopped.move location, 10
-     location.x.should == x
-     location.y.should == y
-     location.z.should == z
-
-     stopped.move location, 50
-     location.x.should == x
-     location.y.should == y
-     location.z.should == z
-
-     stopped.move location, 0
-     location.x.should == x
-     location.y.should == y
-     location.z.should == z
-
+module Motel::MovementStrategies
+describe Stopped do
+  describe "#valid?" do
+    it "returns true" do
+      Stopped.instance.should be_valid
+    end
   end
 
-  it "should be convertable from json" do
-    j  = '{"json_class":"Motel::MovementStrategies::Stopped","data":{}}'
+  describe "#move" do
+    it "does nothing" do
+      stopped = Stopped.instance
+      l = build(:location)
+      x,y,z = l.coordinates
+                              
+      # make sure location does not move
+      stopped.move l, 10
+      l.x.should == x
+      l.y.should == y
+      l.z.should == z
 
-    ms = JSON.parse j
-    ms.should == Motel::MovementStrategies::Stopped.instance
+      stopped.move l, 50
+      l.x.should == x
+      l.y.should == y
+      l.z.should == z
+
+      stopped.move l, 0
+      l.x.should == x
+      l.y.should == y
+      l.z.should == z
+    end
   end
 
-end
+  describe "#json_create" do
+    it "returns singleton instnace" do
+      j  = '{"json_class":"Motel::MovementStrategies::Stopped","data":{}}'
+      ms = JSON.parse j
+      ms.should == Motel::MovementStrategies::Stopped.instance
+    end
+  end
+
+end # describe Stopped
+end # module Motel::MovementStrategies

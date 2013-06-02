@@ -27,12 +27,12 @@ module MovementStrategies
 # at a minimum
 class Elliptical < MovementStrategy
    # Indicates that parent location is at center of elliptical path
-   RELATIVE_TO_CENTER = "center"
+   CENTER = "center"
 
    # Indicates that parent location is at one of the focis of the elliptical path
-   RELATIVE_TO_FOCI   = "foci"
+   FOCI   = "foci"
 
-   # [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] value indicates if the parent
+   # [CENTER, FOCI] value indicates if the parent
    #   of the location tracked by this strategy is at the center or the foci
    #   of the ellipse.
    #
@@ -67,7 +67,7 @@ class Elliptical < MovementStrategy
 
    # Combined direction vector
    def direction
-     direction_major + direction_minor
+     dmaj + dmin
    end
 
    # Motel::MovementStrategies::Elliptical initializer
@@ -83,26 +83,29 @@ class Elliptical < MovementStrategy
    # @option args [Float] :dminy y coordinate of minor direction vector
    # @option args [Float] :dminz z coordinate of minor direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @option args [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI] :relative_to how the parent location is related to this elliptical path
+   # @option args [CENTER, FOCI] :relative_to how the parent location is related to this elliptical path
    # @option args [Float] :e eccentricity to assign to elliptical path
    # @option args [Float] :p semi latus rectum to assign to elliptical path
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
       @dmajx, @dmajy, @dmajz, @dminx, @dminy, @dminz =
-        (args[:direction] || args['direction'] || []).flatten
+        (args[:direction] || args['direction'] || [1,0,0,0,1,0]).flatten
+
+      dmaj = args[:dmaj] || args['dmaj'] || [@dmajx,@dmajy,@dmajz]
+      dmin = args[:dmin] || args['dmin'] || [@dminx,@dminy,@dminz]
+      @dmajx, @dmajy, @dmajz = dmaj
+      @dminx, @dminy, @dminz = dmin
 
      attr_from_args args,
-       :relative_to  => RELATIVE_TO_FOCI,
+       :relative_to  => CENTER,
        :speed => nil, :e => nil, :p => nil,
-       :dmajx =>   1, :dmajy =>   0, :dmajz =>   0,
-       :dminx =>   0, :dminy =>   1, :dminz =>   0
+       :dmajx =>   @dmajx, :dmajy =>   @dmajy, :dmajz =>   @dmajz,
+       :dminx =>   @dminx, :dminy =>   @dminy, :dminz =>   @dminz
 
      super(args)
 
      @dmajx, @dmajy, @dmajz = Motel::normalize(@dmajx, @dmajy, @dmajz)
      @dminx, @dminy, @dminz = Motel::normalize(@dminx, @dminy, @dminz)
-     raise InvalidMovementStrategy,
-       "elliptical movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -116,7 +119,7 @@ class Elliptical < MovementStrategy
    # * eccentricity is a valid numeric > 0
    # * semi latus rectum is a valid numeric > 0
    # * speed is a valid numeric > 0
-   # * relative_to is RELATIVE_TO_CENTER or RELATIVE_TO_FOCI
+   # * relative_to is CENTER or FOCI
    def valid?
      Motel::normalized?(@dmajx, @dmajy, @dmajz) &&
      Motel::normalized?(@dminx, @dminy, @dminz) &&
@@ -124,7 +127,7 @@ class Elliptical < MovementStrategy
      @e.numeric? && @e >= 0 && @e <= 1 &&
      @p.numeric? && @p > 0 &&
      @speed.numeric? && @speed > 0 &&
-     [RELATIVE_TO_CENTER, RELATIVE_TO_FOCI].include?(@relative_to)
+     [CENTER, FOCI].include?(@relative_to)
    end
 
    # Implementation of {Motel::MovementStrategy#move}
@@ -208,7 +211,7 @@ class Elliptical < MovementStrategy
     # return the coordinates of the center position
     # C = (-direction_major) * le
     def center
-      return 0,0,0 if relative_to == RELATIVE_TO_CENTER
+      return 0,0,0 if relative_to == CENTER
 
       a,b = intercepts
       le  = linear_eccentricity
@@ -222,7 +225,7 @@ class Elliptical < MovementStrategy
     # return the coordinates of a focus position
     # F = direction_major * le
     def focus
-      return 0,0,0 if relative_to == RELATIVE_TO_FOCI
+      return 0,0,0 if relative_to == FOCI
 
       a,b = intercepts
       le  = linear_eccentricity
@@ -253,7 +256,7 @@ class Elliptical < MovementStrategy
       # rotate it into 2d cartesian coordiante system
       aa = axis_rotation
       aa[0] *= -1
-      nx,ny,nz = Motel.rotate(nx, ny, nz, *aa)
+      nx,ny,nz = Motel.rotate(nx, ny, nz, *aa) unless aa[0] == 0
       # assert nz == 0
 
       # calculate theta
@@ -279,7 +282,7 @@ class Elliptical < MovementStrategy
 
       # rotate it into 3d space
       aa = axis_rotation
-      nx,ny,nz = Motel.rotate(x, y, 0, *aa)
+      nx,ny,nz = aa[0] == 0 ? [x,y,0] : Motel.rotate(x, y, 0, *aa)
 
       # center coordinate
       cX,cY,cZ = center
@@ -312,22 +315,21 @@ class Elliptical < MovementStrategy
    # Generate and return a random elliptical movement strategy
    def self.random(args = {})
      dimensions  = args[:dimensions]  || 3
-     relative_to = args[:relative_to] || RELATIVE_TO_CENTER
+     relative_to = args[:relative_to] || CENTER
 
-     min_e = min_l = min_s = 0
+     min_e = min_p = min_s = 0
      min_e = args[:min_e] if args.has_key?(:min_e)
-     min_l = args[:min_l] if args.has_key?(:min_l)
+     min_p = args[:min_p] if args.has_key?(:min_p)
      min_s = args[:min_s] if args.has_key?(:min_s)
 
-     max_e = max_l = max_s = nil
+     max_e = max_p = max_s = nil
      max_e = args[:max_e] if args.has_key?(:max_e)
-     max_l = args[:max_l] if args.has_key?(:max_l)
+     max_p = args[:max_p] if args.has_key?(:max_p)
      max_s = args[:max_s] if args.has_key?(:max_s)
 
-     # multiply by 10000 to ensure floats < 1 for e + speed
-     eccentricity      = max_e.nil? ? rand : ((min_e*10000 + rand(max_e*10000 - min_e*10000))/10000)
-     speed             = max_s.nil? ? rand : ((min_s*10000 + rand(max_s*10000 - min_s*10000))/10000)
-     semi_latus_rectum = max_l.nil? ? rand : (min_l + rand(max_l - min_l))
+     eccentricity      = min_e + (max_e.nil? ? rand : rand((max_e - min_e)*10000)/10000)
+     speed             = min_s + (max_s.nil? ? rand : rand((max_s - min_s)*10000)/10000)
+     semi_latus_rectum = min_p + (max_p.nil? ? rand : rand((max_p - min_p)))
 
      axis = Motel::random_axis :dimensions => dimensions
      dmajx, dmajy, dmajz = *axis[0]

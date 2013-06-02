@@ -31,6 +31,15 @@ class Location
    # ID of location's parent
    attr_accessor :parent_id
 
+   # Set location's parent_id
+   #
+   # (nullifies parent if changing)
+   # @param [Integer] parent_id new parent id to set
+   def parent_id=(parent_id)
+     @parent = nil if parent_id != @parent_id
+     @parent_id = parent_id
+   end
+
    # Coordinates relative to location's parent
    attr_accessor :x, :y, :z
 
@@ -46,7 +55,7 @@ class Location
    # @param [Motel::Location] new_parent new parent to set on location
    def parent=(new_parent)
      @parent = new_parent
-     @parent_id = @parent.id unless @parent.nil?
+     @parent_id = @parent.nil? ? nil : @parent.id
    end
 
    # Unit vector corresponding to Orientation of the location
@@ -74,6 +83,10 @@ class Location
    # should restrict modification of this location
    attr_accessor :restrict_modify
 
+   # Time the location was last moved.
+   # Used internally in the motel subsystem
+   attr_accessor :last_moved_at
+
   # Location initializer
   # @param [Hash] args hash of options to initialize location with
   # @option args [Integer] :id,'id' id to assign to the location
@@ -91,7 +104,7 @@ class Location
   # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
   # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
    def initialize(args = {})
-      @x, @y, @z = *(args[:coordinates] || args['coordinates'] || [0,0,0])
+      @x, @y, @z = *(args[:coordinates] || args['coordinates'] || [])
 
       @orientation_x, @orientation_y, @orientation_z =
         *(args[:orientation] || args['orientation'] || [])
@@ -99,10 +112,10 @@ class Location
       # default to the stopped movement strategy
       attr_from_args args,
         :movement_strategy => MovementStrategies::Stopped.instance,
-        :callbacks         => Hash.new([]),
+        :callbacks         => Hash.new { |h,k| h[k] = [] },
         :children          => [],
-        :parent_id         => nil,
         :parent            => nil,
+        :parent_id         => nil,
         :id                => nil,
         :x                 => @x,
         :y                 => @y,
@@ -111,14 +124,17 @@ class Location
         :orientation_y     => @orientation_y,
         :orientation_z     => @orientation_z,
         :restrict_view     => true,
-        :retrict_modify    => true
+        :restrict_modify   => true,
+        :last_moved_at     => nil
+
+      self.last_moved_at = Time.parse(self.last_moved_at) if self.last_moved_at.is_a?(String)
 
       # no parsing errors will be raised (invalid conversions will be set to 0),
       # TODO use alternate conversions / raise error ?
       [:@x, :@y, :@z,
        :@orientation_x, :@orientation_y, :@orientation_z].each { |p|
         v = self.instance_variable_get(p)
-        self.instance_variable_set(p, v.to_f)
+        self.instance_variable_set(p, v.to_f) unless v.nil?
       }
    end
 
@@ -129,7 +145,7 @@ class Location
       update_from(location, :x, :y, :z,
                             :orientation_x, :orientation_y, :orientation_z,
                             :movement_strategy, :parent, :parent_id,
-                            :restrict_view, :restrict_modify)
+                            :restrict_view, :restrict_modify, :last_moved_at)
    end
 
    # Validate the location's properties
@@ -144,8 +160,8 @@ class Location
    def valid?
      !@id.nil? &&
 
-     [@x, @y, @z, @orientation_x, @orientation_y, @orientation_z].all? { |i|
-       i.numeric? } &&
+     [@x, @y, @z, @orientation_x,@orientation_y, @orientation_z].
+       all? { |i| i.numeric? } &&
 
      @movement_strategy.kind_of?(MovementStrategy) &&
      @movement_strategy.valid?
@@ -154,14 +170,14 @@ class Location
    # Invoke callbacks for the specified event
    def raise_event(evnt, *args)
      @callbacks[evnt].each { |cb|
-       cb.invoke *args
+       cb.invoke *args if cb.should_invoke? *args
      } if @callbacks.has_key?(evnt)
    end
 
    # Return this location's coordinates in an array
    #
    # @return [Array<Float,Float,Float>] array containing this 
-   # location's x,y,z coordiantes
+   # location's x,y,z coordinates
    def coordinates
      [@x, @y, @z]
    end
@@ -300,14 +316,17 @@ class Location
           :parent_id => parent_id,
           :children  => children,
           :movement_strategy => movement_strategy,
-          :callbacks => callbacks}
+          :callbacks => callbacks,
+          :last_moved_at => last_moved_at}
      }.to_json(*a)
    end
 
    # Convert location to human readable string and return it
    def to_s
      s = "location-#{id}(@#{parent_id}:"
-     s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
+     if coordinates != [nil,nil,nil]
+       s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
+     end
      s += " via #{movement_strategy}"
      s += ")"
      s
@@ -317,6 +336,11 @@ class Location
    def self.json_create(o)
      loc = new(o['data'])
      return loc
+   end
+
+   # Create a minimal valid location with id
+   def self.basic(id)
+     Location.new :coordinates => [0,0,0], :orientation => [0,0,1], :id => id
    end
 
    # Create a random location and return it.
@@ -348,10 +372,10 @@ class Location
      ny = rand(2) == 0 ? -1 : 1
      nz = rand(2) == 0 ? -1 : 1
 
-     loc = Location.new
-     loc.x = (max_x.nil? ? rand : min_x + rand(max_x - min_x)) * nx
-     loc.y = (max_y.nil? ? rand : min_y + rand(max_y - min_y)) * ny
-     loc.z = (max_z.nil? ? rand : min_z + rand(max_z - min_z)) * nz
+     loc = Location.new :orientation => [0,0,1]
+     loc.x = ((min_x.nil? ? 0 : min_x) + (max_x.nil? ? rand : rand(max_x - min_x))) * nx
+     loc.y = ((min_y.nil? ? 0 : min_y) + (max_y.nil? ? rand : rand(max_y - min_y))) * ny
+     loc.z = ((min_z.nil? ? 0 : min_z) + (max_z.nil? ? rand : rand(max_z - min_z))) * nz
 
      return loc
    end

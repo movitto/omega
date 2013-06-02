@@ -45,8 +45,6 @@ class Linear < MovementStrategy
 
      # normalize direction vector
      @dx, @dy, @dz = Motel::normalize(@dx, @dy, @dz)
-     raise InvalidMovementStrategy, 
-       "linear movement strategy not valid" unless valid?
    end
 
    # Return boolean indicating if this movement strategy is valid
@@ -72,7 +70,6 @@ class Linear < MovementStrategy
 
      RJR::Logger.debug \
        "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
-                  
 
      # calculate distance and update x,y,z accordingly
      distance = speed * elapsed_seconds
@@ -81,7 +78,7 @@ class Linear < MovementStrategy
      loc.y += distance * dy
      loc.z += distance * dz
 
-     rotate(location, elapsed_seconds)
+     rotate(loc, elapsed_seconds)
    end
 
    # Convert movement strategy to json representation and return it

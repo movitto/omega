@@ -5,6 +5,11 @@
 
 class Object
   def numeric?
+    self.kind_of?(Numeric)
+  end
+
+  def numeric_string?
+    self.kind_of?(String) &&
     Float(self) != nil rescue false
   end
 
@@ -24,6 +29,7 @@ class Object
 
       end
     }
+    # TODO raise error if args has key not in params ? (optional?)
   end
 
   def update_from(old, *attrs)

@@ -52,7 +52,7 @@ def cb_from_args(rjr_method, args)
                               
   when 'motel::track_stops'
     Callbacks::Stopped.new :rjr_event   => 'motel::location_stopped'.
-                           :event_type  => :stops
+                           :event_type  => :stopped
 
   #when :strategy
   # TODO changed strategy callback

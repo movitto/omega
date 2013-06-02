@@ -4,269 +4,293 @@
 # See COPYING for the License of this software
 
 require 'spec_helper'
+require 'motel/location'
+require 'motel/movement_strategies/linear'
 
-Elliptical = Motel::MovementStrategies::Elliptical
-
-describe "Motel::MovementStrategies::Elliptical" do
-
-  it "should successfully accept and set elliptical params" do
-     elliptical = Elliptical.new :relative_to => Elliptical::RELATIVE_TO_CENTER, :speed => 5,
-                                 :eccentricity => 0.5, :semi_latus_rectum => 10,
-                                 :direction_major_x => 1, :direction_major_y => 3,  :direction_major_z => 2,
-                                 :direction_minor_x => 3, :direction_minor_y => -1, :direction_minor_z => 0
-                                 
-     # the orthogonal direction vectors get normalized                                  
-     (elliptical.direction_major_x - 0.267261241912424).abs.should < CLOSE_ENOUGH
-     (elliptical.direction_major_y - 0.801783725737273).abs.should < CLOSE_ENOUGH
-     (elliptical.direction_major_z - 0.534522483824849).abs.should < CLOSE_ENOUGH
-     (elliptical.direction_minor_x - 0.948683298050514).abs.should < CLOSE_ENOUGH
-     (elliptical.direction_minor_y - -0.316227766016838).abs.should < CLOSE_ENOUGH
-     elliptical.direction_minor_z.should == 0
-
-     elliptical.speed.should == 5
-     elliptical.relative_to.should == Elliptical::RELATIVE_TO_CENTER
-     elliptical.eccentricity.should == 0.5
-     elliptical.semi_latus_rectum.should == 10
+module Motel::MovementStrategies
+describe Elliptical do
+  describe "#dmaj" do
+    it "returns major axis direction vector" do
+      e = Elliptical.new :dmajx => 0, :dmajy => 0, :dmajz => -1
+      e.dmaj.should == [0,0,-1]
+    end
   end
 
-  it "should successfully accept and set direction vectors in combined form" do
-    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]],
-                                :e => 0.5, :p => 10, :speed => 5
-    elliptical.direction_major_x.should == 1
-    elliptical.direction_major_y.should == 0
-    elliptical.direction_major_z.should == 0
-    elliptical.direction_minor_x.should == 0
-    elliptical.direction_minor_y.should == 1
-    elliptical.direction_minor_z.should == 0
-
-    elliptical = Elliptical.new :direction_major => [0,0,1],
-                                :direction_minor => [0,1,0],
-                                :e => 0.5, :p => 10, :speed => 5
-    elliptical.direction_major_x.should == 0
-    elliptical.direction_major_y.should == 0
-    elliptical.direction_major_z.should == 1
-    elliptical.direction_minor_x.should == 0
-    elliptical.direction_minor_y.should == 1
-    elliptical.direction_minor_z.should == 0
-
-    elliptical = Elliptical.new :direction => [[1,0,0],[0,1,0]],
-                                :direction_major => [0,1,0],
-                                :direction_minor_x => 1,
-                                :direction_minor_y => 0,
-                                :e => 0.5, :p => 10, :speed => 5
-    elliptical.direction_major_x.should == 0
-    elliptical.direction_major_y.should == 1
-    elliptical.direction_major_z.should == 0
-    elliptical.direction_minor_x.should == 1
-    elliptical.direction_minor_y.should == 0
-    elliptical.direction_minor_z.should == 0
+  describe "#dmin" do
+    it "returns minor axis direction vector" do
+      e = Elliptical.new :dminx => 0, :dminy => 0, :dminz => -1
+      e.dmin.should == [0,0,-1]
+    end
   end
 
-  it "should default to standard cartesian direction axis" do
-     elliptical = Elliptical.new :e => 0.5, :p => 10, :speed => 5
-     elliptical.direction_major_x.should == 1
-     elliptical.direction_major_y.should == 0
-     elliptical.direction_major_z.should == 0
-     elliptical.direction_minor_x.should == 0
-     elliptical.direction_minor_y.should == 1
-     elliptical.direction_minor_z.should == 0
+  describe "#direction" do
+    it "returns direction" do
+      e = Elliptical.new :dmajx => 0, :dmajy => 0, :dmajz => -1,
+                         :dminx => 0, :dminy => 1, :dminz =>  0
+      e.direction.should == [0,0,-1,0,1,0]
+    end
   end
 
-  it "should raise exception if direction vectors are not orthogonal" do
-     lambda { 
-       elliptical = Elliptical.new :direction_major_x => 0.75, :direction_major_y => -0.33,  :direction_major_z => -0.21,
-                                   :direction_minor_x => -0.41, :direction_minor_y => 0, :direction_minor_z => 0.64,
-                                   :e => 0.5, :p => 10, :speed => 5
-     }.should raise_error(Motel::InvalidMovementStrategy, "elliptical movement strategy not valid")
+  describe "#initialize" do
+    it "sets defaults" do
+      e = Elliptical.new
+      e.direction.should == [1,0,0,0,1,0]
+    end
+
+    it "sets attributes" do
+      e = Elliptical.new :relative_to => Elliptical::CENTER,
+                         :speed => 5,
+                         :e => 0.5, :p => 10,
+                         :dmajx => 1, :dmajy =>  3, :dmajz => 2,
+                         :dminx => 3, :dminy => -1, :dminz => 0
+                                  
+      # the orthogonal direction vectors get normalized                                  
+      e.dmajx.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.267261241912424)
+      e.dmajy.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.801783725737273)
+      e.dmajz.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.534522483824849)
+      e.dminx.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.948683298050514)
+      e.dminy.should be_within(OmegaTest::CLOSE_ENOUGH).of(-0.316227766016838)
+      e.dminz.should == 0
+
+      e.speed.should == 5
+      e.relative_to.should == Elliptical::CENTER
+      e.e.should == 0.5
+      e.p.should == 10
+    end
+
+    it "accepts direction" do
+      e = Elliptical.new :direction => [[-1,0,0],[0,-1,0]]
+      e.direction.should == [-1,0,0,0,-1,0]
+
+      e = Elliptical.new :direction => [-1,0,0,0,-1,0]
+      e.direction.should == [-1,0,0,0,-1,0]
+
+      e = Elliptical.new :dmaj => [0,0,-1],
+                         :dmin => [0,-1,0]
+      e.direction.should == [0,0,-1,0,-1,0]
+
+      e = Elliptical.new :direction => [[-1,0,0],[0,-1,0]],
+                         :dmaj => [0,1,0],
+                         :dminx => 1,
+                         :dminy => 0
+      e.direction.should == [0,1,0,1,0,0]
+    end
+
+    it "normalizes directions" do
+      e = Elliptical.new :direction => [[10,0,0],[0,-5,0]]
+      e.direction.should == [1,0,0,0,-1,0]
+    end
   end
 
-  it "should return bool indicateing validity of movement strategy" do
-     elliptical = Elliptical.new :relative_to => Elliptical::RELATIVE_TO_CENTER,
-                                 :speed       => 5,
-                                 :semi_latus_rectum => 100,
-                                 :eccentricity => 0.5
-     elliptical.valid?.should be_true
+  describe "#valid?" do
+    before(:each) do
+      # minimum valid attributes
+      @valid = Elliptical.new :relative_to => Elliptical::CENTER,
+                              :speed => 5, :p => 100, :e => 0.5
+    end
 
-     # not normalized direction vector
-     elliptical.direction_major_x = 50
-     elliptical.valid?.should be_false
-     elliptical.direction_major_x = 1
+    context "dmaj is not normalized" do
+      it "returns false" do
+        @valid.dmajx = 10
+        @valid.should_not be_valid
+      end
+    end
 
-     # not normalized direction vector
-     elliptical.direction_minor_x = 50
-     elliptical.valid?.should be_false
-     elliptical.direction_minor_x = 0
+    context "dmin is not normalized" do
+      it "returns false" do
+        @valid.dminy = -20
+        @valid.should_not be_valid
+      end
+    end
 
-     # non orthogonal direction vectors
-     elliptical.direction_major_x = 0
-     elliptical.direction_major_y = 1
-     elliptical.valid?.should be_false
-     elliptical.direction_major_x = 1
-     elliptical.direction_major_y = 0
+    context"axis' are not orthogonal" do
+      it "returns false" do
+        @valid.dmajx = -1
+        @valid.dminx = -1
+        @valid.dminy =  0
+        @valid.should_not be_valid
+      end
+    end
 
-     elliptical.e = 'foobar'
-     elliptical.valid?.should be_false
+    context "eccentricity not valid" do
+      it "returns false" do
+        @valid.e = 'foobar'
+        @valid.should_not be_valid
 
-     elliptical.e = 5
-     elliptical.valid?.should be_false
-     elliptical.e = 0.5
+        @valid.e = 5
+        @valid.should_not be_valid
+      end
+    end
 
-     elliptical.semi_latus_rectum = 'foobar'
-     elliptical.valid?.should be_false
+    context "semi latus rectum not valid" do
+      it "returns false" do
+        @valid.p = 'foobar'
+        @valid.should_not be_valid
 
-     elliptical.semi_latus_rectum = -10
-     elliptical.valid?.should be_false
-     elliptical.semi_latus_rectum = 100
+        @valid.p = -10
+        @valid.should_not be_valid
+      end
+    end
 
-     elliptical.speed = 'foobar'
-     elliptical.valid?.should be_false
+    context "speed not valid" do
+      it "returns false" do
+        @valid.speed = 'foobar'
+        @valid.should_not be_valid
 
-     elliptical.speed = -10
-     elliptical.valid?.should be_false
-     elliptical.speed = 5
+        @valid.speed = -10
+        @valid.should_not be_valid
+      end
+    end
 
-     elliptical.relative_to = 'fooz'
-     elliptical.valid?.should be_false
-     elliptical.relative_to = Elliptical::RELATIVE_TO_FOCI
+    context "relative to not valid" do
+      it "return false" do
+        @valid.relative_to = 'fooz'
+        @valid.should_not be_valid
+      end
+    end
 
-     elliptical.valid?.should be_true
+    it "returns true" do
+      @valid.should be_valid
+    end
   end
 
+  describe "#move" do
+    context "elliptical is invalid" do
+      it "does not move location" do
+        elliptical = Elliptical.new
+        l = Motel::Location.new
 
-  it "should move location correctly" do
-     elliptical = Elliptical.new(:step_delay        => 5,
-                                 :relative_to       => Elliptical::RELATIVE_TO_CENTER,
-                                 :speed             => 1.57,
-                                 :eccentricity      => 0, # circle
-                                 :semi_latus_rectum => 1,
-                                 :direction_major_x => 1,
-                                 :direction_major_y => 0,
-                                 :direction_major_z => 0,
-                                 :direction_minor_x => 0,
-                                 :direction_minor_y => 1,
-                                 :direction_minor_z => 0)
+        lambda {
+          elliptical.move l, 1
+        }.should_not change(l, :coordinates)
+      end
+    end
 
-     parent   = Motel::Location.new
-     x = 1
-     y = z = 0
-     location = Motel::Location.new(:parent => parent,
-                             :movement_strategy => elliptical,
-                             :x => x, :y => y, :z => z)
+    it "moves location along elliptical path by speed * elapsed_time" do
+      e = Elliptical.new(:step_delay        => 5,
+                         :relative_to       => Elliptical::CENTER,
+                         :speed             => 1.57,
+                         :e => 0, # circle
+                         :p => 1,
+                         :direction => [1,0,0,0,1,0])
 
-     # move and validate
-     elliptical.move location, 1
-     (0 - location.x).abs.round_to(2).should == 0
-     (1 - location.y).abs.round_to(2).should == 0
-     (0 - location.z).abs.round_to(2).should == 0
+      x,y,z = 1,0,0
+      l = Motel::Location.new(:movement_strategy => e,
+                              :x => x, :y => y, :z => z)
 
-     elliptical.move location, 1
-     (-1 - location.x).abs.round_to(2).should == 0
-     (0  - location.y).abs.round_to(2).should == 0
-     (0  - location.z).abs.round_to(2).should == 0
+      # move and validate
+      e.move l, 1
+      (0 - l.x).abs.round_to(2).should == 0
+      (1 - l.y).abs.round_to(2).should == 0
+      (0 - l.z).abs.round_to(2).should == 0
 
-     elliptical.move location, 1
-     (0  - location.x).abs.round_to(2).should == 0
-     (-1 - location.y).abs.round_to(2).should == 0
-     (0  - location.z).abs.round_to(2).should == 0
+      e.move l, 1
+      (-1 - l.x).abs.round_to(2).should == 0
+      (0  - l.y).abs.round_to(2).should == 0
+      (0  - l.z).abs.round_to(2).should == 0
 
-     elliptical.move location, 1
-     (1  - location.x).abs.round_to(2).should == 0
-     (0 - location.y).abs.round_to(2).should == 0
-     (0  - location.z).abs.round_to(2).should == 0
+      e.move l, 1
+      (0  - l.x).abs.round_to(2).should == 0
+      (-1 - l.y).abs.round_to(2).should == 0
+      (0  - l.z).abs.round_to(2).should == 0
+
+      e.move l, 1
+      (1  - l.x).abs.round_to(2).should == 0
+      (0 - l.y).abs.round_to(2).should == 0
+      (0  - l.z).abs.round_to(2).should == 0
+    end
+
+    # TODO more elliptical path test cases
   end
 
-  it "should not move location if strategy is invalid" do
-     elliptical = Elliptical.new(:step_delay        => 5,
-                                 :relative_to       => Elliptical::RELATIVE_TO_CENTER,
-                                 :speed             => 1.57,
-                                 :eccentricity      => 0,
-                                 :semi_latus_rectum => 100)
+  describe "#to_json" do
+    it "returns elliptical in json format" do
+      m = Elliptical.new :relative_to => Elliptical::CENTER,
+                         :step_delay => 21, :speed => 42, :e => 0.5, :p => 420,
+                         :direction  => [-1,0,0,0,-1,0]
+                         
+      j = m.to_json
+      j.should include('"json_class":"Motel::MovementStrategies::Elliptical"')
+      j.should include('"step_delay":21')
+      j.should include('"speed":42')
+      j.should include('"relative_to":"center"')
+      j.should include('"e":0.5')
+      j.should include('"p":420')
+      j.should include('"dmajx":-1')
+      j.should include('"dmajy":0')
+      j.should include('"dmajz":0')
+      j.should include('"dminx":0')
+      j.should include('"dminy":-1')
+      j.should include('"dminz":0')
+    end
+  end
 
-     parent   = Motel::Location.new
-     location = Motel::Location.new(:parent => parent,
-                             :movement_strategy => elliptical,
-                             :x => 1, :y => 0, :z => 0)
+  describe "#json_create" do
+    it "returns elliptical from json format" do
+      j = '{"data":{"dmajy":0,"speed":42,"dmajz":0,"relative_to":"center","dminx":0,"e":0.5,"dminy":1,"p":420,"step_delay":21,"dminz":0,"dmajx":1},"json_class":"Motel::MovementStrategies::Elliptical"}'
+      m = JSON.parse(j)
 
+      m.class.should == Motel::MovementStrategies::Elliptical
+      m.step_delay.should == 21
+      m.speed.should == 42
+      m.relative_to.should == Elliptical::CENTER
+      m.e.should == 0.5
+      m.p.should == 420
+      m.dmajx.should == 1
+      m.dmajy.should == 0
+      m.dmajz.should == 0
+      m.dminx.should == 0
+      m.dminy.should == 1
+      m.dminz.should == 0
+    end
+  end
 
-     elliptical.direction_major_x = 5
-     elliptical.valid?.should be_false
+  describe "#random" do
+    it "returns new random elliptical strategy" do
+      m = Elliptical.random
+      m.should be_an_instance_of(Elliptical)
+      Elliptical.random.should_not eq(m)
+    end
 
-     elliptical.move location, 1
-     location.x.should == 1
-     location.y.should == 0
-     location.z.should == 0
+    context "dimensions specified" do
+      it "restrict axis to specified number of dimensions" do
+        m = Elliptical.random :dimensions => 2
+        m.dmajz.should == 0
+        m.dminz.should == 0
+      end
+    end
+
+    context "relative to" do
+      it "sets relative to on location" do
+        m = Elliptical.random :relative_to => Elliptical::FOCI
+        m.relative_to.should == Elliptical::FOCI
+      end
+    end
+
+    context "min_e/min_l/min_s specified" do
+      it "constrains e/l/s to minimums" do
+        m = Elliptical.random :min_e => 0.3,
+                              :min_p => 90,
+                              :min_s => 10
+        m.e.should >= 0.3
+        m.p.should >= 90
+        m.speed.should >= 10
+      end
+    end
+
+    context "max_e/max_l/max_s specified" do
+      it "constrains e/l/s to maximums" do
+        m = Elliptical.random :max_e => 0.7,
+                              :max_p => 120,
+                              :max_s => 20
+        m.e.should < 0.7
+        m.p.should < 120
+        m.speed.should < 20
+      end
+    end
   end
 
   # TODO test other orbital methods
 
-  it "should be convertable to json" do
-   m = Motel::MovementStrategies::Elliptical.new :relative_to => Motel::MovementStrategies::Elliptical::RELATIVE_TO_CENTER,
-                                                 :step_delay        => 21,
-                                                 :speed             => 42,
-                                                 :eccentricity      => 0.5,
-                                                 :semi_latus_rectum => 420,
-                                                 :direction_major_x => 1,
-                                                 :direction_major_y => 0,
-                                                 :direction_major_z => 0,
-                                                 :direction_minor_x => 0,
-                                                 :direction_minor_y => 1,
-                                                 :direction_minor_z => 0
-    j = m.to_json
-    j.should include('"json_class":"Motel::MovementStrategies::Elliptical"')
-    j.should include('"step_delay":21')
-    j.should include('"speed":42')
-    j.should include('"relative_to":"center"')
-    j.should include('"eccentricity":0.5')
-    j.should include('"semi_latus_rectum":420')
-    j.should include('"direction_major_x":1')
-    j.should include('"direction_major_y":0')
-    j.should include('"direction_major_z":0')
-    j.should include('"direction_minor_x":0')
-    j.should include('"direction_minor_y":1')
-    j.should include('"direction_minor_z":0')
-  end
-
-  it "should be convertable from json" do
-    j = '{"data":{"direction_major_y":0,"speed":42,"direction_major_z":0,"relative_to":"center","direction_minor_x":0,"eccentricity":0.5,"direction_minor_y":1,"semi_latus_rectum":420,"step_delay":21,"direction_minor_z":0,"direction_major_x":1},"json_class":"Motel::MovementStrategies::Elliptical"}'
-    m = JSON.parse(j)
-
-    m.class.should == Motel::MovementStrategies::Elliptical
-    m.step_delay.should == 21
-    m.speed.should == 42
-    m.relative_to.should == "center"
-    m.eccentricity.should == 0.5
-    m.semi_latus_rectum.should == 420
-    m.direction_major_x.should == 1
-    m.direction_major_y.should == 0
-    m.direction_major_z.should == 0
-    m.direction_minor_x.should == 0
-    m.direction_minor_y.should == 1
-    m.direction_minor_z.should == 0
-  end
-
-  it "should permit generating parameterized random elliptical movement strategy" do
-    m = Motel::MovementStrategies::Elliptical.random :dimensions => 2,
-                                                     :relative_to => "foci",
-                                                     :min_e      => 0.3,
-                                                     :max_e      => 0.7,
-                                                     :min_l      => 90,
-                                                     :max_l      => 120,
-                                                     :min_s      => 10,
-                                                     :max_s      => 20
-    m.direction_major_z.should == 0
-    m.direction_minor_z.should == 0
-
-    m.relative_to.should == "foci"
-
-    m.e.should >= 0.3
-    m.e.should < 0.7
-
-    m.p.should >= 90
-    m.p.should < 120
-
-    m.speed.should >= 10
-    m.speed.should < 20
-  end
-
-
-end
+end # describe Elliptical
+end # module Motel::MovementStrategies

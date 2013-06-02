@@ -15,6 +15,8 @@ require 'omega/server/config'
 require 'users/attribute'
 require 'users/session'
 
+require 'motel/movement_strategy'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
@@ -101,7 +103,7 @@ end
 end
 
 module OmegaTest
-  CLOSE_ENOUGH=0.000001
+  CLOSE_ENOUGH=0.00001
 
   class ServerEntity
     attr_accessor :id, :val
@@ -144,6 +146,18 @@ module OmegaTest
     def self.regression ; @regression_invoked ; end
   end
 
+  class MovementStrategy < Motel::MovementStrategy
+     attr_accessor :times_moved
+  
+     def initialize(args = {})
+       @times_moved = 0
+       @step_delay = 1
+     end
+  
+     def move(loc, elapsed_time)
+       @times_moved += 1
+     end
+  end
 end
 
 ######################################
@@ -285,19 +299,5 @@ end
 #end
 #
 #####################################################
-#
-#class TestMovementStrategy < Motel::MovementStrategy
-#   attr_accessor :times_moved
-#
-#   def initialize(args = {})
-#     @times_moved = 0
-#     @step_delay = 1
-#   end
-#
-#   def move(loc, elapsed_time)
-#     @times_moved += 1
-#   end
-#end
-#
 #####################################################
 #
