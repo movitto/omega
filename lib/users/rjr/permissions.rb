@@ -61,7 +61,7 @@ PERMISSION_METHODS = { :add_role => add_role,
 
 end # module Users::RJR
 
-def dispatch_permissions(dispatcher)
+def dispatch_users_rjr_permissions(dispatcher)
   m = Users::RJR::PERMISSION_METHODS
 
   dispatcher.handle 'users::add_role', &m[:add_role]

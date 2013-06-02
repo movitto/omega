@@ -3,6 +3,7 @@
 # Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
 require 'motel/common'
 require 'motel/movement_strategy'
 require 'motel/movement_strategies/rotate'
@@ -64,11 +65,11 @@ class Linear < MovementStrategy
    # Implementation of {Motel::MovementStrategy#move}
    def move(loc, elapsed_seconds)
      unless valid?
-       RJR::Logger.warn "linear movement strategy not valid, not proceeding with move"
+       ::RJR::Logger.warn "linear movement strategy not valid, not proceeding with move"
        return
      end
 
-     RJR::Logger.debug \
+     ::RJR::Logger.debug \
        "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
 
      # calculate distance and update x,y,z accordingly

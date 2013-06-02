@@ -3,6 +3,9 @@
 # Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
+require 'motel/movement_strategy'
+
 module Motel
 module MovementStrategies
 
@@ -62,11 +65,11 @@ class Rotate < MovementStrategy
   # Implementation of {Motel::MovementStrategy#move}
   def move(loc, elapsed_seconds)
     unless valid?
-      RJR::Logger.warn "rotate movement strategy (#{self.to_s}) not valid, not proceeding with move"
+      ::RJR::Logger.warn "rotate movement strategy (#{self.to_s}) not valid, not proceeding with move"
       return
     end
 
-    RJR::Logger.debug "moving location #{loc.id} via rotate movement strategy #{dtheta}/#{dphi}"
+    ::RJR::Logger.debug "moving location #{loc.id} via rotate movement strategy #{dtheta}/#{dphi}"
     rotate(loc, elapsed_seconds)
   end
 

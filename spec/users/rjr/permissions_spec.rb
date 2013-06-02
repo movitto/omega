@@ -151,16 +151,16 @@ module Users::RJR
 
   end # describe #add_privilege
 
-  describe "#dispatch_permissions" do
+  describe "#dispatch_users_rjr_permissions" do
     it "adds users::add_role to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_permissions(d)
+      dispatch_users_rjr_permissions(d)
       d.handlers.keys.should include("users::add_role")
     end
 
     it "adds users::add_privilege to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_permissions(d)
+      dispatch_users_rjr_permissions(d)
       d.handlers.keys.should include("users::add_privilege")
     end
   end

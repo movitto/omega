@@ -8,6 +8,7 @@ require 'motel/errors'
 require 'motel/movement_strategy'
 
 require 'omega/common'
+require 'rjr/common'
 
 module Motel
 module MovementStrategies
@@ -134,19 +135,19 @@ class Elliptical < MovementStrategy
    def move(loc, elapsed_seconds)
      # make sure this movement strategy is valid
      unless valid?
-        RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
+        ::RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
         return
      end
 
      # make sure location is on ellipse
      unless location_valid? loc
         cx,cy,cz = closest_coordinates loc
-        RJR::Logger.warn "location #{loc} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
+        ::RJR::Logger.warn "location #{loc} not on ellipse, adjusting to closest location #{cx},#{cy},#{cz} before moving"
         # FIXME raise error if cx,cy,cz is nil
         loc.x,loc.y,loc.z = cx,cy,cz
      end
 
-     RJR::Logger.debug "moving location #{loc.id} via elliptical movement strategy"
+     ::RJR::Logger.debug "moving location #{loc.id} via elliptical movement strategy"
 
      # calculate distance moved and update x,y,z accordingly
      distance = speed * elapsed_seconds

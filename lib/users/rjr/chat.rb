@@ -88,7 +88,7 @@ CHAT_METHODS = { :send_message          => send_message,
 
 end # module Users::RJR
 
-def dispatch_chat(dispatcher)
+def dispatch_users_rjr_chat(dispatcher)
   m = Users::RJR::CHAT_METHODS
   dispatcher.handle 'users::send_message',          &m[:send_message]
   dispatcher.handle 'users::subscribe_to_messages', &m[:subscribe_to_messages]

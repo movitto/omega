@@ -105,22 +105,22 @@ module Users::RJR
 
   end # describe #get_messages
 
-  describe "#dispatch_chat" do
+  describe "#dispatch_users_rjr_chat" do
     it "adds users::send_message to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_chat(d)
+      dispatch_users_rjr_chat(d)
       d.handlers.keys.should include("users::send_message")
     end
 
     it "adds users::get_messages to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_chat(d)
+      dispatch_users_rjr_chat(d)
       d.handlers.keys.should include("users::get_messages")
     end
 
     it "adds users::subscribe_to_messages to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_chat(d)
+      dispatch_users_rjr_chat(d)
       d.handlers.keys.should include("users::subscribe_to_messages")
     end
   end

@@ -66,7 +66,7 @@ SESSION_METHODS = { :login  => login,
 
 end # module Users::RJR
 
-def dispatch_session(dispatcher)
+def dispatch_users_rjr_session(dispatcher)
   m = Users::RJR::SESSION_METHODS
   dispatcher.handle 'users::login',  &m[:login]
   dispatcher.handle 'users::logout', &m[:logout]

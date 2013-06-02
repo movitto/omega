@@ -167,16 +167,16 @@ module Users::RJR
     end
   end # describe #create_role
 
-  describe "#dispatch_create" do
+  describe "#dispatch_users_rjr_create" do
     it "adds users::create_user to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_create(d)
+      dispatch_users_rjr_create(d)
       d.handlers.keys.should include("users::create_user")
     end
 
     it "adds users::create_role to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_create(d)
+      dispatch_users_rjr_create(d)
       d.handlers.keys.should include("users::create_role")
     end
   end

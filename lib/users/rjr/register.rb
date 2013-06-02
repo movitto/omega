@@ -79,7 +79,7 @@ REGISTER_METHODS = { :register => register,
 
 end # module Users::RJR
 
-def dispatch_register(dispatcher)
+def dispatch_users_rjr_register(dispatcher)
   m = Users::RJR::REGISTER_METHODS
   dispatcher.handle 'users::register',         &m[:register]
   dispatcher.handle 'users::confirm_register', &m[:confirm_register]

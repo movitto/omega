@@ -59,34 +59,35 @@ module Users::RJR
     it "clears chat messages"
   end
 
-  describe "#dispatch_init" do
+  describe "#dispatch_users_rjr_init" do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
       @d = ::RJR::Dispatcher.new
-      @d.add_module('lib/users/rjr') # dispatch_init requires users::login
       @rjr = Object.new.extend(Users::RJR)
     end
 
-    it "dispatches user* in Users::RJR environment" do
-      dispatch_init(@d)
+    it "dispatches users* in Users::RJR environment" do
+      dispatch_users_rjr_init(@d)
       @d.environments.size.should == 1
       @d.environments.first.first.should == /users::.*/
       @d.environments.first.last.should  == Users::RJR
     end
 
+    it "adds users rjr modules to dispatcher"
+
     it "sets dispatcher on node" do
-      dispatch_init(@d)
+      dispatch_users_rjr_init(@d)
       @rjr.node.dispatcher.should == @d
     end
 
     it "sets source_node message header on node" do
-      dispatch_init(@d)
+      dispatch_users_rjr_init(@d)
       @rjr.node.message_headers['source_node'].should == 'users'
     end
 
     it "creates the user" do
-      dispatch_init(@d)
+      dispatch_users_rjr_init(@d)
       Users::RJR.registry.entity(&with_id(Users::RJR.user.id)).should_not be_nil
     end
 
@@ -94,23 +95,23 @@ module Users::RJR
       it "does not raise error" do
         Users::RJR.registry.entities << Users::RJR.user
         lambda{
-          dispatch_init(@d)
+          dispatch_users_rjr_init(@d)
         }.should_not raise_error
       end
     end
 
     it "logs in the user using the node" do
-      #lambda{ # XXX @d.add_module above will have already called dispatch_init
-      #  dispatch_init(@d)
-      #}.should change{Users::RJR.registry.entities.size}.by(2)
+      lambda{ # XXX @d.add_module above will have already called dispatch_init
+        dispatch_users_rjr_init(@d)
+      }.should change{Users::RJR.registry.entities.size}.by(3)
       Users::RJR.registry.
                  entity(&matching{ |s| s.is_a?(Session) &&
-                                        s.user.id == Users::RJR.user.id }).
+                                       s.user.id == Users::RJR.user.id }).
                  should_not be_nil
     end
 
     it "sets session if on node" do
-      dispatch_init(@d)
+      dispatch_users_rjr_init(@d)
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
   end

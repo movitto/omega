@@ -3,6 +3,10 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+
+require 'motel/rjr/init'
+
+module Motel::RJR
 # retrieve locations filtered by args
 get_location = proc { |*args|
   # retrieve locations matching filters specified by args
@@ -22,19 +26,19 @@ get_location = proc { |*args|
 
       l.parent_id == loc.parent_id && l - loc <= d
     }
-  locs = Registry.instance.entities { |e| filters.all? { |f| f.call(e) }}
+  locs = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
   # if id of location to retrieve is specified, only return a single location
-  return_first = args.include?(:with_id)
+  return_first = args.include?('with_id')
   if return_first
     locs = locs.first
 
     # make sure the location was found
-    id = args[args.index(:with_id) + 1]
-    raise DataNotFound, id if locs.nil
+    id = args[args.index('with_id') + 1]
+    raise DataNotFound, id if locs.nil?
 
     # make sure the user has privileges on the specified location
-    require_privilege :any =>
+    require_privilege :registry => user_registry, :any =>
       [{:privilege => 'view', :entity => "location-#{locs.id}"},
        {:privilege => 'view', :entity => 'locations'}] if locs.restrict_view
 
@@ -42,8 +46,9 @@ get_location = proc { |*args|
   else
     locs.reject! { |loc|
       loc.restrict_view &&
-      !check_privilege(:any => [{:privilege => 'view', :entity => "location-#{loc.id}"},
-                                {:privilege => 'view', :entity => 'locations'}])
+      !check_privilege(:registry => user_registry, :any =>
+        [{:privilege => 'view', :entity => "location-#{loc.id}"},
+         {:privilege => 'view', :entity => 'locations'}])
     }
 
   end
@@ -51,7 +56,11 @@ get_location = proc { |*args|
   locs
 }
 
-def dispatch_get(dispatcher)
+GET_METHODS = { :get_location => get_location }
+end
+
+def dispatch_motel_rjr_get(dispatcher)
+  m = Motel::RJR::GET_METHODS
   dispatcher.handle ['motel::get_location', 'motel::get_locations'],
-                                                      &get_location
+                                                  &m[:get_location]
 end

@@ -83,10 +83,10 @@ module Users::RJR
     end
   end # describe #get_entities
 
-  describe "#dispatch_get" do
+  describe "#dispatch_users_rjr_get" do
     it "adds users::get_entities to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_get(d)
+      dispatch_users_rjr_get(d)
       d.handlers.keys.should include("users::get_entities")
     end
   end

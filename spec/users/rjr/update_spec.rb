@@ -90,10 +90,10 @@ module Users::RJR
 
   end # describe "#update_user"
 
-  describe "#dispatch_update" do
+  describe "#dispatch_users_rjr_update" do
     it "adds users::update_user to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_update(d)
+      dispatch_users_rjr_update(d)
       d.handlers.keys.should include("users::update_user")
     end
   end

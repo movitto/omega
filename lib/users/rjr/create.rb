@@ -64,8 +64,9 @@ CREATE_METHODS = { :create_user => create_user,
 
 end # module Users::RJR
 
-def dispatch_create(dispatcher)
+def dispatch_users_rjr_create(dispatcher)
   m = Users::RJR::CREATE_METHODS
   dispatcher.handle 'users::create_user', &m[:create_user]
   dispatcher.handle 'users::create_role', &m[:create_role]
 end
+

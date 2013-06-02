@@ -47,7 +47,7 @@ GET_METHODS = { :get_entities => get_entities  }
 
 end # module Users::RJR
 
-def dispatch_get(dispatcher)
+def dispatch_users_rjr_get(dispatcher)
   m = Users::RJR::GET_METHODS
   dispatcher.handle ['users::get_entity', 'users::get_entities'],
                                                &m[:get_entities]

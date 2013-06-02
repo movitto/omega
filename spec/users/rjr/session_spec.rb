@@ -93,16 +93,16 @@ module Users::RJR
     
   end # describe #logout
 
-  describe "#dispatch_session" do
+  describe "#dispatch_users_rjr_session" do
     it "adds users::login to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_session(d)
+      dispatch_users_rjr_session(d)
       d.handlers.keys.should include("users::login")
     end
 
     it "adds users::logout to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_session(d)
+      dispatch_users_rjr_session(d)
       d.handlers.keys.should include("users::logout")
     end
   end

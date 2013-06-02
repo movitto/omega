@@ -22,7 +22,7 @@ class Registry
   private
 
   def run_location(loc, elapsed)
-    RJR::Logger.debug "runner moving location #{loc}"
+    ::RJR::Logger.debug "runner moving location #{loc}"
 
     old_coords,old_orientation = loc.coordinates,loc.orientation
 
@@ -39,7 +39,7 @@ class Registry
       self.raise_event(:rotation, loc, *old_orientation)
 
     rescue Exception => e
-      RJR::Logger.warn "error running location/callbacks for #{loc.id}: #{e.to_s}"
+      ::RJR::Logger.warn "error running location/callbacks for #{loc.id}: #{e.to_s}"
     end
   end
 
@@ -63,7 +63,7 @@ class Registry
     begin
       self.entities.each { |loc| self.raise_event(:proximity, loc) }
     rescue Exception => e
-      RJR::Logger.warn "error running proximity callbacks: #{e.to_s}"
+      ::RJR::Logger.warn "error running proximity callbacks: #{e.to_s}"
     end
 
     delay

@@ -37,7 +37,7 @@ UPDATE_METHODS = { :update_user => update_user }
 
 end # module Users::RJR
 
-def dispatch_update(dispatcher)
+def dispatch_users_rjr_update(dispatcher)
   m = Users::RJR::UPDATE_METHODS
   dispatcher.handle 'users::update_user', &m[:update_user]
 end

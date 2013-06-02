@@ -105,16 +105,16 @@ module Users::RJR
     end
   end # describe #confirm_register
 
-  describe "#dispatch_register" do
+  describe "#dispatch_users_rjr_register" do
     it "adds users::register to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_register(d)
+      dispatch_users_rjr_register(d)
       d.handlers.keys.should include("users::register")
     end
 
     it "adds users::confirm_register to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_register(d)
+      dispatch_users_rjr_register(d)
       d.handlers.keys.should include("users::confirm_register")
     end
   end

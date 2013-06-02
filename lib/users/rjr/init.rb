@@ -94,10 +94,9 @@ def self.reset
   Users::RJR.registry.clear!
   Users::ChatProxy.clear
 end
-
 end # module Users::RJR
 
-def dispatch_init(dispatcher)
+def dispatch_users_rjr_init(dispatcher)
   # init defaults
   Users::RJR.permenant_users ||= []
 
@@ -105,6 +104,15 @@ def dispatch_init(dispatcher)
   rjr = Object.new.extend(Users::RJR)
   rjr.node.dispatcher = dispatcher
   rjr.node.dispatcher.env /users::.*/, Users::RJR
+  rjr.node.dispatcher.add_module('users/rjr/create')
+  rjr.node.dispatcher.add_module('users/rjr/get')
+  rjr.node.dispatcher.add_module('users/rjr/update')
+  rjr.node.dispatcher.add_module('users/rjr/permissions')
+  rjr.node.dispatcher.add_module('users/rjr/register')
+  rjr.node.dispatcher.add_module('users/rjr/session')
+  rjr.node.dispatcher.add_module('users/rjr/attribute')
+  rjr.node.dispatcher.add_module('users/rjr/chat')
+  rjr.node.dispatcher.add_module('users/rjr/state')
   rjr.node.message_headers['source_node'] = 'users'
 
   # ignore err if user already created

@@ -14,8 +14,10 @@ require 'omega/server/config'
 
 require 'users/attribute'
 require 'users/session'
+require 'users/rjr/init'
 
 require 'motel/movement_strategy'
+require 'motel/rjr/init'
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
@@ -26,15 +28,17 @@ RSpec.configure do |config|
 
   config.before(:each) {
     # setup a node to dispatch requests
-    @n = RJR::Nodes::Local.new
-    @n.dispatcher.add_module('lib/users/rjr')
+    @n = RJR::Nodes::Local.new :node_id => 'server'
+    @n.dispatcher.add_module('users/rjr/init')
 
     # setup a server which to invoke handlers
     @s = Object.new
     @s.extend(Omega::Server::DSL)
     @s.instance_variable_set(:@rjr_node, @n)
+    @s.instance_variable_set(:@rjr_headers, {'source_node' => @n.node_id })
 
     Users::RJR.reset
+    Motel::RJR.reset
   }
 
   config.after(:each) {
@@ -59,8 +63,16 @@ FactoryGirl.define do
     # register custom hook to construct the entity serverside
     before(:create) { |e,i|
       node = RJR::Nodes::Local.new
-      node.dispatcher.add_module('lib/users/rjr')
+      node.dispatcher.add_module('users/rjr/init')
+      node.dispatcher.add_module('motel/rjr/init')
+
+      # temporarily disable permission system
+      o = Users::Registry.user_perms_enabled
+      Users::Registry.user_perms_enabled = false
+
       node.invoke(i.create_method, e)
+
+      Users::Registry.user_perms_enabled = o
     }
 
   end

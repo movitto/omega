@@ -196,16 +196,16 @@ module Users::RJR
 
   end # describe #has_role
 
-  describe "#dispatch_attribute" do
+  describe "#dispatch_users_rjr_attribute" do
     it "adds users::update_attribute to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_attribute(d)
+      dispatch_users_rjr_attribute(d)
       d.handlers.keys.should include("users::update_attribute")
     end
 
     it "adds users::has_attribute? to dispatcher" do
       d = ::RJR::Dispatcher.new
-      dispatch_attribute(d)
+      dispatch_users_rjr_attribute(d)
       d.handlers.keys.should include("users::has_attribute?")
     end
   end

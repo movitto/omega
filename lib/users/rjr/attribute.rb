@@ -80,7 +80,7 @@ ATTRIBUTE_METHODS = { :update_attribute  => update_attribute,
 
 end # module Users::RJR
 
-def dispatch_attribute(dispatcher)
+def dispatch_users_rjr_attribute(dispatcher)
   m = Users::RJR::ATTRIBUTE_METHODS
   dispatcher.handle 'users::update_attribute', &m[:update_attribute]
   dispatcher.handle 'users::has_attribute?',   &m[:has_attribute]

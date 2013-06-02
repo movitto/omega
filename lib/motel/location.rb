@@ -129,6 +129,14 @@ class Location
 
       self.last_moved_at = Time.parse(self.last_moved_at) if self.last_moved_at.is_a?(String)
 
+      # convert string callback keys into symbols
+      callbacks.keys.each { |k|
+        if k.is_a?(String)
+          callbacks[k.intern] = callbacks[k]
+          callbacks.delete(k)
+        end
+      }
+
       # no parsing errors will be raised (invalid conversions will be set to 0),
       # TODO use alternate conversions / raise error ?
       [:@x, :@y, :@z,
@@ -324,7 +332,7 @@ class Location
    # Convert location to human readable string and return it
    def to_s
      s = "location-#{id}(@#{parent_id}:"
-     if coordinates != [nil,nil,nil]
+     if coordinates.size == 3 && coordinates.all?{ |c| c.numeric? }
        s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
      end
      s += " via #{movement_strategy}"

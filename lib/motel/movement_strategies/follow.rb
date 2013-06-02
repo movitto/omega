@@ -5,6 +5,7 @@
 
 require 'motel/common'
 require 'motel/movement_strategy'
+require 'rjr/common'
 
 module Motel
 module MovementStrategies
@@ -73,22 +74,22 @@ class Follow < MovementStrategy
    # Implementation of {Motel::MovementStrategy#move}
    def move(loc, elapsed_seconds)
      unless valid? && !tracked_location.nil?
-       RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
+       ::RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
        return
      end
 
      tl = tracked_location
      unless tl.parent_id == loc.parent_id
-       RJR::Logger.warn "follow movement strategy is set to track location with different parent than the one being moved"
+       ::RJR::Logger.warn "follow movement strategy is set to track location with different parent than the one being moved"
        return
      end
 
-     RJR::Logger.debug "moving location #{loc.id} via follow movement strategy " +
+     ::RJR::Logger.debug "moving location #{loc.id} via follow movement strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
      distance_to_cover  = loc - tl
      if distance_to_cover <= @distance
-       #RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
+       #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
      else

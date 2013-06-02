@@ -22,7 +22,7 @@ STATE_METHODS = { :save_state => save_state, :restore_state => restore_state }
 
 end # module Users::RJR
 
-def dispatch_state(dispatcher)
+def dispatch_users_rjr_state(dispatcher)
   m = Users::RJR::STATE_METHODS
   dispatcher.handle "users::save_state",    &m[:save_state]
   dispatcher.handle "users::restore_state", &m[:restore_state]
