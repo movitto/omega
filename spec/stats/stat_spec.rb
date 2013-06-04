@@ -4,75 +4,112 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'stats/stat'
 
-describe Stats::Stat do
-
-  it "should successfully accept and set stat params" do
-    s = Stats::Stat.new :id => 'stat1', :description => 'test', :generator => :foo
-    s.id.should == 'stat1'
-    s.description.should == 'test'
-    s.generator.should == :foo
+module Stats
+describe Stat do
+  describe "#initialize" do
+    it "sets attributes" do
+      s = Stat.new :id => 'stat1', :description => 'test', :generator => :foo
+      s.id.should == 'stat1'
+      s.description.should == 'test'
+      s.generator.should == :foo
+    end
   end
 
-  it "should generate stat result" do
-    s = Stats::Stat.new :id => 'stat1', :generator => proc { |i| i.should == 5 ; 6 }
-    r = s.generate 5
-    r.stat_id.should == s.id
-    r.stat.should == s
-    r.args.should == [5]
-    r.value.should == 6
+  describe "#generate" do
+    it "invokes generator" do
+      g = proc {}
+      g.should_receive(:call)
+      s = Stat.new :id => 'stat1', :generator => g
+      s.generate
+    end
+
+    it "passes param to generator" do
+      a = nil
+      g = proc { |i| a = i }
+      s = Stat.new :id => 'stat1', :generator => g
+      s.generate 42
+      a.should == 42
+    end
+
+    it "returns new stats result" do
+      g = proc {}
+      s = Stat.new :id => 'stat1', :generator => g
+      r = s.generate
+      r.should be_an_instance_of StatResult
+    end
+
+    it "sets val on result" do
+      g = proc { 42 }
+      s = Stat.new :id => 'stat1', :generator => g
+      r = s.generate
+      r.value.should == 42
+    end
   end
 
-  it "should be convertable to json" do
-    s = Stats::Stat.new :id => 'stat1', :description => 'test'
+  describe "#to_json" do
+    it "returns stat in json format" do
+      s = Stats::Stat.new :id => 'stat1', :description => 'test'
 
-    j = s.to_json
-    j.should include('"json_class":"Stats::Stat"')
-    j.should include('"id":"stat1"')
-    j.should include('"description":"test"')
+      j = s.to_json
+      j.should include('"json_class":"Stats::Stat"')
+      j.should include('"id":"stat1"')
+      j.should include('"description":"test"')
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"json_class":"Stats::Stat","data":{"id":"stat1","description":"test"}}'
-    s = JSON.parse(j)
+  describe "#json_create" do
+    it "returns stat from json format" do
+      j = '{"json_class":"Stats::Stat","data":{"id":"stat1","description":"test"}}'
+      s = JSON.parse(j)
 
-    s.class.should == Stats::Stat
-    s.id.should == 'stat1'
-    s.description.should == 'test'
+      s.class.should == Stats::Stat
+      s.id.should == 'stat1'
+      s.description.should == 'test'
+    end
   end
-end
+end # describe Stat
 
-describe Stats::StatResult do
-  it "should successfully accept and set stat result params" do
-    r = Stats::StatResult.new :stat_id => 'stat1', :stat => :test,
-                              :args => [:fooz], :value => :foo
-    r.stat_id.should == 'stat1'
-    r.stat.should == :test
-    r.args.should == [:fooz]
-    r.value.should == :foo
-  end
-
-  it "should be convertable to json" do
-    s = Stats::Stat.new :id => 'stat1'
-    r = Stats::StatResult.new :stat_id => s.id, :stat => s,
-                              :args => ['fooz'], :value => "foo"
-
-    j = r.to_json
-    j.should include('"json_class":"Stats::StatResult"')
-    j.should include('"stat_id":"stat1"')
-    j.should include('"args":["fooz"]')
-    j.should include('"value":"foo"')
-    j.should include('"json_class":"Stats::Stat"')
-    j.should include('"id":"stat1"')
+describe StatResult do
+  describe "#initialize" do
+    it "sets attributes" do
+      r = StatResult.new :stat_id => 'stat1', :stat => :test,
+                          :args => [:fooz], :value => :foo
+      r.stat_id.should == 'stat1'
+      r.stat.should == :test
+      r.args.should == [:fooz]
+      r.value.should == :foo
+    end
   end
 
-  it "should be convertable from json" do
-    j = '{"json_class":"Stats::StatResult","data":{"stat_id":"stat1","args":["fooz"],"value":"foo"}}'
-    r = JSON.parse(j)
+  describe "#to_json" do
+    it "returns stat result in json format" do
+      s = Stat.new :id => 'stat1'
+      r = StatResult.new :stat_id => s.id, :stat => s,
+                                :args => ['fooz'], :value => "foo"
 
-    r.class.should == Stats::StatResult
-    r.stat_id.should == 'stat1'
-    r.args.should == ['fooz']
-    r.value.should == 'foo'
+      j = r.to_json
+      j.should include('"json_class":"Stats::StatResult"')
+      j.should include('"stat_id":"stat1"')
+      j.should include('"args":["fooz"]')
+      j.should include('"value":"foo"')
+      j.should include('"json_class":"Stats::Stat"')
+      j.should include('"id":"stat1"')
+    end
   end
-end
+
+  describe "#json_create" do
+    it "returns stat result from json format" do
+      j = '{"json_class":"Stats::StatResult","data":{"stat_id":"stat1","args":["fooz"],"value":"foo"}}'
+      r = JSON.parse(j)
+
+      r.class.should == Stats::StatResult
+      r.stat_id.should == 'stat1'
+      r.args.should == ['fooz']
+      r.value.should == 'foo'
+    end
+  end
+
+end # describe #StateResult
+end # module Stats

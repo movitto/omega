@@ -1,4 +1,4 @@
-# A statistic
+# A Statistic
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -27,14 +27,16 @@ class Stat
   end
 
   # Statistic initializer
+  #
   # @param [Hash] args hash of options to initialize stat with
   # @option args [String] :id,'id' id to assign to the stat
   # @option args [String] :description,'description' description to assign to the stat
   # @option args [Callable] :generator,'generator' generator to assign to the stat
   def initialize(args = {})
-    @id          = args[:id]          || args['id']          || nil
-    @description = args[:description] || args['description'] || nil
-    @generator   = args[:generator]   || args['generator']   || nil
+    attr_from_args args,
+                   :id => nil,
+                   :description => nil,
+                   :generator   => nil
   end
 
   # Convert stat to json representation and return it
@@ -72,10 +74,11 @@ class StatResult
   # @option args [String] :stat_id,'stat_id' stat_id to assign to the result
   # @option args [Object] :value,'value' value to assign to the result
   def initialize(args = {})
-    @stat_id   = args[:stat_id]   || args['stat_id']   || nil
-    @stat      = args[:stat]      || args['stat']      || nil
-    @args      = args[:args]      || args['args']      || []
-    @value     = args[:value]     || args['value']     || nil
+    attr_from_args args,
+                   :stat_id => nil,
+                   :stat    => nil,
+                   :args    =>  [],
+                   :value   => nil
   end
 
   def to_s

@@ -107,6 +107,18 @@ module Motel::RJR
         ls.size.should == 1
         ls.first.id.should == l1.id
       end
+
+      context "distance is invalid" do
+        it "raises a ValidationError"
+      end
+
+      context "'of' is invalid" do
+        it "raises a ValidationError"
+      end
+
+      context "other location is not a Location" do
+        it "raises a ValidationError"
+      end
     end
   end # describe #get_entities
 

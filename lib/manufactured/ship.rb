@@ -395,7 +395,7 @@ class Ship
     @mining_quantity      = Ship.base_mining_quantity(@type)
     @mining_distance      = Ship.base_mining_distance(@type)
     @max_shield_level     = Ship.base_shield_level(@type)
-    @shield_refresh_rate  = Ship.base_sheild_refresh_rate(@type)
+    @shield_refresh_rate  = Ship.base_shield_refresh_rate(@type)
     @current_shield_level = args[:current_shield_level]   ||
                             args['current_shield_level']  || 0
 
