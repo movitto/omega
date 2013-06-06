@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'users/common'
+require 'omega/common'
 
 module Users
 
@@ -124,9 +125,9 @@ end
 # Class methods are invoked by subclasses to define their context
 class AttributeClass
   # Return new attribute initialized for the specified class
-  def self.create_attribute(type_id)
-    ac = self.subclasses.find { |ac| ac.id == type_id.intern }
-    Attribute.new(:type => ac)
+  def self.create_attribute(attr_args = {})
+    ac = self
+    Attribute.new(attr_args.merge({:type => ac}))
   end
 
   # id of the attribute class

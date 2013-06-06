@@ -214,9 +214,14 @@ describe AttributeClass do
   end
 
   describe "#create_attribute" do
-    it "creates new instance of specified type" do
-      a = Users::AttributeClass.create_attribute OmegaTest::Attribute.id
+    it "creates new instance of attribute class" do
+      a = OmegaTest::Attribute.create_attribute
       a.type.should == OmegaTest::Attribute
+    end
+
+    it "passes args to attribute intializer" do
+      a = OmegaTest::Attribute.create_attribute :level => 10
+      a.level.should == 10
     end
   end
 

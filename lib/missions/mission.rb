@@ -121,10 +121,10 @@ class Mission
   end
 
   # Boolean indicating if user was victorious in mission
-  attr_reader :victorious
+  attr_accessor :victorious
 
   # Boolean indicating if user was failed mission
-  attr_reader :failed
+  attr_accessor :failed
 
   # Retuns boolean indicating if mission is active, eg
   # assigned, not expired and not victorious / failed

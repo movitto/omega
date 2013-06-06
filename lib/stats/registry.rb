@@ -80,26 +80,28 @@ with_most_proc = proc { |entity_type, num_to_return|
               }.sort_by { |k,v| v }.reverse.
               collect { |e| e.first }
 
-  when "kills" then
-  when "times_killed" then
-  when "resources_collected" then
-  when "loot_collected" then
-  when "distance_moved" then
+  when "kills",
+       "times_killed",
+       "resources_collected",
+       "loot_collected",
+       "distance_moved"
     attr_map = {
       'kills'               => Users::Attributes::ShipsUserDestroyed.id,
       'times_killed'        => Users::Attributes::UserShipsDestroyed.id,
       'resources_collected' => Users::Attributes::ResourcesCollected.id,
-      'loot_collect'        => Users::Attributes::LootCollected.id,
+      'loot_collected'      => Users::Attributes::LootCollected.id,
       'distance_moved'      => Users::Attributes::DistanceTravelled.id
     }
+    uattr = attr_map[entity_type]
     # TODO limit request to just return users w/ the specified attribute
     user_ids =
       Stats.node.invoke('users::get_entities').
+            select  { |u| u.has_attribute?(uattr) }.compact.
             sort_by { |u|
               u.attributes.find { |a|
-                a.type.id == attr_map[entity_type]
+                a.type.id == uattr
               }.total
-            }
+            }.reverse.collect { |u| u.id }
 
   when "missions_completed" then
     user_ids =
@@ -131,14 +133,17 @@ with_least_proc = proc { |entity_type, num_to_return|
   user_ids = []
   case entity_type
   when "times_killed" then
+    # TODO also users w/out attribute (put at front of list / or
+    #   autogenerate some attrs on user creation)
+    uattr = Users::Attributes::UserShipsDestroyed.id
     user_ids =
-      Stats.node.
-            invoke_request('users::get_entities').
+      Stats.node.invoke('users::get_entities').
+            select  { |u| u.has_attribute?(uattr) }.compact.
             sort_by { |u|
-              u.attribute.find { |a|
-                a.type.id == Users::Attributes::UserShipsDestroyed.id
+              u.attributes.find { |a|
+                a.type.id == uattr
               }.level
-            }
+            }.reverse.collect { |u| u.id }
   end
 
   num_to_return ||= user_ids.size
