@@ -45,15 +45,13 @@ module Motel::RJR
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
-      @d = ::RJR::Dispatcher.new
+      @d   = @n.dispatcher
       @rjr = Object.new.extend(Motel::RJR)
     end
 
     it "dispatches motel* in Motel::RJR environment" do
       dispatch_motel_rjr_init(@d)
-      @d.environments.size.should == 1
-      @d.environments.first.first.should == /motel::.*/
-      @d.environments.first.last.should  == Motel::RJR
+      @d.environments[/motel::.*/].should  == Motel::RJR
     end
 
     it "adds motel rjr modules to dispatcher"

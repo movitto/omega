@@ -63,15 +63,13 @@ module Users::RJR
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
-      @d = ::RJR::Dispatcher.new
+      @d   = @n.dispatcher
       @rjr = Object.new.extend(Users::RJR)
     end
 
     it "dispatches users* in Users::RJR environment" do
       dispatch_users_rjr_init(@d)
-      @d.environments.size.should == 1
-      @d.environments.first.first.should == /users::.*/
-      @d.environments.first.last.should  == Users::RJR
+      @d.environments[/users::.*/].should  == Users::RJR
     end
 
     it "adds users rjr modules to dispatcher"

@@ -24,7 +24,6 @@ describe Stats do
   describe "#num_of" do
     before(:each) do
       @stat = Stats.get_stat(:num_of)
-      Stats.node = double('stats-node')
 
       @n = 10
       @entities = Array.new(@n)
@@ -38,7 +37,7 @@ describe Stats do
 
     context "users" do
       it "returns number of users" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("users::get_entities", 'of_type', 'Users::User').
                    and_return(@entities)
         @stat.generate('users').value.should == @n
@@ -47,7 +46,7 @@ describe Stats do
 
     context "entities" do
       it "returns number of manufactured entities" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("manufactured::get_entities").
                    and_return(@entities)
         @stat.generate('entities').value.should == @n
@@ -56,7 +55,7 @@ describe Stats do
 
     context "ships" do
       it "returns number of ships" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("manufactured::get_entities",
                         "of_type", "Manufactured::Ship").
                         and_return(@entities)
@@ -66,7 +65,7 @@ describe Stats do
 
     context "stations" do
       it "returns number of stations" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("manufactured::get_entities",
                         "of_type", "Manufactured::Station").
                         and_return(@entities)
@@ -76,7 +75,7 @@ describe Stats do
 
     context "galaxies" do
       it "returns number of galaxies" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
                         "of_type", "Cosmos::Galaxy").
                         and_return(@entities)
@@ -86,7 +85,7 @@ describe Stats do
 
     context "solar_systems" do
       it "returns number of solar systems" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
                         "of_type", "Cosmos::SolarSystem").
                         and_return(@entities)
@@ -96,7 +95,7 @@ describe Stats do
 
     context "planets" do
       it "returns number of planets" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
                         "of_type", "Cosmos::Planet").
                         and_return(@entities)
@@ -106,7 +105,7 @@ describe Stats do
 
     context "missions" do
       it "returns number of missions" do
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with("missions::get_missions").
                         and_return(@entities)
         @stat.generate('missions').value.should == @n
@@ -118,7 +117,6 @@ describe Stats do
 
     before(:each) do
       @stat = Stats.get_stat(:with_most)
-      Stats.node = double('stats-node')
 
     end
 
@@ -133,7 +131,7 @@ describe Stats do
         entities = [build(:ship, :user_id => 'user1'),
                     build(:ship, :user_id => 'user2'),
                     build(:station, :user_id => 'user1')]
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('manufactured::get_entities').
                    and_return(entities)
         @stat.generate('entities').value.should == ['user1', 'user2']
@@ -150,7 +148,7 @@ describe Stats do
            build(:user)]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').and_return(users)
 
         @stat.generate('kills').value.should == [user2.id, user1.id]
@@ -168,7 +166,7 @@ describe Stats do
              [Users::Attributes::ShipsUserDestroyed.create_attribute(:level => 20)])]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -187,7 +185,7 @@ describe Stats do
              [Users::Attributes::ResourcesCollected.create_attribute(:level => 90)])]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -207,7 +205,7 @@ describe Stats do
              [Users::Attributes::LootCollected.create_attribute(:level => 50)])]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -228,7 +226,7 @@ describe Stats do
              [Users::Attributes::DistanceTravelled.create_attribute(:level => 90)])]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -252,7 +250,7 @@ describe Stats do
            build(:mission, :assigned_to => user2, :assigned_time => t, :victorious => true),
            build(:mission, :assigned_to => user3, :assigned_time => t, :victorious => true)]
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('missions::get_missions', 'is_active', false).
                    and_return(missions)
 
@@ -266,7 +264,7 @@ describe Stats do
         entities = [build(:ship,    :user_id => 'user1'),
                     build(:ship,    :user_id => 'user2'),
                     build(:station, :user_id => 'user3')]
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('manufactured::get_entities').
                    and_return(entities)
 
@@ -287,7 +285,7 @@ describe Stats do
         entities = [build(:ship,    :user_id => 'user1'),
                     build(:ship,    :user_id => 'user2'),
                     build(:station, :user_id => 'user3')]
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('manufactured::get_entities').
                    and_return(entities)
 
@@ -299,7 +297,6 @@ describe Stats do
   describe "#with_least" do
     before(:each) do
       @stat = Stats.get_stat(:with_least)
-      Stats.node = double('stats-node')
     end
 
     context "invalid entity type" do
@@ -319,7 +316,7 @@ describe Stats do
              [Users::Attributes::ShipsUserDestroyed.create_attribute(:level => 20)])]
         user1, user2, user3 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -336,7 +333,7 @@ describe Stats do
              [Users::Attributes::UserShipsDestroyed.create_attribute(:level => 10)])]
         user1,user2 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 
@@ -358,7 +355,7 @@ describe Stats do
              [Users::Attributes::UserShipsDestroyed.create_attribute(:level => 10)])]
         user1,user2 = *users
 
-        Stats.node.should_receive(:invoke).
+        Stats::RJR.node.should_receive(:invoke).
                    with('users::get_entities').
                    and_return(users)
 

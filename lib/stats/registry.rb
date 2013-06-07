@@ -4,19 +4,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'stats/stat'
+require 'stats/rjr/init'
 
 module Stats
-
-# Internal helper, get stats node
-def self.node
-  @node
-end
-
-# Internal helper, set stats node
-def self.node=(node)
-  @node = node
-  @node
-end
 
 ################################################################
 
@@ -25,33 +15,33 @@ end
 num_of_proc = proc { |entity_type|
   case entity_type
   when "users" then
-    Stats.node.invoke('users::get_entities', 'of_type', 'Users::User').size
+    Stats::RJR.node.invoke('users::get_entities', 'of_type', 'Users::User').size
 
   when "entities" then
-    Stats.node.invoke('manufactured::get_entities').size
+    Stats::RJR.node.invoke('manufactured::get_entities').size
 
   when "ships" then
-    Stats.node.invoke('manufactured::get_entities',
+    Stats::RJR.node.invoke('manufactured::get_entities',
                       'of_type', 'Manufactured::Ship').size
 
   when "stations" then
-    Stats.node.invoke('manufactured::get_entities',
+    Stats::RJR.node.invoke('manufactured::get_entities',
                       'of_type', 'Manufactured::Station').size
 
   when "galaxies" then
-    Stats.node.invoke('cosmos::get_entities',
+    Stats::RJR.node.invoke('cosmos::get_entities',
                       'of_type', 'Cosmos::Galaxy').size
 
   when "solar_systems" then
-    Stats.node.invoke('cosmos::get_entities',
+    Stats::RJR.node.invoke('cosmos::get_entities',
                       'of_type', 'Cosmos::SolarSystem').size
 
   when "planets" then
-    Stats.node.invoke('cosmos::get_entities',
+    Stats::RJR.node.invoke('cosmos::get_entities',
                       'of_type', 'Cosmos::Planet').size
 
   when "missions" then
-    Stats.node.invoke('missions::get_missions').size
+    Stats::RJR.node.invoke('missions::get_missions').size
 
   else
     nil
@@ -74,7 +64,7 @@ with_most_proc = proc { |entity_type, num_to_return|
   when "entities" then
     # count entities per user sort
     user_ids =
-      Stats.node.invoke('manufactured::get_entities').
+      Stats::RJR.node.invoke('manufactured::get_entities').
               inject(Hash.new(0)) { |h,e|
                  h[e.user_id] += 1; h
               }.sort_by { |k,v| v }.reverse.
@@ -95,7 +85,7 @@ with_most_proc = proc { |entity_type, num_to_return|
     uattr = attr_map[entity_type]
     # TODO limit request to just return users w/ the specified attribute
     user_ids =
-      Stats.node.invoke('users::get_entities').
+      Stats::RJR.node.invoke('users::get_entities').
             select  { |u| u.has_attribute?(uattr) }.compact.
             sort_by { |u|
               u.attributes.find { |a|
@@ -105,7 +95,7 @@ with_most_proc = proc { |entity_type, num_to_return|
 
   when "missions_completed" then
     user_ids =
-      Stats.node.invoke('missions::get_missions', 'is_active', false).
+      Stats::RJR.node.invoke('missions::get_missions', 'is_active', false).
             inject(Hash.new(0)) { |h,m|
               h[m.assigned_to.id] += 1 if m.assigned_to
               h
@@ -137,7 +127,7 @@ with_least_proc = proc { |entity_type, num_to_return|
     #   autogenerate some attrs on user creation)
     uattr = Users::Attributes::UserShipsDestroyed.id
     user_ids =
-      Stats.node.invoke('users::get_entities').
+      Stats::RJR.node.invoke('users::get_entities').
             select  { |u| u.has_attribute?(uattr) }.compact.
             sort_by { |u|
               u.attributes.find { |a|

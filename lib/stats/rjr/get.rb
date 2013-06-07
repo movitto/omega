@@ -3,19 +3,30 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'stats/registry'
+require 'stats/rjr/init'
+
+module Stats::RJR
+# retrieve stats filtered by args
 get_stats = proc { |*args|
   # TODO support non-id filters
   stat_id = args.shift
 
-  # TODO permissions on particular stats? (perhaps stats themselves can specify if they require more restricted access?)
-  Users::Registry.require_privilege(:privilege => 'view', :entity => "stats",
-                                    :session => @headers['session_id'])
+  # TODO permissions on particular stats?
+  #   (perhaps stats themselves can specify if
+  #    they require more restricted access?)
+  require_privilege(:registry => user_registry,
+                    :privilege => 'view', :entity => "stats")
 
-  stat = Stats::Registry.instance.get(stat_id)
+  stat = Stats.get_stat(stat_id)
   raise Omega::DataNotFound, "stat specified by #{stat_id} not found" if stat.nil?
   stat.generate *args
 }
 
-def dispatch_get(dispatcher)
-  dispatcher.handle 'stats::get', &get_stats
+GET_METHODS = { :get_stats => get_stats }
+end
+
+def dispatch_stats_rjr_get(dispatcher)
+  m = Stats::RJR::GET_METHODS
+  dispatcher.handle 'stats::get', &m[:get_stats]
 end

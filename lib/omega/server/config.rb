@@ -6,6 +6,7 @@
 require 'yaml'
 
 require 'users/rjr/init'
+require 'stats/rjr/init'
 require 'users/registry'
 require 'users/chat_proxy'
 require 'users/email_helper'
@@ -27,6 +28,7 @@ class Config
    # of Omega::Config containing configuration options to set
    CONFIG_CLASSES = [#Cosmos::RJR, Manufactured::RJR,
                      #Missions::RJR, Stats::RJR, 
+                     Stats::RJR,
                      Users::RJR, Users::Registry,
                      Users::ChatProxy, Users::EmailHelper]
 
