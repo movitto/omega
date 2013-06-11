@@ -3,21 +3,21 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/sproc'
+
 # TODO catch errors in callbacks ?
 
 require 'time'
 
 module Missions
 
-# Represents a set of objectives created by a user (usually a npc) and
-# assigned to another for completion. Incorprates callbacks to determine
-# if user is eligable to accept mission and determine if/when mission is
-# completed (or timeout expires). Also incorporates callbacks to run handlers
-# at various points during the mission cycle.
+# Set of objectives created by a user (usually a npc) and
+# assigned to another for completion.
+#
+# Incorprates callbacks to determine if user is eligable to accept mission,
+# if/when mission is completed, and to run handlers at various points during
+# the mission cycle.
 class Mission
-  # Node to use to query other subsystems
-  attr_accessor :node
-
   # Unique string id of the mission
   attr_accessor :id
 
@@ -27,18 +27,24 @@ class Mission
   # Description of the mission
   attr_accessor :description
 
-  # TODO some sort of intro sequence / text tie in? (also assignment and victory content)
+  # TODO some sort of intro sequence / text tie in?
+  #   (also assignment and victory content)
 
   # Generic key/value store for data in the mission context,
   # for use by the various callbacks
   attr_accessor :mission_data
 
   # Id of user who created the mission
-  attr_accessor :creator_user_id
+  attr_accessor :creator_id
 
   # Handle to Users::User who created the mission
-  attr_accessor :creator_user
-  alias :creator :creator_user
+  attr_reader :creator
+
+  # Creator writer (also sets creator_id)
+  def creator=(v)
+    @creator = v
+    @creator_id = v.id
+  end
 
   # Array of mission assignment requirements
   attr_accessor :requirements
@@ -49,7 +55,7 @@ class Mission
     !@assigned_to_id &&
     @requirements.all? { |req|
       # TODO catch exceptions (return false if any?)
-      req.call self, user, @node
+      req.call self, user
     }
   end
 
@@ -72,32 +78,17 @@ class Mission
   # Array of callbacks which to invoke on assignment
   attr_accessor :assignment_callbacks
 
+# FIXME removed get user and add priv to user role:
+
   # Assign mission to the specified user
   def assign_to(user)
     return unless self.assignable_to?(user)
-    if user.is_a?(String)
-      # XXX don't like reaching into registry here (and probably don't need to)
-      @assigned_to_id = user
-      @assigned_to    = @node.invoke_request('users::get_entity', 'with_id', user) unless @node.nil?
-
-    else
-      @assigned_to    = user
-      @assigned_to_id = user.id
-
-    end
+    @assigned_to    = user
+    @assigned_to_id = user.id
 
     @assigned_time = Time.now
-
-    # use node to create new view-mission-id permission
-    unless @node.nil?
-      begin
-        @node.invoke_request('users::add_privilege', "user_role_#{user.id}", 'view', "mission-#{self.id}")
-      rescue Exception => e
-      end
-    end
-
     @assignment_callbacks.each { |acb|
-      acb.call self, @node
+      acb.call self
     }
   end
 
@@ -139,7 +130,7 @@ class Mission
   # or not
   def completed?
     @victory_conditions.all? { |vc|
-      vc.call self, @node
+      vc.call self
     }
   end
 
@@ -154,7 +145,7 @@ class Mission
     @failed     = false
 
     @victory_callbacks.each { |vcb|
-      vcb.call self, @node
+      vcb.call self
     }
   end
 
@@ -169,58 +160,17 @@ class Mission
     @failed     = true
 
     @failure_callbacks.each { |fcb|
-      fcb.call self, @node
+      fcb.call self
     }
   end
 
   # Mission initializer
+  #
   # @param [Hash] args hash of options to initialize mission with
-  # @see update below for valid options accepted by initialize
-  def initialize(args = {})
-    @node                 = nil
-    @id                   = ""
-    @title                = ""
-    @description          = ""
-    @mission_data         = {}
-    @creator_user_id      = nil
-    @assigned_to_id       = nil
-    @assigned_time        = nil
-    @timeout              = nil
-    @requirements         = []
-    @assignment_callbacks = []
-    @victory_conditions   = []
-    @victory_callbacks    = []
-    @failure_callbacks    = []
-    @victorious           = false
-    @failed               = false
-    update(args)
-
-    if @assigned_time.is_a?(String)
-      @assigned_time = Time.parse(@assigned_time)
-    end
-
-    @requirements         = [@requirements]         unless @requirements.is_a?(Array)
-    @assignment_callbacks = [@assignment_callbacks] unless @assignment_callbacks.is_a?(Array)
-    @victory_conditions   = [@victory_conditions]   unless @victory_conditions.is_a?(Array)
-    @victory_callbacks    = [@victory_callbacks]    unless @victory_callbacks.is_a?(Array)
-    @failure_callbacks    = [@failure_callbacks]    unless @failure_callbacks.is_a?(Array)
-
-    [@requirements, @assignment_callbacks,
-     @victory_conditions, @victory_callbacks,
-     @failure_callbacks].each { |callable_q|
-      callable_q.each_index { |cqi|
-        callable_q[cqi] = SProc.new(&callable_q[cqi]) if callable_q[cqi].is_a?(Proc)
-      }
-    }
-  end
-
-  # Update the mission from the specified args
-  # @param [Hash] args hash of options to update mission with
-  # @option args [RJR::Node] :node,'node' node to assign to mission to use for queries
   # @option args [String] :id,'id' id to assign to the mission
   # @option args [String] :title,'title' title of the mission
   # @option args [String] :description,'description' description of the mission
-  # @option args [String] :creator_user_id,'creator_user_id' id of user that created the mission
+  # @option args [String] :creator_id,'creator_id' id of user that created the mission
   # @option args [String] :assigned_to_id,'assigned_to_id' id of user that the mission is assigned to
   # @option args [Time]   :assigned_time,'assigned_time' time the mission was assigned to user
   # @option args [Integer] :timeout,'timeout' seconds which mission assignment is valid for
@@ -230,42 +180,55 @@ class Mission
   # @option args [Array<String,Callables>] :victory_callbacks,'victory_callbacks' callbacks which to invoke upon successful mission completion
   # @option args [Array<String,Callables>] :failure_callbacks,'failure_callbacks' callbacks which to invoke upon mission failure
   # @option args [Missions::Mission] :mission, 'mission' mission to copy attributes from
+  def initialize(args = {})
+    attr_from_args args,
+      :id                   => nil,
+      :title                =>  "",
+      :description          =>  "",
+      :mission_data         =>  {},
+      :creator_id      => nil,
+      :assigned_to_id       => nil,
+      :assigned_time        => nil,
+      :timeout              => nil,
+      :requirements         =>  [],
+      :assignment_callbacks =>  [],
+      :victory_conditions   =>  [],
+      :victory_callbacks    =>  [],
+      :failure_callbacks    =>  [],
+      :victorious           => false,
+      :failed               => false
+    
+    @assigned_time = Time.parse(@assigned_time) if @assigned_time.is_a?(String)
+
+    [:@requirements, :@assignment_callbacks, :@victory_conditions,
+     :@victory_callbacks, :@failure_callbacks].each { |c|
+       i = self.instance_variable_get(c)
+       unless i.is_a?(Array)
+         i = [i]
+         self.instance_variable_set(c, i)
+       end
+
+       i.each_index { |cbi|
+         i[cqi] = SProc.new(&i[cqi]) if i[cqi].is_a?(Proc)
+       }
+     }
+  end
+
+  # Update the mission from the specified args
+  #
+  # @see initialize above for valid options accepted by update
   def update(args = {})
-    @node                  =  args[:node]                 || args['node']                 || @node
-    @id                    =  args[:id]                   || args['id']                   || @id
-    @title                 =  args[:title]                || args['title']                || @title
-    @description           =  args[:description]          || args['description']          || @description
-    @mission_data          =  args[:mission_data]         || args['mission_data']         || @mission_data
-    @creator_user_id       =  args[:creator_user_id]      || args['creator_user_id']      || @creator_user_id
-    @assigned_to_id        =  args[:assigned_to_id]       || args['assigned_to_id']       || @assigned_to_id
-    @assigned_time         =  args[:assigned_time]        || args['assigned_time']        || @assigned_time
-    @timeout               =  args[:timeout]              || args['timeout']              || @timeout
-    @requirements          =  args[:requirements]         || args['requirements']         || @requirements
-    @assignment_callbacks  =  args[:assignment_callbacks] || args['assignment_callbacks'] || @assignment_callbacks
-    @victory_conditions    =  args[:victory_conditions]   || args['victory_conditions']   || @victory_conditions
-    @victory_callbacks     =  args[:victory_callbacks]    || args['victory_callbacks']    || @victory_callbacks
-    @failure_callbacks     =  args[:failure_callbacks]    || args['failure_callbacks']    || @failure_callbacks
-    @victorious            =  args[:victorious]           || args['victorious']           || @victorious
-    @failed                =  args[:failed]               || args['failed']               || @failed
+    attrs = [:id, :title, :description, :mission_data,
+             :creator_id, :assigned_to_id, :assigned_time,
+             :timeout, :requirements, :assgigmnent_callbacks,
+             :victory_conditions, :failure_callbacks, :victorious,
+             :failed]
 
     [:mission, 'mission'].each { |mission|
-      if args[mission]
-        update(:id                   => args[mission].id,
-               :title                => args[mission].title,
-               :description          => args[mission].description,
-               :creator_user_id      => args[mission].creator_user_id,
-               :assigned_to_id       => args[mission].assigned_to_id,
-               :assigned_time        => args[mission].assigned_time,
-               :timeout              => args[mission].timeout,
-               :requirements         => args[mission].requirements,
-               :assignment_callbacks => args[mission].assignment_callbacks,
-               :victory_conditions   => args[mission].victory_conditions,
-               :victory_callbacks    => args[mission].victory_callbacks,
-               :failure_callbacks    => args[mission].failure_callbacks,
-               :victorious           => args[mission].victorious,
-               :failed               => args[mission].failed)
-      end
+      update_from(args[mission], attrs) if args[mission]
     }
+
+    update_from(args, attrs)
   end
 
   # Return a copy of this mission, setting any additional attributes given
@@ -282,8 +245,10 @@ class Mission
       'data'       => {:id => id,
                        :title => title, :description => description,
                        :mission_data => mission_data,
-                       :creator_user_id => creator_user_id, :assigned_to_id => assigned_to_id,
-                       :timeout => timeout, :assigned_time => assigned_time,
+                       :creator_id => creator_id,
+                       :assigned_to_id => assigned_to_id,
+                       :timeout => timeout,
+                       :assigned_time => assigned_time,
                        :requirements         => requirements,
                        :assignment_callbacks => assignment_callbacks,
                        :victory_conditions   => victory_conditions,
@@ -305,5 +270,4 @@ class Mission
   end
 
 end
-
 end

@@ -3,21 +3,28 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'missions/rjr/init'
+
+module Missions::RJR
+# save state of missions subsystem
 save_state = proc { |output|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  output_file = File.open(output, 'a+')
-  Missions::Registry.instance.save_state(output_file)
-  output_file.close
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(output, 'a+') { |f| registry.save(f) }
 }
 
+# restore state of missions subsystem
 restore_state = proc { |input|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  input_file = File.open(input, 'r')
-  Missions::Registry.instance.restore_state(input_file)
-  input_file.close
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(input, 'r') { |f| registry.restore(f) }
 }
 
-def dispatch_state(dispatcher)
-  dispatcher.handle "missions::save_state",    &save_state
-  dispatcher.handle "missions::restore_state", &restore_state
+STATE_METHODS = { :save_state => save_state,
+                  :restore_state => restore_state }
+
+end 
+
+def dispatch_missions_rjr_state(dispatcher)
+  m = Missions::RJR::STATE_METHODS
+  dispatcher.handle "missions::save_state",    &m[:save_state]
+  dispatcher.handle "missions::restore_state", &m[:restore_state]
 end

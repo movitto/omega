@@ -3,40 +3,62 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'missions/rjr/init'
+
+module Missions::RJR
+
+# Create new event in the registry
 create_event = proc { |event|
-  Users::Registry.require_privilege(:privilege => 'create', :entity => 'mission_events',
-                                    :session   => @headers['session_id'])
+  # require create mission events
+  require_privilege :registry  => user_registry,
+                    :privilege => 'create',
+                    :entity    => 'mission_events'
 
-  raise ArgumentError, "Invalid #{event.class} event specified, must be Missions::Event subclass" unless event.kind_of?(Missions::Event)
-  # TODO err if existing event w/ duplicate id ?
+  # ensure valid event
+  raise ValidationError, event unless event.kind_of?(Event)
 
-  revent = Missions::Registry.instance.create event
-  revent
+  # add to registry
+  registry << event
+
+  # TODO err if not added (existing event w/ duplicate id) ?
+
+  # return event
+  event
 }
 
+# Create new mission in the registry
 create_mission = proc { |mission|
-  # XXX be very careful who can do this as missions currently use SProcs
-  # to evaluate arbitrary ruby code
-  Users::Registry.require_privilege(:privilege => 'create', :entity => 'missions',
-                                    :session   => @headers['session_id'])
+  # require create missions
+  # XXX be very careful who can do this
+  #     as missions currently use SProcs
+  #     to evaluate arbitrary ruby code
+  require_privilege :registry  => user_registry,
+                    :privilege => 'create',
+                    :entity    => 'missions'
 
-  raise ArgumentError, "Invalid #{mission.class} mission specified, must be Missions::Mission subclass" unless mission.kind_of?(Missions::Mission)
-  # TODO err if existing mission w/ duplicate id ?
+  # ensure valid mission
+  raise ValidationError, mission unless mission.kind_of?(Mission)
 
-  # set creator user,
-  # could possibly go into missions model
-  creator = mission.creator_user_id.nil? ?
-    Users::Registry.current_user(:session => @headers['session_id']) :
-    @@local_node.invoke_request('users::get_entity', 'with_id', mission.creator_user_id)
-  mission.creator_user    = creator
-  mission.creator_user_id = creator.id
+  # set creator user if nil
+  mission.creator =
+    current_user(:registry => user_registry) if mission.creator_id.nil?
 
-  rmission = Missions::Registry.instance.create mission
-  rmission.node = @@local_node
-  rmission
+  # add mission to registry
+  registry << mission
+
+  # TODO err if not added (existing mission w/ duplicate id) ?
+
+  # return mission
+  mission
 }
 
-def dispatch_create(dispatcher)
-  dispatcher.handle 'missions::create_event',   &create_event
-  dispatcher.handle 'missions::create_mission', &create_mission
+CREATE_METHODS = { :create_event => create_event,
+                   :create_role  => create_role }
+
+end # module Missions::RJR
+
+def dispatch_missions_rjr_create(dispatcher)
+  m = Missions::RJR::CREATE_METHODS
+  dispatcher.handle 'missions::create_event',   &m[:create_event]
+  dispatcher.handle 'missions::create_mission', &m[:create_mission]
 end

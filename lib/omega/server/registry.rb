@@ -11,7 +11,11 @@ module Server
 # Defines a mechanism which provides protected access to
 # entities and runs event loops
 module Registry
+  # Default time loop threads sleep between event cycles
   DEFAULT_LOOP_POLL = 1
+
+  # Default time event loop thread sleeps between event cycles
+  DEFAULT_EVENT_POLL = 0.5 # TODO make configurable?
 
   class << self
     # @!group Config options
@@ -208,6 +212,33 @@ module Registry
         @lock.synchronize { @workers.delete(th) }
       }
     @workers << th
+  end
+
+  # Run events registered in the local registry
+  #
+  # Optional internal helper method, utilize like so:
+  #   run { run_events }
+  def run_events
+    self.entities.
+      select { |e| e.kind_of?(Event) && e.time_elapsed? && !e.invoked }.
+      each { |evnt|
+        RJR::Logger.info "running event #{evnt}"
+
+        # grab global event handlers, add them to callbacks
+        h = self.entities.select { |e|
+              e.is_a?(EventHandler) && e.event_id == evnt.id
+            }.collect { |h| h.handlers }.flatten
+        evnt.handlers += h
+
+        # invoke handlers
+        begin
+          evnt.invoke evnt
+        rescue Exception => err
+          RJR::Logger.warn "error in event #{evnt}: #{err}"
+        end
+      }
+
+    DEFAULT_EVENT_POLL
   end
 
   ####################### state

@@ -3,63 +3,127 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-class << self
-  # @!group Config options
+require 'users/registry'
+require 'omega/exceptions'
+require 'omega/server/dsl'
 
-  # User to use to communicate w/ other modules over the local rjr node
-  attr_accessor :missions_rjr_username
+module Missions::RJR
+  include Omega#::Exceptions
+  include Missions
+  include Omega::Server::DSL
 
-  # Password to use to communicate w/ other modules over the local rjr node
-  attr_accessor :missions_rjr_password
+  ######################################## Config
 
-  # Set config options using Omega::Config instance
-  #
-  # @param [Omega::Config] config object containing config options
-  def set_config(config)
-    self.missions_rjr_username  = config.missions_rjr_user
-    self.missions_rjr_password  = config.missions_rjr_pass
+  class << self
+    # @!group Config options
+  
+    # User to use to communicate w/ other modules over the local rjr node
+    attr_accessor :missions_rjr_username
+  
+    # Password to use to communicate w/ other modules over the local rjr node
+    attr_accessor :missions_rjr_password
+  
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.missions_rjr_username  = config.missions_rjr_user
+      self.missions_rjr_password  = config.missions_rjr_pass
+    end
+  
+    # @!endgroup
   end
 
-  # @!endgroup
-end
+  ######################################## Missions::RJR data
 
-manufactured_event = proc { |*args|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+  def self.user
+    @user ||= Users::User.new(:id       => Missions::RJR::missions_rjr_username,
+                              :password => Missions::RJR::missions_rjr_password)
+  end
+  
+  def user
+    Missions::RJR.user
+  end
 
-  event = Missions::Events::Manufactured.new *args
-  Missions::Registry.instance.create event
-  nil
-}
+  def self.node
+    @node ||= ::RJR::Nodes::Local.new :node_id => self.user.id
+  end
+  
+  def node
+    Missions::RJR.node
+  end
 
-def missions_user
-  user ||= Users::User.new(:id       => Missions::RJRAdapter.missions_rjr_username,
-                           :password => Missions::RJRAdapter.missions_rjr_password)
-end
+  def self.user_registry
+    Users::RJR.registry
+  end
 
-def dispatch_init(dispatcher)
-  Missions::Registry.instance.init
+  def user_registry
+    Missions::RJR.user_registry
+  end
+  
+  def self.registry
+    @registry ||= Missions::Registry.new
+  end
+  
+  def registry
+    Missions::RJR.registry
+  end
 
-  node = RJR::LocalNode.new :node_id => 'missions'
-  node.message_headers['source_node'] = 'missions'
+  def self.reset
+    Missions::RJR.registry.clear!
+  end
 
-  # Set shared node which events may use
-  Missions::Event.node = node
+  ######################################## Callback methods
 
-  node.invoke_request('users::create_entity', self.user)
-  role_id = "user_role_#{self.user.id}"
+  manufactured_event = proc { |*args|
+    raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+  
+    event = Missions::Events::Manufactured.new *args
+    Missions::Registry.instance.create event
+    nil
+  }
+
+  CALLBACK_METHODS = { :manufactured_event => manufactured_event }
+
+end # module Missions::RJR
+
+######################################## Dispatch init
+
+def dispatch_missions_rjr_init(dispatcher)
+  # setup Missions::RJR module
+  rjr = Object.new.extend(Missions::RJR)
+  rjr.node.dispatcher = dispatcher
+  rjr.node.dispatcher.env /missions::.*/, Missions::RJR
+  rjr.node.dispatcher.add_module('stats/rjr/create')
+  rjr.node.dispatcher.add_module('stats/rjr/get')
+  rjr.node.dispatcher.add_module('stats/rjr/assign')
+  rjr.node.dispatcher.add_module('stats/rjr/state')
+  rjr.node.message_headers['source_node'] = 'missions'
+
+  # create missions user
+  begin rjr.node.invoke('users::create_user', rjr.user)
+  rescue Exception => e ; end
+
+  # grant missions user extra permissions
   # all in all missions is a pretty powerful role/user in terms
   #  of what it can do w/ the simulation
-  node.invoke_request('users::add_privilege', role_id, 'view',     'users_entities')
-  node.invoke_request('users::add_privilege', role_id, 'view',     'cosmos_entities')
-  node.invoke_request('users::add_privilege', role_id, 'modify',   'cosmos_entities')
-  node.invoke_request('users::add_privilege', role_id, 'view',     'manufactured_entities')
-  node.invoke_request('users::add_privilege', role_id, 'create',   'manufactured_entities')
-  node.invoke_request('users::add_privilege', role_id, 'modify',   'manufactured_entities')
-  node.invoke_request('users::add_privilege', role_id, 'modify',   'manufactured_resources')
-  node.invoke_request('users::add_privilege', role_id, 'create',   'missions')
+  role_id = "user_role_#{self.user.id}"
+  [['view',   'users_entities'],
+   ['view',   'cosmos_entities'],
+   ['modify', 'cosmos_entities'],
+   ['view',   'manufactured_entities'],
+   ['create', 'manufactured_entities'],
+   ['modify', 'manufactured_entities'],
+   ['modify', 'manufactured_resources'],
+   ['create', 'missions']].each { |p,e|
+     rjr.node.invoke('users::add_privilege', role_id, p, e)
+   }
 
-  session = node.invoke_request('users::login', self.user)
-  node.message_headers['session_id'] = session.id
+  # log the missions user in
+  session = node.invoke('users::login', self.user)
+  rjr.node.message_headers['session_id'] = session.id
 
-  dispatcher.handle('manufactured::event_occurred', &manufactured_event)
+  # add callback for manufactured events
+  m = Missions::RJR::CALLBACK_METHODS
+  rjr.node.dispatcher.handle('manufactured::event_occurred', &m[:manufactured_event])
 end

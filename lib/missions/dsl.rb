@@ -1,13 +1,15 @@
-# Mission Callbacks definitions
+# Missions Server DSL
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 module Missions
 
-# Many various callbacks and utility methods for use in mission creation
-module Callbacks
-module Requirement
+# Various callbacks and utility methods for use in mission creation
+module DSL
+
+# Mission Requirements
+module Requirements
   def self.shared_station
     proc { |mission, assigning_to, node|
       # ensure users have a ship docked at a common station
@@ -33,6 +35,7 @@ module Requirement
   end
 end
 
+# Mission Assignment
 module Assignment
   def self.create_entity(id, entity_params={})
     proc { |mission, node|
@@ -111,6 +114,7 @@ module Assignment
   end
 end
 
+# Mission related events
 module Event
   def self.resource_collected
     proc { |mission, node, evnt|
@@ -175,6 +179,7 @@ module Event
   # TODO 'continuation' event to create more entities or whatever else
 end
 
+# Mission Queries
 module Query
   def self.check_entity_hp(id)
     proc { |mission, node|
@@ -225,6 +230,7 @@ module Query
 
 end
 
+# Mission Resolution
 module Resolution
   def self.add_resource(rs, q)
     proc { |mission, node|
@@ -272,5 +278,5 @@ module Resolution
   end
 end
 
-end
-end
+end # Module DSL
+end # Module Missions

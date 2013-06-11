@@ -3,11 +3,13 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/server/event'
+
 module Missions
 module Events
 
 # An event this is spawed by another in the manufactured subsystem
-class Manufactured < Missions::Event
+class Manufactured < Omega::Server::Event
   # Array of args received pertaining to the manufactured event
   attr_accessor :manufactured_event_args
 

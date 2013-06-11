@@ -3,41 +3,43 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+module Missions::RJR
+
+# Retrieve all missions in registry matching criteria
 get_missions = proc { |*args|
-  return_first = false
-  missions =
-    Missions::Registry.instance.missions.select { |m|
-       privs = [{:privilege => 'view', :entity => 'missions'},
-                {:privilege => 'view', :entity => "mission-#{m.id}"}]
-       privs << {:privilege => 'view', :entity => 'unassigned_missions'} if m.assigned_to_id.nil?
-       Users::Registry.check_privilege(:any => privs,
-                                       :session   => @headers['session_id'])
-    }
+  # retrieve missions matching filters specified by args
+  filters = filters_from_args args,
+    :with_id       => proc { |m,id| m.id  == id         },
+    :assignable_to => proc { |m, u| m.assignable_to?(u) },
+    :assigned_to   => proc { |m, u| m.assigned_to?(u)   },
+    :is_active     => proc { |m, b| m.active? == b      }
+  missions = registry.entities.
+                      select { |m| m.is_a?(Mission) &&
+                                   filters.all? { |f| f.call(m) } }
 
-  while qualifier = args.shift
-    raise ArgumentError, "invalid qualifier #{qualifier}" unless ["with_id", "assignable_to", "assigned_to", 'is_active'].include?(qualifier)
-    val = args.shift
-    raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
-    missions.select! { |m|
-      case qualifier
-      when "with_id"
-        return_first = true
-        m.id == val
-      when "assignable_to"
-        m.assignable_to?(val)
-      when "assigned_to"
-        return_first = true # relies on logic in assign_mission below restricting active mission assignment to one per user
-        m.assigned_to?(val)
-      when 'is_active'
-        m.active? == val
-      end
-    }
-  end
+  # exclude missions which user does not have access to view
+  missions.reject! { |m|
+    privs = [{:privilege => 'view', :entity => 'missions'},
+             {:privilege => 'view', :entity => "mission-#{m.id}"}] + 
+             (m.assigned_to_id.nil? ?
+               [{:privilege => 'view', :entity => 'unassigned_missions'}] : [])
+    !check_privilege:registry => user_registry, :any => privs
+  }
 
-  return_first ? missions.first : missions
+
+  # if id of entity or id of assigned user is specified, only return single entitiy
+  return_first = args.include?('with_id') || args.include?('assigned_to')
+  missions = missions.first if return_first
+
+  # return missions
+  missions
 }
+GET_METHODS = { :get_missions => get_missions  }
 
-def dispatch_get(dispatcher)
+end # module Missions::RJR
+
+def dispatch_missions_rjr_get(dispatcher)
+  m = Missions::RJR::GET_METHODS
   dispatcher.handle ['missions::get_missions', 'missions::get_mission'],
-                                                          &create_event
+                                                       &m[:get_missions]
 end

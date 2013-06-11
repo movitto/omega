@@ -10,6 +10,8 @@ require 'spec_helper'
 
 require 'rjr/common' # for eigenclass
 require 'omega/server/registry'
+require 'omega/server/event'
+require 'omega/sproc'
 
 module Omega
 module Server
@@ -387,6 +389,75 @@ describe Registry do
         @registry.start.stop.join
         @registry.should_not be_running
       end
+    end
+  end
+
+  describe "#run_events" do
+    before(:each) do
+      # XXX use sprocs as handlers will be serialized
+      $invoked1, $invoked2 = false, false
+      @h1 = SProc.new { $invoked1 = true }
+      @h2 = SProc.new { $invoked2 = true }
+    end
+
+    it "only runs events whose time elapsed" do
+      e1 = Event.new :timestamp => (Time.now - 10),
+                     :handlers  => [@h1]
+      e2 = Event.new :timestamp => (Time.now + 10),
+                     :handlers  => [@h2]
+      @registry << e1
+      @registry << e2
+      @registry.send :run_events
+      $invoked1.should be_true
+      $invoked2.should be_false
+    end
+
+    it "only runs events that are not already invoked" do
+      e1 = Event.new :timestamp => (Time.now - 10),
+                     :handlers  => [@h1]
+      e2 = Event.new :timestamp => (Time.now - 10), :invoked => true,
+                     :handlers  => [@h2]
+      @registry << e1
+      @registry << e2
+      @registry.send :run_events
+      $invoked1.should be_true
+      $invoked2.should be_false
+    end
+
+    it "adds global event handlers to event" do
+      e = Event.new :id => 'foobar', :timestamp => (Time.now - 10)
+      eh1 = EventHandler.new :event_id => 'foobar', :handlers => [@h1]
+      eh2 = EventHandler.new :event_id => 'barfoo', :handlers => [@h2]
+      @registry << eh1
+      @registry << eh2
+      @registry << e
+      @registry.send :run_events
+      $invoked1.should be_true
+      $invoked2.should be_false
+    end
+
+    it "invokes event" do
+      e = Event.new :timestamp => (Time.now - 10), :handlers => [@h1]
+      @registry << e
+      @registry.send :run_events
+      $invoked1.should be_true
+    end
+
+    context "event raises exception" do
+      it "returns gracefully" do
+        h = SProc.new { raise Exception }
+        e = Event.new :timestamp => (Time.now - 10), :handlers => [h]
+        @registry << e
+        lambda {
+          @registry.send :run_events
+        }.should_not raise_error(Exception)
+      end
+    end
+
+    it "returns default event poll" do
+      e = Event.new :timestamp => (Time.now - 10)
+      @registry << e
+      @registry.send(:run_events).should == Registry::DEFAULT_EVENT_POLL
     end
   end
 

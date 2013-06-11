@@ -13,6 +13,7 @@ class Callback
   attr_accessor :only_if
 
   # Callable object to be invoked upon callback event
+  # TODO make handler an array of handlers
   attr_accessor :handler
 
   # RJR Node Endpoint which this callback is registered for
@@ -24,7 +25,7 @@ class Callback
   # The event which this callback should be registered for
   attr_accessor :event_type
 
-  # Omega::Callback initializer
+  # Omega::Server::Callback initializer
   #
   # @param [Hash] args hash of options to initialize callback with
   # @option args [Callable] :only_if,'only_if' procedure to use to check handling conditions
@@ -32,7 +33,7 @@ class Callback
   # @option args [Callable] &block block parameter used as handler if specified
   # @option args [String]   :endpoint_id,'endpoint_id' endpoint_id registering this callback
   # @option args [String]   :rjr_event, 'rjr_event' event which callback handler should invoke
-  # @option args [String]   :event_type, 'event_type' LOCATION_EVENT which this callback represents
+  # @option args [String]   :event_type, 'event_type' which this callback represents
   def initialize(args = {}, &block)
     attr_from_args args, :only_if      => proc { true },
                          :handler      => block,

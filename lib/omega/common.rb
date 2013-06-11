@@ -1,6 +1,6 @@
 # Utility Methods
 #
-# Copyright (C) 2011-2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2011-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 class Object
@@ -36,8 +36,9 @@ class Object
     attrs.each { |attr|
       getter = attr.intern
       setter = "#{attr}=".intern
-      v  = old.send(getter)
-      self.send(setter, v) unless v.nil?
+      v  = old.send(:[], getter) if old.respond_to?(:[])
+      v  = old.send(getter)      if old.respond_to?(getter)
+      self.send(setter, v)       unless v.nil?
     }
   end
 
