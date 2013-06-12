@@ -3,9 +3,10 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'users/registry'
+require 'missions/registry'
 require 'omega/exceptions'
 require 'omega/server/dsl'
+require 'users/rjr/init'
 
 module Missions::RJR
   include Omega#::Exceptions
@@ -38,7 +39,8 @@ module Missions::RJR
 
   def self.user
     @user ||= Users::User.new(:id       => Missions::RJR::missions_rjr_username,
-                              :password => Missions::RJR::missions_rjr_password)
+                              :password => Missions::RJR::missions_rjr_password,
+                              :registration_code => nil)
   end
   
   def user
@@ -76,10 +78,10 @@ module Missions::RJR
   ######################################## Callback methods
 
   manufactured_event = proc { |*args|
-    raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+    raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
   
     event = Missions::Events::Manufactured.new *args
-    Missions::Registry.instance.create event
+    registry << event
     nil
   }
 
@@ -94,10 +96,10 @@ def dispatch_missions_rjr_init(dispatcher)
   rjr = Object.new.extend(Missions::RJR)
   rjr.node.dispatcher = dispatcher
   rjr.node.dispatcher.env /missions::.*/, Missions::RJR
-  rjr.node.dispatcher.add_module('stats/rjr/create')
-  rjr.node.dispatcher.add_module('stats/rjr/get')
-  rjr.node.dispatcher.add_module('stats/rjr/assign')
-  rjr.node.dispatcher.add_module('stats/rjr/state')
+  rjr.node.dispatcher.add_module('missions/rjr/create')
+  rjr.node.dispatcher.add_module('missions/rjr/get')
+  rjr.node.dispatcher.add_module('missions/rjr/assign')
+  rjr.node.dispatcher.add_module('missions/rjr/state')
   rjr.node.message_headers['source_node'] = 'missions'
 
   # create missions user
@@ -107,8 +109,8 @@ def dispatch_missions_rjr_init(dispatcher)
   # grant missions user extra permissions
   # all in all missions is a pretty powerful role/user in terms
   #  of what it can do w/ the simulation
-  role_id = "user_role_#{self.user.id}"
-  [['view',   'users_entities'],
+  role_id = "user_role_#{rjr.user.id}"
+  [['view',   'users'],
    ['view',   'cosmos_entities'],
    ['modify', 'cosmos_entities'],
    ['view',   'manufactured_entities'],
@@ -120,7 +122,7 @@ def dispatch_missions_rjr_init(dispatcher)
    }
 
   # log the missions user in
-  session = node.invoke('users::login', self.user)
+  session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
 
   # add callback for manufactured events

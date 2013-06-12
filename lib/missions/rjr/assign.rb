@@ -14,8 +14,10 @@ assign_mission = proc { |mission_id, user_id|
   raise ArgumentError, mission_id if mission.nil?
 
   # retrieve user from server
-  user =  node.invoke('users::get_entity', 'with_id', user_id)
-  raise ArgumentError, user_id if user.nil?
+  # if problems retrieving, raise argument error
+  user = 
+    begin node.invoke('users::get_entity', 'with_id', user_id)
+    rescue Exception => e ; raise ArgumentError, user_id end
 
   # require modify user
   require_privilege :registry => user_registry, :any =>
@@ -37,13 +39,16 @@ assign_mission = proc { |mission_id, user_id|
   # to accept > 1 mission at a time
   raise OperationError, "#{user_id} has an active mission" unless active.empty?
 
-  registry.safely_run {
+  registry.safe_exec {
     # ensure mission is assignable to user
     raise OperationError,
           "#{mission_id} not assignable to user" unless mission.assignable_to?(user)
 
+    # XXX get registry mission
+    rmission = registry.instance_variable_get(:@entities).find &with_id(mission.id)
+
     # assign mission to user
-    mission.assign_to user
+    rmission.assign_to user
   }
 
   # return mission
@@ -53,7 +58,7 @@ assign_mission = proc { |mission_id, user_id|
 ASSIGN_METHODS = { :assign_mission => assign_mission }
 end
 
-def dispatch_assign_mission(dispatcher)
+def dispatch_missions_rjr_assign(dispatcher)
   m = Missions::RJR::ASSIGN_METHODS
   dispatcher.handle 'missions::assign_mission', &m[:assign_mission]
   #dispatcher.handle('missions::unassign_mission', '...' # TODO ?

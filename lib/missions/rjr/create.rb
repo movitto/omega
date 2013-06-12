@@ -15,7 +15,7 @@ create_event = proc { |event|
                     :entity    => 'mission_events'
 
   # ensure valid event
-  raise ValidationError, event unless event.kind_of?(Event)
+  raise ValidationError, event unless event.kind_of?(Omega::Server::Event)
 
   # add to registry
   registry << event
@@ -53,7 +53,7 @@ create_mission = proc { |mission|
 }
 
 CREATE_METHODS = { :create_event => create_event,
-                   :create_role  => create_role }
+                   :create_mission  => create_mission }
 
 end # module Missions::RJR
 

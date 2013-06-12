@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'omega/sproc'
 
 describe "SProc" do
   it "should serialize a block to a string" do

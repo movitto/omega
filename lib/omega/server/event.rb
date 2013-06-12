@@ -114,7 +114,7 @@ class PeriodicEvent < Event
                          :registry => nil
     super(args)
 
-    @handlers << proc { |e| handle_event }
+    @handlers.unshift proc { |e| handle_event }
   end
 
   # Convert event to json representation and return it

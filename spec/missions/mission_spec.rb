@@ -5,540 +5,628 @@
 
 require 'spec_helper'
 
-describe Missions::Mission do
-  it "should set mission defaults" do
-     mission = Missions::Mission.new
-     mission.instance_variable_get(:@node).should be_nil
-     mission.id.should == ""
-     mission.title.should == ""
-     mission.description.should == ""
-     mission.creator_user_id.should be_nil
-     mission.assigned_to_id.should be_nil
-     mission.assigned_time.should be_nil
-     mission.timeout.should be_nil
-     mission.requirements.should == []
-     mission.assignment_callbacks.should == []
-     mission.victory_conditions.should == []
-     mission.victory_callbacks.should == []
-     mission.failure_callbacks.should == []
-     mission.victorious.should == false
-     mission.failed.should == false
+module Missions
+describe Mission do
+  describe "#assignable_to?" do
+    context "assigned to id is set" do
+      it "returns false" do
+        u = build(:user)
+        m = Mission.new :assigned_to_id => 'foobar'
+        m.should_not be_assignable_to(u)
+      end
+    end
+
+    it "invokes all requirements with user" do
+      u = build(:user)
+      m = Mission.new :requirements => [proc { true },
+                                        proc { false }]
+      m.requirements.first.should_receive(:call).with(m, u)
+      m.assignable_to?(u)
+    end
+
+    context "one or more requirements fails" do
+      it "returns false" do
+        u = build(:user)
+        m = Mission.new :requirements => [proc { true },
+                                          proc { false }]
+        m.should_not be_assignable_to(u)
+      end
+    end
+
+    context "all requirements pass" do
+      it "returns true" do
+        u = build(:user)
+        m = Mission.new :requirements => [proc { true },
+                                          proc { true }]
+        m.should be_assignable_to(u)
+      end
+    end
   end
 
-  it "should successfully accept and set mission params" do
-    t = Time.now
-    mission = Missions::Mission.new :node => :new_node,
-                                    :id   => "mission123",
-                                    :title => "test_mission",
-                                    :description => "test_missiond",
-                                    :creator_user_id  => "user42",
-                                    :assigned_to_id => "user43",
-                                    :assigned_time => t,
-                                    :timeout => 500,
-                                    :requirements => [:req1],
-                                    :assignment_callbacks => [:asi1],
-                                    :victory_conditions => [:vco1],
-                                    :victory_callbacks => [:vca1],
-                                    :failure_callbacks => [:fc1],
-                                    :victorious        => true,
-                                    :failed            => true
-    mission.instance_variable_get(:@node).should == :new_node
-    mission.id.should == "mission123"
-    mission.title.should == "test_mission"
-    mission.description.should == "test_missiond"
-    mission.creator_user_id.should == "user42"
-    mission.assigned_to_id.should == "user43"
-    mission.assigned_time.should == t
-    mission.timeout.should == 500
-    mission.requirements.should == [:req1]
-    mission.assignment_callbacks.should == [:asi1]
-    mission.victory_conditions.should == [:vco1]
-    mission.victory_callbacks.should == [:vca1]
-    mission.failure_callbacks.should == [:fc1]
-    mission.victorious.should == true
-    mission.failed.should == true
+  describe "#assigned_to?" do
+    context "assigned to user id specified" do
+      it "returns true" do
+        m = Mission.new :assigned_to_id => 'foobar'
+        m.should be_assigned_to('foobar')
+      end
+    end
+
+    context "other user id specified" do
+      it "returns false" do
+        m = Mission.new :assigned_to_id => 'foobar'
+        m.should_not be_assigned_to('barfoo')
+      end
+    end
+
+    context "assigned to user specified" do
+      it "returns true" do
+        u = build(:user)
+        m = Mission.new :assigned_to_id => u.id
+        m.should be_assigned_to(u.id)
+      end
+    end
+
+    context "other user id specified" do
+      it "returns false" do
+        u = build(:user)
+        m = Mission.new :assigned_to_id => u.id
+        m.should_not be_assigned_to('barfoo')
+      end
+    end
   end
 
-  it "should convert proc parameters to callable members into sprocs" do
-    mission = Missions::Mission.new :requirements         => [proc { 1 + 1}],
-                                    :assignment_callbacks => [proc { 2 + 2}],
-                                    :victory_conditions   => [proc { 3 + 3}],
-                                    :victory_callbacks    => [proc { 4 + 4}],
-                                    :failure_callbacks    => [proc { 5 + 5}]
-
-    mission.requirements.first.class.should        == SProc
-    mission.assignment_callbacks.first.class.should == SProc
-    mission.victory_conditions.first.class.should   == SProc
-    mission.victory_callbacks.first.class.should    == SProc
-    mission.failure_callbacks.first.class.should    == SProc
-
-    mission = Missions::Mission.new :requirements => proc { 1 + 1}
-    mission.requirements.class.should       == Array
-    mission.requirements.size.should        == 1
-    mission.requirements.first.class.should == SProc
+  context "#assigned_to=" do
+    it "sets assigned_to"
+    it "sets assigned_to_id"
   end
 
-  it "should copy attributes from given mission" do
-     t = Time.now
-     mission1 = Missions::Mission.new :id   => "mission123", 
+  context "#assign_to" do
+    context "not assignable to user" do
+      it "does not assign mission" do
+        u = build(:user)
+        m = Mission.new
+        m.should_receive(:assigned_to?).and_return(false)
+        m.assign_to(u)
+        m.should_not be_assigned_to(u.id)
+      end
+    end
+
+    it "sets assigned_to" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.assigned_to.should == u
+    end
+
+    it "sets assigned_to_id" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.assigned_to_id.should == u.id
+    end
+
+    it "sets assigned_time" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.assigned_time.should_not be_nil
+    end
+
+    it "invokes assignment callbacks" do
+      u = build(:user)
+      m = Mission.new :assignment_callbacks => [proc { 1 },
+                                                proc { 2 }]
+      m.assignment_callbacks.first.should_receive(:call).with(m)
+      m.assignment_callbacks.last.should_receive(:call).with(m)
+      m.assign_to(u)
+    end
+  end
+
+  describe "#assigned?" do
+    context "mission not assigned" do
+      it "returns false" do
+        m = Mission.new
+        m.should_not be_assigned
+      end
+    end
+
+    context "mission assigned" do
+      it "returns true" do
+        u = build(:user)
+        m = Mission.new
+        m.assign_to(u)
+        m.should be_assigned
+      end
+    end
+  end
+
+  describe "#expired" do
+    context "mission not assigned" do
+      it "returns false" do
+        m = Mission.new
+        m.should_receive(:assigned?).and_return(false)
+        m.should_not be_expired
+      end
+    end
+
+    context "mission timeout has not yet transpired" do
+      it "return false" do
+        u = build(:user)
+        m = Mission.new :timeout => 500
+        m.assign_to(u)
+        m.should_not be_expired
+      end
+    end
+
+    context "mission timeout has transpired" do
+      it "returns true" do
+        u = build(:user)
+        m = Mission.new :timeout => -500
+        m.assign_to(u)
+        m.should be_expired
+      end
+    end
+  end
+
+  describe "#clear_assignment" do
+    before(:each) do
+      u = build(:user)
+      @m = Mission.new
+      @m.assign_to(u)
+      @m.clear_assignment!
+    end
+
+    it "resets assigned_to" do
+      @m.assigned_to.should be_nil
+    end
+
+    it "resets assigned_to_id" do
+      @m.assigned_to_id.should be_nil
+    end
+
+    it "resets assigned_time" do
+      @m.assigned_time.should be_nil
+    end
+  end
+
+  describe "#active?" do
+    def set_state(m, assigned, expired=nil, victorious=nil, failed=nil)
+      if assigned
+        m.should_receive(:assigned?).and_return(true)
+      else
+        m.should_receive(:assigned?).and_return(false)
+        return
+      end
+
+      if expired
+        m.should_receive(:expired?).and_return(true)
+        return
+      else
+        m.should_receive(:expired?).and_return(false)
+      end
+
+      if victorious
+        m.victorious = true
+        m.failed = false
+      end
+
+      if failed
+        m.victorious = false
+        m.failed = true
+      end
+    end
+
+    context "mission not assigned" do
+      it "returns false" do
+        m = Mission.new
+        set_state(m, false)
+        m.should_not be_active
+      end
+    end
+
+    context "mission expired" do
+      it "returns false" do
+        m = Mission.new
+        set_state(m, true, true)
+        m.should_not be_active
+      end
+    end
+
+    context "mission victorious" do
+      it "returns false" do
+        m = Mission.new
+        set_state(m, true, false, true)
+        m.should_not be_active
+      end
+    end
+
+    context "mission failed" do
+      it "returns false" do
+        m = Mission.new
+        set_state(m, true, false, false, true)
+        m.should_not be_active
+      end
+    end
+
+    context "mission assigned, not expired, not victorious, and not failed" do
+      it "returns true" do
+        m = Mission.new
+        set_state(m, true, false, false, false)
+        m.should be_active
+      end
+    end
+  end
+
+  describe "#completed?" do
+    context "one or more victory conditions return false" do
+      it "returns false" do
+        m = Mission.new :victory_conditions => [proc { true },
+                                                proc { false }]
+        m.victory_conditions.first.should_receive(:call).and_call_original
+        m.victory_conditions.last.should_receive(:call).and_call_original
+        m.should_not be_completed
+      end
+    end
+
+    context "all victory conditions return true" do
+      it "returns true" do
+        m = Mission.new :victory_conditions => [proc { true },
+                                                proc { true }]
+        m.victory_conditions.first.should_receive(:call).and_call_original
+        m.victory_conditions.last.should_receive(:call).and_call_original
+        m.should be_completed
+      end
+    end
+  end
+
+  describe "#victory!" do
+    context "mission not assigned" do
+      it "raises RuntimeError" do
+        m = Mission.new
+        m.should_receive(:assigned?).and_return(false)
+        lambda{
+          m.victory!
+        }.should raise_error(RuntimeError)
+      end
+    end
+
+    context "mission failed" do
+      it "raises RuntimeError" do
+        u = build(:user)
+        m = Mission.new
+        m.assign_to(u)
+        m.failed = true
+        lambda{
+          m.victory!
+        }.should raise_error(RuntimeError)
+      end
+    end
+
+    it "sets victorious true" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.victory!
+      m.victorious.should be_true
+    end
+
+    it "sets failed false" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.victory!
+      m.failed.should be_false
+    end
+
+    it "invokes all victory callbacks" do
+      u = build(:user)
+      m = Mission.new :victory_callbacks => [proc { 1 },
+                                             proc { 2 }]
+      m.assign_to(u)
+      m.victory_callbacks.first.should_receive :call
+      m.victory_callbacks.last.should_receive :call
+      m.victory!
+    end
+  end
+
+  describe "#failed!" do
+    context "mission not assigned" do
+      it "raises RuntimeError" do
+        m = Mission.new
+        m.should_receive(:assigned?).and_return(false)
+        lambda{
+          m.failed!
+        }.should raise_error(RuntimeError)
+      end
+    end
+
+    context "mission victorious" do
+      it "raises RuntimeError" do
+        u = build(:user)
+        m = Mission.new
+        m.assign_to(u)
+        m.victorious = true
+        lambda{
+          m.failed!
+        }.should raise_error(RuntimeError)
+      end
+    end
+
+    it "sets victorious false" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.failed!
+      m.victorious.should be_false
+    end
+
+    it "sets failed true" do
+      u = build(:user)
+      m = Mission.new
+      m.assign_to(u)
+      m.failed!
+      m.failed.should be_true
+    end
+
+    it "invokes all failure callbacks" do
+      u = build(:user)
+      m = Mission.new :failure_callbacks => [proc { 1 },
+                                             proc { 2 }]
+      m.assign_to(u)
+      m.failure_callbacks.first.should_receive :call
+      m.failure_callbacks.last.should_receive :call
+      m.failed!
+    end
+  end
+
+  describe "#initialize" do
+    it "sets attributes" do
+      t = Time.now
+      m = Mission.new :node => :new_node,
+                      :id   => "mission123",
+                      :title => "test_mission",
+                      :description => "test_missiond",
+                      :creator_id  => "user42",
+                      :assigned_to_id => "user43",
+                      :assigned_time => t,
+                      :timeout => 500,
+                      :requirements => [:req1],
+                      :assignment_callbacks => [:asi1],
+                      :victory_conditions => [:vco1],
+                      :victory_callbacks => [:vca1],
+                      :failure_callbacks => [:fc1],
+                      :victorious        => true,
+                      :failed            => true
+      m.id.should == "mission123"
+      m.title.should == "test_mission"
+      m.description.should == "test_missiond"
+      m.creator_id.should == "user42"
+      m.assigned_to_id.should == "user43"
+      m.assigned_time.should == t
+      m.timeout.should == 500
+      m.requirements.should == [:req1]
+      m.assignment_callbacks.should == [:asi1]
+      m.victory_conditions.should == [:vco1]
+      m.victory_callbacks.should == [:vca1]
+      m.failure_callbacks.should == [:fc1]
+      m.victorious.should == true
+      m.failed.should == true
+    end
+
+    it "sets defaults" do
+      m = Mission.new
+      m.id.should be_nil
+      m.title.should == ""
+      m.description.should == ""
+      m.mission_data.should == {}
+      m.creator_id.should be_nil
+      m.assigned_to_id.should be_nil
+      m.assigned_time.should be_nil
+      m.timeout.should be_nil
+      m.requirements.should == []
+      m.assignment_callbacks.should == []
+      m.victory_conditions.should == []
+      m.victory_callbacks.should == []
+      m.failure_callbacks.should == []
+      m.victorious.should == false
+      m.failed.should == false
+    end
+
+    it "converts time" do
+      t = Time.new('2013-01-01 00:00:00 -0500')
+      m = Mission.new :assigned_time => t.to_s
+      m.assigned_time.should == t
+    end
+
+    [:requirements, :assignment_callbacks, :victory_conditions,
+     :victory_callbacks, :failure_callbacks].each { |c|
+      it "converts #{c} into an array" do
+        m = Mission.new(c => proc { 1 })
+        m.send(c).should be_an_instance_of(Array)
+      end
+
+      it "converts #{c} into sprocs" do
+        m = Mission.new(c => [proc { 1 }])
+        m.send(c).first.class.should == SProc
+      end
+    }
+  end
+
+  describe "#update" do
+    it "updates mission attributes from args" do
+      t = Time.now
+      m = Mission.new :id   => "mission123", 
+                      :title => "test_mission",
+                      :description => "test_missiond",
+                      :creator_id  => "user42",
+                      :assigned_to_id => "user43",
+                      :assigned_time => t,
+                      :timeout => 500,
+                      :requirements => [:req1],
+                      :assignment_callbacks => [:asi1],
+                      :victory_conditions => [:vco1],
+                      :victory_callbacks => [:vca1],
+                      :failure_callbacks => [:fc1],
+                      :victorious => true,
+                      :failed => true
+
+      m.update(:id   => "mission124", 
+               :title => "test_missionu",
+               :description => "test_missiondu",
+               :creator_id  => "user44",
+               :assigned_to_id => "user45",
+               :assigned_time => t + 500,
+               :timeout => 600,
+               :requirements => [:req2],
+               :assignment_callbacks => [:asi2],
+               :victory_conditions => [:vco2],
+               :victory_callbacks => [:vca2],
+               :failure_callbacks => [:fc2],
+               :victorious => :maybe,
+               :failed => :maybe)
+
+      m.id.should == "mission124"
+      m.title.should == "test_missionu"
+      m.description.should == "test_missiondu"
+      m.creator_id.should == "user44"
+      m.assigned_to_id.should == "user45"
+      m.assigned_time.should == t + 500
+      m.timeout.should == 600
+      m.requirements.should == [:req2]
+      m.assignment_callbacks.should == [:asi2]
+      m.victory_conditions.should == [:vco2]
+      m.victory_callbacks.should == [:vca2]
+      m.failure_callbacks.should == [:fc2]
+      m.victorious.should == :maybe
+      m.failed.should == :maybe
+    end
+
+    it "updates mission attributes from mission" do
+      t = Time.now
+      m1 = Mission.new :id   => "mission123", 
+                       :title => "test_mission",
+                       :description => "test_missiond",
+                       :creator_id  => "user42",
+                       :assigned_to_id => "user43",
+                       :assigned_time => t,
+                       :timeout => 500,
+                       :requirements => [:req1],
+                       :assignment_callbacks => [:asi1],
+                       :victory_conditions => [:vco1],
+                       :victory_callbacks => [:vca1],
+                       :failure_callbacks => [:fc1],
+                       :victorious => true,
+                       :failed => true
+      m2 = Mission.new
+      m2.update :mission => m1
+      m2.id.should == "mission123"
+      m2.title.should == "test_mission"
+      m2.description.should == "test_missiond"
+      m2.creator_id.should == "user42"
+      m2.assigned_to_id.should == "user43"
+      m2.assigned_time.should == t
+      m2.timeout.should == 500
+      m2.requirements.should == [:req1]
+      m2.assignment_callbacks.should == [:asi1]
+      m2.victory_conditions.should == [:vco1]
+      m2.victory_callbacks.should == [:vca1]
+      m2.failure_callbacks.should == [:fc1]
+      m2.victorious.should == true
+      m2.failed.should == true
+    end
+  end
+
+  describe "#clone" do
+    it "returns copy of mission" do
+      t = Time.now
+      m = Mission.new :id   => "mission123", 
+                      :title => "test_mission",
+                      :description => "test_missiond",
+                      :creator_id  => "user42",
+                      :assigned_to_id => "user43",
+                      :assigned_time => t,
+                      :timeout => 500,
+                      :requirements => [:req1],
+                      :assignment_callbacks => [:asi1],
+                      :victory_conditions => [:vco1],
+                      :victory_callbacks => [:vca1],
+                      :failure_callbacks => [:fc1],
+                      :victorious => true,
+                      :failed => true
+      m1 = m.clone
+      m1.id.should == "mission123"
+      m1.title.should == "test_mission"
+      m1.description.should == "test_missiond"
+      m1.creator_id.should == "user42"
+      m1.assigned_to_id.should == "user43"
+      m1.assigned_time.should == t
+      m1.timeout.should == 500
+      m1.requirements.should == [:req1]
+      m1.assignment_callbacks.should == [:asi1]
+      m1.victory_conditions.should == [:vco1]
+      m1.victory_callbacks.should == [:vca1]
+      m1.failure_callbacks.should == [:fc1]
+      m1.victorious.should == true
+      m1.failed.should == true
+    end
+  end
+
+  describe "#to_json" do
+    it "returns mission in json format" do
+      t = Time.now
+      mission = Missions::Mission.new :id   => "mission123",
                                       :title => "test_mission",
                                       :description => "test_missiond",
-                                      :creator_user_id  => "user42",
+                                      :creator_id  => "user42",
                                       :assigned_to_id => "user43",
                                       :assigned_time => t,
                                       :timeout => 500,
                                       :requirements => [:req1],
-                                      :assignment_callbacks => [:asi1],
                                       :victory_conditions => [:vco1],
                                       :victory_callbacks => [:vca1],
                                       :failure_callbacks => [:fc1],
                                       :victorious => true,
                                       :failed => true
-    mission2 = Missions::Mission.new :mission => mission1
-    mission2.id.should == "mission123"
-    mission2.title.should == "test_mission"
-    mission2.description.should == "test_missiond"
-    mission2.creator_user_id.should == "user42"
-    mission2.assigned_to_id.should == "user43"
-    mission2.assigned_time.should == t
-    mission2.timeout.should == 500
-    mission2.requirements.should == [:req1]
-    mission2.assignment_callbacks.should == [:asi1]
-    mission2.victory_conditions.should == [:vco1]
-    mission2.victory_callbacks.should == [:vca1]
-    mission2.failure_callbacks.should == [:fc1]
-    mission2.victorious.should == true
-    mission2.failed.should == true
+      j = mission.to_json
+      j.should include('"json_class":"Missions::Mission"')
+      j.should include('"id":"mission123"')
+      j.should include('"title":"test_mission"')
+      j.should include('"description":"test_missiond"')
+      j.should include('"creator_id":"user42"')
+      j.should include('"assigned_to_id":"user43"')
+      j.should include('"assigned_time":"'+t.to_s+'"')
+      j.should include('"timeout":500')
+      j.should include('"requirements":["req1"]')
+      j.should include('"victory_conditions":["vco1"]')
+      j.should include('"victory_callbacks":["vca1"]')
+      j.should include('"failure_callbacks":["fc1"]')
+      j.should include('"victorious":true')
+      j.should include('"failed":true')
+    end
   end
 
-  it "should update mission" do
-     t = Time.now
-     mission = Missions::Mission.new :id   => "mission123", 
-                                     :title => "test_mission",
-                                     :description => "test_missiond",
-                                     :creator_user_id  => "user42",
-                                     :assigned_to_id => "user43",
-                                     :assigned_time => t,
-                                     :timeout => 500,
-                                     :requirements => [:req1],
-                                     :assignment_callbacks => [:asi1],
-                                     :victory_conditions => [:vco1],
-                                     :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1],
-                                     :victorious => true,
-                                     :failed => true
+  describe "#json_create" do
+    it "returns mission from json format" do
+      t = Time.parse('2013-03-10 15:33:41 -0400')
+      j = '{"json_class":"Missions::Mission","data":{"id":"mission123","title":"test_mission","description":"test_missiond","creator_id":"user42","assigned_to_id":"user43","timeout":500,"assigned_time":"'+t.to_s+'","requirements":["req1"],"assignment_callbacks":[],"victory_conditions":["vco1"],"victory_callbacks":["vca1"],"failure_callbacks":["fc1"],"victorious":true,"failed":true}}'
+      m = JSON.parse(j)
 
-     mission.update(:id   => "mission124", 
-                    :title => "test_missionu",
-                    :description => "test_missiondu",
-                    :creator_user_id  => "user44",
-                    :assigned_to_id => "user45",
-                    :assigned_time => t + 500,
-                    :timeout => 600,
-                    :requirements => [:req2],
-                    :assignment_callbacks => [:asi2],
-                    :victory_conditions => [:vco2],
-                    :victory_callbacks => [:vca2],
-                    :failure_callbacks => [:fc2],
-                    :victorious => :maybe,
-                    :failed => :maybe)
-
-    mission.id.should == "mission124"
-    mission.title.should == "test_missionu"
-    mission.description.should == "test_missiondu"
-    mission.creator_user_id.should == "user44"
-    mission.assigned_to_id.should == "user45"
-    mission.assigned_time.should == t + 500
-    mission.timeout.should == 600
-    mission.requirements.should == [:req2]
-    mission.assignment_callbacks.should == [:asi2]
-    mission.victory_conditions.should == [:vco2]
-    mission.victory_callbacks.should == [:vca2]
-    mission.failure_callbacks.should == [:fc2]
-    mission.victorious.should == :maybe
-    mission.failed.should == :maybe
+      m.class.should == Missions::Mission
+      m.id.should == 'mission123'
+      m.title.should == 'test_mission'
+      m.description.should == 'test_missiond'
+      m.creator_id.should == 'user42'
+      m.assigned_to_id.should == 'user43'
+      m.assigned_time.should == t
+      m.timeout.should == 500
+      m.requirements.should == ['req1']
+      m.victory_conditions.should == ['vco1']
+      m.victory_callbacks.should == ['vca1']
+      m.failure_callbacks.should == ['fc1']
+      m.victorious.should == true
+      m.failed.should == true
+    end
   end
 
-  it "should clone mission" do
-     t = Time.now
-     mission = Missions::Mission.new :id   => "mission123", 
-                                     :title => "test_mission",
-                                     :description => "test_missiond",
-                                     :creator_user_id  => "user42",
-                                     :assigned_to_id => "user43",
-                                     :assigned_time => t,
-                                     :timeout => 500,
-                                     :requirements => [:req1],
-                                     :assignment_callbacks => [:asi1],
-                                     :victory_conditions => [:vco1],
-                                     :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1],
-                                     :victorious => true,
-                                     :failed => true
-    mission1 = mission.clone
-    mission1.id.should == "mission123"
-    mission1.title.should == "test_mission"
-    mission1.description.should == "test_missiond"
-    mission1.creator_user_id.should == "user42"
-    mission1.assigned_to_id.should == "user43"
-    mission1.assigned_time.should == t
-    mission1.timeout.should == 500
-    mission1.requirements.should == [:req1]
-    mission1.assignment_callbacks.should == [:asi1]
-    mission1.victory_conditions.should == [:vco1]
-    mission1.victory_callbacks.should == [:vca1]
-    mission1.failure_callbacks.should == [:fc1]
-    mission1.victorious.should == true
-    mission1.failed.should == true
-  end
-
-  it "should convert string assignment time into time" do
-    t = Time.new('2013-01-01 00:00:00 -0500')
-    m = Missions::Mission.new :assigned_time => t.to_s
-    m.assigned_time.should == t
-  end
-
-  it "should verify validity of mission" do
-    # TODO
-  end
-
-  it "should return boolean indicating if mission is assignable to user" do
-     mission  = nil
-     user     = Users::User.new
-     node     = :node
-
-     req1_n   = 0
-     req1     = lambda { |m,u,n|
-                  m.should == mission
-                  u.should == user
-                  n.should == node
-                  req1_n += 1
-                  return false
-                }
-
-     req2_n   = 0
-     req2     = lambda { |m,u,n|
-                  m.should == mission
-                  u.should == user
-                  n.should == node
-                  req2_n += 1
-                  return true
-                }
-
-     mission = Missions::Mission.new :node => node
-     mission.assignable_to?(user).should be_true
-
-     mission = Missions::Mission.new :node => node, :assigned_to_id => 'user42'
-     mission.assignable_to?(user).should be_false
-
-     mission = Missions::Mission.new :node => node, :requirements => [req1]
-     mission.assignable_to?(user).should be_false
-     req1_n.should == 1
-     req2_n.should == 0
-
-     mission = Missions::Mission.new :node => node, :requirements => [req2]
-     mission.assignable_to?(user).should be_true
-     req1_n.should == 1
-     req2_n.should == 1
-
-     mission = Missions::Mission.new :node => node, :requirements => [req1,req2]
-     mission.assignable_to?(user).should be_false
-     req1_n.should == 2
-     req2_n.should == 1
-
-     mission = Missions::Mission.new :node => node, :requirements => [req2,req2]
-     mission.assignable_to?(user).should be_true
-     req1_n.should == 2
-     req2_n.should == 3
-  end
-
-  it "should assign mission to user" do
-     user     = Users::User.new :id => 'user42'
-
-     req1     = lambda { |m,u,n|
-                  return false
-                }
-
-     mission = Missions::Mission.new :requirements => [req1]
-     mission.assigned_to_id.should be_nil
-     mission.assigned_to.should be_nil
-
-     mission.assign_to(user)
-     mission.assigned_to_id.should be_nil
-     mission.assigned_to.should be_nil
-     mission.assigned_to?(user).should be_false
-     mission.assigned_to?(user.id).should be_false
-
-     mission = Missions::Mission.new :node => Omega::Client::Node
-     mission.assign_to(user)
-     mission.assigned_to_id.should == user.id
-     mission.assigned_to.should == user
-     mission.assigned_to?(user).should be_true
-     mission.assigned_to?(user.id).should be_true
-  end
-
-  it "should lookup user in registry if assigning to user id" do
-     user = Users::User.new :id => 'user42'
-     role = Users::Role.new :id => 'user_role_user42'
-     user.add_role(role)
-     Users::Registry.instance.create role
-     Users::Registry.instance.create user
-
-     mission = Missions::Mission.new :id => 'mission111', :node => Omega::Client::Node
-     mission.assign_to(user)
-     mission.assigned_to_id.should == user.id
-     mission.assigned_to.should == user
-
-    # ensure permission to view mission created
-    user.privileges.find { |p| p.id == 'view' && p.entity_id == 'mission-mission111' }.should_not be_nil
-  end
-
-  it "should clear mission assignment" do
-     user = Users::User.new :id => 'user42'
-     mission = Missions::Mission.new
-     mission.assigned_to    = user
-     mission.assigned_to_id = user.id
-     mission.assigned_time  = Time.now
-
-     mission.clear_assignment!
-     mission.assigned_to.should    == nil
-     mission.assigned_to_id.should == nil
-     mission.assigned_time.should  == nil
-  end
-
-  it "should return boolean indicating if mission is expired" do
-     mission = Missions::Mission.new :assigned_time => Time.now - 5, :timeout => 0
-     mission.should be_expired
-
-     mission = Missions::Mission.new :assigned_time => Time.now + 5, :timeout => 0
-     mission.should_not be_expired
-
-     mission = Missions::Mission.new :assigned_time => Time.now - 5, :timeout => 10
-     mission.should_not be_expired
-
-     # not really needed but w/e:
-     mission = Missions::Mission.new :assigned_time => Time.now + 5, :timeout => 10
-     mission.should_not be_expired
-
-     # if not assigned, should not be expired
-     mission = Missions::Mission.new
-     mission.should_not be_expired
-  end
-
-  it "should return boolean indicating if mission is active" do
-     # unassigned mission
-     mission = Missions::Mission.new
-     mission.should_not be_active
-
-     # expired mission
-     mission = Missions::Mission.new :assigned_time => Time.now - 5, :timeout => 0
-     mission.should_not be_active
-
-     # victorious mission
-     mission = Missions::Mission.new :victorious => true
-     mission.should_not be_active
-
-     # failed mission
-     mission = Missions::Mission.new :failed => true
-     mission.should_not be_active
-
-     # active mission
-     mission = Missions::Mission.new :assigned_time => Time.now, :timeout => 10
-     mission.should be_active
-  end
-
-  it "should return boolean indicating if mission is completed" do
-     mission  = nil
-     node     = :node
-
-     vic1_n   = 0
-     vic1     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  vic1_n += 1
-                  return false
-                }
-
-     vic2_n   = 0
-     vic2     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  vic2_n += 1
-                  return true
-                }
-
-     mission = Missions::Mission.new :node => node, :victory_conditions => [vic1]
-     mission.should_not be_completed
-     vic1_n.should == 1
-     vic2_n.should == 0
-
-     mission = Missions::Mission.new :node => node, :victory_conditions => [vic2]
-     mission.should be_completed
-     vic1_n.should == 1
-     vic2_n.should == 1
-
-     mission = Missions::Mission.new :node => node, :victory_conditions => [vic2,vic1]
-     mission.should_not be_completed
-     vic1_n.should == 2
-     vic2_n.should == 2
-
-     mission = Missions::Mission.new :node => node, :victory_conditions => [vic2,vic2]
-     mission.should be_completed
-     vic1_n.should == 2
-     vic2_n.should == 4
-  end
-
-  it "should set mission victory to true" do
-     mission  = nil
-     user     = Users::User.new :id => 'user42'
-     node     = Omega::Client::Node
-
-     vic1_n   = 0
-     vic1     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  vic1_n += 1
-                  return false
-                }
-
-     vic2_n   = 0
-     vic2     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  vic2_n += 1
-                  return true
-                }
-
-     mission = Missions::Mission.new :node => node, :victory_callbacks => [vic1, vic2]
-
-     lambda{
-       mission.victory!
-     }.should raise_error(RuntimeError, "must be assigned")
-     vic1_n.should == 0
-     vic2_n.should == 0
-     mission.victorious.should be_false
-
-     mission.assign_to(user)
-
-     mission.instance_variable_set(:@failed, true)
-     lambda{
-       mission.victory!
-     }.should raise_error(RuntimeError, "cannot already be failed")
-     vic1_n.should == 0
-     vic2_n.should == 0
-     mission.victorious.should be_false
-     mission.instance_variable_set(:@failed, false)
-
-     lambda{
-       mission.victory!
-     }.should_not raise_error
-     vic1_n.should == 1
-     vic2_n.should == 1
-     mission.victorious.should be_true
-     mission.failed.should be_false
-  end
-
-  it "should set mission failure to true" do
-     mission  = nil
-     user     = Users::User.new :id => 'user42'
-     node     = Omega::Client::Node
-
-     fai1_n   = 0
-     fai1     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  fai1_n += 1
-                  return false
-                }
-
-     fai2_n   = 0
-     fai2     = lambda { |m,n|
-                  m.should == mission
-                  n.should == node
-                  fai2_n += 1
-                  return true
-                }
-
-     mission = Missions::Mission.new :node => node, :failure_callbacks => [fai1, fai2]
-
-     lambda{
-       mission.failed!
-     }.should raise_error(RuntimeError, "must be assigned")
-     fai1_n.should == 0
-     fai2_n.should == 0
-     mission.failed.should be_false
-
-     mission.assign_to(user)
-
-     mission.instance_variable_set(:@victorious, true)
-     lambda{
-       mission.failed!
-     }.should raise_error(RuntimeError, "cannot already be victorious")
-     fai1_n.should == 0
-     fai2_n.should == 0
-     mission.failed.should be_false
-     mission.instance_variable_set(:@victorious, false)
-
-     lambda{
-       mission.failed!
-     }.should_not raise_error
-     fai1_n.should == 1
-     fai2_n.should == 1
-     mission.failed.should be_true
-     mission.victorious.should be_false
-  end
-
-  it "should be convertable to json" do
-     t = Time.now
-     mission = Missions::Mission.new :node => :new_node,
-                                     :id   => "mission123",
-                                     :title => "test_mission",
-                                     :description => "test_missiond",
-                                     :creator_user_id  => "user42",
-                                     :assigned_to_id => "user43",
-                                     :assigned_time => t,
-                                     :timeout => 500,
-                                     :requirements => [:req1],
-                                     :victory_conditions => [:vco1],
-                                     :victory_callbacks => [:vca1],
-                                     :failure_callbacks => [:fc1],
-                                     :victorious => true,
-                                     :failed => true
-    j = mission.to_json
-    j.should include('"json_class":"Missions::Mission"')
-    j.should include('"id":"mission123"')
-    j.should include('"title":"test_mission"')
-    j.should include('"description":"test_missiond"')
-    j.should include('"creator_user_id":"user42"')
-    j.should include('"assigned_to_id":"user43"')
-    j.should include('"assigned_time":"'+t.to_s+'"')
-    j.should include('"timeout":500')
-    j.should include('"requirements":["req1"]')
-    j.should include('"victory_conditions":["vco1"]')
-    j.should include('"victory_callbacks":["vca1"]')
-    j.should include('"failure_callbacks":["fc1"]')
-    j.should include('"victorious":true')
-    j.should include('"failed":true')
-  end
-
-  it "should be convertable from json" do
-    t = Time.new('2013-03-10 15:33:41 -0400')
-    j = '{"json_class":"Missions::Mission","data":{"id":"mission123","title":"test_mission","description":"test_missiond","creator_user_id":"user42","assigned_to_id":"user43","timeout":500,"assigned_time":"'+t.to_s+'","requirements":["req1"],"assignment_callbacks":[],"victory_conditions":["vco1"],"victory_callbacks":["vca1"],"failure_callbacks":["fc1"],"victorious":true,"failed":true}}'
-    m = JSON.parse(j)
-
-    m.class.should == Missions::Mission
-    m.id.should == 'mission123'
-    m.title.should == 'test_mission'
-    m.description.should == 'test_missiond'
-    m.creator_user_id.should == 'user42'
-    m.assigned_to_id.should == 'user43'
-    m.assigned_time.should == t
-    m.timeout.should == 500
-    m.requirements.should == ['req1']
-    m.victory_conditions.should == ['vco1']
-    m.victory_callbacks.should == ['vca1']
-    m.failure_callbacks.should == ['fc1']
-    m.victorious.should == true
-    m.failed.should == true
-  end
-end
+end # describe Mission
+end # module Missions

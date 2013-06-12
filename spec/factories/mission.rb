@@ -8,6 +8,7 @@ FactoryGirl.define do
     factory :mission do
       sequence(:id)   {  |n| "mission#{n}" }
       sequence(:title){  |n| "mission#{n}" }
+      association :creator, :factory => :admin
     end
   end
 end

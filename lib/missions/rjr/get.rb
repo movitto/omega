@@ -23,7 +23,7 @@ get_missions = proc { |*args|
              {:privilege => 'view', :entity => "mission-#{m.id}"}] + 
              (m.assigned_to_id.nil? ?
                [{:privilege => 'view', :entity => 'unassigned_missions'}] : [])
-    !check_privilege:registry => user_registry, :any => privs
+    !check_privilege :registry => user_registry, :any => privs
   }
 
 

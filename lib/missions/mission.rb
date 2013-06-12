@@ -73,7 +73,13 @@ class Mission
   end
 
   # Handle to Users::User who is assigned to the mission
-  attr_accessor :assigned_to
+  attr_reader :assigned_to
+
+  # Assigned_to writer, also sets id
+  def assigned_to=(val)
+    @assigned_to = val
+    @assigned_to_id = val.id unless val.nil?
+  end
 
   # Array of callbacks which to invoke on assignment
   attr_accessor :assignment_callbacks
@@ -95,13 +101,18 @@ class Mission
   # Time mission was assigned to user
   attr_accessor :assigned_time
 
+  # Return boolean indicating if mission is assigned
+  def assigned?
+    !@assigned_to_id.nil?
+  end
+
   # Time user has to complete mission
   attr_accessor :timeout
 
   # Returns boolean indicating if time to complete
   # mission has expired
   def expired?
-    @assigned_time && ((@assigned_time + @timeout) < Time.now)
+    assigned? && ((@assigned_time + @timeout) < Time.now)
   end
 
   # Clear mission assignment
@@ -120,7 +131,7 @@ class Mission
   # Retuns boolean indicating if mission is active, eg
   # assigned, not expired and not victorious / failed
   def active?
-    !self.assigned_time.nil? && !self.expired? && !self.victorious && !self.failed
+    assigned? && !self.expired? && !self.victorious && !self.failed
   end
 
   # Array of mission victory conditions
@@ -139,7 +150,7 @@ class Mission
 
   # Set mission victory to true
   def victory!
-    raise RuntimeError, "must be assigned"         if @assigned_to_id.nil?
+    raise RuntimeError, "must be assigned"         unless assigned?
     raise RuntimeError, "cannot already be failed" if @failed
     @victorious = true
     @failed     = false
@@ -154,7 +165,7 @@ class Mission
 
   # Set mission failure to true
   def failed!
-    raise RuntimeError, "must be assigned"             if @assigned_to_id.nil?
+    raise RuntimeError, "must be assigned"             unless assigned?
     raise RuntimeError, "cannot already be victorious" if @victorious
     @victorious = false
     @failed     = true
@@ -209,7 +220,7 @@ class Mission
        end
 
        i.each_index { |cbi|
-         i[cqi] = SProc.new(&i[cqi]) if i[cqi].is_a?(Proc)
+         i[cbi] = SProc.new(&i[cbi]) if i[cbi].is_a?(Proc)
        }
      }
   end
@@ -220,21 +231,22 @@ class Mission
   def update(args = {})
     attrs = [:id, :title, :description, :mission_data,
              :creator_id, :assigned_to_id, :assigned_time,
-             :timeout, :requirements, :assgigmnent_callbacks,
-             :victory_conditions, :failure_callbacks, :victorious,
+             :timeout, :requirements, :assignment_callbacks,
+             :victory_conditions, :victory_callbacks,
+             :failure_callbacks, :victorious,
              :failed]
 
     [:mission, 'mission'].each { |mission|
-      update_from(args[mission], attrs) if args[mission]
+      update_from(args[mission], *attrs) if args[mission]
     }
 
-    update_from(args, attrs)
+    update_from(args, *attrs)
   end
 
   # Return a copy of this mission, setting any additional attributes given
   def clone(args = {})
-    m = Mission.new :mission => self
-    m.update(args)
+    m = Mission.new
+    m.update(args.merge(:mission => self))
     m
   end
 

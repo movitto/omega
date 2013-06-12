@@ -9,6 +9,10 @@
 
 # XXX bug w/ sourcify 0.5.0 and double quotes, use 0.6.0.rc2
 # https://github.com/ngty/sourcify/issues/25
+
+# XXX make sure to define sprocs on their own lines: 
+# https://github.com/ngty/sourcify#2-multiple-matching-procs-per-line-error
+
 require 'sourcify'
 
 require 'delegate'

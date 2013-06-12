@@ -19,6 +19,8 @@ require 'users/rjr/init'
 require 'motel/movement_strategy'
 require 'motel/rjr/init'
 
+require 'missions/rjr/init'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
@@ -39,6 +41,7 @@ RSpec.configure do |config|
 
     Users::RJR.reset
     Motel::RJR.reset
+    Missions::RJR.reset
   }
 
   config.after(:each) {
@@ -65,12 +68,19 @@ FactoryGirl.define do
       node = RJR::Nodes::Local.new
       node.dispatcher.add_module('users/rjr/init')
       node.dispatcher.add_module('motel/rjr/init')
+      node.dispatcher.add_module('missions/rjr/init')
+      # TODO set current user ?
 
       # temporarily disable permission system
       o = Users::Registry.user_perms_enabled
       Users::Registry.user_perms_enabled = false
 
-      node.invoke(i.create_method, e)
+      begin node.invoke(i.create_method, e)
+      # assuming operation error just means entity was previously
+      # created, and silently ignore
+      # (TODO should only rescue OperationError when rjr supports error forwarding)
+      rescue Exception => e ; end
+      
 
       Users::Registry.user_perms_enabled = o
     }

@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/server/event'
+require 'missions/rjr/init'
 
 module Missions
 module Events
@@ -46,7 +47,7 @@ class PopulateResource < Omega::Server::Event
                 @quantity
 
     # TODO
-    Missions::Event.node.invoke_request('cosmos::set_resource', @entity.id, @resource, @quantity)
+    Missions::RJR.node.invoke('cosmos::set_resource', @entity.id, @resource, @quantity)
   end
 
   public
@@ -62,11 +63,11 @@ class PopulateResource < Omega::Server::Event
 
     [:@resource, :@entity, :@quantity].each { |a|
       v = self.instance_variable_get(a)
-      self.instance_variable_set(a, v.intern) if v.is_a?(String)
+      self.instance_variable_set(a, v.intern) if v == 'random'
     }
 
-    @callbacks << lambda { |e| e.handle_event }
     super(args)
+    @handlers.unshift  proc { |e| handle_event }
   end
 
   # Convert event to json representation and return it
@@ -75,7 +76,7 @@ class PopulateResource < Omega::Server::Event
       'json_class' => self.class.name,
       'data'       => {:id => id,
                        :timestamp => timestamp,
-                       :callbacks => callbacks[1..-1],
+                       :handlers => handlers[1..-1],
                        :resource => resource,
                        :entity => entity,
                        :quantity => @quantity,
