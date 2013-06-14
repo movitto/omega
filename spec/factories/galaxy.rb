@@ -1,18 +1,13 @@
-require 'cosmos/registry'
-require 'cosmos/galaxy'
+require 'cosmos/entities/galaxy'
 
 FactoryGirl.define do
-  factory :server_galaxy, class: Cosmos::Galaxy do
-    after(:build) { |g|
-      unless Cosmos::Registry.instance.has_child?(g.name)
-        Cosmos::Registry.instance.add_child(g)
-      end
-    }
-  end
+  factory 'cosmos/server/galaxy' do
+    server_entity
+    create_method 'cosmos::create_entity'
 
-  factory :gal1, parent: :server_galaxy do
-    name     'gal1'
-
-    association :location, factory: :gal1_location, :strategy => :build
+    factory :galaxy do
+      sequence(:id)   {  |n| "galaxy#{n}" }
+      sequence(:name) {  |n| "galaxy#{n}" }
+    end
   end
 end

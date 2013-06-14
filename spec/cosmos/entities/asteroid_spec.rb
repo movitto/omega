@@ -1,0 +1,108 @@
+# asteroid module tests
+#
+# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'spec_helper'
+require 'cosmos/entities/asteroid'
+
+module Cosmos
+describe Asteroid do
+  describe "#initialize" do
+    it "initializes entity" do
+      args = {}
+      Asteroid.any_instance.should_receive(:init_entity).with(args)
+      a = Asteroid.new args
+    end
+
+    it "initializes system entity" do
+      args = {}
+      Asteroid.any_instance.should_receive(:init_system_entity).with(args)
+      a = Asteroid.new args
+    end
+  end
+
+  describe "#valid?" do
+    context "entity not valid" do
+      it "returns false" do
+        a = Asteroid.new
+        a.should_receive(:entity_valid?).and_return(false)
+        a.should_not be_valid
+      end
+    end
+
+    context "system entity not valid" do
+      it "returns false" do
+        a = Asteroid.new
+        a.should_receive(:entity_valid?).and_return(true)
+        a.should_receive(:system_entity_valid?).and_return(false)
+        a.should_not be_valid
+      end
+    end
+
+    context "location not stopped" do
+      it "returns false" do
+        a = Asteroid.new
+        a.should_receive(:entity_valid?).and_return(true)
+        a.should_receive(:system_entity_valid?).and_return(true)
+        a.location.movement_strategy = Motel::MovementStrategies::Linear.new
+        a.should_not be_valid
+      end
+    end
+
+    it "returns true" do
+      a = Asteroid.new
+      a.should_receive(:entity_valid?).and_return(true)
+      a.should_receive(:system_entity_valid?).and_return(true)
+      a.should be_valid
+    end
+  end
+
+  describe "#accepts_resource?" do
+    context "resource not valid" do
+      it "returns false" do
+        r = Resource.new
+        r.should_receive(:valid?).and_return(false)
+        a = Asteroid.new
+        a.accepts_resource?(r).should be_false
+      end
+    end
+
+    it "returns true" do
+      r = Resource.new
+      r.should_receive(:valid?).and_return(true)
+      a = Asteroid.new
+      a.accepts_resource?(r).should be_true
+    end
+  end
+
+  describe "#to_json" do
+    it "returns asteroid in json format" do
+      a = Cosmos::Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50,
+                               :location => Motel::Location.new(:x => 50)
+
+      j = a.to_json
+      j.should include('"json_class":"Cosmos::Asteroid"')
+      j.should include('"name":"asteroid1"')
+      j.should include('"color":"brown"')
+      j.should include('"size":50')
+      j.should include('"json_class":"Motel::Location"')
+      j.should include('"x":50')
+    end
+  end
+
+  describe "#json_create" do
+    it "returns asteroid from json format" do
+      j = '{"data":{"color":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Asteroid"}'
+      a = JSON.parse(j)
+
+      a.class.should == Cosmos::Asteroid
+      a.name.should == 'asteroid1'
+      a.color.should == 'brown'
+      a.size.should == 50
+      a.location.x.should  == 50
+    end
+  end
+
+end # describe Asteroid
+end # module Cosmos

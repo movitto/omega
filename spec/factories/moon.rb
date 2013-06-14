@@ -1,12 +1,10 @@
-require 'cosmos/moon'
+require 'cosmos/entities/moon'
 
 FactoryGirl.define do
-  factory :moon, class: Cosmos::Moon do
-  end
-
-  factory :moon1, parent: :moon do
-    name     'moon1'
-
-    association :location, factory: :moon1_location, :strategy => :build
+  factory 'cosmos/entities/moon' do
+    factory :moon1 do
+      sequence(:id)   {  |n| "moon#{n}" }
+      sequence(:name) {  |n| "moon#{n}" }
+    end
   end
 end

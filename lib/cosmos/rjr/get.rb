@@ -3,75 +3,64 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'cosmos/rjr/init'
+
+module Cosmos::RJR
+# retrieve entities filtered by args
 get_entities = proc { |*args|
-  filter = {}
-  while qualifier = args.shift
-    raise ArgumentError, "invalid qualifier #{qualifier}" unless ["of_type", "with_id", "with_name", "with_location"].include?(qualifier)
-    val = args.shift
-    raise ArgumentError, "qualifier #{qualifier} requires value" if val.nil?
-    qualifier = case qualifier
-                  when "of_type"
-                    :type
-                  when "with_id"
-                    :name
-                  when "with_name"
-                    :name
-                  when "with_location"
-                    :location
-                end
-    filter[qualifier] = val
-  end
+  # retrieve entities matching filters specified by args
+  filters filters_from_args args,
+    :with_id       => proc { |e, id|   e.id == id           },
+    :with_name     => proc { |e, name| e.name == id         },
+    :of_type       => proc { |e, type| e.class.to_s == type },
+    :with_location => proc { |e, l|    e.location.id == l.is_a?(String) ? l : l.id }
+  entities = registry.entities { |e|e filters.all? { |f| f.call(e) }}
 
-  entities = Cosmos::Registry.instance.find_entity(filter)
-
-  return_first = false
-  unless entities.is_a?(Array)
-    raise Omega::DataNotFound, "entity not found with params #{filter.inspect}" if entities.nil?
-    Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entities.name}"},
-                                               {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                      :session => @headers['session_id'])
-
-    return_first = true
-    entities = [entities]
-  end
-
-  entities.reject! { |entity|
-    raised = false
-    begin
-      Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
-                                                 {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                        :session => @headers['session_id'])
-    rescue Omega::PermissionError => e
-      raised = true
-    end
-    raised
-  }
-
-  # raise Omega::DataNotFound if entities.empty? (?)
-  entities.each{ |entity|
-    if entity.has_children?
-      entity.each_child { |parent, child|
-        Cosmos::Registry.instance.safely_run {
-          child.location = @@local_node.invoke_request('motel::get_location', 'with_id', child.location.id)
-          child.location.parent = parent.location
-        }
-      }
-    end
-  }
-
-  0.upto(entities.size-1) { |i|
-    entity = entities[i]
-    Cosmos::Registry.instance.safely_run {
-      # update locations w/ latest from the tracker
-      entity.location = @@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id) if entity.location
-      entity.location.parent = entity.parent.location if entity.parent
+  # update entities' locations & children's
+  entities.each { |entity|
+    entity.location = node.invoke('motel::get_location', 'with_id', e.location.id)
+    entity.location.parent = entity.parent.location
+    entity.each_child { |e, c|
+      c.location = node.invoke('motel::get_location', 'with_id', c.location.id)
+      c.location.parent = e.location
     }
   }
+# TODO update entities in registry
 
-  return_first ? entities.first : entities
+  # if id of entity is specified, only return single entity
+  return_first = args.include?('with_id') || args.include?('with_name')
+  if return_first
+    entities = entities.first
+
+    # make sure entity was found
+    id = args[args.index('with_id') + 1]
+    name = args[args.index('with_name') + 1]
+    raise DataNotFound, (id.nil? ? name : id) if entities.nil?
+
+    # make sure the user has privileges on the specified entity
+    require_privilege :registry => user_registry, :any =>
+      [{:privilege => 'view', :entity => "cosmos_entity-#{entities.id}"},
+       {:privilege => 'view', :entity => 'cosmos_entities'}]
+
+  # else filter out entities which user does not have access to
+  else
+    entities.reject! { |entity|
+      !check_privilege :registry => user_registry, :any =>
+         [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
+          {:privilege => 'view', :entity => 'cosmos_entities'}]
+    }
+  end
+
+  # return entities
+  entities
 }
 
-def dispatch_get_entities(dispatcher)
+GET_METHODS = { :get_entities => get_entities }
+
+end # module Cosmos::RJR
+
+def dispatch_cosmos_rjr_get(dispatcher)
+  m = Cosmos::RJR::GET_METHODS
   dispatcher.handle ['cosmos::get_entities', 'cosmos::get_entity'],
-                                                    &get_entities
+                                                 &m[:get_entities]
 end

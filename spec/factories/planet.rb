@@ -1,14 +1,16 @@
-require 'cosmos/planet'
+require 'cosmos/entities/planet'
 
 FactoryGirl.define do
-  factory :planet, class: Cosmos::Planet do
-  end
+  factory 'cosmos/server/planet' do
+    server_entity
+    create_method 'cosmos::create_entity'
 
-  factory :planet1, parent: :planet do
-    name     'planet'
-    size      35
-    color    'AABBCC'
+    factory :planet do
+      name     'planet'
+      size      35
+      color    'AABBCC'
 
-    association :location, factory: :planet1_location, :strategy => :build
+      association :location, factory: :planet1_location, :strategy => :build
+    end
   end
 end

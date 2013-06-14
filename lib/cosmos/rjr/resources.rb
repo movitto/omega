@@ -1,38 +1,60 @@
-# cosmos::set_resource,
-# cosmos::get_resource_sources rjr definitions
+# cosmos::create_resource,cosmos::get_resources rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-set_resource = proc { |entity_id, resource, quantity|
-  raise ArgumentError, "quantity must be an int or float >= 0" unless (quantity.is_a?(Integer) || quantity.is_a?(Float)) && quantity >= 0
-  raise ArgumentError, "#{resource} must be a resource" unless resource.is_a?(Cosmos::Resource)
+require 'cosmos/rjr/init'
 
-  entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
-  raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
+module Cosmos::RJR
+# create the specified resource
+create_resource = proc { |resource|
+  # ensure resource is a valid resource
+  raise ArgumentError, resource unless resource.is_a?(Resource) &&
+                                       resource.valid? &&
+                                       resource.quantity > 0
 
-  valid_types = Cosmos::Registry.instance.entity_types
-  raise ArgumentError, "Invalid #{entity.class} entity specified, must be one of #{valid_types.inspect}" unless valid_types.include?(entity.class)
+  # retrieve entity
+  entity = registry.entity &with_id(resource.entity_id)
+  raise DataNotFound, resource.entity if entity.nil?
 
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "cosmos_entity-#{entity.name}"},
-                                             {:privilege => 'modify', :entity => 'cosmos_entities'}],
-                                    :session => @headers['session_id'])
-  raise ArgumentError, "#{resource} must be acceptable by entity #{entity}" unless entity.accepts_resource?(resource)
+  # ensure entity can accept resource
+  raise ArgumentError, entity unless entity.can_accept?(resource)
 
-  Cosmos::Registry.instance.set_resource(entity_id, resource, quantity)
+  # require modify cosmos entities
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "cosmos_entity-#{entity.id}"},
+     {:privilege => 'modify', :entity => 'cosmos_entities'}]
+
+  # Add resource to entity
+  entity.add_resource(resource)
+# TODO update entity in registry
+
+  # return nil
   nil
 }
 
-get_resource_sources = proc { 
-  entity = Cosmos::Registry.instance.find_entity(:name => entity_id)
-  raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
-  Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "cosmos_entity-#{entity.name}"},
-                                             {:privilege => 'view', :entity => 'cosmos_entities'}],
-                                    :session => @headers['session_id'])
-  Cosmos::Registry.instance.resource_sources.select { |rs| rs.entity.name == entity_id }
+# retrieve all resources for entity
+get_resources = proc { |entity_id|
+  # retrieve entity from registry
+  entity = registry.entity &with_id(entity_id)
+  raise DataNotFound, entity_id if entity.nil?
+
+  # ensure user has view privileges on entity
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'view', :entity => "cosmos_entity-#{entity.id}"},
+     {:privilege => 'view', :entity => 'cosmos_entities'}]
+
+  # return resources
+  entity.resources
 }
 
-def dispatch_resources(dispatcher)
-  dispatcher.handle 'cosmos::set_resource', &set_resource
-  dispatcher.handle 'cosmos::get_resource_sources', &get_resource_sources
+RESOURCES_METHODS = { :create_resource => create_resource,
+                      :get_resources   => get_resources }
+
+end # module Cosmos::RJR
+
+def dispatch_cosmos_rjr_resources(dispatcher)
+  m = Cosmos::RJR::RESOURCES_METHODS
+  dispatcher.handle 'cosmos::set_resource', &m[:create_resource]
+  dispatcher.handle 'cosmos::get_resource_sources', &m[:get_resources]
 end

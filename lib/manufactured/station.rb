@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/registry'
-require 'cosmos/solar_system'
+require 'cosmos/entities/solar_system'
 
 module Manufactured
 

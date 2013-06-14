@@ -180,6 +180,30 @@ module OmegaTest
        @times_moved += 1
      end
   end
+
+  class CosmosEntity
+    include Cosmos::Entity
+
+    PARENT_TYPE = CosmosEntity
+    CHILD_TYPES = CosmosEntity
+  end
+
+  class CosmosEnvEntity
+    include Cosmos::Entity
+    include Cosmos::EnvEntity
+
+    NUM_BACKGROUNDS = 5
+  end
+
+  class CosmosSystemEntity
+    include Cosmos::Entity
+    include Cosmos::SystemEntity
+    VALIDATE_SIZE  = proc { |v| }
+    VALIDATE_COLOR = proc { |v| }
+    RAND_SIZE      = proc { }
+    RAND_COLOR     = proc { }
+  end
+
 end
 
 ######################################

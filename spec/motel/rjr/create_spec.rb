@@ -1,4 +1,4 @@
-# users::create_location tests
+# motel::create_location tests
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -29,7 +29,7 @@ module Motel::RJR
       end
     end
 
-    context "sufficient privileges (create-users)" do
+    context "sufficient privileges (create-locations)" do
       before(:each) do
         add_privilege(@login_role, 'create', 'locations')
       end
