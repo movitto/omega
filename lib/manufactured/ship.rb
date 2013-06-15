@@ -3,9 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'cosmos/registry'
 require 'cosmos/entities/solar_system'
-require 'cosmos/resource'
+
+require 'manufactured/entity'
 require 'manufactured/callbacks'
 
 module Manufactured
@@ -15,6 +15,9 @@ module Manufactured
 # and may mine resources and attack other manufactured entities
 # depending on the ship type
 class Ship
+  include Manufactured::Entity::InSystem
+  include Manufactured::Entity::HasCargo
+
   # Unique string id of the ship
   attr_accessor :id
 
@@ -23,9 +26,6 @@ class Ship
 
   # Size of the ship
   attr_accessor :size
-
-  # [Motel::Location] of the ship in its parent solar system
-  attr_accessor :location
 
   # Total distance ship moved
   attr_accessor :distance_moved
@@ -39,30 +39,11 @@ class Ship
   # @param [SHIP_TYPE] val type to assign to the ship
   def type=(val)
     @type = val
-    @type = SHIP_TYPES.find { |t|
+    @type = TYPES.find { |t|
               t.to_s == @type
             } if @type.is_a?(String)
-    @size = SHIP_SIZES[@type]
+    @size = SIZES[@type]
   end
-
-  # [Cosmos::SolarSystem] the ship is in
-  attr_reader :solar_system
-
-  # Set system and system name
-  def solar_system=(val)
-    @solar_system = val
-
-    unless val.nil?
-      @system_id    = val.id
-      @location.parent = val.location
-    end
-  end
-
-  alias :parent :solar_system
-  alias :parent= :solar_system=
-
-  # [String] name of the solar system ship is in
-  attr_accessor :system_id
 
   # Callbacks to invoke on ship events
   attr_accessor :callbacks
@@ -97,13 +78,6 @@ class Ship
   def self.base_rotation_speed(type)
     Math::PI / 8
   end
-
-  # @!endgroup
-
-  # @!group Transfer properties
-
-  # Max distance ship may be away from a target to transfer to it
-  attr_accessor :transfer_distance
 
   # @!endgroup
 
@@ -257,17 +231,6 @@ class Ship
   # {Cosmos::Resource} ship is mining, nil if not mining
   attr_accessor :mining
 
-  # List of resources contained in the ship
-  attr_accessor :resources
-
-  # @!group Cargo Properties
-
-  # Max cargo capacity of ship
-  # @see #cargo_quantity
-  attr_accessor :cargo_capacity
-
-  # @!endgroup
-
   # @!group Looting Properties
 
   # Max distance ship may be from loot to collect it
@@ -277,16 +240,16 @@ class Ship
 
   # General ship classification, used to determine
   # a ship's capabilities
-  SHIP_TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
-                :battlecruiser, :exploration, :mining]
+  TYPES = [:frigate, :transport, :escort, :destroyer, :bomber, :corvette,
+           :battlecruiser, :exploration, :mining]
 
   # Types of ships with attack capabilities
-  ATTACK_SHIP_TYPES = [:escort, :destroyer, :bomber, :corvette, :battlecruiser]
+  ATTACK_TYPES = [:escort, :destroyer, :bomber, :corvette, :battlecruiser]
 
   # Mapping of ship types to default sizes
-  SHIP_SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
-                :destroyer => 30, :bomber => 25, :corvette => 25,
-                :battlecruiser => 35, :exploration => 23, :mining => 25}
+  SIZES = {:frigate => 35,  :transport => 25, :escort => 20,
+           :destroyer => 30, :bomber => 25, :corvette => 25,
+           :battlecruiser => 35, :exploration => 23, :mining => 25}
 
   # Cost to construct a ship of the specified type
   #
@@ -372,7 +335,7 @@ class Ship
   # * id is set to a valid (non-empty) string
   # * location is set to a Motel::Location
   # * user id is set to a string
-  # * type is one of valid SHIP_TYPES
+  # * type is one of valid TYPES
   # * size corresponds to the correct value for type
   # * docked_at is set to a Manufactured::Station which permits docking
   # * attacking is set to Manufactured::Ship that can be attacked
@@ -394,8 +357,8 @@ class Ship
     !@location.nil? && @location.is_a?(Motel::Location) &&
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::Entities::SolarSystem) &&
 
-    !@type.nil? && SHIP_TYPES.include?(@type) &&
-    !@size.nil? && @size == SHIP_SIZES[@type] &&
+    !@type.nil? && TYPES.include?(@type) &&
+    !@size.nil? && @size == SIZES[@type] &&
 
      @shield_level <= @max_shield_level &&
 
@@ -413,10 +376,7 @@ class Ship
       !c.kind_of?(Manufactured::Callback)
     }.empty? && # TODO ensure validity of callbacks
 
-    @resources.is_a?(Array) &&
-    @resources.select { |r|
-      !r.is_a?(Cosmos::Resource)
-    }.empty? # TODO verify resources are valid in context of ship
+    self.resources_valid?
 
     # TODO validate cargo, mining, attack properties when they become variable
   end
@@ -432,7 +392,7 @@ class Ship
   def can_dock_at?(station)
     (@location.parent.id == station.location.parent.id) &&
     (@location - station.location) <= station.docking_distance &&
-    alive? # && station.alive?
+    alive?
     # TODO ensure not already docked
   end
 
@@ -442,7 +402,7 @@ class Ship
   # @return [true,false] indicating if ship can attack entity
   def can_attack?(entity)
     # TODO incoporate alliances ?
-    ATTACK_SHIP_TYPES.include?(@type) && !self.docked? &&
+    ATTACK_TYPES.include?(@type) && !self.docked? &&
     (@location.parent.id == entity.location.parent.id) &&
     (@location - entity.location) <= @attack_distance  &&
     alive? && entity.alive?
@@ -460,13 +420,6 @@ class Ship
     (cargo_quantity + @mining_quantity) <= @cargo_capacity
   end
 
-  def cargo_empty?
-    cargo_quantity == 0
-  end
-
-  def cargo_full?
-    cargo_quantity >= @cargo_capacity
-  end
 
   # Return boolean indicating if ship is currently docked
   #
@@ -525,80 +478,6 @@ class Ship
   # Clear ship's mining target
   def stop_mining
     @mining = nil
-  end
-
-  # Add resource locally
-  #
-  # @param [Resource] resource to add
-  # @raise [RuntimeError] if ship cannot accept resource
-  def add_resource(resource)
-    raise RuntimeError,
-          "ship cannot accept resource" unless can_accept?(resource)
-    res = @resources.find { |r| r.id == resource.id }
-    if res.nil?
-      resource.entity = self
-      @resources << resource
-    else
-      res.quantity += resource.quantity
-    end
-    nil
-  end
-
-  # Remove specified quantity of resource specified by id from ship
-  #
-  # @param [Resource] resource to remove
-  # @raise [RuntimeError] if resource cannot be removed
-  def remove_resource(resource)
-    res = @resources.find { |r|
-      r.id == resource.id && r.quantity >= resource.quantity
-    }
-    raise RuntimeError,
-          "ship does not contain specified resource" if res.nil?
-
-    if res.quantity == resource.quantity
-      @resources.delete(res)
-    else
-      res.quantity -= resource.quantity
-    end
-    nil
-  end
-
-  # Determine the current cargo quantity
-  #
-  # @return [Integer] representing the amount of resource/etc in the ship
-  def cargo_quantity
-    @resources.inject(0) { |t,r| t+= r.quantity }
-  end
-
-  # Return boolean if ship can transfer specified quantity of resource
-  # specified by id to specified destination
-  #
-  # @param [Manufactured::Entity] to_entity entity which resource is being transfered to
-  # @param [Resource] resource being transfered
-  def can_transfer?(to_entity, resource)
-    res =
-      @resources.find { |r|
-        r.id == resource.id && r.quantity >= resource.quantity
-      }
-
-    same_entity =
-      @id == to_entity.id 
-
-    same_system =
-      (@location.parent.id == to_entity.location.parent.id)
-
-    close_enough =
-      ((@location - to_entity.location) <= @transfer_distance)
-
-    !same_entity && !res.nil? && same_system &&  close_enough
-  end
-
-  # Return boolean indicating if ship can accpt the specified quantity
-  # of the resource specified by id
-  #
-  # @param [Resource] resource being transferred
-  def can_accept?(resource)
-    self.cargo_quantity + resource.quantity <= @cargo_capacity
   end
 
   # Convert ship to json representation and return it

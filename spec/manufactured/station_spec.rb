@@ -4,332 +4,296 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'manufactured/station'
+require 'cosmos/entities/solar_system'
 
-describe Manufactured::Station do
+module Manufactured
+describe Station do
+  describe "#type" do
+    it "sets type" do
+      s = Station.new
+      s.type = :frigate
+      s.type.should == :frigate
+    end
 
-  it "should successfully accept and set station params" do
-     type = Manufactured::Station::STATION_TYPES.first
-     size = Manufactured::Station::STATION_SIZES[type]
+    it "converts type" do
+      s = Station.new
+      s.type = 'offense'
+      s.type.should == :offense
+    end
 
-     sys  = Cosmos::SolarSystem.new :name => 'system1'
-     sys2  = Cosmos::SolarSystem.new :name => 'system2'
-     station = Manufactured::Station.new :id => 'station1', :user_id => 5,
-                                   :type => type.to_s, :size => size,
-                                   :solar_system => sys
-                                   
-     station.id.should == 'station1'
-     station.user_id.should == 5
-     station.location.should_not be_nil
-     station.location.x.should == 0
-     station.location.y.should == 0
-     station.location.z.should == 0
-     station.type.should == type
-     station.size.should == size
+    it "does not convert invalid type" do
+      s = Station.new
+      s.type = 'foobar'
+      s.type.should == nil
+    end
 
-     station.parent.should == sys
-     station.system_name.should == sys.name
-     station.parent = sys2
-     station.parent.should == sys2
+    it "sets size" do
+      s = Station.new
+      s.type = :offense
+      s.size.should == Station::SIZES[:offense]
+    end
   end
 
-  it "should lookup parent system in registry if name given" do
-     sys  = Cosmos::SolarSystem.new :name => 'system1'
-     gal  = Cosmos::Galaxy.new :name => 'galaxy1', :solar_systems => [sys]
-     Cosmos::Registry.instance.add_child gal
-     station = Manufactured::Station.new :id => 'station1', :system_name => 'system1'
-     station.solar_system.should == sys
-     Cosmos::Registry.instance.init
+  describe "#initialize" do
+    it "sets defaults" do
+      s = Station.new
+      s.id.should be_nil
+      s.user_id.should be_nil
+      s.type.should be_nil
+      s.callbacks.should == []
+      s.resources.should == []
+      s.solar_system.should be_nil
+      s.system_id.should be_nil
+      s.docking_distance.should == 100
+      s.cargo_capacity.should == 10000
+      s.transfer_distance.should == 100
+      s.construction_distance.should == 50
+
+      s.location.should be_an_instance_of(Motel::Location)
+      s.location.coordinates.should == [0,0,1]
+      s.location.orientation.should == [1,0,0]
+    end
+
+    it "sets attributes" do
+      r = build(:resource)
+      sys = build(:solar_system)
+      l = build(:location)
+      s = Station.new :id                  => 'ship1',
+                   :user_id             => 'user1',
+                   :type                => 'manufacturing',
+                   :callbacks           => [ :foo , :bar ],
+                   :resources           => [r],
+                   :solar_system        => sys,
+                   :location            =>   l,
+                   :cargo_capacity      => 500,
+                   :transfer_distance   => 100,
+                   :construction_distance => 200
+
+      s.id.should == 'ship1'
+      s.user_id.should == 'user1'
+      s.type.should == :manufacturing
+      s.callbacks.should == [:foo, :bar]
+      s.resources.should == [r]
+      s.solar_system.should == sys
+      s.system_id.should == sys.id
+      s.location.should == l
+      s.cargo_capacity.should == 500
+      s.transfer_distance.should == 100
+      s.construction_distance.should == 200
+    end
   end
 
-  it "should verify validity of station" do
-    station = Manufactured::Station.new :id => 'station1', :user_id => 'tu', :solar_system => Cosmos::SolarSystem.new
-    station.valid?.should be_true
+  describe "#valid?" do
+    before(:each) do
+      @sys = build(:solar_system)
+      @s   = Station.new :id           => 'ship1',
+                         :user_id      => 'tu',
+                         :solar_system => @sys,
+                         :type         => :defense
+    end
 
-    station.id = nil
-    station.valid?.should be_false
-    station.id = 'station1'
+    it "returns true" do
+      @s.should be_valid
+    end
+    
+    context "id is invalid" do
+      it "returns false" do
+        @s.id = nil
+        @s.should_not be_valid
+      end
+    end
 
-    station.location = nil
-    station.valid?.should be_false
-    station.location = Motel::Location.new
+    context "location is invalid" do
+      it "returns false" do
+        @s.location = nil
+        @s.should_not be_valid
+      end
+    end
 
-    station.solar_system = nil
-    station.valid?.should be_false
-    station.solar_system = Cosmos::SolarSystem.new
+    context "user_id is invalid" do
+      it "returns false" do
+        @s.user_id = nil
+        @s.should_not be_valid
+      end
+    end
 
-    station.user_id = nil
-    station.valid?.should be_false
-    station.user_id = 'tu'
+    context "type is invalid" do
+      it "returns false" do
+        @s.type = 'fooz'
+        @s.should_not be_valid
 
-    station.type = nil
-    station.valid?.should be_false
+        @s.type = nil
+        @s.should_not be_valid
+      end
+    end
 
-    station.type = 'fooz'
-    station.valid?.should be_false
-    station.type = :manufacturing
+    context "type is invalid" do
+      it "returns false" do
+        @s.type = nil
+        @s.should_not be_valid
+      end
+    end
 
-    station.size = 512
-    station.valid?.should be_false
-    station.size = Manufactured::Station::STATION_SIZES[:manufacturing]
+    context "size is invalid" do
+      it "returns false" do
+        @s.size = 512
+        @s.should_not be_valid
+      end
+    end
 
-    station.resources[99] = 'false'
-    station.valid?.should be_false
-    station.resources.clear
-    station.resources['gold'] = 500
-
-    station.valid?.should be_true
+    context "resources are invalid" do
+      it "returns false" do
+        @s.resources = ['false']
+        @s.should_not be_valid
+      end
+    end
   end
 
-  it "should set parent location when setting location" do
-    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
-    station = Manufactured::Station.new :id => 'station', :solar_system => sys1
-    loc = Motel::Location.new
-    station.location = loc
-    loc.parent.should == sys1.location
+  describe "#dockable?" do
+    before(:each) do
+      @s  = build(:solar_system)
+      @s1 = build(:solar_system)
+      @sh = Manufactured::Ship.new :id => 'ship1'
+      @st = Manufactured::Station.new :id => 'station1'
+
+      @s.location.coordinates = [0, 0, 0]
+      @s1.location.coordinates = [0, 0, 1]
+      @sh.location.parent = @s1.location
+      @st.location.parent = @s1.location
+    end
+
+    context "ship/station in different systems" do
+      it "returns false" do
+        @sh.location.parent = @s.location
+        @st.dockable?(@sh).should be_false
+      end
+    end
+
+    context "ship/station too far away" do
+      it "returns false" do
+        @sh.location.x = 500
+        @st.dockable?(@sh).should be_false
+      end
+    end
+
+    it "returns true" do
+      @st.dockable?(@sh).should be_true
+    end
   end
 
-  it "should set parent location when setting system" do
-    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
-    sys2 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
-    stat = Manufactured::Station.new :id => 'stat1', :solar_system => sys1
-    stat.location.parent.should == sys1.location
-    stat.solar_system = sys2
-    stat.location.parent.should == sys2.location
+  describe "#can_construct" do
+    context "not manufacturing station" do
+      it "returns false" do
+        s = Station.new :type => :offense
+        s.can_construct?({:type => 'Ship'}).should be_false
+      end
+    end
+
+    context "invalid type" do
+      it "returns false" do
+        s = Station.new :type => :manufacturing
+        s.can_construct?({:type => 'foobar'}).should be_false
+      end
+    end
+
+    context "construction cost too high" do
+      it "returns false" do
+        s = Station.new :type => :manufacturing
+        s.can_construct?({:type => 'Ship'}).should be_false
+      end
+    end
+
+    it "returns true" do
+      s = Station.new :type => :manufacturing
+      s.add_resource build(:resource, :quantity => 500)
+      s.can_construct?({:type => 'Ship'}).should be_true
+    end
   end
 
-  it "should return bool indicating if ship is dockable at station" do
-    sys1 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 1)
-    sys2 = Cosmos::SolarSystem.new :location => Motel::Location.new(:id => 2)
-    ship = Manufactured::Ship.new :id => 'ship1', :solar_system => sys1
-    stat = Manufactured::Station.new :id => 'stat1', :solar_system => sys1
-    stat2 = Manufactured::Station.new :id => 'stat2', :solar_system => sys1
+  describe "#construct" do
+    context "cannot construct entity" do
+      it "returns nil" do
+        s = Station.new
+        s.should_receive(:can_construct?).with({}).and_return(false)
+        s.construct({}).should be_nil
+      end
+    end
 
-    stat.dockable?(ship).should be_true
+    it "removes resources corresponding to construction cost" do
+      s = Station.new :type => :manufacturing
+      s.add_resource build(:resource, :quantity => 100)
+      lambda {
+        s.construct({:type => 'Ship'})
+      }.should change{s.resources.size}.by(-1)
+    end
 
-    ship.location.parent = sys2.location
-    stat.dockable?(ship).should be_false
-    ship.location.parent = sys1.location
+    it "instantiates entity" do
+      s = Station.new :type => :manufacturing
+      s.add_resource build(:resource, :quantity => 100)
+      sh = s.construct({:type => 'Ship'})
+      sh.should be_an_instance_of(Manufactured::Ship)
+    end
 
-    ship.location.x = 5000
-    stat.dockable?(ship).should be_false
-    ship.location.x = 0
 
-    ship.dock_at(stat2)
-    stat.dockable?(ship).should be_false
-    ship.undock
+    it "sets entity location parent" do
+      s = Station.new :type => :manufacturing,
+                      :solar_system => build(:solar_system)
+      s.add_resource build(:resource, :quantity => 100)
+      sh = s.construct({:type => 'Ship'})
+      sh.location.parent.should == s.location.parent
+    end
 
-    stat.dockable?(ship).should be_true
+    it "sets entity parent" do
+      s = Station.new :type => :manufacturing,
+                      :solar_system => build(:solar_system)
+      s.add_resource build(:resource, :quantity => 100)
+      sh = s.construct({:type => 'Ship'})
+      sh.parent.should == s.parent
+    end
+
+    context "entity too far away" do
+      it "moves entity closer"
+    end
   end
 
-  it "should permit storing resources locally" do
-    station   = Manufactured::Station.new :id => 'station1'
-    station.resources.should be_empty
+  describe "#to_json" do
+    it "returns station in json format" do
+      system1 = Cosmos::Entities::SolarSystem.new :name => 'system1'
+      location= Motel::Location.new :id => 20, :y => -15
+      s = Manufactured::Station.new(:id => 'station42', :user_id => 420,
+                                 :type => :science,
+                                 :solar_system => system1,
+                                 :location => location)
 
-    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    station.add_resource res.id, 50
-    station.resources.should_not be_empty
-    station.resources.size.should == 1
-    station.resources[res.id].should == 50
-
-    station.add_resource res.id, 60
-    station.resources.size.should == 1
-    station.resources[res.id].should == 110
-
-    station.remove_resource res.id, 40
-    station.resources.size.should == 1
-    station.resources[res.id].should == 70
-
-    # should remove resource if set to 0
-    station.remove_resource res.id, 70
-    station.resources.size.should == 0
+      j = s.to_json
+      j.should include('"json_class":"Manufactured::Station"')
+      j.should include('"id":"station42"')
+      j.should include('"user_id":420')
+      j.should include('"type":"science"')
+      j.should include('"size":20')
+      j.should include('"json_class":"Motel::Location"')
+      j.should include('"id":20')
+      j.should include('"y":-15')
+      j.should include('"system_id":"system1"')
+    end
   end
 
-  it "should raise error if cannot add or remove resource" do
-    station   = Manufactured::Station.new :id => 'station1'
-    station.resources.should be_empty
+  describe "#json_create" do
+    it "returns station from json format" do
+      j = '{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":420,"type":"science","size":20,"docking_distance":100,"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[]}}'
+      s = JSON.parse(j)
 
-    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    station.add_resource res.id, station.cargo_capacity
-
-    lambda{
-      station.add_resource res.id, 1
-    }.should raise_error(Omega::OperationError)
-
-    station.remove_resource res.id, ( 3 * station.cargo_capacity / 4 )
-
-    lambda{
-      station.remove_resource res.id, station.cargo_capacity / 2
-    }.should raise_error(Omega::OperationError)
-
-    res1 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
-
-    lambda{
-      station.remove_resource res1.id, 1
-    }.should raise_error(Omega::OperationError)
+      s.class.should == Manufactured::Station
+      s.id.should == "station42"
+      s.user_id.should == 420
+      s.type.should == :science
+      s.size.should == 20
+      s.location.should_not be_nil
+      s.location.y.should == -15
+      s.system_id.should == 'system1'
+    end
   end
 
-  it "should permit determining if station can transfer resources to entity" do
-    sys1 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 1)
-    sys2 = Cosmos::SolarSystem.new :name => 'sys1', :location => Motel::Location.new(:id => 2)
-    station1   = Manufactured::Station.new :id => 'station1', :solar_system => sys1
-    station2   = Manufactured::Station.new :id => 'station2', :solar_system => sys1
-    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-
-    station1.add_resource(res.id, 50)
-
-    station1.can_transfer?(station2, res.id, 50).should be_true
-    station1.can_transfer?(station2, res.id, 5).should be_true
-
-    station1.can_transfer?(station1, res.id, 50).should be_false
-
-    station1.can_transfer?(station2, res.id, 500).should be_false
-    station1.can_transfer?(station2, 'gem-diamon', 5).should be_false
-
-    station1.solar_system = sys2
-    station1.can_transfer?(station2, res.id, 50).should be_false
-    station1.solar_system = sys1
-
-    station1.location.x = 500
-    station1.can_transfer?(station2, res.id, 50).should be_false
-    station1.location.x = 0
-
-    station1.can_transfer?(station2, res.id, 50).should be_true
-  end
-
-  it "should permit determining if station can accept resources" do
-    station   = Manufactured::Station.new :id => 'station1'
-    res = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-
-    station.can_accept?(res.id, 50).should be_true
-    station.can_accept?(res.id, 50000).should be_false
-  end
-
-  it "should permit retreival of current cargo quantity" do
-    station   = Manufactured::Station.new :id => 'station1'
-    res1 = Cosmos::Resource.new :name => 'titanium', :type => 'metal'
-    res2 = Cosmos::Resource.new :name => 'steel', :type => 'metal'
-    station.add_resource res1.id, 50
-    station.add_resource res1.id, 60
-    station.cargo_quantity.should == 110
-  end
-
-  it "should permit determining if station can construct new entity" do
-    sys  = Cosmos::SolarSystem.new :name => 'system1'
-    station   = Manufactured::Station.new :id => 'station1',
-                                          :type => :manufacturing,
-                                          :solar_system => sys,
-                                          :resources => {'metal-alloy' => 5000 }
-
-    station.can_construct?(:entity_type => "Manufactured::Ship").should be_true
-    station.can_construct?(:entity_type => "Manufactured::Station").should be_true
-    station.clear_errors :of_type => :construction
-    station.errors[:construction].size.should == 0
-
-    station.type = :offense
-    station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
-    station.errors[:construction].size.should == 1
-    station.errors[:construction].first.should == "not manufacturing station"
-
-    station.can_construct?(:entity_type => "Manufactured::Station").should be_false
-    station.errors[:construction].size.should == 2
-    station.errors[:construction].last.should == "not manufacturing station"
-
-    station.clear_errors :of_type => :construction
-    station.type = :manufacturing
-
-    station.resources['metal-alloy'] = 0
-    station.can_construct?(:entity_type => "Manufactured::Ship").should be_false
-    station.errors[:construction].size.should == 1
-    station.errors[:construction].first.should == "insufficient resources"
-
-    station.can_construct?(:entity_type => "Manufactured::Station").should be_false
-    station.errors[:construction].size.should == 2
-    station.errors[:construction].last.should == "insufficient resources"
-
-    station.clear_errors :of_type => :construction
-    station.errors[:construction].size.should == 0
-  end
-
-  it "should permit constructing new entities" do
-    system = Cosmos::SolarSystem.new :name => 'system1'
-    station   = Manufactured::Station.new :id => 'station1',
-                                          :type => :manufacturing,
-                                          :solar_system => system
-
-    entity   = station.construct :entity_type => 'foobar'
-    entity.should be_nil
-
-    entity   = station.construct :entity_type => "Manufactured::Ship"
-    entity.should be_nil
-
-    station.add_resource 'metal-alloy', 5000
-
-    # build ship
-    entity   = station.construct :entity_type => "Manufactured::Ship"
-    entity.class.should == Manufactured::Ship
-    entity.parent.should == station.parent
-    entity.location.should_not be_nil
-    entity.location.x.should == 0
-    entity.location.y.should == 0
-    entity.location.z.should == 0
-    station.resources['metal-alloy'].should == 4900
-
-    # build station
-    entity   = station.construct :entity_type => "Manufactured::Station"
-    entity.class.should == Manufactured::Station
-    entity.parent.should == station.parent
-    entity.location.should_not be_nil
-    station.resources['metal-alloy'].should == 4800
-
-    # specify location
-    entity   = station.construct :entity_type => "Manufactured::Ship", :location => Motel::Location.new(:x => 30, :y => 0, :z => 0)
-    entity.class.should == Manufactured::Ship
-    entity.location.x.should == 30
-
-    # outside of construction distance
-    entity   = station.construct :entity_type => "Manufactured::Ship", :location => Motel::Location.new(:x => 500, :y => 0, :z => 0)
-    entity.class.should == Manufactured::Ship
-    entity.location.x.should == 50
-
-    # cannot construct
-    station.type = :offense
-    entity   = station.construct :entity_type => "Manufactured::Ship"
-    entity.should be_nil
-  end
-
-  it "should be convertable to json" do
-    system1 = Cosmos::SolarSystem.new :name => 'system1'
-    location= Motel::Location.new :id => 20, :y => -15
-    s = Manufactured::Station.new(:id => 'station42', :user_id => 420,
-                               :type => :science, :size => 50, 
-                               :solar_system => system1,
-                               :location => location)
-
-    j = s.to_json
-    j.should include('"json_class":"Manufactured::Station"')
-    j.should include('"id":"station42"')
-    j.should include('"user_id":420')
-    j.should include('"type":"science"')
-    j.should include('"size":50')
-    j.should include('"json_class":"Motel::Location"')
-    j.should include('"id":20')
-    j.should include('"y":-15')
-    j.should include('"system_name":"system1"')
-  end
-
-  it "should be convertable from json" do
-    j = '{"data":{"type":"science","user_id":420,"solar_system":{"data":{"star":null,"planets":[],"jump_gates":[],"name":"system1","background":"system1","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"x":0,"y":0,"z":0,"id":null,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"},"size":50,"id":"station42","location":{"data":{"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"x":null,"y":-15,"z":null,"id":20,"restrict_view":true},"json_class":"Motel::Location"}},"json_class":"Manufactured::Station"}'
-    s = JSON.parse(j)
-
-    s.class.should == Manufactured::Station
-    s.id.should == "station42"
-    s.user_id.should == 420
-    s.type.should == :science
-    s.size.should == 50
-    s.location.should_not be_nil
-    s.location.y.should == -15
-    s.solar_system.should_not be_nil
-    s.solar_system.name.should == 'system1'
-  end
-
-end
+end # describe Station
+end # module Manufactured

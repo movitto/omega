@@ -31,30 +31,7 @@ describe Ship do
     it "sets size" do
       s = Ship.new
       s.type = :frigate
-      s.size.should == Ship::SHIP_SIZES[:frigate]
-    end
-  end
-
-  describe "#solar_system=" do
-    it "sets solar system" do
-      sys = build(:solar_system)
-      s = Ship.new
-      s.solar_system = sys
-      s.solar_system.should == sys
-    end
-
-    it "sets system_id" do
-      sys = build(:solar_system)
-      s = Ship.new
-      s.solar_system = sys
-      s.system_id.should == sys.id
-    end
-
-    it "sets location parent" do
-      sys = build(:solar_system)
-      s = Ship.new
-      s.solar_system = sys
-      s.location.parent.should == sys.location
+      s.size.should == Ship::SIZES[:frigate]
     end
   end
 
@@ -292,7 +269,6 @@ describe Ship do
       it "returns false" do
         @sh.hp = 0
         @sh.can_dock_at?(@st).should be_false
-        @sh.hp = 100
       end
     end
 
@@ -395,43 +371,6 @@ describe Ship do
 
     it "returns true" do
       @sh.can_mine?(@r).should be_true
-    end
-  end
-
-  describe "#cargo_empty?" do
-    context "cargo quantity == 0" do
-      it "returns true" do
-        s = Ship.new
-        s.cargo_empty?.should be_true
-      end
-    end
-
-    context "cargo quantity > 0" do
-      it "returns false" do
-        s = Ship.new
-        s.add_resource Cosmos::Resource.new :quantity => 50
-        s.cargo_empty?.should be_false
-      end
-    end
-  end
-
-  describe "#cargo_full?" do
-    context "cargo quantity == cargo capacity" do
-      it "returns true" do
-        s = Ship.new
-        res = build(:resource, :quantity => s.cargo_capacity)
-        s.add_resource res
-        s.cargo_full?.should be_true
-      end
-    end
-
-    context "cargo quantity != cargo capacity" do
-      it "returns false" do
-        s = Ship.new
-        res = build(:resource, :quantity => s.cargo_capacity - 100)
-        s.add_resource res
-        s.cargo_full?.should be_false
-      end
     end
   end
 
@@ -553,146 +492,6 @@ describe Ship do
     end
   end
 
-  describe "#add_resource" do
-    context "cannot accept resource" do
-      it "raises an RuntimeError" do
-        s = Ship.new
-        res = build(:resource, :quantity => s.cargo_capacity)
-        s.resources = [res]
-        lambda{
-          s.add_resource res
-        }.should raise_error(RuntimeError)
-      end
-    end
-
-    it "adds resource to ship" do
-      s = Ship.new
-      r = build(:resource, :quantity => s.cargo_capacity)
-      lambda{
-        s.add_resource r
-      }.should change{s.resources.size}.by(1)
-      s.resources.find { |rs| rs == r }.should_not be_nil
-    end
-  end
-
-  describe "#remove_resource" do
-    context "ship does not have resource" do
-      it "raises an RuntimeError" do
-        s = Ship.new
-        r = build(:resource, :quantity => s.cargo_capacity / 2)
-
-        lambda{
-          s.remove_resource r
-        }.should raise_error(RuntimeError)
-
-        s.add_resource r
-
-        lambda{
-          s.remove_resource r
-        }.should_not raise_error(RuntimeError)
-      end
-    end
-
-    it "removes resource from ship" do
-      s = Ship.new
-      r = build(:resource, :quantity => s.cargo_capacity)
-      r1 = build(:resource, :id => r.id, :quantity => 3 * s.cargo_capacity / 4)
-      s.add_resource r
-      lambda{
-        s.remove_resource r1
-      }.should_not change{s.resources.size}
-
-      s.resources.first.quantity.should == s.cargo_capacity / 4
-      r1.quantity = s.cargo_capacity / 4
-
-      lambda{
-        s.remove_resource r1
-      }.should change{s.resources.size}.by(-1)
-    end
-  end
-
-  describe "#cargo_quantity" do
-    it "returns total cargo quantity" do
-      ship = Ship.new :id => 'ship1'
-      res1 = Cosmos::Resource.new :id => 'metal-steel', :quantity => 50
-      res2 = Cosmos::Resource.new :id => 'metal-titanium', :quantity => 50
-      ship.add_resource res1
-      ship.add_resource res2
-      ship.cargo_quantity.should == 100
-    end
-  end
-
-  describe "#can_transfer?" do
-    before(:each) do
-      @sys1  = build(:solar_system)
-      @sys2  = build(:solar_system)
-      @ship1    = Ship.new  :id => 'ship1', :solar_system => @sys1
-      @ship2    = Ship.new  :id => 'ship2', :solar_system => @sys1
-      @station1 = Station.new :id => 'station1', :solar_system => @sys1
-
-      @res = Cosmos::Resource.new :id => 'metal-titanium', :quantity => 50
-      @ship1.add_resource(@res)
-    end
-
-    it "returns true" do
-      @ship1.can_transfer?(@ship2, @res).should be_true
-      @ship1.can_transfer?(@station1, @res).should be_true
-    end
-
-    context "entities are same" do
-      it "returns false" do
-        @ship1.can_transfer?(@ship1, @res).should be_false
-      end
-    end
-
-    context "quantity exceeds that held" do
-      it "returns false" do
-        res = build(:resource, :id => @res.id, :quantity => 500)
-        @ship1.can_transfer?(@ship2, res).should be_false
-      end
-    end
-
-    context "ship does not have resource" do
-      it "returns false" do
-        @res = build(:resource, :id => 'gem-diamond', :quantity => 5)
-        @ship1.can_transfer?(@ship2, @res).should be_false
-      end
-    end
-
-    context "ships in different systems" do
-      it "returns false" do
-        @ship1.solar_system = @sys2
-        @ship1.can_transfer?(@ship2, @res).should be_false
-      end
-    end
-
-    context "ships too far away" do
-      it "returns false" do
-        @ship1.location.x = @ship2.location.x + @ship1.transfer_distance * 2
-        @ship1.can_transfer?(@ship2, @res).should be_false
-      end
-    end
-  end
-
-  describe "#can_accept?" do
-    before(:each) do
-      @s = Ship.new
-      @r = Cosmos::Resource.new :id => 'metal-titanium'
-    end
-
-    context "cargo capacity would be exceeded" do
-      it "returns false" do
-        @r.quantity = 500
-        @s.can_accept?(@r).should be_false
-      end
-    end
-
-    it "returns true" do
-      @r.quantity = 50
-      @s.can_accept?(@r).should be_true
-    end
-  end
-
   describe "#to_json" do
     it "returns ship in json format" do
       system1 = build('solar_system', :id => 'system1')
@@ -748,7 +547,7 @@ describe Ship do
       s.id.should == "ship42"
       s.user_id.should == 420
       s.type.should == :frigate
-      s.size.should == Ship::SHIP_SIZES[:frigate]
+      s.size.should == Ship::SIZES[:frigate]
       s.hp.should == 500
       s.shield_level.should == 20
       s.callbacks.size.should == 1
