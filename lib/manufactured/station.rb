@@ -178,8 +178,8 @@ class Station
     elsif args.has_key?('system_name') || args.has_key?(:system_name)
       @system_name = args['system_name'] || args[:system_name]
       # TODO would rather not access the cosmos registry directly here
-      solar_system = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
-                                                           :name => @system_name)
+      #solar_system = Cosmos::Registry.instance.find_entity(:type => :solarsystem,
+      #                                                     :name => @system_name)
       self.solar_system = solar_system unless solar_system.nil?
     end
 
@@ -213,6 +213,11 @@ class Station
     !@solar_system.nil? && @solar_system.is_a?(Cosmos::SolarSystem) &&
     @resources.is_a?(Hash) && @resources.select { |id,q| !id.is_a?(String) || !(q.is_a?(Integer) || q.is_a?(Float)) }.empty? # TODO verify resources are valid in context of ship
     # TODO validate cargo properties when they become variable
+  end
+
+  # Return true / false indicating if the station's hp > 0
+  def alive?
+    @hp > 0
   end
 
   # Return true / false indicating station permits specified ship to dock

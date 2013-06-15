@@ -37,6 +37,12 @@ describe Entity do
       @e.parent = g
       @e.parent_id.should == g.id
     end
+
+    it "sets location parent" do
+      g = Entities::Galaxy.new :location => Motel::Location.new
+      @e.parent = g
+      @e.location.parent.should == g.location
+    end
   end
   
   describe "#init_entity" do

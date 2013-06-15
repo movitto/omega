@@ -31,7 +31,11 @@ module Entity
   # Set parent and id
   def parent=(val)
     @parent = val
-    @parent_id = val.id unless val.nil?
+
+    unless val.nil?
+      @parent_id = val.id
+      @location.parent = val.location
+    end
   end
 
   # Array of children which reside under parent

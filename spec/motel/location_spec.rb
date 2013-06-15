@@ -222,6 +222,10 @@ describe Location do
     end
   end
 
+  describe "#coordinates=" do
+    it "sets location's coordinates"
+  end
+
   describe "#orientation" do
     it "returns array of orientation" do
       l = Location.new :orientation_x => 1,
@@ -229,6 +233,10 @@ describe Location do
                        :orientation_z => 3
       l.orientation.should == [1,2,3]
     end
+  end
+
+  describe "#orientation=" do
+    it "sets location's orientation"
   end
 
   describe "#spherical_orientation" do

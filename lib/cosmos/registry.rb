@@ -82,10 +82,6 @@ class Registry
     # perform additonal checks on jump gate
     on(:added) { |e| check_jump_gate e if e.is_a?(JumpGate) }
 
-# TODO when setting rs: if quantity == 0 delete
-# old resource source, or create new source or
-# add quantity to old
-
   end
 end # class Registry
 end # module Cosmos

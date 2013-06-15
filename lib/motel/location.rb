@@ -190,9 +190,21 @@ class Location
      [@x, @y, @z]
    end
 
+   # Set this location's coordiatnes
+   def coordinates=(*c)
+     c.flatten! if c.first.is_a?(Array)
+     @x, @y, @z = *c
+   end
+
    # Return this location's orientation in an array
    def orientation
      [@orientation_x, @orientation_y, @orientation_z]
+   end
+
+   # Set this location's orientation
+   def orientation=(*o)
+     o.flatten! if o.first.is_a?(Array)
+     @orientation_x, @orientation_y, @orientation_z = *o
    end
 
    # Return this location's orientation as spherical theta/phi coordinates
