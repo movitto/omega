@@ -6,6 +6,7 @@
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # http://en.wikipedia.org/wiki/Star
 #
@@ -44,5 +45,13 @@ class Star
       :data       => entity_json.merge(system_entity_json)
     }.to_json(*a)
   end
+
+  # Create new star from json representation
+  def self.json_create(o)
+    s = new(o['data'])
+    return s
+  end
+
 end # class Star
+end # module Entities
 end # module Cosmos

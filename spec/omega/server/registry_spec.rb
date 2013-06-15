@@ -222,12 +222,14 @@ describe Registry do
 
   describe "#safe_exec" do
     it "safely executes a block of code" do
-      @registry.safe_exec {
+      @registry.safe_exec { |entities|
         proc {
           @registry.safe_exec
         }.should raise_error(ThreadError, "deadlock; recursive locking")
       }
     end
+
+    it "passes entities array to block"
   end
 
   describe "#on" do

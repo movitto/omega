@@ -39,13 +39,13 @@ assign_mission = proc { |mission_id, user_id|
   # to accept > 1 mission at a time
   raise OperationError, "#{user_id} has an active mission" unless active.empty?
 
-  registry.safe_exec {
+  registry.safe_exec { |entities|
     # ensure mission is assignable to user
     raise OperationError,
           "#{mission_id} not assignable to user" unless mission.assignable_to?(user)
 
-    # XXX get registry mission
-    rmission = registry.instance_variable_get(:@entities).find &with_id(mission.id)
+    # get registry mission
+    rmission = entities.find &with_id(mission.id)
 
     # assign mission to user
     rmission.assign_to user

@@ -145,7 +145,7 @@ class User
 
     if attribute.nil?
       # TODO also need to assign permissions to view attribute to user
-      attribute = AttributeClass.create_attribute(attribute_id)
+      attribute = AttributeClass.create_attribute(:type_id => attribute_id)
       attribute.user = self
       raise ArgumentError, "invalid attribute #{attribute_id}" if attribute.type.nil?
       @attributes << attribute

@@ -20,6 +20,7 @@ module Cosmos
 # entity heirarchies and resources can be accessed.
 class Registry
   include Omega::Server::Registry
+  include Cosmos::Entities
 
   VALID_TYPES = 
     [Galaxy, SolarSystem, JumpGate, Star, Planet, Moon, Asteroid]
@@ -40,7 +41,7 @@ class Registry
 
   def check_jump_gate(jump_gate)
     @lock.synchronize{
-      re = @entities.find { |e| e.id == entity.id }
+      re = @entities.find { |e| e.id == jump_gate.id }
 
       if re.endpoint.nil? && !re.endpoint_id.nil?
         s = @entities.find { |e| e.is_a?(SolarSystem) && e.id == re.endpoint }
@@ -67,12 +68,12 @@ class Registry
       r.find { |re| re.name == e.name }.nil? &&
 
       # if required, parent_id is set and is valid reference
-      (e.class::PARENT_TYPE == NilClass ||
-       !e.parent_id.nil? &&
-       !r.find { |re| re.id == e.parent_id }.nil? ) &&
+      (e.class::PARENT_TYPE == 'NilClass' ||
+       (!e.parent_id.nil? &&
+        !r.find { |re| re.id == e.parent_id }.nil?) ) &&
 
       # jump gate endpoint is valid reference
-      (e.is_a?(JumpGate) && !r.find { |re| re.id == e.endpoint_id }.nil?)
+      (!e.is_a?(JumpGate) || !r.find { |re| re.id == e.endpoint_id }.nil?)
     }
 
     # perform sanity checks on entity / adjust attributes

@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'cosmos/registry'
 
 require 'stringio'
 
@@ -17,7 +18,7 @@ describe Registry do
     end
 
     it "ensures entity is valid" do
-      g = Galaxy.new
+      g = Entities::Galaxy.new
       r = Registry.new
       (r << g).should be_false
       r.entities.should be_empty
@@ -47,7 +48,8 @@ describe Registry do
     context "parent is required" do
       it "ensures registry has parent_id" do
         g = build(:galaxy)
-        s = build(:system, :parent => g)
+        s = build(:solar_system, :parent => g)
+        r = Registry.new
         (r << s).should be_false
 
         (r << g).should be_true
@@ -56,7 +58,8 @@ describe Registry do
 
       it "sets parent on entity" do
         g = build(:galaxy)
-        s = build(:system, :parent => g)
+        s = build(:solar_system, :parent => g)
+        r = Registry.new
         r << g
         r << s
         r.entities{ |e| e.id == s.id && e.parent.id == g.id }.should_not be_nil
@@ -75,9 +78,10 @@ describe Registry do
   context "adding jump gate" do
     it "ensures registry has endpoint_id" do
       g = build(:galaxy)
-      s1 = build(:system, :parent => g)
-      s2 = build(:system, :parent => g)
-      j = build(:jump_gate)
+      s1 = build(:solar_system, :parent => g)
+      s2 = build(:solar_system, :parent => g)
+      j = build(:jump_gate, :solar_system => s1, :endpoint => s2)
+      r = Registry.new
       r << g
       r << s1
       (r << j).should be_false
@@ -88,9 +92,10 @@ describe Registry do
 
     it "sets endpoint on entity" do
       g = build(:galaxy)
-      s1 = build(:system, :parent => g)
-      s2 = build(:system, :parent => g)
+      s1 = build(:solar_system, :parent => g)
+      s2 = build(:solar_system, :parent => g)
       j = build(:jump_gate)
+      r = Registry.new
       r << g
       r << s1
       r << s2

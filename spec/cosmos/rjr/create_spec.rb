@@ -15,6 +15,9 @@ module Cosmos::RJR
       dispatch_to @s, Cosmos::RJR, :CREATE_METHODS
       @registry = Cosmos::RJR.registry
 
+      # XXX stub out call to motel::create_location
+      Cosmos::RJR.node.stub(:invoke).and_return(build(:location))
+
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
       @s.login @n, @login_user.id, @login_user.password
@@ -22,7 +25,7 @@ module Cosmos::RJR
 
     context "insufficient privileges (create-cosmos_entities)" do
       it "raises PermissionError" do
-        new_entity = build(:entity)
+        new_entity = build(:galaxy)
         lambda {
           @s.create_entity(new_entity)
         }.should raise_error(PermissionError)
@@ -35,7 +38,7 @@ module Cosmos::RJR
       end
 
       it "does not raise PermissionError" do
-        new_entity = build(:entity)
+        new_entity = build(:galaxy)
         lambda {
           @s.create_entity(new_entity)
         }.should_not raise_error(PermissionError)
@@ -52,15 +55,21 @@ module Cosmos::RJR
       context "invalid entity specified" do
         it "raises ValidationError" do
           lambda {
-            @s.create_entity(entity.new)
+            @s.create_entity(Entities::Galaxy.new)
           }.should raise_error(ValidationError)
         end
+      end
+
+      it "creates location" do
+        new_entity = build(:galaxy)
+        Cosmos::RJR.node.should_receive(:invoke).with('motel::create_location', new_entity.location)
+        @s.create_entity(new_entity)
       end
 
       context "existing entity-id specified" do
         # TODO other errors such as parent not found
         it "raises OperationError" do
-          entity = create(:entity)
+          entity = create(:galaxy)
           lambda {
             @s.create_entity(entity)
           }.should raise_error(OperationError)
@@ -72,7 +81,7 @@ module Cosmos::RJR
       end
 
       it "creates new entity in registry" do
-        new_entity = build(:entity)
+        new_entity = build(:galaxy)
         lambda {
           @s.create_entity(new_entity)
         }.should change{@registry.entities.size}.by(1)
@@ -80,9 +89,9 @@ module Cosmos::RJR
       end
 
       it "returns entity" do
-        new_entity = build(:entity)
+        new_entity = build(:galaxy)
         r = @s.create_entity(new_entity)
-        r.should be_an_instance_of(entity)
+        r.should be_an_instance_of(Entities::Galaxy)
         r.id.should == new_entity.id
       end
     end

@@ -1,6 +1,6 @@
 # resource module tests
 #
-# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/resource'
@@ -33,7 +33,7 @@ describe Resource do
     end
 
     it "sets attributes" do
-      a = Asteroid.new :id => 'ast1'
+      a = build(:asteroid)
       @r = Resource.new :id => 'metal-steel',
                         :entity => a,
                         :quantity => 500
@@ -46,7 +46,7 @@ describe Resource do
 
   describe "#valid?" do
     before(:each) do
-      @a  = Asteroid.new
+      @a  = build(:asteroid)
       @r = Resource.new :id => 'metal-steel',
                         :entity => @a,
                         :quantity => 50
@@ -81,13 +81,13 @@ describe Resource do
     end
 
     it "returns true" do
-        @r.should be_valid
+      @r.should be_valid
     end
   end
 
   describe "#to_json" do
     it "returns resource in json format" do
-      a = Asteroid.new :id => 'ast1'
+      a = build(:asteroid)
       r = Resource.new :id => 'metal-titanium', :entity => a, :quantity => 50
 
       j = r.to_json
@@ -100,7 +100,7 @@ describe Resource do
 
   describe "#json_create" do
     it "returns resource from json format" do
-      j = '{"data":{"id":"metal-titanium"},"json_class":"Cosmos::Resource"}'
+      j = '{"json_class":"Cosmos::Resource","data":{"id":"metal-titanium","quantity":50,"entity_id":"ast1"}}'
       r = JSON.parse(j)
 
       r.class.should == Cosmos::Resource

@@ -5,10 +5,11 @@ FactoryGirl.define do
     server_entity
     create_method 'cosmos::create_entity'
 
-    factory :system do
-      sequence(:id)   {  |n| "galaxy#{n}" }
-      sequence(:name) {  |n| "galaxy#{n}" }
-      association :location, factory: :sys1_location
+    factory :solar_system do
+      sequence(:id)   {  |n| "system#{n}" }
+      sequence(:name) {  |n| "system#{n}" }
+      association :location, :strategy => :build
+      galaxy
     end
   end
 end

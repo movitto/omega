@@ -6,6 +6,7 @@
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # http://en.wikipedia.org/wiki/Asteroid
 #
@@ -15,6 +16,8 @@ module Cosmos
 class Asteroid
   include Cosmos::Entity
   include Cosmos::SystemEntity
+
+  attr_accessor :resources
 
   CHILD_TYPES = []
 
@@ -28,6 +31,8 @@ class Asteroid
   def initialize(args = {})
     init_entity(args)
     init_system_entity(args)
+
+    attr_from_args args, :resources => []
   end
 
   # Return boolean indicating if this asteroid is valid.
@@ -36,8 +41,9 @@ class Asteroid
   # * base entity and system entity is valid
   # * location is not moving
   def valid?
-    entity_valid? && system_entity_valid?
-    @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+    entity_valid? && system_entity_valid? &&
+    @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped) &&
+    @resources.all? { |r| r.valid? }
   end
 
   # Return boolean indicating if this asteroid can accept the specified resource.
@@ -47,11 +53,42 @@ class Asteroid
     res.valid?
   end
 
+  # Set resource locally
+  def set_resource(res)
+    r = @resources.find { |r| r.id == res.id }
+    if r
+      # simply update quantity
+      if res.quantity > 0
+        r.quantity = res.quantity
+
+      # delete resource
+      else
+        @resources.delete(r)
+      end
+
+      return r
+    end
+
+    # add resource
+    @resources << res
+    return res
+  end
+
   # Return json representation of asteroid
   def to_json(*a)
     { :json_class => self.class.name,
-      :data       => entity_json.merge(system_entity_json)
+      :data       => {:resources => @resources }.
+                             merge(entity_json).
+                      merge(system_entity_json)
     }.to_json(*a)
   end
+
+   # Create new asteroid from json representation
+   def self.json_create(o)
+     a = new(o['data'])
+     return a
+   end
+
 end # class Asteroid
+end # module Entities
 end # module Cosmos

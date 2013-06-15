@@ -21,6 +21,8 @@ require 'motel/rjr/init'
 
 require 'missions/rjr/init'
 
+require 'cosmos/rjr/init'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
@@ -42,6 +44,7 @@ RSpec.configure do |config|
     Users::RJR.reset
     Motel::RJR.reset
     Missions::RJR.reset
+    Cosmos::RJR.reset
   }
 
   config.after(:each) {
@@ -68,6 +71,7 @@ FactoryGirl.define do
       node = RJR::Nodes::Local.new
       node.dispatcher.add_module('users/rjr/init')
       node.dispatcher.add_module('motel/rjr/init')
+      node.dispatcher.add_module('cosmos/rjr/init')
       node.dispatcher.add_module('missions/rjr/init')
       # TODO set current user ?
 
@@ -184,22 +188,28 @@ module OmegaTest
   class CosmosEntity
     include Cosmos::Entity
 
-    PARENT_TYPE = CosmosEntity
-    CHILD_TYPES = CosmosEntity
+    PARENT_TYPE = 'CosmosEntity'
+    CHILD_TYPES = ['CosmosEntity']
+
+    def initialize(args = {})
+      init_entity(args)
+    end
+
+    def valid?
+      entity_valid?
+    end
   end
 
-  class CosmosEnvEntity
-    include Cosmos::Entity
+  class CosmosEnvEntity < CosmosEntity
     include Cosmos::EnvEntity
 
     NUM_BACKGROUNDS = 5
   end
 
-  class CosmosSystemEntity
-    include Cosmos::Entity
+  class CosmosSystemEntity < CosmosEntity
     include Cosmos::SystemEntity
-    VALIDATE_SIZE  = proc { |v| }
-    VALIDATE_COLOR = proc { |v| }
+    VALIDATE_SIZE  = proc { |v| true }
+    VALIDATE_COLOR = proc { |v| true }
     RAND_SIZE      = proc { }
     RAND_COLOR     = proc { }
   end
@@ -207,76 +217,6 @@ module OmegaTest
 end
 
 ######################################
-
-#RSpec.configure do |config|
-#  config.before(:all) {
-#    Omega::Config.load.set_config
-#  }
-#  config.before(:each) {
-#    Motel::RJRAdapter.init
-#    Users::RJRAdapter.init
-#    Cosmos::RJRAdapter.init
-#    Manufactured::RJRAdapter.init
-#    Missions::RJRAdapter.init
-#    Stats::RJRAdapter.init
-#
-#    TestUser.create.clear_privileges
-#
-#    Omega::Client::Node.client_username = 'omega-test'
-#    Omega::Client::Node.client_password = 'tset-agemo'
-#    Omega::Client::Node.node = RJR::LocalNode.new :node_id => 'omega-test'
-#
-#    Omega::Client::CachedAttribute.clear
-#    Omega::Client::Node.clear
-#
-#    # preload all server entities
-#    FactoryGirl.factories.each { |k,v|
-#      p = k.instance_variable_get(:@parent)
-#      FactoryGirl.build(k.name) if p =~ /server_.*/
-#    }
-#  }
-#
-#  config.after(:each) {
-#    Omega::Client::CachedAttribute.clear
-#    Omega::Client::Node.clear
-#    Missions::Registry.instance.init
-#    Manufactured::Registry.instance.init
-#    Cosmos::Registry.instance.init
-#    Motel::Runner.instance.clear
-#    Users::Registry.instance.init
-#  }
-#  config.after(:all) {
-#  }
-#end
-#
-#class TestUser
-#  def self.create
-#    @@test_user = FactoryGirl.build(:test_user)
-#    return self
-#  end
-#
-#  def self.clear_privileges
-#    @@test_user.roles.first.clear_privileges
-#    return self
-#  end
-#
-#  def self.add_privilege(privilege_id, entity_id = nil)
-#    @@test_user.roles.first.add_privilege \
-#      Users::Privilege.new(:id => privilege_id, :entity_id => entity_id)
-#    return self
-#  end
-#
-#  def self.add_role(role_id)
-#    Omega::Roles::ROLES[role_id].each { |pe|
-#      self.add_privilege pe[0], pe[1]
-#    }
-#    return self
-#  end
-#
-#  def self.method_missing(method, *args, &bl)
-#    @@test_user.send(method, *args, &bl)
-#  end
-#end
 #
 #class TestEntity
 #  include Omega::Client::RemotelyTrackable
@@ -345,5 +285,3 @@ end
 #end
 #
 #####################################################
-#####################################################
-#

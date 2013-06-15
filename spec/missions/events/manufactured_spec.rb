@@ -8,7 +8,7 @@ require 'missions/events/manufactured'
 require 'manufactured/ship'
 require 'manufactured/station'
 require 'cosmos/resource'
-require 'cosmos/asteroid'
+require 'cosmos/entities/asteroid'
 
 module Missions
 module Events
@@ -21,11 +21,10 @@ describe Manufactured do
       @station  = ::Manufactured::Station.new   :id => 'station'
       @constru  = ::Manufactured::Station.new   :id => 'constru'
 
-      @res      = ::Cosmos::Resource.new        :id   => 'res'
-      @ast      = ::Cosmos::Asteroid.new        :name => 'ast1'
-      @rs       = ::Cosmos::ResourceSource.new  :id   => 'rs',
-                                             :entity => @ast,
-                                             :resource => @res
+      @ast      = ::Cosmos::Entities::Asteroid.new :name => 'ast1'
+      @rs       = ::Cosmos::Resource.new  :id   => 'rs',
+                                          :entity => @ast,
+                                          :quantity => 50
 
       # TODO test all manufactured callbacks, see API for list
       @events = 

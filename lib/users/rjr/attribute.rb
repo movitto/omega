@@ -65,7 +65,7 @@ has_attribute = proc { |*args|
 
   # lookup attribute if user attributes enabled
   if Users::RJR.user_attrs_enabled
-    registry.safe_exec {
+    registry.safe_exec { |entities|
       user.has_attribute?(attr_id, level)
     }
 

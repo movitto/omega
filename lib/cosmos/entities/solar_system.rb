@@ -3,11 +3,10 @@
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-module Cosmos ; class SolarSystem ; end ; end
-
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # http://en.wikipedia.org/wiki/Planetary_system
 #
@@ -24,6 +23,7 @@ class SolarSystem
 
   # {Cosmos::Galaxy} parent of the solar system
   alias :galaxy :parent
+  alias :galaxy= :parent=
 
   # Array of child {Cosmos::Star}s
   def stars      ; children.select { |c| c.is_a?(Star) }     end
@@ -44,6 +44,8 @@ class SolarSystem
   def initialize(args = {})
     init_entity(args)
     init_env_entity(args)
+
+    attr_from_args args, :galaxy => @parent
   end
 
   # Return boolean indicating if this solar system is valid.
@@ -62,5 +64,13 @@ class SolarSystem
       :data       => entity_json.merge(env_entity_json)
     }.to_json(*a)
   end
+
+   # Create new solar system from json representation
+   def self.json_create(o)
+     s = new(o['data'])
+     return s
+   end
+
 end # class SolarSystem
+end # module Entities
 end # module Cosmos

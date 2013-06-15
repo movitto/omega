@@ -9,8 +9,9 @@ require 'omega/server/dsl'
 require 'users/rjr/init'
 
 module Cosmos::RJR
-  include Omega#::Exceptions
   include Cosmos
+  include Omega#::Exceptions
+  include Omega::Server::DSL
 
   ######################################## Config
 
@@ -37,8 +38,9 @@ module Cosmos::RJR
   ######################################## Cosmos::RJR data
 
   def self.user
-    @user ||= Users::User.new(:id       => Cosmos::RJRAdapter.cosmos_rjr_username,
-                              :password => Cosmos::RJRAdapter.cosmos_rjr_password)
+    @user ||= Users::User.new(:id       => Cosmos::RJR.cosmos_rjr_username,
+                              :password => Cosmos::RJR.cosmos_rjr_password,
+                              :registration_code => nil)
   end
 
   def user
@@ -93,13 +95,13 @@ def dispatch_cosmos_rjr_init(dispatcher)
   rescue Exception => e ; end
 
   # grant cosmos user extra permissions
-  role_id = "user_role_#{cosmos_user.id}"
+  role_id = "user_role_#{rjr.user.id}"
   [['view'],   ['locations'],
-   ['create'], ['locations']].each { |p,e|}
+   ['create'], ['locations']].each { |p,e|
      rjr.node.invoke('users::add_privilege', role_id, p, e)
    }
 
   # log the cosmos user in
-  session = node.invoke_request('users::login', rjr.user)
+  session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
 end

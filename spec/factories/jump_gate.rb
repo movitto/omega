@@ -1,14 +1,18 @@
 require 'cosmos/entities/jump_gate'
 
 FactoryGirl.define do
-  factory 'cosmos/server/jump_gate' do
+  factory 'cosmos/entities/jump_gate' do
     server_entity
     create_method 'cosmos::create_entity'
 
     factory :jump_gate do
-      association :solar_system, factory: :sys1
-      association :endpoint,     factory: :sys2
-      association :location, factory: :jump_gate1_location
+      sequence(:id)   {  |n| "jg#{n}" }
+      sequence(:name) {  |n| "jg#{n}" }
+
+      association :endpoint, factory: :solar_system
+
+      association :location, :strategy => :build
+      solar_system
     end
   end
 end

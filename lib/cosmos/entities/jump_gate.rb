@@ -6,6 +6,7 @@
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # Represents a link between two systems.
 #
@@ -22,8 +23,8 @@ class JumpGate
   VALIDATE_SIZE  = proc { |s| true }
   VALIDATE_COLOR = proc { |c| true }
 
-  RAND_SIZE      = proc { nil      }
-  RAND_COLOR     = proc { nil      }
+  RAND_SIZE      = proc { 0        }
+  RAND_COLOR     = proc { ''       }
 
   # ID of system which jump gate connects to
   attr_accessor :endpoint_id
@@ -34,12 +35,12 @@ class JumpGate
   # Set endpoint system and id
   def endpoint=(val)
     @endpoint = val
-    @endpoint_id = val unless val.nil?
+    @endpoint_id = val.id unless val.nil?
   end
 
   # Max distance in any direction around
   #   gate which entities can trigger it
-  attr_reader   :trigger_distance
+  attr_accessor   :trigger_distance
 
   # Cosmos::JumpGate intializer
   # @param [Hash] args hash of options to initialize jump gate with
@@ -84,5 +85,13 @@ class JumpGate
         }.merge(entity_json).merge(system_entity_json)
     }.to_json(*a)
   end
+
+   # Create new jump_gate from json representation
+   def self.json_create(o)
+     j = new(o['data'])
+     return j
+   end
+
 end # class JumpGate
+end # module Entities
 end # module Cosmos

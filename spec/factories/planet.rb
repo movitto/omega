@@ -1,16 +1,18 @@
 require 'cosmos/entities/planet'
 
 FactoryGirl.define do
-  factory 'cosmos/server/planet' do
+  factory 'cosmos/entities/planet' do
     server_entity
     create_method 'cosmos::create_entity'
 
     factory :planet do
-      name     'planet'
-      size      35
+      sequence(:id)   {  |n| "planet#{n}" }
+      sequence(:name) {  |n| "planet#{n}" }
+      size      55
       color    'AABBCC'
 
-      association :location, factory: :planet1_location, :strategy => :build
+      association :location, :strategy => :build
+      solar_system
     end
   end
 end

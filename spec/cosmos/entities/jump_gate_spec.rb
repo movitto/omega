@@ -4,19 +4,21 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'cosmos/entities/jump_gate'
+require 'motel/movement_strategies/linear'
 
-module Cosmos
+module Cosmos::Entities
 describe JumpGate do
   describe "#endpoint=" do
     it "sets endpoint" do
-      s = build(:system)
+      s = build(:solar_system)
       j = JumpGate.new
       j.endpoint = s
       j.endpoint.should == s
     end
 
     it "sets endpoint id" do
-      s = build(:system)
+      s = build(:solar_system)
       j = JumpGate.new
       j.endpoint = s
       j.endpoint_id.should == s.id
@@ -44,7 +46,7 @@ describe JumpGate do
     end
 
     it "sets attributes" do
-      s = build(:system)
+      s = build(:solar_system)
       j = JumpGate.new :endpoint => s, :trigger_distance => 50
       j.endpoint.should == s
       j.endpoint_id.should == s.id
@@ -92,7 +94,7 @@ describe JumpGate do
 
     context "endpoint is not a valid solar system" do
       it "returns false" do
-        j = JumpGate.new
+        j = JumpGate.new :endpoint => build(:solar_system)
         j.should_receive(:entity_valid?).and_return(true)
         j.should_receive(:system_entity_valid?).and_return(true)
         j.endpoint.location = nil
@@ -111,7 +113,7 @@ describe JumpGate do
     end
 
     it "returns true" do
-      j = JumpGate.new
+      j = JumpGate.new :endpoint_id => 'foobar'
       j.should_receive(:entity_valid?).and_return(true)
       j.should_receive(:system_entity_valid?).and_return(true)
       j.should be_valid
@@ -120,12 +122,12 @@ describe JumpGate do
 
   describe "#to_json" do
     it "returns jump_gate in json format" do
-      system      = Cosmos::SolarSystem.new
-      endpoint    = Cosmos::SolarSystem.new
-      g = Cosmos::JumpGate.new(:solar_system => system, :endpoint => endpoint,
-                               :location => Motel::Location.new(:x => 50))
+      system      = build(:solar_system)
+      endpoint    = build(:solar_system)
+      g = JumpGate.new(:solar_system => system, :endpoint => endpoint,
+                       :location => Motel::Location.new(:x => 50))
       j = g.to_json
-      j.should include('"json_class":"Cosmos::JumpGate"')
+      j.should include('"json_class":"Cosmos::Entities::JumpGate"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"x":50')
     end
@@ -133,12 +135,12 @@ describe JumpGate do
 
   describe "#json_create" do
     it "returns jump_gate from json format" do
-      j = '{"data":{"solar_system":null,"endpoint":null,"location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::JumpGate"}'
+      j = '{"data":{"solar_system":null,"endpoint":null,"location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::JumpGate"}'
       g = JSON.parse(j)
 
-      g.class.should == Cosmos::JumpGate
+      g.class.should == Cosmos::Entities::JumpGate
       g.location.x.should  == 50
     end
   end
 end # describe JumpGate
-end # module Cosmos
+end # module Cosmos::Entities

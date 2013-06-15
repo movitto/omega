@@ -6,6 +6,7 @@
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # http://en.wikipedia.org/wiki/Planet
 #
@@ -46,5 +47,13 @@ class Planet
       :data       => entity_json.merge(system_entity_json)
     }.to_json(*a)
   end
+
+  # Create new planet from json representation
+  def self.json_create(o)
+    p = new(o['data'])
+    return p
+  end
+
 end # class Planet
+end # module Entities
 end # module Cosmos

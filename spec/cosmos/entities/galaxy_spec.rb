@@ -4,8 +4,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'motel/movement_strategies/linear'
 
-module Cosmos
+module Cosmos::Entities
 describe Galaxy do
   describe "#initialize" do
     it "initializes entity" do
@@ -48,26 +49,26 @@ describe Galaxy do
 
   describe "#to_json" do
     it "returns galaxy in json format" do
-      g = Cosmos::Galaxy.new(:name => 'galaxy1',
+      g = Galaxy.new(:name => 'galaxy1',
                              :location => Motel::Location.new(:x => 50))
-      g.add_child(Cosmos::SolarSystem.new(:name => 'system1'))
+      g.add_child(build(:solar_system))
 
       j = g.to_json
-      j.should include('"json_class":"Cosmos::Galaxy"')
+      j.should include('"json_class":"Cosmos::Entities::Galaxy"')
       j.should include('"name":"galaxy1"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"x":50')
-      j.should include('"json_class":"Cosmos::SolarSystem"')
-      j.should include('"name":"system1"')
+      j.should include('"json_class":"Cosmos::Entities::SolarSystem"')
+      j.should include('"id":"'+g.solar_systems.first.id+'"')
     end
   end
 
   describe "#json_create" do
     it "returns galaxy from json format" do
-      j = '{"data":{"background":"galaxy4","name":"galaxy1","solar_systems":[{"data":{"background":"system5","planets":[],"jump_gates":[],"name":"system1","star":null,"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":0,"parent_id":null,"x":0,"restrict_view":true,"id":null,"restrict_modify":true,"y":0},"json_class":"Motel::Location"}},"json_class":"Cosmos::SolarSystem"}],"location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Galaxy"}'
+      j = '{"json_class":"Cosmos::Entities::Galaxy","data":{"id":null,"name":"galaxy1","location":{"json_class":"Motel::Location","data":{"id":null,"x":50.0,"y":null,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[{"json_class":"Cosmos::Entities::SolarSystem","data":{"id":"system1","name":"system1","location":{"json_class":"Motel::Location","data":{"id":10000,"x":444,"y":-948,"z":-771,"orientation_x":0,"orientation_y":0,"orientation_z":1,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[],"metadata":{},"parent_id":null,"background":4}}],"metadata":{},"parent_id":null,"background":3}}'
       g = JSON.parse(j)
 
-      g.class.should == Cosmos::Galaxy
+      g.class.should == Cosmos::Entities::Galaxy
       g.name.should == 'galaxy1'
       g.location.x.should  == 50
       g.solar_systems.size.should == 1
@@ -76,4 +77,4 @@ describe Galaxy do
   end
 
 end # describe Galaxy
-end # module Cosmos
+end # module Cosmos::Entities

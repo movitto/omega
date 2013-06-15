@@ -6,6 +6,9 @@
 require 'spec_helper'
 
 require 'cosmos/entity'
+require 'cosmos/entities/galaxy'
+require 'cosmos/entities/planet'
+require 'motel/movement_strategies/linear'
 
 module Cosmos
 describe Entity do
@@ -24,13 +27,13 @@ describe Entity do
   
   describe "#parent=" do
     it "sets parent" do
-      g = Galaxy.new
+      g = Entities::Galaxy.new
       @e.parent = g
       @e.parent.should == g
     end
 
     it "sets parent_id" do
-      g = Galaxy.new
+      g = Entities::Galaxy.new
       @e.parent = g
       @e.parent_id.should == g.id
     end
@@ -48,8 +51,8 @@ describe Entity do
 
     it "sets entity values" do
       l = Motel::Location.new
-      p = Galaxy.new :id => 'g'
-      c = Planet.new
+      p = Entities::Galaxy.new :id => 'g'
+      c = Entities::Planet.new
       @e .init_entity :location => l,
                       :id => 42,
                       :parent_id => p.id,
@@ -69,7 +72,7 @@ describe Entity do
         @e.init_entity
         @e.location.should_not be_nil
         @e.location.should be_an_instance_of(Motel::Location)
-        @e.coordinates.should == [0,0,0]
+        @e.location.coordinates.should == [0,0,0]
       end
     end
   
@@ -86,9 +89,12 @@ describe Entity do
     before(:each) do
       @e.id   = "entity_id"
       @e.name = "entity_name"
-      @e.parent = OmegaTest::CosmosEntity.new
-      @e.location  = Motel::Location.new
-      @e.children  = [OmegaTest::CosmosEntity.new]
+      @e.parent = OmegaTest::CosmosEntity.new :id => 'parent'
+      @e.location = build(:location)
+      @e.add_child OmegaTest::CosmosEntity.new :id => 'child',
+                                               :name => 'child',
+                                               :parent_id => @e.id,
+                                               :location => build(:location)
     end
 
     context "id is invalid" do
@@ -126,7 +132,7 @@ describe Entity do
   
     context "parent is invalid" do
       it "returns false" do
-        @e.parent = Galaxy.new
+        @e.parent = Entities::Galaxy.new
         @e.entity_valid?.should be_false
       end
     end
@@ -151,12 +157,20 @@ describe Entity do
   end
 
   describe "#add_child" do
+    before(:each) do
+      @e = OmegaTest::CosmosEntity.new :id => 'entity'
+      @e.init_entity
+      @c = OmegaTest::CosmosEntity.new :id   => 'child',
+                                       :name => 'child',
+                                       :parent_id => @e.id,
+                                       :location => build(:location)
+    end
+
     context "entity has child" do
       it "raises ArgumentError" do
-        c = OmegaTest::CosmosEntity.new
-        @e.add_child c
+        @e.add_child @c
         lambda {
-          @e.add_child c
+          @e.add_child @c
         }.should raise_error(ArgumentError)
       end
     end
@@ -170,103 +184,113 @@ describe Entity do
     end
 
     it "sets parent_id of child's location" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child c
-      c.location.parent_id.should == @e.location.id
+      @e.add_child @c
+      @c.location.parent_id.should == @e.location.id
     end
 
     it "sets parent of child" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child c
-      c.parent.should == @e
+      @e.add_child @c
+      @c.parent.should == @e
     end
 
     it "stores child locally" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child c
-      @e.children.should == [c]
+      @e.add_child @c
+      @e.children.should == [@c]
     end
     
     it "returns child" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child(c).should == c
+      @e.add_child(@c).should == @c
     end
   end
   
   describe "#remove_child" do
+    before(:each) do
+      @e = OmegaTest::CosmosEntity.new :id => 'entity'
+      @c = OmegaTest::CosmosEntity.new :id => 'child',
+                                       :name => 'child',
+                                       :parent_id => @e.id,
+                                       :location => build(:location)
+      @e.add_child @c
+    end
+
     it "removes child entity" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child c
-      @e.remove_child c
+      @e.remove_child @c
       @e.children.should be_empty
     end
 
     it "removes child id" do
-      c = OmegaTest::CosmosEntity.new
-      @e.add_child c
-      @e.remove_child c.id
+      @e.remove_child @c.id
       @e.children.should be_empty
     end
 
     context "child not present" do
       it "does nothing" do
-        c1 = OmegaTest::CosmosEntity.new
         c2 = OmegaTest::CosmosEntity.new
-        @e.add_child c1
         @e.remove_child c2
-        @e.children.should == [c1]
+        @e.children.should == [@c]
       end
     end
   end
   
   describe "#has_children?" do
+    before(:each) do
+      @e = OmegaTest::CosmosEntity.new :id => 'entity'
+      @c = OmegaTest::CosmosEntity.new :id => 'child',
+                                       :name => 'child',
+                                       :parent_id => @e.id,
+                                       :location => build(:location)
+    end
+
     context "entity has children" do
       it "returns true" do
-        c = OmegaTest::CosmosEntity.new
-        @e.add_child c
-        @e.has_children?.should be_true
+        @e.add_child @c
+        @e.should have_children
       end
     end
   
     context "entity does not have children" do
       it "returns false" do
-        @e.has_children?.should be_false
+        @e.should_not have_children
       end
     end
   end
   
   describe "#has_child?" do
+    before(:each) do
+      @e = OmegaTest::CosmosEntity.new :id => 'entity'
+      @c = OmegaTest::CosmosEntity.new :id => 'child',
+                                       :name => 'child',
+                                       :parent_id => @e.id,
+                                       :location => build(:location)
+    end
+
     context "entity has specified child" do
       it "returns true" do
-        c = OmegaTest::CosmosEntity.new
-        @e.add_child c
-        @e.has_child?(c).should be_true
+        @e.add_child @c
+        @e.should have_child(@c)
       end
     end
   
     context "entity has specified child id" do
       it "returns true" do
-        c = OmegaTest::CosmosEntity.new
-        @e.add_child c
-        @e.has_child?(c.id).should be_true
+        @e.add_child @c
+        @e.should have_child(@c.id)
       end
     end
   
     context "entity does not have specified child" do
       it "returns false" do
-        c1 = OmegaTest::CosmosEntity.new
         c2 = OmegaTest::CosmosEntity.new
-        @e.add_child c1
-        @e.has_child?(c2).should be_false
+        @e.add_child @c
+        @e.should_not have_child(c2)
       end
     end
   
     context "entity does not have specified child id" do
       it "returns false" do
-        c1 = OmegaTest::CosmosEntity.new
-        c2 = OmegaTest::CosmosEntity.new
-        @e.add_child c1
-        @e.has_child?(c2.id).should be_false
+        c2 = OmegaTest::CosmosEntity.new :id => 'c2'
+        @e.add_child @c
+        @e.should_not have_child(c2.id)
       end
     end
   end
@@ -291,8 +315,8 @@ describe Entity do
 
       p = proc { |a,b| }
 
-      c1.should_receive(:each_child).with(p)
-      c2.should_receive(:each_child).with(p)
+      c1.should_receive(:each_child).with(&p)
+      c2.should_receive(:each_child).with(&p)
 
       @e.each_child &p
     end
@@ -300,7 +324,7 @@ describe Entity do
   
   describe "#accepts_resource?" do
     it "returns false by default" do
-      @e.accepts_resources?.should be_false
+      @e.accepts_resource?('whatever').should be_false
     end
   end
   
@@ -326,22 +350,6 @@ describe Entity do
                                 :children => @e.children,
                                 :metadata => { :foo => 'bar' },
                                 :parent_id => 'parent'}
-    end
-  end
-  
-  describe "#json_create" do
-    it "creates new instance of entity from json" do
-      j = ''
-
-      e = JSON.parse j
-      e.should_be_an_instance_of OmegaTest::CosmosEntity
-      e.id.should == 'foo'
-      e.name.should == 'bar'
-      e.location.id.should == 42
-      e.children.size.should == 1
-      e.children.first.id.should == 'child'
-      e.metadata[:foo].should == 'bar'
-      e.parent_id.should == 'parent'
     end
   end
 end # module Entity
@@ -402,13 +410,18 @@ describe SystemEntity do
     end
 
     it "invokes validate_color to validate color" do
-      @e.color = 5
-      OmegaTest::CosmosSystemEntity::VALIDATE_COLOR.should_receive(:call).with(5)
+      @e.size = 5
+      @e.color = 'c'
+      OmegaTest::CosmosSystemEntity::VALIDATE_COLOR.should_receive(:call).with('c')
       @e.system_entity_valid?
     end
 
     context "invalid size" do
       it "returns false" do
+        @e.size = nil
+        @e.system_entity_valid?.should be_false
+
+        @e.size = 5
         OmegaTest::CosmosSystemEntity::VALIDATE_SIZE.should_receive(:call).and_return(false)
         @e.system_entity_valid?.should be_false
       end
@@ -416,6 +429,8 @@ describe SystemEntity do
   
     context "invalid color" do
       it "returns false" do
+        @e.size = 5
+        @e.color = 'c'
         OmegaTest::CosmosSystemEntity::VALIDATE_COLOR.should_receive(:call).and_return(false)
         @e.system_entity_valid?.should be_false
       end

@@ -5,8 +5,9 @@
 
 require 'spec_helper'
 require 'cosmos/entities/moon'
+require 'motel/movement_strategies/linear'
 
-module Cosmos
+module Cosmos::Entities
 describe Moon do
   describe "#initialize" do
     it "initializes entity" do
@@ -43,11 +44,11 @@ describe Moon do
 
   describe "#to_json" do
     it "returns moon in json format" do
-      m = Cosmos::Moon.new(:name => 'moon1',
-                           :location => Motel::Location.new(:x => 50))
+      m = Moon.new(:name => 'moon1',
+                   :location => Motel::Location.new(:x => 50))
 
       j = m.to_json
-      j.should include('"json_class":"Cosmos::Moon"')
+      j.should include('"json_class":"Cosmos::Entities::Moon"')
       j.should include('"name":"moon1"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"x":50')
@@ -56,10 +57,10 @@ describe Moon do
 
   describe "#json_create" do
     it "returns moon from json format" do
-      j = '{"data":{"name":"moon1","location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Moon"}'
+      j = '{"data":{"name":"moon1","location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Moon"}'
       m = JSON.parse(j)
 
-      m.class.should == Cosmos::Moon
+      m.class.should == Cosmos::Entities::Moon
       m.name.should == 'moon1'
       m.location.x.should  == 50
     end

@@ -63,7 +63,7 @@ module Cosmos::RJR
 
   describe "#reset" do
     it "clears cosmos registry" do
-      Cosmos::RJR.registry << build(:entity)
+      Cosmos::RJR.registry << build(:galaxy)
       Cosmos::RJR.registry.entities.size.should > 0
       Cosmos::RJR.reset
       Cosmos::RJR.registry.entities.size.should == 0

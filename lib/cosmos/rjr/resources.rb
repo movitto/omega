@@ -1,4 +1,4 @@
-# cosmos::create_resource,cosmos::get_resources rjr definitions
+# cosmos::set_resource,cosmos::get_resources rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -7,7 +7,7 @@ require 'cosmos/rjr/init'
 
 module Cosmos::RJR
 # create the specified resource
-create_resource = proc { |resource|
+set_resource = proc { |resource|
   # ensure resource is a valid resource
   raise ArgumentError, resource unless resource.is_a?(Resource) &&
                                        resource.valid? &&
@@ -18,16 +18,18 @@ create_resource = proc { |resource|
   raise DataNotFound, resource.entity if entity.nil?
 
   # ensure entity can accept resource
-  raise ArgumentError, entity unless entity.can_accept?(resource)
+  raise ArgumentError, entity unless entity.accepts_resource?(resource)
 
   # require modify cosmos entities
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "cosmos_entity-#{entity.id}"},
      {:privilege => 'modify', :entity => 'cosmos_entities'}]
 
-  # Add resource to entity
-  entity.add_resource(resource)
-# TODO update entity in registry
+  # Set resource on entity
+  registry.safe_exec { |entities|
+    rentity = entities.find &with_id(entity.id)
+    rentity.set_resource(resource)
+  }
 
   # return nil
   nil
@@ -48,13 +50,13 @@ get_resources = proc { |entity_id|
   entity.resources
 }
 
-RESOURCES_METHODS = { :create_resource => create_resource,
+RESOURCES_METHODS = { :set_resource => set_resource,
                       :get_resources   => get_resources }
 
 end # module Cosmos::RJR
 
 def dispatch_cosmos_rjr_resources(dispatcher)
   m = Cosmos::RJR::RESOURCES_METHODS
-  dispatcher.handle 'cosmos::set_resource', &m[:create_resource]
-  dispatcher.handle 'cosmos::get_resource_sources', &m[:get_resources]
+  dispatcher.handle 'cosmos::set_resource', &m[:set_resource]
+  dispatcher.handle 'cosmos::get_resources', &m[:get_resources]
 end

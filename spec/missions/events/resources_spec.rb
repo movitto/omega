@@ -5,7 +5,7 @@
 
 require 'spec_helper'
 require 'missions/events/resources'
-require 'cosmos/asteroid'
+require 'cosmos/entities/asteroid'
 require 'cosmos/resource'
 
 module Missions
@@ -25,7 +25,7 @@ describe PopulateResource do
     end
 
     it "sets resources" do
-      a = Cosmos::Asteroid.new
+      a = Cosmos::Entities::Asteroid.new
       r = Cosmos::Resource.new
       e = PopulateResource.new :entity => a, :resource => r, :quantity => 50
       Missions::RJR.node.should_receive(:invoke).

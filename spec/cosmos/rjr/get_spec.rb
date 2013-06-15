@@ -1,4 +1,4 @@
-# cosmos::get_entity tests
+# cosmos::get_entities tests
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -8,11 +8,14 @@ require 'cosmos/rjr/get'
 require 'rjr/dispatcher'
 
 module Cosmos::RJR
-  describe "#get_entity" do
+  describe "#get_entities" do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
       dispatch_to @s, Cosmos::RJR, :GET_METHODS
+
+      # XXX stub out call to motel::create_location
+      Cosmos::RJR.node.stub(:invoke).and_return(build(:location))
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
@@ -21,13 +24,13 @@ module Cosmos::RJR
 
     it "returns list of all entities" do
       # grant user permissions to view all entitys
-      add_privilege @login_role, 'view', 'entitys'
+      add_privilege @login_role, 'view', 'cosmos_entities'
 
-      create(:entity)
-      create(:entity)
+      create(:galaxy)
+      create(:galaxy)
       n = Cosmos::RJR.registry.entities.size
       i = Cosmos::RJR.registry.entities.collect { |e| e.id }
-      s = @s.get_entity
+      s = @s.get_entities
       s.size.should == n
       s.collect { |e| e.id }.should == i
     end
@@ -38,31 +41,31 @@ module Cosmos::RJR
       context "entity not found" do
         it "raises DataNotFound" do
           lambda {
-            @s.get_entity 'with_id', 'nonexistant'
+            @s.get_entities 'with_id', 'nonexistant'
           }.should raise_error(DataNotFound)
         end
       end
 
       context "user does not have view privilege on entity" do
         it "raises PermissionError" do
-          l = create(:entity)
+          g = create(:galaxy)
           lambda {
-            @s.get_entity 'with_id', l.id
+            @s.get_entities 'with_id', g.id
           }.should raise_error(PermissionError)
         end
       end
 
       context "user has view privilege on entity" do
         before(:each) do
-          add_privilege @login_role, 'view', 'entitys'
+          add_privilege @login_role, 'view', 'cosmos_entities'
         end
 
         it "does not raise permission error"
 
         it "returns corresponding entity" do
-          l  = create(:entity)
-          rl = @s.get_entity 'with_id', l.id
-          rl.should be_an_instance_of(entity)
+          l  = create(:galaxy)
+          rl = @s.get_entities 'with_id', l.id
+          rl.should be_an_instance_of(Entities::Galaxy)
           rl.id.should == l.id
         end
       end
@@ -70,13 +73,13 @@ module Cosmos::RJR
 
     context "entity id not specified" do
       it "filters entities user does not have permission to" do
-        l1 = create(:entity)
-        l2 = create(:entity)
+        l1 = create(:galaxy)
+        l2 = create(:galaxy)
 
         # only view privilege on single entity
-        add_privilege @login_role, 'view', "entity-#{l1.id}"
+        add_privilege @login_role, 'view', "cosmos_entity-#{l1.id}"
 
-        ls = @s.get_entity
+        ls = @s.get_entities
         ls.size.should == 1
         ls.first.id.should == l1.id
       end
@@ -92,16 +95,16 @@ module Cosmos::RJR
   end # describe #get_entities
 
   describe "#dispatch_cosmos_rjr_get" do
-    it "adds cosmos::get_entitys to dispatcher" do
-      d = ::RJR::Dispatcher.new
-      dispatch_cosmos_rjr_get(d)
-      d.handlers.keys.should include("cosmos::get_entitys")
-    end
-
     it "adds cosmos::get_entity to dispatcher" do
       d = ::RJR::Dispatcher.new
       dispatch_cosmos_rjr_get(d)
       d.handlers.keys.should include("cosmos::get_entity")
+    end
+
+    it "adds cosmos::get_entities to dispatcher" do
+      d = ::RJR::Dispatcher.new
+      dispatch_cosmos_rjr_get(d)
+      d.handlers.keys.should include("cosmos::get_entities")
     end
   end
 

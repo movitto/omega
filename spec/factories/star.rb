@@ -8,7 +8,11 @@ FactoryGirl.define do
     factory :star do
       sequence(:id)   {  |n| "star#{n}" }
       sequence(:name) {  |n| "star#{n}" }
-      association :location, factory: :star1_location, :strategy => :build
+      size      450
+      color    'FFFF00'
+
+      association :location, :strategy => :build
+      solar_system
     end
   end
 end

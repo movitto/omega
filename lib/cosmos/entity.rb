@@ -6,10 +6,13 @@
 module Cosmos
 
 # Base Cosmos Entity
-# Assumes PARENT_TYPE and CHILD_TYPES are defined on module including this
+# Assumes PARENT_TYPE, CHILD_TYPES, and valid? are defined on module including this
 module Entity
   # Unique id of the entity
   attr_accessor :id
+
+  # Human friendly name of entity
+  attr_accessor :name
 
   # {Motel::Location} in location which entity resides under the parent
   attr_accessor :location
@@ -35,7 +38,6 @@ module Entity
   attr_accessor :children
 
   # Additional metadata associated with entity,
-  #   such as name, background, etc
   attr_accessor :metadata
 
   # Cosmos::Entity intializer
@@ -47,6 +49,7 @@ module Entity
   #   if not specified will automatically be created with coordinates (0,0,0)
   def init_entity(args={})
     attr_from_args args, :id            => nil,
+                         :name          => nil,
                          :location      => nil,
                          :parent_id     => nil,
                          :parent        => nil,
@@ -66,21 +69,34 @@ module Entity
   # * parent_id is set if required
   # * parent is nil or instance of parent type
   # * children is an array of valid entities of child types
+  #
+  # From default initialization the following needs to be set
+  # to valid values to form a valid entity:
+  # * id
+  # * name
+  # * location
+  # * parent_id
   def entity_valid?
     ch = children
 
-    !@id.nil?       && @id.is_a?(String)                  && @id   != "" &&
-    !@name.nil?     && @name.is_a?(String)                && @name != "" &&
-    (PARENT_TYPE == 'NilClass' || !@parent_id.nil?)       &&
-     @parent.class.to_s == PARENT_TYPE                    &&
-    !@location.nil? && @location.is_a?(Motel::Location)   &&
-     ch.is_a?(Array) && ch.all?{ |c| CHILD_TYPES.include?(c.class.to_s) && c.valid? }
+    !@id.nil? && @id.is_a?(String) && @id   != "" &&
+    !@name.nil? && @name.is_a?(String) && @name != "" &&
+    (self.class::PARENT_TYPE == 'NilClass' || !@parent_id.nil?) &&
+    (@parent.nil? || @parent.class.to_s.demodulize == self.class::PARENT_TYPE) &&
+    !@location.nil? && @location.is_a?(Motel::Location) && @location.valid? &&
+     ch.is_a?(Array) &&
+     ch.all?{ |c|
+       self.class::CHILD_TYPES.include?(c.class.to_s.demodulize) &&
+       c.valid?
+     }
   end
 
   # Add child to entity, ensures it is not present and is valid before adding
   def add_child(child)
-    raise ArgumentError, child unless !has_child?(child) && child.valid?
-    raise ArgumentError, child unless CHILD_TYPES.include?(child.class.to_s)
+    raise ArgumentError, child unless self.class::CHILD_TYPES.
+                                      include?(child.class.to_s.demodulize) &&
+                                      child.valid? && !has_child?(child)
+
     # ensure child of valid type
     child.location.parent_id = location.id
     child.parent = self
@@ -91,7 +107,7 @@ module Entity
 
   # Remove child from entity
   def remove_child(child)
-    children.reject! { |c| c.id == child.is_a?(String) ? child : child.id }
+    children.reject! { |c| c.id == (child.is_a?(String) ? child : child.id) }
   end
 
   # Return bool indicating if entity has children
@@ -101,7 +117,7 @@ module Entity
 
   # Return bool indicating if entity has child
   def has_child?(child)
-    !children.find { |c| c.id == child.is_a?(String) ? child : child.id }.nil?
+    !children.find { |c| c.id == (child.is_a?(String) ? child : child.id) }.nil?
   end
 
   # Iterate over children calling block w/ self and each child before calling
@@ -121,23 +137,18 @@ module Entity
 
   # Convert entity to string
   def to_s
-    self.class.to_s + '-' + self.name.to_s
+    self.class.to_s.demodulize + '-' + self.name.to_s
   end
 
   # Return entity json attributes
   def entity_json
     {:id        => @id,
+     :name      => @name,
      :location  => @location,
      :children  => @children,
      :metadata  => @metadata,
      :parent_id => @parent_id
     }
-  end
-
-  # Create new entity from json representation
-  def self.json_create(o)
-    entity = new(o['data'])
-    return entity
   end
 
 end # module Entity
@@ -150,7 +161,7 @@ module EnvEntity
   attr_accessor :background
 
   def init_env_entity(args = {})
-    attr_from_args :background => rand(NUM_BACKGROUNDS)
+    attr_from_args args, :background => rand(self.class::NUM_BACKGROUNDS)
   end
 
   # Return env entity json attributes
@@ -171,6 +182,7 @@ module SystemEntity
 
   # {Cosmos::SolarSystem} parent of the entity
   alias :solar_system :parent
+  alias :solar_system= :parent=
 
   # Color of entity
   attr_accessor :color
@@ -179,8 +191,9 @@ module SystemEntity
   attr_accessor :size
 
   def init_system_entity(args={})
-    attr_from_args args, :color => RAND_SIZE.call,
-                         :size  => RAND_COLOR.call
+    attr_from_args args, :size  => self.class::RAND_SIZE.call,
+                         :color => self.class::RAND_COLOR.call,
+                         :solar_system => @parent
   end
 
   # Return boolean indicating if system_entity is valid
@@ -189,8 +202,8 @@ module SystemEntity
   # * color is set to valid string
   # * size is set to valid value
   def system_entity_valid?
-    @size.numeric? && VALIDATE_SIZE.call(@size) &&
-    @color.is_a?(String) && VALIDATE_COLORS.call(@color)
+    @size.numeric? && self.class::VALIDATE_SIZE.call(@size) &&
+    @color.is_a?(String) && self.class::VALIDATE_COLOR.call(@color)
   end
 
   # Return system entity json attributes

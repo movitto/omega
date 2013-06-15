@@ -6,6 +6,7 @@
 require 'cosmos/entity'
 
 module Cosmos
+module Entities
 
 # http://en.wikipedia.org/wiki/Galaxy
 #
@@ -45,5 +46,13 @@ class Galaxy
       :data       => entity_json.merge(env_entity_json)
     }.to_json(*a)
   end
+
+   # Create new galaxy from json representation
+   def self.json_create(o)
+     g = new(o['data'])
+     return g
+   end
+
 end # class Galaxy
+end # module Entities
 end # module Cosmos

@@ -73,9 +73,7 @@ track_handler = proc { |*args|
   raise DataNotFound, loc_id if loc.nil?
 
   # grab direct handle to registry location
-  # XXX FIXME !!!
-  rloc = registry.safe_exec {
-    entities = registry.instance_variable_get(:@entities)
+  rloc = registry.safe_exec { |entities|
     entities.find { |l| l.id == loc.id }
   }
 
@@ -126,7 +124,7 @@ track_handler = proc { |*args|
     
     ensure
       if err
-        registry.safe_exec {
+        registry.safe_exec { |entities|
           rloc.callbacks[cb.event_type].delete cb
           rloc.callbacks[cb.event_type].compact!
         }
@@ -136,13 +134,11 @@ track_handler = proc { |*args|
 
   # delete callback on connection events
   @rjr_node.on(:closed){ |node|
-    registry.safe_exec {
-      registry.safe_exec { rloc.callbacks[cb.event_type].delete(cb) }
-    }
+    registry.safe_exec { |entities| rloc.callbacks[cb.event_type].delete(cb) }
   }
 
   # delete old callback and register new
-  registry.safe_exec {
+  registry.safe_exec { |entities|
     rloc.callbacks[cb.event_type] ||= []
     old = rloc.callbacks[cb.event_type].find { |m| m.endpoint_id == cb.endpoint_id }
     rloc.callbacks[cb.event_type].delete(old) unless old.nil?
@@ -179,8 +175,7 @@ remove_callbacks = proc { |*args|
   source_node = @rjr_headers['source_node']
 
   # remove callback of the specified type or of all types
-  registry.safe_exec {
-    entities = registry.instance_variable_get(:@entities) # XXX FIXME
+  registry.safe_exec { |entities|
     rloc = entities.find { |l| l.id == loc.id }
     if cb_type.nil?
       rloc.callbacks = {}

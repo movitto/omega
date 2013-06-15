@@ -128,7 +128,7 @@ module Registry
   def safe_exec
     init_registry
     @lock.synchronize {
-      yield
+      yield @entities
     }
   end
 

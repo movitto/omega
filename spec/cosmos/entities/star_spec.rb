@@ -5,8 +5,9 @@
 
 require 'spec_helper'
 require 'cosmos/entities/star'
+require 'motel/movement_strategies/linear'
 
-module Cosmos
+module Cosmos::Entities
 describe Star do
   describe "#initialize" do
     it "initializes entity" do
@@ -17,7 +18,7 @@ describe Star do
 
     it "initializes system entity" do
       args = {}
-      Star.any_instance.should_receive(:init_env_entity).with(args)
+      Star.any_instance.should_receive(:init_system_entity).with(args)
       Star.new args
     end
   end
@@ -60,11 +61,11 @@ describe Star do
 
   describe "#to_json" do
     it "returns star in json format" do
-      s = Cosmos::Star.new(:name => 'star1',
-                           :location => Motel::Location.new(:x => 50))
+      s = Star.new(:name => 'star1',
+                   :location => Motel::Location.new(:x => 50))
 
       j = s.to_json
-      j.should include('"json_class":"Cosmos::Star"')
+      j.should include('"json_class":"Cosmos::Entities::Star"')
       j.should include('"name":"star1"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"x":50')
@@ -73,14 +74,14 @@ describe Star do
 
   describe "#json_create" do
     it "returns star from json format" do
-      j = '{"data":{"color":"FFFF00","size":49,"name":"star1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Star"}'
+      j = '{"data":{"color":"FFFF00","size":49,"name":"star1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Star"}'
       s = JSON.parse(j)
 
-      s.class.should == Cosmos::Star
+      s.class.should == Cosmos::Entities::Star
       s.name.should == 'star1'
       s.location.x.should  == 50
     end
   end
 
 end # describe Star
-end # module Cosmos
+end # module Cosmos::Entities

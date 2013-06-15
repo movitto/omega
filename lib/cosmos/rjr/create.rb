@@ -35,6 +35,6 @@ CREATE_METHODS = { :create_entity => create_entity }
 end
 
 def dispatch_cosmos_rjr_create(dispatcher)
-  m = Motel::RJR::CREATE_METHODS
+  m = Cosmos::RJR::CREATE_METHODS
   dispatcher.handle 'cosmos::create_entity', &m[:create_entity]
 end

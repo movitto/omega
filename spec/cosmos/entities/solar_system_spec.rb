@@ -5,19 +5,20 @@
 
 require 'spec_helper'
 require 'cosmos/entities/solar_system'
+require 'motel/movement_strategies/linear'
 
-module Cosmos
+module Cosmos::Entities
 describe SolarSystem do
   before(:each) do
-    @st1 = build(:star)
-    @st2 = build(:star)
-    @pl1 = build(:planet)
-    @pl2 = build(:planet)
-    @jg1 = build(:jump_gate)
-    @jg2 = build(:jump_gate)
-    @ast1 = build(:asteroid)
-    @ast2 = build(:asteroid)
-    @s = SolarSystem.new
+    @s = build(:solar_system)
+    @st1 = build(:star, :solar_system => @s)
+    @st2 = build(:star, :solar_system => @s)
+    @pl1 = build(:planet, :solar_system => @s)
+    @pl2 = build(:planet, :solar_system => @s)
+    @jg1 = build(:jump_gate, :solar_system => @s)
+    @jg2 = build(:jump_gate, :solar_system => @s)
+    @ast1 = build(:asteroid, :solar_system => @s)
+    @ast2 = build(:asteroid, :solar_system => @s)
     @s << @st1
     @s << @st2
     @s << @pl1
@@ -67,7 +68,7 @@ describe SolarSystem do
 
     it "initializes env entity" do
       args = {}
-      SolarSystem.any_instance.should_receive(:init_system_entity).with(args)
+      SolarSystem.any_instance.should_receive(:init_env_entity).with(args)
       SolarSystem.new args
     end
   end
@@ -93,40 +94,41 @@ describe SolarSystem do
     it "returns true" do
       s = SolarSystem.new
       s.should_receive(:entity_valid?).and_return(true)
-      s.should_not be_valid
+      s.should be_valid
     end
   end
 
   describe "#to_json" do
     it "returns solar system in json format" do
-      g = Cosmos::Galaxy.new(:name => 'galaxy1')
-      s = Cosmos::SolarSystem.new(:name => 'solar_system1', :galaxy => g,
-                             :location => Motel::Location.new(:x => 50))
-      s.add_child(Cosmos::Planet.new(:name => 'planet1'))
+      g = build(:galaxy)
+      s = SolarSystem.new(:id => 'solar_system1',
+                          :name => 'solar_system1', :galaxy => g,
+                          :location => Motel::Location.new(:x => 50))
+      s.add_child(build(:planet))
 
       j = s.to_json
-      j.should include('"json_class":"Cosmos::SolarSystem"')
+      j.should include('"json_class":"Cosmos::Entities::SolarSystem"')
+      j.should include('"id":"solar_system1"')
       j.should include('"name":"solar_system1"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"x":50')
-      j.should include('"galaxy_name":"galaxy1"')
-      j.should include('"json_class":"Cosmos::Planet"')
-      j.should include('"name":"planet1"')
+      j.should include('"parent_id":"'+g.id+'"')
+      j.should include('"json_class":"Cosmos::Entities::Planet"')
+      j.should include('"id":"'+s.planets.first.id+'"')
     end
   end
 
   describe "#json_create" do
     it "returns solar system from json format" do
-      j = '{"json_class":"Cosmos::SolarSystem","data":{"star":null,"planets":[{"json_class":"Cosmos::Planet","data":{"moons":[],"color":"21f798","size":14,"name":"planet1","location":{"json_class":"Motel::Location","data":{"z":0,"restrict_view":true,"x":0,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":0}}}}],"name":"solar_system1","jump_gates":[],"background":"system5","location":{"json_class":"Motel::Location","data":{"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"parent_id":null,"id":null,"y":null}}}}'
+      j = '{"json_class":"Cosmos::Entities::SolarSystem","data":{"id":"solar_system1","name":"solar_system1","location":{"json_class":"Motel::Location","data":{"id":null,"x":50.0,"y":null,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[{"json_class":"Cosmos::Entities::Planet","data":{"id":"planet23","name":"planet23","location":{"json_class":"Motel::Location","data":{"id":10089,"x":-273,"y":-655,"z":432,"orientation_x":0,"orientation_y":0,"orientation_z":1,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[],"metadata":{},"parent_id":"solar_system1","color":"AABBCC","size":55}}],"metadata":{},"parent_id":"galaxy12","background":0}}'
       s = JSON.parse(j)
 
-      s.class.should == Cosmos::SolarSystem
+      s.class.should == Cosmos::Entities::SolarSystem
       s.name.should == 'solar_system1'
       s.location.x.should  == 50
       s.planets.size.should == 1
-      s.planets.first.name.should == 'planet1'
     end
   end
 
-end # describe SolarSystem
+end # describe SolarSystem::Entities
 end # module Cosmos
