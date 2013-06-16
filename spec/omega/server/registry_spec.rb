@@ -463,6 +463,105 @@ describe Registry do
     end
   end
 
+  describe "#run_commands" do
+    before(:each) do
+      @c = Command.new
+      @registry.stub(:entities) { [@c] }
+    end
+
+    context "first hooks not run" do
+      it "runs first hooks" do
+        @c.should_receive(:run_hooks).with(:first)
+        @registry.send :run_commands
+      end
+    end
+
+    context "first hooks previously run" do
+      it "does not runs first hooks" do
+        @c.run_hooks :first
+        @c.should_not_receive(:run_hooks).with(:first)
+        @registry.send :run_commands
+      end
+    end
+
+    it "runs before hooks" do
+      @c.should_receive(:run_hooks).with(:first)
+      @c.should_receive(:run_hooks).with(:before)
+      @registry.send :run_commands
+    end
+
+    context "command should run" do
+      before(:each) do
+        @c.should_receive(:should_run?).and_return(true)
+      end
+
+      it "runs command" do
+        @c.should_receive(:run!)
+        @registry.send :run_commands
+      end
+
+      it "runs after hooks" do
+        @c.should_receive(:run_hooks).with(:first)
+        @c.should_receive(:run_hooks).with(:before)
+        @c.should_receive(:run_hooks).with(:after)
+        @registry.send :run_commands
+      end
+    end
+
+    context "command should not run" do
+      before(:each) do
+        @c.should_receive(:should_run?).and_return(false)
+      end
+
+      it "does not run command" do
+        @c.should_not_receive(:run!)
+        @registry.send :run_commands
+      end
+
+      it "does not run after hooks" do
+        @c.should_not_receive(:run_hooks).with(:after)
+        @registry.send :run_commands
+      end
+    end
+
+    context "command should be removed" do
+      before(:each) do
+        @c.should_receive(:remove?).and_return(true)
+      end
+
+      it "runs last hooks" do
+        @c.should_receive(:run_hooks).with(:first)
+        @c.should_receive(:run_hooks).with(:before)
+        @c.should_receive(:run_hooks).with(:after)
+        @c.should_receive(:run_hooks).with(:last)
+        @registry.send :run_commands
+      end
+
+      it "terminates command" do
+        @c.should_receive(:terminate!)
+        @registry.send :run_commands
+      end
+    end
+
+    it "catches errors during command hooks" do
+      @c.should_receive(:run_hooks).and_raise(Exception)
+      lambda{
+        @registry.send :run_commands
+      }.should_not raise_error
+    end
+
+    it "catches errors during command" do
+      @c.should_receive(:run!).and_raise(Exception)
+      lambda{
+        @registry.send :run_commands
+      }.should_not raise_error
+    end
+
+    it "returns default command poll" do
+      @registry.send(:run_commands).should == Registry::DEFAULT_COMMAND_POLL
+    end
+  end
+
   describe "#save" do
     it "stores entities in json in io object" do
       @registry << OmegaTest::ServerEntity.new(:id => 1)

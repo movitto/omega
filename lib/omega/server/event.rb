@@ -6,7 +6,7 @@
 module Omega
 module Server
 
-# Omega Event, tracks time and invokes handle after time has expired
+# Omega Event, tracks time and invokes handlers after time has expired
 class Event
   # Id of the event
   attr_accessor :id

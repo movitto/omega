@@ -5,6 +5,9 @@
 
 require 'json'
 
+require 'omega/server/event'
+require 'omega/server/command'
+
 module Omega
 module Server
 
@@ -16,6 +19,9 @@ module Registry
 
   # Default time event loop thread sleeps between event cycles
   DEFAULT_EVENT_POLL = 0.5 # TODO make configurable?
+
+  # Default time command loop thread sleeps between command cycles
+  DEFAULT_COMMAND_POLL = 0.5
 
   class << self
     # @!group Config options
@@ -239,6 +245,36 @@ module Registry
       }
 
     DEFAULT_EVENT_POLL
+  end
+
+  # Run commands registered in the local registry
+  #
+  # Optional internal helper method, utilize like so:
+  #   run { run_commands }
+  def run_commands
+    self.entities.
+      select { |e| e.kind_of?(Command) }.
+      each   { |cmd|
+        begin
+          cmd.run_hooks :first unless cmd.ran_first_hooks
+          cmd.run_hooks :before
+
+          if cmd.should_run?
+            cmd.run!
+            cmd.run_hooks :after
+          end
+
+          if cmd.remove?
+            cmd.run_hooks :last
+            cmd.terminate!
+          end
+
+        rescue Exception => err
+          RJR::Logger.warn "error in command #{cmd}: #{err}"
+        end
+      }
+
+    DEFAULT_COMMAND_POLL
   end
 
   ####################### state

@@ -6,7 +6,6 @@
 require 'cosmos/entities/solar_system'
 
 require 'manufactured/entity'
-require 'manufactured/callbacks'
 require 'manufactured/ship'
 
 module Manufactured

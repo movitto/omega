@@ -6,7 +6,6 @@
 require 'cosmos/entities/solar_system'
 
 require 'manufactured/entity'
-require 'manufactured/callbacks'
 
 module Manufactured
 
@@ -47,6 +46,12 @@ class Ship
 
   # Callbacks to invoke on ship events
   attr_accessor :callbacks
+
+  # Run callbacks
+  def run_callbacks(type, *args)
+    @callbacks.select { |c| c.type == type }.
+               each   { |c| c.invoke args  }
+  end
 
   # @!group Movement Properties
 
