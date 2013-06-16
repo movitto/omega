@@ -38,7 +38,8 @@ class Attack < Omega::Server::Command
   # TODO incorporate multiple weapons and area based weapons 
   # (multiple defenders) into this
   def id
-    'attack-cmd-' + @attacker.id
+    id = @attacker.nil? ? "" : @attacker.id.to_s
+    "attack-cmd-#{id}"
   end
 
   # Manufactured::Commands::Attack initializer
@@ -56,11 +57,11 @@ class Attack < Omega::Server::Command
   end
 
   def before_hook
-    # TODO update attacker/defender w/ locations (unless terminated?)
+# TODO update attacker/defender w/ locations (unless terminated?)
   end
 
   def after_hook
-    # TODO write to registry?
+# TODO write to registry?
   end
 
   def last_hook
@@ -70,7 +71,7 @@ class Attack < Omega::Server::Command
     @attacker.run_callbacks('attacked_stop', @attacker, @defender)
 
     # invoke defender's 'defended_stop' callbacks
-    @defender.run_callbacks(c.invoke 'defended_stop', @attacker, @defender)
+    @defender.run_callbacks('defended_stop', @attacker, @defender)
 
     # check if defender has been destroyed
     if @defender.hp == 0
@@ -87,7 +88,7 @@ class Attack < Omega::Server::Command
         loot = Manufactured::Loot.new :id => "#{@defender.id}-loot",
                                       :resources => @defender.resources,
                                       :location  => @defender.location
-        # TODO add to registry
+# TODO add to registry
       end
     end
   end
@@ -106,23 +107,33 @@ class Attack < Omega::Server::Command
     #   (depending on distance and projectile speed)
 
     # first reduce defender's shield then hp
-    if @attacker.damage_dealt <= @defender.current_shield_level
-      @defender.current_shield_level -= @attacker.damage_dealt
+    if @attacker.damage_dealt <= @defender.shield_level
+      @defender.shield_level -= @attacker.damage_dealt
 
     else
-      pips = (@attacker.damage_dealt - @defender.current_shield_level)
+      pips = (@attacker.damage_dealt - @defender.shield_level)
       @defender.hp -= pips
-      @defender.current_shield_level = 0
+      @defender.shield_level = 0
 
       @defender.hp = 0 if @defender.hp < 0
     end
 
     # invoke attacker's 'attacked' callbacks
-    @attacker.run_callbacks(c.invoke 'attacked', @attacker, @defender)
+    @attacker.run_callbacks('attacked', @attacker, @defender)
 
     # invoke defender's 'defended' callbacks
-    @defender.run_callbacks(c.invoke 'defended', @attacker, @defender)
+    @defender.run_callbacks('defended', @attacker, @defender)
   end
+
+   # Convert command to json representation and return it
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:attacker => attacker,
+          :defender => defender}.merge(cmd_json)
+     }.to_json(*a)
+   end
 
 end # class Attack
 end # module Commands

@@ -33,8 +33,24 @@ class Mining < Omega::Server::Command
   # Currently a ship may only mine one source at a time,
   # TODO incorporate multiple resources into this
   def id
-    'mining-cmd-' + @ship.id
+    id = @ship.nil? ? "" : @ship.id.to_s
+    "mining-cmd-#{id}"
   end
+
+  private
+
+  # internal helper, generate a new resource
+  def gen_resource
+    # if resource has less than mining_quantity only transfer that amount
+    q = @ship.nil? ? 0 : @ship.mining_quantity
+    q = @resource.quantity unless @resource.nil? || @resource.quantity >= q
+
+    Cosmos::Resource.new :id       => @resource.nil? ? nil : @resource.id,
+                         :entity   => @resource.nil? ? nil : @resource.entity,
+                         :quantity => q
+  end
+
+  public
 
   # Manufactured::Commands::Mining initializer
   # @param [Hash] args hash of options to initialize mining command with
@@ -51,7 +67,7 @@ class Mining < Omega::Server::Command
   end
 
   def before_hook
-    # TODO update ship location (unless terminated)
+    # TODO update ship location & cosmos resource (unless terminated)
   end
 
   def after_hook
@@ -87,34 +103,43 @@ class Mining < Omega::Server::Command
   end
 
   def should_run?
-    super && @ship.can_mine?(@resource) &&
-             @ship.can_accept?(@resource.id, mining_quantity)
+    r = gen_resource
+    super && @ship.can_mine?(r) && @ship.can_accept?(r)
   end
 
   def run!
     super
     RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource.id}"
 
-    # if resource has less than mining_quantity only transfer that amount
-    mining_quantity = @ship.mining_quantity
-    mining_quantity =
-      @resource.quantity if @resource.quantity < mining_quantity
-
+    r = gen_resource
     removed_resource = false
     resource_transferred = false
     begin
-      @resource.quantity -= mining_quantity
+      @resource.quantity -= r.quantity
       removed_resource = true
-      @ship.add_resource @resource.resource.id, mining_quantity
+      @ship.add_resource r
       resource_transferred = true
     rescue Exception => e
-      @resource.quantity += mining_quantity if removed_resource
+    ensure
+      @resource.quantity += r.quantity if  removed_resource &&
+                                          !resource_transferred
     end
 
     if resource_transferred
-      @ship.invoke_callbacks('resource_collected', @ship, @resource, mining_quantity)
+      @ship.run_callbacks('resource_collected', @ship, @resource, r.quantity)
     end
   end
+
+   # Convert command to json representation and return it
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:ship => ship,
+          :resource => resource}.merge(cmd_json)
+     }.to_json(*a)
+   end
+
 end # class Mining
 end # module Commands
 end # module Omega

@@ -101,16 +101,19 @@ class Command
     "command-#{@id}"
   end
 
+  def cmd_json
+    {:id              => id,
+     :exec_rate       => exec_rate,
+     :ran_first_hooks => ran_first_hooks,
+     :last_ran_at     => last_ran_at,
+     :terminate       => terminate }
+   end
+
    # Convert command to json representation and return it
    def to_json(*a)
      {
        'json_class' => self.class.name,
-       'data'       =>
-         {:id              => id,
-          :exec_rate       => exec_rate,
-          :ran_first_hooks => ran_first_hooks,
-          :last_ran_at     => last_ran_at,
-          :terminate       => terminate }
+       'data'       => cmd_json
      }.to_json(*a)
    end
 
