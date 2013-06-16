@@ -4,6 +4,9 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/server/registry'
+require 'manufactured/ship'
+require 'manufactured/station'
+require 'manufactured/loot'
 
 module Manufactured
 
@@ -15,6 +18,9 @@ module Manufactured
 # Singleton class, access via Manufactured::Registry.instance.
 class Registry
   include Omega::Server::Registry
+  include Manufactured
+
+  VALID_TYPES = [Ship, Station, Loot]
 
   # Return array of ships tracked by registry
   def ships    ; entities.select { |e| e.is_a?(Ship)    } ; end
@@ -50,7 +56,7 @@ class Registry
     # validate entities upon creation
     self.validation = proc { |r,e|
       # confirm type
-      [Ship, Station, Loot].include?(e.class) &&
+      VALID_TYPES.include?(e.class) &&
 
       # ensure id not take
       r.find { |re| re.id == e.id }.nil? &&
