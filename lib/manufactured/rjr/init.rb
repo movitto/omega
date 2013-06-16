@@ -3,84 +3,160 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-class << self
-  # @!group Config options
+require 'manufactured/registry'
+require 'omega/exceptions'
+require 'omega/server/dsl'
+require 'users/rjr/init'
 
-  # User to use to communicate w/ other modules over the local rjr node
-  attr_accessor :manufactured_rjr_username
+require 'motel/movement_strategies/linear'
+require 'motel/movement_strategies/stopped'
 
-  # Password to use to communicate w/ other modules over the local rjr node
-  attr_accessor :manufactured_rjr_password
+module Manufactured::RJR
+  include Omega#::Exceptions
+  include Manufactured
+  include Omega::Server::DSL
 
-  # Set config options using Omega::Config instance
-  #
-  # @param [Omega::Config] config object containing config options
-  def set_config(config)
-    self.manufactured_rjr_username  = config.manufactured_rjr_user
-    self.manufactured_rjr_password  = config.manufactured_rjr_pass
+  ######################################## Config
+
+  class << self
+    # @!group Config options
+  
+    # User to use to communicate w/ other modules over the local rjr node
+    attr_accessor :manufactured_rjr_username
+  
+    # Password to use to communicate w/ other modules over the local rjr node
+    attr_accessor :manufactured_rjr_password
+  
+    # Set config options using Omega::Config instance
+    #
+    # @param [Omega::Config] config object containing config options
+    def set_config(config)
+      self.manufactured_rjr_username  = config.manufactured_rjr_user
+      self.manufactured_rjr_password  = config.manufactured_rjr_pass
+    end
+  
+    # @!endgroup
   end
 
-  # @!endgroup
-end
+  ######################################## Manufactured::RJR data
 
-# callback to track_movement and track_rotation in move_entity
-motel_event = proc { |loc|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  entity = Manufactured::Registry.instance.find(:location_id => loc.id,
-                                                :include_graveyard => true).first
-  unless entity.nil?
-    Manufactured::Registry.instance.safely_run {
-      # XXX location may have been updated in the meantime
-      entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
-  
-      # update user attributes
-      if(entity.location.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
-        @@local_node.invoke_request('users::update_attribute', entity.user_id,
-                                    Users::Attributes::DistanceTravelled.id,
-                                    entity.distance_moved)
-        entity.distance_moved = 0
-      end
-  
-      # update movement strategy
-      entity.location.movement_strategy = entity.next_movement_strategy
-  
-      # update location
-      loc = entity.location
-      @@local_node.invoke_request('motel::update_location', loc)
-  
-      # remove callbacks if stopped
-      if(entity.location.movement_strategy ==
-         Motel::MovementStrategies::Stopped.instance)
-        @@local_node.invoke_request('motel::remove_callbacks', loc.id, :movement)
-        @@local_node.invoke_request('motel::remove_callbacks', loc.id, :rotation)
-      end
-    }
+  def self.user
+    @user ||= Users::User.new(:id       => Manufactured::RJR::manufactured_rjr_username,
+                              :password => Manufactured::RJR::manufactured_rjr_password,
+                              :registration_code => nil)
   end
-}
 
-def manufactured_user
-  @user ||= Users::User.new(:id       => Manufactured::RJRAdapter.manufactured_rjr_username,
-                            :password => Manufactured::RJRAdapter.manufactured_rjr_password)
-end
+  def user
+    Manufactured::RJR.user
+  end
 
-def dispatch_init(dispatcher)
-  Manufactured::Registry.instance.init
-  node = RJR::LocalNode.new :node_id => 'manufactured'
-  node.message_headers['source_node'] = 'manufactured'
-  node.invoke_request('users::create_entity', manufactured_user)
-  role_id = "user_role_#{manufactured_user.id}"
-  node.invoke_request('users::add_privilege', role_id, 'view',   'cosmos_entities')
-  node.invoke_request('users::add_privilege', role_id, 'modify', 'cosmos_entities')
-  node.invoke_request('users::add_privilege', role_id, 'create', 'locations')
-  node.invoke_request('users::add_privilege', role_id, 'view',   'users_entities')
-  node.invoke_request('users::add_privilege', role_id, 'view',   'user_attributes')
-  node.invoke_request('users::add_privilege', role_id, 'modify', 'user_attributes')
-  node.invoke_request('users::add_privilege', role_id, 'view',   'locations')
-  node.invoke_request('users::add_privilege', role_id, 'modify', 'locations')
-  node.invoke_request('users::add_privilege', role_id, 'create', 'manufactured_entities')
+  def self.node
+    @node ||= ::RJR::Nodes::Local.new :node_id => self.user.id
+  end
+  
+  def node
+    Manufactured::RJR.node
+  end
 
-  session = node.invoke_request('users::login', manufactured_user)
-  node.message_headers['session_id'] = session.id
+  def self.user_registry
+    Users::RJR.registry
+  end
 
-  dispatcher.handle(['motel::on_movement', 'motel::on_rotation'], &motel_event)
+  def user_registry
+    Manufactured::RJR.user_registry
+  end
+  
+  def self.registry
+    @registry ||= Manufactured::Registry.new
+  end
+  
+  def registry
+    Manufactured::RJR.registry
+  end
+
+  def self.reset
+    Manufactured::RJR.registry.clear!
+  end
+
+  ######################################## Callback methods
+
+  # callback to track_movement and track_rotation in move_entity
+  motel_event = proc { |loc|
+    raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+
+    entity = registry.entity { |e| e.is_a?(Ship) && e.location.id == loc.id }
+
+    unless entity.nil?
+      registry.safe_exec {
+        # update location
+        entity.location.
+          update(node.invoke('motel::get_location', 'with_id', entity.location.id))
+    
+        # update user attributes
+        if(entity.location.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
+          node.invoke('users::update_attribute', entity.user_id,
+                      Users::Attributes::DistanceTravelled.id,
+                      entity.distance_moved)
+          entity.distance_moved = 0
+        end
+    
+        # update movement strategy
+        #entity.location.movement_strategy = entity.next_movement_strategy
+    
+        # update location
+        #loc = entity.location
+        #node.invoke('motel::update_location', loc)
+    
+        # remove callbacks if stopped
+        if(entity.location.movement_strategy ==
+           Motel::MovementStrategies::Stopped.instance)
+          node.invoke('motel::remove_callbacks', loc.id, :movement)
+          node.invoke('motel::remove_callbacks', loc.id, :rotation)
+        end
+
+        nil
+      }
+    end
+  }
+
+  CALLBACK_METHODS = { :motel_event => motel_event }
+
+end # module Manufactured::RJR
+
+######################################## Dispatch init
+
+def dispatch_manufactured_rjr_init(dispatcher)
+  # setup Manufactured::RJR module
+  rjr = Object.new.extend(Manufactured::RJR)
+  rjr.node.dispatcher = dispatcher
+  rjr.node.dispatcher.env /manufactured::.*/, Manufactured::RJR
+  #rjr.node.dispatcher.add_module('manufactured/rjr/create')
+  rjr.node.message_headers['source_node'] = 'manufactured'
+
+  # create manufactured user
+  begin rjr.node.invoke('users::create_user', rjr.user)
+  rescue Exception => e ; end
+
+  # grant manufactured user extra permanufactured
+  role_id = "user_role_#{rjr.user.id}"
+  [['view',   'cosmos_entities'],
+   ['modify', 'cosmos_entities'],
+   ['create', 'locations'],
+   ['view',   'users_entities'],
+   ['view',   'user_attributes'],
+   ['modify', 'user_attributes'],
+   ['view',   'locations'],
+   ['modify', 'locations'],
+   ['create', 'manufactured_entities']].each { |p,e|
+     rjr.node.invoke('users::add_privilege', role_id, p, e)
+   }
+
+  # log the manufactured user in
+  session = rjr.node.invoke('users::login', rjr.user)
+  rjr.node.message_headers['session_id'] = session.id
+
+  # add callback for motel events
+  m = Manufactured::RJR::CALLBACK_METHODS
+  rjr.node.dispatcher.handle(['motel::on_movement', 'motel::on_rotation'],
+                             &m[:motel_event])
 end

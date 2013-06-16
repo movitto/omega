@@ -6,7 +6,13 @@ FactoryGirl.define do
     create_method 'manufactured::create_entity'
 
     factory :ship do
-      sequence(:id, 10000)
+      sequence(:id, 10000) { |n| n.to_s }
+
+      factory :valid_ship do
+        user_id 'user1'
+        association :solar_system, :strategy => :build
+        type :frigate
+      end
     end
   end
 end

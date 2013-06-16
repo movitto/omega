@@ -4,36 +4,37 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'manufactured/rjr/init'
+
+module Manufactured::RJR
+
+# save state of motel subsystem
 save_state = proc { |output|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  output_file = File.open(output, 'a+')
-  Manufactured::Registry.instance.save_state(output_file)
-  output_file.close
-  nil
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(output, 'a+') { |f| registry.save(f) }
 }
 
+# restore state of motel subsystem
 restore_state = proc { |input|
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
-  input_file = File.open(input, 'r')
-  Manufactured::Registry.instance.restore_state(input_file)
-  input_file.close
-  nil
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+  File.open(input, 'r') { |f| registry.restore(f) }
 }
 
 manufactured_status = proc {
   # Retrieve the overall status of this node
-  { :running   =>
-      { :all => Manufactured::Registry.instance.running?,
-        :attack => Manufactured::Registry.instance.subsys_running?(:attack),
-        :mining => Manufactured::Registry.instance.subsys_running?(:mining),
-        :construction => Manufactured::Registry.instance.subsys_running?(:construction),
-        :shield => Manufactured::Registry.instance.subsys_running?(:shield) },
-    :num_ships => Manufactured::Registry.instance.ships.size,
-    :num_stations => Manufactured::Registry.instance.stations.size }
+  { :running   => registry.running?,
+    :ships    => registry.ships.size,
+    :stations => registry.stations.size }
 }
 
-def dispatch_state(dispatcher)
-  dispatcher.handle "manufactured::save_state",    &save_state
-  dispatcher.handle "manufactured::restore_state", &restore_state
-  dispatcher.handle "manufactured::status",        &manufactured_status
+STATE_METHODS = { :save_state    => save_state,
+                  :restore_state => restore_state,
+                  :status        => manufactured_status }
+end
+
+def dispatch_manufactured_rjr_state(dispatcher)
+  m = Manufactured::RJR::STATE_METHODS
+  dispatcher.handle "manufactured::save_state",    &m[:save_state]
+  dispatcher.handle "manufactured::restore_state", &m[:restore_state]
+  dispatcher.handle "manufactured::status",        &m[:manufactured_status]
 end
