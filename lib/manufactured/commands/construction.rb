@@ -32,7 +32,9 @@ class Construction < Omega::Server::Command
 
   # Return the unique id of this construction command.
   def id
-    @station.id + '-' + @entity.id
+    sid = @station.nil? ? "" : @station.id
+    eid = @entity.nil? ? "" : @entity.id
+    "#{sid}-#{eid}"
   end
 
   # Manufactured::Commands::Construction initializer
@@ -52,23 +54,36 @@ class Construction < Omega::Server::Command
   end
 
   def run!
-    super
     RJR::Logger.debug "invoking construction cycle #{@station.id} -> #{@entity.id}"
 
     t = Time.now
+    @last_ran_at ||= Time.now
     const_time = @entity.class.construction_time(@entity.type)
     total_time = t - @last_ran_at
 
     self.completed = (total_time >= const_time)
 
+    # set last_ran_at after time check
+    super
+
     if self.completed
-      @station.invoke_callbacks 'construction_complete', @station, @entity
+      @station.run_callbacks 'construction_complete', @station, @entity
 
     else
       percentage = total_time / const_time
-      @station.invoke_callbacks 'partial_construction', @station, @entity, percentage
+      @station.run_callbacks 'partial_construction', @station, @entity, percentage
     end
   end
+
+   # Convert command to json representation and return it
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:station => station,
+          :entity  => entity}.merge(cmd_json)
+     }.to_json(*a)
+   end
 
 
 end # class Construction

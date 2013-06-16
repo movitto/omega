@@ -45,6 +45,12 @@ class Station
   # Array of callbacks to invoke on certain events relating to ship
   attr_accessor :callbacks
 
+  # Run callbacks
+  def run_callbacks(type, *args)
+    @callbacks.select { |c| c.type == type }.
+               each   { |c| c.invoke args  }
+  end
+
   # Max distance a ship can be from station to dock with it
   attr_accessor :docking_distance
 
