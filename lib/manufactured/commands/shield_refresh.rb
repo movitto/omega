@@ -22,7 +22,7 @@ class ShieldRefresh < Omega::Server::Command
 
   # Return the unique id of this command.
   def id
-    @entity.id
+    @entity.nil? ? "" : @entity.id.to_s
   end
 
   # Manufactured::Commands::ShieldRefresh initializer
@@ -43,14 +43,27 @@ class ShieldRefresh < Omega::Server::Command
 
   def run!
     RJR::Logger.debug "refreshing shield of #{@entity.id}"
-    if @entity.shield_level < entity.max_shield_level
+    @last_ran_at ||= Time.now
+    if @entity.shield_level < @entity.max_shield_level
       pips =  (Time.now - @last_ran_at) * @entity.shield_refresh_rate
       @entity.shield_level += pips
       @entity.shield_level =
         entity.max_shield_level if entity.shield_level > entity.max_shield_level
     end
+
+    # set last_ran_at after time check
     super
   end
+
+   # Convert command to json representation and return it
+   def to_json(*a)
+     {
+       'json_class' => self.class.name,
+       'data'       =>
+         {:attack_cmd => attack_cmd,
+          :entity  => entity}.merge(cmd_json)
+     }.to_json(*a)
+   end
 
 end # class ShieldRefresh
 end # module Commands

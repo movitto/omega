@@ -85,7 +85,6 @@ class Construction < Omega::Server::Command
      }.to_json(*a)
    end
 
-
 end # class Construction
 end # module Commands
 end # module Omega
