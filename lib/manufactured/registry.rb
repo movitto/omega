@@ -33,7 +33,7 @@ class Registry
 
   private
 
-  def check_entity(entity, old_entity)
+  def check_entity(entity, old_entity=nil)
     @lock.synchronize {
       # TODO resolve system references here
       rentity = @entities.find { |e| e.id == entity.id }
@@ -50,7 +50,7 @@ class Registry
     # validate entities upon creation
     self.validation = proc { |r,e|
       # confirm type
-      [Ship, Station].include?(e.class) &&
+      [Ship, Station, Loot].include?(e.class) &&
 
       # ensure id not take
       r.find { |re| re.id == e.id }.nil? &&
