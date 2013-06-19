@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
 require 'omega/server/command'
 
 module Manufactured
@@ -42,7 +43,7 @@ class ShieldRefresh < Omega::Server::Command
   end
 
   def run!
-    RJR::Logger.debug "refreshing shield of #{@entity.id}"
+    ::RJR::Logger.debug "refreshing shield of #{@entity.id}"
     @last_ran_at ||= Time.now
     if @entity.shield_level < @entity.max_shield_level
       pips =  (Time.now - @last_ran_at) * @entity.shield_refresh_rate

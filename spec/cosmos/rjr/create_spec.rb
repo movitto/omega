@@ -66,6 +66,8 @@ module Cosmos::RJR
         @s.create_entity(new_entity)
       end
 
+      it "sets location id"
+
       context "existing entity-id specified" do
         # TODO other errors such as parent not found
         it "raises OperationError" do

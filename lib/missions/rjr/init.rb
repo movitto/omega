@@ -37,6 +37,16 @@ module Missions::RJR
 
   ######################################## Missions::RJR data
 
+  PRIVILEGES =
+    [['view',   'users'],
+       ['view',   'cosmos_entities'],
+       ['modify', 'cosmos_entities'],
+       ['view',   'manufactured_entities'],
+       ['create', 'manufactured_entities'],
+       ['modify', 'manufactured_entities'],
+       ['modify', 'manufactured_resources'],
+       ['create', 'missions']]
+
   def self.user
     @user ||= Users::User.new(:id       => Missions::RJR::missions_rjr_username,
                               :password => Missions::RJR::missions_rjr_password,
@@ -110,14 +120,7 @@ def dispatch_missions_rjr_init(dispatcher)
   # all in all missions is a pretty powerful role/user in terms
   #  of what it can do w/ the simulation
   role_id = "user_role_#{rjr.user.id}"
-  [['view',   'users'],
-   ['view',   'cosmos_entities'],
-   ['modify', 'cosmos_entities'],
-   ['view',   'manufactured_entities'],
-   ['create', 'manufactured_entities'],
-   ['modify', 'manufactured_entities'],
-   ['modify', 'manufactured_resources'],
-   ['create', 'missions']].each { |p,e|
+  Missions::RJR::PRIVILEGES.each { |p,e|
      rjr.node.invoke('users::add_privilege', role_id, p, e)
    }
 

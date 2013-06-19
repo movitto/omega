@@ -3,45 +3,87 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-manufactured_collect_loot = proc { |ship_id, loot_id|
-  # TODO also allow specification of resource_id / quantity through args
+require 'manufactured/rjr/init'
+require 'users/attributes/stats'
 
-  ship = Manufactured::Registry.instance.find(:id => ship_id, :type => 'Manufactured::Ship').first
-  loot = Manufactured::Registry.instance.loot.find { |l| l.id == loot_id }
-  raise Omega::DataNotFound, "ship specified by #{ship_id} not found" if ship.nil?
-  raise Omega::DataNotFound, "loot specified by #{loot_id} not found" if loot.nil?
+module Manufactured::RJR
 
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
+# collect loot using the specified ship
+collect_loot = proc { |ship_id, loot_id|
+  # TODO also allow specification of resources through args
 
-  Manufactured::Registry.instance.safely_run {
-    # update entity's location
-    ship.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', ship.location.id))
+  # retrieve/validate ship and loot
+  ship = registry.entity &with_id(ship_id)
+  loot = registry.entity &with_id(loot_id)
+  raise DataNotFound, ship_id if ship.nil? || !ship.is_a?(Ship)
+  raise DataNotFound, loot_id if loot.nil? || !loot.is_a?(Loot)
+
+  # require modify on the ship
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
+
+  # update ship's/loot's locations and solar systems
+  ship.location =
+    node.invoke('motel::get_location', 'with_id', ship.location.id)
+  loot.location =
+    node.invoke('motel::get_location', 'with_id', loot.location.id)
+  ship.solar_system =
+    node.invoke('cosmos::get_entity', 'with_location', ship.location.parent_id)
+  loot.solar_system =
+    node.invoke('cosmos::get_entity', 'with_location', loot.location.parent_id)
+
+  # ensure loot can be tranferred to ship and ship can accept
+  raise OperationError unless loot.resources.all? { |r|
+                                loot.can_transfer?(ship, r) &&
+                                ship.can_accept?(r)
+                              }
+  
+  total = 0
+
+  # run the transfer in the registry
+  registry.safe_exec { |entities|
+    # retrieve registry ship/loot
+    s = entities.find &with_id(ship.id)
+    l = entities.find &with_id(loot.id)
+
+    # iterate over loot resources
+    l.resources.each { |r|
+      added = removed = false
+      begin
+        # transfer resource
+        s.add_resource(r)    ; added   = true
+        l.remove_resource(r) ; removed = true
+        total += r.quantity
+
+        # run collected_loot callbacks
+        s.run_callbacks :collected_loot, s, r
+      rescue Exception => e
+      ensure
+        # if resource was added to ship but not
+        #  removed from loot, remove it from ship
+        s.remove_resource(r) if added && !removed
+      end
+    }
+
+    # if cargo is empty, delete loot from registry
+    entities.delete(l)   if l.cargo_empty?
+    entities.compact!
   }
 
-  # ensure within the transfer distance
-  # TODO add a can_collect? method to ship
-  raise Omega::OperationError, "ship too far from loot" unless ship.location - loot.location <= ship.transfer_distance
-
-  # TODO also support partial transfers
-  raise Omega::OperationError, "ship cannot accept loot" unless ship.can_accept?('', loot.quantity)
-
-  # TODO move to a registry operation, add 'collected' notification callbacks
-  total = Manufactured::Registry.instance.collect_loot(ship, loot)
-
   # update user attributes
-  @@local_node.invoke_request('users::update_attribute', sh.user_id,
-                              Users::Attributes::LootCollected.id, total)
+  node.invoke('users::update_attribute', ship.user_id,
+              Users::Attributes::LootCollected.id, total)
 
-  # FIXME this is what deletes empty loot, need to uncomment
-  # and make atomic w/ loot transfer operation above
-  #Manufactured::Registry.instance.set_loot(loot)
-
+  # return ship
   ship
 }
 
-def dispatch_loot(dispatcher)
-  dispatcher.handle 'manufactured::collect_loot',
-                      &manufactured_collect_loot
+LOOT_METHODS = { :collect_loot   => collect_loot }
+
+end # module Manufactured::RJR
+
+def dispatch_manufactured_rjr_loot(dispatcher)
+  m = Manufactured::RJR::LOOT_METHODS
+  dispatcher.handle 'manufactured::collect_loot', &m[:collect_loot]
 end

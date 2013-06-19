@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
 require 'omega/server/command'
 
 module Manufactured
@@ -42,12 +43,12 @@ class Mining < Omega::Server::Command
   # internal helper, generate a new resource
   def gen_resource
     # if resource has less than mining_quantity only transfer that amount
-    q = @ship.nil? ? 0 : @ship.mining_quantity
-    q = @resource.quantity unless @resource.nil? || @resource.quantity >= q
+    @q = @ship.nil? ? 0 : @ship.mining_quantity
+    @q = @resource.quantity unless @resource.nil? || @resource.quantity >= @q
 
     Cosmos::Resource.new :id       => @resource.nil? ? nil : @resource.id,
                          :entity   => @resource.nil? ? nil : @resource.entity,
-                         :quantity => q
+                         :quantity => @q
   end
 
   public
@@ -68,10 +69,23 @@ class Mining < Omega::Server::Command
 
   def before_hook
     # TODO update ship location & cosmos resource (unless terminated)
+    #@ship.location =
+    #  node.invoke('motel::get_location',
+    #              'with_id', cmd.ship.location.id)
+    #
+    # need to load resource source's entity's location parent explicity
+    #@resource.entity.location.parent =
+    #  node.invoke('motel::get_location',
+    #              'with_id', resource.entity.location.parent_id)
+  
   end
 
   def after_hook
     # TODO update registry & cosmos
+    #node.invoke('cosmos::set_resource', @resource)
+  
+    #node.invoke('users::update_attribute', @ship.user_id,
+    #            Users::Attributes::ResourcesCollected.id, @q)
   end
 
   def last_hook
@@ -93,12 +107,12 @@ class Mining < Omega::Server::Command
       reason = 'ship_docked'
 
     elsif @resource.quantity <= 0
-      RJR::Logger.debug "#{@ship.id} depleted resource #{@resource.id}"
+      ::RJR::Logger.debug "#{@ship.id} depleted resource #{@resource.id}"
       @ship.run_callbacks('resource_depleted', @ship, @resource)
       reason = 'resource_depleted'
     end
 
-    RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"
+    ::RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"
     @ship.run_callbacks('mining_stopped', reason, @ship, @resource)
   end
 
@@ -109,7 +123,7 @@ class Mining < Omega::Server::Command
 
   def run!
     super
-    RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource.id}"
+    ::RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource.id}"
 
     r = gen_resource
     removed_resource = false

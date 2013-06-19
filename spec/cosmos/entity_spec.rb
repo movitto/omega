@@ -79,6 +79,7 @@ describe Entity do
         @e.location.should_not be_nil
         @e.location.should be_an_instance_of(Motel::Location)
         @e.location.coordinates.should == [0,0,0]
+        @e.location.orientation.should == [0,0,1]
       end
     end
   

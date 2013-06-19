@@ -4,67 +4,125 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-manufactured_subscribe_to = proc { |entity_id, event|
-  entity = Manufactured::Registry.instance.find(:id => entity_id).first
-  raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found" if entity.nil?
+require 'manufactured/rjr/init'
 
-  # TODO add option to verify request is coming from authenticated source node which current connection was established on
-  # TODO ensure that rjr_node_type supports persistant connections
+module Manufactured::RJR
 
-  event_callback =
-    Callback.new(event, :endpoint => @headers['source_node']){ |*args|
+# subscribe client to manufactured event
+subscribe_to = proc { |entity_id, event|
+  entity = registry.entity &with_id(entity_id)
+  raise DataNotFound,
+           entity_id if entity.nil? ||
+                       ![Station, Ship].include?(entity.class)
+
+  # grab direct handle to registry entity
+  rentity = registry.safe_exec { |entities| entities.find &with_id(entity.id) }
+
+  # TODO option to verify request is coming from
+  #      authenticated source node which current
+  #      connection was established on
+
+  # TODO ensure that rjr_node_type supports
+  #      persistant connections
+
+  cb = Omega::Server::Callback.new
+  cb.endpoint_id = @rjr_headers['source_node']
+  cb.rjr_event   = 'manufactured::event_occurred'
+  cb.event_type  = event
+  cb.handler =
+    proc { |*args|
+      entity = args.first
+      err = false
+
       begin
-        Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                                   {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                          :session => @headers['session_id'])
-        @rjr_callback.invoke 'manufactured::event_occurred', *args
+        # ensure user has access to view entity
+        require_privilege :registry => user_registry, :any =>
+          [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+           {:privilege => 'view', :entity => 'manufactured_entities'}]
+
+        # invoke method via rjr callback notification
+        @rjr_callback.notify 'manufactured::event_occurred', *args
 
       rescue Omega::PermissionError => e
-        # FIXME delete all entity.notification_callbacks associated w/ @headers['session_id']
-        RJR::Logger.warn "client does not have privilege to subscribe to #{event} on #{entity.id}"
-        entity.notification_callbacks.delete event_callback
+        ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
+        err = true
 
-      # FIXME @rjr_node.on(:closed){ |node| entity.notification_callbacks.delete event_callback }
-      rescue RJR::Errors::ConnectionError => e
-        RJR::Logger.warn "subscribe_to client disconnected"
-        entity.notification_callbacks.delete event_callback
+      rescue ::RJR::Errors::ConnectionError => e
+        ::RJR::Logger.warn "entity #{entity.id} client disconnected"
+        err = true
+        # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
+
+      rescue Exception => e
+        ::RJR::Logger.warn "exception during #{entity.id} callback"
+        err = true
+
+      ensure
+        if err
+          registry.safe_exec { |entities|
+            rentity.callbacks.delete(cb)
+            rentity.callbacks.compact!
+          }
+        end
       end
     }
 
-  Manufactured::Registry.instance.safely_run {
-    old = entity.notification_callbacks.find { |n| n.type == event_callback.type &&
-                                                   n.endpoint_id == event_callback.endpoint_id }
-
-    unless old.nil?
-     entity.notification_callbacks.delete(old)
-    end
-
-    entity.notification_callbacks << event_callback
+  # delete callback on connection events
+  @rjr_node.on(:closed){ |node|
+    registry.safe_exec { |entities|
+      rentity.callbacks.delete(cb)
+      rentity.callbacks.compact!
+    }
   }
 
+  # delete old callback and register new
+  registry.safe_exec { |entities|
+    old = 
+      rentity.callbacks.find { |c|
+        c.event_type  == cb.event_type &&
+        c.endpoint_id == cb.endpoint_id
+      }
+    rentity.callbacks.delete(old) if old.nil?
+    rentity.callbacks.compact!
+    rentity.callbacks << cb
+  }
+
+  # return entity
   entity
 }
 
-manufactured_remove_callbacks = proc { |entity_id|
-  source_node = @headers['source_node']
-  # TODO add option to verify request is coming from authenticated source node which current connection was established on
+# remove callbacks registered for entity
+remove_callbacks = proc { |entity_id|
+  # TODO option to verify request is coming from
+  #      authenticated source node which current
+  #      connection was established on
+  source_node = @rjr_headers['source_node']
 
-  entity = Manufactured::Registry.instance.find(:id => entity_id, :include_graveyard => true).first
-  raise Omega::DataNotFound, "entity specified by #{entity_id} not found" if entity.nil?
-  Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-                                             {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
+  # retrieve/validate entity
+  entity = registry.entity &with_id(entity_id)
+  raise DataNotFound, entity_id if entity.nil? ||
+                                   ![Station, Ship].include?(entity.class)
 
-  Manufactured::Registry.instance.safely_run {
-    entity.notification_callbacks.reject!{ |nc| nc.endpoint_id == source_node }
+  # require view on entity
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+     {:privilege => 'view', :entity => 'manufactured_entities'}]
+
+  # remove callbacks from registry entity
+  registry.safe_exec { |entities|
+    rentity = entities.find &with_id(entity.id)
+    rentity.callbacks.reject!{ |c| c.endpoint_id == source_node }
   }
 
+  # return entity
   entity
 }
 
-def dispatch_events(dispatcher)
-  dispatcher.handle 'manufactured::subscribe_to',
-                      &manufactured_subscribe_to
-  dispatcher.handle 'manufactured::remove_callbacks',
-                      &manufactured_remove_callbacks
+EVENTS_METHODS = { :subscribe_to     => subscribe_to,
+                   :remove_callbacks => remove_callbacks }
+end
+
+def dispatch_manufactured_rjr_events(dispatcher)
+  m = Manufactured::RJR::EVENTS_METHODS
+  dispatcher.handle 'manufactured::subscribe_to',     &m[:subscribe_to]
+  dispatcher.handle 'manufactured::remove_callbacks', &m[:remove_callbacks]
 end

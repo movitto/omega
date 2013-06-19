@@ -332,7 +332,7 @@ module Motel::RJR
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
         @s.track_handler l.id, 1.57
         lambda {
-          @s.remove_callbacks l.id, :rotation
+          @s.remove_callbacks l.id, 'rotation'
         }.should change{@registry.entity(&with_id(l.id)).
                                   callbacks.values.flatten.size}.by(-1)
         @registry.entity(&with_id(l.id)).callbacks[:movement].size.should == 1

@@ -297,6 +297,14 @@ module Registry
     }
   end
 
+  ####################### other
+
+  def to_s
+    @lock.synchronize {
+      "#{self.class}-#{@entities.size}/#{@event_loops.size}/#{@workers.size}"
+    }
+  end
+
 end # module Registry
 
 end # module Server

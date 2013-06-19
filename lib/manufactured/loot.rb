@@ -33,7 +33,8 @@ class Loot
                          :resources            =>  [],
                          :location             => nil,
                          :system_id            => nil,
-                         :solar_system         => nil
+                         :solar_system         => nil,
+                         :transfer_distance    =>  25
   end
 
   # Return boolean indicating if this loot is valid

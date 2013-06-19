@@ -501,8 +501,7 @@ class Ship
          :mining    => @mining, # TODO pass mining via reference ?
          :location => @location,
          :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),
-         :resources => @resources,
-         :callbacks => @callbacks}
+         :resources => @resources}
     }.to_json(*a)
   end
 

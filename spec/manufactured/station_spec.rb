@@ -207,7 +207,7 @@ describe Station do
     it "returns true" do
       s = Station.new :type => :manufacturing
       s.add_resource build(:resource, :quantity => 500)
-      s.can_construct?({:type => 'Ship'}).should be_true
+      s.can_construct?({:entity_type => 'Ship'}).should be_true
     end
   end
 
@@ -224,14 +224,14 @@ describe Station do
       s = Station.new :type => :manufacturing
       s.add_resource build(:resource, :quantity => 100)
       lambda {
-        s.construct({:type => 'Ship'})
+        s.construct({:entity_type => 'Ship'})
       }.should change{s.resources.size}.by(-1)
     end
 
     it "instantiates entity" do
       s = Station.new :type => :manufacturing
       s.add_resource build(:resource, :quantity => 100)
-      sh = s.construct({:type => 'Ship'})
+      sh = s.construct({:entity_type => 'Ship'})
       sh.should be_an_instance_of(Manufactured::Ship)
     end
 
@@ -240,7 +240,7 @@ describe Station do
       s = Station.new :type => :manufacturing,
                       :solar_system => build(:solar_system)
       s.add_resource build(:resource, :quantity => 100)
-      sh = s.construct({:type => 'Ship'})
+      sh = s.construct({:entity_type => 'Ship'})
       sh.location.parent.should == s.location.parent
     end
 
@@ -248,7 +248,7 @@ describe Station do
       s = Station.new :type => :manufacturing,
                       :solar_system => build(:solar_system)
       s.add_resource build(:resource, :quantity => 100)
-      sh = s.construct({:type => 'Ship'})
+      sh = s.construct({:entity_type => 'Ship'})
       sh.parent.should == s.parent
     end
 

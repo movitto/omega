@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
 require 'omega/server/command'
 
 module Manufactured
@@ -58,6 +59,10 @@ class Attack < Omega::Server::Command
 
   def before_hook
 # TODO update attacker/defender w/ locations (unless terminated?)
+    #@attacker.location =
+    #  node.invoke('motel::get_location', 'with_id', @attacker.location.id)
+    #@defender.location =
+    #  node.invoke('motel::get_location', 'with_id', @defender.location.id)
   end
 
   def after_hook
@@ -75,12 +80,19 @@ class Attack < Omega::Server::Command
 
     # check if defender has been destroyed
     if @defender.hp == 0
-      RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
+      ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
 
       @defender.destroyed_by = @attacker
 
       # invoke defender's 'destroyed' callbacks
       @defender.run_callbacks('destroyed', @attacker, @defender)
+
+# TODO
+    # set 'ships_user_destroyed' and 'user_ships_destroyed' attributes
+    # node.invoke('users::update_attribute', @attacker.user_id,
+    #             Users::Attributes::ShipsUserDestroyed.id,  1)
+    # node.invoke('users::update_attribute', @defender.user_id,
+    #             Users::Attributes::UserShipsDestroyed.id,  1)
 
       # create loot if necessary
       unless @defender.cargo_empty?
@@ -99,7 +111,7 @@ class Attack < Omega::Server::Command
 
   def run!
     super
-    RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
+    ::RJR::Logger.debug "invoking attack command #{@attacker.id} -> #{@defender.id}"
 
     # TODO incorporate a hit / miss probability into this
     # TODO incorporate AC / other defense mechanisms into this

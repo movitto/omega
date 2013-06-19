@@ -494,15 +494,13 @@ describe Ship do
 
   describe "#to_json" do
     it "returns ship in json format" do
-      system1 = build('solar_system', :id => 'system1')
+      sys = build(:solar_system)
       location= Motel::Location.new :id => 20, :y => -15
-      cb = Manufactured::Callback.new 'attacked', :endpoint => 'foobar'
       s = Manufactured::Ship.new(:id => 'ship42', :user_id => 420,
                                  :type => :frigate,
                                  :hp   => 500, :shield_level => 20,
-                                 :solar_system => system1,
-                                 :location => location,
-                                 :callbacks => [cb])
+                                 :solar_system => sys,
+                                 :location => location)
 
       station = Manufactured::Station.new :id => 'station42'
       s.dock_at(station)
@@ -522,9 +520,6 @@ describe Ship do
       j.should include('"size":35')
       j.should include('"hp":500')
       j.should include('"shield_level":20')
-      j.should include('"json_class":"Manufactured::Callback"')
-      j.should include('"type":"attacked"')
-      j.should include('"endpoint":"foobar"')
       j.should include('"json_class":"Manufactured::Station"')
       j.should include('"id":"station42"')
       j.should include('"json_class":"Cosmos::Resource"')
@@ -534,13 +529,13 @@ describe Ship do
       j.should include('"json_class":"Motel::Location"')
       j.should include('"id":20')
       j.should include('"y":-15')
-      j.should include('"system_id":"system1"')
+      j.should include('"system_id":"'+sys.id+'"')
     end
   end
 
   describe "#json_create" do
     it "returns ship from json format" do
-      j = '{"json_class":"Manufactured::Ship","data":{"id":"ship42","user_id":420,"type":"frigate","size":35,"hp":500,"shield_level":20,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":null,"type":"offense","size":35,"errors":{},"docking_distance":200,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0,"y":0,"z":0,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_name":null,"resources":{}}},"attacking":{"json_class":"Manufactured::Ship","data":{"id":"ship52","user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":1.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"mining":{"json_class":"Cosmos::Resource","data":{"id":"res1","quantity":0,"entity_id":null}},"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":10000,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[],"callbacks":[{"json_class":"Manufactured::Callback","data":{"type":"attacked","endpoint":"foobar"}}]}}'
+      j = '{"json_class":"Manufactured::Ship","data":{"id":"ship42","user_id":420,"type":"frigate","size":35,"hp":500,"shield_level":20,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":null,"type":"offense","size":35,"errors":{},"docking_distance":200,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0,"y":0,"z":0,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_name":null,"resources":{}}},"attacking":{"json_class":"Manufactured::Ship","data":{"id":"ship52","user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":1.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"mining":{"json_class":"Cosmos::Resource","data":{"id":"res1","quantity":0,"entity_id":null}},"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":10000,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[]}}'
       s = JSON.parse(j)
 
       s.class.should == Manufactured::Ship
@@ -550,16 +545,11 @@ describe Ship do
       s.size.should == Ship::SIZES[:frigate]
       s.hp.should == 500
       s.shield_level.should == 20
-      s.callbacks.size.should == 1
-      s.callbacks.first.type == "attacked"
-      s.callbacks.first.endpoint_id == "foobar"
-      #s.docked_at.should_not be_nil
-      #s.docked_at.id.should == 'station42'
       s.location.should_not be_nil
       s.location.y.should == -15
       s.system_id.should == 'system1'
     end
   end
 
-end # describe Shio
+end # describe Ship
 end # module Manufactured

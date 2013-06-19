@@ -73,9 +73,7 @@ track_handler = proc { |*args|
   raise DataNotFound, loc_id if loc.nil?
 
   # grab direct handle to registry location
-  rloc = registry.safe_exec { |entities|
-    entities.find { |l| l.id == loc.id }
-  }
+  rloc = registry.safe_exec { |entities| entities.find &with_id(loc.id) }
 
   # TODO verify request is coming from
   # authenticated source node which current connection
@@ -91,6 +89,7 @@ track_handler = proc { |*args|
   # use rjr callback to send notification back to client
   cb.handler = proc{ |*args|
     loc = args.first
+    err = false
 
     begin
       # ensure user has access to view location
@@ -107,7 +106,7 @@ track_handler = proc { |*args|
            {:privilege => 'view', :entity => 'locations'}]
       end
 
-      err = false
+      # invoke method via rjr callback notification
       @rjr_callback.notify(cb.rjr_event, loc)
 
     rescue Omega::PermissionError => e
@@ -145,7 +144,7 @@ track_handler = proc { |*args|
     rloc.callbacks[cb.event_type] << cb
   }
 
-  # return location
+  # return nil
   nil
 }
 
@@ -164,7 +163,8 @@ remove_callbacks = proc { |*args|
 
   # if set, callback type to remove will be other param
   cb_type = args.length > 1 ? args[1] : nil
-  unless cb_type.nil? || Registry::LOCATION_EVENTS.include?(cb_type)
+  unless cb_type.nil? ||
+         Registry::LOCATION_EVENTS.collect { |e| e.to_s }.include?(cb_type)
     raise ArgumentError,
       "callback_type must be nil or one of #{Registry::LOCATION_EVENTS.join(', ')}"
   end
@@ -181,8 +181,8 @@ remove_callbacks = proc { |*args|
       rloc.callbacks = {}
 
     else
-      rloc.callbacks[cb_type].reject!{ |cb| cb.endpoint_id == source_node } if rloc.callbacks[cb_type]
-      rloc.callbacks[cb_type].compact!
+      rloc.callbacks[cb_type.intern].reject!{ |cb| cb.endpoint_id == source_node } if rloc.callbacks[cb_type]
+      rloc.callbacks[cb_type.intern].compact!
     end
   }
 

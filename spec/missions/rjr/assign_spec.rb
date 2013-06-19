@@ -17,6 +17,8 @@ module Missions::RJR
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
       @s.login @n, @login_user.id, @login_user.password
+
+      dispatch_missions_rjr_init(@n.dispatcher)
     end
 
     context "invalid mission id" do

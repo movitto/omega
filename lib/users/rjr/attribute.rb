@@ -23,11 +23,6 @@ update_attribute = proc { |user_id, attribute_id, change|
   # valid user id must be specified
   raise DataNotFound, user_id if user.nil?
 
-  # require modify privs on user or all users
-  require_privilege :registry => registry, :any =>
-    [{:privilege => 'modify', :entity => "user-#{user.id}"},
-     {:privilege => 'modify', :entity => 'users'}]
-
   # only update attribute if user attributes are enabled
   if Users::RJR.user_attrs_enabled
     user.update_attribute!(attribute_id, change)
@@ -63,16 +58,13 @@ has_attribute = proc { |*args|
     [{:privilege => 'view', :entity => "user-#{user_id}"},
      {:privilege => 'view', :entity => "users"}]
 
-  # lookup attribute if user attributes enabled
-  if Users::RJR.user_attrs_enabled
-    registry.safe_exec { |entities|
-      user.has_attribute?(attr_id, level)
-    }
+  # lookup attribute
+  has_attribute =
+    registry.safe_exec { |entities| user.has_attribute?(attr_id, level) }
 
-  # else always return true
-  else
-    true
-  end
+  # return has_attribute,
+  # if user attributes are not enabled always return true
+  Users::RJR.user_attrs_enabled ? has_attribute : true
 }
 
 ATTRIBUTE_METHODS = { :update_attribute  => update_attribute,

@@ -37,7 +37,7 @@ module Cosmos::RJR
 
     it "updates all entities and children with motel location (recursively)"
 
-    context "entity id/name specified" do
+    context "entity id/name/location specified" do
       context "entity not found" do
         it "raises DataNotFound" do
           lambda {
@@ -68,10 +68,12 @@ module Cosmos::RJR
           rl.should be_an_instance_of(Entities::Galaxy)
           rl.id.should == l.id
         end
+
+        # TODO test name/location matchers
       end
     end
 
-    context "entity id not specified" do
+    context "entity id/name/location not specified" do
       it "filters entities user does not have permission to" do
         l1 = create(:galaxy)
         l2 = create(:galaxy)
@@ -87,10 +89,6 @@ module Cosmos::RJR
 
     context "type of entity specified" do
       it "only returns entities matching type"
-    end
-
-    context "location of entity specified" do
-      it "only returns entities matching location id"
     end
   end # describe #get_entities
 

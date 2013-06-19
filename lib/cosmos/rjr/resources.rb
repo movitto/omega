@@ -1,4 +1,5 @@
-# cosmos::set_resource,cosmos::get_resources rjr definitions
+# cosmos::set_resource,
+# cosmos::get_resource, cosmos::get_resources rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -35,6 +36,24 @@ set_resource = proc { |resource|
   nil
 }
 
+# retrieve resource specified by id
+get_resource = proc { |resource_id|
+  # search for resource in entities in the registry
+  resource = 
+    registry.entities.
+             collect { |e| e.resources if e.respond_to?(:resources) }. # XXX
+             flatten.compact.find { |r| r.id == resource_id }
+  raise DataNotFound, resource_id if resource.nil?
+
+  # ensure user has view privileges on entity
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'view', :entity => "cosmos_entity-#{resource.entity_id}"},
+     {:privilege => 'view', :entity => 'cosmos_entities'}]
+
+  # return resource
+  resource
+}
+
 # retrieve all resources for entity
 get_resources = proc { |entity_id|
   # retrieve entity from registry
@@ -50,13 +69,15 @@ get_resources = proc { |entity_id|
   entity.resources
 }
 
-RESOURCES_METHODS = { :set_resource => set_resource,
-                      :get_resources   => get_resources }
+RESOURCES_METHODS = { :set_resource  => set_resource,
+                      :get_resource  => get_resource,
+                      :get_resources => get_resources }
 
 end # module Cosmos::RJR
 
 def dispatch_cosmos_rjr_resources(dispatcher)
   m = Cosmos::RJR::RESOURCES_METHODS
-  dispatcher.handle 'cosmos::set_resource', &m[:set_resource]
+  dispatcher.handle 'cosmos::set_resource',  &m[:set_resource]
+  dispatcher.handle 'cosmos::get_resource',  &m[:get_resource]
   dispatcher.handle 'cosmos::get_resources', &m[:get_resources]
 end

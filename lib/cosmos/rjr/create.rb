@@ -20,6 +20,7 @@ create_entity = proc { |entity|
 
   # create location
   entity.location.restrict_view = false
+  entity.location.id = entity.id
   entity.location = node.invoke('motel::create_location', entity.location)
 
   # add entity to registry, throw error if not added

@@ -62,14 +62,32 @@ module Omega
         registry.current_user :session => @rjr_node.message_headers['session_id']
       end
 
+      # Check if the user has the specified attribute
+      def check_attribute(args = {})
+        query = 'users::has_attribute?', args[:user_id], args[:attribute_id]
+        query << args[:level] if args.has_key?(:level)
+        args[:node].invoke(*query)
+      end
+
+      # Require the user to have the specified attribute, else raise PermissionErr
+      def require_attribute(args = {})
+        raise Omega::PermissionError,
+          "require_attribute(#{args})" unless check_attribute(args)
+      end
+
       # Filter properties able / not able to be set by the end user
       def filter_properties(data, filter = {})
-        ndata = data.class.new
+        is_hash = data.is_a?(Hash) 
+        ndata   = is_hash ? {} : data.class.new
         if filter[:allow]
           filter[:allow] = [filter[:allow]] unless filter[:allow].is_a?(Array)
           # copy allowed attributes over
           filter[:allow].each { |a|
-            ndata.send("#{a}=".intern, data.send(a.intern))
+            if is_hash
+              ndata[a.intern] = data[a.intern]
+            else
+              ndata.send("#{a}=".intern, data.send(a.intern))
+            end
           }
 
         else
@@ -148,9 +166,6 @@ module Omega
       def with_id(eid)
         with(:id, eid)
       end
-
-      # Generate a selector
-
     end
   end
 end

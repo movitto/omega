@@ -68,7 +68,7 @@ class Resource
   def to_s
     "resource-#{@id}" +
     ((!@entity.nil? && @quantity > 0) ?
-      " (#{@quantity} at #{@entity.name})" :
+      " (#{@quantity} at #{@entity.id})" :
       "")
   end
 

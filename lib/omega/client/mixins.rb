@@ -6,6 +6,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'manufactured/station'
+require 'omega/client/node'
 
 module Omega
   module Client
@@ -225,9 +226,11 @@ module Omega
               event_setup << lambda { |*args| Node.invoke_request(events[e][:subscribe], self.entity.id, e) }
             end
 
-            if events[e].has_key?(:notification) && !Node.has_method_handler_for?(events[e][:notification])
+            if events[e].has_key?(:notification)
               event_setup << lambda { |*args|
-                Node.add_method_handler(events[e][:notification])
+                if !Node.has_method_handler_for?(events[e][:notification])
+                  Node.add_method_handler(events[e][:notification])
+                end
               }
             end
 

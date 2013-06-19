@@ -12,6 +12,8 @@ require 'rjr/nodes/local'
 require 'rjr/nodes/tcp'
 require 'users/session'
 
+require 'users/attributes/own'
+
 module Omega
 module Server
 describe DSL do
@@ -106,6 +108,103 @@ describe DSL do
     it "TODO"
   end
 
+  describe "#check_attribute" do
+    EML = Users::Attributes::EntityManagementLevel.id
+
+    before(:each) do
+      # login so as to be able to access user attributes
+      login @n, @anon.id, @anon.password
+    end
+
+    around(:each) do |example|
+      enable_attributes {
+        example.run
+      }
+    end
+
+    context "user does not have attribute" do
+      it "returns false" do
+        check_attribute(:node    => @n,
+                        :user_id => @anon.id,
+                        :attribute_id => EML).should be_false
+      end
+    end
+
+    context "user has attribute" do
+      it "returns true" do
+        add_attribute @anon.id, EML, 6
+        check_attribute(:node    => @n,
+                        :user_id => @anon.id,
+                        :attribute_id => EML).should be_true
+      end
+    end
+
+    it "takes optional level to check" do
+      add_attribute @anon.id, EML, 6
+      check_attribute(:node    => @n,
+                      :user_id => @anon.id,
+                      :attribute_id => EML,
+                      :level   => 10).should be_false
+      check_attribute(:node    => @n,
+                      :user_id => @anon.id,
+                      :attribute_id => EML,
+                      :level   => 5).should be_true
+    end
+  end
+
+  describe "#require_attribute" do
+    EML = Users::Attributes::EntityManagementLevel.id
+
+    before(:each) do
+      # login so as to be able to access user attributes
+      login @n, @anon.id, @anon.password
+    end
+
+    around(:each) do |example|
+      enable_attributes {
+        example.run
+      }
+    end
+
+    context "user does not have attribute" do
+      it "raises PermissionError" do
+        lambda {
+          require_attribute(:node    => @n,
+                            :user_id => @anon.id,
+                            :attribute_id => EML)
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "user has attribute" do
+      it "does not raise error" do
+        add_attribute @anon.id, EML, 6
+        lambda {
+          require_attribute(:node    => @n,
+                            :user_id => @anon.id,
+                            :attribute_id => EML)
+        }.should_not raise_error
+      end
+    end
+
+    it "takes optional level to check" do
+      add_attribute @anon.id, EML, 6
+      lambda {
+        require_attribute(:node    => @n,
+                          :user_id => @anon.id,
+                          :attribute_id => EML,
+                          :level   => 10)
+      }.should raise_error(PermissionError)
+
+      lambda {
+        require_attribute(:node    => @n,
+                          :user_id => @anon.id,
+                          :attribute_id => EML,
+                          :level   => 5)
+      }.should_not raise_error
+    end
+  end
+
   describe "#filter_properites" do
     it "returns new instance of data type" do
       o = Object.new
@@ -138,6 +237,20 @@ describe DSL do
       n = filter_properties o, :allow => :first
       n.first.should == 123
       n.second.should be_nil
+    end
+
+    context "hash source specified" do
+      before(:each) do
+        @o = {:first => 123, :second => 123}
+      end
+
+      it "creates a new hash" do
+        filter_properties(@o).should_not eq(@o)
+      end
+
+      it "copies whitelisted attributes to new hash" do
+        filter_properties(@o, :allow => :first).should == {:first => 123}
+      end
     end
   end
 

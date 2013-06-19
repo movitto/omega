@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/common'
 require 'omega/server/command'
 
 module Manufactured
@@ -54,7 +55,7 @@ class Construction < Omega::Server::Command
   end
 
   def run!
-    RJR::Logger.debug "invoking construction cycle #{@station.id} -> #{@entity.id}"
+    ::RJR::Logger.debug "invoking construction cycle #{@station.id} -> #{@entity.id}"
 
     t = Time.now
     @last_ran_at ||= Time.now

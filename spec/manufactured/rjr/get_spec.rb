@@ -12,11 +12,7 @@ module Manufactured::RJR
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
-      dispatch_to @s, Manufactured::RJR, :GET_METHODS
-
-      @login_user = create(:user)
-      @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      setup_manufactured :GET_METHODS
     end
 
     it "returns list of all entities" do
@@ -55,7 +51,7 @@ module Manufactured::RJR
           add_privilege @login_role, 'view', 'manufactured_entities'
           l  = create(:valid_ship)
           rl = @s.get_entities 'with_id', l.id
-          rl.should be_an_instance_of(entity)
+          rl.should be_an_instance_of(Ship)
           rl.id.should == l.id
         end
       end

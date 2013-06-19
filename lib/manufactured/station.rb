@@ -120,6 +120,13 @@ class Station
                          :cargo_capacity       => 10000
   end
 
+  # Update this station's attributes from other station
+  #
+  # @param [Manufactured::Station] station station from which to copy values from
+  def update(station)
+    update_from(station, :location, :resources, :solar_system)
+  end
+
   # Return boolean indicating if this station is valid
   #
   # Tests the various attributes of the Station, returning true
@@ -173,9 +180,11 @@ class Station
   def can_construct?(args = {})
     @type == :manufacturing &&
 
-    ['Ship', 'Station'].include?(args[:type]) &&
+    ['Ship', 'Station'].include?(args[:entity_type]) &&
 
-    cargo_quantity >= Manufactured.const_get(args[:type]).construction_cost(args)
+    cargo_quantity >=
+      Manufactured.const_get(args[:entity_type]).
+                   construction_cost(args)
   end
 
   # Use this station to construct new manufactured entities.
@@ -185,14 +194,13 @@ class Station
   # resources necessary to construct and instanting new entity.
   #
   # @param [Hash] args hash of options to pass to new entity being initialized
-  # @option args [String] :entity_type,'entity_type' string class name of entity being constructed
   # @return new entity created, nil otherwise
   def construct(args = {})
     # return if we can't construct
     return nil unless can_construct?(args)
 
     # grab handle to entity class & generate construction cost
-    eclass = Manufactured.const_get(args[:type])
+    eclass = Manufactured.const_get(args[:entity_type])
     ecost  = eclass.construction_cost(args)
 
     # remove resources from the station

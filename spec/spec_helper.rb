@@ -23,6 +23,12 @@ require 'missions/rjr/init'
 
 require 'cosmos/rjr/init'
 
+require 'manufactured/rjr/init'
+
+require 'omega/client/mixins'
+
+require 'omega/roles'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
@@ -45,6 +51,7 @@ RSpec.configure do |config|
     Motel::RJR.reset
     Missions::RJR.reset
     Cosmos::RJR.reset
+    Manufactured::RJR.reset
   }
 
   config.after(:each) {
@@ -68,31 +75,50 @@ FactoryGirl.define do
 
     # register custom hook to construct the entity serverside
     before(:create) { |e,i|
-      node = RJR::Nodes::Local.new
-      node.dispatcher.add_module('users/rjr/init')
-      node.dispatcher.add_module('motel/rjr/init')
-      node.dispatcher.add_module('cosmos/rjr/init')
-      node.dispatcher.add_module('missions/rjr/init')
-      # TODO set current user ?
+      if @node.nil?
+        @node = RJR::Nodes::Local.new
+        @node.dispatcher.add_module('users/rjr/init')
+        @node.dispatcher.add_module('motel/rjr/init')
+        @node.dispatcher.add_module('cosmos/rjr/init')
+        @node.dispatcher.add_module('missions/rjr/init')
+        @node.dispatcher.add_module('manufactured/rjr/init')
+        # TODO set current user ?
+      end
 
       # temporarily disable permission system
-      o = Users::Registry.user_perms_enabled
-      Users::Registry.user_perms_enabled = false
-
-      begin node.invoke(i.create_method, e)
-      # assuming operation error just means entity was previously
-      # created, and silently ignore
-      # (TODO should only rescue OperationError when rjr supports error forwarding)
-      rescue Exception => e ; end
-      
-
-      Users::Registry.user_perms_enabled = o
+      disable_permissions {
+        begin @node.invoke(i.create_method, e)
+        # assuming operation error just means entity was previously
+        # created, and silently ignore
+        # (TODO should only rescue OperationError when rjr supports error forwarding)
+        rescue Exception => e ; end
+      }
+    
+      e.location.id = e.id if e.respond_to?(:location)
     }
 
   end
 end
 
 ######################################
+
+# Helper method to temporarily disable permission system
+def disable_permissions
+  o = Users::Registry.user_perms_enabled
+  Users::Registry.user_perms_enabled = false
+  r = yield
+  Users::Registry.user_perms_enabled = o
+  r
+end
+
+# Helper to enable attribute system
+def enable_attributes
+  o = Users::RJR.user_attrs_enabled
+  Users::RJR.user_attrs_enabled = true
+  r = yield
+  Users::RJR.user_attrs_enabled = o
+  r
+end
 
 # Helper method to dispatch server methods to handlers
 def dispatch_to(server, rjr_module, dispatcher_id)
@@ -103,6 +129,23 @@ def dispatch_to(server, rjr_module, dispatcher_id)
   }
 end
 
+# Helper method to setup manufactured subsystem
+def setup_manufactured(dispatch_methods)
+  dispatch_to @s, Manufactured::RJR, dispatch_methods
+  @registry = Manufactured::RJR.registry
+
+  @login_user = create(:user)
+  @login_role = 'user_role_' + @login_user.id
+  @s.login @n, @login_user.id, @login_user.password
+
+  # add users, motel, and cosmos modules, initialze manu module
+  @n.dispatcher.add_module('users/rjr/init')
+  @n.dispatcher.add_module('motel/rjr/init')
+  @n.dispatcher.add_module('cosmos/rjr/init')
+  dispatch_manufactured_rjr_init(@n.dispatcher)
+end
+
+
 # Helper to add privilege on entity (optional) 
 # to the specified role
 def add_privilege(role_id, priv_id, entity_id=nil)
@@ -112,6 +155,26 @@ def add_privilege(role_id, priv_id, entity_id=nil)
   r = @n.invoke 'users::add_privilege', role_id, priv_id, entity_id
   @n.node_type = o
   r
+end
+
+# Helper to add omega role to user role
+def add_role(user_role, omega_role)
+  # change node type to local here to ensure this goes through
+  o = @n.node_type
+  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
+  r = []
+  Omega::Roles::ROLES[omega_role].each { |p,e|
+    r << @n.invoke('users::add_privilege', user_role, p, e)
+  }
+  @n.node_type = o
+  r
+end
+
+# Helper to add attribute to user
+def add_attribute(user_id, attribute_id, level)
+  disable_permissions {
+    @n.invoke 'users::update_attribute', user_id, attribute_id, level
+  }
 end
 
 # Helper to set session id
@@ -214,74 +277,70 @@ module OmegaTest
     RAND_COLOR     = proc { }
   end
 
-end
+  class Entity
+    include Omega::Client::RemotelyTrackable
+    include Omega::Client::TrackState
+    entity_type Manufactured::Ship
+    get_method "manufactured::get_entity"
+  
+    server_state :test_state,
+      { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
+        :on    => lambda { |e| @on_toggles_called  = true },
+        :off   => lambda { |e| @off_toggles_called = true } }
+  
+    def initialize
+      @@id ||= 0
+      @id = (@@id +=  1)
+    end
+  
+    def id
+      @id
+    end
+  
+    def attr
+      0
+    end
+  
+    def location(val = nil)
+      @location = val unless val.nil?
+      @location
+    end
+  end
+  
+  class Ship
+    include Omega::Client::RemotelyTrackable
+    include Omega::Client::TrackState
+    include Omega::Client::InSystem
+    include Omega::Client::HasLocation
+    include Omega::Client::InteractsWithEnvironment
+  
+    entity_type Manufactured::Ship
+    get_method "manufactured::get_entity"
+  
+    server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
+                                                :notification => "manufactured::event_occurred" }
+  
+    attr_reader :test_setup_args
+    attr_reader :test_setup_invoked
+  
+    server_event :test =>
+      { :setup =>
+        lambda { |*args|
+          @test_setup_args = args
+          @test_setup_invoked = true
+        }
+      }
+  end
+  
+  class Station
+    include Omega::Client::RemotelyTrackable
+    include Omega::Client::TrackState
+    include Omega::Client::InSystem
+    include Omega::Client::HasLocation
+    include Omega::Client::InteractsWithEnvironment
+  
+    entity_type Manufactured::Station
+    get_method "manufactured::get_entity"
+  end
 
-######################################
-#
-#class TestEntity
-#  include Omega::Client::RemotelyTrackable
-#  include Omega::Client::TrackState
-#  entity_type Manufactured::Ship
-#  get_method "manufactured::get_entity"
-#
-#  server_state :test_state,
-#    { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
-#      :on    => lambda { |e| @on_toggles_called  = true },
-#      :off   => lambda { |e| @off_toggles_called = true } }
-#
-#  def initialize
-#    @@id ||= 0
-#    @id = (@@id +=  1)
-#  end
-#
-#  def id
-#    @id
-#  end
-#
-#  def attr
-#    0
-#  end
-#
-#  def location(val = nil)
-#    @location = val unless val.nil?
-#    @location
-#  end
-#end
-#
-#class TestShip
-#  include Omega::Client::RemotelyTrackable
-#  include Omega::Client::TrackState
-#  include Omega::Client::InSystem
-#  include Omega::Client::HasLocation
-#  include Omega::Client::InteractsWithEnvironment
-#
-#  entity_type Manufactured::Ship
-#  get_method "manufactured::get_entity"
-#
-#  server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
-#                                              :notification => "manufactured::event_occurred" }
-#
-#  attr_reader :test_setup_args
-#  attr_reader :test_setup_invoked
-#
-#  server_event :test =>
-#    { :setup =>
-#      lambda { |*args|
-#        @test_setup_args = args
-#        @test_setup_invoked = true
-#      }
-#    }
-#end
-#
-#class TestStation
-#  include Omega::Client::RemotelyTrackable
-#  include Omega::Client::TrackState
-#  include Omega::Client::InSystem
-#  include Omega::Client::HasLocation
-#  include Omega::Client::InteractsWithEnvironment
-#
-#  entity_type Manufactured::Station
-#  get_method "manufactured::get_entity"
-#end
-#
-#####################################################
+end

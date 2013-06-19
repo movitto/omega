@@ -117,6 +117,13 @@ describe Asteroid do
       a.resources.size.should == 1
       a.resources.first.should == r
     end
+
+    it "sets entity on resource" do
+      a = Asteroid.new
+      r = build(:resource, :quantity => 20)
+      a.set_resource r
+      r.entity.should == a
+    end
   end
 
   describe "#to_json" do

@@ -59,7 +59,8 @@ module Entity
                          :parent        => nil,
                          :children      =>  [],
                          :metadata      =>  {}
-    @location = Motel::Location.new :x => 0, :y => 0, :z => 0 if @location.nil?
+    @location = Motel::Location.new :coordinates => [0,0,0],
+                                    :orientation => [0,0,1] if @location.nil?
     @location.movement_strategy =
       args[:movement_strategy] if args.has_key?(:movement_strategy)
   end

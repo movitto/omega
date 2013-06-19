@@ -4,183 +4,232 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-manufactured_move_entity = proc { |id, new_location|
-  entity = Manufactured::Registry.instance.find(:id => id).first
-  parent = new_location.parent_id.nil? ? entity.parent : @@local_node.invoke_request('cosmos::get_entity', 'of_type', :solarsystem, 'with_location', new_location.parent_id)
-  
-  raise ArgumentError, "invalid location #{new_location} specified" unless new_location.is_a?(Motel::Location)
-  
-  raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
-  raise Omega::DataNotFound, "parent system specified by location #{new_location.parent_id} not found" if parent.nil?
-  
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
-  
-  # raise exception if entity or parent is invalid
-  raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
-  raise ArgumentError, "Must specify system to move ship to"  unless parent.is_a?(Cosmos::SolarSystem)
-  
+require 'manufactured/rjr/init'
+
+module Manufactured::RJR
+
+# Internal helper, move an entity in a single system
+def move_entity_in_system(entity, loc)
   # TODO may want to incorporate fuel into this at some point
   
-  Manufactured::Registry.instance.safely_run {
-    # update the entity's location
-    entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
+  # only ships can moving in a system for now, also ensure not docked
+  raise OperationError, "#{entity} not ship" unless entity.is_a?(Ship)
+  raise OperationError, "#{entity} docked"   unless !entity.docked?
+        
+  # calculate distance to move along each access
+  dx = loc.x - entity.location.x
+  dy = loc.y - entity.location.y
+  dz = loc.z - entity.location.z
+  distance = loc - entity.location
+  raise OperationError, "#{entity} at location" if distance < 1
   
-    # if parents don't match, we are moving entity between systems
-    if entity.parent.id != parent.id
-      # if moving ship ensure it is within trigger distance of gate to new system and is not docked
-      #   (TODO currently stations don't have this restriction though we may want to put others in place, or a transport delay / time)
-      # TODO support skipping this check if user has sufficient privs (perhaps modify-manufactured_entities ?)
-      if entity.is_a?(Manufactured::Ship)
-        near_jg = !entity.solar_system.jump_gates.select { |jg| jg.endpoint.name == parent.name &&
-                                                                (jg.location - entity.location) < jg.trigger_distance }.empty?
-        raise Omega::OperationError, "Ship #{entity} not within triggering distance of a jump gate to #{parent}" unless near_jg
-        raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
-      end
+  # Create linear movement strategy w/ movement trajectory
+  linear =
+    Motel::MovementStrategies::Linear.new :dx => dx/distance,
+                                          :dy => dy/distance,
+                                          :dz => dz/distance,
+                                          :speed => entity.movement_speed
+
+  # calculate the orientation difference
+  od = entity.location.orientation_difference(*loc.coordinates)
   
-      # simply set parent and location
-      # TODO set new_location x, y, z to vicinity of reverse jump gate (eg gate to current system in destination system) if it exists
-      entity.parent   = parent
-      new_location.movement_strategy = Motel::MovementStrategies::Stopped.instance
-      entity.location.update(new_location)
+  # if we are close enough to correct orientation,
+  # register linear movement strategy with entity
+  if od.all? { |odc| odc.abs < (Math::PI / 8) }
+    entity.location.movement_strategy = linear
   
-      # TODO add subscriptions to cosmos system to detect when ships jump in / out
+  # if we need to adjust orientation before moving,
+  # register rotation movement strategy w/ entity
+  else
+    # create the rotation movement strategy
+    rot_a = od[0].abs + od[1].abs
+    rotate =
+      Motel::MovementStrategies::Rotate.new :dtheta => (od[0] * entity.rotation_speed / rot_a),
+                                            :dphi   => (od[1] * entity.rotation_speed / rot_a)
+
+    # register rotation w/ location
+    entity.location.movement_strategy = rotate
+    #entity.next_movement_strategy linear
   
-      @@local_node.invoke_request('motel::update_location', entity.location)
-      # TODO why do we remove callbacks? should we remove them all ? or leave them be?
-      @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'movement')
-      @@local_node.invoke_request('motel::remove_callbacks', entity.location.id, 'rotation')
+    # track location rotation
+    node.invoke('motel::track_rotation', entity.location.id,    rot_a) unless rot_a.nil?
+  end
   
-    # else move location within the system
-    else
-      # if moving ship, ensure it is not docked
-      if entity.is_a?(Manufactured::Ship) && entity.docked?
-        raise Omega::OperationError, "Ship #{entity} is docked, cannot move"
-      end
+  #entity.next_movement_strategy Motel::MovementStrategies::Stopped.instance
   
-      dx = new_location.x - entity.location.x
-      dy = new_location.y - entity.location.y
-      dz = new_location.z - entity.location.z
-      distance = new_location - entity.location
+  # track location movement and update location
+  node.invoke('motel::track_movement', entity.location.id, distance)
+  node.invoke('motel::update_location', entity.location)
+  nil
+end
+
+# Internal helper, move an entity between systems
+def move_entity_between_systems(entity, sys)
+
+  # if moving ship ensure
+  # - a jump gate within trigger distance is nearby
+  # - ship is not docked
+  #
+  # (TODO optional transport delay / jump time)
+  # (TODO optional skipping this check if user has sufficient
+  #       privs modify-manufactured_entities ?)
+  if entity.is_a?(Manufactured::Ship)
+    near_jg =
+      !entity.solar_system.jump_gates.find { |jg|
+        jg.endpoint_id == sys.id &&
+        (jg.location - entity.location) < jg.trigger_distance
+       }.nil?
+    raise OperationError, "#{entity} not by jump gate" unless near_jg
+    raise OperationError, "#{entity} docked"           if entity.docked?
+  end
   
-      raise Omega::OperationError, "Ship or station #{entity} is already at location" if distance < 1
+  # set parent and location
+  # TODO set loc x, y, z to vicinity of reverse jump gate
+  #       (gate to current system in destination system) if it exists ?
+  entity.parent = sys
+  entity.location.movement_strategy =
+    Motel::MovementStrategies::Stopped.instance
   
-      # Move to location using a linear movement strategy.
-      # If not oriented towards destination (or at least close enough), rotate first, then move
-      linear =  Motel::MovementStrategies::Linear.new :direction_vector_x => dx/distance,
-                                                      :direction_vector_y => dy/distance,
-                                                      :direction_vector_z => dz/distance,
-                                                      :speed => entity.movement_speed
-      rot_a  = nil
-      loc    = nil
+  # TODO add subscriptions to cosmos system
+  #      to detect when ships jump in / out
   
-      or_diff = entity.location.orientation_difference(*new_location.coordinates)
-      entity.next_movement_strategy []
+  # update location and remove movement callbacks
+  node.invoke('motel::update_location',  entity.location)
+  node.invoke('motel::remove_callbacks', entity.location.id, 'movement')
+  node.invoke('motel::remove_callbacks', entity.location.id, 'rotation')
+  nil
+end
+
+# Move entity either in a linear fashion in a system or between
+# systems provided there is a jump gate near by
+move_entity = proc { |id, loc|
+  # lookup entity, ensure it belongs to a valid type
+  entity = registry.entity &with_id(id)
+  raise DataNotFound, id if entity.nil?
+  raise ValidationError, entity unless [Ship,Station].include?(entity.class)
+
+  # require modify on manufactured_entity
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
+
+  # verify location
+  raise ValidationError, loc unless loc.is_a?(Motel::Location)
+
+  # lookup target system
+  parent_id = loc.parent_id.nil? ? entity.system_id : loc.parent_id
+  parent =
+    begin node.invoke('cosmos::get_entity', 'with_location', parent_id)
+    rescue Exception => e ; raise DataNotFound, parent_id end
+  raise ValidationError, parent unless parent.is_a?(Cosmos::Entities::SolarSystem)
   
-      if or_diff.all? { |od| od.abs < (Math::PI / 8) }
-        entity.location.movement_strategy = linear
+  # update the entity's location & solar system
+  entity.location =
+    node.invoke('motel::get_location', 'with_id', entity.location.id)
+  entity.solar_system =
+    node.invoke('cosmos::get_entity',  'with_location', entity.location.parent_id)
   
-      else
-        rot_a = or_diff[0].abs + or_diff[1].abs
-        rotate = Motel::MovementStrategies::Rotate.new :dtheta => (or_diff[0] * entity.rotation_speed / rot_a),
-                                                       :dphi   => (or_diff[1] * entity.rotation_speed / rot_a)
-        entity.location.movement_strategy = rotate
-        entity.next_movement_strategy linear
+  # if parents don't match, we are moving entity between systems
+  if entity.parent.id != parent.id
+    move_entity_between_systems(entity, parent)
+
+  # else move location within the system
+  else
+    move_entity_in_system(entity, loc)
+  end
   
-        # FIXME will overwrite any inprogress movement from a previous
-        # move_entity command before it is used in on_movement below
-        entity.distance_moved = distance
-      end
-  
-      entity.next_movement_strategy Motel::MovementStrategies::Stopped.instance
-      loc = entity.location
-  
-      @@local_node.invoke_request('motel::track_rotation', loc.id,    rot_a) unless rot_a.nil?
-      @@local_node.invoke_request('motel::track_movement', loc.id, distance)
-      @@local_node.invoke_request('motel::update_location', loc)
-    end
-  }
-  
+  # return entity
   entity
 }
 
-manufactured_follow_entity = proc { |id, target_id, distance|
-  raise ArgumentError, "entity #{id} and target #{target_id} cannot be the same" if id == target_id
+# follow entity, keeping specified distance away
+follow_entity = proc { |id, target_id, distance|
+  # ensure different entity id's specified
+  raise ArgumentError, "#{id} == #{target_id}" if id == target_id
   
-  entity = Manufactured::Registry.instance.find(:id => id).first
-  target_entity = Manufactured::Registry.instance.find(:id => target_id).first
+  # retrieve entities from registry, validate
+  entity = registry.entity &with_id(id)
+  target = registry.entity &with_id(target_id)
+  raise DataNotFound, id        if entity.nil?
+  raise DataNotFound, target_id if target.nil?
+  raise ArgumentError, entity   unless entity.is_a?(Ship)
+  raise ArgumentError, target   unless target.is_a?(Ship)
   
-  raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
-  raise Omega::DataNotFound, "manufactured entity specified by #{target_id} not found"  if target_entity.nil?
+  # ensure valid distance specified
+  raise ArgumentError, distance unless distance.numeric? && distance > 0
   
-  raise ArgumentError, "distance must be an int / float > 0" if !distance.is_a?(Integer) && !distance.is_a?(Float) && distance <= 0
+  # require modify on follower, view on followee
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'view', :entity => "manufactured_entity-#{target.id}"},
+     {:privilege => 'view', :entity => 'manufactured_entities'}]
+
+  # update the locations and systems
+  entity.location = 
+    node.invoke('motel::get_location', 'with_id', entity.location.id)
+  target.location = 
+    node.invoke('motel::get_location', 'with_id', target.location.id)
+  entity.solar_system = 
+    node.invoke('cosmos::get_entity', 'with_location', entity.location.parent_id)
+  target.solar_system = 
+    node.invoke('cosmos::get_entity', 'with_location', target.location.parent_id)
   
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
-  Users::Registry.require_privilege(:any => [{:privilege => 'view', :entity => "manufactured_entity-#{target_entity.id}"},
-                                             {:privilege => 'view', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
+  # ensure entities are in the same system
+  raise ArgumentError,
+    "#{entity.system_id} != #{target.system_id}" if entity.system_id !=
+                                                           target.system_id
   
-  # raise exception if entity or target is invalid
-  raise ArgumentError, "Must specify ship to move"           unless entity.is_a?(Manufactured::Ship)
-  raise ArgumentError, "Must specify ship to follow"         unless target_entity.is_a?(Manufactured::Ship)
+  # ensure entity isn't docked
+  raise OperationError, "#{entity} is docked" if entity.docked?
   
-  # atomically update the entities
-  Manufactured::Registry.instance.safely_run {
-    entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
-    target_entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', target_entity.location.id))
+  # set the movement strategy, update the location
+  entity.location.movement_strategy =
+    Motel::MovementStrategies::Follow.new :distance => distance,
+                                :speed => entity.movement_speed,
+                     :tracked_location_id => target.location.id
+  node.invoke('motel::update_location', entity.location)
   
-    # ensure entities are in the same system
-    raise ArgumentError, "entity #{entity} must be in the same system as entity to follow #{target_entity}" if entity.location.parent.id != target_entity.location.parent.id
-  
-    # ensure entity isn't docked
-    raise Omega::OperationError, "Ship #{entity} is docked, cannot move" if entity.docked?
-  
-    entity.location.movement_strategy =
-      Motel::MovementStrategies::Follow.new :tracked_location_id => target_entity.location.id,
-                                            :distance            => distance,
-                                            :speed => entity.movement_speed
-    @@local_node.invoke_request('motel::update_location', entity.location)
-  }
-  
+  # return the entity
   entity
 }
 
-manufactured_stop_entity = proc { |id|
-  entity = Manufactured::Registry.instance.find(:id => id).first
+# stop entity movement
+stop_entity = proc { |id|
+  # retrieve / validate entity
+  entity = registry.entity &with_id(id)
+  raise DataNotFound,  id if entity.nil?
+  raise ArgumentError, id unless entity.is_a?(Manufactured::Ship)
 
-  raise Omega::DataNotFound, "manufactured entity specified by #{id} not found"  if entity.nil?
+  # require modify on entity
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
 
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
+  # update the entity's location
+  entity.location =
+    node.invoke 'motel::get_location', 'with_id', entity.location.id
 
-  # raise exception if entity or parent is invalid
-  raise ArgumentError, "Must specify ship or station to move" unless entity.is_a?(Manufactured::Ship) || entity.is_a?(Manufactured::Station)
+  # set entity's movement strategy to stopped
+  entity.location.movement_strategy =
+    Motel::MovementStrategies::Stopped.instance
+  node.invoke('motel::update_location', entity.location)
+  # TODO remove_callbacks?
 
-  Manufactured::Registry.instance.safely_run {
-    # update the entity's location
-    entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', entity.location.id))
-
-    # set entity's movement strategy to stopped
-    entity.location.movement_strategy =
-      Motel::MovementStrategies::Stopped.instance
-    @@local_node.invoke_request('motel::update_location', entity.location)
-    # TODO remove_callbacks?
-    # TODO stop mining / attack / other operations ?
-  }
-
+  # return entity
   entity
 }
 
+MOVEMENT_METHODS = { :move_entity   => move_entity,
+                     :follow_entity => follow_entity,
+                     :stop_entity   => stop_entity }
 
-def dispatch_movement(dispatcher)
-  dispatcher.handle 'manufactured::move_entity',
-                      &manufactured_move_entity
-  dispatcher.handle 'manufactured::follow_entity',
-                      &manufactured_follow_entity
-  dispatcher.handle 'manufactured::stop_entity',
-                      &manufactured_stop_entity
+end # module Manufactured::RJR
+
+def dispatch_manufactured_rjr_movement(dispatcher)
+  m = Manufactured::RJR::MOVEMENT_METHODS
+  dispatcher.handle 'manufactured::move_entity',   &m[:move_entity]
+  dispatcher.handle 'manufactured::follow_entity', &m[:follow_entity]
+  dispatcher.handle 'manufactured::stop_entity',   &m[:stop_entity]
 end

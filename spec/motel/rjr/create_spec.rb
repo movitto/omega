@@ -57,6 +57,8 @@ module Motel::RJR
         end
       end
 
+      it "filters properties set on location"
+
       context "existing location-id specified" do
         it "raises OperationError" do
           loc = create(:location)
@@ -85,7 +87,7 @@ module Motel::RJR
   end # describe "#create_location"
 
   describe "#dispatch_motel_rjr_create" do
-    it "adds users::create_location to dispatcher" do
+    it "adds motel::create_location to dispatcher" do
       d = ::RJR::Dispatcher.new
       dispatch_motel_rjr_create(d)
       d.handlers.keys.should include("motel::create_location")

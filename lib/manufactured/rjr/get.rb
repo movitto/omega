@@ -24,7 +24,6 @@ get_entities = proc { |*args|
     # TODO save in registry
   }
 
-
   # if id or location id is specified, return single entity
   return_first = args.include?('with_id') || args.include?('location_id')
   if return_first
@@ -37,15 +36,15 @@ get_entities = proc { |*args|
 
     # make sure the user has privileges on the specified entity
     require_privilege :registry => user_registry, :any =>
-      [{:privilege => 'view', :entity => "manu_entity-#{entities.id}"},
-       {:privilege => 'view', :entity => 'manu_entities'}]
+      [{:privilege => 'view', :entity => "manufactured_entity-#{entities.id}"},
+       {:privilege => 'view', :entity => 'manufactured_entities'}]
 
   # else return an array of entities which the user has access to
   else
     entities.reject! { |entity|
       !check_privilege :registry => user_registry, :any =>
-        [{:privilege => 'view', :entity => "manu_entity-#{entity.id}"},
-         {:privilege => 'view', :entity => 'manu_entities'}]
+        [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+         {:privilege => 'view', :entity => 'manufactured_entities'}]
     }
   end
 

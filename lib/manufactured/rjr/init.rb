@@ -40,6 +40,17 @@ module Manufactured::RJR
 
   ######################################## Manufactured::RJR data
 
+  PRIVILEGES = 
+    [['view',   'cosmos_entities'],
+     ['modify', 'cosmos_entities'],
+     ['view',   'users'          ],
+     ['view',   'user_attributes'],
+     ['modify', 'user_attributes'],
+     ['create', 'locations'      ],
+     ['view',   'locations'      ],
+     ['modify', 'locations'      ],
+     ['create', 'manufactured_entities']]
+
   def self.user
     @user ||= Users::User.new(:id       => Manufactured::RJR::manufactured_rjr_username,
                               :password => Manufactured::RJR::manufactured_rjr_password,
@@ -130,7 +141,16 @@ def dispatch_manufactured_rjr_init(dispatcher)
   rjr = Object.new.extend(Manufactured::RJR)
   rjr.node.dispatcher = dispatcher
   rjr.node.dispatcher.env /manufactured::.*/, Manufactured::RJR
-  #rjr.node.dispatcher.add_module('manufactured/rjr/create')
+  rjr.node.dispatcher.add_module('manufactured/rjr/create')
+  rjr.node.dispatcher.add_module('manufactured/rjr/get')
+  rjr.node.dispatcher.add_module('manufactured/rjr/state')
+  rjr.node.dispatcher.add_module('manufactured/rjr/events')
+  rjr.node.dispatcher.add_module('manufactured/rjr/resources')
+  rjr.node.dispatcher.add_module('manufactured/rjr/movement')
+  rjr.node.dispatcher.add_module('manufactured/rjr/dock')
+  rjr.node.dispatcher.add_module('manufactured/rjr/mining')
+  rjr.node.dispatcher.add_module('manufactured/rjr/attack')
+  rjr.node.dispatcher.add_module('manufactured/rjr/loot')
   rjr.node.message_headers['source_node'] = 'manufactured'
 
   # create manufactured user
@@ -139,15 +159,7 @@ def dispatch_manufactured_rjr_init(dispatcher)
 
   # grant manufactured user extra permanufactured
   role_id = "user_role_#{rjr.user.id}"
-  [['view',   'cosmos_entities'],
-   ['modify', 'cosmos_entities'],
-   ['create', 'locations'],
-   ['view',   'users_entities'],
-   ['view',   'user_attributes'],
-   ['modify', 'user_attributes'],
-   ['view',   'locations'],
-   ['modify', 'locations'],
-   ['create', 'manufactured_entities']].each { |p,e|
+  Manufactured::RJR::PRIVILEGES.each { |p,e|
      rjr.node.invoke('users::add_privilege', role_id, p, e)
    }
 

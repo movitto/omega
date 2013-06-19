@@ -2,14 +2,20 @@ require 'manufactured/loot'
 
 FactoryGirl.define do
   factory 'manufactured/loot' do
+    # doesn't work same as other server entities so commented:
     #server_entity
-    #create_method 'manufactured::set_loot'
+    skip_create
+    before(:create) { |e,i|
+      e.location.id = e.id 
+      Motel::RJR.registry << e.location
+      Manufactured::RJR.registry << e
+    }
 
     factory :loot do
-      sequence(:id, 10000) { |n| n.to_s }
+      sequence(:id, 10000) { |n| "loot#{n}" }
 
       factory :valid_loot do
-        association :solar_system, :strategy => :build
+        solar_system
       end
     end
   end

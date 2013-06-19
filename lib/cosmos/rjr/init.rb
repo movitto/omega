@@ -37,6 +37,10 @@ module Cosmos::RJR
 
   ######################################## Cosmos::RJR data
 
+  PRIVILEGES =
+    [['view'],   ['locations'],
+     ['create'], ['locations']]
+
   def self.user
     @user ||= Users::User.new(:id       => Cosmos::RJR.cosmos_rjr_username,
                               :password => Cosmos::RJR.cosmos_rjr_password,
@@ -96,8 +100,7 @@ def dispatch_cosmos_rjr_init(dispatcher)
 
   # grant cosmos user extra permissions
   role_id = "user_role_#{rjr.user.id}"
-  [['view'],   ['locations'],
-   ['create'], ['locations']].each { |p,e|
+  Cosmos::RJR::PRIVILEGES.each { |p,e|
      rjr.node.invoke('users::add_privilege', role_id, p, e)
    }
 

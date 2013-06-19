@@ -18,7 +18,9 @@ create_location = proc { |loc|
 
   # filter properties not able to be set by user
 # FIXME XXX interim hack to allow id to be set, autogenerate here or in registry
-  loc = filter_properties(loc, :allow => [:id, :restrict_view, :x, :y, :z, :parent_id])
+  loc = filter_properties(loc, :allow =>
+          [:id, :parent_id, :restrict_view, :x, :y, :z,
+           :orientation_x, :orientation_y, :orientation_z])
 
   # store location, throw error if not added
   added = registry << loc

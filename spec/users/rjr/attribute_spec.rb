@@ -59,15 +59,6 @@ module Users::RJR
         end
       end
   
-      context "insufficient privileges (modify-users)" do
-        it "raises PermissionError" do
-          u = create(:user)
-          lambda {
-            @s.update_attribute u.id, @attr, 1
-          }.should raise_error(PermissionError)
-        end
-      end
-  
       context "user attributes disabled" do
         before(:each) do
           @o = Users::RJR.user_attrs_enabled 

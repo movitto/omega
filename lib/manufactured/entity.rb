@@ -23,6 +23,19 @@ module InSystem
     end
   end
 
+  alias :loc :location
+  alias :loc= :location=
+
+  # Alias movement_strategy to location.movement_strategy
+  def movement_strategy
+    @location.movement_strategy
+  end
+
+  # Alias movement_strategy= to location.movement_strategy=
+  def movement_strategy=(val)
+    @location.movement_strategy=val
+  end
+
   # [Cosmos::SolarSystem] the ship is in
   attr_reader :solar_system
 

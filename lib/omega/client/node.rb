@@ -4,10 +4,18 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'users'
-require 'manufactured'
-require 'cosmos'
-require 'motel'
+require 'users/user'
+require 'users/registry'
+
+require 'manufactured/ship'
+require 'manufactured/station'
+require 'manufactured/registry'
+
+require 'cosmos/entities/solar_system'
+require 'cosmos/entities/jump_gate'
+require 'cosmos/registry'
+
+require 'motel/location'
 
 require 'singleton'
 
@@ -31,9 +39,9 @@ module Omega
       # entity attribute is reset
       #
       # @example
-      #   ship = Node.invoke_request('manufactured::get_entity', 'with_id', 'ship1')
+      #   ship = Node.invoke('manufactured::get_entity', 'with_id', 'ship1')
       #   CachedAttribute.cache(ship, :location) { |l|
-      #     Node.invoke_request('motel::get_location', 'with_id', l.id)
+      #     Node.invoke('motel::get_location', 'with_id', l.id)
       #   }
       #
       # @param [Object] entity entity whose attribute we are caching
@@ -201,7 +209,7 @@ module Omega
         @user =
           Users::User.new(:id => Omega::Client::Node.client_username,
                           :password => Omega::Client::Node.client_password)
-        @session = self.invoke_request('users::login', @user)
+        @session = self.invoke('users::login', @user)
         @node.message_headers['session_id'] = @session.id
                     
         @node
@@ -286,7 +294,7 @@ module Omega
         entity = get(id)
         if entity.nil?
           entity = retrieval.call(id)
-          set(entity) # not needed if retrieval calls invoke_request (do we want to rely on this?)
+          set(entity) # not needed if retrieval calls invoke (do we want to rely on this?)
         end
         entity
       end
@@ -301,13 +309,13 @@ module Omega
       # @param [Array<Object>] args all other arguments will be passed to server
       # @return [Object] object returned by server, note if server raises an exception,
       #   this will not return (exception will be reraised)
-      def invoke_request(method, *args)
+      def invoke(method, *args)
         args = convert_invoke_args(args)
         args.unshift method
         args.unshift Omega::Client::Node.server_endpoint unless Omega::Client::Node.server_endpoint.nil?
         res = nil
         #@lock.synchronize {
-          res = @node.invoke_request *args
+          res = @node.invoke *args
         #}
 
         set_result(res)
@@ -336,7 +344,7 @@ module Omega
       #
       # @param [String] method rjr method which to handle
       def add_method_handler(method)
-        RJR::Dispatcher.add_handler(method) { |*args|
+        @node.dispatcher.handle(method) { |*args|
           Node.set_result(args)
           omega_event = Node.omega_event_from_args(args)
           Node.raise_event(omega_event, *args)
@@ -348,12 +356,12 @@ module Omega
       # @param [String] method rjr method which to check for
       # @return [true,false] indiciting if method was registered
       def has_method_handler_for?(method)
-        RJR::Dispatcher.has_handler_for?(method)
+        @node.dispatcher.handles?(method)
       end
 
       # Clear method handlers
       def clear_method_handlers!
-        RJR::Dispatcher.clear!
+        @node.dispatcher.clear!
       end
 
       # Raise the specified event, and immediately return
@@ -436,39 +444,39 @@ module Omega
         if(res.is_a?(Array))
           res.each { |r| set_result(r) }
 
-        elsif Cosmos::Registry.instance.entity_types.include?(res.class) &&
-              !res.is_a?(Cosmos::JumpGate)
+        elsif Cosmos::Registry::VALID_TYPES.include?(res.class) &&
+              !res.is_a?(Cosmos::Entities::JumpGate)
           set(res)
           set(res.location)
-          if(res.is_a?(Cosmos::SolarSystem))
+          if(res.is_a?(Cosmos::Entities::SolarSystem))
             res.planets.each   { |pl|
               set(pl)
               CachedAttribute.cache(pl, :location) { |l|
-                Node.invoke_request('motel::get_location', 'with_id', l.id)
+                Node.invoke('motel::get_location', 'with_id', l.id)
               }
             }
             res.asteroids.each { |ast|
               #set(ast)
               CachedAttribute.cache(ast, :resource_sources) { |rs|
-                Node.invoke_request('cosmos::get_resource_sources', self.name)
+                Node.invoke('cosmos::get_resource_sources', self.name)
               }
             }
             res.jump_gates.each { |gate|
               gate.endpoint = cached(gate.endpoint) {
-                Node.invoke_request 'cosmos::get_entity', 'with_name', gate.endpoint
+                Node.invoke 'cosmos::get_entity', 'with_name', gate.endpoint
               } if gate.endpoint.is_a?(String)
             }
           end
 
-        elsif Manufactured::Registry.instance.entity_types.include?(res.class)
+        elsif Manufactured::Registry::VALID_TYPES.include?(res.class)
           set(res)
           set(res.location)
           res.solar_system = cached(res.system_name) { |id|
-            invoke_request 'cosmos::get_entity',
+            invoke 'cosmos::get_entity',
                   'with_name', res.system_name
           }
 
-        elsif Users::Registry::VALID_TYPES.include?(res.class) ||
+        elsif [Users::User, Users::Role].include?(res.class) ||
               res.is_a?(Motel::Location)
           set(res)
 
@@ -549,9 +557,9 @@ module Omega
         # first Cosmos/Manufactured/Users entity it finds, or if
         # a location is specified, the id of the entity corresponding
         # to that. We might want to make this smarter at some point
-        types = Cosmos::Registry.instance.entity_types       +
-                Manufactured::Registry.instance.entity_types +
-                Users::Registry::VALID_TYPES
+        types = Cosmos::Registry::VALID_TYPES       +
+                Manufactured::Registry::VALID_TYPES +
+                [Users::User, Users::Role]
 
         e = args.find { |e| types.include?(e.class) ||
                               (e.class.respond_to?(:entity_type) &&
@@ -575,7 +583,7 @@ module Omega
       # Smoothen out parameters to be sent to server
       def convert_invoke_args(args)
         args.collect { |a|
-          if a.is_a?(Cosmos::JumpGate)
+          if a.is_a?(Cosmos::Entities::JumpGate)
             if a.solar_system.is_a?(Omega::Client::SolarSystem)
               a.solar_system = a.solar_system.name
             end

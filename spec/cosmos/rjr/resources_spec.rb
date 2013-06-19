@@ -93,6 +93,50 @@ module Cosmos::RJR
     end
   end # describe #set_resource
 
+  describe "#get_resource" do
+    include Omega::Server::DSL # for with_id below
+
+    before(:each) do
+      dispatch_to @s, Cosmos::RJR, :RESOURCES_METHODS
+      @registry = Cosmos::RJR.registry
+
+      # XXX stub out call to motel::create_location
+      Cosmos::RJR.node.stub(:invoke).and_return(build(:location))
+
+      @login_user = create(:user)
+      @login_role = 'user_role_' + @login_user.id
+      @s.login @n, @login_user.id, @login_user.password
+    end
+
+    context "resource not found" do
+      it "raises DataNotFound" do
+        lambda {
+          @s.get_resource 'nonexistant'
+        }.should raise_error(DataNotFound)
+      end
+    end
+
+    context "insufficient privileges (view-cosmos_entities)" do
+      it "raises PermissionError" do
+        r = create(:resource)
+        lambda{
+          @s.get_resource r.id
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    it "returns entity resources" do
+      add_privilege(@login_role, 'view',   'cosmos_entities')
+      add_privilege(@login_role, 'modify', 'cosmos_entities')
+      r = create(:resource)
+
+      rr = @s.get_resource(r.id)
+      rr.should be_an_instance_of(Cosmos::Resource)
+      rr.id.should == r.id
+    end
+
+  end # describe "#get_resource"
+
   describe "#get_resources" do
     include Omega::Server::DSL # for with_id below
 

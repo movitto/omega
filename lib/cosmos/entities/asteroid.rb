@@ -70,6 +70,7 @@ class Asteroid
     end
 
     # add resource
+    res.entity = self
     @resources << res
     return res
   end

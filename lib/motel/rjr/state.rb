@@ -23,8 +23,8 @@ restore_state = proc { |input|
 motel_status = proc {
   # Retrieve the overall status of this node
   {
-    :running       => Registry.instance.running?,
-    :num_locations => Registry.instance.entities.size
+    :running       => registry.running?,
+    :num_locations => registry.entities.size
   }
 }
 

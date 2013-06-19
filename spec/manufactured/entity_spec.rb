@@ -127,12 +127,18 @@ describe HasCargo do
       end
     end
 
-    it "adds resource to ship" do
+    it "adds resource to entity" do
       r = build(:resource, :quantity => @e.cargo_capacity)
       lambda{
         @e.add_resource r
       }.should change{@e.resources.size}.by(1)
       @e.resources.find { |rs| rs == r }.should_not be_nil
+    end
+
+    it "sets entity on resource" do
+      r = build(:resource, :quantity => @e.cargo_capacity)
+      @e.add_resource r
+      r.entity.should == @e
     end
   end
 

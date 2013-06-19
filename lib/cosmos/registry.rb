@@ -64,7 +64,7 @@ class Registry
       # they have unique ids
       r.find { |re| re.id == e.id }.nil? &&
 
-      # rhey have unqiue names
+      # they have unqiue names
       r.find { |re| re.name == e.name }.nil? &&
 
       # if required, parent_id is set and is valid reference
@@ -77,10 +77,10 @@ class Registry
     }
 
     # perform sanity checks on entity / adjust attributes
-    on(:added) { |e| check_entity   e                       }
+    on(:added) { |e| check_entity    e                                  }
 
     # perform additonal checks on jump gate
-    on(:added) { |e| check_jump_gate e if e.is_a?(JumpGate) }
+    on(:added) { |e| check_jump_gate e if e.is_a?(JumpGate)             }
 
   end
 end # class Registry

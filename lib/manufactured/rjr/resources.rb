@@ -1,66 +1,125 @@
-# manufactured::add_resource, manufactured::transfer_resource
+# manufactured::add_resource, manufactured::transfer_resource,
 # rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'manufactured/rjr/init'
+
+module Manufactured::RJR
+
 # adds the specified resource to the specified entity,
 # XXX would rather not have but needed by other subsystems
-manufactured_add_resource = proc { |entity_id, resource_id, quantity|
+add_resource = proc { |entity_id, resource|
   # require local transport
-  raise Omega::PermissionError, "invalid client" unless @rjr_node_type == RJR::LocalNode::RJR_NODE_TYPE
+  raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
 
   # require modify manufactured_resources
-  # also require modify on the entity ?
-  Users::Registry.require_privilege(:privilege => 'modify', :entity => 'manufactured_resources',
-                                    :session   => @headers['session_id'])
+  require_privilege(:registry  => user_registry,
+                    :privilege => 'modify',
+                    :entity => 'manufactured_resources')
 
-  entity = Manufactured::Registry.instance.find(:id => entity_id).first
-  raise Omega::DataNotFound, "manufactured entity specified by #{entity_id} not found"  if entity.nil?
+  # retrieve/validate entity
+  entity = registry.entity &with_id(entity_id)
+  raise DataNotFound, entity_id if entity.nil?
 
-  raise ArgumentError, "quantity must be an int / float > 0" if (!quantity.is_a?(Integer) && !quantity.is_a?(Float)) || quantity <= 0
+  # validate resource
+  raise ArgumentError,
+        resource unless resource.valid? && resource.quantity > 0
 
-  # TODO validate resource_id
-
-  Manufactured::Registry.instance.safely_run {
-    entity.add_resource resource_id, quantity
+  # update the entity in the registry
+  registry.safe_exec { |entities|
+    entities.find(&with_id(entity.id)).add_resource resource
   }
 
+  # return entity
   entity
 }
 
-manufactured_transfer_resource = proc { |from_entity_id, to_entity_id, resource_id, quantity|
-  raise ArgumentError, "quantity must be an int / float > 0" if (!quantity.is_a?(Integer) && !quantity.is_a?(Float)) || quantity <= 0
+# transfer resource between entities
+transfer_resource = proc { |*args|
+  # retrieve src/dst ids and optional resources from args
+  src_id    = args[0]
+  dst_id    = args[1]
+  resources = args[2..-1] if args.size > 2
 
-  from_entity = Manufactured::Registry.instance.find(:id => from_entity_id).first
-  to_entity   = Manufactured::Registry.instance.find(:id => to_entity_id).first
-  raise Omega::DataNotFound, "entity specified by #{from_entity_id} not found" if from_entity.nil?
-  raise Omega::DataNotFound, "entity specified by #{to_entity_id} not found"   if to_entity.nil?
+  # retrieve/validate src / dst entities
+  src = registry.entity &with_id(src_id)
+  dst = registry.entity &with_id(dst_id)
+  raise DataNotFound, src_id if src_id.nil? || ![Ship,Station].include?(src.class)
+  raise DataNotFound, dst_id if dst.nil?    || ![Ship,Station].include?(dst.class)
 
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{from_entity.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
-  Users::Registry.require_privilege(:any => [{:privilege => 'modify', :entity => "manufactured_entity-#{to_entity.id}"},
-                                             {:privilege => 'modify', :entity => 'manufactured_entities'}],
-                                    :session => @headers['session_id'])
+  # require modify on entities
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{src.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
 
-  # update from & to entitys' location
-  Manufactured::Registry.instance.safely_run {
-    from_entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', from_entity.location.id))
-    to_entity.location.update(@@local_node.invoke_request('motel::get_location', 'with_id', to_entity.location.id))
+  require_privilege :registry => user_registry, :any =>
+    [{:privilege => 'modify', :entity => "manufactured_entity-#{dst.id}"},
+     {:privilege => 'modify', :entity => 'manufactured_entities'}]
+  
+  # if resources not specified, transfer all from source to dst
+  resources = src.resources if resources.nil?
 
-    raise Omega::OperationError, "source entity cannot transfer resource" unless from_entity.can_transfer?(to_entity, resource_id, quantity)
-    raise Omega::OperationError, "destination entity cannot accept resource" unless to_entity.can_accept?(resource_id, quantity)
+  # ensure src has resources
+  resources.each { |r|
+    raise ArgumentError,r unless r.valid? &&
+                                 src.resources.find { |rs| rs.id == r.id }
   }
 
-  entities = Manufactured::Registry.instance.transfer_resource(from_entity, to_entity, resource_id, quantity)
-  raise Omega::OperationError, "problem transferring resources from #{from_entity} to #{to_entity}" if entities.nil?
-  entities
+  # update entities locations & systems
+  src.location =
+    node.invoke('motel::get_location', 'with_id', src.location.id)
+  dst.location =
+    node.invoke('motel::get_location', 'with_id', dst.location.id)
+  src.solar_system =
+    node.invoke('cosmos::get_entity', 'with_location', src.location.parent_id)
+  dst.solar_system =
+    node.invoke('cosmos::get_entity', 'with_location', dst.location.parent_id)
+
+  # ensure transfer can take place
+  raise OperationError,
+      "cannot transfer" unless resources.all? { |r| src.can_transfer?(dst, r) }
+  raise OperationError,
+        "cannot accept" unless resources.all? { |r| dst.can_accept?(r) }
+
+  # transfer resources via the registry
+  registry.safe_exec { |entities|
+    # retrieve registry src/dst
+    s = entities.find &with_id(src.id)
+    d = entities.find &with_id(dst.id)
+
+    # iterate over resources
+    resources.each { |r|
+      added = removed = false
+      begin
+        # transfer resource
+        d.add_resource(r)    ; added   = true
+        s.remove_resource(r) ; removed = true
+
+        # run transferred callbacks
+        s.run_callbacks :transfer, s, d, r
+        d.run_callbacks :transfer, s, d, r
+      rescue Exception => e
+      ensure
+        # if resources was added to dst but not
+        # removed from src, remove it from dst
+        d.remove_resource(r) if added && !removed
+      end
+    }
+  }
+
+  # return src, dst
+  [src, dst]
 }
 
-def dispatch_resources(dispatcher)
-  dispatcher.handle 'manufactured::add_resource',
-                      &manufactured_add_resource
-  dispatcher.handle 'manufactured::transfer_resource',
-                      &manufactured_transfer_resource
+RESOURCES_METHODS = { :add_resource      => add_resource,
+                      :transfer_resource => transfer_resource}
+
+end # module Manufactured::RJR
+
+def dispatch_manufactured_rjr_resources(dispatcher)
+  m = Manufactured::RJR::RESOURCES_METHODS
+  dispatcher.handle 'manufactured::add_resource',      &m[:add_resource]
+  dispatcher.handle 'manufactured::transfer_resource', &m[:transfer_resource]
 end
