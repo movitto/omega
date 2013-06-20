@@ -12,7 +12,7 @@ get_entities = proc { |*args|
   # retrieve entities matching filters specified by args
   filters = filters_from_args args,
     :with_id       => proc { |e, id|   e.id == id           },
-    :with_name     => proc { |e, name| e.name == id         },
+    :with_name     => proc { |e, name| e.name == name       },
     :of_type       => proc { |e, type| e.class.to_s == type },
     :with_location => proc { |e, l|    e.location.id == (l.is_a?(Motel::Location) ? l.id : l) }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}

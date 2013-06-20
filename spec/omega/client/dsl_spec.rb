@@ -4,248 +4,327 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client/dsl'
+require 'omega/client2/dsl'
 
 module Omega
-module Server
+module Client
 describe DSL do
 
+  include Omega::Server::DSL
   include Omega::Client::DSL
 
   before(:each) do
-    TestUser.add_role(:superadmin)
+    @u = create(:user)
+    add_role "user_role_#{@u.id}", :superadmin
+
+    dsl.node = @n
+    @n.dispatcher.add_module('users/rjr/init')
+    @n.dispatcher.add_module('motel/rjr/init')
+    @n.dispatcher.add_module('cosmos/rjr/init')
+    @n.dispatcher.add_module('manufactured/rjr/init')
+    @n.dispatcher.add_module('missions/rjr/init')
+
+    login @u.id, @u.password
   end
 
-  it "should create an new user" do
-    u = user('foo', 'bar')
-    u.id.should == 'foo'
-    Users::Registry.instance.find(:id => 'foo', :type => 'Users::User').first.should_not be_nil
+  describe "#login" do
+    it "logs the node in"
   end
 
-  it "should allow user to specify args when creating new user" do
-    u = user('foo1', 'bar', :npc => true)
-    u.id.should == 'foo1'
+  describe "#user" do
+    it "retrieves the specified user" do
+      user('foo2', 'foo2')
+      u = user('foo2')
+      u.id.should == 'foo2'
+    end
 
-    ru = Users::Registry.instance.find(:id => 'foo1', :type => 'Users::User').first
-    ru.should_not be_nil
-    ru.npc.should be_true
+    context "user does not exist" do
+      it "creates the specified user" do
+        u = user('foo', 'bar')
+        u.id.should == 'foo'
+        Users::RJR.registry.entity(&with_id('foo')).should_not be_nil
+      end
+
+      it "accepts user params" do
+        u = user('foo1', 'bar', :npc => true)
+        u.id.should == 'foo1'
+    
+        ru = Users::RJR.registry.entity &with_id('foo1')
+        ru.npc.should be_true
+      end
+    end
   end
 
-  it "should retrieve the specified user" do
-    user('foo2', 'foo2')
-    u = user('foo2')
-    u.id.should == 'foo2'
+  describe "#role" do
+    it "creates the specified role" do
+      r = build(:role)
+      role(r)
+      Users::RJR.registry.entity(&with_id(r.id)).should_not be_nil
+    end
+
+    context "@user not nil" do
+      it "adds role to user" do
+        r = build(:role)
+        role(r)
+        user('bar', 'foo') { |u|
+          u.id.should == 'bar'
+          role(r.id)
+        }
+        rr = Users::RJR.registry.entity &with_id('bar')
+        rr.roles.size.should == 2
+        rr.roles.last.id.should == r.id
+      end
+    end
   end
 
-
-  it "should create a new role" do
-    u = role(Users::Role.new(:id => 'foozrole'))
-    u.id.should == 'foozrole'
-    Users::Registry.instance.find(:id => 'foozrole', :type => 'Users::Role').first.should_not be_nil
-  end
-
-  it "should add role to user" do
-    role(Users::Role.new(:id => 'foozrole'))
-    user('bar', 'foo') { |u|
-      u.id.should == 'bar'
-      @user.id.should == 'bar'
-      role('foozrole')
-    }
-    Users::Registry.instance.find(:id => 'bar', :type => 'Users::User').first.roles.size.should == 2
-    Users::Registry.instance.find(:id => 'bar', :type => 'Users::User').first.roles.last.id.should == 'foozrole'
-  end
-
-  it "should create a new alliance" do
-    a = alliance('ally1')
-    a.id.should == 'ally1'
-    Users::Registry.instance.find(:id => 'ally1', :type => 'Users::Alliance').first.should_not be_nil
-  end
-
-  it "should create a new galaxy" do
-    g = galaxy('far') { |g|
-      g.name.should == 'far'
-      @galaxy.should_not be_nil
-      @galaxy.name.should == 'far'
-    }
-    g.name.should == 'far'
-    Cosmos::Registry.instance.find_entity(:id => 'far', :type => 'Cosmos::Galaxy').first.should_not be_nil
-  end
-
-  it "should create a new system" do
-    galaxy('ngal1') { |g|
-      s = system('system1') { |s|
-        s.name.should == 'system1'
-        @system.should_not be_nil
-        @system.name.should == 'system1'
+  describe "#galaxy" do
+    it "creates the specified galaxy" do
+      g = galaxy('far') { |g|
+        g.name.should == 'far'
       }
-      s.class.should == Omega::Client::SolarSystem
-      s.id.should == 'system1'
-    }
-    Cosmos::Registry.instance.find_entity(:id => 'system1', :type => 'Cosmos::SolarSystem').first.should_not be_nil
-    # TODO ensure star gets created
+      g.name.should == 'far'
+      Cosmos::RJR.registry.entity(&with_id(g.id)).should_not be_nil
+    end
   end
 
-  it "should raise error if no galaxy is set when creating system" do
-    lambda {
-      system('system1')
-    }.should raise_error(ArgumentError)
+  describe "#system" do
+    it "returns the system" do
+      sys = create(:solar_system)
+      s = system(sys.name)
+      s.should be_an_instance_of(Cosmos::Entities::SolarSystem)
+      s.name.should == sys.name
+    end
+
+    context "system not found" do
+      it "creates the specified system" do
+        s = nil
+        galaxy('ngal1') { |g|
+          s = system('system1') { |s|
+            s.name.should == 'system1'
+          }
+          s.name.should == 'system1'
+        }
+        s.should be_an_instance_of(Cosmos::Entities::SolarSystem)
+        Cosmos::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+      end
+
+      it "creates star"
+
+      context "no galaxy is set" do
+        it "raises ArgumentError" do
+          lambda {
+            system('system1')
+          }.should raise_error(ArgumentError)
+        end
+      end
+    end
   end
 
-  it "should retrieve the specified system" do
-    galaxy('ngal1') { |g|
-      system('system1')
-    }
-    s = system('system1')
-    s.class.should == Omega::Client::SolarSystem
-    s.name.should == 'system1'
-  end
-
-  it "should create a new asteroid" do
-    galaxy('ngal1') { |g|
-      system('system1') { |s|
-        a = asteroid('nast1') { |a|
+  describe "#asteroid" do
+    it "creates a new asteroid" do
+      a = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          a = asteroid('nast1') { |a|
+            a.name.should == 'nast1'
+          }
           a.name.should == 'nast1'
         }
-        a.name.should == 'nast1'
       }
-    }
-    Cosmos::Registry.instance.find_entity(:id => 'nast1', :type => 'Cosmos::Asteroid').first.should_not be_nil
+      a.should be_an_instance_of(Cosmos::Entities::Asteroid)
+      Cosmos::RJR.registry.entity(&with_id(a.id)).should_not be_nil
+    end
+
+    context "@system is nil" do
+      it "raises ArgumentError" do
+        lambda {
+          asteroid('nast1')
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
 
-  it "should raise error if no system is set when creating asteroid" do
-    lambda {
-      asteroid('nast1')
-    }.should raise_error(ArgumentError)
-  end
-
-  it "should create a new resource" do
-    galaxy('ngal1') { |g|
-      system('system1') { |s|
-        asteroid('nast1') { |a|
-          res = resource(:name => "res1", :type => 'metal', :quantity => 420) { |r|
-            r.name.should == 'res1'
+  describe "#resource" do
+    it "creates a new resource" do
+      a = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          a = asteroid('nast1') { |a|
+            r = resource(:id => 'gem-ruby', :quantity => 420)
+            r.id.should == 'gem-ruby'
+            r.quantity.should == 420
           }
-          res.name.should == 'res1'
         }
       }
-    }
-    # TODO verify resource source exists
+      r = Cosmos::RJR.registry.entity(&with_id(a.id)).resources.first
+      r.id.should == 'gem-ruby'
+      r.quantity.should == 420
+    end
+
+    context "@asteroid is nil" do
+      it "raises ArgumentError" do
+        lambda {
+          resource(:id => 'metal-steel')
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
 
-  it "should raise error if no asteroid is set when creating resource" do
-    lambda {
-      resource(:id => 'res1')
-    }.should raise_error(ArgumentError)
-  end
-
-  it "should create a new planet" do
-    galaxy('ngal1') { |g|
-      system('system1') { |s|
-        p = planet('pl1') { |p|
-          p.name.should == 'pl1'
+  describe "#planet" do
+    it "creates new planet" do
+      p = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          p = planet('pl1') { |p|
+            p.name.should == 'pl1'
+          }
         }
       }
-    }
-    Cosmos::Registry.instance.find_entity(:id => 'pl1', :type => 'Cosmos::Planet').first.should_not be_nil
+      p.should be_an_instance_of(Cosmos::Entities::Planet)
+      Cosmos::RJR.registry.entity(&with_id(p.id)).should_not be_nil
+    end
+
+    context "@solar_system is nil" do
+      it "raises ArgumentError" do
+        lambda {
+          planet('pl1')
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
 
-  it "should raise error if no system is set when creating planet" do
-    lambda {
-      planet('pl1')
-    }.should raise_error(ArgumentError)
-  end
-
-  it "should create a new moon" do
-    galaxy('ngal1') { |g|
-      system('system1') { |s|
-        planet('pl1') { |p|
-          m = moon('mn1') { |m|
+  describe "#moon" do
+    it "creates new moon" do
+      m = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          planet('pl1') { |p|
+            m = moon('mn1') { |m|
+              m.name.should == 'mn1'
+            }
             m.name.should == 'mn1'
           }
-          m.name.should == 'mn1'
         }
       }
-    }
-    Cosmos::Registry.instance.find_entity(:id => 'mn1', :type => 'Cosmos::Moon').first.should_not be_nil
+      m.should be_an_instance_of(Cosmos::Entities::Moon)
+      Cosmos::RJR.registry.entity(&with_id(m.id)).should_not be_nil
+    end
+
+    context "@planet is nil" do
+      it "raises ArgumentError" do
+        lambda {
+          moon('mn1')
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
 
-  it "should raise error if no planet is set when creating moon" do
-    lambda {
-      moon('mn1')
-    }.should raise_error(ArgumentError)
+  describe "#jump_gate" do
+    it "creates new jump_gate" do
+      s1 = s2 = nil
+      galaxy('ngal1') { |g|
+        s1 = system('system1')
+        s2 = system('system2')
+      }
+  
+      jg = jump_gate s1, s2
+      jg.parent_id.should == s1.id
+      jg.endpoint_id.should == s2.id
+      Cosmos::RJR.registry.entity(&with_id(jg.id)).should_not be_nil
+    end
   end
 
-  it "should create a new jump_gate" do
-    s1 = s2 = nil
-    galaxy('ngal1') { |g|
-      s1 = system('system1')
-      s2 = system('system2')
-    }
+  describe "#station" do
+    it "retrieve station" do
+      st = create(:valid_station)
+      s = station(st.id)
+      s.should be_an_instance_of(Manufactured::Station)
+      s.id.should == st.id
+    end
 
-    jg = jump_gate s1, s2
-    jg.solar_system.name.should == s1.name
-    jg.endpoint.name.should == s2.name
-    # TODO verify in registry
+    context "station not found" do
+      it "creates new station" do
+        s = station('st1',
+                    :user_id => create(:user).id,
+                    :type    => :manufacturing,
+                    :solar_system => create(:solar_system)){ |st|
+                      st.id.should == 'st1'
+                    }
+        s.should be_an_instance_of(Manufactured::Station)
+        s.id.should == 'st1'
+        Manufactured::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+      end
+    end
   end
 
-  it "should create a new station" do
-    user('user1', '1resu')
-    galaxy('ngal1') { |g| system('system1') }
-    s = station('st1', :user_id => 'user1', :type => :manufacturing,
-                       :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
-      s.id.should == 'st1'
-    }
-    s.class.should == Omega::Client::Station
-    s.id.should == 'st1'
-    Manufactured::Registry.instance.find(:id => 'st1', :type => 'Manufactured::Station').first.should_not be_nil
+  describe "#ship" do
+    it "retrieve ship" do
+      st = create(:valid_ship)
+      s = ship(st.id)
+      s.should be_an_instance_of(Manufactured::Ship)
+      s.id.should == st.id
+    end
+
+    context "ship not found" do
+      it "creates new ship" do
+        s = ship('sh1',
+                 :user_id => create(:user).id,
+                 :type    => :frigate,
+                 :solar_system => create(:solar_system)){ |sh|
+                   sh.id.should == 'sh1'
+                 }
+        s.should be_an_instance_of(Manufactured::Ship)
+        s.id.should == 'sh1'
+        Manufactured::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+      end
+    end
   end
 
-  it "should retrieve the specified station" do
-    user('user1', '1resu')
-    galaxy('ngal1') { |g| system('system1') }
-    station('st1', :user_id => 'user1', :type => :manufacturing,
-            :solar_system => system('system1'), :location => Motel::Location.new())
-    s = station('st1')
-    s.class.should == Omega::Client::Station
-    s.id.should == 'st1'
+  describe "#schedule" do
+    it "creates new periodic missions event" do
+      e = schedule 10, Omega::Server::Event.new(:id => 'event123')
+      e.id.should == 'event123-scheduler'
+      e = Missions::RJR.registry.entity(&with_id(e.id))
+      e.should_not be_nil
+      e.interval.should == 10
+      e.template_event.id.should == 'event123'
+    end
   end
 
-  it "should create a new ship" do
-    user('user2', '2resu')
-    galaxy('ngal1') { |g| system('system1') }
-    s = ship('sh1', :user_id => 'user2', :type => :mining,
-                    :solar_system => system('system1'), :location => Motel::Location.new()) { |s|
-      s.id.should == 'sh1'
-    }
-    s.class.should == Omega::Client::Ship
-    s.id.should == 'sh1'
-    Manufactured::Registry.instance.find(:id => 'sh1', :type => 'Manufactured::Ship').first.should_not be_nil
+  describe "#mission" do
+    it "creates new mission" do
+      m = mission 'mission123', :title => 'test mission'
+      m.id.should == 'mission123'
+      m = Missions::RJR.registry.entity(&with_id('mission123'))
+      m.should_not be_nil
+      m.title.should == 'test mission'
+    end
   end
 
-  it "should retrieve the specified ship" do
-    user('user1', '1resu')
-    galaxy('ngal1') { |g| system('system1') }
-    ship('sh1', :user_id => 'user1', :type => :mining,
-         :solar_system => system('system1'), :location => Motel::Location.new())
-    s = ship('sh1')
-    s.class.should == Omega::Client::Ship
-    s.id.should == 'sh1'
-  end
+  describe DSL::Base do
+    describe "#node=" do
+      it "sets dsl node"
+      it "sets source node header on node"
+    end
 
-  it "should schedule a new periodic missions event" do
-    e = schedule_event 10, Missions::Event.new(:id => 'event123')
-    e.id.should == 'event123-scheduler'
-    Missions::Registry.instance.events.find { |e|
-      e.id == 'event123-scheduler' && e.interval == 10 && e.template_event.id == 'event123'
-    }.should_not be_nil
-  end
+    describe "#from_config" do
+      it "sets node"
+      it "sets endpoint from config"
+    end
 
-  it "should create a new mission" do
-    m = mission 'mission123', :title => 'test mission'
-    m.id.should == 'mission123'
-    Missions::Registry.instance.missions.find { |m|
-      m.id == 'mission123' && m.title == 'test mission'
-    }.should_not be_nil
+    describe "#join" do
+      it "joins worker threads"
+    end
+
+    describe "#run" do
+      context "parallel is true" do
+        it "runs block in new workers thread"
+      end
+
+      it "sets instance variables"
+      it "runs block"
+      it "unsets instance variables"
+    end
   end
 
 end # describe DSL

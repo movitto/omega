@@ -81,7 +81,7 @@ class JumpGate
     { :json_class => self.class.name,
       :data       =>
         {:trigger_distance => @trigger_distance,
-         :endpoint_id      => @endpoint.id
+         :endpoint_id      => @endpoint_id
         }.merge(entity_json).merge(system_entity_json)
     }.to_json(*a)
   end

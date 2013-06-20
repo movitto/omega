@@ -13,14 +13,16 @@ create_entity = proc { |entity|
                     :privilege => 'create',
                     :entity    => 'cosmos_entities'
 
+  # sanitize received location
+  entity.location.restrict_view = false
+  entity.location.id = entity.id
+
   # ensure entity is valid
   raise ValidationError,
         entity unless Cosmos::Registry::VALID_TYPES.include?(entity.class) &&
                       entity.valid?
 
   # create location
-  entity.location.restrict_view = false
-  entity.location.id = entity.id
   entity.location = node.invoke('motel::create_location', entity.location)
 
   # add entity to registry, throw error if not added
