@@ -73,6 +73,11 @@ module Omega
         } if @event_handlers && @event_handlers[event]
       end
 
+      # Helper, access class.node
+      def node
+        self.class.node
+      end
+
       private
 
       # Methods that are defined on the class including 
@@ -162,14 +167,14 @@ module Omega
 
             if events[e].has_key?(:subscribe)
               event_setup << lambda { |*args|
-                self.class.node.invoke(events[e][:subscribe], self.entity.id, e)
+                self.node.invoke(events[e][:subscribe], self.entity.id, e)
               }
             end
 
             if events[e].has_key?(:notification)
               event_setup << lambda { |*args|
-                if !self.class.node.handles?(events[e][:notification])
-                  self.class.node.handle(events[e][:notification]) { |*args|
+                if !self.node.handles?(events[e][:notification])
+                  self.node.handle(events[e][:notification]) { |*args|
                     if events[e][:match].nil? || events[e][:match].call(self, *args)
                       self.raise_event e, *args
                     end

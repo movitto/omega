@@ -14,7 +14,7 @@ module Omega
     #
     # @example
     #   class Ship
-    #     include RemotelyTrackable
+    #     include Trackable
     #     include HasLocation
     #     entity_type Manufactured::Ship
     #     get_method "manufactured::get_entity"
@@ -46,12 +46,12 @@ module Omega
             { :setup =>
                 lambda { |distance|
                   node.invoke("motel::track_movement",
-                              self.location.id, distance)
+                              self.entity.location.id, distance)
                 },
               :notification => "motel::on_movement"
             }
       end
-    end
+    end # module HasLocation
 
-  end
-end
+  end # module  Client
+end # module Omega
