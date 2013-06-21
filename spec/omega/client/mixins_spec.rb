@@ -4,428 +4,388 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'omega/client2/mixins'
 
-describe Omega::Client::RemotelyTrackable do
-  before(:each) do
-    @ship1 = FactoryGirl.build(:ship1)
-    FactoryGirl.build(:ship2)
-    FactoryGirl.build(:ship3)
-    FactoryGirl.build(:ship4)
-    FactoryGirl.build(:ship5)
-
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-  end
-
-  it "should return tracked entity" do
-    ts = TestShip.get(@ship1.id)
-    ts.entity.should == Omega::Client::Node.get(@ship1.id)
-  end
-
-  it "should dispatch methods to tracked entity" do
-    ts = TestShip.get(@ship1.id)
-    ts.type.should == @ship1.type
-    ts.location.should == ts.entity.location
-  end
-
-  it "should retrieved tracked entity from the server" do
-    ts = TestShip.get(@ship1.id)
-    ts.location.x.should == @ship1.location.x
-
-    orig = @ship1.location.x
-    @ship1.location.x = 5000
-    ts = TestShip.get(@ship1.id)
-    ts.location.x.should == orig
-  end
-
-  it "should allow event handlers to be registered" do
-    invoked = 0
-    ts = TestShip.get(@ship1.id)
-    ts.has_event_handler?(:updated).should be_false
-    ts.handle_event(:updated, :foobar) {
-      invoked += 1
-    }
-    ts.has_event_handler?(:updated).should be_true
-
-    Omega::Client::Node.raise_event(:updated, @ship1)
-    sleep 0.1
-    invoked.should == 1
-  end
-
-  it "should invoke event setup methods when registering an event handler" do
-    ts = TestShip.get(@ship1.id)
-    ts.handle_event(:test, :foobar)
-    ts.instance_variable_get(:@test_setup_args).should include(:foobar)
-    ts.instance_variable_get(:@test_setup_invoked).should be_true
-  end
-
-  it "should clear event handlers" do
-    invoked1 = false
-    invoked2 = false
-    ts = TestShip.get(@ship1.id)
-    ts.handle_event(:foobar) {
-      invoked1 = true
-    }
-    ts.handle_event(:barfoo) {
-      invoked2 = true
-    }
-    ts.has_event_handler?(:foobar).should be_true
-    ts.has_event_handler?(:barfoo).should be_true
-    ts.clear_handlers_for(:foobar)
-    ts.has_event_handler?(:foobar).should be_false
-    ts.has_event_handler?(:barfoo).should be_true
-
-    Omega::Client::Node.raise_event(:foobar, @ship1)
-    Omega::Client::Node.raise_event(:barfoo, @ship1)
-    sleep 0.1
-    invoked1.should == false
-    invoked2.should == true
-  end
-
-  it "should allow client to set/get entity_type to track" do
-    old = TestEntity.entity_type
-    TestEntity.entity_type(:foobar)
-    TestEntity.entity_type.should == :foobar
-    TestEntity.entity_type(old)
-  end
-
-  it "should allow client to specify additional entity validation method" do
-    invoked = 0
-    TestShip.entity_validation { |e|
-      invoked += 1
-      true
-    }
-    ts = TestShip.get(@ship1.id)
-    ts.should_not be_nil
-    invoked.should == 1
-
-    TestShip.entity_validation { |e|
-      invoked += 1
-      false
-    }
-    ts = TestShip.get(@ship1.id)
-    ts.should be_nil
-    invoked.should == 2
-
-    TestShip.entity_validation { |e| true }
-  end
-
-  it "should allow client to specify additional entity init methods" do
-    invoked1 = 0
-    invoked2 = 0
-    TestShip.on_init { |e|
-      invoked1 += 1
-    }
-    TestShip.on_init { |e|
-      invoked2 += 1
-    }
-    ts = TestShip.get(@ship1.id)
-    ts.should_not be_nil
-    invoked1.should == 1
-    invoked2.should == 1
-  end
-
-  it "should allow client to specify method to retrieve entity from server" do
-    old = TestEntity.get_method
-    TestEntity.get_method(:foobar)
-    TestEntity.get_method.should == :foobar
-    TestEntity.get_method(old)
-  end
-
-  it "should allow client to register entity events" do
-    invoked = 0
-    TestEntity.server_event :foobar => 
-                                  { :setup => 
-                                      lambda { |a|
-                                        a.should == :barfoo
-                                        invoked += 1
-                                      }
-                                   }
-    te = TestEntity.new
-    te.handle_event(:foobar, :barfoo)
-    invoked.should == 1
-    # TODO also test subscribe and notification
-  end
-
-  it "should retrieve all server entities" do
-    ships = TestShip.get_all
-    ships.size.should == 9
-    ships.first.id.should == @ship1.id
-  end
-
-  it "should retrieve server entity specified by id" do
-    ship = TestShip.get(@ship1.id)
-    ship.should_not be_nil
-    ship.id.should == @ship1.id
-  end
-
-  it "should retrieve server entities owned by user" do
-    user1 = FactoryGirl.build(:user1)
-
-    ships = TestShip.owned_by(user1.id)
-    ships.size.should == 5
-    ships.first.id.should == @ship1.id
-  end
+# Test data used in this module
+module OmegaTest
+  class Trackable
+    include Omega::Client::Trackable
+    include Omega::Client::TrackState
+    entity_type Manufactured::Ship
+    get_method "manufactured::get_entity"
   
-end
+    server_state :test_state,
+      { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
+        :on    => lambda { |e| @on_toggles_called  = true },
+        :off   => lambda { |e| @off_toggles_called = true } }
 
-describe Omega::Client::TrackState do
-  before(:each) do
-    @ship1 = FactoryGirl.build(:ship1)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-  end
+    attr_accessor :setup_run
 
-  it "should allow client to register entity states" do
-    toggle = true
-    TestShip.server_state :foobar,
-                                  { :check => 
-                                      lambda { |a|
-                                        toggle = !toggle
-                                      }
-                                   }
-    te = TestShip.get(@ship1.id)
-    # TODO should check immediately on creation
-    toggle.should.should be_true
-    Omega::Client::Node.raise_event(:updated, te)
-    sleep 0.1
-    toggle.should be_false
-  end
+    entity_event :setup_event => { :setup => proc { |e| @setup_run = true } }
 
-  it "should invoke on/off state handlers" do
-    on_called  = false
-    off_called = false
-    te = TestEntity.get(@ship1.id)
-    te.on_state(:test_state)  { |e|
-      on_called = true
+    entity_event :subscribe_event => { :subscribe => 'subscribe_method' }
+
+    entity_event :notification_event => { :notification => 'notification_method' }
+
+    entity_event :match_event => { :notification => 'match_method',
+                                    :match => proc { |e,*args| false } }
+
+    attr_accessor :entity_initialized
+    entity_init{ |e|
+      @entity_initialized = true
     }
-    te.off_state(:test_state) { |e|
-      off_called = true
-    }
-
-    # see todo in previous test
-    Omega::Client::Node.raise_event(:updated, te)
-    sleep 0.1
-
-    te.instance_variable_get(:@toggled).should be_true
-    te.instance_variable_get(:@current_states).should include(:test_state)
-    te.instance_variable_get(:@on_toggles_called).should be_true
-    te.instance_variable_get(:@off_toggles_called).should be_false
-    on_called.should be_true
-    off_called.should be_false
-
-    Omega::Client::Node.raise_event(:updated, te)
-    sleep 0.1
-    te.instance_variable_get(:@toggled).should be_false
-    te.instance_variable_get(:@current_states).should_not include(:test_state)
-    te.instance_variable_get(:@off_toggles_called).should be_true
-    off_called.should be_true
   end
 end
 
-describe Omega::Client::HasLocation do
-  it "should allow client to track entity movement" do
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_LOCATIONS)
+module Omega::Client
+  describe Trackable do
+    before(:each) do
+      @t = OmegaTest::Trackable.new
+      OmegaTest::Trackable.node.rjr_node = @n
 
-    @ship1 = FactoryGirl.build(:ship1)
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+    end
 
-    ts = TestShip.get(@ship1.id)
-    nloc = ts.location + [50,50,50]
-    Omega::Client::Node.invoke_request 'manufactured::move_entity', @ship1.id, nloc
-    invoked = 0 ; slid = @ship1.location.id
-    ts.handle_event(:movement, 5) { |e|
-      e.id.should == slid
-      invoked += 1
-    }
-    sleep 3
-    invoked.should > 0
-    Omega::Client::Node.invoke_request 'manufactured::stop_entity', @ship1.id
-  end
-end
+    describe "#method_missing" do
+      it "dispatches everything to tracked entity" do
+        e = stub(:Object)
+        e.should_receive :foobar
+        @t.entity = e
+        @t.foobar
+      end
+    end
 
-describe Omega::Client::InSystem do
-  before(:each) do
-    @ship1 = FactoryGirl.build(:ship1)
-    @ship2 = FactoryGirl.build(:ship2)
-    @ship3 = FactoryGirl.build(:ship3)
+    describe "#handle" do
+      it "registers new event handler" do
+        h = proc {}
+        @t.handle(:foo, &h)
+        @t.event_handlers[:foo].size.should == 1
+        @t.event_handlers[:foo].first.should == h
+      end
 
-    @stat1 = FactoryGirl.build(:station1)
-    @stat2 = FactoryGirl.build(:station2)
-    @stat3 = FactoryGirl.build(:station3)
-    @stat4 = FactoryGirl.build(:station4)
-    @stat5 = FactoryGirl.build(:station5)
+      it "runs event setup callbacks" do
+        @t.handle(:setup_event) {}
+        @t.setup_run.should be_true
+      end
+    end
 
-    Omega::Client::Node.set(@stat1)
-    Omega::Client::Node.set(@stat2)
-    Omega::Client::Node.set(@stat3)
-    Omega::Client::Node.set(@stat4)
-    Omega::Client::Node.set(@stat5)
+    describe "#handles?" do
+      context "entity handles event" do
+        it "returns true" do
+          @t.handle(:setup_event) {}
+          @t.handles?(:setup_event).should be_true
+        end
+      end
 
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-  end
+      context "entity does not handle event" do
+        it "returns false" do
+          @t.handles?(:setup_event).should be_false
+        end
+      end
+    end
 
-  it "should return closest station to entity" do
-    ts = TestShip.get(@ship2.id)
-    st = ts.closest(:station)
-    st.size.should == 4
-    st.first.id.should == @stat3.id
+    describe "#clear_handlers_for" do
+      it "clears handlers for the specified event" do
+        @t.handle(:setup_event) {}
+        @t.handle(:foo) {}
+        @t.clear_handlers_for :foo
+        @t.handles?(:foo).should be_false
+        @t.handles?(:setup_event).should be_true
+      end
+    end
 
-    st = ts.closest(:station, :user_owned => true)
-    st.size.should == 2
-    st.first.id.should == @stat3.id
-  end
+    describe "#raise_event" do
+      it "invokes registered event handlers" do
+        h = proc {}
+        @t.handle(:setup_event, &h)
 
-  it "should return closest resource to entity" do
-    ts = TestShip.get(@ship2.id)
-    rs = ts.closest(:resource)
-    rs.size.should == 2
-    rs.first.name.should == 'ast2'
-  end
+        h.should_receive(:call).with(@t, 42)
+        @t.raise_event :setup_event, 42
+      end
 
-  it "should move entity in system, invoking callback on arrival" do
-    cv = ConditionVariable.new
-    cm = Mutex.new
+      it "invokes registered 'all' event handlers"
+    end
 
-    ts = TestShip.get(@ship1.id)
-    nx = ts.location.x + 50
-    ts.move_to :location => Motel::Location.new(:x => nx, :y => ts.location.y, :z => ts.location.z) { |e|
-      e.id.should == @ship1.id
-      e.location.x.should == nx
-      cm.synchronize { cv.wait cm }
-    }
-    cm.synchronize { cv.signal }
-  end
+    describe "#entity_init" do
+      it "registers entity initialization method" do
+        # one for track_state and one in class above
+        @t.class.entity_init.size.should ==  2
+      end
 
-  it "should stop moving entity" do
-    ts = TestShip.get(@ship1.id)
-    nx = ts.location.x + 50
-    ts.move_to :location => Motel::Location.new(:x => nx, :y => ts.location.y, :z => ts.location.z)
-    ts.stop_moving
-    ts = TestShip.get(@ship1.id)
-    ts.location.movement_strategy.class.should == Motel::MovementStrategies::Stopped
-  end
+      context "entity intialization" do
+        it "invokes registered methods" do
+          @t.class.send :init_entity, @t
+          @t.entity_initialized.should be_true
+        end
+      end
+    end
 
-  it "jump entity to system" do
-    sys2 = FactoryGirl.build(:sys2)
-    jg   = FactoryGirl.build(:jump_gate1)
+    describe "#entity_event" do
+      it "registers setup method" do
+        @t.class.event_setup[:setup_event].first.should_not be_nil
+        m = @t.class.event_setup[:setup_event].first
+        @t.instance_exec &m
+        @t.setup_run.should be_true
+      end
 
-    ts = TestShip.get(@ship3.id)
-    ts.jump_to 'sys2'
-    ts = TestShip.get(@ship3.id)
-    ts.location.parent_id.should == sys2.location.id
-    ts.system_name.should == sys2.name
-  end
-end
+      it "registers subscription base setup method" do
+        e = stub(Object)
+        e.should_receive(:id).and_return(42)
+        @t.entity = e
 
-describe Omega::Client::InteractsWithEnvironment do
-  before(:each) do
-    @ship2 = FactoryGirl.build(:ship2)
-    @ship4 = FactoryGirl.build(:ship4)
-    @ship5 = FactoryGirl.build(:ship5)
+        @n.should_receive(:invoke).with('subscribe_method', 42, :subscribe_event)
+        @t.class.event_setup[:subscribe_event].first.should_not be_nil
+        m = @t.class.event_setup[:subscribe_event].first
+        @t.instance_exec &m
+      end
 
-    @stat1 = FactoryGirl.build(:station1)
-    @stat3 = FactoryGirl.build(:station3)
+      it "registers notification based setup method" do
+        @t.class.node.should_receive(:handles?).with('notification_method').and_call_original
+        @t.class.node.should_receive(:handle).with('notification_method').and_call_original
+        @t.class.event_setup[:notification_event].should_not be_nil
+        m = @t.class.event_setup[:notification_event].first
+        @t.instance_exec &m
+      end
 
-    @loot1 = FactoryGirl.build(:loot1)
+      context "notification handler invoked" do
+        it "raises event on entity" do
+          @t.handle(:match_event) {}
+          @t.should_receive(:raise_event).with(:notification_event, :foo)
+          m = @t.class.node.handlers['notification_method'].first
+          @t.instance_exec :foo, &m
+        end
 
-    @ast1 = FactoryGirl.build(:asteroid1)
-    @rs1  = Cosmos::Registry.instance.set_resource(@ast1.name,
-                  Cosmos::Resource.new(:name => 'steel', :type => 'metal'), 500)
+        context "match is false" do
+          it "does not raise event" do
+            @t.handle(:notification_event) {}
+            @t.should_not_receive(:raise_event)
+            m = @t.class.node.handlers['match_method'].first
+            @t.instance_exec :foo, &m
+          end
+        end
+      end
+    end
 
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_CREATE,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-  end
+    describe "#get_all" do
+      it "returns all entities of entity_type" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
+        r = OmegaTest::Trackable.get_all
+        r.size.should == 2
+        r.all? { |ri| ri.should be_an_instance_of(OmegaTest::Trackable) }
+        ids = r.collect { |s| s.id }
+        ids.should include(s1.id)
+        ids.should include(s2.id)
+      end
 
-  it "should mine resource using entity" do
-    ts = TestShip.get(@ship2.id)
+      it "filters entities that fail validation" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
 
-    crse = ts.solar_system.asteroids.find { |a| a.name == @rs1.entity.name }
-    crs  = crse.resource_sources.find { |rs| rs.id == @rs1.id }
-    oldq = crs.quantity
+        OmegaTest::Trackable.should_receive(:validate_entity).
+                             with{|e| e.id == s1.id }.and_return(false)
+        OmegaTest::Trackable.should_receive(:validate_entity).
+                             with{|e| e.id == s2.id }.and_return(true)
 
-    ts.mine(@rs1)
-    sleep 0.5 # XXX need to wait for mining cycle to begin
+        r = OmegaTest::Trackable.get_all
+        r.size.should == 1
+        r.first.id.should == s2.id
+      end
+    end
 
-    ts = TestShip.get(@ship2.id)
-    ts.mining.should_not be_nil
-    ts.mining.id.should == @rs1.id
+    describe "#get" do
+      it "returns entity with specified id" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
 
-    # ensure resource_collected is being tracked
-    ts.has_event_handler?(:resource_collected).should be_true
+        r = OmegaTest::Trackable.get(s1.id)
+        r.should be_an_instance_of(OmegaTest::Trackable)
+        r.id.should == s1.id
+      end
 
-    # ensure resource sources are invalidated
-    crs  = crse.resource_sources.find { |rs| rs.id == @rs1.id }
-    crs.quantity.should < oldq
-  end
+      context "validation fails" do
+        it "returns nil" do
+          s1 = create(:valid_ship)
+          OmegaTest::Trackable.should_receive(:validate_entity).
+                               with{|e| e.id == s1.id }.and_return(false)
+          r = OmegaTest::Trackable.get(s1.id)
+          r.should be_nil
+        end
+      end
+    end
 
-  it "should attack target using entity" do
-    ts = TestShip.get(@ship4.id)
-    ts.attack(@ship5)
-    # XXX need better way to verify:
-    Manufactured::Registry.instance.attack_commands.size.should == 1
-    Manufactured::Registry.instance.attack_commands[@ship4.id].attacker.id.should == @ship4.id
-    Manufactured::Registry.instance.attack_commands[@ship4.id].defender.id.should == @ship5.id
-  end
+    describe "#owned_by" do
+      it "returns all entities of type owned by specified user" do
+        u1 = create(:user)
+        u2 = create(:user)
+        s1 = create(:valid_ship, :user_id => u1.id)
+        s2 = create(:valid_ship, :user_id => u1.id)
+        s3 = create(:valid_ship, :user_id => u2.id)
 
-  #it "should dock/undock from station" do
-    # TODO
-  #end
+        r = OmegaTest::Trackable.owned_by(u1.id)
+        r.size.should == 2
+        ids = r.collect { |s| s.id }
+        ids.should include(s1.id)
+        ids.should include(s2.id)
+      end
 
-  #it "should transfer all entity resources to target" do
-    # TODO
-  #end
+      it "filters entities that fail validation" do
+        u1 = create(:user)
+        u2 = create(:user)
+        s1 = create(:valid_ship, :user_id => u1.id)
+        s2 = create(:valid_ship, :user_id => u1.id)
+        s3 = create(:valid_ship, :user_id => u2.id)
 
-  it "should transfer specified entity resource to target" do
-    ts = TestShip.get(@ship2.id)
-    ts.transfer(50, :of => 'metal-alluminum', :to => @stat3)
-    ts = TestShip.get(@ship2.id)
-    ts.resources.find { |i,q| i == 'metal-alluminum' }.should be_nil
+        OmegaTest::Trackable.should_receive(:validate_entity).
+                             with{|e| e.id == s1.id }.and_return(false)
+        OmegaTest::Trackable.should_receive(:validate_entity).
+                             with{|e| e.id == s2.id }.and_return(true)
 
-    ts = TestStation.get(@stat3.id)
-    ts.resources.find { |i,q| i == 'metal-alluminum' }.last.should == 50
-  end
 
-  it "should collect loot" do
-    oldr = Hash[@loot1.resources]
-    ts = TestShip.get(@ship4.id)
-    ts.collect_loot @loot1
-    ts = TestShip.get(@ship4.id)
-    ts.resources.should == oldr
-    @loot1.quantity.should == 0
-  end
+        r = OmegaTest::Trackable.owned_by(u1.id)
+        r.size.should == 1
+        ids = r.collect { |s| s.id }
+        ids.should include(s2.id)
+      end
+    end
+  end # describe Trackable
 
-  it "should construct entity" do
-    test_user = FactoryGirl.build(:test_user)
+  describe TrackState do
+    before(:each) do
+      @t = OmegaTest::Trackable.new
+      OmegaTest::Trackable.node.rjr_node = @n
+      OmegaTest::Trackable.send :init_entity, @t
 
-    ts = TestStation.get(@stat3.id)
-    ts.construct('Manufactured::Ship',
-                   'class' => 'Manufactured::Ship',
-                   'type'  => :mining,
-                   'id'   => "test-mining-ship")
-    sleep(Manufactured::Ship.construction_time(:mining)+1)
-    ts = TestShip.get('test-mining-ship')
-    ts.should_not be_nil
-  end
-end
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+    end
+
+    describe "#on_state" do
+      it "registers new on state callback" do
+        h = proc {}
+        @t.on_state(:test_state, &h)
+        # first defined in class above, 2nd here
+        @t.instance_variable_get(:@on_state_callbacks)[:test_state].size.should == 2
+        @t.instance_variable_get(:@on_state_callbacks)[:test_state].last.should == h
+      end
+    end
+
+    describe "#off_state" do
+      it "registers new off state callback" do
+        h = proc {}
+        @t.off_state(:test_state, &h)
+        # first defined in class above, 2nd here
+        @t.instance_variable_get(:@off_state_callbacks)[:test_state].size.should == 2
+        @t.instance_variable_get(:@off_state_callbacks)[:test_state].last.should == h
+      end
+    end
+
+    describe "#set_state" do
+      context "state == current state" do
+        it "just returns" do
+          @t.states << 'cs'
+          lambda {
+            @t.set_state('cs')
+          }.should_not change{@t.states}
+        end
+      end
+
+      it "pushes state onto of states array" do
+        lambda {
+          @t.set_state('cs')
+        }.should change{@t.states.size}.by(1)
+        @t.states.should include('cs')
+      end
+
+      it "invokes on_state callbacks" do
+        invoked = false
+        @t.on_state('cs') { |e|
+          invoked = true
+        }
+        @t.set_state('cs')
+        invoked.should be_true
+      end
+    end
+
+    describe "#unset_state" do
+      context "state not in states array" do
+        it "just returns" do
+          lambda {
+            @t.unset_state('cs')
+          }.should_not change{@t.states}
+        end
+      end
+
+      it "removes state from states array" do
+        @t.set_state('cs')
+        lambda {
+          @t.unset_state('cs')
+        }.should change{@t.states.size}.by(-1)
+        @t.states.should_not include('cs')
+      end
+
+      it "invokes off_state callbacks" do
+        invoked = false
+        @t.off_state('cs') { |e|
+          invoked = true
+        }
+        @t.set_state('cs')
+        @t.unset_state('cs')
+        invoked.should be_true
+      end
+    end
+
+    describe "#server_state" do
+      it "registers new initialization method"
+
+      context "entity intialization" do
+        # entity is initialized via init_entity in TrackState#before(:each)
+        before(:each) do
+        end
+
+        it "initializes states and state callbacks" do
+          @t.states.should == []
+          @t.instance_variable_get(:@on_state_callbacks).should be_an_instance_of(Hash)
+          @t.instance_variable_get(:@off_state_callbacks).should  be_an_instance_of(Hash)
+          @t.instance_variable_get(:@condition_checks).should be_an_instance_of(Hash)
+        end
+
+        it "registers specified on/off state callbacks" do
+          on  = @t.instance_variable_get(:@on_state_callbacks)
+          off = @t.instance_variable_get(:@off_state_callbacks)
+          on[:test_state].size.should == 1
+          off[:test_state].size.should == 1
+        end
+
+        it "registers specified condition checks" do
+          cc = @t.instance_variable_get(:@condition_checks)
+          cc[:test_state].should_not be_nil
+        end
+
+        it "registers callback for all entity events" do
+          @t.handles?('all').should be_true
+          @t.event_handlers['all'].size.should == 1
+        end
+      end
+
+      context "entity event" do
+        context "state condition checks match" do
+          it "sets state" do
+            @t.instance_variable_get(:@condition_checks)[:test_state] = proc { |e| true }
+            @t.should_receive(:set_state).with(:test_state)
+            @t.raise_event('all')
+          end
+        end
+
+        context "state condition do not match" do
+          it "unsets state" do
+            @t.instance_variable_get(:@condition_checks)[:test_state] = proc { |e| false }
+            @t.should_receive(:unset_state).with(:test_state)
+            @t.raise_event('all')
+          end
+        end
+      end
+    end
+  end # describe TrackState
+end # module Omega::Client

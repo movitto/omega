@@ -17,7 +17,7 @@ describe DSL do
     @u = create(:user)
     add_role "user_role_#{@u.id}", :superadmin
 
-    dsl.node = @n
+    dsl.rjr_node = @n
     @n.dispatcher.add_module('users/rjr/init')
     @n.dispatcher.add_module('motel/rjr/init')
     @n.dispatcher.add_module('cosmos/rjr/init')
@@ -29,6 +29,7 @@ describe DSL do
 
   describe "#login" do
     it "logs the node in"
+    it "sets session id on node"
   end
 
   describe "#user" do
@@ -302,14 +303,8 @@ describe DSL do
   end
 
   describe DSL::Base do
-    describe "#node=" do
-      it "sets dsl node"
-      it "sets source node header on node"
-    end
-
-    describe "#from_config" do
-      it "sets node"
-      it "sets endpoint from config"
+    describe "#rjr_node=" do
+      it "sets rjr node on client"
     end
 
     describe "#join" do

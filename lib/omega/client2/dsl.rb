@@ -15,6 +15,8 @@ require 'cosmos/entities/moon'
 require 'manufactured/ship'
 require 'manufactured/station'
 
+require 'omega/client2/node'
+
 module Omega
   module Client
     # Omega Client DSL, works best if you including this module in the
@@ -38,7 +40,7 @@ module Omega
     #   end
     module DSL
       # Return handle to base dsl instance, use to get/set
-      # options such as node/endpoint/parallel and run operations
+      # options such as node/parallel and run operations
       # such as 'join', etc
       def dsl
         @dsl_base ||= Base.new
@@ -68,14 +70,12 @@ module Omega
 
       # Invoke request using the DSL node / endpoint
       def invoke(*args)
-        args.unshift dsl.endpoint unless dsl.endpoint.nil?
-        dsl.node.invoke *args
+        dsl.invoke *args
       end
 
       # Invoke notification using the DSL node / endpoint
       def notify(*args)
-        args.unshift dsl.endpoint unless dsl.endpoint.nil?
-        dsl.node.notify *args
+        dsl.notify *args
       end
 
       ########################################################################
@@ -89,7 +89,7 @@ module Omega
         user = Users::User.new(:id => user_id,
                                :password => password)
         @session = invoke('users::login', user)
-        dsl.node.message_headers['session_id'] = @session.id
+        dsl.node.rjr_node.message_headers['session_id'] = @session.id
       end
 
       # Return user w/ the given user_id, else if it is not found create
@@ -384,29 +384,24 @@ module Omega
           self
         end
 
-        # Node to use w/ server communications
-        attr_accessor :node
-        def node=(val)
-          @node = val
-          @node.message_headers['source_node'] = @node.node_id
+        # internally managed client node
+        def node
+          @node ||= Client::Node.new
         end
 
-        # Server endpoint
-        attr_accessor :endpoint
+        # set underlying rjr node
+        def rjr_node=(val)
+          self.node.rjr_node = val
+        end
 
-        # Set the node / endpoint from config
-        def self.from_config(node)
-          # load any accessible config
-          config = Omega::Config.load :node_id  => 'omega',
-                                      :tcp_host => 'localhost',
-                                      :tcp_port =>  8181
-          self.endpoint=
-            case node.class::RJR_NODE_TYPE
-              when :amqp then "#{config.node_id}-queue"
-              when :tcp  then "jsonrpc://#{config.tcp_host}:#{config.tcp_port}"
-              when :ws   then "jsonrpc://#{config.ws_host}:#{config.ws_port}"
-              else nil
-            end
+        # Proxy invoke to client node
+        def invoke(*args)
+          self.node.invoke *args
+        end
+
+        # Proxy notify to client node
+        def notify(*args)
+          self.node.notify *args
         end
 
         # Boolean indicating if dsl should be run in parallel

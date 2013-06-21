@@ -25,8 +25,6 @@ require 'cosmos/rjr/init'
 
 require 'manufactured/rjr/init'
 
-require 'omega/client/mixins'
-
 require 'omega/roles'
 
 RSpec.configure do |config|
@@ -130,8 +128,8 @@ def dispatch_to(server, rjr_module, dispatcher_id)
 end
 
 # Helper method to setup manufactured subsystem
-def setup_manufactured(dispatch_methods)
-  dispatch_to @s, Manufactured::RJR, dispatch_methods
+def setup_manufactured(dispatch_methods=nil)
+  dispatch_to @s, Manufactured::RJR, dispatch_methods unless dispatch_methods.nil?
   @registry = Manufactured::RJR.registry
 
   @login_user = create(:user)
@@ -276,71 +274,41 @@ module OmegaTest
     RAND_SIZE      = proc { }
     RAND_COLOR     = proc { }
   end
-
-  class Entity
-    include Omega::Client::RemotelyTrackable
-    include Omega::Client::TrackState
-    entity_type Manufactured::Ship
-    get_method "manufactured::get_entity"
   
-    server_state :test_state,
-      { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
-        :on    => lambda { |e| @on_toggles_called  = true },
-        :off   => lambda { |e| @off_toggles_called = true } }
-  
-    def initialize
-      @@id ||= 0
-      @id = (@@id +=  1)
-    end
-  
-    def id
-      @id
-    end
-  
-    def attr
-      0
-    end
-  
-    def location(val = nil)
-      @location = val unless val.nil?
-      @location
-    end
-  end
-  
-  class Ship
-    include Omega::Client::RemotelyTrackable
-    include Omega::Client::TrackState
-    include Omega::Client::InSystem
-    include Omega::Client::HasLocation
-    include Omega::Client::InteractsWithEnvironment
-  
-    entity_type Manufactured::Ship
-    get_method "manufactured::get_entity"
-  
-    server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
-                                                :notification => "manufactured::event_occurred" }
-  
-    attr_reader :test_setup_args
-    attr_reader :test_setup_invoked
-  
-    server_event :test =>
-      { :setup =>
-        lambda { |*args|
-          @test_setup_args = args
-          @test_setup_invoked = true
-        }
-      }
-  end
-  
-  class Station
-    include Omega::Client::RemotelyTrackable
-    include Omega::Client::TrackState
-    include Omega::Client::InSystem
-    include Omega::Client::HasLocation
-    include Omega::Client::InteractsWithEnvironment
-  
-    entity_type Manufactured::Station
-    get_method "manufactured::get_entity"
-  end
+  #class Ship
+  #  include Omega::Client::Trackable
+  #  include Omega::Client::TrackState
+  #  include Omega::Client::InSystem
+  #  include Omega::Client::HasLocation
+  #  include Omega::Client::InteractsWithEnvironment
+  #
+  #  entity_type Manufactured::Ship
+  #  get_method "manufactured::get_entity"
+  #
+  #  entity_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
+  #                                              :notification => "manufactured::event_occurred" }
+  #
+  #  attr_reader :test_setup_args
+  #  attr_reader :test_setup_invoked
+  #
+  #  entity_event :test =>
+  #    { :setup =>
+  #      lambda { |*args|
+  #        @test_setup_args = args
+  #        @test_setup_invoked = true
+  #      }
+  #    }
+  #end
+  #
+  #class Station
+  #  include Omega::Client::Trackable
+  #  include Omega::Client::TrackState
+  #  include Omega::Client::InSystem
+  #  include Omega::Client::HasLocation
+  #  include Omega::Client::InteractsWithEnvironment
+  #
+  #  entity_type Manufactured::Station
+  #  get_method "manufactured::get_entity"
+  #end
 
 end
