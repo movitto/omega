@@ -7,71 +7,135 @@ require 'spec_helper'
 require 'omega/client2/entities/station'
 
 module Omega::Client
-  describe Station do
+  # nothing currently testable in Omega::Client::Station
+  #describe Station do
+  #  before(:each) do
+  #    Omega::Client::Station.node.rjr_node = @n
+  #    @s = Omega::Client::Station.new
+  #  end
+  #end # describe Station
+
+  describe Factory do
     before(:each) do
-      Omega::Client::Station.node.rjr_node = @n
-      @s = Omega::Client::Station.new
+      Omega::Client::Factory.node.rjr_node = @n
+
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+
+      f = create(:valid_station, :type => :manufacturing)
+      @f = Omega::Client::Factory.get(f.id)
+    end
+
+    describe "#validation" do
+      it "ensures station.type == :manufacturing" do
+        s = create(:valid_station, :type => :research)
+        r = Factory.get_all
+        r.size.should == 1
+        r.first.id.should == @f.id
+      end
     end
 
     describe "#construct" do
-      it "invokes manufactured::construct_entity"
-      it "raises :constructed event"
-      it "returns constructed entity"
-    end
-  end # describe Station
+      it "invokes manufactured::construct_entity" do
+        @n.should_receive(:invoke)
+          .with('manufactured::construct_entity', @f.id, :foo, :bar)
+        @f.construct :foo => :bar
+      end
 
-  describe Factory do
+      it "raises :constructed event" do
+        o = Object.new
+        @n.should_receive(:invoke)
+          .with('manufactured::construct_entity', @f.id).and_return(o)
+        @f.should_receive(:raise_event).with(:constructed, @f, o)
+        @f.construct
+      end
+
+      it "returns constructed entity" do
+        o = Object.new
+        @n.should_receive(:invoke)
+          .with('manufactured::construct_entity', @f.id).and_return(o)
+        r = @f.construct
+        r.should == o
+      end
+    end
+
+    describe "#entity_type" do
+      it 'sets/gets entity type' do
+        @f.entity_type = :foo
+        @f.entity_type.should == :foo
+      end
+    end
+
+    describe "#start_bot" do
+      it "starts construction" do
+        @f.should_receive :start_construction
+        @f.start_bot
+      end
+
+      it "registeres :received event handler" do
+        @f.start_bot
+        @f.handles?(:received).should be_true
+      end
+
+      context "resources received" do
+        it "starts construction" do
+          @f.should_receive(:start_construction).twice
+          @f.start_bot
+          @f.raise_event(:received)
+        end
+      end
+    end
+
+    describe "#start_construction" do
+      it "generates new id"
+
+      context "station cannot construct entity" do
+        it "does nothing" do
+          @f.should_receive(:can_construct?).and_return(false)
+          @f.should_not_receive :construct
+          @f.start_construction
+        end
+      end
+
+      context "station can construct entity" do
+        it "constructs entity" do
+          @f.should_receive(:can_construct?).and_return(true)
+          @f.should_receive :construct
+          @f.start_construction
+        end
+      end
+    end
+
+    describe "#pick_system" do
+      it "retrieves systems with no stations" do
+        s = create(:solar_system)
+        SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
+        s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(s)
+        @f.pick_system
+      end
+
+      context "all systems have stations" do
+        it "retrieves system with fewest stations" do
+          s = create(:solar_system)
+          SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
+          s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(nil)
+          SolarSystem.should_receive(:with_fewest).with('Manufactured::Station').and_return(s)
+          @f.pick_system
+        end
+      end
+
+      it "jumps to system" do
+        s1 = build(:solar_system)
+        s = stub(SolarSystem, :id => 42)
+        SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
+        s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(s1)
+        @f.should_receive(:jump_to).with(s1)
+        @f.pick_system
+      end
+    end
+
+    describe "#construction_args" do
+      it "generates construction arguments from entity type"
+    end
   end
 end # module Omega::Client
-
-#  it "should construct entities" do
-#    cstat3 = Omega::Client::Factory.get('station3')
-#
-#    cstat3.construct 'Manufactured::Ship', :type => :mining, :id => 'fooship'
-#    sleep(Manufactured::Ship.construction_time(:mining)+1)
-#    Manufactured::Registry.instance.ships.find { |s| s.id == 'fooship' }.should_not be_nil
-#    # TODO detect constructed event
-#  end
-#
-#  it "should pick system to jump to" do
-#    FactoryGirl.build(:sys1)
-#    FactoryGirl.build(:sys2)
-#
-#    cstat3 = Omega::Client::Factory.get('station3')
-#    cstat3.pick_system
-#    cstat3.solar_system.name.should == 'sys3'
-#  end
-#
-#  it "should start construction cycle" do
-#    sship6 = FactoryGirl.build(:ship6)
-#    cship6 = Omega::Client::Ship.get('ship6')
-#
-#    sstat8 = Manufactured::Registry.instance.find(:id => 'station8').first
-#    cstat8 = Omega::Client::Factory.get('station8')
-#    cstat8.entity_type 'miner'
-#
-#    olds =  Manufactured::Registry.instance.ships.length
-#    cstat8.start_construction
-#    Manufactured::Registry.instance.ships.length.should == olds
-#
-#    sstat8.add_resource('metal-rock', 100)
-#    cstat8 = Omega::Client::Factory.get('station8')
-#    cstat8.entity_type 'miner'
-#    cstat8.start_construction
-#    sleep(Manufactured::Ship.construction_time(:mining)+1)
-#    Manufactured::Registry.instance.ships.length.should == olds + 1
-#
-#    olds =  Manufactured::Registry.instance.ships.length
-#    cstat8 = Omega::Client::Factory.get('station8')
-#    cstat8.entity_type 'miner'
-#    cstat8.start_construction
-#    Manufactured::Registry.instance.ships.length.should == olds
-#
-#    olds =  Manufactured::Registry.instance.ships.length
-#    cstat8 = Omega::Client::Factory.get('station8')
-#    cstat8.entity_type 'miner'
-#    cship6.transfer(100, :of => 'metal-steel', :to => cstat8)
-#    Manufactured::Registry.instance.ships.length.should == olds
-#  end
-#end
-#

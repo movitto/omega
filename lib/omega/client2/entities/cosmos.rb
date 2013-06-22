@@ -35,16 +35,15 @@ module Omega
       # *note* this will only consider systems w/ entities, systems
       # w/ none of the specified entity will not be returned
       #
-      # @param [String] entity_type type of entity to retrieve,
-      #   currently only accepts Manufactured::Station
+      # @param [Hash] args used to filter system retrieved
       # @return [Cosmos::Entities::SolarSystem,nil] system with the fewest entities
       #   or nil if none found
-      def self.with_fewest(entity_type)
+      def self.with_fewest(args={})
         systems = []
-        if(entity_type == "Manufactured::Station")
+        if(args[:type] == "Manufactured::Station")
           systems +=
-            Manufactured::Station.owned_by(Node.user.id).map { |s|
-              [s.system_name, s.solar_system]
+            Omega::Client::Station.owned_by(args[:owned_by]).map { |s|
+              [s.system_id, s.solar_system]
             }
         end
 
@@ -62,22 +61,22 @@ module Omega
       # This will issue a server side request to retrieve
       # entities and systems
       #
-      # @param [String] entity_type type of entity to retrieve,
-      #   currently only accepts Manufactured::Station
+      # @param [Hash] args used to filter systems retrieved
       # @return [Cosmos::Entities::SolarSystem,nil] closest system with no entities
       #   or nil
-      def closest_neighbor_with_no(entity_type)
+      def closest_neighbor_with_no(args={})
         entities = []
-        entities = Manufactured::Station.owned_by(Node.user.id) if(entity_type == "Manufactured::Station")
+        entities = Omega::Client::Station.owned_by(args[:owned_by]) if(args[:type] == "Manufactured::Station")
 
         systems = [self]
         systems.each { |sys|
           # TODO sort jumpgates by distance from sys to endpoint
           sys.jump_gates.each { |jg|
-            if entities.find { |e| e.solar_system.name == jg.endpoint.name }.nil?
-              return jg.endpoint
+            endpoint = Omega::Client::SolarSystem.get(jg.endpoint_id)
+            if entities.find { |e| e.system_id == jg.endpoint_id }.nil?
+              return endpoint
             elsif !systems.include?(jg.endpoint)
-              systems << jg.endpoint
+              systems << endpoint
             end
           }
         }

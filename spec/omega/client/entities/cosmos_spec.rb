@@ -36,9 +36,10 @@ module Omega::Client
           sys2 = create(:solar_system)
           s1 = create(:valid_station, :user_id => @login_user.id, :solar_system => sys1)
 
-          sys = Omega::Client::SolarSystem.with_fewest "Manufactured::Station"
+          sys = Omega::Client::SolarSystem.with_fewest :type => "Manufactured::Station",
+                                                       :owned_by => @login_user.id
           sys.should_not be_nil
-          sys.id.should == 'sys2'
+          sys.id.should == sys1.id
         end
       end
     end
@@ -51,10 +52,11 @@ module Omega::Client
           sys3 = create(:solar_system)
           create(:jump_gate, :solar_system => sys1, :endpoint => sys2)
           create(:jump_gate, :solar_system => sys1, :endpoint => sys3)
-          s1 = create(:valid_station, :solar_system => sys2)
+          s1 = create(:valid_station, :solar_system => sys2, :user_id => @login_user.id)
 
           c = Omega::Client::SolarSystem.get(sys1.id)
-          n = c.closest_neighbor_with_no "Manufactured::Station"
+          n = c.closest_neighbor_with_no :type => "Manufactured::Station",
+                                         :owned_by => @login_user.id
           n.id.should == sys3.id
         end
       end
@@ -64,10 +66,11 @@ module Omega::Client
           sys1 = create(:solar_system)
           sys2 = create(:solar_system)
           create(:jump_gate, :solar_system => sys1, :endpoint => sys2)
-          s1 = create(:valid_station, :solar_system => sys2)
+          s1 = create(:valid_station, :solar_system => sys2, :user_id => @login_user.id)
 
           c = Omega::Client::SolarSystem.get(sys1.id)
-          n = c.closest_neighbor_with_no "Manufactured::Station"
+          n = c.closest_neighbor_with_no :type => "Manufactured::Station",
+                                         :owned_by => @login_user.id
           n.should be_nil
         end
       end
