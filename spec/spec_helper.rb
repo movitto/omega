@@ -275,31 +275,6 @@ module OmegaTest
     RAND_COLOR     = proc { }
   end
   
-  #class Ship
-  #  include Omega::Client::Trackable
-  #  include Omega::Client::TrackState
-  #  include Omega::Client::InSystem
-  #  include Omega::Client::HasLocation
-  #  include Omega::Client::InteractsWithEnvironment
-  #
-  #  entity_type Manufactured::Ship
-  #  get_method "manufactured::get_entity"
-  #
-  #  entity_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
-  #                                              :notification => "manufactured::event_occurred" }
-  #
-  #  attr_reader :test_setup_args
-  #  attr_reader :test_setup_invoked
-  #
-  #  entity_event :test =>
-  #    { :setup =>
-  #      lambda { |*args|
-  #        @test_setup_args = args
-  #        @test_setup_invoked = true
-  #      }
-  #    }
-  #end
-  #
   #class Station
   #  include Omega::Client::Trackable
   #  include Omega::Client::TrackState

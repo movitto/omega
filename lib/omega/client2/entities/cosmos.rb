@@ -5,23 +5,24 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/client2/mixins'
-require 'cosmos'
+require 'cosmos/entities/galaxy'
+require 'cosmos/entities/solar_system'
 
 module Omega
   module Client
-    # Omega client Cosmos::Galaxy tracker
+    # Omega client Cosmos::Entities::Galaxy tracker
     class Galaxy
-      include RemotelyTrackable
+      include Trackable
 
-      entity_type  Cosmos::Galaxy
+      entity_type  Cosmos::Entities::Galaxy
       get_method   "cosmos::get_entity"
     end
 
-    # Omega client Cosmos::SolarSystem tracker
+    # Omega client Cosmos::Entities::SolarSystem tracker
     class SolarSystem
-      include RemotelyTrackable
+      include Trackable
 
-      entity_type  Cosmos::SolarSystem
+      entity_type  Cosmos::Entities::SolarSystem
       get_method   "cosmos::get_entity"
 
       # Conveniency utility to return the system containing
@@ -36,13 +37,13 @@ module Omega
       #
       # @param [String] entity_type type of entity to retrieve,
       #   currently only accepts Manufactured::Station
-      # @return [Cosmos::SolarSystem,nil] system with the fewest entities
+      # @return [Cosmos::Entities::SolarSystem,nil] system with the fewest entities
       #   or nil if none found
       def self.with_fewest(entity_type)
         systems = []
         if(entity_type == "Manufactured::Station")
           systems +=
-            Station.owned_by(Node.user.id).map { |s|
+            Manufactured::Station.owned_by(Node.user.id).map { |s|
               [s.system_name, s.solar_system]
             }
         end
@@ -63,11 +64,11 @@ module Omega
       #
       # @param [String] entity_type type of entity to retrieve,
       #   currently only accepts Manufactured::Station
-      # @return [Cosmos::SolarSystem,nil] closest system with no entities
+      # @return [Cosmos::Entities::SolarSystem,nil] closest system with no entities
       #   or nil
       def closest_neighbor_with_no(entity_type)
         entities = []
-        entities = Station.owned_by(Node.user.id) if(entity_type == "Manufactured::Station")
+        entities = Manufactured::Station.owned_by(Node.user.id) if(entity_type == "Manufactured::Station")
 
         systems = [self]
         systems.each { |sys|
@@ -91,7 +92,7 @@ module Omega
     #
     # @example
     #   class Ship
-    #     include RemotelyTrackable
+    #     include Trackable
     #     include HasLocation
     #     include InSystem
     #     entity_type Manufactured::Ship
@@ -104,7 +105,7 @@ module Omega
     module InSystem
       # Always return latest system
       #
-      # @return [Cosmos::SolarSystem]
+      # @return [Cosmos::Entities::SolarSystem]
       def solar_system
         SolarSystem.get(self.entity.parent_id)
       end
@@ -119,30 +120,29 @@ module Omega
       # @option args [true,false] :user_owned boolean indicating if we should only return
       #   entities owned by the logged in user
       # @return [Array<Object>] entities in local registry matching criteria
-      #def closest(type, args = {})
-      #  entities = []
-      #  if(type == :station)
-      #    user_owned = args[:user_owned] ? lambda { |eid, e| e.user_id == Node.user.id } :
-      #                                     lambda { |eid, e| true }
-      #    entities = 
-      #      Node.select { |eid,e| e.is_a?(Manufactured::Station) &&
-      #                            e.location.parent_id == self.location.parent_id }.
-      #           select(&user_owned).
-      #           collect { |eid,e| e }.
-      #           sort    { |a,b| (self.location - a.location) <=>
-      #                           (self.location - b.location) }
+      def closest(type, args = {})
+        entities = []
+        if(type == :station)
+          #user_owned = args[:user_owned] ? lambda { |e| e.user_id == Node.user.id } :
+          #                                 lambda { |e| true }
+          entities = 
+            Omega::Client::Station.entities.select { |e|
+              e.location.parent_id == self.location.parent_id
+            }.#select(&user_owned).
+              sort    { |a,b| (self.location - a.location) <=>
+                              (self.location - b.location) }
 
-      #  elsif(type == :resource)
-      #    entities = 
-      #      self.solar_system.asteroids.select { |ast|
-      #        ast.resource_sources.find { |rs| rs.quantity > 0 }
-      #      }.flatten.sort { |a,b|
-      #        (self.location - a.location) <=> (self.location - b.location)
-      #      }
-      #  end
+        elsif(type == :resource)
+          entities = 
+            self.solar_system.asteroids.select { |ast|
+              ast.resources.find { |rs| rs.quantity > 0 }
+            }.flatten.sort { |a,b|
+              (self.location - a.location) <=> (self.location - b.location)
+            }
+        end
 
-      #  entities
-      #end
+        entities
+      end
 
       # Issue server side call to move entity to specified destination,
       # optionally registering callback to be invoked when it gets there.
@@ -178,14 +178,13 @@ module Omega
       def stop_moving
         RJR::Logger.info "Stopping movement of #{self.id}"
         node.invoke 'manufactured::stop_entity', self.id
-        clear_handlers_for :movement
       end
 
       # Invoke a server side request to jump to the specified system
       #
       # Raises the :jumped event on entity
       #
-      # @param [Cosmos::SolarSystem,Omega::Client::SolarSystem,String] system system or name of system which to jump to
+      # @param [Cosmos::Entities::SolarSystem,Omega::Client::SolarSystem,String] system system or name of system which to jump to
       def jump_to(system)
         system =
           node.invoke('cosmos::get_entity',
@@ -207,7 +206,7 @@ module Omega
     #
     # @example
     #   class MiningShip
-    #     include RemotelyTrackable
+    #     include Trackable
     #     include HasCargo
     #     include InSystem
     #     include InteractsWithEnvironment
@@ -235,13 +234,13 @@ module Omega
       # a related error, it will be reraised here
       #
       # @param [Resource] resource resource to transfer
-      # @option [Entity] entity to transfer resource to
-      def transfer(resource, entity)
-        RJR::Logger.info "Transferring #{resource} to #{entity}"
+      # @option [Entity] target entity to transfer resource to
+      def transfer(resource, target)
+        RJR::Logger.info "Transferring #{resource} to #{target}"
         node.invoke 'manufactured::transfer_resource',
                      self.id, target.id, resource
         self.raise_event(:transferred, self,   target, resource)
-        self.raise_event(:received,    target, self,   resource)
+        #self.raise_event(:received,    target, self,   resource)
       end
     end
 

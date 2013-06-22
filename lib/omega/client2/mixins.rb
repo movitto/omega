@@ -67,10 +67,14 @@ module Omega
 
       # Raise event on the entity, invoke registered handlers
       def raise_event(event, *eargs)
-        # FIXME also run 'all' callbacks
         @event_handlers[event].each { |eh|
           eh.call self, *eargs
         } if @event_handlers && @event_handlers[event]
+
+        # run :all callbacks
+        @event_handlers[:all].each { |eh|
+          eh.call self, *eargs
+        } if @event_handlers && @event_handlers[:all]
       end
 
       # Helper, access class.node
@@ -92,7 +96,10 @@ module Omega
         # Define server side entity type to track
         def entity_type(type=nil)
           @entity_type = type unless type.nil?
-          @entity_type
+          @entity_type.nil? ? 
+            (self.superclass.respond_to?(:entity_type) ?
+             self.superclass.entity_type : nil) :
+             @entity_type
         end
 
         # Register a method to be invoked after serverside entit(y|ies)
@@ -108,7 +115,10 @@ module Omega
         #   end
         def entity_validation(&bl)
           @entity_validation ||= []
-          @entity_validation << bl
+          @entity_validation << bl unless bl.nil?
+          @entity_validation +
+            (self.superclass.respond_to?(:entity_validation) ?
+             self.superclass.entity_validation : [])
         end
 
         # Register a method to be invoked after instance of this class
@@ -120,13 +130,18 @@ module Omega
         def entity_init(&bl)
           @entity_init ||= []
           @entity_init << bl unless bl.nil?
-          @entity_init
+          @entity_init +
+            (self.superclass.respond_to?(:entity_init) ?
+             self.superclass.entity_init : [])
         end
 
         # Get/set the method used to retrieve serverside entities.
         def get_method(method_name=nil)
           @get_method = method_name unless method_name.nil?
-          @get_method
+          @get_method.nil? ? 
+            (self.superclass.respond_to?(:get_method) ?
+             self.superclass.get_method : nil) :
+             @get_method
         end
 
         # Manually get/set the event setup callbacks
@@ -135,7 +150,9 @@ module Omega
         def event_setup(callbacks=nil)
           @event_setup ||= {}
           @event_setup = callbacks unless callbacks.nil?
-          @event_setup
+
+          (self.superclass.respond_to?(:event_setup) ?
+           self.superclass.event_setup : {}).merge(@event_setup)
         end
 
         # Define an event on this entity type which clients can register
@@ -267,16 +284,16 @@ module Omega
 
         # Internal helper to invoke init callbacks on entity
         def init_entity(e)
-          return if @entity_init.nil?
-          @entity_init.each { |init_method|
+          return if self.entity_init.nil?
+          self.entity_init.each { |init_method|
             e.instance_exec(e, &init_method)
           }
         end
 
         # Internal helper to invoke entity validation method on entity
         def validate_entity(e)
-          return true if @entity_validation.nil?
-          @entity_validation.call(e)
+          return true if self.entity_validation.nil?
+          self.entity_validation.all? { |v| v.call(e) }
         end
       end
     end
@@ -405,7 +422,7 @@ module Omega
               @condition_checks[state] = args[:check]
             end
 
-            e.handle('all'){
+            e.handle(:all){
               #return if @updating_state
               #@updating_state = true
               @condition_checks.each { |st,check|
@@ -421,6 +438,46 @@ module Omega
         end
       end # module ClassMethods
     end # module TrackState
+
+    module TrackEntity
+      # The class methods below will be defined on the
+      # class including this module
+      #
+      # @see ClassMethods
+      def self.included(base)
+        @tracked_classes ||= []
+        @tracked_classes << base
+
+        base.extend(ClassMethods)
+
+        # On initialization register entities w/ registry,
+        # deleting old entity if it exists
+        base.entity_init { |e|
+          o = e.entities.find { |re| re.id == e.id }
+          e.entities.delete(o) unless o.nil?
+          e.entities << e
+        }
+      end
+
+      # Instance wrapper around entities registry
+      def entities
+        self.class.entities
+      end
+
+      # Return all entities in system w/ TrackEntity.entities
+      def self.entities
+        @tracked_classes.collect { |c| c.entities }.flatten
+      end
+
+      # Methods that are defined on the class including 
+      # the TrackState module
+      module ClassMethods
+        # Return entities registry, initializing it if it doesn't exist
+        def entities
+          @entities ||= []
+        end
+      end
+    end
 
   end # module Client
 end # module Omega

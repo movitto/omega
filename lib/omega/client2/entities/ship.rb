@@ -11,80 +11,37 @@
 #   - overwrite pending entity events w/ new events of the same type
 
 require 'omega/client2/mixins'
-require 'manufactured'
+require 'omega/client2/entities/location'
+require 'omega/client2/entities/cosmos'
+require 'manufactured/ship'
 
 module Omega
   module Client
     # Omega client Manufactured::Ship tracker
     class Ship
-      include RemotelyTrackable
+      include Trackable
+      include TrackEntity
       include HasLocation
       include InSystem
-      include InteractsWithEnvironment
+      include HasCargo
 
       entity_type  Manufactured::Ship
 
       get_method   "manufactured::get_entity"
 
-      server_event       :defended      => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" },
-                         :defended_stop => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" }
+      entity_event :defended      => { :subscribe    => "manufactured::subscribe_to",
+                                       :notification => "manufactured::event_occurred" },
+                   :defended_stop => { :subscribe    => "manufactured::subscribe_to",
+                                       :notification => "manufactured::event_occurred" }
 
-
-      # Mine the specified resource source.
-      #
-      # All server side mining restrictions apply, this method does
-      # not do any checks b4 invoking start_mining so if server raises
-      # a related error, it will be reraised here
-      #
-      # @param [Cosmos::ResourceSource] resource_source resource to start mining
-      #def mine(resource_source)
-      #  RJR::Logger.info "Starting to mine #{resource_source.resource.id} at #{resource_source.entity.name} with #{self.id}"
-
-      #  # handle resource collected of entity.mining quantity, invalidating
-      #  # client side cached copy of resource source
-      #  unless @track_resources
-      #    @track_resources = true
-      #    self.handle_event(:resource_collected) { |*args|
-      #      CachedAttribute.invalidate(args[2].entity.id, :resource_sources)
-      #    }
-      #  end
-
-      #  node.invoke 'manufactured::start_mining',
-      #             self.id, resource_source.entity.name,
-      #                      resource_source.resource.id
-
-      #  # XXX hack, mining target won't be set until next iteration
-      #  # of mining cycle loop
-      #  sleep Manufactured::Registry::MINING_POLL_DELAY + 0.1
-      #  self.get
-      #end
-
-      # Attack the specified target
-      #
-      # All server side attack restrictions apply, this method does
-      # not do any checks b4 invoking attack_entity so if server raises
-      # a related error, it will be reraised here
-      #
-      # @param [Manufactured::Ship,Manufactured::Station] target entity to attack
-      #def attack(target)
-      #  RJR::Logger.info "Starting to attack #{target.id} with #{self.id}"
-      #  Node.invoke_request 'manufactured::attack_entity', self.id, target.id
-
-      #  # XXX hack, do not return until next iteration of attack cycle
-      #  sleep Manufactured::Registry::ATTACK_POLL_DELAY + 0.1
-      #end
 
       # Dock at the specified station
-      # TODO test
       def dock_to(station)
         RJR::Logger.info "Docking #{self.id} at #{station.id}"
         node.invoke 'manufactured::dock', self.id, station.id
       end
 
       # Undock
-      # TODO test
       def undock
         RJR::Logger.info "Unocking #{self.id}"
         node.invoke 'manufactured::undock', self.id
@@ -97,17 +54,118 @@ module Omega
         RJR::Logger.info "Entity #{self.id} collecting loot #{loot.id}"
         node.invoke 'manufactured::collect_loot', self.id, loot.id
       end
+    end
 
+    # Omega client miner ship tracker
+    class Miner < Ship
+      include TrackState
+
+      entity_validation { |e| e.type == :mining }
+
+      entity_event  :resource_collected => { :subscribe    => "manufactured::subscribe_to",
+                                             :notification => "manufactured::event_occurred" },
+                    :mining_stopped     => { :subscribe    => "manufactured::subscribe_to",
+                                             :notification => "manufactured::event_occurred" }
+
+      server_state :cargo_full,
+        :check => lambda { |e| e.cargo_full?       },
+        :on    => lambda { |e| e.offload_resources },
+        :off   => lambda { |e| }
+
+      # Mine the specified resource
+      #
+      # All server side mining restrictions apply, this method does
+      # not do any checks b4 invoking start_mining so if server raises
+      # a related error, it will be reraised here
+      #
+      # @param [Cosmos::Resource] resourceresource to start mining
+      def mine(resource)
+        RJR::Logger.info "Starting to mine #{resource.id} with #{self.id}"
+
+        # handle resource collected of entity.mining quantity, invalidating
+        # client side cached copy of resource source
+        unless handles?(:resource_collected)
+          handle(:resource_collected) { |*args|
+            # TODO update resources locally, invalidate asteroid resources
+          }
+        end
+
+        node.invoke 'manufactured::start_mining', self.id, resource.id
+      end
+
+      # Start the omega client bot
+      def start_bot
+        handle(:mining_stopped) { |*args|
+          offload_resources
+        }
+
+        if cargo_full?
+          offload_resources
+        else
+          select_target
+        end
+      end
+
+      # Move to the closest station owned by user and transfer resources to it
+      def offload_resources
+        st = closest(:station).first
+        if st.location - self.location < self.transfer_distance
+          transfer_all_to(st)
+          self.select_target
+
+        else
+          Node.raise_event(:moving_to, self, st)
+          move_to(:destination => st) { |*args|
+            transfer_all_to(st)
+            self.select_target
+          }
+        end
+      end
+
+      # Select next resource, move to it, and commence mining
+      def select_target
+        rs = closest(:resource).first
+        if rs.nil?
+          Node.raise_event(:no_resources, self)
+          return
+        else
+          Node.raise_event(:selected_resource, self, rs)
+        end
+
+        if rs.location - self.location < self.mining_distance
+          rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
+
+          # server resource may by depleted at any point, 
+          # need to catch errors, and try elsewhere
+          begin
+            mine(rs)
+          rescue Exception => e
+            select_target
+          end
+
+        else
+          dst = self.mining_distance / 4
+          nl  = rs.location + [dst,dst,dst]
+          rs  = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
+          move_to(:location => nl) { |*args|
+            begin
+              mine(rs)
+            rescue Exception => e
+              select_target
+            end
+          }
+        end
+      end
     end
 
     # Omega client corvette ship tracker
-    #class Corvette < Ship
-    #  entity_validation { |e| e.type == :corvette }
+    class Corvette < Ship
+      entity_validation { |e| e.type == :corvette }
 
-    #  server_event       :attacked      => { :subscribe    => "manufactured::subscribe_to",
-    #                                         :notification => "manufactured::event_occurred" },
-    #                     :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
-    #                                         :notification => "manufactured::event_occurred" }
+      entity_event       :attacked      => { :subscribe    => "manufactured::subscribe_to",
+                                             :notification => "manufactured::event_occurred" },
+                         :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
+                                             :notification => "manufactured::event_occurred" }
 
     #  # Run proximity checks via an external thread for all corvettes
     #  # upon first corvette intialization
@@ -127,6 +185,21 @@ module Omega
     #      end
     #    }
     #  }
+
+      # Attack the specified target
+      #
+      # All server side attack restrictions apply, this method does
+      # not do any checks b4 invoking attack_entity so if server raises
+      # a related error, it will be reraised here
+      #
+      # @param [Manufactured::Ship,Manufactured::Station] target entity to attack
+      #def attack(target)
+      #  RJR::Logger.info "Starting to attack #{target.id} with #{self.id}"
+      #  Node.invoke_request 'manufactured::attack_entity', self.id, target.id
+
+      #  # XXX hack, do not return until next iteration of attack cycle
+      #  sleep Manufactured::Registry::ATTACK_POLL_DELAY + 0.1
+      #end
 
     #  # Start the omega client bot
     #  def start_bot
@@ -183,92 +256,6 @@ module Omega
     #      end
     #    }
     #  end
-    #end
-
-    ## Omega client miner ship tracker
-    #class Miner < Ship
-    #  include TrackState
-
-    #  entity_validation { |e| e.type == :mining }
-
-    #  server_event       :resource_collected => { :subscribe    => "manufactured::subscribe_to",
-    #                                              :notification => "manufactured::event_occurred" },
-    #                     :mining_stopped     => { :subscribe    => "manufactured::subscribe_to",
-    #                                              :notification => "manufactured::event_occurred" }
-
-    #  server_state :cargo_full,
-    #    :check => lambda { |e| e.cargo_full?       },
-    #    :on    => lambda { |e| e.offload_resources },
-    #    :off   => lambda { |e|}
-
-    #  # Start the omega client bot
-    #  def start_bot
-    #    handle_event(:mining_stopped) { |*args|
-    #      offload_resources
-    #    }
-
-    #    if self.cargo_full?
-    #      offload_resources
-    #    else
-    #      select_target
-    #    end
-    #  end
-
-    #  #private
-
-    #  # Internal helper, move to the closest station owned by user and
-    #  # transfer resources to it
-    #  def offload_resources
-    #    st = closest(:station).first
-    #    if st.location - self.location < self.transfer_distance
-    #      transfer_all_to(st)
-    #      self.select_target
-
-    #    else
-    #      Node.raise_event(:moving_to, self, st)
-    #      move_to(:destination => st) { |*args|
-    #        transfer_all_to(st)
-    #        self.select_target
-    #      }
-    #    end
-    #  end
-
-    #  # Internal helper, select next resource, move to it, and commence mining
-    #  def select_target
-    #    rs = closest(:resource).first
-    #    if rs.nil?
-    #      Node.raise_event(:no_resources, self)
-    #      return
-    #    else
-    #      Node.raise_event(:selected_resource, self, rs)
-    #    end
-
-    #    if rs.location - self.location < self.mining_distance
-    #      rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
-
-    #      # server resource may by depleted at any point, 
-    #      # need to catch errors, and try elsewhere
-    #      begin
-    #        mine(rs)
-    #      rescue Exception => e
-    #        select_target
-    #      end
-
-    #    else
-    #      dst = self.mining_distance / 4
-    #      nl  = rs.location + [dst,dst,dst]
-    #      rs  = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
-    #      move_to(:location => nl) { |*args|
-    #        begin
-    #          mine(rs)
-    #        rescue Exception => e
-    #          select_target
-    #        end
-    #      }
-    #    end
-    #  end
-
-    #end
-
+    end
   end
 end

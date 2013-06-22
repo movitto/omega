@@ -4,288 +4,213 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'omega/client2/entities/ship'
 
-#RJR::Logger.log_level = ::Logger::INFO
-
-describe Omega::Client::Ship do
-  before(:each) do
-    @ship1    = FactoryGirl.build(:ship1)
-    @ship2    = FactoryGirl.build(:ship2)
-    @station1 = FactoryGirl.build(:station1)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_LOCATIONS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-  end
-
-  it "should be remotely trackable" do
-    cship2 = Omega::Client::Ship.get('ship2')
-    cship2.id.should == @ship2.id
-    cship2.object_id.should_not == @ship2.object_id
-  end
-
-  it "should have remotely trackable location" do
-    nloc = @ship2.location + [100, 0, 0]
-    cship2 = Omega::Client::Ship.get('ship2')
-    times_invoked = 0
-    cship2.handle_event(:movement, 1) { |loc|
-      loc.id.should == cship2.location.id
-      times_invoked += 1
-    }
-
-    Omega::Client::Node.invoke_request('manufactured::move_entity', @ship2.id, nloc)
-    sleep 3
-    times_invoked.should >= 1
-  end
-
-  it "should be in a system" do
-    cstat1 = Omega::Client::Station.get('station1')
-    cship2 = Omega::Client::Ship.get('ship2')
-    cship2.solar_system.name.should == @ship2.system_name
-    cship2.closest(:station).first.id.should == cstat1.id
-
-    nloc = @ship2.location + [100, 0, 0]
-    cship2.move_to :location => nloc
-    Manufactured::Registry.instance.ships.find { |s| s.id == @ship2.id }.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
-  end
-
-  it "should interact with environment" do
-    cship1 = Omega::Client::Ship.get('ship1')
-    cship2 = Omega::Client::Ship.get('ship2')
-    transferred_event = false
-    cship2.handle_event(:transferred) { |from, to, rs, q|
-      transferred_event = true
-    }
-    cship2.transfer 50, :of => 'metal-alluminum', :to => cship1
-    sleep 0.1
-    Manufactured::Registry.instance.ships.find { |s| s.id == @ship2.id }.resources.should be_empty
-    Manufactured::Registry.instance.ships.find { |s| s.id == @ship1.id }.resources.should_not be_empty
-    transferred_event.should be_true
-    # TODO test defended events
-  end
-end
-
-describe Omega::Client::Miner do
-  before(:each) do
-    @ship1    = FactoryGirl.build(:ship1)
-    @ship2    = FactoryGirl.build(:ship2)
-    @ship5    = FactoryGirl.build(:ship5)
-    @ship6    = FactoryGirl.build(:ship6)
-    @ship7    = FactoryGirl.build(:ship7)
-    @ship9    = FactoryGirl.build(:ship9)
-    @stat5    = FactoryGirl.build(:station5)
-    @stat6    = FactoryGirl.build(:station6)
-
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-
-  end
-
-  it "should validate ship type" do
-    sh1 = Omega::Client::Miner.get('ship1')
-    sh2 = Omega::Client::Miner.get('ship2')
-    sh1.should be_nil
-    sh2.should_not be_nil
-  end
-
-  # test resource_collected, mining_stopped
-
-  it "should detect cargo state" do
-    # XXX need to preload a client station for 'closest' call in miner
-    cstat5 = Omega::Client::Station.get('station5')
-
-    cship5 = Omega::Client::Ship.get('ship5')
-    cship6 = Omega::Client::Miner.get('ship6')
-
-    cship6.transfer 100, :of => 'metal-steel', :to => cship5
-    sleep 0.1
-    cship6.cargo_full?.should be_false
-    cship6.instance_variable_get(:@current_states).should_not include(:cargo_full)
-
-    cship5.transfer 100, :of => 'metal-steel', :to => cship6
-    sleep 0.1
-    cship6.cargo_full?.should be_true
-    cship6.instance_variable_get(:@current_states).should include(:cargo_full)
-  end
-
-  it "should offload resources" do
-    # load client entities
-    cstat6 = Omega::Client::Station.get('station6')
-    cship6 = Omega::Client::Miner.get('ship6')
-
-    invoked = false
-    cship6.handle_event(:moving_to) do
-      invoked = true
+module Omega::Client
+  describe Ship do
+    before(:each) do
+      Omega::Client::Ship.node.rjr_node = @n
+      @s = Omega::Client::Ship.new
     end
 
-    cship6.offload_resources
-    cship6.resources.should be_empty
-    cstat6.resources.keys.should include('metal-steel')
-    cstat6.resources['metal-steel'].should == 100
-    invoked.should == false
-
-    # ensure moving to next mining target
-    cship6.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
-  end
-
-  it "should move to offload resources" do
-    # load client entities
-    cstat5 = Omega::Client::Station.get('station5')
-    cship3 = Omega::Client::Miner.get('ship3')
-
-    invoked = false
-    cship3.handle_event(:moving_to) do |sh, st|
-      invoked = true
+    describe "#dock_to" do
+      it "invokes manufactured::dock" do
+        st = build(:station)
+        @s.stub(:id).and_return(42)
+        @s.node.should_receive(:invoke).
+                with('manufactured::dock', 42, st.id)
+        @s.dock_to(st)
+      end
     end
 
-    cship3.offload_resources
-    cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
-    sleep 0.1
-    invoked.should == true
-    # TODO should do this but adds over a minute to tests, perhaps move locations closer
-    #time = ((cship6.location - cstat5.location) / cship6.location.movement_strategy.speed) + 1
-    #sleep time
-    #cship6.resources.should be_empty
-    #cstat6.resources.keys.should include('metal-steel')
-    #cstat6.resources['metal-steel'].should == 100
-  end
+    describe "#undock" do
+      it "invokes manufactured::undock" do
+        @s.stub(:id).and_return(42)
+        @s.node.should_receive(:invoke).
+                with('manufactured::undock', 42)
+        @s.undock
+      end
+    end
 
-  it "should select mining target" do
-    cship7 = Omega::Client::Miner.get('ship7')
+    describe "#collect_loot" do
+      it "invokes manufactured::collect_loot" do
+        l = build(:loot)
+        @s.stub(:id).and_return(42)
+        @s.node.should_receive(:invoke).
+                with('manufactured::collect_loot', 42, l.id)
+        @s.collect_loot(l)
+      end
+    end
+  end # describe Ship
 
-    handler_called = false
-    Omega::Client::Node.add_event_handler('ship7', :selected_resource) { |ship, entity|
-      handler_called = true
-      ship.id.should == 'ship7'
-      entity.name.should == 'ast2'
-    }
+  describe Miner do
+    before(:each) do
+      Omega::Client::Miner.node.rjr_node = @n
+      @m = Omega::Client::Miner.new
 
-    cship7.select_target
-    cship7.mining?.should be_true
-    cship7.mining.entity.name.should == 'ast2'
-    sleep 0.1
-    handler_called.should be_true
-  end
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+    end
 
-  it "should raise no_resources if no resources found" do
-    cship9 = Omega::Client::Miner.get('ship9')
+    describe "#validatation" do
+      it "ensures ship.type == :mining" do
+        s1 = create(:valid_ship, :type => :mining)
+        s2 = create(:valid_ship, :type => :frigate)
+        r = Miner.get_all
+        r.size.should == 1
+        r.first.id.should == s1.id
+      end
+    end
 
-    handler_called = false
-    Omega::Client::Node.add_event_handler('ship9', :no_resources) { |ship|
-      handler_called = true
-      ship.id.should == 'ship9'
-    }
+    describe "#cargo_full" do
+      before(:each) do
+        s = create(:valid_ship, :type => :mining)
+        @r = Miner.get(s.id)
+      end
 
-    cship9.select_target
-    sleep 0.1
-    handler_called.should be_true
-  end
+      context "entity cargo full" do
+        it "sets entity to :cargo_full state" do
+          @r.should_receive(:cargo_full?).and_return(true)
+          @r.raise_event(:anything)
+          @r.states.should include(:cargo_full)
+        end
 
-  it "should move to next mining target" do
-    # XXX need to preload a client station for 'closest' call in miner
-    cstat5 = Omega::Client::Station.get('station5')
+        it "offloads resources" do
+          @r.should_receive(:cargo_full?).and_return(true)
+          @r.should_receive :offload_resources
+          @r.raise_event(:anything)
+        end
+      end
 
-    cship3 = Omega::Client::Miner.get('ship3')
+      context "entity cargo not full" do
+        it "removes entity from :cargo_full state" do
+          @r.should_receive(:cargo_full?).and_return(false)
+          @r.raise_event(:anything)
+          @r.states.should_not include(:cargo_full)
+        end
+      end
+    end
 
-    cship3.select_target
-    cship3.location.movement_strategy.class.should == Motel::MovementStrategies::Linear
-    # TODO sleep & then verify mining
-  end
+    describe "#mine" do
+      before(:each) do
+        s = create(:valid_ship, :type => :mining)
+        @rs = create(:resource)
+        @r = Miner.get(s.id)
+      end
 
-  it "should offload resource when starting w/ full cargo" do
-    # load client entities
-    cstat6 = Omega::Client::Station.get('station6')
-    cship6 = Omega::Client::Miner.get('ship6')
-    cship6.should_receive(:offload_resources)
+      it "adds resource collected handler" do
+        @r.event_handlers[:resource_collected].size.should == 0
+        @r.mine @rs
+        @r.event_handlers[:resource_collected].size.should == 1
+        @r.mine @rs
+        @r.event_handlers[:resource_collected].size.should == 1
+      end
 
-    cship6.start_bot
-  end
+      context "resource collected" do
+        it "TODO"
+      end
 
-  it "should select target when starting w/out full cargo" do
-    # load client entities
-    cstat5 = Omega::Client::Station.get('station5')
-    cship3 = Omega::Client::Miner.get('ship3')
-    cship3.should_receive(:select_target)
+      it "invokes manufactured::start_mining" do
+        @n.should_receive(:invoke).with 'manufactured::subscribe_to', @r.id, :resource_collected
+        @n.should_receive(:invoke).with 'manufactured::start_mining', @r.id, @rs.id
+        @r.mine @rs
+      end
+    end
 
-    cship3.start_bot
-  end
+    describe "#start_bot" do
+      before(:each) do
+        s = create(:valid_ship, :type => :mining)
+        @r = Miner.get(s.id)
+      end
 
-  it "should offload resources on mining stopped" do
-    # load client entities
-    cstat6 = Omega::Client::Station.get('station6')
-    cship6 = Omega::Client::Miner.get('ship6')
-    cship6.should_receive(:offload_resources)
-    cship6.start_bot
-    Omega::Client::Node.raise_event(:mining_stopped, 'cargo_full', cship6, nil)
-  end
+      it "adds mining stopped handler" do
+        @r.event_handlers[:mining_stopped].size.should == 0
+        @r.start_bot 
+        @r.event_handlers[:mining_stopped].size.should == 1
+      end
 
-  it "should handle mining errors" do
-    # load client entities
-    cship7 = Omega::Client::Miner.get('ship7')
+      context "cargo full" do
+        it "offloads resources" do
+          @r.should_receive(:cargo_full?).and_return(true)
+          @r.should_receive(:offload_resources)
+          @r.start_bot
+        end
+      end
 
-    cship7.select_target
+      context "cargo not full" do
+        it "selects mining target" do
+          @r.should_receive(:cargo_full?).and_return(false)
+          @r.should_receive(:select_target)
+          @r.start_bot
+        end
+      end
+    end
 
-    Cosmos::Registry.instance.set_resource(cship7.mining.entity.name, cship7.mining.resource, 0)
-    cship7.should_receive(:select_target)
-    cship7.select_target
-  end
-end
+    describe "#offload_resources" do
+      it "selects closest station"
 
-describe Omega::Client::Corvette do
-  before(:each) do
-    @ship2    = FactoryGirl.build(:ship2)
-    @ship4    = FactoryGirl.build(:ship4)
+      context "closest station is within transfer distance" do
+        it "transfers resources"
+        it "selects mining target"
+      end
 
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_COSMOS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_VIEW,
-                           Omega::Roles::ENTITIES_LOCATIONS)
-    TestUser.add_privilege(Omega::Roles::PRIVILEGE_MODIFY,
-                           Omega::Roles::ENTITIES_MANUFACTURED)
-  end
+      it "moves to closest station"
 
-  it "should validate ship type" do
-    sh2 = Omega::Client::Corvette.get('ship2')
-    sh4 = Omega::Client::Corvette.get('ship4')
-    sh2.should be_nil
-    sh4.should_not be_nil
-  end
+      context "arrived at closest station" do
+        it "transfers resources"
+        it "selects mining target"
+      end
+    end
 
-  it "should run patrol route" do
-    cship4 = Omega::Client::Corvette.get('ship4')
-    cship4.start_bot # sets up variables then calls patrol_route
-    visited  = cship4.instance_variable_get(:@visited)
-    to_visit = cship4.instance_variable_get(:@to_visit)
-    visited.should include(cship4.solar_system)
-    # TODO test to_visit and visiting
-  end
+    describe "#select_target" do
+      it "selects closest resource"
 
-  it "should check proximity for enemies" do
-    cship4 = Omega::Client::Corvette.get('ship4')
-    cship4.check_proximity
-    ac = Manufactured::Registry.instance.attack_commands.find { |i,ac| ac.attacker.id == 'ship4' }.last
-    ac.should_not be_nil
-    ac.attacker.id.should == 'ship4'
-    ac.defender.id.should == 'ship5'
-    # TODO test attacked events
-    # TODO resume patrol route after attack_stop
-  end
+      context "no resources found" do
+        it "raises no_resources event"
+        it "just returns"
+      end
 
-  it "should start proximity loop" do
-    cship4 = Omega::Client::Corvette.get('ship4')
-    Omega::Client::Corvette.class_variable_get(:@@corvettes).should include(cship4)
-    Omega::Client::Corvette.class_variable_get(:@@proximity_thread).should_not be_nil
-    # TODO ensure check_proximity is actually being called
-  end
+      it "raises selected_resource event"
 
-end
+      context "closest resource withing mining distance" do
+        it "starts mining resource"
+      end
+
+      context "error during mining" do
+        it "selects mining target"
+      end
+
+      it "moves to closes resource"
+      
+      context "arrived at closest resource" do
+        it "starts mining resource"
+
+        context "error during mining" do
+          it "selects mining target"
+        end
+      end
+    end
+
+  end # describe Miner
+
+  describe Corvette do
+    before(:each) do
+      Omega::Client::Corvette.node.rjr_node = @n
+      @m = Omega::Client::Corvette.new
+
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+    end
+
+    describe "#validatation" do
+      it "ensures ship.type == :corvette" do
+        s1 = create(:valid_ship, :type => :corvette)
+        s2 = create(:valid_ship, :type => :frigate)
+        r = Corvette.get_all
+        r.size.should == 1
+        r.first.id.should == s1.id
+      end
+    end
+  end # describe Corvette
+
+end # module Omega::Client

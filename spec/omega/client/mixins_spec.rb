@@ -11,6 +11,7 @@ module OmegaTest
   class Trackable
     include Omega::Client::Trackable
     include Omega::Client::TrackState
+    include Omega::Client::TrackEntity
     entity_type Manufactured::Ship
     get_method "manufactured::get_entity"
   
@@ -104,13 +105,19 @@ module Omega::Client
         @t.raise_event :setup_event, 42
       end
 
-      it "invokes registered 'all' event handlers"
+      it "invokes registered 'all' event handlers" do
+        h = proc {}
+        @t.handle(:all, &h)
+
+        h.should_receive(:call).with(@t, 42)
+        @t.raise_event :anything, 42
+      end
     end
 
     describe "#entity_init" do
       it "registers entity initialization method" do
-        # one for track_state and one in class above
-        @t.class.entity_init.size.should ==  2
+        # one for track_state, one for track entity, and one in class above
+        @t.class.entity_init.size.should ==  3
       end
 
       context "entity intialization" do
@@ -364,8 +371,8 @@ module Omega::Client
         end
 
         it "registers callback for all entity events" do
-          @t.handles?('all').should be_true
-          @t.event_handlers['all'].size.should == 1
+          @t.handles?(:all).should be_true
+          @t.event_handlers[:all].size.should == 1
         end
       end
 
@@ -374,7 +381,7 @@ module Omega::Client
           it "sets state" do
             @t.instance_variable_get(:@condition_checks)[:test_state] = proc { |e| true }
             @t.should_receive(:set_state).with(:test_state)
-            @t.raise_event('all')
+            @t.raise_event(:anything)
           end
         end
 
@@ -382,10 +389,51 @@ module Omega::Client
           it "unsets state" do
             @t.instance_variable_get(:@condition_checks)[:test_state] = proc { |e| false }
             @t.should_receive(:unset_state).with(:test_state)
-            @t.raise_event('all')
+            @t.raise_event(:anything)
           end
         end
       end
     end
   end # describe TrackState
+
+  describe TrackEntity do
+    before(:each) do
+      OmegaTest::Trackable.node.rjr_node = @n
+      setup_manufactured(nil)
+      add_role @login_role, :superadmin
+    end
+
+    after(:each) do
+      OmegaTest::Trackable.entities.clear
+    end
+
+    context "entitiy initialization" do
+      it "registers entity w/ local registry" do
+        s = create(:valid_ship)
+        t = OmegaTest::Trackable.get(s.id)
+        OmegaTest::Trackable.entities.should == [t]
+      end
+
+      context "entity w/ id exists" do
+        it "deletes old entity" do
+          s = create(:valid_ship)
+          t1 = OmegaTest::Trackable.get(s.id)
+          t2 = OmegaTest::Trackable.get(s.id)
+          OmegaTest::Trackable.entities.should == [t2]
+        end
+      end
+    end
+
+    describe "entities" do
+      it "returns entity list" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
+        t1 = OmegaTest::Trackable.get(s1.id)
+        t2 = OmegaTest::Trackable.get(s2.id)
+        OmegaTest::Trackable.entities.should == [t1, t2]
+        t1.entities.should == OmegaTest::Trackable.entities
+        t2.entities.should == OmegaTest::Trackable.entities
+      end
+    end
+  end
 end # module Omega::Client

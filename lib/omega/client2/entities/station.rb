@@ -3,12 +3,20 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/client2/mixins'
+require 'omega/client2/entities/location'
+require 'omega/client2/entities/cosmos'
+require 'manufactured/station'
+
 module Omega
   module Client
     # Omega client Manufactured::Station tracker
     class Station
-      include RemotelyTrackable
+      include Trackable
+      include TrackEntity
+      include HasLocation
       include InSystem
+      include HasCargo
 
       entity_type  Manufactured::Station
 
