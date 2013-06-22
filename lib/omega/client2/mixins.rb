@@ -476,11 +476,13 @@ module Omega
 
       # Return all entities in all classes w/ TrackEntity.entities
       def self.entities
+        @tracked_classes ||= []
         @tracked_classes.collect { |c| c.entities }.flatten
       end
 
       # Clear all entities
       def self.clear_entities
+        @tracked_classes ||= []
         @tracked_classes.each { |c| c.clear_entities }
       end
 

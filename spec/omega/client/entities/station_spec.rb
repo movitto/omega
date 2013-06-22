@@ -110,7 +110,10 @@ module Omega::Client
       it "retrieves systems with no stations" do
         s = create(:solar_system)
         SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
-        s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(s)
+        s.should_receive(:closest_neighbor_with_no).with { |s|
+          s[:type].should == 'Manufactured::Station'
+          s[:owned_by].should == @f.user_id
+        }.and_return(s)
         @f.pick_system
       end
 
@@ -118,8 +121,8 @@ module Omega::Client
         it "retrieves system with fewest stations" do
           s = create(:solar_system)
           SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
-          s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(nil)
-          SolarSystem.should_receive(:with_fewest).with('Manufactured::Station').and_return(s)
+          s.should_receive(:closest_neighbor_with_no).and_return(nil)
+          SolarSystem.should_receive(:with_fewest).with({:type => 'Manufactured::Station', :owned_by => @f.user_id}).and_return(s)
           @f.pick_system
         end
       end
@@ -128,7 +131,7 @@ module Omega::Client
         s1 = build(:solar_system)
         s = stub(SolarSystem, :id => 42)
         SolarSystem.should_receive(:get).with(@f.system_id).and_return(s)
-        s.should_receive(:closest_neighbor_with_no).with('Manufactured::Station').and_return(s1)
+        s.should_receive(:closest_neighbor_with_no).and_return(s1)
         @f.should_receive(:jump_to).with(s1)
         @f.pick_system
       end
