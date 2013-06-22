@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'omega/client2/mixins'
+require 'omega/client/mixins'
 require 'cosmos/entities/galaxy'
 require 'cosmos/entities/solar_system'
 

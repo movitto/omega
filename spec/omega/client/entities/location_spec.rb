@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client2/entities/location'
+require 'omega/client/entities/location'
 
 # Test data used in this module
 module OmegaTest

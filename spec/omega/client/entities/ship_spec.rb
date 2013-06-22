@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client2/entities/ship'
+require 'omega/client/entities/ship'
 
 module Omega::Client
   describe Ship do

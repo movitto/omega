@@ -5,7 +5,7 @@
 
 require 'ostruct'
 require 'spec_helper'
-require 'omega/client2/mixins'
+require 'omega/client/mixins'
 
 # Test data used in this module
 module OmegaTest

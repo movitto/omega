@@ -10,10 +10,10 @@
 #   - stop running actions on server side until queue is completed, then restart
 #   - overwrite pending entity events w/ new events of the same type
 
-require 'omega/client2/mixins'
-require 'omega/client2/entities/location'
-require 'omega/client2/entities/cosmos'
-require 'omega/client2/entities/station'
+require 'omega/client/mixins'
+require 'omega/client/entities/location'
+require 'omega/client/entities/cosmos'
+require 'omega/client/entities/station'
 require 'manufactured/ship'
 
 module Omega

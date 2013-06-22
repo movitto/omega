@@ -4,14 +4,14 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'omega/client2/mixins'
-require 'users'
+require 'omega/client/mixins'
+require 'users/user'
 
 module Omega
   module Client
     # Omega client Users::User tracker
     class User
-      include RemotelyTrackable
+      include Trackable
 
       entity_type  Users::User
       get_method   "users::get_entity"

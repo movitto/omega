@@ -27,7 +27,7 @@ require 'manufactured/rjr/init'
 
 require 'omega/roles'
 
-require 'omega/client2/mixins'
+require 'omega/client/mixins'
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods

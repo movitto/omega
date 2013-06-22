@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client2/entities/user'
+require 'omega/client/entities/user'
 
 module Omega::Client
   describe User do

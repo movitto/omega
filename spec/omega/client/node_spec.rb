@@ -4,8 +4,8 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client2/node'
-require 'omega/client2/dsl'
+require 'omega/client/node'
+require 'omega/client/dsl'
 
 module Omega::Client
 describe Node do

@@ -4,8 +4,8 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
-require 'omega/client2/entities/cosmos'
-require 'omega/client2/entities/station'
+require 'omega/client/entities/cosmos'
+require 'omega/client/entities/station'
 
 # Test data used in this module
 module OmegaTest
