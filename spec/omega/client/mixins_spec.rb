@@ -3,6 +3,7 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'ostruct'
 require 'spec_helper'
 require 'omega/client2/mixins'
 
@@ -261,6 +262,7 @@ module Omega::Client
   describe TrackState do
     before(:each) do
       @t = OmegaTest::Trackable.new
+      @t.entity = OpenStruct.new(:id => 42)
       OmegaTest::Trackable.node.rjr_node = @n
       OmegaTest::Trackable.send :init_entity, @t
 
@@ -407,7 +409,14 @@ module Omega::Client
       OmegaTest::Trackable.entities.clear
     end
 
-    context "entitiy initialization" do
+    context "entity class initialization" do
+      it "registers tracked classes with TrackEntity" do
+        TrackEntity.instance_variable_get(:@tracked_classes).
+                    should include(OmegaTest::Trackable)
+      end
+    end
+
+    context "entity initialization" do
       it "registers entity w/ local registry" do
         s = create(:valid_ship)
         t = OmegaTest::Trackable.get(s.id)
@@ -424,7 +433,7 @@ module Omega::Client
       end
     end
 
-    describe "entities" do
+    describe "#entities" do
       it "returns entity list" do
         s1 = create(:valid_ship)
         s2 = create(:valid_ship)
@@ -434,6 +443,25 @@ module Omega::Client
         t1.entities.should == OmegaTest::Trackable.entities
         t2.entities.should == OmegaTest::Trackable.entities
       end
+    end
+
+    describe "#clear_entities" do
+      it "clears entities list" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
+        t1 = OmegaTest::Trackable.get(s1.id)
+        t2 = OmegaTest::Trackable.get(s2.id)
+        OmegaTest::Trackable.clear_entities
+        OmegaTest::Trackable.entities.should == []
+      end
+    end
+
+    describe "TrackEntity#entities" do
+      it "returns entities from all TrackEntity subclasses"
+    end
+
+    describe "TrackEntity#clear_entities" do
+      it "clears entities in all TrackEntity subclasses"
     end
   end
 end # module Omega::Client

@@ -77,9 +77,14 @@ module Omega
         } if @event_handlers && @event_handlers[:all]
       end
 
-      # Helper, access class.node
+      # Instance wrapper around Trackable.node
       def node
-        self.class.node
+        Trackable.node
+      end
+
+      # Centralized node to query / manage trackable entities
+      def self.node
+        @node ||= Omega::Client::Node.new
       end
 
       private
@@ -88,9 +93,9 @@ module Omega
       # the Trackable module
       module ClassMethods
         
-        # Node which to send/receive data
+        # Class wrapper around Trackable.node
         def node
-          @node ||= Client::Node.new
+          Trackable.node
         end
 
         # Define server side entity type to track
@@ -464,9 +469,19 @@ module Omega
         self.class.entities
       end
 
-      # Return all entities in system w/ TrackEntity.entities
+      # Instance wrapper around entities.clear
+      def clear_entities
+        self.class.clear_entities
+      end
+
+      # Return all entities in all classes w/ TrackEntity.entities
       def self.entities
         @tracked_classes.collect { |c| c.entities }.flatten
+      end
+
+      # Clear all entities
+      def self.clear_entities
+        @tracked_classes.each { |c| c.clear_entities }
       end
 
       # Methods that are defined on the class including 
@@ -475,6 +490,11 @@ module Omega
         # Return entities registry, initializing it if it doesn't exist
         def entities
           @entities ||= []
+        end
+
+        # Clear entities list
+        def clear_entities
+          @entities = []
         end
       end
     end

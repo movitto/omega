@@ -13,6 +13,7 @@
 require 'omega/client2/mixins'
 require 'omega/client2/entities/location'
 require 'omega/client2/entities/cosmos'
+require 'omega/client2/entities/station'
 require 'manufactured/ship'
 
 module Omega
@@ -37,22 +38,22 @@ module Omega
 
       # Dock at the specified station
       def dock_to(station)
-        RJR::Logger.info "Docking #{self.id} at #{station.id}"
-        node.invoke 'manufactured::dock', self.id, station.id
+        RJR::Logger.info "Docking #{id} at #{station.id}"
+        node.invoke 'manufactured::dock', id, station.id
       end
 
       # Undock
       def undock
-        RJR::Logger.info "Unocking #{self.id}"
-        node.invoke 'manufactured::undock', self.id
+        RJR::Logger.info "Unocking #{id}"
+        node.invoke 'manufactured::undock', id
       end
 
       # Collect specified loot
       #
       # @param [Manufactured::Loot] loot loot which to collect
       def collect_loot(loot)
-        RJR::Logger.info "Entity #{self.id} collecting loot #{loot.id}"
-        node.invoke 'manufactured::collect_loot', self.id, loot.id
+        RJR::Logger.info "Entity #{id} collecting loot #{loot.id}"
+        node.invoke 'manufactured::collect_loot', id, loot.id
       end
     end
 
@@ -80,7 +81,7 @@ module Omega
       #
       # @param [Cosmos::Resource] resourceresource to start mining
       def mine(resource)
-        RJR::Logger.info "Starting to mine #{resource.id} with #{self.id}"
+        RJR::Logger.info "Starting to mine #{resource.id} with #{id}"
 
         # handle resource collected of entity.mining quantity, invalidating
         # client side cached copy of resource source
@@ -90,7 +91,7 @@ module Omega
           }
         end
 
-        node.invoke 'manufactured::start_mining', self.id, resource.id
+        node.invoke 'manufactured::start_mining', id, resource.id
       end
 
       # Start the omega client bot
@@ -109,15 +110,15 @@ module Omega
       # Move to the closest station owned by user and transfer resources to it
       def offload_resources
         st = closest(:station).first
-        if st.location - self.location < self.transfer_distance
+        if st.location - location < transfer_distance
           transfer_all_to(st)
-          self.select_target
+          select_target
 
         else
-          Node.raise_event(:moving_to, self, st)
+          raise_event(:moving_to, self, st)
           move_to(:destination => st) { |*args|
             transfer_all_to(st)
-            self.select_target
+            select_target
           }
         end
       end
@@ -126,14 +127,14 @@ module Omega
       def select_target
         rs = closest(:resource).first
         if rs.nil?
-          Node.raise_event(:no_resources, self)
+          raise_event(:no_resources, self)
           return
         else
-          Node.raise_event(:selected_resource, self, rs)
+          raise_event(:selected_resource, self, rs)
         end
 
-        if rs.location - self.location < self.mining_distance
-          rs = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
+        if rs.location - location < mining_distance
+          rs = rs.resources.find { |res| res.quantity > 0 }
 
           # server resource may by depleted at any point, 
           # need to catch errors, and try elsewhere
@@ -144,9 +145,9 @@ module Omega
           end
 
         else
-          dst = self.mining_distance / 4
+          dst = mining_distance / 4
           nl  = rs.location + [dst,dst,dst]
-          rs  = rs.resource_sources.find { |rsi| rsi.quantity > 0 }
+          rs  = rs.resources.find { |rsi| rsi.quantity > 0 }
           move_to(:location => nl) { |*args|
             begin
               mine(rs)
@@ -193,69 +194,67 @@ module Omega
       # a related error, it will be reraised here
       #
       # @param [Manufactured::Ship,Manufactured::Station] target entity to attack
-      #def attack(target)
-      #  RJR::Logger.info "Starting to attack #{target.id} with #{self.id}"
-      #  Node.invoke_request 'manufactured::attack_entity', self.id, target.id
+      def attack(target)
+        RJR::Logger.info "Starting to attack #{target.id} with #{id}"
+        node.invoke 'manufactured::attack_entity', id, target.id
+      end
 
-      #  # XXX hack, do not return until next iteration of attack cycle
-      #  sleep Manufactured::Registry::ATTACK_POLL_DELAY + 0.1
-      #end
+      # visited systems
+      attr_accessor :visited
 
-    #  # Start the omega client bot
-    #  def start_bot
-    #    @visited  = []
+      # Start the omega client bot
+      def start_bot
+        @visited  = []
 
-    #    self.patrol_route
-    #  end
+        patrol_route
+      end
 
-    #  #private
+      # Calculate an inter-system route to patrol and move through it.
+      def patrol_route
+        # add local system to visited list
+        @visited << solar_system unless @visited.include?(solar_system)
 
-    #  # Internal helper, calculate an inter-system route to patrol
-    #  # and move through it.
-    #  def patrol_route
-    #    # add local system to visited list
-    #    @visited << self.solar_system unless @visited.include?(self.solar_system)
+        # grab jump gate of a neighboring system we haven't visited yet
+        jg = solar_system.jump_gates.find { |jg|
+               !@visited.collect { |v| v.id }.include?(jg.endpoint_id)
+             }
 
-    #    # grab jump gate of a neighboring system we haven't visited yet
-    #    jg = self.solar_system.jump_gates.find { |jg| !@visited.include?(jg.endpoint) }
+        # if no items in to_visit clear lists
+        if jg.nil?
+          @visited  = []
+          patrol_route
 
-    #    # if no items in to_visit clear lists
-    #    if jg.nil?
-    #      @visited  = []
-    #      patrol_route
+        else
+          dst = jg.trigger_distance / 4
+          nl  = jg.location + [dst,dst,dst]
+          move_to(:location => nl) {
+            jump_to(jg.endpoint)
+            patrol_route
+          }
+        end
+      end
 
-    #    else
-    #      dst = jg.trigger_distance / 4
-    #      nl  = jg.location + [dst,dst,dst]
-    #      move_to(:location => nl) {
-    #        self.jump_to(jg.endpoint)
-    #        self.patrol_route
-    #      }
-    #      
-    #    end
-    #  end
-
-    #  # Internal helper, check nearby locations, if enemy ship is detected
-    #  # stop movement and attack it. Result patrol route when attack ceases
-    #  def check_proximity
-    #    neighbors = Node.invoke_request 'motel::get_locations',
-    #                            'within', self.attack_distance,
-    #                                       'of', self.location
-    #    neighbors.each { |loc|
-    #      begin
-    #        sh = Node.invoke_request 'manufactured::get_entity',
-    #                            'of_type', 'Manufactured::Ship',
-    #                                   'with_location', loc.id
-    #        unless sh.nil? || sh.user_id == Node.user.id # TODO respect alliances
-    #          self.stop_moving
-    #          handle_event(:attacked_stop){ |*args| self.patrol_route }
-    #          attack(sh)
-    #          break
-    #        end
-    #      rescue Exception => e
-    #      end
-    #    }
-    #  end
+      # Internal helper, check nearby locations, if enemy ship is detected
+      # stop movement and attack it. Result patrol route when attack ceases
+      def check_proximity
+        neighbors = node.invoke 'motel::get_locations',
+                                'within', attack_distance,
+                                           'of', location
+        neighbors.each { |loc|
+          begin
+            sh = node.invoke 'manufactured::get_entity',
+                        'of_type', 'Manufactured::Ship',
+                               'with_location', loc.id
+            unless sh.nil? || sh.user_id == user_id # TODO respect alliances
+              stop_moving
+              handle(:attacked_stop){ |*args| patrol_route }
+              attack(sh)
+              break
+            end
+          rescue Exception => e
+          end
+        }
+      end
     end
   end
 end

@@ -14,12 +14,14 @@ module Omega::Client
     end
 
     describe "#construct" do
+      it "invokes manufactured::construct_entity"
+      it "raises :constructed event"
+      it "returns constructed entity"
     end
   end # describe Station
 
-  #describe Factory do
-  #end
-
+  describe Factory do
+  end
 end # module Omega::Client
 
 #  it "should construct entities" do

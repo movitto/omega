@@ -25,13 +25,13 @@ get_entities = proc { |*args|
   }
 
   # if id or location id is specified, return single entity
-  return_first = args.include?('with_id') || args.include?('location_id')
+  return_first = args.include?('with_id') || args.include?('with_location')
   if return_first
     entities = entities.first
 
     # make sure the entity was found
-    id  = args[args.index('with_id') + 1]
-    loc = args[args.index('location_id') + 1] if id.nil?
+    id  = args[args.index('with_id') + 1] if args.include?('with_id')
+    loc = args[args.index('with_location') + 1] if id.nil?
     raise DataNotFound, id.nil? ? loc : id if entities.nil?
 
     # make sure the user has privileges on the specified entity

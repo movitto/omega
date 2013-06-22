@@ -71,6 +71,7 @@ module Omega::Client
       context "entity cargo full" do
         it "sets entity to :cargo_full state" do
           @r.should_receive(:cargo_full?).and_return(true)
+          @r.should_receive :offload_resources
           @r.raise_event(:anything)
           @r.states.should include(:cargo_full)
         end
@@ -147,47 +148,155 @@ module Omega::Client
     end
 
     describe "#offload_resources" do
-      it "selects closest station"
-
-      context "closest station is within transfer distance" do
-        it "transfers resources"
-        it "selects mining target"
+      before(:each) do
+        s = create(:valid_ship, :type => :mining, :transfer_distance => 50,
+                   :location => build(:location, :x => 0, :y => 0, :z => 0))
+        @r = Miner.get(s.id)
       end
 
-      it "moves to closest station"
+      it "selects closest station" do
+        s = create(:valid_station, :location => @r.location)
+        @r.should_receive(:closest).with(:station).and_return([s])
+        @r.should_receive(:select_target)
+        @r.offload_resources
+      end
+
+      context "closest station is within transfer distance" do
+        it "transfers resources" do
+          s = create(:valid_station, :location => @r.location)
+          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.should_receive(:transfer_all_to).with(s)
+          @r.should_receive(:closest).with(:resource).and_return([])
+          @r.offload_resources
+        end
+
+        it "selects mining target" do
+          s = create(:valid_station, :location => @r.location)
+          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.should_receive(:transfer_all_to).with(s)
+          @r.should_receive(:select_target)
+          @r.offload_resources
+        end
+      end
+
+      it "moves to closest station" do
+        s = create(:valid_station, :location => @r.location + [100,0,0])
+        @r.should_receive(:closest).with(:station).and_return([s])
+        @r.should_receive(:move_to).with(:destination => s)
+        @r.offload_resources
+      end
+
+      it "raises moving_to event" do
+        s = create(:valid_station, :location => @r.location + [100,0,0])
+        @r.should_receive(:closest).with(:station).and_return([s])
+        @r.should_receive(:raise_event).with(:moving_to, @r, s)
+        @r.offload_resources
+      end
 
       context "arrived at closest station" do
-        it "transfers resources"
-        it "selects mining target"
+        it "transfers resources" do
+          s = create(:valid_station, :location => @r.location + [100,0,0])
+          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.offload_resources
+          @r.should_receive(:transfer_all_to).with(s)
+          @r.should_receive(:closest).with(:resource).and_return([])
+          @r.raise_event(:movement)
+        end
+
+        it "selects mining target" do
+          s = create(:valid_station, :location => @r.location + [100,0,0])
+          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.offload_resources
+          @r.should_receive(:transfer_all_to).with(s)
+          @r.should_receive(:select_target)
+          @r.raise_event(:movement)
+        end
       end
     end
 
     describe "#select_target" do
-      it "selects closest resource"
+      before(:each) do
+        s = create(:valid_ship, :type => :mining, :mining_distance => 50,
+                   :location => build(:location, :x => 0, :y => 0, :z => 0))
+        @r = Miner.get(s.id)
+
+        @cast = create(:asteroid,
+                       :location => build(:location, :coordinates => [0,0,0]))
+        @cres = create(:resource, :entity => @cast, :quantity => 10)
+        @cast.set_resource @cres
+
+        @fast = create(:asteroid,
+                       :location => build(:location, :coordinates => [100,0,0]))
+        @fres = create(:resource, :entity => @fast, :quantity => 10)
+        @fast.set_resource @fres
+      end
+
+      it "selects closest resource" do
+        @r.should_receive(:closest).with(:resource).and_return([])
+        @r.select_target
+      end
 
       context "no resources found" do
-        it "raises no_resources event"
-        it "just returns"
+        it "raises no_resources event" do
+          @r.should_receive(:closest).with(:resource).and_return([])
+          @r.should_receive(:raise_event).with(:no_resources, @r)
+          @r.select_target
+        end
+
+        it "just returns" do
+          @r.should_receive(:closest).with(:resource).and_return([])
+          @r.should_not_receive(:move_to)
+          @r.should_not_receive(:mine)
+          @r.select_target
+        end
       end
 
-      it "raises selected_resource event"
+      it "raises selected_resource event" do
+        @r.should_receive(:closest).with(:resource).and_return([@cast])
+        @r.should_receive(:raise_event).with(:selected_resource, @r, @cast)
+        @r.select_target
+      end
 
       context "closest resource withing mining distance" do
-        it "starts mining resource"
+        it "starts mining resource" do
+          @r.should_receive(:closest).with(:resource).and_return([@cast])
+          @r.should_receive(:mine).with(@cres)
+          @r.select_target
+        end
       end
 
-      context "error during mining" do
-        it "selects mining target"
-      end
+      #context "error during mining" do
+      #  it "selects mining target" do
+      #    @r.should_receive(:closest).with(:resource).and_return([@cast])
+      #    @r.should_receive(:mine).with(@cres).and_raise(Exception)
+      #    @r.should_receive(:select_target) # XXX
+      #    @r.select_target
+      #  end
+      #end
 
-      it "moves to closes resource"
+      it "moves to closes resource" do
+        @r.should_receive(:closest).with(:resource).and_return([@fast])
+        @r.should_receive(:move_to)
+        @r.select_target
+      end
       
       context "arrived at closest resource" do
-        it "starts mining resource"
-
-        context "error during mining" do
-          it "selects mining target"
+        it "starts mining resource" do
+          @r.should_receive(:closest).with(:resource).and_return([@fast])
+          @r.select_target
+          @r.should_receive(:mine).with(@fres)
+          @r.raise_event :movement
         end
+
+      #  context "error during mining" do
+      #    it "selects mining target" do
+      #    @r.should_receive(:closest).with(:resource).and_return([@fast])
+      #    @r.select_target
+      #    @r.should_receive(:mine).with(@fast).and_raise(Exception)
+      #    @r.should_receive(:select_target)
+      #    @r.raise_event :movement
+      #    end
+      #  end
       end
     end
 
@@ -211,6 +320,166 @@ module Omega::Client
         r.first.id.should == s1.id
       end
     end
+
+    context "initialization" do
+      it "starts async corvette proximity checker"
+      it "periodically checks proximity for all local corvettes"
+    end
+
+    describe "#attack" do
+      before(:each) do
+        c = create(:valid_ship, :type => :corvette)
+        @s = create(:valid_ship, :type => :frigate)
+        @c = Corvette.get(c.id)
+      end
+
+      it "invokes manufactured::attack_entity" do
+        @n.should_receive(:invoke).with 'manufactured::attack_entity', @c.id, @s.id
+        @c.attack @s
+      end
+    end
+
+    describe "#start_bot" do
+      before(:each) do
+        c = create(:valid_ship, :type => :corvette)
+        @c = Corvette.get(c.id)
+      end
+
+      it "initializes visited systems list" do
+        @c.should_receive(:patrol_route)
+        @c.start_bot
+        @c.visited.should == []
+      end
+
+      it "starts patrol route" do
+        @c.should_receive(:patrol_route)
+        @c.start_bot
+      end
+    end
+
+    describe "#patrol_route" do
+      before(:each) do
+        c = create(:valid_ship, :type => :corvette)
+        @c = Corvette.get(c.id)
+        @c.visited = []
+
+        @sys2 = create(:solar_system)
+        @sys3 = create(:solar_system)
+        jg1 = create(:jump_gate, :solar_system => @c.solar_system, :endpoint => @sys2)
+        jg2 = create(:jump_gate, :solar_system => @c.solar_system, :endpoint => @sys3)
+      end
+
+      it "adds current system to visited list" do
+        @c.patrol_route
+        @c.visited.collect { |v| v.id }.should include(@c.solar_system.id)
+      end
+
+      context "all neighboring systems visited" do
+        it 'resets visited list' do
+          @c.visited << @sys2
+          @c.visited << @sys3
+          @c.patrol_route
+
+          # XXX patrol_route ^ will invoke patrol_route
+          # again, adding current system to list
+          @c.visited.collect { |v| v.id }.should == [@c.solar_system.id]
+        end
+
+        #it "restarts patrol route" do
+        #  @c.visited << @sys2
+        #  @c.visited << @sys3
+        #  @c.should_receive :patrol_route # XXX
+        #  @c.patrol_route
+        #end
+      end
+
+      it "moves to jump gate" do
+        @c.should_receive(:move_to)
+        @c.patrol_route
+      end
+
+      context "on arrival at jump gate" do
+        it 'jumps to next system' do
+          @c.should_receive(:jump_to)
+          @c.patrol_route
+          @c.raise_event(:movement)
+        end
+
+        #it "continues patrol route" do
+        #  @c.should_receive(:jump_to)
+        #  @c.should_receive(:patrol_route)
+        #  @c.patrol_route
+        #  @c.raise_event(:movement)
+        #end
+      end
+    end
+
+    describe "#check_proximity" do
+      before(:each) do
+        c  = create(:valid_ship, :type => :corvette)
+        @c = Corvette.get(c.id)
+      end
+
+      it "retrieves locations within attacking distance of ship" do
+        @n.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @c.entity.location.id).
+           and_return(@c.entity.location)
+        @n.should_receive(:invoke).
+           with('motel::get_locations', 'within', @c.attack_distance,
+                'of', @c.entity.location).and_call_original
+        @c.check_proximity
+      end
+
+      it "retrieves ships corresponding to locations" do
+        @n.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @c.entity.location.id).
+           and_return(@c.entity.location)
+
+        locs = [build(:location), build(:location)]
+        @n.should_receive(:invoke).
+           with('motel::get_locations', 'within', @c.attack_distance,
+                'of', @c.entity.location).and_return(locs)
+        locs.each { |loc|
+          @n.should_receive(:invoke).
+             with('manufactured::get_entity', 'of_type', 'Manufactured::Ship',
+                  'with_location', loc.id)
+        }
+        @c.check_proximity
+      end
+
+      context "ship belongs to another user" do
+        before(:each) do
+          l = build(:location)
+          l.coordinates = @c.location.coordinates
+          @o = create(:valid_ship, :user_id => create(:user).id,
+                                   :location => l, :solar_system => @c.solar_system)
+        end
+
+        it "stops moving" do
+          @c.should_receive(:stop_moving)
+          @c.check_proximity
+        end
+
+        it "handles attacked_stop event" do
+          @c.should_receive(:handle).with(:attacked_stop)
+          @c.check_proximity
+        end
+
+        it "attacks ship" do
+          @c.should_receive(:attack).with{ |*a| a[0].id.should == @o.id }
+          @c.check_proximity
+        end
+
+        context "attacked_stop" do
+          it "resumes patrol route" do
+            @c.should_receive :patrol_route
+            @c.check_proximity
+            @c.raise_event :attacked_stop
+          end
+        end
+      end
+    end
+
   end # describe Corvette
 
 end # module Omega::Client

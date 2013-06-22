@@ -55,6 +55,8 @@ module InSystem
   # [String] id of the solar system ship is in
   attr_accessor :system_id
 
+  alias :parent_id :system_id
+
 end
 
 # Mixin indicating entity has cargo

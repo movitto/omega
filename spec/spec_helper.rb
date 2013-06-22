@@ -27,6 +27,8 @@ require 'manufactured/rjr/init'
 
 require 'omega/roles'
 
+require 'omega/client2/mixins'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
@@ -50,6 +52,7 @@ RSpec.configure do |config|
     Missions::RJR.reset
     Cosmos::RJR.reset
     Manufactured::RJR.reset
+    Omega::Client::TrackEntity.clear_entities
   }
 
   config.after(:each) {

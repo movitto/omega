@@ -79,8 +79,6 @@ module Omega::Client
       OmegaTest::InSystem.node.rjr_node = @n
       @i = OmegaTest::InSystem.new
 
-      # XXX need to consolidate nodes
-      Omega::Client::Station.node.rjr_node = @n
       setup_manufactured(nil)
       add_role @login_role, :superadmin
     end
@@ -120,14 +118,29 @@ module Omega::Client
 
       context "type == resource" do
         before(:each) do
-          sys = create(:solar_system)
+          sys1 = create(:solar_system)
+          sys2 = create(:solar_system)
+          @ast1 = create(:asteroid, :solar_system => sys1,
+                        :location => build(:location, :x => 20, :y => 0, :z => 0))
+          @ast2 = create(:asteroid, :solar_system => sys1,
+                        :location => build(:location, :x => 0,  :y => 0, :z => 0))
+          @ast3 = create(:asteroid, :solar_system => sys1)
+          @ast4 = create(:asteroid, :solar_system => sys2)
+          @res1 = create(:resource, :entity => @ast1, :quantity => 10)
+          @res2 = create(:resource, :entity => @ast1, :quantity => 5)
+          @res3 = create(:resource, :entity => @ast2, :quantity => 5)
+          @res4 = create(:resource, :entity => @ast4, :quantity => 5)
 
-          @i.entity = create(:valid_station, :solar_system => sys)
+          @i.entity = create(:valid_station, :solar_system => sys1,
+                             :location => build(:location, :x => 0, :y => 0, :z => 0))
+        end
 
-        it "retrieves list of asteroids w/ resources in current system sorted by distance"
-          #@i.entity = stub(Object)
-          #@i.entity.stub(:parent_id).and_return('system1')
-
+        it "retrieves list of asteroids w/ resources in current system sorted by distance" do
+          r = @i.closest(:resource)
+          r.all? { |ri| ri.should be_an_instance_of(Cosmos::Entities::Asteroid) }
+          r = r.collect { |ri| ri.id }
+          r.should == [@ast2.id, @ast1.id]
+        end
       end
     end
 

@@ -43,16 +43,15 @@ module Omega
     end
 
     # Omega client manufacturing station tracker
-    #class Factory < Station
-    #  include InteractsWithEnvironment
-    #  #entity_validation { |e| e.type == 'manufacturing' }
+    class Factory < Station
+      entity_validation { |e| e.type == 'manufacturing' }
 
-    #  server_event       :construction_complete => {:subscribe    => "manufactured::subscribe_to",
-    #                                                :notification => "manufactured::event_occurred"},
-    #                     :partial_construction  => {:subscribe    => "manufactured::subscribe_to",
-    #                                                :notification => "manufactured::event_occurred"},
-    #                     :received      => {},
-    #                     :constructed   => {}
+      entity_event       :construction_complete => {:subscribe    => "manufactured::subscribe_to",
+                                                    :notification => "manufactured::event_occurred"},
+                         :partial_construction  => {:subscribe    => "manufactured::subscribe_to",
+                                                    :notification => "manufactured::event_occurred"},
+                         :received      => {},
+                         :constructed   => {}
 
     #  # Helper method to generate incremental id's
     #  def self.next_id
@@ -117,6 +116,6 @@ module Omega
     #         :idt   => "#{Node.user.id}-corvette-ship"}
     #    end
     #  end
-    #end
+    end
   end
 end
