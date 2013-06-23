@@ -49,6 +49,22 @@ class Registry
   def initialize
     init_registry
 
+    # retrieve ship/station's locations
+    # and solar systems on retrieval
+    self.retrieval = proc { |e|
+      # XXX don't like using rjr node here but
+      # this simplifies alot of things
+      if(e.is_a?(Ship) || e.is_a?(Station)) && !node.nil?
+        e.location =
+          node.invoke('motel::get_location',
+                      'with_id', e.location.id)
+
+        e.solar_system =
+          node.invoke('cosmos::get_entity',
+                      'with_location', e.location.parent_id)
+      end
+    }
+
     # validate entities upon creation
     self.validation = proc { |r,e|
       # accept manufactured commands

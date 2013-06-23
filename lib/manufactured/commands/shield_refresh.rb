@@ -14,6 +14,8 @@ module Commands
 # Associated with an attack command, will cease operation after attack
 # finished and shield is fully refreshed
 class ShieldRefresh < Omega::Server::Command
+  include Omega::Server::CommandHelpers
+
   # {Manufactured::Entity entity} whose shield is being refreshed
   attr_accessor :entity
 
@@ -23,7 +25,7 @@ class ShieldRefresh < Omega::Server::Command
 
   # Return the unique id of this command.
   def id
-    @entity.nil? ? "" : @entity.id.to_s
+    "shield-refresh-cmd-#{@entity.nil? ? "" : @entity.id.to_s}"
   end
 
   # Manufactured::Commands::ShieldRefresh initializer
@@ -35,6 +37,24 @@ class ShieldRefresh < Omega::Server::Command
     attr_from_args args, :entity => nil,
                          :attack_cmd => nil
     super(args)
+  end
+
+  # Update command from another
+  def update(cmd)
+    update_from(cmd, :last_ran_at)
+  end
+
+  def before_hook
+    # update entity from registry
+    @entity = retrieve(@entity.id)
+  end
+
+  def after_hook
+    # persist entity to registry
+    update_registry(@entity)
+
+    # persist cmd to registry
+    update_registry(self)
   end
 
   def should_run?

@@ -183,6 +183,9 @@ module Omega
           events.keys.each { |e|
             event_setup = []
 
+            # TODO skip subscription/notification handling
+            # if already listening for this entity ?
+
             if events[e].has_key?(:setup)
               event_setup << events[e][:setup]
             end
@@ -195,13 +198,11 @@ module Omega
 
             if events[e].has_key?(:notification)
               event_setup << lambda { |*args|
-                if !self.node.handles?(events[e][:notification])
-                  self.node.handle(events[e][:notification]) { |*args|
-                    if events[e][:match].nil? || events[e][:match].call(self, *args)
-                      self.raise_event e, *args
-                    end
-                  }
-                end
+                self.node.handle(events[e][:notification]) { |*args|
+                  if events[e][:match].nil? || events[e][:match].call(self, *args)
+                    self.raise_event e, *args
+                  end
+                }
               }
             end
 

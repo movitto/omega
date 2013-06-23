@@ -26,9 +26,9 @@ subscribe_to = proc { |entity_id, event|
   #      persistant connections
 
   cb = Omega::Server::Callback.new
-  cb.endpoint_id = @rjr_headers['source_node']
-  cb.rjr_event   = 'manufactured::event_occurred'
-  cb.event_type  = event
+  cb.endpoint_id  = @rjr_headers['source_node']
+  cb.rjr_event    = 'manufactured::event_occurred'
+  cb.event_type   = event
   cb.handler =
     proc { |*args|
       entity = args.first
@@ -41,24 +41,25 @@ subscribe_to = proc { |entity_id, event|
            {:privilege => 'view', :entity => 'manufactured_entities'}]
 
         # invoke method via rjr callback notification
-        @rjr_callback.notify 'manufactured::event_occurred', *args
+        @rjr_callback.notify 'manufactured::event_occurred', event, *args
 
       rescue Omega::PermissionError => e
         ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
         err = true
 
       rescue ::RJR::Errors::ConnectionError => e
-        ::RJR::Logger.warn "entity #{entity.id} client disconnected"
+        ::RJR::Logger.warn "entity #{entity.id} client disconnected #{e}"
         err = true
         # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
 
       rescue Exception => e
-        ::RJR::Logger.warn "exception during #{entity.id} callback"
+        ::RJR::Logger.warn "exception during #{entity.id} callback #{e} #{e.backtrace}"
         err = true
 
       ensure
         if err
           registry.safe_exec { |entities|
+            rentity = entities.find &with_id(entity.id) 
             rentity.callbacks.delete(cb)
             rentity.callbacks.compact!
           }

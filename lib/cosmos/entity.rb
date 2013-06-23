@@ -61,6 +61,9 @@ module Entity
                          :metadata      =>  {}
     @location = Motel::Location.new :coordinates => [0,0,0],
                                     :orientation => [0,0,1] if @location.nil?
+
+    @location.orientation = [0,0,1] if @location.orientation == [nil,nil,nil]
+
     @location.movement_strategy =
       args[:movement_strategy] if args.has_key?(:movement_strategy)
   end

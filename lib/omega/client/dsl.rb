@@ -3,6 +3,9 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'users/user'
+require 'users/role'
+
 require 'cosmos/resource'
 require 'cosmos/entities/galaxy'
 require 'cosmos/entities/solar_system'
@@ -16,6 +19,7 @@ require 'manufactured/ship'
 require 'manufactured/station'
 
 require 'omega/client/node'
+require 'omega/resources'
 
 module Omega
   module Client
@@ -57,7 +61,7 @@ module Omega
       #
       # @see Omega::Resources.rand_resource
       def rand_resource
-        Omega::Resources.rand_resource
+        Omega::Resources.random
       end
 
       # Generate an return a new random {Motel::Location},
@@ -139,7 +143,7 @@ module Omega
       #                   call w/ the newly created galaxy
       # @return [Cosmos::Entities::Galaxy] galaxy created
       def galaxy(name, &bl)
-        g = Cosmos::Entities::Galaxy.new :id   => self.gen_uuid,
+        g = Cosmos::Entities::Galaxy.new :id   => gen_uuid,
                                          :name => name
         RJR::Logger.info "Creating galaxy #{g}"
         invoke 'cosmos::create_entity', g
@@ -254,7 +258,7 @@ module Omega
                             :solar_system => @solar_system})
         planet = Cosmos::Entities::Planet.new(pargs)
 
-        RJR::Logger.info "Creating planet #{planet} under #{@system}"
+        RJR::Logger.info "Creating planet #{planet} under #{@solar_system}"
         invoke 'cosmos::create_entity', planet
 
         dsl.run planet, :planet => planet, &bl
@@ -352,7 +356,7 @@ module Omega
       #
       # @param [Integer] interval which event should occur
       # @param [Missions::Event] event event which to run at specified interval
-      def schedule(interval, event)
+      def schedule_event(interval, event)
         evnt =
           Omega::Server::PeriodicEvent.new :id => event.id + '-scheduler',
                                            :interval => interval,
@@ -389,6 +393,11 @@ module Omega
           @node ||= Client::Node.new
         end
 
+        # get underlying rjr_node
+        def rjr_node
+          self.node.rjr_node
+        end
+
         # set underlying rjr node
         def rjr_node=(val)
           self.node.rjr_node = val
@@ -419,18 +428,20 @@ module Omega
         #
         # TODO use thread pool for this?
         def run(params, attrs={}, &bl)
-          #if @parallel
-          #  @workers <<  Thread.new(*(vars.push(self)) { |*args|
-          #    # create new base instance w/ parallel = false and run
-          #    # block there to safely set attributes
-          #    args.pop.instance_exec *args, &bl
-          #  }
+          if @parallel
+            @workers <<  Thread.new(params, attrs) { |params,attrs|
+              # create new base instance and run
+              # block there to safely set attributes
+              b = Base.new
+              b.rjr_node = self.node.rjr_node
+              b.run params, attrs, &bl
+            }
 
-          #else
+          else
             attrs.each { |k,v| self.instance_variable_set("@#{k}".intern, v)}
             instance_exec params, &bl unless bl.nil?
             attrs.each { |k,v| self.instance_variable_set("@#{k}".intern, nil)}
-          #end
+          end
         end
 
         def initialize

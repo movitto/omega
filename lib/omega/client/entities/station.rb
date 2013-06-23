@@ -27,12 +27,20 @@ module Omega
     class Factory < Station
       entity_validation { |e| e.type == :manufacturing }
 
-      entity_event       :construction_complete => {:subscribe    => "manufactured::subscribe_to",
-                                                    :notification => "manufactured::event_occurred"},
-                         :partial_construction  => {:subscribe    => "manufactured::subscribe_to",
-                                                    :notification => "manufactured::event_occurred"},
-                         :received      => {},
-                         :constructed   => {}
+      entity_event \
+        :construction_complete =>
+          {:subscribe    => "manufactured::subscribe_to",
+           :notification => "manufactured::event_occurred",
+           :match => proc { |entity,*a|
+             a[0] == 'construction_complete' && a[1].id == entity.id
+           }},
+
+        :partial_construction  =>
+          {:subscribe    => "manufactured::subscribe_to",
+           :notification => "manufactured::event_occurred",
+           :match => proc { |entity, *a|
+             a[0] == 'partial_construction' && a[1].id == entity.id
+           }}
 
       # Construct the specified entity on the server
       #
@@ -88,16 +96,13 @@ module Omega
       def construction_args
         case @entity_type
           when 'factory' then
-            {:entity_type => 'Manufactured::Station',
-             :class => 'Manufactured::Station',
+            {:entity_type => 'Station',
              :type  => :manufacturing}
           when 'miner' then
-            {:entity_type => 'Manufactured::Ship',
-             :class => 'Manufactured::Ship',
+            {:entity_type => 'Ship',
              :type  => :mining}
           when 'corvette' then
-            {:entity_type => 'Manufactured::Ship',
-             :class => 'Manufactured::Ship',
+            {:entity_type => 'Ship',
              :type  => :corvette}
           else {}
         end

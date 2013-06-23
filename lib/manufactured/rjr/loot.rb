@@ -76,7 +76,7 @@ collect_loot = proc { |ship_id, loot_id|
               Users::Attributes::LootCollected.id, total)
 
   # return ship
-  ship
+  registry.entity &with_id(ship.id)
 }
 
 LOOT_METHODS = { :collect_loot   => collect_loot }

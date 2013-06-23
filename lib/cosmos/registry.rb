@@ -31,6 +31,10 @@ class Registry
     @lock.synchronize{
       re = @entities.find { |e| e.id == entity.id }
 
+      # for now do not allow newly created entities to
+      # specify children on creation
+      re.children = []
+
       if re.parent.nil? && !re.parent_id.nil?
         p = @entities.find { |e| e.id == re.parent_id }
         re.parent = p

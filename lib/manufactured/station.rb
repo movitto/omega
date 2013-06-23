@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/entities/solar_system'
-
 require 'manufactured/entity'
 require 'manufactured/ship'
 
@@ -47,8 +46,8 @@ class Station
 
   # Run callbacks
   def run_callbacks(type, *args)
-    @callbacks.select { |c| c.type == type }.
-               each   { |c| c.invoke args  }
+    @callbacks.select { |c| c.event_type == type }.
+               each   { |c| c.invoke *args  }
   end
 
   # Max distance a ship can be from station to dock with it
@@ -106,6 +105,7 @@ class Station
                           :orientation => [1,0,0]  unless args.has_key?(:location) ||
                                                           args.has_key?('location')
 
+
     attr_from_args args, :id                   => nil,
                          :user_id              => nil,
                          :type                 => nil,
@@ -118,6 +118,9 @@ class Station
                          :transfer_distance    => 100,
                          :construction_distance=>  50,
                          :cargo_capacity       => 10000
+
+    @location.orientation = [0,0,1] if @location.orientation == [nil, nil, nil]
+
   end
 
   # Update this station's attributes from other station
@@ -152,7 +155,8 @@ class Station
     !@user_id.nil? && @user_id.is_a?(String) &&
 
     !@location.nil? && @location.is_a?(Motel::Location) &&
-    !@solar_system.nil? && @solar_system.is_a?(Cosmos::Entities::SolarSystem) &&
+    !@system_id.nil? &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::Entities::SolarSystem)) &&
 
     !@type.nil? && TYPES.include?(@type) &&
     !@size.nil? && @size == SIZES[@type] &&
@@ -253,7 +257,7 @@ class Station
           :type => type, :size => size,
           :docking_distance => @docking_distance,
           :location => @location,
-          :system_id => (@solar_system.nil? ? @system_id : @solar_system.name),
+          :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),
           :resources => @resources}
      }.to_json(*a)
    end

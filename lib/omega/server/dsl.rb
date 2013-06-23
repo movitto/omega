@@ -3,6 +3,8 @@
 # Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/server/command'
+
 module Omega
   module Server
 
@@ -45,21 +47,21 @@ module Omega
       # Require privileges using the specified registry
       def require_privilege(args = {})
         registry = args[:registry] || args[:user_registry]
-        rargs = args.merge(:session => @rjr_node.message_headers['session_id'])
+        rargs = args.merge(:session => @rjr_headers['session_id'])
         registry.require_privilege rargs
       end
 
       # Check privileges using the specified registry
       def check_privilege(args = {})
         registry = args[:registry] || args[:user_registry]
-        rargs = args.merge(:session => @rjr_node.message_headers['session_id'])
+        rargs = args.merge(:session => @rjr_headers['session_id'])
         registry.check_privilege rargs
       end
 
       # Return current logged in user using the specified registry
       def current_user(args = {})
         registry = args[:registry] || args[:user_registry]
-        registry.current_user :session => @rjr_node.message_headers['session_id']
+        registry.current_user :session => @rjr_headers['session_id']
       end
 
       # Check if the user has the specified attribute
@@ -84,7 +86,7 @@ module Omega
           # copy allowed attributes over
           filter[:allow].each { |a|
             if is_hash
-              ndata[a.intern] = data[a.intern]
+              ndata[a.intern] = data[a.intern] || data[a.to_s]
             else
               ndata.send("#{a}=".intern, data.send(a.intern))
             end
@@ -165,6 +167,11 @@ module Omega
       # Generate a selector which matches entity w/ specified id
       def with_id(eid)
         with(:id, eid)
+      end
+
+      # Return boolean indicating if specified entity is a command
+      def is_cmd?(entity)
+        entity.kind_of?(Omega::Server::Command)
       end
     end
   end

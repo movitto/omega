@@ -137,6 +137,9 @@ end # module Manufactured::RJR
 ######################################## Dispatch init
 
 def dispatch_manufactured_rjr_init(dispatcher)
+  Manufactured::RJR.registry.start
+  Manufactured::RJR.registry.node = Manufactured::RJR.node
+
   # setup Manufactured::RJR module
   rjr = Object.new.extend(Manufactured::RJR)
   rjr.node.dispatcher = dispatcher

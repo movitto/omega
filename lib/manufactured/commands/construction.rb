@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'time'
+
 require 'rjr/common'
 require 'omega/server/command'
 
@@ -22,6 +24,8 @@ module Commands
 # * 'partial_construction'   - invoked upon every iteration of the construction cycle w/ the given fraction of construction completed
 # * 'construction_complete'  - invoked when construction is fully completed
 class Construction < Omega::Server::Command
+  include Omega::Server::CommandHelpers
+
   # Station {Manufactured::Station} station
   attr_accessor :station
 
@@ -30,6 +34,9 @@ class Construction < Omega::Server::Command
 
   # Bool indicating if construction is completed
   attr_accessor :completed
+
+  # Time construction was started
+  attr_accessor :start_time
 
   # Return the unique id of this construction command.
   def id
@@ -46,8 +53,20 @@ class Construction < Omega::Server::Command
   def initialize(args = {})
     attr_from_args args, :station   => nil,
                          :entity    => nil,
-                         :completed => false
+                         :completed => false,
+                         :start_time => nil
+    @start_time = Time.parse(@start_time) if @start_time.is_a?(String)
     super(args)
+  end
+
+  # Update command from another
+  def update(cmd)
+    update_from(cmd, :start_time, :completed)
+  end
+
+  def after_hook
+    # persist cmd to registry
+    update_registry(self)
   end
 
   def should_run?
@@ -56,23 +75,21 @@ class Construction < Omega::Server::Command
 
   def run!
     ::RJR::Logger.debug "invoking construction cycle #{@station.id} -> #{@entity.id}"
+    super
 
     t = Time.now
-    @last_ran_at ||= Time.now
+    @start_time ||= Time.now
     const_time = @entity.class.construction_time(@entity.type)
-    total_time = t - @last_ran_at
+    total_time = t - @start_time
 
     self.completed = (total_time >= const_time)
 
-    # set last_ran_at after time check
-    super
-
     if self.completed
-      @station.run_callbacks 'construction_complete', @station, @entity
+      run_callbacks @station, 'construction_complete', @station, @entity
 
     else
       percentage = total_time / const_time
-      @station.run_callbacks 'partial_construction', @station, @entity, percentage
+      run_callbacks @station, 'partial_construction', @station, @entity, percentage
     end
   end
 
@@ -82,7 +99,9 @@ class Construction < Omega::Server::Command
        'json_class' => self.class.name,
        'data'       =>
          {:station => station,
-          :entity  => entity}.merge(cmd_json)
+          :entity  => entity,
+          :completed => completed,
+          :start_time => start_time}.merge(cmd_json)
      }.to_json(*a)
    end
 

@@ -19,8 +19,9 @@ get_entities = proc { |*args|
 
   # update entity locations from motel
   entities.each { |entity|
-    entity.location.
-      update(node.invoke('motel::get_location', 'with_id', entity.location.id))
+    entity.location.update \
+      node.invoke('motel::get_location',
+                  'with_id', entity.location.id) unless is_cmd?(entity)
     # TODO save in registry
   }
 

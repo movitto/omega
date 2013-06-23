@@ -96,7 +96,7 @@ create_entity = proc { |entity|
 # Construct entity via station.
 # Entity will be constructed immediately but will not be available for use
 # until it is processed by the registry construction cycle
-construct_entity = proc { |manufacturer_id, args|
+construct_entity = proc { |manufacturer_id, *args|
 
   ###################### validate construction
 
@@ -119,7 +119,7 @@ construct_entity = proc { |manufacturer_id, args|
   # filter entity params able to be set by the user
   # only allow user to specify id, type, and entity_type
   # everything else is generated serverside
-  args = filter_properties args, :allow => [:id, :type, :entity_type]
+  args = filter_properties Hash[*args], :allow => [:id, :type, :entity_type]
 
   # auto-set additional params on entity to create.
   # we can also set user_id to station's owner or

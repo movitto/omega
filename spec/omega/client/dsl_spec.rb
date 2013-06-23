@@ -281,9 +281,9 @@ describe DSL do
     end
   end
 
-  describe "#schedule" do
+  describe "#schedule_event" do
     it "creates new periodic missions event" do
-      e = schedule 10, Omega::Server::Event.new(:id => 'event123')
+      e = schedule_event 10, Omega::Server::Event.new(:id => 'event123')
       e.id.should == 'event123-scheduler'
       e = Missions::RJR.registry.entity(&with_id(e.id))
       e.should_not be_nil

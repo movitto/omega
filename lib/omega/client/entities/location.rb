@@ -44,11 +44,15 @@ module Omega
         base.entity_event \
           :movement =>
             { :setup =>
-                lambda { |distance|
+                proc { |distance|
                   node.invoke("motel::track_movement",
                               self.entity.location.id, distance)
                 },
-              :notification => "motel::on_movement"
+              :notification => "motel::on_movement",
+              :match =>
+                proc { |entity,l,d,dx,dy,dz|
+                  entity.location.id == l.id
+                }
             }
       end
     end # module HasLocation

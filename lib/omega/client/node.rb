@@ -3,21 +3,20 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/server/config'
+
 module Omega
   module Client
     class Node
+      # Server endpoint
+      attr_accessor :endpoint
+
       # Node to use w/ server communications
       attr_accessor :rjr_node
       def rjr_node=(val)
         @rjr_node = val
         @rjr_node.message_headers['source_node'] = @rjr_node.node_id
-      end
 
-      # Server endpoint
-      attr_accessor :endpoint
-
-      # Set the node / endpoint from config
-      def self.from_config(rjr_node)
         # load any accessible config
         config = Omega::Config.load :node_id  => 'omega',
                                     :tcp_host => 'localhost',
@@ -58,6 +57,7 @@ module Omega
           @rjr_node.dispatcher.handle(rjr_method) { |*args|
             # TODO catch / discard errors
             client_node.handlers[rjr_method].each { |h| h.call *args }
+            nil
           }
         end
 

@@ -26,6 +26,7 @@ module Commands
 # * 'defended'      - invoked on the defender when attacker actually launches the attack
 # * 'destroyed'     - invoked on the defender if this attack cycle resulted in the defender hp becoming <= 0
 class Attack < Omega::Server::Command
+  include Omega::Server::CommandHelpers
 
   # {Manufactured::Ship} performing the attack
   attr_accessor :attacker
@@ -58,34 +59,25 @@ class Attack < Omega::Server::Command
   end
 
   def before_hook
-# TODO update attacker/defender w/ locations (unless terminated?)
-    #@attacker.location =
-    #  node.invoke('motel::get_location', 'with_id', @attacker.location.id)
-    #@defender.location =
-    #  node.invoke('motel::get_location', 'with_id', @defender.location.id)
+    # update entities from registry
+    unless @terminate
+      @attacker = retrieve(@attacker.id)
+      @defender = retrieve(@defender.id)
+    end
   end
 
   def after_hook
-# TODO write to registry?
+    # persist entities to the registry
+    update_registry(@attacker)
+    update_registry(@defender)
   end
 
   def last_hook
     @attacker.stop_attacking
-
-    # invoke attackers's 'attacked_stop' callbacks
-    @attacker.run_callbacks('attacked_stop', @attacker, @defender)
-
-    # invoke defender's 'defended_stop' callbacks
-    @defender.run_callbacks('defended_stop', @attacker, @defender)
-
+ 
     # check if defender has been destroyed
     if @defender.hp == 0
       ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
-
-      @defender.destroyed_by = @attacker
-
-      # invoke defender's 'destroyed' callbacks
-      @defender.run_callbacks('destroyed', @attacker, @defender)
 
 # TODO
     # set 'ships_user_destroyed' and 'user_ships_destroyed' attributes
@@ -98,11 +90,23 @@ class Attack < Omega::Server::Command
       unless @defender.cargo_empty?
         # two entities (ship/loot) sharing same location
         loot = Manufactured::Loot.new :id => "#{@defender.id}-loot",
-                                      :resources => @defender.resources,
-                                      :location  => @defender.location
-# TODO add to registry
+                 :location          => @defender.location,
+                 :solar_system      => @defender.solar_system,
+                 :movement_strategy => Motel::MovementStrategies::Stopped.instance,
+                 :cargo_capacity    => @defender.cargo_capacity
+        @defender.resources.each { |r| loot.add_resource r }
+        registry << loot
       end
+
+      # invoke defender's 'destroyed' callbacks
+      run_callbacks(@defender, 'destroyed', @attacker, @defender)
     end
+
+    # invoke attackers's 'attacked_stop' callbacks
+    run_callbacks(@attacker, 'attacked_stop', @attacker, @defender)
+
+    # invoke defender's 'defended_stop' callbacks
+    run_callbacks(@defender, 'defended_stop', @attacker, @defender)
   end
 
   def should_run?
@@ -127,14 +131,23 @@ class Attack < Omega::Server::Command
       @defender.hp -= pips
       @defender.shield_level = 0
 
-      @defender.hp = 0 if @defender.hp < 0
+      if @defender.hp <= 0
+        @defender.hp = 0
+        @defender.destroyed_by = @attacker
+      end
     end
 
     # invoke attacker's 'attacked' callbacks
-    @attacker.run_callbacks('attacked', @attacker, @defender)
+    run_callbacks(@attacker, 'attacked', @attacker, @defender)
 
     # invoke defender's 'defended' callbacks
-    @defender.run_callbacks('defended', @attacker, @defender)
+    run_callbacks(@defender, 'defended', @attacker, @defender)
+  end
+
+  def remove?
+    # remove if defender is destoryed
+    # TODO also if no longer attackable for whatever reason (eg ships too far apart)
+    @defender.hp == 0
   end
 
    # Convert command to json representation and return it
@@ -149,4 +162,4 @@ class Attack < Omega::Server::Command
 
 end # class Attack
 end # module Commands
-end # module Omega
+end # module Manufactured

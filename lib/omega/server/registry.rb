@@ -47,6 +47,7 @@ module Registry
     @event_handlers ||= Hash.new() { |h,k| h[k] = [] }
 
     @validation     ||= proc { |entities, e| true }
+    @retrieval      ||= proc { |e| }
   end
 
   ####################### node / user
@@ -58,6 +59,8 @@ module Registry
   attr_accessor :user
 
   attr_accessor :validation
+
+  attr_accessor :retrieval
   
   ####################### entities
 
@@ -68,12 +71,19 @@ module Registry
       select = proc { |e| true } if select.nil?
 
       # we use json serialization to perform a deep clone 
-      Array.new(JSON.parse(@entities.select(&select).to_json))
+      result = Array.new(JSON.parse(@entities.select(&select).to_json))
+
+      # invoke retrieval on each entity
+      result.each { |r| @retrieval.call(r) }
+
+      result
     }
   end
 
   def entity(&select)
-    self.entities(&select).first
+    result = self.entities(&select).first
+    @retrieval.call(result)
+    result
   end
 
   def clear!
@@ -256,17 +266,20 @@ module Registry
       select { |e| e.kind_of?(Command) }.
       each   { |cmd|
         begin
+          # registry isn't serialized w/ other cmd json, set on each cmd run
+          cmd.registry = self
+
           cmd.run_hooks :first unless cmd.ran_first_hooks
           cmd.run_hooks :before
 
           if cmd.should_run?
             cmd.run!
             cmd.run_hooks :after
-          end
 
-          if cmd.remove?
-            cmd.run_hooks :last
-            cmd.terminate!
+            if cmd.remove?
+              cmd.run_hooks :last
+              cmd.terminate!
+            end
           end
 
         rescue Exception => err

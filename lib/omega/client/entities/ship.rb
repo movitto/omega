@@ -53,7 +53,7 @@ module Omega
       # @param [Manufactured::Loot] loot loot which to collect
       def collect_loot(loot)
         RJR::Logger.info "Entity #{id} collecting loot #{loot.id}"
-        node.invoke 'manufactured::collect_loot', id, loot.id
+        @entity = node.invoke 'manufactured::collect_loot', id, loot.id
       end
     end
 

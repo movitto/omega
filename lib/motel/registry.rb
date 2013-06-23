@@ -46,14 +46,15 @@ class Registry
   def run_locations
     delay = nil
     self.entities.each { |loc|
-      loc.last_moved_at ||= Time.now
-      elapsed = Time.now - loc.last_moved_at
+      sdelay = loc.movement_strategy.step_delay
+      elapsed = loc.last_moved_at.nil? ? sdelay + 1 :
+                Time.now - loc.last_moved_at
 
-      if elapsed > loc.movement_strategy.step_delay
+      if elapsed > sdelay
         run_location(loc, elapsed)
 
       else
-        remaining = loc.movement_strategy.step_delay - elapsed
+        remaining = sdelay - elapsed
         delay = remaining if delay.nil? || remaining < delay
 
       end
@@ -122,7 +123,11 @@ class Registry
     init_registry
 
     # validate location ids are unique before creating
-    self.validation = proc { |r,e| !r.collect { |l| l.id }.include?(e.id) }
+    self.validation = proc { |r,e|
+      e.is_a?(Location) &&
+      
+      !r.collect { |l| l.id }.include?(e.id)
+    }
 
     # perform a few sanity checks on location / update any attributes needing it
     on(:added)   { |loc| check_location(loc)}

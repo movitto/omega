@@ -34,7 +34,11 @@ class Loot
                          :location             => nil,
                          :system_id            => nil,
                          :solar_system         => nil,
-                         :transfer_distance    =>  25
+                         :transfer_distance    =>  25,
+                         :cargo_capacity       => 100
+
+    @location.movement_strategy =
+      args[:movement_strategy] if args.has_key?(:movement_strategy)
   end
 
   # Return boolean indicating if this loot is valid

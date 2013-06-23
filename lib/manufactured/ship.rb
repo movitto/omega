@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/entities/solar_system'
-
 require 'manufactured/entity'
 
 module Manufactured
@@ -49,8 +48,8 @@ class Ship
 
   # Run callbacks
   def run_callbacks(type, *args)
-    @callbacks.select { |c| c.type == type }.
-               each   { |c| c.invoke args  }
+    @callbacks.select { |c| c.event_type == type }.
+               each   { |c| c.invoke *args  }
   end
 
   # @!group Movement Properties
@@ -155,7 +154,7 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base shield level which to assign to the ship
   def self.base_shield_level(type)
-    0
+    10
   end
 
   # Current shield level of the ship
@@ -315,6 +314,7 @@ class Ship
                          :shield_level         =>   0,
                          :hp                   => nil 
 
+    @location.orientation = [0,0,1] if @location.orientation == [nil, nil, nil]
     @location.movement_strategy =
       args[:movement_strategy] if args.has_key?(:movement_strategy)
 
@@ -329,6 +329,16 @@ class Ship
     @mining_distance      = Ship.base_mining_distance(@type)
     @max_shield_level     = Ship.base_shield_level(@type)
     @shield_refresh_rate  = Ship.base_shield_refresh_rate(@type)
+  end
+
+  # Update this ship's attributes from other ship
+  #
+  # Currently only updatable attributes are hp/shield_level
+  #   (resources are updatable but handled elsewhere)
+  #
+  # @param [Manufactured::Ship] ship ship which to copy attributes from
+  def update(ship)
+    update_from(ship, :hp, :shield_level)
   end
 
   # Return boolean indicating if this ship is valid
@@ -360,7 +370,8 @@ class Ship
     !@user_id.nil? && @user_id.is_a?(String) &&
 
     !@location.nil? && @location.is_a?(Motel::Location) &&
-    !@solar_system.nil? && @solar_system.is_a?(Cosmos::Entities::SolarSystem) &&
+    !@system_id.nil? &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::Entities::SolarSystem)) &&
 
     !@type.nil? && TYPES.include?(@type) &&
     !@size.nil? && @size == SIZES[@type] &&
@@ -408,7 +419,7 @@ class Ship
   def can_attack?(entity)
     # TODO incoporate alliances ?
     ATTACK_TYPES.include?(@type) && !self.docked? &&
-    (@location.parent.id == entity.location.parent.id) &&
+    (@location.parent_id == entity.location.parent_id) &&
     (@location - entity.location) <= @attack_distance  &&
     alive? && entity.alive?
   end

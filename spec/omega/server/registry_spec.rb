@@ -48,6 +48,14 @@ describe Registry do
       e.first.should == obj
       e.first.should_not equal(obj)
     end
+
+    it "invokes retrieval on each entity" do
+      @registry << 21
+      @registry << 42
+      @registry.retrieval.should_receive(:call).with(21)
+      @registry.retrieval.should_receive(:call).with(42)
+      e = @registry.entities
+    end
   end
 
   describe "#entity" do

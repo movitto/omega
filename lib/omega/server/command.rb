@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'time'
+
 module Omega
 module Server
 
@@ -27,6 +29,9 @@ class Command
 
   # Flag indicating command should be terminated
   attr_accessor :terminate
+
+  # Registry which command is running in
+  attr_accessor :registry
 
   # Omega::Server::Command initializer
   #
@@ -122,7 +127,28 @@ class Command
      cmd = new(o['data'])
      return cmd
    end
-
 end # class Command
+
+# Convencience methods which commands may include to simplify operations
+module CommandHelpers
+  # update entity in registry
+  def update_registry(entity)
+    registry.update(entity) { |e| e.id == entity.id }
+  end
+
+  # retrieve entity from registry
+  def retrieve(entity_id)
+    registry.entity { |e| e.id == entity_id }
+  end
+
+  # run callbacks with args on the registry entity
+  def run_callbacks(entity, *args)
+    registry.safe_exec { |entities|
+      e = entities.find { |e| e.id == entity.id }
+      e.run_callbacks *args
+    }
+  end
+end
+
 end # module Server
 end # module Omega
