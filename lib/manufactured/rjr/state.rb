@@ -36,5 +36,5 @@ def dispatch_manufactured_rjr_state(dispatcher)
   m = Manufactured::RJR::STATE_METHODS
   dispatcher.handle "manufactured::save_state",    &m[:save_state]
   dispatcher.handle "manufactured::restore_state", &m[:restore_state]
-  dispatcher.handle "manufactured::status",        &m[:manufactured_status]
+  dispatcher.handle "manufactured::status",        &m[:status]
 end

@@ -47,7 +47,7 @@ end
 RESOURCE_IDS   = RESOURCE_NAMES.collect { |type,list| list.collect { |name| self.type_identifier(type) + "-" + name } }.flatten
 
 # Return {Cosmos::Resource} instantiated from random resource selected from master list
-def self.rand_resource
+def self.random
   i = rand(RESOURCE_IDS.length-1)
   id = RESOURCE_IDS[i]
   type_name = id.split('-')

@@ -19,11 +19,11 @@ class Callback
   # RJR Node Endpoint which this callback is registered for
   attr_accessor :endpoint_id
 
-  # JSON-RPC method on client which is invoked by this callback
-  attr_accessor :rjr_event
-
   # The event which this callback should be registered for
   attr_accessor :event_type
+
+  # JSON-RPC method on client which is invoked by this callback
+  attr_accessor :rjr_event
 
   # Omega::Server::Callback initializer
   #

@@ -30,8 +30,8 @@ admin_pass: 'nimda'
 anon_user: 'anon'
 anon_pass: 'nona'
 
-cosmos_rjr_user: 'comsos'
-cosmos_rjr_pass: 'sosmoc'
+cosmos_rjr_user: 'cosmos'
+cosmos_rjr_pass: 'somsoc'
 
 manufactured_rjr_user: 'manufactured'
 manufactured_rjr_pass: 'derutcafunam'

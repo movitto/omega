@@ -38,8 +38,8 @@ module Cosmos::RJR
   ######################################## Cosmos::RJR data
 
   PRIVILEGES =
-    [['view'],   ['locations'],
-     ['create'], ['locations']]
+    [['view',   'locations'],
+     ['create', 'locations']]
 
   def self.user
     @user ||= Users::User.new(:id       => Cosmos::RJR.cosmos_rjr_username,

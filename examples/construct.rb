@@ -54,11 +54,11 @@ end
 RJR::Logger.log_level= ::Logger::WARN
 
 station = Omega::Client::Factory.get('player-manufacturing-station1')
-station.handle(:partial_construction) do |e,st,en,pc|
-  puts "#{st.id} partially constructed #{en.id} (#{pc*100}/100%)".green
+station.handle(:partial_construction) do |st,*args|
+  puts "pc #{args}"
 end
-station.handle(:construction_complete) do |e,st,en|
-  puts "#{st.id} fully constructed #{en.id}".green
+station.handle(:construction_complete) do |st,*args|
+  puts "cc #{args}"
 end
 
 st,en =

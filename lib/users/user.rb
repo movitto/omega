@@ -6,6 +6,8 @@
 require 'users/password_helper'
 
 require 'omega/common'
+require 'users/role'
+require 'users/attribute'
 
 module Users
 
@@ -200,6 +202,7 @@ class User
     valid_email?          &&
     id.is_a?(String)      && !id.empty? &&
     password.is_a?(String) && !password.empty?
+    # TODO validate roles
   end
 
   # Returns boolean indicating if email is valid

@@ -123,6 +123,9 @@ class Location
         :orientation_x     => @orientation_x,
         :orientation_y     => @orientation_y,
         :orientation_z     => @orientation_z,
+        :orx               => @orientation_x,
+        :ory               => @orientation_y,
+        :orz               => @orientation_z,
         :restrict_view     => true,
         :restrict_modify   => true,
         :last_moved_at     => nil

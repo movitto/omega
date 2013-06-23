@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/entity'
+require 'motel/movement_strategies/elliptical'
 
 module Cosmos
 module Entities

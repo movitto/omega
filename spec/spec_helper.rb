@@ -277,16 +277,4 @@ module OmegaTest
     RAND_SIZE      = proc { }
     RAND_COLOR     = proc { }
   end
-  
-  #class Station
-  #  include Omega::Client::Trackable
-  #  include Omega::Client::TrackState
-  #  include Omega::Client::InSystem
-  #  include Omega::Client::HasLocation
-  #  include Omega::Client::InteractsWithEnvironment
-  #
-  #  entity_type Manufactured::Station
-  #  get_method "manufactured::get_entity"
-  #end
-
 end

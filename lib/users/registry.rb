@@ -81,10 +81,12 @@ class Registry
 
     # validate user/role id or session's user id is unique on creation
     self.validation = proc { |r,e|
-      e.is_a?(Session) ?
-        r.select  { |re| re.is_a?(Session)      }.
-          find    { |s|  s.user.id == e.user.id }.nil? :
-        r.find    { |re| re.id == e.id          }.nil?
+      [User, Role, Session].include?(e.class) &&
+
+      (e.is_a?(Session) ?
+         r.select  { |re| re.is_a?(Session)      }.
+           find    { |s|  s.user.id == e.user.id }.nil? :
+         r.find    { |re| re.id == e.id          }.nil?)
     }
     
     # set user timestamps on creation
@@ -195,17 +197,17 @@ class Registry
 
     session = entities { |e| e.is_a?(Session) && e.id == session_id }.first
     if session.nil?
-      ::RJR::Logger.warn "require_privilege(#{args.inspect}): session not found"
+      ::RJR::Logger.warn "check_privilege(#{args.inspect}): session not found"
       return false
     end
 
     if session.timed_out?
       destroy_session :session_id => session.id
-      ::RJR::Logger.warn "require_privilege(#{args.inspect}): session timeout"
+      ::RJR::Logger.warn "check_privilege(#{args.inspect}): session timeout"
       return false
     end
 
-    0.upto(privilege_ids.size){ |pi|
+    0.upto(privilege_ids.size-1){ |pi|
       privilege_id = privilege_ids[pi]
       entity_id    = entity_ids[pi]
 

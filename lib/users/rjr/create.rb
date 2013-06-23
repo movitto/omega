@@ -4,6 +4,8 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'users/rjr/init'
+require 'users/user'
+require 'users/role'
 
 module Users::RJR
 

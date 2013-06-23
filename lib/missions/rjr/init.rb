@@ -8,6 +8,10 @@ require 'omega/exceptions'
 require 'omega/server/dsl'
 require 'users/rjr/init'
 
+# require mission event types
+require 'missions/events/resources'
+require 'missions/events/manufactured'
+
 module Missions::RJR
   include Omega#::Exceptions
   include Missions

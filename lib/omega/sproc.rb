@@ -7,8 +7,11 @@
 # be careful who has write access to this!
 # https://github.com/ngty/sourcify
 
-# XXX bug w/ sourcify 0.5.0 and double quotes, use 0.6.0.rc2
+# XXX bug w/ sourcify 0.5.0 and double quotes, use > 0.6.0.rc2
 # https://github.com/ngty/sourcify/issues/25
+
+# XXX bug w/ sourcify 0.6.0 and method hash parameters, use > 0.6.0.rc4
+# https://github.com/ngty/sourcify/issues/27
 
 # XXX make sure to define sprocs on their own lines: 
 # https://github.com/ngty/sourcify#2-multiple-matching-procs-per-line-error

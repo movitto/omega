@@ -5,6 +5,7 @@
 
 require 'omega/server/registry'
 require 'missions/rjr/init'
+require 'missions/mission'
 
 module Missions
 
