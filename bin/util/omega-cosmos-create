@@ -8,6 +8,7 @@ require 'rubygems'
 require 'optparse'
 
 require 'omega'
+require 'rjr/nodes/amqp'
 
 entity = nil
 name   = nil
@@ -32,7 +33,7 @@ optparse = OptionParser.new do |opts|
     name = n
   end
 
-  opts.on('-p', '--parent NAME', 'name of entity\'s parent') do |p|
+  opts.on('-p', '--parent ID', 'id of entity\'s parent') do |p|
     parent = p
   end
 
@@ -81,44 +82,56 @@ if !['galaxy', 'star'].include?(entity) && (xcoord.nil? || ycoord.nil? || zcoord
   exit 1
 end
 
+id = Motel.gen_uuid
+
 entity_obj = nil
 case entity
 when 'galaxy'
-  entity_obj = Cosmos::Galaxy.new :name => name
+  entity_obj =
+    Cosmos::Entities::Galaxy.new \
+      :id => id, :name => name
+
 when 'solarsystem'
-  entity_obj = Cosmos::SolarSystem.new :name => name,
-                                       :location => Motel::Location.new(:x => xcoord,
-                                                                        :y => ycoord,
-                                                                        :z => zcoord)
+  entity_obj =
+    Cosmos::Entities::SolarSystem.new \
+      :id => id, :name => name, :parent_id => parent,
+      :location => Motel::Location.new(:x => xcoord, :y => ycoord, :z => zcoord)
+
 when 'star'
-  entity_obj = Cosmos::Star.new :name => name
+  entity_obj =
+    Cosmos::Entities::Star.new \
+    :id => id, :name => name, :parent_id => parent
 
 when 'asteroid'
-  entity_obj = Cosmos::Asteroid.new :name => name,
-                                    :size => size,
-                                    :color => color,
-                                    :location => Motel::Location.new(:x => xcoord,
-                                                                     :y => ycoord,
-                                                                     :z => zcoord)
+  entity_obj =
+    Cosmos::Entities::Asteroid.new \
+      :id   => id, :parent_id => parent,
+      :name => name,
+      :size => size,
+      :color => color,
+      :location => Motel::Location.new(:x => xcoord, :y => ycoord, :z => zcoord)
+
 when 'planet'
-  entity_obj = Cosmos::Planet.new :name => name,
-                                  :size => size,
-                                  :color => color,
-                                  :location => Motel::Location.new(:x => xcoord,
-                                                                   :y => ycoord,
-                                                                   :z => zcoord)
+  entity_obj =
+    Cosmos::Entities::Planet.new \
+      :id => id, :parent_id => parent,
+      :name => name,
+      :size => size,
+      :color => color,
+      :location => Motel::Location.new(:x => xcoord, :y => ycoord, :z => zcoord)
+
 when 'moon'
-  entity_obj = Cosmos::Moon.new :name => name
+  entity_obj =
+    Cosmos::Entities::Moon.new \
+      :id => id, :parent_id => parent,
+      :name => name
 end
-
-
-
 
 RJR::Logger.log_level= ::Logger::INFO
 
-rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-create', :broker => 'localhost'
+rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-cosmos-create', :broker => 'localhost'
 login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+session    = rjr_node.invoke('omega-queue', 'users::login', login_user)
 rjr_node.message_headers['session_id'] = session.id
 
-rjr_node.invoke_request('omega-queue', 'cosmos::create_entity', entity_obj, parent)
+rjr_node.invoke('omega-queue', 'cosmos::create_entity', entity_obj)

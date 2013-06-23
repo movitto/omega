@@ -8,6 +8,7 @@ require 'rubygems'
 require 'optparse'
 
 require 'omega'
+require 'rjr/nodes/amqp'
 
 entity   = nil
 id       = nil
@@ -39,18 +40,14 @@ end
 
 optparse.parse!
 
+# TODO also support roles
 unless ['user'].include?(entity)
   puts "Invalid entity '#{entity}' specified"
   exit 1
 end
 
-if id.nil?
-  puts "Must specify id"
-  exit 1
-end
-
-if !['user'].include?(entity) && (password.nil? || email.nil?)
-  puts "Must specify password and email for #{entity}"
+if id.nil? || password.nil? || email.nil?
+  puts "Must specify id, password, and email"
   exit 1
 end
 
@@ -62,14 +59,11 @@ when 'user'
                                :email    => email
 end
 
-
-
-
 RJR::Logger.log_level= ::Logger::INFO
 
-rjr_node   = RJR::AMQPNode.new :node_id => 'omega-users-create', :broker => 'localhost', :keep_alive => true
+rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-users-create', :broker => 'localhost', :keep_alive => true
 login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+session    = rjr_node.invoke('omega-queue', 'users::login', login_user)
 rjr_node.message_headers['session_id'] = session.id
 
-rjr_node.invoke_request('omega-queue', 'users::create_entity', entity_obj)
+rjr_node.invoke('omega-queue', 'users::create_user', entity_obj)
