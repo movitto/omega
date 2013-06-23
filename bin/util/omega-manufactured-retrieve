@@ -8,6 +8,7 @@ require 'rubygems'
 require 'optparse'
 
 require 'omega'
+require 'rjr/nodes/amqp'
 
 entity_type   = nil
 id            = nil
@@ -41,12 +42,12 @@ end
 
 RJR::Logger.log_level= ::Logger::INFO
 
-rjr_node   = RJR::AMQPNode.new :node_id => 'omega-manufactured-retrieve', :broker => 'localhost'
+rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-manufactured-retrieve', :broker => 'localhost'
 login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+session    = rjr_node.invoke('omega-queue', 'users::login', login_user)
 rjr_node.message_headers['session_id'] = session.id
 
-entity = rjr_node.invoke_request('omega-queue', 'manufactured::get_entity', 'with_id', id)
+entity = rjr_node.invoke('omega-queue', 'manufactured::get_entity', 'with_id', id)
 
 puts "Entity: " + entity.to_s
 
@@ -56,20 +57,17 @@ when "ship"
   puts " beloning to #{entity.user_id}"
   puts " of type #{entity.type}"
   puts " of size #{entity.size}"
-  puts " in system #{entity.system_name}"
+  puts " in system #{entity.system_id}"
   puts "  at #{entity.location.to_s}"
   puts "  w/ movement strategy #{entity.location.movement_strategy.to_s}"
   entity.resources.each { |id,q|
     puts intent(i+2) + "#{q} of #{id}"
   }
-  puts " notifications:"
-  entity.notification_callbacks.each { |n|
+  puts " callbacks:"
+  entity.callbacks.each { |n|
     puts "   - #{n.type} -> #{n.endpoint_id}"
   }
-  entity.location.movement_callbacks.each { |m|
-    puts "   - movement of #{m.to_s} -> #{m.endpoint_id}"
-  }
-  entity.location.proximity_callbacks.each { |p|
-    puts "   - proximity (#{p.event}) of #{p.to_s}/#{p.to_location} -> #{p.endpoint_id}"
+  entity.location.callbacks.each { |c|
+    puts "   - .loc #{c}"
   }
 end

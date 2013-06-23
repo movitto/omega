@@ -16,35 +16,45 @@
 require 'rubygems'
 require 'optparse'
 require 'fileutils'
-require 'omega'
+
+require 'rjr/nodes/amqp'
+require 'rjr/nodes/ws'
+require 'rjr/nodes/web'
+require 'rjr/nodes/tcp'
+require 'rjr/nodes/local'
+require 'rjr/nodes/multi'
+
+require 'omega/server/config'
+require 'omega/roles'
 
 ######################
 
-def setup_signals(config)
+def setup_signals(config, node)
+  # backup on usr1
   Signal.trap("USR1") {
     puts "Backup"
     Dir.mkdir(config.backup_dir) unless File.directory?(config.backup_dir)
     backup_file = "#{config.backup_dir}backup.unv"
     current_backup = "#{backup_file}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
-    local_node = RJR::LocalNode.new :node_id => 'admin'
-    local_node.invoke_request('motel::save_state', current_backup)
-    local_node.invoke_request('cosmos::save_state', current_backup)
-    local_node.invoke_request('manufactured::save_state', current_backup)
-    local_node.invoke_request('users::save_state', current_backup)
+    node.invoke('users::save_state', current_backup)
+    node.invoke('motel::save_state', current_backup)
+    node.invoke('cosmos::save_state', current_backup)
+    node.invoke('manufactured::save_state', current_backup)
     FileUtils.rm_f(backup_file) if File.symlink?(backup_file)
     FileUtils.ln_s(File.expand_path(current_backup), backup_file)
   }
 
+  # restore on usr2
   Signal.trap("USR2") {
     puts "Restore"
     current_backup = backup_file = "#{config.backup_dir}backup.unv"
-    local_node = RJR::LocalNode.new :node_id => 'admin'
-    local_node.invoke_request('motel::restore_state', current_backup)
-    local_node.invoke_request('cosmos::restore_state', current_backup)
-    local_node.invoke_request('manufactured::restore_state', current_backup)
-    local_node.invoke_request('users::restore_state', current_backup)
+    node.invoke('users::restore_state', current_backup)
+    node.invoke('motel::restore_state', current_backup)
+    node.invoke('cosmos::restore_state', current_backup)
+    node.invoke('manufactured::restore_state', current_backup)
   }
 
+  # halt on int
   Signal.trap("INT") {
     EventMachine.stop
     #multi_node.terminate
@@ -68,6 +78,7 @@ def main()
     exit
   end
 
+  # load config
   config = Omega::Config.load :node_id => 'omega',
                               :amqp_broker => 'localhost',
                               :ws_host     => 'localhost',
@@ -87,61 +98,65 @@ def main()
 
   config.set_config
 
-  RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
-  if RJR::Logger.debug?
-    require 'rjr/inspect'
-    require 'motel/rjr_inspect'
-    require 'manufactured/rjr_inspect'
-    # TODO other subsystems
-  end
-
-  Motel::RJRAdapter.init
-  Users::RJRAdapter.init
-  Cosmos::RJRAdapter.init
-  Manufactured::RJRAdapter.init
-  Missions::RJRAdapter.init
-  Stats::RJRAdapter.init
-
+  # setup rjr nodes
   nodes = []
-
   config.node_types.each { |nt|
     case nt
     when 'amqp' then
-      nodes << RJR::AMQPNode.new(:node_id => config.node_id, :broker => config.amqp_broker)
+      nodes << RJR::Nodes::AMQP.new(:node_id => config.node_id, :broker => config.amqp_broker)
     when 'ws' then
-      nodes << RJR::WSNode.new(:node_id => config.node_id, :host   => config.ws_host, :port => config.ws_port)
+      nodes << RJR::Nodes::WS.new(:node_id => config.node_id, :host   => config.ws_host, :port => config.ws_port)
     when 'www' then
-      nodes << RJR::WebNode.new(:node_id => config.node_id, :host   => config.www_host, :port => config.www_port)
+      nodes << RJR::Nodes::Web.new(:node_id => config.node_id, :host   => config.www_host, :port => config.www_port)
     when 'tcp' then
-      nodes << RJR::TCPNode.new(:node_id => config.node_id, :host => config.tcp_host, :port => config.tcp_port)
+      nodes << RJR::Nodes::TCP.new(:node_id => config.node_id, :host => config.tcp_host, :port => config.tcp_port)
     when 'local' then
-      nodes << RJR::LocalNode.new(:node_id => config.node_id)
+      nodes << RJR::Nodes::Local.new(:node_id => config.node_id)
     end
   }
 
-  multi_node = RJR::MultiNode.new :nodes => nodes
+  multi_node = RJR::Nodes::Multi.new :nodes => nodes
+
+  RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
+  #if RJR::Logger.debug?
+  #  require 'rjr/inspect'
+  #  require 'motel/rjr_inspect'
+  #  require 'manufactured/rjr_inspect'
+  #  # TODO other subsystems
+  #end
+
+  # setup the omega systems
+  multi_node.dispatcher.add_module('users/rjr/init')
+  multi_node.dispatcher.add_module('motel/rjr/init')
+  multi_node.dispatcher.add_module('cosmos/rjr/init')
+  multi_node.dispatcher.add_module('stats/rjr/init')
+  multi_node.dispatcher.add_module('manufactured/rjr/init')
+  multi_node.dispatcher.add_module('missions/rjr/init')
 
   # create the default roles
-  local_node = RJR::LocalNode.new :node_id => 'server_seeder'
+  local_node = RJR::Nodes::Local.new :node_id => 'server_seeder'
+  local_node.dispatcher = multi_node.dispatcher
   Omega::Roles::ROLES.keys.collect { |id|
     role = Users::Role.new :id => id
     Omega::Roles::ROLES[id].each { |pe|
       role.add_privilege pe[0], pe[1]
     }
-    local_node.invoke_request('users::create_entity', role)
+    local_node.invoke('users::create_role', role)
   }
 
   # create an initial superadmin user
-  admin = Users::User.new :id => config.admin_user, :password => config.admin_pass
-  local_node.invoke_request('users::create_entity', admin)
-  local_node.invoke_request('users::add_role',       admin.id, 'superadmin')
+  admin = Users::User.new :id => config.admin_user, :password => config.admin_pass,
+                           :registration_code => nil
+  local_node.invoke('users::create_user', admin)
+  local_node.invoke('users::add_role',    admin.id, 'superadmin')
 
   # create an initial anonymous user
-  anon = Users::User.new :id => config.anon_user, :password => config.anon_pass
-  local_node.invoke_request('users::create_entity', anon)
-  local_node.invoke_request('users::add_role',      anon.id, 'anonymous_user')
+  anon = Users::User.new :id => config.anon_user, :password => config.anon_pass,
+                         :registration_code => nil
+  local_node.invoke('users::create_user', anon)
+  local_node.invoke('users::add_role',    anon.id, 'anonymous_user')
 
-  setup_signals(config)
+  setup_signals(config, local_node)
   multi_node.listen
   multi_node.join
 end

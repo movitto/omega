@@ -12,6 +12,8 @@ require 'optparse'
 require 'pry'
 
 require 'omega'
+require 'omega/client/dsl'
+require 'rjr/nodes/amqp'
 
 include Omega::Client::DSL
 
@@ -39,8 +41,10 @@ optparse.parse!
 ###### log into server
 RJR::Logger.log_level= ::Logger::INFO
 
-$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-console', :broker => 'localhost', :keep_alive => true
-login $rjr_node, user, password
+$console = self
+$console.dsl.rjr_node = 
+  RJR::Nodes::AMQP.new :node_id => 'omega-console', :broker => 'localhost'
+login user, password
 
 puts "Use \"$rjr_node\" or omega client dsl to invoke requests"
 
@@ -49,15 +53,6 @@ Pry.config.prompt_name = 'omega'
 Pry.config.commands = Pry::CommandSet.new do
   #import Pry::Commands
   import_from Pry::Commands, 'help'
-  create_command 'invoke_request' do
-    description 'Use rjr node to invoke request'
-    group 'rjr'
-    command_options :keep_retval => true
-    
-    def process(*args)
-      $rjr_node.invoke_request('omega-queue', *args)
-    end
-  end
 
   Omega::Client::DSL.instance_methods(false).sort.each { |cmd|
     create_command cmd.to_s do
@@ -66,9 +61,9 @@ Pry.config.commands = Pry::CommandSet.new do
       command_options :keep_retval => true
   
       def process(*args)
-        Omega::Client::DSL.send(self.command_name, *args)
+        $console.send(self.command_name, *args)
       end
-    end
+    end unless cmd == :dsl
   }
 end
 

@@ -8,7 +8,7 @@
 require 'rubygems'
 require 'optparse'
 
-require 'omega'
+require 'rjr/nodes/tcp'
 
 transport = :tcp
 url       = 'jsonrpc://localhost:8181'
@@ -32,10 +32,9 @@ end
 optparse.parse!
 
 # TODO verify transport/url params
-
 # TODO support other transports
-node = RJR::TCPNode.new :node_id => 'omega-status-retrieve'
-#node = RJR::AMQPNode.new :node_id => 'omega-status-retrieve', :broker => 'localhost'
-puts node.invoke_request(url, 'rjr::status')
-puts node.invoke_request(url, 'motel::status')
-puts node.invoke_request(url, 'manufactured::status')
+
+node = RJR::Nodes::TCP.new :node_id => 'omega-status-retrieve'
+#puts node.invoke(url, 'rjr::status')
+puts node.invoke(url, 'motel::status')
+puts node.invoke(url, 'manufactured::status')

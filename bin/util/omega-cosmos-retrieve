@@ -6,8 +6,10 @@
 
 require 'rubygems'
 require 'optparse'
+require 'colored'
 
 require 'omega'
+require 'rjr/nodes/amqp'
 
 entity_type   = nil
 id            = nil
@@ -46,22 +48,22 @@ end
 
 RJR::Logger.log_level= ::Logger::INFO
 
-$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
+$rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
 login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
+session    = $rjr_node.invoke('omega-queue', 'users::login', login_user)
 $rjr_node.message_headers['session_id'] = session.id
 
-entity = $rjr_node.invoke_request('omega-queue', 'cosmos::get_entity', 'of_type', entity_type, 'with_name', id)
+entity = $rjr_node.invoke('omega-queue', 'cosmos::get_entity', 'of_type', entity_type, 'with_name', id)
 
 $manufactured_entities = []
 if manufactured
   if 'galaxy' == entity_type
     entity.solar_systems.each { |sys|
-      $manufactured_entities += $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities', 'under', sys.name)
+      $manufactured_entities += $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', sys.id)
     }
 
   elsif 'solarsystem' == entity_type
-    $manufactured_entities = $rjr_node.invoke_request('omega-queue', 'manufactured::get_entities', 'under', id)
+    $manufactured_entities = $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', id)
 
   # elsif 'asteroid' == entity_type # TODO get entities mining this asteroid
   end
@@ -78,23 +80,17 @@ end
 def print_callbacks(entity, i=0)
   return if entity.nil?
 
-  puts indent(i) + "Callbacks:" if (entity.location.movement_callbacks.size + entity.location.proximity_callbacks.size + entity.location.stopped_callbacks.size) > 0
-  entity.location.movement_callbacks.each { |m|
-    puts indent(i+1) + "- movement of #{m.to_s} -> #{m.endpoint_id}"
-  }
-  entity.location.proximity_callbacks.each { |p|
-    puts indent(i+1) + "- proximity (#{p.event}) of #{p.to_s}/#{p.to_location} -> #{p.endpoint_id}"
-  }
-  entity.location.stopped_callbacks.each { |s|
-    puts indent(i+1) + "- stopped -> #{s.endpoint_id}"
+  puts indent(i) + "Callbacks:" if entity.location.callbacks.size > 0
+  entity.location.callbacks.each { |c|
+    puts indent(i+1) + "- #{c}"
   }
 end
 
 def print_notifications(entity, i=0)
   return if entity.nil?
 
-  puts indent(i) + "Notifications:" if (entity.notification_callbacks.size) > 0
-  entity.notification_callbacks.each { |n|
+  puts indent(i) + "Notifications:" if (entity.callbacks.size) > 0
+  entity.callbacks.each { |n|
     puts indent(i+1) + "- #{n.type} -> #{n.endpoint_id}"
   }
 end
@@ -120,7 +116,7 @@ def print_system(sys, i=0)
   sys.jump_gates.each { |j|
     print_jump_gate(j, i+1)
   }
-  $manufactured_entities.select { |mu| mu.system_name == sys.name }.each{ |mu|
+  $manufactured_entities.select { |mu| mu.system_id == sys.id }.each{ |mu|
     print_manufactured_entity(mu, i+1)
   }
 end
@@ -143,7 +139,7 @@ def print_asteroid(asteroid, i=0)
   puts indent(i) + "asteroid " + asteroid.name.bold.red + " (@" + asteroid.location.to_s + ")"
   print_callbacks(asteroid, i+1)
 
-  resource_sources = $rjr_node.invoke_request('omega-queue', 'cosmos::get_resource_sources', asteroid.name)
+  resource_sources = $rjr_node.invoke('omega-queue', 'cosmos::get_resources', asteroid.id)
   puts indent(i+i) + "resources: "
   resource_sources.each { |rs|
     print_resource_source(rs, i+2)
@@ -160,12 +156,13 @@ def print_moon(moon, i=0)
 end
 
 def print_jump_gate(jump_gate, i=0)
-  puts indent(i) + "jump gate to " + jump_gate.endpoint + " (@" + jump_gate.location.to_s + ")"
+  # TODO retrieve / print endpoint system
+  puts indent(i) + "jump gate to " + jump_gate.endpoint_id + " (@" + jump_gate.location.to_s + ")"
   print_callbacks(jump_gate, i+1)
 end
 
 def print_manufactured_entity(mu, i=0)
-  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (w/" + mu.hp.to_s + "hp @" + mu.location.to_s + " -> " + mu.location.orientation.to_s + ")"
+  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (@" + mu.location.to_s + " -> " + mu.location.orientation.to_s + ")"
   puts indent(i+1) + "resources: " if mu.resources.size > 0
   mu.resources.each { |id,q|
     puts indent(i+2) + "#{q} of #{id.to_s.red}"
