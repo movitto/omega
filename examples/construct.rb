@@ -5,7 +5,12 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
+require 'colored'
+
 require 'omega'
+require 'omega/client/dsl'
+require 'omega/client/entities/station'
+require 'rjr/nodes/tcp'
 
 include Omega::Client::DSL
 
@@ -14,8 +19,10 @@ include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
 
-node = RJR::TCPNode.new(:node_id => 'client', :host => 'localhost', :port => '9090')
-login node, 'admin', 'nimda'
+node = RJR::Nodes::TCP.new(:node_id => 'client', :host => 'localhost', :port => '9090')
+dsl.rjr_node = node
+Omega::Client::Trackable.node.rjr_node = node # XXX
+login 'admin', 'nimda'
 
 ####################### create environment
 galaxy 'Zeus' do |g|
@@ -47,19 +54,18 @@ end
 RJR::Logger.log_level= ::Logger::WARN
 
 station = Omega::Client::Factory.get('player-manufacturing-station1')
-station.handle_event(:partial_construction) do |e,st,en,pc|
+station.handle(:partial_construction) do |e,st,en,pc|
   puts "#{st.id} partially constructed #{en.id} (#{pc*100}/100%)".green
 end
-station.handle_event(:construction_complete) do |e,st,en|
+station.handle(:construction_complete) do |e,st,en|
   puts "#{st.id} fully constructed #{en.id}".green
 end
 
 st,en =
-station.construct("Manufactured::Ship", {:entity_type => 'Manufactured::Ship',
-                                         :class => 'Manufactured::Ship',
-                                         :type  => :mining,
-                                         :id   => "player-mining-ship"})
+  station.construct :entity_type => 'Ship',
+                    :type  => :mining,
+                    :id   => "player-mining-ship"
+
 puts "#{st.id} constructing #{en.id}".blue
 
-
-Omega::Client::Node.join
+dsl.rjr_node.join

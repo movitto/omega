@@ -5,7 +5,10 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
+
 require 'omega'
+require 'omega/client/dsl'
+require 'rjr/nodes/amqp'
 
 include Omega::Client::DSL
 
@@ -14,9 +17,9 @@ include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
 
-node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
 # TODO read credentials from config
-login node, 'admin', 'nimda'
+dsl.rjr_node = RJR::Nodes::AMQP.new(:node_id => 'seeder', :broker => 'localhost')
+login 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
@@ -39,8 +42,8 @@ galaxy 'Zeus' do |g|
 
   system 'Philo', 'HU1792', :location => Location.new(:x => -142, :y => -338, :z => 409) do |sys|
     planet 'Xeno',
-           :movement_strategy => Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.02,
-                                                :eccentricity => 0.36, :semi_latus_rectum => 1080,
+           :movement_strategy => Elliptical.new(:relative_to => Elliptical::FOCI, :speed => 0.02,
+                                                :e => 0.36, :p => 1080,
                                                 :direction => Motel.random_axis) do |pl|
     end
   

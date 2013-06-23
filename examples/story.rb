@@ -5,20 +5,23 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
+
 require 'omega'
+require 'omega/client/dsl'
+require 'missions/dsl'
+require 'rjr/nodes/amqp'
 
 include Omega::Client::DSL
-
-include Missions::Generators
+include Missions::DSL
 
 ##################################################### init
 
 
 RJR::Logger.log_level= ::Logger::INFO
 
-node = RJR::AMQPNode.new(:node_id => 'seeder', :broker => 'localhost')
 # TODO read credentials from config
-login node, 'admin', 'nimda'
+dsl.rjr_node = RJR::Nodes::AMQP.new(:node_id => 'seeder', :broker => 'localhost')
+login 'admin', 'nimda'
 
 STARTING_SYSTEMS = ARGV.collect { |s| system(s) }
 def rand_system ; STARTING_SYSTEMS.sample ; end
@@ -50,62 +53,62 @@ tamora   = user 'tamora',       'aromat',       :npc => true
 # TODO logout as admin, login as macbeth/hamlet/othello so as to properly set creator_user_id
 
 castle_macbeth =
-  station('castle-macbeth', :user_id => 'Macbeth',
-          :solar_system => rand_system, 
+  station('castle-macbeth', :user_id => 'Macbeth', :type => :defense,
+          :solar_system => rand_system,
           :location     => Motel::Location.new(:x => -950, :y => 450, :z => -750))
 
 macbeth_ship =
-  ship('macbeth-ship', :user_id => 'Macbeth',
-       :solar_system => castle_macbeth.solar_system,
+  ship('macbeth-ship', :user_id => 'Macbeth', :type => :destroyer,
+       :system_id => castle_macbeth.solar_system,
        :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
 macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
 
 elsinore =
-  station('elsinore', :user_id => 'Hamlet',
+  station('elsinore', :user_id => 'Hamlet', :type => :mining,
           :solar_system => rand_system, 
           :location     => Motel::Location.new(:x => 928, :y => -67, :z => 102))
 
 hamlet_ship =
-  ship('hamlet-ship', :user_id => 'Hamlet',
+  ship('hamlet-ship', :user_id => 'Hamlet', :type => :corvette,
        :solar_system => castle_hamlet.solar_system,
        :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
 hamlet_ship.dock_to(elsinore) if hamlet_ship.docked_at.nil?
 
 cyprus =
-  station('cyprus', :user_id => 'Othello',
+  station('cyprus', :user_id => 'Othello', :type => :commerce,
           :solar_system => rand_system, 
           :location     => Motel::Location.new(:x => -1950, :y => 1718, :z => 418))
 
 othello_ship =
-  ship('othello-ship', :user_id => 'Othello',
+  ship('othello-ship', :user_id => 'Othello', :type => :battlecruiser,
        :solar_system => cyprus.solar_system,
        :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
 othello_ship.dock_to(cyprus) if othello_ship.docked_at.nil?
 
 rome =
-  station('rome', :user_id => 'Ceasar',
+  station('rome', :user_id => 'Ceasar', :type => :commerce,
           :solar_system => rand_system, 
           :location     => Motel::Location.new(:x => 250, :y => 250, :z => 250))
 
 octavius_ship =
-  ship('octavius-ship', :user_id => 'Octavius',
+  ship('octavius-ship', :user_id => 'Octavius', :type => :exploration,
        :solar_system => rome.solar_system,
        :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
 octavius_ship.dock_to(rome) if octavius_ship.docked_at.nil?
 
 titus_ship =
-  ship('titus-ship', :user_id => 'Titus',
+  ship('titus-ship', :user_id => 'Titus', :type => :bomber,
        :solar_system => rome.solar_system,
        :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
 titus_ship.dock_to(rome) if titus_ship.docked_at.nil?
 
 penglai =
-  station('penglai', :user_id => 'Shennong',
+  station('penglai', :user_id => 'Shennong', :type => :science,
           :solar_system => rand_system, 
           :location     => Motel::Location.new(:x => 2950, :y => 2950, :z => 2950))
 
 youdu =
-  station('youdu', :user_id => 'Shennong',
+  station('youdu', :user_id => 'Shennong', :type => :technology,
           :solar_system => rand_system, 
           :location     => Motel::Location.new(:x => -1950, :y => -1950, :z => -1950))
 
@@ -150,7 +153,7 @@ youdu =
 
 es = msn[:opponent].id.downcase + '_ship'
 
-mission gen_uuid, :title => msn[:title]
+mission gen_uuid, :title => msn[:title],
   :creator_user_id => msn[:creator].id, :timeout => 360,
   :description => msn[:description],
 
@@ -162,19 +165,19 @@ mission gen_uuid, :title => msn[:title]
       :type     => :corvette, # TODO autodefend on attack
       :user_id  => msn[:opponent].id,
       :system_name => rand_system,
-      :location    => msn[:location])
+      :location    => msn[:location]),
      Event.schedule_expiration_event,
      Assignment.subscribe_to(es, "destroyed",
                              Event.create_victory_event)],
 
   :victory_conditions =>
-    Query.check_entity_hp(es)
+    Query.check_entity_hp(es),
 
   :victory_callbacks => 
     [Resolution.add_resource(msn[:reward], 50),
      Resolution.update_user_attributes,
      Resolution.cleanup_events(es, 'destroyed'),
-     Resolution.recycle_mission]
+     Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
@@ -208,7 +211,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
      Assignment.create_resource(mid + '-asteroid', type, name, q1),
      Event.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-mining-ships', "resource_collected",
-                                         Event.resource_collected]]
+                                         Event.resource_collected)],
 
   :victory_conditions =>
     Query.check_mining_quantity,
@@ -218,7 +221,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
   :victory_callbacks => 
     [Resolution.update_user_attributes,
      Resolution.cleanup_events(mid + '-mining-ships', 'resource_collected'),
-     Resolution.recycle_mission]
+     Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
@@ -237,17 +240,17 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
   :assignment_callbacks => 
     [Assignment.store(mid + '-ship',
        Query.user_ships { |s| s.docked_at.id == src.id }.first),
-     Assignment.add_resource(mid + '-ship', type, name, q2)
+     Assignment.add_resource(mid + '-ship', type, name, q2),
      Event.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ship', 'transfer',
-                             Event.transfer)]
+                             Event.transfer)],
 
   :victory_conditions => Query.check_transfer,
 
   :victory_callbacks =>
     [Resolution.update_user_attributes,
      Resolution.cleanup_events(mid + '-ship', 'transfer'),
-     Resolution.recycle_mission]
+     Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
@@ -265,12 +268,12 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
     [Assignment.store(mid + '-ships',
                       Query.user_ships)] + # FIXME misses any ships created after assignment
     Array.new(3) { |i|
-      Assignment.create_entity("#{mid}-enemy-#{i}"
+      Assignment.create_entity("#{mid}-enemy-#{i}",
         :id       => Motel.gen_uuid,
         :type     => :corvette, # TODO autodefend on attack
         :user_id  => chiyou.id,
         :system_name => rand_system,
-        :location    => msn[:location]
+        :location    => msn[:location])
     } +
     [Assignment.add_resource(eid, type, name, q3),
      Event.schedule_expiration_event,
