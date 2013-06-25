@@ -147,18 +147,20 @@ describe DSL do
 
   describe "#resource" do
     it "creates a new resource" do
-      a = nil
+      a = r = nil
       galaxy('ngal1') { |g|
         system('system1') { |s|
           a = asteroid('nast1') { |a|
-            r = resource(:id => 'gem-ruby', :quantity => 420)
-            r.id.should == 'gem-ruby'
+            r = resource(:material_id => 'gem-ruby', :quantity => 420)
+            r.material_id.should == 'gem-ruby'
             r.quantity.should == 420
           }
         }
       }
+      sleep 0.0001 # XXX setting of resource done via local node notification,
+                   #     need to give thread time to run
       r = Cosmos::RJR.registry.entity(&with_id(a.id)).resources.first
-      r.id.should == 'gem-ruby'
+      r.material_id.should == 'gem-ruby'
       r.quantity.should == 420
     end
 

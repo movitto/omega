@@ -161,7 +161,9 @@ describe HasCargo do
 
     it "removes resource from ship" do
       r = build(:resource, :quantity => @e.cargo_capacity)
-      r1 = build(:resource, :id => r.id, :quantity => 3 * @e.cargo_capacity / 4)
+      r1 = build(:resource,
+                 :material_id => r.material_id,
+                 :quantity => 3 * @e.cargo_capacity / 4)
       @e.add_resource r
       lambda{
         @e.remove_resource r1

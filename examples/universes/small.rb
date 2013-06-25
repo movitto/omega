@@ -24,10 +24,10 @@ login 'admin', 'nimda'
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
     asteroid gen_uuid, :location => Location.new(:x => -200, :y => -130, :z => 0) do |ast|
-      resource :id => rand_resource.id, :quantity => 325
+      resource :resource => rand_resource, :quantity => 325
     end
     asteroid gen_uuid, :location => Location.new(:x => 1533, :y => 998, :z => 640) do |ast|
-      resource :id => rand_resource.id, :quantity => 500
+      resource :resource => rand_resource, :quantity => 500
     end
   end
 

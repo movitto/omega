@@ -13,11 +13,14 @@ class Resource
   # ID of the resource
   attr_accessor :id
 
+  # ID of the material
+  attr_accessor :material_id
+
   # Type of resource
-  def type ; id.split('-').first end
+  def type ; material_id.split('-').first end
 
   # Name of resource
-  def name ; id.split('-').last end
+  def name ; material_id.split('-').last end
 
   # Id of entity which resource is assigned
   attr_accessor :entity_id
@@ -38,11 +41,13 @@ class Resource
   #
   # @param [Hash] args hash of options to initialize star with
   # @option args [Cosmos::Resource] :resource,'resource' resource which to copy attributes from
-  # @option args [String] :id,'id' id to assign to the resource
-  # @option args [String] :entity,'entity' entity to assign to the resource
-  # @option args [Integer] :quantity,'quantity' amount of resource present in resource_source
+  # @option args [String] :id'id to assign to the resource
+  # @option args [String] :material_id id of material to assign to resource
+  # @option args [String] :entity entity to assign to the resource
+  # @option args [Integer] :quantity amount of resource present in resource_source
   def initialize(args = {})
     attr_from_args args, :id     => nil,
+                         :material_id => nil,
                          :entity_id => nil,
                          :entity => nil,
                          :quantity => 0
@@ -54,11 +59,17 @@ class Resource
   # Return boolean indicating if this resource is valid.
   #
   # Ensures:
-  # * is is of valid format
+  # * id is a valid string
+  # * material_id is in a valid format
   # * entity_id is not nil
   # * entity is nil or valid
+  # * quantitiy is numeric
   def valid?
-    @id.is_a?(String) && @id =~ /[a-zA-Z0-9]*-[a-zA-Z0-9]*/ &&
+    @id.is_a?(String) && @id != "" &&
+
+    @material_id.is_a?(String) &&
+    @material_id =~ /[a-zA-Z0-9]*-[a-zA-Z0-9]*/ &&
+
     !@entity_id.nil? &&
     (@entity.nil? || @entity.valid?) &&
      @quantity.numeric?
@@ -66,7 +77,7 @@ class Resource
 
   # Convert resource to string
   def to_s
-    "resource-#{@id}" +
+    "resource-#{@material_id}" +
     ((!@entity.nil? && @quantity > 0) ?
       " (#{@quantity} at #{@entity.id})" :
       "")
@@ -77,6 +88,7 @@ class Resource
     {
       'json_class' => self.class.name,
       'data'       => {:id       => id,
+                       :material_id => material_id,
                        :quantity => quantity,
                        :entity_id => entity_id }
     }.to_json(*a)

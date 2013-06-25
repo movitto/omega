@@ -47,9 +47,10 @@ class Mining < Omega::Server::Command
     @q = @ship.nil? ? 0 : @ship.mining_quantity
     @q = @resource.quantity unless @resource.nil? || @resource.quantity >= @q
 
-    Cosmos::Resource.new :id       => @resource.nil? ? nil : @resource.id,
-                         :entity   => @resource.nil? ? nil : @resource.entity,
-                         :quantity => @q
+    Cosmos::Resource.new :id          => @resource.nil? ? nil : @resource.id,
+                         :material_id => @resource.nil? ? nil : @resource.material_id,
+                         :entity      => @resource.nil? ? nil : @resource.entity,
+                         :quantity    => @q
   end
 
   public
@@ -103,7 +104,7 @@ class Mining < Omega::Server::Command
       reason = 'ship_docked'
 
     elsif @resource.quantity <= 0
-      ::RJR::Logger.debug "#{@ship.id} depleted resource #{@resource.id}"
+      ::RJR::Logger.debug "#{@ship.id} depleted resource #{@resource}"
       @ship.run_callbacks('resource_depleted', @ship, @resource)
       reason = 'resource_depleted'
     end
@@ -119,7 +120,7 @@ class Mining < Omega::Server::Command
 
   def run!
     super
-    ::RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource.id}"
+    ::RJR::Logger.debug "invoking mining command #{@ship.id} -> #{@resource}"
 
     r = gen_resource
     removed_resource = false

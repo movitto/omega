@@ -64,7 +64,8 @@ transfer_resource = proc { |*args|
   # ensure src has resources
   resources.each { |r|
     raise ArgumentError,r unless r.valid? &&
-                                 src.resources.find { |rs| rs.id == r.id }
+                                 src.resources.find { |rs| rs.material_id ==
+                                                           r.material_id }
   }
 
   # update entities locations & systems

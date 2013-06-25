@@ -46,7 +46,7 @@ class PopulateResource < Omega::Server::Event
                 rand(DEFAULT_QUANTITY) :
                 @quantity
 
-    # TODO
+# FIXME
     Missions::RJR.node.invoke('cosmos::set_resource', @entity.id, @resource, @quantity)
   end
 

@@ -50,13 +50,13 @@ RESOURCE_IDS   = RESOURCE_NAMES.collect { |type,list| list.collect { |name| self
 def self.random
   i = rand(RESOURCE_IDS.length-1)
   id = RESOURCE_IDS[i]
-  Cosmos::Resource.new :id => id
+  Cosmos::Resource.new :material_id => id
 end
 
 # Return All {Cosmos::Resource}s instantiated from master list
 def self.all_resources
   RESOURCE_IDS.collect { |i|
-    Cosmos::Resource.new :id => i
+    Cosmos::Resource.new :material_id => i
   }
 end
 

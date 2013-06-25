@@ -55,6 +55,7 @@ get_resource = proc { |resource_id|
 }
 
 # retrieve all resources for entity
+# XXX remove (accessible through get_entity('...').resources
 get_resources = proc { |entity_id|
   # retrieve entity from registry
   entity = registry.entity &with_id(entity_id)

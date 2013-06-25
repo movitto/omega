@@ -55,7 +55,7 @@ class Asteroid
 
   # Set resource locally
   def set_resource(res)
-    r = @resources.find { |r| r.id == res.id }
+    r = @resources.find { |r| r.material_id == res.material_id }
     if r
       # simply update quantity
       if res.quantity > 0

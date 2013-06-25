@@ -236,7 +236,10 @@ module Omega
       # @return [Cosmos::Resource] resource created
       def resource(args = {})
         raise ArgumentError, "asteroid is nil" if @asteroid.nil?
-        rs = Cosmos::Resource.new(args.merge({:entity => @asteroid}))
+        rs = args[:resource] || Cosmos::Resource.new(args)
+        rs.id       = gen_uuid
+        rs.entity   = @asteroid
+        rs.quantity = args[:quantity] if args.has_key?(:quantity)
         RJR::Logger.info "Creating resource #{rs} at #{@asteroid}"
         notify 'cosmos::set_resource', rs
         rs

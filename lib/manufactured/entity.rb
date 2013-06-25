@@ -106,7 +106,7 @@ module HasCargo
   def add_resource(resource)
     raise RuntimeError,
           "entity cannot accept resource" unless can_accept?(resource)
-    res = @resources.find { |r| r.id == resource.id }
+    res = @resources.find { |r| r.material_id == resource.material_id }
     if res.nil?
       resource.entity = self
       @resources << resource
@@ -116,13 +116,14 @@ module HasCargo
     nil
   end
 
-  # Remove specified quantity of resource specified by id from entity
+  # Remove specified quantity of resource specified by material id from entity
   #
   # @param [Resource] resource to remove
   # @raise [RuntimeError] if resource cannot be removed
   def remove_resource(resource)
     res = @resources.find { |r|
-      r.id == resource.id && r.quantity >= resource.quantity
+      r.material_id == resource.material_id &&
+      r.quantity >= resource.quantity
     }
     raise RuntimeError,
           "entity does not contain specified resource" if res.nil?
@@ -143,14 +144,15 @@ module HasCargo
   end
 
   # Return boolean if entity can transfer specified quantity of resource
-  # specified by id to specified destination
+  # specified by material_id to specified destination
   #
   # @param [Manufactured::Entity] to_entity entity which resource is being transfered to
   # @param [Resource] resource being transfered
   def can_transfer?(to_entity, resource)
     res =
       @resources.find { |r|
-        r.id == resource.id && r.quantity >= resource.quantity
+        r.material_id == resource.material_id &&
+        r.quantity >= resource.quantity
       }
 
     same_entity =

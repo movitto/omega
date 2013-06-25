@@ -56,7 +56,7 @@ module Manufactured::RJR
 
       context "invalid resource" do
         it "raises ArgumentError" do
-          @rs.id = 'invalid'
+          @rs.material_id = 'invalid'
           lambda {
             @s.add_resource @sh.id, @rs
           }.should raise_error(ArgumentError)

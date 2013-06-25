@@ -11,14 +11,14 @@ module Cosmos
 describe Resource do
   describe "#type" do
     it "returns type" do
-      @r = Resource.new :id => 'metal-steel'
+      @r = Resource.new :material_id => 'metal-steel'
       @r.type.should == 'metal'
     end
   end
 
   describe "#name" do
     it "returns name" do
-      @r = Resource.new :id => 'metal-steel'
+      @r = Resource.new :material_id => 'metal-steel'
       @r.name.should == 'steel'
     end
   end
@@ -47,14 +47,22 @@ describe Resource do
   describe "#valid?" do
     before(:each) do
       @a  = build(:asteroid)
-      @r = Resource.new :id => 'metal-steel',
+      @r = Resource.new :id => 'resource42',
+                        :material_id => 'metal-steel',
                         :entity => @a,
                         :quantity => 50
     end
 
     context "id is invalid" do
       it "returns false" do
-        @r.id = 'foobar'
+        @r.id = nil
+        @r.should_not be_valid
+      end
+    end
+
+    context "material_id is invalid" do
+      it "returns false" do
+        @r.material_id = 'foobar'
         @r.should_not be_valid
       end
     end

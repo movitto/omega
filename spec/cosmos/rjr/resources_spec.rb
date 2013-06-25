@@ -20,7 +20,7 @@ module Cosmos::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password).id
     end
 
     context "resource is not a valid resource" do
@@ -105,7 +105,7 @@ module Cosmos::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password).id
     end
 
     context "resource not found" do
@@ -149,7 +149,7 @@ module Cosmos::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password).id
     end
 
     context "entity not found" do

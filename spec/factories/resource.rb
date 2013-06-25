@@ -6,7 +6,8 @@ FactoryGirl.define do
     create_method 'cosmos::set_resource'
 
     factory :resource do
-      sequence(:id)   {  |n| "type-name#{n}" }
+      sequence(:id) { |n| "resource#{n}" }
+      sequence(:material_id) {  |n| "type-name#{n}" }
       quantity 50
       association :entity, :factory => :asteroid
     end

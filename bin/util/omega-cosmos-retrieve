@@ -137,7 +137,7 @@ def print_asteroid(asteroid, i=0)
 end
 
 def print_resource(resource, i=0)
-  puts indent(i) + " " + resource.id.red + " (" + resource.quantity.to_s + ")"
+  puts indent(i) + " " + resource.material_id.red + " (" + resource.quantity.to_s + ")"
 end
 
 def print_moon(moon, i=0)

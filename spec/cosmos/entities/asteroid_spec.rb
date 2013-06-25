@@ -92,7 +92,7 @@ describe Asteroid do
       it "updates resource" do
         a = Asteroid.new
         r = build(:resource, :quantity => 20)
-        r1 = build(:resource, :id => r.id, :quantity => 10)
+        r1 = build(:resource, :material_id => r.material_id, :quantity => 10)
         a.set_resource r
         a.set_resource r1
         a.resources.first.quantity.should == r1.quantity
@@ -102,7 +102,7 @@ describe Asteroid do
         it "deletes resource" do
           a = Asteroid.new
           r = build(:resource, :quantity => 20)
-          r1 = build(:resource, :id => r.id, :quantity => 0)
+          r1 = build(:resource, :material_id => r.material_id, :quantity => 0)
           a.set_resource r
           a.set_resource r1
           a.resources.should be_empty
