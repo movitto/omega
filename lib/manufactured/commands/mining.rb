@@ -3,8 +3,6 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# FIXME needs to be updated to use CommandHelpers (use others as example)
-
 require 'rjr/common'
 require 'omega/server/command'
 
@@ -24,6 +22,7 @@ module Commands
 # ** 'resource_depleted' (also invokes 'resource_depeleted' callback)
 # * 'resource_collected' - invoked when miner collects the resource from the source, with event, miner, resource source, and quantity mined during this operation as params
 class Mining < Omega::Server::Command
+  include Omega::Server::CommandHelpers
 
   # Mining {Manufactured::Ship} ship
   attr_accessor :ship
@@ -70,22 +69,17 @@ class Mining < Omega::Server::Command
   end
 
   def before_hook
-    # TODO update ship location & cosmos resource (unless terminated)
-    #@ship.location =
-    #  node.invoke('motel::get_location',
-    #              'with_id', cmd.ship.location.id)
-    #
-    # need to load resource source's entity's location parent explicity
-    #@resource.entity.location.parent =
-    #  node.invoke('motel::get_location',
-    #              'with_id', resource.entity.location.parent_id)
-  
+    # update ship location & cosmos resource/entity
+     @ship = retrieve(@ship.id)
+     @resource = invoke 'cosmos::get_resource', 'with_id', @resource.id
+     @resource.entity = invoke 'cosmos::get_entity', 'with_id', @ship.id
   end
 
   def after_hook
-    # TODO update registry & cosmos
-    #node.invoke('cosmos::set_resource', @resource)
-  
+    # update ship and resources
+    update_registry(@ship)
+    invoke 'cosmos::set_resource', @resource
+    # TODO
     #node.invoke('users::update_attribute', @ship.user_id,
     #            Users::Attributes::ResourcesCollected.id, @q)
   end
@@ -115,7 +109,7 @@ class Mining < Omega::Server::Command
     end
 
     ::RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"
-    @ship.run_callbacks('mining_stopped', reason, @ship, @resource)
+    run_callbacks @ship, 'mining_stopped', reason, @ship, @resource
   end
 
   def should_run?
@@ -141,9 +135,9 @@ class Mining < Omega::Server::Command
                                           !resource_transferred
     end
 
-    if resource_transferred
-      @ship.run_callbacks('resource_collected', @ship, @resource, r.quantity)
-    end
+    
+    run_callbacks(@ship, 'resource_collected',
+                  @ship, @resource, r.quantity) if resource_transferred
   end
 
    # Convert command to json representation and return it

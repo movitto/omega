@@ -20,6 +20,11 @@ require 'motel/movement_strategies/linear'
 require 'motel/movement_strategies/elliptical'
 require 'motel/movement_strategies/follow'
 
+require 'motel/callbacks/movement'
+require 'motel/callbacks/rotation'
+require 'motel/callbacks/proximity'
+require 'motel/callbacks/stopped'
+
 require 'cosmos/resource'
 require 'cosmos/entities/galaxy'
 require 'cosmos/entities/solar_system'

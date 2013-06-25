@@ -148,7 +148,8 @@ module Omega
 
           # addd a procedure calling the filter with the 
           # specified entity and parameter list to the filter list
-          filters << proc { |e| filter.call *([e] + params) }
+          # XXX need to define/call an inline function to bind filter/params variables
+          filters << proc { |f,p| proc { |e| f.call e, *p } }.call(filter, params)
         end
 
         filters

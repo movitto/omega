@@ -19,6 +19,8 @@ class Ship
   # Unique string id of the ship
   attr_accessor :id
 
+  # TODO human friendly name
+
   # ID of user which ship belongs to
   attr_accessor :user_id
 
@@ -312,7 +314,7 @@ class Ship
                          :transfer_distance    => 100,
                          :collection_distance  => 100,
                          :shield_level         =>   0,
-                         :hp                   => nil 
+                         :hp                   => nil
 
     @location.orientation = [0,0,1] if @location.orientation == [nil, nil, nil]
     @location.movement_strategy =
@@ -338,7 +340,7 @@ class Ship
   #
   # @param [Manufactured::Ship] ship ship which to copy attributes from
   def update(ship)
-    update_from(ship, :hp, :shield_level)
+    update_from(ship, :hp, :shield_level, :distance_moved)
   end
 
   # Return boolean indicating if this ship is valid

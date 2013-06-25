@@ -45,8 +45,8 @@ mining   = ship(USER_NAME + "-mining-ship1") do |ship|
              ship.type     = :mining
              ship.user_id  = USER_NAME
              ship.solar_system = starting_system
-             #ship.location = Location.new(:x => -150, :y=> -100, :z => -150)
-             ship.location = Location.new(:x   => 520, :y   => 940, :z   => 940,
+             ship.location = Location.new(:x => -150, :y=> -100, :z => -150,
+             #ship.location = Location.new(:x   => 520, :y   => 940, :z   => 940,
                                           :orx =>  0,  :ory =>  0,  :orz =>  1)
            end
 
@@ -54,7 +54,7 @@ corvette = ship(USER_NAME + "-corvette-ship1") do |ship|
              ship.type     = :corvette
              ship.user_id  = USER_NAME
              ship.solar_system = starting_system
-             ship.location = Location.new(:x   => -1150, :y   => 400, :z => -750,
+             ship.location = Location.new(:x => -200, :y=> -150, :z => 100,
+             #ship.location = Location.new(:x   => -1150, :y   => 400, :z => -750,
                                           :orx =>  0,    :ory =>  0,  :orz =>  1)
-             #ship.location = Location.new(:x => -200, :y=> -150, :z => 100)
            end

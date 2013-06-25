@@ -68,12 +68,23 @@ module Omega
       # Raise event on the entity, invoke registered handlers
       def raise_event(event, *eargs)
         @event_handlers[event].each { |eh|
-          eh.call self, *eargs
+          begin
+            eh.call self, *eargs
+          rescue Exception, StandardError => e
+            # TODO use logger instead?
+            puts "err in #{id} #{event} handler: #{e}"
+          end
+            
         } if @event_handlers && @event_handlers[event]
 
         # run :all callbacks
         @event_handlers[:all].each { |eh|
-          eh.call self, *eargs
+          begin
+            eh.call self, *eargs
+          rescue Exception, StandardError => e
+            # TODO use logger instead?
+            puts "err in #{id} 'all' handler: #{e}"
+          end
         } if @event_handlers && @event_handlers[:all]
       end
 
@@ -179,6 +190,7 @@ module Omega
         # @option events [String] :subscribe server method to invoke to being listening for events
         # @option  events [String] :notification local rjr method invoked by server to notify client event occurred.
         # @option  events [Callable] :match optional callback to validate if notification matches local entity
+        # @option  events [Callable] :update optional callback to update entity before handling notification
         def entity_event(events = {})
           events.keys.each { |e|
             event_setup = []
@@ -198,11 +210,20 @@ module Omega
 
             if events[e].has_key?(:notification)
               event_setup << lambda { |*args|
-                self.node.handle(events[e][:notification]) { |*args|
-                  if events[e][:match].nil? || events[e][:match].call(self, *args)
-                    self.raise_event e, *args
-                  end
-                }
+                @handled ||= []
+                unless @handled.include?(e)
+                  notification = events[e][:notification]
+                  self.node.handle(notification) { |*args|
+                    if events[e][:match].nil? || events[e][:match].call(self, *args)
+                      #if !events[e][:update].nil?
+                      #  events[e][:update].call(self, *args)
+                      #end
+
+                      self.raise_event e, *args
+                    end
+                  }
+                  @handled << e
+                end
               }
             end
 
@@ -498,6 +519,13 @@ module Omega
         # Clear entities list
         def clear_entities
           @entities = []
+        end
+
+        # Return cached entity, else retrieve
+        def cached(id)
+          e = entities.find { |e| e.id == id }
+          return e unless e.nil?
+          self.get id
         end
       end
     end

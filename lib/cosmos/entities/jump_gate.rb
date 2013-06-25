@@ -73,7 +73,7 @@ class JumpGate
 
   # Convert jump gate to human readable string and return it
   def to_s
-    "jump_gate-#{solar_system}-#{endpoint}"
+    "jump_gate-#{parent_id}->#{endpoint_id}"
   end
 
   # Return json representation of jump gate

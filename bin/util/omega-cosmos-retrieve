@@ -11,8 +11,7 @@ require 'colored'
 require 'omega'
 require 'rjr/nodes/amqp'
 
-entity_type   = nil
-id            = nil
+name          = nil
 manufactured  = false
 
 optparse = OptionParser.new do |opts|
@@ -21,28 +20,19 @@ optparse = OptionParser.new do |opts|
     exit
   end
 
-  opts.on('-e', '--entity ENTITY', 'type of users entity to retrieve') do |e|
-    entity_type = e
-  end
-
   opts.on('-m', '--manufactured', 'include optional manufacted entities information') do
     manufactured = true
   end
 
-  opts.on('-i', '--id ID', 'id of entity to retrieve') do |i|
-    id = i
+  opts.on('-n', '--name name', 'name of entity to retrieve') do |i|
+    name = i
   end
 end
 
 optparse.parse!
 
-unless ['galaxy', 'solarsystem', 'star', 'asteroid', 'planet', 'moon', 'jumpgate'].include?(entity_type)
-  puts "Invalid entity '#{entity_type}' specified"
-  exit 1
-end
-
-if id.nil?
-  puts "Must specify id"
+if name.nil?
+  puts "Must specify name"
   exit 1
 end
 
@@ -53,19 +43,19 @@ login_user = Users::User.new(:id => 'admin', :password => 'nimda')
 session    = $rjr_node.invoke('omega-queue', 'users::login', login_user)
 $rjr_node.message_headers['session_id'] = session.id
 
-entity = $rjr_node.invoke('omega-queue', 'cosmos::get_entity', 'of_type', entity_type, 'with_name', id)
+entity = $rjr_node.invoke('omega-queue', 'cosmos::get_entity', 'with_name', name)
 
 $manufactured_entities = []
 if manufactured
-  if 'galaxy' == entity_type
+  if entity.is_a?(Cosmos::Entities::Galaxy)
     entity.solar_systems.each { |sys|
       $manufactured_entities += $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', sys.id)
     }
 
-  elsif 'solarsystem' == entity_type
-    $manufactured_entities = $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', id)
+  elsif entity.is_a?(Cosmos::Entities::SolarSystem)
+    $manufactured_entities = $rjr_node.invoke('omega-queue', 'manufactured::get_entities', 'under', entity.id)
 
-  # elsif 'asteroid' == entity_type # TODO get entities mining this asteroid
+  # elsif entity.is_a?(Asteroid) # TODO get entities mining this asteroid
   end
 end
 
@@ -139,15 +129,15 @@ def print_asteroid(asteroid, i=0)
   puts indent(i) + "asteroid " + asteroid.name.bold.red + " (@" + asteroid.location.to_s + ")"
   print_callbacks(asteroid, i+1)
 
-  resource_sources = $rjr_node.invoke('omega-queue', 'cosmos::get_resources', asteroid.id)
+  resources = $rjr_node.invoke('omega-queue', 'cosmos::get_resources', asteroid.id)
   puts indent(i+i) + "resources: "
-  resource_sources.each { |rs|
-    print_resource_source(rs, i+2)
+  resources.each { |rs|
+    print_resource(rs, i+2)
   }
 end
 
-def print_resource_source(resource_source, i=0)
-  puts indent(i) + " " + resource_source.resource.id.red + " (" + resource_source.quantity.to_s + ")"
+def print_resource(resource, i=0)
+  puts indent(i) + " " + resource.id.red + " (" + resource.quantity.to_s + ")"
 end
 
 def print_moon(moon, i=0)
@@ -162,28 +152,30 @@ def print_jump_gate(jump_gate, i=0)
 end
 
 def print_manufactured_entity(mu, i=0)
-  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow + " (@" + mu.location.to_s + " -> " + mu.location.orientation.to_s + ")"
+  puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow +
+                   " (@" + mu.location.to_s + " -> " +
+                   mu.location.orientation.collect { |o| o.round_to(2) }.to_s + ")"
   puts indent(i+1) + "resources: " if mu.resources.size > 0
-  mu.resources.each { |id,q|
-    puts indent(i+2) + "#{q} of #{id.to_s.red}"
+  mu.resources.each { |r|
+    print_resource(r, i+2)
   }
   print_callbacks(mu, i+1)
   print_notifications(mu, i+1)
 end
 
-case entity_type
-when "galaxy"
+case entity
+when Cosmos::Entities::Galaxy
   print_galaxy(entity)
-when "solarsystem"
+when Cosmos::Entities::SolarSystem
   print_system(entity)
-when "star"
+when Cosmos::Entities::Star
   print_star(entity)
-when "planet"
+when Cosmos::Entities::Planet
   print_planet(entity)
-when "asteroid"
+when Cosmos::Entities::Asteroid
   print_asteroid(entity)
-when "moon"
+when Cosmos::Entities::Moon
   print_moon(entity)
-when "jump_gate"
+when Cosmos::Entities::JumpGate
   print_jump_gate(entity)
 end

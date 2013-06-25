@@ -26,7 +26,8 @@ update_location = proc { |loc|
 
   # filter properties not able to be set by user
   # XXX id marked as updatable so as to preserve in return value
-  loc = filter_properties(loc, :allow => [:id, :x, :y, :z, :parent_id, :movement_strategy])
+  loc = filter_properties(loc, :allow =>
+    [:id, :x, :y, :z, :parent_id, :movement_strategy, :next_movement_strategy])
 
   # TODO pause the location first?
 

@@ -109,7 +109,8 @@ module Omega
         rescue Exception => e ; end
 
         # create / return user
-        u = Users::User.new(args.merge({:id => user_id, :password => password}))
+        u = Users::User.new(args.merge({:id => user_id, :password => password,
+                                        :registration_code => nil}))
         invoke('users::create_user', u)
         dsl.run u, :user => u, &bl
         u

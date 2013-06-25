@@ -95,39 +95,39 @@ module Manufactured::RJR
   motel_event = proc { |loc|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
 
+    # retrieve registry entity / location
     entity = registry.entity { |e| e.is_a?(Ship) && e.location.id == loc.id }
-
     unless entity.nil?
-      registry.safe_exec {
-        # update location
-        entity.location.
-          update(node.invoke('motel::get_location', 'with_id', entity.location.id))
-    
-        # update user attributes
-        if(entity.location.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
-          node.invoke('users::update_attribute', entity.user_id,
-                      Users::Attributes::DistanceTravelled.id,
-                      entity.distance_moved)
-          entity.distance_moved = 0
-        end
-    
-        # update movement strategy
-        #entity.location.movement_strategy = entity.next_movement_strategy
-    
-        # update location
-        #loc = entity.location
-        #node.invoke('motel::update_location', loc)
-    
-        # remove callbacks if stopped
-        if(entity.location.movement_strategy ==
-           Motel::MovementStrategies::Stopped.instance)
-          node.invoke('motel::remove_callbacks', loc.id, :movement)
-          node.invoke('motel::remove_callbacks', loc.id, :rotation)
-        end
+      oloc = entity.location
 
-        nil
-      }
+      # update user attributes
+      if(oloc.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
+        node.invoke('users::update_attribute', entity.user_id,
+                    Users::Attributes::DistanceTravelled.id,
+                    entity.distance_moved)
+        entity.distance_moved = 0
+      end
+
+      # update movement strategy
+      stopped = Motel::MovementStrategies::Stopped.instance
+      loc.movement_strategy =
+        loc.next_movement_strategy || stopped
+      loc.next_movement_strategy = stopped
+    
+      # update location
+      node.invoke('motel::update_location', loc)
+    
+      # remove callbacks if stopped
+      if loc.stopped?
+        node.invoke('motel::remove_callbacks', loc.id, :movement)
+        node.invoke('motel::remove_callbacks', loc.id, :rotation)
+      end
+
+      # update the entity in the registry
+      registry.update(entity, &with_id(entity.id))
     end
+
+    nil
   }
 
   CALLBACK_METHODS = { :motel_event => motel_event }
@@ -170,8 +170,10 @@ def dispatch_manufactured_rjr_init(dispatcher)
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
 
-  # add callback for motel events
+  # add callback for motel events, override environment it runs in
   m = Manufactured::RJR::CALLBACK_METHODS
   rjr.node.dispatcher.handle(['motel::on_movement', 'motel::on_rotation'],
                              &m[:motel_event])
+  rjr.node.dispatcher.env ['motel::on_movement', 'motel::on_rotation'],
+                          Manufactured::RJR
 end

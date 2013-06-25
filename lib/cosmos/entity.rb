@@ -191,6 +191,8 @@ module SystemEntity
   # {Cosmos::SolarSystem} parent of the entity
   alias :solar_system :parent
   alias :solar_system= :parent=
+  alias :system_id  :parent_id
+  alias :system_id= :parent_id=
 
   # Color of entity
   attr_accessor :color

@@ -38,7 +38,8 @@ class Callback
     attr_from_args args, :only_if      => proc { true },
                          :handler      => block,
                          :endpoint_id  => nil,
-                         :event_type   => nil
+                         :event_type   => nil,
+                         :rjr_event    => nil
   end
 
   # Return bool indicating if handler should be run

@@ -40,6 +40,7 @@ class Registry
 
     rescue Exception => e
       ::RJR::Logger.warn "error running location/callbacks for #{loc.id}: #{e.to_s}"
+      ::RJR::Logger.warn e.backtrace
     end
   end
 
@@ -140,7 +141,11 @@ class Registry
     # setup location callbacks
     LOCATION_EVENTS.each { |e|
       on(e) { |loc, *args|
-        loc.raise_event(e, *args)
+        @lock.synchronize{
+          # run event on registry location
+          rloc = @entities.find { |e| e.id == loc.id }
+          rloc.raise_event(e, *args)
+        }
       }
     }
 

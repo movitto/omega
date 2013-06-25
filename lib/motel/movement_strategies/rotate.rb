@@ -82,7 +82,7 @@ class Rotate < MovementStrategy
 
   # Convert movement strategy to human readable string and return it
   def to_s
-    "rotate-(#{@dtheta}/#{@dphi})"
+    "rotate-(#{@dtheta.round_to(2)}/#{@dphi.round_to(2)})"
   end
 end
 

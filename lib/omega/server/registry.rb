@@ -64,6 +64,9 @@ module Registry
   
   ####################### entities
 
+  # TODO an 'old_entities' tracker where clients may put items
+  # which should be retired from active operation
+
   def entities(&select)
     init_registry
     @lock.synchronize {
@@ -118,6 +121,7 @@ module Registry
   end
 
   def update(entity, &selector)
+    # TODO default selector ? (such as with_id)
     init_registry
     rentity = nil
     old_entity = nil
@@ -266,11 +270,13 @@ module Registry
       select { |e| e.kind_of?(Command) }.
       each   { |cmd|
         begin
-          # registry isn't serialized w/ other cmd json, set on each cmd run
+          # registry/node isn't serialized w/ other
+          # cmd json, set on each cmd run
           cmd.registry = self
+          cmd.node = self.node
 
-          cmd.run_hooks :first unless cmd.ran_first_hooks
-          cmd.run_hooks :before
+          cmd.run_hooks :first  unless cmd.ran_first_hooks
+          cmd.run_hooks :before unless cmd.terminate
 
           if cmd.should_run?
             cmd.run!

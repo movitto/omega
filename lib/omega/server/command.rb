@@ -33,6 +33,9 @@ class Command
   # Registry which command is running in
   attr_accessor :registry
 
+  # Node which to use to perform additional queries
+  attr_accessor :node
+
   # Omega::Server::Command initializer
   #
   # @param [Hash] args hash of options to initialize event with
@@ -147,6 +150,11 @@ module CommandHelpers
       e = entities.find { |e| e.id == entity.id }
       e.run_callbacks *args
     }
+  end
+
+  # invoke a command via the node
+  def invoke(*args)
+    node.invoke *args
   end
 end
 

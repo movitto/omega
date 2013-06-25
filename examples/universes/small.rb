@@ -23,11 +23,11 @@ login 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => 1922, :y => -930, :z => 2001) do |ast|
-      resource :resource => rand_resource, :quantity => 325
+    asteroid gen_uuid, :location => Location.new(:x => -200, :y => -130, :z => 0) do |ast|
+      resource :id => rand_resource.id, :quantity => 325
     end
     asteroid gen_uuid, :location => Location.new(:x => 1533, :y => 998, :z => 640) do |ast|
-      resource :resource => rand_resource, :quantity => 500
+      resource :id => rand_resource.id, :quantity => 500
     end
   end
 
@@ -61,11 +61,11 @@ athena    = system('Athena')
 aphrodite = system('Aphrodite')
 philo     = system('Philo')
 
-jump_gate athena, aphrodite, :location => Location.new(:x => -950, :y => -950, :z => -950)
-jump_gate athena, philo, :location => Location.new(:x => 950, :y => 950, :z => 950)
-jump_gate aphrodite, athena, :location => Location.new(:x => -950, :y => 950, :z => -950)
-jump_gate aphrodite, philo, :location => Location.new(:x => 950, :y => -950, :z => 950)
-jump_gate philo, aphrodite, :location => Location.new(:x => 950, :y => -950, :z => 950)
+jump_gate athena,    aphrodite, :location => Location.new(:x => -150, :y => -150, :z => -150)
+jump_gate athena,    philo,     :location => Location.new(:x =>  150, :y =>  150, :z =>  150)
+jump_gate aphrodite, athena,    :location => Location.new(:x => -150, :y =>  150, :z => -150)
+jump_gate aphrodite, philo,     :location => Location.new(:x =>  150, :y => -150, :z =>  150)
+jump_gate philo,     aphrodite, :location => Location.new(:x =>  150, :y => -150, :z =>  150)
 
 schedule_event 60,
                Missions::Events::PopulateResource.new(:id => 'populate-resources',

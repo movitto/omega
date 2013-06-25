@@ -5,7 +5,6 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-
 require 'rjr/errors'
 require 'rjr/common'
 require 'motel/rjr/init'

@@ -123,6 +123,13 @@ def main()
   #  require 'motel/rjr_inspect'
   #  require 'manufactured/rjr_inspect'
   #  # TODO other subsystems
+  #else
+    # filter out 'motel::get_location' and 'cosmos::get_entity' requests
+    RJR::Logger.add_filter proc { |m| !(m =~ /.*motel::get_location.*/) }
+    RJR::Logger.add_filter proc { |m| !(m =~ /.*cosmos::get_resource.*/) }
+    RJR::Logger.add_filter proc { |m| !(m =~ /.*get_entit.*/ ) }
+    RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
+    # TODO allow user to add / customize filters via config file (and command line flags?)
   #end
 
   # setup the omega systems

@@ -21,9 +21,18 @@ module Omega
     # Omega client Cosmos::Entities::SolarSystem tracker
     class SolarSystem
       include Trackable
+      include TrackEntity
 
       entity_type  Cosmos::Entities::SolarSystem
       get_method   "cosmos::get_entity"
+
+      # Wrap jump gates, lookup endpoint id if missing
+      def jump_gates
+        self.entity.jump_gates.collect { |jg|
+          jg.endpoint = SolarSystem.cached(jg.endpoint_id) if jg.endpoint.nil?
+          jg
+        }
+      end
 
       # Conveniency utility to return the system containing
       # the fewest entities of the specified type
@@ -106,7 +115,7 @@ module Omega
       #
       # @return [Cosmos::Entities::SolarSystem]
       def solar_system
-        SolarSystem.get(self.entity.parent_id)
+        SolarSystem.cached(self.entity.parent_id)
       end
 
       # Return the closest entity of the specified type.
@@ -193,7 +202,7 @@ module Omega
         loc.update self.location
         loc.parent_id = system.location.id
         RJR::Logger.info "Jumping #{self.entity.id} to #{system}"
-        node.invoke 'manufactured::move_entity', self.entity.id, loc
+        @entity = node.invoke 'manufactured::move_entity', self.entity.id, loc
         self.raise_event(:jumped, self)
       end
     end

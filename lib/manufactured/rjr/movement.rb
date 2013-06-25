@@ -47,15 +47,13 @@ def move_entity_in_system(entity, loc)
       Motel::MovementStrategies::Rotate.new :dtheta => (od[0] * entity.rotation_speed / rot_a),
                                             :dphi   => (od[1] * entity.rotation_speed / rot_a)
 
-    # register rotation w/ location
+    # register rotation w/ location, linear as next movement strategy
     entity.location.movement_strategy = rotate
-    #entity.next_movement_strategy linear
+    entity.location.next_movement_strategy = linear
   
     # track location rotation
     node.invoke('motel::track_rotation', entity.location.id,    rot_a) unless rot_a.nil?
   end
-  
-  #entity.next_movement_strategy Motel::MovementStrategies::Stopped.instance
   
   # track location movement and update location
   node.invoke('motel::track_movement', entity.location.id, distance)

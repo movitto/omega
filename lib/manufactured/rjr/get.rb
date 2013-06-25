@@ -15,6 +15,7 @@ get_entities = proc { |*args|
     :owned_by      => proc { |e, o| e.user_id     == o },
     :with_location => proc { |e, l| e.location.id == l },
     :under         => proc { |e, p| e.system_id   == p }
+  filters.unshift proc { |e| !e.kind_of?(Omega::Server::Command) }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
   # update entity locations from motel

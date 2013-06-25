@@ -25,6 +25,13 @@ module Omega
       def stations
         @stations ||= Omega::Client::Station.owned_by(self.id)
       end
+
+      def self.login(user_id, password)
+        user = Users::User.new(:id => user_id, :password => password)
+        session = node.invoke('users::login', user)
+        node.rjr_node.message_headers['session_id'] = session.id
+        nil
+      end
     end
   end
 end

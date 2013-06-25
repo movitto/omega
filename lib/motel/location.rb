@@ -72,6 +72,16 @@ class Location
    alias :ms :movement_strategy
    alias :ms= :movement_strategy=
 
+   # true/false indicating if movement strategy is stopped
+   def stopped?
+     self.movement_strategy == Motel::MovementStrategies::Stopped.instance
+   end
+
+  # Next movement strategy, optionally used to register a movement strategy
+  # which to set next (this is not performed by motel / up to the end user)
+  attr_accessor :next_movement_strategy
+
+
    # [Hash<String, Motel::Callback>] Callbacks to be invoked on various events
    attr_accessor :callbacks
 
@@ -112,6 +122,7 @@ class Location
       # default to the stopped movement strategy
       attr_from_args args,
         :movement_strategy => MovementStrategies::Stopped.instance,
+        :next_movement_strategy => nil,
         :callbacks         => Hash.new { |h,k| h[k] = [] },
         :children          => [],
         :parent            => nil,
@@ -153,9 +164,9 @@ class Location
    #
    # @param [Motel::Location] location location from which to copy values from
    def update(location)
-      update_from(location, :x, :y, :z,
+      update_from(location, :x, :y, :z, :parent, :parent_id,
                             :orientation_x, :orientation_y, :orientation_z,
-                            :movement_strategy, :parent, :parent_id,
+                            :movement_strategy, :next_movement_strategy,
                             :restrict_view, :restrict_modify, :last_moved_at)
    end
 
@@ -181,7 +192,7 @@ class Location
    # Invoke callbacks for the specified event
    def raise_event(evnt, *args)
      @callbacks[evnt].each { |cb|
-       cb.invoke *args if cb.should_invoke? *args
+       cb.invoke self, *args if cb.should_invoke? self, *args
      } if @callbacks.has_key?(evnt)
    end
 
@@ -339,6 +350,7 @@ class Location
           :parent_id => parent_id,
           :children  => children,
           :movement_strategy => movement_strategy,
+          :next_movement_strategy => next_movement_strategy,
           :callbacks => callbacks,
           :last_moved_at => last_moved_at}
      }.to_json(*a)
@@ -346,7 +358,8 @@ class Location
 
    # Convert location to human readable string and return it
    def to_s
-     s = "location-#{id}(@#{parent_id}:"
+     s = "loc##{id}" +
+         "(@#{parent_id.nil? ? nil : parent_id[0...8]}:"
      if coordinates.size == 3 && coordinates.all?{ |c| c.numeric? }
        s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
      end

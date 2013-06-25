@@ -52,7 +52,11 @@ module Omega
               :match =>
                 proc { |entity,l,d,dx,dy,dz|
                   entity.location.id == l.id
-                }
+                }#,
+              #:update =>
+              #  proc { |entity,l,d,dx,dy,dz|
+              #    entity.entity.location = l
+              #  }
             }
       end
     end # module HasLocation

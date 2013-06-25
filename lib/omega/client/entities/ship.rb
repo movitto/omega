@@ -35,7 +35,6 @@ module Omega
                    :defended_stop => { :subscribe    => "manufactured::subscribe_to",
                                        :notification => "manufactured::event_occurred" }
 
-
       # Dock at the specified station
       def dock_to(station)
         RJR::Logger.info "Docking #{id} at #{station.id}"
@@ -81,6 +80,7 @@ module Omega
       #
       # @param [Cosmos::Resource] resourceresource to start mining
       def mine(resource)
+puts "mining #{resource} #{id}"
         RJR::Logger.info "Starting to mine #{resource.id} with #{id}"
 
         # handle resource collected of entity.mining quantity, invalidating
@@ -125,17 +125,17 @@ module Omega
 
       # Select next resource, move to it, and commence mining
       def select_target
-        rs = closest(:resource).first
-        if rs.nil?
+        ast = closest(:resource).first
+        if ast.nil?
           raise_event(:no_resources, self)
           return
         else
-          raise_event(:selected_resource, self, rs)
+          raise_event(:selected_resource, self, ast)
         end
 
-        if rs.location - location < mining_distance
-          rs = rs.resources.find { |res| res.quantity > 0 }
+        rs  = ast.resources.find { |rsi| rsi.quantity > 0 }
 
+        if ast.location - location < mining_distance
           # server resource may by depleted at any point, 
           # need to catch errors, and try elsewhere
           begin
@@ -146,8 +146,7 @@ module Omega
 
         else
           dst = mining_distance / 4
-          nl  = rs.location + [dst,dst,dst]
-          rs  = rs.resources.find { |rsi| rsi.quantity > 0 }
+          nl  = ast.location + [dst,dst,dst]
           move_to(:location => nl) { |*args|
             begin
               mine(rs)
