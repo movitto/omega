@@ -76,6 +76,13 @@ class ShieldRefresh < Omega::Server::Command
     super
   end
 
+  def remove?
+    # remove if the attack command is finished
+    # and shield is at max level
+    @attack_cmd.remove? &&
+    @entity.shield_level == @entity.max_shield_level
+  end
+
    # Convert command to json representation and return it
    def to_json(*a)
      {

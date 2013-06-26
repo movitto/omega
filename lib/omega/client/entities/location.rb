@@ -50,7 +50,7 @@ module Omega
                 },
               :notification => "motel::on_movement",
               :match =>
-                proc { |entity,l,d,dx,dy,dz|
+                proc { |entity,l|
                   entity.location.id == l.id
                 }#,
               #:update =>

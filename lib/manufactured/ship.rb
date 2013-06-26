@@ -51,7 +51,7 @@ class Ship
   # Run callbacks
   def run_callbacks(type, *args)
     @callbacks.select { |c| c.event_type == type }.
-               each   { |c| c.invoke *args  }
+               each   { |c| c.invoke self, *args  }
   end
 
   # @!group Movement Properties
@@ -335,12 +335,9 @@ class Ship
 
   # Update this ship's attributes from other ship
   #
-  # Currently only updatable attributes are hp/shield_level
-  #   (resources are updatable but handled elsewhere)
-  #
   # @param [Manufactured::Ship] ship ship which to copy attributes from
   def update(ship)
-    update_from(ship, :hp, :shield_level, :distance_moved)
+    update_from(ship, :hp, :shield_level, :distance_moved, :resources)
   end
 
   # Return boolean indicating if this ship is valid
@@ -408,7 +405,7 @@ class Ship
   # @param [Manufactured::Station] station station which to check if ship can dock at
   # @return [true,false] indicating if ship is in same system and within docking distance of station
   def can_dock_at?(station)
-    (@location.parent.id == station.location.parent.id) &&
+    (@location.parent_id == station.location.parent_id) &&
     (@location - station.location) <= station.docking_distance &&
     alive?
     # TODO ensure not already docked
@@ -433,7 +430,7 @@ class Ship
   def can_mine?(resource)
     # TODO eventually filter per specific resource mining capabilities
      @type == :mining && !self.docked? &&
-    (@location.parent.id == resource.entity.location.parent.id) &&
+    (@location.parent_id == resource.entity.location.parent_id) &&
     (@location - resource.entity.location) <= @mining_distance &&
     (cargo_quantity + @mining_quantity) <= @cargo_capacity
   end

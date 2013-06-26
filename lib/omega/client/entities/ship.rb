@@ -62,10 +62,22 @@ module Omega
 
       entity_validation { |e| e.type == :mining }
 
-      entity_event  :resource_collected => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" },
-                    :mining_stopped     => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" }
+      entity_event \
+        :resource_collected =>
+          {:subscribe    => "manufactured::subscribe_to",
+           :notification => "manufactured::event_occurred",
+           :match => proc { |entity,*a|
+             a[0] == 'resource_collected' &&
+             a[1].id == entity.id
+           }},
+
+        :mining_stopped     =>
+          {:subscribe    => "manufactured::subscribe_to",
+           :notification => "manufactured::event_occurred",
+           :match => proc { |entity,*a|
+             a[0] == 'mining_stopped' &&
+             a[1].id == entity.id
+           }}
 
       server_state :cargo_full,
         :check => lambda { |e| e.cargo_full?       },
@@ -80,8 +92,7 @@ module Omega
       #
       # @param [Cosmos::Resource] resourceresource to start mining
       def mine(resource)
-puts "mining #{resource} #{id}"
-        RJR::Logger.info "Starting to mine #{resource.id} with #{id}"
+        RJR::Logger.info "Starting to mine #{resource.material_id} with #{id}"
 
         # handle resource collected of entity.mining quantity, invalidating
         # client side cached copy of resource source
@@ -97,7 +108,7 @@ puts "mining #{resource} #{id}"
       # Start the omega client bot
       def start_bot
         handle(:mining_stopped) { |*args|
-          offload_resources
+          #offload_resources
         }
 
         if cargo_full?
@@ -115,7 +126,7 @@ puts "mining #{resource} #{id}"
           select_target
 
         else
-          raise_event(:moving_to, self, st)
+          raise_event(:moving_to, st)
           move_to(:destination => st) { |*args|
             transfer_all_to(st)
             select_target
@@ -127,10 +138,10 @@ puts "mining #{resource} #{id}"
       def select_target
         ast = closest(:resource).first
         if ast.nil?
-          raise_event(:no_resources, self)
+          raise_event(:no_resources)
           return
         else
-          raise_event(:selected_resource, self, ast)
+          raise_event(:selected_resource, ast)
         end
 
         rs  = ast.resources.find { |rsi| rsi.quantity > 0 }

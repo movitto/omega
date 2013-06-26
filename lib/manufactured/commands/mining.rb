@@ -62,6 +62,7 @@ class Mining < Omega::Server::Command
   def initialize(args = {})
     attr_from_args args, :ship  => nil,
                          :resource => nil
+
     super(args)
   end
 
@@ -72,8 +73,14 @@ class Mining < Omega::Server::Command
   def before_hook
     # update ship location & cosmos resource/entity
      @ship = retrieve(@ship.id)
-     @resource = invoke 'cosmos::get_resource', 'with_id', @resource.id
-     @resource.entity = invoke 'cosmos::get_entity', 'with_id', @ship.id
+
+     begin
+       @resource = invoke 'cosmos::get_resource', @resource.id
+       @resource.entity = invoke 'cosmos::get_entity', 'with_id', @resource.entity_id
+     rescue Exception => e
+       # if any problems retrieving resource, invalidate it, invaliding this command
+       @resource = nil
+     end
   end
 
   def after_hook
@@ -91,7 +98,7 @@ class Mining < Omega::Server::Command
     reason = ''
 
     # ship & resource are too far apart or in different systems
-    if (@ship.location.parent.id != @resource.entity.location.parent.id ||
+    if (@ship.location.parent_id != @resource.entity.location.parent_id ||
        (@ship.location - @resource.entity.location) > @ship.mining_distance)
       reason = 'mining_distance_exceeded'
 
@@ -105,12 +112,12 @@ class Mining < Omega::Server::Command
 
     elsif @resource.quantity <= 0
       ::RJR::Logger.debug "#{@ship.id} depleted resource #{@resource}"
-      @ship.run_callbacks('resource_depleted', @ship, @resource)
+      run_callbacks @ship, 'resource_depleted', @resource
       reason = 'resource_depleted'
     end
 
     ::RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"
-    run_callbacks @ship, 'mining_stopped', reason, @ship, @resource
+    run_callbacks @ship, 'mining_stopped', @resource, reason
   end
 
   def should_run?
@@ -138,7 +145,13 @@ class Mining < Omega::Server::Command
 
     
     run_callbacks(@ship, 'resource_collected',
-                  @ship, @resource, r.quantity) if resource_transferred
+                  @resource, r.quantity) if resource_transferred
+  end
+
+  def remove?
+    # remove if we cannot mine anymore
+    r = gen_resource
+    !@ship.can_mine?(r) || !@ship.can_accept?(r)
   end
 
    # Convert command to json representation and return it

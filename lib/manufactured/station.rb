@@ -47,7 +47,7 @@ class Station
   # Run callbacks
   def run_callbacks(type, *args)
     @callbacks.select { |c| c.event_type == type }.
-               each   { |c| c.invoke *args  }
+               each   { |c| c.invoke self, *args  }
   end
 
   # Max distance a ship can be from station to dock with it

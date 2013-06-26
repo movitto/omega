@@ -203,7 +203,7 @@ module Omega
         loc.parent_id = system.location.id
         RJR::Logger.info "Jumping #{self.entity.id} to #{system}"
         @entity = node.invoke 'manufactured::move_entity', self.entity.id, loc
-        self.raise_event(:jumped, self)
+        self.raise_event(:jumped)
       end
     end
 
@@ -247,8 +247,8 @@ module Omega
         RJR::Logger.info "Transferring #{resource} to #{target}"
         node.invoke 'manufactured::transfer_resource',
                      self.id, target.id, resource
-        self.raise_event(:transferred, self,   target, resource)
-        #self.raise_event(:received,    target, self,   resource)
+        self.raise_event(:transferred, target, resource)
+        #target.raise_event(:received,  self,   resource)
       end
     end
 

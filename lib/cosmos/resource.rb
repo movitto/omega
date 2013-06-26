@@ -77,10 +77,7 @@ class Resource
 
   # Convert resource to string
   def to_s
-    "resource-#{@material_id}" +
-    ((!@entity.nil? && @quantity > 0) ?
-      " (#{@quantity} at #{@entity.id})" :
-      "")
+    "resource-#{@material_id} (#{@quantity} at #{@entity_id})"
   end
 
   # Convert resource to json representation and return it

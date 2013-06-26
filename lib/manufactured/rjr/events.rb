@@ -30,8 +30,7 @@ subscribe_to = proc { |entity_id, event|
   cb.rjr_event    = 'manufactured::event_occurred'
   cb.event_type   = event
   cb.handler =
-    proc { |*args|
-      entity = args.first
+    proc { |entity, *args|
       err = false
 
       begin
@@ -41,7 +40,7 @@ subscribe_to = proc { |entity_id, event|
            {:privilege => 'view', :entity => 'manufactured_entities'}]
 
         # invoke method via rjr callback notification
-        @rjr_callback.notify 'manufactured::event_occurred', event, *args
+        @rjr_callback.notify 'manufactured::event_occurred', event, entity, *args
 
       rescue Omega::PermissionError => e
         ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
@@ -82,7 +81,7 @@ subscribe_to = proc { |entity_id, event|
         c.event_type  == cb.event_type &&
         c.endpoint_id == cb.endpoint_id
       }
-    rentity.callbacks.delete(old) if old.nil?
+    rentity.callbacks.delete(old) unless old.nil?
     rentity.callbacks.compact!
     rentity.callbacks << cb
   }

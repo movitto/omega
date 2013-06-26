@@ -64,7 +64,8 @@ create_entity = proc { |entity|
 
   # give new stations enough resources to construct a preliminary helper
   entity.add_resource \
-    Cosmos::Resource.new(:id       => 'metal-steel',
+    Cosmos::Resource.new(:id => Motel.gen_uuid,
+                         :material_id => 'metal-steel',
                          :quantity => 100) if entity.is_a?(Station)
   
   # create location in motel, swap it in locally
@@ -140,20 +141,19 @@ construct_entity = proc { |manufacturer_id, *args|
   cb = Omega::Server::Callback.new
   cb.endpoint_id = @rjr_headers['source_node']
   cb.rjr_event   = 'manufactured::event_occurred'
-  cb.event_type  = :construction_complete
+  cb.event_type  = 'construction_complete'
   cb.handler =
-    proc { |args|
-      registry.safe_exec { |entities|
-        # grab registry station
-        rstation = entities.find &with_id(station.id)
+    proc { |rentity,*args|
+      # assuming we are passed the registry entity in a safe_exec block
+      # @see CommandsHelper#run_callbacks
 
-        # delete the callback
-        rstation.callbacks.delete(cb)
-      }
+      # delete the callback
+      rentity.callbacks.delete(cb)
 
       # create the entity in registry
       # FIXME how to handle if call to create_entity fails?
-      node.invoke('manufactured::create_entity', entity)
+      # FIXME !!! has to be an invoke but that deadlocks (move to construct cmd)
+      node.notify('manufactured::create_entity', args.first)
     }
 
   # invoke update operations on registry station

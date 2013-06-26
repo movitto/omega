@@ -56,7 +56,7 @@ module Omega
         RJR::Logger.info "Constructing #{args} with #{self.entity.id}"
         constructed = node.invoke 'manufactured::construct_entity',
                           self.entity.id, *(args.to_a.flatten)
-        raise_event(:constructed, self, constructed)
+        raise_event(:constructed, constructed)
         constructed
       end
 

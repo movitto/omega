@@ -28,17 +28,17 @@ Omega::Client::User.login USER_NAME, PASSWORD
 
 def start_miner(miner)
   puts "registering #{miner.id} events"
-  miner.handle(:selected_resource) { |m,e|
-    puts "miner #{miner.id.bold.yellow} selected #{e.to_s} to mine"
+  miner.handle(:selected_resource) { |m,a|
+    puts "miner #{m.id.bold.yellow} selected #{a.to_s} to mine"
   }
   miner.handle(:no_resources) { |m|
     puts "Miner #{m.id.bold.yellow} could not find any more accessible resources"
   }
-  miner.handle(:resource_collected) { |*args|
-    puts "ship #{miner.id.bold.yellow} collected #{args[3]} of resource #{args[2].resource.id.bold.red}"
+  miner.handle(:resource_collected) { |m,evnt,sh,res,q|
+    puts "ship #{m.id.bold.yellow} collected #{q} of resource #{res.id.bold.red}"
   }
-  miner.handle(:mining_stopped) { |*args|
-    puts "ship #{miner.id.bold.yellow} stopped mining #{args[3].resource.id.bold.red} due to #{args[1]}"
+  miner.handle(:mining_stopped) { |m,evnt,sh,res,reason|
+    puts "ship #{m.id.bold.yellow} stopped mining #{res.id.bold.red} due to #{reason}"
   }
   miner.handle(:transferred) { |m,st,r,q|
     puts "Miner #{m.id.bold.yellow} transferred #{q} of #{r.bold.red} to #{st.id.bold.yellow}"
@@ -65,16 +65,16 @@ def start_factory(factory)
   factory.handle(:jumped) { |f|
     puts "station #{f.id.bold.yellow} jumped to system #{f.system_id.green}"
   }
-  factory.handle(:constructed) { |f,e|
-    constructed = e.last
-    puts "#{f.id.bold.yellow} constructed #{constructed.id.bold.yellow}"
-    init_entity constructed
+  #factory.handle(:partial_construction) { |f,evnt,st,entity,percent|
+  factory.handle(:construction_complete) { |f,evnt,st,entity|
+    puts "#{f.id.bold.yellow} constructed #{entity.id.bold.yellow}"
+    init_entity entity
 
-    if constructed.is_a?(Manufactured::Ship)
-      if constructed.type == :mining
+    if entity.is_a?(Manufactured::Ship)
+      if entity.type == :mining
         factory.entity_type 'corvette'
 
-      elsif constructed.type == :corvette
+      elsif entity.type == :corvette
         factory.entity_type 'miner'
 
       end
@@ -108,6 +108,7 @@ end
       start_miner(to_init)
 
     elsif to_init.is_a?(Manufactured::Station)
+puts '!'
       start_factory(Omega::Client::Factory.get(to_init.id))
 
     elsif to_init.is_a?(Manufactured::Ship)
@@ -130,7 +131,7 @@ end
 
 # Load and start initial entities and block
 
-#Omega::Client::Factory.owned_by(USER_NAME).each  { |f| init_entity f }
-Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
-Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
+Omega::Client::Factory.owned_by(USER_NAME).each  { |f| init_entity f }
+#Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
+#Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
 Omega::Client::Trackable.node.rjr_node.join

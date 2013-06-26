@@ -85,12 +85,17 @@ class Construction < Omega::Server::Command
     self.completed = (total_time >= const_time)
 
     if self.completed
-      run_callbacks @station, 'construction_complete', @station, @entity
+      run_callbacks @station, 'construction_complete', @entity
 
     else
       percentage = total_time / const_time
-      run_callbacks @station, 'partial_construction', @station, @entity, percentage
+      run_callbacks @station, 'partial_construction', @entity, percentage
     end
+  end
+
+  def remove?
+    # remove if completed
+    self.completed
   end
 
    # Convert command to json representation and return it

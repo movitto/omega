@@ -21,6 +21,10 @@ create_entity = proc { |entity|
   entity.location.restrict_view = false
   entity.location.id = entity.id
 
+  # need to set entity's location's parent_id to entity's parent's location id
+  entity.location.parent =
+    registry.entity(&with_id(entity.parent_id)).location if entity.parent_id
+
   # ensure entity is valid
   raise ValidationError, entity unless entity.valid?
 
