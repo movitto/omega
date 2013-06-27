@@ -36,7 +36,7 @@ station(USER_NAME + "-manufacturing-station1") do |station|
   station.type     = :manufacturing
   station.user_id  = USER_NAME
   station.solar_system = starting_system
-  station.location = Location.new(:x   => 600, :y   => 600, :z   => 600,
+  station.location = Location.new(:x   => -200, :y   => -150, :z   => -200,
                                   :orx =>  0,  :ory =>  0,  :orz =>  1)
   #station.location = Location.new(:x => -100, :y=> -100, :z => -100)
 end

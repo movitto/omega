@@ -70,7 +70,7 @@ module Omega
       # Start the omega client bot
       def start_bot
         start_construction
-        handle(:received) { |*args|
+        handle(:transferred_from) { |*args|
           start_construction
         }
       end

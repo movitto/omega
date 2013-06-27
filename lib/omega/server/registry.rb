@@ -73,20 +73,21 @@ module Registry
       # by default return everything
       select = proc { |e| true } if select.nil?
 
-      # we use json serialization to perform a deep clone 
-      result = Array.new(JSON.parse(@entities.select(&select).to_json))
+      # registry entities
+      rentities = @entities.select(&select)
 
-      # invoke retrieval on each entity
-      result.each { |r| @retrieval.call(r) }
+      # invoke retrieval to update each registry entity
+      rentities.each { |r| @retrieval.call(r) }
+
+      # we use json serialization to perform a deep clone 
+      result = Array.new(JSON.parse(rentities.to_json))
 
       result
     }
   end
 
   def entity(&select)
-    result = self.entities(&select).first
-    @retrieval.call(result)
-    result
+    self.entities(&select).first
   end
 
   def clear!
@@ -266,6 +267,8 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_commands }
   def run_commands
+# FIXME subsequent commands w/ the same id will
+# break system if command updates itself in the registry
     self.entities.
       select { |e| e.kind_of?(Command) }.
       each   { |cmd|
@@ -281,12 +284,14 @@ module Registry
           if cmd.should_run?
             cmd.run!
             cmd.run_hooks :after
-
-            if cmd.remove?
-              cmd.run_hooks :last
-              cmd.terminate!
-            end
           end
+
+          if !cmd.terminate && cmd.remove?
+            cmd.run_hooks :last
+            cmd.terminate!
+          end
+
+          update(cmd) { |e| e.id == cmd.id }
 
         rescue Exception => err
           RJR::Logger.warn "error in command #{cmd}: #{err}"
@@ -294,6 +299,20 @@ module Registry
       }
 
     DEFAULT_COMMAND_POLL
+  end
+
+  # Check commands/enforce unique id's
+  #
+  # Optional internal helper method, utilize like so:
+  #   on(:added) { |c| check_command(c) if c.kind_of?(Omega::Server::Command) }
+  def check_command(command)
+    @lock.synchronize {
+      rcommands = @entities.select { |e| e.id == command.id }
+      if rcommands.size > 1
+        @entities -= rcommands
+        @entities << rcommands.last
+      end
+    }
   end
 
   ####################### state

@@ -57,7 +57,8 @@ class Loot
     !@location.nil? && @location.is_a?(Motel::Location) &&
      @location.movement_strategy == Motel::MovementStrategies::Stopped.instance &&
 
-    !@solar_system.nil? && @solar_system.is_a?(Cosmos::Entities::SolarSystem)
+    !@system_id.nil? &&
+    (@solar_system.nil? || @solar_system.is_a?(Cosmos::Entities::SolarSystem))
   end
 
   # Convert loot to json representation and return it

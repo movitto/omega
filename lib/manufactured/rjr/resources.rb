@@ -68,16 +68,6 @@ transfer_resource = proc { |*args|
                                                            r.material_id }
   }
 
-  # update entities locations & systems
-  src.location =
-    node.invoke('motel::get_location', 'with_id', src.location.id)
-  dst.location =
-    node.invoke('motel::get_location', 'with_id', dst.location.id)
-  src.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', src.location.parent_id)
-  dst.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', dst.location.parent_id)
-
   # ensure transfer can take place
   raise OperationError,
       "cannot transfer" unless resources.all? { |r| src.can_transfer?(dst, r) }
@@ -99,8 +89,8 @@ transfer_resource = proc { |*args|
         s.remove_resource(r) ; removed = true
 
         # run transferred callbacks
-        s.run_callbacks :transfer, s, d, r
-        d.run_callbacks :transfer, s, d, r
+        s.run_callbacks :transferred_to,   d, r
+        d.run_callbacks :transferred_from, s, r
       rescue Exception => e
       ensure
         # if resources was added to dst but not
@@ -108,6 +98,8 @@ transfer_resource = proc { |*args|
         d.remove_resource(r) if added && !removed
       end
     }
+
+    src,dst = s,d
   }
 
   # return src, dst

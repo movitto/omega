@@ -100,17 +100,10 @@ create_entity = proc { |entity|
 construct_entity = proc { |manufacturer_id, *args|
 
   ###################### validate construction
-
   # retrieve manufacturing station
   station = registry.entity &with_id(manufacturer_id)
   raise DataNotFound,
     manufacturer_id if station.nil? || !station.is_a?(Station)
-
-  # update station's location & system
-  station.location =
-    node.invoke('motel::get_location', 'with_id', station.location.id)
-  station.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', station.location.parent_id)
 
   # ensure user can modify station
   require_privilege :registry => user_registry, :any =>
@@ -135,35 +128,12 @@ construct_entity = proc { |manufacturer_id, *args|
     "#{station} can't construct #{args}" unless station.can_construct?(args)
 
   ###################### create entity & supporting data 
-  entity = nil
-
-  # create new callback to be run on construction completion
-  cb = Omega::Server::Callback.new
-  cb.endpoint_id = @rjr_headers['source_node']
-  cb.rjr_event   = 'manufactured::event_occurred'
-  cb.event_type  = 'construction_complete'
-  cb.handler =
-    proc { |rentity,*args|
-      # assuming we are passed the registry entity in a safe_exec block
-      # @see CommandsHelper#run_callbacks
-
-      # delete the callback
-      rentity.callbacks.delete(cb)
-
-      # create the entity in registry
-      # FIXME how to handle if call to create_entity fails?
-      # FIXME !!! has to be an invoke but that deadlocks (move to construct cmd)
-      node.notify('manufactured::create_entity', args.first)
-    }
 
   # invoke update operations on registry station
   entity = 
     registry.safe_exec { |entities|
       # grab registry station
       rstation = entities.find &with_id(station.id)
-
-      # track entity construction via station callbacks
-      rstation.callbacks << cb
 
       # actually constructs entity and returns it
       #  (atomically checks can_construct? and removes resources)
@@ -173,6 +143,7 @@ construct_entity = proc { |manufacturer_id, *args|
   # ensure entity was created
   raise OperationError,
     "#{station} can't construct #{args}" if entity.nil?
+
   # add construction command to registry to be run in loop cycle
   registry << Commands::Construction.new(:station => station, :entity => entity)
 

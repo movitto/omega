@@ -427,12 +427,12 @@ class Ship
   #
   # @param [Cosmos::Resource] resource to check if ship can mine
   # @return [true,false] indicating if ship can mine resource source
-  def can_mine?(resource)
+  def can_mine?(resource, quantity=resource.quantity)
     # TODO eventually filter per specific resource mining capabilities
      @type == :mining && !self.docked? &&
     (@location.parent_id == resource.entity.location.parent_id) &&
     (@location - resource.entity.location) <= @mining_distance &&
-    (cargo_quantity + @mining_quantity) <= @cargo_capacity
+    (cargo_quantity + quantity) <= @cargo_capacity
   end
 
 

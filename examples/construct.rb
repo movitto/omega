@@ -59,6 +59,7 @@ station.handle(:partial_construction) do |st,*args|
 end
 station.handle(:construction_complete) do |st,*args|
   puts "cc #{args}"
+  dsl.rjr_node.halt
 end
 
 st,en =

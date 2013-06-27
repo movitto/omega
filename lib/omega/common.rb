@@ -65,3 +65,12 @@ class String
     self.split('::')[0..-2].join('::')
   end
 end
+
+require 'enumerator'
+class Module
+  def subclasses
+    ObjectSpace.to_enum(:each_object, Module).select do |m|
+      m.ancestors.include?(self)
+    end
+  end
+end

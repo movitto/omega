@@ -28,9 +28,19 @@ module Omega
 
       # Wrap jump gates, lookup endpoint id if missing
       def jump_gates
-        self.entity.jump_gates.collect { |jg|
-          jg.endpoint = SolarSystem.cached(jg.endpoint_id) if jg.endpoint.nil?
-          jg
+        @jump_gates ||=
+          self.entity.jump_gates.collect { |jg|
+            jg.endpoint =
+              SolarSystem.cached(jg.endpoint_id) if jg.endpoint.nil?
+            jg
+          }
+      end
+
+      # Wrap asteroids, refresh resources
+      def asteroids
+        self.entity.asteroids.collect { |ast|
+          ast.resources = node.invoke('cosmos::get_resources', ast.id)
+          ast
         }
       end
 
@@ -245,10 +255,12 @@ module Omega
       # @option [Entity] target entity to transfer resource to
       def transfer(resource, target)
         RJR::Logger.info "Transferring #{resource} to #{target}"
-        node.invoke 'manufactured::transfer_resource',
-                     self.id, target.id, resource
-        self.raise_event(:transferred, target, resource)
-        #target.raise_event(:received,  self,   resource)
+        entities = node.invoke 'manufactured::transfer_resource',
+                                self.id, target.id, resource
+        @entity = entities.first
+        target.entity = entities.last
+        self.raise_event(:transferred_to,       target, resource)
+        target.raise_event(:transferred_from,  self,   resource)
       end
     end
 

@@ -57,6 +57,10 @@ class Command
     #@id = @id.intern if @id.is_a?(String)
   end
 
+  def update(cmd)
+    update_from(cmd, :terminate, :ran_first_hooks, :last_ran_at, :exec_rate)
+  end
+
   # 'first' hook definition
   def first_hook
   end

@@ -18,7 +18,9 @@ module InSystem
   def location=(val)
     @location = val
 
-    unless val.nil? || solar_system.nil?
+    unless val.nil? || solar_system.nil? ||
+           (@location.parent_id !=    # need check to skip
+            solar_system.location.id) # this when updating loc
       @location.parent = solar_system.location
     end
   end
@@ -43,7 +45,7 @@ module InSystem
   def solar_system=(val)
     @solar_system = val
 
-    unless val.nil?
+    unless val.nil? # check loc.parent_id == val.location.id ?
       @system_id    = val.id
       @location.parent = val.location
     end
@@ -89,6 +91,10 @@ module HasCargo
 
   def cargo_full?
     self.cargo_quantity >= @cargo_capacity
+  end
+
+  def cargo_space
+    self.cargo_capacity - self.cargo_quantity
   end
   
   # Return bool indicating if resources are valid
@@ -159,7 +165,7 @@ module HasCargo
       id == to_entity.id 
 
     same_system =
-      (location.parent.id == to_entity.location.parent.id)
+      (location.parent_id == to_entity.location.parent_id)
 
     close_enough =
       ((location - to_entity.location) <= @transfer_distance)
@@ -171,8 +177,8 @@ module HasCargo
   # of the resource specified by id
   #
   # @param [Resource] resource being transferred
-  def can_accept?(resource)
-    self.cargo_quantity + resource.quantity <= @cargo_capacity
+  def can_accept?(resource, quantity=resource.quantity)
+    self.cargo_quantity + quantity <= @cargo_capacity
   end
 
 

@@ -11,7 +11,13 @@
 require 'rubygems'
 require 'ncursesw'
 require 'active_support/core_ext/string/filters'
+
 require 'omega'
+require 'omega/client/entities/user'
+require 'omega/client/entities/cosmos'
+require 'omega/client/entities/ship'
+require 'omega/client/entities/station'
+require 'rjr/nodes/amqp'
 
 # Allow user to define custom tests to run via
 # a 'run_test' method in the module they specify
@@ -20,9 +26,9 @@ if !test_module.nil?
   require_relative test_module
 
 else
-  test_module = File.join(File.dirname(__FILE__), '..', '..',
-                          'examples', 'bot_tests.rb')
-  if File.exists?(test_module)
+  test_module = File.join('..', '..', 'examples', 'bot_tests.rb')
+  test_file   = File.join(File.dirname(__FILE__), test_module)
+  if File.exists?(test_file)
     require_relative test_module
 
   else
@@ -269,9 +275,9 @@ class OmegaNcurses
               append_text :cosmos, "Asteroid: #{a.name}", 4
             }
             if @show_resources
-              a.resource_sources.each { |rs|
+              a.resources.each { |rs|
                 color_text(:cosmos, get_color(7)) {
-                  append_text :cosmos, "#{rs.quantity} of #{rs.resource.id}", 5
+                  append_text :cosmos, "#{rs.quantity} of #{rs.material_id}", 5
                 }
               }
             end
@@ -322,9 +328,9 @@ end
 
 puts "Getting serverside entities"
 
-Omega::Client::Node.client_username = 'admin'
-Omega::Client::Node.client_password = 'nimda'
-Omega::Client::Node.node = RJR::AMQPNode.new :broker => 'localhost', :node_id => 'monitor'
+node = RJR::Nodes::AMQP.new :broker => 'localhost', :node_id => 'monitor'
+Omega::Client::Trackable.node.rjr_node = node
+Omega::Client::User.login 'admin', 'nimda'
 
 output = OmegaNcurses.new
 output.users    = Omega::Client::User.get_all
@@ -332,14 +338,15 @@ output.galaxies = Omega::Client::Galaxy.get_all
 output.tests    = run_tests(output)
 
 # periodically sync entities & resources
-Omega::Client::Node.em_repeat_async(5) {
-  output.users.each    { |u|
-    # FIXME won't get new ships / stations
-    u.get
-    u.ships.each    { |s| s.get }
-    u.stations.each { |s| s.get }
-  }
-  output.galaxies.each { |g| g.get }
+EventMachine.add_periodic_timer(5) {
+  # FIXME: refresh
+  #output.users.each    { |u|
+  #  # FIXME won't get new ships / stations
+  #  u.get
+  #  u.ships.each    { |s| s.get }
+  #  u.stations.each { |s| s.get }
+  #}
+  #output.galaxies.each { |g| g.get }
   output.tests = run_tests(output)
 
   output.refresh

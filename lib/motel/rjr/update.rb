@@ -32,7 +32,7 @@ update_location = proc { |loc|
   # TODO pause the location first?
 
   # update the location
-  ::RJR::Logger.info "updating location #{rloc}"
+  ::RJR::Logger.info "updating location #{rloc}->#{loc}"
   registry.update(loc, &with_id(rloc.id))
 
   # return the location

@@ -54,11 +54,15 @@ class Registry
     self.retrieval = proc { |e|
       # XXX don't like using rjr node here but
       # this simplifies alot of things
+      # TODO optimize (only retrieve location if moving, set system on jumps)
       if(e.is_a?(Ship) || e.is_a?(Station)) && !node.nil?
         e.location =
           node.invoke('motel::get_location',
                       'with_id', e.location.id)
 
+        # XXX this just updates the registry entity, post retrieval
+        # the system will not be set on the retrieved entity as that is not
+        # serialized to json (change this at some point?)
         e.solar_system =
           node.invoke('cosmos::get_entity',
                       'with_location', e.location.parent_id)
@@ -68,7 +72,8 @@ class Registry
     # validate entities upon creation
     self.validation = proc { |r,e|
       # accept manufactured commands
-      # TODO validate command id is unique
+# FIXME validate command id is unique
+# ^ TODO write a on(..) { check_command } callback
       e.kind_of?(Omega::Server::Command) || # && e.class.modulize.include?("Manufactured")
 
        # confirm entity type
@@ -82,8 +87,11 @@ class Registry
     }
 
     # sanity checks on entity
-    on(:added)   { |e|    check_entity(e) if VALID_TYPES.include?(e.class) }
-    on(:updated) { |e,oe| check_entity(e) if VALID_TYPES.include?(e.class) }
+    on(:added)   { |e|    check_entity(e)    if VALID_TYPES.include?(e.class) }
+    on(:updated) { |e,oe| check_entity(e,oe) if VALID_TYPES.include?(e.class) }
+
+    # sanity checks on commands
+    on(:added)   { |c|    check_command(c)   if c.kind_of?(Omega::Server::Command) }
 
     # run commands
     run { run_commands }

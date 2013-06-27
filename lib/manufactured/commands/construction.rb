@@ -15,9 +15,9 @@ module Commands
 # manufactured entity.
 #
 # Checking of resources & the actual construction (eg call to station.construct)
-# should be done prior to invoking this, this will simulate a construction delay
-# for a parameterized durition invoking the registered callbacks on the way.
-# (TODO we may want to revisit this at some point)
+# should be done prior to invoking this, this will generate a construction delay
+# for a parameterized duration, after which the location will be added to the
+# registry via call to manufactured::create_entity
 #
 # Invokes various Manufactured::Callback handlers upon various events.
 # The callback events/types invoked include:
@@ -64,11 +64,6 @@ class Construction < Omega::Server::Command
     update_from(cmd, :start_time, :completed)
   end
 
-  def after_hook
-    # persist cmd to registry
-    update_registry(self)
-  end
-
   def should_run?
     super && !self.completed
   end
@@ -85,6 +80,10 @@ class Construction < Omega::Server::Command
     self.completed = (total_time >= const_time)
 
     if self.completed
+      # create the entity in registry
+      # FIXME how to handle if call to create_entity fails?
+      invoke('manufactured::create_entity', @entity)
+
       run_callbacks @station, 'construction_complete', @entity
 
     else

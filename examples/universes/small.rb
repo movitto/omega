@@ -23,19 +23,19 @@ login 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => -200, :y => -130, :z => 0) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => -200, :y => -130, :z => -125) do |ast|
       resource :resource => rand_resource, :quantity => 325
     end
-    asteroid gen_uuid, :location => Location.new(:x => 1533, :y => 998, :z => 640) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 333, :y => 98, :z => 40) do |ast|
       resource :resource => rand_resource, :quantity => 500
     end
   end
 
   system 'Aphrodite', 'V866', :location => Location.new(:x => -420, :y => 119, :z => 90) do |sys|
-    asteroid gen_uuid, :location => Location.new(:x => -2500, :y => -137, :z => -320) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => -100, :y => -137, :z => -120) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
-    asteroid gen_uuid, :location => Location.new(:x => 343, :y => -492, :z => -2332) do |ast|
+    asteroid gen_uuid, :location => Location.new(:x => 16, :y => -92, :z => -32) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
   end

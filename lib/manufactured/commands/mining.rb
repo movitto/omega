@@ -43,9 +43,14 @@ class Mining < Omega::Server::Command
 
   # internal helper, generate a new resource
   def gen_resource
-    # if resource has less than mining_quantity only transfer that amount
-    @q = @ship.nil? ? 0 : @ship.mining_quantity
+    # only transfer the smallest of cargo space, mining quantity, resource quantity
+    @q = @ship.nil? ? 0 :
+         (@ship.cargo_space < @ship.mining_quantity ?
+          @ship.cargo_space : @ship.mining_quantity)
     @q = @resource.quantity unless @resource.nil? || @resource.quantity >= @q
+
+    # if ship is full, set quantity to 1 to stop command in checks below
+    @q = 1 if @ship.cargo_space == 0
 
     Cosmos::Resource.new :id          => @resource.nil? ? nil : @resource.id,
                          :material_id => @resource.nil? ? nil : @resource.material_id,
@@ -64,6 +69,12 @@ class Mining < Omega::Server::Command
                          :resource => nil
 
     super(args)
+    @error = false
+  end
+
+  def update(cmd)
+    update_from(cmd, :resource)
+    super(cmd)
   end
 
   def first_hook
@@ -76,11 +87,15 @@ class Mining < Omega::Server::Command
 
      begin
        @resource = invoke 'cosmos::get_resource', @resource.id
-       @resource.entity = invoke 'cosmos::get_entity', 'with_id', @resource.entity_id
      rescue Exception => e
-       # if any problems retrieving resource, invalidate it, invaliding this command
-       @resource = nil
+       # if any problems retrieving resource, invalidate command
+       @resource.quantity = 0
+       @error = true
      end
+
+     # retrieve entity regardless of resource retrieval errs
+     #   (for use in last_hook below)
+     @resource.entity = invoke 'cosmos::get_entity', 'with_id', @resource.entity_id
   end
 
   def after_hook
@@ -96,23 +111,22 @@ class Mining < Omega::Server::Command
     @ship.stop_mining
 
     reason = ''
+    r = gen_resource
 
     # ship & resource are too far apart or in different systems
-    if (@ship.location.parent_id != @resource.entity.location.parent_id ||
-       (@ship.location - @resource.entity.location) > @ship.mining_distance)
+    if (@ship.location.parent_id != r.entity.location.parent_id ||
+       (@ship.location - r.entity.location) > @ship.mining_distance)
       reason = 'mining_distance_exceeded'
 
     # ship is at max capacity
-    elsif (@ship.cargo_quantity + @ship.mining_quantity) >= @ship.cargo_capacity
+    elsif (@ship.cargo_quantity + r.quantity) > @ship.cargo_capacity
       reason = 'ship_cargo_full'
 
     # ship has become docked
     elsif @ship.docked?
       reason = 'ship_docked'
 
-    elsif @resource.quantity <= 0
-      ::RJR::Logger.debug "#{@ship.id} depleted resource #{@resource}"
-      run_callbacks @ship, 'resource_depleted', @resource
+    elsif r.quantity == 0
       reason = 'resource_depleted'
     end
 
@@ -121,6 +135,7 @@ class Mining < Omega::Server::Command
   end
 
   def should_run?
+    return false if @error
     r = gen_resource
     super && @ship.can_mine?(r) && @ship.can_accept?(r)
   end
@@ -150,6 +165,7 @@ class Mining < Omega::Server::Command
 
   def remove?
     # remove if we cannot mine anymore
+    return true if @error
     r = gen_resource
     !@ship.can_mine?(r) || !@ship.can_accept?(r)
   end

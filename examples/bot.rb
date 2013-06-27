@@ -27,47 +27,50 @@ Omega::Client::User.login USER_NAME, PASSWORD
 # Global event handlers & bot setup
 
 def start_miner(miner)
-  puts "registering #{miner.id} events"
+  sputs "registering #{miner.id} events"
   miner.handle(:selected_resource) { |m,a|
-    puts "miner #{m.id.bold.yellow} selected #{a.to_s} to mine"
+    sputs "miner #{m.id.bold.yellow} selected #{a.to_s} to mine"
   }
   miner.handle(:no_resources) { |m|
-    puts "Miner #{m.id.bold.yellow} could not find any more accessible resources"
+    sputs "miner #{m.id.bold.yellow} could not find any more accessible resources, idling"
   }
   miner.handle(:resource_collected) { |m,evnt,sh,res,q|
-    puts "ship #{m.id.bold.yellow} collected #{q} of resource #{res.id.bold.red}"
+    sputs "miner #{m.id.bold.yellow} collected #{q} of resource #{res.id.bold.red}"
   }
   miner.handle(:mining_stopped) { |m,evnt,sh,res,reason|
-    puts "ship #{m.id.bold.yellow} stopped mining #{res.id.bold.red} due to #{reason}"
+    sputs "miner #{m.id.bold.yellow} stopped mining resource #{res.id.bold.red} due to #{reason}"
   }
-  miner.handle(:transferred) { |m,st,r,q|
-    puts "Miner #{m.id.bold.yellow} transferred #{q} of #{r.bold.red} to #{st.id.bold.yellow}"
+  miner.handle(:no_stations) { |m|
+    sputs "miner #{m.id.bold.yellow} could not find stations, idling"
+  }
+  miner.handle(:transferred_to) { |m,st,r|
+    sputs "miner #{m.id.bold.yellow} transferred #{r.quantity} of #{r.to_s.bold.red} to #{st.id.bold.yellow}"
   }
   miner.start_bot
 end
 
 def start_corvette(corvette)
-  puts "registering #{corvette.id} events"
+  sputs "registering #{corvette.id} events"
   corvette.handle(:jumped) { |c|
-    puts "corvette #{c.id.bold.yellow} jumped to system #{c.system_id.green}"
+    sputs "corvette #{c.id.bold.yellow} jumped to system #{c.system_id.green}"
   }
-  corvette.handle(:attacked) { |event, attacker,defender|
-    puts "#{attacker.id.bold.yellow} attacked #{defender.id.bold.yellow}"
+  corvette.handle(:attacked) { |c,event, defender|
+    sputs "#{c.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
-  corvette.handle(:defended) { |event, attacker,defender|
-    puts "#{defender.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
+  corvette.handle(:defended) { |c,event, attacker|
+    sputs "#{c.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
 end
 
 def start_factory(factory)
-  puts "registering #{factory.id} events"
+  sputs "registering #{factory.id} events"
   factory.handle(:jumped) { |f|
-    puts "station #{f.id.bold.yellow} jumped to system #{f.system_id.green}"
+    sputs "station #{f.id.bold.yellow} jumped to system #{f.system_id.green}"
   }
   #factory.handle(:partial_construction) { |f,evnt,st,entity,percent|
   factory.handle(:construction_complete) { |f,evnt,st,entity|
-    puts "#{f.id.bold.yellow} constructed #{entity.id.bold.yellow}"
+    sputs "#{f.id.bold.yellow} constructed #{entity.id.bold.yellow}"
     init_entity entity
 
     if entity.is_a?(Manufactured::Ship)
@@ -108,7 +111,6 @@ end
       start_miner(to_init)
 
     elsif to_init.is_a?(Manufactured::Station)
-puts '!'
       start_factory(Omega::Client::Factory.get(to_init.id))
 
     elsif to_init.is_a?(Manufactured::Ship)
@@ -133,5 +135,5 @@ end
 
 Omega::Client::Factory.owned_by(USER_NAME).each  { |f| init_entity f }
 #Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
-#Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
+Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
 Omega::Client::Trackable.node.rjr_node.join

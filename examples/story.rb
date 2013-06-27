@@ -59,9 +59,9 @@ castle_macbeth =
 
 macbeth_ship =
   ship('macbeth-ship', :user_id => 'Macbeth', :type => :destroyer,
-       :system_id => castle_macbeth.solar_system,
+       :system_id => castle_macbeth.system_id,
        :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
-macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
+#macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
 
 elsinore =
   station('elsinore', :user_id => 'Hamlet', :type => :mining,
@@ -70,9 +70,9 @@ elsinore =
 
 hamlet_ship =
   ship('hamlet-ship', :user_id => 'Hamlet', :type => :corvette,
-       :solar_system => castle_hamlet.solar_system,
+       :system_id => elsinore.system_id,
        :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
-hamlet_ship.dock_to(elsinore) if hamlet_ship.docked_at.nil?
+#hamlet_ship.dock_to(elsinore) if hamlet_ship.docked_at.nil?
 
 cyprus =
   station('cyprus', :user_id => 'Othello', :type => :commerce,
@@ -81,9 +81,9 @@ cyprus =
 
 othello_ship =
   ship('othello-ship', :user_id => 'Othello', :type => :battlecruiser,
-       :solar_system => cyprus.solar_system,
+       :system_id => cyprus.system_id,
        :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
-othello_ship.dock_to(cyprus) if othello_ship.docked_at.nil?
+#othello_ship.dock_to(cyprus) if othello_ship.docked_at.nil?
 
 rome =
   station('rome', :user_id => 'Ceasar', :type => :commerce,
@@ -92,15 +92,15 @@ rome =
 
 octavius_ship =
   ship('octavius-ship', :user_id => 'Octavius', :type => :exploration,
-       :solar_system => rome.solar_system,
+       :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
-octavius_ship.dock_to(rome) if octavius_ship.docked_at.nil?
+#octavius_ship.dock_to(rome) if octavius_ship.docked_at.nil?
 
 titus_ship =
   ship('titus-ship', :user_id => 'Titus', :type => :bomber,
-       :solar_system => rome.solar_system,
+       :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
-titus_ship.dock_to(rome) if titus_ship.docked_at.nil?
+#titus_ship.dock_to(rome) if titus_ship.docked_at.nil?
 
 penglai =
   station('penglai', :user_id => 'Shennong', :type => :science,
@@ -157,7 +157,7 @@ mission gen_uuid, :title => msn[:title],
   :creator_user_id => msn[:creator].id, :timeout => 360,
   :description => msn[:description],
 
-  :requirements => Requirement.shared_station,
+  :requirements => Requirements.shared_station,
 
   :assignment_callbacks =>
     [Assignment.create_entity(es,
@@ -166,7 +166,7 @@ mission gen_uuid, :title => msn[:title],
       :user_id  => msn[:opponent].id,
       :system_name => rand_system,
       :location    => msn[:location]),
-     Event.schedule_expiration_event,
+     Assignment.schedule_expiration_event,
      Assignment.subscribe_to(es, "destroyed",
                              Event.create_victory_event)],
 
@@ -187,11 +187,12 @@ mission gen_uuid, :title => msn[:title],
 
 ##################################################### mining/transport/loot missions
 
-[['metal',    'steel',     500,  500, 100, youdu, penglai],
- ['metal',    'plantinum', 100,  100, 250, youdu, penglai],
- ['gem',      'diamond',   100,  200, 200, youdu, penglai],
- ['fuel',     'uranium',   1000, 200, 100, youdu, penglai],
- ['adhesive', 'cellulose', 5000, 1000, 50]].each { |type,name,q1,q2,q3,src,dst|
+     [['metal',    'steel',     500,  500, 100, youdu, penglai],
+      ['metal',    'plantinum', 100,  100, 250, youdu, penglai],
+      ['gem',      'diamond',   100,  200, 200, youdu, penglai],
+      ['fuel',     'uranium',   1000, 200, 100, youdu, penglai],
+      ['adhesive', 'cellulose', 5000, 1000, 50, youdu, penglai]].
+each { |type,       name,       q1,   q2,  q3,  src,   dst|
 
 mid = gen_uuid
 
@@ -209,7 +210,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
       :solar_system => rand_system,
       :location => Motel::Location.random(:max => 2000)),
      Assignment.create_resource(mid + '-asteroid', type, name, q1),
-     Event.schedule_expiration_event,
+     Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-mining-ships', "resource_collected",
                                          Event.resource_collected)],
 
@@ -232,18 +233,18 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.id}",
   :creator_user_id => shennong.id, :timeout => 3600,
   :description => "The will of the people dictates resources be moved from #{src} to #{dst}",
-  :mission_data => { :check_transfer => { :dst => dst, :q => q2, :rs => res } },
+  :mission_data => { :check_transfer => { :dst => dst, :q => q2, :rs => "#{type}-#{name}" } },
 
-  :requirements => Requirement.docked_at(src),
+  :requirements => Requirements.docked_at(src),
                    # TODO also that ship has capacity for resources
 
   :assignment_callbacks => 
     [Assignment.store(mid + '-ship',
-       Query.user_ships { |s| s.docked_at.id == src.id }.first),
+       Query.user_ships { |s| s.docked_at.id == src.id }), # FIXME only return first
      Assignment.add_resource(mid + '-ship', type, name, q2),
-     Event.schedule_expiration_event,
+     Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ship', 'transfer',
-                             Event.transfer)],
+                             Event.transferred_out)],
 
   :victory_conditions => Query.check_transfer,
 
@@ -273,14 +274,14 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
         :type     => :corvette, # TODO autodefend on attack
         :user_id  => chiyou.id,
         :system_name => rand_system,
-        :location    => msn[:location])
+        :location    => rand_location)
     } +
     [Assignment.add_resource(eid, type, name, q3),
-     Event.schedule_expiration_event,
+     Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ships', 'collected_loot',
                              Event.collected_loot)],
 
-  :victory_conditions => Query.check_loot,
+  :victory_conditions => Event.collected_loot,
 
   :victory_callbacks =>
     [Resolution.update_user_attributes,

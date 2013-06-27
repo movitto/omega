@@ -68,7 +68,10 @@ module Omega
            :notification => "manufactured::event_occurred",
            :match => proc { |entity,*a|
              a[0] == 'resource_collected' &&
-             a[1].id == entity.id
+             a[1].id == entity.id },
+           :update => proc { |entity, *a|
+             rs = a[2] ; rs.quantity = a[3]
+             entity.add_resource rs
            }},
 
         :mining_stopped     =>
@@ -77,6 +80,10 @@ module Omega
            :match => proc { |entity,*a|
              a[0] == 'mining_stopped' &&
              a[1].id == entity.id
+           },
+           :update => proc { |entity,*a|
+             #entity.entity = a[1] # may contain resources already removed
+             entity.stop_mining
            }}
 
       server_state :cargo_full,
@@ -93,22 +100,15 @@ module Omega
       # @param [Cosmos::Resource] resourceresource to start mining
       def mine(resource)
         RJR::Logger.info "Starting to mine #{resource.material_id} with #{id}"
-
-        # handle resource collected of entity.mining quantity, invalidating
-        # client side cached copy of resource source
-        unless handles?(:resource_collected)
-          handle(:resource_collected) { |*args|
-            # TODO update resources locally, invalidate asteroid resources
-          }
-        end
-
-        node.invoke 'manufactured::start_mining', id, resource.id
+        @entity = node.invoke 'manufactured::start_mining', id, resource.id
       end
 
       # Start the omega client bot
       def start_bot
-        handle(:mining_stopped) { |*args|
-          #offload_resources
+        # start listening for events which may trigger state changes
+        handle(:resource_collected)
+        handle(:mining_stopped) { |m,*args|
+          m.select_target if args[3] != 'ship_cargo_full'
         }
 
         if cargo_full?
@@ -121,14 +121,35 @@ module Omega
       # Move to the closest station owned by user and transfer resources to it
       def offload_resources
         st = closest(:station).first
-        if st.location - location < transfer_distance
-          transfer_all_to(st)
+
+        if st.nil?
+          raise_event(:no_stations)
+          return
+
+        elsif st.location - location < transfer_distance
+          begin
+            transfer_all_to(st)
+          rescue Exception => e
+            # refresh stations and try again
+            Omega::Client::Station.refresh
+            offload_resources
+            return
+          end
+
           select_target
 
         else
           raise_event(:moving_to, st)
           move_to(:destination => st) { |*args|
-            transfer_all_to(st)
+            begin
+              transfer_all_to(st)
+            rescue Exception => e
+              # refresh stations and try again
+              Omega::Client::Station.refresh
+              offload_resources
+              return
+            end
+
             select_target
           }
         end

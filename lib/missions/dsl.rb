@@ -37,6 +37,12 @@ end
 
 # Mission Assignment
 module Assignment
+  def self.store(id, lookup)
+    proc { |mission, node|
+      mission.mission_data[id] = lookup.call(mission, node)
+    }
+  end
+
   def self.create_entity(id, entity_params={})
     proc { |mission, node|
       # create new entity using specified params

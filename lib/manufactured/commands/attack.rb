@@ -60,10 +60,8 @@ class Attack < Omega::Server::Command
 
   def before_hook
     # update entities from registry
-    unless @terminate
-      @attacker = retrieve(@attacker.id)
-      @defender = retrieve(@defender.id)
-    end
+    @attacker = retrieve(@attacker.id)
+    @defender = retrieve(@defender.id)
   end
 
   def after_hook
@@ -91,7 +89,7 @@ class Attack < Omega::Server::Command
         # two entities (ship/loot) sharing same location
         loot = Manufactured::Loot.new :id => "#{@defender.id}-loot",
                  :location          => @defender.location,
-                 :solar_system      => @defender.solar_system,
+                 :system_id         => @defender.system_id,
                  :movement_strategy => Motel::MovementStrategies::Stopped.instance,
                  :cargo_capacity    => @defender.cargo_capacity
         @defender.resources.each { |r| loot.add_resource r }
@@ -99,14 +97,14 @@ class Attack < Omega::Server::Command
       end
 
       # invoke defender's 'destroyed' callbacks
-      run_callbacks(@defender, 'destroyed', @attacker, @defender)
+      run_callbacks(@defender, 'destroyed_by', @attacker)
     end
 
     # invoke attackers's 'attacked_stop' callbacks
-    run_callbacks(@attacker, 'attacked_stop', @attacker, @defender)
+    run_callbacks(@attacker, 'attacked_stop', @defender)
 
     # invoke defender's 'defended_stop' callbacks
-    run_callbacks(@defender, 'defended_stop', @attacker, @defender)
+    run_callbacks(@defender, 'defended_stop', @attacker)
   end
 
   def should_run?
@@ -138,10 +136,10 @@ class Attack < Omega::Server::Command
     end
 
     # invoke attacker's 'attacked' callbacks
-    run_callbacks(@attacker, 'attacked', @attacker, @defender)
+    run_callbacks(@attacker, 'attacked', @defender)
 
     # invoke defender's 'defended' callbacks
-    run_callbacks(@defender, 'defended', @attacker, @defender)
+    run_callbacks(@defender, 'defended', @attacker)
   end
 
   def remove?

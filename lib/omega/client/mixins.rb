@@ -31,6 +31,11 @@ module Omega
       # Entity being tracked.
       attr_accessor :entity
 
+      # Refresh entity
+      def refresh
+        @entity = node.invoke(self.get_method, 'with_id', id)
+      end
+
       # By default proxy all methods to underlying entity
       def method_missing(method_id, *args, &bl)
         self.entity.send(method_id, *args, &bl)
@@ -51,7 +56,7 @@ module Omega
         } unless esetup.nil?
 
         @event_handlers ||= Hash.new() { |h,k| h[k] = [] }
-        @event_handlers[event] << handler
+        @event_handlers[event] << handler unless handler.nil?
       end
 
       # Return bool indicating if we're handling the specified event
@@ -210,16 +215,16 @@ module Omega
 
             if events[e].has_key?(:notification)
               event_setup << lambda { |*args|
+                @event_serializer = Mutex.new
                 @handled ||= []
                 unless @handled.include?(e)
                   notification = events[e][:notification]
                   self.node.handle(notification) { |*args|
                     if events[e][:match].nil? || events[e][:match].call(self, *args)
-                      #if !events[e][:update].nil?
-                      #  events[e][:update].call(self, *args)
-                      #end
-
-                      self.raise_event e, *args
+                      @event_serializer.synchronize {
+                        events[e][:update].call(self, *args) if events[e][:update]
+                        self.raise_event e, *args
+                      }
                     end
                   }
                   @handled << e
@@ -472,53 +477,50 @@ module Omega
       #
       # @see ClassMethods
       def self.included(base)
-        @tracked_classes ||= []
-        @tracked_classes << base
+        @entities ||= []
 
         base.extend(ClassMethods)
 
         # On initialization register entities w/ registry,
         # deleting old entity if it exists
         base.entity_init { |e|
-          o = e.entities.find { |re| re.id == e.id }
-          e.entities.delete(o) unless o.nil?
-          e.entities << e
+          TrackEntity.track_entity e
         }
       end
 
-      # Instance wrapper around entities registry
+      # Instance wrapper around class.entities
       def entities
         self.class.entities
       end
 
-      # Instance wrapper around entities.clear
-      def clear_entities
-        self.class.clear_entities
+      # Track specified entity
+      def self.track_entity(e)
+        o = @entities.find { |re| re.id == e.id }
+        @entities.delete(o) unless o.nil?
+        @entities << e
       end
 
       # Return all entities in all classes w/ TrackEntity.entities
       def self.entities
-        @tracked_classes ||= []
-        @tracked_classes.collect { |c| c.entities }.flatten
+        @entities
       end
 
       # Clear all entities
       def self.clear_entities
-        @tracked_classes ||= []
-        @tracked_classes.each { |c| c.clear_entities }
+        @entities = []
       end
 
       # Methods that are defined on the class including 
       # the TrackState module
       module ClassMethods
-        # Return entities registry, initializing it if it doesn't exist
+        # Return all entities of the local type
         def entities
-          @entities ||= []
+          TrackEntity.entities.select { |e| e.kind_of?(self) }
         end
 
-        # Clear entities list
-        def clear_entities
-          @entities = []
+        # Refresh all entities
+        def refresh
+          entities.each { |e| e.refresh }
         end
 
         # Return cached entity, else retrieve

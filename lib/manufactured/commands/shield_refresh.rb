@@ -39,11 +39,6 @@ class ShieldRefresh < Omega::Server::Command
     super(args)
   end
 
-  # Update command from another
-  def update(cmd)
-    update_from(cmd, :last_ran_at)
-  end
-
   def before_hook
     # update entity from registry
     @entity = retrieve(@entity.id)
@@ -52,9 +47,6 @@ class ShieldRefresh < Omega::Server::Command
   def after_hook
     # persist entity to registry
     update_registry(@entity)
-
-    # persist cmd to registry
-    update_registry(self)
   end
 
   def should_run?
