@@ -3,6 +3,7 @@
 # Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'time'
 require 'json'
 require 'motel/movement_strategy'
 
@@ -352,7 +353,8 @@ class Location
           :movement_strategy => movement_strategy,
           :next_movement_strategy => next_movement_strategy,
           :callbacks => callbacks,
-          :last_moved_at => last_moved_at}
+          :last_moved_at =>
+            last_moved_at.nil? ? nil : last_moved_at.strftime("%d %b %Y %H:%M:%S.%5N")}
      }.to_json(*a)
    end
 

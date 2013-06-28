@@ -70,9 +70,16 @@ describe Loot do
       end
     end
 
+    context "system_id is nil" do
+      it "returns false" do
+        @l.system_id = nil
+        @l.should_not be_valid
+      end
+    end
+
     context "solar system is invalid" do
       it "returns false" do
-        @l.solar_system = nil
+        @l.solar_system = build(:galaxy)
         @l.should_not be_valid
       end
     end

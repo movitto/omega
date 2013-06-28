@@ -17,7 +17,7 @@ module Manufactured::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
 
       # add users, motel, and cosmos modules, initialze manu module
       @n.dispatcher.add_module('users/rjr/init')

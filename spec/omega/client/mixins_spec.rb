@@ -149,10 +149,17 @@ module Omega::Client
       end
 
       it "registers notification based setup method" do
-        @t.class.node.should_receive(:handles?).with('notification_method').and_call_original
         @t.class.node.should_receive(:handle).with('notification_method').and_call_original
         @t.class.event_setup[:notification_event].should_not be_nil
         m = @t.class.event_setup[:notification_event].first
+        @t.instance_exec &m
+      end
+
+      it "only registers notification handler once" do # per event
+        @t.class.node.should_receive(:handle).with('notification_method').once.and_call_original
+        @t.class.event_setup[:notification_event].should_not be_nil
+        m = @t.class.event_setup[:notification_event].first
+        @t.instance_exec &m
         @t.instance_exec &m
       end
 
@@ -406,13 +413,12 @@ module Omega::Client
     end
 
     after(:each) do
-      OmegaTest::Trackable.entities.clear
+      OmegaTest::Trackable.clear_entities
     end
 
     context "entity class initialization" do
-      it "registers tracked classes with TrackEntity" do
-        TrackEntity.instance_variable_get(:@tracked_classes).
-                    should include(OmegaTest::Trackable)
+      it "initializes entity registry" do
+        TrackEntity.entities.should == []
       end
     end
 

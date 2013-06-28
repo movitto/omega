@@ -44,9 +44,17 @@ describe Attack do
 
   describe "#last_hook" do
     before(:each) do
-      @e1 = build(:ship)
-      @e2 = build(:ship)
+      setup_manufactured
+
+      @e1 = create(:valid_ship)
+      @e2 = create(:valid_ship)
+
+      @re1 = @registry.safe_exec { |es| es.find { |e| e.id == @e1.id } }
+      @re2 = @registry.safe_exec { |es| es.find { |e| e.id == @e2.id } }
+
       @a = Attack.new :attacker => @e1, :defender => @e2
+      @a.registry= @registry
+      @a.node = Manufactured::RJR.node
     end
 
     it "stops attacking" do
@@ -55,12 +63,12 @@ describe Attack do
     end
 
     it "runs attacked_stop callbacks" do
-      @e1.should_receive(:run_callbacks).with('attacked_stop', @e1, @e2)
+      @re1.should_receive(:run_callbacks).with('attacked_stop', @e2)
       @a.last_hook
     end
 
     it "runs defended stop callbacks" do
-      @e2.should_receive(:run_callbacks).with('defended_stop', @e1, @e2)
+      @re2.should_receive(:run_callbacks).with('defended_stop', @e1)
       @a.last_hook
     end
 
@@ -69,14 +77,9 @@ describe Attack do
         @e2.hp = 0
       end
 
-      it "sets defender destroyed by" do
-        @a.last_hook
-        @e2.destroyed_by.should == @e1
-      end
-
       it "runs destroyed callbacks" do
-        @e2.should_receive(:run_callbacks).with('defended_stop', @e1, @e2)
-        @e2.should_receive(:run_callbacks).with('destroyed', @e1, @e2)
+        @re2.should_receive(:run_callbacks).with('defended_stop', @e1)
+        @re2.should_receive(:run_callbacks).with('destroyed_by', @e1)
         @a.last_hook
       end
 
@@ -120,9 +123,17 @@ describe Attack do
 
   describe "#run!" do
     before(:each) do
-      @e1 = build(:ship)
-      @e2 = build(:ship)
+      setup_manufactured
+
+      @e1 = create(:valid_ship)
+      @e2 = create(:valid_ship)
+
+      @re1 = @registry.safe_exec { |es| es.find { |e| e.id == @e1.id } }
+      @re2 = @registry.safe_exec { |es| es.find { |e| e.id == @e2.id } }
+
       @a = Attack.new :attacker => @e1, :defender => @e2
+      @a.registry= @registry
+      @a.node = Manufactured::RJR.node
     end
 
     it "invokes command.run!" do
@@ -165,13 +176,23 @@ describe Attack do
       end
     end
 
+    context "defender hp == 0" do
+      it "sets defender destroyed by" do
+        @e1.damage_dealt = 5
+        @e2.shield_level = 0
+        @e2.hp = 4
+        @a.run!
+        @e2.destroyed_by.should == @e1
+      end
+    end
+
     it "runs attacked callbacks" do
-      @e1.should_receive(:run_callbacks).with('attacked', @e1, @e2)
+      @re1.should_receive(:run_callbacks).with('attacked', @e2)
       @a.run!
     end
 
     it "runs defended callbacks" do
-      @e2.should_receive(:run_callbacks).with('defended', @e1, @e2)
+      @re2.should_receive(:run_callbacks).with('defended', @e1)
       @a.run!
     end
   end

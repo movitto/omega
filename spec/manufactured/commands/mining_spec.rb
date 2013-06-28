@@ -18,28 +18,40 @@ describe Mining do
 
   describe "#gen_resource" do
     it "creates new resource from local copy" do
-      m = Mining.new :resource => build(:resource)
+      m = Mining.new :resource => build(:resource), :ship => build(:ship)
       r = m.send(:gen_resource)
       r.should be_an_instance_of(Cosmos::Resource)
       r.should_not eq(m.resource)
       r.id.should == m.resource.id
       r.entity.should == m.resource.entity
-      r.quantity.should == 0
+      r.quantity.should == 20
     end
 
-    it "sets quantity to ship mining quantity" do
-      m = Mining.new :resource => build(:resource),
-                     :ship     => build(:ship, :mining_quantity => 10)
-      r = m.send(:gen_resource)
-      r.quantity.should == m.ship.mining_quantity
+    context "ship mining quantity < ship cargo space and resource quantity" do
+      it "sets quantity to ship mining quantity" do
+        m = Mining.new :resource => build(:resource),
+                       :ship     => build(:ship, :mining_quantity => 10)
+        r = m.send(:gen_resource)
+        r.quantity.should == m.ship.mining_quantity
+      end
     end
 
-    context "resource quantity < ship mining quantity" do
+    context "resource quantity < ship cargo space and ship mining quantity" do
       it "sets quantity to resource quantity" do
         m = Mining.new :resource => build(:resource, :quantity => 5),
                        :ship     => build(:ship, :mining_quantity => 10)
         r = m.send(:gen_resource)
         r.quantity.should == m.resource.quantity
+      end
+    end
+
+    context "ship cargo space < resource quantity and ship mining quantity" do
+      it "sets quantity to ship cargo space" do
+        m = Mining.new :resource => build(:resource, :quantity => 15),
+                       :ship     => build(:ship, :mining_quantity => 10,
+                                                 :cargo_capacity => 5)
+        r = m.send(:gen_resource)
+        r.quantity.should == m.ship.cargo_capacity
       end
     end
   end
@@ -72,45 +84,46 @@ describe Mining do
 
   describe "#last_hook" do
     before(:each) do
+      setup_manufactured
+
       # generate mining distance exceeded reason
-      @sys = build(:solar_system)
+      @sys = create(:solar_system)
 
-      @s = build(:ship, :solar_system => @sys)
-      @s.location.coordinates = [0,0,0]
-      @r = build(:resource, :entity => build(:asteroid, :solar_system => @sys ))
-      @r.entity.location.coordinates = [0,0,0]
+      @sh = create(:valid_ship, :solar_system => @sys)
+      @rsh = @registry.safe_exec { |es| es.find { |e| e.id == @sh.id } }
+      @rsh.location.coordinates = [0,0,0]
 
-      @m = Mining.new :ship => @s, :resource => @r
+      @r = create(:resource, :entity => create(:asteroid, :solar_system => @sys ))
+      @rrs =
+        Cosmos::RJR.registry.safe_exec { |entities|
+          entities.find { |e| e.id == @r.entity.id }
+        }.resources.first
+      @rrs.entity.location.coordinates = [0,0,0]
+
+      @m = Mining.new :ship => @sh, :resource => @r
+      @m.registry= @registry
+      @m.node = Manufactured::RJR.node
     end
 
     it "stops mining" do
-      @s.should_receive(:stop_mining)
+      @sh.should_receive(:stop_mining)
       @m.last_hook
     end
 
     it "runs mining_stopped callbacks" do
       # generate distance exceeded reason
-      @r.entity.solar_system = build(:solar_system)
-      @s.should_receive(:run_callbacks).with('mining_stopped', 'mining_distance_exceeded', @s, @r)
+      @rrs.entity.solar_system = build(:solar_system)
+      @rsh.should_receive(:run_callbacks).with('mining_stopped', @r, 'mining_distance_exceeded')
       @m.last_hook
     end
 
     it "sets reason"
-
-    context "resource.quantity <= 0" do
-      it "runs resource_depleted callbacks" do
-        @r.quantity = 0
-        @s.should_receive(:run_callbacks).with('resource_depleted', @s, @r)
-        @s.should_receive(:run_callbacks).with('mining_stopped', 'resource_depleted', @s, @r)
-        @m.last_hook
-      end
-    end
   end
 
   describe "#should_run?" do
     context "server command shouldn't run" do
       it "returns false" do
-        m = Mining.new
+        m = Mining.new :ship => build(:ship), :resource => build(:resource)
         m.terminate!
         m.should_run?.should be_false
       end
@@ -149,9 +162,16 @@ describe Mining do
 
   describe "#run!" do
     before(:each) do
-      @s = build(:ship, :mining_quantity => 5)
-      @r = build(:resource, :quantity => 10)
+      setup_manufactured
+
+      @s = create(:valid_ship, :mining_quantity => 5)
+      @r = create(:resource, :quantity => 10)
       @m = Mining.new :ship => @s, :resource => @r
+
+      @rsh = @registry.safe_exec { |es| es.find { |e| e.id == @s.id } }
+
+      @m.registry = @registry
+      @m.node = Manufactured::RJR.node
     end
 
     it "invokes command.run!" do
@@ -193,8 +213,8 @@ describe Mining do
     end
 
     it "runs resource_collected callbacks" do
-      @s.should_receive(:run_callbacks).
-         with('resource_collected', @s, @r, @s.mining_quantity)
+      @rsh.should_receive(:run_callbacks).
+           with('resource_collected', @r, @s.mining_quantity)
       @m.run!
     end
   end

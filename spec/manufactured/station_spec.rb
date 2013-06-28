@@ -259,7 +259,7 @@ describe Station do
 
   describe "#to_json" do
     it "returns station in json format" do
-      system1 = Cosmos::Entities::SolarSystem.new :name => 'system1'
+      system1 = Cosmos::Entities::SolarSystem.new :id => 'system1'
       location= Motel::Location.new :id => 20, :y => -15
       s = Manufactured::Station.new(:id => 'station42', :user_id => 420,
                                  :type => :science,

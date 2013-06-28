@@ -188,7 +188,17 @@ end
 
 # Helper to set session id
 def session_id(id)
+  id = id.id if id.is_a?(Users::Session)
   set_header 'session_id', id
+end
+
+# Helper to wait for notification
+#
+# XXX local node notifications are processed w/ a thread which
+#     notify does not join before returning, need to give thread
+#     time to run (come up w/ better way todo this)
+def wait_for_notify
+  sleep 0.1
 end
 
 # Extend session to include a method that forces timeout

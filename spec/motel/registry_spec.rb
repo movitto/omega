@@ -143,23 +143,26 @@ describe Registry do
       @run_method = proc { @r.send(:run_locations) }
     end
 
+    before(:each) do
+      Timecop.freeze
+    end
+
+    after(:each) do
+      Timecop.travel
+    end
+
+    after(:all) do
+      Timecop.return
+    end
+
     context "location step delay elapsed" do
       before(:each) do
-        Timecop.freeze
         @t = Time.now
 
         @l = Location.new :step_delay => 1
         @l.last_moved_at = @t - 2
 
         @r << @l
-      end
-
-      after(:each) do
-        Timecop.travel
-      end
-
-      after(:all) do
-        Timecop.return
       end
 
       it "moves locations via movement strategy" do
@@ -195,14 +198,15 @@ describe Registry do
     end
 
     it "returns smallest step_delay of non-moved locations" do # to be used as loop sleep interval
-      l1 = build(:location)
+      t = Time.now
+      l1 = build(:location, :last_moved_at => t)
       l1.ms.step_delay = 0.5
-      l2 = build(:location)
-      l2.ms.step_delay = 0.5
+      l2 = build(:location, :last_moved_at => t)
+      l2.ms.step_delay = 0.4
       @r << l1
       @r << l2
 
-      @run_method.call.should be_within(CLOSE_ENOUGH).of(0.5)
+      @run_method.call.should be_within(CLOSE_ENOUGH).of(0.4)
     end
 
     it "raises proximity events" do

@@ -157,8 +157,7 @@ describe DSL do
           }
         }
       }
-      sleep 0.0001 # XXX setting of resource done via local node notification,
-                   #     need to give thread time to run
+      wait_for_notify
       r = Cosmos::RJR.registry.entity(&with_id(a.id)).resources.first
       r.material_id.should == 'gem-ruby'
       r.quantity.should == 420
@@ -210,6 +209,7 @@ describe DSL do
         }
       }
       m.should be_an_instance_of(Cosmos::Entities::Moon)
+      wait_for_notify
       Cosmos::RJR.registry.entity(&with_id(m.id)).should_not be_nil
     end
 
@@ -287,6 +287,7 @@ describe DSL do
     it "creates new periodic missions event" do
       e = schedule_event 10, Omega::Server::Event.new(:id => 'event123')
       e.id.should == 'event123-scheduler'
+      wait_for_notify
       e = Missions::RJR.registry.entity(&with_id(e.id))
       e.should_not be_nil
       e.interval.should == 10
@@ -298,6 +299,7 @@ describe DSL do
     it "creates new mission" do
       m = mission 'mission123', :title => 'test mission'
       m.id.should == 'mission123'
+      wait_for_notify
       m = Missions::RJR.registry.entity(&with_id('mission123'))
       m.should_not be_nil
       m.title.should == 'test mission'

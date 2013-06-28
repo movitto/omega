@@ -18,7 +18,7 @@ module Users::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
     end
 
     context "not local node" do
@@ -52,7 +52,7 @@ module Users::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
     end
 
     context "not local node" do

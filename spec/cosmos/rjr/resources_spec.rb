@@ -39,7 +39,7 @@ module Cosmos::RJR
 
     context "quantity is <0" do
       it "raises ArgumentError" do
-        a = build(:asteroid)
+        a = create(:asteroid)
         r = build(:resource, :entity => a, :quantity => -1)
         lambda {
           @s.set_resource r

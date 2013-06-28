@@ -22,10 +22,20 @@ describe InSystem do
   end
 
   describe "#location=" do
-    it "sets parent location" do
-      @e.solar_system = build(:solar_system)
-      @e.location = build(:location)
-      @e.location.parent.should == @e.solar_system.location
+    context "location.parent_id == solar_system.location.id" do
+      it "sets parent location" do
+        @e.solar_system = build(:solar_system)
+        @e.location = build(:location, :parent_id => @e.solar_system.location.id)
+        @e.location.parent.should == @e.solar_system.location
+      end
+    end
+
+    context "location's parent is different than solar_system's location" do
+      it "does not set parent" do
+        @e.solar_system = build(:solar_system)
+        @e.location = build(:location)
+        @e.location.parent.should be_nil
+      end
     end
   end
 

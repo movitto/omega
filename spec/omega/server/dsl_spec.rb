@@ -22,6 +22,7 @@ describe DSL do
   before(:each) do
     @anon = create(:anon)
     @rjr_node = @n
+    @rjr_headers = {}
   end
 
   describe "#login" do
@@ -62,7 +63,7 @@ describe DSL do
 
   describe "#require_privilege" do
     before(:each) do
-      login @n, @anon.id, @anon.password
+      @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
     end
 
     context "user has privilege" do
@@ -86,7 +87,7 @@ describe DSL do
 
   describe "#check_privilege" do
     before(:each) do
-      login @n, @anon.id, @anon.password
+      @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
     end
 
     context "user has privilege" do

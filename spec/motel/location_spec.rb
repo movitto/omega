@@ -195,10 +195,11 @@ describe Location do
     end
 
     it "passes arguments to callbacks" do
-      a = nil
+      la,a = nil,nil
       l = build(:location)
-      l.callbacks['moved'] << Omega::Server::Callback.new { |arg| a = arg }
+      l.callbacks['moved'] << Omega::Server::Callback.new { |*args| la,a = *args }
       l.raise_event 'moved', 42
+      la.should == l
       a.should == 42
     end
 

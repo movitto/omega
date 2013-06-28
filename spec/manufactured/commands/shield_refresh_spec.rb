@@ -13,7 +13,7 @@ describe ShieldRefresh do
     it "should be unique per entity" do
       s = ShieldRefresh.new
       s.entity = build(:ship)
-      s.id.should == s.entity.id.to_s
+      s.id.should == 'shield-refresh-cmd-' + s.entity.id.to_s
     end
   end
 

@@ -518,6 +518,12 @@ module Omega
           TrackEntity.entities.select { |e| e.kind_of?(self) }
         end
 
+        # Only clear entities on the local type
+        def clear_entities
+          le = entities
+          TrackEntity.entities.reject! { |e| le.include?(e) }
+        end
+
         # Refresh all entities
         def refresh
           entities.each { |e| e.refresh }

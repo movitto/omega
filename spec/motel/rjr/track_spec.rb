@@ -19,7 +19,7 @@ module Motel::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
 
       @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
     end
@@ -283,7 +283,7 @@ module Motel::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
 
       @registry = Motel::RJR.registry
       add_privilege @login_role, 'view', 'locations'

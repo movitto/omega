@@ -59,9 +59,17 @@ describe Construction do
 
   describe "#run!" do
     before(:each) do
-      @st = build(:station)
-      @sh = build(:ship)
+      setup_manufactured
+
+      @st = create(:valid_station)
+      @sh = build(:valid_ship)
+
+      @rst = @registry.safe_exec { |es| es.find { |e| e.id == @st.id }}
+      @rsh = @registry.safe_exec { |es| es.find { |e| e.id == @sh.id }}
+
       @c  = Construction.new :entity => @sh, :station => @st
+      @c.registry = @registry
+      @c.node = Manufactured::RJR.node
     end
 
     it "invokes command.run!" do
@@ -72,8 +80,8 @@ describe Construction do
     context "construction completed" do
       it "runs construction_compelete callbacks" do
         Manufactured::Ship.should_receive(:construction_time).and_return(1)
-        @c.instance_variable_set(:@last_ran_at, Time.now - 5)
-        @st.should_receive(:run_callbacks).with('construction_complete', @st, @sh)
+        @c.start_time = Time.now - 5
+        @rst.should_receive(:run_callbacks).with('construction_complete', @sh)
         @c.run!
       end
     end
@@ -82,12 +90,11 @@ describe Construction do
       it "runs partial_construction callbacks" do
         Manufactured::Ship.should_receive(:construction_time).and_return(2)
         @c.instance_variable_set(:@last_ran_at, Time.now - 1)
-        @st.should_receive(:run_callbacks).
+        @rst.should_receive(:run_callbacks).
             with{ |*a|
               a[0].should == 'partial_construction'
-              a[1].should == @st
-              a[2].should == @sh
-              a[3].should be < 1
+              a[1].should == @sh
+              a[2].should be < 1
             }
         @c.run!
       end

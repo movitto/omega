@@ -43,13 +43,28 @@ class Mining < Omega::Server::Command
 
   # internal helper, generate a new resource
   def gen_resource
-    # only transfer the smallest of cargo space, mining quantity, resource quantity
-    @q = @ship.nil? ? 0 :
-         (@ship.cargo_space < @ship.mining_quantity ?
-          @ship.cargo_space : @ship.mining_quantity)
-    @q = @resource.quantity unless @resource.nil? || @resource.quantity >= @q
+    mq = @ship.mining_quantity
+    cs = @ship.cargo_space
 
-    # if ship is full, set quantity to 1 to stop command in checks below
+    # try to mine it all
+    @q  = @resource.quantity
+
+    # the following selects the smallest amongst mq,cs,q
+
+    # can't mine it all but can store what is mined
+    if mq <= @q && mq <= cs
+      # only mine what we can
+      @q = mq
+
+    # we can store less than what is mined and/or
+    # less than what is in the resource
+    elsif cs <= @q
+      # only mine what can be stored
+      @q = cs
+    end
+
+    # if ship is full, set quantity to 1 to stop
+    # this mining command in checks below
     @q = 1 if @ship.cargo_space == 0
 
     Cosmos::Resource.new :id          => @resource.nil? ? nil : @resource.id,

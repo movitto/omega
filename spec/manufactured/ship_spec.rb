@@ -224,7 +224,7 @@ describe Ship do
 
     context "shield level is invalid" do
       it "returns false" do
-        @s.shield_level = 5
+        @s.shield_level = 25
         @s.should_not be_valid
       end
     end
@@ -333,6 +333,8 @@ describe Ship do
       @a  = build(:asteroid, :solar_system => @s1)
       @r  = Cosmos::Resource.new :entity => @a, :id => 'metal-steel', :quantity => 500
 
+      @q = @sh.cargo_space
+
       @sh.location.coordinates = [0, 0, 0]
       @a.location.coordinates = [0, 0, 1]
     end
@@ -340,7 +342,7 @@ describe Ship do
     context "not mining ship" do
       it "returns false" do
         @sh.type = :corvette
-        @sh.can_mine?(@r).should be_false
+        @sh.can_mine?(@r, @q).should be_false
       end
     end
 
@@ -351,26 +353,26 @@ describe Ship do
     context "ships/resource in different systems" do
       it "returns false" do
         @sh.location.parent = @s2.location
-        @sh.can_mine?(@r).should be_false
+        @sh.can_mine?(@r, @q).should be_false
       end
     end
 
     context "ship/resource too far away" do
       it "returns false" do
         @sh.location.x = 5000
-        @sh.can_mine?(@r).should be_false
+        @sh.can_mine?(@r, @q).should be_false
       end
     end
 
     context "cargo capacity would be exceeded" do
       it "returns false" do
         @sh.add_resource(build(:resource, :quantity => @sh.cargo_capacity))
-        @sh.can_mine?(@r).should be_false
+        @sh.can_mine?(@r, @q).should be_false
       end
     end
 
     it "returns true" do
-      @sh.can_mine?(@r).should be_true
+      @sh.can_mine?(@r, @q).should be_true
     end
   end
 
