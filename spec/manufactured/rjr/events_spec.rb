@@ -17,7 +17,7 @@ module Manufactured::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      @s.login @n, @login_user.id, @login_user.password
+      session_id @s.login(@n, @login_user.id, @login_user.password)
 
       # add users, motel, and cosmos modules, initialze manu module
       @n.dispatcher.add_module('users/rjr/init')
@@ -77,7 +77,7 @@ module Manufactured::RJR
 
       it "send callback notification via rjr callback" do
         add_privilege @login_role, 'view', 'manufactured_entities'
-        @n.should_receive(:notify).with('manufactured::event_occurred', @sh)
+        @n.should_receive(:notify).with('manufactured::event_occurred', 'resource_collected', @sh)
         @cb.invoke @sh
       end
 
@@ -111,9 +111,8 @@ module Manufactured::RJR
                                       :endpoint_id => @n.node_id
       @rsh.callbacks << c
       @rsh.callbacks.last.should == c
-      lambda {
-        @s.subscribe_to @sh.id, 'resource_collected'
-      }.should change{@rsh.callbacks.size}.by(1)
+      @s.subscribe_to @sh.id, 'resource_collected'
+      @rsh.callbacks.size.should == 1
       @rsh.callbacks.last.should_not == c
     end
 

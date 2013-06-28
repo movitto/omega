@@ -209,12 +209,12 @@ module Manufactured::RJR
       end
 
       it "raises transfer event on src" do
-        @rsrc.should_receive(:run_callbacks).with(:transfer, @rsrc, @rdst, @rs)
+        @rsrc.should_receive(:run_callbacks).with(:transferred_to, @rdst, @rs)
         @s.transfer_resource @src.id, @dst.id, @rs
       end
 
       it "raises transfer event on dst" do
-        @rdst.should_receive(:run_callbacks).with(:transfer, @rsrc, @rdst, @rs)
+        @rdst.should_receive(:run_callbacks).with(:transferred_from, @rsrc, @rs)
         @s.transfer_resource @src.id, @dst.id, @rs
       end
 

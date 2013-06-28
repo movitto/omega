@@ -222,36 +222,6 @@ module Manufactured::RJR
         end
       end
 
-      it "registers new construction_complete callback with station" do
-          @s.construct_entity @st.id, @construct
-          @registry.safe_exec { |es|
-            cbs = es.find(&with_id(@st.id)).callbacks
-            cbs.size.should == 1
-            cbs.first.event_type.should == :construction_complete
-          }
-      end
-
-      context "on construction complete" do
-        it "removes callback from station" do
-          @s.construct_entity @st.id, @construct
-          rs = @registry.safe_exec { |es| cbs = es.find(&with_id(@st.id)) }
-          lambda {
-            rs.callbacks.first.invoke
-          }.should change{rs.callbacks.size}.by(-1)
-        end
-
-        it "invokes manufactured::create_entity" do
-          @s.construct_entity @st.id, @construct
-          Manufactured::RJR.node.should_receive(:invoke).with{ |*a|
-            a[0].should == "manufactured::create_entity"
-            a[1].should be_an_instance_of(Ship)
-            a[1].id.should == @construct[:id]
-          }
-          rs = @registry.safe_exec { |es| cbs = es.find(&with_id(@st.id)) }
-          rs.callbacks.first.invoke
-        end
-      end
-
       it "constructs entity" do
         @registry.safe_exec { |es|
           es.find(&with_id(@st.id)).should_receive(:construct).and_call_original

@@ -23,6 +23,10 @@ module Manufactured::RJR
           [entities.find(&with_id(@sh.id)),
            entities.find(&with_id(@st.id))]
         }
+      @rstl =
+        Motel::RJR.registry.safe_exec { |entities|
+          entities.find(&with_id(@st.location.id))
+        }
     end
 
     context "invalid ship id/type" do
@@ -86,7 +90,7 @@ module Manufactured::RJR
 
       context "station cannot accept ship" do
         it "raises OperationError" do
-          @rst.location.x = @rsh.location.x + @rst.docking_distance * 2
+          @rstl.x = @rsh.location.x + @rst.docking_distance * 2
           lambda {
             @s.dock @sh.id, @st.id
           }.should raise_error(OperationError)

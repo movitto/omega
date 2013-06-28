@@ -78,9 +78,21 @@ describe Construction do
     end
 
     context "construction completed" do
-      it "runs construction_compelete callbacks" do
+      before(:each) do
         Manufactured::Ship.should_receive(:construction_time).and_return(1)
         @c.start_time = Time.now - 5
+      end
+
+      it "invokes manufactured::create_entity" do
+        @c.node.should_receive(:invoke).with{ |*a|
+          a[0].should == "manufactured::create_entity"
+          a[1].should be_an_instance_of(Manufactured::Ship)
+          a[1].id.should == @sh.id
+        }
+        @c.run!
+      end
+
+      it "runs construction_compelete callbacks" do
         @rst.should_receive(:run_callbacks).with('construction_complete', @sh)
         @c.run!
       end

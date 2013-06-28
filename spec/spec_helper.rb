@@ -47,6 +47,10 @@ RSpec.configure do |config|
     @s.instance_variable_set(:@rjr_node, @n)
     set_header 'source_node', @n.node_id
 
+    Missions::RJR.registry.stop
+    Manufactured::RJR.registry.stop
+    Motel::RJR.registry.stop
+
     Users::RJR.reset
     Motel::RJR.reset
     Missions::RJR.reset

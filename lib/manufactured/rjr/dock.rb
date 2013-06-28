@@ -26,16 +26,6 @@ dock = proc { |ship_id, station_id|
   #  [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
   #   {:privilege => 'modify', :entity => 'manufactured_entities'}]
   
-  # update ship's/station's location and system
-  ship.location    =
-    node.invoke('motel::get_location', 'with_id', ship.location.id)
-  station.location =
-    node.invoke('motel::get_location', 'with_id', station.location.id)
-  ship.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', ship.location.parent_id)
-  station.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', station.location.parent_id)
-
   # dock registry ship
   registry.safe_exec { |entities|
     # grab ship/station from registry

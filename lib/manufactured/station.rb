@@ -172,7 +172,7 @@ class Station
   # @return [true,false] indicating if ship is allowed to dock at station
   def dockable?(ship)
     # TODO incorporate # of ports
-    (ship.location.parent.id == @location.parent.id) &&
+    (ship.location.parent_id == @location.parent_id) &&
     (ship.location - @location) <= @docking_distance &&
     !ship.docked?
   end
