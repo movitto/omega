@@ -165,15 +165,16 @@ module Omega::Client
 
       context "notification handler invoked" do
         it "raises event on entity" do
-          @t.handle(:match_event) {}
+          @t.handle(:notification_event) {}
           @t.should_receive(:raise_event).with(:notification_event, :foo)
           m = @t.class.node.handlers['notification_method'].first
+          puts @t.class.node.handlers
           @t.instance_exec :foo, &m
         end
 
         context "match is false" do
           it "does not raise event" do
-            @t.handle(:notification_event) {}
+            @t.handle(:match_event) {}
             @t.should_not_receive(:raise_event)
             m = @t.class.node.handlers['match_method'].first
             @t.instance_exec :foo, &m

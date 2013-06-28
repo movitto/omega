@@ -99,20 +99,11 @@ module Omega::Client
         @r = Miner.get(s.id)
       end
 
-      it "adds resource collected handler" do
-        @r.event_handlers[:resource_collected].size.should == 0
-        @r.mine @rs
-        @r.event_handlers[:resource_collected].size.should == 1
-        @r.mine @rs
-        @r.event_handlers[:resource_collected].size.should == 1
-      end
-
       context "resource collected" do
         it "TODO"
       end
 
       it "invokes manufactured::start_mining" do
-        @n.should_receive(:invoke).with 'manufactured::subscribe_to', @r.id, :resource_collected
         @n.should_receive(:invoke).with 'manufactured::start_mining', @r.id, @rs.id
         @r.mine @rs
       end
@@ -189,7 +180,7 @@ module Omega::Client
       it "raises moving_to event" do
         s = create(:valid_station, :location => @r.location + [100,0,0])
         @r.should_receive(:closest).with(:station).and_return([s])
-        @r.should_receive(:raise_event).with(:moving_to, @r, s)
+        @r.should_receive(:raise_event).with(:moving_to, s)
         @r.offload_resources
       end
 
@@ -239,7 +230,7 @@ module Omega::Client
       context "no resources found" do
         it "raises no_resources event" do
           @r.should_receive(:closest).with(:resource).and_return([])
-          @r.should_receive(:raise_event).with(:no_resources, @r)
+          @r.should_receive(:raise_event).with(:no_resources)
           @r.select_target
         end
 
@@ -253,7 +244,7 @@ module Omega::Client
 
       it "raises selected_resource event" do
         @r.should_receive(:closest).with(:resource).and_return([@cast])
-        @r.should_receive(:raise_event).with(:selected_resource, @r, @cast)
+        @r.should_receive(:raise_event).with(:selected_resource, @cast)
         @r.select_target
       end
 
@@ -359,14 +350,15 @@ module Omega::Client
 
     describe "#patrol_route" do
       before(:each) do
-        c = create(:valid_ship, :type => :corvette)
-        @c = Corvette.get(c.id)
-        @c.visited = []
-
+        @sys1 = create(:solar_system)
         @sys2 = create(:solar_system)
         @sys3 = create(:solar_system)
-        jg1 = create(:jump_gate, :solar_system => @c.solar_system, :endpoint => @sys2)
-        jg2 = create(:jump_gate, :solar_system => @c.solar_system, :endpoint => @sys3)
+        jg1 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys2)
+        jg2 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys3)
+
+        c = create(:valid_ship, :type => :corvette, :solar_system => @sys1)
+        @c = Corvette.get(c.id)
+        @c.visited = []
       end
 
       it "adds current system to visited list" do

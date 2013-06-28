@@ -229,7 +229,7 @@ module Omega::Client
       it "raises :jumped event" do
         s = create(:solar_system)
         @i.node.should_receive(:invoke).and_return(true)
-        @i.should_receive(:raise_event).with(:jumped, @i)
+        @i.should_receive(:raise_event).with(:jumped)
         @i.jump_to s
       end
     end
@@ -263,13 +263,14 @@ module Omega::Client
       it "invokes manufactured::transfer_resource" do
         @h.node.should_receive(:invoke).
                 with('manufactured::transfer_resource',
-                     @h.entity.id, @t.id, @h.resources.first)
+                     @h.entity.id, @t.id, @h.resources.first).
+                and_return([@h, @t])
         @h.transfer @h.resources.first, @t
       end
 
       it "raises transfered event" do
-        @h.node.should_receive(:invoke)
-        @h.should_receive(:raise_event).with(:transferred, @h, @t, @h.resources.first)
+        @h.node.should_receive(:invoke).and_return([@h, @t])
+        @h.should_receive(:raise_event).with(:transferred_to, @t, @h.resources.first)
         @h.transfer @h.resources.first, @t
       end
 

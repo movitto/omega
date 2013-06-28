@@ -46,7 +46,9 @@ RSpec.configure do |config|
     @s.extend(Omega::Server::DSL)
     @s.instance_variable_set(:@rjr_node, @n)
     set_header 'source_node', @n.node_id
+  }
 
+  config.after(:each) {
     Missions::RJR.registry.stop
     Manufactured::RJR.registry.stop
     Motel::RJR.registry.stop
@@ -57,9 +59,8 @@ RSpec.configure do |config|
     Cosmos::RJR.reset
     Manufactured::RJR.reset
     Omega::Client::TrackEntity.clear_entities
-  }
-
-  config.after(:each) {
+    Omega::Client::Trackable.node.handlers = nil
+    #Omega::Client::Trackable.instance_variable_set(:@handled, nil) # XXX
   }
 
   config.after(:all) {

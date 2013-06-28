@@ -60,6 +60,7 @@ MESSAGE_END
 confirm_register = proc { |registration_code|
   # retrieve user from registry
   user = registry.entity &matching {|e|
+    e.is_a?(User) &&
     e.registration_code == registration_code
   }
 

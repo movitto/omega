@@ -258,9 +258,14 @@ module Omega
         entities = node.invoke 'manufactured::transfer_resource',
                                 self.id, target.id, resource
         @entity = entities.first
-        target.entity = entities.last
         self.raise_event(:transferred_to,       target, resource)
-        target.raise_event(:transferred_from,  self,   resource)
+
+        # XXX only set target entity / raises target
+        # event if client entity passed in
+        if target.class.to_s =~ /Omega::Client::.*/
+          target.entity = entities.last
+          target.raise_event(:transferred_from,  self,   resource)
+        end
       end
     end
 

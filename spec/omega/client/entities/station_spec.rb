@@ -46,7 +46,7 @@ module Omega::Client
         o = Object.new
         @n.should_receive(:invoke)
           .with('manufactured::construct_entity', @f.id).and_return(o)
-        @f.should_receive(:raise_event).with(:constructed, @f, o)
+        @f.should_receive(:raise_event).with(:constructed, o)
         @f.construct
       end
 
@@ -72,16 +72,16 @@ module Omega::Client
         @f.start_bot
       end
 
-      it "registeres :received event handler" do
+      it "registers :received event handler" do
         @f.start_bot
-        @f.handles?(:received).should be_true
+        @f.handles?(:transferred_from).should be_true
       end
 
       context "resources received" do
         it "starts construction" do
           @f.should_receive(:start_construction).twice
           @f.start_bot
-          @f.raise_event(:received)
+          @f.raise_event(:transferred_from)
         end
       end
     end

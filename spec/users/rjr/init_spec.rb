@@ -63,6 +63,7 @@ module Users::RJR
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
+      Users::RJR.registry.clear!
       @d   = @n.dispatcher
       @rjr = Object.new.extend(Users::RJR)
     end
@@ -99,7 +100,7 @@ module Users::RJR
     end
 
     it "logs in the user using the node" do
-      lambda{ # XXX @d.add_module above will have already called dispatch_init
+      lambda{
         dispatch_users_rjr_init(@d)
       }.should change{Users::RJR.registry.entities.size}.by(3)
       Users::RJR.registry.
