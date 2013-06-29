@@ -77,13 +77,19 @@ module Manufactured::RJR
       it "raises PermissionError"
     end
 
-    it "updates entity from location"
+    context "entity not found" do
+      it "does nothing"
+    end
 
-    it "sets next movement strategy" # ?
+    it "updates use DistanceTravelled attribute"
+
+    it "sets next movement strategy"
 
     context "location stopped" do
       it "remove motel callbacks"
     end
+
+    it "updates entity from location"
 
     it "returns nil"
   end
@@ -143,6 +149,10 @@ module Manufactured::RJR
       dispatch_manufactured_rjr_init(@d)
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
+
+    it "add motel::on_movement callback to dispatcher"
+    it "add motel::on_rotation callback to dispatcher"
+    it "executes motel::on_movement/motel::on_rotation callbacks in Manufactured::RJR env"
   end
 
 end # module Manufactured::RJR

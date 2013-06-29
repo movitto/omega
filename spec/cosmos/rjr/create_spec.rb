@@ -67,6 +67,7 @@ module Cosmos::RJR
       end
 
       it "sets location id"
+      it "sets location parent"
 
       context "existing entity-id specified" do
         # TODO other errors such as parent not found

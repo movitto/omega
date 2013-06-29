@@ -64,6 +64,16 @@ describe Registry do
         r << s
         r.entities{ |e| e.id == s.id && e.parent.id == g.id }.should_not be_nil
       end
+
+      it "adds child to parent" do
+        g = build(:galaxy)
+        s = build(:solar_system, :parent => g)
+        r = Registry.new
+        r << g
+        r << s
+        r.entities{ |e| e.id == g.id &&
+                        e.children.find { |c| c.id == s.id } }.should_not be_nil
+      end
     end
 
     it "adds entity to registry" do
@@ -72,6 +82,16 @@ describe Registry do
       r.entities.size.should == 0
       (r << g).should be_true
       r.entities.size.should == 1
+    end
+
+    it "initializes entity's children" do
+      g = build(:galaxy)
+      g.add_child build(:solar_system)
+      g.children.size.should == 1
+
+      r = Registry.new
+      r << g
+      r.entities.first.children.should == []
     end
   end
 

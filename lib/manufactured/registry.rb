@@ -72,8 +72,6 @@ class Registry
     # validate entities upon creation
     self.validation = proc { |r,e|
       # accept manufactured commands
-# FIXME validate command id is unique
-# ^ TODO write a on(..) { check_command } callback
       e.kind_of?(Omega::Server::Command) || # && e.class.modulize.include?("Manufactured")
 
        # confirm entity type

@@ -252,6 +252,11 @@ describe DSL do
       it "copies whitelisted attributes to new hash" do
         filter_properties(@o, :allow => :first).should == {:first => 123}
       end
+
+      it "copies whitelisted string attributes to new hash" do
+        @o['third'] = 123
+        filter_properties(@o, :allow => :third).should == {:third => 123}
+      end
     end
   end
 
@@ -292,6 +297,16 @@ describe DSL do
 
   describe "#matching" do
     it "TODO"
+  end
+
+  describe "#is_cmd" do
+    context "entity is a Omega::Server::Command" do
+      it "returns true"
+    end
+
+    context "entity is not a Omega::Server::Command" do
+      it "returns false"
+    end
   end
 
 end

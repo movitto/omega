@@ -67,6 +67,8 @@ module Motel::RJR
         add_privilege @login_role, 'modify', 'locations'
       end
 
+      it "filters invalid properties"
+
       it "updates location in registry" do
         n = create(:location)
         n.x = 5000
@@ -74,8 +76,6 @@ module Motel::RJR
         Motel::RJR.registry.entity(&with_id(n.id)).x.should == 5000
       end
       
-      it "only allows x,y,z,parent_id,movement_strategy to be updated"
-
       it "returns location" do
         n = create(:location)
         @s.update_location(n).id.should == n.id

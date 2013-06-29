@@ -72,6 +72,10 @@ describe Mining do
     end
   end
 
+  describe "#update" do
+    it "updates resource"
+  end
+
   describe "#first_hook" do
     it "starts mining" do
       s = build(:ship)
@@ -80,6 +84,21 @@ describe Mining do
       s.should_receive(:start_mining).with(r)
       m.first_hook
     end
+  end
+
+  describe "#before_hook" do
+    it "retrieves ship"
+    it "retrieves resource"
+
+    context "error during resource retrieval" do
+      it "sets quantity to 0"
+      it "sets error to true"
+    end
+  end
+
+  describe "#after_hook" do
+    it "saves ship in registry"
+    it "invokes cosmos::set_resource"
   end
 
   describe "#last_hook" do
@@ -121,6 +140,10 @@ describe Mining do
   end
 
   describe "#should_run?" do
+    context "resource retrieval error has occurred" do
+      it "returns false"
+    end
+
     context "server command shouldn't run" do
       it "returns false" do
         m = Mining.new :ship => build(:ship), :resource => build(:resource)
@@ -217,6 +240,24 @@ describe Mining do
            with('resource_collected', @r, @s.mining_quantity)
       @m.run!
     end
+  end
+
+  describe "#remove?" do
+    context "resource retrieval error occurred" do
+      it "returns true"
+    end
+
+    context "ship cannot mine resource" do
+      it "returns true" do
+      end
+    end
+
+    context "ship cannot accept resource" do
+      it "returns true" do
+      end
+    end
+
+    it "returns false"
   end
 
   describe "#to_json" do

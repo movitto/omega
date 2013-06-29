@@ -9,7 +9,7 @@ require 'motel/movement_strategies/linear'
 
 module Manufactured
 describe Ship do
-  describe "#type" do
+  describe "#type-" do
     it "sets type" do
       s = Ship.new
       s.type = :frigate
@@ -33,6 +33,11 @@ describe Ship do
       s.type = :frigate
       s.size.should == Ship::SIZES[:frigate]
     end
+  end
+
+  describe "#run_callbacks" do
+    it "runs each callback of the specified type"
+    it "passes self and args to callback"
   end
 
   describe "#initialize" do
@@ -97,13 +102,30 @@ describe Ship do
       s.shield_level.should == 50
     end
 
-    it "sets movement strategy on location" do
-      ms = Motel::MovementStrategies::Linear.new
-      s = Ship.new :movement_strategy => ms
-      s.location.movement_strategy.should == ms
+    context "location orientation specified" do
+      it "orients location" do
+        s = Ship.new :location => Motel::Location.new
+        s.location.orientation.should == [0,0,1]
+      end
+    end
+
+    context "movement strategy specified" do
+      it "sets movement strategy on location" do
+        ms = Motel::MovementStrategies::Linear.new
+        s = Ship.new :movement_strategy => ms
+        s.location.movement_strategy.should == ms
+      end
     end
 
     it "sets type based attributes"
+  end
+
+  describe "#update" do
+    it "updates ship hp"
+    it "updates ship shield level"
+    it "updates ship distance moved"
+    it "updates ship resources"
+    it "ignores other properties"
   end
 
   describe "#valid?" do
@@ -131,6 +153,14 @@ describe Ship do
         @s.location = nil
         @s.should_not be_valid
       end
+    end
+
+    context "system id is invalid" do
+      it "returns false"
+    end
+
+    context "solar system is invalid" do
+      it "returns false"
     end
 
     context "user_id is invalid" do

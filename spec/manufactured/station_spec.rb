@@ -35,6 +35,11 @@ describe Station do
     end
   end
 
+  describe "#run_callbacks" do
+    it "runs each callback of the specified type"
+    it "passes self and args to callback"
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       s = Station.new
@@ -82,6 +87,13 @@ describe Station do
       s.transfer_distance.should == 100
       s.construction_distance.should == 200
     end
+
+    context "location orientation specified" do
+      it "orients location" do
+        s = Station.new :location => Motel::Location.new
+        s.location.orientation.should == [0,0,1]
+      end
+    end
   end
 
   describe "#valid?" do
@@ -109,6 +121,14 @@ describe Station do
         @s.location = nil
         @s.should_not be_valid
       end
+    end
+
+    context "system id is invalid" do
+      it "returns false"
+    end
+
+    context "solar system is invalid" do
+      it "returns false"
     end
 
     context "user_id is invalid" do

@@ -125,6 +125,13 @@ describe HasCargo do
     end
   end
 
+  describe "#cargo_space" do
+    it "returns cargo capacity - cargo quantity" do
+      res = build(:resource, :quantity => @e.cargo_capacity - 10)
+      @e.add_resource res
+      @e.cargo_space.should == 10
+    end
+  end
 
   describe "#add_resource" do
     context "cannot accept resource" do

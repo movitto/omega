@@ -42,6 +42,16 @@ describe Attack do
     end
   end
 
+  describe "#before_hook" do
+    it "retrieves attacker from registry"
+    it "retrieves defender from registry"
+  end
+
+  describe "#after_hook" do
+    it "saves attacker in registry"
+    it "saves defender in registry"
+  end
+
   describe "#last_hook" do
     before(:each) do
       setup_manufactured
@@ -194,6 +204,16 @@ describe Attack do
     it "runs defended callbacks" do
       @re2.should_receive(:run_callbacks).with('defended', @e1)
       @a.run!
+    end
+  end
+
+  describe "#remove" do
+    context "defender's hp == 0" do
+      it "returns true"
+    end
+
+    context "defender's hp != 0" do
+      it "returns false"
     end
   end
 

@@ -49,6 +49,10 @@ module Omega::Client
       add_role @login_role, :superadmin
     end
 
+    describe "#refresh" do
+      it "refreshes the local entity from the server"
+    end
+
     describe "#method_missing" do
       it "dispatches everything to tracked entity" do
         e = stub(:Object)
@@ -113,6 +117,10 @@ module Omega::Client
         h.should_receive(:call).with(@t, 42)
         @t.raise_event :anything, 42
       end
+
+      context "error during handlers" do
+        it "catches exception / continues gracefully"
+      end
     end
 
     describe "#entity_init" do
@@ -164,13 +172,18 @@ module Omega::Client
       end
 
       context "notification handler invoked" do
+        context "update callback is set" do
+          it "invokes update callback"
+        end
+
         it "raises event on entity" do
           @t.handle(:notification_event) {}
           @t.should_receive(:raise_event).with(:notification_event, :foo)
           m = @t.class.node.handlers['notification_method'].first
-          puts @t.class.node.handlers
           @t.instance_exec :foo, &m
         end
+
+        it "serializes entity events"
 
         context "match is false" do
           it "does not raise event" do
@@ -460,6 +473,20 @@ module Omega::Client
         t2 = OmegaTest::Trackable.get(s2.id)
         OmegaTest::Trackable.clear_entities
         OmegaTest::Trackable.entities.should == []
+      end
+    end
+
+    describe "#refresh" do
+      it "refreshes all entities"
+    end
+
+    describe "#cached" do
+      context "entity w/ id in list" do
+        it "returns entity"
+      end
+
+      context "entity w/ id not in list" do
+        it "retrieves entity w/ id"
       end
     end
 

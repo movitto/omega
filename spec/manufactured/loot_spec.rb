@@ -36,6 +36,14 @@ describe Loot do
       l.system_id.should == sys.id
       l.location.should == loc
     end
+
+    context "movement strategy specified" do
+      it "assigns movement strategy to loot" do
+        m = Motel::MovementStrategies::Linear.new
+        l = Loot.new :movement_strategy => m
+        l.location.movement_strategy.should == m
+      end
+    end
   end
 
   describe "#valid?" do

@@ -120,12 +120,13 @@ describe Registry do
 
   context "location event raised" do
     it "reraises event on location" do
-      l = Location.new
+      l1 = Location.new :id => 1
+      l2 = Location.new :id => 1
       r = Registry.new
-      r << l
+      r << l1
       Registry::LOCATION_EVENTS.each { |e|
-        l.should_receive(:raise_event).with(e, "#{e}_arg")
-        r.raise_event(e, l, "#{e}_arg")
+        l1.should_receive(:raise_event).with(e, "#{e}_arg")
+        r.raise_event(e, l2, "#{e}_arg")
       }
     end
   end

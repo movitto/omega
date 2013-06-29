@@ -82,6 +82,13 @@ describe Entity do
         @e.location.orientation.should == [0,0,1]
       end
     end
+
+    context "location orientation specified" do
+      it "orients location" do
+        @e.init_entity :location => Motel::Location.new
+        @e.location.orientation.should == [0,0,1]
+      end
+    end
   
     context "movement strategy specified" do
       it "assigns movement strategy to location" do

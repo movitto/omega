@@ -23,14 +23,17 @@ describe Construction do
       c.station.should be_nil
       c.entity.should be_nil
       c.completed.should be_false
+      c.start_time.should be_nil
     end
 
     it "sets attributes" do
+      t = Time.now - 5
       st = build(:station)
       sh = build(:ship)
-      c = Construction.new :station => st, :entity => sh
+      c = Construction.new :station => st, :entity => sh, :start_time => t
       c.station.should == st
       c.entity.should == sh
+      c.start_time.should == t
     end
   end
 
@@ -110,6 +113,16 @@ describe Construction do
             }
         @c.run!
       end
+    end
+  end
+
+  describe "#remove?" do
+    context "construction completed" do
+      it "returns true"
+    end
+
+    context "construction not completed" do
+      it "returns false"
     end
   end
 

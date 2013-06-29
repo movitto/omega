@@ -8,8 +8,11 @@ require 'omega/client/entities/user'
 
 module Omega::Client
   describe User do
-    # currently not alot in Omega::Client::User not tested elsewhere
-    # but if there was this is where it would go! (and remove this comment!)
+
+    describe "#login" do
+      it "logs the specified user in"
+      it "sets session_id message header on node"
+    end
 
   end # describe User
 end # module Omega::Client

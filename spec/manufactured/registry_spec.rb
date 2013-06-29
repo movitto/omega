@@ -20,6 +20,13 @@ describe Registry do
     end
   }
 
+  [:ship, :station].each { |e|
+    context "retrieving #{e}" do
+      it "retrieves latest #{e} location"
+      it "retrieves latest #{e} system"
+    end
+  }
+
   context "adding entity" do
     it "resolves system references"
 
@@ -45,6 +52,10 @@ describe Registry do
       r = Registry.new
       (r << s).should be_false
     end
+  end
+
+  context "adding command" do
+    it "runs check_command"
   end
 
   it "runs command loop" do

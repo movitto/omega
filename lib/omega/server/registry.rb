@@ -267,8 +267,6 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_commands }
   def run_commands
-# FIXME subsequent commands w/ the same id will
-# break system if command updates itself in the registry
     self.entities.
       select { |e| e.kind_of?(Command) }.
       each   { |cmd|
@@ -291,6 +289,9 @@ module Registry
             cmd.terminate!
           end
 
+          # subsequent commands w/ the same id will break
+          # system if command updates itself in the registry,
+          # use check_command below to mitigate this
           update(cmd) { |e| e.id == cmd.id }
 
         rescue Exception => err

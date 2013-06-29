@@ -37,6 +37,13 @@ describe Command do
     end
   end
 
+  describe "#update" do
+    it "updates cmd :terminate"
+    it "updates cmd :ran_first_hooks"
+    it "updates cmd :last_ran_at"
+    it "updates cmd :exec_rate"
+  end
+
   describe "run_hooks" do
     it "runs hooks of the specified type" do
       c = Command.new
@@ -149,7 +156,25 @@ describe Command do
       c.terminate.should be_true
     end
   end
-
 end # describe Command
+
+describe CommandHelpers do
+  describe "#update_registry" do
+    it "updates registry entity"
+  end
+
+  describe "retrieve" do
+    it "retrieves registry entity"
+  end
+
+  describe "run callbacks" do
+    it "runs callbacks on registery entity"
+  end
+
+  describe "#invoke" do
+    it "proxies node.invoke"
+  end
+end # describe CommandHelpers
+
 end # module Server
 end # module Omega

@@ -28,11 +28,8 @@ describe Node do
       n.rjr_node = @n
       @n.message_headers['source_node'].should == @n.node_id
     end
-  end
 
-  describe "#from_config" do
-    it "sets node"
-    it "sets endpoint from config"
+    it "sets endpoint"
   end
 
   describe "#invoke" do
@@ -100,6 +97,8 @@ describe Node do
       end
 
       it "discards errors in event handlers"
+
+      it "returns nil"
     end
   end
 

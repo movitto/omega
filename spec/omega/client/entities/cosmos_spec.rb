@@ -29,6 +29,14 @@ module Omega::Client
       add_role @login_role, :superadmin
     end
 
+    describe "#jump_gates" do
+      it "caches jump gate endpoints"
+    end
+
+    describe "#asteroids" do
+      it "retrieves asteroid resources"
+    end
+
     describe "#with_fewest" do
       context "entity_type == station" do
         it 'returns systems sorted by number of user_owned stations in them' do
@@ -90,7 +98,7 @@ module Omega::Client
       it "retrieves system from the server" do
         @i.entity = stub(Object)
         @i.entity.stub(:parent_id).and_return('system1')
-        SolarSystem.should_receive(:get).with('system1')
+        SolarSystem.should_receive(:cached).with('system1')
         @i.solar_system
       end
     end
@@ -226,6 +234,8 @@ module Omega::Client
         @i.jump_to s
       end
 
+      it "updates local entity"
+
       it "raises :jumped event" do
         s = create(:solar_system)
         @i.node.should_receive(:invoke).and_return(true)
@@ -267,6 +277,8 @@ module Omega::Client
                 and_return([@h, @t])
         @h.transfer @h.resources.first, @t
       end
+
+      it "updates source/target entities"
 
       it "raises transfered event" do
         @h.node.should_receive(:invoke).and_return([@h, @t])

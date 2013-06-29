@@ -33,6 +33,14 @@ describe ShieldRefresh do
     end
   end
 
+  describe "#before_hook" do
+    it "updates entity from registry"
+  end
+
+  describe "#after_hook" do
+    it "saves entity to registry"
+  end
+
   describe "#should_run?" do
     context "server command shouldn't run" do
       it "returns false" do
@@ -102,6 +110,18 @@ describe ShieldRefresh do
         @sh.shield_level.should == 10
       end
     end
+  end
+
+  describe "#remove" do
+    context "attack command should not be removed" do
+      it "returns false"
+    end
+
+    context "shield not at max level" do
+      it "returns false"
+    end
+
+    it "returns true"
   end
 
   describe "#to_json" do

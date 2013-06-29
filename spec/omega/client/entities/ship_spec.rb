@@ -40,6 +40,8 @@ module Omega::Client
                 with('manufactured::collect_loot', 42, l.id)
         @s.collect_loot(l)
       end
+
+      it "updates local entity"
     end
   end # describe Ship
 
@@ -107,6 +109,8 @@ module Omega::Client
         @n.should_receive(:invoke).with 'manufactured::start_mining', @r.id, @rs.id
         @r.mine @rs
       end
+
+      it "updates local entity"
     end
 
     describe "#start_bot" do
@@ -114,6 +118,8 @@ module Omega::Client
         s = create(:valid_ship, :type => :mining)
         @r = Miner.get(s.id)
       end
+
+      it "starts listening for resource_collected events"
 
       it "adds mining stopped handler" do
         @r.event_handlers[:mining_stopped].size.should == 0
@@ -150,6 +156,11 @@ module Omega::Client
         @r.should_receive(:closest).with(:station).and_return([s])
         @r.should_receive(:select_target)
         @r.offload_resources
+      end
+
+      context "station is nil" do
+        it "raises :no_stations event"
+        it "returns"
       end
 
       context "closest station is within transfer distance" do
@@ -202,6 +213,10 @@ module Omega::Client
           @r.should_receive(:select_target)
           @r.raise_event(:movement)
         end
+      end
+
+      context "error during resource transfer" do
+        it "retries offload_resources"
       end
     end
 

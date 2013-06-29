@@ -5,6 +5,7 @@
 
 require 'thread'
 require 'stringio'
+require 'ostruct'
 
 require 'spec_helper'
 
@@ -50,10 +51,13 @@ describe Registry do
     end
 
     it "invokes retrieval on each entity" do
-      @registry << 21
-      @registry << 42
-      @registry.retrieval.should_receive(:call).with(21)
-      @registry.retrieval.should_receive(:call).with(42)
+      @registry << OpenStruct.new(:id => 21)
+      @registry << OpenStruct.new(:id => 42)
+      e1 = @registry.safe_exec { |es| es.find { |i| i.id == 21 }}
+      e2 = @registry.safe_exec { |es| es.find { |i| i.id == 42 }}
+
+      @registry.retrieval.should_receive(:call).with(e1)
+      @registry.retrieval.should_receive(:call).with(e2)
       e = @registry.entities
     end
   end
@@ -477,6 +481,9 @@ describe Registry do
       @registry.stub(:entities) { [@c] }
     end
 
+    it "sets registry on command"
+    it "sets node on command"
+
     context "first hooks not run" do
       it "runs first hooks" do
         @c.should_receive(:run_hooks).with(:first)
@@ -492,10 +499,36 @@ describe Registry do
       end
     end
 
-    it "runs before hooks" do
-      @c.should_receive(:run_hooks).with(:first)
-      @c.should_receive(:run_hooks).with(:before)
-      @registry.send :run_commands
+    context "command.terminate is true" do
+      it "does not run before/after/last hooks"
+      it "does not run command"
+    end
+
+    context "command.terminate is false" do
+      it "runs before hooks" do
+        @c.should_receive(:run_hooks).with(:first)
+        @c.should_receive(:run_hooks).with(:before)
+        @registry.send :run_commands
+      end
+
+      context "command should be removed" do
+        before(:each) do
+          @c.should_receive(:remove?).and_return(true)
+        end
+
+        it "runs last hooks" do
+          @c.should_receive(:run_hooks).with(:first)
+          @c.should_receive(:run_hooks).with(:before)
+          @c.should_receive(:run_hooks).with(:after)
+          @c.should_receive(:run_hooks).with(:last)
+          @registry.send :run_commands
+        end
+
+        it "terminates command" do
+          @c.should_receive(:terminate!)
+          @registry.send :run_commands
+        end
+      end
     end
 
     context "command should run" do
@@ -532,24 +565,7 @@ describe Registry do
       end
     end
 
-    context "command should be removed" do
-      before(:each) do
-        @c.should_receive(:remove?).and_return(true)
-      end
-
-      it "runs last hooks" do
-        @c.should_receive(:run_hooks).with(:first)
-        @c.should_receive(:run_hooks).with(:before)
-        @c.should_receive(:run_hooks).with(:after)
-        @c.should_receive(:run_hooks).with(:last)
-        @registry.send :run_commands
-      end
-
-      it "terminates command" do
-        @c.should_receive(:terminate!)
-        @registry.send :run_commands
-      end
-    end
+    it "updates command registry"
 
     it "catches errors during command hooks" do
       @c.should_receive(:run_hooks).and_raise(Exception)
@@ -568,6 +584,11 @@ describe Registry do
     it "returns default command poll" do
       @registry.send(:run_commands).should == Registry::DEFAULT_COMMAND_POLL
     end
+  end
+
+  describe "#check_command" do
+    it "removes all entities w/ the specified command id"
+    it "readds last entity w/ the specified command id"
   end
 
   describe "#save" do
