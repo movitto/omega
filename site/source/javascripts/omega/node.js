@@ -66,10 +66,13 @@ function Node(){
 
   /* Invoke a json-rpc message on the omega server via a web socket request.
    *
-   * Takes same parameters as WSNode::invoke_request
+   * Takes same parameters as WSNode::invoke
    */
    this.ws_request = function(){
-     var msg = rjr_ws_node.invoke_request.apply(rjr_ws_node, arguments)
+     // automatically open ws socket connection on first request
+     if(!rjr_ws_node.opened) rjr_ws_node.open();
+
+     var msg = rjr_ws_node.invoke.apply(rjr_ws_node, arguments)
      this.raise_event('request',    msg);
      this.raise_event('ws_request', msg);
      return msg;
@@ -77,10 +80,10 @@ function Node(){
 
   /* Invoke a json-rpc message on the omega server via a web request.
    *
-   * Takes same parameters as WebNode::invoke_request
+   * Takes same parameters as WebNode::invoke
    */
    this.web_request = function(){
-     var msg = rjr_web_node.invoke_request.apply(rjr_web_node, arguments)
+     var msg = rjr_web_node.invoke.apply(rjr_web_node, arguments)
      this.raise_event('request',     msg);
      this.raise_event('web_request', msg);
      return msg;
@@ -95,9 +98,6 @@ function Node(){
     rjr_ws_node.headers[header]  = value;
     rjr_web_node.headers[header] = value;
   }
-
-  // automatically open ws socket connection (move elsewhere?)
-  rjr_ws_node.open();
 
   return this;
 }

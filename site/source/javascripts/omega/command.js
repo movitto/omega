@@ -294,12 +294,12 @@ var Commands = {
    * the specified ship
    *
    * @param {Manufactured::Ship} ship ship to use to start mining
-   * @param {String} resource_source_id id of the resource source to starting mining
+   * @param {String} resource_id id of the resource to starting mining
    * @param [Callable] cb optional callback to invoke upon request returning
    */
-  start_mining : function(ship, resource_source_id, cb){
+  start_mining : function(ship, resource_id, cb){
     if(cb == null) cb = function(res){};
-    var ids = resource_source_id.split('_');
+    var ids = resource_id.split('_');
     var entity_id = ids[0];
     var resource_id  = ids[1];
 
