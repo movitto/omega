@@ -456,8 +456,6 @@ function CanvasComponent(args){
    * on checked attribute of the toggle_canvas input
    */
   this.stoggle = function(){
-    var to_toggle = this.toggle_canvas();
-    if(to_toggle){
       if(to_toggle.is(':checked'))
         this.sshow();
       else
@@ -621,7 +619,7 @@ function Scene(args){
     this.animate();
   }
 
-  /* Return boolean indicating in current scene
+  /* Return boolean indicating current scene
    * has the specified entity
    */
   this.has = function(entity_id){
@@ -633,8 +631,6 @@ function Scene(args){
   this.clear_entities = function(){
     for(var entity_id in entities){
       this.remove_entity(entity_id);
-      //for(var comp in entity.components)
-        //this.remove(comp);
     }
     entities = [];
   }
@@ -680,7 +676,7 @@ function Scene(args){
   /* Refresh entities in the current scene
    */
   this.refresh = function(){
-    this.set(root_entity);
+    this.set(root);
   }
 
   /* handle canvas clicked event
@@ -1618,7 +1614,7 @@ function AccountInfoContainer(args){
     return container.html();
   }
 
-  /* get/set entities lists
+  /* set entities lists
    */
   this.entities = function(entities){
     var ships_container    = $('#account_info_ships');
@@ -1631,7 +1627,7 @@ function AccountInfoContainer(args){
     }
   }
 
-  /* return bool indiciating if password matches confirmation
+  /* return bool indicating if password matches confirmation
    */
   this.passwords_match = function(){
     var pass1 = this.password();

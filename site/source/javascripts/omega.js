@@ -151,12 +151,13 @@ var process_entity = function(ui, node, entity){
             function(){ manufactured_event(ui, node, arguments)});
 
   // retrieve system and galaxy which entity is in
-  load_system(entity.system_name, ui, node, function(sys){
+  load_system(entity.system_id, ui, node, function(sys){
     entity.solar_system = sys;
 
     // if system currently displayed on canvas, add to scene if not present
+    // TODO is this needed?
     if(ui.canvas.scene.get() &&
-       ui.canvas.scene.get().name == sys.name){
+       ui.canvas.scene.get().id == sys.id){
       ui.canvas.scene.add_new_entity(entity);
       ui.canvas.scene.animate();
     }
@@ -401,16 +402,15 @@ var clicked_system = function(ui, node, solar_system){
  */
 var clicked_asteroid = function(ui, node, asteroid){
   // refresh resources
-  node.web_request('cosmos::get_resource_sources', asteroid.name,
+  node.web_request('cosmos::get_resources', asteroid.id,
     function(res){
       if(res.error == null){
         var details = [{ id : 'resources_title', text : 'Resources: <br/>'}];
         for(var r in res.result){
-          var reso = res.result[r];
-          details.push({ id : reso.id, 
-                         text : reso.quantity + " of " +
-                           reso.resource.name +
-                           " (" + reso.resource.type + ")<br/>"});
+          var res = res.result[r];
+          details.push({ id   : res.id, 
+                         text : res.quantity + " of " +
+                                res.material_id +"<br/>"});
         }  
         ui.entity_container.contents.add_item(details);
       }
@@ -470,15 +470,14 @@ var clicked_ship = function(ui, node, ship){
       for(var e in entities){
         var entity = entities[e];
         // remotely retrieve resource sources
-        node.web_request('cosmos::get_resource_sources', entity.name,
+        node.web_request('cosmos::get_resource_sources', entity.id,
           function(res){
             if(!res.error){
               for(var r in res.result){
-                var reso   = res.result[r];
-                var resid  = reso.entity.name + '_' + reso.resource.id
-                var restxt = reso.resource.type + ": " + reso.resource.name + " (" + reso.quantity + ")";
+                var res    = res.result[r];
+                var restxt = res.material_id + " (" + res.quantity + ")";
                 var text   =
-                  '<span id="cmd_mine_' + resid +
+                  '<span id="cmd_mine_' + res.id +
                    '" class="cmd_mine dialog_cmds">'+
                      restxt + '</span><br/>';
 
@@ -741,7 +740,6 @@ var wire_up_nav = function(ui, node){
        ui.canvas.scene.clear_entities();
        ui.canvas.scene.skybox.shide();
        ui.canvas.scene.axis.shide();
-       ui.canvas.scene.grid.shide();
        ui.canvas.scene.grid.shide();
        ui.canvas.scene.camera.reset();
 

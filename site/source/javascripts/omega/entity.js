@@ -52,8 +52,6 @@ function Entity(args){
     return $.extend(true, {}, this);
   }
 
-  if(this.id == null && this.name != null) this.id = this.name;
-
   /* Scene callbacks
    */
   this.added_to      = function(scene){}
