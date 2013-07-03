@@ -496,6 +496,7 @@ describe("NavContainer", function(){
     it("hides login link");
     it("shows account link");
     it("shows logout link");
+  });
 });}); // NavContainer
 
 pavlov.specify("AccountInfoContainer", function(){

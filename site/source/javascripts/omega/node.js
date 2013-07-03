@@ -24,7 +24,10 @@ function Node(){
     this.handlers[method].push(handler);
   }
   this.clear_handlers = function(method){
-    this.handlers[method] = [];
+    if(method)
+      this.handlers[method] = [];
+    else
+      this.handlers = {};
   }
 
   // error handlers

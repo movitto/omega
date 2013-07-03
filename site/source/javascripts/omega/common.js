@@ -23,6 +23,12 @@ var obj_values = function(obj){
   return vals;
 }
 
+/* Generate matcher that selects by id
+ */
+function with_id(id){
+  return function(entity) { return entity.id == id; };
+}
+
 /* round a fload to the specified number of decimal places
  */
 function roundTo(number, places){

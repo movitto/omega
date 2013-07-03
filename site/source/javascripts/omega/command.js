@@ -43,7 +43,7 @@ function ServerEvents(){
       for(var a in arguments){
         var arg = arguments[a];
         if(arg.id){
-          var entity = Entities().select(function(e){ return e.id == arg.id; })[0];
+          var entity = Entities().find(with_id(arg.id))
           if(entity != null){
             entity.raise_event.apply(entity, nargs);
             break;
@@ -59,8 +59,11 @@ function ServerEvents(){
   /* clear callback registered for event
    */
   this.clear = function(server_event){
-    Entities().node.clear_handlers(server_event);
-    this.callbacks[server_event] = null;
+    Entities().node().clear_handlers(server_event);
+    if(server_event)
+      this.callbacks[server_event] = null;
+    else
+      this.callbacks = {};
   }
 
   return this;
@@ -169,7 +172,7 @@ var Commands = {
    */
   trigger_jump_gate : function(jg, cb){
     // move entities within triggering distance of gate
-    var entities = Entities().select(function(e) { return e.json_class == "Manufactured::Ship" &&
+    var entities = Entities().select(function(e) { console.log(e);return e.json_class == "Manufactured::Ship" &&
                                                           e.user_id    == Session.current_session.user_id       &&
                                                           e.location.is_within(jg.trigger_distance, jg.location); });
 
@@ -201,7 +204,7 @@ var Commands = {
     ship.location.parent_id = sys.location.id;
     Entities().node().web_request('manufactured::move_entity', ship.id, ship.location, function(res){
       if(!res.error){
-        ship.system_name  = sys.name;
+        ship.system_id  = sys.id;
         ship.solar_system = sys
         ship.raise_event('jumped', old_sys, sys);
       }
@@ -283,7 +286,7 @@ var Commands = {
     if(cb == null) cb = function(res){};
     for(var r in ship.resources){
       Entities().node().web_request('manufactured::transfer_resource',
-                                    ship.id, station_id, r, ship.resources[r], cb);
+                                    ship.id, station_id, ship.resources[r], cb);
     }
   },
 
@@ -299,12 +302,8 @@ var Commands = {
    */
   start_mining : function(ship, resource_id, cb){
     if(cb == null) cb = function(res){};
-    var ids = resource_id.split('_');
-    var entity_id = ids[0];
-    var resource_id  = ids[1];
-
     Entities().node().web_request('manufactured::start_mining',
-                            ship.id, entity_id, resource_id, cb);
+                            ship.id, resource_id, cb);
   },
 
   /////////////////////////////////////// Construct Entity Command

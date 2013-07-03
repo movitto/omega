@@ -54,7 +54,7 @@ function UIResources(){
   var texture_placeholder = document.createElement( 'canvas' );
 
   // to load mesh geometries
-  var loader = new THREE.JSONLoader();
+  if(window.THREE != undefined) var loader = new THREE.JSONLoader();
 
   /* Path to images directory
    */
@@ -456,6 +456,8 @@ function CanvasComponent(args){
    * on checked attribute of the toggle_canvas input
    */
   this.stoggle = function(){
+    var to_toggle = this.toggle_canvas();
+    if(to_toggle){
       if(to_toggle.is(':checked'))
         this.sshow();
       else

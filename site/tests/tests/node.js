@@ -26,6 +26,11 @@ describe("Node", function(){
       node.clear_handlers('test');
       assert(node.handlers['test'].length).equals(0);
     });
+    it("clears all handlers for all methods", function(){
+      node.add_handler('test', function(){});
+      node.clear_handlers();
+      assert(node.handlers).isSameAs({});
+    });
   });
 
   describe("#on_error", function(){

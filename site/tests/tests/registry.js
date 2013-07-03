@@ -44,7 +44,7 @@ describe("EventTracker", function(){
 
     it("clears callbacks for for all events", function(){
       tracker.clear_callbacks();
-      assert(obj_values(tracker.callbacks).length).equals(0);
+      assert(tracker.callbacks).isSameAs({});
     });
   });
 

@@ -93,4 +93,10 @@ function Registry(){
    this.select = function(callback){
      return $.grep(obj_values(entities), callback);
    }
+
+   /* wrapper around select, return the first element
+    */
+   this.find = function(callback){
+     return this.select(callback)[0];
+   }
 }
