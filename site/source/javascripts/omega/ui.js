@@ -498,13 +498,15 @@ function Canvas(args){
 
   this.div_id         = '#omega_canvas';
   this.toggle_control_id = '#toggle_canvas';
-  this.scene      = new Scene(nargs);
+  this.scene      = nargs['scene'] ||  new Scene(nargs);
   this.select_box = new SelectBox(nargs);
   this.subcomponents.push(this.scene)
   this.subcomponents.push(this.select_box)
 
   this.canvas_component = function(){
-    return $(this.div_id + ' canvas');
+    if(this._canvas_component == null)
+      this._canvas_component = $(this.div_id + ' canvas');
+    return this._canvas_component;
   };
 
   // if current page does not have a canvas, return
@@ -560,8 +562,8 @@ function Scene(args){
   $.extend(this, new UIComponent(args));
 
   this.div_id = null;
-  var entities = {};
-  var root = null;
+  this.entities = {};
+  this.root = null;
 
   this._scene    = new THREE.Scene();
 
@@ -577,8 +579,12 @@ function Scene(args){
   this.subcomponents.push(this.axis)
   this.subcomponents.push(this.grid)
 
-  //this.renderer = new THREE.CanvasRenderer({canvas: _canvas});
-  this.renderer = new THREE.WebGLRenderer();
+  if(Scene.renderer == null){
+    // TODO configurable renderer
+    //Scene.renderer = new THREE.CanvasRenderer({canvas: _canvas});
+    Scene.renderer = new THREE.WebGLRenderer();
+  }
+  this.renderer = Scene.renderer;
   this.canvas.component().append(this.renderer.domElement);
 
   /* override set size to map canvas resizing to renderer resizing
@@ -590,9 +596,12 @@ function Scene(args){
   }
 
   /* Add specified entity to scene
+   *
+   * Entities added need to extend the Entity and CanvasComponent
+   * interfaces to be able to be added to the scene
    */
   this.add_entity = function(entity){
-    entities[entity.id] = entity;
+    this.entities[entity.id] = entity;
     for(var comp in entity.components)
       this.add_component(entity.components[comp]);
     entity.added_to(this);
@@ -601,7 +610,7 @@ function Scene(args){
   /* Only add entity if not present
    */
   this.add_new_entity = function(entity){
-    var oentity = entities[entity.id];
+    var oentity = this.entities[entity.id];
     if(oentity) return;
     this.add_entity(entity);
   }
@@ -609,7 +618,7 @@ function Scene(args){
   /* Remove the entity specifed by entity_id from the scene.
    */
   this.remove_entity = function(entity_id){
-    var entity = entities[entity_id];
+    var entity = this.entities[entity_id];
     if(entity == null) return;
 
     for(var comp in entity.components)
@@ -624,7 +633,7 @@ function Scene(args){
    * entity may be adjusted if necessary (components added/removed)
    */
   this.reload_entity = function(entity, cb){
-    var oentity = entities[entity.id];
+    var oentity = this.entities[entity.id];
     if(!oentity) return;
 
     this.remove_entity(entity.id);
@@ -637,16 +646,16 @@ function Scene(args){
    * has the specified entity
    */
   this.has = function(entity_id){
-    return entities[entity_id] != null;
+    return this.entities[entity_id] != null;
   }
 
   /* Clear all entities tracked by scene
    */
   this.clear_entities = function(){
-    for(var entity_id in entities){
+    for(var entity_id in this.entities){
       this.remove_entity(entity_id);
     }
-    entities = [];
+    this.entities = [];
   }
 
   /* Add specified component to backend three.js scene
@@ -668,7 +677,7 @@ function Scene(args){
   /* Set root entity of the scene.
    */
   this.set = function(entity){
-    root = entity;
+    this.root = entity;
 
     var children = entity.children();
     for(var child in children){
@@ -684,13 +693,13 @@ function Scene(args){
   /* Return root entity of the scene
    */
   this.get = function(){
-    return root;
+    return this.root;
   }
 
   /* Refresh entities in the current scene
    */
   this.refresh = function(){
-    this.set(root);
+    this.set(this.root);
   }
 
   /* handle canvas clicked event
@@ -720,25 +729,26 @@ function Scene(args){
   }
 
   /* return 2d page coordinates of 3d coordinate in scene
+   * currently unused
    */
-  this.page_coordinate = function(x, y, z){
-    // http://zachberry.com/blog/tracking-3d-objects-in-2d-with-three-js/
-    var p, v, percX, percY, left, top;
-    var projector = new THREE.Projector();
-    p = new THREE.Vector3(x, y, z);
-    v = projector.projectVector(p, this.camera._camera);
-    percX = (v.x + 1) / 2;
-    percY = (-v.y + 1) / 2;
-    left = percX * this.canvas.width;
-    top  = percY * this.canvas.height;
+  //this.page_coordinate = function(x, y, z){
+  //  // http://zachberry.com/blog/tracking-3d-objects-in-2d-with-three-js/
+  //  var p, v, percX, percY, left, top;
+  //  var projector = new THREE.Projector();
+  //  p = new THREE.Vector3(x, y, z);
+  //  v = projector.projectVector(p, this.camera._camera);
+  //  percX = (v.x + 1) / 2;
+  //  percY = (-v.y + 1) / 2;
+  //  left = percX * this.canvas.width;
+  //  top  = percY * this.canvas.height;
 
-    return [left, top];
-  }
+  //  return [left, top];
+  //}
 
   /* unselect entity specified by id entity
    */
   this.unselect = function(entity_id){
-    var entity = entities[entity_id];
+    var entity = this.entities[entity_id];
     if(entity == null) return;
     entity.unselected_in(this);
     entity.raise_event('unselected', this);

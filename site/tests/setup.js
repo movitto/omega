@@ -10,6 +10,38 @@ function reenable_three_js(){
   UIResources().cached = $old_ui_resources_cached;
 }
 
+function create_mouse_event(evnt){
+  // https://developer.mozilla.org/en-US/docs/Web/API/event.initMouseEvent
+  var evnt = document.createEvent("MouseEvents");
+  evnt.initMouseEvent(evnt, true, false, window,
+                            1, 50, 50, 50, 50,
+                            false, false, false, false, 0, null)
+  return evnt;
+}
+
+// wait until scene animation
+function on_animation(scene, cb){
+  scene.old_render = scene.render;
+  scene.render = function(){
+    scene.old_render;
+    cb.apply(null, [scene]);
+  }
+}
+
+//////////////////////////////// test data
+
+function TestEntity(args){
+  $.extend(this, new Entity(args));
+  $.extend(this, new CanvasComponent(args));
+
+  this._children = [];
+
+  this.children = function(){
+    return this._children;
+  }
+}
+
+
 //////////////////////////////// test hooks
 
 //function before_all(details){

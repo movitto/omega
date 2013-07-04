@@ -391,48 +391,119 @@ describe("UIListComponent", function(){
 
 pavlov.specify("CanvasComponent", function(){
 describe("CanvasComponent", function(){
+  var canvas; var cc;
+
   before(function(){
+    $('#qunit-fixture').append('<div id="toggle_control"></div>')
+
+    canvas = new Canvas();
+    cc = new CanvasComponent({scene : canvas.scene});
+    cc.toggle_canvas_id = '#toggle_control';
+    cc.components.push({id : 'component1'});
   });
 
-  it("defaults to not showing")
-
-  it("tracks scene components")
-
   describe("#toggle_canvas", function(){
-    it("returns toggle-canvas-component page component")
+    it("returns toggle-canvas-component page component", function(){
+      assert(cc.toggle_canvas().selector).equals('#toggle_control');
+    })
   });
 
   describe("#is_showing", function(){
-    it("returns is showing")
+    it("defaults to not showing", function(){
+      assert(cc.is_showing()).isFalse()
+    })
+
+    it("returns is showing", function(){
+      cc.sshow();
+      assert(cc.is_showing()).isTrue()
+    })
   });
 
   describe("#shide", function(){
-    it("removes scene components from scene");
-    it("sets showing false")
-    it("unchecks toggle component")
+    it("removes scene components from scene", function(){
+      var spy = sinon.spy(canvas.scene, 'remove_component')
+      cc.shide();
+      sinon.assert.calledWith(spy, {id : 'component1'})
+    });
+
+    it("sets showing false", function(){
+      cc.shide();
+      assert(cc.is_showing()).isFalse()
+    })
+
+    it("unchecks toggle component", function(){
+      var spy = sinon.spy(cc.toggle_canvas(), 'attr')
+      cc.shide();
+      sinon.assert.calledWith(spy, ':checked', false)
+    })
   });
 
   describe("#sshow", function(){
-    it("sets showing true");
-    it("checks toggle component");
-    it("adds scene components to scene");
+    it("sets showing true", function(){
+      cc.sshow();
+      assert(cc.is_showing()).isTrue()
+    });
+
+    it("checks toggle component", function(){
+      var spy = sinon.spy(cc.toggle_canvas(), 'attr')
+      cc.sshow();
+      sinon.assert.calledWith(spy, ':checked', true)
+    });
+
+    it("adds scene components to scene", function(){
+      var spy = sinon.spy(canvas.scene, 'add_component')
+      cc.sshow();
+      sinon.assert.calledWith(spy, {id : 'component1'})
+    });
   })
 
   describe("#stoggle", function(){
     describe("toggle component is checked", function(){
-      it("shows component");
+      it("shows component", function(){
+        var stub = sinon.stub(cc.toggle_canvas(), 'is').withArgs(':checked').returns(true)
+        var spy  = sinon.spy(cc, 'sshow');
+        cc.stoggle();
+        sinon.assert.called(spy);
+      });
     });
+
     describe("toggle component is not checked", function(){
-      it("hides component");
+      it("hides component", function(){
+        var stub = sinon.stub(cc.toggle_canvas(), 'is').withArgs(':checked').returns(false)
+        var spy  = sinon.spy(cc, 'shide');
+        cc.stoggle();
+        sinon.assert.called(spy);
+      });
     });
-    it("animates scene");
+
+    it("animates scene", function(){
+      var spy  = sinon.spy(canvas.scene, 'animate');
+      cc.stoggle();
+      sinon.assert.called(spy);
+    });
   });
 
   describe("#cwire_up", function(){
-    it("wires up toggle component click event");
-    it("unchecks toggle component");
+    it("wires up toggle component click event", function(){
+      var spy = sinon.spy(cc.toggle_canvas(), 'live')
+      cc.cwire_up();
+      sinon.assert.calledWith(spy, 'click');
+    })
+
+    it("unchecks toggle component", function(){
+      cc.cwire_up();
+      assert(cc.toggle_canvas().attr('checked')).isFalse();
+    });
+
     describe("toggle component clicked", function(){
-      it("toggles component in scene");
+      it("toggles component in scene", function(){
+        var spy = sinon.spy(cc.toggle_canvas(), 'live')
+        cc.cwire_up();
+        var cb = spy.getCall(0).args[1];
+        var spy = sinon.spy(cc, 'stoggle');
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
     });
   });
 
@@ -440,138 +511,452 @@ describe("CanvasComponent", function(){
 
 pavlov.specify("Canvas", function(){
 describe("Canvas", function(){
+  var canvas;
+
   before(function(){
+    canvas = new Canvas();
+    canvas.div_id = '#omega_canvas'
   });
 
-  it("creates scene subcomponent")
-  it("creates selection box subcomponent")
+  it("creates scene subcomponent", function(){
+    assert(canvas.scene).isTypeOf(Scene);
+  })
+
+  it("creates selection box subcomponent", function(){
+    assert(canvas.select_box).isTypeOf(SelectBox);
+  })
 
   describe("#canvas_component", function(){
-    it("returns canvas page component");
+    it("returns canvas page component", function(){
+      assert(canvas.canvas_component().selector).equals('#omega_canvas canvas')
+    });
   });
 
-  it("sets scene size to convas size")
+  it("sets scene size to convas size", function(){
+    var scene = new Scene({canvas : canvas});
+    var spy = sinon.spy(scene, 'set_size');
+    canvas = new Canvas({scene : scene});
+    sinon.assert.called(spy);
+    // TODO verify actual size
+  })
 
-  describe("canvas shown", function(){
-    it("shows 'Hide' on canvas toggle control")
-  });
-  describe("canvas hidden", function(){
-    it("shows 'Show' on canvas toggle control")
-  });
+  // TODO
+  //describe("canvas shown", function(){
+  //  it("shows 'Hide' on canvas toggle control")
+  //});
+  //describe("canvas hidden", function(){
+  //  it("shows 'Show' on canvas toggle control")
+  //});
+
   describe("canvas resized", function(){
-    it("resizes scene")
-    it("reanimates scene")
+    it("resizes scene", function(){
+      var spy = sinon.spy(canvas.scene, 'set_size');
+      canvas.raise_event('resize');
+      sinon.assert.called(spy);
+    })
+
+    it("reanimates scene", function(){
+      var spy = sinon.spy(canvas.scene, 'animate');
+      canvas.raise_event('resize');
+      sinon.assert.called(spy);
+    })
   });
-  describe("canvas clickd", function(){
-    it("captures canvas click coordinates")
-    it("passes click coordinates onto scene clicked handler")
+  describe("canvas clicked", function(){
+    it("captures canvas click coordinates", function(){
+      var spy = sinon.spy(canvas, 'click_coords');
+      canvas.raise_event('click', { pageX : 10, pageY : 20 });
+      sinon.assert.calledWith(spy, 10, 20)
+    })
+
+    it("passes click coordinates onto scene clicked handler", function(){
+      var stub = sinon.stub(canvas, 'click_coords').returns([10, 20]);
+      var spy  = sinon.spy(canvas.scene, 'clicked');
+      canvas.raise_event('click', { pageX : 10, pageY : 20});
+      sinon.assert.calledWith(spy, 10, 20);
+    })
   });
+
+  
+
   describe("mouse moved over canvas", function(){
-    it("it delegates to select box");
+    it("it delegates to select box", function(){
+      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
+      var evnt = create_mouse_event('mousemove');
+      canvas.raise_event('mousemove', evnt);
+      sinon.assert.calledWith(spy, evnt);
+    });
   });
+
   describe("mouse down over canvas", function(){
-    it("it delegates to select box");
+    it("it delegates to select box", function(){
+      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
+      var evnt = create_mouse_event('mousedown');
+      canvas.raise_event('mousedown', evnt);
+      sinon.assert.calledWith(spy, evnt);
+    });
   });
   describe("mouse up over canvas", function(){
-    it("it delegates to select box");
+    it("it delegates to select box", function(){
+      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
+      var evnt = create_mouse_event('mouseup');
+      canvas.raise_event('mouseup', evnt);
+      sinon.assert.calledWith(spy, evnt);
+    });
   });
 
 });}); // Canvas
 
 pavlov.specify("Scene", function(){
 describe("Scene", function(){
-  it("creates camera subcomponent")
-  it("creates skybox subcomponent")
-  it("creates axis subcomponent")
-  it("creates grid subcomponent")
+  var canvas; var scene;
+
+  before(function(){
+    canvas = new Canvas();
+    scene = canvas.scene;
+  })
+
+  it("creates camera subcomponent", function(){
+    assert(scene.camera).isTypeOf(Camera);
+  })
+
+  it("creates skybox subcomponent", function(){
+    assert(scene.skybox).isTypeOf(Skybox);
+  })
+
+  it("creates axis subcomponent", function(){
+    assert(scene.axis).isTypeOf(Axis);
+  })
+
+  it("creates grid subcomponent", function(){
+    assert(scene.grid).isTypeOf(Grid);
+  })
+
   describe("#set_size", function(){
-    it("it sets THREE renderer size");
-    it("sets camera size");
-    it("resets camera");
+    it("it sets THREE renderer size", function(){
+      var spy = sinon.spy(scene.renderer, 'setSize');
+      scene.set_size(10, 30);
+      sinon.assert.calledWith(spy, 10, 30);
+    });
+
+    it("sets camera size", function(){
+      var spy = sinon.spy(scene.camera, 'set_size');
+      scene.set_size(10, 30);
+      sinon.assert.calledWith(spy, 10, 30);
+    });
+
+    it("resets camera", function(){
+      var spy = sinon.spy(scene.camera, 'reset');
+      scene.set_size(10, 30);
+      sinon.assert.called(spy);
+    });
   });
+
   describe("#add_entity", function(){
-    it("adds entity components to scene");
-    it("invokes entity.add_to(scene)")
+    var c;
+
+    before(function(){
+      c = new TestEntity({ id : 42});
+      c.components.push(new THREE.Geometry())
+    })
+
+    it("adds entity to scene", function(){
+      scene.add_entity(c);
+      assert(scene.entities[42]).equals(c)
+    });
+
+    it("adds entity components to scene", function(){
+      var spy = sinon.spy(scene, 'add_component');
+      scene.add_entity(c);
+      sinon.assert.calledWith(spy, c.components[0]);
+    });
+
+    it("invokes entity.added_to(scene)", function(){
+      var spy = sinon.spy();
+      c.added_to = spy;
+      scene.add_entity(c);
+      sinon.assert.calledWith(spy, scene);
+    })
   });
+
   describe("#add_new_entity", function(){
     describe("entity in scene", function(){
-      it("does not add entitiy to scene");
+      it("does not add entitiy to scene", function(){
+        var c = new TestEntity({ id : 42});
+        scene.add_entity(c);
+        var spy = sinon.spy(scene, 'add_entity');
+        scene.add_new_entity(c);
+        sinon.assert.notCalled(spy);
+      });
     });
+
     describe("entity not in scene", function(){
-      it("invokes add_entity")
+      it("invokes add_entity", function(){
+        var spy = sinon.spy(scene, 'add_entity');
+        var c = new TestEntity({ id : 42});
+        scene.add_new_entity(c);
+        sinon.assert.called(spy);
+      })
     });
   });
+
   describe("#remove_entity", function(){
     describe("entity not in scene", function(){
-      it("just returns");
+      it("does not modify entities", function(){
+        var c1 = new TestEntity({ id : 42});
+        var c2 = new TestEntity({ id : 43});
+        scene.add_entity(c1);
+        scene.remove_entity(c2.id);
+        assert(scene.entities[c1.id]).equals(c1);
+      });
     });
-    it("removes each entity component from scene");
-    it("invokes entity.removed_from(scene)");
+
+    it("removes each entity component from scene", function(){
+      var spy = sinon.spy(scene, 'remove_component');
+      var c = new TestEntity({ id : 42});
+      c.components.push(new THREE.Geometry())
+      scene.add_entity(c);
+      scene.remove_entity(c.id);
+      sinon.assert.calledWith(spy, c.components[0]);
+    });
+
+    it("invokes entity.removed_from(scene)", function(){
+      var spy = sinon.spy();
+      var c = new TestEntity({ id : 42});
+      c.removed_from = spy;
+
+      scene.add_entity(c);
+      scene.remove_entity(c.id);
+      sinon.assert.calledWith(spy, scene);
+    });
   });
+
   describe("#reload_entity", function(){
+    var c;
+
+    before(function(){
+      c = new TestEntity({id : 42});
+      scene.add_entity(c);
+    })
+
     describe("entity not in scene", function(){
-      it("just returns");
+      it("does not modify entities", function(){
+        var spy1 = sinon.spy(scene, 'remove_entity')
+        var spy2 = sinon.spy(scene, 'add_entity')
+        scene.reload_entity(new TestEntity({id : 43}))
+        sinon.assert.notCalled(spy1)
+        sinon.assert.notCalled(spy2)
+      });
     });
-    it("removes entity from scene")
+
+    it("removes entity from scene", function(){
+      var spy = sinon.spy(scene, 'remove_entity')
+      scene.reload_entity(c);
+      sinon.assert.calledWith(spy, c.id)
+    })
+
     describe("callback specified", function(){
-      it("invokes callback with scene, entity");
+      it("invokes callback with scene & entity", function(){
+        var spy = sinon.spy();
+        scene.reload_entity(c, spy);
+        sinon.assert.calledWith(spy, scene, c);
+      });
     });
-    it("adds entity to scene");
-    it("animates scene");
+
+    it("adds entity to scene", function(){
+      var spy = sinon.spy(scene, 'add_entity');
+      scene.reload_entity(c);
+      sinon.assert.calledWith(spy, c);
+    });
+
+    it("animates scene", function(){
+      var spy = sinon.spy(scene, 'animate');
+      scene.reload_entity(c);
+      sinon.assert.called(spy);
+    });
   });
+
   describe("#has", function(){
     describe("scene has entity", function(){
-      it("returns true");
+      it("returns true", function(){
+        var c = new TestEntity({id : 42});
+        scene.add_entity(c);
+        assert(scene.has(c.id)).isTrue();
+      });
     });
+
     describe("scene does not have entity", function(){
-      it("returns false");
+      it("returns false", function(){
+        var c = new TestEntity({id : 42});
+        assert(scene.has(c.id)).isFalse();
+      });
     });
   });
+
   describe("#clear_entities", function(){
-    it("removes each entity")
-    it("clears entities array")
+    var c1, c2;
+
+    before(function(){
+      c1 = new TestEntity({id : 42});
+      c2 = new TestEntity({id : 43});
+      scene.add_entity(c1);
+      scene.add_entity(c2);
+    })
+
+    it("removes each entity", function(){
+      var spy = sinon.spy(scene, 'remove_entity');
+      scene.clear_entities();
+      sinon.assert.calledWith(spy, c1.id.toString());
+      sinon.assert.calledWith(spy, c2.id.toString());
+    });
+
+    it("clears entities array", function(){
+      scene.clear_entities();
+      assert(scene.entities).empty();
+    })
   });
+
   describe("#add_component", function(){
-    it("adds component to THREE scene");
+    it("adds component to THREE scene", function(){
+      var spy = sinon.spy(scene._scene, 'add');
+      var c = new THREE.Geometry()
+      scene.add_component(c);
+      sinon.assert.calledWith(spy, c);
+    });
   });
+
   describe("#remove_component", function(){
-    it("removes component from THREE scene");
+    it("removes component from THREE scene", function(){
+      var spy = sinon.spy(scene._scene, 'remove');
+      var c = new THREE.Geometry()
+      scene.remove_component(c);
+      sinon.assert.calledWith(spy, c);
+    });
   });
+
   describe("#set", function(){
-    it("sets root entity");
-    it("adds each child entity");
-    it("raises set event")
+    it("sets root entity", function(){
+      var r = new TestEntity()
+      scene.set(r);
+      assert(scene.root).equals(r);
+    });
+
+    it("adds each child entity", function(){
+      var spy = sinon.spy(scene, 'add_entity');
+      var r = new TestEntity({ id : 30 })
+      var c = new TestEntity({ id : 50 })
+      r._children.push(c)
+      scene.set(r);
+      sinon.assert.calledWith(spy, c);
+    });
+
+    it("raises set event", function(){
+      var spy = sinon.spy(scene, 'raise_event');
+      var r = new TestEntity()
+      scene.set(r);
+      sinon.assert.calledWith(spy, 'set');
+    })
+
+    it("animates the scene", function(){
+      var spy = sinon.spy(scene, 'animate');
+      var r = new TestEntity()
+      scene.set(r);
+      sinon.assert.called(spy);
+    });
   });
+
   describe("#get", function(){
-    it("returns root entity")
+    it("returns root entity", function(){
+      var r = new TestEntity()
+      scene.set(r);
+      assert(scene.get()).equals(r);
+    })
   });
+
   describe("#refresh", function(){
-    it("resets current root");
+    it("resets current root", function(){
+      var r = new TestEntity()
+      scene.set(r);
+
+      var spy = sinon.spy(scene, 'set');
+      scene.refresh();
+      sinon.assert.calledWith(spy, r);
+    });
   });
+
   describe("#clicked", function(){
-    it("retrieves scene entity clicked");
-    it("invokes entity.clicked_in(scene)");
-    it("raises click event on entity")
+    var c;
+
+    before(function(){
+      // TODO setup three scene to test other picking rays
+      c = new TestEntity({id : 42})
+      c.clickable_obj = new THREE.Mesh(new THREE.SphereGeometry(1000, 100, 100),
+                                       new THREE.MeshBasicMaterial({color: 0xABABAB}));
+      c.clickable_obj.position.x = 0;
+      c.clickable_obj.position.y = 0;
+      c.clickable_obj.position.z = -100;
+      c.components.push(c.clickable_obj);
+
+      var r = new TestEntity({id : 42})
+      r._children.push(c);
+      scene.set(r);
+    });
+
+    it("invokes entity.clicked_in(scene)", async(function(){
+      on_animation(scene, function(){
+        var spy = sinon.spy(c, 'clicked_in');
+        scene.clicked(0, 0);
+        sinon.assert.calledWith(spy, scene);
+        resume();
+      });
+      scene.animate();
+    }));
+
+    it("raises click event on entity", async(function(){
+      on_animation(scene, function(){
+        var spy = sinon.spy(c, 'raise_event');
+        scene.clicked(0, 0);
+        sinon.assert.calledWith(spy, 'click', scene);
+        resume();
+      })
+      scene.animate();
+    }))
     //it("raises clicked space event");
   });
-  describe("#page_coordinate", function(){
-    it("returns 2d coordinates of 3d coordinate in scene");
-  });
+
+  //describe("#page_coordinate", function(){
+  //  it("returns 2d coordinates of 3d coordinate in scene", function(){
+  //  });
+  //});
+
   describe("#unselect", function(){
-    describe("entity id is invalid", function(){
-      it("just returns");
+    it("invokes entity.unselected_in(scene)", function(){
+      var c = new TestEntity({ id : 42 })
+      scene.add_entity(c);
+      var spy = sinon.spy(c, 'unselected_in');
+      scene.unselect(c.id);
+      sinon.assert.calledWith(spy, scene);
     });
-    it("invokes entity.unselected_in(scene)");
-    it("raises unselected event on entity");
+
+    it("raises unselected event on entity", function(){
+      var c = new TestEntity({ id : 42 })
+      scene.add_entity(c);
+      var spy = sinon.spy(c, 'raise_event');
+      scene.unselect(c.id);
+      sinon.assert.calledWith(spy, 'unselected', scene);
+    });
   });
-  describe("#animate", function(){
-    it("requests animation frame");
-  });
-  describe("#render", function(){
-    it("renders scene with THREE renderer");
-  });
+
+  //describe("#animate", function(){
+  //  it("requests animation frame");
+  //});
+  //describe("#render", function(){
+  //  it("renders scene with THREE renderer");
+  //});
+
   describe("#position", function(){
-    it("returns THREE scene position");
+    it("returns THREE scene position", function(){
+      assert(scene.position()).equals(scene._scene.position);
+    });
   });
 });}); // Scene
 
