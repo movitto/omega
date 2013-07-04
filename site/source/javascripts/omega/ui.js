@@ -186,7 +186,9 @@ function UIComponent(args){
   /* Return the page component corresponding to this entity
    */
   this.component = function(){
-    return $(this.div_id);
+    if(this._component == null)
+      this._component = $(this.div_id)
+    return this._component;
   }
 
   /* Append content to the component
@@ -198,14 +200,18 @@ function UIComponent(args){
   /* Return the page component corresponding to the close control
    */
   this.close_control = function(){
-    return $(this.close_control_id)
+    if(this._close_control == null)
+      this._close_control = $(this.close_control_id)
+    return this._close_control; 
   }
 
   /* Return the page component corresponding to the toggle control
    */
   var toggled = false;
   this.toggle_control = function(){
-    return $(this.toggle_control_id)
+    if(this._toggle_control == null)
+      this._toggle_control = $(this.toggle_control_id)
+    return this._toggle_control;
   }
 
   /* Show the omega component
@@ -265,10 +271,14 @@ function UIComponent(args){
     this.component().trigger('resize');
   }
 
-  /* Return coordiantes on component corresponding
-   * to absolute screen coordinates.
+  /* Return representation of a page click event's coordinates in
+   * relation to the component's coordinate system, with
+   * the origin (0,0) being the component's center.
    *
-   * Pass x,y position of click event relative to screen/window
+   * Pass x,y position of the click event relative to screen/window.
+   * The value returned will be the in the domain of [[-1,1],[-1,1]]
+   * indicating the percentage of the components coordinate system
+   * at which the click occured
    */
   this.click_coords = function(x,y){
     var nx = Math.floor(x-this.component().offset().left);
@@ -423,7 +433,9 @@ function CanvasComponent(args){
   /* Return toggle canvas page component
    */
   this.toggle_canvas = function(){
-    return $(this.toggle_canvas_id)
+    if(this._toggle_canvas == null)
+      this._toggle_canvas = $(this.toggle_canvas_id)
+    return this._toggle_canvas;
   }
 
   /* Return boolean indicating if component is showing

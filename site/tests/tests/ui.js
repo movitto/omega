@@ -1,146 +1,390 @@
 pavlov.specify("UIComponent", function(){
 describe("UIComponent", function(){
+  var c;
   before(function(){
+    $('#qunit-fixture').
+      append('<div id="component_id"></div><div id="close_control"></div><div id="toggle_control"></div>')
+    c = new UIComponent();
+    c.div_id = '#component_id'
+    c.close_control_id = '#close_control'
+    c.toggle_control_id = '#toggle_control'
   });
 
-  it("tracks subcomponents")
-
   describe("#on", function(){
-    it("listens for event on page componet")
-    it("reraises page component event on self")
+    it("listens for event on page component", function(){
+      var cc = c.component();
+      var spy = sinon.spy(cc, 'live')
+      c.on('click', function(){})
+      sinon.assert.calledWith(spy, 'click')
+      // TODO test other events
+    })
+
+    it("reraises page component event on self", function(){
+      var cc = c.component();
+      var spy = sinon.spy(c, 'raise_event')
+      c.on('click', function(){})
+      cc.trigger('click')
+      sinon.assert.calledWith(spy, 'click')
+    })
   })
 
   describe("#component", function(){
-    it("returns handle to page component")
+    it("returns handle to page component", function(){
+      var cc = c.component();
+      assert(cc.selector).equals('#component_id')
+    })
   })
 
   describe("#append", function(){
-    it("appends specified content to page component")
+    it("appends specified content to page component", function(){
+      c.append("foobar")
+      assert($('#component_id').html().slice(-6)).equals("foobar")
+    })
   })
 
   describe("#close control", function(){
-    it("returns handle to close-page-component control")
+    it("returns handle to close-page-component control", function(){
+      var cc = c.close_control()
+      assert(cc.selector).equals("#close_control")
+    })
   })
 
   describe("#toggle control", function(){
-    it("returns handle to toggle-page-component control")
+    it("returns handle to toggle-page-component control", function(){
+      var tc = c.toggle_control()
+      assert(tc.selector).equals("#toggle_control")
+    })
   })
 
   describe("#show", function(){
-    it("checks toggle control");
-    it("shows page component");
-    it("shows subcomponents");
-    it("raises show event")
+    before(function(){
+      c.subcomponents.push(new UIComponent());
+    })
+
+    it("sets toggle control", function(){
+      var tc = c.toggle_control();
+      var spy = sinon.spy(tc, 'attr')
+      c.show();
+      sinon.assert.calledWith(spy, 'checked', true)
+    });
+
+    it("shows page component", function(){
+      var cc = c.component();
+      var spy = sinon.spy(cc, 'show')
+      c.show();
+      sinon.assert.called(spy);
+    });
+
+    it("shows subcomponents", function(){
+      var spy = sinon.spy(c.subcomponents[0], 'show');
+      c.show();
+      sinon.assert.called(spy)
+    });
+
+    it("raises show event", function(){
+      var spy = sinon.spy(c, 'raise_event');
+      c.show();
+      sinon.assert.calledWith(spy, 'show')
+    })
   })
 
   describe("#hide", function(){
-    it("unchecks toggle control");
-    it("hides page component");
-    it("hides subcomponents");
-    it("raises hides event")
+
+    before(function(){
+      c.subcomponents.push(new UIComponent());
+    })
+
+    it("sets toggle control", function(){
+      var tc = c.toggle_control();
+      var spy = sinon.spy(tc, 'attr')
+      c.hide();
+      sinon.assert.calledWith(spy, 'checked', false)
+    });
+
+    it("hides page component", function(){
+      var cc = c.component();
+      var spy = sinon.spy(cc, 'hide')
+      c.hide();
+      sinon.assert.called(spy);
+    });
+
+    it("hides subcomponents", function(){
+      var spy = sinon.spy(c.subcomponents[0], 'hide');
+      c.hide();
+      sinon.assert.called(spy)
+    });
+
+    it("raises hides event", function(){
+      var spy = sinon.spy(c, 'raise_event');
+      c.hide();
+      sinon.assert.calledWith(spy, 'hide')
+    })
   })
 
   describe("#visible", function(){
     describe("component is visible", function(){
-      it("returns false");
+      it("returns false", function(){
+        c.hide();
+        assert(c.visible()).isFalse();
+      });
     })
 
     describe("component is not visible", function(){
-      it("returns true");
+      it("returns true", function(){
+        c.show();
+        assert(c.visible()).isTrue();
+      });
     })
   })
 
   describe("#toggle", function(){
-    it("inverts toggled flag")
+    it("inverts toggled flag", function(){
+      var o = c.toggled;
+      c.toggled = false;
+      c.toggle()
+      assert(c.toggled).equals(true)
+      c.toggle()
+      assert(c.toggled).equals(false)
+    })
 
     describe("toggled", function(){
-      it("shows component")
+      it("shows component", function(){
+        var spy = sinon.spy(c, 'show')
+        c.toggled = false;
+        c.toggle();
+        sinon.assert.called(spy);
+      })
     });
 
     describe("not toggled", function(){
-      it("hides component")
+      it("hides component", function(){
+        var spy = sinon.spy(c, 'hide')
+        c.toggled = true;
+        c.toggle();
+        sinon.assert.called(spy);
+      })
     });
 
-    it("raises toggled event")
+    it("raises toggled event", function(){
+      var spy = sinon.spy(c, 'raise_event')
+      c.toggle();
+      sinon.assert.calledWith(spy, 'toggle');
+    })
   });
 
   describe("set size", function(){
-    it("sets component height")
-    it("sets component width")
-    it("triggers component resize")
+    it("sets component height", function(){
+      var spy = sinon.spy(c.component(), 'height')
+      c.set_size(100, 200);
+      sinon.assert.calledWith(spy, 200);
+    })
+
+    it("sets component width", function(){
+      var spy = sinon.spy(c.component(), 'width')
+      c.set_size(100, 200);
+      sinon.assert.calledWith(spy, 100);
+    })
+
+    it("triggers component resize", function(){
+      var spy = sinon.spy(c.component(), 'trigger')
+      c.set_size(100, 200);
+      sinon.assert.calledWith(spy, 'resize');
+    })
   });
 
   describe("#click_coords", function(){
-    it('returns page coordinates which click occurred');
+    it('returns component coordinates where page click occurred', function(){
+      var ostub = sinon.stub(c.component(), 'offset').returns({left : 10, top : 20})
+      c.set_size(100, 200);
+
+      assert(c.click_coords(10,   20)[0]).close(   -1, 0.00001);
+      assert(c.click_coords(10,   20)[1]).close(    1, 0.00001);
+      assert(c.click_coords(11,   21)[0]).close(-0.98, 0.00001);
+      assert(c.click_coords(11,   21)[1]).close( 0.99, 0.00001);
+      assert(c.click_coords(20,   30)[0]).close( -0.8, 0.00001);
+      assert(c.click_coords(20,   30)[1]).close(  0.9, 0.00001);
+      assert(c.click_coords(110, 220)[0]).close(    1, 0.00001);
+      assert(c.click_coords(110, 220)[1]).close(   -1, 0.00001);
+    });
   })
 
   describe('#lock', function(){
-    it('locks components to the top side')
-    it('locks components to the left side')
-    it('locks components to the right side')
+    var spy;
+
+    before(function(){
+      spy = sinon.spy(c.component(), 'css');
+    })
+
+    it('sets component to use absolute positioning', function(){
+      c.lock([]);
+      sinon.assert.calledWith(spy, {position: 'absolute'})
+    })
+
+    it('locks components to the top side', function(){
+      c.lock(['top']);
+      sinon.assert.calledWith(spy, {top: c.component().position.top});
+    })
+
+    it('locks components to the left side', function(){
+      c.lock(['left']);
+      sinon.assert.calledWith(spy, {left: c.component().position.left});
+    })
+
+    it('locks components to the right side', function(){
+      c.lock(['right']);
+      sinon.assert.calledWith(spy, {right: sinon.match.number});
+    })
   })
 
   describe("#wire_up", function(){
-    it("removes close control live event handlers")
-    it("removes toggle control live event handlers")
+    it("removes close control live event handlers", function(){
+      var spy = sinon.spy(c.close_control(), 'die')
+      c.wire_up();
+      sinon.assert.called(spy);
+    })
 
-    it("adds close control click event handler")
+    it("removes toggle control live event handlers", function(){
+      var spy = sinon.spy(c.toggle_control(), 'die')
+      c.wire_up();
+      sinon.assert.called(spy);
+    })
+
+    it("adds close control click event handler", function(){
+      var spy = sinon.spy(c.close_control(), 'live')
+      c.wire_up();
+      sinon.assert.calledWith(spy, 'click');
+    })
+
     describe("close control clicked", function(){
-      it("hides component")
+      it("hides component", function(){
+        var spy = sinon.spy(c.close_control(), 'live')
+        c.wire_up();
+        var cb = spy.getCall(0).args[1];
+        var spy = sinon.spy(c, 'hide');
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      })
     });
 
-    it("adds toggled control click event handler")
+    it("adds toggled control click event handler", function(){
+      var spy = sinon.spy(c.toggle_control(), 'live')
+      c.wire_up();
+      sinon.assert.calledWith(spy, 'click');
+    })
+
     describe("toggle control clicked", function(){
-      it("toggles component")
+      it("toggles component", function(){
+        var spy = sinon.spy(c.toggle_control(), 'live')
+        c.wire_up();
+        var cb = spy.getCall(0).args[1];
+        var spy = sinon.spy(c, 'toggle');
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      })
     });
 
-    it("sets toggled true")
-    it("toggles component")
+    it("sets toggled false", function(){
+      c.wire_up();
+      assert(c.toggled).isFalse();
+    })
+
+    it("toggles component", function(){
+      var spy = sinon.spy(c, 'toggle');
+      c.wire_up();
+      sinon.assert.called(spy);
+    })
   })
 
 });}); // UIComponent
 
 pavlov.specify("UIListComponent", function(){
 describe("UIListComponent", function(){
+  var lc;
+
   before(function(){
+    $('#qunit-fixture').append('<div id="component_id"></div>')
+
+    lc = new UIListComponent();
+    lc.div_id = '#component_id';
   });
 
-  it("track list of items")
-
   describe("#clear", function(){
-    it("clears item list");
+    it("clears item list", function(){
+      lc.items.push("foobar")
+      lc.clear();
+      assert(lc.items).empty();
+    });
   })
 
   describe("#add_item", function(){
-    it("adds array of items to items list");
-    it("adds item to items list");
+    it("adds array of items to items list", function(){
+      lc.add_item([{ id : 'a' }, { id : 'b'}])
+      assert(lc.items).includes({ id : 'a' })
+      assert(lc.items).includes({ id : 'b' })
+    });
+
+    it("adds item to items list", function(){
+      lc.add_item({ id : 'a' })
+      assert(lc.items).includes({ id : 'a' })
+    });
 
     describe("existing item with same id", function(){
-      it("overwrites old item");
+      it("overwrites old item", function(){
+        lc.add_item({ id : 'a' })
+        assert(lc.items[0]).isSameAs({ id : 'a' })
+      });
     });
     
-    it("wires up item click handler")
+    //it("wires up item click handler")
     describe("item click", function(){
-      it("raises click_item event on component")
+      it("raises click_item event on component", function(){
+        var spy = sinon.spy(lc, 'raise_event')
+        lc.add_item({ id : 'a' })
+        $('#a').trigger('click');
+        sinon.assert.calledWith(spy, 'click_item', { id : 'a' });
+      })
     });
 
-    it("refreshes the component")
+    it("refreshes the component", function(){
+      var spy = sinon.spy(lc, 'refresh');
+      lc.add_item({ id : 'a' })
+      sinon.assert.called(spy);
+    })
   })
 
   describe("#refresh", function(){
-    describe("page component doesn't exist", function(){
-      it("just returns")
-    });
+    it("invokes sort function to sort items", function(){
+      var spy = sinon.spy();
+      lc.sort = spy;
+      lc.add_item({ id : 'a' })
+      lc.add_item({ id : 'b' })
+      lc.refresh();
+      sinon.assert.called(spy);
+    })
 
-    it("invokes sort function to sort items")
+    it("renders item in component", function(){
+      lc.add_item({ id : 'a', text : 'at' })
+      lc.add_item({ id : 'b', text : 'bt' })
+      lc.refresh();
+      assert($(lc.div_id).html()).equals('<span id="a">at</span><span id="b">bt</span>')
+    })
 
-    it("sets component html to rendered item list")
+    //it("picks up alternative item wrapper")
   })
 
   describe("#add_text", function(){
-    it("adds new item w/ specified text")
-    it("adds items generated from an array of text")
-    it("auto increments item ids")
+    it("adds new item w/ specified text", function(){
+      var spy = sinon.spy(lc, 'add_item');
+      lc.add_text("fooz")
+      sinon.assert.calledWith(spy, {id : 1, text : 'fooz', item : null})
+    })
+
+    it("adds items generated from an array of text", function(){
+      var spy = sinon.spy(lc, 'add_item');
+      lc.add_text(["foo", "bar"])
+      sinon.assert.calledWith(spy, {id : 1, text : 'foo', item : null})
+      sinon.assert.calledWith(spy, {id : 2, text : 'bar', item : null})
+    })
   });
 
 });}); // UIListComponent

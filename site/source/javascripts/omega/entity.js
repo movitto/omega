@@ -61,11 +61,11 @@ function Entity(args){
 
   /* add properties to ignore in json conversion
    */
-  this.ignore_properties = [];
-  this.ignore_properties.push('toJSON');
-  this.ignore_properties.push('json_class');
-  this.ignore_properties.push('ignore_properties');
-  this.ignore_properties.push('callbacks');
+  this.ignore_properties = ['toJSON', 'json_class', 'ignore_properties',
+                            'callbacks', 'added_to', 'removed_from',
+                            'clicked_in', 'unselected_in', 'update',
+                            'raise_event', 'clone', 'on',
+                            'clear_callbacks'];
 
   /* Convert entity to json respresentation
    */
@@ -158,7 +158,7 @@ function Galaxy(args){
     // assuming that system list is not variable
     if(args.solar_systems && this.solar_systems){
       for(var s in args.solar_systems)
-        this.solar_systems.update(args.solar_systems[s]);
+        this.solar_systems[s].update(args.solar_systems[s]);
       delete args.solar_systems
     }
     this.old_update(args);
@@ -174,10 +174,10 @@ function Galaxy(args){
   }
 }
 
-/* Return galaxy with the specified name
+/* Return galaxy with the specified id
  */
-Galaxy.with_name = function(name, cb){
-  Entities().node().web_request('cosmos::get_entity', 'with_name', name, function(res){
+Galaxy.with_id = function(id, cb){
+  Entities().node().web_request('cosmos::get_entity', 'with_id', id, function(res){
     if(res.result){
       var gal = new Galaxy(res.result);
       cb.apply(null, [gal]);
@@ -196,6 +196,10 @@ function SolarSystem(args){
   this.json_class = 'Cosmos::SolarSystem';
   var system = this;
 
+  /* Get first star
+   */
+  this.star = function() { return this.stars[0]; }
+
   /* override update to update all children instead of overwriting
    */
   this.old_update = this.update;
@@ -206,9 +210,10 @@ function SolarSystem(args){
       this.location.update(args.location);
       delete args.location;
     }
-    if(args.star && this.star){
-      this.star.update(args.star);
-      delete args.star;
+    if(args.stars && this.stars){
+      for(var s in args.stars)
+        this.stars[s].update(args.stars[s]);
+      delete args.stars;
     }
     // assuming that planets/asteroids/jump gates lists are not variable
     // (though individual properties such as location may be)
@@ -236,7 +241,7 @@ function SolarSystem(args){
 
   // convert children
   this.location = new Location(this.location);
-  this.star = new Star(this.star);
+  for(var s in this.stars) this.stars[s] = new Star(this.stars[s])
   for(var pl in this.planets) this.planets[pl] = new Planet(this.planets[pl])
   for(var ast in this.asteroids) this.asteroids[ast] = new Asteroid(this.asteroids[ast])
   for(var jg in this.jump_gates) this.jump_gates[jg] = new JumpGate(this.jump_gates[jg])
@@ -378,10 +383,10 @@ function SolarSystem(args){
              e.json_class  == "Manufactured::Station" )
    });
 
-    return [this.star].concat(this.planets).
-                       concat(this.asteroids).
-                       concat(this.jump_gates).
-                       concat(entities);
+    return this.stars.concat(this.planets).
+                      concat(this.asteroids).
+                      concat(this.jump_gates).
+                      concat(entities);
   }
 
   /* added_to scene callback
@@ -397,10 +402,10 @@ function SolarSystem(args){
   }
 }
 
-/* Return solar system with the specified name
+/* Return solar system with the specified id
  */
-SolarSystem.with_name = function(name, cb){
-  Entities().node().web_request('cosmos::get_entity', 'with_name', name, function(res){
+SolarSystem.with_id = function(id, cb){
+  Entities().node().web_request('cosmos::get_entity', 'with_id', id, function(res){
     if(res.result){
       var sys = new SolarSystem(res.result);
       cb.apply(null, [sys])
@@ -408,10 +413,10 @@ SolarSystem.with_name = function(name, cb){
   });
 }
 
-/* Return entities under solar system with the specified name
+/* Return entities under solar system with the specified id
  */
-SolarSystem.entities_under = function(name, cb){
-  Entities().node().web_request('manufactured::get_entities', 'under', name, function(res){
+SolarSystem.entities_under = function(id, cb){
+  Entities().node().web_request('manufactured::get_entities', 'under', id, function(res){
     if(res.result){
       var cbv = [];
       for(var e in res.result){
@@ -504,16 +509,20 @@ function Planet(args){
     if(args.location && this.location){
       this.location.update(args.location);
 
-      this.sphere.position.x = this.location.x;
-      this.sphere.position.y = this.location.y;
-      this.sphere.position.z = this.location.z;
+      if(this.sphere){
+        this.sphere.position.x = this.location.x;
+        this.sphere.position.y = this.location.y;
+        this.sphere.position.z = this.location.z;
+      }
 
       for(var m in this.moons){
         var moon = this.moons[m];
         var ms   = this.moon_spheres[m];
-        ms.position.x = this.location.x + moon.location.x;
-        ms.position.y = this.location.y + moon.location.y;
-        ms.position.z = this.location.z + moon.location.z;
+        if(ms){
+          ms.position.x = this.location.x + moon.location.x;
+          ms.position.y = this.location.y + moon.location.y;
+          ms.position.z = this.location.z + moon.location.z;
+        }
       }
 
       delete args.location;
@@ -617,7 +626,7 @@ function Planet(args){
       });
 
 
-  var moon_spheres = [];
+  this.moon_spheres = [];
   for(var m in this.moons){
     var moon = this.moons[m];
     var sphere =
@@ -630,7 +639,7 @@ function Planet(args){
                              return sphere;
                            });
     this.components.push(sphere);
-    moon_spheres.push(sphere);
+    this.moon_spheres.push(sphere);
   }
 }
 
@@ -722,25 +731,12 @@ function JumpGate(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.id = this.solar_system + '-' + this.endpoint;
+  //this.id = this.solar_system + '-' + this.endpoint;
 
   this.json_class = 'Cosmos::JumpGate';
   var jg = this;
 
   this.location = new Location(this.location);
-
-  /* override update to update children
-   */
-  this.old_update = this.update;
-  this.update = function(oargs){
-    var args = $.extend({}, oargs); // copy args
-
-    if(args.location && this.location){
-      this.location.update(args.location);
-      delete args.location;
-    }
-    this.old_update(args);
-  }
 
   // instantiate mesh to draw gate on canvas
   this.create_mesh = function(){
@@ -1550,7 +1546,7 @@ Mission.all = function(cb){
 function Statistic(args){
   $.extend(this, new Entity(args));
 
-  this.json_class = 'Stats::StatResul'
+  this.json_class = 'Stats::StatResult'
 }
 
 /* Return specified stat

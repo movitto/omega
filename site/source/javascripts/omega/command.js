@@ -172,7 +172,7 @@ var Commands = {
    */
   trigger_jump_gate : function(jg, cb){
     // move entities within triggering distance of gate
-    var entities = Entities().select(function(e) { console.log(e);return e.json_class == "Manufactured::Ship" &&
+    var entities = Entities().select(function(e) { return e.json_class == "Manufactured::Ship" &&
                                                           e.user_id    == Session.current_session.user_id       &&
                                                           e.location.is_within(jg.trigger_distance, jg.location); });
 
