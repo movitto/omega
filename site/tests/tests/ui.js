@@ -962,205 +962,506 @@ describe("Scene", function(){
 
 pavlov.specify("Camera", function(){
 describe("Camera", function(){
-  describe("#new_cam", function(){
-    it("creates new THREE perspective camera");
-  });
+  var canvas, cam;
+
+  before(function(){
+    canvas = new Canvas();
+    cam = canvas.scene.camera;
+  })
+
+  //describe("#new_cam", function(){
+  //  it("creates new THREE perspective camera");
+  //});
+
   describe("#set_size", function(){
-    it("sets width/height");
-    it("creates new camera");
+    it("sets aspect ration", function(){
+      cam.set_size(200, 100);
+      assert(cam._camera.aspect).equals(2)
+    });
   });
+
   describe("#reset", function(){
-    it("sets camera position");
-    it("focuses camera on scene");
-    it("animates scene");
+    it("sets camera position", function(){
+      var spy = sinon.spy(cam, 'position')
+      cam.reset();
+      sinon.assert.called(spy); // TODO verify new position?
+    });
+
+    it("focuses camera on scene", function(){
+      var spy = sinon.spy(cam, 'focus')
+      cam.reset();
+      sinon.assert.calledWith(spy, canvas.scene.position());
+    });
+
+    it("animates scene", function(){
+      var spy = sinon.spy(canvas.scene, 'animate')
+      cam.reset();
+      sinon.assert.called(spy);
+    });
   });
+
   describe("#focus", function(){
     describe("new focus point specified", function(){
-      it("points THREE camera at focus point");
+      it("points THREE camera at focus point", function(){
+        var spy = sinon.spy(cam._camera, 'lookAt');
+        cam.focus({x:100,y:200,z:100})
+        sinon.assert.calledWith(spy, {x:100,y:200,z:100})
+      });
     });
-    it("returns camera focus point");
+
+    it("returns camera focus point", function(){
+      cam.focus({x:100,y:200,z:100})
+      assert(cam.focus()).isSameAs({x:100,y:200,z:100})
+    });
   });
+
   describe("#position", function(){
     describe("new camera position specified", function(){
-      it("sets THREE camera position");
+      it("sets THREE camera position", function(){
+        cam.position({x: 100, y: 100, z: -200});
+        console.log(cam._camera.position)
+        assert(cam._camera.position.x).equals(100)
+        assert(cam._camera.position.y).equals(100)
+        assert(cam._camera.position.z).equals(-200)
+      });
     });
-    it("returns camera position")
+    it("returns camera position", function(){
+      cam.position({x: 100, y: 100, z: -200});
+      assert(cam.position()).isSameAs({x:100, y: 100, z:-200});
+    })
   });
+
   describe("#zoom", function(){
-    it("moves camera along its focus axis");
+    it("moves camera along its focus axis", function(){
+      // TODO more complex test case?
+      cam.position({x:0,y:0,z:100})
+      cam.focus({x:0,y:0,z:0})
+      var oz = cam.position().z;
+      cam.zoom(-10);
+      assert(cam.position().z).equals(oz - 10);
+
+      cam.zoom(20);
+      console.log(cam._camera.position);
+      assert(cam.position().z).equals(oz + 10);
+    });
   });
+
   describe("#rotate", function(){
-    it("rotates camera by specified spherical coordinates");
+    it("rotates camera by specified spherical coordinates", function(){
+      // TODO more complex test case?
+      cam.position({x:1,y:0,z:0})
+      cam.focus({x:0,y:0,z:0})
+      cam.rotate(0, Math.PI);
+      assert(cam.position().x).equals(-1)
+      assert(cam.position().y).close(0, 0.0001)
+      assert(cam.position().z).close(0, 0.0001)
+    });
   });
+
   describe("#pan", function(){
-    it("pans camera along its x,y axis");
+    it("pans camera along its x,y axis", function(){
+      // TODO more complex test case?
+      cam.position({x:0,y:0,z:1})
+      cam.focus({x:0,y:0,z:0})
+      cam.pan(10, -20)
+      assert(cam.position().x).equals(10)
+      assert(cam.position().y).equals(-20)
+      assert(cam.position().z).equals(1)
+    });
   });
-  describe("#wire_up", function(){
-    it("wires up page camera controls");
-  });
+
+  // TOOD
+  //describe("#wire_up", function(){
+  //  it("wires up page camera controls");
+  //});
 });}); // Camera
 
 pavlov.specify("Skybox", function(){
 describe("Skybox", function(){
   describe("#background", function(){
     describe("new background specified", function(){
-      it("sets skybox background")
+      it("sets skybox background", function(){
+        var sb = new Skybox();
+        sb.background('foobar');
+        assert(sb.bg).equals('foobar')
+      })
     });
-    it("returns skybox background")
+
+    it("returns skybox background", function(){
+        var sb = new Skybox();
+        sb.background('foobar');
+        assert(sb.background()).equals('foobar')
+    })
   });
 });}); // Skybox
 
 pavlov.specify("SelectBox", function(){
 describe("SelectBox", function(){
+  var sb;
+
+  before(function(){
+    var canvas = new Canvas();
+    sb = canvas.select_box;
+  })
 
   describe("#start_showing", function(){
-    it("sets down page position")
-    it("shows component")
+    it("sets down page position", function(){
+      sb.start_showing(-10, -20);
+      assert(sb.dx).equals(-10);
+      assert(sb.dy).equals(-20);
+    })
+
+    it("shows component", function(){
+      var spy = sinon.spy(sb.component(), 'show');
+      sb.start_showing(1,1);
+      sinon.assert.called(spy);
+    })
   });
+
   describe("#stop_showing", function(){
-    it("hides component");
-  });
-  describe("#update_area", function(){
-    it("computes widith/height from down/current mouse positions");
-    it("adjust component size")
+    it("hides component", function(){
+      var spy1 = sinon.spy(sb.component(), 'css');
+      var spy2 = sinon.spy(sb.component(), 'hide');
+      sb.stop_showing();
+      sinon.assert.called(spy2);
+
+      sinon.assert.calledWith(spy1, 'left',       0);
+      sinon.assert.calledWith(spy1, 'top',        0);
+      sinon.assert.calledWith(spy1, 'min-width',  0);
+      sinon.assert.calledWith(spy1, 'min-height', 0);
+    });
   });
 
-  it("handles mousemove event")
+  // TODO test different combinations
+  //describe("#update_area", function(){
+  //  it("adjust component size")
+  //});
+
   describe("mouse move event", function(){
-    it("updates area")
+    it("updates area", function(){
+      var spy = sinon.spy(sb, 'update_area');
+      sb.raise_event('mousemove', { pageX : 10, pageY : 20})
+      sinon.assert.called(spy);
+    })
   });
 
-  it("handles mousedown event")
   describe("mouse down event", function(){
-    it("starts showing");
+    it("starts showing", function(){
+      var spy = sinon.spy(sb, 'start_showing');
+      sb.raise_event('mousedown', { pageX : 10, pageY : 20})
+      sinon.assert.called(spy);
+    });
   });
 
-  it("handles mouseup event")
   describe("mouse up event", function(){
-    it("stops showing")
+    it("stops showing", function(){
+      var spy = sinon.spy(sb, 'stop_showing');
+      sb.raise_event('mouseup');
+      sinon.assert.called(spy);
+    })
   });
 
 });}); // SelectBox
 
 pavlov.specify("Dialog", function(){
 describe("Dialog", function(){
+  after(function(){
+    // remove dialog elements, will get recreated w/ next qunit-fixture
+    $('#omega_dialog').remove();
+  })
+
   describe("#subdiv", function(){
-    it("returns subdiv page component");
+    it("returns subdiv page component", function(){
+      $('#omega_dialog').append('<div id="foo"></div>')
+      assert(new Dialog().subdiv('foo').selector).equals('#omega_dialog foo')
+    });
   });
-  it("sets title");
-  it("sets selector");
-  it("sets text");
+
+  it("sets title", function(){
+    var d = new Dialog({title : 'd1'})
+    assert(d.title).equals('d1')
+  });
+
+  it("sets selector", function(){
+    var d = new Dialog({selector : '#d1'})
+    assert(d.selector).equals('#d1')
+  });
+
+  it("sets text", function(){
+    var d = new Dialog({text : 'd1'})
+    assert(d.text).equals('d1')
+  });
+
   describe("show", function(){
-    it("loads content from selector");
-    it("appends text")
-    it("sets dialog title");
-    it("opens dialog");
+    it("loads content from selector", function(){
+      $('#qunit-fixture').append('<div id="foo">test</div>')
+      var d = new Dialog({selector : '#foo'})
+      d.show();
+      assert($('#omega_dialog').html()).equals('test')
+    });
+
+    it("appends text", function(){
+      var d = new Dialog({text : 'foo'})
+      d.show();
+      assert($('#omega_dialog').html()).equals('foo')
+    })
+
+    it("sets dialog title", function(){
+      var d = new Dialog({title : 'foo'})
+      d.show();
+      assert($('.ui-dialog-title').html()).equals('foo')
+    });
+
+    it("opens dialog", function(){
+      var d = new Dialog({});
+      var spy = sinon.spy(d.component(), 'dialog');
+      d.show();
+      sinon.assert.calledWith(spy, 'open');
+    });
   });
+
   describe("hide", function(){
-    it("closes dialog");
+    it("closes dialog", function(){
+      var d = new Dialog({});
+      var spy = sinon.spy(d.component(), 'dialog');
+      d.show();
+      d.hide();
+      sinon.assert.calledWith(spy, 'close');
+    });
   });
 });}); // Dialog
 
 pavlov.specify("EntitiesContainer", function(){
 describe("EntitiesContainer", function(){
-  it("wraps items list in a ul");
-  it("handles mouseenter event");
+  var ec;
+
+  before(function(){
+    $('#qunit-fixture').append('<div id="test_ec"><ul></ul></div>');
+    ec = new EntitiesContainer({div_id : '#test_ec'});
+  })
+
+  it("wraps item list in a ul", function(){
+    ec.add_text("foobar")
+    assert(ec.component().selector).equals('#test_ec ul');
+  });
+
   describe("mouse enter event", function(){
-    it("shows ul")
+    it("shows component", function(){
+      var spy = sinon.spy(ec, 'show');
+      ec.raise_event('mouseenter')
+      sinon.assert.called(spy);
+    })
   });
-  it("handles mouseleave event");
+
   describe("mouse leave event", function(){
-    it("hides ul")
+    it("hides ul", function(){
+      var spy = sinon.spy(ec, 'hide');
+      ec.raise_event('mouseleave')
+      sinon.assert.called(spy);
+    })
   });
-  describe("#hide_all", function(){
-    it("hides all entities containers")
-    it("hides missions button")
-  });
+
+  // TODO
+  //describe("#hide_all", function(){
+  //  it("hides all entities containers")
+  //  it("hides missions button")
+  //});
 });}); // EntitiesContainer
 
 pavlov.specify("StatusIndicator", function(){
 describe("StatusIndicator", function(){
+  var si;
+  before(function(){
+    si = new StatusIndicator();
+  })
+
   describe("#set_bg", function(){
-    it("sets component background");
+    it("sets component background", function(){
+      si.set_bg('foobar');
+      assert(si.component().css('background-image')).isNotEqualTo('') // TODO better regex based match
+    });
+
     describe("specified background is null", function(){
-      it("clears component background");
+      it("clears component background", function(){
+        si.set_bg();
+        assert(si.component().css('background-image')).equals('none')
+      });
     });
   });
+
   describe("#has_state", function(){
     describe("state is on state stack", function(){
-      it("returns true");
+      it("returns true", function(){
+        si.push_state('st1');
+        assert(si.has_state('st1')).isTrue();
+      });
     });
     describe("state is not on state stack", function(){
-      it("returns false");
+      it("returns false", function(){
+        assert(si.has_state('st1')).isFalse();
+      });
     });
   });
+
   describe("#is_state", function(){
     describe("state is last state stack", function(){
-      it("returns true");
+      it("returns true", function(){
+        si.push_state('st1');
+        si.push_state('st2');
+        assert(si.is_state('st2')).isTrue();
+      });
     });
+
     describe("state is not last state on stack", function(){
-      it("returns false");
+      it("returns false", function(){
+        si.push_state('st1');
+        si.push_state('st2');
+        assert(si.is_state('st1')).isFalse();
+      });
     });
   });
+
   describe("push_state", function(){
-    it("pushes new state onto stack");
-    it("sets background");
+    it("pushes new state onto stack", function(){
+      si.push_state('st1');
+      assert(si.has_state('st1')).isTrue();
+    });
+
+    it("sets background", function(){
+      var spy = sinon.spy(si, 'set_bg')
+      si.push_state('st1')
+      sinon.assert.calledWith(spy, 'st1');
+    });
   });
+
   describe("pop_state", function(){
-    it("pops a state off stack");
-    it("sets background");
+    it("pops a state off stack", function(){
+      si.push_state('st1');
+      si.pop_state();
+      assert(si.has_state('st1')).isFalse();
+    });
+
+    it("sets background", function(){
+      var spy = sinon.spy(si, 'set_bg')
+      si.push_state('st1')
+      si.push_state('st2')
+      si.pop_state();
+      sinon.assert.calledWith(spy, 'st1');
+      si.pop_state();
+      sinon.assert.calledWith(spy, null);
+    });
   });
 });}); // StatusIndicator
 
 pavlov.specify("NavContainer", function(){
 describe("NavContainer", function(){
+  var nc;
+
+  before(function(){
+    nc = new NavContainer();
+  })
+
   describe("#show_login_controls", function(){
-    it("shows register link");
-    it("shows login link");
-    it("hides account link");
-    it("hides logout link");
+    before(function(){
+      nc.show_login_controls();
+    })
+
+    it("shows register link", function(){
+      assert(nc.register_link.component().is(':visible')).isTrue();
+    });
+
+    it("shows login link", function(){
+      assert(nc.login_link.component().is(':visible')).isTrue();
+    });
+
+    it("hides account link", function(){
+      assert(nc.account_link.component().is(':hidden')).isTrue();
+    });
+
+    it("hides logout link", function(){
+      assert(nc.logout_link.component().is(':hidden')).isTrue();
+    });
   });
+
   describe("#show_logout_controls", function(){
-    it("hides register link");
-    it("hides login link");
-    it("shows account link");
-    it("shows logout link");
+    before(function(){
+      nc.show_logout_controls();
+    });
+
+    it("hides register link", function(){
+      assert(nc.register_link.component().is(':hidden')).isTrue();
+    });
+
+    it("hides login link", function(){
+      assert(nc.login_link.component().is(':hidden')).isTrue();
+    });
+
+    it("shows account link", function(){
+      assert(nc.account_link.component().is(':visible')).isTrue();
+    });
+
+    it("shows logout link", function(){
+      assert(nc.logout_link.component().is(':visible')).isTrue();
+    });
   });
 });}); // NavContainer
 
-pavlov.specify("AccountInfoContainer", function(){
-describe("AccountInfoContainer", function(){
-  describe("#username", function(){
-    it("gets username input value")
-    it("sets username input value")
-  });
-  describe("#password", function(){
-    it("gets password input value")
-    it("sets password input value")
-  });
-  describe("#email", function(){
-    it("gets email input value")
-    it("sets email input value")
-  });
-  describe("#gravatar", function(){
-    it("gets gravatar page component value")
-    it("sets gravatar page component value")
-  });
-  describe("#entities", function(){
-    it("sets entities list")
-  });
-  describe("#passwords_match", function(){
-    describe("passwords match", function(){
-      it("returns true")
-    });
-    describe("passwords don't match", function(){
-      it("returns false")
-    });
-  });
-  describe("#user", function(){
-    it("returns new user created from inputs")
-  });
-  describe("#add_badge", function(){
-    it("it adds badge to ui");
-  });
-});}); // AccountInfoContainer
+// TODO
+//pavlov.specify("AccountInfoContainer", function(){
+//describe("AccountInfoContainer", function(){
+//  var aic;
+//
+//  before(function(){
+//    aic = new AccountInfoContainer();
+//  })
+//
+//  describe("#username", function(){
+//    it("gets username input value", function(){
+//      $('#account_info_username input').attr('value', 'foobar');
+//      assert(aic.username()).equals('foobar')
+//    })
+//
+//    it("sets username input value", function(){
+//      aic.username('test');
+//      assert($('#account_info_username input').attr('value')).equals('test');
+//    })
+//  });
+//
+//  describe("#password", function(){
+//    it("gets password input value", function(){
+//      $('#user_password input').attr('value', 'foobar');
+//      assert(aic.password()).equals('foobar')
+//    })
+//
+//    it("sets password input value", function(){
+//      aic.password('foobar');
+//      assert($('#user_password input').attr('value')).equals('foobar');
+//    })
+//  });
+//
+//  describe("#email", function(){
+//    it("gets email input value")
+//    it("sets email input value")
+//  });
+//  describe("#gravatar", function(){
+//    it("gets gravatar page component value")
+//    it("sets gravatar page component value")
+//  });
+//  describe("#entities", function(){
+//    it("sets entities list")
+//  });
+//  describe("#passwords_match", function(){
+//    describe("passwords match", function(){
+//      it("returns true")
+//    });
+//    describe("passwords don't match", function(){
+//      it("returns false")
+//    });
+//  });
+//  describe("#user", function(){
+//    it("returns new user created from inputs")
+//  });
+//  describe("#add_badge", function(){
+//    it("it adds badge to ui");
+//  });
+//});}); // AccountInfoContainer

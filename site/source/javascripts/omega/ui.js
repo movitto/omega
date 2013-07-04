@@ -1087,8 +1087,6 @@ function Skybox(args){
   $.extend(this, new CanvasComponent(args));
 
   /////////////////////////////////////// private data
-  var skybox_bg  = null;
-
   var skyboxMesh = null;
 
   var size = 32768;
@@ -1112,7 +1110,7 @@ function Skybox(args){
         UIResources().load_texture_material(path + 'ny.' + format)
       ];
 
-      var skybox_mesh =
+      skybox_mesh =
         UIResources().cached('skybox_'+this.bg+'_mesh',
           function(i){
             var skyboxMesh =
@@ -1286,14 +1284,14 @@ function SelectBox(args){
 
   /* start showing the select box at the specified coords
    */
-  var start_showing = function(x,y){
+  this.start_showing = function(x,y){
     this.dx = x; this.dy = y;
     this.component().show();
   }
 
   /* stop showing and hide the select box
    */
-  var stop_showing = function(){
+  this.stop_showing = function(){
     var comp = this.component();
     comp.css('left', 0);
     comp.css('top',  0);
@@ -1304,7 +1302,7 @@ function SelectBox(args){
 
   /* update the select box
    */
-  var update_area = function(x,y){
+  this.update_area = function(x,y){
     var comp = this.component();
     if(!comp.is(":visible")) return;
     var tlx = comp.css('left');
@@ -1336,19 +1334,18 @@ function SelectBox(args){
   this.on('mousemove', function(sb, e){
     var x = e.pageX - this.canvas.component().offset().left;
     var y = e.pageY - this.canvas.component().offset().top;
-    update_area.apply(this, [x, y])
+    this.update_area.apply(this, [x, y])
   });
 
   this.on('mousedown', function(sb, e){
     var x = e.pageX - this.canvas.component().offset().left;
     var y = e.pageY - this.canvas.component().offset().top;
-    start_showing.apply(this, [x, y]);
+    this.start_showing.apply(this, [x, y]);
   });
 
   this.on('mouseup', function(sb, e){
-    stop_showing.apply(this);
+    this.stop_showing.apply(this);
   });
-
 }
 
 /* Instantiate and return a new Entity Container
@@ -1426,24 +1423,22 @@ function EntitiesContainer(args){
   this.div_id = args['div_id'];
   this.item_wrapper = 'li';
 
-  /* XXX override refresh to apply items to ul under div
+  /* XXX override component to return ul under div
    * @override
    */
-  this.old_refresh = this.refresh;
-  this.refresh = function(){
-    this.old_div_id = this.div_id;
-    this.div_id += ' ul';
-    this.old_refresh();
-    this.div_id = this.old_div_id;
+  this.component = function(){
+    if(this._list_component == null)
+      this._list_component = $(this.div_id + ' ul')
+    return this._list_component;
   }
 
   // show entities container on hover
   this.on('mouseenter', function(c, e){
-    $(this.div_id + ' ul').show();
+    this.show();
     //this.component().css('z-index', 1)
   });
   this.on('mouseleave', function(c, e){
-    $(this.div_id + ' ul').hide();
+    this.hide();
   });
 }
 
@@ -1466,7 +1461,7 @@ function StatusIndicator(args){
   var states =  [];
 
   // Helper set icon background
-  var set_bg = function(bg){
+  this.set_bg = function(bg){
     if(bg == null){
       this.component().css('background', '');
       return;
@@ -1500,7 +1495,7 @@ function StatusIndicator(args){
    */
   this.push_state = function(state){
     states.push(state);
-    set_bg.apply(this, [state]);
+    this.set_bg.apply(this, [state]);
   }
 
   /* Pop a new state of the stack, this updates the status icon background
@@ -1508,10 +1503,10 @@ function StatusIndicator(args){
   this.pop_state = function(){
     states.pop();
     if(states.length > 0){
-      set_bg.apply(this, [states[states.length-1]])
+      this.set_bg.apply(this, [states[states.length-1]])
 
     }else{
-      set_bg.apply(this, [null]);
+      this.set_bg.apply(this, [null]);
     }
   }
 }

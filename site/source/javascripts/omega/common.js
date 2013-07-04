@@ -121,3 +121,12 @@ var elliptical_path = function(ms){
 
   return path;
 }
+
+// http://stackoverflow.com/questions/15696963/three-js-set-and-read-camera-look-vector
+THREE.Utils = {
+    cameraLookDir: function(camera) {
+        var vector = new THREE.Vector3(0, 0, -1);
+        vector.applyEuler(camera.rotation, camera.eulerOrder);
+        return vector;
+    }
+};
