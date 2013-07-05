@@ -110,4 +110,30 @@ describe("Registry", function(){
     });
   });
 
+  describe("#find", function(){
+    it("returns first entity matching criterial", function(){
+      registry.set('a', 10);
+      registry.set('b', 12);
+      var v = registry.find(function(i) { return i % 2 == 0; });
+      assert(v).equals(10);
+    });
+  })
+
+  describe("#find", function(){
+    it("returns all entities", function(){
+      registry.set('a', 10);
+      registry.set('b', 12);
+      assert(obj_keys(registry.all()).length).equals(2)
+    });
+  });
+
+  describe("#clear", function(){
+    it("clears entity list", function(){
+      registry.set('a', 10);
+      registry.set('b', 12);
+      registry.clear();
+      assert(obj_keys(registry.all()).length).equals(0)
+    });
+  })
+
 });}); // Registry

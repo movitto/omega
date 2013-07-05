@@ -99,4 +99,16 @@ function Registry(){
    this.find = function(callback){
      return this.select(callback)[0];
    }
+
+   /* return all entities
+    */
+   this.all = function(){
+     return entities;
+   }
+
+   /* reset entities list
+    */
+   this.clear = function(){
+     entities = {};
+   }
 }

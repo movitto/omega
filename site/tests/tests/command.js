@@ -257,10 +257,10 @@ describe("Commands", function(){
   describe("#trigger_jump_gate", function(){
     it("retrieves registry ships owned by user within trigger distance of gate", function(){
       var spy = sinon.spy(Entities(), 'select')
+      Session.current_session = { user_id : 'test' }
       Commands.trigger_jump_gate(new JumpGate({location : new Location({x:0,y:0,z:0}),
                                                trigger_distance : 10}))
 
-      Session.current_session = { user_id : 'test' }
       sinon.assert.calledWith(spy,
         sinon.match.func_domain(false, {json_class : 'foobar'}).and(
         sinon.match.func_domain(false, {json_class : 'Manufactured::Ship',

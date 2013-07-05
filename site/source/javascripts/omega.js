@@ -63,8 +63,7 @@ var session_established = function(ui, node, session, user){
   ui.nav_container.show_logout_controls();
 
   // subscribe to chat messages
-  if(!node.handlers['users::on_message']) node.handlers['users::on_message'] = [];
-  node.handlers['users::on_message'].push(function(msg){
+  node.add_handler('users::on_message', function(msg){
     ui.chat_container.output.append(msg.nick + ": " + msg.message + "\n");
   });
   node.ws_request('users::subscribe_to_messages');
@@ -506,21 +505,21 @@ var clicked_station = function(ui, node, station){
 
 /* Internal helper to load system
  */
-var load_system = function(name, ui, node, callback){
+var load_system = function(id, ui, node, callback){
   // XXX use a global to store callbacks for systems
   // which we have requested but not yet retrieved
   if(typeof $system_callbacks === "undefined")
     $system_callbacks = {}
-  if(typeof $system_callbacks[name] === "undefined")
-    $system_callbacks[name] = []
+  if(typeof $system_callbacks[id] === "undefined")
+    $system_callbacks[id] = []
 
   var entity =
-    Entities().cached(name, function(c){
+    Entities().cached(id, function(c){
       // load from server
-      SolarSystem.with_name(c, function(s){
-        for(var cb in $system_callbacks[s.name])
-          $system_callbacks[s.name][cb].apply(s, [s]);
-        $system_callbacks[s.name] = [];
+      SolarSystem.with_id(c, function(s){
+        for(var cb in $system_callbacks[s.id])
+          $system_callbacks[s.id][cb].apply(s, [s]);
+        $system_callbacks[s.id] = [];
 
         // store system in the registry
         Entities().set(s.id, s);
@@ -563,12 +562,12 @@ var load_system = function(name, ui, node, callback){
         }
 
         // retrieve galaxy
-        load_galaxy(s.galaxy_name, ui, node, function(g){
+        load_galaxy(s.galaxy_id, ui, node, function(g){
           s.galaxy = g;
 
           // overwrite system in galaxy.solar_systems
           for(var sys in g.solar_systems){
-            if(g.solar_systems[sys].name == s.name){
+            if(g.solar_systems[sys].id == s.id){
               g.solar_systems[sys] = s;
               break;
             }
@@ -584,26 +583,26 @@ var load_system = function(name, ui, node, callback){
   if(entity != -1)
     callback.apply(null, [entity]);
   else
-    $system_callbacks[name].push(callback);
+    $system_callbacks[id].push(callback);
 }
 
 /* Internal helper to load galaxy
  */
-var load_galaxy = function(name, ui, node, callback){
+var load_galaxy = function(id, ui, node, callback){
   // XXX use a global to store callbacks for systems
   // which we have requested but not yet retrieved
   if(typeof $galaxy_callbacks === "undefined")
     $galaxy_callbacks = [];
-  if(typeof $galaxy_callbacks[name] === "undefined")
-    $galaxy_callbacks[name] = []
+  if(typeof $galaxy_callbacks[id] === "undefined")
+    $galaxy_callbacks[id] = []
 
   // load from server
   var entity =
-    Entities().cached(name, function(c){
-      Galaxy.with_name(c, function(g){
-        for(var cb in $galaxy_callbacks[g.name])
-          $galaxy_callbacks[g.name][cb].apply(g, [g]);
-        $galaxy_callbacks[g.name] = []
+    Entities().cached(id, function(c){
+      Galaxy.with_id(c, function(g){
+        for(var cb in $galaxy_callbacks[g.id])
+          $galaxy_callbacks[g.id][cb].apply(g, [g]);
+        $galaxy_callbacks[g.id] = []
 
         // store galaxy in registry
         Entities().set(g.id, g);
@@ -611,7 +610,7 @@ var load_galaxy = function(name, ui, node, callback){
         // swap systems in
         // right now we only set those retrieved from the server
         for(var sys in this.solar_systems){
-          var rsys = Entities().get(this.solar_systems[sys].name)
+          var rsys = Entities().get(this.solar_systems[sys].id)
           if(rsys && rsys != -1) this.solar_systems[sys] = rsys;
         }
 
@@ -632,7 +631,7 @@ var load_galaxy = function(name, ui, node, callback){
   if(entity != -1)
     callback.apply(null, [entity]);
   else
-    $galaxy_callbacks[name].push(callback);
+    $galaxy_callbacks[id].push(callback);
 }
 
 ////////////////////////////////////////// ui

@@ -11,6 +11,18 @@ var args_to_arry = function(oargs){
   return Array.prototype.slice.call(oargs);
 }
 
+/* retrieve all keys of an object
+ */
+var obj_keys = function(obj){
+  var keys = [];
+  for(var key in obj ){
+    if(obj.hasOwnProperty(key)){
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
 /* retrieve all values of an object
  */
 var obj_values = function(obj){

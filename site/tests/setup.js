@@ -7,7 +7,8 @@ function disable_three_js(){
 }
 
 function reenable_three_js(){
-  UIResources().cached = $old_ui_resources_cached;
+  if(typeof($old_ui_resources_cached) !== "undefined")
+    UIResources().cached = $old_ui_resources_cached;
 }
 
 function create_mouse_event(evnt){
@@ -50,15 +51,17 @@ function TestEntity(args){
 //function before_each(details){
 //}
 //
-//function after_each(details){
-//}
+function after_each(details){
+  Entities().clear();
+  reenable_three_js();
+}
 //
 //function after_all(details){
 //}
 //
 //QUnit.moduleStart(before_all);
 //QUnit.testStart(before_each);
-//QUnit.testDone(after_each);
+QUnit.testDone(after_each);
 //QUnit.moduleDone(after_all);
 
 //////////////////////////////// custom assertions
