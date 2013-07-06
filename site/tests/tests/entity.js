@@ -484,6 +484,13 @@ describe("Ship", function(){
       Session.current_session = null;
     })
 
+    describe("current session is null", function(){
+      it("returns false", function(){
+        Session.current_session = null;
+        assert(sh.belongs_to_current_user()).isFalse();
+      });
+    });
+
     describe("user_id is same as current user's", function(){
       it("returns true", function(){
         sh.user_id = 'test';

@@ -1166,8 +1166,7 @@ describe("SelectBox", function(){
 pavlov.specify("Dialog", function(){
 describe("Dialog", function(){
   after(function(){
-    // remove dialog elements, will get recreated w/ next qunit-fixture
-    $('#omega_dialog').remove();
+    remove_dialogs();
   })
 
   describe("#subdiv", function(){

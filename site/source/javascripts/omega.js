@@ -199,7 +199,7 @@ var manufactured_event = function(ui, node, eargs){
 
   if(evnt == "resource_collected"){
     var ship            = eargs[2];
-    var resource_source = eargs[3];
+    var resource        = eargs[3];
     var quantity        = eargs[3];
 
     var rship = Entities().get(ship.id);
@@ -469,7 +469,7 @@ var clicked_ship = function(ui, node, ship){
       for(var e in entities){
         var entity = entities[e];
         // remotely retrieve resource sources
-        node.web_request('cosmos::get_resource_sources', entity.id,
+        node.web_request('cosmos::get_resources', entity.id,
           function(res){
             if(!res.error){
               for(var r in res.result){

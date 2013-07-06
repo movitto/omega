@@ -239,6 +239,12 @@ function SolarSystem(args){
     this.old_update(args);
   }
 
+  // initialize missing children
+  if(!this.stars)      this.stars      = [];
+  if(!this.planets)    this.planets    = [];
+  if(!this.asteroids)  this.asteroids  = [];
+  if(!this.jump_gates) this.jump_gates = [];
+
   // convert children
   this.location = new Location(this.location);
   for(var s in this.stars) this.stars[s] = new Star(this.stars[s])
@@ -979,7 +985,8 @@ function Ship(args){
     return this.user_id == user;
   }
   this.belongs_to_current_user = function(){
-    return this.belongs_to_user(Session.current_session.user_id);
+    return Session.current_session != null &&
+           this.belongs_to_user(Session.current_session.user_id);
   }
 
   /* helper to set orientation
@@ -1133,7 +1140,7 @@ function Ship(args){
     var details = ['Ship: ' + this.id + '<br/>',
                    '@ ' + this.location.to_s() + '<br/>'];
 
-    if(this.belongs_to_user(Session.current_session.user_id)){
+    if(this.belongs_to_current_user()){
       details.push("<span id='cmd_move_select' class='commands'>move</span>");
       details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
       var dcss = this.docked_at ? 'display: none' : '';
@@ -1360,7 +1367,8 @@ function Station(args){
     return this.user_id == user;
   }
   this.belongs_to_current_user = function(){
-    return this.belongs_to_user(Session.current_session.user_id);
+    return Session.current_session != null &&
+           this.belongs_to_user(Session.current_session.user_id);
   }
 
   /* override update
@@ -1428,7 +1436,7 @@ function Station(args){
   this.details = function(){
     var details = ['Station: ' + this.id + '<br/>',
                    '@ ' + this.location.to_s() + '<br/>'];
-    if(this.belongs_to_user(Session.current_session.user_id))
+    if(this.belongs_to_current_user())
       details.push("<span id='cmd_construct' class='commands'>construct</span>");
     return details;
   }

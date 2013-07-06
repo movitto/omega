@@ -29,6 +29,11 @@ function on_animation(scene, cb){
   }
 }
 
+// remove generated dialogs, will get recreated with next qunit-fixture
+function remove_dialogs(){
+  $('#omega_dialog').remove();
+}
+
 //////////////////////////////// test data
 
 function TestEntity(args){
@@ -102,6 +107,9 @@ pavlov.specify.extendAssertions({
 });
 
 pavlov.specify.extendAssertions({
+  isGreaterThan: function(actual, expected, message) {
+    ok(actual > expected, message);
+  },
   isTypeOf: function(actual, expected, message) {
     ok(typeof(actual) === expected ||
        actual.constructor === expected, message);
@@ -119,6 +127,9 @@ pavlov.specify.extendAssertions({
   },
   empty: function(array, message) {
     ok(array.length == 0, message)
+  },
+  notEmpty: function(array, message) {
+    ok(array.length != 0, message)
   }
 })
 

@@ -399,171 +399,780 @@ pavlov.specify("omega.js", function(){
   });
 
   describe("#refresh_entity_container", function(){
-    it("clears entity container contents");
-    it("adds entity details to entity container");
-    it("shows entity container");
-  });
-  describe("#motel_event", function(){
-    it("updates entity ownining location");
-    describe("scene has entity", function(){
-      it("updates entity in scene");
-    });
-    describe("entity selected", function(){
-      it("refreshes entity container");
-    });
-  });
-  describe("#manufactured_event", function(){
-    describe("resource_collected", function(){
-      it("updates ship");
-      describe("scene has ship", function(){
-        it("animates scene");
-      });
-    });
-    describe("mining_stopped", function(){
-      it("updates ship");
-      describe("scene has ship", function(){
-        it("animates scene");
-      });
-    });
-    describe("attacked", function(){
-      it("updates attacker");
-      it("updates defender");
-      it("sets attacker.attacker = defender");
-      describe("scene has attacker or defender", function(){
-        it("animates scene");
-      });
-    });
-    describe("attacked_stop", function(){
-      it("updates attacker");
-      it("updates defender");
-      it("sets attacker.attacker = null");
-      describe("scene has attacker or defender", function(){
-        it("animates scene");
-      });
-    });
-    describe("defended", function(){
-      it("updates attacker");
-      it("updates defender");
-      it("sets attacker.attacker = defender");
-      describe("scene has attacker or defender", function(){
-        it("animates scene");
-      });
-    });
-    describe("defended_stop", function(){
-      it("updates attacker");
-      it("updates defender");
-      it("sets attacker.attacker = null");
-      describe("scene has attacker or defender", function(){
-        it("animates scene");
-      });
-    });
-    describe("destroyed", function(){
-      it("updates attacker");
-      it("updates defender");
-      it("sets attacker.attacker = null");
-      describe("scene has attacker or defender", function(){
-        it("animates scene");
-      });
-    });
-    describe("construction_complete", function(){
-      it("retrieves ship with id");
-      it("adds ship to registry")
-      it("processes entity")
-    });
-  });
-  describe("#process_stats", function(){
-    it("adds badges to account info");
-  });
-  describe("#handle_events", function(){
-    it("handles click event");
-    describe("entity clicked", function(){
-      it("invokes clicked entity callback");
-    });
-  });
-  describe("#clicked_entity", function(){
-    describe("clicked solar system", function(){
-      it("dispatches to clicked system");
-    });
-    describe("clicked asteroid", function(){
-      it("dispatches to clicked asteroid");
-    });
-    describe("clicked ship", function(){
-      it("dispatches to clicked ship");
-    });
-    describe("clicked station", function(){
-      it("dispatches to clicked station");
-    });
-  });
-  describe("#popup_entity_container", function(){
-    it("clears entity container callbacks");
-    it("handles hide event");
-    describe("container hidden", function(){
-      it("unselects selected entity");
-      it("hides dialog");
-    });
-    it("handles entity unselected event");
-    it("entity unselected");
-    describe("entity container visible", function(){
-      it("hides entity container");
-    });
-    it("clears entity container contents");
-    it("adds entity details to entity container");
-    it("shows entity container");
-  });
-  describe("#clicked_system", function(){
-    it("sets scene");
-  });
-  describe("#clicked_asteroid", function(){
-    it("invokes cosmos::get_resources");
-    describe("on resource retrieval", function(){
-      it("appends resource information to entity container");
-    });
-  });
-  describe("#clicked_ship", function(){
-    describe("ship does not belong to current user", function(){
-      it("just returns");
+    var ui; var entity;
+    before(function(){
+      entity = { details : function() { return 'test'; }}
+      ui = new UI();
+    })
+
+    it("clears entity container contents", function(){
+      var spy = sinon.spy(ui.entity_container.contents, 'clear')
+      refresh_entity_container(ui, null, entity);
+      sinon.assert.called(spy)
     });
 
-    it("clears ship callbacks for all commmands");
-    it("handles all ship commands");
-    describe("on ship 'selection' commands", function(){
-      it("it pops up dialog to make selection");
+    it("adds entity details to entity container", function(){
+      var spy = sinon.spy(ui.entity_container.contents, 'add_text')
+      refresh_entity_container(ui, null, entity);
+      sinon.assert.calledWith(spy, 'test')
     });
-    describe("on ship 'finish selection' commands", function(){
-      it("closes dialog");
-      it("animates scene");
+
+    it("shows entity container", function(){
+      var spy = sinon.spy(ui.entity_container, 'show')
+      refresh_entity_container(ui, null, entity);
+      sinon.assert.called(spy)
     });
-    describe("on ship 'reload' commands", function(){
-      it("reloads entity in scene");
+  });
+
+  describe("#motel_event", function(){
+    var ui, node, entity, oloc, nloc;
+
+    before(function(){
+      disable_three_js();
+      Entities().node(new Node());
+
+      ui = new UI();
+      node = new Node();
+      entity = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
+      Entities().set(entity.id, entity);
+
+      oloc = { id : 'l42' };
+      nloc = { id : 'l42' }
+
+      Session.current_session = {};
+    })
+
+    after(function(){
+      if(refresh_entity_container.restore) refresh_entity_container.restore();
+    })
+
+    it("updates entity owning location", function(){
+      var spy = sinon.spy(entity, 'update');
+      motel_event(ui, node, [oloc, nloc]);
+      sinon.assert.calledWith(spy, { location : nloc});
     });
-    describe("on ship mining selection command", function(){
-      it("retrieves asteroids in the vicinity");
-      it("invokes cosmos::get_resources for each asteroid");
-      describe("on resources retreived", function(){
-        it("adds resource info to dialog");
+
+    describe("scene has entity", function(){
+      it("updates entity in scene", function(){
+        ui.canvas.scene.add_entity(entity);
+        var spy = sinon.spy(ui.canvas.scene, 'animate');
+        motel_event(ui, node, [oloc, nloc]);
+        sinon.assert.called(spy);
+      });
+    });
+    describe("entity selected", function(){
+      it("refreshes entity container", function(){
+        entity.selected = true;
+        refresh_entity_container = sinon.spy(refresh_entity_container);
+        motel_event(ui, node, [oloc, nloc]);
+        sinon.assert.calledWith(refresh_entity_container, ui, node, entity);
       });
     });
   });
-  describe("#clicked_station", function(){
-    describe("station does not belong to current user", function(){
-      it("just returns");
+
+  describe("#manufactured_event", function(){
+    var ui, node;
+    var miner, corvette;
+    var constructor, constructed;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+
+      miner = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
+      corvette = new Ship({ id : 'ship2', location : new Location({id : 'l43' }) });
+      Entities().set(miner.id, miner);
+      Entities().set(corvette.id, corvette);
+
+      constructor = new Station({ id : 'station1'})
+      constructed = new Ship({ id : 'ship3' })
+      Entities().set(constructor.id, constructor);
+    })
+
+    describe("resource_collected", function(){
+      it("updates ship", function(){
+        var spy = sinon.spy(miner, 'update')
+        var nminer = { id : miner.id };
+        manufactured_event(ui, node,
+          [null, 'resource_collected', nminer, {}, 50])
+        sinon.assert.calledWith(spy, nminer)
+      });
+
+      describe("scene has ship", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          manufactured_event(ui, node,
+            [null, 'resource_collected', nminer, {}, 50])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("mining_stopped", function(){
+      it("updates ship", function(){
+        var spy = sinon.spy(miner, 'update')
+        var nminer = { id : miner.id };
+        manufactured_event(ui, node,
+          [null, 'mining_stopped', 'cargo_full', nminer])
+        sinon.assert.calledWith(spy, nminer)
+        assert(miner.mining).isNull();
+      });
+
+      describe("scene has ship", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          manufactured_event(ui, node,
+            [null, 'mining_stopped', 'cargo_full', nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("attacked", function(){
+      it("updates attacker/defender", function(){
+        var spy1 = sinon.spy(miner, 'update')
+        var spy2 = sinon.spy(corvette, 'update')
+        var nminer = { id : miner.id };
+        var ncorvette = { id : corvette.id };
+        manufactured_event(ui, node,
+          [null, 'attacked', ncorvette, nminer])
+        sinon.assert.calledWith(spy1, nminer)
+        sinon.assert.calledWith(spy2, ncorvette)
+        assert(corvette.attacking).equals(miner);
+      });
+
+      describe("scene has attacker or defender", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          var ncorvette = { id : corvette.id };
+          manufactured_event(ui, node,
+            [null, 'attacked', ncorvette, nminer])
+          sinon.assert.called(spy);
+
+          spy.reset();
+          ui.canvas.scene.remove_entity(miner);
+          ui.canvas.scene.add_entity(corvette)
+          manufactured_event(ui, node,
+            [null, 'attacked', ncorvette, nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("attacked_stop", function(){
+      it("updates attacker/defender", function(){
+        var spy1 = sinon.spy(miner, 'update')
+        var spy2 = sinon.spy(corvette, 'update')
+        var nminer = { id : miner.id };
+        var ncorvette = { id : corvette.id };
+        manufactured_event(ui, node,
+          [null, 'attacked_stop', ncorvette, nminer])
+        sinon.assert.calledWith(spy1, nminer)
+        sinon.assert.calledWith(spy2, ncorvette)
+        assert(corvette.attacking).isNull();
+      });
+
+      describe("scene has attacker or defender", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          var ncorvette = { id : corvette.id };
+          manufactured_event(ui, node,
+            [null, 'attacked_stop', ncorvette, nminer])
+          sinon.assert.called(spy);
+
+          spy.reset();
+          ui.canvas.scene.remove_entity(miner);
+          ui.canvas.scene.add_entity(corvette)
+          manufactured_event(ui, node,
+            [null, 'attacked_stop', ncorvette, nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("defended", function(){
+      it("updates attacker/defender", function(){
+        var spy1 = sinon.spy(miner, 'update')
+        var spy2 = sinon.spy(corvette, 'update')
+        var nminer = { id : miner.id };
+        var ncorvette = { id : corvette.id };
+        manufactured_event(ui, node,
+          [null, 'defended', ncorvette, nminer])
+        sinon.assert.calledWith(spy1, nminer)
+        sinon.assert.calledWith(spy2, ncorvette)
+        assert(corvette.attacking).equals(miner);
+      });
+
+      describe("scene has attacker or defender", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          var ncorvette = { id : corvette.id };
+          manufactured_event(ui, node,
+            [null, 'defended', ncorvette, nminer])
+          sinon.assert.called(spy);
+
+          spy.reset();
+          ui.canvas.scene.remove_entity(miner);
+          ui.canvas.scene.add_entity(corvette)
+          manufactured_event(ui, node,
+            [null, 'defended', ncorvette, nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("defended_stop", function(){
+      it("updates attacker/defender", function(){
+        var spy1 = sinon.spy(miner, 'update')
+        var spy2 = sinon.spy(corvette, 'update')
+        var nminer = { id : miner.id };
+        var ncorvette = { id : corvette.id };
+        manufactured_event(ui, node,
+          [null, 'defended_stop', ncorvette, nminer])
+        sinon.assert.calledWith(spy1, nminer)
+        sinon.assert.calledWith(spy2, ncorvette)
+        assert(corvette.attacking).isNull();
+      });
+
+      describe("scene has attacker or defender", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          var ncorvette = { id : corvette.id };
+          manufactured_event(ui, node,
+            [null, 'defended_stop', ncorvette, nminer])
+          sinon.assert.called(spy);
+
+          spy.reset();
+          ui.canvas.scene.remove_entity(miner);
+          ui.canvas.scene.add_entity(corvette)
+          manufactured_event(ui, node,
+            [null, 'defended_stop', ncorvette, nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("destroyed", function(){
+      it("updates attacker/defender", function(){
+        var spy1 = sinon.spy(miner, 'update')
+        var spy2 = sinon.spy(corvette, 'update')
+        var nminer = { id : miner.id };
+        var ncorvette = { id : corvette.id };
+        manufactured_event(ui, node,
+          [null, 'destroyed', ncorvette, nminer])
+        sinon.assert.calledWith(spy1, nminer)
+        sinon.assert.calledWith(spy2, ncorvette)
+        assert(corvette.attacking).isNull();
+      });
+
+      describe("scene has attacker or defender", function(){
+        it("animates scene", function(){
+          var spy = sinon.spy(ui.canvas.scene, 'animate')
+          ui.canvas.scene.add_entity(miner)
+          var nminer = { id : miner.id };
+          var ncorvette = { id : corvette.id };
+          manufactured_event(ui, node,
+            [null, 'destroyed', ncorvette, nminer])
+          sinon.assert.called(spy);
+
+          spy.reset();
+          ui.canvas.scene.remove_entity(miner);
+          ui.canvas.scene.add_entity(corvette)
+          manufactured_event(ui, node,
+            [null, 'destroyed', ncorvette, nminer])
+          sinon.assert.called(spy);
+        });
+      });
+    });
+
+    describe("construction_complete", function(){
+      after(function(){
+        if(Ship.with_id.restore) Ship.with_id.restore();
+        if(process_entity.restore) process_entity.restore();
+      })
+
+      it("retrieves ship with id", function(){
+        var spy = sinon.spy(Ship, 'with_id')
+        nconstructor = { id : constructor.id }
+        nconstructed = { id : constructed.id }
+        manufactured_event(ui, node,
+          [null, 'construction_complete', nconstructor, nconstructed])
+        sinon.assert.calledWith(spy, nconstructed.id)
+      });
+
+      describe("on entity retrieval", function(){
+        it("adds ship to registry and processes", function(){
+          var spy = sinon.spy(Ship, 'with_id')
+          nconstructor = { id : constructor.id }
+          nconstructed = { id : constructed.id }
+          manufactured_event(ui, node,
+            [null, 'construction_complete', nconstructor, nconstructed])
+          var cb = spy.getCall(0).args[1];
+
+          process_entity = sinon.spy(process_entity);
+          cb.apply(null, [nconstructed]);
+          assert(Entities().get(nconstructed.id)).isNotNull();
+          sinon.assert.calledWith(process_entity, ui, node, nconstructed);
+        })
+      });
     });
   });
-  describe("#load_system", function(){
-    it("TODO")
+
+  // TODO
+  //describe("#process_stats", function(){
+  //  it("adds badges to account info");
+  //});
+
+  describe("#handle_events", function(){
+    var ui, node;
+    var e1, e2;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      e1 = new Entity({ id : 'e1', details : function() { return ""; }});
+      e2 = new Entity({ id : 'e2', details : function() { return ""; }});
+    })
+
+    after(function(){
+      if(handle_events.restore) handle_events.restore();
+      if(clicked_entity.restore) clicked_entity.restore();
+    })
+
+    it("handles multiple entities", function(){
+      handle_events = sinon.spy(handle_events);
+      handle_events(ui, node, [e1, e2]);
+      sinon.assert.calledWith(handle_events, ui, node, e1);
+      sinon.assert.calledWith(handle_events, ui, node, e2);
+    });
+
+    it("handles click event", function(){
+      handle_events(ui, node, e1);
+      assert(e1.callbacks['click'].length).equals(1)
+    });
+
+    describe("entity clicked", function(){
+      it("invokes clicked entity callback", function(){
+        handle_events(ui, node, e1);
+        cb = e1.callbacks['click'][0];
+
+        clicked_entity = sinon.spy(clicked_entity);
+        cb.apply(null, [e1])
+        sinon.assert.calledWith(clicked_entity, ui, node, e1)
+      });
+    });
   });
-  describe("#load_galaxy", function(){
-    it("TODO")
+
+  describe("#clicked_entity", function(){
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+
+      if(popup_entity_container.restore) popup_entity_container.restore();
+      if(clicked_system.restore) clicked_system.restore();
+      if(clicked_asteroid.restore) clicked_asteroid.restore();
+      if(clicked_ship.restore) clicked_ship.restore();
+      if(clicked_station.restore) clicked_station.restore();
+    })
+
+    it("unselects currently selected entity", function(){
+      var s1 = new Ship({ id : 42 });
+      var s2 = new Ship({ id : 43 });
+      s1.selected = true
+      Entities().set(s1.id, s1)
+      ui.canvas.scene.add_entity(s1);
+
+      clicked_entity(ui, node, s2);
+      assert(s1.selected).isFalse();
+    });
+
+    describe("clicked solar system", function(){
+      it("dispatches to clicked system", function(){
+        var sys = new SolarSystem();
+        clicked_system = sinon.spy(clicked_system);
+        clicked_entity(ui, node, sys);
+        sinon.assert.calledWith(clicked_system, ui, node, sys);
+      });
+    });
+
+    describe("clicked asteroid", function(){
+      it("pops up entity container", function(){
+        var asteroid = new Asteroid();
+        popup_entity_container = sinon.spy(popup_entity_container);
+        clicked_entity(ui, node, asteroid);
+        sinon.assert.calledWith(popup_entity_container, ui, node, asteroid);
+      });
+
+      it("dispatches to clicked asteroid", function(){
+        var asteroid = new Asteroid();
+        clicked_asteroid = sinon.spy(clicked_asteroid);
+        clicked_entity(ui, node, asteroid);
+        sinon.assert.calledWith(clicked_asteroid, ui, node, asteroid);
+      });
+    });
+
+    describe("clicked ship", function(){
+      it("pops up entity container", function(){
+        var ship = new Ship();
+        popup_entity_container = sinon.spy(popup_entity_container);
+        clicked_entity(ui, node, ship);
+        sinon.assert.calledWith(popup_entity_container, ui, node, ship);
+      });
+
+      it("dispatches to clicked ship", function(){
+        var ship = new Ship();
+        clicked_ship = sinon.spy(clicked_ship);
+        clicked_entity(ui, node, ship);
+        sinon.assert.calledWith(clicked_ship, ui, node, ship);
+      });
+    });
+
+    describe("clicked station", function(){
+      it("pops up entity container", function(){
+        var station = new Station();
+        popup_entity_container = sinon.spy(popup_entity_container);
+        clicked_entity(ui, node, station);
+        sinon.assert.calledWith(popup_entity_container, ui, node, station);
+      });
+
+      it("dispatches to clicked station", function(){
+        var station = new Station();
+        clicked_station = sinon.spy(clicked_station);
+        clicked_entity(ui, node, station);
+        sinon.assert.calledWith(clicked_station, ui, node, station);
+      });
+    });
   });
+
+  describe("#popup_entity_container", function(){
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+    })
+
+    it("clears entity container callbacks", function(){
+      var spy = sinon.spy(ui.entity_container, 'clear_callbacks')
+      popup_entity_container(ui, node, new Ship());
+      sinon.assert.called(spy);
+    });
+
+    it("handles hide event", function(){
+      popup_entity_container(ui, node, new Ship());
+      assert(ui.entity_container.callbacks['hide'].length).equals(1)
+    });
+
+    describe("container hidden", function(){
+      var cb;
+      before(function(){
+        popup_entity_container(ui, node, new Ship({ id : 'ship1' }));
+        cb = ui.entity_container.callbacks['hide'][0];
+      })
+
+      it("unselects selected entity", function(){
+        var spy = sinon.spy(ui.canvas.scene, 'unselect');
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, 'ship1');
+      });
+
+      it("hides dialog", function(){
+        var spy = sinon.spy(ui.dialog, 'hide');
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
+    });
+
+    it("handles entity unselected event", function(){
+      var s = new Ship();
+      popup_entity_container(ui, node, s);
+      assert(s.callbacks['unselected'].length).equals(1)
+    });
+
+    describe("entity unselected", function(){
+      it("hides entity container", function(){
+        var s = new Ship();
+        popup_entity_container(ui, node, s);
+
+        ui.entity_container.show();
+        var spy = sinon.spy(ui.entity_container, 'hide');
+
+        var cb = s.callbacks['unselected'][0];
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
+    });
+
+    it("clears entity container contents", function(){
+      var spy = sinon.spy(ui.entity_container.contents, 'clear');
+      var s = new Ship();
+      popup_entity_container(ui, node, s);
+      sinon.assert.called(spy);
+    });
+
+    it("adds entity details to entity container", function(){
+      var spy = sinon.spy(ui.entity_container.contents, 'add_text');
+      var s = new Ship();
+      s.details = function() { return "text"; }
+      popup_entity_container(ui, node, s);
+      sinon.assert.calledWith(spy, 'text');
+    });
+
+    it("shows entity container", function(){
+      var spy = sinon.spy(ui.entity_container, 'show');
+      var s = new Ship();
+      popup_entity_container(ui, node, s);
+      sinon.assert.called(spy);
+    });
+  });
+
+  describe("#clicked_system", function(){
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+
+      if(set_scene.restore) set_scene.restore();
+    })
+
+    it("sets scene", function(){
+      set_scene = sinon.spy(set_scene);
+      var sys = new SolarSystem()
+      clicked_system(ui, node, sys);
+      sinon.assert.calledWith(set_scene, ui, sys);
+    });
+  });
+
+  describe("#clicked_asteroid", function(){
+    var ui, node;
+
+    before(function(){
+      ui   = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+    })
+
+    it("invokes cosmos::get_resources", function(){
+      var spy = sinon.spy(node, 'web_request');
+      var ast = new Asteroid({ id : 'ast1' });
+      clicked_asteroid(ui, node, ast);
+      sinon.assert.calledWith(spy, 'cosmos::get_resources', ast.id);
+    });
+
+    describe("on resource retrieval", function(){
+      it("appends resource information to entity container", function(){
+        var spy1 = sinon.spy(node, 'web_request');
+        var ast = new Asteroid({ id : 'ast1' });
+        clicked_asteroid(ui, node, ast);
+
+        var spy2 = sinon.spy(ui.entity_container.contents, 'add_item');
+
+        var cb = spy1.getCall(0).args[2];
+        var res = { result : [{id : 'res1', quantity: 50, material_id: 'metal-steel'}]};
+        cb.apply(null, [res]);
+
+        sinon.assert.calledWith(spy2,
+          [{id: 'resources_title', text: 'Resources: <br/>'},
+           {id : 'res1', text: '50 of metal-steel<br/>'}])
+      });
+    });
+  });
+
+  describe("#clicked_ship", function(){
+    var ui, node;
+    var ship;
+    var cmds =
+      ['cmd_move_select', 'cmd_attack_select',
+       'cmd_dock_select', 'cmd_mine_select',
+       'cmd_move', 'cmd_attack',
+       'cmd_dock', 'cmd_mine',
+       'cmd_dock', 'cmd_undock'];
+
+    before(function(){
+      ui   = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+
+      Session.current_session = { user_id : 'user1' }
+      ship = new Ship({ user_id : 'user1',
+                        location : new Location({x:0,y:0,z:0}) });
+    })
+
+    it("clears ship callbacks for all commmands", function(){
+      var spy = sinon.spy(ship, 'clear_callbacks');
+      clicked_ship(ui, node, ship);
+      for( var c in cmds)
+        sinon.assert.calledWith(spy, cmds[c]);
+    });
+
+    it("handles all ship commands", function(){
+      clicked_ship(ui, node, ship);
+      for(var c in cmds)
+        assert(ship.callbacks[cmds[c]]).notEmpty();
+    });
+
+    describe("on ship 'selection' commands", function(){
+      it("it pops up dialog to make selection", function(){
+        clicked_ship(ui, node, ship);
+        var cb = ship.callbacks['cmd_move_select'][0]; // TODO teset other selection cmds?
+        cb.apply(null, ['cmd_move_select', ship, 'title', 'content']);
+        assert(ui.dialog.visible()).isTrue();
+        assert(ui.dialog.title).equals('title')
+        assert(ui.dialog.text).equals('content')
+      });
+    });
+
+    describe("on ship 'finish selection' commands", function(){
+      it("closes dialog/animates scene", function(){
+        clicked_ship(ui, node, ship);
+        var cb = ship.callbacks['cmd_move'][0]; // TODO teset other finished selection cmds?
+        var spy1 = sinon.spy(ui.canvas.scene, 'animate')
+        var spy2 = sinon.spy(ui.dialog, 'hide')
+        cb.apply(null, ['cmd_move', ship]);
+        sinon.assert.called(spy1)
+        sinon.assert.called(spy2)
+      });
+    });
+
+    describe("on ship 'reload' commands", function(){
+      it("reloads entity in scene", function(){
+        clicked_ship(ui, node, ship);
+        var cb = ship.callbacks['cmd_undock'][0]; // TODO teset other reload cmds?
+        var spy = sinon.spy(ui.canvas.scene, 'reload_entity')
+        cb.apply(null, ['cmd_undock', ship]);
+        sinon.assert.calledWith(spy, ship)
+      });
+    });
+
+    describe("on ship mining selection command", function(){
+      after(function(){
+        remove_dialogs();
+        if(Entities().select.restore) Entities().select.restore();
+      })
+
+      it("retrieves asteroids in the vicinity", function(){
+        clicked_ship(ui, node, ship);
+        var cb = ship.callbacks['cmd_mine_select'][1];
+
+        var spy = sinon.spy(Entities(), 'select')
+        cb.apply(null, ['cmd_mine_select', ship]);
+        sinon.assert.calledWith(spy,
+          sinon.match.func_domain(false, {json_class : 'foobar'}).and(
+          sinon.match.func_domain(false, {json_class : 'Cosmos::Asteroid',
+                                          location : new Location({x:100,y:100,z:100})})).and(
+          sinon.match.func_domain(true,  {json_class : 'Cosmos::Asteroid',
+                                          location : new Location({x:0,y:0,z:0})})))
+      });
+
+      it("invokes cosmos::get_resources for each asteroid", function(){
+        clicked_ship(ui, node, ship);
+        var cb = ship.callbacks['cmd_mine_select'][1];
+        var stub =
+          sinon.stub(Entities(), 'select').returns([new Asteroid({id:'ast1'})]);
+
+        var spy = sinon.spy(node, 'web_request')
+        cb.apply(null, ['cmd_mine_select', ship]);
+        sinon.assert.calledWith(spy, 'cosmos::get_resources', 'ast1')
+      });
+
+      describe("on resources retreived", function(){
+        it("adds resource info to dialog", function(){
+          clicked_ship(ui, node, ship);
+          var cb = ship.callbacks['cmd_mine_select'][1];
+          var stub =
+            sinon.stub(Entities(), 'select').returns([new Asteroid({id:'ast1'})]);
+
+          var spy = sinon.spy(node, 'web_request')
+          cb.apply(null, ['cmd_mine_select', ship]);
+
+          var cb2 = spy.getCall(0).args[2];
+          var res = {result : [{ id : 'res1', material_id : 'gem-diamond', quantity : 100}]}
+
+          var spy2 = sinon.spy(ui.dialog, 'append');
+          cb.apply(null, [res]);
+          sinon.assert.called(spy); // TODO with content generated from res
+        });
+      });
+    });
+  });
+
+  // TODO
+  //describe("#clicked_station", function(){
+  //});
+  //describe("#load_system", function(){
+  //});
+  //describe("#load_galaxy", function(){
+  //});
+
   describe("#wire_up_ui", function(){
-    it("wires up nav container");
-    it("wires up status indicator");
-    it("wires up jplayer");
-    it("wires up entities lists");
-    it("wires up canvas");
-    it("wires up chat container");
-    it("wires up account info container");
+    var ui, node;
+    before(function(){
+      ui = new UI();
+      node = new Node();
+    })
+
+    after(function(){
+      if(wire_up_nav.restore) wire_up_nav.restore();
+      if(wire_up_status.restore) wire_up_status.restore();
+      if(wire_up_jplayer.restore) wire_up_jplayer.restore();
+      if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
+      if(wire_up_canvas.restore) wire_up_canvas.restore();
+      if(wire_up_chat.restore) wire_up_chat.restore();
+      if(wire_up_account_info.restore) wire_up_account_info.restore();
+    })
+
+    it("wires up all ui subsystems", function(){
+      wire_up_nav = sinon.spy(wire_up_nav);
+      wire_up_status = sinon.spy(wire_up_status);
+      wire_up_jplayer = sinon.spy(wire_up_jplayer);
+      wire_up_entities_lists = sinon.spy(wire_up_entities_lists);
+      wire_up_canvas = sinon.spy(wire_up_canvas);
+      wire_up_chat = sinon.spy(wire_up_chat);
+      wire_up_account_info = sinon.spy(wire_up_account_info);
+
+      wire_up_ui(ui, node);
+      sinon.assert.calledWith(wire_up_nav, ui, node);
+      sinon.assert.calledWith(wire_up_status, ui, node);
+      sinon.assert.calledWith(wire_up_jplayer, ui, node);
+      sinon.assert.calledWith(wire_up_entities_lists, ui, node);
+      sinon.assert.calledWith(wire_up_canvas, ui, node);
+      sinon.assert.calledWith(wire_up_chat, ui, node);
+      sinon.assert.calledWith(wire_up_account_info, ui, node);
+    });
   });
+
   describe("#wire_up_nav", function(){
     it("handles login link click event");
     describe("on login link click", function(){
@@ -630,9 +1239,9 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  describe("#wire_up_jplayer", function(){
-    it("TODO");
-  });
+  // TODO?
+  //describe("#wire_up_jplayer", function(){
+  //});
 
   describe("#wire_up_entities_lists", function(){
     it("handles locations container click_item events");
