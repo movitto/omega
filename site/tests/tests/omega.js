@@ -1174,17 +1174,50 @@ pavlov.specify("omega.js", function(){
   });
 
   describe("#wire_up_nav", function(){
-    it("handles login link click event");
-    describe("on login link click", function(){
-      it("pops up login dialog");
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+      remove_dialogs();
+    })
+
+    it("handles login link click event", function(){
+      wire_up_nav(ui, node);
+      assert(ui.nav_container.login_link.callbacks['click'].length).equals(1);
     });
 
-    it("handles login button click event");
+    describe("on login link click", function(){
+      it("pops up login dialog", function(){
+        wire_up_nav(ui, node);
+        var cb = ui.nav_container.login_link.callbacks['click'][0];
+        assert(ui.dialog.visible()).isTrue();
+        assert(ui.dialog.title).equals('Login')
+        assert(ui.dialog.text).equals('')
+        assert(ui.dialog.selector).equals('#login_dialog')
+      });
+    });
+
+    it("handles login button click event", function(){
+      wire_up_nav(ui, node);
+      assert(ui.nav_container.login_button.callbacks['click'].length).equals(1);
+    });
+
     describe("on login button click", function(){
-      it("hides login dialog");
-      it("reads username / password inputs");
-      it("creates new user");
-      it("logs user in");
+      var cb;
+
+      before(function(){
+        wire_up_nav(ui, node);
+        cb = ui.nav_container.login_button.callbacks['click'][0];
+      })
+
+      it("hides login dialog", function(){
+        var spy = sinon.spy(ui.dialog, 'hide')
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
+
+      it("logs dialog user in");
       describe("on successful user login", function(){
         it("establishes session");
       });
