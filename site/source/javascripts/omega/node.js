@@ -170,7 +170,8 @@ Session.login = function(user, node, cb){
 
 Session.logout = function(node, cb){
   node.web_request('users::logout', Session.current_session.id, function(response){
-    Session.current_session.clear_headers_on(node)
+    if(Session.current_session)
+      Session.current_session.clear_headers_on(node)
     Session.current_session = null;
     if(cb) cb();
   });

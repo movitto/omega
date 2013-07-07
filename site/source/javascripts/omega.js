@@ -693,9 +693,9 @@ var wire_up_nav = function(ui, node){
   ui.nav_container.
      register_button.on('click', function(){
        ui.dialog.hide();
-       var user_id             = $('#omega_dialog #register_username').attr('value');
-       var user_password       = $('#omega_dialog #register_password').attr('value');
-       var user_email          = $('#omega_dialog #register_email').attr('value');
+       var user_id             = ui.dialog.subdiv('#register_username').attr('value');
+       var user_password       = ui.dialog.subdiv('#register_password').attr('value');
+       var user_email          = ui.dialog.subdiv('#register_email').attr('value');
        var recaptcha_challenge = Recaptcha.get_challenge();
        var recaptcha_response  = Recaptcha.get_response();
 

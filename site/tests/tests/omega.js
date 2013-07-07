@@ -1179,8 +1179,12 @@ pavlov.specify("omega.js", function(){
     before(function(){
       ui = new UI();
       node = new Node();
-      remove_dialogs();
     })
+
+    after(function(){
+      remove_dialogs();
+      if(Session.login.restore) Session.login.restore();
+    });
 
     it("handles login link click event", function(){
       wire_up_nav(ui, node);
@@ -1191,7 +1195,8 @@ pavlov.specify("omega.js", function(){
       it("pops up login dialog", function(){
         wire_up_nav(ui, node);
         var cb = ui.nav_container.login_link.callbacks['click'][0];
-        assert(ui.dialog.visible()).isTrue();
+        cb.apply(null, []);
+        assert(ui.dialog.visible());
         assert(ui.dialog.title).equals('Login')
         assert(ui.dialog.text).equals('')
         assert(ui.dialog.selector).equals('#login_dialog')
@@ -1209,6 +1214,13 @@ pavlov.specify("omega.js", function(){
       before(function(){
         wire_up_nav(ui, node);
         cb = ui.nav_container.login_button.callbacks['click'][0];
+
+        // click login link to popup login dialog
+        ui.nav_container.login_link.callbacks['click'][0].apply(null, [])
+      })
+
+      after(function(){
+        if(session_established.restore) session_established.restore();
       })
 
       it("hides login dialog", function(){
@@ -1217,46 +1229,176 @@ pavlov.specify("omega.js", function(){
         sinon.assert.called(spy);
       });
 
-      it("logs dialog user in");
+      it("logs dialog user in", function(){
+        ui.dialog.subdiv('#login_username').attr('value', 'uid');
+        ui.dialog.subdiv('#login_password').attr('value', 'ups');
+
+        var spy = sinon.spy(Session, 'login')
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, sinon.match(function(v){
+          return v.id == 'uid' && v.password == 'ups';
+        }), node);
+      });
+
       describe("on successful user login", function(){
-        it("establishes session");
+        it("establishes session", function(){
+          var spy = sinon.spy(Session, 'login')
+          cb.apply(null, []);
+
+          var cb2 = spy.getCall(0).args[2];
+          session_established = sinon.spy(session_established);
+          cb2.apply(null, [new Session({})])
+          sinon.assert.called(session_established);
+        });
       });
     });
 
-    it("handles register link click event");
+    it("handles register link click event", function(){
+      wire_up_nav(ui, node);
+      assert(ui.nav_container.register_link.callbacks['click'].length).equals(1);
+    });
+
     describe("on register link click", function(){
-      it("pops up register dialog");
-      it("generates recpatcha");
+      it("pops up register dialog", function(){
+        wire_up_nav(ui, node);
+        var cb = ui.nav_container.register_link.callbacks['click'][0];
+        cb.apply(null, []);
+        assert(ui.dialog.visible());
+        assert(ui.dialog.title).equals('Register')
+        assert(ui.dialog.text).equals('')
+        assert(ui.dialog.selector).equals('#register_dialog')
+      });
+
+      // TODO
+      //it("generates recpatcha");
     });
 
-    it("handles register button click event");
+    it("handles register button click event", function(){
+      wire_up_nav(ui, node);
+      assert(ui.nav_container.register_button.callbacks['click'].length).equals(1);
+    });
+
     describe("on register button click", function(){
-      it("hides register dialog");
-      it("reads username / password / email / recaptcha inputs");
-      it("creates new user");
-      it("invokes register user web request");
-      describe("on failed user registration", function(){
-        it("shows failed registration dialog with reason");
+      var cb;
+
+      before(function(){
+        wire_up_nav(ui, node);
+        cb = ui.nav_container.register_button.callbacks['click'][0];
+
+        // click register link to popup register dialog
+        ui.nav_container.register_link.callbacks['click'][0].apply(null, [])
+      })
+
+      it("hides register dialog", function(){
+        var spy = sinon.spy(ui.dialog, 'hide')
+        cb.apply(null, []);
+        sinon.assert.called(spy);
       });
+
+      it("invokes register dialog user web request", function(){
+        ui.dialog.subdiv('#register_username').attr('value', 'uid');
+        ui.dialog.subdiv('#register_password').attr('value', 'ups');
+        ui.dialog.subdiv('#register_email').attr('value', 'uem');
+
+        var spy = sinon.spy(node, 'web_request');
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, 'users::register', sinon.match(function(v){
+          // TODO also validate recaptcha / recaptcha response
+          return v.id == 'uid' && v.password == 'ups' && v.email == 'uem';
+        }));
+      });
+
+      describe("on failed user registration", function(){
+        it("shows failed registration dialog with reason", function(){
+          var spy = sinon.spy(node, 'web_request');
+          cb.apply(null, []);
+
+          var cb2 = spy.getCall(0).args[2];
+          cb2.apply(null, [{ error : { message : 'invalid email'}}])
+          assert(ui.dialog.visible()).isTrue();
+          assert(ui.dialog.title).equals('Failed to create account');
+          assert(ui.dialog.selector).equals('#registration_failed_dialog');
+          assert(ui.dialog.text).equals('invalid email');
+        });
+      });
+
       describe("on successful user registration", function(){
-        it("shows successful registration dialog");
+        it("shows successful registration dialog", function(){
+          var spy = sinon.spy(node, 'web_request');
+          cb.apply(null, []);
+
+          var cb2 = spy.getCall(0).args[2];
+          cb2.apply(null, [{}])
+          assert(ui.dialog.visible()).isTrue();
+          assert(ui.dialog.title).equals('Creating Account');
+          assert(ui.dialog.selector).equals('#registration_submitted_dialog');
+          assert(ui.dialog.text).equals('');
+        });
       });
     });
 
-    it("handles logout link click event");
+    it("handles logout link click event", function(){
+      wire_up_nav(ui, node);
+      assert(ui.nav_container.logout_link.callbacks['click'].length).equals(1);
+    });
+
     describe("on logout link click", function(){
-      it("logs the session out");
-      it("hides missions button");
-      it("hides entities container");
-      it("hides locations container");
-      it("hides entity container");
-      it("hides dialog");
-      it("hides chat container");
-      it("hides chat container toggle");
-      it("clears canvas scene");
-      it("hides canvas skybox/axis/grid");
-      it("resets canvas camera");
-      it("shows login controls");
+      var cb;
+
+      before(function(){
+        wire_up_nav(ui, node);
+        cb = ui.nav_container.logout_link.callbacks['click'][0];
+        Session.current_session = new Session({});
+      })
+
+      after(function(){
+        if(Session.logout.restore) Session.logout.restore();
+        Session.current_session = null;
+      })
+
+      it("logs the session out", function(){
+        var spy = sinon.spy(Session, 'logout');
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, node);
+        // TODO assert login_anon is invoked upon response
+      });
+
+      it("hides ui components", function(){
+        var spies = [sinon.spy(ui.missions_button, 'hide'),
+                     sinon.spy(ui.entities_container, 'hide'),
+                     sinon.spy(ui.locations_container, 'hide'),
+                     sinon.spy(ui.entity_container, 'hide'),
+                     sinon.spy(ui.dialog, 'hide'),
+                     sinon.spy(ui.chat_container, 'hide'),
+                     sinon.spy(ui.chat_container.toggle_control(), 'hide')];
+        cb.apply(null, []);
+        for(var spy in spies)
+          sinon.assert.called(spies[spy]);
+      });
+
+      it("clears canvas scene / resets canvas camera", function(){
+        var spy1 = sinon.spy(ui.canvas.scene, 'clear_entities');
+        var spy2 = sinon.spy(ui.canvas.scene.camera, 'reset');
+        cb.apply(null, []);
+        sinon.assert.called(spy1);
+        sinon.assert.called(spy2);
+      });
+
+      it("hides canvas skybox/axis/grid", function(){
+        var spy1 = sinon.spy(ui.canvas.scene.skybox, 'shide');
+        var spy2 = sinon.spy(ui.canvas.scene.axis, 'shide');
+        var spy3 = sinon.spy(ui.canvas.scene.grid, 'shide');
+        cb.apply(null, []);
+        sinon.assert.called(spy1);
+        sinon.assert.called(spy2);
+        sinon.assert.called(spy3);
+      });
+
+      it("shows login controls", function(){
+        var spy = sinon.spy(ui.nav_container, 'show_login_controls');
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
     });
   });
 
