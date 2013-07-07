@@ -1530,7 +1530,8 @@ function Mission(args){
   /* Return boolean indicating if mission is assigned to the current user
    */
   this.assigned_to_current_user = function(){
-    return this.assigned_to_user(Session.current_session.user_id);
+    return Session.current_session != null &&
+           this.assigned_to_user(Session.current_session.user_id);
   }
 }
 

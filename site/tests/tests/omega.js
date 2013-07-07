@@ -1403,14 +1403,40 @@ pavlov.specify("omega.js", function(){
   });
 
   describe("#wire_up_status", function(){
-    it("handles all node requests");
-    describe("on node request", function(){
-      it("pushes 'loading' status onto indicator");
+    var ui, node;
+    before(function(){
+      ui = new UI();
+      node = new Node();
+    })
+
+    it("handles all node requests", function(){
+      wire_up_status(ui, node);
+      assert(node.callbacks['request'].length).equals(1);
     });
 
-    it("handles all node messages received");
+    describe("on node request", function(){
+      it("pushes 'loading' status onto indicator", function(){
+        var spy = sinon.spy(ui.status_indicator, 'push_state')
+        wire_up_status(ui, node);
+        var cb = node.callbacks['request'][0];
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, 'loading')
+      });
+    });
+
+    it("handles all node messages received", function(){
+      wire_up_status(ui, node);
+      assert(node.callbacks['msg_received'].length).equals(1);
+    });
+
     describe("on node msg received", function(){
-      it("pops top status off indicator stack");
+      it("pops top status off indicator stack", function(){
+        var spy = sinon.spy(ui.status_indicator, 'pop_state')
+        wire_up_status(ui, node);
+        var cb = node.callbacks['msg_received'][0];
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
     });
   });
 
@@ -1419,67 +1445,273 @@ pavlov.specify("omega.js", function(){
   //});
 
   describe("#wire_up_entities_lists", function(){
-    it("handles locations container click_item events");
+    var ui, node;
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+    })
+
+    after(function(){
+      if(set_scene.restore) set_scene.restore();
+      if(show_missions.restore) show_missions.restore();
+      if(Mission.all.restore) Mission.all.restore();
+      if(Entities().set.restore) Entities().set.restore();
+    })
+
+    it("handles locations container click_item events", function(){
+      wire_up_entities_lists(ui, node);
+      assert(ui.locations_container.callbacks['click_item'].length).equals(1);
+    });
+
     describe("on locations container click_item", function(){
-      it("sets scene to clicked item");
+      it("sets scene to clicked item", function(){
+        wire_up_entities_lists(ui, node);
+        var cb = ui.locations_container.callbacks['click_item'][0];
+        set_scene = sinon.spy(set_scene);
+        var sys = new SolarSystem();
+        cb.apply(null, [null, {item : sys}, null]);
+        sinon.assert.calledWith(set_scene, ui, sys);
+      });
     });
-    it("handles entities container click_item events");
+
+    it("handles entities container click_item events", function(){
+      wire_up_entities_lists(ui, node);
+      assert(ui.entities_container.callbacks['click_item'].length).equals(1);
+    });
+
     describe("on entities container click_item", function(){
-      it("sets scene to clicked item's solar system");
+      it("sets scene to clicked item's solar system", function(){
+        wire_up_entities_lists(ui, node);
+        var cb = ui.entities_container.callbacks['click_item'][0];
+        set_scene = sinon.spy(set_scene);
+        var sys = new SolarSystem();
+        var loc = new Location();
+        cb.apply(null, [null, {item : {solar_system : sys, location : loc}}, null]);
+        sinon.assert.calledWith(set_scene, ui, sys, loc);
+      });
     });
-    it("handles missions button click events");
+
+    it("handles missions button click events", function(){
+      wire_up_entities_lists(ui, node);
+      assert(ui.missions_button.callbacks['click'].length).equals(1);
+    });
+
     describe("on mission button click", function(){
-      it("retrieves all missions");
-      it("shows missions");
-    });
-    it("handles assign mission click event");
-    describe("on assign mission click", function(){
-      describe("error during mission assignment", function(){
-        it("shows error in dialog");
+      it("retrieves/shows all missions", function(){
+        var m1 = new Mission({ id : 'm1' });
+
+        wire_up_entities_lists(ui, node);
+        var cb = ui.missions_button.callbacks['click'][0];
+        var spy = sinon.spy(Mission, 'all')
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+
+        cb = spy.getCall(0).args[0];
+        show_missions = sinon.spy(show_missions);
+        spy = sinon.spy(Entities(), 'set');
+        cb.apply(null, [[m1]]);
+        sinon.assert.calledWith(spy, m1.id, m1);
+        sinon.assert.calledWith(show_missions, [m1], ui);
       });
-      describe("successful mission assignment", function(){
-        it("updates registry entity")
-        it("hides dialog");
-      });
     });
+
+    // TODO
+    //describe("on assign mission click", function(){
+    //  describe("error during mission assignment", function(){
+    //    it("shows error in dialog", function(){
+    //    });
+    //  });
+
+    //  describe("successful mission assignment", function(){
+    //    it("updates registry entity")
+    //    it("hides dialog");
+    //  });
+    //});
   });
 
   describe("#set_scene", function(){
-    it("hides dialog");
-    it("unselects selected entity");
-    it("removes old skybox");
-    it("clears scene entities");
-    it("sets scene root entity");
-    describe("camera focus specified", function(){
-      it("focuses camera on specified location");
+    var ui, sys, node;
+    before(function(){
+      ui = new UI();
+      node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
+
+      sys =
+        new SolarSystem({ background : 'background',
+                          planets    : [new Planet(), new Planet()]});
+    })
+
+    after(function(){
+      if(Events.track_movement.restore) Events.track_movement.restore();
+      if(motel_event.restore) motel_event.restore();
+    })
+
+    it("hides dialog", function(){
+      var spy = sinon.spy(ui.dialog, 'hide')
+      set_scene(ui, sys)
+      sinon.assert.called(spy);
     });
-    it("sets skybox background");
-    it("adds skybox to scene");
-    describe("root entity is a solar system", function(){
-      it("clears child planet callbacks");
-      it("tracks child planet movement");
-      describe("on planet movement event", function(){
-        it("raises motel event");
+
+    it("unselects selected entity", function(){
+      var s1 = new Ship({ id : 42 });
+      var s2 = new Ship({ id : 43 });
+      s1.selected = true
+      Entities().set(s1.id, s1)
+      ui.canvas.scene.add_entity(s1);
+
+      set_scene(ui, sys);
+      assert(s1.selected).isFalse();
+    });
+
+    it("sets skybox background", function(){
+      var spy = sinon.spy(ui.canvas.scene.skybox, 'background');
+      set_scene(ui, sys)
+      sinon.assert.calledWith(spy, sys.background)
+    });
+
+    it("removes / readds skybox skybox", function(){
+      var spy1 = sinon.spy(ui.canvas.scene, 'remove_component')
+      var spy2 = sinon.spy(ui.canvas.scene, 'add_component')
+      set_scene(ui, sys);           // TODO need to enable three to test these:
+      sinon.assert.calledWith(spy1);//, ui.canvas.scene.skybox.components[0])
+      sinon.assert.calledWith(spy2);//, ui.canvas.scene.skybox.components[0])
+    });
+
+    it("clears scene entities", function(){
+      var spy = sinon.spy(ui.canvas.scene, 'clear_entities')
+      set_scene(ui, sys);
+      sinon.assert.called(spy);
+    });
+
+    it("sets scene root entity", function(){
+      var spy = sinon.spy(ui.canvas.scene, 'set')
+      set_scene(ui, sys);
+      sinon.assert.calledWith(spy, sys);
+    });
+
+    describe("camera focus specified", function(){
+      it("focuses camera on specified location", function(){
+        var loc = new Location();
+        var spy = sinon.spy(ui.canvas.scene.camera, 'focus')
+        set_scene(ui, sys, loc);
+        sinon.assert.calledWith(spy, loc);
       });
     });
+
+    describe("root entity is a solar system", function(){
+      it("clears child planet callbacks", function(){
+        var spies = [];
+        for(var p in sys.planets)
+          spies.push(sinon.spy(sys.planets[p], 'clear_callbacks'))
+        set_scene(ui, sys);
+        for(var s in spies){
+          sinon.assert.calledWith(spies[s], 'motel::on_movement')
+          sinon.assert.calledWith(spies[s], 'motel::on_rotation')
+          sinon.assert.calledWith(spies[s], 'motel::location_stopped')
+        }
+      });
+
+      it("tracks child planet movement", function(){
+        var spy = sinon.spy(Events, 'track_movement')
+        set_scene(ui, sys);
+        for(var p in sys.planets)
+          sinon.assert.calledWith(spy, sys.planets[p].location.id);
+      });
+
+      // TODO
+      //describe("on planet movement event", function(){
+      //  it("raises motel event");
+      //});
+    });
   });
+
   describe("#show_missions", function(){
-    it("retrieves unassigned/assigned/victorious/failed/current missions");
+    var ui, missions;
+
+    before(function(){
+      ui = new UI();
+      missions = [new Mission(), new Mission()]
+    })
+
+    after(function(){
+      Session.current_session = null;
+    })
+
     describe("mission currently in process", function(){
-      it("shows mission details in dialog");
+      it("shows current mission details in dialog", function(){
+        Session.current_session = { user_id : 'user1'};
+        missions.push(new Mission({assigned_to_id : 'user1', assigned_time: new Date().toString() }))
+
+        show_missions(missions, ui);
+        assert(ui.dialog.title).equals('Assigned Mission')
+        //assert(ui.dialog.text).equals('TODO')
+      });
     });
+
     describe("mission not currently in process", function(){
-      it("shows unassigned mission information in dialog");
-      it("shows victorious/fails mission stats in dialog");
+      it("shows unassigned mission information in dialog", function(){
+        show_missions(missions, ui);
+        assert(ui.dialog.title).equals('Missions')
+        //assert(ui.dialog.text).equals('TODO')
+      });
+
+      it("shows victorious/fails mission stats in dialog", function(){
+        show_missions(missions, ui);
+        assert(ui.dialog.title).equals('Missions')
+        //assert(ui.dialog.text).equals('TODO')
+      });
     });
-    it("shows dialog");
+
+    it("shows dialog", function(){
+      show_missions(missions, ui);
+      assert(ui.dialog.selector).isNull();
+      assert(ui.dialog.visible()).isTrue();
+    });
   });
+
   describe("#wire_up_canvas", function(){
-    it("dispatches to canvas.wire_up");
-    it("dispatches to canvas.scene.camera.wire_up");
-    it("dispatches to canvas.scene.axis.wire_up");
-    it("dispatches to canvas.scene.grid.wire_up");
-    it("dispatches to entity container.wire_up");
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+    });
+
+    it("dispatches to canvas.wire_up", function(){
+      var spy = sinon.spy(ui.canvas, 'wire_up')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy)
+    });
+
+    it("dispatches to canvas.scene.camera.wire_up", function(){
+      var spy = sinon.spy(ui.canvas.scene.camera, 'wire_up')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy)
+    });
+
+    it("dispatches to canvas.scene.axis.cwire_up", function(){
+      var spy = sinon.spy(ui.canvas.scene.axis, 'cwire_up')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy)
+    });
+
+    it("dispatches to canvas.scene.grid.cwire_up", function(){
+      var spy = sinon.spy(ui.canvas.scene.grid, 'cwire_up')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy)
+    });
+
+    it("dispatches to entity container.wire_up", function(){
+      var spy = sinon.spy(ui.entity_container, 'wire_up')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy)
+    });
+
     it("handles window resize events");
     describe("on window resize", function(){
       it("only responds to root windows resize events");
@@ -1496,6 +1728,7 @@ pavlov.specify("omega.js", function(){
       it("resets the camera");
     });
   });
+
   describe("#wire_up_chat", function(){
     it("dispatches to chat_container.wire_up");
     it("handles chat button click event");
@@ -1506,6 +1739,7 @@ pavlov.specify("omega.js", function(){
       it("clears chat input");
     });
   });
+
   describe("#wire_up_account_info", function(){
     it("handles account info update button click event");
     describe("passwords do no match", function(){
