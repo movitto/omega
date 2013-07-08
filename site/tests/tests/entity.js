@@ -276,6 +276,14 @@ describe("SolarSystem", function(){
     assert(sys.jump_gates[0]).isTypeOf(JumpGate);
   });
 
+  //describe("#add_jump_gate", function(){
+  //  it("adds THREE line component to entity"); // NIY
+  //});
+
+  //it("adds THREE clickable sphere component to entity"); // NIY
+  //it("adds THREE plane component to entity"); // NIY
+  //it("adds THREE text label component to entity"); // NIY
+
   describe("#children", function(){
     it("returns child star, planets, asteroids, jump gates, and manu entities", function(){
       var c = sys.children()
@@ -366,6 +374,8 @@ describe("Star", function(){
   it("converts location", function(){
     assert(st.location).isTypeOf(Location)
   })
+
+  //it("adds THREE clickable sphere component to entity"); // NIY
 });}); // Star
 
 pavlov.specify("Planet", function(){
@@ -400,12 +410,18 @@ describe("Planet", function(){
       sinon.assert.calledWith(spy, l)
     });
 
-    //it("updates moons", function(){
+    //it("updates THREE sphere position") // NIY
+
+    //it("updates moons' THREE sphere positions", function(){ // NIY
     //  var nmn = { id : 'mn1'}
     //  pl.update({moons : [nmn]})
     //  sinon.assert.calledWith(spy, nmn);
     //});
   });
+
+  //it("adds THREE clickable sphere component to entity"); // NIY
+  //it("adds THREE line component to entity for orbit"); // NIY
+  //it("adds THREE spheres component to entity for moons"); // NIY
 });}); // Planet
 
 pavlov.specify("Asteroid", function(){
@@ -424,6 +440,8 @@ describe("Asteroid", function(){
   it("converts location", function(){
     assert(ast.location).isTypeOf(Location)
   })
+
+  //it("adds THREE clickable mesh component to entity"); // NIY
 });}); // Asteroid
 
 pavlov.specify("JumpGate", function(){
@@ -442,6 +460,26 @@ describe("JumpGate", function(){
   it("converts location", function(){
     assert(jg.location).isTypeOf(Location)
   })
+
+  //it("adds THREE clickable mesh component to entity"); // NIY
+  //it("adds THREE sphere component to entity (selection sphere)"); // NIY
+
+  //describe("clicked jump gate", function(){
+  //  it("sets selected true"); // NIY
+  //  it("removes old jump gate command callbacks"); // NIY
+  //  it("creates jump gate commands callback"); // NIY
+  //  describe("command trigger jump gate", function(){
+  //    it("invokes trigger jump gate command"); // NIY
+  //  });
+  //  it("sets clickable component to THREE selection sphere"); // NIY
+  //  it("reloads jump gate in scene"); // NIY
+  //})
+
+  //describe("unselect jump gate", function(){
+  //  it("sets selected to false"); // NIY
+  //  it("reloads jump gate in scene"); // NIY
+  //  it("sets clickable component to THREE mesh"); // NIY
+  //});
 });}); // JumpGate
 
 pavlov.specify("Ship", function(){
@@ -463,6 +501,21 @@ describe("Ship", function(){
   it("converts location", function(){
     assert(sh.location).isTypeOf(Location)
   });
+
+  //describe("#update", function(){
+  //  it("updates attributes"); // NIY
+  //  it("updates location"); // NIY
+  //  it("updates THREE mesh location"); // NIY
+  //  describe("ship attacking", function(){
+  //    it("sets THREE attack line position"); // NIY
+  //    it("adds THREE attack line component to entity"); // NIY
+  //  });
+  //  describe("ship attacking", function(){
+  //    it("sets THREE mining line position"); // NIY
+  //    it("adds THREE mining line component to entity"); // NIY
+  //  });
+  //  it("reloads entity in schene"); // NIY
+  //})
 
   describe("#belongs_to_user", function(){
     describe("user_id is same as specified user's", function(){
@@ -506,6 +559,26 @@ describe("Ship", function(){
       })
     })
   });
+
+  //describe("ship clicked in scene", function(){
+  //  it("removes ship ui command callbacks"); // NIY
+  //  it("handles ship ui command callbacks"); // NIY
+  //  describe("on ship ui command", function(){
+  //    it("raises event on ship"); // NIY
+  //  });
+  //  // TODO test specific commands
+  //  it("sets selected true"); // NIY
+  //  it("reloads entity in scene"); // NIY
+  //});
+
+  //describe("ship unselected", function(){
+  //  it("sets selected to false"); // NIY
+  //  it("reloads entity in scene"); // NIY
+  //});
+
+  //it("adds THREE clickable mesh component to entity"); // NIY
+  //it("create THREE line component (for attack line)"); // NIY
+  //it("create THREE line component (for mining line)"); // NIY
 
   describe("#with_id", function(){
     it("invokes manufactured::get_entity", function(){
@@ -588,6 +661,8 @@ describe("Station", function(){
     assert(st.location).isTypeOf(Location)
   });
 
+  //it("adds THREE clickable mesh component to entity"); // NIY
+
   describe("#belongs_to_user", function(){
     describe("user_id is same as specified user's", function(){
       it("returns true", function(){
@@ -623,6 +698,22 @@ describe("Station", function(){
       })
     })
   });
+
+  //describe("station clicked in scene", function(){
+  //  it("removes station ui command callbacks"); // NIY
+  //  it("handles station ui command callbacks"); // NIY
+  //  describe("on station ui command", function(){
+  //    it("raises event on station"); // NIY
+  //  });
+  //  // TODO test specific commands
+  //  it("sets selected true"); // NIY
+  //  it("reloads entity in scene"); // NIY
+  //});
+
+  //describe("station unselected", function(){
+  //  it("sets selected to false"); // NIY
+  //  it("reloads entity in scene"); // NIY
+  //});
 
   describe("#owned_by", function(){
     it("invokes manufactured::get_entities", function(){
