@@ -8,8 +8,8 @@ require 'manufactured/entity'
 
 module Manufactured
 
-# A player owned vehicle, residing in a {Cosmos::SolarSystem}.
-# Ships requires {Cosmos::JumpGate}s to travel in between systems
+# A player owned vehicle, residing in a {Cosmos::Entities::SolarSystem}.
+# Ships requires {Cosmos::Entities::JumpGate}s to travel in between systems
 # and may mine resources and attack other manufactured entities
 # depending on the ship type
 class Ship
@@ -465,7 +465,7 @@ class Ship
 
   # Set ship's attack target
   #
-  # @param [Manufactured::Ship] ship which is being attacked
+  # @param [Manufactured::Ship] defender ship being attacked
   def start_attacking(defender)
     @attacking = defender
   end

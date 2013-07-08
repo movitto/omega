@@ -9,7 +9,7 @@ require 'omega/server/command'
 module Manufactured
 module Commands
 
-# Represents action of one {Manufactured::Ship} mining a {Cosmos::ResourceSource}
+# Represents action of one {Manufactured::Ship} mining a {Cosmos::Resource}
 #
 # Invokes various Manufactured::Callback handlers upon various events.
 #

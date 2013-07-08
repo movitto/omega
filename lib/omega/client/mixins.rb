@@ -455,8 +455,8 @@ module Omega
             end
 
             e.handle(:all){
-              #return if @updating_state
-              #@updating_state = true
+              #return if \@updating_state
+              #\@updating_state = true
               @condition_checks.each { |st,check|
                 if instance_exec(e, &check)
                   e.set_state st
@@ -464,7 +464,7 @@ module Omega
                   e.unset_state st
                 end
               }
-              #@updating_state = false
+              #\@updating_state = false
             }
           }
         end

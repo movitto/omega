@@ -8,7 +8,7 @@ require 'omega/server/callback'
 module Motel
 module Callbacks
 
-# Defines a {Motel::Callback} to only invoke callback
+# Defines a {Omega::Server::Callback} to only invoke callback
 # if a location rotates a specified minimum angle.
 #
 # The client may specify the minimum overall angle and/or the minimum
@@ -68,7 +68,7 @@ class Rotation < Omega::Server::Callback
     super(args, &block)
   end
 
-  # Override {Callback#invoke}, call original then reset local orientation
+  # Override {Omega::Server::Callback#invoke}, call original then reset local orientation
   #
   # @param [Integer, Float] old_ox old x orientation of location
   # @param [Integer, Float] old_oy old y orientation of location

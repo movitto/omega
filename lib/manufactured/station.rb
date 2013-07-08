@@ -11,7 +11,7 @@ module Manufactured
 
 # A player owned entity residing in a {Cosmos::Entities::SolarSystem}.
 # They can move inbetween systems on their own without requiring a
-# {Cosmos::JumpGate}. May construct other manufactured entities
+# {Cosmos::Entities::JumpGate}. May construct other manufactured entities
 # depending on the station type.
 class Station
   include Manufactured::Entity::InSystem

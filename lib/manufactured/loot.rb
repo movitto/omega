@@ -10,7 +10,7 @@ require 'manufactured/entity'
 
 module Manufactured
 
-# Free floating groups of items (resources/etc) in a {Cosmos::SolarSystem}
+# Free floating groups of items (resources/etc) in a {Cosmos::Entities::SolarSystem}
 # which {Manufactured::Ship}s can retrieve if within collection_distance
 class Loot
   include Manufactured::Entity::InSystem

@@ -8,7 +8,7 @@ require 'omega/server/callback'
 module Motel
 module Callbacks
 
-# Defines a {Motel::Callback} to only invoke callback if a location
+# Defines a {Omega::Server::Callback} to only invoke callback if a location
 # moves a specified minimum distance.
 #
 # The client may specify the minimum overall distance and/or the minimum
@@ -79,7 +79,7 @@ class Movement < Omega::Server::Callback
     super(args)
   end
 
-  # Override {Callback#invoke}, call original then reset local coordinates
+  # Override {Omega::Server::Callback#invoke}, call original then reset local coordinates
   #
   # @param [Motel::Location] loc current location
   # @param [Integer, Float] old_x old x position of location

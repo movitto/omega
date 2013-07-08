@@ -8,7 +8,7 @@ require 'omega/server/callback'
 module Motel
 module Callbacks
 
-# Extends the {Motel::Callbacks::Base} interface to only invoke callback
+# Defines a {Omega::Server::Callback} to only invoke callback
 # if two locations are within the specified maximum distance of each other.
 #
 # The client may specify the maximum overall distance and/or the maximum
@@ -71,7 +71,7 @@ class Proximity < Omega::Server::Callback
   # @option args [Integer] :max_z,'max_z' maximum distance locations
   #   can be apart to trigger handler
   # @option args [Motel::Location] :to_location,'to_location' location which
-  #   to compare that specified to {#invoke} to to determine proximity
+  #   to compare that specified to {Omega::Server::Callback#invoke} to to determine proximity
   def initialize(args = {}, &block)
     attr_from_args args,
                    :max_distance => 0,
@@ -89,7 +89,7 @@ class Proximity < Omega::Server::Callback
     super(args, &block)
   end
 
-  # Override {Callback#invoke}, set locations_in_proximity
+  # Override {Omega::Server::Callback#invoke}, set locations_in_proximity
   # @param [Motel::Location] loc location which to compare against @to_location
   def invoke(loc)
     super(loc, to_location)

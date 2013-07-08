@@ -72,7 +72,7 @@ omega.yml which is loaded from the following locations
 * ./omega.yml
 
 ## Invoking
-{http://rubydoc.info/github/movitto/rjr/frames RJR}
+[RJR](http://rubydoc.info/github/movitto/rjr/frames)
 allows Omega to serve JSON-RPC requests over many protocols.
 Currently the default server listens for requests via TCP, HTTP,
 Websockets, and AMQP. All a client has to do is send a string
@@ -104,7 +104,7 @@ Once authenticated, the client may invoke a variety of requests to create,
 retrieve, and update server side entities, depending on roles they have
 been assigned and their corresponding privileges / permissions. Some methods
 have additional restrictions to limit user access, see the api documentation
-in the {file:API} file and source code (see 'generating documentation' below) for more info
+in the [API](file:API) file and source code (see 'generating documentation' below) for more info
 
 ## Running the clients
 
@@ -117,12 +117,12 @@ entities they own, and to retrieve cosmos and other entities.
 To invoke, simply run the scripts right from the command line, specifying
 '-h' or '--help' for extended usage.
 
-See the {file:examples/CLIENT\_HOWTO.md} for more info
+See the [CLIENT_HOWTO](file:examples/CLIENT_HOWTO.md) for more info
 
 ## Web Frontend
 
 A static web frontend and js Omega client is provided in the site/ dir.
-This uses {http://middlemanapp.com/ Middleman} to generate static html/js
+This uses [Middleman](http://middlemanapp.com/) to generate static html/js
 content from templates.
 
 Two rake tasks are provided to simplify usage:

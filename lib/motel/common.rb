@@ -216,7 +216,7 @@ end
 #
 # @param [Integer,Float] theta theta angle to convert
 # @param [Integer,Float] phi phi angle to convert
-# @param [Integer,Float] distance distance to convert
+# @param [Integer,Float] dist distance to convert
 # @return [Array<Float>] array containing converted x,y,z coordinates
 def self.from_spherical(theta, phi, dist)
     x = dist * Math.sin(theta) * Math.cos(phi);

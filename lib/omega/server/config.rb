@@ -118,7 +118,7 @@ class Config
   # Set local config on Omega classes specified by CONFIG_CLASSES above.
   # If specified only the classes given will have their config set.
   #
-  # @param [Array<Class>] optional array of classes which to restrict
+  # @param [Array<Class>] classes optional array of classes which to restrict
   #   setting of the configuration to
   def set_config(classes = CONFIG_CLASSES)
     classes.each { |kls|

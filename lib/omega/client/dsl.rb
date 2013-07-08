@@ -119,9 +119,9 @@ module Omega
       # Create a new role, or if @user is set, simply add the specified role id
       # to the user
       #
-      # Operates in one of two modes depending on if @user is set. If it is, specify
+      # Operates in one of two modes depending on if \@user is set. If it is, specify
       # a string role name to this function to be added to the user indicated by
-      # @user. Else specify a Users::Role to create on the server side
+      # \@user. Else specify a Users::Role to create on the server side
       #
       # @param [Users::Role,String] nrole name of role to add to user or Users::Role to create on the server side
       def role(nrole)
@@ -156,7 +156,7 @@ module Omega
       # created it and return it.
       #
       # If system does not exist, and we are creating a new one,
-      # @galaxy _must_ be set. Will optionally create star if star_name is set
+      # \@galaxy _must_ be set. Will optionally create star if star_name is set
       #
       # @param [String] name string name of system to return or create
       # @param [String] star_name string name of star to create (only if system is being created)
@@ -205,7 +205,7 @@ module Omega
 
       # Create new asteroid and return it.
       #
-      # @system _must_ be set to the Cosmos::Entities::SolarSystem
+      # \@system _must_ be set to the Cosmos::Entities::SolarSystem
       #  to create the asteroid under
       #
       # @param [String] name string name of asteroid create
@@ -229,7 +229,7 @@ module Omega
 
       # Set new resource on an asteroid and return it.
       #
-      # @asteroid _must_ be set to the Cosmos::Entities::Asteroid to assoicate the
+      # \@asteroid _must_ be set to the Cosmos::Entities::Asteroid to assoicate the
       # resource with
       #
       # @param [Hash] args hash of options to pass directly to resource initializer
@@ -247,7 +247,7 @@ module Omega
 
       # Create new planet and return it.
       #
-      # @solar_system _must_ be set to the Cosmos::Entities::SolarSystem
+      # \@solar_system _must_ be set to the Cosmos::Entities::SolarSystem
       # to create the planet under
       #
       # @param [String] name string name of planet create
@@ -271,7 +271,7 @@ module Omega
 
       # Create new moon and return it.
       #
-      # @planet _must_ be set to the Cosmos::Entities::Planet to create the
+      # \@planet _must_ be set to the Cosmos::Entities::Planet to create the
       # moon under
       #
       # @param [String] name string name of moon create

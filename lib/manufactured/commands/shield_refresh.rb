@@ -19,7 +19,7 @@ class ShieldRefresh < Omega::Server::Command
   # {Manufactured::Entity entity} whose shield is being refreshed
   attr_accessor :entity
 
-  # {Manufacuted::Commands::Attack} attack command which this shield refresh
+  # {Manufactured::Commands::Attack} attack command which this shield refresh
   #   command's lifecycle is tried to
   attr_accessor :attack_cmd
 

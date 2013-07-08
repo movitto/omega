@@ -39,8 +39,8 @@ class Command
   # Omega::Server::Command initializer
   #
   # @param [Hash] args hash of options to initialize event with
-  # @optiona args [Symbol] id id of the command
-  # @options args [Integer] exec_rate optional rate at which command should be executed
+  # @option args [Symbol] id id of the command
+  # @option args [Integer] exec_rate optional rate at which command should be executed
   # @option args [Hash<String, Array<Callable>>] hooks hooks to register w/ the command
   def initialize(args = {})
     attr_from_args args, :id              => nil,
@@ -54,7 +54,7 @@ class Command
                                      :last   => [proc { self.last_hook   }]}
 
     @last_ran_at = Time.parse(@last_ran_at) if @last_ran_at.is_a?(String)
-    #@id = @id.intern if @id.is_a?(String)
+    #\@id = \@id.intern if \@id.is_a?(String)
   end
 
   def update(cmd)

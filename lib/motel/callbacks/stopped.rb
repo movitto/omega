@@ -8,7 +8,7 @@ require 'omega/server/callback'
 module Motel
 module Callbacks
 
-# Extends the {Motel::Callbacks::Base} interface to invoke callback
+# Defines a {Omega::Server::Callback} to invoke callback
 # when a location stops.
 #
 # Simple wrapper around the callback base interface, does no requirement

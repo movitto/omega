@@ -15,7 +15,7 @@ module Commands
 # attacking and periodically run by registry until attacked stops,
 # defender is destroyed, or one of several other conditions occur.
 #
-# Invokes {Manufactured::Callback}s registered with the attacker 
+# Invokes {Omega::Server::Callback}s registered with the attacker 
 # and defender before/during/after the attack cycle with the event type,
 # the attacking ship, and the defending ship as params
 # 

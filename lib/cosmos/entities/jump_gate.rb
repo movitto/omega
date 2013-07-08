@@ -67,7 +67,7 @@ class JumpGate
     @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped) &&
     !@endpoint_id.nil? &&
     (@endpoint.nil? || (@endpoint.is_a?(SolarSystem) && @endpoint.valid?)) &&
-    # @solar_system.name != @endpoint.name &&
+    # \@solar_system.name != @endpoint.name &&
     @trigger_distance.numeric? && @trigger_distance > 0
   end
 

@@ -97,7 +97,7 @@ module Omega
       # not do any checks b4 invoking start_mining so if server raises
       # a related error, it will be reraised here
       #
-      # @param [Cosmos::Resource] resourceresource to start mining
+      # @param [Cosmos::Resource] resource to start mining
       def mine(resource)
         RJR::Logger.info "Starting to mine #{resource.material_id} with #{id}"
         @entity = node.invoke 'manufactured::start_mining', id, resource.id
