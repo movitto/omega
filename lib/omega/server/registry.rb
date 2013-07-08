@@ -67,6 +67,10 @@ module Registry
   # TODO an 'old_entities' tracker where clients may put items
   # which should be retired from active operation
 
+  # Return entities for which selector proc returns true
+  #
+  # Note only copies of entities will be returned, not the
+  # actual entities themselves
   def entities(&select)
     init_registry
     @lock.synchronize {
@@ -86,10 +90,12 @@ module Registry
     }
   end
 
+  # Return first entity which selector proc returns true
   def entity(&select)
     self.entities(&select).first
   end
 
+  # Clear all entities tracked by local registry
   def clear!
     init_registry
     @lock.synchronize {
@@ -97,6 +103,14 @@ module Registry
     }
   end
 
+  # Add entity to local registry.
+  #
+  # Invokes registered validation callback before
+  # adding to ensure enitity should be added. If
+  # validation returns false, entity will not be
+  # added.
+  #
+  # Raises :added event on self w/ entity
   def <<(entity)
     init_registry
     add = false
@@ -109,6 +123,10 @@ module Registry
     return add
   end
 
+  # Remove entity from local registry. Entity removed
+  # will be first entity for which selector returns true.
+  #
+  # Raises :delete event on self w/ deleted entity
   def delete(&selector)
     init_registry
     delete = false
@@ -121,6 +139,14 @@ module Registry
     return delete
   end
 
+  # Update entity in local registry.
+  #
+  # Entity updated will be first entity for which the
+  # selector proc returns true. The entity being
+  # updated must define the 'update' method which
+  # takes another entity which to copy attributes from/etc.
+  #
+  # Raises :updated event on self with updated entity
   def update(entity, &selector)
     # TODO default selector ? (such as with_id)
     init_registry
@@ -146,6 +172,10 @@ module Registry
 
   ####################### execution
 
+  # Safely execute a block of code in the context of the local registry.
+  #
+  # Pasess the raw entities array to block for unrestricted querying/manipulation
+  # (be careful!)
   def safe_exec
     init_registry
     @lock.synchronize {
@@ -155,6 +185,7 @@ module Registry
 
   ####################### events
 
+  # Register block to be invoked on specified event(s)
   def on(eid, &bl)
     init_registry
     @lock.synchronize {
@@ -165,6 +196,7 @@ module Registry
     }
   end
 
+  # Raises specified event, invoking registered handlers
   def raise_event(event, *params)
     init_registry
     handlers = []
@@ -178,6 +210,10 @@ module Registry
 
   ####################### event loops
 
+  # Return the specified event loop in a new worker
+  #
+  # The workers will delay for the amount of type specified
+  # by the return value of the event loop before running it again.
   def run(&lp)
     init_registry
     @lock.synchronize {
@@ -186,6 +222,7 @@ module Registry
     }
   end
 
+  # Star the event loop workers
   def start
     init_registry
     @lock.synchronize {
@@ -197,6 +234,7 @@ module Registry
     self
   end
 
+  # Stop the event loop works and subsequent invocations
   def stop
     init_registry
     @lock.synchronize {
@@ -205,12 +243,14 @@ module Registry
     self
   end
 
+  # Join all event loop workers
   def join
     init_registry
     @workers.each { |w| w.join }
     self
   end
 
+  # Return boolean indicating if events loops are running
   def running?
     init_registry
     @lock.synchronize {
