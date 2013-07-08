@@ -1019,7 +1019,6 @@ describe("Camera", function(){
     describe("new camera position specified", function(){
       it("sets THREE camera position", function(){
         cam.position({x: 100, y: 100, z: -200});
-        console.log(cam._camera.position)
         assert(cam._camera.position.x).equals(100)
         assert(cam._camera.position.y).equals(100)
         assert(cam._camera.position.z).equals(-200)
@@ -1041,7 +1040,6 @@ describe("Camera", function(){
       assert(cam.position().z).equals(oz - 10);
 
       cam.zoom(20);
-      console.log(cam._camera.position);
       assert(cam.position().z).equals(oz + 10);
     });
   });

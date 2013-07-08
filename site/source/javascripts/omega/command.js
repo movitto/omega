@@ -15,28 +15,29 @@
  * Implements the singleton pattern
  */
 function ServerEvents(){
-  if ( arguments.callee._singletonInstance )
-    return arguments.callee._singletonInstance;
-  arguments.callee._singletonInstance = this;
+  if ( ServerEvents._singletonInstance )
+    return ServerEvents._singletonInstance;
+  var _this = {};
+  ServerEvents._singletonInstance = _this;
 
-  $.extend(this, new EventTracker());
+  $.extend(_this, new EventTracker());
 
-  this.callbacks = {};
+  _this.callbacks = {};
 
   /* register a callback to handle the specified server event,
    * reraising it on the local object when it occurs
    */
-  this.handle = function(server_event){
+  _this.handle = function(server_event){
     if($.isArray(server_event)){
       for(var e in server_event)
-        this.handle(server_event[e]);
+        _this.handle(server_event[e]);
       return;
     }
 
-    this.callbacks[server_event] = function(){
+    _this.callbacks[server_event] = function(){
       // Create a new array from the contents of arguments
       var nargs = [server_event].concat(args_to_arry(arguments));
-      this.raise_event.apply(this, nargs);
+      _this.raise_event.apply(_this, nargs);
 
       // also attempt to identify the 'primary' object which
       // the event is occurring on and raise it there
@@ -53,20 +54,20 @@ function ServerEvents(){
     }
 
     Entities().node().clear_handlers(server_event);
-    Entities().node().add_handler(server_event, this.callbacks[server_event]);
+    Entities().node().add_handler(server_event, _this.callbacks[server_event]);
   }
 
   /* clear callback registered for event
    */
-  this.clear = function(server_event){
+  _this.clear = function(server_event){
     Entities().node().clear_handlers(server_event);
     if(server_event)
-      this.callbacks[server_event] = null;
+      _this.callbacks[server_event] = null;
     else
-      this.callbacks = {};
+      _this.callbacks = {};
   }
 
-  return this;
+  return _this;
 }
 
 /////////////////////////////////////// Events Namespace

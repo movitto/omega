@@ -14,20 +14,21 @@
  * Implements singleton pattern
  */
 function Entities(){
-  if ( arguments.callee._singletonInstance )
-    return arguments.callee._singletonInstance;
-  arguments.callee._singletonInstance = this;
+  if ( Entities._singletonInstance )
+    return Entities._singletonInstance;
+  var _this = {};
+  Entities._singletonInstance = _this;
 
-  $.extend(this, new Registry());
+  $.extend(_this, new Registry());
 
   /* Get/set node used to retrieve entities below
    */
-  this.node = function(new_node){
-    if(new_node != null) this._node = new_node;
-    return this._node;
+  _this.node = function(new_node){
+    if(new_node != null) _this._node = new_node;
+    return _this._node;
   }
 
-  return this;
+  return _this;
 }
 
 /////////////////////////////////////////////////////////////////////

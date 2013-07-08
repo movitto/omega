@@ -8,7 +8,7 @@ pavlov.specify("omega.js", function(){
 
     it("restores session from cookie", function(){
       var spy = sinon.spy(Session, 'restore_from_cookie');
-      restore_session(new UI(), new Node());
+      restore_session(new UI(), new TestNode());
       sinon.assert.called(spy);
     });
 
@@ -16,7 +16,7 @@ pavlov.specify("omega.js", function(){
       it("logs in as anon", function(){
         sinon.stub(Session, 'restore_from_cookie').returns(null);
         login_anon = sinon.spy(login_anon);
-        restore_session(new UI(), new Node());
+        restore_session(new UI(), new TestNode());
         sinon.assert.called(login_anon);
       });
     });
@@ -31,20 +31,20 @@ pavlov.specify("omega.js", function(){
 
       it("sets headers on node", function(){
         var spy = sinon.spy(session, 'set_headers_on');
-        restore_session(new UI(), new Node());
+        restore_session(new UI(), new TestNode());
         sinon.assert.called(spy);
       });
 
       it("validates session", function(){
         var spy = sinon.spy(session, 'validate');
-        restore_session(new UI(), new Node());
+        restore_session(new UI(), new TestNode());
         sinon.assert.called(spy);
       });
 
       describe("error on session validation", function(){
         it("logs in as anon", function(){
           var stub = sinon.stub(session, 'validate');
-          restore_session(new UI(), new Node());
+          restore_session(new UI(), new TestNode());
           var cb = stub.getCall(0).args[1];
 
           login_anon = sinon.spy(login_anon);
@@ -56,7 +56,7 @@ pavlov.specify("omega.js", function(){
       describe("session validated successfully", function(){
         it("establishes session", function(){
           var stub = sinon.stub(session, 'validate');
-          restore_session(new UI(), new Node());
+          restore_session(new UI(), new TestNode());
           var cb = stub.getCall(0).args[1];
 
           session_established = sinon.spy(session_established);
@@ -76,7 +76,7 @@ pavlov.specify("omega.js", function(){
 
     it("logs in anon user using session", function(){
       var spy = sinon.spy(Session, 'login');
-      var n = new Node()
+      var n = new TestNode()
       login_anon(n);
       sinon.assert.calledWith(spy, User.anon_user, n);
     });
@@ -94,7 +94,7 @@ pavlov.specify("omega.js", function(){
 
     it("sets global node", function(){
       var spy = sinon.spy(Entities(), 'node');
-      var node = new Node();
+      var node = new TestNode();
       session_established(new UI(), node, new Session({}), new User());
       sinon.assert.calledWith(spy, node);
     });
@@ -102,18 +102,18 @@ pavlov.specify("omega.js", function(){
     it("shows logout controls", function(){
       var ui  = new UI();
       var spy = sinon.spy(ui.nav_container, 'show_logout_controls');
-      session_established(ui, new Node(), new Session({}), new User());
+      session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
     });
 
     it("handles chat notifications", function(){
-      var node = new Node();
+      var node = new TestNode();
       session_established(new UI(), node, new Session({}), new User());
       assert(obj_keys(node.handlers)).includes('users::on_message')
     });
 
     it("subscribes to chat messages", function(){
-      var node = new Node();
+      var node = new TestNode();
       var spy = sinon.spy(node, 'ws_request');
       session_established(new UI(), node, new Session({}), new User());
       sinon.assert.calledWith(spy, 'users::subscribe_to_messages');
@@ -122,7 +122,7 @@ pavlov.specify("omega.js", function(){
     describe("on chat message", function(){
       it("adds message to chat container", function(){
         var ui = new UI();
-        var node = new Node();
+        var node = new TestNode();
         session_established(ui, node, new Session({}), new User());
 
         var cb = node.handlers['users::on_message'][0];
@@ -135,27 +135,27 @@ pavlov.specify("omega.js", function(){
     it("shows chat container", function(){
       var ui = new UI();
       var spy = sinon.spy(ui.chat_container.toggle_control(), 'show');
-      session_established(ui, new Node(), new Session({}), new User());
+      session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
     });
 
     it("shows missions button", function(){
       var ui = new UI();
       var spy = sinon.spy(ui.missions_button, 'show');
-      session_established(ui, new Node(), new Session({}), new User());
+      session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
     });
 
     it("retrieves and processes ships owned by user", function(){
       var spy = sinon.spy(Ship, 'owned_by')
-      session_established(new UI(), new Node(), new Session({}), new User());
+      session_established(new UI(), new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
       // TODO ensure process_entities is called w/ results
     })
 
     it("retrieves and processes stations owned by user", function(){
       var spy = sinon.spy(Station, 'owned_by')
-      session_established(new UI(), new Node(), new Session({}), new User());
+      session_established(new UI(), new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
       // TODO ensure process_entities is called w/ results
     })
@@ -165,7 +165,7 @@ pavlov.specify("omega.js", function(){
 
     it("retrieves stats", function(){
       var spy = sinon.spy(Statistic, 'with_id')
-      session_established(new UI(), new Node(), new Session({}), new User());
+      session_established(new UI(), new TestNode(), new Session({}), new User());
       sinon.assert.calledWith(spy, 'most_entities', 10, process_stats);
       // TODO ensure process_stats is called w/ results
     });
@@ -174,7 +174,7 @@ pavlov.specify("omega.js", function(){
   describe("#process_entities", function(){
     before(function(){
       disable_three_js();
-      Entities().node(new Node());
+      Entities().node(new TestNode());
     })
 
     after(function(){
@@ -190,13 +190,13 @@ pavlov.specify("omega.js", function(){
       var sh2 = new Ship({id : 'ship2', user_id : 'user2'})
       var ui  = new UI();
       var spy = sinon.spy(ui.account_info, 'entities');
-      process_entities(ui, new Node(), [sh1, sh2]);
+      process_entities(ui, new TestNode(), [sh1, sh2]);
       sinon.assert.calledWith(spy, [sh1])
     });
 
     it("processes each entity", function(){
       var ui = new UI();
-      var node = new Node();
+      var node = new TestNode();
       Session.current_session = { user_id : 'user1' };
       var sh1 = new Ship({id : 'ship1', user_id : 'user1'})
       var sh2 = new Ship({id : 'ship2', user_id : 'user1'})
@@ -210,7 +210,7 @@ pavlov.specify("omega.js", function(){
   describe("#process_entity", function(){
     before(function(){
       disable_three_js();
-      Entities().node(new Node());
+      Entities().node(new TestNode());
     })
 
     after(function(){
@@ -232,7 +232,7 @@ pavlov.specify("omega.js", function(){
         var spy = sinon.spy(s, 'update');
 
         var ns =  new Ship({id : 'ship1'});
-        process_entity(new UI(), new Node(), ns);
+        process_entity(new UI(), new TestNode(), ns);
         sinon.assert.calledWith(spy, ns);
       });
     });
@@ -241,7 +241,7 @@ pavlov.specify("omega.js", function(){
       it("adds entity to registry", function(){
         var spy = sinon.spy(Entities(), 'set');
         var s = new Ship({id : 'ship1'})
-        process_entity(new UI(), new Node(), s);
+        process_entity(new UI(), new TestNode(), s);
         sinon.assert.called(spy, 'ship1', s);
       });
     });
@@ -249,7 +249,7 @@ pavlov.specify("omega.js", function(){
     it("stores location in registry", function(){
       var spy = sinon.spy(Entities(), 'set');
       var s = new Ship({id : 'ship1', location : new Location({id : 5})})
-      process_entity(new UI(), new Node(), s);
+      process_entity(new UI(), new TestNode(), s);
       sinon.assert.calledWith(spy, 5, s.location);
     })
 
@@ -257,7 +257,7 @@ pavlov.specify("omega.js", function(){
       var ui = new UI();
       var spy = sinon.spy(ui.entities_container, 'add_item');
       var s = new Ship({ id : 'ship1' });
-      process_entity(ui, new Node(), s)
+      process_entity(ui, new TestNode(), s)
       sinon.assert.calledWith(spy,
         sinon.match({ text : s.id, id : "entities_container-" + s.id }).and(
         sinon.match(function(v) { return v.item.id == s.id })
@@ -268,25 +268,25 @@ pavlov.specify("omega.js", function(){
     it("shows entities container", function(){
       var ui = new UI();
       var spy = sinon.spy(ui.entities_container, 'show');
-      process_entity(ui, new Node(), new Ship({id : 'ship1'}))
+      process_entity(ui, new TestNode(), new Ship({id : 'ship1'}))
       sinon.assert.called(spy);
     })
 
     it("handles entity page events", function(){
       handle_events = sinon.spy(handle_events)
       var u = new UI();
-      var n = new Node();
+      var n = new TestNode();
       var s = new Ship({ id : 'ship1' })
-      process_entity(u, node, s)
+      process_entity(u, n, s)
       sinon.assert.called(handle_events, u, n, s);
     })
 
     describe("entity jumped", function(){
       it("removes entity from scene", function(){
         var u = new UI();
-        var n = new Node();
+        var n = new TestNode();
         var s = new Ship({ id : 'ship1' })
-        process_entity(u, node, s)
+        process_entity(u, n, s)
         assert(s.callbacks['jumped'].length).equals(1);
 
         var spy1 = sinon.spy(u.canvas.scene, 'remove_entity');
@@ -300,14 +300,14 @@ pavlov.specify("omega.js", function(){
     it("track entity movement/rotation/stops", function(){
       var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
       var spy = sinon.spy(Events, 'track_movement');
-      process_entity(new UI(), new Node(), s);
+      process_entity(new UI(), new TestNode(), s);
       sinon.assert.calledWith(spy, s.location.id);
     });
 
     describe("entity movement/rotation/stop", function(){
       it("invokes a motel_event", function(){
         var u = new UI();
-        var n = new Node();
+        var n = new TestNode();
         var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
         Entities().set(s.id, s);
 
@@ -344,7 +344,7 @@ pavlov.specify("omega.js", function(){
       var spy3 = sinon.spy(Events, 'track_offense');
       var spy4 = sinon.spy(Events, 'track_defense');
       var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
-      process_entity(new UI(), new Node(), s);
+      process_entity(new UI(), new TestNode(), s);
       sinon.assert.calledWith(spy1, s.id);
       sinon.assert.calledWith(spy2, s.id);
       sinon.assert.calledWith(spy3, s.id);
@@ -354,7 +354,7 @@ pavlov.specify("omega.js", function(){
     describe("manu event occurred", function(){
       it("invokes a manufactured event", function(){
         var u = new UI();
-        var n = new Node();
+        var n = new TestNode();
         var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
         Entities().set(s.id, s);
 
@@ -371,7 +371,7 @@ pavlov.specify("omega.js", function(){
 
     it("loads system entity is in", function(){
       var u = new UI();
-      var n = new Node();
+      var n = new TestNode();
       var s = new Ship({ id : 'ship1',
                          system_id : 'sys1',
                          location : new Location({id : 'l42' }) });
@@ -383,7 +383,7 @@ pavlov.specify("omega.js", function(){
     describe("system loaded", function(){
       it("sets entity solar system", function(){
         var u = new UI();
-        var n = new Node();
+        var n = new TestNode();
         var s = new Ship({ id : 'ship1',
                            system_id : 'sys1',
                            location : new Location({id : 'l42' }) });
@@ -429,10 +429,10 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       disable_three_js();
-      Entities().node(new Node());
+      Entities().node(new TestNode());
 
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
       entity = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
       Entities().set(entity.id, entity);
 
@@ -477,7 +477,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -744,7 +744,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       e1 = new Entity({ id : 'e1', details : function() { return ""; }});
       e2 = new Entity({ id : 'e2', details : function() { return ""; }});
@@ -784,7 +784,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -870,7 +870,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -955,7 +955,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -976,7 +976,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui   = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -1020,7 +1020,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui   = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -1139,7 +1139,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
     })
 
     after(function(){
@@ -1177,7 +1177,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
     })
 
     after(function(){
@@ -1404,7 +1404,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
     })
 
     it("handles all node requests", function(){
@@ -1446,7 +1446,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -1534,7 +1534,7 @@ pavlov.specify("omega.js", function(){
     var ui, sys, node;
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -1677,7 +1677,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
 
       disable_three_js();
       Entities().node(node);
@@ -1807,7 +1807,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
     })
 
     it("dispatches to chat_container.wire_up", function(){
@@ -1858,7 +1858,7 @@ pavlov.specify("omega.js", function(){
 
     before(function(){
       ui = new UI();
-      node = new Node();
+      node = new TestNode();
     })
 
     it("handles account info update button click event", function(){
@@ -1874,8 +1874,15 @@ pavlov.specify("omega.js", function(){
         cb = ui.account_info.update_button.callbacks['click'][0];
       })
 
+      after(function(){
+        if(window.alert.restore) window.alert.restore();
+      })
+
       describe("passwords do no match", function(){
         it("pops up an alert / does not continue", function(){
+          // stub out window.alert
+          window.alert = sinon.stub(window, 'alert');
+
           var stub = sinon.stub(ui.account_info, 'passwords_match').returns(false);
           cb.apply(null, []);
           sinon.assert.called(stub);

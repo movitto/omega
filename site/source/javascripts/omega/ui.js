@@ -42,13 +42,13 @@ function UI(){
  * Implements singleton pattern
  */
 function UIResources(){
-  if ( arguments.callee._singletonInstance )
-    return arguments.callee._singletonInstance;
-  var reg = {};
-  arguments.callee._singletonInstance = reg;
+  if ( UIResources._singletonInstance )
+    return UIResources._singletonInstance;
+  var _this = {};
+  UIResources._singletonInstance = _this;
 
-  $.extend(reg, new Registry());
-  $.extend(reg, new EventTracker());
+  $.extend(_this, new Registry());
+  $.extend(_this, new EventTracker());
 
   // to render textures
   var texture_placeholder = document.createElement( 'canvas' );
@@ -58,28 +58,28 @@ function UIResources(){
 
   /* Path to images directory
    */
-  reg.images_path = $omega_config['prefix'] + $omega_config['images_path'];
+  _this.images_path = $omega_config['prefix'] + $omega_config['images_path'];
 
   /* Load a remote texture resource from the specified path
    */
-  reg.load_texture = function(path){
+  _this.load_texture = function(path){
     // TODO cache path locally ?
     return THREE.ImageUtils.loadTexture(path, function(t){
-      reg.raise_event('texture_loaded', t)
+      _this.raise_event('texture_loaded', t)
     });
   }
 
   /* Loads a textured material from the specified path
    */
-  reg.load_texture_material = function(path){
+  _this.load_texture_material = function(path){
     var texture  = new THREE.Texture( texture_placeholder );
     var material = new THREE.MeshBasicMaterial( { map: texture, overdraw: true } );
 
     var image = new Image();
     image.onload = function () {
       texture.needsUpdate = true;
-      material.map.image = this;
-      reg.raise_event('texture_loaded', this)
+      material.map.image = _this;
+      _this.raise_event('texture_loaded', _this)
     };
     image.src = path;
     return material;
@@ -87,36 +87,36 @@ function UIResources(){
 
   /* Loads specified json
    */
-  reg.load_json = function(path, cb){
+  _this.load_json = function(path, cb){
     var evnt = 'json_'+path+'_loaded';
     var loading = false;
-    if(reg.callbacks[evnt] && reg.callbacks[evnt].length > 0) loading = true;
-    reg.on(evnt, function(r, j){ cb.apply(null, [j]); });
+    if(_this.callbacks[evnt] && _this.callbacks[evnt].length > 0) loading = true;
+    _this.on(evnt, function(r, j){ cb.apply(null, [j]); });
     if(loading) return;
 
     loader.load(path, function(j){
-      reg.raise_event(evnt, j);
-      reg.clear_callbacks(evnt);
+      _this.raise_event(evnt, j);
+      _this.clear_callbacks(evnt);
     });
   }
 
   /* Load a remote mesh geometry resource from the specified path
    * and invoke callback when it is loaded
    */
-  reg.load_geometry = function(path, cb){
+  _this.load_geometry = function(path, cb){
     var evnt = 'geometry_'+path+'_loaded';
     var loading = false;
-    if(reg.callbacks[evnt] && reg.callbacks[evnt].length > 0) loading = true;
-    reg.on(evnt, function(r, g){ cb.apply(null, [g]); })
+    if(_this.callbacks[evnt] && _this.callbacks[evnt].length > 0) loading = true;
+    _this.on(evnt, function(r, g){ cb.apply(null, [g]); })
     if(loading) return;
 
     loader.load(path, function(geometry){
-      reg.raise_event(evnt, geometry);
-      reg.clear_callbacks(evnt);
+      _this.raise_event(evnt, geometry);
+      _this.clear_callbacks(evnt);
     }, UIResources().images_path + '/meshes');
   }
 
-  return reg;
+  return _this;
 }
 
 /* UI component base class.

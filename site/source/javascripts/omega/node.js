@@ -14,8 +14,8 @@ function Node(){
   $.extend(this, new EventTracker());
 
   var node         = this;
-  var rjr_web_node = new WebNode('http://'+$omega_config['host']+'/omega');
-  var rjr_ws_node  = new WSNode($omega_config['host'], '8080');
+  this.rjr_web_node = new WebNode('http://'+$omega_config['host']+'/omega');
+  this.rjr_ws_node  = new WSNode($omega_config['host'], '8080');
 
   // request/notification handlers
   this.handlers  = {};
@@ -40,7 +40,7 @@ function Node(){
   }
 
   // handle requests/notifications received over websocket
-  rjr_ws_node.message_received  = function(jr_msg) { 
+  this.rjr_ws_node.message_received  = function(jr_msg) { 
     node.raise_event('msg_received', jr_msg);
 
     // ensure this is a request message
@@ -55,13 +55,13 @@ function Node(){
   }
 
   // client web node doesn't support incoming requests/notifications
-  rjr_web_node.message_received  = function(jr_msg) { 
+  this.rjr_web_node.message_received  = function(jr_msg) { 
     node.raise_event('msg_received', jr_msg);
   }
 
   // catch errors and handle
-  rjr_web_node.onerror = 
-  rjr_ws_node.onerror  = 
+  this.rjr_web_node.onerror = 
+  this.rjr_ws_node.onerror  = 
     function(err){
       for(var eh in node.error_handlers)
         node.error_handlers[eh](err);
@@ -73,9 +73,9 @@ function Node(){
    */
    this.ws_request = function(){
      // automatically open ws socket connection on first request
-     if(!rjr_ws_node.opened) rjr_ws_node.open();
+     if(!this.rjr_ws_node.opened) this.rjr_ws_node.open();
 
-     var msg = rjr_ws_node.invoke.apply(rjr_ws_node, arguments)
+     var msg = this.rjr_ws_node.invoke.apply(this.rjr_ws_node, arguments)
      this.raise_event('request',    msg);
      this.raise_event('ws_request', msg);
      return msg;
@@ -86,7 +86,7 @@ function Node(){
    * Takes same parameters as WebNode::invoke
    */
    this.web_request = function(){
-     var msg = rjr_web_node.invoke.apply(rjr_web_node, arguments)
+     var msg = this.rjr_web_node.invoke.apply(this.rjr_web_node, arguments)
      this.raise_event('request',     msg);
      this.raise_event('web_request', msg);
      return msg;
@@ -98,8 +98,8 @@ function Node(){
    * @param {String} value value to set the header to
    */
   this.set_header = function(header, value){
-    rjr_ws_node.headers[header]  = value;
-    rjr_web_node.headers[header] = value;
+    this.rjr_ws_node.headers[header]  = value;
+    this.rjr_web_node.headers[header] = value;
   }
 
   return this;

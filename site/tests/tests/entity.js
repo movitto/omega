@@ -89,7 +89,7 @@ describe("Galaxy", function(){
 
   before(function(){
     disable_three_js();
-    Entities().node(new Node());
+    Entities().node(new TestNode());
 
     sys1 = { id : 'sys1'}
     sys2 = { id : 'sys2'}
@@ -182,7 +182,7 @@ describe("SolarSystem", function(){
 
   before(function(){
     disable_three_js();
-    Entities().node(new Node());
+    Entities().node(new TestNode());
 
     st1 = { id : 'star1' };
     pl1 = { id : 'planet1' };
@@ -450,7 +450,7 @@ describe("Ship", function(){
 
   before(function(){
     disable_three_js();
-    Entities().node(new Node());
+    Entities().node(new TestNode());
 
     sh = new Ship({location : { id : 42 }});
   })
@@ -574,7 +574,7 @@ describe("Station", function(){
 
   before(function(){
     disable_three_js();
-    Entities().node(new Node());
+    Entities().node(new TestNode());
 
     st = new Station({location : { id : 42 }});
   })
@@ -660,7 +660,7 @@ describe("Station", function(){
 pavlov.specify("Mission", function(){
 describe("Mission", function(){
   before(function(){
-    Entities().node(new Node());
+    Entities().node(new TestNode());
   })
 
   after(function(){
@@ -764,7 +764,7 @@ describe("Mission", function(){
 pavlov.specify("Statistic", function(){
 describe("Statistic", function(){
   before(function(){
-    Entities().node(new Node());
+    Entities().node(new TestNode());
   });
 
   after(function(){

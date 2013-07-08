@@ -1,7 +1,7 @@
 pavlov.specify("ServerEvents", function(){
 describe("ServerEvents", function(){
   before(function(){
-    Entities().node(new Node());
+    Entities().node(new TestNode());
   });
   after(function(){
     ServerEvents().clear()
@@ -86,7 +86,7 @@ describe("ServerEvents", function(){
 pavlov.specify("Events", function(){
 describe("Events", function(){
   before(function(){
-    Entities().node(new Node());
+    Entities().node(new TestNode());
   });
 
   after(function(){
@@ -244,7 +244,7 @@ pavlov.specify("Commands", function(){
 describe("Commands", function(){
   before(function(){
     disable_three_js();
-    Entities().node(new Node());
+    Entities().node(new TestNode());
   })
 
   after(function(){

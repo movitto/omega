@@ -3,7 +3,7 @@ describe("Node", function(){
   var node;
 
   before(function(){
-    node = Node();
+    node = new Node();
   });
 
   after(function(){

@@ -31,6 +31,7 @@ function on_animation(scene, cb){
 
 // remove generated dialogs, will get recreated with next qunit-fixture
 function remove_dialogs(){
+  $('#omega_dialog').dialog('destroy')
   $('#omega_dialog').remove();
 }
 
@@ -47,25 +48,35 @@ function TestEntity(args){
   }
 }
 
+// Extend node, stub out 'invoke' methods on rjr nodes
+// so as to not actually perform remote json-rpc calls
+function TestNode(args){
+  $.extend(this, new Node(args));
+
+  this.rjr_web_node.invoke = sinon.stub()
+  this.rjr_ws_node.invoke  = sinon.stub()
+  this.rjr_ws_node.open = sinon.stub();
+}
+
 
 //////////////////////////////// test hooks
 
 //function before_all(details){
 //}
-//
+
 //function before_each(details){
 //}
-//
+
 function after_each(details){
   Entities().clear();
   UIResources().clear_callbacks();
   reenable_three_js();
   remove_dialogs();
 }
-//
+
 //function after_all(details){
 //}
-//
+
 //QUnit.moduleStart(before_all);
 //QUnit.testStart(before_each);
 QUnit.testDone(after_each);
