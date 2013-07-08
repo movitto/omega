@@ -1,0 +1,84 @@
+## Public Omega JSON-RPC API:
+
+### users:
+* users::send_message                 |message|
+* users::subscribe_to_messages 
+* users::get_messages 
+* users::get_entities                 |*args|
+* users::register                     |user|
+* users::confirm_register             |registration_code|
+* users::login                        |user|
+* users::logout                       |session_id|
+* users::update_user                  |user|
+* users::has_attribute                |*args|
+
+### motel:
+* motel::get_location                 |*args|
+* motel::track_handler                |*args|
+* motel::remove_callbacks             |*args|
+
+### cosmos:
+* cosmos::get_resource                |resource_id|
+* cosmos::get_resources               |entity_id|
+* cosmos::get_entities                |*args|
+
+### manufactured:
+* manufactured::construct_entity      |manufacturer_id, *args|
+* manufactured::move_entity           |id, loc|
+* manufactured::follow_entity         |id, target_id, distance|
+* manufactured::stop_entity           |id|
+* manufactured::subscribe_to          |entity_id, event|
+* manufactured::remove_callbacks      |entity_id|
+* manufactured::dock                  |ship_id, station_id|
+* manufactured::undock                |ship_id|
+* manufactured::get_entities          |*args|
+* manufactured::collect_loot          |ship_id, loot_id|
+* manufactured::start_mining          |ship_id, resource_id|
+* manufactured::attack_entity         |attacker_id, defender_id|
+* manufactured::transfer_resource     |*args|
+
+### missions:
+* missions::get_missions              |*args|
+* missions::assign_mission            |mission_id, user_id|
+
+### stats:
+* stats::get_stats                    |*args|
+
+## Private Omega JSON-RPC API:
+
+### users:
+* users::update_attribute             |user_id, attribute_id, change|
+* users::create_user                  |user|
+* users::create_role                  |role|
+* users::add_role                     |user_id, role_id|
+* users::add_privilege                |*args|
+* users::save_state                   |output|
+* users::restore_state                |input|
+
+### motel:
+* motel::update_location              |loc|
+* motel::create_location              |loc|
+* motel::save_state                   |output|
+* motel::restore_state                |input|
+* motel::motel_status 
+
+### cosmos:
+* cosmos::set_resource                |resource|
+* cosmos::create_entity               |entity|
+* cosmos::save_state                  |output|
+* cosmos::restore_state               |input|
+
+### manufactured:
+* manufactured::create_entity         |entity|
+* manufactured::add_resource          |entity_id, resource|
+* manufactured::save_state            |output|
+* manufactured::restore_state         |input|
+* manufactured::manufactured_status 
+
+### missions:
+* missions::create_event              |event|
+* missions::create_mission            |mission|
+* missions::save_state                |output|
+* missions::restore_state             |input|
+
+### stats:
