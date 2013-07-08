@@ -1,6 +1,6 @@
 ## The Omega Simulation Framework
 
-Copyright (C) 2010-2012 Mohammed Morsi <mo@morsi.org>
+Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
 
 Omega is made available under the GNU AFFERO GENERAL PUBLIC LICENSE
 as published by the Free Software Foundation, either version 3
@@ -13,26 +13,32 @@ and control entities and subsystems via any programming language and transport p
 
 Omega consists of several subprojects:
 
-* **Motel** - Movable Objects Tracking Encompassing Locations - A framework to track
-locations in 3d cartesian space. Locations are associated with movement strategies
-on the server side whose job is to periodically update the location's coordinates
+* **Motel** - Movable Objects Tracking Encompassing Locations - Tracks locations,
+eg coordinates w/ an orientation and movement strategy, in 3d cartesian space.
+The location's movement strategy periodically updates the location's properties.
 (eg along linear, elliptical paths, following another location, etc)
 
 * **Users** - User registrations, sessions, permissions, groups, etc
 
-* **Cosmos** - Permits clients to retreive and track heirarchies of cosmos entities,
-galaxies, solar systems, stars, planets, moons, asteroids, etc. Each cosmos entity
-is associated with a location tracked by Motel.
+* **Cosmos** - Manages heirarchies of cosmos entities, galaxies, solar systems,
+stars, planets, moons, asteroids, etc. Each cosmos entity is associated with
+a location tracked by Motel.
 
-* **Manufactured** - Permits clients to construct and manipulate player controlled and
-constructed entities, ships, stations, etc. Similar to the cosmos subsystem, each
-manufactured entity is associated with a location managed by Motel.
+* **Manufactured** - Manages player controlled and constructed entities,
+ships, stations, etc. Similar to the cosmos subsystem, each manufactured entity
+is associated with a location managed by Motel.
 
-* **Omega** - Besides providing convenience utilities to bind the various subsystems
-together, the Omega module also provides simple mechanisms which to easily invoke
-functionality via a remote client. This includes a simple dsl which can be used to
-write setup scripts and a synchronized / thread-safe client-side entity-tracker.
+* **Missions** - Manages high level recurring events and goals. Privileged
+users are permitted to create sequences of checks/operations which query/impact
+other subsystems.
 
+* **Stats** - Provides access to overall user and universe statistics. Other
+subsystems may write to stats here and/or read stats to modify operations.
+
+* **Omega** - Convenience utilities to bind the various server side subsystems
+together, and provides simple mechanisms which to invoke functionality via a remote client.
+This includes a simple dsl which can be used to setup a simulation as well as an
+event based interface which to query/manipulate entities.
 
 ## Running the Server
 
@@ -65,7 +71,6 @@ omega.yml which is loaded from the following locations
 * ~/.omega.yml
 * ./omega.yml
 
-
 ## Invoking
 {http://rubydoc.info/github/movitto/rjr/frames RJR}
 allows Omega to serve JSON-RPC requests over many protocols.
@@ -77,23 +82,21 @@ containing a json request to the server via any of these protocols.
 
     $ curl -X POST http://localhost:8888 -d \
        '{"jsonrpc":"2.0", "method":"cosmos::get_entities",
-         "params":["of_type", "solarsystem"], "id":"123"}'
+         "params":["of_type", "Cosmos::SolarSystem"], "id":"123"}'
 
     => {"jsonrpc":"2.0","id":"123","result":[{"json_class":"Cosmos::SolarSystem","data":{"name":"..."}}]}
    
-
-
 RJR provides mechanisms to invoke client requests very simply via Ruby:
 
     # A more complete example, involving authentication
     login_user = Users::User.new :id => 'me', :password => 'secret'
-    node = RJR::AMQPNode.new :node_id => 'client', :broker   => 'localhost'
+    node = RJR::Nodes::AMQP.new :node_id => 'client', :broker   => 'localhost'
 
     # omega-queue is the name of the server side amqp queue
-    session = node.invoke_request('omega-queue', 'users::login', login_user)
+    session = node.invoke('omega-queue', 'users::login', login_user)
     node.headers['session_id'] = session.id
 
-    node.invoke_request('omega-queue', 'cosmos::get_entities', 'of_type', 'solarsystem')
+    node.invoke('omega-queue', 'cosmos::get_entities', 'of_type', 'Cosmos::SolarSystem')
     # => [#<Cosmos::SolarSystem:0x00AABB...>,...]
 
 
@@ -101,21 +104,41 @@ Once authenticated, the client may invoke a variety of requests to create,
 retrieve, and update server side entities, depending on roles they have
 been assigned and their corresponding privileges / permissions. Some methods
 have additional restrictions to limit user access, see the api documentation
-in the {file:API.md} file and source code (see 'generating documentation' below) for more info
+in the {file:API} file and source code (see 'generating documentation' below) for more info
 
 ## Running the clients
 
-Omega provides a few client helper utilities in the bin/util directory.
+Omega provides a few client helper utilities in the bin/util directory as
+well as many various sample data sets in the examples/ dir.
 
-These are meant to assist in the creation of users and the entities they own, and
-to retrieve cosmos and other entities. 
+These are meant to assist in the creation of users and the manipulation of
+entities they own, and to retrieve cosmos and other entities. 
 
 To invoke, simply run the scripts right from the command line, specifying
 '-h' or '--help' for extended usage.
 
-Omega also provides a few example clients in the 'examples' directory utilizing
-the various client mechanisms to setup sample data and run clients implementing
-different strategies / algorithms. See the {file:examples/integration/CLIENT_HOWTO.md} for more info
+See the {file:examples/CLIENT\_HOWTO.md} for more info
+
+## Web Frontend
+
+A static web frontend and js Omega client is provided in the site/ dir.
+This uses {http://middlemanapp.com/ Middleman} to generate static html/js
+content from templates.
+
+Two rake tasks are provided to simplify usage:
+* rake site:preview - will start a light / live / local webserver which to
+  access the site and preview changes on the fly
+* rake site:build - generates static content which to deploy to a production
+  webserver such as apache or nginx. This server should be configured to serve
+  the static content as well as proxy JSON-RPC requests to the Omega Server
+  as they arrive from the javascript client.
+
+See the omega-conf project for configuration files and utility scripts / recipes
+which can be used to assist the deployment of an omega server and js frontend.
+
+The static site requires a few files such as images and mesh data not shipped
+with the source code. Again see the omega-conf project for how to get these
+content packs.
 
 ## Using
 
