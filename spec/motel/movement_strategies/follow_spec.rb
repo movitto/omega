@@ -1,6 +1,6 @@
 # follow movement strategy tests
 #
-# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # See COPYING for the License of this software
 
 require 'spec_helper'

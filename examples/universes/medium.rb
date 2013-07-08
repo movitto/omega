@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 # Medium sized universe
 #
-# Copyright (C) 2012 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 # TODO replace random axis + rand locations

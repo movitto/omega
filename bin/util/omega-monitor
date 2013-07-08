@@ -2,7 +2,7 @@
 # Continously monitors Omega for status / errors
 # and displays report using ncurses
 #
-# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 #
 # to use rbcurse (currently not used):

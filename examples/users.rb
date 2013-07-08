@@ -2,7 +2,7 @@
 # Creates an example user and a few ships/stations belonging
 # to them based on command line args
 #
-# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
