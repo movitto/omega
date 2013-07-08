@@ -1078,7 +1078,6 @@ pavlov.specify("omega.js", function(){
 
     describe("on ship mining selection command", function(){
       after(function(){
-        remove_dialogs();
         if(Entities().select.restore) Entities().select.restore();
       })
 
@@ -1182,7 +1181,6 @@ pavlov.specify("omega.js", function(){
     })
 
     after(function(){
-      remove_dialogs();
       if(Session.login.restore) Session.login.restore();
     });
 
@@ -1680,6 +1678,9 @@ pavlov.specify("omega.js", function(){
     before(function(){
       ui = new UI();
       node = new Node();
+
+      disable_three_js();
+      Entities().node(node);
     });
 
     it("dispatches to canvas.wire_up", function(){
@@ -1712,43 +1713,189 @@ pavlov.specify("omega.js", function(){
       sinon.assert.called(spy)
     });
 
-    it("handles window resize events");
-    describe("on window resize", function(){
-      it("only responds to root windows resize events");
-      it("sets canvas size");
+    describe("on root window resize", function(){
+      it("sets canvas size", function(){
+        wire_up_canvas(ui, node);
+
+        var spy = sinon.spy(ui.canvas, 'set_size');
+        $(window).trigger('resize');
+        sinon.assert.called(spy); // TODO test size?
+      });
     });
-    it("it listens for all texture loading events");
+
+    it("it listens for all texture loading events", function(){
+      wire_up_canvas(ui, node);
+      assert(UIResources().callbacks['texture_loaded'].length).equals(1)
+    });
+
     describe("on texture loading", function(){
-      it("reanimates scene");
+      it("animates scene", function(){
+        wire_up_canvas(ui, node);
+        var cb = UIResources().callbacks['texture_loaded'][0];
+        var spy = sinon.spy(ui.canvas.scene, 'animate')
+        cb.apply(null, []);
+        sinon.assert.called(spy);
+      });
     });
-    it("it listens for scene set event");
+
+    it("it handles scene set event", function(){
+      wire_up_canvas(ui, node);
+      assert(ui.canvas.scene.callbacks['set'].length).equals(1)
+    });
+
     describe("on scene set", function(){
-      it("removes movement/manu event tracking from all entities not in current system");
-      it("refreshes entities under current system");
-      it("resets the camera");
+      var cb, sys;
+      var sh1, sh2;
+
+      before(function(){
+        wire_up_canvas(ui, node);
+        cb = ui.canvas.scene.callbacks['set'][0];
+        
+        sys = new SolarSystem({id : 'sys1', location : new Location()})
+        Session.current_session = { user_id : 'user1' }
+        sh1 = new Ship({ id : 'sh1', user_id : 'user2', system_id : 'sys2', location : new Location({id : 5}) });
+        sh2 = new Ship({ id : 'sh2', system_id : 'sys1' , location : new Location()});
+
+        Entities().set(sh1.id, sh1);
+        Entities().set(sh2.id, sh2);
+      })
+
+      after(function(){
+        Session.current_session = null;
+        if(Entities().select.restore) Entities().select.restore();
+        if(Events.stop_track_movement.restore) Events.stop_track_movement.restore();
+        if(Events.stop_track_manufactured.restore) Events.stop_track_manufactured.restore();
+        if(SolarSystem.entities_under.restore) SolarSystem.entities_under.restore();
+        if(process_entities.restore) process_entities.restore();
+      })
+
+      it("removes movement/manu event tracking from all entities not in current system", function(){
+        var spy1 = sinon.spy(Entities(), 'select');
+        var spy2 = sinon.spy(Events, 'stop_track_movement')
+        var spy3 = sinon.spy(Events, 'stop_track_manufactured')
+
+        cb.apply(null, [sys]);
+        sinon.assert.calledWith(spy1,
+          sinon.match.func_domain(false, { json_class : 'foobar'}).and(
+          sinon.match.func_domain(false, { json_class : 'Manufactured::Ship', system_id : sys.id })).and(
+          sinon.match.func_domain(false, { json_class : 'Manufactured::Ship', system_id : 'sys2', user_id : 'user1' })).and(
+          sinon.match.func_domain(true,  { json_class : 'Manufactured::Ship', system_id : 'sys2', user_id : 'user2' })))
+        sinon.assert.calledWith(spy2, sh1.location.id);
+        sinon.assert.calledWith(spy3, sh1.id);
+      });
+
+      it("refreshes entities under current system", function(){
+        var spy = sinon.spy(SolarSystem, 'entities_under');
+        cb.apply(null, [sys]);
+        sinon.assert.calledWith(spy, sys.id);
+        process_entities = sinon.spy(process_entities);
+        var cb1 = spy.getCall(0).args[1];
+        cb1.apply(null, [[]]);
+        sinon.assert.calledWith(process_entities, ui, node, []);
+      });
+
+      it("resets the camera", function(){
+        var spy = sinon.spy(ui.canvas.scene.camera, 'reset');
+        cb.apply(null, [sys]);
+        sinon.assert.called(spy);
+      });
     });
   });
 
   describe("#wire_up_chat", function(){
-    it("dispatches to chat_container.wire_up");
-    it("handles chat button click event");
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+    })
+
+    it("dispatches to chat_container.wire_up", function(){
+      var spy = sinon.spy(ui.chat_container, 'wire_up')
+      wire_up_chat(ui, node);
+      sinon.assert.called(spy)
+    });
+
+    it("handles chat button click event", function(){
+      wire_up_chat(ui, node);
+      assert(ui.chat_container.button.callbacks['click'].length).equals(1);
+    });
+
     describe("on chat button click", function(){
-      it("retrieves chat input");
-      it("sends new chat message to server");
-      it("adds message to output");
-      it("clears chat input");
+      var cb;
+
+      before(function(){
+        wire_up_chat(ui, node);
+        cb = ui.chat_container.button.callbacks['click'][0];
+        ui.chat_container.input.component().attr('value', 'msg'); 
+        Session.current_session = { user_id : 'user1' }
+      })
+
+      after(function(){
+        Session.current_session = null;
+      })
+
+      it("sends chat message to server", function(){
+        var spy = sinon.spy(node, 'web_request')
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, 'users::send_message', 'msg');
+      });
+
+      it("adds message to output", function(){
+        cb.apply(null, []);
+        assert(ui.chat_container.output.component().html()).equals("user1: msg\n")
+      });
+
+      it("clears chat input", function(){
+        cb.apply(null, []);
+        assert(ui.chat_container.input.component().attr('value')).equals('');
+      });
     });
   });
 
   describe("#wire_up_account_info", function(){
-    it("handles account info update button click event");
-    describe("passwords do no match", function(){
-      it("pops up an alert / does not continue");
+    var ui, node;
+
+    before(function(){
+      ui = new UI();
+      node = new Node();
+    })
+
+    it("handles account info update button click event", function(){
+      wire_up_account_info(ui, node);
+      assert(ui.account_info.update_button.callbacks['click'].length).equals(1);
     });
-    it("invokes update_user request");
-    describe("successful user update", function(){
-      it("pops up an alert w/ confirmation");
-    });
+
+    describe("on account info button click", function(){
+      var cb;
+
+      before(function(){
+        wire_up_account_info(ui, node);
+        cb = ui.account_info.update_button.callbacks['click'][0];
+      })
+
+      describe("passwords do no match", function(){
+        it("pops up an alert / does not continue", function(){
+          var stub = sinon.stub(ui.account_info, 'passwords_match').returns(false);
+          cb.apply(null, []);
+          sinon.assert.called(stub);
+        });
+      });
+
+      it("invokes update_user request", function(){
+        var stub = sinon.stub(ui.account_info, 'passwords_match').returns(true);
+        var spy1 = sinon.spy(ui.account_info, 'user');
+        var spy2 = sinon.spy(node, 'web_request');
+        cb.apply(null, []);
+        sinon.assert.called(spy1);
+        sinon.assert.calledWith(spy2, 'users::update_user')
+      });
+
+      // TODO
+      //describe("successful user update", function(){
+      //  it("pops up an alert w/ confirmation");
+      //});
+    })
   });
 
 }); // omega.js

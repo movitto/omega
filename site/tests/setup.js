@@ -58,7 +58,9 @@ function TestEntity(args){
 //
 function after_each(details){
   Entities().clear();
+  UIResources().clear_callbacks();
   reenable_three_js();
+  remove_dialogs();
 }
 //
 //function after_all(details){

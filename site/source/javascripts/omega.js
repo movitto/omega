@@ -932,8 +932,8 @@ var wire_up_canvas = function(ui, node){
     // remove event callbacks of entities in old system not beloning to user
     var old_entities =
       Entities().select(function(e){
-        return (s.json_class == 'Manufactured::Ship' || s.json_class == 'Manufactured::Station') &&
-               !s.has(e.id) && e.user_id != Session.current_session.user_id;
+        return (e.json_class == 'Manufactured::Ship' || e.json_class == 'Manufactured::Station') &&
+               (s.id != e.system_id) && e.user_id != Session.current_session.user_id;
       })
 
     for(var e in old_entities){
@@ -943,8 +943,8 @@ var wire_up_canvas = function(ui, node){
     }
 
     // refresh entities under the system
-    if(s.get().json_class == "Cosmos::SolarSystem")
-      SolarSystem.entities_under(s.get().name, function(e){ process_entities(ui, node, e); });
+    if(s.json_class == "Cosmos::SolarSystem")
+      SolarSystem.entities_under(s.id, function(e){ process_entities(ui, node, e); });
 
     // reset the camera
     ui.canvas.scene.camera.reset();
