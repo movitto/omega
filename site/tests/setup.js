@@ -1,3 +1,9 @@
+// Test helper
+
+// NIY = Not Implemented Yet
+// Specs will fails if stubbed out but not implemented, so
+// tests commented out but marked w/ 'NIY' should be implemented later
+
 //////////////////////////////// helper methods
 
 function disable_three_js(){

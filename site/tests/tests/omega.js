@@ -733,8 +733,7 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  // TODO
-  //describe("#process_stats", function(){
+  //describe("#process_stats", function(){ // NIY
   //  it("adds badges to account info");
   //});
 
@@ -1127,12 +1126,11 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  // TODO
-  //describe("#clicked_station", function(){
+  //describe("#clicked_station", function(){ // NIY
   //});
-  //describe("#load_system", function(){
+  //describe("#load_system", function(){ // NIY
   //});
-  //describe("#load_galaxy", function(){
+  //describe("#load_galaxy", function(){ // NIY
   //});
 
   describe("#wire_up_ui", function(){
@@ -1267,8 +1265,7 @@ pavlov.specify("omega.js", function(){
         assert(ui.dialog.selector).equals('#register_dialog')
       });
 
-      // TODO
-      //it("generates recpatcha");
+      //it("generates recpatcha"); // NIY
     });
 
     it("handles register button click event", function(){
@@ -1438,8 +1435,7 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  // TODO?
-  //describe("#wire_up_jplayer", function(){
+  //describe("#wire_up_jplayer", function(){ // NIY ?
   //});
 
   describe("#wire_up_entities_lists", function(){
@@ -1516,16 +1512,15 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    // TODO
     //describe("on assign mission click", function(){
     //  describe("error during mission assignment", function(){
-    //    it("shows error in dialog", function(){
+    //    it("shows error in dialog", function(){ // NIY
     //    });
     //  });
 
     //  describe("successful mission assignment", function(){
-    //    it("updates registry entity")
-    //    it("hides dialog");
+    //    it("updates registry entity") // NIY
+    //    it("hides dialog"); // NIY
     //  });
     //});
   });
@@ -1621,8 +1616,7 @@ pavlov.specify("omega.js", function(){
           sinon.assert.calledWith(spy, sys.planets[p].location.id);
       });
 
-      // TODO
-      //describe("on planet movement event", function(){
+      //describe("on planet movement event", function(){ // NIY
       //  it("raises motel event");
       //});
     });
@@ -1898,8 +1892,7 @@ pavlov.specify("omega.js", function(){
         sinon.assert.calledWith(spy2, 'users::update_user')
       });
 
-      // TODO
-      //describe("successful user update", function(){
+      //describe("successful user update", function(){ // NIY
       //  it("pops up an alert w/ confirmation");
       //});
     })

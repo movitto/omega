@@ -540,11 +540,10 @@ describe("Canvas", function(){
     // TODO verify actual size
   })
 
-  // TODO
-  //describe("canvas shown", function(){
+  //describe("canvas shown", function(){ // NIY
   //  it("shows 'Hide' on canvas toggle control")
   //});
-  //describe("canvas hidden", function(){
+  //describe("canvas hidden", function(){ // NIY
   //  it("shows 'Show' on canvas toggle control")
   //});
 
@@ -1130,8 +1129,7 @@ describe("SelectBox", function(){
     });
   });
 
-  // TODO test different combinations
-  //describe("#update_area", function(){
+  //describe("#update_area", function(){ // NIY (test w/ different combinations)
   //  it("adjust component size")
   //});
 
@@ -1258,8 +1256,7 @@ describe("EntitiesContainer", function(){
     })
   });
 
-  // TODO
-  //describe("#hide_all", function(){
+  //describe("#hide_all", function(){ // NIY
   //  it("hides all entities containers")
   //  it("hides missions button")
   //});
@@ -1403,7 +1400,6 @@ describe("NavContainer", function(){
   });
 });}); // NavContainer
 
-// TODO
 //pavlov.specify("AccountInfoContainer", function(){
 //describe("AccountInfoContainer", function(){
 //  var aic;
@@ -1413,52 +1409,52 @@ describe("NavContainer", function(){
 //  })
 //
 //  describe("#username", function(){
-//    it("gets username input value", function(){
+//    it("gets username input value", function(){ // NIY
 //      $('#account_info_username input').attr('value', 'foobar');
 //      assert(aic.username()).equals('foobar')
 //    })
 //
-//    it("sets username input value", function(){
+//    it("sets username input value", function(){ // NIY
 //      aic.username('test');
 //      assert($('#account_info_username input').attr('value')).equals('test');
 //    })
 //  });
 //
 //  describe("#password", function(){
-//    it("gets password input value", function(){
+//    it("gets password input value", function(){ // NIY
 //      $('#user_password input').attr('value', 'foobar');
 //      assert(aic.password()).equals('foobar')
 //    })
 //
-//    it("sets password input value", function(){
+//    it("sets password input value", function(){ // NIY
 //      aic.password('foobar');
 //      assert($('#user_password input').attr('value')).equals('foobar');
 //    })
 //  });
 //
 //  describe("#email", function(){
-//    it("gets email input value")
-//    it("sets email input value")
+//    it("gets email input value") // NIY
+//    it("sets email input value") // NIY
 //  });
 //  describe("#gravatar", function(){
-//    it("gets gravatar page component value")
-//    it("sets gravatar page component value")
+//    it("gets gravatar page component value") // NIY
+//    it("sets gravatar page component value") // NIY
 //  });
 //  describe("#entities", function(){
-//    it("sets entities list")
+//    it("sets entities list") // NIY
 //  });
 //  describe("#passwords_match", function(){
 //    describe("passwords match", function(){
-//      it("returns true")
+//      it("returns true") // NIY
 //    });
 //    describe("passwords don't match", function(){
-//      it("returns false")
+//      it("returns false") // NIY
 //    });
 //  });
 //  describe("#user", function(){
-//    it("returns new user created from inputs")
+//    it("returns new user created from inputs") // NIY
 //  });
 //  describe("#add_badge", function(){
-//    it("it adds badge to ui");
+//    it("it adds badge to ui"); // NIY
 //  });
 //});}); // AccountInfoContainer
