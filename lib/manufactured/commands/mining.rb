@@ -14,12 +14,11 @@ module Commands
 # Invokes various Manufactured::Callback handlers upon various events.
 #
 # The callback events/types invoked include:
-# * 'resource_depeleted' - invoked when resource source quantity becomes <= 0 with event, miner, and resource source as params
 # * 'mining_stopped'     - invoked when miner stops mining with event, stopped reason, ship, and resource source as params. Reasons include:
 # ** 'mining_distance_exceeded'
 # ** 'ship_cargo_full'
 # ** 'ship_docked'
-# ** 'resource_depleted' (also invokes 'resource_depeleted' callback)
+# ** 'resource_depleted'
 # * 'resource_collected' - invoked when miner collects the resource from the source, with event, miner, resource source, and quantity mined during this operation as params
 class Mining < Omega::Server::Command
   include Omega::Server::CommandHelpers

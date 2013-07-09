@@ -57,7 +57,7 @@ collect_loot = proc { |ship_id, loot_id|
         total += r.quantity
 
         # run collected_loot callbacks
-        s.run_callbacks :collected_loot, s, r
+        s.run_callbacks :collected_loot, r
       rescue Exception => e
       ensure
         # if resource was added to ship but not

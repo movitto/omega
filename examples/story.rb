@@ -243,7 +243,7 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
        Query.user_ships { |s| s.docked_at.id == src.id }), # FIXME only return first
      Assignment.add_resource(mid + '-ship', type, name, q2),
      Assignment.schedule_expiration_event,
-     Assignment.subscribe_to(mid + '-ship', 'transfer',
+     Assignment.subscribe_to(mid + '-ship', 'transferred_to',
                              Event.transferred_out)],
 
   :victory_conditions => Query.check_transfer,

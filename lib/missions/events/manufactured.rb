@@ -13,6 +13,11 @@ class Manufactured < Omega::Server::Event
   # Array of args received pertaining to the manufactured event
   attr_accessor :manufactured_event_args
 
+  # Helper method to generate id from entity / event
+  def self.gen_id(entity_id, event)
+    "#{entity_id}_#{event}"
+  end
+
   # Manufactured Event intializer
   def initialize(*manufactured_event_args)
     @manufactured_event_args = manufactured_event_args
@@ -20,7 +25,7 @@ class Manufactured < Omega::Server::Event
     # generate event id from args
     # XXX not pretty but works for now
     manu_event = manufactured_event_args.first
-    id =
+    entity_id =
       case manu_event
       when 'attacked_stopped','attacked'                       then
         manufactured_event_args[1].id
@@ -28,7 +33,7 @@ class Manufactured < Omega::Server::Event
       when 'defended_stopped','defended','destroyed'           then
         manufactured_event_args[2].id
 
-      when 'resource_depleted','resource_collected'            then
+      when 'resource_collected'                                then
         # TODO also incoporate resource_source_id (param 2) ?
         manufactured_event_args[1].id
 
@@ -39,8 +44,11 @@ class Manufactured < Omega::Server::Event
       when 'construction_complete','partial_construction'      then
         manufactured_event_args[1].id
 
+      when 'transferred_from','transferred_to'                 then
+        manufactured_event_args[1].id
+
       end
-    id += "_" + manu_event
+    id = self.class.gen_id(entity_id, manu_event)
 
     super(:id => id, :timestamp => Time.now)
   end
