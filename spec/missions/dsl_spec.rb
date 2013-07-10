@@ -629,23 +629,40 @@ module DSL
     describe "#cleanup_events" do
       before(:each) do
         @sh = build(:ship)
-        @m.mission_data['ship1'] = @sh
+        @m.mission_data[@sh.id] = @sh
+
+        Missions::RJR.registry <<
+          Omega::Server::EventHandler.new(:event_id => "#{@sh.id}_destroyed")
+
+        @eid = "mission-#{@m.id}-expired"
+        Missions::RJR.registry << Omega::Server::Event.new(:id => @eid)
       end
 
       it "generates a proc" do
-        Resolution.cleanup_events('ship1', 'destroyed').should be_an_instance_of(Proc)
+        Resolution.cleanup_events(@sh.id, 'destroyed').should be_an_instance_of(Proc)
       end
 
-      it "invokes manufactured::remove_callbacks on each entity" #do
-      #  @node.should_receive(:invoke).
-      #        with('manufactured::remove_callbacks', @sh.id)
-      #  Resolution.cleanup_events('ship1', 'destroyed')
-      #end
+      it "invokes manufactured::remove_callbacks on each entity" do
+        @node.should_receive(:invoke).
+              with('manufactured::remove_callbacks', @sh.id)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+      end
 
-      it "invokes removes event handlers from local registry for each entity" #do
-      #end
+      it "invalidate each entity/event handler" do
+        @node.should_receive(:invoke)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+        Missions::RJR.registry.entity{ |e|
+          e.is_a?(Omega::Server::EventHandler) && e.event_id == "#{@sh.id}_destroyed"
+        }.invalid.should be_true
+      end
 
-      it "removes mission expired event"
+      it "removes mission expired event" do
+        @node.should_receive(:invoke)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+        Missions::RJR.registry.entity{ |e|
+          e.is_a?(Omega::Server::Event) && e.id == @eid
+        }.invalid.should be_true
+      end
     end
 
     describe "#recycle_mission" do

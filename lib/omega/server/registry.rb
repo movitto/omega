@@ -280,8 +280,12 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_events }
   def run_events
+    # FIXME since events and eventhandlers have callable methods which
+    #       aren't serialized, need to replace this w/ direct registry
+    #       manipulation via a safe_exec
     self.entities.
-      select { |e| e.kind_of?(Event) && e.time_elapsed? && !e.invoked }.
+      select { |e| e.kind_of?(Event) && e.time_elapsed? &&
+                   !e.invoked  && !e.invalid }.
       each { |evnt|
         RJR::Logger.info "running event #{evnt}"
 

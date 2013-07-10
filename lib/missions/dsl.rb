@@ -8,6 +8,16 @@ module Missions
 # Various callbacks and utility methods for use in mission creation
 module DSL
 
+# TODO client side dsl proxy
+# module Client w/ all DSL submodules and methods alias to a single
+# factory that instantiates of Proxy object w/ the method name and
+# params.
+#
+# Remove sprocs from mission (and omega!), send proxies in place,
+# and in serverside missions::create_mission method, expand / resolve
+# these proxies into the original DSL calls (also with the store and
+# subscribe_to block params below)
+
 # Mission Requirements
 module Requirements
   def self.shared_station
@@ -89,7 +99,8 @@ module Assignment
         # add handler to registry
         eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
         handler = Omega::Server::EventHandler.new(:event_id => eid) { |e|
-                         handlers.each { |h| h.call(mission, node, e) } }
+                    handlers.each { |h| h.call(mission, node, e) }
+                  }
         Missions::RJR.registry << handler
 
         # subscribe to server side events
@@ -261,12 +272,22 @@ module Resolution
       entities = [entities] unless entities.is_a?(Array)
 
       entities.each { |entity|
+        # remove callbacks
         node.invoke('manufactured::remove_callbacks', entity.id)
+
+        # remove event handlers
         evnts.each { |evnt|
-          Missions::Registry.instance.remove_event_handler("#{entity.id}_#{evnt}")
+          eid = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
+          Missions::RJR.registry.update({:invalid => true}) { |e|
+            e.is_a?(Omega::Server::EventHandler) && e.event_id == eid
+          }
         }
-        Missions::Registry.instance.remove("mission-#{mission.id}-expired")
-        # TODO flush other mission related events?
+
+        # remove expiration event
+        eid = "mission-#{mission.id}-expired"
+        Missions::RJR.registry.update({:invalid => true}) { |e|
+          e.is_a?(Omega::Server::Event) && e.id == eid
+        }
       }
     }
   end
