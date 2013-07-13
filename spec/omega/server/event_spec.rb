@@ -5,7 +5,7 @@
 
 require 'spec_helper'
 require 'omega/server/event'
-require 'omega/sproc'
+require 'sproc'
 
 require 'timecop'
 

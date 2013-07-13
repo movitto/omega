@@ -51,7 +51,7 @@ missions.each { |mission|
   puts "Mission: " + mission.to_s
   formatted = JSON.parse(mission.to_json, :create_additions => false)
 
-  # XXX trunate long sproc text
+  # XXX trunate long callback text
   ['requirements', 'assignment_callbacks', 'victory_conditions',
    'victory_callbacks', 'failure_callbacks'].each { |cb_q|
     formatted['data'][cb_q].each { |cb|

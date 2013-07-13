@@ -30,9 +30,6 @@ create_event = proc { |event|
 # Create new mission in the registry
 create_mission = proc { |mission|
   # require create missions
-  # XXX be very careful who can do this
-  #     as missions currently use SProcs
-  #     to evaluate arbitrary ruby code
   require_privilege :registry  => user_registry,
                     :privilege => 'create',
                     :entity    => 'missions'

@@ -12,7 +12,7 @@ require 'spec_helper'
 require 'rjr/common' # for eigenclass
 require 'omega/server/registry'
 require 'omega/server/event'
-require 'omega/sproc'
+require 'sproc'
 
 module Omega
 module Server
