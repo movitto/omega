@@ -5,6 +5,7 @@
 
 require 'cosmos/entities/solar_system'
 require 'manufactured/entity'
+require 'motel/location'
 
 module Manufactured
 
@@ -230,6 +231,7 @@ class Ship
 
   # {Manufactured::Station} ship is docked to, nil if not docked
   attr_accessor :docked_at
+  def docked_at_id ; @docked_at.nil? ? nil : @docked_at.id end
 
   # {Manufactured::Ship} ship being attacked, nil if not attacking
   attr_accessor :attacking

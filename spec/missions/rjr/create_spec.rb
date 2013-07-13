@@ -113,6 +113,12 @@ module Missions::RJR
         it "sets creator to current user"
       end
 
+      it "resolves mission dsl references" do
+        new_mission = build(:mission)
+        Missions::DSL::Client::Proxy.should_receive(:resolve).with(new_mission)
+        @s.create_mission(new_mission)
+      end
+
       it "creates new mission in registry" do
         new_mission = build(:mission)
         lambda {

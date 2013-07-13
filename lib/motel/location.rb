@@ -6,6 +6,7 @@
 require 'time'
 require 'json'
 require 'motel/movement_strategy'
+require 'motel/movement_strategies/stopped'
 
 module Motel
 

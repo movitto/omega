@@ -28,6 +28,11 @@ class Event
     @timestamp <= Time.now
   end
 
+  # Return boolean indicating if all checks pass for event execution
+  def should_exec?
+    time_elapsed? && !self.invoked && !self.invalid
+  end
+
   # Omega::Server::Event initializer
   #
   # @param [Hash] args hash of options to initialize event with

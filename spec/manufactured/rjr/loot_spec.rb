@@ -104,7 +104,7 @@ module Manufactured::RJR
       end
 
       it "raises collected_loot on ship" do
-        @rsh.should_receive(:run_callbacks).with(:collected_loot, @rsh, @rs)
+        @rsh.should_receive(:run_callbacks).with(:collected_loot, @rs)
         @s.collect_loot @sh.id, @lt.id
       end
 

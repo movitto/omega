@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# FIXME SProcs are no longer used, remove completely
+
 # XXX we use sourcify to move blocks of code around
 # be careful who has write access to this!
 # https://github.com/ngty/sourcify

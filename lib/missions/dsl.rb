@@ -3,23 +3,100 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'json'
+require 'omega/common'
+
 module Missions
 
-# Various callbacks and utility methods for use in mission creation
+# Various callbacks and utility methods for use in mission creation.
+#
+# The DSL methods themselves just return procedures to be registered
+# with the various mission callback to be executed at various stages
+# in the mission lifecycles (assignment, victory, expiration, etc)
 module DSL
 
-# TODO client side dsl proxy
-# module Client w/ all DSL submodules and methods alias to a single
-# factory that instantiates of Proxy object w/ the method name and
-# params.
+# Client DSL
+module Client
+
+# Proxy all client methods
+def self.method_missing(method_id, *args)
+  DSL.constants.each { |c|
+    dc = DSL.const_get(c)
+    if(dc.methods.include?(method_id))
+      return Proxy.new :dsl_category => c.to_s,
+                       :dsl_method   => method_id.to_s,
+                       :params       => args
+    end
+  }
+  nil
+end
+
+# Client side dsl proxy
+# 
+# Mechanism to allow clients to specify dsl methods to be used in
+# server side operations.
 #
-# Remove sprocs from mission (and omega!), send proxies in place,
-# and in serverside missions::create_mission method, expand / resolve
-# these proxies into the original DSL calls (also with the store and
-# subscribe_to block params below)
+# Since these dsl methods are not serializable the client sends
+# instances of this proxy in place which will be resolved on the server side
+class Proxy
+  attr_accessor :dsl_category
+  attr_accessor :dsl_method
+  attr_accessor :params
+
+  def initialize(args={})
+    attr_from_args args, :dsl_category => nil,
+                         :dsl_method   => nil,
+                         :params       =>  []
+  end
+
+  def self.resolve(mission)
+    Mission::CALLBACKS.each { |cb|
+      cbs = mission.send(cb)
+      cbs.each_index { |i|
+        cbs[i] = cbs[i].resolve if cbs[i].is_a?(Proxy)
+      }
+    }
+  end
+
+  def resolve
+    short_category = dsl_category.to_s.demodulize
+
+    return unless Missions::DSL.constants.collect { |c| c.to_s }.include?(short_category)
+    dcategory = Missions::DSL.const_get(short_category.intern)
+
+    return unless dcategory.methods.collect { |m| m.to_s }.include?(dsl_method.to_s)
+    dmethod = dcategory.method(dsl_method)
+
+    # scan through params, call resolve on proxies
+    params.each_index { |i|
+      param     = params[i]
+      params[i] = param.resolve if param.is_a?(Proxy)
+    }
+
+    dmethod.call *params
+  end
+
+  def to_json(*a)
+     {
+       'json_class'     => self.class.name,
+       'data'           =>
+         {:dsl_category => dsl_category,
+          :dsl_method   => dsl_method,
+          :params       => params}
+     }.to_json(*a)
+  end
+
+  def self.json_create(o)
+    new(o['data'])
+  end
+end
+
+end
 
 # Mission Requirements
 module Requirements
+  # Ensure both mission owner and user its being assigned to have at least on
+  # ship docked at a common station
   def self.shared_station
     proc { |mission, assigning_to, node|
       # ensure users have a ship docked at a common station
@@ -34,6 +111,7 @@ module Requirements
     }
   end
 
+  # Ensure user mission is being assigned to has a ship at the specified station
   def self.docked_at(station)
     proc { |mission, assigning_to, node|
       # ensure user has ship docked at specified station
@@ -47,12 +125,17 @@ end
 
 # Mission Assignment
 module Assignment
+
+  # Invoke the specified lookup proc and stare the result in the mission data
   def self.store(id, lookup)
     proc { |mission, node|
       mission.mission_data[id] = lookup.call(mission, node)
     }
   end
 
+  # Create a ship with the specified params
+  #
+  # TODO rename or expand to also create stations
   def self.create_entity(id, entity_params={})
     proc { |mission, node|
       # create new entity using specified params
@@ -64,6 +147,7 @@ module Assignment
     }
   end
 
+  # Create an asteroid w/ the specified params
   def self.create_asteroid(id, entity_params={})
     proc { |mission, node|
       ast = Cosmos::Entities::Asteroid.new entity_params
@@ -72,6 +156,7 @@ module Assignment
     }
   end
 
+  # Associate a resource w/ an existing cosmos entity
   def self.create_resource(entity_id, rs_params={})
     proc { |mission, node|
       entity = mission.mission_data[entity_id]
@@ -80,6 +165,7 @@ module Assignment
     }
   end
 
+  # Add a resource to the specified manufactured entity
   def self.add_resource(entity_id, rs_params={})
     proc { |mission, node|
       entity = mission.mission_data[entity_id]
@@ -88,6 +174,8 @@ module Assignment
     }
   end
 
+  # Subcribe node to event on specified entity(ies) invoking
+  # handler(s) when event occurs
   def self.subscribe_to(entities, evnt, handlers)
     proc { |mission, node|
       entities = [entities] unless entities.is_a?(Array)
@@ -109,6 +197,7 @@ module Assignment
     }
   end
 
+  # Add an event to the registry for mission timeout/expiration
   def self.schedule_expiration_event
     proc { |mission, node|
       id = "mission-#{mission.id}-expired"
@@ -191,6 +280,7 @@ end
 
 # Mission Queries
 module Query
+  # Return bool indicating if the ships hp == 0 (eg ship is destroyed)
   def self.check_entity_hp(id)
     proc { |mission, node|
       # check if entity is destroyed
@@ -200,6 +290,7 @@ module Query
     }
   end
 
+  # Return bool indicating if user has acquired target mining quantity
   def self.check_mining_quantity
     proc { |mission, node|
       q = mission.mission_data[:resources][mission.mission_data[:target]]
@@ -207,6 +298,7 @@ module Query
     }
   end
 
+  # Return bool indicating if user has transfered the target resource
   def self.check_transfer
     proc { |mission, node|
       mission.mission_data[:last_transfer] &&
@@ -222,6 +314,7 @@ module Query
     }
   end
 
+  # Return boolean indicating if user has collected the target loot
   def self.check_loot
     proc { |mission, node|
       !mission.mission_data[:loot].nil?
@@ -232,13 +325,21 @@ module Query
     }
   end
 
-  def self.user_ships(&filter)
+  # Return ships the user owned that matches the speicifed properties filter
+  def self.user_ships(filter={})
     proc { |mission, node|
       filter = proc { |i| true } unless filter
       node.invoke('manufactured::get_entity',
                   'of_type', 'Manufactured::Ship',
                   'owned_by', mission.assigned_to_id).
-           select(&filter)
+           pselect(filter)
+    }
+  end
+
+  # Return first ship returned by user_ships
+  def self.user_ship(filter={})
+    proc { |mission, node|
+      user_ships(filter).call(mission, node).first
     }
   end
 
@@ -246,6 +347,7 @@ end
 
 # Mission Resolution
 module Resolution
+  # Add resource to a user owned entity
   def self.add_resource(rs)
     proc { |mission, node|
       # TODO better way to get user ship than this
@@ -256,6 +358,7 @@ module Resolution
     }
   end
 
+  # Updates mission-related user attributes
   def self.update_user_attributes
     proc { |mission, node|
       # update user attributes
@@ -266,6 +369,7 @@ module Resolution
     }
   end
 
+  # Cleanup all events related to the mission
   def self.cleanup_events(id, *evnts)
     proc { |mission, node|
       entities = mission.mission_data[id]
@@ -292,6 +396,8 @@ module Resolution
     }
   end
 
+  # Recycle mission, eg clone it w/ a new id, clear assignment,
+  # and add it to the registry
   def self.recycle_mission
     proc { |mission, node|
       # create a new mission based on the specified one

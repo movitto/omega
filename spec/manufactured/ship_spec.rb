@@ -40,6 +40,19 @@ describe Ship do
     it "passes self and args to callback"
   end
 
+  describe "#docked_at_id" do
+    it "returns id of station ship is docked at" do
+      st = Station.new :id => 42
+      Ship.new(:docked_at => st).docked_at_id.should == st.id
+    end
+
+    context "ship is not docked at a station" do
+      it "returns null" do
+        Ship.new.docked_at_id.should == nil
+      end
+    end
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       s = Ship.new

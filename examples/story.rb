@@ -12,7 +12,7 @@ require 'missions/dsl'
 require 'rjr/nodes/amqp'
 
 include Omega::Client::DSL
-include Missions::DSL
+include Missions::DSL::Client
 
 ##################################################### init
 
@@ -204,7 +204,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 
   :assignment_callbacks =>
     [Assignment.store(mid + '-mining-ships',
-        Query.user_ships { |s| s.type == :mining }), # FIXME misses any mining ships created after assignment
+        Query.user_ships(:type => :mining ), # FIXME misses any mining ships created after assignment
      Assignment.create_asteroid(mid + '-asteroid',
       :name => mid,
       :solar_system => rand_system,
@@ -240,7 +240,7 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
 
   :assignment_callbacks => 
     [Assignment.store(mid + '-ship',
-       Query.user_ships { |s| s.docked_at.id == src.id }), # FIXME only return first
+       Query.user_ship(:docked_at_id => src.id ),
      Assignment.add_resource(mid + '-ship', type, name, q2),
      Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ship', 'transferred_to',

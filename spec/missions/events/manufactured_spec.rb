@@ -33,7 +33,6 @@ describe Manufactured do
          ['defended', @attacker, @defender],
          ['defended_stopped', @attacker, @defender],
          ['destroyed', @attacker, @defender],
-         ['resource_depleted', @miner, @rs],
          ['mining_stopped', 'resource_depleted', @miner, @rs],
          ['resource_collected', @miner, @rs],
          ['construction_complete', @station, @constru],

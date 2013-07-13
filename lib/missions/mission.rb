@@ -18,6 +18,10 @@ module Missions
 # if/when mission is completed, and to run handlers at various points during
 # the mission cycle.
 class Mission
+  # Attributes which correspond to mission cycle callbacks
+  CALLBACKS = [:requirements, :assignment_callbacks, :victory_conditions,
+               :victory_callbacks, :failure_callbacks]
+
   # Unique string id of the mission
   attr_accessor :id
 
@@ -211,18 +215,14 @@ class Mission
     
     @assigned_time = Time.parse(@assigned_time) if @assigned_time.is_a?(String)
 
-    [:@requirements, :@assignment_callbacks, :@victory_conditions,
-     :@victory_callbacks, :@failure_callbacks].each { |c|
-       i = self.instance_variable_get(c)
-       unless i.is_a?(Array)
-         i = [i]
-         self.instance_variable_set(c, i)
-       end
-
-       i.each_index { |cbi|
-         i[cbi] = SProc.new(&i[cbi]) if i[cbi].is_a?(Proc)
-       }
-     }
+    CALLBACKS.each { |cb|
+      c = "@#{cb}".intern
+      i = self.instance_variable_get(c)
+      unless i.is_a?(Array)
+        i = [i]
+        self.instance_variable_set(c, i)
+      end
+    }
   end
 
   # Update the mission from the specified args

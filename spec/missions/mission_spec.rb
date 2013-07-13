@@ -444,11 +444,6 @@ describe Mission do
         m = Mission.new(c => proc { 1 })
         m.send(c).should be_an_instance_of(Array)
       end
-
-      it "converts #{c} into sprocs" do
-        m = Mission.new(c => [proc { 1 }])
-        m.send(c).first.class.should == SProc
-      end
     }
   end
 

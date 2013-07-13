@@ -29,6 +29,38 @@ describe Event do
     end
   end
 
+  describe "#should_exec?" do
+    context "time not elapsed" do
+      it "returns false" do
+        e = Event.new
+        e.should_receive(:time_elapsed?).and_return(false)
+        e.should_exec?.should be_false
+      end
+    end
+
+    context "event already invoked" do
+      it "returns false" do
+        e = Event.new :invoked => true
+        e.should_receive(:time_elapsed?).and_return(true)
+        e.should_exec?.should be_false
+      end
+    end
+
+    context "event is invalid" do
+      it "returns false" do
+        e = Event.new :invoked => false, :invalid => true
+        e.should_receive(:time_elapsed?).and_return(true)
+        e.should_exec?.should be_false
+      end
+    end
+
+    it "returns true" do
+      e = Event.new
+      e.should_receive(:time_elapsed?).and_return(true)
+      e.should_exec?.should be_true
+    end
+  end
+
   describe "#initialize" do
     after(:each) do
       Timecop.return

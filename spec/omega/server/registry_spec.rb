@@ -406,6 +406,10 @@ describe Registry do
     end
   end
 
+  describe "#run_event" do
+    it "TODO: some of run_events was split out into run_event, test that here"
+  end
+
   describe "#run_events" do
     before(:each) do
       # XXX use sprocs as handlers will be serialized

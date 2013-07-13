@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'missions/dsl'
 require 'missions/rjr/init'
 
 module Missions::RJR
@@ -42,6 +43,9 @@ create_mission = proc { |mission|
   # set creator user if nil
   mission.creator =
     current_user(:registry => user_registry) if mission.creator_id.nil?
+
+  # resolve mission dsl references
+  Missions::DSL::Client::Proxy.resolve(mission)
 
   # add mission to registry
   registry << mission

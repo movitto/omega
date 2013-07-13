@@ -285,26 +285,48 @@ module Registry
     #       manipulation via a safe_exec
     self.entities.
       select { |e| e.kind_of?(Event) && e.time_elapsed? &&
-                   !e.invoked  && !e.invalid }.
-      each { |evnt|
-        RJR::Logger.info "running event #{evnt}"
-
-        # grab global event handlers, add them to callbacks
-        h = self.entities.select { |e|
-              e.is_a?(EventHandler) && e.event_id == evnt.id
-            }.collect { |h| h.handlers }.flatten
-        evnt.handlers += h
-
-        # invoke handlers
-        begin
-          evnt.invoke evnt
-        rescue Exception => err
-          RJR::Logger.warn "error in event #{evnt}: #{err}"
-        end
-      }
+                   !e.invoked  && !e.invalid
+      }.each { |evnt| run_event(evnt) }
 
     DEFAULT_EVENT_POLL
   end
+
+  # Run a single registry event
+  #
+  # XXX Needed as events and eventhandlers have callable methods
+  # which aren't serialized so must access registry entries directly
+  #
+  # Helper used internally, do not use externally
+  def run_event(event)
+    handlers =
+      self.safe_exec { |entities|
+        revent =
+          entities.find { |e|
+            e.is_a?(Event) && e.id == event.id
+          }
+
+        ghandlers =
+          entities.select { |e|
+            e.is_a?(EventHandler) && e.event_id == event.id
+          }.collect { |e| e.handlers }.flatten
+
+        revent.handlers + ghandlers
+      }
+
+    # execute handlers outside mutex
+    # can't add protection here as some existing handlers
+    # won't work w/ it, thus handlers that require it should
+    # implement it on their own
+    handlers.each { |h|
+      RJR::Logger.info "running event #{event}"
+      begin
+        h.call event
+      rescue Exception => err
+        RJR::Logger.warn "error in event #{event}: #{err}"
+      end
+    }
+  end
+
 
   # Run commands registered in the local registry
   #
