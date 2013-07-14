@@ -12,6 +12,7 @@ require 'rjr/nodes/tcp'
 
 transport = :tcp
 url       = 'jsonrpc://localhost:8181'
+stats     = false
 
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
@@ -27,6 +28,10 @@ optparse = OptionParser.new do |opts|
     url = u
   end
 
+  opts.on('-s', '--stats', 'retreive omega statistics') do
+    stats = true
+  end
+
 end
 
 optparse.parse!
@@ -38,3 +43,31 @@ node = RJR::Nodes::TCP.new :node_id => 'omega-status-retrieve'
 #puts node.invoke(url, 'rjr::status')
 puts node.invoke(url, 'motel::status')
 puts node.invoke(url, 'manufactured::status')
+
+if stats
+  require 'users/user'
+  require 'users/session'
+  user = Users::User.new(:id => 'anon', :password => 'nona')
+  session = node.invoke(url, 'users::login', user)
+  node.message_headers['session_id'] = session.id
+
+  require 'stats/stat'
+  puts "num_of users:         #{node.invoke(url, 'stats::get', 'num_of', 'users')}"
+  puts "num_of entities:      #{node.invoke(url, 'stats::get', 'num_of', 'entities')}"
+  puts "num_of ships:         #{node.invoke(url, 'stats::get', 'num_of', 'ships')}"
+  puts "num_of stations:      #{node.invoke(url, 'stats::get', 'num_of', 'stations')}"
+  puts "num_of galaxies:      #{node.invoke(url, 'stats::get', 'num_of', 'galaxies')}"
+  puts "num_of solar_systems: #{node.invoke(url, 'stats::get', 'num_of', 'solar_systems')}"
+  puts "num_of planets:       #{node.invoke(url, 'stats::get', 'num_of', 'planets')}"
+  puts "num_of missions:      #{node.invoke(url, 'stats::get', 'num_of', 'missions')}"
+
+  puts "with_most entities:   #{node.invoke(url, 'stats::get', 'with_most', 'entities')}"
+  puts "with_most kills:      #{node.invoke(url, 'stats::get', 'with_most', 'kills')}"
+  puts "with_most times_killed: #{node.invoke(url, 'stats::get', 'with_most', 'times_killed')}"
+  puts "with_most resources_collected: #{node.invoke(url, 'stats::get', 'with_most', 'resources_collected')}"
+  puts "with_most loot_collected: #{node.invoke(url, 'stats::get', 'with_most', 'loot_collected')}"
+  puts "with_most distance_moved: #{node.invoke(url, 'stats::get', 'with_most', 'distance_moved')}"
+  puts "with_most missions_completed: #{node.invoke(url, 'stats::get', 'with_most', 'missions_completed')}"
+
+  puts "with_least times_killed: #{node.invoke(url, 'stats::get', 'with_least', 'times_killed')}"
+end

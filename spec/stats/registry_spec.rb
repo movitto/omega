@@ -77,7 +77,7 @@ describe Stats do
       it "returns number of galaxies" do
         Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
-                        "of_type", "Cosmos::Galaxy").
+                        "of_type", "Cosmos::Entities::Galaxy").
                         and_return(@entities)
         @stat.generate('galaxies').value.should == @n
       end
@@ -87,7 +87,7 @@ describe Stats do
       it "returns number of solar systems" do
         Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
-                        "of_type", "Cosmos::SolarSystem").
+                        "of_type", "Cosmos::Entities::SolarSystem").
                         and_return(@entities)
         @stat.generate('solar_systems').value.should == @n
       end
@@ -97,7 +97,7 @@ describe Stats do
       it "returns number of planets" do
         Stats::RJR.node.should_receive(:invoke).
                    with("cosmos::get_entities",
-                        "of_type", "Cosmos::Planet").
+                        "of_type", "Cosmos::Entities::Planet").
                         and_return(@entities)
         @stat.generate('planets').value.should == @n
       end

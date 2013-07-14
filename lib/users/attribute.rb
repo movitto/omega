@@ -98,8 +98,7 @@ class Attribute
 
   # Convert attribute to human readable string and return it
   def to_s
-    # TODO
-    "attribute-#{@type}(@#{@progression} to #{@level})"
+    "attribute-#{@type.nil? ? nil : @type.id}(@#{@progression} to #{@level})"
   end
 
   # Convert user to json representation and return it

@@ -62,6 +62,8 @@ module Users::RJR
       end
     end
 
+    it "sets up base user attributes"
+
     it "creates new user and user-role in registry" do
       new_user = build(:user)
       lambda {

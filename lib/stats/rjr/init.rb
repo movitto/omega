@@ -44,6 +44,12 @@ module RJR
     Stats::RJR.user_registry
   end
 
+  PRIVILEGES =
+    [['view',   'manufactured_entities'],
+     ['view',   'cosmos_entities'],
+     ['view',   'users'],
+     ['view',   'missions']]
+
   def self.user
     @user ||= Users::User.new(:id       => Stats::RJR.stats_rjr_username,
                               :password => Stats::RJR.stats_rjr_password,
@@ -74,6 +80,12 @@ def dispatch_stats_rjr_init(dispatcher)
 
   begin rjr.node.invoke('users::create_user', rjr.user)
   rescue Exception => e ; end
+
+  # grant stats user extra permissions
+  role_id = "user_role_#{rjr.user.id}"
+  Stats::RJR::PRIVILEGES.each { |p,e|
+     rjr.node.invoke('users::add_privilege', role_id, p, e)
+   }
 
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id

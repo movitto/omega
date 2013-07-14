@@ -30,15 +30,15 @@ num_of_proc = proc { |entity_type|
 
   when "galaxies" then
     Stats::RJR.node.invoke('cosmos::get_entities',
-                      'of_type', 'Cosmos::Galaxy').size
+                      'of_type', 'Cosmos::Entities::Galaxy').size
 
   when "solar_systems" then
     Stats::RJR.node.invoke('cosmos::get_entities',
-                      'of_type', 'Cosmos::SolarSystem').size
+                      'of_type', 'Cosmos::Entities::SolarSystem').size
 
   when "planets" then
     Stats::RJR.node.invoke('cosmos::get_entities',
-                      'of_type', 'Cosmos::Planet').size
+                      'of_type', 'Cosmos::Entities::Planet').size
 
   when "missions" then
     Stats::RJR.node.invoke('missions::get_missions').size
@@ -151,7 +151,7 @@ with_least = Stat.new(:id => :with_least,
 STATISTICS = [num_of, with_most, with_least]
 
 def  self.get_stat(id)
-  STATISTICS.find { |s| s.id == id}
+  STATISTICS.find { |s| s.id.to_s == id.to_s}
 end
 
 end # module Stats

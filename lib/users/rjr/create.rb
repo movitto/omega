@@ -7,6 +7,8 @@ require 'users/rjr/init'
 require 'users/user'
 require 'users/role'
 
+require 'users/attributes/own'
+
 module Users::RJR
 
 # Create new user in registry
@@ -25,6 +27,9 @@ create_user = proc { |user|
   # mark permenant users as such
   user.permenant = true if Users::RJR.permenant_users.
                              find { |ui| user.id == ui }
+
+  # setup base user attributes
+  user.update_attribute!(Attributes::EntityManagementLevel.id, 5)
 
   # store user
   added = registry << user

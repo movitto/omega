@@ -1,0 +1,55 @@
+#!/usr/bin/ruby
+# Retrieve users
+#
+# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+require 'rubygems'
+require 'optparse'
+
+require 'omega'
+require 'rjr/nodes/amqp'
+
+id = nil
+
+optparse = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Display this help screen') do
+    puts opts
+    exit
+  end
+
+  opts.on('-i', '--id ID', 'id of user to retrieve') do |i|
+    id = i
+  end
+end
+
+optparse.parse!
+
+RJR::Logger.log_level= ::Logger::INFO
+
+rjr_node   = RJR::Nodes::AMQP.new :node_id => 'omega-users-retrieve', :broker => 'localhost', :keep_alive => true
+login_user = Users::User.new(:id => 'admin', :password => 'nimda')
+session    = rjr_node.invoke('omega-queue', 'users::login', login_user)
+rjr_node.message_headers['session_id'] = session.id
+
+users = nil
+
+if id.nil?
+  users = rjr_node.invoke('omega-queue', 'users::get_entities', 'of_type', 'Users::User')
+else
+  user  = rjr_node.invoke('omega-queue', 'users::get_entity', 'with_id', id)
+  users = [user]
+end
+
+users.each { |u|
+  puts "User: #{u.id}#{u.email.nil? ? "" : ' ('+u.email+')' }"
+  u.roles.each { |r|
+    puts " - role: #{r.id}"
+    r.privileges.each { |p|
+      puts "  -- privilege #{p.id}#{p.entity_id.nil? ? "" : ' ('+p.entity_id+')'}"
+    }
+  }
+  u.attributes.each { |a|
+    puts " - attribute: #{a}"
+  } if u.attributes
+}

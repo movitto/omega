@@ -25,6 +25,8 @@ update_attribute = proc { |user_id, attribute_id, change|
 
   # only update attribute if user attributes are enabled
   if Users::RJR.user_attrs_enabled
+    # FIXME these two operations should be atomic
+    #       (along w/ entitiy retrieval above)
     user.update_attribute!(attribute_id, change)
     registry.update(user, &with_id(user.id)) # safe update
   end

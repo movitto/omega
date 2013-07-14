@@ -12,6 +12,11 @@ require 'users/user'
 require 'users/role'
 require 'users/session'
 
+require 'users/attributes/interact'
+require 'users/attributes/other'
+require 'users/attributes/own'
+require 'users/attributes/stats'
+
 require 'motel/location'
 
 require 'motel/movement_strategies/stopped'
