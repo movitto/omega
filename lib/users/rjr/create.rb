@@ -29,7 +29,8 @@ create_user = proc { |user|
                              find { |ui| user.id == ui }
 
   # setup base user attributes
-  user.update_attribute!(Attributes::EntityManagementLevel.id, 5)
+  user.update_attribute! \
+    Attributes::EntityManagementLevel.id, 5 unless user.permenant
 
   # store user
   added = registry << user
