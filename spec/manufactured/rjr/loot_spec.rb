@@ -80,8 +80,7 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates ship/loot location"
-      it "updates ship/loot solar_system"
+      it "updates ship location"
 
       it "transfers all resources in loot" do
         @s.collect_loot @sh.id, @lt.id

@@ -23,9 +23,9 @@ module Manufactured::RJR
           [entities.find(&with_id(@sh.id)),
            entities.find(&with_id(@st.id))]
         }
-      @rstl =
+      @rshl =
         Motel::RJR.registry.safe_exec { |entities|
-          entities.find(&with_id(@st.location.id))
+          entities.find(&with_id(@sh.location.id))
         }
     end
 
@@ -70,15 +70,9 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates ship/station locations" do
+      it "updates ship location" do
         Manufactured::RJR.node.should_receive(:invoke).
            with('motel::get_location', 'with_id', @rsh.location.id).and_call_original
-        Manufactured::RJR.node.should_receive(:invoke).
-           with('motel::get_location', 'with_id', @rst.location.id).and_call_original
-        Manufactured::RJR.node.should_receive(:invoke).
-           with('cosmos::get_entity', 'with_location', @rsh.location.parent_id).and_call_original
-        Manufactured::RJR.node.should_receive(:invoke).
-           with('cosmos::get_entity', 'with_location', @rst.location.parent_id).and_call_original
         Manufactured::RJR.node.should_receive(:invoke).
            with{ |*a|
              a[0].should == 'motel::update_location'
@@ -90,7 +84,7 @@ module Manufactured::RJR
 
       context "station cannot accept ship" do
         it "raises OperationError" do
-          @rstl.x = @rsh.location.x + @rst.docking_distance * 2
+          @rshl.x = @rst.location.x + @rst.docking_distance * 2
           lambda {
             @s.dock @sh.id, @st.id
           }.should raise_error(OperationError)

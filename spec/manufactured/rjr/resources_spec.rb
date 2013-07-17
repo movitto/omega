@@ -163,6 +163,8 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
+      it "updates src/dst locations from motel"
+
       context "resources not specified" do
         it "transfers all of src's resources" do
           @s.transfer_resource @src.id, @dst.id

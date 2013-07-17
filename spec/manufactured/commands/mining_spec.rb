@@ -89,6 +89,7 @@ describe Mining do
   describe "#before_hook" do
     it "retrieves ship"
     it "retrieves resource"
+    it "updates ship location from motel"
 
     context "error during resource retrieval" do
       it "sets quantity to 0"

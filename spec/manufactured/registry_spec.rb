@@ -20,13 +20,6 @@ describe Registry do
     end
   }
 
-  [:ship, :station].each { |e|
-    context "retrieving #{e}" do
-      it "retrieves latest #{e} location"
-      it "retrieves latest #{e} system"
-    end
-  }
-
   context "adding entity" do
     it "resolves system references"
 

@@ -28,6 +28,8 @@ module Manufactured::RJR
       s.collect { |e| e.id }.should == i
     end
 
+    it "updates entity locations"
+
     context "entity id specified" do
       context "entity not found" do
         it "raises DataNotFound" do

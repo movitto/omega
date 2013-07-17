@@ -164,6 +164,8 @@ module Manufactured::RJR
                         with("motel::remove_callbacks", @sh.location.id, 'rotation')
       move_entity_between_systems(@sh, @nsys)
     end
+
+    it "updates registry entity"
   end # describe #move_entity_between_systems
 
   describe "#move_entity" do

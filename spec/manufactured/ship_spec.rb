@@ -138,6 +138,7 @@ describe Ship do
     it "updates ship shield level"
     it "updates ship distance moved"
     it "updates ship resources"
+    it "updates ship solar system"
     it "ignores other properties"
   end
 

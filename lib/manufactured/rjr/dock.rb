@@ -26,12 +26,9 @@ dock = proc { |ship_id, station_id|
   #  [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
   #   {:privilege => 'modify', :entity => 'manufactured_entities'}]
   
-  # retrieve ship/station locations from motel
+  # retrieve ship location from motel
   ship.location =
     node.invoke('motel::get_location', 'with_id', ship.location.id)
-  station.location =
-    node.invoke('motel::get_location', 'with_id', station.location.id)
-
 
   # dock registry ship
   registry.safe_exec { |entities|

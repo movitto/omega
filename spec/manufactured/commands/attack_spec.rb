@@ -45,6 +45,8 @@ describe Attack do
   describe "#before_hook" do
     it "retrieves attacker from registry"
     it "retrieves defender from registry"
+    it "updates attacker location from motel"
+    it "updates defender location from motel"
   end
 
   describe "#after_hook" do
