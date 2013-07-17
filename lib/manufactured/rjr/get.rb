@@ -18,6 +18,12 @@ get_entities = proc { |*args|
   filters.unshift proc { |e| !e.kind_of?(Omega::Server::Command) }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
+  # update entities locations from motel
+  entities.each { |e|
+    e.location =
+      node.invoke 'motel::get_location', 'with_id', e.location.id
+  }
+
   # if id or location id is specified, return single entity
   return_first = args.include?('with_id') || args.include?('with_location')
   if return_first

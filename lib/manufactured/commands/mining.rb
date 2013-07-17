@@ -99,6 +99,9 @@ class Mining < Omega::Server::Command
     # update ship location & cosmos resource/entity
      @ship = retrieve(@ship.id)
 
+    # update location from motel
+    @ship.location = invoke 'motel::get_location', 'with_id', @ship.location.id
+
      begin
        @resource = invoke 'cosmos::get_resource', @resource.id
      rescue Exception => e

@@ -26,16 +26,26 @@ dock = proc { |ship_id, station_id|
   #  [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
   #   {:privilege => 'modify', :entity => 'manufactured_entities'}]
   
+  # retrieve ship/station locations from motel
+  ship.location =
+    node.invoke('motel::get_location', 'with_id', ship.location.id)
+  station.location =
+    node.invoke('motel::get_location', 'with_id', station.location.id)
+
+
   # dock registry ship
   registry.safe_exec { |entities|
     # grab ship/station from registry
     rsh = entities.find &with_id(ship.id)
     rst = entities.find &with_id(station.id)
 
+    # update locations
+    rsh.location = ship.location
+    rst.location = station.location
+
     # ensure ship can dock at station
-    # XXX location/dock-status/etc may have changed in meantime
-    raise OperationError, "cannot dock" unless station.dockable?(ship) &&
-                                               ship.can_dock_at?(station)
+    raise OperationError, "cannot dock" unless rst.dockable?(rsh) &&
+                                               rsh.can_dock_at?(rst)
     rsh.dock_at(rst)
   }
   

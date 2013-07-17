@@ -62,6 +62,12 @@ class Attack < Omega::Server::Command
     # update entities from registry
     @attacker = retrieve(@attacker.id)
     @defender = retrieve(@defender.id)
+
+    # update locations from motel
+    @attacker.location =
+      invoke 'motel::get_location', 'with_id', @attacker.location.id
+    @defender.location =
+      invoke 'motel::get_location', 'with_id', @defender.location.id
   end
 
   def after_hook

@@ -57,6 +57,12 @@ transfer_resource = proc { |*args|
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "manufactured_entity-#{dst.id}"},
      {:privilege => 'modify', :entity => 'manufactured_entities'}]
+
+  # update src/dst locations from motel
+  src.location =
+    node.invoke('motel::get_location', 'with_id', src.location.id)
+  dst.location =
+    node.invoke('motel::get_location', 'with_id', dst.location.id)
   
   # if resources not specified, transfer all from source to dst
   resources = src.resources if resources.nil?

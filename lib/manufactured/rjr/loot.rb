@@ -23,15 +23,9 @@ collect_loot = proc { |ship_id, loot_id|
     [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
      {:privilege => 'modify', :entity => 'manufactured_entities'}]
 
-  # update ship's/loot's locations and solar systems
+  # update ship's location
   ship.location =
     node.invoke('motel::get_location', 'with_id', ship.location.id)
-  loot.location =
-    node.invoke('motel::get_location', 'with_id', loot.location.id)
-  ship.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', ship.location.parent_id)
-  loot.solar_system =
-    node.invoke('cosmos::get_entity', 'with_location', loot.location.parent_id)
 
   # ensure loot can be tranferred to ship and ship can accept
   raise OperationError unless loot.resources.all? { |r|

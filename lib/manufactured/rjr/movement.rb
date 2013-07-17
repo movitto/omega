@@ -95,6 +95,10 @@ def move_entity_between_systems(entity, sys)
   node.invoke('motel::update_location',  entity.location)
   node.invoke('motel::remove_callbacks', entity.location.id, 'movement')
   node.invoke('motel::remove_callbacks', entity.location.id, 'rotation')
+
+  # update registry entity
+  registry.update entity, &with_id(entity.id)
+
   nil
 end
 
