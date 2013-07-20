@@ -6,6 +6,8 @@
 require 'stats/registry'
 require 'stats/rjr/init'
 
+# TODO batch stats retrieval mechanism
+
 module Stats::RJR
 # retrieve stats filtered by args
 get_stats = proc { |*args|

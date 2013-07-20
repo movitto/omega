@@ -23,6 +23,7 @@ module Commands
 # The callback events/types invoked include:
 # * 'partial_construction'   - invoked upon every iteration of the construction cycle w/ the given fraction of construction completed
 # * 'construction_complete'  - invoked when construction is fully completed
+# * 'construction_failed'    - invoked if entity could not be created for some reason
 class Construction < Omega::Server::Command
   include Omega::Server::CommandHelpers
 
@@ -80,11 +81,21 @@ class Construction < Omega::Server::Command
     self.completed = (total_time >= const_time)
 
     if self.completed
-      # create the entity in registry
-      # FIXME how to handle if call to create_entity fails?
-      invoke('manufactured::create_entity', @entity)
+      err = false
 
-      run_callbacks @station, 'construction_complete', @entity
+      # create the entity in registry
+      begin
+        invoke('manufactured::create_entity', @entity)
+
+      # catch construction errors
+      # TODO how to deal w/ resources already removed? perhaps allow user to reattempt cmd?
+      rescue Exception => e
+        err = true
+        run_callbacks @station, 'construction_failed', @entity
+
+      end
+
+      run_callbacks @station, 'construction_complete', @entity unless err
 
     else
       percentage = total_time / const_time

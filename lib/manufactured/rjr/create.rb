@@ -52,7 +52,7 @@ create_entity = proc { |entity|
 
   ###################### create/modify entity & supporting data 
 
-  # modify base entity attributes from user attributes
+  # modify base ship attributes from user attributes
   # entity attribute |          user attribute           | scale 
   [[:movement_speed,   Users::Attributes::PilotLevel.id,   20],
    [:damage_dealt,     Users::Attributes::OffenseLevel.id, 10],
@@ -60,7 +60,7 @@ create_entity = proc { |entity|
    [:mining_quantity,  Users::Attributes::MiningLevel.id,  10]].each { |p,a,l|
      entity.send("#{p}+=".intern,
                  user.attribute(a).level / l) if user.has_attribute?(a)
-   }
+   } if entity.is_a?(Ship)
 
   # give new stations enough resources to construct a preliminary helper
   entity.add_resource \

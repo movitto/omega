@@ -89,6 +89,8 @@ describe Attack do
         @e2.hp = 0
       end
 
+      it "updates ships user destroyed and user ship destroyed attributes"
+
       it "runs destroyed callbacks" do
         @re2.should_receive(:run_callbacks).with('defended_stop', @e1)
         @re2.should_receive(:run_callbacks).with('destroyed_by', @e1)

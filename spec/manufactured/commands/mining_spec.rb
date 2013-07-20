@@ -241,6 +241,8 @@ describe Mining do
            with('resource_collected', @r, @s.mining_quantity)
       @m.run!
     end
+
+    it "updates resources collected user attribute"
   end
 
   describe "#remove?" do

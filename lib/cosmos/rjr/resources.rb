@@ -12,7 +12,7 @@ set_resource = proc { |resource|
   # ensure resource is a valid resource
   raise ArgumentError, resource unless resource.is_a?(Resource) &&
                                        resource.valid? &&
-                                       resource.quantity > 0
+                                       resource.quantity >= 0
 
   # retrieve entity
   entity = registry.entity &with_id(resource.entity_id)

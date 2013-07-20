@@ -83,12 +83,11 @@ class Attack < Omega::Server::Command
     if @defender.hp == 0
       ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
 
-# TODO
-    # set 'ships_user_destroyed' and 'user_ships_destroyed' attributes
-    # node.invoke('users::update_attribute', @attacker.user_id,
-    #             Users::Attributes::ShipsUserDestroyed.id,  1)
-    # node.invoke('users::update_attribute', @defender.user_id,
-    #             Users::Attributes::UserShipsDestroyed.id,  1)
+      # set user attributes
+      invoke('users::update_attribute', @attacker.user_id,
+             Users::Attributes::ShipsUserDestroyed.id,  1)
+      invoke('users::update_attribute', @defender.user_id,
+             Users::Attributes::UserShipsDestroyed.id,  1)
 
       # create loot if necessary
       unless @defender.cargo_empty?

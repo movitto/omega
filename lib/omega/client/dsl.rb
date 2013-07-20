@@ -96,6 +96,13 @@ module Omega
         dsl.node.rjr_node.message_headers['session_id'] = @session.id
       end
 
+      # Log the user out of the server
+      def logout
+        invoke('users::logout', @session.id)
+        @session = nil
+        dsl.node.rjr_node.message_headers['session_id'] = nil
+      end
+
       # Return user w/ the given user_id, else if it is not found create
       # it w/ the specified password and attributes
       #

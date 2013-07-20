@@ -40,7 +40,15 @@ module Omega
            :notification => "manufactured::event_occurred",
            :match => proc { |entity, *a|
              a[0] == 'partial_construction' && a[1].id == entity.id
+           }},
+
+        :construction_failed  =>
+          {:subscribe    => "manufactured::subscribe_to",
+           :notification => "manufactured::event_occurred",
+           :match => proc { |entity, *a|
+             a[0] == 'construction_failed' && a[1].id == entity.id
            }}
+
 
       # Construct the specified entity on the server
       #

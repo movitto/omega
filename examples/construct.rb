@@ -26,11 +26,20 @@ login 'admin', 'nimda'
 
 ####################### create environment
 galaxy 'Zeus' do |g|
-  system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
-  end
+  system 'Athena',    'HR1925', :location => rand_location
+  system 'Aphrodite', 'V866',   :location => rand_location
+  system 'Philo',     'HU1792', :location => rand_location
 end
 
-starting_system = system('Athena')
+athena    = system('Athena')
+aphrodite = system('Aphrodite')
+philo     = system('Philo')
+
+jump_gate athena,    aphrodite, :location => rand_location
+jump_gate athena,    philo,     :location => rand_location
+jump_gate aphrodite, athena,    :location => rand_location
+jump_gate aphrodite, philo,     :location => rand_location
+jump_gate philo,     aphrodite, :location => rand_location
 
 ####################### create user
 
@@ -40,33 +49,59 @@ end
 
 ####################### create station
 
-station("player-manufacturing-station1") do |station|
+$i = 1
+
+station("player-manufacturing-station#{$i}") do |station|
   station.type     = :manufacturing
   station.user_id  = 'player'
-  station.solar_system = starting_system
+  station.solar_system = athena
   station.location = Location.new(:x => 100,  :y=> 100,  :z => 100)
 end
 
-# TODO logout admin / login player ?
+####################### logout admin / login player
+
+logout
+login 'player', 'reyalp'
 
 ####################### construct entity
 
 RJR::Logger.log_level= ::Logger::WARN
 
-station = Omega::Client::Factory.get('player-manufacturing-station1')
-station.handle(:partial_construction) do |st,*args|
-  puts "pc #{args}"
+def run_factory(station)
+  factory = station.is_a?(Omega::Client::Factory) ? station :
+            Omega::Client::Factory.get(station.id)
+
+  factory.handle(:jumped) do |f|
+    sputs "station #{f.id.bold.yellow} jumped to system #{f.system_id.green}"
+  end
+
+  factory.handle(:partial_construction) do |st,*args|
+    puts "pc #{args}"
+  end
+
+  factory.handle(:construction_complete) do |st,*args|
+    puts "#{st.id} constructed #{args[2].id}".blue
+    run_factory args[2]
+  end
+
+  factory.handle(:construction_failed) do |st,*args|
+    puts "cf #{args}"
+    dsl.rjr_node.halt
+  end
+
+  #$i += 1
+  #st,en =
+  #  factory.construct :entity_type => 'Station',
+  #                    :type  => :manufacturing,
+  #                    :id   => "player-manufactuing-station#{$i}"
+
+  #puts "#{st.id} constructing #{en.id}".blue
+
+  factory.entity_type 'factory'
+  factory.pick_system
+  factory.start_bot
 end
-station.handle(:construction_complete) do |st,*args|
-  puts "cc #{args}"
-  dsl.rjr_node.halt
-end
 
-st,en =
-  station.construct :entity_type => 'Ship',
-                    :type  => :mining,
-                    :id   => "player-mining-ship"
-
-puts "#{st.id} constructing #{en.id}".blue
-
+station = Omega::Client::Factory.get("player-manufacturing-station#{$i}")
+run_factory station
 dsl.rjr_node.join

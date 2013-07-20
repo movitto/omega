@@ -327,7 +327,6 @@ module Registry
     }
   end
 
-
   # Run commands registered in the local registry
   #
   # Optional internal helper method, utilize like so:
@@ -358,6 +357,7 @@ module Registry
           # subsequent commands w/ the same id will break
           # system if command updates itself in the registry,
           # use check_command below to mitigate this
+          # TODO move to an ensure block below rescue ?
           update(cmd) { |e| e.id == cmd.id }
 
         rescue Exception => err

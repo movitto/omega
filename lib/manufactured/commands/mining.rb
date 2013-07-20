@@ -119,9 +119,6 @@ class Mining < Omega::Server::Command
     # update ship and resources
     update_registry(@ship)
     invoke 'cosmos::set_resource', @resource
-    # TODO
-    #node.invoke('users::update_attribute', @ship.user_id,
-    #            Users::Attributes::ResourcesCollected.id, @q)
   end
 
   def last_hook
@@ -175,9 +172,13 @@ class Mining < Omega::Server::Command
                                           !resource_transferred
     end
 
-    
-    run_callbacks(@ship, 'resource_collected',
-                  @resource, r.quantity) if resource_transferred
+    # run post-mining callbacks and update user attributes
+    if resource_transferred
+      run_callbacks(@ship, 'resource_collected',
+                    @resource, r.quantity)
+      invoke 'users::update_attribute', @ship.user_id,
+              Users::Attributes::ResourcesCollected.id, r.quantity
+    end
   end
 
   def remove?

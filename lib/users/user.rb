@@ -143,11 +143,11 @@ class User
   # @param [Integer,Float] change positive/negative amount to change attribute progression by
   def update_attribute!(attribute_id, change)
     @attributes ||= []
-    attribute = @attributes.find { |a| a.type.id == attribute_id }
+    attribute = @attributes.find { |a| a.type.id.to_s == attribute_id.to_s }
 
     if attribute.nil?
       # TODO also need to assign permissions to view attribute to user
-      attribute = AttributeClass.create_attribute(:type_id => attribute_id)
+      attribute = AttributeClass.create_attribute(:type_id => attribute_id.intern)
       attribute.user = self
       raise ArgumentError, "invalid attribute #{attribute_id}" if attribute.type.nil?
       @attributes << attribute

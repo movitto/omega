@@ -69,6 +69,9 @@ def start_factory(factory)
     sputs "station #{f.id.bold.yellow} jumped to system #{f.system_id.green}"
   }
   #factory.handle(:partial_construction) { |f,evnt,st,entity,percent|
+  factory.handle(:construction_failed) { |f,evnt,st,entity|
+    sputs "#{f.id.bold.yellow} construction failed"
+  }
   factory.handle(:construction_complete) { |f,evnt,st,entity|
     sputs "#{f.id.bold.yellow} constructed #{entity.id.bold.yellow}"
     init_entity entity
