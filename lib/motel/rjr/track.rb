@@ -180,7 +180,9 @@ remove_callbacks = proc { |*args|
       rloc.callbacks = {}
 
     else
-      rloc.callbacks[cb_type.intern].reject!{ |cb| cb.endpoint_id == source_node } if rloc.callbacks[cb_type]
+      rloc.callbacks[cb_type.intern].reject!{ |cb|
+        cb.endpoint_id == source_node
+      }
       rloc.callbacks[cb_type.intern].compact!
     end
   }

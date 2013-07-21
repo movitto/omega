@@ -11,12 +11,12 @@ module Callbacks
 # Defines a {Omega::Server::Callback} to only invoke callback
 # if a location rotates a specified minimum angle.
 #
-# The client may specify the minimum overall angle and/or the minimum
+# The client may specify the minimum axis-angle and/or the minimum
 # theta or phi angles in the spherical coordinate system
 #
 # *note* *all* minimum conditions will need to be met to trigger handler!
 class Rotation < Omega::Server::Callback
-  # Minimum total rotation location needs to have performed to trigger the event
+  # Minimum angle location needs to have rotated performed to trigger the event.
   attr_accessor :min_rotation
 
   # Minimum rotation of theta the location needs to have performated to trigger the event
@@ -33,7 +33,17 @@ class Rotation < Omega::Server::Callback
     old_theta,old_phi,dist = Motel.to_spherical(@orig_ox, @orig_oy, @orig_oz)
     dt = new_theta - old_theta
     dp = new_phi   - old_phi
-    da = dt + dp
+
+    # XXX explicit edge case, if dt/dp == 0 then da == 0 (axis_angle blows up)
+    if dt == 0 && dp == 0
+      da = 0
+
+    else
+      # only use abs value of angle component of the axis angle
+      da = Motel.axis_angle(@orig_ox, @orig_oy, @orig_oz,
+                            *loc.orientation).first.abs
+    end
+
     [dt,dp,da]
   end
 

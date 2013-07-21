@@ -146,6 +146,8 @@ class Location
 
       # convert string callback keys into symbols
       callbacks.keys.each { |k|
+        # FIXME ensure string correspond's to
+        # valid callback type before interning
         if k.is_a?(String)
           callbacks[k.intern] = callbacks[k]
           callbacks.delete(k)
@@ -361,9 +363,12 @@ class Location
    # Convert location to human readable string and return it
    def to_s
      s = "loc##{id}" +
-         "(@#{parent_id.nil? ? nil : parent_id[0...8]}:"
+         "(@#{parent_id.nil? ? nil : parent_id[0...8]}"
      if coordinates.size == 3 && coordinates.all?{ |c| c.numeric? }
-       s += "#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
+       s += ":#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
+     end
+     if orientation.size == 3 && orientation.all? { |o| o.numeric? }
+       s += ">#{orx.round_to(2)},#{ory.round_to(2)},#{orz.round_to(2)}"
      end
      s += " via #{movement_strategy}"
      s += ")"

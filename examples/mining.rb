@@ -15,7 +15,7 @@ require 'rjr/nodes/tcp'
 include Motel
 include Omega::Client::DSL
 
-MINERS = 1
+MINERS = 3
 
 #RJR::Logger.log_level = ::Logger::INFO
 
@@ -50,7 +50,7 @@ end
 ####################### create miners / nearby station
 
 0.upto(MINERS) do |i|
-  ship("player-miner1") do |ship|
+  ship("player-miner#{i}") do |ship|
     ship.type         = :mining
     ship.user_id      = 'player'
     ship.solar_system = starting_system
