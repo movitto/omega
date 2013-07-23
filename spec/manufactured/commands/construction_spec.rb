@@ -95,6 +95,11 @@ describe Construction do
         @c.run!
       end
 
+      context "manufactured::create_entity fails" do
+        it "runs construction_failed callbacks"
+        it "does not run construction_complete callbacks"
+      end
+
       it "runs construction_compelete callbacks" do
         @rst.should_receive(:run_callbacks).with('construction_complete', @sh)
         @c.run!

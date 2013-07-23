@@ -32,6 +32,12 @@ describe DSL do
     it "sets session id on node"
   end
 
+  describe "#logout" do
+    it "logs out the session"
+    it "sets session to nil"
+    it "sets nodes session id to nil"
+  end
+
   describe "#user" do
     it "retrieves the specified user" do
       user('foo2', 'foo2')
