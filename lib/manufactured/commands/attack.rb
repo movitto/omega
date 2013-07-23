@@ -83,6 +83,10 @@ class Attack < Omega::Server::Command
     if @defender.hp == 0
       ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
 
+      # FIXME need to invalidate/remove registry defender so that additional
+      # operations (move, attack, mine) do not succeed and other entities do
+      # not recognize / acknowledge them
+
       # set user attributes
       invoke('users::update_attribute', @attacker.user_id,
              Users::Attributes::ShipsUserDestroyed.id,  1)

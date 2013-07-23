@@ -37,6 +37,10 @@ module Omega::Client
       it "retrieves asteroid resources"
     end
 
+    describe "#entities" do
+      it "retrieves entities in system"
+    end
+
     describe "#with_fewest" do
       context "entity_type == station" do
         it 'returns systems sorted by number of user_owned stations in them' do

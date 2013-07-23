@@ -72,6 +72,9 @@ end
 
 Omega::Client::Corvette.owned_by('player').each { |corvette|
   sputs "registering #{corvette.id} events"
+  corvette.handle(:selected_system) { |c, system_id, jg|
+    sputs "corvette #{c.id.bold.yellow} selected system #{system_id.green}"
+  }
   corvette.handle(:jumped) { |c|
     sputs "corvette #{c.id.bold.yellow} jumped to system #{c.system_id.green}"
   }

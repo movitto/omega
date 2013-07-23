@@ -276,6 +276,7 @@ module Omega
           patrol_route
 
         else
+          raise_event(:selected_system, jg.endpoint_id, jg)
           dst = jg.trigger_distance / 4
           nl  = jg.location + [dst,dst,dst]
           move_to(:location => nl) {
@@ -288,26 +289,16 @@ module Omega
       # Internal helper, check nearby locations, if enemy ship is detected
       # stop movement and attack it. Result patrol route when attack ceases
       def check_proximity
-        neighbors = node.invoke 'motel::get_locations',
-                                'within', attack_distance,
-                                           'of', location
-        neighbors.each { |loc|
-          # TODO if location doesn't correspond to ship, this will
-          # throw an error on server side which doesn't look good
-          # in logs (and request begin/rescue here). anyway around this?
-          begin
-            sh = node.invoke 'manufactured::get_entity',
-                        'of_type', 'Manufactured::Ship',
-                               'with_location', loc.id
-            unless sh.nil? || sh.user_id == user_id
-              stop_moving
-              handle(:attacked_stop){ |*args| patrol_route }
-              attack(sh)
-              break
-            end
-          rescue Exception => e
+        solar_system.entities.each { |e|
+          if e.is_a?(Manufactured::Ship) && e.user_id != user_id &&
+             e.location - location <= attack_distance
+            stop_moving
+            clear_handlers_for(:attacked_stop)
+            handle(:attacked_stop){ |*args| patrol_route }
+            attack(e)
+            break
           end
-        }
+        } unless self.attacking?
       end
     end
   end

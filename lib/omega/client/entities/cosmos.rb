@@ -44,6 +44,14 @@ module Omega
         }
       end
 
+      # Convenience utility, return manufactured entities in system
+      #
+      # Always issues a server side request to retrieve entities
+      def entities
+        # TODO convert results to omega client entity representations?
+        node.invoke('manufactured::get_entities', 'under', id)
+      end
+
       # Conveniency utility to return the system containing
       # the fewest entities of the specified type
       #

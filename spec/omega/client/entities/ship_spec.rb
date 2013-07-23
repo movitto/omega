@@ -400,6 +400,8 @@ module Omega::Client
         #end
       end
 
+      it "raises selected_system event"
+
       it "moves to jump gate" do
         @c.should_receive(:move_to)
         @c.patrol_route
@@ -427,34 +429,9 @@ module Omega::Client
         @c = Corvette.get(c.id)
       end
 
-      it "retrieves locations within attacking distance of ship" do
-        @n.should_receive(:invoke).
-           with('motel::get_location', 'with_id', @c.entity.location.id).
-           and_return(@c.entity.location)
-        @n.should_receive(:invoke).
-           with('motel::get_locations', 'within', @c.attack_distance,
-                'of', @c.entity.location).and_call_original
-        @c.check_proximity
-      end
+      it "retrieves entities in same system as ship"
 
-      it "retrieves ships corresponding to locations" do
-        @n.should_receive(:invoke).
-           with('motel::get_location', 'with_id', @c.entity.location.id).
-           and_return(@c.entity.location)
-
-        locs = [build(:location), build(:location)]
-        @n.should_receive(:invoke).
-           with('motel::get_locations', 'within', @c.attack_distance,
-                'of', @c.entity.location).and_return(locs)
-        locs.each { |loc|
-          @n.should_receive(:invoke).
-             with('manufactured::get_entity', 'of_type', 'Manufactured::Ship',
-                  'with_location', loc.id)
-        }
-        @c.check_proximity
-      end
-
-      context "ship belongs to another user" do
+      context "ship beloning to other user within attacking distance" do
         before(:each) do
           l = build(:location)
           l.coordinates = @c.location.coordinates
