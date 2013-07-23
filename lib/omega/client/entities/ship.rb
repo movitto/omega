@@ -30,10 +30,20 @@ module Omega
 
       get_method   "manufactured::get_entity"
 
-      entity_event :defended      => { :subscribe    => "manufactured::subscribe_to",
-                                       :notification => "manufactured::event_occurred" },
-                   :defended_stop => { :subscribe    => "manufactured::subscribe_to",
-                                       :notification => "manufactured::event_occurred" }
+      entity_event \
+        :defended =>
+          { :subscribe    => "manufactured::subscribe_to",
+            :notification => "manufactured::event_occurred",
+            :match => proc { |entity, *a|
+              a[0] == 'defended' && a[2].id == entity.id
+            }},
+
+        :defended_stop =>
+          { :subscribe    => "manufactured::subscribe_to",
+            :notification => "manufactured::event_occurred",
+            :match => proc { |entity, *a|
+              a[0] == 'defended_stop' && a[2].id == entity.id
+            }}
 
       # Dock at the specified station
       def dock_to(station)
@@ -194,29 +204,39 @@ module Omega
     class Corvette < Ship
       entity_validation { |e| e.type == :corvette }
 
-      entity_event       :attacked      => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" },
-                         :attacked_stop => { :subscribe    => "manufactured::subscribe_to",
-                                             :notification => "manufactured::event_occurred" }
+      entity_event \
+        :attacked =>
+          { :subscribe    => "manufactured::subscribe_to",
+            :notification => "manufactured::event_occurred",
+            :match => proc { |entity, *a|
+              a[0] == 'attacked' && a[1].id == entity.id
+            }},
 
-    #  # Run proximity checks via an external thread for all corvettes
-    #  # upon first corvette intialization
-    #  #
-    #  # TODO introduce a centralized entity thread & cycling management system
-    #  # in node / mixins and utilize that here
-    #  on_init { |corvette|
-    #    @@corvettes ||= []
-    #    @@corvettes << corvette
+        :attacked_stop =>
+          { :subscribe    => "manufactured::subscribe_to",
+            :notification => "manufactured::event_occurred",
+            :match => proc { |entity, *a|
+              a[0] == 'attacked_stop' && a[1].id == entity.id
+            }}
 
-    #    @@proximity_thread ||= Thread.new {
-    #      while true
-    #        @corvettes.each { |c|
-    #          c.check_proximity
-    #        }
-    #        sleep 10
-    #      end
-    #    }
-    #  }
+      # Run proximity checks via an external thread for all corvettes
+      # upon first corvette intialization
+      #
+      # TODO introduce a centralized entity thread & cycling management system
+      # in node / mixins and utilize that here
+      entity_init { |corvette|
+        @@corvettes ||= []
+        @@corvettes << corvette
+
+        @@proximity_thread ||= Thread.new {
+          while true
+            @@corvettes.each { |c|
+              c.check_proximity
+            }
+            sleep 10
+          end
+        }
+      }
 
       # Attack the specified target
       #
@@ -272,11 +292,14 @@ module Omega
                                 'within', attack_distance,
                                            'of', location
         neighbors.each { |loc|
+          # TODO if location doesn't correspond to ship, this will
+          # throw an error on server side which doesn't look good
+          # in logs (and request begin/rescue here). anyway around this?
           begin
             sh = node.invoke 'manufactured::get_entity',
                         'of_type', 'Manufactured::Ship',
                                'with_location', loc.id
-            unless sh.nil? || sh.user_id == user_id # TODO respect alliances
+            unless sh.nil? || sh.user_id == user_id
               stop_moving
               handle(:attacked_stop){ |*args| patrol_route }
               attack(sh)

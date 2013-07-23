@@ -131,6 +131,7 @@ def main()
     RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
     # TODO allow user to add / customize filters via config file (and command line flags?)
   #end
+#RJR::Logger.highlight proc { |m| m =~ /.*Anubis-mining-ship1.*/}
 
   # setup the omega systems
   multi_node.dispatcher.add_module('users/rjr/init')

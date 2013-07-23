@@ -75,10 +75,10 @@ Omega::Client::Corvette.owned_by('player').each { |corvette|
   corvette.handle(:jumped) { |c|
     sputs "corvette #{c.id.bold.yellow} jumped to system #{c.system_id.green}"
   }
-  corvette.handle(:attacked) { |c,event, defender|
+  corvette.handle(:attacked) { |c,event, attacker, defender|
     sputs "#{c.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
-  corvette.handle(:defended) { |c,event, attacker|
+  corvette.handle(:defended) { |c,event, attacker, defender|
     sputs "#{c.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
