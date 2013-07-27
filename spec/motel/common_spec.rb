@@ -177,6 +177,12 @@ describe "#to_spherical/#from_spherical" do
     n = Motel.to_spherical(*Motel.from_spherical(*o))
     #n.should == o
     0.upto(2) { |i| (o[i] - n[i]).abs.should < 0.1 }
+
+    ain = [3.2815926535897932, 0.7031853071795819, 1]
+    Motel.to_spherical(*Motel.from_spherical(*ain)).should == ain
+
+    bin = [-0.1064415732380847, -0.09023564889341674, -0.9902159962126371]
+    Motel.from_spherical(*Motel.to_spherical(*bin)).should == bin
   end
 end
 

@@ -137,6 +137,6 @@ end
 # Load and start initial entities and block
 
 Omega::Client::Factory.owned_by(USER_NAME).each  { |f| init_entity f }
-#Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
+Omega::Client::Corvette.owned_by(USER_NAME).each { |c| init_entity c }
 Omega::Client::Miner.owned_by(USER_NAME).each    { |m| init_entity m }
 Omega::Client::Trackable.node.rjr_node.join

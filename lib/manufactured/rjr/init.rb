@@ -109,6 +109,7 @@ module Manufactured::RJR
       end
 
       # update movement strategy
+      old = loc.movement_strategy
       stopped = Motel::MovementStrategies::Stopped.instance
       loc.movement_strategy =
         loc.next_movement_strategy || stopped
@@ -117,10 +118,13 @@ module Manufactured::RJR
       # update location
       node.invoke('motel::update_location', loc)
     
-      # remove callbacks if stopped
-      if loc.stopped?
-        node.invoke('motel::remove_callbacks', loc.id, :movement)
-        node.invoke('motel::remove_callbacks', loc.id, :rotation)
+      # remove callbacks if changing movement strategy
+      if old != loc.movement_strategy
+        if old.is_a?(Motel::MovementStrategies::Linear)
+          node.invoke('motel::remove_callbacks', loc.id, :movement)
+        elsif old.is_a?(Motel::MovementStrategies::Rotate)
+          node.invoke('motel::remove_callbacks', loc.id, :rotation)
+        end
       end
 
       # update the entity in the registry

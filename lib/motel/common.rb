@@ -207,8 +207,31 @@ end
 def self.to_spherical(x, y, z)
   return [] if x.nil? || y.nil? || z.nil?
   dist = Math.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+  # phi is rotation in x/y plane around z-axis
+  # theta is rotation away from z-axis
+  # http://www.math.montana.edu/frankw/ccp/multiworld/multipleIVP/spherical/learn.htm
   phi   = Math.atan2(y, x)
   theta = dist == 0 ? 0 : Math.acos(z/dist)
+
+  # XXX keep phi in domain of -PI<->PI and theta
+  #     in the domain of 0->2PI so that rotation and
+  #     other computations remain sane.
+  #     This will look like jumps in phi/theta as
+  #     phi crosses the Math::PI boundries, but
+  #     the resulting angles will coorespond to the same
+  #     point, it's just a drawback of the spherical coordinate
+  #     system (spherical->cartesian is a lossy operation as a
+  #     cartestian coordinate maps to multiple spherical coords)
+  if phi.abs > Math::PI / 2
+    if phi > 0
+      phi = phi - Math::PI
+    else
+      phi = phi + Math::PI
+    end
+    theta = 2 * Math::PI - theta
+  end
+
   [theta, phi, dist]
 end
 

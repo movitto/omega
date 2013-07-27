@@ -154,7 +154,7 @@ end
 def print_manufactured_entity(mu, i=0)
   puts indent(i) + mu.class.to_s + " " + mu.id.to_s.bold.yellow +
                    " (@" + mu.location.to_s + ")"
-  puts indent(i+1) + "hp: #{mu.hp}"
+  puts indent(i+1) + "hp: #{mu.hp}" if mu.is_a?(Manufactured::Ship)
   puts indent(i+1) + "resources: " if mu.resources.size > 0
   mu.resources.each { |r|
     print_resource(r, i+2)
