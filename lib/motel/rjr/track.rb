@@ -26,13 +26,22 @@ def cb_from_args(rjr_method, args)
                             :event_type   => :movement)
 
   when 'motel::track_rotation'
-    r = args.shift
+    rt = args.shift
     raise ArgumentError,
-      "rotation must >0 && <4*PI" unless r.numeric? &&
-                                         r.to_f > 0 &&
-                                         (0...4*Math::PI).include?(r.to_f)
+      "#{theta} must >0 && <4*PI" unless rt.numeric? &&
+                                         rt.to_f > 0 &&
+                                         (0...4*Math::PI).include?(rt.to_f)
 
-    Callbacks::Rotation.new :min_rotation => r.to_f,
+    ax = args.shift
+    ay = args.shift
+    az = args.shift
+    raise ArgumentError,
+      "rotation axis must be normalized" unless Motel.normalized?(ax, ay, az)
+
+    Callbacks::Rotation.new :rot_theta    => rt.to_f,
+                            :axis_x       => ax.to_f,
+                            :axis_y       => ay.to_f,
+                            :axis_z       => az.to_f,
                             :rjr_event    => 'motel::on_rotation',
                             :event_type   => :rotation
                              

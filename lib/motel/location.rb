@@ -224,26 +224,16 @@ class Location
      @orientation_x, @orientation_y, @orientation_z = *o
    end
 
-   # Return this location's orientation as spherical theta/phi coordinates
-   def spherical_orientation
-     Motel.to_spherical(@orientation_x, @orientation_y, @orientation_z)[0..1]
-   end
-
    # Return boolean indicating if location is oriented towards the specified coordinate
    def oriented_towards?(x, y, z)
-     orientation_difference(x, y, z).all? { |od| od == 0 }
+     orientation_difference(x, y, z).first == 0
    end
 
-   # Return angle between location's orientation and the specified coordinate.
-   #
-   # Angle is returned as an array containing spherical theta, phi coordinates.
-   #
-   # Angle differences returned may be positive or negative indicating relative
-   # position of the orientation to the specified coordinate
+   # Return axis angle between location's orientation and the specified coordinate.
    def orientation_difference(x, y, z)
-     t,p = self.spherical_orientation
-     ct,cp = Motel.to_spherical(x - @x, y - @y, z - @z)[0..1]
-     [ct-t,cp-p]
+     dx = x - @x ; dy = y - @y ; dz = z - @z
+     return [0, 0, 0, 1] if dx == 0 && dy == 0 && dz == 0
+     Motel.axis_angle(orx, ory, orz, dx, dy, dz)
    end
 
    # Return the root location on this location's heirarchy tree

@@ -94,55 +94,11 @@ def self.angle_between(x1, y1, z1, x2, y2, z2)
   x1, y1, z1 = normalize(x1, y1, z1)
   x2, y2, z2 = normalize(x2, y2, z2)
   d  = dot_product(x1, y1, z1, x2, y2, z2)
-  a  = Math.acos(d)
-  na = -1 * a
-
-  x  = cross_product(x1, y1, z1, x2, y2, z2)
-  d  = dot_product(*(x + CARTESIAN_NORMAL_VECTOR))
-  d < 0 ? na : a
+  s1 = Math.sqrt(x1**2+y1**2+z1**2)
+  s2 = Math.sqrt(x2**2+y2**2+z2**2)
+  mag = s1 * s2
+  Math.acos(d/mag)
 end
-
-# Return matrix representing the rotation between vectors
-#
-# @param [Integer,Float] x1 x component of first vector
-# @param [Integer,Float] y1 y component of first vector
-# @param [Integer,Float] z1 z component of first vector
-# @param [Integer,Float] x2 x component of second vector
-# @param [Integer,Float] y2 y component of second vector
-# @param [Integer,Float] z2 z component of second vector
-#def self.rotation_between(x1, y1, z1, x2, y2, z2)
-#  # convert axis angle between vectors to euler angles
-#  # FIXME not working 100% right
-#
-#  rotation = []
-#
-#  # calc axis angle between vectors
-#  x1, y1, z1 = normalize(x1, y1, z1)
-#  x2, y2, z2 = normalize(x2, y2, z2)
-#  angle = angle_between(x1, y1, z1, x2, y2, z2)
-#  rot_axis = cross_product(x1, y1, z1, x2, y2, z2)
-#  x,y,z = *rot_axis
-#  s = Math.sin(angle) ; c = Math.cos(angle) ; t = 1 - c
-#
-#  # edge cases
-#  if (x * y * t + z * s) > (1-CLOSE_ENOUGH)
-#    rotation << 2 * Math.atan2(x * Math.sin(angle/2),Math.cos(angle/2))
-#    rotation << Math::PI / 2
-#    rotation << 0
-#  elsif (x * y * t + z * s < (CLOSE_ENOUGH))
-#    rotation << -2 * Math.atan2(x * Math.sin(angle/2),Math.cos(angle/2))
-#    rotation << -Math::PI / 2
-#    rotation << 0
-#
-#  # convert axis angle to euler rotation
-#  else
-#    rotation << Math.atan2(y * s - x * z * t, 1 - (y**2 + z**2) * t)
-#    rotation << Math.asin(x * y * t + z * 2)
-#    rotation << Math.atan2(x * s - y * z * t, 1 - (x**2 + z**2) * t)
-#  end
-#
-#  rotation
-#end
 
 # Retrieve the axis angle representation of the rotation
 # between the two specified vectors.
@@ -157,6 +113,7 @@ end
 def self.axis_angle(x1, y1, z1, x2, y2, z2)
   a  = angle_between(x1, y1, z1, x2, y2, z2)
   ax = normal_vector(x1, y1, z1, x2, y2, z2)
+  ax = normalize(*ax)
   [a] + ax
 end
 
@@ -182,6 +139,43 @@ def self.rotate(x, y, z, angle, ax, ay, az)
   ry = y * c + cross[1] * s + ay * dot * (1-c)
   rz = z * c + cross[2] * s + az * dot * (1-c)
   [rx, ry, rz]
+end
+
+# Return angle which corresponds to specified coordinate when
+# rotated from original coordinate on specified axis.
+#
+# We utilize a bit of basic trig to calculate the angle of
+# rotation from the current position, original position, and axis
+# angle:
+#   - the angle we want is the single/unique apex angle in
+#     an isoscoles triangle residing on the surface of rotation
+#   - the angle we want can be computed with:
+#      sin(angle/2) = 1/2 base of triangle * length of side of triangle
+#   - the base of the triangle is simply the distance between the
+#     original & new coordinates
+#   - the side of the triangle can be retrieved by taking the sin of the
+#     angle between the axis vector and the original coordinate vector.
+#   - Note: We are assuming that the surace of rotation is at a distance of
+#           1 from the origin, if this is not the case, the previous will
+#           need to be adjusted to take this into account
+#   - Finally we map the result to the domain of 0->2*PI
+def self.rotated_angle(x, y, z, ox, oy, oz, ax, ay, az)
+  # base length of rotation triangle
+  nd = Math.sqrt((x-ox)**2 + (y-oy)**2 + (z-oz)**2)
+
+  # angle between rotation axis vector and original coordinate vector
+  oa = angle_between(ox,oy,oz,ax,ay,az)
+  ad = Math.sin(oa)
+
+  # calc the rotation angle 
+  hsa = nd/ad/2
+  hsa = hsa.round_to(0) if hsa.abs > 1 # compensate for rounding errors
+  ra = Math.asin(hsa)*2
+
+  # determine if 'negative' rotation, adjust domain
+  xp = cross_product(x,y,z,ox,oy,oz)
+  ia = dot_product(*xp, ax,ay,az) > 0
+  ia ? (2 * Math::PI - ra) : ra
 end
 
 # Return boolean inidicating if two vectors are orthogonal
@@ -248,6 +242,14 @@ def self.from_spherical(theta, phi, dist)
     [x,y,z]
 end
 
+# Generate and reutrn a random normalized vector
+def self.rand_vector
+  nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
+  x1,y1,z1 = nx * rand(10), ny * rand(10), nz * rand(10)
+  x1,y1,z1 = *Motel::normalize(x1, y1, z1)
+  [x1,y1,z1]
+end
+
 # Generate and return two orthogonal, normalized vectors
 #
 # @param [Hash] args hash of options to use when generating axis
@@ -289,7 +291,7 @@ class Float
   # @param [Integer] precision number of decimal places to return in float
   # @return float rounded to the specified precision
   def round_to(precision)
-     return nil if precision <= 0
+     return nil if precision < 0
      return (self * 10 ** precision).round.to_f / (10 ** precision)
   end
 end

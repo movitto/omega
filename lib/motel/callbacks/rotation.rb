@@ -9,52 +9,30 @@ module Motel
 module Callbacks
 
 # Defines a {Omega::Server::Callback} to only invoke callback
-# if a location rotates a specified minimum angle.
-#
-# The client may specify the minimum axis-angle and/or the minimum
-# theta or phi angles in the spherical coordinate system
-#
-# *note* *all* minimum conditions will need to be met to trigger handler!
+# if a location rotates a specified minimum axis-angle
 class Rotation < Omega::Server::Callback
-  # Minimum angle location needs to have rotated performed to trigger the event.
-  attr_accessor :min_rotation
+  # Minimum angle location needs to have rotated
+  attr_accessor :rot_theta
 
-  # Minimum rotation of theta the location needs to have performated to trigger the event
-  attr_accessor :min_theta
-
-  # Minimum rotation of phi the location needs to have performated to trigger the event
-  attr_accessor :min_phi
+  # Axis angle of rotation
+  attr_accessor :axis_x, :axis_y, :axis_z
 
   protected
 
   # Helper get rotation
   def get_rotation(loc)
-    new_theta,new_phi = loc.spherical_orientation
-    old_theta,old_phi,dist = Motel.to_spherical(@orig_ox, @orig_oy, @orig_oz)
-    dt = new_theta - old_theta
-    dp = new_phi   - old_phi
-
-    # XXX explicit edge case, if dt/dp == 0 then da == 0 (axis_angle blows up)
-    if dt == 0 && dp == 0
-      da = 0
-
-    else
-      # only use abs value of angle component of the axis angle
-      da = Motel.axis_angle(@orig_ox, @orig_oy, @orig_oz,
-                            *loc.orientation).first.abs
-    end
-
-    [dt,dp,da]
+    Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
+                        @axis_x, @axis_y, @axis_z)
   end
 
-  # Helper - return bool indicating if all min rotation requirements are set
+  # Helper - return bool indicating if min rotation requirement is set
   def check_rotation(loc, old_ox, old_oy, old_oz)
     return if (loc.orientation + [old_ox, old_oy, old_oz]).any? { |o| o.nil? }
 
     @orig_ox,@orig_oy,@orig_oz = old_ox,old_oy,old_oz if @orig_ox.nil?
-    dt,dp,da = get_rotation(loc)
+    da = get_rotation(loc)
 
-    da.abs >= @min_rotation && dt.abs >= @min_theta && dp.abs >= @min_phi
+    da.abs >= @rot_theta
   end
 
   public
@@ -62,14 +40,13 @@ class Rotation < Omega::Server::Callback
   # Motel::Callbacks::Rotation initializer
   #
   # @param [Hash] args hash of options to initialize callback with
-  # @option args [Float] :min_rotation,'min_rotation' minium rotation location
-  #   needs to undergo before handler in invoked
-  # @option args [Float] :min_theta,'min_theta' minium theta rotation location
-  #   needs to undergo before handler in invoked
-  # @option args [Float] :min_phi,'min_phi' minium phi rotation location
+  # @option args [Float] :rot_theta,'rot_theta' minium rotation location
   #   needs to undergo before handler in invoked
   def initialize(args = {}, &block)
-    attr_from_args args, :min_rotation => 0, :min_theta => 0, :min_phi => 0
+    attr_from_args args, :rot_theta => 0,
+                         :axis_x    => 0,
+                         :axis_y    => 0,
+                         :axis_z    => 1
     @orig_ox = @orig_oy = @orig_oz = nil
 
     # only run handler if minimums are met
@@ -78,20 +55,21 @@ class Rotation < Omega::Server::Callback
     super(args, &block)
   end
 
-  # Override {Omega::Server::Callback#invoke}, call original then reset local orientation
+  # Override {Omega::Server::Callback#invoke}, call original then reset
+  # local orientation
   #
   # @param [Integer, Float] old_ox old x orientation of location
   # @param [Integer, Float] old_oy old y orientation of location
   # @param [Integer, Float] old_oz old z orientation of location
   def invoke(loc, old_ox, old_oy, old_oz)
-    dt,dp,da = get_rotation(loc)
-    super(loc, da, dt, dp)
+    da = get_rotation(loc)
+    super(loc, da)
     @orig_ox = @orig_ox = @orig_oz = nil
   end
 
   # Convert callback to human readable string and return it
   def to_s
-    "(#{@min_rotation},#{@min_theta},#{@min_phi})"
+    "(#{@rot_theta},#{@axis_x},#{@axis_y},#{@axis_z})"
   end
 
   # Convert callback to json representation and return it
@@ -99,8 +77,11 @@ class Rotation < Omega::Server::Callback
     {
       'json_class' => self.class.name,
       'data'       =>
-        { :endpoint_id => @endpoint_id, :min_rotation => @min_rotation,
-          :min_theta => @min_theta, :min_phi => @min_phi}
+        { :endpoint_id => @endpoint_id,
+          :rot_theta   => @rot_theta,
+          :axis_x      => @axis_x,
+          :axis_y      => @axis_y,
+          :axis_z      => @axis_z }
     }.to_json(*a)
   end
 

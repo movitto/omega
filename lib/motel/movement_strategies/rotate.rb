@@ -12,18 +12,21 @@ module MovementStrategies
   # Mixin to include in other modules to provide rotation
   # capabilities while undergoing other movement
   module Rotatable
-    # Angular speed which location is rotating
-    attr_accessor :dtheta, :dphi
+    # Axis angle describing rotation
+    attr_accessor :rot_x, :rot_y, :rot_z, :rot_theta
 
     # Initialize rotation params from args hash
     def init_rotation(args = {})
-      attr_from_args args, :dtheta => 0, :dphi => 0
+      attr_from_args args, :rot_theta => 0,
+                           :rot_x     => 0,
+                           :rot_y     => 0,
+                           :rot_z     => 1
     end
 
     # Return boolean indicating if rotation parameters are valid
     def valid_rotation?
-     @dtheta.numeric? && @dtheta > -6.28 && @dtheta < 6.28 &&
-     @dphi.numeric?   && @dphi   > -6.28 && @dphi   < 6.28
+     @rot_theta.numeric? && @rot_theta > -6.28 && @rot_theta < 6.28 &&
+     Motel.normalized?(@rot_x, @rot_y, @rot_z)
     end
 
     # Rotate the specified location. Takes same parameters
@@ -31,18 +34,27 @@ module MovementStrategies
     # orientation after the specified elapsed interval.
     def rotate(loc, elapsed_seconds)
       # update location's orientation
-      loct, locp = loc.spherical_orientation
-      unless loct.nil? || locp.nil?
-        loct += dtheta * elapsed_seconds
-        locp += dphi   * elapsed_seconds
-        loc.orientation_x,loc.orientation_y,loc.orientation_z =
-          Motel.from_spherical(loct, locp, 1)
-      end
+      nor =
+        Motel.rotate(loc.orx, loc.ory, loc.orz,
+                     @rot_theta * elapsed_seconds,
+                     @rot_x, @rot_y, @rot_z)
+      loc.orx = nor[0]
+      loc.ory = nor[1]
+      loc.orz = nor[2]
+      loc.orientation
+    end
+
+    # Return string representation of rotation
+    def rot_to_s
+      "#{rot_theta.round_to(2)}/#{rot_x.round_to(2)}/#{rot_y.round_to(2)}/#{rot_z.round_to(2)}"
     end
 
     # Return rotation params to incorporate in json value
     def rotation_json
-      {:dtheta => dtheta, :dphi => dphi}
+      {:rot_theta => rot_theta,
+       :rot_x     => rot_x,
+       :rot_y     => rot_y,
+       :rot_z     => rot_z}
     end
   end
 
@@ -65,11 +77,14 @@ class Rotate < MovementStrategy
   # Implementation of {Motel::MovementStrategy#move}
   def move(loc, elapsed_seconds)
     unless valid?
-      ::RJR::Logger.warn "rotate movement strategy (#{self.to_s}) not valid, not proceeding with move"
+      ::RJR::Logger.warn \
+        "rotate movement strategy (#{rot_to_s}) not valid, not proceeding with move"
       return
     end
 
-    ::RJR::Logger.debug "moving location #{loc.id} via rotate movement strategy #{dtheta}/#{dphi}"
+    ::RJR::Logger.debug \
+      "moving location #{loc.id} via rotate movement strategy #{rot_to_s}"
+
     rotate(loc, elapsed_seconds)
   end
 
@@ -82,8 +97,9 @@ class Rotate < MovementStrategy
 
   # Convert movement strategy to human readable string and return it
   def to_s
-    "rotate-(#{@dtheta.round_to(2)}/#{@dphi.round_to(2)})"
+    "rotate-(#{rot_to_s})"
   end
+
 end
 
 end

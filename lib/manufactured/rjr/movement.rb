@@ -35,27 +35,26 @@ def move_entity_in_system(entity, loc)
   
   # if we are close enough to correct orientation,
   # register linear movement strategy with entity
-  if od.all? { |odc| odc.abs < (Math::PI / 8) }
+  if od.first.abs < (Math::PI / 8)
     entity.location.movement_strategy = linear
   
   # if we need to adjust orientation before moving,
   # register rotation movement strategy w/ entity
   else
     # create the rotation movement strategy
-    tot_a = od[0].abs + od[1].abs
     rotate =
-      Motel::MovementStrategies::Rotate.new :dtheta => (od[0] * entity.rotation_speed / tot_a),
-                                            :dphi   => (od[1] * entity.rotation_speed / tot_a)
+      Motel::MovementStrategies::Rotate.new \
+        :rot_theta => (od[0] * entity.rotation_speed),
+        :rot_x     =>  od[1],
+        :rot_y     =>  od[2],
+        :rot_z     =>  od[3]
 
     # register rotation w/ location, linear as next movement strategy
     entity.location.movement_strategy = rotate
     entity.location.next_movement_strategy = linear
   
     # track location rotation
-    # abs axis-angle angle-component is used, @see motel rotation callback
-    new_or = Motel.from_spherical(*od, 1)
-    rot_a  = Motel::axis_angle(*(entity.location.orientation + new_or)).first.abs
-    node.invoke('motel::track_rotation', entity.location.id,    rot_a) unless rot_a.nil?
+    node.invoke('motel::track_rotation', entity.location.id, *od)
   end
   
   # track location movement and update location

@@ -83,6 +83,9 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base rotation speed of the ship type
   def self.base_rotation_speed(type)
+    # XXX: if this is too large, rotation callback will be thrown off
+    #      as entity may have rotated passed specified distance in
+    #      movement interval
     Math::PI / 8
   end
 
