@@ -29,8 +29,6 @@ update_location = proc { |loc|
   loc = filter_properties(loc, :allow =>
     [:id, :x, :y, :z, :parent_id, :movement_strategy, :next_movement_strategy])
 
-  # TODO pause the location first?
-
   # update the location
   ::RJR::Logger.info "updating location #{rloc}->#{loc}"
   registry.update(loc, &with_id(rloc.id))

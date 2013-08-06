@@ -24,14 +24,20 @@ class Registry
   def run_location(loc, elapsed)
     ::RJR::Logger.debug "runner moving location #{loc}"
 
-    old_coords,old_orientation = loc.coordinates,loc.orientation
-
     begin
-      loc.movement_strategy.move loc, elapsed
-      loc.last_moved_at = Time.now
+      old_coords, old_orientation = nil, nil
 
-      # update the location
-      self.update(loc) { |l| l.id == loc.id }
+      # operate on registry entity so that retrieval, movement,
+      # and storage are atomic on latest location (which
+      # may also be updated with motel::update_location)
+      self.safe_exec { |locs|
+        loc = locs.find { |l| l.id == loc.id }
+
+        old_coords,old_orientation = loc.coordinates,loc.orientation
+
+        loc.movement_strategy.move loc, elapsed
+        loc.last_moved_at = Time.now
+      }
 
       # invoke movement and rotation callbacks
       # TODO invoke these async so as not to hold up the runner
