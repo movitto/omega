@@ -33,7 +33,7 @@ module Omega
 
       # Refresh entity
       def refresh
-        @entity = node.invoke(self.get_method, 'with_id', id)
+        @entity = node.invoke(self.class.get_method, 'with_id', id)
       end
 
       # By default proxy all methods to underlying entity
@@ -77,7 +77,8 @@ module Omega
             eh.call self, *eargs
           rescue Exception, StandardError => e
             # TODO use logger instead?
-            puts "err in #{id} #{event} handler: #{e}"
+            puts "err in #{id} #{event} handler:"
+            puts "#{([e] + e.backtrace).join("\n")}"
           end
             
         } if @event_handlers && @event_handlers[event]
@@ -88,7 +89,8 @@ module Omega
             eh.call self, *eargs
           rescue Exception, StandardError => e
             # TODO use logger instead?
-            puts "err in #{id} 'all' handler: #{e}"
+            puts "err in #{id} 'all' handler:"
+            puts "#{([e] + e.backtrace).join("\n")}"
           end
         } if @event_handlers && @event_handlers[:all]
       end
