@@ -139,7 +139,17 @@ module Omega
         elsif st.location - location < transfer_distance
           begin
             transfer_all_to(st)
+
+            # allow two errors before giving up
+            @transfer_errs = 0
           rescue Exception => e
+            @transfer_errs ||= 0
+            @transfer_errs  += 1
+            if @transfer_errs > 2
+              raise_event(:transfer_err, st)
+              return
+            end
+
             # refresh stations and try again
             Omega::Client::Station.refresh
             offload_resources
@@ -151,16 +161,7 @@ module Omega
         else
           raise_event(:moving_to, st)
           move_to(:destination => st) { |*args|
-            begin
-              transfer_all_to(st)
-            rescue Exception => e
-              # refresh stations and try again
-              Omega::Client::Station.refresh
-              offload_resources
-              return
-            end
-
-            select_target
+            offload_resources
           }
         end
       end

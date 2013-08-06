@@ -93,6 +93,9 @@ Omega::Client::Miner.owned_by('player').each { |miner|
   miner.handle(:transferred_to) { |m,st,r|
     sputs "miner #{m.id.bold.yellow} transferred #{r.quantity} of #{r.to_s.bold.red} to #{st.id.bold.yellow}"
   }
+  miner.handle(:transfer_err) { |m,st|
+    sputs "miner #{m.id.bold.yellow} not able to transfer resource to station #{st.id.bold.yellow}"
+  }
   miner.start_bot
 }
 
