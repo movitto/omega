@@ -394,6 +394,10 @@ describe Ship do
       it "returns false"
     end
 
+    context "ship not alive" do
+      it "returns false"
+    end
+
     context "ships/resource in different systems" do
       it "returns false" do
         @sh.location.parent = @s2.location

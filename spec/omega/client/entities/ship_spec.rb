@@ -13,6 +13,12 @@ module Omega::Client
       @s = Omega::Client::Ship.new
     end
 
+    describe "#destroyed" do
+      context "entity not alive" do
+        it "clears event handlers"
+      end
+    end
+
     describe "#dock_to" do
       it "invokes manufactured::dock" do
         st = build(:station)
@@ -170,6 +176,15 @@ module Omega::Client
           @r.should_receive(:transfer_all_to).with(s)
           @r.should_receive(:closest).with(:resource).and_return([])
           @r.offload_resources
+        end
+
+        context "error during transfer" do
+          it "refreshes stations"
+          it "retries resource offloading twice"
+          context "all transfer retries fail" do
+            it "raises transfer_err event"
+            it "returns"
+          end
         end
 
         it "selects mining target" do
@@ -351,6 +366,8 @@ module Omega::Client
         @c = Corvette.get(c.id)
       end
 
+      it "starts listening for destroyed_by events"
+
       it "initializes visited systems list" do
         @c.should_receive(:patrol_route)
         @c.start_bot
@@ -402,24 +419,31 @@ module Omega::Client
 
       it "raises selected_system event"
 
-      it "moves to jump gate" do
-        @c.should_receive(:move_to)
-        @c.patrol_route
+      context "jump gate within triggering distance" do
+        it "jumps to next system"
+        it "continues patrol route"
       end
 
-      context "on arrival at jump gate" do
-        it 'jumps to next system' do
-          @c.should_receive(:jump_to)
+      context "jump gate not within triggering distance" do
+        it "moves to jump gate" do
+          @c.should_receive(:move_to)
           @c.patrol_route
-          @c.raise_event(:movement)
         end
 
-        #it "continues patrol route" do
-        #  @c.should_receive(:jump_to)
-        #  @c.should_receive(:patrol_route)
-        #  @c.patrol_route
-        #  @c.raise_event(:movement)
-        #end
+        context "on arrival at jump gate" do
+          it 'jumps to next system' do
+            @c.should_receive(:jump_to)
+            @c.patrol_route
+            @c.raise_event(:movement)
+          end
+
+          #it "continues patrol route" do
+          #  @c.should_receive(:jump_to)
+          #  @c.should_receive(:patrol_route)
+          #  @c.patrol_route
+          #  @c.raise_event(:movement)
+          #end
+        end
       end
     end
 
@@ -437,6 +461,10 @@ module Omega::Client
           l.coordinates = @c.location.coordinates
           @o = create(:valid_ship, :user_id => create(:user).id,
                                    :location => l, :solar_system => @c.solar_system)
+        end
+
+        context "already attacking or not alive" do
+          it "skips attack"
         end
 
         it "stops moving" do

@@ -205,6 +205,10 @@ module Manufactured::RJR
       end
     end
 
+    context "specified ship that is not alive" do
+      it "raises ValidationError"
+    end
+
     context "insufficient permissions (modify entity)" do
       it "raises PermissionError" do
         lambda {

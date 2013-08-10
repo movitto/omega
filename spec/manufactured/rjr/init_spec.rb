@@ -85,8 +85,20 @@ module Manufactured::RJR
 
     it "sets next movement strategy"
 
-    context "location stopped" do
-      it "remove motel callbacks"
+    context "next movement strategy is nil" do
+      it "sets movement strategy to stopped"
+    end
+
+    it "sets next movement strategy to stopped"
+
+    context "movement strategy different" do
+      context "old movement strategy is linear" do
+        it "removes motel movement callbacks"
+      end
+
+      context "old movement strategy is rotation" do
+        it "removes motel rotation callbacks"
+      end
     end
 
     it "updates entity from location"

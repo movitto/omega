@@ -91,6 +91,10 @@ module Omega::Client
       end
     end
 
+    describe "#clear_handlers" do
+      it "clears handlers for all events"
+    end
+
     describe "#clear_handlers_for" do
       it "clears handlers for the specified event" do
         @t.handle(:setup_event) {}

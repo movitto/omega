@@ -248,7 +248,7 @@ module Omega
       # Run proximity checks via an external thread for all corvettes
       # upon first corvette intialization
       #
-      # TODO introduce a centralized entity tracking cycle 
+      # TODO introduce a centralized entity tracking cycle
       # via mixin and utilize that here
       entity_init { |corvette|
         @@corvettes ||= []
