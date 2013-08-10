@@ -22,6 +22,7 @@ module Omega
     class Ship
       include Trackable
       include TrackEntity
+      include TrackState
       include HasLocation
       include InSystem
       include HasCargo
@@ -35,15 +36,41 @@ module Omega
           { :subscribe    => "manufactured::subscribe_to",
             :notification => "manufactured::event_occurred",
             :match => proc { |entity, *a|
-              a[0] == 'defended' && a[2].id == entity.id
+              a[0] == 'defended' && a[1].id == entity.id },
+            :update => proc { |entity, *a|
+              entity.hp,entity.shield_level =
+                a[1].hp, a[1].shield_level
             }},
 
         :defended_stop =>
           { :subscribe    => "manufactured::subscribe_to",
             :notification => "manufactured::event_occurred",
             :match => proc { |entity, *a|
-              a[0] == 'defended_stop' && a[2].id == entity.id
+              a[0] == 'defended_stop' && a[1].id == entity.id },
+            :update => proc { |entity, *a|
+              entity.hp,entity.shield_level =
+                a[1].hp, a[1].shield_level
+            }},
+
+        :destroyed_by =>
+          { :subscribe    => "manufactured::subscribe_to",
+            :notification => "manufactured::event_occurred",
+            :match => proc { |entity, *a|
+              a[0] == 'destroyed' && a[1].id == entity.id },
+            :update => proc { |entity, *a|
+              entity.hp,entity.shield_level =
+                a[1].hp, a[1].shield_level
             }}
+
+      # automatically cleanup entity when destroyed
+      server_state :destroyed,
+        :check => lambda { |e| !e.alive? },
+        :off   => lambda { |e| },
+        :on    =>
+          lambda { |e|
+            # TODO remove rjr notifications
+            e.clear_handlers
+          }
 
       # Dock at the specified station
       def dock_to(station)
@@ -68,8 +95,6 @@ module Omega
 
     # Omega client miner ship tracker
     class Miner < Ship
-      include TrackState
-
       entity_validation { |e| e.type == :mining }
 
       entity_event \
@@ -223,8 +248,8 @@ module Omega
       # Run proximity checks via an external thread for all corvettes
       # upon first corvette intialization
       #
-      # TODO introduce a centralized entity thread & cycling management system
-      # in node / mixins and utilize that here
+      # TODO introduce a centralized entity tracking cycle 
+      # via mixin and utilize that here
       entity_init { |corvette|
         @@corvettes ||= []
         @@corvettes << corvette
@@ -256,6 +281,8 @@ module Omega
 
       # Start the omega client bot
       def start_bot
+        handle(:destroyed_by)
+
         @visited  = []
 
         patrol_route
@@ -278,12 +305,18 @@ module Omega
 
         else
           raise_event(:selected_system, jg.endpoint_id, jg)
-          dst = jg.trigger_distance / 4
-          nl  = jg.location + [dst,dst,dst]
-          move_to(:location => nl) {
+          if jg.location - location < jg.trigger_distance
             jump_to(jg.endpoint)
             patrol_route
-          }
+
+          else
+            dst = jg.trigger_distance / 4
+            nl  = jg.location + [dst,dst,dst]
+            move_to(:location => nl) {
+              jump_to(jg.endpoint)
+              patrol_route
+            }
+          end
         end
       end
 
@@ -299,7 +332,7 @@ module Omega
             attack(e)
             break
           end
-        } unless self.attacking?
+        } if self.alive? && !self.attacking?
       end
     end
   end

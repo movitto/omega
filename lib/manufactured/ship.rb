@@ -434,7 +434,7 @@ class Ship
   # @return [true,false] indicating if ship can mine resource source
   def can_mine?(resource, quantity=resource.quantity)
     # TODO eventually filter per specific resource mining capabilities
-     @type == :mining && !self.docked? &&
+     @type == :mining && !self.docked? && alive? &&
     (@location.parent_id == resource.entity.location.parent_id) &&
     (@location - resource.entity.location) <= @mining_distance &&
     (cargo_quantity + quantity) <= @cargo_capacity

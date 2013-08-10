@@ -11,6 +11,9 @@ module Callbacks
 # Defines a {Omega::Server::Callback} to only invoke callback
 # if two locations are within the specified maximum distance of each other.
 #
+# TODO make to_location optional such that if its omitted any location
+# may trigger the proximity event should the conditions be satisfied.
+#
 # The client may specify the maximum overall distance and/or the maximum
 # distance along any axis (x,y,z).
 #

@@ -40,6 +40,13 @@ subscribe_to = proc { |entity_id, event|
            {:privilege => 'view', :entity => 'manufactured_entities'}]
 
         # invoke method via rjr callback notification
+        #
+        # args does not include event/entity at this point, just simply has any
+        # remaining event arguments
+        #
+        # XXX args transformation between server callbacks being
+        # invoked (in manufactured::commands) and here is somewhat
+        # convoluted, would be nice to simplify
         @rjr_callback.notify 'manufactured::event_occurred', event, entity, *args
 
       rescue Omega::PermissionError => e

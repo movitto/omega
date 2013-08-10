@@ -15,6 +15,9 @@ require 'rjr/nodes/tcp'
 include Motel
 include Omega::Client::DSL
 
+CORVETTES = 5
+SIZE = 300
+
 #RJR::Logger.log_level = ::Logger::INFO
 
 node = RJR::Nodes::TCP.new(:node_id => 'client', :host => 'localhost', :port => '9090')
@@ -25,20 +28,20 @@ login 'admin', 'nimda'
 ####################### create environment
 
 galaxy 'Zeus' do |g|
-  system 'Athena',    'HR1925', :location => rand_location
-  system 'Aphrodite', 'V866',   :location => rand_location
-  system 'Philo',     'HU1792', :location => rand_location
+  system 'Athena',    'HR1925', :location => rand_location(:max => SIZE)
+  system 'Aphrodite', 'V866',   :location => rand_location(:max => SIZE)
+  system 'Philo',     'HU1792', :location => rand_location(:max => SIZE)
 end
 
 athena    = system('Athena')
 aphrodite = system('Aphrodite')
 philo     = system('Philo')
 
-jump_gate athena,    aphrodite, :location => Location.new(:x => 150, :y => 150, :z => 150)
-jump_gate athena,    philo,     :location => rand_location
-jump_gate aphrodite, athena,    :location => rand_location
-jump_gate aphrodite, philo,     :location => rand_location
-jump_gate philo,     aphrodite, :location => rand_location
+jump_gate athena,    aphrodite, :location => rand_location(:max => SIZE)
+jump_gate athena,    philo,     :location => rand_location(:max => SIZE)
+jump_gate aphrodite, athena,    :location => rand_location(:max => SIZE)
+jump_gate aphrodite, philo,     :location => rand_location(:max => SIZE)
+jump_gate philo,     aphrodite, :location => rand_location(:max => SIZE)
 
 ####################### create users
 
@@ -52,25 +55,34 @@ end
 
 ####################### create ships
 
-ship("player-corvette1") do |ship|
-  ship.type         = :corvette
-  ship.user_id      = 'player'
-  ship.solar_system = athena
-  ship.location     = Location.new(:x => 0, :y => 0, :z => 0)
-end
+0.upto(CORVETTES) do |i|
+  starting_system =
+    case rand(3)
+    when 0 then athena
+    when 1 then aphrodite
+    when 2 then philo
+    end
 
-ship("enemy-corvette1") do |ship|
-  ship.type         = :corvette
-  ship.user_id      = 'enemy'
-  ship.solar_system = athena
-  ship.location     = Location.new(:x => 50, :y => 50, :z => 50)
+  ship("player-corvette#{i}") do |ship|
+    ship.type         = :corvette
+    ship.user_id      = 'player'
+    ship.solar_system = starting_system
+    ship.location     = rand_location(:max => SIZE)
+  end
+
+  ship("enemy-corvette#{i}") do |ship|
+    ship.type         = :corvette
+    ship.user_id      = 'enemy'
+    ship.solar_system = starting_system
+    ship.location     = rand_location(:max => SIZE)
+  end
 end
 
 ##########################################
 
 # Load and start initial entities and block
 
-Omega::Client::Corvette.owned_by('player').each { |corvette|
+Omega::Client::Corvette.get_all.each { |corvette|
   sputs "registering #{corvette.id} events"
   corvette.handle(:selected_system) { |c, system_id, jg|
     sputs "corvette #{c.id.bold.yellow} selected system #{system_id.green}"
@@ -81,8 +93,17 @@ Omega::Client::Corvette.owned_by('player').each { |corvette|
   corvette.handle(:attacked) { |c,event, attacker, defender|
     sputs "#{c.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
-  corvette.handle(:defended) { |c,event, attacker, defender|
-    sputs "#{c.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
+  corvette.handle(:attacked_stop) { |c,event, attacker, defender|
+    sputs "#{c.id.bold.yellow} stopped attacking #{defender.id.bold.yellow}"
+  }
+  corvette.handle(:defended) { |c,event, defender, attacker|
+    sputs "#{c.id.bold.yellow} defendend against #{attacker.id.bold.yellow}"
+  }
+  corvette.handle(:defended_stop) { |c,event, defender, attacker|
+    sputs "#{c.id.bold.yellow} stopped defending against #{attacker.id.bold.yellow}"
+  }
+  corvette.handle(:destroyed_by) { |c,event, defender, attacker|
+    sputs "#{c.id.bold.yellow} destroyed by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
 }

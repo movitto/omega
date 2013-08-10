@@ -111,6 +111,7 @@ move_entity = proc { |id, loc|
   entity = registry.entity &with_id(id)
   raise DataNotFound, id if entity.nil?
   raise ValidationError, entity unless [Ship,Station].include?(entity.class)
+  raise ValidationError, entity unless !entity.is_a?(Ship) || entity.alive?
 
   # require modify on manufactured_entity
   require_privilege :registry => user_registry, :any =>

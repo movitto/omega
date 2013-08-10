@@ -64,6 +64,11 @@ module Omega
         !@event_handlers.nil? && @event_handlers[event].size > 0
       end
 
+      # Clear all handlers
+      def clear_handlers
+        @event_handlers = nil
+      end
+
       # Clear handlers for the specified event
       def clear_handlers_for(event)
         @event_handlers[event] = [] if @event_handlers
