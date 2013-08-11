@@ -28,9 +28,9 @@ def cb_from_args(rjr_method, args)
   when 'motel::track_rotation'
     rt = args.shift
     raise ArgumentError,
-      "#{theta} must >0 && <4*PI" unless rt.numeric? &&
-                                         rt.to_f > 0 &&
-                                         (0...4*Math::PI).include?(rt.to_f)
+      "#{rt} must >0 && <4*PI" unless rt.numeric? &&
+                                      rt.to_f > 0 &&
+                                      (0...4*Math::PI).include?(rt.to_f)
 
     ax = args.shift
     ay = args.shift

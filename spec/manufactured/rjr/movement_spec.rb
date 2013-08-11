@@ -81,7 +81,7 @@ module Manufactured::RJR
 
       it "tracks rotation" do
         Manufactured::RJR.node.should_receive(:invoke).
-                          with("motel::track_rotation", @sh.id, Math::PI, 0, 1, 0)
+                          with("motel::track_rotation", @sh.id, Math::PI, 0, 0, 1)
         Manufactured::RJR.node.should_receive(:invoke).
                           with("motel::track_movement", @sh.id, 100)
         Manufactured::RJR.node.should_receive(:invoke).

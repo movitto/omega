@@ -472,7 +472,11 @@ module Omega
                 end
               }
               #\@updating_state = false
-            }
+
+            # only need to register state check
+            # event handler once as it will check all states
+            } unless @checking_state
+            @checking_state = true
           }
         end
       end # module ClassMethods

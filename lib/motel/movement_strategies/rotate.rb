@@ -26,6 +26,7 @@ module MovementStrategies
     # Return boolean indicating if rotation parameters are valid
     def valid_rotation?
      @rot_theta.numeric? && @rot_theta > -6.28 && @rot_theta < 6.28 &&
+     @rot_x.numeric? && @rot_y.numeric? && @rot_z.numeric? &&
      Motel.normalized?(@rot_x, @rot_y, @rot_z)
     end
 

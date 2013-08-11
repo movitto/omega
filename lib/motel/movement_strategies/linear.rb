@@ -79,7 +79,10 @@ class Linear < MovementStrategy
      loc.y += distance * dy
      loc.z += distance * dz
 
-     rotate(loc, elapsed_seconds)
+     # skip rotation if orientation is not set
+     unless loc.orientation.any? { |lo| lo.nil? }
+       rotate(loc, elapsed_seconds)
+     end
    end
 
    # Convert movement strategy to json representation and return it

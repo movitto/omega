@@ -256,7 +256,6 @@ describe Location do
         l = Location.new :coordinates => [0, 0, 0],
                          :orientation => [0.57, 0.57, 0.57]
 
-        l.oriented_towards?(0, 0, 0).should be_false
         l.oriented_towards?(1, 0, 0).should be_false
         l.oriented_towards?(-100, 50, 100).should be_false
       end
@@ -267,11 +266,21 @@ describe Location do
     it "returns sphereical orientation difference" do
       l = Location.new :coordinates => [0, 0, 0],
                        :orientation => [0, 0, 1]
-      l.orientation_difference(0, 0, 1).should == [0, 0]
-      l.orientation_difference(0, 0, 2).should == [0, 0]
+      l.orientation_difference(0, 0, 1).should == [0, 0, 0, 1]
+      l.orientation_difference(0, 0, 2).should == [0, 0, 0, 1]
 
-      l.orientation_difference(0, 1, 0).should == [Math::PI/2, Math::PI/2]
-      l.orientation_difference(1, 1, 0).should == [Math::PI/2, Math::PI/4]
+      l.orientation_difference(0, 1, 0).should == [Math::PI/2, -1, 0, 0]
+      l.orientation_difference(1, 1, 0).should == [Math::PI/2, -0.7071067811865475, 0.7071067811865475, 0.0]
+    end
+
+    context "tried to specify orientation towards location's own coordinate" do
+      it "raises ArgumentError" do
+        l = Location.new :coordinates => [0, 0, 0],
+                         :orientation => [0.57, 0.57, 0.57]
+        lambda{
+          l.orientation_difference(0, 0, 0)
+        }.should raise_error(ArgumentError)
+      end
     end
   end
 

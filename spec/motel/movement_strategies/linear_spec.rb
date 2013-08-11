@@ -33,9 +33,9 @@ describe Linear do
     end
 
     it "sets rotation attributes" do
-      linear = Linear.new :dtheta => 0.25, :dphi => 0.56
-      linear.dtheta.should == 0.25
-      linear.dphi.should   == 0.56
+      linear = Linear.new :rot_theta => 0.25, :rot_x => 0.56
+      linear.rot_theta.should == 0.25
+      linear.rot_x.should   == 0.56
     end
   end
 
@@ -68,11 +68,11 @@ describe Linear do
     context "rotation is not valid" do
       it "returns false" do
         linear = Linear.new :speed => 5
-        linear.dtheta = :foo
+        linear.rot_theta = :foo
         linear.should_not be_valid
 
-        linear.dtheta = 0.15
-        linear.dphi = :foo
+        linear.rot_theta = 0.15
+        linear.rot_x = :foo
         linear.should_not be_valid
       end
     end
@@ -139,31 +139,28 @@ describe Linear do
 
     it "rotates location" do
       linear = Linear.new :speed => 5, :step_delay => 5,
-                          :dtheta => 0.11, :dphi => 0.22
-      dt,dp  = linear.dtheta, linear.dphi
+                          :rot_theta => 0.11
+      dt = linear.rot_theta
 
       p   = Motel::Location.new
       x = y = z = 20
       orientation  = [1,0,0]
-      sorientation = Motel::to_spherical(*orientation)
       l = Motel::Location.new(:parent => p,
                               :movement_strategy => linear,
                               :orientation  => orientation,
                               :x => x, :y => y, :z => z)
+      ol = Motel::Location.new :orientation => orientation
 
       # move and validate
       linear.move l, 1
       l.orientation.should ==
-        Motel.from_spherical(sorientation[0] + dt,
-                             sorientation[1] + dp, 1)
+        l.ms.rotate(ol, 1)
 
       orientation  = l.orientation
-      sorientation = l.spherical_orientation
 
       linear.move l, 5
       l.orientation.should ==
-        Motel.from_spherical(sorientation[0] + dt * 5,
-                             sorientation[1] + dp * 5, 1)
+        l.ms.rotate(ol, 5)
     end
   end
 
@@ -171,8 +168,10 @@ describe Linear do
     it "returns linear in json format" do
       m = Linear.new :step_delay => 20,
                        :speed      => 15,
-                       :dtheta     => 5.14,
-                       :dphi       => 2.22,
+                       :rot_theta  => 5.14,
+                       :rot_x      => -1,
+                       :rot_y      =>  0,
+                       :rot_z      =>  0,
                        :dx =>  1,
                        :dz =>  0,
                        :dz =>  0
@@ -180,8 +179,10 @@ describe Linear do
       j.should include('"json_class":"Motel::MovementStrategies::Linear"')
       j.should include('"step_delay":20')
       j.should include('"speed":15')
-      j.should include('"dtheta":5.14')
-      j.should include('"dphi":2.22')
+      j.should include('"rot_theta":5.14')
+      j.should include('"rot_x":-1')
+      j.should include('"rot_y":0')
+      j.should include('"rot_z":0')
       j.should include('"dx":1')
       j.should include('"dy":0')
       j.should include('"dz":0')
@@ -190,7 +191,7 @@ describe Linear do
 
   describe "#json_create" do
     it "returns linear from json format" do
-      j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"dx":1,"dy":0,"step_delay":20,"dz":0,"dtheta":5.14,"dphi":2.22}}'
+      j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"dx":1,"dy":0,"step_delay":20,"dz":0,"rot_theta":5.14,"rot_x":-1,"rot_y":0,"rot_z":0}}'
       m = JSON.parse(j)
 
       m.class.should == Motel::MovementStrategies::Linear
@@ -199,8 +200,10 @@ describe Linear do
       m.dx.should == 1
       m.dy.should == 0
       m.dz.should == 0
-      m.dtheta.should == 5.14
-      m.dphi.should == 2.22
+      m.rot_theta.should == 5.14
+      m.rot_x.should == -1
+      m.rot_y.should == 0
+      m.rot_z.should == 0
     end
   end
 

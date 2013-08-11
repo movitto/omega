@@ -334,7 +334,7 @@ module Motel::RJR
       @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
       @s.track_handler l.id, 20
       @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-      @s.track_handler l.id, 1.57
+      @s.track_handler l.id, 1.57, 1, 0, 0
       lambda {
         @s.remove_callbacks l.id
       }.should change{@registry.entity(&with_id(l.id)).
@@ -349,7 +349,7 @@ module Motel::RJR
         @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
         @s.track_handler l.id, 20
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-        @s.track_handler l.id, 1.57
+        @s.track_handler l.id, 1.57, 1, 0, 0
         lambda {
           @s.remove_callbacks l.id, 'rotation'
         }.should change{@registry.entity(&with_id(l.id)).

@@ -177,13 +177,11 @@ describe Registry do
       end
 
       it "raises movement event" do
-        @r.should_receive(:raise_event).with(:updated, an_instance_of(Location), an_instance_of(Location))
         @r.should_receive(:raise_event).with(:movement, an_instance_of(Location), nil, nil, nil)
         @run_method.call
       end
 
       it "raises rotation event" do
-        @r.should_receive(:raise_event).with(:updated, an_instance_of(Location), an_instance_of(Location))
         @r.should_receive(:raise_event).with(:movement, an_instance_of(Location), nil, nil, nil)
         @r.should_receive(:raise_event).with(:rotation, an_instance_of(Location), nil, nil, nil)
         @run_method.call

@@ -213,8 +213,9 @@ module Omega::Client
       context "arrived at closest station" do
         it "transfers resources" do
           s = create(:valid_station, :location => @r.location + [100,0,0])
-          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.should_receive(:closest).with(:station).twice.and_return([s])
           @r.offload_resources
+          s.location.x = 0
           @r.should_receive(:transfer_all_to).with(s)
           @r.should_receive(:closest).with(:resource).and_return([])
           @r.raise_event(:movement)
@@ -222,8 +223,9 @@ module Omega::Client
 
         it "selects mining target" do
           s = create(:valid_station, :location => @r.location + [100,0,0])
-          @r.should_receive(:closest).with(:station).and_return([s])
+          @r.should_receive(:closest).with(:station).twice.and_return([s])
           @r.offload_resources
+          s.location.x = 0
           @r.should_receive(:transfer_all_to).with(s)
           @r.should_receive(:select_target)
           @r.raise_event(:movement)

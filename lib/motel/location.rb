@@ -232,7 +232,8 @@ class Location
    # Return axis angle between location's orientation and the specified coordinate.
    def orientation_difference(x, y, z)
      dx = x - @x ; dy = y - @y ; dz = z - @z
-     return [0, 0, 0, 1] if dx == 0 && dy == 0 && dz == 0
+     raise ArgumentError if dx == 0 && dy == 0 && dz == 0
+     #return [0, 0, 0, 1] if dx == 0 && dy == 0 && dz == 0
      Motel.axis_angle(orx, ory, orz, dx, dy, dz)
    end
 

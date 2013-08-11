@@ -39,7 +39,7 @@ describe Rotatable do
         @r.valid?.should be_false
 
         @r.rot_x = -0.75
-        @r.valid?.should be_true
+        @r.valid?.should be_false
       end
     end
 
