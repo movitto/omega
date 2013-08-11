@@ -192,56 +192,6 @@ def self.orthogonal?(x1,y1,z1, x2,y2,z2)
   return (x1 * x2 + y1 * y2 + z1 * z2).abs < 0.00001 # TODO close enough?
 end
 
-# Covert coordinates to array of spherical coordinates in form of [theta,phi,distance]
-#
-# @param [Integer,Float] x x coordinate to convert
-# @param [Integer,Float] y y coordinate to convert
-# @param [Integer,Float] z z coordinate to convert
-# @return [Array<Float>] array containing three elements, theta, phi, and distance
-def self.to_spherical(x, y, z)
-  return [] if x.nil? || y.nil? || z.nil?
-  dist = Math.sqrt(x ** 2 + y ** 2 + z ** 2)
-
-  # phi is rotation in x/y plane around z-axis
-  # theta is rotation away from z-axis
-  # http://www.math.montana.edu/frankw/ccp/multiworld/multipleIVP/spherical/learn.htm
-  phi   = Math.atan2(y, x)
-  theta = dist == 0 ? 0 : Math.acos(z/dist)
-
-  # XXX keep phi in domain of -PI<->PI and theta
-  #     in the domain of 0->2PI so that rotation and
-  #     other computations remain sane.
-  #     This will look like jumps in phi/theta as
-  #     phi crosses the Math::PI boundries, but
-  #     the resulting angles will coorespond to the same
-  #     point, it's just a drawback of the spherical coordinate
-  #     system (spherical->cartesian is a lossy operation as a
-  #     cartestian coordinate maps to multiple spherical coords)
-  if phi.abs > Math::PI / 2
-    if phi > 0
-      phi = phi - Math::PI
-    else
-      phi = phi + Math::PI
-    end
-    theta = 2 * Math::PI - theta
-  end
-
-  [theta, phi, dist]
-end
-
-# Convert spherical coordinates to an array of cartesian coordinates
-#
-# @param [Integer,Float] theta theta angle to convert
-# @param [Integer,Float] phi phi angle to convert
-# @param [Integer,Float] dist distance to convert
-# @return [Array<Float>] array containing converted x,y,z coordinates
-def self.from_spherical(theta, phi, dist)
-    x = dist * Math.sin(theta) * Math.cos(phi);
-    y = dist * Math.sin(theta) * Math.sin(phi);
-    z = dist * Math.cos(theta);
-    [x,y,z]
-end
-
 # Generate and reutrn a random normalized vector
 def self.rand_vector
   nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)

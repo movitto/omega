@@ -117,79 +117,6 @@ describe "#orthogonal?" do
   end
 end
 
-describe "#spherical" do
-  it "returns spherical coordinates" do
-    spherical = Motel.to_spherical(0, 0, 0)
-    spherical.size.should == 3
-    spherical[0].round_to(2).should == 0
-    spherical[1].round_to(2).should == 0
-    spherical[2].round_to(2).should == 0
-
-    spherical = Motel.to_spherical(1, 0, 0)
-    spherical.size.should == 3
-    spherical[0].round_to(2).should == 1.57
-    spherical[1].round_to(2).should == 0
-    spherical[2].round_to(2).should == 1
-
-    spherical = Motel.to_spherical(0, 2, 0)
-    spherical.size.should == 3
-    spherical[0].round_to(2).should == 1.57
-    spherical[1].round_to(2).should == 1.57
-    spherical[2].round_to(2).should == 2
-
-    spherical = Motel.to_spherical(0, 0, 1)
-    spherical.size.should == 3
-    spherical[0].round_to(2).should == 0
-    spherical[1].round_to(2).should == 0
-    spherical[2].round_to(2).should == 1
-
-    # TODO test more coords
-  end
-end
-
-describe "#from_spherical" do
-  it "returns catersian coordinates" do
-    cartesian = Motel.from_spherical(0, 0, 0)
-    cartesian.size.should == 3
-    cartesian[0].round_to(2).should == 0
-    cartesian[1].round_to(2).should == 0
-    cartesian[2].round_to(2).should == 0
-
-    cartesian = Motel.from_spherical(-1.57, 0, 1)
-    cartesian.size.should == 3
-    cartesian[0].round_to(2).should == -1
-    cartesian[1].round_to(2).should == 0
-    cartesian[2].round_to(2).should == 0
-
-    cartesian = Motel.from_spherical(0, -2.356, 2)
-    cartesian.size.should == 3
-    cartesian[0].round_to(2).should == 0
-    cartesian[1].round_to(2).should == 0
-    cartesian[2].round_to(2).should == 2
-
-    # TODO test more coords
-  end
-
-describe "#to_spherical/#from_spherical" do
-  it "is symmetrical" do
-    o = [9, -8, 5]
-    n = Motel.from_spherical(*Motel.to_spherical(*o))
-    #n.should == o
-    0.upto(2) { |i| (o[i] - n[i]).abs.should < 0.1 }
-
-    o = [0.45, 2.33, 2]
-    n = Motel.to_spherical(*Motel.from_spherical(*o))
-    #n.should == o
-    0.upto(2) { |i| (o[i] - n[i]).abs.should < 0.1 }
-
-    ain = [3.2815926535897932, 0.7031853071795819, 1]
-    Motel.to_spherical(*Motel.from_spherical(*ain)).should == ain
-
-    bin = [-0.1064415732380847, -0.09023564889341674, -0.9902159962126371]
-    Motel.from_spherical(*Motel.to_spherical(*bin)).should == bin
-  end
-end
-
 describe "#ran_vector" do
   it "returns a random vector"
 end
@@ -227,7 +154,7 @@ describe "#random_axis" do
     axis_vector2[2].should == 0
   end
 
-  context "dimension < 2 or > 3"
+  context "dimension < 2 or > 3" do
     it "raises an ArgumentError" do
       lambda{
         Motel.random_axis :dimensions => 2

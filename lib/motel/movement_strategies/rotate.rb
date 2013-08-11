@@ -59,8 +59,6 @@ module MovementStrategies
   end
 
 # Rotates a location around its own access at a specified speed.
-#
-# Speed is specified here as units in a spherical coordinate system
 class Rotate < MovementStrategy
   include Rotatable
 
