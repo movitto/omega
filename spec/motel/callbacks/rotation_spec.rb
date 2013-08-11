@@ -15,105 +15,64 @@ describe Rotation do
       r.should_invoke?(build(:location), 0, 0, 0).should be_true
     end
 
-    context "minimum rotation set" do
-      context "location rotated minimum rotation" do
+    context "axis-angle set" do
+      context "location rotated by at least specified angle along axis" do
         it "returns true" do
           l = Motel::Location.new :orientation => [0,0,1]
 
-          r = Rotation.new :min_rotation => 3.13
+          r = Rotation.new :rot_theta => 3.13
           r.should_invoke?(l, 0, 0, -1).should be_true
         end
       end
 
-      context "location did not rotate minimum rotation" do
+      context "location did not rotate minimum axis-angle" do
         it "returns false" do
           l = Motel::Location.new :orientation => [0,0,1]
 
-          r = Rotation.new :min_rotation => 3.13
+          r = Rotation.new :rot_theta => 3.13
           r.should_invoke?(l, 0, 0, 1).should be_false
 
-          r = Rotation.new :min_rotation => 3.13
+          r = Rotation.new :rot_theta => 3.13
           r.should_invoke?(l, 0.57, 0.57, 0.57).should be_false
-        end
-      end
-    end
-
-    context "min theta set" do
-      context "location rotated min theta" do
-        it "returns true" do
-          l = Motel::Location.new :orientation => [0,0,1]
-          r = Rotation.new :min_theta => 3.14
-          r.should_invoke?(l, 0, 0, -1).should be_true
-        end
-      end
-
-      context "location did not rotate min theta" do
-        it "returns false" do
-          l = Motel::Location.new :orientation => [0,0,1]
-          r = Rotation.new :min_theta => 3.14
-          r.should_invoke?(l, 0, 0, 1).should be_false
-
-          r = Rotation.new :min_theta => 3.14
-          r.should_invoke?(l, 0.57, 0.57, 0.57).should be_false
-
-          r = Rotation.new :min_theta => 3.14
-          r.should_invoke?(l, 0, -1, 1).should be_false
-        end
-      end
-    end
-
-    context "min phi set" do
-      context "location rotated min phi" do
-        it "returns true" do
-          l = Motel::Location.new :orientation => [0,0,1]
-          r = Rotation.new :min_phi => 3.13
-          r.should_invoke?(l, -1, 0, 0).should be_true
-        end
-      end
-
-      context "location did not rotate min phi" do
-        it "returns false" do
-          l = Motel::Location.new :orientation => [0,0,1]
-          r = Rotation.new :min_phi => 3.13
-          r.should_invoke?(l, 0, 0, 1).should be_false
-
-          r = Rotation.new :min_phi => 3.13
-          r.should_invoke?(l, 0.57, 0.57, 0.57).should be_false
-
-          r = Rotation.new :min_phi => 3.13
-          r.should_invoke?(l, 0, 0, -1).should be_false
         end
       end
     end
   end
 
   describe "#invoke" do
-    it "invokes handler with rotation,dt,dp"
+    it "invokes handler with location,angle rotated"
     it "resets tracked orientation"
   end
 
   describe "#to_json" do
     it "returns callback in json format" do
       cb = Rotation.new :endpoint_id => 'baz',
-                        :min_rotation => 3.14,
-                        :min_theta    => 0.56
+                        :rot_theta => 3.14,
+                        :axis_x    => 1,
+                        :axis_y    => 0,
+                        :axis_z    => 0
 
       j = cb.to_json
       j.should include('"json_class":"Motel::Callbacks::Rotation"')
       j.should include('"endpoint_id":"baz"')
-      j.should include('"min_rotation":3.14')
-      j.should include('"min_theta":0.56')
+      j.should include('"rot_theta":3.14')
+      j.should include('"axis_x":1')
+      j.should include('"axis_y":0')
+      j.should include('"axis_z":0')
     end
   end
 
   describe "#json_create" do
     it "returns callback from json format" do
-      j = '{"json_class":"Motel::Callbacks::Rotation","data":{"endpoint_id":"baz","min_phi":1.78}}'
+      j = '{"json_class":"Motel::Callbacks::Rotation","data":{"endpoint_id":"baz","rot_theta":3.14,"rot_x":1,"rot_y":0,"rot_z":0}}'
       cb = JSON.parse(j)
 
       cb.class.should == Motel::Callbacks::Rotation
       cb.endpoint_id.should == "baz"
-      cb.min_phi.should == 1.78
+      cb.rot_theta.should == 3.14
+      cb.axis_x.should == 1
+      cb.axis_y.should == 0
+      cb.axis_z.should == 0
     end
   end
 

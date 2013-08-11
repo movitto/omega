@@ -170,23 +170,42 @@ module Motel::RJR
 
       it "creates a rotation callback" do
         l = create(:location)
-        @s.track_handler l.id, 1.57
+        @s.track_handler l.id, 1.57, 1, 0, 0
         @registry.entity(&with_id(l.id)).
                   callbacks[:rotation].size.should == 1
       end
 
-      it "accepts rotation as second parmaeter" do
+      it "accepts rotation as second parameter" do
         l = create(:location)
-        @s.track_handler l.id, 1.57
+        @s.track_handler l.id, 1.57, 1, 0, 0
         @registry.entity(&with_id(l.id)).
-                  callbacks[:rotation].first.min_rotation.should == 1.57
+                  callbacks[:rotation].first.rot_theta.should == 1.57
+      end
+
+      it "accepts rotation axis as third, fourth, fifth parameters" do
+        l = create(:location)
+        @s.track_handler l.id, 1.57, -1, 0, 0
+        rot = @registry.entity(&with_id(l.id)).
+                        callbacks[:rotation].first
+        rot.axis_x.should == -1
+        rot.axis_y.should ==  0
+        rot.axis_z.should ==  0
       end
 
       context "rotation is invalid" do
         it "raises ArgumentError" do
           l = create(:location)
           lambda {
-            @s.track_handler l.id, "1.57"
+            @s.track_handler l.id, "1.57", 1, 0, 0
+          }.should raise_error(ArgumentError)
+        end
+      end
+
+      context "rotation axis is invalid" do
+        it "raises ArgumentError" do
+          l = create(:location)
+          lambda {
+            @s.track_handler l.id, 1.57, 0.75, 0, 0
           }.should raise_error(ArgumentError)
         end
       end

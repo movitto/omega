@@ -240,18 +240,6 @@ describe Location do
     it "sets location's orientation"
   end
 
-  describe "#spherical_orientation" do
-    it "returns orientating in spherical coordinate system" do
-      loc = Location.new :orientation_x => 1,
-                         :orientation_y => 0,
-                         :orientation_z => 0
-      o = loc.spherical_orientation
-      o.size.should == 2
-      (o[0] - 1.57).should < 0.001
-       o[1].should == 0
-    end
-  end
-
   describe "#orientated_towards?" do
     context "location oriented towards coordinate" do
       it "returns true" do

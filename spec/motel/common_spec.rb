@@ -89,6 +89,10 @@ describe "#rotate" do
   it "returns coordinate rotated around axis angle"
 end
 
+describe "#rotated_angle" do
+  it "returns the angle component of the axis-angle specified by axis and new/old coordinates"
+end
+
 describe "#orthogonal?" do
   context "vectors are orthogonal" do
     it "returns true" do
@@ -184,6 +188,10 @@ describe "#to_spherical/#from_spherical" do
     bin = [-0.1064415732380847, -0.09023564889341674, -0.9902159962126371]
     Motel.from_spherical(*Motel.to_spherical(*bin)).should == bin
   end
+end
+
+describe "#ran_vector" do
+  it "returns a random vector"
 end
 
 describe "#random_axis" do
