@@ -46,8 +46,10 @@ class PopulateResource < Omega::Server::Event
                 rand(DEFAULT_QUANTITY) :
                 @quantity
 
-# FIXME
-    Missions::RJR.node.invoke('cosmos::set_resource', @entity.id, @resource, @quantity)
+    @resource.id        = Motel.gen_uuid
+    @resource.entity_id = @entity.id
+    @resource.quantity  = @quantity
+    Missions::RJR.node.invoke('cosmos::set_resource', @resource)
   end
 
   public
@@ -74,14 +76,13 @@ class PopulateResource < Omega::Server::Event
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id,
-                       :timestamp => timestamp,
-                       :handlers => handlers[1..-1],
-                       :resource => resource,
-                       :entity => entity,
-                       :quantity => @quantity,
-                       :from_entities => @from_entities,
-                       :from_resources => @from_resources}
+      'data'       =>
+        json_data.merge({:handlers => handlers[1..-1],
+                         :resource => resource,
+                         :entity => entity,
+                         :quantity => @quantity,
+                         :from_entities => @from_entities,
+                         :from_resources => @from_resources})
     }.to_json(*a)
   end
 end

@@ -39,17 +39,27 @@ assign_mission = proc { |mission_id, user_id|
   # to accept > 1 mission at a time
   raise OperationError, "#{user_id} has an active mission" unless active.empty?
 
-  registry.safe_exec { |entities|
-    # ensure mission is assignable to user
-    raise OperationError,
-          "#{mission_id} not assignable to user" unless mission.assignable_to?(user)
+  # XXX assignment callbacks need to be run outside of lock
+  assignment_callbacks = []
 
+  registry.safe_exec { |entities|
     # get registry mission
     rmission = entities.find &with_id(mission.id)
+    assignment_callbacks = rmission.assignment_callbacks
+
+    # ensure mission is assignable to user
+    raise OperationError,
+      "#{mission_id} not assignable to user" unless rmission.assignable_to?(user)
 
     # assign mission to user
     rmission.assign_to user
+
+    # XXX update mission to pull in attributes required by callbacks below
+    mission.update :mission => rmission
   }
+
+  # invoke assignment callbacks
+  assignment_callbacks.each { |cb| cb.call mission }
 
   # return mission
   mission

@@ -304,6 +304,7 @@ module Registry
           entities.find { |e|
             e.is_a?(Event) && e.id == event.id
           }
+        revent.registry = self
 
         ghandlers =
           entities.select { |e|
@@ -325,6 +326,9 @@ module Registry
         RJR::Logger.warn "error in event #{event}: #{err}"
       end
     }
+
+    event.invoked = true
+    self.update(event) { |e| e.id == event.id }
   end
 
   # Run commands registered in the local registry

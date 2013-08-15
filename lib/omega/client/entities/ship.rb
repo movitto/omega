@@ -282,14 +282,13 @@ module Omega
       # Start the omega client bot
       def start_bot
         handle(:destroyed_by)
-
-        @visited  = []
-
         patrol_route
       end
 
       # Calculate an inter-system route to patrol and move through it.
       def patrol_route
+        @visited  ||= []
+
         # add local system to visited list
         @visited << solar_system unless @visited.include?(solar_system)
 
@@ -300,10 +299,19 @@ module Omega
 
         # if no items in to_visit clear lists
         if jg.nil?
+          # if jg can't be found on two subsequent runs,
+          # error out / stop bot
+          if @patrol_err
+            raise_event(:patrol_err)
+            return
+          end
+          @patrol_err = true
+
           @visited  = []
           patrol_route
 
         else
+          @patrol_err = false
           raise_event(:selected_system, jg.endpoint_id, jg)
           if jg.location - location < jg.trigger_distance
             jump_to(jg.endpoint)
@@ -325,10 +333,12 @@ module Omega
       def check_proximity
         solar_system.entities.each { |e|
           if e.is_a?(Manufactured::Ship) && e.user_id != user_id &&
-             e.location - location <= attack_distance
+             e.location - location <= attack_distance && e.alive?
             stop_moving
-            clear_handlers_for(:attacked_stop)
-            handle(:attacked_stop){ |*args| patrol_route }
+            unless @check_proximity_handler
+              @check_proximity_handler = true
+              handle(:attacked_stop){ |*args| patrol_route }
+            end
             attack(e)
             break
           end

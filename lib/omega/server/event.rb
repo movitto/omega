@@ -23,6 +23,9 @@ class Event
   # Callable objects to be invoked upon event
   attr_accessor :handlers
 
+  # Handle to registry event is running in
+  attr_accessor :registry
+
   # Return boolean if timestamp has elapsed
   def time_elapsed?
     @timestamp <= Time.now
@@ -45,14 +48,15 @@ class Event
                          :handlers  =>       [],
                          :invoked   =>    false,
                          :invalid   =>    false,
-                         :id        =>      nil
+                         :id        =>      nil,
+                         :registry  =>      nil
 
     @timestamp = Time.parse(@timestamp) if @timestamp.is_a?(String)
   end
 
   # Update event attributes
   def update(args = {})
-    update_from args, :invalid
+    update_from args, :invalid, :invoked
   end
 
   # Invoke the registered handler w/ the specified args
@@ -63,15 +67,19 @@ class Event
     @invoked = true
   end
 
+  # Return event json data
+  def json_data
+    {:id        => id,
+     :invoked   => invoked,
+     :invalid   => invalid,
+     :timestamp => timestamp}
+  end
+
   # Convert event to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id        => id,
-                       :invoked   => invoked,
-                       :invalid   => invalid,
-                       :timestamp => timestamp,
-                       :handlers  => handlers}
+      'data'       => json_data.merge({:handlers => handlers})
     }.to_json(*a)
   end
 
@@ -99,23 +107,30 @@ class PeriodicEvent < Event
   # Event which to run at the specified interval
   attr_accessor :template_event
 
-  # Handle to registry to used to schedule events
-  attr_accessor :registry
 
   private
 
   # Handle event, invoke tempate and schedule another
   def handle_event
-    # TODO event ids
-
     # copy template event
     nevent = JSON.parse @template_event.to_json
 
     # run event
+    # FIXME doesn't run global event handlers for event,
+    # should just add event to registry to be run
     nevent.invoke nevent
 
+    # generate an id
+    nid = id.split('-')
+    if nid[-1].numeric_string?
+      nid[-1] = nid[-1].to_i + 1
+    else
+      nid << "1"
+    end
+    nid = nid.join('-')
+
     # schedule next periodic event
-    registry << PeriodicEvent.new(:registry  => registry,
+    registry << PeriodicEvent.new(:id => nid,
                                   :interval  => @interval,
                                   :template_event => @template_event,
                                   :timestamp => Time.now + @interval)
@@ -126,8 +141,7 @@ class PeriodicEvent < Event
   # Periodic Event initializer
   def initialize(args = {})
     attr_from_args args, :interval => DEFAULT_INTERVAL,
-                         :template_event => nil,
-                         :registry => nil
+                         :template_event => nil
     super(args)
 
     @handlers.unshift proc { |e| handle_event }
@@ -137,9 +151,10 @@ class PeriodicEvent < Event
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:id => id, :timestamp => timestamp,
-                       :handlers => handlers[1..-1],
-                       :interval => interval, :template_event => template_event}
+      'data'       =>
+        json_data.merge({:interval => interval,
+                         :handlers => handlers[1..-1],
+                         :template_event => template_event})
     }.to_json(*a)
   end
 

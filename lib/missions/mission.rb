@@ -93,11 +93,7 @@ class Mission
     return unless self.assignable_to?(user)
     @assigned_to    = user
     @assigned_to_id = user.id
-
     @assigned_time = Time.now
-    @assignment_callbacks.each { |acb|
-      acb.call self
-    }
   end
 
   # Time mission was assigned to user
@@ -235,7 +231,7 @@ class Mission
              :failed]
 
     [:mission, 'mission'].each { |mission|
-      update_from(args[mission], *attrs) if args[mission]
+      update_from(args[mission], *attrs) if args.is_a?(Hash) && args[mission]
     }
 
     update_from(args, *attrs)

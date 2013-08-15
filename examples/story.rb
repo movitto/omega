@@ -16,7 +16,6 @@ include Missions::DSL::Client
 
 ##################################################### init
 
-
 RJR::Logger.log_level= ::Logger::INFO
 
 # TODO read credentials from config
@@ -164,7 +163,7 @@ mission gen_uuid, :title => msn[:title],
       :id       => "#{es}-" + Motel.gen_uuid,
       :type     => :corvette, # TODO autodefend on attack
       :user_id  => msn[:opponent].id,
-      :system_name => rand_system,
+      :solar_system => rand_system,
       :location    => msn[:location]),
      Assignment.schedule_expiration_event,
      Assignment.subscribe_to(es, "destroyed",
@@ -174,7 +173,8 @@ mission gen_uuid, :title => msn[:title],
     Query.check_entity_hp(es),
 
   :victory_callbacks => 
-    [Resolution.add_resource(msn[:reward], 50),
+    [Resolution.add_resource(Cosmos::Resource.new(:material_id => msn[:reward],
+                                                  :quantity => 50)),
      Resolution.update_user_attributes,
      Resolution.cleanup_events(es, 'destroyed'),
      Resolution.recycle_mission],
@@ -204,12 +204,14 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 
   :assignment_callbacks =>
     [Assignment.store(mid + '-mining-ships',
-        Query.user_ships(:type => :mining ), # FIXME misses any mining ships created after assignment
+        Query.user_ships(:type => :mining )), # FIXME misses any mining ships created after assignment
      Assignment.create_asteroid(mid + '-asteroid',
       :name => mid,
       :solar_system => rand_system,
       :location => Motel::Location.random(:max => 2000)),
-     Assignment.create_resource(mid + '-asteroid', type, name, q1),
+     Assignment.create_resource(mid + '-asteroid',
+                                :material_id => "#{type}-#{name}",
+                                :quantity    => q1),
      Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-mining-ships', "resource_collected",
                                          Event.resource_collected)],
@@ -240,8 +242,10 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
 
   :assignment_callbacks => 
     [Assignment.store(mid + '-ship',
-       Query.user_ship(:docked_at_id => src.id ),
-     Assignment.add_resource(mid + '-ship', type, name, q2),
+       Query.user_ship(:docked_at_id => src.id )),
+     Assignment.add_resource(mid + '-ship',
+                             :material_id => "#{type}-#{name}",
+                             :quantity    => q2),
      Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ship', 'transferred_to',
                              Event.transferred_out)],
@@ -273,10 +277,12 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
         :id       => Motel.gen_uuid,
         :type     => :corvette, # TODO autodefend on attack
         :user_id  => chiyou.id,
-        :system_name => rand_system,
+        :solar_system => rand_system,
         :location    => rand_location)
     } +
-    [Assignment.add_resource(eid, type, name, q3),
+    [Assignment.add_resource(eid,
+                             :material_id => "#{type}-#{name}",
+                             :quantity    => q3),
      Assignment.schedule_expiration_event,
      Assignment.subscribe_to(mid + '-ships', 'collected_loot',
                              Event.collected_loot)],

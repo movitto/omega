@@ -70,7 +70,7 @@ end
 
 # Total number of missions user failed
 class MissionsFailed < Users::AttributeClass
-  id          :missions_completed
+  id          :missions_failed
   description "Total number of missions user failed"
   callbacks    :level_up  =>
     lambda { |attr|

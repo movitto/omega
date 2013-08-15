@@ -18,19 +18,6 @@ module DSL
 # Client DSL
 module Client
 
-# Proxy all client methods
-def self.method_missing(method_id, *args)
-  DSL.constants.each { |c|
-    dc = DSL.const_get(c)
-    if(dc.methods.include?(method_id))
-      return Proxy.new :dsl_category => c.to_s,
-                       :dsl_method   => method_id.to_s,
-                       :params       => args
-    end
-  }
-  nil
-end
-
 # Client side dsl proxy
 # 
 # Mechanism to allow clients to specify dsl methods to be used in
@@ -39,6 +26,19 @@ end
 # Since these dsl methods are not serializable the client sends
 # instances of this proxy in place which will be resolved on the server side
 class Proxy
+  # Proxy dsl methods invoked directly on the class
+  def self.method_missing(method_id, *args)
+    DSL.constants.each { |c|
+      dc = DSL.const_get(c)
+      if(dc.methods.include?(method_id))
+        return Proxy.new :dsl_category => c.to_s,
+                         :dsl_method   => method_id.to_s,
+                         :params       => args
+      end
+    }
+    nil
+  end
+
   attr_accessor :dsl_category
   attr_accessor :dsl_method
   attr_accessor :params
@@ -89,23 +89,43 @@ class Proxy
   def self.json_create(o)
     new(o['data'])
   end
-end
+end # class Proxy
 
+# map top level missions dsl modules into client namespace
+Requirements = Proxy
+Assignment   = Proxy
+Event        = Proxy
+Query        = Proxy
+Resolution   = Proxy
+
+end # module Client
+
+# internal helper method to update registry mission
+def self.update_mission(mission)
+  Missions::RJR.registry.update(mission) { |m| m.id == mission.id }
 end
 
 # Mission Requirements
 module Requirements
-  # Ensure both mission owner and user its being assigned to have at least on
+  # Ensure both mission owner and user its being assigned to have at least one
   # ship docked at a common station
   def self.shared_station
-    proc { |mission, assigning_to, node|
+    proc { |mission, assigning_to|
       # ensure users have a ship docked at a common station
       created_by = mission.creator
-      centities  = node.invoke('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', created_by.id)
-      cstats     = centities.collect { |s| s.docked_at.nil? ? nil : s.docked_at.id }.compact
+      centities  = Missions::RJR::node.invoke('manufactured::get_entities',
+                                              'of_type', 'Manufactured::Ship',
+                                              'owned_by', created_by.id)
+      cstats     = centities.collect { |s|
+                     s.docked_at.nil? ? nil : s.docked_at.id
+                   }.compact
 
-      aentities  = node.invoke('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', assigning_to.id)
-      astats     = aentities.collect { |s| s.docked_at.nil? ? nil : s.docked_at.id }.compact
+      aentities  = Missions::RJR::node.invoke('manufactured::get_entities',
+                                              'of_type', 'Manufactured::Ship',
+                                              'owned_by', assigning_to.id)
+      astats     = aentities.collect { |s|
+                     s.docked_at.nil? ? nil : s.docked_at.id
+                   }.compact
 
       !(cstats & astats).empty?
     }
@@ -113,10 +133,14 @@ module Requirements
 
   # Ensure user mission is being assigned to has a ship at the specified station
   def self.docked_at(station)
-    proc { |mission, assigning_to, node|
+    proc { |mission, assigning_to|
       # ensure user has ship docked at specified station
-      aentities  = node.invoke('manufactured::get_entities', 'of_type', 'Manufactured::Ship', 'owned_by', assigning_to.id)
-      astats     = aentities.collect { |s| s.docked_at.nil? ? nil : s.docked_at.id }.compact
+      aentities  = Missions::RJR::node.invoke('manufactured::get_entities',
+                                              'of_type', 'Manufactured::Ship',
+                                              'owned_by', assigning_to.id)
+      astats     = aentities.collect { |s|
+                     s.docked_at.nil? ? nil : s.docked_at.id
+                   }.compact
 
       astats.include?(station.id)
     }
@@ -126,10 +150,11 @@ end
 # Mission Assignment
 module Assignment
 
-  # Invoke the specified lookup proc and stare the result in the mission data
+  # Invoke the specified lookup proc and store the result in the mission data
   def self.store(id, lookup)
-    proc { |mission, node|
-      mission.mission_data[id] = lookup.call(mission, node)
+    proc { |mission|
+      mission.mission_data[id] = lookup.call(mission)
+      Missions::DSL.update_mission mission
     }
   end
 
@@ -137,47 +162,50 @@ module Assignment
   #
   # TODO rename or expand to also create stations
   def self.create_entity(id, entity_params={})
-    proc { |mission, node|
+    proc { |mission|
       # create new entity using specified params
       entity = Manufactured::Ship.new entity_params
       mission.mission_data[id] = entity
 
       # TODO only if ship does not exist
-      node.invoke('manufactured::create_entity', entity)
+      Missions::RJR::node.invoke('manufactured::create_entity', entity)
+      Missions::DSL.update_mission mission
     }
   end
 
   # Create an asteroid w/ the specified params
   def self.create_asteroid(id, entity_params={})
-    proc { |mission, node|
+    proc { |mission|
       ast = Cosmos::Entities::Asteroid.new entity_params
       mission.mission_data[id] = ast
-      node.invoke 'cosmos::create_entity', ast, entity_params[:solar_system]
+      Missions::RJR::node.invoke 'cosmos::create_entity',
+                                 ast, entity_params[:solar_system]
+      Missions::DSL.update_mission mission
     }
   end
 
   # Associate a resource w/ an existing cosmos entity
   def self.create_resource(entity_id, rs_params={})
-    proc { |mission, node|
+    proc { |mission|
       entity = mission.mission_data[entity_id]
       rs  = Cosmos::Resource.new rs_params
-      node.notify 'cosmos::set_resource', entity.id, rs
+      Missions::RJR::node.notify 'cosmos::set_resource', entity.id, rs
     }
   end
 
   # Add a resource to the specified manufactured entity
   def self.add_resource(entity_id, rs_params={})
-    proc { |mission, node|
+    proc { |mission|
       entity = mission.mission_data[entity_id]
       rs  = Cosmos::Resource.new(rs_params)
-      node.notify 'manufactured::add_resource', entity.id, rs
+      Missions::RJR::node.notify 'manufactured::add_resource', entity.id, rs
     }
   end
 
   # Subcribe node to event on specified entity(ies) invoking
   # handler(s) when event occurs
   def self.subscribe_to(entities, evnt, handlers)
-    proc { |mission, node|
+    proc { |mission|
       entities = [entities] unless entities.is_a?(Array)
       handlers = [handlers] unless handlers.is_a?(Array)
 
@@ -187,24 +215,25 @@ module Assignment
         # add handler to registry
         eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
         handler = Omega::Server::EventHandler.new(:event_id => eid) { |e|
-                    handlers.each { |h| h.call(mission, node, e) }
+                    handlers.each { |h| h.call(mission, e) }
                   }
         Missions::RJR.registry << handler
 
         # subscribe to server side events
-        node.invoke('manufactured::subscribe_to', entity.id, evnt)
+        Missions::RJR::node.invoke('manufactured::subscribe_to', entity.id, evnt)
       }
     }
   end
 
   # Add an event to the registry for mission timeout/expiration
   def self.schedule_expiration_event
-    proc { |mission, node|
+    proc { |mission|
       id = "mission-#{mission.id}-expired"
       expired = Omega::Server::Event.new :id => id,
                   :timestamp => mission.assigned_time + mission.timeout,
                   :handlers => [proc{ |e|
                      mission.failed! # if mission.expired? TODO?
+                     Missions::DSL.update_mission mission
                    }]
 
       Missions::RJR.registry << expired
@@ -215,59 +244,64 @@ end
 # Mission related events
 module Event
   def self.resource_collected
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       rs = evnt.manufactured_event_args[2].id
       q  = evnt.manufactured_event_args[3]
       mission.mission_data[:resources] ||= Hash.new { |h,k| h[k] = 0 }
       mission.mission_data[:resources][rs] += q
+      Missions::DSL.update_mission mission
 
-      if Query.check_mining_quantity.call(mission, node)
-        Event.create_victory_event.call(mission, node, evnt)
+      if Query.check_mining_quantity.call(mission)
+        Event.create_victory_event.call(mission, evnt)
       end
     }
   end
 
   def self.transferred_out
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       dst = evnt.manufactured_event_args[2]
       rs  = evnt.manufactured_event_args[3]
       mission.mission_data[:last_transfer] = { :dst => dst, :rs => rs }
+      Missions::DSL.update_mission mission
 
-      if Query.check_transfer.call(mission, node)
-        Event.create_victory_event.call(mission, node, evnt)
+      if Query.check_transfer.call(mission)
+        Event.create_victory_event.call(mission, evnt)
       end
     }
   end
 
   def self.entity_destroyed
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       mission.mission_data[:destroyed] ||= []
       mission.mission_data[:destroyed] << evnt
+      Missions::DSL.update_mission mission
     }
   end
 
   def self.collected_loot
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       loot = evnt.manufactured_event_args[2]
       mission.mission_data[:loot] ||= []
       mission.mission_data[:loot] << loot
+      Missions::DSL.update_mission mission
 
-      if Query.check_loot.call(mission, node)
-        Event.create_victory_event.call(mission, node, evnt)
+      if Query.check_loot.call(mission)
+        Event.create_victory_event.call(mission, evnt)
       end
     }
   end
 
   def self.check_victory_conditions
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       # TODO
     }
   end
 
   def self.create_victory_event
-    proc { |mission, node, evnt|
+    proc { |mission, evnt|
       # TODO ensure not failed, check victory conditions, lock registry
       mission.victory! # if mission.completed?
+      Missions::DSL.update_mission mission
 
       id = "mission-#{mission.id}-succeeded"
       victory = Omega::Server::Event.new :id => id, :timestamp => Time.now
@@ -282,17 +316,17 @@ end
 module Query
   # Return bool indicating if the ships hp == 0 (eg ship is destroyed)
   def self.check_entity_hp(id)
-    proc { |mission, node|
+    proc { |mission|
       # check if entity is destroyed
       entity = mission.mission_data[id]
-      entity = node.invoke('manufactured::get_entity', entity.id)
+      entity = Missions::RJR::node.invoke('manufactured::get_entity', entity.id)
       entity.nil? || entity.hp == 0
     }
   end
 
   # Return bool indicating if user has acquired target mining quantity
   def self.check_mining_quantity
-    proc { |mission, node|
+    proc { |mission|
       q = mission.mission_data[:resources][mission.mission_data[:target]]
       mission.mission_data[:quantity] <= q
     }
@@ -300,7 +334,7 @@ module Query
 
   # Return bool indicating if user has transfered the target resource
   def self.check_transfer
-    proc { |mission, node|
+    proc { |mission|
       mission.mission_data[:last_transfer] &&
 
       mission.mission_data[:check_transfer][:dst] ==
@@ -316,7 +350,7 @@ module Query
 
   # Return boolean indicating if user has collected the target loot
   def self.check_loot
-    proc { |mission, node|
+    proc { |mission|
       !mission.mission_data[:loot].nil?
       !mission.mission_data[:loot].find { |rs|
         rs.material_id == mission.mission_data[:check_loot].material_id &&
@@ -327,9 +361,9 @@ module Query
 
   # Return ships the user owned that matches the speicifed properties filter
   def self.user_ships(filter={})
-    proc { |mission, node|
+    proc { |mission|
       filter = proc { |i| true } unless filter
-      node.invoke('manufactured::get_entity',
+      Missions::RJR::node.invoke('manufactured::get_entity',
                   'of_type', 'Manufactured::Ship',
                   'owned_by', mission.assigned_to_id).
            pselect(filter)
@@ -338,8 +372,8 @@ module Query
 
   # Return first ship returned by user_ships
   def self.user_ship(filter={})
-    proc { |mission, node|
-      user_ships(filter).call(mission, node).first
+    proc { |mission|
+      user_ships(filter).call(mission).first
     }
   end
 
@@ -349,35 +383,36 @@ end
 module Resolution
   # Add resource to a user owned entity
   def self.add_resource(rs)
-    proc { |mission, node|
+    proc { |mission|
       # TODO better way to get user ship than this
-      entity = Query.user_ships.call(mission, node).first
+      entity = Query.user_ships.call(mission).first
 
       # add resources to player's cargo
-      node.invoke('manufactured::add_resource', entity.id, rs)
+      Missions::RJR::node.invoke('manufactured::add_resource', entity.id, rs)
     }
   end
 
   # Updates mission-related user attributes
   def self.update_user_attributes
-    proc { |mission, node|
+    proc { |mission|
       # update user attributes
       atr = mission.victorious ? Users::Attributes::MissionsCompleted.id :
                                  Users::Attributes::MissionsFailed.id
-      node.invoke('users::update_attribute', mission.assigned_to_id,
-                          atr, 1)
+      Missions::RJR::node.invoke('users::update_attribute',
+                                 mission.assigned_to_id,
+                                 atr, 1)
     }
   end
 
   # Cleanup all events related to the mission
   def self.cleanup_events(id, *evnts)
-    proc { |mission, node|
+    proc { |mission|
       entities = mission.mission_data[id]
       entities = [entities] unless entities.is_a?(Array)
 
       entities.each { |entity|
         # remove callbacks
-        node.invoke('manufactured::remove_callbacks', entity.id)
+        Missions::RJR::node.invoke('manufactured::remove_callbacks', entity.id)
 
         # remove event handlers
         evnts.each { |evnt|
@@ -399,11 +434,11 @@ module Resolution
   # Recycle mission, eg clone it w/ a new id, clear assignment,
   # and add it to the registry
   def self.recycle_mission
-    proc { |mission, node|
+    proc { |mission|
       # create a new mission based on the specified one
       new_mission = mission.clone :id => Motel.gen_uuid
       new_mission.clear_assignment!
-      node.invoke('missions::create_mission', new_mission)
+      Missions::RJR::node.invoke('missions::create_mission', new_mission)
     }
   end
 end

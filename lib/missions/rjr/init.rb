@@ -43,13 +43,14 @@ module Missions::RJR
 
   PRIVILEGES =
     [['view',   'users'],
-       ['view',   'cosmos_entities'],
-       ['modify', 'cosmos_entities'],
-       ['view',   'manufactured_entities'],
-       ['create', 'manufactured_entities'],
-       ['modify', 'manufactured_entities'],
-       ['modify', 'manufactured_resources'],
-       ['create', 'missions']]
+     ['modify', 'user_attributes'],
+     ['view',   'cosmos_entities'],
+     ['modify', 'cosmos_entities'],
+     ['view',   'manufactured_entities'],
+     ['create', 'manufactured_entities'],
+     ['modify', 'manufactured_entities'],
+     ['modify', 'manufactured_resources'],
+     ['create', 'missions']]
 
   def self.user
     @user ||= Users::User.new(:id       => Missions::RJR::missions_rjr_username,
@@ -106,6 +107,8 @@ end # module Missions::RJR
 ######################################## Dispatch init
 
 def dispatch_missions_rjr_init(dispatcher)
+  Missions::RJR.registry.start
+
   # setup Missions::RJR module
   rjr = Object.new.extend(Missions::RJR)
   rjr.node.dispatcher = dispatcher
