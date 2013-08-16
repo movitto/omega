@@ -25,11 +25,17 @@ describe PopulateResource do
     end
 
     it "sets resources" do
-      a = Cosmos::Entities::Asteroid.new
+      a = Cosmos::Entities::Asteroid.new :id => 'ast'
       r = Cosmos::Resource.new
       e = PopulateResource.new :entity => a, :resource => r, :quantity => 50
       Missions::RJR.node.should_receive(:invoke).
-                         with('cosmos::set_resource', a.id, r, 50)
+                         with { |m,r|
+                           m.should == 'cosmos::set_resource'
+                           r.should be_an_instance_of(Cosmos::Resource)
+                           r.id.should_not be_nil
+                           r.entity_id.should == a.id
+                           r.quantity.should == 50
+                         }
       e.send :handle_event
     end
   end

@@ -72,16 +72,23 @@ describe Event do
       e.timestamp.should == Time.now
       e.handlers.should == []
       e.invoked.should be_false
+      e.invalid.should be_false
+      e.registry.should be_nil
     end
 
     it "sets attributes" do
       t = Time.now - 10
+      registry = Object.new
       e = Event.new :timestamp => t,
                     :handlers  => [:foobar],
-                    :invoked   => true
+                    :invoked   => true,
+                    :invalid   => true,
+                    :registry  => registry
       e.timestamp.should == t
       e.handlers.should == [:foobar]
       e.invoked.should be_true
+      e.invalid.should be_true
+      e.registry.should == registry
     end
 
     it "converts timestamp" do
@@ -110,10 +117,14 @@ describe Event do
       t = Time.now
       event = Event.new :id => 'event321',
                         :timestamp => t,
+                        :invalid => true,
+                        :invoked => true,
                         :handlers => [:cb1]
       j = event.to_json
       j.should include('"json_class":"Omega::Server::Event"')
       j.should include('"id":"event321"')
+      j.should include('"invalid":true')
+      j.should include('"invoked":true')
       j.should include('"timestamp":"'+t.to_s+'"')
       j.should include('"handlers":["cb1"]')
     end
@@ -122,13 +133,15 @@ describe Event do
   describe "#json_create" do
     it "return event from json format" do
       t = Time.parse('2013-03-10 15:33:41 -0400')
-      j = '{"json_class":"Omega::Server::Event","data":{"id":"event321","timestamp":"2013-03-10 15:33:41 -0400","handlers":["cb1"]}}'
+      j = '{"json_class":"Omega::Server::Event","data":{"id":"event321","timestamp":"2013-03-10 15:33:41 -0400","invoked":true,"invalid":true,"handlers":["cb1"]}}'
       e = JSON.parse(j)
 
       e.class.should == Omega::Server::Event
       e.id.should == 'event321'
       e.timestamp.to_i.should == t.to_i
       e.handlers.should == ['cb1']
+      e.invoked.should be_true
+      e.invalid.should be_true
     end
   end
 end # describe Event
@@ -137,39 +150,47 @@ describe PeriodicEvent do
   before(:each) do
     @registry = Object.new
     @registry.extend(Registry)
+    @e = Event.new
+    @p = PeriodicEvent.new :id => 'periodic',
+                           :template_event => @e,
+                           :registry => @registry
   end
 
   describe "#handle_event" do
     it "copies template event" do
-      e = Event.new
-      e.should_receive(:to_json).and_call_original
-      p = PeriodicEvent.new :template_event => e,
-                            :registry => @registry
-      p.send(:handle_event)
+      @e.should_receive(:to_json).and_call_original
+      @p.send(:handle_event)
     end
 
     it "invokes event" do
       $invoked = false
       # XXX use an sproc here as template event will be copied
-      e = Event.new :handlers => [SProc.new { $invoked = true }]
-      p = PeriodicEvent.new :template_event => e,
-                            :registry => @registry
-      p.invoke
+      @p.template_event = Event.new :handlers => [SProc.new { $invoked = true }]
+      @p.invoke
       $invoked.should be_true
+    end
+
+    it "generates id for next periodic event" do
+      @p.invoke
+      e = @registry.instance_variable_get(:@entities).last
+      e.id.should == 'periodic-1'
+
+      e.registry = @registry
+      e.invoke
+      e1 = @registry.instance_variable_get(:@entities).last
+      e1.id.should == 'periodic-2'
     end
 
     it "schedules new periodic event" do
       e = Event.new :id => 'test'
-      p = PeriodicEvent.new :template_event => e,
-                            :registry => @registry
+      @p.template_event = e
       lambda {
-        p.invoke
+        @p.invoke
       }.should change{@registry.entities.size}.by(1)
       r = @registry.instance_variable_get(:@entities).last
       r.should be_an_instance_of(PeriodicEvent)
       r.template_event.id.should == e.id
-      r.registry.should == @registry
-      r.interval.should == p.interval
+      r.interval.should == @p.interval
     end
   end
 

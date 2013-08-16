@@ -111,15 +111,6 @@ describe Mission do
       m.assign_to(u)
       m.assigned_time.should_not be_nil
     end
-
-    it "invokes assignment callbacks" do
-      u = build(:user)
-      m = Mission.new :assignment_callbacks => [proc { 1 },
-                                                proc { 2 }]
-      m.assignment_callbacks.first.should_receive(:call).with(m)
-      m.assignment_callbacks.last.should_receive(:call).with(m)
-      m.assign_to(u)
-    end
   end
 
   describe "#assigned?" do

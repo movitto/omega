@@ -454,6 +454,8 @@ describe Registry do
       $invoked2.should be_false
     end
 
+    it "sets registry on event to self"
+
     it "invokes event" do
       e = Event.new :timestamp => (Time.now - 10), :handlers => [@h1]
       @registry << e
@@ -471,6 +473,9 @@ describe Registry do
         }.should_not raise_error(Exception)
       end
     end
+
+    it "sets event.invoked to true"
+    it "updates event in registry"
 
     it "returns default event poll" do
       e = Event.new :timestamp => (Time.now - 10)

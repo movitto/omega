@@ -370,12 +370,6 @@ module Omega::Client
 
       it "starts listening for destroyed_by events"
 
-      it "initializes visited systems list" do
-        @c.should_receive(:patrol_route)
-        @c.start_bot
-        @c.visited.should == []
-      end
-
       it "starts patrol route" do
         @c.should_receive(:patrol_route)
         @c.start_bot
@@ -400,10 +394,11 @@ module Omega::Client
         @c.visited.collect { |v| v.id }.should include(@c.solar_system.id)
       end
 
-      context "all neighboring systems visited" do
+      context "no jump gates to systems not visited found" do
         it 'resets visited list' do
           @c.visited << @sys2
           @c.visited << @sys3
+          @c.visited.collect { |v| v.id }.should == [@sys2.id, @sys3.id]
           @c.patrol_route
 
           # XXX patrol_route ^ will invoke patrol_route
@@ -417,6 +412,11 @@ module Omega::Client
         #  @c.should_receive :patrol_route # XXX
         #  @c.patrol_route
         #end
+      end
+
+      context "no jump gates to systems not visited found twice in a row" do
+        it "raises patrol_err event"
+        it "returns, terminating patrol route"
       end
 
       it "raises selected_system event"
@@ -477,6 +477,10 @@ module Omega::Client
         it "handles attacked_stop event" do
           @c.should_receive(:handle).with(:attacked_stop)
           @c.check_proximity
+        end
+
+        context "already handling attacked_stop" do
+          it "does not register another attacked_stop handler"
         end
 
         it "attacks ship" do

@@ -9,27 +9,27 @@ require 'missions/dsl'
 module Missions
 module DSL
   module Client
-    describe "#method_missing" do
-      context "dsl method invoked on Client" do
-        it "returns new Proxy encapsulating method" do
-          st = build(:station)
-          p = Client.docked_at st
-          p.should be_an_instance_of(Proxy)
-          p.dsl_category.should == "Requirements"
-          p.dsl_method.should   == "docked_at"
-          p.params.should == [st]
-        end
-      end
-
-      context "non-dsl method invoked on Client" do
-        it "returns nil" do
-          n = Client.foobar
-          n.should be_nil
-        end
-      end
-    end
-
     describe Proxy do
+      describe "::method_missing" do
+        context "dsl method invoked on Proxy" do
+          it "returns new Proxy encapsulating method" do
+            st = build(:station)
+            p = Proxy.docked_at st
+            p.should be_an_instance_of(Proxy)
+            p.dsl_category.should == "Requirements"
+            p.dsl_method.should   == "docked_at"
+            p.params.should == [st]
+          end
+        end
+
+        context "non-dsl method invoked on Proxy" do
+          it "returns nil" do
+            n = Proxy.foobar
+            n.should be_nil
+          end
+        end
+      end
+
       describe "::resolve" do
         it "resolves all proxy references in all mission callbacks" do
           m = build(:mission)
@@ -46,7 +46,7 @@ module DSL
 
       describe "#resolve" do
         before(:each) do
-          @p = Proxy.new :dsl_category => Requirements,
+          @p = Proxy.new :dsl_category => Missions::DSL::Requirements,
                          :dsl_method   => :docked_at
         end
 
@@ -108,7 +108,7 @@ module DSL
 
   describe Requirements do
     before(:each) do
-      @node = ::RJR::Nodes::Local.new.as_null_object
+      @node = Missions::RJR::node.as_null_object
       @m = build(:mission)
       @u = build(:user)
     end
@@ -128,7 +128,7 @@ module DSL
               with('manufactured::get_entities',
                    'of_type', 'Manufactured::Ship',
                    'owned_by', @u.id).and_return([])
-        Requirements.shared_station.call @m, @u, @node
+        Requirements.shared_station.call @m, @u
       end
 
       context "users have ships with a shared docked station" do
@@ -138,7 +138,7 @@ module DSL
           sh2 = build(:ship, :docked_at => st)
           @node.should_receive(:invoke).once.and_return([sh1])
           @node.should_receive(:invoke).once.and_return([sh2])
-          Requirements.shared_station.call(@m, @u, @node).should be_true
+          Requirements.shared_station.call(@m, @u).should be_true
         end
       end
 
@@ -146,7 +146,7 @@ module DSL
         it "returns false" do
           @node.should_receive(:invoke).once.and_return([])
           @node.should_receive(:invoke).once.and_return([])
-          Requirements.shared_station.call(@m, @u, @node).should be_false
+          Requirements.shared_station.call(@m, @u).should be_false
         end
       end
     end # dscribe shared_station
@@ -165,20 +165,20 @@ module DSL
              .with('manufactured::get_entities',
                    'of_type', 'Manufactured::Ship',
                    'owned_by', @u.id).and_return([])
-        Requirements.docked_at(@station).call @m, @u, @node
+        Requirements.docked_at(@station).call @m, @u
       end
 
       context "assigning_to user has ship docked at the specified station" do
         it "returns true" do
           @node.should_receive(:invoke).and_return([build(:ship, :docked_at => @station)])
-          Requirements.docked_at(@station).call(@m, @u, @node).should be_true
+          Requirements.docked_at(@station).call(@m, @u).should be_true
         end
       end
 
       context "assigning_to user does not have ship docked at the specified station" do
         it "returns false" do
           @node.should_receive(:invoke).and_return([]);
-          Requirements.docked_at(@station).call(@m, @u, @node).should be_false
+          Requirements.docked_at(@station).call(@m, @u).should be_false
         end
       end
     end # describe docked_at
@@ -186,7 +186,7 @@ module DSL
 
   describe Assignment do
     before(:each) do
-      @node = ::RJR::Nodes::Local.new.as_null_object
+      @node = Missions::RJR::node.as_null_object
       @m = build(:mission)
     end
     
@@ -200,12 +200,12 @@ module DSL
       end
 
       it "invokes specified lookup method" do
-        @lookup.should_receive(:call).with(@m, @node);
-        Assignment.store('ship1', @lookup).call(@m, @node)
+        @lookup.should_receive(:call).with(@m)
+        Assignment.store('ship1', @lookup).call(@m)
       end
 
       it "stores result of lookup method in mission data" do
-        Assignment.store('ship1', @lookup).call(@m, @node)
+        Assignment.store('ship1', @lookup).call(@m)
         @m.mission_data['ship1'].should == 42
       end
     end # describe #store
@@ -217,7 +217,7 @@ module DSL
 
       it "create and stores new ship in mission data" do
         @node.should_receive(:invoke)
-        Assignment.create_entity('ship1', 'type' => :mining).call(@m, @node) 
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
         @m.mission_data['ship1'].should be_an_instance_of(Manufactured::Ship)
         @m.mission_data['ship1'].type.should == :mining
       end
@@ -225,7 +225,7 @@ module DSL
       it "invokes manufactured::create_entity" do
         @node.should_receive(:invoke).
               with('manufactured::create_entity', an_instance_of(Manufactured::Ship))
-        Assignment.create_entity('ship1', 'type' => :mining).call(@m, @node) 
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
       end
     end
 
@@ -236,7 +236,7 @@ module DSL
 
       it "creates and stores new asteroid in mission data" do
         @node.should_receive(:invoke)
-        Assignment.create_asteroid('ast1', 'name' => 'ast1').call(@m, @node) 
+        Assignment.create_asteroid('ast1', 'name' => 'ast1').call(@m) 
         @m.mission_data['ast1'].should be_an_instance_of(Cosmos::Entities::Asteroid)
         @m.mission_data['ast1'].name.should == "ast1"
       end
@@ -248,7 +248,7 @@ module DSL
                    an_instance_of(Cosmos::Entities::Asteroid),
                    sys)
         Assignment.create_asteroid('ast1', 'name' => 'ast1',
-                                   :solar_system => sys).call(@m, @node) 
+                                   :solar_system => sys).call(@m) 
       end
     end
 
@@ -271,7 +271,7 @@ module DSL
                 args[2].material_id.should == 'element-gold'
               }
         Assignment.create_resource('ast1', :material_id => 'element-gold').
-                   call(@m, @node)
+                   call(@m)
       end
     end
 
@@ -294,7 +294,7 @@ module DSL
                 args[2].material_id.should == 'element-gold'
               }
         Assignment.add_resource('ast1', :material_id => 'element-gold').
-                   call(@m, @node)
+                   call(@m)
       end
     end
 
@@ -313,7 +313,7 @@ module DSL
         sh = build(:ship)
         @m.mission_data['ship1'] = sh
         sh.should_receive(:id).twice
-        Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m, @node)
+        Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m)
       end
 
       it "handles multiple entities / handlers"
@@ -321,7 +321,7 @@ module DSL
       it "adds events handler for manufactured event" do
         @node.should_receive(:invoke)
         @m.mission_data['ship1'] = build(:ship, :id => 'ship1')
-        Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m, @node)
+        Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m)
         Missions::RJR.registry.entity{ |e| e.event_id == 'ship1_destroyed'}.
                                should_not be_nil
       end
@@ -330,11 +330,11 @@ module DSL
         it "invokes specified handler" do
           sh = build(:ship)
           @node.should_receive(:invoke)
-          Assignment.subscribe_to(sh, 'destroyed', @handler).call(@m, @node)
+          Assignment.subscribe_to(sh, 'destroyed', @handler).call(@m)
           handler = Missions::RJR.registry.safe_exec{ |entities| entities.last }
 
           e = Omega::Server::Event.new 
-          @handler.should_receive(:call).with(@m, @node, e)
+          @handler.should_receive(:call).with(@m, e)
           handler.handlers.first.call e
         end
       end
@@ -343,7 +343,7 @@ module DSL
         sh = build(:ship)
         @node.should_receive(:invoke).
               with('manufactured::subscribe_to', sh.id, 'destroyed')
-        Assignment.subscribe_to(sh, 'destroyed', @handler ).call(@m, @node)
+        Assignment.subscribe_to(sh, 'destroyed', @handler ).call(@m)
       end
     end
 
@@ -358,7 +358,7 @@ module DSL
       end
 
       it "creates new event in local registry" do
-        Assignment.schedule_expiration_event.call(@m, @node)
+        Assignment.schedule_expiration_event.call(@m)
         evnt = Missions::RJR.registry.entity{ |e| e.id = "mission-#{@m.id}-expired" }
         evnt.should_not be_nil
         evnt.should be_an_instance_of(Omega::Server::Event)
@@ -367,7 +367,7 @@ module DSL
 
       context "event execution" do
         it "invokes mission.failed!" do
-          Assignment.schedule_expiration_event.call(@m, @node)
+          Assignment.schedule_expiration_event.call(@m)
           evnt = Missions::RJR.registry.safe_exec{ |entities| entities.last }
           @m.should_receive(:failed!)
           evnt.handlers.first.call
@@ -378,7 +378,7 @@ module DSL
 
   describe Event do
     before(:each) do
-      @node = ::RJR::Nodes::Local.new.as_null_object
+      @node = Missions::RJR::node.as_null_object
       @m    = build(:mission)
     end
 
@@ -396,18 +396,18 @@ module DSL
       it "adds collected resource to mission data" do
         Query.should_receive(:check_mining_quantity).twice.and_return(proc{ false })
 
-        Event.resource_collected.call(@m, @node, @evnt)
+        Event.resource_collected.call(@m, @evnt)
         @m.mission_data[:resources][@rs.id].should == 50
 
-        Event.resource_collected.call(@m, @node, @evnt)
+        Event.resource_collected.call(@m, @evnt)
         @m.mission_data[:resources][@rs.id].should == 100
       end
 
       it "invokes Query.check_mining_quantity" do
         cmq = Query.check_mining_quantity
         Query.should_receive(:check_mining_quantity).and_return(cmq)
-        cmq.should_receive(:call).with(@m, @node)
-        Event.resource_collected.call(@m, @node, @evnt)
+        cmq.should_receive(:call).with(@m)
+        Event.resource_collected.call(@m, @evnt)
       end
 
       context "check_mining_quantity returns true" do
@@ -415,8 +415,8 @@ module DSL
           Query.should_receive(:check_mining_quantity).and_return(proc { true })
           cve = Event.create_victory_event
           Event.should_receive(:create_victory_event).and_return(cve)
-          cve.should_receive(:call).with(@m, @node, @evnt)
-          Event.resource_collected.call(@m, @node, @evnt)
+          cve.should_receive(:call).with(@m, @evnt)
+          Event.resource_collected.call(@m, @evnt)
         end
       end
     end
@@ -435,15 +435,15 @@ module DSL
 
       it "set last_transfer on mission data" do
         Query.should_receive(:check_transfer).and_return(proc{ false })
-        Event.transferred_out.call(@m, @node, @evnt)
+        Event.transferred_out.call(@m, @evnt)
         @m.mission_data[:last_transfer].should == { :dst => @dst, :rs => @rs}
       end
 
       it "invokes Query.check_transfer" do
         ct = Query.check_transfer
         Query.should_receive(:check_transfer).and_return(ct)
-        ct.should_receive(:call).with(@m, @node)
-        Event.transferred_out.call(@m, @node, @evnt)
+        ct.should_receive(:call).with(@m)
+        Event.transferred_out.call(@m, @evnt)
       end
 
       context "check_transfer returns true" do
@@ -451,8 +451,8 @@ module DSL
           Query.should_receive(:check_transfer).and_return(proc { true })
           cve = Event.create_victory_event
           Event.should_receive(:create_victory_event).and_return(cve)
-          cve.should_receive(:call).with(@m, @node, @evnt)
-          Event.transferred_out.call(@m, @node, @evnt)
+          cve.should_receive(:call).with(@m, @evnt)
+          Event.transferred_out.call(@m, @evnt)
         end
       end
     end
@@ -463,7 +463,7 @@ module DSL
       end
 
       it "adds events to mission data" do
-        Event.entity_destroyed.call(@m, @node, 42)
+        Event.entity_destroyed.call(@m, 42)
         @m.mission_data[:destroyed].should == [42]
       end
     end
@@ -481,15 +481,15 @@ module DSL
 
       it "adds collected loot to mission data" do
         Query.should_receive(:check_loot).and_return(proc{ false })
-        Event.collected_loot.call(@m, @node, @evnt)
+        Event.collected_loot.call(@m, @evnt)
         @m.mission_data[:loot].should == [@rs]
       end
 
       it "invokes Query.check_loot" do
         cl = Query.check_loot
         Query.should_receive(:check_loot).and_return(cl)
-        cl.should_receive(:call).with(@m, @node)
-        Event.collected_loot.call(@m, @node, @evnt)
+        cl.should_receive(:call).with(@m)
+        Event.collected_loot.call(@m, @evnt)
       end
 
       context "check_loot return true" do
@@ -497,8 +497,8 @@ module DSL
           Query.should_receive(:check_loot).and_return(proc { true })
           cve = Event.create_victory_event
           Event.should_receive(:create_victory_event).and_return(cve)
-          cve.should_receive(:call).with(@m, @node, @evnt)
-          Event.collected_loot.call(@m, @node, @evnt)
+          cve.should_receive(:call).with(@m, @evnt)
+          Event.collected_loot.call(@m, @evnt)
         end
       end
     end
@@ -514,11 +514,11 @@ module DSL
 
       it "invokes mission.victory!" do
         @m.should_receive(:victory!)
-        Event.create_victory_event.call(@m, @node, 42)
+        Event.create_victory_event.call(@m, 42)
       end
 
       it "create new event in local registry" do
-        Event.create_victory_event.call(@m, @node, 42)
+        Event.create_victory_event.call(@m, 42)
         evnt = Missions::RJR.registry.entities.first
         evnt.should be_an_instance_of(Omega::Server::Event)
         evnt.id.should == "mission-#{@m.id}-succeeded"
@@ -528,7 +528,7 @@ module DSL
 
   describe Query do
     before(:each) do
-      @node = ::RJR::Nodes::Local.new.as_null_object
+      @node = Missions::RJR::node.as_null_object
       @m = build(:mission)
     end
 
@@ -545,14 +545,14 @@ module DSL
       it "invokes manufactured::get_entity" do
         @node.should_receive(:invoke).
               with('manufactured::get_entity', @sh.id).and_return(nil)
-        Query.check_entity_hp('ship1').call(@m, @node)
+        Query.check_entity_hp('ship1').call(@m)
       end
 
       context "entity hp > 0" do
         it "returns true" do
           @sh.hp = 00
           @node.should_receive(:invoke).and_return(@sh)
-          Query.check_entity_hp('ship1').call(@m, @node).should be_true
+          Query.check_entity_hp('ship1').call(@m).should be_true
         end
       end
 
@@ -560,7 +560,7 @@ module DSL
         it "returns false" do
           @sh.hp = 20
           @node.should_receive(:invoke).and_return(@sh)
-          Query.check_entity_hp('ship1').call(@m, @node).should be_false
+          Query.check_entity_hp('ship1').call(@m).should be_false
         end
       end
     end
@@ -579,13 +579,13 @@ module DSL
       context "target quantity >= quantity" do
         it "returns true" do
           @m.mission_data[:resources]['metal-alluminum'] = 100
-          Query.check_mining_quantity.call(@m, @node).should be_true
+          Query.check_mining_quantity.call(@m).should be_true
         end
       end
       context "target quantity < quantity" do
         it "returns false" do
           @m.mission_data[:resources]['metal-alluminum'] = 10
-          Query.check_mining_quantity.call(@m, @node).should be_false
+          Query.check_mining_quantity.call(@m).should be_false
         end
       end
     end
@@ -604,14 +604,14 @@ module DSL
       context "last transfer matches check" do
         it "returns true" do
           @m.mission_data[:last_transfer] = { :dst => @dst, :rs => @rs }
-          Query.check_transfer.call(@m, @node).should be_true
+          Query.check_transfer.call(@m).should be_true
         end
       end
 
       context "last transfer does not match check " do
         it "returns false" do
           @m.mission_data[:last_transfer] = { :dst => @dst, :rs => build(:resource) }
-          Query.check_transfer.call(@m, @node).should be_false
+          Query.check_transfer.call(@m).should be_false
         end
       end
     end
@@ -629,13 +629,13 @@ module DSL
       context "loot matching check found" do
         it "returns true" do
           @m.mission_data[:loot] = [@rs]
-          Query.check_loot.call(@m, @node).should be_true
+          Query.check_loot.call(@m).should be_true
         end
       end
       context "no loot matching check found" do
         it "returns false" do
           @m.mission_data[:loot] = [build(:resource)]
-          Query.check_loot.call(@m, @node).should be_false
+          Query.check_loot.call(@m).should be_false
         end
       end
     end
@@ -653,7 +653,7 @@ module DSL
         @node.should_receive(:invoke).
               with('manufactured::get_entity', 'of_type', 'Manufactured::Ship',
                    'owned_by', @m.assigned_to_id).and_return([])
-        Query.user_ships.call(@m, @node)
+        Query.user_ships.call(@m)
       end
 
       it "filters retrieved entities by specified filter" do
@@ -661,7 +661,7 @@ module DSL
         sh1 = build(:ship, :type => :mining)
         sh2 = build(:ship, :type => :corvette)
         @node.should_receive(:invoke).and_return([sh1, sh2])
-        Query.user_ships(filter).call(@m, @node).should == [sh1]
+        Query.user_ships(filter).call(@m).should == [sh1]
       end
     end
 
@@ -681,7 +681,7 @@ module DSL
 
   describe Resolution do
     before(:each) do
-      @node = ::RJR::Nodes::Local.new.as_null_object
+      @node = Missions::RJR::node.as_null_object
       @m = build(:mission)
     end
 
@@ -693,9 +693,9 @@ module DSL
       it "invokes Query.user_ships" do
         us = Query.user_ships
         Query.should_receive(:user_ships).and_return(us)
-        us.should_receive(:call).with(@m, @node).and_return([build(:ship)])
+        us.should_receive(:call).with(@m).and_return([build(:ship)])
         @node.should_receive(:invoke)
-        Resolution.add_resource(build(:resource)).call(@m, @node)
+        Resolution.add_resource(build(:resource)).call(@m)
       end
 
       it "invokes manufactured::add_resource" do
@@ -704,7 +704,7 @@ module DSL
         Query.should_receive('user_ships').and_return(proc { [sh] })
         @node.should_receive(:invoke).
               with('manufactured::add_resource', sh.id, rs)
-        Resolution.add_resource(rs).call(@m, @node)
+        Resolution.add_resource(rs).call(@m)
       end
     end
 
@@ -720,7 +720,7 @@ module DSL
       context "mission is victorious" do
         it "updates MissionsCompleted attribute" do
           @m.victory!
-          @n.should_receive(:invoke).
+          @node.should_receive(:invoke).
              with('users::update_attribute', @u.id,
                   Users::Attributes::MissionsCompleted.id, 1 )
 
@@ -730,7 +730,7 @@ module DSL
       context "mission failed" do
         it "updates MissionsFailed attribute" do
           @m.failed!
-          @n.should_receive(:invoke).
+          @node.should_receive(:invoke).
              with('users::update_attribute', @u.id,
                   Users::Attributes::MissionsFailed.id, 1 )
 
@@ -758,12 +758,12 @@ module DSL
       it "invokes manufactured::remove_callbacks on each entity" do
         @node.should_receive(:invoke).
               with('manufactured::remove_callbacks', @sh.id)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
       end
 
       it "invalidate each entity/event handler" do
         @node.should_receive(:invoke)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
         Missions::RJR.registry.entity{ |e|
           e.is_a?(Omega::Server::EventHandler) && e.event_id == "#{@sh.id}_destroyed"
         }.invalid.should be_true
@@ -771,7 +771,7 @@ module DSL
 
       it "removes mission expired event" do
         @node.should_receive(:invoke)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m, @node)
+        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
         Missions::RJR.registry.entity{ |e|
           e.is_a?(Omega::Server::Event) && e.id == @eid
         }.invalid.should be_true
@@ -786,7 +786,7 @@ module DSL
       it "clones mission" do
         @m.should_receive(:clone).and_call_original
         @node.should_receive(:invoke)
-        Resolution.recycle_mission.call(@m, @node)
+        Resolution.recycle_mission.call(@m)
       end
 
       it "clears new mission assignment" do
@@ -794,7 +794,7 @@ module DSL
         @m.should_receive(:clone).and_return(mis)
         mis.should_receive(:clear_assignment!)
         @node.should_receive(:invoke)
-        Resolution.recycle_mission.call(@m, @node)
+        Resolution.recycle_mission.call(@m)
       end
 
       it "invokes missions::create_mission" do
@@ -802,7 +802,7 @@ module DSL
         @m.should_receive(:clone).and_return(mis)
         @node.should_receive(:invoke).
               with('missions::create_mission', mis)
-        Resolution.recycle_mission.call(@m, @node)
+        Resolution.recycle_mission.call(@m)
       end
     end
   end # describe Resolution

@@ -78,6 +78,19 @@ module Missions::RJR
         Missions::RJR.registry.entity(&with_id(m.id)).should be_assigned_to(u.id)
       end
 
+      it "runs mission assignment callbacks" do
+        u = create(:user)
+        m = create(:mission, :id => 'mission1')
+        r = Missions::RJR.registry.safe_exec{ |es| es.find &with_id(m.id) }
+        r.assignment_callbacks << proc { 1 }
+        r.assignment_callbacks.first.should_receive(:call).
+                                     with { |m|
+                                       m.id.should == 'mission1'
+                                       m.should be_assigned_to(u.id)
+                                     }
+        @s.assign_mission m.id, u.id
+      end
+
       it "returns mission" do
         m = create(:mission)
         r = @s.assign_mission(m.id, create(:user).id)

@@ -107,7 +107,6 @@ class PeriodicEvent < Event
   # Event which to run at the specified interval
   attr_accessor :template_event
 
-
   private
 
   # Handle event, invoke tempate and schedule another
@@ -121,13 +120,16 @@ class PeriodicEvent < Event
     nevent.invoke nevent
 
     # generate an id
-    nid = id.split('-')
-    if nid[-1].numeric_string?
-      nid[-1] = nid[-1].to_i + 1
-    else
-      nid << "1"
+    nid = nil
+    unless id.nil?
+      nid = id.split('-')
+      if nid[-1].numeric_string?
+        nid[-1] = nid[-1].to_i + 1
+      else
+        nid << "1"
+      end
+      nid = nid.join('-')
     end
-    nid = nid.join('-')
 
     # schedule next periodic event
     registry << PeriodicEvent.new(:id => nid,
