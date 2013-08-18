@@ -42,8 +42,9 @@ optparse.parse!
 RJR::Logger.log_level= ::Logger::INFO
 
 $console = self
-$console.dsl.rjr_node = 
+$rjr_node =
   RJR::Nodes::AMQP.new :node_id => 'omega-console', :broker => 'localhost'
+$console.dsl.rjr_node = $rjr_node
 login user, password
 
 puts "Use \"$rjr_node\" or omega client dsl to invoke requests"

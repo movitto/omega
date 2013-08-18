@@ -255,6 +255,7 @@ class Station
        'data'       =>
          {:id => id, :user_id => user_id,
           :type => type, :size => size,
+          :cargo_capacity => @cargo_capacity,
           :docking_distance => @docking_distance,
           :location => @location,
           :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),

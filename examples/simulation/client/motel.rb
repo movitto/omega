@@ -3,37 +3,44 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'rjr/util'
-require 'motel'
-include RJR::Definitions
+require 'motel/location'
+require 'motel/movement_strategies/stopped'
 
-rjr_method \
-  "motel::on_movement" =>
-    lambda { |l, d, dx, dy, dz|
-    }
+include RJR::MessageMixins
 
-0.upto(5000) { |i|
-  rjr_message \
-    "get_location_#{i}" =>
+def dispatch_motel(dispatcher)
+  dispatcher.handle "motel::on_movement" do |l, d, dx, dy, dz|
+  end
+
+  0.upto(500) { |i|
+    define_message "get_location_#{i}"  do
       { :method => "motel::get_location",
         :params => ['with_id', i],
-        :result => lambda { |l| l.id == i } },
+        :result => lambda { |l| l.id == i } }
+    end
 
-    "update_location_#{i}" =>
+    define_message "update_location_#{i}" do
       { :method => 'motel::update_location',
         :params => [lambda { l = Motel::Location.random ; l.id = i ; l }],
-        :result =>  lambda { |l| l.id == i } },
+        :result =>  lambda { |l| l.id == i } }
+    end
 
-    "track_movement_of_#{i}" =>
+    define_message "track_movement_of_#{i}" do
       { :method => "motel::track_movement",
         :params => [i, 5],
-        :result =>  lambda { |l| l.id == i },
+        :result =>  lambda { |n| n.nil? },
         :transports => [:amqp, :tcp, :ws] }
-}
+    end
+  }
 
-rjr_message :get_all_locations => 
-  { :method => 'motel::get_locations' }
+  define_message :get_all_locations do
+    { :method => 'motel::get_locations' }
+  end
 
-rjr_message :create_location =>
-  { :method => 'motel::create_location',
-    :params => [lambda { Motel::Location.random } ] }
+  define_message :create_location do
+    { :method => 'motel::create_location',
+      :params => [lambda { Motel::Location.random } ] }
+  end
+end
+
+alias :dispatch_examples_simulation_client_motel :dispatch_motel

@@ -220,14 +220,15 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroid
       # @return [Cosmos::Entities::Asteroid] asteroid created
       def asteroid(name, args={}, &bl)
-        raise ArgumentError, "solar_system nil" if @solar_system.nil?
+        system = @solar_system || args[:solar_system]
+        raise ArgumentError, "solar_system nil" if system.nil?
 
         aargs = args.merge({:id => gen_uuid,
                             :name => name,
-                            :solar_system => @solar_system})
+                            :solar_system => system})
         ast = Cosmos::Entities::Asteroid.new(aargs)
                                                
-        RJR::Logger.info "Creating asteroid #{ast} under #{@solar_system.name}"
+        RJR::Logger.info "Creating asteroid #{ast} under #{system.name}"
         invoke 'cosmos::create_entity', ast
 
         dsl.run ast, :asteroid => ast, &bl

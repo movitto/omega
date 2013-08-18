@@ -6,6 +6,7 @@
 require 'time'
 require 'json'
 require 'motel/movement_strategy'
+require 'omega/common'
 
 module Motel
 
@@ -406,7 +407,7 @@ class Location
      ny = rand(2) == 0 ? -1 : 1
      nz = rand(2) == 0 ? -1 : 1
 
-     loc = Location.new :orientation => [0,0,1]
+     loc = Location.new args.merge({:orientation => [0,0,1]})
      loc.x = ((min_x.nil? ? 0 : min_x) + (max_x.nil? ? rand : rand(max_x - min_x))) * nx
      loc.y = ((min_y.nil? ? 0 : min_y) + (max_y.nil? ? rand : rand(max_y - min_y))) * ny
      loc.z = ((min_z.nil? ? 0 : min_z) + (max_z.nil? ? rand : rand(max_z - min_z))) * nz
