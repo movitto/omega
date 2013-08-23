@@ -53,7 +53,7 @@ Checkout the project via git
 Run the server:
 
     $ cd omega/
-    $ export RUBY_LIB='lib'
+    $ export RUBYLIB='lib'
     $ ./bin/omega-server
 
 
