@@ -21,7 +21,7 @@ register = proc { |user|
     recaptcha_response =
       Curl::Easy.http_post 'http://www.google.com/recaptcha/api/verify',
         Curl::PostField.content('privatekey', Users::RJR.recaptcha_priv_key),
-        Curl::PostField.content('remoteip', @client_ip),
+        Curl::PostField.content('remoteip', @rjr_client_ip),
         Curl::PostField.content('challenge', user.recaptcha_challenge),
         Curl::PostField.content('response', user.recaptcha_response)
     recaptcha_response = recaptcha_response.body_str.split.first

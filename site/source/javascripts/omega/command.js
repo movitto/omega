@@ -44,7 +44,10 @@ function ServerEvents(){
       for(var a in arguments){
         var arg = arguments[a];
         if(arg.id){
-          var entity = Entities().find(with_id(arg.id))
+          // XXX
+          var id = ((arg.json_class == 'Motel::Location') ?
+                    ('location-' + arg.id) : arg.id);
+          var entity = Entities().get(id)
           if(entity != null){
             entity.raise_event.apply(entity, nargs);
             break;
@@ -87,6 +90,7 @@ var Events = {
     // subscribe to server notifications
     Entities().node().ws_request('motel::track_stops', location_id);
     Entities().node().ws_request('motel::track_movement', location_id, distance);
+
     if(rot_distance)
       Entities().node().ws_request('motel::track_rotation', location_id, rot_distance);
   },
@@ -134,7 +138,7 @@ var Events = {
 
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'defended');
     Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'defended_stop');
-    Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'destroyed');
+    Entities().node().ws_request('manufactured::subscribe_to', ship_id, 'destroyed_by');
   },
 
   /////////////////////////////////////// Construction Events
@@ -168,7 +172,7 @@ var Commands = {
   /* Detect ships around jump gate and
    * invoke jump operation on them
    *
-   * @param {Cosmos::JumpGate} jg jump gate to trigger
+   * @param {Cosmos::Entities::JumpGate} jg jump gate to trigger
    * @param {Callable} cb optional callback to invoke after jump gate is triggered
    */
   trigger_jump_gate : function(jg, cb){
@@ -198,7 +202,7 @@ var Commands = {
    * operation to move ship inbetween systems
    *
    * @param {Manufactured::Ship} ship to jump
-   * @param {Cosmos::SolarSystem} sys system to jump to
+   * @param {Cosmos::Entities::SolarSystem} sys system to jump to
    */
   jump_ship : function(ship, sys){
     var old_sys = ship.solar_system;
@@ -286,8 +290,9 @@ var Commands = {
   transfer_resources : function(ship, station_id, cb){
     if(cb == null) cb = function(res){};
     for(var r in ship.resources){
+      var res = new JRObject('Cosmos::Resource', ship.resources[r]);
       Entities().node().web_request('manufactured::transfer_resource',
-                                    ship.id, station_id, ship.resources[r], cb);
+                                    ship.id, station_id, res, cb);
     }
   },
 
@@ -312,13 +317,19 @@ var Commands = {
   /* Invoke omega server side manufactured::construct
    * operation to construct entity using the specified station
    *
+   * TODO support other entity types/params!
+   *
    * @param {Manufactured::Station} station station to use to construct entity
    * @param [Callable] cb optional callback to invoke upon request returning
    */
   construct_entity : function(station, cb){
     if(cb == null) cb = function(res){};
     Entities().node().web_request('manufactured::construct_entity',
-                                  station.id, 'Manufactured::Ship', cb);
+                                  station.id,
+                                  'entity_type', 'Ship',
+                                  'type', 'mining',
+                                  'id', guid(), // generate new id
+                                  cb);
   },
 
   /////////////////////////////////////// Assign Mission Command

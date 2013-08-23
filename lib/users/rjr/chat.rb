@@ -64,7 +64,8 @@ subscribe_to_messages = proc {
   #}
 
   # subscribe to messages
-  Users::ChatProxy.proxy_for(user.id).connect.add_callback callback
+  cu = current_user(:registry => registry)
+  Users::ChatProxy.proxy_for(cu.id).connect.add_callback callback
 
   # return nil
   nil

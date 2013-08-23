@@ -32,11 +32,16 @@ this.restore_session = function(ui, node, cb){
     session.set_headers_on(node);
     session.validate(node, function(result){
       if(result.error){
-        login_anon(node);
+          login_anon(node);
+      
+      }else{
+        if(result.result.id == User.anon_user.id)
+          login_anon(node);
 
-      }else if(result.result.id != User.anon_user.id){
-        session_established(ui, node, session, result.result);
+        else
+          session_established(ui, node, session, result.result);
       }
+
       if(cb) cb();
     });
   }
@@ -45,6 +50,7 @@ this.restore_session = function(ui, node, cb){
 /* Internal helper to login as anon and invoke callback
  */
 var login_anon = function(node, cb){
+  Entities().node(node);
   Session.login(User.anon_user, node,
                 function(session){
                   if(cb) cb();
@@ -84,7 +90,7 @@ var session_established = function(ui, node, session, user){
   ui.account_info.gravatar(user.email);
 
   // get stats
-  Statistic.with_id('most_entities', 10, process_stats);
+  Statistic.with_id('with_most', ['entities', 10], process_stats);
 }
 
 ////////////////////////////////////////// manufactured entities
@@ -115,11 +121,12 @@ var process_entity = function(ui, node, entity){
   }
 
   // store location in registry
-  Entities().set(entity.location.id, entity.location);
+  Entities().set('location-'+entity.location.id, entity.location);
 
-  ui.entities_container.add_item({ item : entity,
-                                   id   : "entities_container-" + entity.id,
-                                   text : entity.id });
+  ui.entities_container.
+     list.add_item({ item : entity,
+                     id   : "entities_container-" + entity.id,
+                     text : entity.id });
   ui.entities_container.show();
 
   // wire up entity page events
@@ -153,6 +160,10 @@ var process_entity = function(ui, node, entity){
   load_system(entity.system_id, ui, node, function(sys){
     entity.solar_system = sys;
 
+    // XXX run update on self to update in any system-dependent
+    // entity attributes (such as mining target/line)
+    entity.update(entity)
+
     // if system currently displayed on canvas, add to scene if not present
     // TODO is this needed?
     if(ui.canvas.scene.get() &&
@@ -181,7 +192,7 @@ var motel_event = function(ui, node, eargs){
   var nloc = eargs[1];
   var entity =
     Entities().select(function(e){ return e.location && e.location.id == nloc.id })[0];
-  entity.update({location : nloc});
+  entity.update({location:nloc});
 
   // refresh scene if contains entity
   if(ui.canvas.scene.has(entity.id))
@@ -196,23 +207,27 @@ var motel_event = function(ui, node, eargs){
  */
 var manufactured_event = function(ui, node, eargs){
   var evnt = eargs[1];
+  var entities = [];
 
   if(evnt == "resource_collected"){
     var ship            = eargs[2];
     var resource        = eargs[3];
-    var quantity        = eargs[3];
+    var quantity        = eargs[4];
 
     var rship = Entities().get(ship.id);
+    entities.push(rship);
 
     rship.update(ship);
     if(ui.canvas.scene.has(ship.id))
       ui.canvas.scene.animate();
 
   }else if(evnt == "mining_stopped"){
-    var reason = eargs[2];
-    var ship   = eargs[3];
+    var ship     = eargs[2];
+    var resource = eargs[3];
+    var reason   = eargs[4];
 
     var rship = Entities().get(ship.id);
+    entities.push(rship);
     ship.mining  = null; // XXX hack serverside ship.mining might
                          // not be nil at this point
 
@@ -226,6 +241,8 @@ var manufactured_event = function(ui, node, eargs){
 
     var rattacker = Entities().get(attacker.id);
     var rdefender = Entities().get(defender.id);
+    entities.push(rattacker);
+    entities.push(rdefender);
     attacker.attacking = rdefender;
 
     rattacker.update(attacker);
@@ -240,6 +257,8 @@ var manufactured_event = function(ui, node, eargs){
 
     var rattacker = Entities().get(attacker.id);
     var rdefender = Entities().get(defender.id);
+    entities.push(rattacker);
+    entities.push(rdefender);
     attacker.attacking = null;
 
     rattacker.update(attacker);
@@ -249,11 +268,13 @@ var manufactured_event = function(ui, node, eargs){
       ui.canvas.scene.animate();
 
   }else if(evnt == "defended"){
-    var attacker = eargs[2];
-    var defender = eargs[3];
+    var defender = eargs[2];
+    var attacker = eargs[3];
 
     var rattacker = Entities().get(attacker.id);
     var rdefender = Entities().get(defender.id);
+    entities.push(rattacker);
+    entities.push(rdefender);
     attacker.attacking = rdefender;
 
     rattacker.update(attacker);
@@ -263,11 +284,13 @@ var manufactured_event = function(ui, node, eargs){
       ui.canvas.scene.animate();
 
   }else if(evnt == "defended_stop"){
-    var attacker = eargs[2];
-    var defender = eargs[3];
+    var defender = eargs[2];
+    var attacker = eargs[3];
 
     var rattacker = Entities().get(attacker.id);
     var rdefender = Entities().get(defender.id);
+    entities.push(rattacker);
+    entities.push(rdefender);
     attacker.attacking = null;
 
     rattacker.update(attacker);
@@ -276,12 +299,14 @@ var manufactured_event = function(ui, node, eargs){
        ui.canvas.scene.has(defender.id))
       ui.canvas.scene.animate();
 
-  }else if(evnt == "destroyed"){
-    var attacker = eargs[2];
-    var defender = eargs[3];
+  }else if(evnt == "destroyed_by"){
+    var defender = eargs[2];
+    var attacker = eargs[3];
 
     var rattacker = Entities().get(attacker.id);
     var rdefender = Entities().get(defender.id);
+    entities.push(rattacker);
+    entities.push(rdefender);
     attacker.attacking = null;
 
     rattacker.update(attacker);
@@ -296,16 +321,27 @@ var manufactured_event = function(ui, node, eargs){
     var station = eargs[2];
     var entity  = eargs[3];
 
+    var rstation = Entities().get(station.id);
+    entities.push(rstation);
+
     // retrieve full entity from server
     Ship.with_id(entity.id, function(entity){
       // store in registry
-      Entities().set(entity.id, new Ship(entity));
+      Entities().set(entity.id, entity);
 
       // process
       process_entity(ui, node, entity);
     });
   }
 
+  // refresh popup if showing entity
+  var selected = Entities().select(function(e){ return e.selected; })[0]
+  for(var e in entities){
+    if(entities[e].id == selected.id){
+      refresh_entity_container(ui, node, entities[e]);
+      break;
+    }
+  }
 };
 
 /* Internal helper to process stats,
@@ -347,13 +383,13 @@ var clicked_entity = function(ui, node, entity){
   var selected = Entities().select(function(e){ return (e.id != entity.id) && e.selected; })[0]
   if(selected) ui.canvas.scene.unselect(selected.id);
 
-  if(entity.json_class == "Cosmos::SolarSystem"){
+  if(entity.json_class == "Cosmos::Entities::SolarSystem"){
     clicked_system(ui, node, entity);
 
   }else{
     popup_entity_container(ui, node, entity);
 
-    if(entity.json_class == "Cosmos::Asteroid"){
+    if(entity.json_class == "Cosmos::Entities::Asteroid"){
       clicked_asteroid(ui, node, entity);
 
     }else if(entity.json_class == "Manufactured::Ship"){
@@ -394,7 +430,7 @@ var popup_entity_container = function(ui, node, entity){
 /* Internal helper to handle click solar system event
  */
 var clicked_system = function(ui, node, solar_system){
-  set_scene(ui, solar_system);
+  set_scene(ui, node, solar_system);
 }
 
 /* Internal helper to handle click asteroid event
@@ -406,10 +442,10 @@ var clicked_asteroid = function(ui, node, asteroid){
       if(res.error == null){
         var details = [{ id : 'resources_title', text : 'Resources: <br/>'}];
         for(var r in res.result){
-          var res = res.result[r];
-          details.push({ id   : res.id, 
-                         text : res.quantity + " of " +
-                                res.material_id +"<br/>"});
+          var rres = res.result[r];
+          details.push({ id   : rres.id, 
+                         text : rres.quantity + " of " +
+                                rres.material_id +"<br/>"});
         }  
         ui.entity_container.contents.add_item(details);
       }
@@ -462,7 +498,7 @@ var clicked_ship = function(ui, node, ship){
     function(cmd, sh){
       // load mining target selection from asteroids in the vicinity
       var entities = Entities().select(function(e) {
-        return e.json_class == 'Cosmos::Asteroid' &&
+        return e.json_class == 'Cosmos::Entities::Asteroid' &&
                e.location.is_within(100, sh.location);
       });
 
@@ -473,10 +509,10 @@ var clicked_ship = function(ui, node, ship){
           function(res){
             if(!res.error){
               for(var r in res.result){
-                var res    = res.result[r];
-                var restxt = res.material_id + " (" + res.quantity + ")";
+                var rres    = res.result[r];
+                var restxt = rres.material_id + " (" + rres.quantity + ")";
                 var text   =
-                  '<span id="cmd_mine_' + res.id +
+                  '<span id="cmd_mine_' + rres.id +
                    '" class="cmd_mine dialog_cmds">'+
                      restxt + '</span><br/>';
 
@@ -488,7 +524,13 @@ var clicked_ship = function(ui, node, ship){
       }
     });
 
-
+  // on transfer, update the ship/station, refresh entity container
+  ship.on('cmd_transfer',
+    function(cmd, sh, st){
+      ship.update(sh);
+      Entities().get(st.id).update(st);
+      refresh_entity_container(ui, node, ship);
+    });
 };
 
 /* Internal helper to handle clicked station event
@@ -517,17 +559,19 @@ var load_system = function(id, ui, node, callback){
     Entities().cached(id, function(c){
       // load from server
       SolarSystem.with_id(c, function(s){
+        // store system in the registry
+        Entities().set(s.id, s);
+
+        // run callbacks
         for(var cb in $system_callbacks[s.id])
           $system_callbacks[s.id][cb].apply(s, [s]);
         $system_callbacks[s.id] = [];
 
-        // store system in the registry
-        Entities().set(s.id, s);
-
         // show in the locations container
-        ui.locations_container.add_item({ item : s,
-                                          id   : "locations_container-" + s.id,
-                                          text : s.id });
+        ui.locations_container.
+           list.add_item({ item : s,
+                           id   : "locations_container-" + s.id,
+                           text : 'System: ' + s.name });
         ui.locations_container.show();
 
         // wire up asteroid, jump gate events
@@ -538,7 +582,7 @@ var load_system = function(id, ui, node, callback){
         for(var p in s.planets){
           var planet = s.planets[p];
           Entities().set(planet.id, planet);
-          Entities().set(planet.location.id, planet.location);
+          Entities().set('location-' + planet.location.id, planet.location);
         }
 
         // store asteroids in registry
@@ -552,8 +596,8 @@ var load_system = function(id, ui, node, callback){
           var jg = s.jump_gates[j];
           Entities().set(jg.id, jg);
           (function(jg){ // XXX need closure to preserve jg during async request
-            load_system(jg.endpoint, ui, node, function(jgs){
-              if(jgs.json_class == 'Cosmos::SolarSystem'){
+            load_system(jg.endpoint_id, ui, node, function(jgs){
+              if(jgs.json_class == 'Cosmos::Entities::SolarSystem'){
                 jg.endpoint_system = jgs;
                 s.add_jump_gate(jg, jgs);
               }
@@ -562,7 +606,7 @@ var load_system = function(id, ui, node, callback){
         }
 
         // retrieve galaxy
-        load_galaxy(s.galaxy_id, ui, node, function(g){
+        load_galaxy(s.parent_id, ui, node, function(g){
           s.galaxy = g;
 
           // overwrite system in galaxy.solar_systems
@@ -600,12 +644,13 @@ var load_galaxy = function(id, ui, node, callback){
   var entity =
     Entities().cached(id, function(c){
       Galaxy.with_id(c, function(g){
+        // store galaxy in registry
+        Entities().set(g.id, g);
+
+        // run callbacks
         for(var cb in $galaxy_callbacks[g.id])
           $galaxy_callbacks[g.id][cb].apply(g, [g]);
         $galaxy_callbacks[g.id] = []
-
-        // store galaxy in registry
-        Entities().set(g.id, g);
 
         // swap systems in
         // right now we only set those retrieved from the server
@@ -618,9 +663,10 @@ var load_galaxy = function(id, ui, node, callback){
         handle_events(ui, node, g.solar_systems);
 
         // show in the locations container
-        ui.locations_container.add_item({ item : g,
-                                          id   : "locations_container-" + g.id,
-                                          text : g.id });
+        ui.locations_container.
+           list.add_item({ item : g,
+                           id   : "locations_container-" + g.id,
+                           text : 'Galaxy: ' + g.name });
         ui.locations_container.show();
       });
 
@@ -784,13 +830,13 @@ var wire_up_jplayer = function(ui, node){
  */
 var wire_up_entities_lists = function(ui, node){
   // set scene when location is clicked
-  ui.locations_container.on('click_item', function(c, i, e){
-    set_scene(ui, i.item);
+  ui.locations_container.list.on('click_item', function(c, i, e){
+    set_scene(ui, node, i.item);
   });
 
   // set scene and focus on entity when entity is clicked
-  ui.entities_container.on('click_item', function(c, i, e){
-    set_scene(ui, i.item.solar_system, i.item.location);
+  ui.entities_container.list.on('click_item', function(c, i, e){
+    set_scene(ui, node, i.item.solar_system, i.item.location);
   });
 
   // popup dialog w/ missions info when missions button is clicked
@@ -823,7 +869,7 @@ var wire_up_entities_lists = function(ui, node){
 
 /* Internal helper to set scene
  */
-var set_scene = function(ui, entity, location){
+var set_scene = function(ui, node, entity, location){
   // hide dialog
   ui.dialog.hide();
 
@@ -851,14 +897,14 @@ var set_scene = function(ui, entity, location){
 
   // track planet movement
   // TODO remove callbacks of planets in old system
-  if(entity.json_class == "Cosmos::SolarSystem"){
+  if(entity.json_class == "Cosmos::Entities::SolarSystem"){
     for(var p in entity.planets){
       var planet = entity.planets[p];
       Events.track_movement(planet.location.id, $omega_config.planet_movement);
       var events = ['motel::on_movement',
                     'motel::on_rotation',
                     'motel::location_stopped']
-      planet.clear_callbacks(events);
+      planet.location.clear_callbacks(events);
       planet.location.on(events, function(){ motel_event(ui,node,arguments);});
     }
   }
@@ -928,23 +974,28 @@ var wire_up_canvas = function(ui, node){
   UIResources().on('texture_loaded', function(t){ ui.canvas.scene.animate(); })
 
   // when setting scene to solar system, get all entities under it
-  ui.canvas.scene.on('set', function(s){
+  ui.canvas.scene.on('set', function(scene, entity){
     // remove event callbacks of entities in old system not beloning to user
     var old_entities =
       Entities().select(function(e){
-        return (e.json_class == 'Manufactured::Ship' || e.json_class == 'Manufactured::Station') &&
-               (s.id != e.system_id) && e.user_id != Session.current_session.user_id;
+        return (e.json_class == 'Manufactured::Ship' ||
+                e.json_class == 'Manufactured::Station') &&
+               (entity.id != e.system_id) &&
+                e.user_id != Session.current_session.user_id;
       })
 
     for(var e in old_entities){
-      var entity = old_entities[e];
-      Events.stop_track_movement(entity.location.id);
-      Events.stop_track_manufactured(entity.id);
+      var oentity = old_entities[e];
+      Events.stop_track_movement(oentity.location.id);
+      Events.stop_track_manufactured(oentity.id);
     }
 
     // refresh entities under the system
-    if(s.json_class == "Cosmos::SolarSystem")
-      SolarSystem.entities_under(s.id, function(e){ process_entities(ui, node, e); });
+    if(entity.json_class == "Cosmos::Entities::SolarSystem")
+      SolarSystem.entities_under(entity.id,
+                                 function(e){
+                                   process_entities(ui, node, e);
+                                 });
 
     // reset the camera
     ui.canvas.scene.camera.reset();

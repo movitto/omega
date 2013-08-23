@@ -43,7 +43,11 @@ function Entity(args){
   // copy all args to local attributes
   // http://api.jquery.com/jQuery.extend/
   this.update = function(args){
-    $.extend(this, args);
+    for(var a in args){
+      var arg = args[a];
+      if($.inArray(a, this.ignore_properties) == -1)
+        this[a] = arg;
+    }
     this.raise_event('updated', this);
   }
   this.update(args);
@@ -63,7 +67,7 @@ function Entity(args){
   /* add properties to ignore in json conversion
    */
   this.ignore_properties = ['toJSON', 'json_class', 'ignore_properties',
-                            'callbacks', 'added_to', 'removed_from',
+                            'added_to', 'removed_from', 'callbacks',
                             'clicked_in', 'unselected_in', 'update',
                             'raise_event', 'clone', 'on',
                             'clear_callbacks'];
@@ -105,10 +109,6 @@ function Location(args){
   this.json_class = 'Motel::Location';
 
   this.ignore_properties.push('movement_strategy');
-  this.ignore_properties.push('movement_callbacks');
-  this.ignore_properties.push('rotation_callbacks');
-  this.ignore_properties.push('stopped_callbacks');
-  this.ignore_properties.push('proximity_callbacks');
 
   /* Return distance location is from the specified x,y,z
    * coordinates
@@ -144,7 +144,8 @@ function Location(args){
 function Galaxy(args){
   $.extend(this, new Entity(args));
 
-  this.json_class = 'Cosmos::Galaxy';
+  this.json_class = 'Cosmos::Entities::Galaxy';
+  this.background = 'galaxy' + this.background;
 
   /* override update to update all children instead of overwriting
    */
@@ -167,8 +168,9 @@ function Galaxy(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var sys in this.solar_systems)
-    this.solar_systems[sys] = new SolarSystem(this.solar_systems[sys]);
+  this.solar_systems = [];
+  for(var sys in this.children)
+    this.solar_systems[sys] = new SolarSystem(this.children[sys]);
 
   this.children = function(){
     return this.solar_systems;
@@ -194,8 +196,9 @@ function SolarSystem(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Cosmos::SolarSystem';
+  this.json_class = 'Cosmos::Entities::SolarSystem';
   var system = this;
+  this.background = 'system' + this.background;
 
   /* Get first star
    */
@@ -248,10 +251,16 @@ function SolarSystem(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var s in this.stars) this.stars[s] = new Star(this.stars[s])
-  for(var pl in this.planets) this.planets[pl] = new Planet(this.planets[pl])
-  for(var ast in this.asteroids) this.asteroids[ast] = new Asteroid(this.asteroids[ast])
-  for(var jg in this.jump_gates) this.jump_gates[jg] = new JumpGate(this.jump_gates[jg])
+  for(var c in this.children){
+    if(this.children[c].json_class == 'Cosmos::Entities::Star')
+      this.stars.push(new Star(this.children[c]))
+    else if(this.children[c].json_class == 'Cosmos::Entities::Planet')
+      this.planets.push(new Planet(this.children[c]))
+    else if(this.children[c].json_class == 'Cosmos::Entities::Asteroid')
+      this.asteroids.push(new Asteroid(this.children[c]))
+    else if(this.children[c].json_class == 'Cosmos::Entities::JumpGate')
+      this.jump_gates.push(new JumpGate(this.children[c]))
+  }
 
   // adding jump gates lines is defered to later when we
   // can remotely retrieve endpoint systems
@@ -385,7 +394,7 @@ function SolarSystem(args){
    */
   this.children = function(){
     var entities = Entities().select(function(e){
-      return e.system_name  == system.name &&
+      return e.system_id  == system.id &&
             (e.json_class  == "Manufactured::Ship" ||
              e.json_class  == "Manufactured::Station" )
    });
@@ -451,7 +460,7 @@ function Star(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Cosmos::Star';
+  this.json_class = 'Cosmos::Entities::Star';
   var star = this;
 
   this.location = new Location(this.location);
@@ -460,7 +469,7 @@ function Star(args){
   var sphere_geometry =
     UIResources().cached('star_sphere_' + this.size + '_geometry',
       function(i) {
-        var radius = star.size/2, segments = 32, rings = 32;
+        var radius = star.size/5, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 
@@ -502,7 +511,7 @@ function Planet(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Cosmos::Planet';
+  this.json_class = 'Cosmos::Entities::Planet';
   var planet = this;
 
   this.location = new Location(this.location);
@@ -658,7 +667,7 @@ function Asteroid(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Cosmos::Asteroid';
+  this.json_class = 'Cosmos::Entities::Asteroid';
   var asteroid = this;
 
   this.location = new Location(this.location);
@@ -701,7 +710,7 @@ function Asteroid(args){
     UIResources().cached('asteroid_geometry',
       function(i) {
         var path = UIResources().images_path + $omega_config.resources['asteroid']['geometry'];
-        UIResources().load_json(path, function(geo){
+        UIResources().load_geometry(path, function(geo){
           asteroid.mesh_geometry = geo;
           UIResources().set('asteroid_geometry', asteroid.mesh_geometry);
           asteroid.create_mesh();
@@ -740,7 +749,7 @@ function JumpGate(args){
 
   //this.id = this.solar_system + '-' + this.endpoint;
 
-  this.json_class = 'Cosmos::JumpGate';
+  this.json_class = 'Cosmos::Entities::JumpGate';
   var jg = this;
 
   this.location = new Location(this.location);
@@ -850,7 +859,7 @@ function JumpGate(args){
 
   // some text to render in details box on click
   this.details = function(){
-    return ['Jump Gate to ' + this.endpoint + '<br/>',
+    return ['Jump Gate to ' + this.endpoint_id + '<br/>',
             '@ ' + this.location.to_s() + "<br/><br/>",
             "<span class='commands' id='cmd_trigger_jg'>Trigger</div>"];
   }
@@ -911,6 +920,22 @@ function Ship(args){
 
   this.location = new Location(this.location);
 
+  /* helper to lookup mining target in local registry
+   *
+   * (needs to be defined before update is called)
+   */
+  this.resolve_mining_target = function(mining_target){
+    var sys  = Entities().get(this.system_id);
+    var asts = sys ? sys.asteroids : [];
+    for(var a in asts){
+      if(asts[a].id == mining_target.entity_id){
+        this.mining = mining_target;
+        this.mining.entity = asts[a];
+        break;
+      }
+    }
+  }
+
   /* override update
    */
   this.old_update = this.update;
@@ -928,47 +953,53 @@ function Ship(args){
         this.set_orientation(this.mesh)
       }
 
-      var to_remove = [];
-
-      // handle attack state changes
       if(this.attack_line){
-        if(args.attacking){
-          if(this.components.indexOf(this.attack_line) == -1)
-            this.components.push(this.attack_line);
-
-          this.attack_line_geo.vertices[1].x = args.attacking.location.x;
-          this.attack_line_geo.vertices[1].y = args.attacking.location.y;
-          this.attack_line_geo.vertices[1].z = args.attacking.location.z;
-
-        }else if(this.attacking && !args.attacking){
-          to_remove.push(this.attack_line)
-        }
-
         this.attack_line_geo.vertices[0].x = this.location.x;
         this.attack_line_geo.vertices[0].y = this.location.y;
         this.attack_line_geo.vertices[0].z = this.location.z;
       }
 
-      // handle mining state changes
       if(this.mining_line){
-        if(args.mining){
-          if(this.components.indexOf(this.mining_line) == -1)
-            this.components.push(this.mining_line);
-
-          this.mining_line_geo.vertices[1].x = args.mining.entity.location.x;
-          this.mining_line_geo.vertices[1].y = args.mining.entity.location.y;
-          this.mining_line_geo.vertices[1].z = args.mining.entity.location.z;
-
-        }else if(this.mining && !args.mining){
-          to_remove.push(this.mining_line);
-        }
-
         this.mining_line_geo.vertices[0].x = this.location.x;
         this.mining_line_geo.vertices[0].y = this.location.y;
         this.mining_line_geo.vertices[0].z = this.location.z;
       }
 
       delete args.location;
+
+    }
+
+    var to_remove = [];
+
+    // handle attack state changes
+    if(args.attacking){
+      if(this.attack_line){
+        if(this.components.indexOf(this.attack_line) == -1)
+          this.components.push(this.attack_line);
+
+        this.attack_line_geo.vertices[1].x = args.attacking.location.x;
+        this.attack_line_geo.vertices[1].y = args.attacking.location.y;
+        this.attack_line_geo.vertices[1].z = args.attacking.location.z;
+      }
+    }else if(this.attacking && this.attack_line){
+      to_remove.push(this.attack_line)
+    }
+
+    // handle mining state changes
+    if(args.mining){
+      this.resolve_mining_target(args.mining);
+
+      if(this.mining_line){
+        if(this.components.indexOf(this.mining_line) == -1)
+          this.components.push(this.mining_line);
+
+        this.mining_line_geo.vertices[1].x = this.mining.entity.location.x;
+        this.mining_line_geo.vertices[1].y = this.mining.entity.location.y;
+        this.mining_line_geo.vertices[1].z = this.mining.entity.location.z;
+      }
+
+    }else if(this.mining && this.mining_line){
+      to_remove.push(this.mining_line);
     }
 
     if(this.current_scene) this.current_scene.reload_entity(this, function(s, e){
@@ -981,6 +1012,10 @@ function Ship(args){
 
     this.old_update(args);
   }
+
+  // XXX run new update method
+  // (a bit redunant w/ update invoked in Entity constructor)
+  this.update(args);
 
   this.belongs_to_user = function(user){
     return this.user_id == user;
@@ -1018,7 +1053,6 @@ function Ship(args){
     orm.multiplySelf(mesh.matrix);
     mesh.rotation.setEulerFromRotationMatrix(orm);
   }
-
 
   // instantiate mesh to draw ship on canvas
   this.create_mesh = function(){
@@ -1063,7 +1097,7 @@ function Ship(args){
     UIResources().cached('ship_'+this.type+'_mesh_geometry',
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[ship.type]['geometry'];
-        UIResources().load_json(path, function(geo){
+        UIResources().load_geometry(path, function(geo){
           ship.mesh_geometry = geo;
           UIResources().set('ship_'+this.type+'_mesh_geometry', ship.mesh_geometry)
           ship.create_mesh();
@@ -1111,8 +1145,8 @@ function Ship(args){
     UIResources().cached('ship_'+this.id+'_mining_geometry',
                          function(i) {
                            var geometry = new THREE.Geometry();
-                           var av = ship.mining ?
-                                    ship.mining.location : {x:0, y:0, z:0};
+                           var av = ship.mining && ship.mining.entity ?
+                                    ship.mining.entity.location : {x:0, y:0, z:0};
                            geometry.vertices.push(new THREE.Vector3(ship.location.x,
                                                                     ship.location.y,
                                                                     ship.location.z));
@@ -1139,7 +1173,12 @@ function Ship(args){
   // some text to render in details box on click
   this.details = function(){
     var details = ['Ship: ' + this.id + '<br/>',
-                   '@ ' + this.location.to_s() + '<br/>'];
+                   '@ ' + this.location.to_s() + '<br/>',
+                   "Resources: <br/>"];
+    for(var r in this.resources){
+      var res = this.resources[r];
+      details.push(res.quantity + " of " + res.material_id + "<br/>")
+    }
 
     if(this.belongs_to_current_user()){
       details.push("<span id='cmd_move_select' class='commands'>move</span>");
@@ -1175,6 +1214,7 @@ function Ship(args){
           var entities = Entities().select(function(e) {
             return e.json_class == 'Manufactured::Ship'            &&
                    e.user_id    != Session.current_session.user_id &&
+                   e.hp > 0 &&
                    e.location.is_within(ship.attack_distance, ship.location);
           });
 
@@ -1291,7 +1331,11 @@ function Ship(args){
     $('#cmd_transfer').live('click', function(e){
       Commands.transfer_resources(ship, ship.docked_at.id,
                                   function(res){
-                                    ship.raise_event('cmd_transfer', ship);
+                                    if(!res.error){
+                                      var sh = res.result[0];
+                                      var st = res.result[1];
+                                      ship.raise_event('cmd_transfer', sh, st);
+                                    }
                                   });
     })
 
@@ -1380,6 +1424,7 @@ function Station(args){
 
     if(args.location && this.location){
       this.location.update(args.location);
+      delete args.location;
     }
 
     // do not update components from args
@@ -1423,7 +1468,7 @@ function Station(args){
     UIResources().cached('station_'+station.type+'_mesh_geometry',
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[station.type]['geometry'];
-        UIResources().load_json(path, function(geo){
+        UIResources().load_geometry(path, function(geo){
           station.mesh_geometry = geo;
           UIResources().set('station_'+station.type+'_mesh_geometry', station.mesh_geometry);
           station.create_mesh();
@@ -1436,7 +1481,13 @@ function Station(args){
   // some text to render in details box on click
   this.details = function(){
     var details = ['Station: ' + this.id + '<br/>',
-                   '@ ' + this.location.to_s() + '<br/>'];
+                   '@ ' + this.location.to_s() + '<br/>',
+                   "Resources: <br/>"];
+    for(var r in this.resources){
+      var res = this.resources[r];
+      details.push(res.quantity + " of " + res.material_id + "<br/>")
+    }
+
     if(this.belongs_to_current_user())
       details.push("<span id='cmd_construct' class='commands'>construct</span>");
     return details;

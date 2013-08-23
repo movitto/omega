@@ -169,7 +169,7 @@ module EnvEntity
   attr_accessor :background
 
   def init_env_entity(args = {})
-    attr_from_args args, :background => rand(self.class::NUM_BACKGROUNDS)
+    attr_from_args args, :background => (rand(self.class::NUM_BACKGROUNDS) + 1)
   end
 
   # Return env entity json attributes

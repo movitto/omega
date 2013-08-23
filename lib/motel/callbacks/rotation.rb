@@ -21,8 +21,19 @@ class Rotation < Omega::Server::Callback
 
   # Helper get rotation
   def get_rotation(loc)
-    Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
-                        @axis_x, @axis_y, @axis_z)
+    if !(@axis_x.nil? || @axis_y.nil? || @axis_z.nil?)
+      Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
+                          @axis_x, @axis_y, @axis_z)
+
+    # if axis angle is nil/invalid and location movement strategy includes
+    # rotate movement strategy mixin, use axis of rotation
+    elsif loc.ms.class.ancestors.include?(Motel::MovementStrategies::Rotatable)
+      Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
+                          loc.ms.rot_x, loc.ms.rot_y, loc.ms.rot_z)
+       
+    else
+      0 # throw err or other?
+    end
   end
 
   # Helper - return bool indicating if min rotation requirement is set
@@ -44,9 +55,13 @@ class Rotation < Omega::Server::Callback
   #   needs to undergo before handler in invoked
   def initialize(args = {}, &block)
     attr_from_args args, :rot_theta => 0,
-                         :axis_x    => 0,
-                         :axis_y    => 0,
-                         :axis_z    => 1
+                         :axis_x    => nil,
+                         :axis_y    => nil,
+                         :axis_z    => nil
+    @axis_x = @axis_x.to_f unless @axis_x.nil?
+    @axis_y = @axis_y.to_f unless @axis_y.nil?
+    @axis_z = @axis_z.to_f unless @axis_z.nil?
+
     @orig_ox = @orig_oy = @orig_oz = nil
 
     # only run handler if minimums are met

@@ -93,6 +93,7 @@ class Mining < Omega::Server::Command
 
   def first_hook
     @ship.start_mining(@resource)
+    update_registry(@ship)
   end
 
   def before_hook

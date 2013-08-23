@@ -128,6 +128,7 @@ module Manufactured::RJR
       end
 
       # update the entity in the registry
+      entity.location = loc
       registry.update(entity, &with_id(entity.id))
     end
 

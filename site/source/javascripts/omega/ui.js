@@ -23,10 +23,10 @@ function UI(){
   this.entity_container    = new EntityContainer();
 
   this.locations_container = new EntitiesContainer({div_id : '#locations_list'});
-  this.locations_container.sort = function(a,b){ a.item.json_class < b.item.json_class };
+  this.locations_container.list.sort = function(a,b){ return a.item.json_class > b.item.json_class };
 
   this.entities_container  = new EntitiesContainer({div_id : '#entities_list'});
-  this.entities_container.sort = function(a,b){ a.item.json_class < b.item.json_class };
+  this.entities_container.list.sort = function(a,b){ return a.item.json_class < b.item.json_class };
 
   this.missions_button     = new UIComponent();
   this.missions_button.div_id = '#missions_button';
@@ -64,7 +64,7 @@ function UIResources(){
    */
   _this.load_texture = function(path){
     // TODO cache path locally ?
-    return THREE.ImageUtils.loadTexture(path, function(t){
+    return THREE.ImageUtils.loadTexture(path, {}, function(t){
       _this.raise_event('texture_loaded', t)
     });
   }
@@ -78,7 +78,7 @@ function UIResources(){
     var image = new Image();
     image.onload = function () {
       texture.needsUpdate = true;
-      material.map.image = _this;
+      material.map.image = this;
       _this.raise_event('texture_loaded', _this)
     };
     image.src = path;
@@ -686,7 +686,7 @@ function Scene(args){
         this.add_entity(child);
     }
 
-    this.raise_event('set');
+    this.raise_event('set', entity);
     this.animate();
   }
 
@@ -1418,27 +1418,21 @@ function Dialog(args){
 /* Instantiate and return a new Entities Container
  */
 function EntitiesContainer(args){
-  $.extend(this, new UIListComponent(args));
+  $.extend(this, new UIComponent(args));
 
   this.div_id = args['div_id'];
-  this.item_wrapper = 'li';
 
-  /* XXX override component to return ul under div
-   * @override
-   */
-  this.component = function(){
-    if(this._list_component == null)
-      this._list_component = $(this.div_id + ' ul')
-    return this._list_component;
-  }
+  this.list = new UIListComponent();
+  this.list.div_id = this.div_id + ' ul';
+  this.list.item_wrapper = 'li';
 
   // show entities container on hover
   this.on('mouseenter', function(c, e){
-    this.show();
+    this.list.show();
     //this.component().css('z-index', 1)
   });
   this.on('mouseleave', function(c, e){
-    this.hide();
+    this.list.hide();
   });
 }
 

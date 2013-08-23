@@ -342,7 +342,8 @@ class Ship
   #
   # @param [Manufactured::Ship] ship ship which to copy attributes from
   def update(ship)
-    update_from(ship, :hp, :shield_level, :distance_moved, :resources, :solar_system)
+    update_from(ship, :hp, :shield_level, :distance_moved, :resources,
+                      :solar_system, :location, :mining, :attacking)
   end
 
   # Return boolean indicating if this ship is valid

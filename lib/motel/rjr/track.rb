@@ -36,12 +36,13 @@ def cb_from_args(rjr_method, args)
     ay = args.shift
     az = args.shift
     raise ArgumentError,
-      "rotation axis must be normalized" unless Motel.normalized?(ax, ay, az)
+      "rotation axis must be normalized" unless ax.nil? || ay.nil? || az.nil? ||
+                                                Motel.normalized?(ax, ay, az)
 
     Callbacks::Rotation.new :rot_theta    => rt.to_f,
-                            :axis_x       => ax.to_f,
-                            :axis_y       => ay.to_f,
-                            :axis_z       => az.to_f,
+                            :axis_x       => ax,
+                            :axis_y       => ay,
+                            :axis_z       => az,
                             :rjr_event    => 'motel::on_rotation',
                             :event_type   => :rotation
                              

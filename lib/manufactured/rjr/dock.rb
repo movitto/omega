@@ -50,6 +50,9 @@ dock = proc { |ship_id, station_id|
   # TODO optinally set position of ship in proximity of station
   ship.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
   node.invoke('motel::update_location', ship.location)
+
+  # XXX set docked at of ship we're returning
+  ship.docked_at = station
   
   # return ship
   ship

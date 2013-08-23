@@ -56,6 +56,7 @@ class Attack < Omega::Server::Command
 
   def first_hook
     @attacker.start_attacking(@defender)
+    # FIXME update_registry(@attacker) ?
   end
 
   def before_hook

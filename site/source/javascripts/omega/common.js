@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/three"
+
 /* Create new array from args
  * http://shifteleven.com/articles/2007/06/28/array-like-objects-in-javascript
  */
@@ -104,21 +106,21 @@ var elliptical_path = function(ms){
   var path = [];
 
   // intercepts
-  var a = ms.semi_latus_rectum / (1 - Math.pow(ms.eccentricity, 2));
+  var a = ms.p / (1 - Math.pow(ms.e, 2));
 
-  var b = Math.sqrt(ms.semi_latus_rectum * a);
+  var b = Math.sqrt(ms.p * a);
 
   // linear eccentricity
   var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
 
   // center (assumes planet's location's movement_strategy.relative to is set to foci
-  var cx = -1 * ms.direction_major_x * le;
-  var cy = -1 * ms.direction_major_y * le;
-  var cz = -1 * ms.direction_major_z * le;
+  var cx = -1 * ms.dmajx * le;
+  var cy = -1 * ms.dmajy * le;
+  var cz = -1 * ms.dmajz * le;
 
   // axis rotation
-  var nv = cp(ms.direction_major_x, ms.direction_major_y, ms.direction_major_z,
-              ms.direction_minor_x, ms.direction_minor_y, ms.direction_minor_z);
+  var nv = cp(ms.dmajx, ms.dmajy, ms.dmajz,
+              ms.dminx, ms.dminy, ms.dminz);
   var ab = abwn(0, 0, 1, nv[0], nv[1], nv[2]);
   var ax = cp(0, 0, 1, nv[0], nv[1], nv[2])
 

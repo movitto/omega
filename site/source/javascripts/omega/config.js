@@ -26,7 +26,7 @@ $omega_config = {
   planet_movement   :          50,
 
   // stats
-  stats             : [['num_of', 'users'], ['most_entities', 10]],
+  stats             : [['num_of', 'users'], ['with_most', 'entities', 10]],
 
   // gfx
   resources    : { 'mining'       : { 'material' : '/meshes/pirateghost/ghostmap_png.png',
