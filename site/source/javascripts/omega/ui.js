@@ -9,6 +9,7 @@
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
 //= require "vendor/md5"
+//= require "vendor/jquery.timer"
 
 /* Instantiate and return a new UI
  */
@@ -560,6 +561,7 @@ function Canvas(args){
 function Scene(args){
   /////////////////////////////////////// public data
   $.extend(this, new UIComponent(args));
+  var _this = this;
 
   this.div_id = null;
   this.entities = {};
@@ -578,6 +580,17 @@ function Scene(args){
   this.subcomponents.push(this.camera)
   this.subcomponents.push(this.axis)
   this.subcomponents.push(this.grid)
+
+  // setup a timer to run particle subsystems
+  this.particle_timer =
+    $.timer(function(){
+      for(var c in _this._scene.__objects){
+        var obj = _this._scene.__objects[c];
+        if(obj.update_particles)
+          obj.update_particles();
+      }
+      _this.animate();
+    }, 250, false);
 
   if(Scene.renderer == null){
     // TODO configurable renderer

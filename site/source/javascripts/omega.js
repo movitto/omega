@@ -1000,6 +1000,9 @@ var wire_up_canvas = function(ui, node){
     // reset the camera
     ui.canvas.scene.camera.reset();
   });
+
+  // start the particle subsystem
+  ui.canvas.scene.particle_timer.play();
 }
 
 ////////////////////////////////////////// chat

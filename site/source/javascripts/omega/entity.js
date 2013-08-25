@@ -108,6 +108,9 @@ function Location(args){
   $.extend(this, new Entity(args));
   this.json_class = 'Motel::Location';
 
+  // ignore movement strategy so as to not have to
+  // convert into object to be able to send it to the server
+  // (otherwise we'll get parsing errs)
   this.ignore_properties.push('movement_strategy');
 
   /* Return distance location is from the specified x,y,z
@@ -915,8 +918,9 @@ function Ship(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Manufactured::Ship';
   var ship = this;
+  this.json_class = 'Manufactured::Ship';
+  this.ignore_properties.push('trails');
 
   this.location = new Location(this.location);
 
@@ -945,12 +949,40 @@ function Ship(args){
     if(args.location && this.location){
       this.location.update(args.location);
 
+      // XXX since Location ignore movement strategy need
+      // to manually updatei t here
+      if(args.location.movement_strategy)
+        this.location.movement_strategy = args.location.movement_strategy;
+
       if(this.mesh){
         this.mesh.position.x = this.location.x;
         this.mesh.position.y = this.location.y;
         this.mesh.position.z = this.location.z;
 
-        this.set_orientation(this.mesh)
+        this.set_orientation(this.mesh, true)
+      }
+
+    var to_remove = [];
+
+
+      if(this.trails){
+        for(var t in this.trails){
+          var trail = this.trails[t];
+          var conf_trail = $omega_config.resources[ship.type].trails[t];
+          trail.position.x = this.location.x + conf_trail[0];
+          trail.position.y = this.location.y + conf_trail[1];
+          trail.position.z = this.location.z + conf_trail[2];
+          this.set_orientation(trail, false);
+
+          if(this.location.movement_strategy.json_class ==
+             'Motel::MovementStrategies::Stopped'){
+             if(this.components.indexOf(trail) != -1)
+               to_remove.push(trail);
+
+          }else if(this.components.indexOf(trail) == -1){
+            this.components.push(trail);
+          }
+        }
       }
 
       if(this.attack_line){
@@ -968,8 +1000,6 @@ function Ship(args){
       delete args.location;
 
     }
-
-    var to_remove = [];
 
     // handle attack state changes
     if(args.attacking){
@@ -1027,16 +1057,16 @@ function Ship(args){
 
   /* helper to set orientation
    */
-  this.set_orientation = function(mesh){
+  this.set_orientation = function(component, is_mesh){
     // apply base mesh rotation
     var rotation = $omega_config.resources[this.type].rotation
-    mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+    component.rotation.x = component.rotation.y = component.rotation.z = 0;
     if(rotation){
-      mesh.rotation.x = rotation[0];
-      mesh.rotation.y = rotation[1];
-      mesh.rotation.z = rotation[2];
+      component.rotation.x = rotation[0];
+      component.rotation.y = rotation[1];
+      component.rotation.z = rotation[2];
     }
-    mesh.matrix.setRotationFromEuler(mesh.rotation);
+    component.matrix.setRotationFromEuler(component.rotation);
 
     // set location orientation
     var oax = cp(0, 0, 1, this.location.orientation_x,
@@ -1050,8 +1080,21 @@ function Ship(args){
     // TODO expand this to cover all cases where oab > 1.57 or < -1.57
     if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
     var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
-    orm.multiplySelf(mesh.matrix);
-    mesh.rotation.setEulerFromRotationMatrix(orm);
+    orm.multiplySelf(component.matrix);
+    component.rotation.setEulerFromRotationMatrix(orm);
+
+    // rotate everything other than mesh around mesh itself
+    if(!is_mesh && Math.abs(oab) > 0.0001){
+      // component position is relative to world, need to translate 
+      // it to being relative to mesh before rotating (and after again)
+      var pos = rot(component.position.x - this.location.x,
+                    component.position.y - this.location.y,
+                    component.position.z - this.location.z,
+                    oab, oax[0], oax[1], oax[2])
+      component.position.x = pos[0] + this.location.x;
+      component.position.y = pos[1] + this.location.y;
+      component.position.z = pos[2] + this.location.z;
+    }
   }
 
   // instantiate mesh to draw ship on canvas
@@ -1072,7 +1115,7 @@ function Ship(args){
             mesh.scale.z = scale[2];
           }
 
-          ship.set_orientation(mesh);
+          ship.set_orientation(mesh, true);
           return mesh;
         });
 
@@ -1106,6 +1149,69 @@ function Ship(args){
       });
 
   this.create_mesh();
+
+  // create trail at the specified coordinate relative to ship
+  this.create_trail = function(x,y,z){
+    //// create a particle system for ship trail
+
+    var plane = 5, lifespan = 20;
+    var pMaterial =
+      new THREE.ParticleBasicMaterial({
+        color: 0xFFFFFF, size: 20,
+        map: UIResources().load_texture("images/particle.png"),
+        blending: THREE.AdditiveBlending, transparent: true
+      });
+
+    var particles = new THREE.Geometry();
+    for(var i = 0; i < plane; ++i){
+      for(var j = 0; j < plane; ++j){
+        var pv = new THREE.Vector3(i, j, 0);
+        pv.velocity = Math.random();
+        pv.lifespan = Math.random() * lifespan;
+        if(i >= plane / 4 && i <= 3 * plane / 4 &&
+           j >= plane / 4 && j <= 3 * plane / 4 ){
+             pv.lifespan *= 2;
+             pv.velocity *= 2;
+        }
+        pv.olifespan = pv.lifespan;
+        particles.vertices.push(pv)
+      }
+    }
+
+    var particleSystem = new THREE.ParticleSystem(particles, pMaterial);
+    particleSystem.position.x = x;
+    particleSystem.position.y = y;
+    particleSystem.position.z = z;
+    particleSystem.sortParticles = true;
+
+    particleSystem.update_particles = function(){
+      var p = plane*plane;
+      while(p--){
+        var pv = this.geometry.vertices[p]
+        pv.z -= pv.velocity;
+        pv.lifespan -= 1;
+        if(pv.lifespan < 0){
+          pv.z = 0;
+          pv.lifespan = pv.olifespan;
+        }
+      }
+      this.geometry.__dirtyVertices = true;
+    }
+
+    return particleSystem;
+  }
+
+  var trails = $omega_config.resources[ship.type].trails;
+  if(trails){
+    this.trails = [];
+    for(var t in trails){
+      var trail  = trails[t];
+      var ntrail = this.create_trail(trail[0], trail[1], trail[2])
+      this.trails.push(ntrail);
+      // TODO push unless stopped
+      //this.components.push(ntrail);
+    }
+  }
 
   // setup attack vector
   var line_material =
