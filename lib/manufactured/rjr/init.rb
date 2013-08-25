@@ -92,6 +92,9 @@ module Manufactured::RJR
   ######################################## Callback methods
 
   # callback to track_movement and track_rotation in move_entity
+  #
+  # FIXME while this is being processed entity may have rotated/moved
+  # additional times, any way to correct this?
   motel_event = proc { |loc|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
 

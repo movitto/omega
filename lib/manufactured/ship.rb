@@ -86,7 +86,7 @@ class Ship
     # XXX: if this is too large, rotation callback will be thrown off
     #      as entity may have rotated passed specified distance in
     #      movement interval
-    Math::PI / 8
+    Math::PI / 32
   end
 
   # @!endgroup
