@@ -946,11 +946,13 @@ function Ship(args){
   this.update = function(oargs){
     var args = $.extend({}, oargs); // copy args
 
+    var to_remove = [];
+
     if(args.location && this.location){
       this.location.update(args.location);
 
       // XXX since Location ignore movement strategy need
-      // to manually updatei t here
+      // to manually update it here
       if(args.location.movement_strategy)
         this.location.movement_strategy = args.location.movement_strategy;
 
@@ -958,11 +960,8 @@ function Ship(args){
         this.mesh.position.x = this.location.x;
         this.mesh.position.y = this.location.y;
         this.mesh.position.z = this.location.z;
-
         this.set_orientation(this.mesh, true)
       }
-
-    var to_remove = [];
 
 
       if(this.trails){
@@ -1037,10 +1036,31 @@ function Ship(args){
         e.components.splice(e.components.indexOf(to_remove[r]), 1);
     });
 
+    // update visual attributes depending on if ship is selected
+    if(this.mesh){
+      if(this.selected){
+        if(typeof this.origEmissive === "undefined" ||
+                  this.origEmissive == null)
+          this.origEmissive = this.mesh.material.emissive.getHex();
+        this.mesh.material.emissive.setHex(0xff0000);
+      }else{
+        if(typeof this.origEmissive !== "undefined" &&
+                  this.origEmissive != null){
+          this.mesh.material.emissive.setHex(this.origEmissive);
+          this.origEmissive = null;
+        }
+      }
+    }
+
     // do not update components from args
     if(args.components) delete args.components;
 
     this.old_update(args);
+  }
+
+  this.refresh = function(){
+    // trigger a blank update to refresh components from current state
+    this.update({});
   }
 
   // XXX run new update method
@@ -1133,7 +1153,10 @@ function Ship(args){
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[ship.type]['material'];
         var t = UIResources().load_texture(path);
-        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
+        // lambert material is more resource intensive than basic and
+        // requires a light source but is needed to modify emissive
+        // properties for selection indication in update above
+        return new THREE.MeshLambertMaterial({map: t, overdraw: true});
       });
 
   this.mesh_geometry =
@@ -1453,8 +1476,11 @@ function Ship(args){
                             });
     })
 
-    // change color
+    // toggle selected
     this.selected = true;
+
+    // refresh the ship
+    this.refresh();
 
     // reload ship in scene
     scene.reload_entity(this);
@@ -1464,6 +1490,7 @@ function Ship(args){
    */
   this.unselected_in = function(scene){
     this.selected = false;
+    this.refresh(); // refresh ship components
     scene.reload_entity(this);
   }
 

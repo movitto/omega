@@ -789,6 +789,11 @@ function Scene(args){
   this.position = function(){
     return this._scene.position;
   }
+
+// FIXME: temp hack to create a global light so all lambert materials
+//        render properly. Add a better lighting system in the future
+var light = new THREE.AmbientLight(0xFFFFFF);
+this._scene.add(light);
 }
 
 /* Instantiate and return a new Camera
