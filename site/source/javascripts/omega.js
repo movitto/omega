@@ -834,9 +834,14 @@ var wire_up_entities_lists = function(ui, node){
     set_scene(ui, node, i.item);
   });
 
-  // set scene and focus on entity when entity is clicked
+  // when entity is clicked: set scene, focus on entity, call clicked handler
   ui.entities_container.list.on('click_item', function(c, i, e){
     set_scene(ui, node, i.item.solar_system, i.item.location);
+
+    // XXX keep this in sync w/ operations in scene.clicked in ui.js
+    //     or abstract this functionality into seperate method (where to place?)
+    i.item.clicked_in(ui.canvas.scene)
+    i.item.raise_event('click', ui.canvas.scene)
   });
 
   // popup dialog w/ missions info when missions button is clicked
