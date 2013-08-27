@@ -1685,3 +1685,26 @@ function AccountInfoContainer(args){
                                     description + ': ' + (rank+1)+"</div>");
   }
 }
+
+// wrapers a jplayer instence to play audio effects
+function EffectsPlayer(args){
+  this.path = args.path;
+
+  this.div_id = '#effects_jplayer';
+  this._player = 
+    $(this.div_id).jPlayer({
+      cssSelectorAncestor: '#effects_jplayer_container',
+      swfPath: "js", supplied: "wav"
+    });
+
+  this.play = function(media){
+    if(this.current_media != media){
+      this._player.
+           jPlayer("setMedia" , { wav: this.path + media });
+      this.current_media = media;
+    }
+
+    // TODO support audio sprites / starting time param
+    this._player.jPlayer("play", { loop : false });
+  }
+}

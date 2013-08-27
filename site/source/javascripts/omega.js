@@ -458,6 +458,8 @@ var clicked_ship = function(ui, node, ship){
   // currently these events only apply to those w/ modify privs on the ship
   if(!ship.belongs_to_current_user()) return;
 
+  //ui.effects_player.play("selection.wav")
+
   // clear callbacks
   var select_cmds =
     ['cmd_move_select', 'cmd_attack_select',
@@ -822,6 +824,9 @@ var wire_up_jplayer = function(ui, node){
           [{ title: "track1", wav: audio_path + "/simple2.wav" },
            { title: "track2", wav: audio_path + "/simple4.wav" }],
           {swfPath: "js", supplied: "wav", loop: "true"});
+
+  ui.effects_player =
+    new EffectsPlayer({path: audio_path + "/effects/"});
 };
 
 ////////////////////////////////////////// entities lists
