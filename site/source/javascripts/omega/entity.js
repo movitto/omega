@@ -963,7 +963,6 @@ function Ship(args){
         this.set_orientation(this.mesh, true)
       }
 
-
       if(this.trails){
         for(var t in this.trails){
           var trail = this.trails[t];
@@ -973,7 +972,8 @@ function Ship(args){
           trail.position.z = this.location.z + conf_trail[2];
           this.set_orientation(trail, false);
 
-          if(this.location.movement_strategy.json_class ==
+          if(!this.location.movement_strategy ||
+             this.location.movement_strategy.json_class ==
              'Motel::MovementStrategies::Stopped'){
              if(this.components.indexOf(trail) != -1)
                to_remove.push(trail);
@@ -984,10 +984,10 @@ function Ship(args){
         }
       }
 
-      if(this.attack_line){
-        this.attack_line_geo.vertices[0].x = this.location.x;
-        this.attack_line_geo.vertices[0].y = this.location.y;
-        this.attack_line_geo.vertices[0].z = this.location.z;
+      if(this.attack_particles){
+        this.attack_particles.position.x = this.location.x;
+        this.attack_particles.position.y = this.location.y;
+        this.attack_particles.position.z = this.location.z;
       }
 
       if(this.mining_line){
@@ -1002,16 +1002,17 @@ function Ship(args){
 
     // handle attack state changes
     if(args.attacking){
-      if(this.attack_line){
-        if(this.components.indexOf(this.attack_line) == -1)
-          this.components.push(this.attack_line);
+      if(this.attack_particles){
+        if(this.components.indexOf(this.attack_particles) == -1)
+          this.components.push(this.attack_particles);
 
-        this.attack_line_geo.vertices[1].x = args.attacking.location.x;
-        this.attack_line_geo.vertices[1].y = args.attacking.location.y;
-        this.attack_line_geo.vertices[1].z = args.attacking.location.z;
+        this.refresh_attack_particles(this.attack_particles.geometry,
+                                      args.attacking.location)
       }
-    }else if(this.attacking && this.attack_line){
-      to_remove.push(this.attack_line)
+
+    }else if(this.attacking){
+      if(this.attack_particles)
+        to_remove.push(this.attack_particles)
     }
 
     // handle mining state changes
@@ -1060,7 +1061,7 @@ function Ship(args){
 
   this.refresh = function(){
     // trigger a blank update to refresh components from current state
-    this.update({});
+    this.update(this);
   }
 
   // XXX run new update method
@@ -1176,15 +1177,18 @@ function Ship(args){
   // create trail at the specified coordinate relative to ship
   this.create_trail = function(x,y,z){
     //// create a particle system for ship trail
-
     var plane = 5, lifespan = 20;
     var pMaterial =
-      new THREE.ParticleBasicMaterial({
-        color: 0xFFFFFF, size: 20,
-        map: UIResources().load_texture("images/particle.png"),
-        blending: THREE.AdditiveBlending, transparent: true
-      });
+      UIResources().cached('ship_tail_material',
+        function(i) {
+          return new THREE.ParticleBasicMaterial({
+                       color: 0xFFFFFF, size: 20,
+                       map: UIResources().load_texture("images/particle.png"),
+                       blending: THREE.AdditiveBlending, transparent: true });
+        });
 
+    // FIXME cache this & particle system (requires a cached instance
+    // for each ship tail created)
     var particles = new THREE.Geometry();
     for(var i = 0; i < plane; ++i){
       for(var j = 0; j < plane; ++j){
@@ -1241,28 +1245,83 @@ function Ship(args){
     UIResources().cached('ship_attacking_material',
       function(i) {
         return new THREE.LineBasicMaterial({color: 0xFF0000 })
-
       });
 
-  this.attack_line_geo =
-    UIResources().cached('ship_'+this.id+'_attacking_geometry',
-                         function(i) {
-                           var geometry = new THREE.Geometry();
-                           var av = ship.attacking ?
-                                    ship.attacking.location : {x:0, y:0, z:0};
-                           geometry.vertices.push(new THREE.Vector3(ship.location.x,
-                                                                    ship.location.y,
-                                                                    ship.location.z));
-                           geometry.vertices.push(new THREE.Vector3(av[0], av[1], av[2]));
+  var particle_material =
+    UIResources().cached('ship_attacking_particle_material',
+      function(i) {
+        return new THREE.ParticleBasicMaterial({
+                     color: 0xFF0000, size: 50,
+                     map: UIResources().load_texture("images/particle.png"),
+                     blending: THREE.AdditiveBlending, transparent: true });
+      });
 
-                           return geometry;
-                         });
-  this.attack_line =
-    UIResources().cached('ship_'+this.id+'_attacking_line',
-                         function(i) {
-                           var line = new THREE.Line(ship.attack_line_geo, line_material);
-                           return line;
-                         });
+  this.refresh_attack_particles = function(geo, target_loc){
+    var dist = this.location.distance_from(target_loc.x,
+                                           target_loc.y,
+                                           target_loc.z);
+    var dx = Math.abs(this.location.x - target_loc.x);
+    var dy = Math.abs(this.location.y - target_loc.y);
+    var dz = Math.abs(this.location.z - target_loc.z);
+
+    // 5 unit particle + 25 unit spacer
+    var num = dist / 30;
+    geo.scalex = 30 / dist * dx;
+    geo.scaley = 30 / dist * dy;
+    geo.scalez = 30 / dist * dz;
+
+    for(var i = 0; i < num; ++i){
+      var vert = new THREE.Vector3(this.location.x + i * geo.scalex,
+                                   this.location.y + i * geo.scaley,
+                                   this.location.z + i * geo.scalez);
+      if(geo.vertices.length > i)
+        geo.vertices[i] = vert;
+      else
+        geo.vertices.push(vert);
+    }
+  }
+
+  var particle_geo =
+    UIResources().cached('ship_' + this.id + '_attacking_particle_geometry',
+      function(i) {
+        var geo = new THREE.Geometry();
+        if(ship.attacking){
+          ship.refresh_attack_particles(geo, ship.attacking.location);
+        }
+        return geo;
+      });
+
+  this.attack_particles =
+    UIResources().cached('ship_' + this.id + '_attacking_particle_system',
+      function(i){
+        var particleSystem =
+          new THREE.ParticleSystem(particle_geo,
+                                   particle_material);
+        particleSystem.position.x = ship.location.x;
+        particleSystem.position.y = ship.location.y;
+        particleSystem.position.z = ship.location.z;
+        particleSystem.sortParticles = true;
+
+        particleSystem.update_particles = function(){
+          for(var p in this.geometry.vertices){
+            var v = this.geometry.vertices[p];
+            var s = Math.random();
+            v.x += this.geometry.scalex + s;
+            v.y += this.geometry.scaley + s;
+            v.z += this.geometry.scalez + s;
+            v.num += 1;
+
+            if(ship.attacking.location.distance_from(v.x, v.y, v.z) < 30){
+              v.x = ship.location.x;
+              v.y = ship.location.y;
+              v.z = ship.location.z;
+            }
+          }
+          this.geometry.__dirtyVertices = true;
+        };
+
+        return particleSystem;
+      });
 
   var line_material =
     UIResources().cached('ship_mining_material',
@@ -1292,8 +1351,9 @@ function Ship(args){
 
 
   // draw attack vector if attacking
-  if(this.attacking)
-    this.components.push(this.attack_line);
+  if(this.attacking){
+    this.components.push(this.attack_particles);
+  }
 
   // draw mining vector if mining
   else if(this.mining)
