@@ -29,6 +29,10 @@ pavlov.specify("omega.js", function(){
         sinon.stub(Session, 'restore_from_cookie').returns(session);
       })
 
+      //context("session user is anon user", function(){
+        // it("logs in as anon"); NYI
+      //})
+
       it("sets headers on node", function(){
         var spy = sinon.spy(session, 'set_headers_on');
         restore_session(new UI(), new TestNode());
@@ -73,6 +77,8 @@ pavlov.specify("omega.js", function(){
     after(function(){
       if(Session.login.restore) Session.login.restore();
     })
+
+    // it("sets global node");  // NIY
 
     it("logs in anon user using session", function(){
       var spy = sinon.spy(Session, 'login');
@@ -253,6 +259,8 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(spy, 5, s.location);
     })
 
+    // it("appends location- prefix to location registry id"); // NIY
+
     it("adds entity to entities container", function(){
       var ui = new UI();
       var spy = sinon.spy(ui.entities_container, 'add_item');
@@ -395,6 +403,8 @@ pavlov.specify("omega.js", function(){
         cb.apply(null, [sys]);
         assert(s.solar_system).equals(sys);
       });
+
+      // it("refreshes entity"); NIY
     });
   });
 
@@ -731,6 +741,10 @@ pavlov.specify("omega.js", function(){
         })
       });
     });
+
+    //context("one of affected entities is currently selected", function(){
+    //  it("refreshes entity container"); // NIY
+    //})
   });
 
   //describe("#process_stats", function(){ // NIY
@@ -989,6 +1003,7 @@ pavlov.specify("omega.js", function(){
     });
 
     describe("on resource retrieval", function(){
+      // TODO test multiple resources
       it("appends resource information to entity container", function(){
         var spy1 = sinon.spy(node, 'web_request');
         var ast = new Asteroid({ id : 'ast1' });
@@ -1124,6 +1139,12 @@ pavlov.specify("omega.js", function(){
         });
       });
     });
+
+    //describe("on transfer command", function(){
+      //it("updates ship"); // NIY
+      //it("updates station"); // NIY
+      //it("refreshes entity container") // NIY
+    //})
   });
 
   //describe("#clicked_station", function(){ // NIY
@@ -1486,6 +1507,10 @@ pavlov.specify("omega.js", function(){
         cb.apply(null, [null, {item : {solar_system : sys, location : loc}}, null]);
         sinon.assert.calledWith(set_scene, ui, sys, loc);
       });
+
+      // it("focuses scene on entity")
+      // it("runs entity clicked_in method")
+      // it("raises entity 'click' event")
     });
 
     it("handles missions button click events", function(){
@@ -1597,7 +1622,7 @@ pavlov.specify("omega.js", function(){
     });
 
     describe("root entity is a solar system", function(){
-      it("clears child planet callbacks", function(){
+      it("clears child planet location callbacks", function(){
         var spies = [];
         for(var p in sys.planets)
           spies.push(sinon.spy(sys.planets[p], 'clear_callbacks'))
@@ -1794,6 +1819,8 @@ pavlov.specify("omega.js", function(){
         sinon.assert.called(spy);
       });
     });
+
+    //it("starts particle timer") // NIY
   });
 
   describe("#wire_up_chat", function(){

@@ -107,6 +107,8 @@ module Manufactured::RJR
                               Motel::MovementStrategies::Stopped.instance
       end
 
+      it "sets docket_at on ship to return"
+
       it "returns ship" do
         r = @s.dock @sh.id, @st.id
         r.should be_an_instance_of(Ship)

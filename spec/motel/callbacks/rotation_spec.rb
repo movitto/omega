@@ -38,6 +38,20 @@ describe Rotation do
         end
       end
     end
+
+    context "axis not set" do
+      context "location movement strategy is includes Rotatable mixin" do
+        context "location rotated by at least specified angle along its rotation axis" do
+          it "returns true"
+        end
+
+        context "location did not rotate by minimum angle along its rotation axis" do
+          it "returns false"
+        end
+      end
+
+      it "returns false"
+    end
   end
 
   describe "#invoke" do

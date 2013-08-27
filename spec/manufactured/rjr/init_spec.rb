@@ -101,7 +101,7 @@ module Manufactured::RJR
       end
     end
 
-    it "updates entity from location"
+    it "updates entity with location"
 
     it "returns nil"
   end

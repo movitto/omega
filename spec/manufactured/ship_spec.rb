@@ -139,6 +139,9 @@ describe Ship do
     it "updates ship distance moved"
     it "updates ship resources"
     it "updates ship solar system"
+    it "updates ship location"
+    it "updates ship mining target"
+    it "updates ship attack target"
     it "ignores other properties"
   end
 

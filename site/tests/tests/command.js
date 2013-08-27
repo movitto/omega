@@ -53,6 +53,8 @@ describe("ServerEvents", function(){
         //sinon.assert.calledWith(spy, 'motel::on_movement', with_id(42))
       })
 
+      //it("appends location- to id of location before looking up"); // NIY
+
       it("raises server event on entity", function(){
         var entity = new Entity();
         var spy = sinon.spy(entity, 'raise_event');
@@ -206,7 +208,7 @@ describe("Events", function(){
     it("invokes manufactured::subscribe_to destroyed", function(){
       var spy = sinon.spy(Entities().node(), 'ws_request')
       Events.track_defense('ship1')
-      sinon.assert.calledWith(spy, 'manufactured::subscribe_to', 'ship1', 'destroyed')
+      sinon.assert.calledWith(spy, 'manufactured::subscribe_to', 'ship1', 'destroyed_by')
     })
   })
 
@@ -515,6 +517,8 @@ describe("Commands", function(){
     before(function(){
       st = new Station({id : 'station1'})
     });
+
+    //it("generates new uuid for new entity"); // NIY
 
     it("invokes manufactured::construct_entity", function(){
       var spy = sinon.spy(Entities().node(), 'web_request');

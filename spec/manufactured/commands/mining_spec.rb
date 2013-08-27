@@ -84,6 +84,8 @@ describe Mining do
       s.should_receive(:start_mining).with(r)
       m.first_hook
     end
+
+    it "updates registry ship"
   end
 
   describe "#before_hook" do

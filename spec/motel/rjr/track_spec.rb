@@ -208,6 +208,10 @@ module Motel::RJR
             @s.track_handler l.id, 1.57, 0.75, 0, 0
           }.should raise_error(ArgumentError)
         end
+
+        context "rotation axis is null" do
+          it "does not raise ArgumentError"
+        end
       end
     end
 

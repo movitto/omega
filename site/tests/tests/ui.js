@@ -630,6 +630,13 @@ describe("Scene", function(){
     assert(scene.grid).isTypeOf(Grid);
   })
 
+  //it("creates timer to run particle systems") // NIY
+
+  //context("particle timer event", function(){
+    //it("runs update_particles on all scene objects which define it") // NIY
+    //it("animates scene") // NIY
+  //})
+
   describe("#set_size", function(){
     it("it sets THREE renderer size", function(){
       var spy = sinon.spy(scene.renderer, 'setSize');
@@ -1237,6 +1244,8 @@ describe("EntitiesContainer", function(){
     ec = new EntitiesContainer({div_id : '#test_ec'});
   })
 
+  //it("encapsulates list subcomponent"); // NIY
+
   it("wraps item list in a ul", function(){
     ec.add_text("foobar")
     assert(ec.component().selector).equals('#test_ec ul');
@@ -1460,3 +1469,9 @@ describe("NavContainer", function(){
 //    it("it adds badge to ui"); // NIY
 //  });
 //});}); // AccountInfoContainer
+//
+//pavlov.specify("EffectsContainer", function(){
+//describe("EffectsContainer", function(){
+//  it("TODO"); // NIY
+//});
+//});

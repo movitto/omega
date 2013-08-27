@@ -502,19 +502,52 @@ describe("Ship", function(){
     assert(sh.location).isTypeOf(Location)
   });
 
+  //describe("#resolve_mining_target", function(){
+    //it("resolves mining target from local registry") // NIY
+  //})
+
+  //describe("#resolve_attack_target", function(){
+    //it("resolves attack target from local registry") // NIY (also in code)
+  //})
+  //
+  //describe("#resolve_defense_target", function(){
+    //it("resolves defense target from local registry") // NIY (also in code)
+  //})
+
   //describe("#update", function(){
   //  it("updates attributes"); // NIY
   //  it("updates location"); // NIY
+  //  it("updates location movement strategy"); // NIY
   //  it("updates THREE mesh location"); // NIY
-  //  describe("ship attacking", function(){
+  //  it("sets orientation on mesh") // NIY
+  //  it("updates THREE particle system trails position") // NIY
+  //  it("sets orientation of trails")
+  //  context("ship is moving and trail components are not added", function(){
+  //    it("adds trail components to entity");
+  //  });
+  //  context("ship is stopped and trail components are added", function(){
+  //    it("removes trail components from entity");
+  //  });
+  //  context("ship attacking", function(){
   //    it("sets THREE attack line position"); // NIY
   //    it("adds THREE attack line component to entity"); // NIY
   //  });
-  //  describe("ship attacking", function(){
+  //  context("ship mining", function(){
   //    it("sets THREE mining line position"); // NIY
   //    it("adds THREE mining line component to entity"); // NIY
   //  });
-  //  it("reloads entity in schene"); // NIY
+  //  context("ship is selected", function(){
+  //    it("sets mesh emissive color") // NIY
+  //  });
+  //  context("ship is not selected", function(){
+  //    it("resets ship emissive color"); // NIY
+  //  });
+  //  it("reloads entity in scene"); // NIY
+  //  ... // NIY
+  //})
+
+  //describe("#refresh", function(){
+  //  it("invokes update method with self") // NIY
   //})
 
   describe("#belongs_to_user", function(){
@@ -568,17 +601,33 @@ describe("Ship", function(){
   //  });
   //  // TODO test specific commands
   //  it("sets selected true"); // NIY
+  //  it("refreshes entity"); // NIY
   //  it("reloads entity in scene"); // NIY
   //});
 
   //describe("ship unselected", function(){
   //  it("sets selected to false"); // NIY
+  //  it("refreshes entity") // NIY
   //  it("reloads entity in scene"); // NIY
   //});
 
   //it("adds THREE clickable mesh component to entity"); // NIY
-  //it("create THREE line component (for attack line)"); // NIY
+  //it("creates THREE particle system components for trails defined in ship type config") // NIY
+  //it("create THREE partitcle system component (for attack)"); // NIY
   //it("create THREE line component (for mining line)"); // NIY
+
+  //context("updating ship trails particles", function(){
+  //  it("moves linearily away from ship"); // NIY
+  //  it("decays with a given lifespan"); // NIY
+  //  it("sets lifespan of center particles to greater than outer particles") // NIY
+  //});
+  //
+  //context("updating ship attack particles", function(){
+  //  it("moves particles linearily between attacker location and defender location"); // NIY
+  //  context("particle arriving at defender location", function(){
+  //    it("resets particle to originating from attacker location"); // NIY
+  //  });
+  //});
 
   describe("#with_id", function(){
     it("invokes manufactured::get_entity", function(){
