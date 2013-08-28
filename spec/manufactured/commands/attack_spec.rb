@@ -43,15 +43,47 @@ describe Attack do
   end
 
   describe "#before_hook" do
-    it "retrieves attacker from registry"
-    it "retrieves defender from registry"
-    it "updates attacker location from motel"
-    it "updates defender location from motel"
+    before(:each) do
+      setup_manufactured
+
+      @e1 = create(:valid_ship)
+      @e2 = create(:valid_ship)
+      @a = Attack.new :attacker => @e1, :defender => @e2
+      @a.registry = @registry
+      @a.node = Manufactured::RJR.node
+    end
+
+    it "retrieves attacker and defender from registry" do
+      @a.should_receive(:retrieve).with(@e1.id).and_call_original
+      @a.should_receive(:retrieve).with(@e2.id).and_call_original
+      @a.before_hook
+    end
+
+    it "updates attacker and defender locations from motel" do
+      @a.should_receive(:invoke).with('motel::get_location',
+                                      'with_id', @e1.location.id)
+      @a.should_receive(:invoke).with('motel::get_location',
+                                      'with_id', @e2.location.id)
+      @a.before_hook
+    end
   end
 
   describe "#after_hook" do
-    it "saves attacker in registry"
-    it "saves defender in registry"
+    before(:each) do
+      setup_manufactured
+
+      @e1 = create(:valid_ship)
+      @e2 = create(:valid_ship)
+
+      @a = Attack.new :attacker => @e1, :defender => @e2
+      @a.registry= @registry
+    end
+
+    it "saves attacker and defender in registry" do
+      @a.should_receive(:update_registry).with(@e1)
+      @a.should_receive(:update_registry).with(@e2)
+      @a.after_hook
+    end
   end
 
   describe "#last_hook" do
@@ -99,10 +131,37 @@ describe Attack do
 
       context "defender has cargo" do
         before(:each) do
-          @e2.resources << build(:resource, :quantity => 50)
+          @r1 = build(:resource, :quantity => 50)
+          @r2 = build(:resource, :quantity => 50)
+          @e2.resources << @r1
+          @e2.resources << @r2
         end
 
-        it "creates loot"
+        it "creates loot" do
+          lid = nil
+          @registry.should_receive(:<<).
+                    with{ |l|
+                      l.should be_an_instance_of(Manufactured::Loot)
+                      l.id.should == "#{@e2.id}-loot"
+                      (l.location - @e2.location).should == 0
+                      l.system_id.should == @e2.system_id
+                      l.location.movement_strategy.should ==
+                        Motel::MovementStrategies::Stopped.instance
+                      l.cargo_capacity.should == @e2.cargo_capacity
+                      l.resources.size.should == 2
+                      l.resources[0].id.should == @r1.id
+                      l.resources[0].material_id.should == @r1.material_id
+                      l.resources[0].quantity.should == 50
+                      l.resources[0].entity_id.should == l.id
+                      l.resources[1].id.should == @r2.id
+                      l.resources[1].material_id.should == @r2.material_id
+                      l.resources[1].quantity.should == 50
+                      l.resources[1].entity_id.should == l.id
+                      lid = l.id
+                    }.and_call_original
+          @a.last_hook
+          @registry.entity{ |e| e.id == lid}.should_not be_nil
+        end
       end
     end
   end
@@ -213,11 +272,19 @@ describe Attack do
 
   describe "#remove" do
     context "defender's hp == 0" do
-      it "returns true"
+      it "returns true" do
+        e = build(:ship, :hp => 0) 
+        a = Attack.new :defender => e
+        a.remove?.should be_true
+      end
     end
 
     context "defender's hp != 0" do
-      it "returns false"
+      it "returns false" do
+        e = build(:ship, :hp => 10) 
+        a = Attack.new :defender => e
+        a.remove?.should be_false
+      end
     end
   end
 

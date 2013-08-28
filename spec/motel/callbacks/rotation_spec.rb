@@ -17,24 +17,25 @@ describe Rotation do
     end
 
     context "axis-angle set" do
+      before(:each) do
+        @r = Rotation.new :rot_theta => 3.13,
+                          :axis_x    => 0,
+                          :axis_y    => 0,
+                          :axis_z    => 1
+      end
+
       context "location rotated by at least specified angle along axis" do
         it "returns true" do
           l = Motel::Location.new :orientation => [0,1,0]
-
-          r = Rotation.new :rot_theta => 3.13
-          r.should_invoke?(l, 0, -1, 0).should be_true
+          @r.should_invoke?(l, 0, -1, 0).should be_true
         end
       end
 
       context "location did not rotate minimum axis-angle" do
         it "returns false" do
           l = Motel::Location.new :orientation => [0,0,1]
-
-          r = Rotation.new :rot_theta => 3.13
-          r.should_invoke?(l, 0, 0, 1).should be_false
-
-          r = Rotation.new :rot_theta => 3.13
-          r.should_invoke?(l, 0.57, 0.57, 0.57).should be_false
+          @r.should_invoke?(l, 0, 0, 1).should be_false
+          @r.should_invoke?(l, 0.57, 0.57, 0.57).should be_false
         end
       end
     end

@@ -77,15 +77,24 @@ describe Mining do
   end
 
   describe "#first_hook" do
-    it "starts mining" do
-      s = build(:ship)
-      r = build(:resource)
-      m = Mining.new :ship => s, :resource => r
-      s.should_receive(:start_mining).with(r)
-      m.first_hook
+    before(:each) do
+      setup_manufactured
+
+      @s = build(:ship)
+      @r = build(:resource)
+      @m = Mining.new :ship => @s, :resource => @r
+      @m.registry= @registry
     end
 
-    it "updates registry ship"
+    it "starts mining" do
+      @s.should_receive(:start_mining).with(@r)
+      @m.first_hook
+    end
+
+    it "updates registry ship" do
+      @m.should_receive(:update_registry).with(@s)
+      @m.first_hook
+    end
   end
 
   describe "#before_hook" do
