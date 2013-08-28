@@ -96,8 +96,17 @@ describe Construction do
       end
 
       context "manufactured::create_entity fails" do
-        it "runs construction_failed callbacks"
-        it "does not run construction_complete callbacks"
+        it "runs construction_failed callbacks" do
+          @c.node.should_receive(:invoke).and_raise(Exception)
+          @rst.should_receive(:run_callbacks).with('construction_failed', @sh)
+          @c.run!
+        end
+
+        it "does not run construction_complete callbacks" do
+          @c.node.should_receive(:invoke).and_raise(Exception)
+          @rst.should_not_receive(:run_callbacks).with('construction_complete', @sh)
+          @c.run!
+        end
       end
 
       it "runs construction_compelete callbacks" do
@@ -123,11 +132,19 @@ describe Construction do
 
   describe "#remove?" do
     context "construction completed" do
-      it "returns true"
+      it "returns true" do
+        c = Construction.new
+        c.should_receive(:completed).and_return(false)
+        c.remove?.should be_false
+      end
     end
 
     context "construction not completed" do
-      it "returns false"
+      it "returns false" do
+        c = Construction.new
+        c.should_receive(:completed).and_return(true)
+        c.remove?.should be_true
+      end
     end
   end
 

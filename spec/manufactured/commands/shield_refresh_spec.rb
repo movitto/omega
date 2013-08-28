@@ -34,11 +34,21 @@ describe ShieldRefresh do
   end
 
   describe "#before_hook" do
-    it "updates entity from registry"
+    it "updates entity from registry" do
+      sh = build(:ship)
+      s = ShieldRefresh.new :entity => sh
+      s.should_receive(:retrieve).with(sh.id)
+      s.before_hook
+    end
   end
 
   describe "#after_hook" do
-    it "saves entity to registry"
+    it "saves entity to registry" do
+      sh = build(:ship)
+      s = ShieldRefresh.new :entity => sh
+      s.should_receive(:update_registry).with(sh)
+      s.after_hook
+    end
   end
 
   describe "#should_run?" do
@@ -114,14 +124,31 @@ describe ShieldRefresh do
 
   describe "#remove" do
     context "attack command should not be removed" do
-      it "returns false"
+      it "returns false" do
+        ac = Attack.new
+        s = ShieldRefresh.new :attack_cmd => ac
+        ac.should_receive(:remove?).and_return(false)
+        s.remove?.should be_false
+      end
     end
 
     context "shield not at max level" do
-      it "returns false"
+      it "returns false" do
+        ac = Attack.new
+        sh = build(:ship, :shield_level => 10, :max_shield_level => 20)
+        s = ShieldRefresh.new :attack_cmd => ac, :entity => sh
+        ac.should_receive(:remove?).and_return(true)
+        s.remove?.should be_false
+      end
     end
 
-    it "returns true"
+    it "returns true" do
+      ac = Attack.new
+      sh = build(:ship, :shield_level => 10, :max_shield_level => 10)
+      s = ShieldRefresh.new :attack_cmd => ac, :entity => sh
+      ac.should_receive(:remove?).and_return(true)
+      s.remove?.should be_true
+    end
   end
 
   describe "#to_json" do

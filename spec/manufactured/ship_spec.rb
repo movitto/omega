@@ -6,6 +6,7 @@
 require 'spec_helper'
 require 'manufactured/ship'
 require 'motel/movement_strategies/linear'
+require 'omega/server/callback'
 
 module Manufactured
 describe Ship do
@@ -36,8 +37,19 @@ describe Ship do
   end
 
   describe "#run_callbacks" do
-    it "runs each callback of the specified type"
-    it "passes self and args to callback"
+    before(:each) do
+      @cb1 = Omega::Server::Callback.new :event_type => :movement
+      @cb2 = Omega::Server::Callback.new :event_type => :movement
+      @cb3 = Omega::Server::Callback.new :event_type => :rotation
+      @s = Ship.new :callbacks => [@cb1, @cb2, @cb3]
+    end
+
+    it "runs each callback of the specified type" do
+      @cb1.should_receive(:invoke).with(@s, 42)
+      @cb2.should_receive(:invoke).with(@s, 42)
+      @cb3.should_not_receive(:invoke)
+      @s.run_callbacks :movement, 42
+    end
   end
 
   describe "#docked_at_id" do
@@ -134,15 +146,63 @@ describe Ship do
   end
 
   describe "#update" do
-    it "updates ship hp"
-    it "updates ship shield level"
-    it "updates ship distance moved"
-    it "updates ship resources"
-    it "updates ship solar system"
-    it "updates ship location"
-    it "updates ship mining target"
-    it "updates ship attack target"
-    it "ignores other properties"
+    it "updates ship hp" do
+      sh = Ship.new
+      sh.update Ship.new(:hp => 50)
+      sh.hp.should == 50
+    end
+
+    it "updates ship shield level" do
+      sh = Ship.new
+      sh.update Ship.new(:shield_level => 50)
+      sh.shield_level.should == 50
+    end
+
+    it "updates ship distance moved" do
+      sh = Ship.new
+      sh1 = Ship.new
+      sh1.distance_moved = 50
+      sh.update sh1
+      sh.distance_moved.should == 50
+    end
+
+    it "updates ship resources" do
+      sh = Ship.new
+      sh.update Ship.new(:resources => [42])
+      sh.resources.should == [42]
+    end
+
+    it "updates ship solar system" do
+      sh = Ship.new
+      sys = build(:solar_system)
+      sh.update Ship.new(:solar_system => sys)
+      sh.solar_system.should == sys
+    end
+
+    it "updates ship location" do
+      sh = Ship.new
+      l = build(:location)
+      sh.update Ship.new(:location => l)
+      sh.location.should == l
+    end
+
+    it "updates ship mining target" do
+      sh = Ship.new
+      sh.update Ship.new(:mining => 42)
+      sh.mining.should == 42
+    end
+
+    it "updates ship attack target" do
+      sh = Ship.new
+      sh.update Ship.new(:attacking => 42)
+      sh.attacking.should == 42
+    end
+
+    it "ignores other properties" do
+      sh = Ship.new
+      sh.update Ship.new(:max_shield_level => 42)
+      sh.max_shield_level.should_not == 42
+    end
   end
 
   describe "#valid?" do
@@ -173,11 +233,17 @@ describe Ship do
     end
 
     context "system id is invalid" do
-      it "returns false"
+      it "returns false" do
+        @s.system_id = nil
+        @s.should_not be_valid
+      end
     end
 
     context "solar system is invalid" do
-      it "returns false"
+      it "returns false" do
+        @s.solar_system = Ship.new
+        @s.should_not be_valid
+      end
     end
 
     context "user_id is invalid" do
@@ -279,10 +345,19 @@ describe Ship do
 
   describe "#alive?" do
     context "hp <= 0" do
-      it "returns false"
+      it "returns false" do
+        s = Ship.new :hp => 0
+        s.should_not be_alive
+
+        s = Ship.new :hp => -10
+        s.should_not be_alive
+      end
     end
 
-    it 'returns true'
+    it 'returns true' do
+      s = Ship.new :hp => 10
+      s.should be_alive
+    end
   end
 
   describe "#can_dock_at?" do
@@ -394,11 +469,17 @@ describe Ship do
     end
 
     context "ship docked" do
-      it "returns false"
+      it "returns false" do
+        @sh.should_receive(:docked?).and_return(true)
+        @sh.can_mine?(@r, @q).should be_false
+      end
     end
 
     context "ship not alive" do
-      it "returns false"
+      it "returns false" do
+        @sh.should_receive(:alive?).and_return(false)
+        @sh.can_mine?(@r, @q).should be_false
+      end
     end
 
     context "ships/resource in different systems" do

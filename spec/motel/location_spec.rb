@@ -224,7 +224,18 @@ describe Location do
   end
 
   describe "#coordinates=" do
-    it "sets location's coordinates"
+    it "sets location's coordinates" do
+      l = Location.new
+      l.coordinates = 1, 2, 3
+      l.x.should == 1
+      l.y.should == 2
+      l.z.should == 3
+
+      l.coordinates = [4, 5, 6]
+      l.x.should == 4
+      l.y.should == 5
+      l.z.should == 6
+    end
   end
 
   describe "#orientation" do
@@ -237,7 +248,13 @@ describe Location do
   end
 
   describe "#orientation=" do
-    it "sets location's orientation"
+    it "sets location's orientation" do
+      l = Location.new
+      l.orientation = 1, 2, 3
+      l.orientation.should == [1,2,3]
+      l.orientation = [4,5,6]
+      l.orientation.should == [4,5,6]
+    end
   end
 
   describe "#orientated_towards?" do

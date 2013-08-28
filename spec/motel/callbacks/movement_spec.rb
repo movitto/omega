@@ -87,8 +87,25 @@ describe Movement do
   end
 
   describe "#invoke" do
-    it "invokes handler with distance,dx,dy,dz"
-    it "resets tracked coordinates"
+    before(:each) do
+      @cb = proc {}
+      @m = Movement.new :handler => @cb
+      @l = Motel::Location.new
+    end
+
+    it "invokes handler with distance,dx,dy,dz" do
+      @m.should_receive(:get_distance).and_return([1,2,3,4])
+      @cb.should_receive(:call).with(@l, 1,2,3,4)
+      @m.invoke @l, 1,2,3
+    end
+
+    it "resets tracked coordinates" do
+      @m.should_receive(:get_distance).and_return([1,2,3,4])
+      @m.invoke @l, 1,2,3
+      @m.instance_variable_get(:@orig_x).should be_nil
+      @m.instance_variable_get(:@orig_y).should be_nil
+      @m.instance_variable_get(:@orig_z).should be_nil
+    end
   end
 
   describe "#to_json" do
