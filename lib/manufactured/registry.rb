@@ -39,7 +39,7 @@ class Registry
 
   def check_entity(entity, old_entity=nil)
     @lock.synchronize {
-      # TODO resolve system references here
+      # TODO resolve system references here ?
       rentity = @entities.find { |e| e.id == entity.id }
     }
   end

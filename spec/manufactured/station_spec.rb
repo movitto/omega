@@ -6,6 +6,7 @@
 require 'spec_helper'
 require 'manufactured/station'
 require 'cosmos/entities/solar_system'
+require 'omega/server/callback'
 
 module Manufactured
 describe Station do
@@ -36,8 +37,19 @@ describe Station do
   end
 
   describe "#run_callbacks" do
-    it "runs each callback of the specified type"
-    it "passes self and args to callback"
+    before(:each) do
+      @cb1 = Omega::Server::Callback.new :event_type => :construction_complete
+      @cb2 = Omega::Server::Callback.new :event_type => :partial_construction
+      @cb3 = Omega::Server::Callback.new :event_type => :partial_construction
+      @s = Station.new :callbacks => [@cb1, @cb2, @cb3]
+    end
+
+    it "runs each callback of the specified type" do
+      @cb2.should_receive(:invoke).with(@s, 42)
+      @cb3.should_receive(:invoke).with(@s, 42)
+      @cb1.should_not_receive(:invoke)
+      @s.run_callbacks :partial_construction, 42
+    end
   end
 
   describe "#initialize" do
@@ -124,11 +136,17 @@ describe Station do
     end
 
     context "system id is invalid" do
-      it "returns false"
+      it "returns false" do
+        @s.system_id = nil
+        @s.should_not be_valid
+      end
     end
 
     context "solar system is invalid" do
-      it "returns false"
+      it "returns false" do
+        @s.solar_system = Ship.new
+        @s.should_not be_valid
+      end
     end
 
     context "user_id is invalid" do
@@ -273,7 +291,17 @@ describe Station do
     end
 
     context "entity too far away" do
-      it "moves entity closer"
+      it "moves entity closer" do
+        s = Station.new :type => :manufacturing,
+                        :solar_system => build(:solar_system),
+                        :location => build(:location, :x => 0, :y => 0, :z => 0)
+        s.add_resource build(:resource, :quantity => 100)
+        sh = s.construct({:entity_type => 'Ship',
+                          :location =>
+                            Motel::Location.new(:x => 0, :y => 0,
+                                                :z => s.construction_distance * 2)})
+        sh.location.z.should == s.construction_distance
+      end
     end
   end
 

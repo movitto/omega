@@ -95,29 +95,51 @@ module Motel::RJR
     end
 
     context "within distance of location specified" do
-      it "only returns entities matching critieria" do
-        l1 = create(:location, :x => 100, :y => 100, :z => 100)
-        l2 = create(:location, :x => -100, :y => -100, :z => -100)
+      before(:each) do
+        @l1 = create(:location, :x => 100, :y => 100, :z => 100)
+        @l2 = create(:location, :x => -100, :y => -100, :z => -100)
 
         # privileges on all locations
         add_privilege @login_role, 'view', 'locations'
 
+      end
+
+      it "only returns entities matching critieria" do
         ls = @s.get_location :within, 10, 'of',
                  Location.new(:x => 100, :y => 100, :z => 100)
         ls.size.should == 1
-        ls.first.id.should == l1.id
+        ls.first.id.should == @l1.id
       end
 
       context "distance is invalid" do
-        it "raises a ValidationError"
+        it "raises a ValidationError" do
+          lambda {
+            @s.get_location :within, "10", "of",
+                 Location.new(:x => 100, :y => 100, :z => 100)
+          }.should raise_error(ValidationError)
+
+          lambda {
+            @s.get_location :within, -10, "of",
+                 Location.new(:x => 100, :y => 100, :z => 100)
+          }.should raise_error(ValidationError)
+        end
       end
 
       context "'of' is invalid" do
-        it "raises a ValidationError"
+        it "raises a ValidationError" do
+          lambda {
+            @s.get_location :within, 10, "on",
+                 Location.new(:x => 100, :y => 100, :z => 100)
+          }.should raise_error(ValidationError)
+        end
       end
 
       context "other location is not a Location" do
-        it "raises a ValidationError"
+        it "raises a ValidationError" do
+          lambda {
+            @s.get_location :within, 10, "of", "Foobar"
+          }.should raise_error(ValidationError)
+        end
       end
     end
   end # describe #get_entities

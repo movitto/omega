@@ -70,11 +70,19 @@ describe "#normalized?" do
 end
 
 describe "#cross_product" do
-  it "return cross product between vectors"
+  it "return cross product between vectors" do
+    Motel.cross_product(2,3,4,7,6,5).should == [-9,18,-9]
+    Motel.cross_product(62,-32,147,-19,-19,3).should == [2697,-2979,-1786]
+    Motel.cross_product(0.75,0.11,1.33,-1.3,0.58,0.01).should == [-0.7703,-1.7365000000000002,0.578]
+  end
 end
 
 describe "#dot_product" do
-  it "returns dot product of vectors"
+  it "returns dot product of vectors" do
+    Motel.dot_product(2,3,4,7,6,5).should == 52
+    Motel.dot_product(62,-32,147,-19,-19,3).should == -129
+    Motel.dot_product(0.75,0.11,1.33,-1.3,0.58,0.01).should == -0.8979000000000001
+  end
 end
 
 describe "#angle_between" do

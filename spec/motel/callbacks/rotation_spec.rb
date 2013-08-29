@@ -41,23 +41,60 @@ describe Rotation do
     end
 
     context "axis not set" do
+      before(:each) do
+        @r = Rotation.new :rot_theta => 3.13
+      end
+
       context "location movement strategy is includes Rotatable mixin" do
+        before(:each) do
+          @l = Motel::Location.new :orientation => [0,1,0],
+                 :movement_strategy =>
+                   Motel::MovementStrategies::Rotate.new(:rot_x => 0,
+                                                         :rot_y => 0,
+                                                         :rot_z => 1)
+        end
+
         context "location rotated by at least specified angle along its rotation axis" do
-          it "returns true"
+          it "returns true" do
+            @r.should_invoke?(@l, 0, -1, 0).should be_true
+          end
         end
 
         context "location did not rotate by minimum angle along its rotation axis" do
-          it "returns false"
+          it "returns false" do
+            @l.orientation = [0,0,1]
+            @r.should_invoke?(@l, 0, 0, 1).should be_false
+          end
         end
       end
 
-      it "returns false"
+      it "returns false" do
+        l = Motel::Location.new :orientation => [0,1,0]
+        @r.should_invoke?(l, 0, -1, 0).should be_false
+      end
     end
   end
 
   describe "#invoke" do
-    it "invokes handler with location,angle rotated"
-    it "resets tracked orientation"
+    before(:each) do
+      @cb = proc {}
+      @r = Rotation.new :handler => @cb
+      @l = Motel::Location.new
+    end
+
+    it "invokes handler with location,angle rotated" do
+      @r.should_receive(:get_rotation).and_return(42)
+      @cb.should_receive(:call).with(@l, 42)
+      @r.invoke @l, 0, 0, 1
+    end
+
+    it "resets tracked orientation" do
+      @r.should_receive(:get_rotation).and_return(42)
+      @r.invoke @l, 0, 0, 1
+      @m.instance_variable_get(:@orig_ox).should be_nil
+      @m.instance_variable_get(:@orig_oy).should be_nil
+      @m.instance_variable_get(:@orig_oz).should be_nil
+    end
   end
 
   describe "#to_json" do

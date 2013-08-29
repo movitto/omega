@@ -73,7 +73,13 @@ describe Mining do
   end
 
   describe "#update" do
-    it "updates resource"
+    it "updates resource" do
+      r = build(:resource)
+      m = Mining.new :resource => r
+      m1 = Mining.new
+      m1.update m
+      m1.resource.should == r
+    end
   end
 
   describe "#first_hook" do
@@ -98,19 +104,75 @@ describe Mining do
   end
 
   describe "#before_hook" do
-    it "retrieves ship"
-    it "retrieves resource"
-    it "updates ship location from motel"
+    before(:each) do
+      setup_manufactured
+
+      @s = create(:valid_ship)
+      @r = build(:resource)
+      @m = Mining.new :ship => @s, :resource => @r
+      @m.registry= @registry
+      @m.node = Manufactured::RJR.node
+    end
+
+    it "retrieves ship" do
+      @m.should_receive(:retrieve).with(@s.id).and_call_original
+      @m.before_hook
+    end
+
+    it "updates ship location from motel" do
+      @m.should_receive(:invoke).
+         with('motel::get_location',
+              'with_id', @s.location.id).and_call_original
+      @m.should_receive(:invoke).at_least(1).times.and_call_original
+      @m.before_hook
+    end
+
+    it "retrieves resource" do
+      @m.should_receive(:invoke).with('cosmos::get_resource', @r.id).and_call_original
+      @m.should_receive(:invoke).at_least(1).times.and_call_original
+      @m.before_hook
+    end
 
     context "error during resource retrieval" do
-      it "sets quantity to 0"
-      it "sets error to true"
+      before(:each) do
+        @m.should_receive(:invoke).
+           with('cosmos::get_resource', @r.id).
+           and_raise(Exception)
+        @m.should_receive(:invoke).at_least(1).times.and_call_original
+      end
+
+      it "sets quantity to 0" do
+        @m.before_hook
+        @m.resource.quantity.should == 0
+      end
+
+      it "sets error to true" do
+        @m.before_hook
+        @m.instance_variable_get(:@error).should be_true
+      end
     end
   end
 
   describe "#after_hook" do
-    it "saves ship in registry"
-    it "invokes cosmos::set_resource"
+    before(:each) do
+      setup_manufactured
+
+      @s = create(:valid_ship)
+      @r = build(:resource)
+      @m = Mining.new :ship => @s, :resource => @r
+      @m.registry= @registry
+      @m.node = Manufactured::RJR.node
+    end
+
+    it "saves ship in registry" do
+      @m.should_receive(:update_registry).with(@s)
+      @m.after_hook
+    end
+
+    it "invokes cosmos::set_resource" do
+      @m.should_receive(:invoke).with('cosmos::set_resource', @r)
+      @m.after_hook
+    end
   end
 
   describe "#last_hook" do
@@ -120,16 +182,21 @@ describe Mining do
       # generate mining distance exceeded reason
       @sys = create(:solar_system)
 
-      @sh = create(:valid_ship, :solar_system => @sys)
+      @sh = create(:valid_ship,
+                   :location => build(:location, :coordinates => [0,0,0],
+                                      :parent_id => @sys.location.id),
+                   :solar_system => @sys)
       @rsh = @registry.safe_exec { |es| es.find { |e| e.id == @sh.id } }
-      @rsh.location.coordinates = [0,0,0]
 
-      @r = create(:resource, :entity => create(:asteroid, :solar_system => @sys ))
+      @r = create(:resource,
+                  :entity =>
+                    create(:asteroid,
+                           :location => build(:location, :coordinates => [0,0,0]),
+                           :solar_system => @sys))
       @rrs =
         Cosmos::RJR.registry.safe_exec { |entities|
           entities.find { |e| e.id == @r.entity.id }
         }.resources.first
-      @rrs.entity.location.coordinates = [0,0,0]
 
       @m = Mining.new :ship => @sh, :resource => @r
       @m.registry= @registry
@@ -143,17 +210,70 @@ describe Mining do
 
     it "runs mining_stopped callbacks" do
       # generate distance exceeded reason
-      @rrs.entity.solar_system = build(:solar_system)
+      @r.entity.solar_system = build(:solar_system)
       @rsh.should_receive(:run_callbacks).with('mining_stopped', @r, 'mining_distance_exceeded')
       @m.last_hook
     end
 
-    it "sets reason"
+    describe "reason" do
+      context "distance exceeded" do
+        it "is mining_distance_exceeded" do
+          @sh.location.x = @r.entity.location.x + @sh.mining_distance * 1.2
+          @rsh.should_receive(:run_callbacks).
+               with('mining_stopped', @r, 'mining_distance_exceeded')
+          @m.last_hook
+        end
+      end
+
+      context "different systems" do
+        it "is mining_distance_exceeded" do
+          @sh.solar_system = build(:solar_system)
+          @rsh.should_receive(:run_callbacks).
+               with('mining_stopped', @r, 'mining_distance_exceeded')
+          @m.last_hook
+        end
+      end
+
+      context "ship at max capacity" do
+        it "is ship_cargo_full" do
+          @sh.add_resource Cosmos::Resource.new :quantity => @sh.cargo_space
+          @rsh.should_receive(:run_callbacks).
+               with('mining_stopped', @r, 'ship_cargo_full')
+          @m.last_hook
+        end
+      end
+
+      context "ship is docked" do
+        it "is ship_docked" do
+          @sh.dock_at build(:station)
+          @rsh.should_receive(:run_callbacks).
+               with('mining_stopped', @r, 'ship_docked')
+          @m.last_hook
+        end
+      end
+
+      context "resource is depleted" do
+        it "is resource_depleted" do
+          @r.quantity = 0
+          @rsh.should_receive(:run_callbacks).
+               with('mining_stopped', @r, 'resource_depleted')
+          @m.last_hook
+        end
+      end
+
+      #context "other" do
+      #  it "TODO"
+      #end
+    end
   end
 
   describe "#should_run?" do
     context "resource retrieval error has occurred" do
-      it "returns false"
+      it "returns false" do
+        m = Mining.new
+        m.instance_variable_set(:@error, true)
+        m.should_run?.should be_false
+      end
     end
 
     context "server command shouldn't run" do
@@ -257,21 +377,39 @@ describe Mining do
   end
 
   describe "#remove?" do
+    before(:each) do
+      @rs = build(:resource)
+      @sh = build(:ship)
+      @m = Mining.new :ship => @sh, :resource => @rs
+    end
+
     context "resource retrieval error occurred" do
-      it "returns true"
+      it "returns true" do
+        @m.instance_variable_set(:@error, true)
+        @m.remove?.should be_true
+      end
     end
 
     context "ship cannot mine resource" do
       it "returns true" do
+        @sh.should_receive(:can_mine?).and_return(false)
+        @m.remove?.should be_true
       end
     end
 
     context "ship cannot accept resource" do
       it "returns true" do
+        @sh.should_receive(:can_mine?).and_return(true)
+        @sh.should_receive(:can_accept?).and_return(false)
+        @m.remove?.should be_true
       end
     end
 
-    it "returns false"
+    it "returns false" do
+        @sh.should_receive(:can_mine?).and_return(true)
+        @sh.should_receive(:can_accept?).and_return(true)
+        @m.remove?.should be_false
+    end
   end
 
   describe "#to_json" do

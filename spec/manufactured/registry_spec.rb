@@ -21,8 +21,6 @@ describe Registry do
   }
 
   context "adding entity" do
-    it "resolves system references"
-
     it "enforces entity types" do
       g = build(:galaxy)
       r = Registry.new
@@ -48,7 +46,12 @@ describe Registry do
   end
 
   context "adding command" do
-    it "runs check_command"
+    it "runs check_command" do
+      r = Registry.new
+      c = Omega::Server::Command.new
+      r.should_receive(:check_command).with(c)
+      r << c
+    end
   end
 
   it "runs command loop" do

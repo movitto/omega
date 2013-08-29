@@ -58,7 +58,14 @@ describe Asteroid do
     end
 
     context "invalid resources" do
-      it "returns false"
+      it "returns false" do
+        r = Cosmos::Resource.new
+        a = Asteroid.new :resources => [r]
+        a.should_receive(:entity_valid?).and_return(true)
+        a.should_receive(:system_entity_valid?).and_return(true)
+        r.should_receive(:valid?).and_return(false)
+        a.should_not be_valid
+      end
     end
 
     it "returns true" do

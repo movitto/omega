@@ -21,6 +21,7 @@ module InSystem
     unless val.nil? || solar_system.nil? ||
            (@location.parent_id !=    # need check to skip
             solar_system.location.id) # this when updating loc
+                                      # XXX y?
       @location.parent = solar_system.location
     end
   end
@@ -58,6 +59,7 @@ module InSystem
   attr_accessor :system_id
 
   alias :parent_id :system_id
+  alias :parent_id= :system_id=
 
 end
 

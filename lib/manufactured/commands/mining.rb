@@ -98,7 +98,7 @@ class Mining < Omega::Server::Command
 
   def before_hook
     # update ship location & cosmos resource/entity
-     @ship = retrieve(@ship.id)
+    @ship = retrieve(@ship.id)
 
     # update location from motel
     @ship.location = invoke 'motel::get_location', 'with_id', @ship.location.id
@@ -143,6 +143,9 @@ class Mining < Omega::Server::Command
 
     elsif r.quantity == 0
       reason = 'resource_depleted'
+
+    #else
+    #  reason = 'unknown' ?
     end
 
     ::RJR::Logger.debug "ship #{@ship.id} cannot continue mining due to: #{reason}"

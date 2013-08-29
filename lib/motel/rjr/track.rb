@@ -95,6 +95,8 @@ track_handler = proc { |*args|
   # set endpoint of callback
   cb.endpoint_id = @rjr_headers['source_node']
 
+  # FIXME raise error if source_node is nil
+
   # use rjr callback to send notification back to client
   cb.handler = proc{ |*args|
     loc = args.first
@@ -187,7 +189,12 @@ remove_callbacks = proc { |*args|
   registry.safe_exec { |entities|
     rloc = entities.find { |l| l.id == loc.id }
     if cb_type.nil?
-      rloc.callbacks = {}
+      rloc.callbacks.each_key { |k|
+        rloc.callbacks[k].reject! { |cb|
+          cb.endpoint_id == source_node
+        }
+        rloc.callbacks.delete(k) if rloc.callbacks[k].empty?
+      }
 
     else
       rloc.callbacks[cb_type.intern].reject!{ |cb|

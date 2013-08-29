@@ -181,7 +181,16 @@ describe User do
   end
 
   describe "#clear_roles" do
-    it "empties role list"
+    it "empties role list" do
+      r1 = Role.new :id => 1
+      r2 = Role.new :id => 2
+      u = User.new
+      u.add_role(r1)
+      u.add_role(r2)
+      u.roles.size.should == 2
+      u.clear_roles
+      u.roles.should be_empty
+    end
   end
 
   describe "#add_role" do
@@ -416,7 +425,17 @@ describe User do
   end
 
   describe "#random_registration_code" do
-    it "generates random 8 char string"
+    it "generates random 8 char string" do
+      c1 = User.random_registration_code
+      c2 = User.random_registration_code
+      c1.should be_an_instance_of(String)
+      c2.should be_an_instance_of(String)
+
+      c1.size.should == 8
+      c2.size.should == 8
+
+      c1.should_not == c2
+    end
   end
 
 end # describe User

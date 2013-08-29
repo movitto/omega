@@ -63,7 +63,14 @@ describe Registry do
   end
 
   describe "#entity" do
-    it "TODO"
+    it "returns first matching result" do
+      @registry << 1
+      @registry << 2
+      @registry << 3
+      selector = proc { |e| e % 2 != 0 }
+      v = @registry.entity &selector
+      v.should == 1
+    end
   end
 
   describe "#clear!" do
@@ -160,7 +167,39 @@ describe Registry do
   end
 
   describe "#delete" do
-    it "TODO"
+    it "deletes first entity matching selector" do
+      @registry << 1
+      @registry << 2
+      @registry << 3
+      @registry.delete { |e| e % 2 != 0 }
+      @registry.entities.should_not include(1)
+      @registry.entities.should include(2)
+      @registry.entities.should include(3)
+    end
+
+    context "entity deleted" do
+      it "raises :deleted event" do
+        @registry << 1
+        @registry.should_receive(:raise_event).with(:deleted, 1)
+        @registry.delete
+      end
+
+      it "returns true" do
+        @registry << 1
+        @registry.delete.should be_true
+      end
+    end
+
+    context "entity not deleted" do
+      it "does not raise :deleted event" do
+        @registry.should_not_receive(:raise_event)
+        @registry.delete { |e| false }
+      end
+
+      it "returns false" do
+        @registry.delete { |e| false }.should be_false
+      end
+    end
   end
 
   describe "#update" do
@@ -241,7 +280,12 @@ describe Registry do
       }
     end
 
-    it "passes entities array to block"
+    it "passes entities array to block" do
+      eids1 = @registry.entities.collect { |e| e.id }
+      eids2 = @registry.safe_exec { |entities|
+                entities.collect { |e| e.id } }
+      eids1.should == eids2
+    end
   end
 
   describe "#on" do
@@ -454,7 +498,14 @@ describe Registry do
       $invoked2.should be_false
     end
 
-    it "sets registry on event to self"
+    it "sets registry on event to self" do
+      e = Event.new :timestamp => (Time.now - 10),
+                    :handlers => [@h1]
+      @registry << e
+      re = @registry.safe_exec { |entities| entities.last }
+      @registry.send :run_events
+      re.registry.should == @registry
+    end
 
     it "invokes event" do
       e = Event.new :timestamp => (Time.now - 10), :handlers => [@h1]
@@ -474,8 +525,22 @@ describe Registry do
       end
     end
 
-    it "sets event.invoked to true"
-    it "updates event in registry"
+    it "sets event.invoked to true" do
+      e = Event.new :timestamp => (Time.now - 10), :handlers => [@h1]
+      @registry << e
+      @registry.send :run_events
+      @registry.entities.last.invoked.should be_true
+    end
+
+    it "updates event in registry" do
+      e = Event.new :id => 'eid',
+                    :timestamp => (Time.now - 10),
+                    :handlers => [@h1]
+      @registry << e
+      @registry.should_receive(:update).
+                with { |evnt| evnt.id.should == 'eid' }
+      @registry.send :run_events
+    end
 
     it "returns default event poll" do
       e = Event.new :timestamp => (Time.now - 10)
@@ -490,8 +555,15 @@ describe Registry do
       @registry.stub(:entities) { [@c] }
     end
 
-    it "sets registry on command"
-    it "sets node on command"
+    it "sets registry on command" do
+      @c.should_receive(:registry=).with(@registry)
+      @registry.send :run_commands
+    end
+
+    it "sets node on command" do
+      @c.should_receive(:node=).with(@registry.node)
+      @registry.send :run_commands
+    end
 
     context "first hooks not run" do
       it "runs first hooks" do
@@ -509,8 +581,19 @@ describe Registry do
     end
 
     context "command.terminate is true" do
-      it "does not run before/after/last hooks"
-      it "does not run command"
+      it "does not run before/after/last hooks" do
+        @c.terminate = true
+        @c.should_not_receive(:run_hooks).with(:before)
+        @c.should_not_receive(:run_hooks).with(:after)
+        @c.should_not_receive(:run_hooks).with(:last)
+        @registry.send :run_commands
+      end
+
+      it "does not run command" do
+        @c.terminate = true
+        @c.should_not_receive(:run!)
+        @registry.send :run_commands
+      end
     end
 
     context "command.terminate is false" do
@@ -574,7 +657,12 @@ describe Registry do
       end
     end
 
-    it "updates command registry"
+    it "updates command in registry" do
+      @c.id = 'cid'
+      @registry.should_receive(:update).
+                with { |cmd| cmd.id.should == @c.id }
+      @registry.send :run_commands
+    end
 
     it "catches errors during command hooks" do
       @c.should_receive(:run_hooks).and_raise(Exception)
@@ -596,8 +684,17 @@ describe Registry do
   end
 
   describe "#check_command" do
-    it "removes all entities w/ the specified command id"
-    it "readds last entity w/ the specified command id"
+    it "removes all entities w/ the specified command id except last" do
+      c1 = Command.new :id => 'cid', :exec_rate => 5
+      c2 = Command.new :id => 'cid', :exec_rate => 15
+      @registry << c1
+      @registry << c2
+      @registry.send :check_command, Command.new(:id => 'cid')
+      res = @registry.entities { |e| e.id == 'cid' }
+
+      res.size.should == 1
+      res.first.exec_rate.should == 15
+    end
   end
 
   describe "#save" do

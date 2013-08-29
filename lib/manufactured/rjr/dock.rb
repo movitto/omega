@@ -81,6 +81,9 @@ undock = proc { |ship_id|
     # undock it
     rs.undock
   }
+
+  # XXX nullify docked at of ship we're returning
+  ship.docked_at = nil
   
   # return ship
   ship

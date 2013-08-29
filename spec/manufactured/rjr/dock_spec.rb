@@ -107,7 +107,10 @@ module Manufactured::RJR
                               Motel::MovementStrategies::Stopped.instance
       end
 
-      it "sets docket_at on ship to return"
+      it "sets docked_at on ship to return" do
+        r = @s.dock @sh.id, @st.id
+        r.docked_at.id.should == @st.id
+      end
 
       it "returns ship" do
         r = @s.dock @sh.id, @st.id
@@ -119,21 +122,73 @@ module Manufactured::RJR
   end # describe #dock
 
   describe "#undock" do
+    include Omega::Server::DSL # for with_id below
+
+    before(:each) do
+      setup_manufactured :DOCK_METHODS
+
+      @sys = create(:solar_system)
+      @st = create(:valid_station, :solar_system => @sys)
+      @sh = create(:valid_ship,    :solar_system => @sys)
+
+      @rsh,@rst = 
+        @registry.safe_exec { |entities|
+          [entities.find(&with_id(@sh.id)),
+           entities.find(&with_id(@st.id))]
+        }
+      @rshl =
+        Motel::RJR.registry.safe_exec { |entities|
+          entities.find(&with_id(@sh.location.id))
+        }
+
+      @rsh.dock_at @rst
+    end
+
     context "invalid ship id/type" do
-      it "raises DataNotFound"
+      it "raises DataNotFound" do
+        lambda {
+          @s.undock 'invalid'
+        }.should raise_error(DataNotFound)
+        lambda {
+          @s.undock @st.id
+        }.should raise_error(DataNotFound)
+      end
     end
 
     context "insufficient permissions (modify-ship)" do
-      it "raises PermissionError"
+      it "raises PermissionError" do
+        lambda {
+          @s.undock @sh.id
+        }.should raise_error(PermissionError)
+      end
     end
 
-    context "ship not docked" do
-      it "raises OperationError"
+    context "sufficient permissions (modify-ship)" do
+      before(:each) do
+        add_privilege @login_role, 'modify', "manufactured_entities"
+      end
+
+      context "ship not docked" do
+        it "raises OperationError" do
+          @rsh.dock_at nil
+          lambda {
+            @s.undock @sh.id
+          }.should raise_error(OperationError)
+        end
+      end
+
+      it "undocks ship" do
+        @s.undock @sh.id
+        @rsh.docked_at.should be_nil
+      end
+
+      it "returns ship" do
+        r = @s.undock @sh.id
+        r.should be_an_instance_of(Manufactured::Ship)
+        r.id.should == @sh.id
+        r.docked_at.should be_nil
+      end
     end
-
-    it "undocks ship"
-
-    it "returns ship"
   end # describe #undock
 
   describe "#dispatch_manufactured_rjr_dock" do

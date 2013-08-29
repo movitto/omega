@@ -77,7 +77,11 @@ module Manufactured::RJR
           should be_an_instance_of(Motel::MovementStrategies::Rotate)
       end
 
-      it "sets next movement strategy to move entity towards destination"
+      it "sets next movement strategy to move entity towards destination" do
+        move_entity_in_system(@sh, @l)
+        @sh.location.next_movement_strategy.
+          should be_an_instance_of(Motel::MovementStrategies::Linear)
+      end
 
       it "tracks rotation" do
         Manufactured::RJR.node.should_receive(:invoke).
@@ -165,7 +169,11 @@ module Manufactured::RJR
       move_entity_between_systems(@sh, @nsys)
     end
 
-    it "updates registry entity"
+    it "updates registry entity" do
+      @registry.should_receive(:update).with(@sh).and_call_original
+      move_entity_between_systems(@sh, @nsys)
+      @rsh.system_id.should == @nsys.id
+    end
   end # describe #move_entity_between_systems
 
   describe "#move_entity" do
@@ -206,7 +214,12 @@ module Manufactured::RJR
     end
 
     context "specified ship that is not alive" do
-      it "raises ValidationError"
+      it "raises ValidationError" do
+        @rsh.hp = 0
+        lambda {
+          @s.move_entity @sh.id, @l
+        }.should raise_error(ValidationError)
+      end
     end
 
     context "insufficient permissions (modify entity)" do
@@ -246,7 +259,16 @@ module Manufactured::RJR
         end
       end
 
-      it "updates the entity's location and system"
+      it "updates the entity's location and system" do
+        @s.node.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @sh.location.id).
+           and_call_original
+        @s.node.should_receive(:invoke).
+           with('cosmos::get_entity', 'with_location', @sys.location.id).
+           and_call_original
+        @s.node.should_receive(:invoke).at_least(2).times.and_call_original
+        @s.move_entity @sh.id, @l
+      end
 
       context "target system != entity system" do
         it "invokes move_entity_between_systems" do

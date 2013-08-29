@@ -76,8 +76,19 @@ describe Mission do
   end
 
   context "#assigned_to=" do
-    it "sets assigned_to"
-    it "sets assigned_to_id"
+    it "sets assigned_to" do
+      u = Users::User.new
+      m = Mission.new
+      m.assigned_to = u
+      m.assigned_to.should == u
+    end
+
+    it "sets assigned_to_id" do
+      u = Users::User.new :id => 'u1'
+      m = Mission.new
+      m.assigned_to = u
+      m.assigned_to_id.should == 'u1'
+    end
   end
 
   context "#assign_to" do

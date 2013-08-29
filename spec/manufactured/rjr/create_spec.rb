@@ -88,27 +88,41 @@ module Manufactured::RJR
       it "adds resource to stations"
 
       context "location could not be added to motel" do
-        it "raises OperationError" do
-          os = create(:valid_ship)
-          s = build_ship
+        before(:each) do
+          os  = create(:valid_ship, :hp => 10)
+          @sh = build_ship
           # create_entity will set location id's the same
-          s.id = os.id
+          @sh.id = os.id
+          @sh.hp = 5
+        end
+
+        it "raises OperationError" do
           lambda {
-            @s.create_entity(s)
+            @s.create_entity(@sh)
           }.should raise_error(OperationError)
         end
 
-        it "does not add entity"
+        it "does not add entity" do
+          lambda {
+            lambda{
+              @s.create_entity(@sh)
+            }.should raise_error(OperationError)
+          }.should_not change{@registry.entities.size}
+          @registry.entity(&with_id(@sh.id)).hp.should == 10
+        end
       end
 
       context "entity could not be added to registry" do
-        it "raises OperationError" do
-          os = create(:valid_ship)
-          s = build_ship
+        before(:each) do
+          os  = create(:valid_ship)
+          @sh = build_ship
           # invalid entity:
-          s.max_shield_level = 5 ; s.shield_level = 10
+          @sh.max_shield_level = 5 ; @sh.shield_level = 10
+        end
+
+        it "raises OperationError" do
           lambda {
-            @s.create_entity(s)
+            @s.create_entity(@sh)
           }.should raise_error(OperationError)
         end
 
@@ -131,9 +145,38 @@ module Manufactured::RJR
         Motel::RJR.registry.entity(&with_id(s.location.id)).should_not be_nil
       end
 
-      it "grants view/modify on entity to owner's role"
+      it "grants view/modify on entity to owner's role" do
+        s = build_ship
+        eid = "manufactured_entity-#{s.id}"
+        @s.node.should_receive(:invoke).
+                with("users::add_privilege",
+                     "user_role_#{@login_user.id}",
+                     "view", eid).and_call_original
+        @s.node.should_receive(:invoke).
+                with("users::add_privilege",
+                     "user_role_#{@login_user.id}",
+                     "modify", eid).and_call_original
+        @s.node.should_receive(:invoke).
+                at_least(2).times.and_call_original # for other calls to node.invoke
+        @s.create_entity(s)
+        Users::RJR.registry.entity{ |e| e.id == @login_user.id }.
+                            has_privilege_on?('view', eid).should be_true
+        Users::RJR.registry.entity{ |e| e.id == @login_user.id }.
+                            has_privilege_on?('modify', eid).should be_true
+      end
 
-      it "grants view on entity's location to owner's role"
+      it "grants view on entity's location to owner's role" do
+        s = build_ship
+        @s.node.should_receive(:invoke).
+                with("users::add_privilege",
+                     "user_role_#{@login_user.id}",
+                     "view", "location-#{s.id}").and_call_original
+        @s.node.should_receive(:invoke).
+                at_least(1).times.and_call_original # for other calls to node.invoke
+        @s.create_entity(s)
+        Users::RJR.registry.entity{ |e| e.id == @login_user.id }.
+                            has_privilege_on?('view', "location-#{s.id}").should be_true
+      end
 
       it "returns entity" do
         s = build_ship

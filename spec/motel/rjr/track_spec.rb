@@ -309,60 +309,98 @@ module Motel::RJR
       session_id @s.login(@n, @login_user.id, @login_user.password)
 
       @registry = Motel::RJR.registry
-      add_privilege @login_role, 'view', 'locations'
-    end
-
-    context "location not found" do
-      it "raises DataNotFound" do
-        lambda {
-          @s.remove_callbacks 'nonexistant'
-        }.should raise_error(DataNotFound)
-      end
-    end
-
-    context "callback type is invalid" do
-      it "raises ArgumentError" do
-        l = create(:location)
-        lambda {
-          @s.remove_callbacks l.id, 'invalid'
-        }.should raise_error(ArgumentError)
-      end
     end
 
     context "insufficient permissions" do
-      it "should raise PermissionError"
+      it "should raise PermissionError" do
+        l = create(:location)
+        lambda {
+          @s.remove_callbacks l.id
+        }.should raise_error(PermissionError)
+      end
     end
 
-    it "removes location callbacks" do
-      l = create(:location)
-      @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
-      @s.track_handler l.id, 20
-      @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-      @s.track_handler l.id, 1.57, 1, 0, 0
-      lambda {
-        @s.remove_callbacks l.id
-      }.should change{@registry.entity(&with_id(l.id)).
-                                callbacks.values.size}.by(-2)
-    end
+    context "sufficient permissions" do
+      before(:each) do
+        add_privilege @login_role, 'view', 'locations'
+      end
 
-    it "only removed callbacks for the rjr_node"
+      context "location not found" do
+        it "raises DataNotFound" do
+          lambda {
+            @s.remove_callbacks 'nonexistant'
+          }.should raise_error(DataNotFound)
+        end
+      end
 
-    context "callback type is specified" do
-      it "remove location callbacks of specified type" do
+      context "callback type is invalid" do
+        it "raises ArgumentError" do
+          l = create(:location)
+          lambda {
+            @s.remove_callbacks l.id, 'invalid'
+          }.should raise_error(ArgumentError)
+        end
+      end
+
+
+      it "removes location callbacks" do
         l = create(:location)
         @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
         @s.track_handler l.id, 20
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
         @s.track_handler l.id, 1.57, 1, 0, 0
         lambda {
+          @s.remove_callbacks l.id
+        }.should change{@registry.entity(&with_id(l.id)).
+                                  callbacks.values.size}.by(-2)
+      end
+
+      context "callback type is specified" do
+        it "remove location callbacks of specified type" do
+          l = create(:location)
+          @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
+          @s.track_handler l.id, 20
+          @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
+          @s.track_handler l.id, 1.57, 1, 0, 0
+          lambda {
+            @s.remove_callbacks l.id, 'rotation'
+          }.should change{@registry.entity(&with_id(l.id)).
+                                    callbacks.values.flatten.size}.by(-1)
+          @registry.entity(&with_id(l.id)).callbacks[:movement].size.should == 1
+          @registry.entity(&with_id(l.id)).callbacks[:proximity].should be_nil
+        end
+      end
+
+      it "only removed callbacks for the rjr_node" do
+        l = create(:location)
+
+        @s.instance_variable_get(:@rjr_headers)['source_node'] = 'foobar'
+        @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
+        @s.track_handler l.id, 20
+        @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
+        @s.track_handler l.id, 1.57, 1, 0, 0
+
+        @s.instance_variable_get(:@rjr_headers)['source_node'] = 'barfoo'
+        @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
+        @s.track_handler l.id, 20
+        @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
+        @s.track_handler l.id, 1.57, 1, 0, 0
+
+        lambda {
           @s.remove_callbacks l.id, 'rotation'
         }.should change{@registry.entity(&with_id(l.id)).
                                   callbacks.values.flatten.size}.by(-1)
-        @registry.entity(&with_id(l.id)).callbacks[:movement].size.should == 1
-        @registry.entity(&with_id(l.id)).callbacks[:proximity].should be_nil
+        lambda {
+          @s.remove_callbacks l.id
+        }.should change{@registry.entity(&with_id(l.id)).
+                                  callbacks.values.flatten.size}.by(-1)
+
+        @registry.entity(&with_id(l.id)).callbacks[:movement].
+                          first.endpoint_id.should == 'foobar'
+        @registry.entity(&with_id(l.id)).callbacks[:rotation].
+                          first.endpoint_id.should == 'foobar'
       end
     end
-
   end # describe #remove_callbacks
 
   describe "#dispatch_motel_rjr_track" do
