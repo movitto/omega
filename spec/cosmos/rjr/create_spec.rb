@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'cosmos/rjr/create'
+require 'motel/rjr/create'
 require 'rjr/dispatcher'
 
 module Cosmos::RJR
@@ -15,11 +16,13 @@ module Cosmos::RJR
       dispatch_to @s, Cosmos::RJR, :CREATE_METHODS
       @registry = Cosmos::RJR.registry
 
-      # XXX stub out call to motel::create_location
-      Cosmos::RJR.node.stub(:invoke).and_return(build(:location))
+      # XXX needed to handle motel::create_location calls
+      @n.dispatcher.add_module('motel/rjr/init')
+      @n.dispatcher.add_module('cosmos/rjr/init')
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
+      #add_privilege @login_role, 'create', 'locations'
       session_id @s.login(@n, @login_user.id, @login_user.password)
     end
 
@@ -62,12 +65,22 @@ module Cosmos::RJR
 
       it "creates location" do
         new_entity = build(:galaxy)
-        Cosmos::RJR.node.should_receive(:invoke).with('motel::create_location', new_entity.location)
+        Cosmos::RJR.node.should_receive(:invoke).
+          with('motel::create_location', new_entity.location).and_call_original
         @s.create_entity(new_entity)
       end
 
-      it "sets location id"
-      it "sets location parent"
+      it "sets location id" do
+        new_entity = build(:galaxy)
+        @s.create_entity(new_entity)
+        Motel::RJR.registry.entities.last.id.should == new_entity.id
+      end
+
+      it "sets location parent" do
+        new_entity = build(:galaxy)
+        @s.create_entity(new_entity)
+        Motel::RJR.registry.entities.last.parent_id.should == new_entity.parent_id
+      end
 
       context "existing entity-id specified" do
         # TODO other errors such as parent not found
@@ -80,7 +93,13 @@ module Cosmos::RJR
       end
 
       context "existing entity-name specified" do
-        it "raises OperationError"
+        it "raises OperationError" do
+          entity = create(:galaxy)
+          entity2 = create(:galaxy, :name => entity.name)
+          lambda {
+            @s.create_entity(entity2)
+          }.should raise_error(OperationError)
+        end
       end
 
       it "creates new entity in registry" do

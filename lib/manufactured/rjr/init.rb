@@ -97,6 +97,7 @@ module Manufactured::RJR
   # additional times, any way to correct this?
   motel_event = proc { |loc|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+    #raise ValidationError, "not a location" unless loc.is_a?(Motel::Location)
 
     # retrieve registry entity / location
     entity = registry.entity { |e| e.is_a?(Ship) && e.location.id == loc.id }

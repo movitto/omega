@@ -71,12 +71,30 @@ module Missions::RJR
   end
 
   describe "#manufactured event" do
-    context "not local node" do
-      it "raises PermissionError"
+    before(:each) do
+      dispatch_to @s, Missions::RJR, :CALLBACK_METHODS
     end
 
-    it "creates new manufactured event"
-    it "returns nil"
+    context "not local node" do
+      it "raises PermissionError" do
+        @n.node_type = 'local-test'
+        lambda {
+          @s.manufactured_event 'anything'
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    it "creates new manufactured event" do
+      sh = build(:ship)
+      lambda {
+        @s.manufactured_event 'attacked', sh
+      }.should change{Missions::RJR.registry.entities.size}.by(1)
+      Missions::RJR.registry.entities.last.id.should == "#{sh.id}_attacked"
+    end
+
+    it "returns nil" do
+      @s.manufactured_event.should be_nil
+    end
   end
 
   describe "#dispatch_missions_rjr_init" do

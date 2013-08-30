@@ -14,9 +14,6 @@ module Cosmos::RJR
     before(:each) do
       dispatch_to @s, Cosmos::RJR, :GET_METHODS
 
-      # XXX stub out call to motel::create_location
-      Cosmos::RJR.node.stub(:invoke).and_return(build(:location))
-
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
       session_id @s.login(@n, @login_user.id, @login_user.password)
@@ -35,7 +32,21 @@ module Cosmos::RJR
       s.collect { |e| e.id }.should == i
     end
 
-    it "updates all entities and children with motel location (recursively)"
+    it "updates all entities and children with motel location (recursively)" do
+      add_privilege @login_role, 'view', 'cosmos_entities'
+      g = create(:galaxy)
+      s = create(:solar_system, :parent => g)
+      p = create(:planet, :parent => s)
+
+      @s.node.should_receive(:invoke).
+         with('motel::get_location', 'with_id', g.id).and_call_original
+      @s.node.should_receive(:invoke).
+         with('motel::get_location', 'with_id', s.id).and_call_original
+      @s.node.should_receive(:invoke).
+         with('motel::get_location', 'with_id', p.id).and_call_original
+      @s.node.should_receive(:invoke).at_least(:once).and_call_original
+      s = @s.get_entities
+    end
 
     context "entity id/name/location specified" do
       context "entity not found" do
@@ -60,7 +71,12 @@ module Cosmos::RJR
           add_privilege @login_role, 'view', 'cosmos_entities'
         end
 
-        it "does not raise permission error"
+        it "does not raise permission error" do
+          g = create(:galaxy)
+          lambda {
+            @s.get_entities 'with_id', g.id
+          }.should_not raise_error(PermissionError)
+        end
 
         it "returns corresponding entity" do
           l  = create(:galaxy)
@@ -88,7 +104,18 @@ module Cosmos::RJR
     end
 
     context "type of entity specified" do
-      it "only returns entities matching type"
+      it "only returns entities matching type" do
+        add_privilege @login_role, 'view', 'cosmos_entities'
+        g1  = create(:galaxy)
+        g2  = create(:galaxy)
+        s1  = create(:solar_system)
+        r = @s.get_entities 'of_type', 'Cosmos::Entities::Galaxy'
+        r.should be_an_instance_of(Array)
+        r.size.should == 3
+        r[0].id.should == g1.id
+        r[1].id.should  == g2.id
+        r[2].id.should  == s1.parent_id
+      end
     end
   end # describe #get_entities
 

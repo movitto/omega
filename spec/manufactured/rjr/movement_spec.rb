@@ -389,8 +389,22 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates entity location & system"
-      it "updates target location & system"
+      it "updates entity & target location & system" do
+        Manufactured::RJR.node.should_receive(:invoke).
+               with("motel::get_location", 'with_id', @sh.id).
+               and_call_original
+        Manufactured::RJR.node.should_receive(:invoke).
+               with("motel::get_location", 'with_id', @sh1.id).
+               and_call_original
+        Manufactured::RJR.node.should_receive(:invoke).
+               with("cosmos::get_entity", 'with_location', @sh.parent.id).
+               and_call_original
+        Manufactured::RJR.node.should_receive(:invoke).
+               with("cosmos::get_entity", 'with_location', @sh1.parent.id).
+               and_call_original
+        Manufactured::RJR.node.should_receive(:invoke).and_call_original
+        @s.follow_entity @sh.id, @sh1.id, 10
+      end
 
       context "entities are not in the same system" do
         it "raises ArgumentError" do
@@ -418,7 +432,12 @@ module Manufactured::RJR
           should be_an_instance_of(Motel::MovementStrategies::Follow)
       end
 
-      it 'returns entity"'
+      it 'returns entity"'do
+        r = @s.follow_entity @sh.id, @sh1.id, 10
+        r.should be_an_instance_of(Manufactured::Ship)
+        r.id.should == @sh.id
+        r.location.ms.should be_an_instance_of(Motel::MovementStrategies::Follow)
+      end
     end
   end # describe #follow_entity
 
@@ -475,7 +494,14 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates entity location"
+      it "updates entity location" do
+        Manufactured::RJR.node.should_receive(:invoke).
+                          with("motel::get_location", 'with_id', @sh.id).
+                          and_call_original
+        Manufactured::RJR.node.should_receive(:invoke).
+                    at_least(1).times.and_call_original
+        @s.stop_entity @sh.id
+      end
 
       it "sets entity movement strategy to stopped in motel" do
         @rshl.movement_strategy.

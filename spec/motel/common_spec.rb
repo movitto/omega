@@ -125,8 +125,16 @@ describe "#orthogonal?" do
   end
 end
 
-describe "#ran_vector" do
-  it "returns a random vector"
+describe "#rand_vector" do
+  it "returns a random vector" do
+    v1 = Motel.rand_vector
+    v2 = Motel.rand_vector
+    v1.size.should == 3
+    v2.size.should == 3
+    Motel.normalized?(*v1).should be_true
+    Motel.normalized?(*v2).should be_true
+    v1.should_not == v2
+  end
 end
 
 describe "#random_axis" do

@@ -110,7 +110,11 @@ module Missions::RJR
       end
 
       context "creator missing" do
-        it "sets creator to current user"
+        it "sets creator to current user" do
+          new_mission = build(:mission, :creator => nil)
+          @s.create_mission(new_mission)
+          @registry.entity(&with_id(new_mission.id)).creator_id.should == @login_user.id
+        end
       end
 
       it "resolves mission dsl references" do

@@ -67,7 +67,14 @@ module Motel::RJR
         add_privilege @login_role, 'modify', 'locations'
       end
 
-      it "filters invalid properties"
+      it "filters invalid properties" do
+        n = create(:location)
+        @s.should_receive(:filter_properties).
+           with(n, :allow => [:id,:x,:y,:z,:parent_id,
+                              :movement_strategy,
+                              :next_movement_strategy])
+        @s.update_location n
+      end
 
       it "updates location in registry" do
         n = create(:location)

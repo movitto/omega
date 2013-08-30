@@ -163,7 +163,13 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates src/dst locations from motel"
+      it "updates src/dst locations from motel" do
+        @s.node.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @src.id).and_call_original
+        @s.node.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @dst.id).and_call_original
+        @s.transfer_resource @src.id, @dst.id, @rs
+      end
 
       context "resources not specified" do
         it "transfers all of src's resources" do
@@ -185,8 +191,6 @@ module Manufactured::RJR
           }.should raise_error(ArgumentError)
         end
       end
-
-      it "updates src/dst locations/systems"
 
       it "transfers all specified resources" do
         @s.transfer_resource @src.id, @dst.id, @rs

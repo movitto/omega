@@ -57,7 +57,16 @@ module Motel::RJR
         end
       end
 
-      it "filters properties set on location"
+      it "filters properties set on location" do
+        new_location = build(:location)
+        @s.should_receive(:filter_properties).
+           with(new_location, :allow =>
+             [:id, :parent_id, :restrict_view, :restrict_modify,
+              :x, :y, :z,
+              :orientation_x, :orientation_y, :orientation_z,
+              :movement_strategy]).and_return(new_location) # XXX should be and_call_original but this is not working for some reason...
+        @s.create_location(new_location)
+      end
 
       context "existing location-id specified" do
         it "raises OperationError" do

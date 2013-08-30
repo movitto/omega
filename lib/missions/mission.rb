@@ -45,7 +45,12 @@ class Mission
   # Creator writer (also sets creator_id)
   def creator=(v)
     @creator = v
-    @creator_id = v.id
+
+    if v.nil?
+      @creator_id = nil
+    else
+      @creator_id = v.id
+    end
   end
 
   # Array of mission assignment requirements

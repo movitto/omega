@@ -80,7 +80,13 @@ module Manufactured::RJR
         }.should_not raise_error(PermissionError)
       end
 
-      it "updates ship location"
+      it "updates ship location" do
+        @s.node.should_receive(:invoke).
+           with('motel::get_location', 'with_id', @sh.location.id).
+           and_call_original
+        @s.node.should_receive(:invoke).and_call_original
+        @s.collect_loot @sh.id, @lt.id
+      end
 
       it "transfers all resources in loot" do
         @s.collect_loot @sh.id, @lt.id

@@ -42,7 +42,11 @@ module Manufactured::RJR
       end
     end
 
-    it "creates new callback for event type"
+    it "creates new callback for event type" do
+      lambda{
+        @s.subscribe_to @sh.id, 'resource_collected'
+      }.should change{@rsh.callbacks.size}.by(1)
+    end
 
     it "sets rjr method to invoke on callback" do
       @s.subscribe_to @sh.id, 'resource_collected'

@@ -5,6 +5,8 @@
 
 require 'spec_helper'
 require 'manufactured/rjr/init'
+require 'motel/movement_strategies/linear'
+require 'motel/movement_strategies/rotate'
 
 module Manufactured::RJR
   describe "#user" do
@@ -73,37 +75,88 @@ module Manufactured::RJR
   end
 
   describe "#motel_event" do
+    before(:each) do
+      setup_manufactured  :CALLBACK_METHODS
+
+      @sh = create(:valid_ship)
+    end
+
     context "not local node" do
-      it "raises PermissionError"
+      it "raises PermissionError" do
+        @n.node_type = 'local-test'
+        lambda {
+          @s.motel_event 'anything'
+        }.should raise_error(PermissionError)
+      end
     end
 
     context "entity not found" do
-      it "does nothing"
+      it "does not raise error" do
+        lambda {
+          @s.motel_event build(:location)
+        }.should_not raise_error
+      end
     end
 
     it "updates use DistanceTravelled attribute"
 
-    it "sets next movement strategy"
-
-    context "next movement strategy is nil" do
-      it "sets movement strategy to stopped"
+    it "sets next movement strategy" do
+      lin = Motel::MovementStrategies::Linear.new :speed => 1
+      @sh.location.next_movement_strategy = lin
+      @s.motel_event @sh.location
+      @sh.location.movement_strategy.should == lin
     end
 
-    it "sets next movement strategy to stopped"
+    context "next movement strategy is nil" do
+      it "sets movement strategy to stopped" do
+        lin = Motel::MovementStrategies::Linear.new :speed => 1
+        @sh.location.movement_strategy = lin
+        @s.motel_event @sh.location
+        @sh.location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+      end
+    end
+
+    it "sets next movement strategy to stopped" do
+      lin = Motel::MovementStrategies::Linear.new :speed => 1
+      @sh.location.next_movement_strategy = lin
+      @s.motel_event @sh.location
+      @sh.location.next_movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+    end
 
     context "movement strategy different" do
       context "old movement strategy is linear" do
-        it "removes motel movement callbacks"
+        it "removes motel movement callbacks" do
+          lin = Motel::MovementStrategies::Linear.new :speed => 1
+          @sh.location.movement_strategy = lin
+          @s.node.should_receive(:invoke).
+             with('motel::remove_callbacks', @sh.id, :movement)
+          @s.node.should_receive(:invoke)
+          @s.motel_event @sh.location
+        end
       end
 
       context "old movement strategy is rotation" do
-        it "removes motel rotation callbacks"
+        it "removes motel rotation callbacks" do
+          rot = Motel::MovementStrategies::Rotate.new
+          @sh.location.movement_strategy = rot
+          @s.node.should_receive(:invoke).
+             with('motel::remove_callbacks', @sh.id, :rotation)
+          @s.node.should_receive(:invoke)
+          @s.motel_event @sh.location
+        end
       end
     end
 
-    it "updates entity with location"
+    it "updates entity with location" do
+      @s.node.should_receive(:invoke).
+         with('motel::update_location', @sh.location)
+      #@s.node.should_receive(:invoke)
+      @s.motel_event @sh.location
+    end
 
-    it "returns nil"
+    it "returns nil" do
+      @s.motel_event(@sh.location)
+    end
   end
 
   describe "#dispatch_manufactured_rjr_init" do

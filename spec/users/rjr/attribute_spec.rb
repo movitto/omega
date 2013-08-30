@@ -112,10 +112,6 @@ module Users::RJR
       Users::RJR.user_attrs_enabled = @o
     end
 
-    context "level not specified" do
-      it "sets level to 0"
-    end
-
     context "invalid user id" do
       it "raises ArgumentError" do
         lambda {
@@ -184,6 +180,15 @@ module Users::RJR
       @s.has_attribute(@login_user.id, @attr, 2).should be_false
       @s.has_attribute(@login_user.id, 'bar'  ).should be_false
     end
+
+    context "level not specified" do
+      it "sets level to 0" do
+        @s.registry.should_receive(:entity).and_return(@login_user)
+        @login_user.should_receive(:has_attribute?).with(@attr, 0)
+        @s.has_attribute(@login_user.id, @attr)
+      end
+    end
+
 
   end # describe #has_role
 

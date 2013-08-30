@@ -29,7 +29,11 @@ create_entity = proc { |entity|
   raise ValidationError, entity unless entity.valid?
 
   # create location
-  entity.location = node.invoke('motel::create_location', entity.location)
+  begin
+    entity.location = node.invoke('motel::create_location', entity.location)
+  rescue Exception => e
+    raise OperationError, "#{entity.location} not created"
+  end
 
   # add entity to registry, throw error if not added
   added = registry << entity

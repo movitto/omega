@@ -20,37 +20,43 @@ class Manufactured < Omega::Server::Event
 
   # Manufactured Event intializer
   def initialize(*manufactured_event_args)
-    @manufactured_event_args = manufactured_event_args
+    if manufactured_event_args.first.is_a?(Hash)
+      # execution path when converting from json
+      super(manufactured_event_args.first)
 
-    # generate event id from args
-    # XXX not pretty but works for now
-    manu_event = manufactured_event_args.first
-    entity_id =
-      case manu_event
-      when 'attacked_stopped','attacked'                       then
-        manufactured_event_args[1].id
-
-      when 'defended_stopped','defended','destroyed'           then
-        manufactured_event_args[2].id
-
-      when 'resource_collected'                                then
-        # TODO also incoporate resource_source_id (param 2) ?
-        manufactured_event_args[1].id
-
-      when 'mining_stopped'                                    then
-        # TODO also incoporate resource_source_id (param 3) ?
-        manufactured_event_args[2].id
-
-      when 'construction_complete','partial_construction'      then
-        manufactured_event_args[1].id
-
-      when 'transferred_from','transferred_to'                 then
-        manufactured_event_args[1].id
-
-      end
-    id = self.class.gen_id(entity_id, manu_event)
-
-    super(:id => id, :timestamp => Time.now)
+    else
+      @manufactured_event_args = manufactured_event_args
+  
+      # generate event id from args
+      # XXX not pretty but works for now
+      manu_event = manufactured_event_args.first
+      entity_id =
+        case manu_event
+        when 'attacked_stopped','attacked'                       then
+          manufactured_event_args[1].id
+  
+        when 'defended_stopped','defended','destroyed'           then
+          manufactured_event_args[2].id
+  
+        when 'resource_collected'                                then
+          # TODO also incoporate resource_source_id (param 2) ?
+          manufactured_event_args[1].id
+  
+        when 'mining_stopped'                                    then
+          # TODO also incoporate resource_source_id (param 3) ?
+          manufactured_event_args[2].id
+  
+        when 'construction_complete','partial_construction'      then
+          manufactured_event_args[1].id
+  
+        when 'transferred_from','transferred_to'                 then
+          manufactured_event_args[1].id
+  
+        end
+      id = self.class.gen_id(entity_id, manu_event)
+  
+      super(:id => id, :timestamp => Time.now)
+    end
   end
 end
 
