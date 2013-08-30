@@ -11,6 +11,7 @@ require 'optparse'
 require 'pp'
 
 require 'rjr/nodes/tcp'
+require 'omega'
 
 transport = :tcp
 url       = 'jsonrpc://localhost:8181'
@@ -42,9 +43,20 @@ optparse.parse!
 # TODO support other transports
 
 node = RJR::Nodes::TCP.new :node_id => 'omega-status-retrieve'
+puts "RJR:"
 pp node.invoke(url, 'rjr::status')
+
+puts "\nUsers:"
+pp node.invoke(url, 'users::status')
+
+puts "\nMotel:"
 pp node.invoke(url, 'motel::status')
+
+puts "\nManufactured:"
 pp node.invoke(url, 'manufactured::status')
+
+puts "\nMissions:"
+pp node.invoke(url, 'missions::status')
 
 if stats
   require 'users/user'

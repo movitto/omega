@@ -28,6 +28,10 @@ class Privilege
     attr_from_args args, :id => nil, :entity_id => nil
   end
 
+  def to_s
+    "privilege-#{id}#{entity_id ? ('-' + entity_id) : nil}"
+  end
+
   # Return boolean indicating if local attributes match those of specified privilege
   #
   # @param [Users::Privilege] privilege privilege which to compare
