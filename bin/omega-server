@@ -117,21 +117,17 @@ def main()
 
   multi_node = RJR::Nodes::Multi.new :nodes => nodes
 
+  # setup logging
   RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
-  #if RJR::Logger.debug?
-  #  require 'rjr/inspect'
-  #  require 'motel/rjr_inspect'
-  #  require 'manufactured/rjr_inspect'
-  #  # TODO other subsystems
-  #else
-    # filter out 'motel::get_location' and 'cosmos::get_entity' requests
+  if !RJR::Logger.debug?
+    # filter out various log messages
     RJR::Logger.add_filter proc { |m| !(m =~ /.*motel::get_location.*/) }
     RJR::Logger.add_filter proc { |m| !(m =~ /.*cosmos::get_resource.*/) }
     RJR::Logger.add_filter proc { |m| !(m =~ /.*get_entit.*/ ) }
     RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
-    # TODO allow user to add / customize filters via config file (and command line flags?)
-  #end
-#RJR::Logger.highlight proc { |m| m =~ /.*Anubis-mining-ship1.*/}
+    #RJR::Logger.highlight proc { |m| m =~ /.*text to hightlight.*/}
+    # TODO allow user to add / customize filters and highlights via config file (and command line flags?)
+  end
 
   # setup the omega systems
   multi_node.dispatcher.add_module('users/rjr/init')
@@ -140,6 +136,17 @@ def main()
   multi_node.dispatcher.add_module('stats/rjr/init')
   multi_node.dispatcher.add_module('manufactured/rjr/init')
   multi_node.dispatcher.add_module('missions/rjr/init')
+
+  # add various debugging mechanisms
+  if RJR::Logger.debug?
+    multi_node.dispatcher.add_module('rjr/inspect')
+    multi_node.dispatcher.add_module('users/rjr/inspect')
+    multi_node.dispatcher.add_module('motel/rjr/inspect')
+    multi_node.dispatcher.add_module('cosmos/rjr/inspect')
+    multi_node.dispatcher.add_module('manufactured/rjr/inspect')
+    multi_node.dispatcher.add_module('missions/rjr/inspect')
+    multi_node.dispatcher.add_module('stats/rjr/inspect')
+  end
 
   # create the default roles
   local_node = RJR::Nodes::Local.new :node_id => 'server_seeder'

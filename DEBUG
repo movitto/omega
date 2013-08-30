@@ -1,0 +1,13 @@
+Debugging
+---------
+Debugging may be enabled by setting log_level to 'debug' in the omega.yml
+config file. Log filtering will be disabled in omega-server and additional
+debugging rjr methods will be loaded which may be invoked by the end user
+to retrieve server runtime statistics.
+
+See the lib/rjr/inspect and lib/*/rjr/inspect modules for the API and
+implementation of these debugging methods.
+
+The omega-status utility can be used to quickly query a set of the high
+level debugging methods for information and the omega-console command
+provides an interactive utility which to invoke omega rjr methods.

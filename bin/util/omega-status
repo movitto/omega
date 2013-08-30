@@ -1,12 +1,14 @@
 #!/usr/bin/ruby
 # Retrieve omega server status
+# 
+# Requires omega-server to be in debugging mode
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-
 require 'rubygems'
 require 'optparse'
+require 'pp'
 
 require 'rjr/nodes/tcp'
 
@@ -16,7 +18,7 @@ stats     = false
 
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
-    puts opts
+    pp opts
     exit
   end
 
@@ -40,9 +42,9 @@ optparse.parse!
 # TODO support other transports
 
 node = RJR::Nodes::TCP.new :node_id => 'omega-status-retrieve'
-#puts node.invoke(url, 'rjr::status')
-puts node.invoke(url, 'motel::status')
-puts node.invoke(url, 'manufactured::status')
+pp node.invoke(url, 'rjr::status')
+pp node.invoke(url, 'motel::status')
+pp node.invoke(url, 'manufactured::status')
 
 if stats
   require 'users/user'
@@ -52,22 +54,22 @@ if stats
   node.message_headers['session_id'] = session.id
 
   require 'stats/stat'
-  puts "num_of users:         #{node.invoke(url, 'stats::get', 'num_of', 'users')}"
-  puts "num_of entities:      #{node.invoke(url, 'stats::get', 'num_of', 'entities')}"
-  puts "num_of ships:         #{node.invoke(url, 'stats::get', 'num_of', 'ships')}"
-  puts "num_of stations:      #{node.invoke(url, 'stats::get', 'num_of', 'stations')}"
-  puts "num_of galaxies:      #{node.invoke(url, 'stats::get', 'num_of', 'galaxies')}"
-  puts "num_of solar_systems: #{node.invoke(url, 'stats::get', 'num_of', 'solar_systems')}"
-  puts "num_of planets:       #{node.invoke(url, 'stats::get', 'num_of', 'planets')}"
-  puts "num_of missions:      #{node.invoke(url, 'stats::get', 'num_of', 'missions')}"
+  pp "num_of users:         #{node.invoke(url, 'stats::get', 'num_of', 'users')}"
+  pp "num_of entities:      #{node.invoke(url, 'stats::get', 'num_of', 'entities')}"
+  pp "num_of ships:         #{node.invoke(url, 'stats::get', 'num_of', 'ships')}"
+  pp "num_of stations:      #{node.invoke(url, 'stats::get', 'num_of', 'stations')}"
+  pp "num_of galaxies:      #{node.invoke(url, 'stats::get', 'num_of', 'galaxies')}"
+  pp "num_of solar_systems: #{node.invoke(url, 'stats::get', 'num_of', 'solar_systems')}"
+  pp "num_of planets:       #{node.invoke(url, 'stats::get', 'num_of', 'planets')}"
+  pp "num_of missions:      #{node.invoke(url, 'stats::get', 'num_of', 'missions')}"
 
-  puts "with_most entities:   #{node.invoke(url, 'stats::get', 'with_most', 'entities')}"
-  puts "with_most kills:      #{node.invoke(url, 'stats::get', 'with_most', 'kills')}"
-  puts "with_most times_killed: #{node.invoke(url, 'stats::get', 'with_most', 'times_killed')}"
-  puts "with_most resources_collected: #{node.invoke(url, 'stats::get', 'with_most', 'resources_collected')}"
-  puts "with_most loot_collected: #{node.invoke(url, 'stats::get', 'with_most', 'loot_collected')}"
-  puts "with_most distance_moved: #{node.invoke(url, 'stats::get', 'with_most', 'distance_moved')}"
-  puts "with_most missions_completed: #{node.invoke(url, 'stats::get', 'with_most', 'missions_completed')}"
+  pp "with_most entities:   #{node.invoke(url, 'stats::get', 'with_most', 'entities')}"
+  pp "with_most kills:      #{node.invoke(url, 'stats::get', 'with_most', 'kills')}"
+  pp "with_most times_killed: #{node.invoke(url, 'stats::get', 'with_most', 'times_killed')}"
+  pp "with_most resources_collected: #{node.invoke(url, 'stats::get', 'with_most', 'resources_collected')}"
+  pp "with_most loot_collected: #{node.invoke(url, 'stats::get', 'with_most', 'loot_collected')}"
+  pp "with_most distance_moved: #{node.invoke(url, 'stats::get', 'with_most', 'distance_moved')}"
+  pp "with_most missions_completed: #{node.invoke(url, 'stats::get', 'with_most', 'missions_completed')}"
 
-  puts "with_least times_killed: #{node.invoke(url, 'stats::get', 'with_least', 'times_killed')}"
+  pp "with_least times_killed: #{node.invoke(url, 'stats::get', 'with_least', 'times_killed')}"
 end

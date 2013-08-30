@@ -20,21 +20,12 @@ restore_state = proc { |input|
   File.open(input, 'r') { |f| registry.restore(f) }
 }
 
-manufactured_status = proc {
-  # Retrieve the overall status of this node
-  { :running   => registry.running?,
-    :ships    => registry.ships.size,
-    :stations => registry.stations.size }
-}
-
 STATE_METHODS = { :save_state    => save_state,
-                  :restore_state => restore_state,
-                  :status        => manufactured_status }
+                  :restore_state => restore_state }
 end
 
 def dispatch_manufactured_rjr_state(dispatcher)
   m = Manufactured::RJR::STATE_METHODS
   dispatcher.handle "manufactured::save_state",    &m[:save_state]
   dispatcher.handle "manufactured::restore_state", &m[:restore_state]
-  dispatcher.handle "manufactured::status",        &m[:status]
 end
