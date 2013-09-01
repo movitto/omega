@@ -55,8 +55,6 @@ module Users::RJR
       Users::RJR.reset
       Users::RJR.registry.entities.size.should == 0
     end
-
-    it "clears chat messages"
   end
 
   describe "#dispatch_users_rjr_init" do

@@ -112,39 +112,6 @@ pavlov.specify("omega.js", function(){
       sinon.assert.called(spy);
     });
 
-    it("handles chat notifications", function(){
-      var node = new TestNode();
-      session_established(complete_ui(), node, new Session({}), new User());
-      assert(obj_keys(node.handlers)).includes('users::on_message')
-    });
-
-    it("subscribes to chat messages", function(){
-      var node = new TestNode();
-      var spy = sinon.spy(node, 'ws_request');
-      session_established(complete_ui(), node, new Session({}), new User());
-      sinon.assert.calledWith(spy, 'users::subscribe_to_messages');
-    });
-
-    describe("on chat message", function(){
-      it("adds message to chat container", function(){
-        var ui = complete_ui();
-        var node = new TestNode();
-        session_established(ui, node, new Session({}), new User());
-
-        var cb = node.handlers['users::on_message'][0];
-        var spy = sinon.spy(ui.chat_container.output, 'append');
-        cb.apply(null, [{ nick : 'mmorsi', message : 'hello world' }]);
-        sinon.assert.calledWith(spy, "mmorsi: hello world\n")
-      });
-    });
-
-    it("shows chat container", function(){
-      var ui = complete_ui();
-      var spy = sinon.spy(ui.chat_container.toggle_control(), 'show');
-      session_established(ui, new TestNode(), new Session({}), new User());
-      sinon.assert.called(spy);
-    });
-
     it("shows missions button", function(){
       var ui = complete_ui();
       var spy = sinon.spy(ui.canvas_container.missions_button, 'show');
@@ -1167,7 +1134,6 @@ pavlov.specify("omega.js", function(){
       if(wire_up_audio_player.restore) wire_up_audio_player.restore();
       if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
       if(wire_up_canvas.restore) wire_up_canvas.restore();
-      if(wire_up_chat.restore) wire_up_chat.restore();
       if(wire_up_account_info.restore) wire_up_account_info.restore();
     })
 
@@ -1177,7 +1143,6 @@ pavlov.specify("omega.js", function(){
       wire_up_audio_player = sinon.spy(wire_up_audio_player);
       wire_up_entities_lists = sinon.spy(wire_up_entities_lists);
       wire_up_canvas = sinon.spy(wire_up_canvas);
-      wire_up_chat = sinon.spy(wire_up_chat);
       wire_up_account_info = sinon.spy(wire_up_account_info);
 
       wire_up_ui(ui, node);
@@ -1186,7 +1151,6 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(wire_up_audio_player, ui, node);
       sinon.assert.calledWith(wire_up_entities_lists, ui, node);
       sinon.assert.calledWith(wire_up_canvas, ui, node);
-      sinon.assert.calledWith(wire_up_chat, ui, node);
       sinon.assert.calledWith(wire_up_account_info, ui, node);
     });
   });
@@ -1384,9 +1348,7 @@ pavlov.specify("omega.js", function(){
                      sinon.spy(ui.canvas_container.entities_list, 'hide'),
                      sinon.spy(ui.canvas_container.locations_list, 'hide'),
                      sinon.spy(ui.canvas_container.entity_container, 'hide'),
-                     sinon.spy(ui.dialog, 'hide'),
-                     sinon.spy(ui.chat_container, 'hide'),
-                     sinon.spy(ui.chat_container.toggle_control(), 'hide')];
+                     sinon.spy(ui.dialog, 'hide')];
         cb.apply(null, []);
         for(var spy in spies)
           sinon.assert.called(spies[spy]);
@@ -1823,57 +1785,6 @@ pavlov.specify("omega.js", function(){
     });
 
     //it("starts particle timer") // NIY
-  });
-
-  describe("#wire_up_chat", function(){
-    var ui, node;
-
-    before(function(){
-      ui = complete_ui();
-      node = new TestNode();
-    })
-
-    it("dispatches to chat_container.wire_up", function(){
-      var spy = sinon.spy(ui.chat_container, 'wire_up')
-      wire_up_chat(ui, node);
-      sinon.assert.called(spy)
-    });
-
-    it("handles chat button click event", function(){
-      wire_up_chat(ui, node);
-      assert(ui.chat_container.button.callbacks['click'].length).equals(1);
-    });
-
-    describe("on chat button click", function(){
-      var cb;
-
-      before(function(){
-        wire_up_chat(ui, node);
-        cb = ui.chat_container.button.callbacks['click'][0];
-        ui.chat_container.input.component().attr('value', 'msg'); 
-        Session.current_session = { user_id : 'user1' }
-      })
-
-      after(function(){
-        Session.current_session = null;
-      })
-
-      it("sends chat message to server", function(){
-        var spy = sinon.spy(node, 'web_request')
-        cb.apply(null, []);
-        sinon.assert.calledWith(spy, 'users::send_message', 'msg');
-      });
-
-      it("adds message to output", function(){
-        cb.apply(null, []);
-        assert(ui.chat_container.output.component().html()).equals("user1: msg\n")
-      });
-
-      it("clears chat input", function(){
-        cb.apply(null, []);
-        assert(ui.chat_container.input.component().attr('value')).equals('');
-      });
-    });
   });
 
   describe("#wire_up_account_info", function(){

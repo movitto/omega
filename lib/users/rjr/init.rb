@@ -3,7 +3,6 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'users/chat_proxy'
 require 'users/registry'
 require 'rjr/nodes/local'
 require 'omega/exceptions'
@@ -92,7 +91,6 @@ end
 
 def self.reset
   Users::RJR.registry.clear!
-  Users::ChatProxy.clear
 end
 end # module Users::RJR
 
@@ -111,7 +109,6 @@ def dispatch_users_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('users/rjr/register')
   rjr.node.dispatcher.add_module('users/rjr/session')
   rjr.node.dispatcher.add_module('users/rjr/attribute')
-  rjr.node.dispatcher.add_module('users/rjr/chat')
   rjr.node.dispatcher.add_module('users/rjr/state')
   rjr.node.message_headers['source_node'] = 'users'
 

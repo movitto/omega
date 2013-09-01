@@ -67,16 +67,6 @@ var session_established = function(ui, node, session, user){
   if(ui.nav_container)
     ui.nav_container.show_logout_controls();
 
-  // subscribe to chat messages
-  node.add_handler('users::on_message', function(msg){
-    ui.chat_container.output.append(msg.nick + ": " + msg.message + "\n");
-  });
-  node.ws_request('users::subscribe_to_messages');
-
-  // show chat
-  if(ui.chat_container)
-    ui.chat_container.toggle_control().show();
-
   // show missions button
   if(ui.canvas_container)
     ui.canvas_container.missions_button.show();
@@ -712,8 +702,6 @@ this.wire_up_ui = function(ui, node){
       wire_up_status(ui, node);
     else if(component == "canvas_container")
       wire_up_canvas(ui, node);
-    else if(component == "chat_container")
-      wire_up_chat(ui, node);
     else if(component == "account_info")
       wire_up_account_info(ui, node);
   }
@@ -800,8 +788,6 @@ var wire_up_nav = function(ui, node){
        // hide everything (almost)
        ui.canvas_container.hide();
        ui.dialog.hide();
-       ui.chat_container.toggle_control().hide();
-       ui.chat_container.hide();
 
        // clean up canvas (TODO possibly move into its own method)
        ui.canvas_container.canvas.scene.clear_entities();
@@ -1039,26 +1025,6 @@ var wire_up_canvas = function(ui, node){
   // start the particle subsystem
   ui.canvas_container.canvas.scene.particle_timer.play();
 }
-
-////////////////////////////////////////// chat
-
-/* Internal helper to wire up chat container
- */
-var wire_up_chat = function(ui, node){
-  // wire up chat to page
-  ui.chat_container.wire_up();
-
-  // send message via node when user clicks send button
-  ui.chat_container.
-    button.on('click', function(b, e){
-      var message = ui.chat_container.input.component().attr('value');
-      var user_id = Session.current_session.user_id;
-
-      node.web_request('users::send_message', message);
-      ui.chat_container.output.component().append(user_id + ": " + message + "\n");
-      ui.chat_container.input.component().attr('value', '');
-    });
-};
 
 ////////////////////////////////////////// account info
 

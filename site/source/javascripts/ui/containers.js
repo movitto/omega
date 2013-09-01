@@ -109,32 +109,6 @@ function StatusIndicator(args){
   }
 }
 
-/* Instantiate and return a new Chat Container
- */
-function ChatContainer(args){
-  $.extend(this, new UIComponent(args));
-
-  this.div_id       = '#chat_container';
-
-  this.input         = new UIComponent();
-  this.input.div_id  = '#chat_input input[type=text]';
-  this.input.container = this;
-
-  this.button        = new UIComponent();
-  this.button.div_id = '#chat_input input[type=button]';
-  this.button.container = this;
-
-  this.output        = new UIComponent();
-  this.output.div_id = '#chat_output textarea';
-  this.output.container = this;
-
-  this.subcomponents.push(this.input)
-  this.subcomponents.push(this.output)
-  this.subcomponents.push(this.button)
-
-  this.toggle_control_id = '#toggle_chat';
-}
-
 /* Instantiate and return a new Nav Container
  */
 function NavContainer(args){

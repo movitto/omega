@@ -47,14 +47,12 @@ function complete_ui(){
   var audio_player        = new AudioPlayer();
   var status_indicator    = new StatusIndicator();
   var canvas_container    = new CanvasContainer();
-  var chat_container      = new ChatContainer();
   var dialog              = new Dialog();
   var account_info        = new AccountInfoContainer();
   var ui = {nav_container    : nav_container,
             audio_player     : audio_player,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
-            chat_container   : chat_container,
             dialog           : dialog,
             account_info     : account_info };
   return ui;

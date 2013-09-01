@@ -30,13 +30,11 @@ $(document).ready(function(){
   var audio_player        = new AudioPlayer();
   var status_indicator    = new StatusIndicator();
   var canvas_container    = new CanvasContainer();
-  var chat_container      = new ChatContainer();
   var dialog              = new Dialog();
   var ui = {nav_container    : nav_container,
             audio_player     : audio_player,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
-            chat_container   : chat_container,
             dialog           : dialog };
   wire_up_ui(ui, node);
                    

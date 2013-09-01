@@ -11,7 +11,6 @@ require 'cosmos/rjr/init'
 require 'manufactured/rjr/init'
 require 'missions/rjr/init'
 require 'users/registry'
-require 'users/chat_proxy'
 require 'users/email_helper'
 
 module Omega
@@ -32,7 +31,7 @@ class Config
    CONFIG_CLASSES = [Cosmos::RJR, Manufactured::RJR,
                      Missions::RJR, Stats::RJR, 
                      Users::RJR, Users::Registry,
-                     Users::ChatProxy, Users::EmailHelper]
+                     Users::EmailHelper]
 
   # Instantiate new Config instance and load values from the config files
   #

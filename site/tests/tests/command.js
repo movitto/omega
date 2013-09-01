@@ -474,7 +474,6 @@ describe("Commands", function(){
       Commands.transfer_resources(sh, st.id)
       sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id);
       sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id);
-      console.log(spy.getCall(0).args[3]);
       assert(spy.getCall(0).args[3].type).equals('Cosmos::Resource');
       assert(spy.getCall(0).args[3].value).equals(r1);
       assert(spy.getCall(1).args[3].type).equals('Cosmos::Resource');
