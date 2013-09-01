@@ -7,7 +7,7 @@ describe("ServerEvents", function(){
     ServerEvents().clear()
     if(ServerEvents().handle.restore) ServerEvents().handle.restore();
     if(ServerEvents().raise_event.restore) ServerEvents().raise_event.restore();
-    if(Entities().find.restore) Entities().find.restore();
+    if(Entities().get.restore) Entities().get.restore();
     if(Entities().node().clear_handlers.restore) Entities().node().clear_handlers.restore();
   });
 
@@ -47,9 +47,9 @@ describe("ServerEvents", function(){
       })
 
       it("retreives entity to raise event on from Entities", function(){
-        var spy = sinon.spy(Entities(), 'find')
+        var spy = sinon.spy(Entities(), 'get')
         cb.apply(se, [{id : 42}])
-        sinon.assert.called(spy);
+        sinon.assert.calledWith(spy, 42);
         //sinon.assert.calledWith(spy, 'motel::on_movement', with_id(42))
       })
 
@@ -58,7 +58,7 @@ describe("ServerEvents", function(){
       it("raises server event on entity", function(){
         var entity = new Entity();
         var spy = sinon.spy(entity, 'raise_event');
-        var fstub = sinon.stub(Entities(), 'find').returns(entity);
+        var fstub = sinon.stub(Entities(), 'get').returns(entity);
         cb.apply(se, [{id : 42}])
         sinon.assert.calledWith(spy, 'motel::on_movement', {id : 42})
       })
@@ -472,8 +472,13 @@ describe("Commands", function(){
     it("invokes manufactured::transfer_resource for each ship resource", function(){
       var spy = sinon.spy(Entities().node(), 'web_request');
       Commands.transfer_resources(sh, st.id)
-      sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id, r1);
-      sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id, r2);
+      sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id);
+      sinon.assert.calledWith(spy, 'manufactured::transfer_resource', sh.id, st.id);
+      console.log(spy.getCall(0).args[3]);
+      assert(spy.getCall(0).args[3].type).equals('Cosmos::Resource');
+      assert(spy.getCall(0).args[3].value).equals(r1);
+      assert(spy.getCall(1).args[3].type).equals('Cosmos::Resource');
+      assert(spy.getCall(1).args[3].value).equals(r2);
     })
 
     describe("result callback specified", function(){
@@ -524,7 +529,9 @@ describe("Commands", function(){
       var spy = sinon.spy(Entities().node(), 'web_request');
       Commands.construct_entity(st)
       sinon.assert.calledWith(spy, 'manufactured::construct_entity', st.id,
-                                   'Manufactured::Ship')
+                                   'entity_type', 'Ship',
+                                   'type', 'mining', 'id');
+      //assert(spy.getCall(0)).args[7]) // TODO assert this is uuid
     })
 
     describe("result callback specified", function(){
@@ -532,7 +539,7 @@ describe("Commands", function(){
         var cb  = function() {}
         var spy = sinon.spy(Entities().node(), 'web_request');
         Commands.construct_entity(st, cb)
-        assert(spy.getCall(0).args[3]).equals(cb);
+        assert(spy.getCall(0).args[8]).equals(cb);
       })
     })
   })

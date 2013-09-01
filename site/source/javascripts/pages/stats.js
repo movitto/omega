@@ -6,6 +6,9 @@
 
 //= require "omega"
 
+// XXX same hack as in pages/account.js
+//= require "ui/canvas"
+
 // repopulate the states panels w/ stats
 function refresh_stats(stat_result){
   var sd = $('#stats ul');
@@ -29,10 +32,8 @@ function refresh_cycle(){
 
 // initialize the page
 $(document).ready(function(){ 
-  // initialize top level components
-  var ui   = new UI();
+  // initialize node
   var node = new Node();
-
   node.on_error(function(e){
     // log all errors to the console
     console.log(e);
@@ -41,7 +42,6 @@ $(document).ready(function(){
   // track stats
   $stats = {};
 
-  // setup interface and restore session
-  wire_up_ui(ui, node);
-  restore_session(ui, node, refresh_cycle);
+  // restore session, start stats refresh cycle
+  restore_session({}, node, refresh_cycle);
 });

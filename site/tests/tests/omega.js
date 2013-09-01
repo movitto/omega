@@ -8,7 +8,7 @@ pavlov.specify("omega.js", function(){
 
     it("restores session from cookie", function(){
       var spy = sinon.spy(Session, 'restore_from_cookie');
-      restore_session(new UI(), new TestNode());
+      restore_session(complete_ui(), new TestNode());
       sinon.assert.called(spy);
     });
 
@@ -16,7 +16,7 @@ pavlov.specify("omega.js", function(){
       it("logs in as anon", function(){
         sinon.stub(Session, 'restore_from_cookie').returns(null);
         login_anon = sinon.spy(login_anon);
-        restore_session(new UI(), new TestNode());
+        restore_session(complete_ui(), new TestNode());
         sinon.assert.called(login_anon);
       });
     });
@@ -35,20 +35,20 @@ pavlov.specify("omega.js", function(){
 
       it("sets headers on node", function(){
         var spy = sinon.spy(session, 'set_headers_on');
-        restore_session(new UI(), new TestNode());
+        restore_session(complete_ui(), new TestNode());
         sinon.assert.called(spy);
       });
 
       it("validates session", function(){
         var spy = sinon.spy(session, 'validate');
-        restore_session(new UI(), new TestNode());
+        restore_session(complete_ui(), new TestNode());
         sinon.assert.called(spy);
       });
 
       describe("error on session validation", function(){
         it("logs in as anon", function(){
           var stub = sinon.stub(session, 'validate');
-          restore_session(new UI(), new TestNode());
+          restore_session(complete_ui(), new TestNode());
           var cb = stub.getCall(0).args[1];
 
           login_anon = sinon.spy(login_anon);
@@ -60,7 +60,7 @@ pavlov.specify("omega.js", function(){
       describe("session validated successfully", function(){
         it("establishes session", function(){
           var stub = sinon.stub(session, 'validate');
-          restore_session(new UI(), new TestNode());
+          restore_session(complete_ui(), new TestNode());
           var cb = stub.getCall(0).args[1];
 
           session_established = sinon.spy(session_established);
@@ -101,12 +101,12 @@ pavlov.specify("omega.js", function(){
     it("sets global node", function(){
       var spy = sinon.spy(Entities(), 'node');
       var node = new TestNode();
-      session_established(new UI(), node, new Session({}), new User());
+      session_established(complete_ui(), node, new Session({}), new User());
       sinon.assert.calledWith(spy, node);
     });
 
     it("shows logout controls", function(){
-      var ui  = new UI();
+      var ui  = complete_ui();
       var spy = sinon.spy(ui.nav_container, 'show_logout_controls');
       session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
@@ -114,20 +114,20 @@ pavlov.specify("omega.js", function(){
 
     it("handles chat notifications", function(){
       var node = new TestNode();
-      session_established(new UI(), node, new Session({}), new User());
+      session_established(complete_ui(), node, new Session({}), new User());
       assert(obj_keys(node.handlers)).includes('users::on_message')
     });
 
     it("subscribes to chat messages", function(){
       var node = new TestNode();
       var spy = sinon.spy(node, 'ws_request');
-      session_established(new UI(), node, new Session({}), new User());
+      session_established(complete_ui(), node, new Session({}), new User());
       sinon.assert.calledWith(spy, 'users::subscribe_to_messages');
     });
 
     describe("on chat message", function(){
       it("adds message to chat container", function(){
-        var ui = new UI();
+        var ui = complete_ui();
         var node = new TestNode();
         session_established(ui, node, new Session({}), new User());
 
@@ -139,29 +139,29 @@ pavlov.specify("omega.js", function(){
     });
 
     it("shows chat container", function(){
-      var ui = new UI();
+      var ui = complete_ui();
       var spy = sinon.spy(ui.chat_container.toggle_control(), 'show');
       session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
     });
 
     it("shows missions button", function(){
-      var ui = new UI();
-      var spy = sinon.spy(ui.missions_button, 'show');
+      var ui = complete_ui();
+      var spy = sinon.spy(ui.canvas_container.missions_button, 'show');
       session_established(ui, new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
     });
 
     it("retrieves and processes ships owned by user", function(){
       var spy = sinon.spy(Ship, 'owned_by')
-      session_established(new UI(), new TestNode(), new Session({}), new User());
+      session_established(complete_ui(), new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
       // TODO ensure process_entities is called w/ results
     })
 
     it("retrieves and processes stations owned by user", function(){
       var spy = sinon.spy(Station, 'owned_by')
-      session_established(new UI(), new TestNode(), new Session({}), new User());
+      session_established(complete_ui(), new TestNode(), new Session({}), new User());
       sinon.assert.called(spy);
       // TODO ensure process_entities is called w/ results
     })
@@ -171,8 +171,8 @@ pavlov.specify("omega.js", function(){
 
     it("retrieves stats", function(){
       var spy = sinon.spy(Statistic, 'with_id')
-      session_established(new UI(), new TestNode(), new Session({}), new User());
-      sinon.assert.calledWith(spy, 'most_entities', 10, process_stats);
+      session_established(complete_ui(), new TestNode(), new Session({}), new User());
+      sinon.assert.calledWith(spy, 'with_most', ['entities', 10], process_stats);
       // TODO ensure process_stats is called w/ results
     });
   });
@@ -194,14 +194,14 @@ pavlov.specify("omega.js", function(){
       Session.current_session = { user_id : 'user1' };
       var sh1 = new Ship({id : 'ship1', user_id : 'user1'})
       var sh2 = new Ship({id : 'ship2', user_id : 'user2'})
-      var ui  = new UI();
+      var ui  = complete_ui();
       var spy = sinon.spy(ui.account_info, 'entities');
       process_entities(ui, new TestNode(), [sh1, sh2]);
       sinon.assert.calledWith(spy, [sh1])
     });
 
     it("processes each entity", function(){
-      var ui = new UI();
+      var ui = complete_ui();
       var node = new TestNode();
       Session.current_session = { user_id : 'user1' };
       var sh1 = new Ship({id : 'ship1', user_id : 'user1'})
@@ -238,7 +238,7 @@ pavlov.specify("omega.js", function(){
         var spy = sinon.spy(s, 'update');
 
         var ns =  new Ship({id : 'ship1'});
-        process_entity(new UI(), new TestNode(), ns);
+        process_entity(complete_ui(), new TestNode(), ns);
         sinon.assert.calledWith(spy, ns);
       });
     });
@@ -247,7 +247,7 @@ pavlov.specify("omega.js", function(){
       it("adds entity to registry", function(){
         var spy = sinon.spy(Entities(), 'set');
         var s = new Ship({id : 'ship1'})
-        process_entity(new UI(), new TestNode(), s);
+        process_entity(complete_ui(), new TestNode(), s);
         sinon.assert.called(spy, 'ship1', s);
       });
     });
@@ -255,15 +255,15 @@ pavlov.specify("omega.js", function(){
     it("stores location in registry", function(){
       var spy = sinon.spy(Entities(), 'set');
       var s = new Ship({id : 'ship1', location : new Location({id : 5})})
-      process_entity(new UI(), new TestNode(), s);
-      sinon.assert.calledWith(spy, 5, s.location);
+      process_entity(complete_ui(), new TestNode(), s);
+      sinon.assert.calledWith(spy, 'location-5', s.location);
     })
 
     // it("appends location- prefix to location registry id"); // NIY
 
     it("adds entity to entities container", function(){
-      var ui = new UI();
-      var spy = sinon.spy(ui.entities_container, 'add_item');
+      var ui = complete_ui();
+      var spy = sinon.spy(ui.canvas_container.entities_list.list, 'add_item');
       var s = new Ship({ id : 'ship1' });
       process_entity(ui, new TestNode(), s)
       sinon.assert.calledWith(spy,
@@ -274,15 +274,15 @@ pavlov.specify("omega.js", function(){
     })
 
     it("shows entities container", function(){
-      var ui = new UI();
-      var spy = sinon.spy(ui.entities_container, 'show');
+      var ui = complete_ui();
+      var spy = sinon.spy(ui.canvas_container.entities_list, 'show');
       process_entity(ui, new TestNode(), new Ship({id : 'ship1'}))
       sinon.assert.called(spy);
     })
 
     it("handles entity page events", function(){
       handle_events = sinon.spy(handle_events)
-      var u = new UI();
+      var u = complete_ui();
       var n = new TestNode();
       var s = new Ship({ id : 'ship1' })
       process_entity(u, n, s)
@@ -291,14 +291,14 @@ pavlov.specify("omega.js", function(){
 
     describe("entity jumped", function(){
       it("removes entity from scene", function(){
-        var u = new UI();
+        var u = complete_ui();
         var n = new TestNode();
         var s = new Ship({ id : 'ship1' })
         process_entity(u, n, s)
         assert(s.callbacks['jumped'].length).equals(1);
 
-        var spy1 = sinon.spy(u.canvas.scene, 'remove_entity');
-        var spy2 = sinon.spy(u.canvas.scene, 'animate');
+        var spy1 = sinon.spy(u.canvas_container.canvas.scene, 'remove_entity');
+        var spy2 = sinon.spy(u.canvas_container.canvas.scene, 'animate');
         s.callbacks['jumped'][0].apply(null, [s]);
         sinon.assert.calledWith(spy1, 'ship1')
         sinon.assert.called(spy2);
@@ -308,13 +308,13 @@ pavlov.specify("omega.js", function(){
     it("track entity movement/rotation/stops", function(){
       var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
       var spy = sinon.spy(Events, 'track_movement');
-      process_entity(new UI(), new TestNode(), s);
+      process_entity(complete_ui(), new TestNode(), s);
       sinon.assert.calledWith(spy, s.location.id);
     });
 
     describe("entity movement/rotation/stop", function(){
       it("invokes a motel_event", function(){
-        var u = new UI();
+        var u = complete_ui();
         var n = new TestNode();
         var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
         Entities().set(s.id, s);
@@ -352,7 +352,7 @@ pavlov.specify("omega.js", function(){
       var spy3 = sinon.spy(Events, 'track_offense');
       var spy4 = sinon.spy(Events, 'track_defense');
       var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
-      process_entity(new UI(), new TestNode(), s);
+      process_entity(complete_ui(), new TestNode(), s);
       sinon.assert.calledWith(spy1, s.id);
       sinon.assert.calledWith(spy2, s.id);
       sinon.assert.calledWith(spy3, s.id);
@@ -361,7 +361,7 @@ pavlov.specify("omega.js", function(){
 
     describe("manu event occurred", function(){
       it("invokes a manufactured event", function(){
-        var u = new UI();
+        var u = complete_ui();
         var n = new TestNode();
         var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
         Entities().set(s.id, s);
@@ -378,7 +378,7 @@ pavlov.specify("omega.js", function(){
     });
 
     it("loads system entity is in", function(){
-      var u = new UI();
+      var u = complete_ui();
       var n = new TestNode();
       var s = new Ship({ id : 'ship1',
                          system_id : 'sys1',
@@ -390,7 +390,7 @@ pavlov.specify("omega.js", function(){
 
     describe("system loaded", function(){
       it("sets entity solar system", function(){
-        var u = new UI();
+        var u = complete_ui();
         var n = new TestNode();
         var s = new Ship({ id : 'ship1',
                            system_id : 'sys1',
@@ -412,23 +412,23 @@ pavlov.specify("omega.js", function(){
     var ui; var entity;
     before(function(){
       entity = { details : function() { return 'test'; }}
-      ui = new UI();
+      ui = complete_ui();
     })
 
     it("clears entity container contents", function(){
-      var spy = sinon.spy(ui.entity_container.contents, 'clear')
+      var spy = sinon.spy(ui.canvas_container.entity_container.contents, 'clear')
       refresh_entity_container(ui, null, entity);
       sinon.assert.called(spy)
     });
 
     it("adds entity details to entity container", function(){
-      var spy = sinon.spy(ui.entity_container.contents, 'add_text')
+      var spy = sinon.spy(ui.canvas_container.entity_container.contents, 'add_text')
       refresh_entity_container(ui, null, entity);
       sinon.assert.calledWith(spy, 'test')
     });
 
     it("shows entity container", function(){
-      var spy = sinon.spy(ui.entity_container, 'show')
+      var spy = sinon.spy(ui.canvas_container.entity_container, 'show')
       refresh_entity_container(ui, null, entity);
       sinon.assert.called(spy)
     });
@@ -441,7 +441,7 @@ pavlov.specify("omega.js", function(){
       disable_three_js();
       Entities().node(new TestNode());
 
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
       entity = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
       Entities().set(entity.id, entity);
@@ -464,8 +464,8 @@ pavlov.specify("omega.js", function(){
 
     describe("scene has entity", function(){
       it("updates entity in scene", function(){
-        ui.canvas.scene.add_entity(entity);
-        var spy = sinon.spy(ui.canvas.scene, 'animate');
+        ui.canvas_container.canvas.scene.add_entity(entity);
+        var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate');
         motel_event(ui, node, [oloc, nloc]);
         sinon.assert.called(spy);
       });
@@ -486,7 +486,7 @@ pavlov.specify("omega.js", function(){
     var constructor, constructed;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -513,8 +513,8 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has ship", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           manufactured_event(ui, node,
             [null, 'resource_collected', nminer, {}, 50])
@@ -528,18 +528,18 @@ pavlov.specify("omega.js", function(){
         var spy = sinon.spy(miner, 'update')
         var nminer = { id : miner.id };
         manufactured_event(ui, node,
-          [null, 'mining_stopped', 'cargo_full', nminer])
+          [null, 'mining_stopped', nminer, {}, 'cargo_full'])
         sinon.assert.calledWith(spy, nminer)
         assert(miner.mining).isNull();
       });
 
       describe("scene has ship", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           manufactured_event(ui, node,
-            [null, 'mining_stopped', 'cargo_full', nminer])
+            [null, 'mining_stopped', nminer, {}, 'cargo_full'])
           sinon.assert.called(spy);
         });
       });
@@ -560,8 +560,8 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has attacker or defender", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           var ncorvette = { id : corvette.id };
           manufactured_event(ui, node,
@@ -569,8 +569,8 @@ pavlov.specify("omega.js", function(){
           sinon.assert.called(spy);
 
           spy.reset();
-          ui.canvas.scene.remove_entity(miner);
-          ui.canvas.scene.add_entity(corvette)
+          ui.canvas_container.canvas.scene.remove_entity(miner);
+          ui.canvas_container.canvas.scene.add_entity(corvette)
           manufactured_event(ui, node,
             [null, 'attacked', ncorvette, nminer])
           sinon.assert.called(spy);
@@ -593,8 +593,8 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has attacker or defender", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           var ncorvette = { id : corvette.id };
           manufactured_event(ui, node,
@@ -602,8 +602,8 @@ pavlov.specify("omega.js", function(){
           sinon.assert.called(spy);
 
           spy.reset();
-          ui.canvas.scene.remove_entity(miner);
-          ui.canvas.scene.add_entity(corvette)
+          ui.canvas_container.canvas.scene.remove_entity(miner);
+          ui.canvas_container.canvas.scene.add_entity(corvette)
           manufactured_event(ui, node,
             [null, 'attacked_stop', ncorvette, nminer])
           sinon.assert.called(spy);
@@ -618,7 +618,7 @@ pavlov.specify("omega.js", function(){
         var nminer = { id : miner.id };
         var ncorvette = { id : corvette.id };
         manufactured_event(ui, node,
-          [null, 'defended', ncorvette, nminer])
+          [null, 'defended', nminer, ncorvette])
         sinon.assert.calledWith(spy1, nminer)
         sinon.assert.calledWith(spy2, ncorvette)
         assert(corvette.attacking).equals(miner);
@@ -626,17 +626,17 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has attacker or defender", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           var ncorvette = { id : corvette.id };
           manufactured_event(ui, node,
-            [null, 'defended', ncorvette, nminer])
+            [null, 'defended', nminer, ncorvette])
           sinon.assert.called(spy);
 
           spy.reset();
-          ui.canvas.scene.remove_entity(miner);
-          ui.canvas.scene.add_entity(corvette)
+          ui.canvas_container.canvas.scene.remove_entity(miner);
+          ui.canvas_container.canvas.scene.add_entity(corvette)
           manufactured_event(ui, node,
             [null, 'defended', ncorvette, nminer])
           sinon.assert.called(spy);
@@ -651,7 +651,7 @@ pavlov.specify("omega.js", function(){
         var nminer = { id : miner.id };
         var ncorvette = { id : corvette.id };
         manufactured_event(ui, node,
-          [null, 'defended_stop', ncorvette, nminer])
+          [null, 'defended_stop', nminer, ncorvette])
         sinon.assert.calledWith(spy1, nminer)
         sinon.assert.calledWith(spy2, ncorvette)
         assert(corvette.attacking).isNull();
@@ -659,17 +659,17 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has attacker or defender", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           var ncorvette = { id : corvette.id };
           manufactured_event(ui, node,
-            [null, 'defended_stop', ncorvette, nminer])
+            [null, 'defended_stop', nminer, ncorvette])
           sinon.assert.called(spy);
 
           spy.reset();
-          ui.canvas.scene.remove_entity(miner);
-          ui.canvas.scene.add_entity(corvette)
+          ui.canvas_container.canvas.scene.remove_entity(miner);
+          ui.canvas_container.canvas.scene.add_entity(corvette)
           manufactured_event(ui, node,
             [null, 'defended_stop', ncorvette, nminer])
           sinon.assert.called(spy);
@@ -677,14 +677,14 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    describe("destroyed", function(){
+    describe("destroyed_by", function(){
       it("updates attacker/defender", function(){
         var spy1 = sinon.spy(miner, 'update')
         var spy2 = sinon.spy(corvette, 'update')
         var nminer = { id : miner.id };
         var ncorvette = { id : corvette.id };
         manufactured_event(ui, node,
-          [null, 'destroyed', ncorvette, nminer])
+          [null, 'destroyed_by', nminer, ncorvette])
         sinon.assert.calledWith(spy1, nminer)
         sinon.assert.calledWith(spy2, ncorvette)
         assert(corvette.attacking).isNull();
@@ -692,19 +692,19 @@ pavlov.specify("omega.js", function(){
 
       describe("scene has attacker or defender", function(){
         it("animates scene", function(){
-          var spy = sinon.spy(ui.canvas.scene, 'animate')
-          ui.canvas.scene.add_entity(miner)
+          var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
+          ui.canvas_container.canvas.scene.add_entity(miner)
           var nminer = { id : miner.id };
           var ncorvette = { id : corvette.id };
           manufactured_event(ui, node,
-            [null, 'destroyed', ncorvette, nminer])
+            [null, 'destroyed_by', nminer, ncorvette])
           sinon.assert.called(spy);
 
           spy.reset();
-          ui.canvas.scene.remove_entity(miner);
-          ui.canvas.scene.add_entity(corvette)
+          ui.canvas_container.canvas.scene.remove_entity(miner);
+          ui.canvas_container.canvas.scene.add_entity(corvette)
           manufactured_event(ui, node,
-            [null, 'destroyed', ncorvette, nminer])
+            [null, 'destroyed_by', nminer, ncorvette])
           sinon.assert.called(spy);
         });
       });
@@ -729,7 +729,7 @@ pavlov.specify("omega.js", function(){
         it("adds ship to registry and processes", function(){
           var spy = sinon.spy(Ship, 'with_id')
           nconstructor = { id : constructor.id }
-          nconstructed = { id : constructed.id }
+          nconstructed = new Ship({id:constructed.id})
           manufactured_event(ui, node,
             [null, 'construction_complete', nconstructor, nconstructed])
           var cb = spy.getCall(0).args[1];
@@ -756,7 +756,7 @@ pavlov.specify("omega.js", function(){
     var e1, e2;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       e1 = new Entity({ id : 'e1', details : function() { return ""; }});
@@ -796,7 +796,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -814,7 +814,7 @@ pavlov.specify("omega.js", function(){
       var s2 = new Ship({ id : 43 });
       s1.selected = true
       Entities().set(s1.id, s1)
-      ui.canvas.scene.add_entity(s1);
+      ui.canvas_container.canvas.scene.add_entity(s1);
 
       clicked_entity(ui, node, s2);
       assert(s1.selected).isFalse();
@@ -882,7 +882,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -890,25 +890,25 @@ pavlov.specify("omega.js", function(){
     })
 
     it("clears entity container callbacks", function(){
-      var spy = sinon.spy(ui.entity_container, 'clear_callbacks')
+      var spy = sinon.spy(ui.canvas_container.entity_container, 'clear_callbacks')
       popup_entity_container(ui, node, new Ship());
       sinon.assert.called(spy);
     });
 
     it("handles hide event", function(){
       popup_entity_container(ui, node, new Ship());
-      assert(ui.entity_container.callbacks['hide'].length).equals(1)
+      assert(ui.canvas_container.entity_container.callbacks['hide'].length).equals(1)
     });
 
     describe("container hidden", function(){
       var cb;
       before(function(){
         popup_entity_container(ui, node, new Ship({ id : 'ship1' }));
-        cb = ui.entity_container.callbacks['hide'][0];
+        cb = ui.canvas_container.entity_container.callbacks['hide'][0];
       })
 
       it("unselects selected entity", function(){
-        var spy = sinon.spy(ui.canvas.scene, 'unselect');
+        var spy = sinon.spy(ui.canvas_container.canvas.scene, 'unselect');
         cb.apply(null, []);
         sinon.assert.calledWith(spy, 'ship1');
       });
@@ -931,8 +931,8 @@ pavlov.specify("omega.js", function(){
         var s = new Ship();
         popup_entity_container(ui, node, s);
 
-        ui.entity_container.show();
-        var spy = sinon.spy(ui.entity_container, 'hide');
+        ui.canvas_container.entity_container.show();
+        var spy = sinon.spy(ui.canvas_container.entity_container, 'hide');
 
         var cb = s.callbacks['unselected'][0];
         cb.apply(null, []);
@@ -941,14 +941,14 @@ pavlov.specify("omega.js", function(){
     });
 
     it("clears entity container contents", function(){
-      var spy = sinon.spy(ui.entity_container.contents, 'clear');
+      var spy = sinon.spy(ui.canvas_container.entity_container.contents, 'clear');
       var s = new Ship();
       popup_entity_container(ui, node, s);
       sinon.assert.called(spy);
     });
 
     it("adds entity details to entity container", function(){
-      var spy = sinon.spy(ui.entity_container.contents, 'add_text');
+      var spy = sinon.spy(ui.canvas_container.entity_container.contents, 'add_text');
       var s = new Ship();
       s.details = function() { return "text"; }
       popup_entity_container(ui, node, s);
@@ -956,7 +956,7 @@ pavlov.specify("omega.js", function(){
     });
 
     it("shows entity container", function(){
-      var spy = sinon.spy(ui.entity_container, 'show');
+      var spy = sinon.spy(ui.canvas_container.entity_container, 'show');
       var s = new Ship();
       popup_entity_container(ui, node, s);
       sinon.assert.called(spy);
@@ -967,7 +967,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -980,7 +980,7 @@ pavlov.specify("omega.js", function(){
       set_scene = sinon.spy(set_scene);
       var sys = new SolarSystem()
       clicked_system(ui, node, sys);
-      sinon.assert.calledWith(set_scene, ui, sys);
+      sinon.assert.calledWith(set_scene, ui, node, sys);
     });
   });
 
@@ -988,7 +988,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui   = new UI();
+      ui   = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -1009,7 +1009,7 @@ pavlov.specify("omega.js", function(){
         var ast = new Asteroid({ id : 'ast1' });
         clicked_asteroid(ui, node, ast);
 
-        var spy2 = sinon.spy(ui.entity_container.contents, 'add_item');
+        var spy2 = sinon.spy(ui.canvas_container.entity_container.contents, 'add_item');
 
         var cb = spy1.getCall(0).args[2];
         var res = { result : [{id : 'res1', quantity: 50, material_id: 'metal-steel'}]};
@@ -1033,7 +1033,7 @@ pavlov.specify("omega.js", function(){
        'cmd_dock', 'cmd_undock'];
 
     before(function(){
-      ui   = new UI();
+      ui   = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -1072,7 +1072,7 @@ pavlov.specify("omega.js", function(){
       it("closes dialog/animates scene", function(){
         clicked_ship(ui, node, ship);
         var cb = ship.callbacks['cmd_move'][0]; // TODO teset other finished selection cmds?
-        var spy1 = sinon.spy(ui.canvas.scene, 'animate')
+        var spy1 = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
         var spy2 = sinon.spy(ui.dialog, 'hide')
         cb.apply(null, ['cmd_move', ship]);
         sinon.assert.called(spy1)
@@ -1084,7 +1084,7 @@ pavlov.specify("omega.js", function(){
       it("reloads entity in scene", function(){
         clicked_ship(ui, node, ship);
         var cb = ship.callbacks['cmd_undock'][0]; // TODO teset other reload cmds?
-        var spy = sinon.spy(ui.canvas.scene, 'reload_entity')
+        var spy = sinon.spy(ui.canvas_container.canvas.scene, 'reload_entity')
         cb.apply(null, ['cmd_undock', ship]);
         sinon.assert.calledWith(spy, ship)
       });
@@ -1103,9 +1103,9 @@ pavlov.specify("omega.js", function(){
         cb.apply(null, ['cmd_mine_select', ship]);
         sinon.assert.calledWith(spy,
           sinon.match.func_domain(false, {json_class : 'foobar'}).and(
-          sinon.match.func_domain(false, {json_class : 'Cosmos::Asteroid',
+          sinon.match.func_domain(false, {json_class : 'Cosmos::Entities::Asteroid',
                                           location : new Location({x:100,y:100,z:100})})).and(
-          sinon.match.func_domain(true,  {json_class : 'Cosmos::Asteroid',
+          sinon.match.func_domain(true,  {json_class : 'Cosmos::Entities::Asteroid',
                                           location : new Location({x:0,y:0,z:0})})))
       });
 
@@ -1157,14 +1157,14 @@ pavlov.specify("omega.js", function(){
   describe("#wire_up_ui", function(){
     var ui, node;
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
     })
 
     after(function(){
       if(wire_up_nav.restore) wire_up_nav.restore();
       if(wire_up_status.restore) wire_up_status.restore();
-      if(wire_up_jplayer.restore) wire_up_jplayer.restore();
+      if(wire_up_audio_player.restore) wire_up_audio_player.restore();
       if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
       if(wire_up_canvas.restore) wire_up_canvas.restore();
       if(wire_up_chat.restore) wire_up_chat.restore();
@@ -1174,7 +1174,7 @@ pavlov.specify("omega.js", function(){
     it("wires up all ui subsystems", function(){
       wire_up_nav = sinon.spy(wire_up_nav);
       wire_up_status = sinon.spy(wire_up_status);
-      wire_up_jplayer = sinon.spy(wire_up_jplayer);
+      wire_up_audio_player = sinon.spy(wire_up_audio_player);
       wire_up_entities_lists = sinon.spy(wire_up_entities_lists);
       wire_up_canvas = sinon.spy(wire_up_canvas);
       wire_up_chat = sinon.spy(wire_up_chat);
@@ -1183,7 +1183,7 @@ pavlov.specify("omega.js", function(){
       wire_up_ui(ui, node);
       sinon.assert.calledWith(wire_up_nav, ui, node);
       sinon.assert.calledWith(wire_up_status, ui, node);
-      sinon.assert.calledWith(wire_up_jplayer, ui, node);
+      sinon.assert.calledWith(wire_up_audio_player, ui, node);
       sinon.assert.calledWith(wire_up_entities_lists, ui, node);
       sinon.assert.calledWith(wire_up_canvas, ui, node);
       sinon.assert.calledWith(wire_up_chat, ui, node);
@@ -1195,7 +1195,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
     })
 
@@ -1380,10 +1380,10 @@ pavlov.specify("omega.js", function(){
       });
 
       it("hides ui components", function(){
-        var spies = [sinon.spy(ui.missions_button, 'hide'),
-                     sinon.spy(ui.entities_container, 'hide'),
-                     sinon.spy(ui.locations_container, 'hide'),
-                     sinon.spy(ui.entity_container, 'hide'),
+        var spies = [sinon.spy(ui.canvas_container.missions_button, 'hide'),
+                     sinon.spy(ui.canvas_container.entities_list, 'hide'),
+                     sinon.spy(ui.canvas_container.locations_list, 'hide'),
+                     sinon.spy(ui.canvas_container.entity_container, 'hide'),
                      sinon.spy(ui.dialog, 'hide'),
                      sinon.spy(ui.chat_container, 'hide'),
                      sinon.spy(ui.chat_container.toggle_control(), 'hide')];
@@ -1393,17 +1393,17 @@ pavlov.specify("omega.js", function(){
       });
 
       it("clears canvas scene / resets canvas camera", function(){
-        var spy1 = sinon.spy(ui.canvas.scene, 'clear_entities');
-        var spy2 = sinon.spy(ui.canvas.scene.camera, 'reset');
+        var spy1 = sinon.spy(ui.canvas_container.canvas.scene, 'clear_entities');
+        var spy2 = sinon.spy(ui.canvas_container.canvas.scene.camera, 'reset');
         cb.apply(null, []);
         sinon.assert.called(spy1);
         sinon.assert.called(spy2);
       });
 
       it("hides canvas skybox/axis/grid", function(){
-        var spy1 = sinon.spy(ui.canvas.scene.skybox, 'shide');
-        var spy2 = sinon.spy(ui.canvas.scene.axis, 'shide');
-        var spy3 = sinon.spy(ui.canvas.scene.grid, 'shide');
+        var spy1 = sinon.spy(ui.canvas_container.canvas.scene.skybox, 'shide');
+        var spy2 = sinon.spy(ui.canvas_container.canvas.scene.axis, 'shide');
+        var spy3 = sinon.spy(ui.canvas_container.canvas.scene.grid, 'shide');
         cb.apply(null, []);
         sinon.assert.called(spy1);
         sinon.assert.called(spy2);
@@ -1421,7 +1421,7 @@ pavlov.specify("omega.js", function(){
   describe("#wire_up_status", function(){
     var ui, node;
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
     })
 
@@ -1462,7 +1462,7 @@ pavlov.specify("omega.js", function(){
   describe("#wire_up_entities_lists", function(){
     var ui, node;
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -1478,34 +1478,35 @@ pavlov.specify("omega.js", function(){
 
     it("handles locations container click_item events", function(){
       wire_up_entities_lists(ui, node);
-      assert(ui.locations_container.callbacks['click_item'].length).equals(1);
+      assert(ui.canvas_container.locations_list.list.callbacks['click_item'].length).equals(1);
     });
 
     describe("on locations container click_item", function(){
       it("sets scene to clicked item", function(){
         wire_up_entities_lists(ui, node);
-        var cb = ui.locations_container.callbacks['click_item'][0];
+        var cb = ui.canvas_container.locations_list.list.callbacks['click_item'][0];
         set_scene = sinon.spy(set_scene);
         var sys = new SolarSystem();
         cb.apply(null, [null, {item : sys}, null]);
-        sinon.assert.calledWith(set_scene, ui, sys);
+        sinon.assert.calledWith(set_scene, ui, node, sys);
       });
     });
 
     it("handles entities container click_item events", function(){
       wire_up_entities_lists(ui, node);
-      assert(ui.entities_container.callbacks['click_item'].length).equals(1);
+      assert(ui.canvas_container.entities_list.list.callbacks['click_item'].length).equals(1);
     });
 
     describe("on entities container click_item", function(){
       it("sets scene to clicked item's solar system", function(){
         wire_up_entities_lists(ui, node);
-        var cb = ui.entities_container.callbacks['click_item'][0];
+        var cb = ui.canvas_container.entities_list.list.callbacks['click_item'][0];
         set_scene = sinon.spy(set_scene);
         var sys = new SolarSystem();
         var loc = new Location();
-        cb.apply(null, [null, {item : {solar_system : sys, location : loc}}, null]);
-        sinon.assert.calledWith(set_scene, ui, sys, loc);
+        var sh  = new Ship({solar_system : sys, location : loc});
+        cb.apply(null, [null, {item : sh}, null]);
+        sinon.assert.calledWith(set_scene, ui, node, sh.solar_system, sh.location);
       });
 
       // it("focuses scene on entity")
@@ -1515,7 +1516,7 @@ pavlov.specify("omega.js", function(){
 
     it("handles missions button click events", function(){
       wire_up_entities_lists(ui, node);
-      assert(ui.missions_button.callbacks['click'].length).equals(1);
+      assert(ui.canvas_container.missions_button.callbacks['click'].length).equals(1);
     });
 
     describe("on mission button click", function(){
@@ -1523,7 +1524,7 @@ pavlov.specify("omega.js", function(){
         var m1 = new Mission({ id : 'm1' });
 
         wire_up_entities_lists(ui, node);
-        var cb = ui.missions_button.callbacks['click'][0];
+        var cb = ui.canvas_container.missions_button.callbacks['click'][0];
         var spy = sinon.spy(Mission, 'all')
         cb.apply(null, []);
         sinon.assert.called(spy);
@@ -1553,7 +1554,7 @@ pavlov.specify("omega.js", function(){
   describe("#set_scene", function(){
     var ui, sys, node;
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -1571,7 +1572,7 @@ pavlov.specify("omega.js", function(){
 
     it("hides dialog", function(){
       var spy = sinon.spy(ui.dialog, 'hide')
-      set_scene(ui, sys)
+      set_scene(ui, node, sys)
       sinon.assert.called(spy);
     });
 
@@ -1580,43 +1581,43 @@ pavlov.specify("omega.js", function(){
       var s2 = new Ship({ id : 43 });
       s1.selected = true
       Entities().set(s1.id, s1)
-      ui.canvas.scene.add_entity(s1);
+      ui.canvas_container.canvas.scene.add_entity(s1);
 
-      set_scene(ui, sys);
+      set_scene(ui, node, sys);
       assert(s1.selected).isFalse();
     });
 
     it("sets skybox background", function(){
-      var spy = sinon.spy(ui.canvas.scene.skybox, 'background');
-      set_scene(ui, sys)
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.skybox, 'background');
+      set_scene(ui, node, sys)
       sinon.assert.calledWith(spy, sys.background)
     });
 
     it("removes / readds skybox skybox", function(){
-      var spy1 = sinon.spy(ui.canvas.scene, 'remove_component')
-      var spy2 = sinon.spy(ui.canvas.scene, 'add_component')
-      set_scene(ui, sys);           // TODO need to enable three to test these:
-      sinon.assert.calledWith(spy1);//, ui.canvas.scene.skybox.components[0])
-      sinon.assert.calledWith(spy2);//, ui.canvas.scene.skybox.components[0])
+      var spy1 = sinon.spy(ui.canvas_container.canvas.scene, 'remove_component')
+      var spy2 = sinon.spy(ui.canvas_container.canvas.scene, 'add_component')
+      set_scene(ui, node, sys);           // TODO need to enable three to test these:
+      sinon.assert.calledWith(spy1);//, ui.canvas_container.canvas.scene.skybox.components[0])
+      sinon.assert.calledWith(spy2);//, ui.canvas_container.canvas.scene.skybox.components[0])
     });
 
     it("clears scene entities", function(){
-      var spy = sinon.spy(ui.canvas.scene, 'clear_entities')
-      set_scene(ui, sys);
+      var spy = sinon.spy(ui.canvas_container.canvas.scene, 'clear_entities')
+      set_scene(ui, node, sys);
       sinon.assert.called(spy);
     });
 
     it("sets scene root entity", function(){
-      var spy = sinon.spy(ui.canvas.scene, 'set')
-      set_scene(ui, sys);
+      var spy = sinon.spy(ui.canvas_container.canvas.scene, 'set')
+      set_scene(ui, node, sys);
       sinon.assert.calledWith(spy, sys);
     });
 
     describe("camera focus specified", function(){
       it("focuses camera on specified location", function(){
         var loc = new Location();
-        var spy = sinon.spy(ui.canvas.scene.camera, 'focus')
-        set_scene(ui, sys, loc);
+        var spy = sinon.spy(ui.canvas_container.canvas.scene.camera, 'focus')
+        set_scene(ui, node, sys, loc);
         sinon.assert.calledWith(spy, loc);
       });
     });
@@ -1625,8 +1626,8 @@ pavlov.specify("omega.js", function(){
       it("clears child planet location callbacks", function(){
         var spies = [];
         for(var p in sys.planets)
-          spies.push(sinon.spy(sys.planets[p], 'clear_callbacks'))
-        set_scene(ui, sys);
+          spies.push(sinon.spy(sys.planets[p].location, 'clear_callbacks'))
+        set_scene(ui, node, sys);
         for(var s in spies){
           sinon.assert.calledWith(spies[s], 'motel::on_movement')
           sinon.assert.calledWith(spies[s], 'motel::on_rotation')
@@ -1636,7 +1637,7 @@ pavlov.specify("omega.js", function(){
 
       it("tracks child planet movement", function(){
         var spy = sinon.spy(Events, 'track_movement')
-        set_scene(ui, sys);
+        set_scene(ui, node, sys);
         for(var p in sys.planets)
           sinon.assert.calledWith(spy, sys.planets[p].location.id);
       });
@@ -1651,7 +1652,7 @@ pavlov.specify("omega.js", function(){
     var ui, missions;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       missions = [new Mission(), new Mission()]
     })
 
@@ -1695,7 +1696,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
 
       disable_three_js();
@@ -1703,31 +1704,31 @@ pavlov.specify("omega.js", function(){
     });
 
     it("dispatches to canvas.wire_up", function(){
-      var spy = sinon.spy(ui.canvas, 'wire_up')
+      var spy = sinon.spy(ui.canvas_container.canvas, 'wire_up')
       wire_up_canvas(ui, node);
       sinon.assert.called(spy)
     });
 
     it("dispatches to canvas.scene.camera.wire_up", function(){
-      var spy = sinon.spy(ui.canvas.scene.camera, 'wire_up')
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.camera, 'wire_up')
       wire_up_canvas(ui, node);
       sinon.assert.called(spy)
     });
 
     it("dispatches to canvas.scene.axis.cwire_up", function(){
-      var spy = sinon.spy(ui.canvas.scene.axis, 'cwire_up')
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.axis, 'cwire_up')
       wire_up_canvas(ui, node);
       sinon.assert.called(spy)
     });
 
     it("dispatches to canvas.scene.grid.cwire_up", function(){
-      var spy = sinon.spy(ui.canvas.scene.grid, 'cwire_up')
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.grid, 'cwire_up')
       wire_up_canvas(ui, node);
       sinon.assert.called(spy)
     });
 
     it("dispatches to entity container.wire_up", function(){
-      var spy = sinon.spy(ui.entity_container, 'wire_up')
+      var spy = sinon.spy(ui.canvas_container.entity_container, 'wire_up')
       wire_up_canvas(ui, node);
       sinon.assert.called(spy)
     });
@@ -1736,7 +1737,7 @@ pavlov.specify("omega.js", function(){
       it("sets canvas size", function(){
         wire_up_canvas(ui, node);
 
-        var spy = sinon.spy(ui.canvas, 'set_size');
+        var spy = sinon.spy(ui.canvas_container.canvas, 'set_size');
         $(window).trigger('resize');
         sinon.assert.called(spy); // TODO test size?
       });
@@ -1751,7 +1752,7 @@ pavlov.specify("omega.js", function(){
       it("animates scene", function(){
         wire_up_canvas(ui, node);
         var cb = UIResources().callbacks['texture_loaded'][0];
-        var spy = sinon.spy(ui.canvas.scene, 'animate')
+        var spy = sinon.spy(ui.canvas_container.canvas.scene, 'animate')
         cb.apply(null, []);
         sinon.assert.called(spy);
       });
@@ -1759,7 +1760,7 @@ pavlov.specify("omega.js", function(){
 
     it("it handles scene set event", function(){
       wire_up_canvas(ui, node);
-      assert(ui.canvas.scene.callbacks['set'].length).equals(1)
+      assert(ui.canvas_container.canvas.scene.callbacks['set'].length).equals(1)
     });
 
     describe("on scene set", function(){
@@ -1768,7 +1769,8 @@ pavlov.specify("omega.js", function(){
 
       before(function(){
         wire_up_canvas(ui, node);
-        cb = ui.canvas.scene.callbacks['set'][0];
+        scene = ui.canvas_container.canvas.scene;
+        cb = scene.callbacks['set'][0];
         
         sys = new SolarSystem({id : 'sys1', location : new Location()})
         Session.current_session = { user_id : 'user1' }
@@ -1793,7 +1795,7 @@ pavlov.specify("omega.js", function(){
         var spy2 = sinon.spy(Events, 'stop_track_movement')
         var spy3 = sinon.spy(Events, 'stop_track_manufactured')
 
-        cb.apply(null, [sys]);
+        cb.apply(null, [scene, sys]);
         sinon.assert.calledWith(spy1,
           sinon.match.func_domain(false, { json_class : 'foobar'}).and(
           sinon.match.func_domain(false, { json_class : 'Manufactured::Ship', system_id : sys.id })).and(
@@ -1805,7 +1807,7 @@ pavlov.specify("omega.js", function(){
 
       it("refreshes entities under current system", function(){
         var spy = sinon.spy(SolarSystem, 'entities_under');
-        cb.apply(null, [sys]);
+        cb.apply(null, [scene, sys]);
         sinon.assert.calledWith(spy, sys.id);
         process_entities = sinon.spy(process_entities);
         var cb1 = spy.getCall(0).args[1];
@@ -1814,8 +1816,8 @@ pavlov.specify("omega.js", function(){
       });
 
       it("resets the camera", function(){
-        var spy = sinon.spy(ui.canvas.scene.camera, 'reset');
-        cb.apply(null, [sys]);
+        var spy = sinon.spy(ui.canvas_container.canvas.scene.camera, 'reset');
+        cb.apply(null, [scene, sys]);
         sinon.assert.called(spy);
       });
     });
@@ -1827,7 +1829,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
     })
 
@@ -1878,7 +1880,7 @@ pavlov.specify("omega.js", function(){
     var ui, node;
 
     before(function(){
-      ui = new UI();
+      ui = complete_ui();
       node = new TestNode();
     })
 

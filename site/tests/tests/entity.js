@@ -94,7 +94,7 @@ describe("Galaxy", function(){
     sys1 = { id : 'sys1'}
     sys2 = { id : 'sys2'}
     galaxy = new Galaxy({location : { id : 42 },
-                         solar_systems : [sys1, sys2]});
+                         children : [sys1, sys2]});
   })
 
   after(function(){
@@ -184,17 +184,14 @@ describe("SolarSystem", function(){
     disable_three_js();
     Entities().node(new TestNode());
 
-    st1 = { id : 'star1' };
-    pl1 = { id : 'planet1' };
-    pl2 = { id : 'planet2' };
-    jg1 = { id : 'jump_gate1' };
-    ast1 = { id : 'asteroid1' };
-    sys = new SolarSystem({id : 'sys1',
-                           location : { id : 42 },
-                           stars : [st1],
-                           planets : [pl1, pl2],
-                           jump_gates: [jg1],
-                           asteroids : [ast1]});
+    st1  = { json_class : 'Cosmos::Entities::Star', id : 'star1' };
+    pl1  = { json_class : 'Cosmos::Entities::Planet', id : 'planet1' };
+    pl2  = { json_class : 'Cosmos::Entities::Planet', id : 'planet2' };
+    jg1  = { json_class : 'Cosmos::Entities::JumpGate', id : 'jump_gate1' };
+    ast1 = { json_class : 'Cosmos::Entities::Asteroid', id : 'asteroid1' };
+    sys  = new SolarSystem({id : 'sys1',
+                            location : { id : 42 },
+                            children : [st1, pl1, pl2, jg1, ast1]});
   })
 
   after(function(){

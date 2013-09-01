@@ -5,19 +5,17 @@
  */
 
 //= require "omega/config"
-
 //= require "omega/common"
 //= require "omega/command"
 //= require "omega/registry"
 //= require "omega/node"
-//= require "omega/entity"
 //= require "omega/ui"
+//= require "omega/entity"
+//= require_directory "./entities"
 
 //= require "vendor/google_recaptcha_ajax"
 //= require 'vendor/jquery.jplayer.min'
 //= require 'vendor/jquery.jplayer.playlist.min'
-
-// TODO rather not pass ui, node around everywhere
 
 ////////////////////////////////////////// session
 
@@ -66,7 +64,8 @@ var session_established = function(ui, node, session, user){
   Entities().node(node);
 
   // show logout controls
-  ui.nav_container.show_logout_controls();
+  if(ui.nav_container)
+    ui.nav_container.show_logout_controls();
 
   // subscribe to chat messages
   node.add_handler('users::on_message', function(msg){
@@ -75,19 +74,23 @@ var session_established = function(ui, node, session, user){
   node.ws_request('users::subscribe_to_messages');
 
   // show chat
-  ui.chat_container.toggle_control().show();
+  if(ui.chat_container)
+    ui.chat_container.toggle_control().show();
 
   // show missions button
-  ui.missions_button.show();
+  if(ui.canvas_container)
+    ui.canvas_container.missions_button.show();
 
   // get all entities owned by the user
   Ship.owned_by(user.id,    function(e){ process_entities(ui, node, e); });
   Station.owned_by(user.id, function(e){ process_entities(ui, node, e); });
 
   // populate account information
-  ui.account_info.username(user.id);
-  ui.account_info.email(user.email);
-  ui.account_info.gravatar(user.email);
+  if(ui.account_info){
+    ui.account_info.username(user.id);
+    ui.account_info.email(user.email);
+    ui.account_info.gravatar(user.email);
+  }
 
   // get stats
   Statistic.with_id('with_most', ['entities', 10], process_stats);
@@ -102,7 +105,9 @@ var process_entities = function(ui, node, entities){
   var uowned = $.grep(entities, function(e) {
     return e.belongs_to_current_user();
   });
-  ui.account_info.entities(uowned);
+  if(ui.account_info){
+    ui.account_info.entities(uowned);
+  }
 
   for(var e in entities)
     process_entity(ui, node, entities[e]);
@@ -123,11 +128,13 @@ var process_entity = function(ui, node, entity){
   // store location in registry
   Entities().set('location-'+entity.location.id, entity.location);
 
-  ui.entities_container.
-     list.add_item({ item : entity,
-                     id   : "entities_container-" + entity.id,
-                     text : entity.id });
-  ui.entities_container.show();
+  if(ui.canvas_container){
+    ui.canvas_container.entities_list.
+       list.add_item({ item : entity,
+                       id   : "entities_container-" + entity.id,
+                       text : entity.id });
+    ui.canvas_container.entities_list.show();
+  }
 
   // wire up entity page events
   handle_events(ui, node, entity);
@@ -136,8 +143,8 @@ var process_entity = function(ui, node, entity){
 
   // remove from scene on jumping
   entity.on('jumped', function(e, os, ns){
-    ui.canvas.scene.remove_entity(e.id)
-    ui.canvas.scene.animate();
+    ui.canvas_container.canvas.scene.remove_entity(e.id)
+    ui.canvas_container.canvas.scene.animate();
   });
 
   // track all applicable server side events, update entity
@@ -166,10 +173,11 @@ var process_entity = function(ui, node, entity){
 
     // if system currently displayed on canvas, add to scene if not present
     // TODO is this needed?
-    if(ui.canvas.scene.get() &&
-       ui.canvas.scene.get().id == sys.id){
-      ui.canvas.scene.add_new_entity(entity);
-      ui.canvas.scene.animate();
+    if(ui.canvas_container &&
+       ui.canvas_container.canvas.scene.get() &&
+       ui.canvas_container.canvas.scene.get().id == sys.id){
+      ui.canvas_container.canvas.scene.add_new_entity(entity);
+      ui.canvas_container.canvas.scene.animate();
     }
   });
 }
@@ -178,10 +186,10 @@ var process_entity = function(ui, node, entity){
  */
 var refresh_entity_container = function(ui, node, entity){
   // populate entity container w/ details from entity
-  ui.entity_container.contents.clear();
-  ui.entity_container.contents.add_text(entity.details())
+  ui.canvas_container.entity_container.contents.clear();
+  ui.canvas_container.entity_container.contents.add_text(entity.details())
 
-  ui.entity_container.show();
+  ui.canvas_container.entity_container.show();
 }
 
 /* Callback invoked on motel related event
@@ -195,8 +203,8 @@ var motel_event = function(ui, node, eargs){
   entity.update({location:nloc});
 
   // refresh scene if contains entity
-  if(ui.canvas.scene.has(entity.id))
-    ui.canvas.scene.animate();
+  if(ui.canvas_container.canvas.scene.has(entity.id))
+    ui.canvas_container.canvas.scene.animate();
 
   // refresh popup if showing entity
   var selected = Entities().select(function(e){ return e.selected; })[0]
@@ -218,8 +226,8 @@ var manufactured_event = function(ui, node, eargs){
     entities.push(rship);
 
     rship.update(ship);
-    if(ui.canvas.scene.has(ship.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(ship.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "mining_stopped"){
     var ship     = eargs[2];
@@ -232,8 +240,8 @@ var manufactured_event = function(ui, node, eargs){
                          // not be nil at this point
 
     rship.update(ship);
-    if(ui.canvas.scene.has(ship.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(ship.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "attacked"){
     var attacker = eargs[2];
@@ -247,9 +255,9 @@ var manufactured_event = function(ui, node, eargs){
 
     rattacker.update(attacker);
     rdefender.update(defender);
-    if(ui.canvas.scene.has(attacker.id) ||
-       ui.canvas.scene.has(defender.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(attacker.id) ||
+       ui.canvas_container.canvas.scene.has(defender.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "attacked_stop"){
     var attacker = eargs[2];
@@ -263,9 +271,9 @@ var manufactured_event = function(ui, node, eargs){
 
     rattacker.update(attacker);
     rdefender.update(defender);
-    if(ui.canvas.scene.has(attacker.id) ||
-       ui.canvas.scene.has(defender.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(attacker.id) ||
+       ui.canvas_container.canvas.scene.has(defender.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "defended"){
     var defender = eargs[2];
@@ -279,9 +287,9 @@ var manufactured_event = function(ui, node, eargs){
 
     rattacker.update(attacker);
     rdefender.update(defender);
-    if(ui.canvas.scene.has(attacker.id) ||
-       ui.canvas.scene.has(defender.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(attacker.id) ||
+       ui.canvas_container.canvas.scene.has(defender.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "defended_stop"){
     var defender = eargs[2];
@@ -295,9 +303,9 @@ var manufactured_event = function(ui, node, eargs){
 
     rattacker.update(attacker);
     rdefender.update(defender);
-    if(ui.canvas.scene.has(attacker.id) ||
-       ui.canvas.scene.has(defender.id))
-      ui.canvas.scene.animate();
+    if(ui.canvas_container.canvas.scene.has(attacker.id) ||
+       ui.canvas_container.canvas.scene.has(defender.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "destroyed_by"){
     var defender = eargs[2];
@@ -313,9 +321,9 @@ var manufactured_event = function(ui, node, eargs){
     rdefender.update(defender);
 
     // remove entity from scene
-    ui.canvas.scene.remove_entity(rdefender.id)
-    if(ui.canvas.scene.has(attacker.id))
-      ui.canvas.scene.animate();
+    ui.canvas_container.canvas.scene.remove_entity(rdefender.id)
+    if(ui.canvas_container.canvas.scene.has(attacker.id))
+      ui.canvas_container.canvas.scene.animate();
 
   }else if(evnt == "construction_complete"){
     var station = eargs[2];
@@ -336,10 +344,12 @@ var manufactured_event = function(ui, node, eargs){
 
   // refresh popup if showing entity
   var selected = Entities().select(function(e){ return e.selected; })[0]
-  for(var e in entities){
-    if(entities[e].id == selected.id){
-      refresh_entity_container(ui, node, entities[e]);
-      break;
+  if(selected){
+    for(var e in entities){
+      if(entities[e].id == selected.id){
+        refresh_entity_container(ui, node, entities[e]);
+        break;
+      }
     }
   }
 };
@@ -381,7 +391,7 @@ var handle_events = function(ui, node, entity){
 var clicked_entity = function(ui, node, entity){
   // unselect currently selected entity
   var selected = Entities().select(function(e){ return (e.id != entity.id) && e.selected; })[0]
-  if(selected) ui.canvas.scene.unselect(selected.id);
+  if(selected) ui.canvas_container.canvas.scene.unselect(selected.id);
 
   if(entity.json_class == "Cosmos::Entities::SolarSystem"){
     clicked_system(ui, node, entity);
@@ -405,10 +415,10 @@ var clicked_entity = function(ui, node, entity){
  */
 var popup_entity_container = function(ui, node, entity){
   // setup the entity container
-  ui.entity_container.clear_callbacks();
-  ui.entity_container.on('hide', function(e){
+  ui.canvas_container.entity_container.clear_callbacks();
+  ui.canvas_container.entity_container.on('hide', function(e){
     // unselect entity in scene
-    ui.canvas.scene.unselect(entity.id);
+    ui.canvas_container.canvas.scene.unselect(entity.id);
 
     // always hide the dialog when hiding entity
     ui.dialog.hide();
@@ -416,15 +426,15 @@ var popup_entity_container = function(ui, node, entity){
   })
   entity.on('unselected', function(e){
     // hide entity container
-    if(ui.entity_container.visible())
-      ui.entity_container.hide();
+    if(ui.canvas_container.entity_container.visible())
+      ui.canvas_container.entity_container.hide();
   })
 
   // populate entity container w/ details from entity
-  ui.entity_container.contents.clear();
-  ui.entity_container.contents.add_text(entity.details())
+  ui.canvas_container.entity_container.contents.clear();
+  ui.canvas_container.entity_container.contents.add_text(entity.details())
 
-  ui.entity_container.show();
+  ui.canvas_container.entity_container.show();
 }
 
 /* Internal helper to handle click solar system event
@@ -447,7 +457,7 @@ var clicked_asteroid = function(ui, node, asteroid){
                          text : rres.quantity + " of " +
                                 rres.material_id +"<br/>"});
         }  
-        ui.entity_container.contents.add_item(details);
+        ui.canvas_container.entity_container.contents.add_item(details);
       }
     });
 };
@@ -485,13 +495,13 @@ var clicked_ship = function(ui, node, ship){
   ship.on(finished_select_cmds,
     function(cmd, sh){
       ui.dialog.hide();
-      ui.canvas.scene.animate();
+      ui.canvas_container.canvas.scene.animate();
     });
 
   // wire up commands which should reload entity
   ship.on(reload_cmds,
     function(cmd, sh){
-      ui.canvas.scene.reload_entity(sh);
+      ui.canvas_container.canvas.scene.reload_entity(sh);
     });
 
   // when selecting mining target, query resources
@@ -570,11 +580,13 @@ var load_system = function(id, ui, node, callback){
         $system_callbacks[s.id] = [];
 
         // show in the locations container
-        ui.locations_container.
-           list.add_item({ item : s,
-                           id   : "locations_container-" + s.id,
-                           text : 'System: ' + s.name });
-        ui.locations_container.show();
+        if(ui.canvas_container){
+          ui.canvas_container.locations_list.
+             list.add_item({ item : s,
+                             id   : "locations_container-" + s.id,
+                             text : 'System: ' + s.name });
+          ui.canvas_container.locations_list.show();
+        }
 
         // wire up asteroid, jump gate events
         handle_events(ui, node, s.asteroids);
@@ -665,11 +677,13 @@ var load_galaxy = function(id, ui, node, callback){
         handle_events(ui, node, g.solar_systems);
 
         // show in the locations container
-        ui.locations_container.
-           list.add_item({ item : g,
-                           id   : "locations_container-" + g.id,
-                           text : 'Galaxy: ' + g.name });
-        ui.locations_container.show();
+        if(ui.canvas_container){
+          ui.canvas_container.locations_list.
+             list.add_item({ item : g,
+                             id   : "locations_container-" + g.id,
+                             text : 'Galaxy: ' + g.name });
+          ui.canvas_container.locations_list.show();
+        }
       });
 
       // XXX same hack as in load_system above
@@ -687,13 +701,22 @@ var load_galaxy = function(id, ui, node, callback){
 /* Public Helper to wire page components together
  */
 this.wire_up_ui = function(ui, node){
-  wire_up_nav(ui, node);
-  wire_up_status(ui, node);
-  wire_up_jplayer(ui, node);
-  wire_up_entities_lists(ui, node);
-  wire_up_canvas(ui, node);
-  wire_up_chat(ui, node);
-  wire_up_account_info(ui, node);
+  // TODO conditionalize what is called based on attributes
+  // defined in ui object
+  for(var component in ui){
+    if(component === "nav_container")
+      wire_up_nav(ui, node);
+    else if(component === "audio_player")
+      wire_up_audio_player(ui, node);
+    else if(component == "status_indicator")
+      wire_up_status(ui, node);
+    else if(component == "canvas_container")
+      wire_up_canvas(ui, node);
+    else if(component == "chat_container")
+      wire_up_chat(ui, node);
+    else if(component == "account_info")
+      wire_up_account_info(ui, node);
+  }
 };
 
 ////////////////////////////////////////// nav
@@ -775,20 +798,17 @@ var wire_up_nav = function(ui, node){
        });
 
        // hide everything (almost)
-       ui.missions_button.hide();
-       ui.entities_container.hide();
-       ui.locations_container.hide();
-       ui.entity_container.hide();
+       ui.canvas_container.hide();
        ui.dialog.hide();
        ui.chat_container.toggle_control().hide();
        ui.chat_container.hide();
 
        // clean up canvas (TODO possibly move into its own method)
-       ui.canvas.scene.clear_entities();
-       ui.canvas.scene.skybox.shide();
-       ui.canvas.scene.axis.shide();
-       ui.canvas.scene.grid.shide();
-       ui.canvas.scene.camera.reset();
+       ui.canvas_container.canvas.scene.clear_entities();
+       ui.canvas_container.canvas.scene.skybox.shide();
+       ui.canvas_container.canvas.scene.axis.shide();
+       ui.canvas_container.canvas.scene.grid.shide();
+       ui.canvas_container.canvas.scene.camera.reset();
 
        ui.nav_container.show_login_controls();
      });
@@ -809,15 +829,18 @@ var wire_up_status = function(ui, node){
 
 };
 
-////////////////////////////////////////// jplayer
+////////////////////////////////////////// audio player
 
-/* Internal helper to wire up jplayer
+/* Internal helper to wire up audio player
  */
-var wire_up_jplayer = function(ui, node){
+var wire_up_audio_player = function(ui, node){
   // TODO dynamic playlist
-  var audio_path = "http://" + $omega_config["host"]    +
-                               $omega_config["prefix"]  + "/audio";
-  var playlist =
+  var audio_path =
+    "http://" + $omega_config["host"]    +
+                $omega_config["prefix"]  + "/audio";
+  ui.audio_player.path = audio_path;
+
+  ui.audio_player.playlist =
     new jPlayerPlaylist({
           jPlayer: "#jquery_jplayer_1",
           cssSelectorAncestor: "#jplayer_container"},
@@ -835,22 +858,22 @@ var wire_up_jplayer = function(ui, node){
  */
 var wire_up_entities_lists = function(ui, node){
   // set scene when location is clicked
-  ui.locations_container.list.on('click_item', function(c, i, e){
+  ui.canvas_container.locations_list.list.on('click_item', function(c, i, e){
     set_scene(ui, node, i.item);
   });
 
   // when entity is clicked: set scene, focus on entity, call clicked handler
-  ui.entities_container.list.on('click_item', function(c, i, e){
+  ui.canvas_container.entities_list.list.on('click_item', function(c, i, e){
     set_scene(ui, node, i.item.solar_system, i.item.location);
 
     // XXX keep this in sync w/ operations in scene.clicked in ui.js
     //     or abstract this functionality into seperate method (where to place?)
-    i.item.clicked_in(ui.canvas.scene)
-    i.item.raise_event('click', ui.canvas.scene)
+    i.item.clicked_in(ui.canvas_container.canvas.scene)
+    i.item.raise_event('click', ui.canvas_container.canvas.scene)
   });
 
   // popup dialog w/ missions info when missions button is clicked
-  ui.missions_button.on('click', function(e){
+  ui.canvas_container.missions_button.on('click', function(e){
     // get latest mission data from server
     Mission.all(function(missions){
       // store missions in the registry
@@ -885,25 +908,25 @@ var set_scene = function(ui, node, entity, location){
 
   // unselect selected item
   var selected = Entities().select(function(e){ return (e.id != entity.id) && e.selected; })[0]
-  if(selected) ui.canvas.scene.unselect(selected.id);
+  if(selected) ui.canvas_container.canvas.scene.unselect(selected.id);
 
   // remove old skybox
-  ui.canvas.scene.remove_component(ui.canvas.scene.skybox.components[0]);
+  ui.canvas_container.canvas.scene.remove_component(ui.canvas_container.canvas.scene.skybox.components[0]);
 
   // remove old entities
-  ui.canvas.scene.clear_entities();
+  ui.canvas_container.canvas.scene.clear_entities();
 
   // set root entity
-  ui.canvas.scene.set(entity);
+  ui.canvas_container.canvas.scene.set(entity);
 
   // focus on location if specified
-  if(location) ui.canvas.scene.camera.focus(location);
+  if(location) ui.canvas_container.canvas.scene.camera.focus(location);
 
   // set new skybox background
-  ui.canvas.scene.skybox.background(entity.background)
+  ui.canvas_container.canvas.scene.skybox.background(entity.background)
 
   // add new skybox
-  ui.canvas.scene.add_component(ui.canvas.scene.skybox.components[0]);
+  ui.canvas_container.canvas.scene.add_component(ui.canvas_container.canvas.scene.skybox.components[0]);
 
   // track planet movement
   // TODO remove callbacks of planets in old system
@@ -965,26 +988,28 @@ var show_missions = function(missions, ui){
 /* Internal helper to wire up the canvas
  */
 var wire_up_canvas = function(ui, node){
+  wire_up_entities_lists(ui, node);
+
   // wire up canvas and related components to page
-  ui.canvas.wire_up();
-  ui.canvas.scene.camera.wire_up();
-  ui.canvas.scene.axis.cwire_up();
-  ui.canvas.scene.grid.cwire_up();
-  ui.entity_container.wire_up();
+  ui.canvas_container.canvas.wire_up();
+  ui.canvas_container.canvas.scene.camera.wire_up();
+  ui.canvas_container.canvas.scene.axis.cwire_up();
+  ui.canvas_container.canvas.scene.grid.cwire_up();
+  ui.canvas_container.entity_container.wire_up();
 
   // capture window resize and resize canvas
   $(window).resize(function(e){
     if(e.target != window) return;
-    var c = ui.canvas;
+    var c = ui.canvas_container.canvas;
     c.set_size(($(document).width()  - c.component().offset().left - 50),
                ($(document).height() - c.component().offset().top  - 50));
   });
 
   // refresh scene whenever texture is loaded
-  UIResources().on('texture_loaded', function(t){ ui.canvas.scene.animate(); })
+  UIResources().on('texture_loaded', function(t){ ui.canvas_container.canvas.scene.animate(); })
 
   // when setting scene to solar system, get all entities under it
-  ui.canvas.scene.on('set', function(scene, entity){
+  ui.canvas_container.canvas.scene.on('set', function(scene, entity){
     // remove event callbacks of entities in old system not beloning to user
     var old_entities =
       Entities().select(function(e){
@@ -1008,11 +1033,11 @@ var wire_up_canvas = function(ui, node){
                                  });
 
     // reset the camera
-    ui.canvas.scene.camera.reset();
+    ui.canvas_container.canvas.scene.camera.reset();
   });
 
   // start the particle subsystem
-  ui.canvas.scene.particle_timer.play();
+  ui.canvas_container.canvas.scene.particle_timer.play();
 }
 
 ////////////////////////////////////////// chat

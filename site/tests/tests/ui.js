@@ -1247,13 +1247,13 @@ describe("EntitiesContainer", function(){
   //it("encapsulates list subcomponent"); // NIY
 
   it("wraps item list in a ul", function(){
-    ec.add_text("foobar")
-    assert(ec.component().selector).equals('#test_ec ul');
+    ec.list.add_text("foobar")
+    assert(ec.list.component().selector).equals('#test_ec ul');
   });
 
   describe("mouse enter event", function(){
     it("shows component", function(){
-      var spy = sinon.spy(ec, 'show');
+      var spy = sinon.spy(ec.list, 'show');
       ec.raise_event('mouseenter')
       sinon.assert.called(spy);
     })
@@ -1261,7 +1261,7 @@ describe("EntitiesContainer", function(){
 
   describe("mouse leave event", function(){
     it("hides ul", function(){
-      var spy = sinon.spy(ec, 'hide');
+      var spy = sinon.spy(ec.list, 'hide');
       ec.raise_event('mouseleave')
       sinon.assert.called(spy);
     })
