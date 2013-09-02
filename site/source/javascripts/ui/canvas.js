@@ -488,12 +488,9 @@ function Camera(args){
     var dist  = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
     var phi = Math.atan2(dx,dz);
     var theta   = Math.acos(dy/dist);
-    if(dz < 0) theta = 2 * Math.PI - theta; // adjust for acos loss
 
     theta += theta_distance;
     phi   += phi_distance;
-
-    if(dz < 0) theta = 2 * Math.PI - theta; // readjust for acos loss
 
     // prevent camera from going too far up / down
     if(theta < 0.5)
