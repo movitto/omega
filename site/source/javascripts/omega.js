@@ -371,6 +371,7 @@ var handle_events = function(ui, node, entity){
   }
 
   // popup details on click
+  entity.clear_callbacks('click');
   entity.on('click', function(e, scene){
     clicked_entity(ui, node, e);
   });
@@ -849,6 +850,7 @@ var wire_up_entities_lists = function(ui, node){
   });
 
   // when entity is clicked: set scene, focus on entity, call clicked handler
+  ui.canvas_container.entities_list.list.clear_callbacks('click_item');
   ui.canvas_container.entities_list.list.on('click_item', function(c, i, e){
     set_scene(ui, node, i.item.solar_system, i.item.location);
 

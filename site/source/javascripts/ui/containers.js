@@ -262,7 +262,7 @@ function EffectsPlayer(args){
   this._player = 
     $(this.div_id).jPlayer({
       cssSelectorAncestor: '#effects_jplayer_container',
-      swfPath: "js", supplied: "wav"
+      swfPath: "js", supplied: "wav", loop : false
     });
 
   this.play = function(media){
@@ -273,6 +273,6 @@ function EffectsPlayer(args){
     }
 
     // TODO support audio sprites / starting time param
-    this._player.jPlayer("play", { loop : false });
+    this._player.jPlayer("play");
   }
 }

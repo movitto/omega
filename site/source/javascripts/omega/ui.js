@@ -342,16 +342,18 @@ function UIListComponent(args){
         break;
       }
     }
-    if(!overwrote) this.items.push(item);
+    if(!overwrote){
+      this.items.push(item);
 
-    // wire up clicked handler
-    // XXX probably should go into 'on' function
-    // as in UIComponent callbacks, but this is
-    // simple/clean/works for now
-    var comp = this;
-    $('#' + item.id).live('click', function(e){
-      comp.raise_event('click_item', item, e);
-    });
+      // wire up clicked handler
+      // XXX probably should go into 'on' function
+      // as in UIComponent callbacks, but this is
+      // simple/clean/works for now
+      var comp = this;
+      $('#' + item.id).live('click', function(e){
+        comp.raise_event('click_item', item, e);
+      });
+    }
 
     this.refresh();
   }
