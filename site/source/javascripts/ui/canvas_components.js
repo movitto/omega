@@ -150,9 +150,9 @@ function Grid(args){
   this.on('toggle', function(a){ this.scene.animate(); });
 
   /////////////////////////////////////// private data
-  var size = 1000;
+  var size = 5000;
 
-  var step = 250;
+  var step = 1000;
 
   var line_geometry =
     UIResources().cached('grid_geometry',
@@ -162,14 +162,49 @@ function Grid(args){
                            // create line representing entire grid
                            for ( var i = - size; i <= size; i += step ) {
                              for ( var j = - size; j <= size; j += step ) {
-                               geo.vertices.push( new THREE.Vector3( - size, j, i ) );
-                               geo.vertices.push( new THREE.Vector3(   size, j, i ) );
+                               /////////////////////////// 'cube' grid:
+                               // geo.vertices.push( new THREE.Vector3( - size, j, i ) );
+                               // geo.vertices.push( new THREE.Vector3(   size, j, i ) );
 
-                               geo.vertices.push( new THREE.Vector3( i, j, - size ) );
-                               geo.vertices.push( new THREE.Vector3( i, j,   size ) );
+                               // geo.vertices.push( new THREE.Vector3( i, j, - size ) );
+                               // geo.vertices.push( new THREE.Vector3( i, j,   size ) );
 
-                               geo.vertices.push( new THREE.Vector3( i, -size, j ) );
-                               geo.vertices.push( new THREE.Vector3( i, size,  j ) );
+                               // geo.vertices.push( new THREE.Vector3( i, -size, j ) );
+                               // geo.vertices.push( new THREE.Vector3( i, size,  j ) );
+
+                               /////////////////////////// 'plane' grid:
+                               // xy
+                               geo.vertices.push( new THREE.Vector3( - size, j, 0 ) );
+                               geo.vertices.push( new THREE.Vector3(   size, j, 0 ) );
+                               geo.vertices.push( new THREE.Vector3( - size, -j, 0 ) );
+                               geo.vertices.push( new THREE.Vector3(   size, -j, 0 ) );
+
+                               geo.vertices.push( new THREE.Vector3( j, -size, 0 ) );
+                               geo.vertices.push( new THREE.Vector3( j, size, 0 ) );
+                               geo.vertices.push( new THREE.Vector3( -j, -size, 0 ) );
+                               geo.vertices.push( new THREE.Vector3( -j, -size, 0 ) );
+
+                               // yz
+                               //geo.vertices.push( new THREE.Vector3( 0, j,   size ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, j, - size ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, -j,   size ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, -j, - size ) );
+
+                               //geo.vertices.push( new THREE.Vector3( 0, size,  j ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, -size, j ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, size,  -j ) );
+                               //geo.vertices.push( new THREE.Vector3( 0, -size, -j ) );
+
+                               // xz
+                               geo.vertices.push( new THREE.Vector3( j, 0,   size ) );
+                               geo.vertices.push( new THREE.Vector3( j, 0, - size ) );
+                               geo.vertices.push( new THREE.Vector3( j, 0,   size ) );
+                               geo.vertices.push( new THREE.Vector3( j, 0, - size ) );
+
+                               geo.vertices.push( new THREE.Vector3( size, 0,   j ) );
+                               geo.vertices.push( new THREE.Vector3( -size, 0,  j ) );
+                               geo.vertices.push( new THREE.Vector3( size, 0,   -j ) );
+                               geo.vertices.push( new THREE.Vector3( -size, 0, -j ) );
                              }
                            }
 
