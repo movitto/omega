@@ -42,6 +42,9 @@ class ShieldRefresh < Omega::Server::Command
   def before_hook
     # update entity from registry
     @entity = retrieve(@entity.id)
+
+    # update cmd from registry
+    @attack_cmd = retrieve(@attack_cmd.id) if @attack_cmd
   end
 
   def after_hook
@@ -51,7 +54,7 @@ class ShieldRefresh < Omega::Server::Command
 
   def should_run?
     super && @entity.hp > 0 &&
-    (attack_cmd.should_run? || @entity.shield_level < @entity.max_shield_level)
+    (@entity.shield_level < @entity.max_shield_level)
   end
 
   def run!
@@ -69,10 +72,10 @@ class ShieldRefresh < Omega::Server::Command
   end
 
   def remove?
-    # remove if the attack command is finished
+    # remove if the attack command has been deleted or is otherwise finished
     # and shield is at max level
-    @attack_cmd.remove? &&
-    @entity.shield_level == @entity.max_shield_level
+    (@attack_cmd.nil? || @attack_cmd.remove?) &&
+    (@entity.hp == 0 || (@entity.shield_level == @entity.max_shield_level))
   end
 
    # Convert command to json representation and return it

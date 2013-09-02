@@ -280,9 +280,6 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_events }
   def run_events
-    # FIXME since events and eventhandlers have callable methods which
-    #       aren't serialized, need to replace this w/ direct registry
-    #       manipulation via a safe_exec
     self.entities.
       select { |e| e.kind_of?(Event) && e.time_elapsed? &&
                    !e.invoked  && !e.invalid
@@ -327,6 +324,7 @@ module Registry
       end
     }
 
+    # TODO delete event and/or add to optional event graveyard?
     event.invoked = true
     self.update(event) { |e| e.is_a?(Event) && e.id == event.id }
   end
@@ -346,23 +344,28 @@ module Registry
           cmd.node = self.node
 
           cmd.run_hooks :first  unless cmd.ran_first_hooks
-          cmd.run_hooks :before unless cmd.terminate
+          cmd.run_hooks :before
 
           if cmd.should_run?
             cmd.run!
             cmd.run_hooks :after
           end
 
-          if !cmd.terminate && cmd.remove?
+          # subsequent commands w/ the same id will break
+          # system if command updates itself in or removes
+          # itself from the registry, use check_command 
+          # below to mitigate this
+          # TODO move to an ensure block below rescue ?
+          if cmd.remove?
             cmd.run_hooks :last
-            cmd.terminate!
+
+            # TODO introduce optional command 'graveyard' at some point
+            # to store history of previously executed commands
+            delete      { |e| e.id == cmd.id }
+          else
+            update(cmd) { |e| e.id == cmd.id }
           end
 
-          # subsequent commands w/ the same id will break
-          # system if command updates itself in the registry,
-          # use check_command below to mitigate this
-          # TODO move to an ensure block below rescue ?
-          update(cmd) { |e| e.id == cmd.id }
 
         rescue Exception => err
           RJR::Logger.warn "error in command #{cmd}: #{err}"
@@ -373,6 +376,8 @@ module Registry
   end
 
   # Check commands/enforce unique id's
+  #
+  # TODO race condition if command is currently running (wrong command may be updated in run_commands)
   #
   # Optional internal helper method, utilize like so:
   #   on(:added) { |c| check_command(c) if c.kind_of?(Omega::Server::Command) }

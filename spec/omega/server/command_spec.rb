@@ -20,7 +20,6 @@ describe Command do
       c.id.should be_nil
       c.exec_rate.should be_nil
       c.last_ran_at.should be_nil
-      c.terminate.should be_false
       c.ran_first_hooks.should be_false
       [:first, :before, :after, :last].each { |h|
         c.hooks[h].should_not be_empty
@@ -38,13 +37,6 @@ describe Command do
   end
 
   describe "#update" do
-    it "updates cmd :terminate" do
-      c1 = Command.new
-      c2 = Command.new :terminate => true
-      c1.update c2
-      c1.terminate.should be_true
-    end
-
     it "updates cmd :ran_first_hooks" do
       c1 = Command.new
       c2 = Command.new :ran_first_hooks => true
@@ -91,14 +83,6 @@ describe Command do
   end
 
   describe "#should_run?" do
-    context "terminate is true" do
-      it "returns false" do
-        c = Command.new
-        c.terminate!
-        c.should_run?.should be_false
-      end
-    end
-
     context "last ran at == nil" do
       it "returns true" do
         c = Command.new :exec_rate => 5
@@ -148,42 +132,31 @@ describe Command do
     end
   end
 
-  describe "#terminate" do
-    it "sets terminate true" do
-      c = Command.new
-      c.terminate!
-      c.terminate.should be_true
-    end
-  end
-
   describe "#to_json" do
     it "returns command in json format" do
       t = Time.now
       c = Command.new :id              => :foo,
                       :exec_rate       => 5,
                       :ran_first_hooks => true,
-                      :last_ran_at     =>   t,
-                      :terminate       => true
+                      :last_ran_at     =>   t
       j = c.to_json
       j.should include('"json_class":"Omega::Server::Command"')
       j.should include('"id":"foo"')
       j.should include('"exec_rate":5')
       j.should include('"last_ran_at":"'+t.to_s+'"')
-      j.should include('"terminate":true')
     end
   end
 
   describe "#json_create" do
     it "returns command from json format" do
       t = Time.parse '2013-06-16 09:07:19 -0400'
-      j = '{"json_class":"Omega::Server::Command","data":{"id":"foo","exec_rate":5,"ran_first_hooks":false,"last_ran_at":"'+t.to_s+'","terminate":true}}'
+      j = '{"json_class":"Omega::Server::Command","data":{"id":"foo","exec_rate":5,"ran_first_hooks":false,"last_ran_at":"'+t.to_s+'"}}'
       c = JSON.parse j
 
       c.should be_an_instance_of(Command)
       c.id.should == 'foo'
       c.exec_rate.should == 5
       c.last_ran_at.should == t
-      c.terminate.should be_true
     end
   end
 end # describe Command

@@ -56,7 +56,7 @@ class Attack < Omega::Server::Command
 
   def first_hook
     @attacker.start_attacking(@defender)
-    # FIXME update_registry(@attacker) ?
+    update_registry(@attacker)
   end
 
   def before_hook
@@ -154,8 +154,7 @@ class Attack < Omega::Server::Command
 
   def remove?
     # remove if defender is destoryed
-    # TODO also if no longer attackable for whatever reason (eg ships too far apart)
-    @defender.hp == 0
+    @defender.hp == 0 || !@attacker.can_attack?(@defender)
   end
 
    # Convert command to json representation and return it

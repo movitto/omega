@@ -34,9 +34,11 @@ describe Attack do
 
   describe "#first_hook" do
     it "starts attack" do
+      setup_manufactured
       e1 = build(:ship)
       e2 = build(:ship)
       a = Attack.new :attacker => e1, :defender => e2
+      a.registry= @registry
       e1.should_receive(:start_attacking).with(e2)
       a.first_hook
     end
@@ -169,8 +171,7 @@ describe Attack do
   describe "#should_run?" do
     context "server command shouldn't run" do
       it "returns false" do
-        a = Attack.new
-        a.terminate!
+        a = Attack.new :exec_rate => 1, :last_ran_at => Time.now
         a.should_run?.should be_false
       end
     end
@@ -279,12 +280,22 @@ describe Attack do
       end
     end
 
-    context "defender's hp != 0" do
-      it "returns false" do
-        e = build(:ship, :hp => 10) 
-        a = Attack.new :defender => e
-        a.remove?.should be_false
+    context "attacker cannot attack defender" do
+      it "returns true" do
+        e1 = build(:ship, :hp => 10) 
+        e2 = build(:ship, :hp => 10) 
+        e2.should_receive(:can_attack?).and_return(false)
+        a = Attack.new :defender => e1, :attacker => e2
+        a.remove?.should be_true
       end
+    end
+
+    it "returns false" do
+      e1 = build(:ship, :hp => 10) 
+      e2 = build(:ship, :hp => 10) 
+      e2.should_receive(:can_attack?).and_return(true)
+      a = Attack.new :defender => e1, :attacker => e2
+      a.remove?.should be_false
     end
   end
 

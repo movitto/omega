@@ -27,9 +27,6 @@ class Command
   # Time of last time command was run
   attr_accessor :last_ran_at
 
-  # Flag indicating command should be terminated
-  attr_accessor :terminate
-
   # Registry which command is running in
   attr_accessor :registry
 
@@ -45,7 +42,6 @@ class Command
   def initialize(args = {})
     attr_from_args args, :id              => nil,
                          :exec_rate       => nil,
-                         :terminate       => false,
                          :last_ran_at     => nil,
                          :ran_first_hooks => false,
                          :hooks =>  {:first  => [proc { self.first_hook  }],
@@ -58,7 +54,7 @@ class Command
   end
 
   def update(cmd)
-    update_from(cmd, :terminate, :ran_first_hooks, :last_ran_at, :exec_rate)
+    update_from(cmd, :ran_first_hooks, :last_ran_at, :exec_rate)
   end
 
   # 'first' hook definition
@@ -88,7 +84,6 @@ class Command
 
   # Return boolean indicating if command should be run
   def should_run?
-    !@terminate &&
     (@last_ran_at.nil? || @exec_rate.nil? ||
      ((Time.now - @last_ran_at) > 1 / @exec_rate))
   end
@@ -103,11 +98,6 @@ class Command
     false
   end
 
-  # Terminate the command
-  def terminate!
-    @terminate = true
-  end
-
   # Convert command to human readable string and return it
   def to_s
     "command-#{@id}"
@@ -117,8 +107,7 @@ class Command
     {:id              => id,
      :exec_rate       => exec_rate,
      :ran_first_hooks => ran_first_hooks,
-     :last_ran_at     => last_ran_at,
-     :terminate       => terminate }
+     :last_ran_at     => last_ran_at}
    end
 
    # Convert command to json representation and return it

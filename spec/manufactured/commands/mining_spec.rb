@@ -278,8 +278,8 @@ describe Mining do
 
     context "server command shouldn't run" do
       it "returns false" do
-        m = Mining.new :ship => build(:ship), :resource => build(:resource)
-        m.terminate!
+        m = Mining.new :ship => build(:ship), :resource => build(:resource),
+                       :exec_rate => 1, :last_ran_at => Time.now
         m.should_run?.should be_false
       end
     end
@@ -428,7 +428,7 @@ describe Mining do
 
   describe "#json_create" do
     it "returns attack command from json format" do
-      j = '{"json_class":"Manufactured::Commands::Mining","data":{"ship":{"json_class":"Manufactured::Ship","data":{"id":10016,"user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"resource":{"json_class":"Cosmos::Resource","data":{"id":"type-name16","quantity":50,"entity_id":null}},"id":"mining-cmd-10016","exec_rate":null,"ran_first_hooks":false,"last_ran_at":null,"terminate":false}}'
+      j = '{"json_class":"Manufactured::Commands::Mining","data":{"ship":{"json_class":"Manufactured::Ship","data":{"id":10016,"user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"resource":{"json_class":"Cosmos::Resource","data":{"id":"type-name16","quantity":50,"entity_id":null}},"id":"mining-cmd-10016","exec_rate":null,"ran_first_hooks":false,"last_ran_at":null}}'
       m = JSON.parse j
 
       m.should be_an_instance_of(Mining)

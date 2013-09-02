@@ -580,47 +580,10 @@ describe Registry do
       end
     end
 
-    context "command.terminate is true" do
-      it "does not run before/after/last hooks" do
-        @c.terminate = true
-        @c.should_not_receive(:run_hooks).with(:before)
-        @c.should_not_receive(:run_hooks).with(:after)
-        @c.should_not_receive(:run_hooks).with(:last)
-        @registry.send :run_commands
-      end
-
-      it "does not run command" do
-        @c.terminate = true
-        @c.should_not_receive(:run!)
-        @registry.send :run_commands
-      end
-    end
-
-    context "command.terminate is false" do
-      it "runs before hooks" do
-        @c.should_receive(:run_hooks).with(:first)
-        @c.should_receive(:run_hooks).with(:before)
-        @registry.send :run_commands
-      end
-
-      context "command should be removed" do
-        before(:each) do
-          @c.should_receive(:remove?).and_return(true)
-        end
-
-        it "runs last hooks" do
-          @c.should_receive(:run_hooks).with(:first)
-          @c.should_receive(:run_hooks).with(:before)
-          @c.should_receive(:run_hooks).with(:after)
-          @c.should_receive(:run_hooks).with(:last)
-          @registry.send :run_commands
-        end
-
-        it "terminates command" do
-          @c.should_receive(:terminate!)
-          @registry.send :run_commands
-        end
-      end
+    it "runs before hooks" do
+      @c.should_receive(:run_hooks).with(:first)
+      @c.should_receive(:run_hooks).with(:before)
+      @registry.send :run_commands
     end
 
     context "command should run" do
@@ -657,11 +620,36 @@ describe Registry do
       end
     end
 
-    it "updates command in registry" do
-      @c.id = 'cid'
-      @registry.should_receive(:update).
-                with { |cmd| cmd.id.should == @c.id }
-      @registry.send :run_commands
+    context "command should be removed" do
+      before(:each) do
+        @c.should_receive(:remove?).and_return(true)
+      end
+
+      it "runs last hooks" do
+        @c.should_receive(:run_hooks).with(:first)
+        @c.should_receive(:run_hooks).with(:before)
+        @c.should_receive(:run_hooks).with(:after)
+        @c.should_receive(:run_hooks).with(:last)
+        @registry.send :run_commands
+      end
+
+      it "deletes command" do
+        @registry.should_receive(:delete)
+        @registry.send :run_commands
+      end
+    end
+
+    context "command should not be removed" do
+      before(:each) do
+        @c.should_receive(:remove?).and_return(false)
+      end
+
+      it "updates command in registry" do
+        @c.id = 'cid'
+        @registry.should_receive(:update).
+                  with { |cmd| cmd.id.should == @c.id }
+        @registry.send :run_commands
+      end
     end
 
     it "catches errors during command hooks" do
