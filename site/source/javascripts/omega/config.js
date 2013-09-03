@@ -22,7 +22,7 @@ $omega_config = {
 
   // event tracking
   ship_movement     :          10,
-  ship_rotation     :         0.1,
+  ship_rotation     :        0.005,
   planet_movement   :          50,
 
   // stats

@@ -94,6 +94,9 @@ function Ship(args){
   this.removed_from = function(scene){
     this.current_scene = null;
   }
+
+  // run ship timer if not already running
+  //Ship.run_timer.play();
 }
 
 /* Return ship w/ the specified id
@@ -286,7 +289,7 @@ function _ship_set_orientation(component, is_mesh){
 
   // XXX edge case if facing straight back to preserve 'top'
   // TODO expand this to cover all cases where oab > 1.57 or < -1.57
-  if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
+  //if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
   var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
   orm.multiplySelf(component.matrix);
   component.rotation.setEulerFromRotationMatrix(orm);
@@ -633,6 +636,8 @@ var _ship_selection =
 /* Ship::clicked_in method
  */
 function _ship_clicked_in(scene){
+  var ship = this;
+
   // remove existing command page element handlers
   // XXX should be exact same selectors as w/ live handlers below:
   $('#cmd_move_select,#cmd_attack_select,' +
@@ -729,3 +734,54 @@ function _ship_clicked_in(scene){
   // reload ship in scene
   scene.reload_entity(this);
 }
+
+/* Global ship timer helper
+ * that checks for ship movement inbetween
+ * notifications from server
+ */
+Ship.run_timer = $.timer(function(){
+  var ships = Entities().select(function(e) {
+    return e.json_class == 'Manufactured::Ship';
+  });
+
+  for(var s in ships){
+    var sh = ships[s];
+    if(sh.location.movement_strategy.json_class ==
+       'Motel::MovementStrategies::Linear'){
+      var curr = new Date();
+      if(sh.last_moved != null){
+        var elapsed = curr - sh.last_moved;
+        var dist = sh.location.movement_strategy.speed * elapsed / 1000;
+        sh.location.x += sh.location.movement_strategy.dx * dist;
+        sh.location.y += sh.location.movement_strategy.dy * dist;
+        sh.location.z += sh.location.movement_strategy.dz * dist;
+        sh.refresh();
+      }
+      sh.last_moved = curr;
+    }else if(sh.location.movement_strategy.json_class ==
+        'Motel::MovementStrategies::Rotate'){
+      // FIXME need motel::track_ms_change for this to work properly
+      //   (else we'll appear to have rotated past indended orientation until first linear callback)
+      var curr = new Date();
+      if(sh.last_moved != null){
+        var elapsed = curr - sh.last_moved;
+        var dist = sh.location.movement_strategy.rot_theta * elapsed / 1000;
+        var new_or =
+          rot(sh.location.orientation_x,
+              sh.location.orientation_y,
+              sh.location.orientation_z,
+              dist,
+              sh.location.movement_strategy.rot_x,
+              sh.location.movement_strategy.rot_y,
+              sh.location.movement_strategy.rot_z);
+        sh.location.orientation_x = new_or[0];
+        sh.location.orientation_y = new_or[1];
+        sh.location.orientation_z = new_or[2];
+        sh.refresh();
+      }
+      sh.last_moved = curr;
+    }else{
+      sh.last_moved = null;
+    }
+  }
+}, 150, false);
