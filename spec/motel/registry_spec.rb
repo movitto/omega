@@ -98,6 +98,25 @@ describe Registry do
     end
 
     context "changing movement strategy" do
+      it "raises changed_strategy event" do
+        l   = build(:location)
+        r    = Registry.new
+        l.movement_strategy = MovementStrategies::Linear.new :speed => 5
+        r << l
+
+        l1 = Location.new
+        l1.update l
+        l1.movement_strategy = MovementStrategies::Rotate.new
+
+        r.should_receive(:raise_event).
+          with(:changed_strategy,
+               an_instance_of(Location),
+               an_instance_of(Motel::MovementStrategies::Linear)).
+          and_call_original
+        r.should_receive(:raise_event).once.and_call_original # :updated
+        r.update(l1, &with_id(l.id))
+      end
+
       context "changing to stopped" do
         it "raises stopped event" do
           l   = build(:location)
@@ -110,8 +129,16 @@ describe Registry do
           l1.movement_strategy = MovementStrategies::Stopped.instance
 
           r.should_receive(:update).and_call_original
-          r.should_receive(:raise_event).with(:updated, an_instance_of(Location), an_instance_of(Location)).and_call_original
-          r.should_receive(:raise_event).with(:stopped, an_instance_of(Location))
+          r.should_receive(:raise_event).
+            with(:updated,
+                 an_instance_of(Location),
+                 an_instance_of(Location)).and_call_original
+          r.should_receive(:raise_event).
+            with(:changed_strategy,
+                 an_instance_of(Location),
+                 an_instance_of(Motel::MovementStrategies::Linear)).and_call_original
+          r.should_receive(:raise_event).
+            with(:stopped, an_instance_of(Location))
           r.update(l1, &with_id(l.id))
         end
       end

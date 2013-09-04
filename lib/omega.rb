@@ -29,6 +29,7 @@ require 'motel/callbacks/movement'
 require 'motel/callbacks/rotation'
 require 'motel/callbacks/proximity'
 require 'motel/callbacks/stopped'
+require 'motel/callbacks/changed_strategy'
 
 require 'cosmos/resource'
 require 'cosmos/entities/galaxy'

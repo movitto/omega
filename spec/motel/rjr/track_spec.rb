@@ -295,7 +295,18 @@ module Motel::RJR
       end
     end
 
+    context "track_strategy" do
+      before(:each) do
+        @s.instance_variable_set(:@rjr_method, 'motel::track_strategy')
+      end
 
+      it "creates a changed_strategy callback" do
+        l = create(:location)
+        @s.track_handler l.id
+        @registry.entity(&with_id(l.id)).
+                  callbacks[:changed_strategy].size.should == 1
+      end
+    end
   end # describe #track_handler
 
   describe "#remove_callbacks" do
@@ -404,7 +415,7 @@ module Motel::RJR
   end # describe #remove_callbacks
 
   describe "#dispatch_motel_rjr_track" do
-    ['movement', 'rotation', 'proximity', 'stops'].each { |t|
+    ['movement', 'rotation', 'proximity', 'stops', 'strategy'].each { |t|
       it "adds motel::track_#{t} to dispatcher" do
         d = ::RJR::Dispatcher.new
         dispatch_motel_rjr_track(d)

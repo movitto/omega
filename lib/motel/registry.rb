@@ -15,7 +15,8 @@ module Motel
 # Motel::Registry is a singleton class/object which acts as the primary
 # mechanism to run locations in the system.
 class Registry
-  LOCATION_EVENTS = [:movement, :rotation, :proximity, :stopped]
+  LOCATION_EVENTS = [:movement, :rotation, :proximity,
+                     :stopped, :changed_strategy]
 
   include Omega::Server::Registry
 
@@ -102,7 +103,7 @@ class Registry
   end
 
   def check_location(nloc, oloc=nil)
-    stopping = false
+    changing = stopping = false
     @lock.synchronize{
       # if follow movement strategy, update location from tracked_location_id
       if nloc.ms.is_a?(MovementStrategies::Follow)
@@ -114,13 +115,15 @@ class Registry
 
       # if changing movement strategy
       if !oloc.nil? && oloc.ms != nloc.ms
+        changing = true
+
         # if changing to stopped movement strategy
         stopping = nloc.ms.is_a?(MovementStrategies::Stopped)
 
-        # self.raise_event(:strategy) # TODO
       end
     }
 
+    self.raise_event(:changed_strategy, nloc, oloc.ms) if changing
     self.raise_event(:stopped, nloc) if stopping
   end
 

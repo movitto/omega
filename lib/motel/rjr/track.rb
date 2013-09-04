@@ -12,6 +12,7 @@ require 'motel/callbacks/movement'
 require 'motel/callbacks/stopped'
 require 'motel/callbacks/rotation'
 require 'motel/callbacks/proximity'
+require 'motel/callbacks/changed_strategy'
 
 module Motel::RJR
 # Helper to generate a new callback from the specified method & args.
@@ -69,8 +70,10 @@ def cb_from_args(rjr_method, args)
     Callbacks::Stopped.new :rjr_event   => 'motel::location_stopped',
                            :event_type  => :stopped
 
-  #when :strategy
-  # TODO changed strategy callback
+  when 'motel::track_strategy'
+    Callbacks::ChangedStrategy.new :rjr_event  => 'motel::changed_strategy',
+                                   :event_type => :changed_strategy
+
   end
 end
 
@@ -217,7 +220,8 @@ def dispatch_motel_rjr_track(dispatcher)
   m = Motel::RJR::TRACK_METHODS
   track_methods =
     ['motel::track_movement',  'motel::track_rotation',
-     'motel::track_proximity', 'motel::track_stops']
+     'motel::track_proximity', 'motel::track_stops',
+     'motel::track_strategy']
 
   dispatcher.handle track_methods, &m[:track_handler]
   dispatcher.handle 'motel::remove_callbacks', &m[:remove_callbacks]
