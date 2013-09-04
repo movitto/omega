@@ -33,7 +33,7 @@ $omega_config = {
                                       'geometry' : '/meshes/pirateghost/pirateghost.js',
                                       'scale'    : [20, 20, 20],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[75,7,-130], [-75,7,-130]]},
+                                      'trails'   : [[77,9,-127], [-77,8,-127],[0,20,-240], [0,-10,-240]]},
                    'corvette'     : { 'material' : '/meshes/transportshuttle/texture/transport_shuttle.png',
                                       'geometry' : '/meshes/transportshuttle/texture/TransportShuttle.js',
                                       'scale'    : [50, 50, 50],

@@ -377,7 +377,7 @@ function Camera(args){
   // private initializer
   var new_cam = function(){
     return new THREE.PerspectiveCamera(75, _width / _height, 1, 42000 );
-    // new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
+    //return new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   }
 
   this._camera = new_cam();
@@ -544,42 +544,42 @@ function Camera(args){
       });
 
       $(this.control_ids['pan_right']).click(function(e){
-        _cam.pan(50, 0);
+        _cam.pan(20, 0);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_right']).mousehold(function(e, ctr){
-        _cam.pan(50, 0);
+        _cam.pan(20, 0);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_left']).click(function(e){
-        _cam.pan(-50, 0);
+        _cam.pan(-20, 0);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_left']).mousehold(function(e, ctr){
-        _cam.pan(-50, 0);
+        _cam.pan(-20, 0);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_up']).click(function(e){
-        _cam.pan(0, 50);
+        _cam.pan(0, 20);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_up']).mousehold(function(e, ctr){
-        _cam.pan(0, 50);
+        _cam.pan(0, 20);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_down']).click(function(e){
-        _cam.pan(0, -50);
+        _cam.pan(0, -20);
         _cam.scene.animate();
       });
 
       $(this.control_ids['pan_down']).mousehold(function(e, ctr){
-        _cam.pan(0, -50);
+        _cam.pan(0, -20);
         _cam.scene.animate();
       });
 

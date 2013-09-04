@@ -26,10 +26,6 @@ function Ship(args){
     this.update(this);
   }
 
-  // XXX run new update method
-  // (a bit redunant w/ update invoked in Entity constructor)
-  this.update(args);
-
   // Return bool indicating if ship belongs to the specified user
   this.belongs_to_user = function(user){
     return this.user_id == user;
@@ -56,14 +52,6 @@ function Ship(args){
   // setup attack and mining vectors
   _ship_create_attack_vector(this);
   _ship_create_mining_vector(this);
-
-  // draw attack vector if attacking
-  if(this.attacking)
-    this.components.push(this.attack_particles);
-
-  // draw mining vector if mining
-  else if(this.mining)
-    this.components.push(this.mining_line);
 
   // some text to render in details box on click
   this.details = _ship_render_details; 
@@ -94,6 +82,10 @@ function Ship(args){
   this.removed_from = function(scene){
     this.current_scene = null;
   }
+
+  // XXX run new update method
+  // (a bit redunant w/ update invoked in Entity constructor)
+  this.update(args);
 
   // run ship timer if not already running
   Ship.run_timer.play();
@@ -168,16 +160,9 @@ function _ship_update(oargs){
 
     // also update visual attributes depending on if ship is selected
     if(this.selected){
-      if(typeof this.origEmissive === "undefined" ||
-                this.origEmissive == null)
-        this.origEmissive = this.mesh.material.emissive.getHex();
       this.mesh.material.emissive.setHex(0xff0000);
     }else{
-      if(typeof this.origEmissive !== "undefined" &&
-                this.origEmissive != null){
-        this.mesh.material.emissive.setHex(this.origEmissive);
-        this.origEmissive = null;
-      }
+      this.mesh.material.emissive.setHex(0);
     }
   }
 
@@ -286,6 +271,7 @@ function _ship_set_orientation(component, is_mesh){
   var oab = abwn(0, 0, 1, this.location.orientation_x,
                           this.location.orientation_y,
                           this.location.orientation_z);
+  oax = nrml(oax[0], oax[1], oax[2]);
 
   // XXX edge case if facing straight back to preserve 'top'
   // TODO expand this to cover all cases where oab > 1.57 or < -1.57
@@ -296,16 +282,18 @@ function _ship_set_orientation(component, is_mesh){
 
   // rotate everything other than mesh around mesh itself
   if(!is_mesh && Math.abs(oab) > 0.0001){
-    // component position is relative to world, need to translate 
-    // it to being relative to mesh before rotating (and after again)
-    var pos = rot(component.position.x - this.location.x,
-                  component.position.y - this.location.y,
-                  component.position.z - this.location.z,
-                  oab, oax[0], oax[1], oax[2])
-    component.position.x = pos[0] + this.location.x;
-    component.position.y = pos[1] + this.location.y;
-    component.position.z = pos[2] + this.location.z;
+    var aa = new THREE.Vector3();
+    aa.set(component.position.x - this.location.x,
+           component.position.y - this.location.y,
+           component.position.z - this.location.z)
+    var d = aa.length();
+    orm.rotateAxis(aa);
+
+    component.position.x = aa.x * d + this.location.x;
+    component.position.y = aa.y * d + this.location.y;
+    component.position.z = aa.z * d + this.location.z;
   }
+
 }
 
 /* Ship::create_mesh method
@@ -372,7 +360,7 @@ function _ship_load_mesh_resources(ship){
  */
 function _ship_create_trail(x,y,z){
   //// create a particle system for ship trail
-  var plane = 5, lifespan = 20;
+  var plane = 10, lifespan = 20;
   var pMaterial =
     UIResources().cached('ship_tail_material',
       function(i) {
@@ -433,8 +421,6 @@ function _ship_load_trails(ship){
       var trail  = trails[t];
       var ntrail = ship.create_trail(trail[0], trail[1], trail[2])
       ship.trails.push(ntrail);
-      // TODO push unless stopped
-      //ship.components.push(ntrail);
     }
   }
 }
