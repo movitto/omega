@@ -123,7 +123,7 @@ class Registry
       end
     }
 
-    self.raise_event(:changed_strategy, nloc, oloc.ms) if changing
+    self.raise_event(:changed_strategy, nloc) if changing
     self.raise_event(:stopped, nloc) if stopping
   end
 

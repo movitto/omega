@@ -143,7 +143,8 @@ var process_entity = function(ui, node, entity){
                         $omega_config.ship_rotation);
   entity.location.on(['motel::on_movement',
                       'motel::on_rotation',
-                      'motel::location_stopped'],
+                      'motel::location_stopped',
+                      'motel::changed_strategy'],
                       function(){ motel_event(ui, node, arguments); });
 
   Events.track_construction(entity.id);
@@ -922,6 +923,7 @@ var set_scene = function(ui, node, entity, location){
     for(var p in entity.planets){
       var planet = entity.planets[p];
       Events.track_movement(planet.location.id, $omega_config.planet_movement);
+      // FIXME should only be on_movement for planets
       var events = ['motel::on_movement',
                     'motel::on_rotation',
                     'motel::location_stopped']

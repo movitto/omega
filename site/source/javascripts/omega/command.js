@@ -83,11 +83,13 @@ var Events = {
    */
   track_movement : function(location_id, distance, rot_distance){
     // handle server events
-    ServerEvents().handle(['motel::location_stopped',
+    ServerEvents().handle(['motel::changed_strategy',
+                           'motel::location_stopped',
                            'motel::on_movement',
                            'motel::on_rotation']);
 
     // subscribe to server notifications
+    Entities().node().ws_request('motel::track_strategy', location_id);
     Entities().node().ws_request('motel::track_stops', location_id);
     Entities().node().ws_request('motel::track_movement', location_id, distance);
 
