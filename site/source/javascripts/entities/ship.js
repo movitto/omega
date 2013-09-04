@@ -96,7 +96,7 @@ function Ship(args){
   }
 
   // run ship timer if not already running
-  //Ship.run_timer.play();
+  Ship.run_timer.play();
 }
 
 /* Return ship w/ the specified id
@@ -151,8 +151,8 @@ function _ship_update(oargs){
   if(args.location && this.location){
     this.location.update(args.location);
 
-    // XXX since Location ignore movement strategy need
-    // to manually update it here
+    // XXX update necessary propetries update method ignores
+    this.location.json_class = args.location.json_class;
     if(args.location.movement_strategy)
       this.location.movement_strategy = args.location.movement_strategy;
 
@@ -744,6 +744,8 @@ Ship.run_timer = $.timer(function(){
     return e.json_class == 'Manufactured::Ship';
   });
 
+  // FIXME how to synchronize timing between this and server?
+
   for(var s in ships){
     var sh = ships[s];
     if(sh.location.movement_strategy.json_class ==
@@ -760,8 +762,6 @@ Ship.run_timer = $.timer(function(){
       sh.last_moved = curr;
     }else if(sh.location.movement_strategy.json_class ==
         'Motel::MovementStrategies::Rotate'){
-      // FIXME need motel::track_ms_change for this to work properly
-      //   (else we'll appear to have rotated past indended orientation until first linear callback)
       var curr = new Date();
       if(sh.last_moved != null){
         var elapsed = curr - sh.last_moved;
