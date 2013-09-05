@@ -45,7 +45,8 @@ function Ship(args){
   _ship_load_mesh_resources(this);
   this.create_mesh();
 
-  // create trail at the specified coordinates relative to ship
+  // create trails at the specified coordinates relative to ship
+  // in accordance to ship config options
   this.create_trail = _ship_create_trail;
   _ship_load_trails(this);
 
@@ -271,29 +272,31 @@ function _ship_set_orientation(component, is_mesh){
   var oab = abwn(0, 0, 1, this.location.orientation_x,
                           this.location.orientation_y,
                           this.location.orientation_z);
-  oax = nrml(oax[0], oax[1], oax[2]);
 
-  // XXX edge case if facing straight back to preserve 'top'
-  // TODO expand this to cover all cases where oab > 1.57 or < -1.57
-  //if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
-  var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
-  orm.multiplySelf(component.matrix);
-  component.rotation.setEulerFromRotationMatrix(orm);
+  if(Math.abs(oab) > 0.0001){
+    oax = nrml(oax[0], oax[1], oax[2]);
 
-  // rotate everything other than mesh around mesh itself
-  if(!is_mesh && Math.abs(oab) > 0.0001){
-    var aa = new THREE.Vector3();
-    aa.set(component.position.x - this.location.x,
-           component.position.y - this.location.y,
-           component.position.z - this.location.z)
-    var d = aa.length();
-    orm.rotateAxis(aa);
+    // XXX edge case if facing straight back to preserve 'top'
+    // TODO expand this to cover all cases where oab > 1.57 or < -1.57
+    if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
+    var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
+    orm.multiplySelf(component.matrix);
+    component.rotation.setEulerFromRotationMatrix(orm);
 
-    component.position.x = aa.x * d + this.location.x;
-    component.position.y = aa.y * d + this.location.y;
-    component.position.z = aa.z * d + this.location.z;
+    // rotate everything other than mesh around mesh itself
+    if(!is_mesh){
+      var aa = new THREE.Vector3();
+      aa.set(component.position.x - this.location.x,
+             component.position.y - this.location.y,
+             component.position.z - this.location.z)
+      var d = aa.length();
+      orm.rotateAxis(aa);
+
+      component.position.x = aa.x * d + this.location.x;
+      component.position.y = aa.y * d + this.location.y;
+      component.position.z = aa.z * d + this.location.z;
+    }
   }
-
 }
 
 /* Ship::create_mesh method

@@ -66,6 +66,8 @@ var cp = function(x1, y1, z1, x2, y2, z2){
   var x3 = y1 * z2 - z1 * y2;
   var y3 = z1 * x2 - x1 * z2;
   var z3 = x1 * y2 - y1 * x2;
+  // we're not normalizing vector here, if you need 
+  // normal vector make sure to call nrml on your own!
   return [x3, y3, z3];
 }
 
