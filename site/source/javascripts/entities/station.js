@@ -10,14 +10,18 @@ function Station(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Manufactured::Station';
   var station = this;
+  this.json_class = 'Manufactured::Station';
 
+  // convert location
   this.location = new Location(this.location);
 
+  // Return bool indicating if station belongs to the specified user
   this.belongs_to_user = function(user){
     return this.user_id == user;
   }
+
+  // Return bool indicating if station belongs to current user
   this.belongs_to_current_user = function(){
     return Session.current_session != null &&
            this.belongs_to_user(Session.current_session.user_id);
@@ -26,79 +30,15 @@ function Station(args){
   /* override update
    */
   this.old_update = this.update;
-  this.update = function(oargs){
-    var args = $.extend({}, oargs); // copy args
-
-    if(args.location && this.location){
-      this.location.update(args.location);
-      delete args.location;
-    }
-
-    // do not update components from args
-    if(args.components) delete args.components;
-
-    this.old_update(args);
-  }
+  this.update = _station_update;
 
   // instantiate mesh to draw station on canvas
-  this.create_mesh = function(){
-    if(this.mesh_geometry == null) return;
-
-    this.mesh =
-      UIResources().cached("station_" + this.id + "_mesh",
-        function(i) {
-          var mesh = new THREE.Mesh(station.mesh_geometry, station.mesh_material);
-          mesh.position.x = station.location.x;
-          mesh.position.y = station.location.y;
-          mesh.position.z = station.location.z;
-          mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
-          mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
-          return mesh;
-        });
-
-    this.clickable_obj = this.mesh;
-    this.components.push(this.mesh);
-
-    // reload station if already in scene
-    if(this.current_scene) this.current_scene.reload_entity(this);
-  }
-
-  this.mesh_material =
-    UIResources().cached("station_"+station.type +"_material",
-      function(i) {
-        var path = UIResources().images_path + $omega_config.resources[station.type]['material'];
-        var t = UIResources().load_texture(path);
-        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
-    });
-
-  var mesh_geometry =
-    UIResources().cached('station_'+station.type+'_mesh_geometry',
-      function(i) {
-        var path = UIResources().images_path + $omega_config.resources[station.type]['geometry'];
-        UIResources().load_geometry(path, function(geo){
-          station.mesh_geometry = geo;
-          UIResources().set('station_'+station.type+'_mesh_geometry', station.mesh_geometry);
-          station.create_mesh();
-        });
-        return null;
-    });
-
+  this.create_mesh = _station_create_mesh;
+  _station_load_mesh_resources(this);
   this.create_mesh();
 
   // some text to render in details box on click
-  this.details = function(){
-    var details = ['Station: ' + this.id + '<br/>',
-                   '@ ' + this.location.to_s() + '<br/>',
-                   "Resources: <br/>"];
-    for(var r in this.resources){
-      var res = this.resources[r];
-      details.push(res.quantity + " of " + res.material_id + "<br/>")
-    }
-
-    if(this.belongs_to_current_user())
-      details.push("<span id='cmd_construct' class='commands'>construct</span>");
-    return details;
-  }
+  this.details = _station_render_details;
 
   /* added_to scene callback
    */
@@ -108,28 +48,11 @@ function Station(args){
 
   /* clicked_in scene callback
    */
-  this.clicked_in = function(scene){
-    $('#cmd_construct').die();
-    $('#cmd_construct').live('click', function(e){
-      Commands.construct_entity(station,
-                                function(res){
-                                  if(res.error) ; // TODO
-                                  else
-                                    station.raise_event('cmd_construct',
-                                                        new Ship(res.result[1]));
-                                });
-    });
-
-    this.selected = true;
-    scene.reload_entity(this);
-  }
+  this.clicked_in = _station_clicked_in;
 
   /* unselected in scene callback
    */
-  this.unselected_in = function(scene){
-    this.selected = false;
-    scene.reload_entity(this);
-  }
+  this.unselected_in = _station_unselected_in;
 
   /* removed_from scene callback
    */
@@ -152,4 +75,112 @@ Station.owned_by = function(user_id, cb){
       cb.apply(null, [stations])
     }
   });
+}
+
+///////////////////////// private helper / utility methods
+/* Station::update method
+ */
+function _station_update(oargs){
+  var args = $.extend({}, oargs); // copy args
+
+  if(args.location && this.location){
+    this.location.update(args.location);
+    delete args.location;
+  }
+
+  // do not update components from args
+  if(args.components) delete args.components;
+
+  this.old_update(args);
+}
+
+/* Station::create_mesh method
+ */
+function _station_create_mesh(){
+  var station = this;
+  if(this.mesh_geometry == null) return;
+
+  this.mesh =
+    UIResources().cached("station_" + this.id + "_mesh",
+      function(i) {
+        var mesh = new THREE.Mesh(station.mesh_geometry, station.mesh_material);
+        mesh.position.x = station.location.x;
+        mesh.position.y = station.location.y;
+        mesh.position.z = station.location.z;
+        mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
+        mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
+        return mesh;
+      });
+
+  this.clickable_obj = this.mesh;
+  this.components.push(this.mesh);
+
+  // reload station if already in scene
+  if(this.current_scene) this.current_scene.reload_entity(this);
+}
+
+/* Helper to load station mesh resources
+ */
+function _station_load_mesh_resources(station){
+  station.mesh_material =
+    UIResources().cached("station_"+station.type +"_material",
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[station.type]['material'];
+        var t = UIResources().load_texture(path);
+        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
+    });
+
+  var mesh_geometry =
+    UIResources().cached('station_'+station.type+'_mesh_geometry',
+      function(i) {
+        var path = UIResources().images_path + $omega_config.resources[station.type]['geometry'];
+        UIResources().load_geometry(path, function(geo){
+          station.mesh_geometry = geo;
+          UIResources().set('station_'+station.type+'_mesh_geometry', station.mesh_geometry);
+          station.create_mesh();
+        });
+        return null;
+    });
+
+}
+
+/* Station::details method
+ */
+function _station_render_details(){
+  var details = ['Station: ' + this.id + '<br/>',
+                 '@ ' + this.location.to_s() + '<br/>',
+                 "Resources: <br/>"];
+  for(var r in this.resources){
+    var res = this.resources[r];
+    details.push(res.quantity + " of " + res.material_id + "<br/>")
+  }
+
+  if(this.belongs_to_current_user())
+    details.push("<span id='cmd_construct' class='commands'>construct</span>");
+  return details;
+}
+
+/* Station::clicked_in method
+ */
+function _station_clicked_in(scene){
+  $('#cmd_construct').die();
+  $('#cmd_construct').live('click', function(e){
+    Commands.construct_entity(station,
+                              function(res){
+                                if(res.error) ; // TODO
+                                else
+                                  station.raise_event('cmd_construct',
+                                                      new Ship(res.result[1]));
+                              });
+  });
+
+  this.selected = true;
+  scene.reload_entity(this);
+}
+
+/* Station::unselected_in method
+ */
+function _station_unselected_in(scene){
+  this.selected = false;
+  scene.reload_entity(this);
 }
