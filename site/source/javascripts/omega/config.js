@@ -59,8 +59,9 @@ $omega_config = {
                    'planet2'      : { 'material' : '/textures/planet2.png' },
                    'planet3'      : { 'material' : '/textures/planet3.png' },
                    'planet4'      : { 'material' : '/textures/planet4.png' },
-                   'asteroid'     : { 'geometry' : '/meshes/asteroids1.js',
-                                      'scale'    : [50, 20, 100] },
+                   'asteroid'     : { 'material' : '/textures/asteroid01.png',
+                                      'geometry' : '/meshes/asteroids1.js',
+                                      'scale'    : [120, 120, 100] },
                    'manufacturing' : { 'material' : '/meshes/research.png',
                                        'geometry' : '/meshes/research.js',
                                        'scale'    : [20, 20, 20] }}
