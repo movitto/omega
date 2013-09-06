@@ -444,20 +444,19 @@ function _ship_create_attack_vector(ship){
     var dist = ship.location.distance_from(target_loc.x,
                                            target_loc.y,
                                            target_loc.z);
-    var dx = Math.abs(ship.location.x - target_loc.x);
-    var dy = Math.abs(ship.location.y - target_loc.y);
-    var dz = Math.abs(ship.location.z - target_loc.z);
+    // should be signed to preserve direction
+    var dx = target_loc.x - ship.location.x;
+    var dy = target_loc.y - ship.location.y;
+    var dz = target_loc.z - ship.location.z;
 
-    // 5 unit particle + 25 unit spacer
-    var num = dist / 30;
-    geo.scalex = 30 / dist * dx;
-    geo.scaley = 30 / dist * dy;
-    geo.scalez = 30 / dist * dz;
+    // 5 unit particle + 55 unit spacer
+    var num = dist / 60;
+    geo.scalex = 60 / dist * dx;
+    geo.scaley = 60 / dist * dy;
+    geo.scalez = 60 / dist * dz;
 
     for(var i = 0; i < num; ++i){
-      var vert = new THREE.Vector3(ship.location.x + i * geo.scalex,
-                                   ship.location.y + i * geo.scaley,
-                                   ship.location.z + i * geo.scalez);
+      var vert = new THREE.Vector3(0,0,0);
       if(geo.vertices.length > i)
         geo.vertices[i] = vert;
       else
@@ -487,21 +486,27 @@ function _ship_create_attack_vector(ship){
         particleSystem.sortParticles = true;
 
         particleSystem.update_particles = function(){
-          for(var p in ship.geometry.vertices){
-            var v = ship.geometry.vertices[p];
-            var s = Math.random();
-            v.x += ship.geometry.scalex + s;
-            v.y += ship.geometry.scaley + s;
-            v.z += ship.geometry.scalez + s;
-            v.num += 1;
+          for(var p in this.geometry.vertices){
+            var v = this.geometry.vertices[p];
+            if(Math.floor( Math.random() * 25 ) == 1)
+              v.moving = true;
+            if(v.moving){
+              v.x += this.geometry.scalex;
+              v.y += this.geometry.scaley;
+              v.z += this.geometry.scalez;
+            }
 
-            if(ship.attacking.location.distance_from(v.x, v.y, v.z) < 30){
-              v.x = ship.location.x;
-              v.y = ship.location.y;
-              v.z = ship.location.z;
+            // FIXME if attack distance is great each individual particle hop
+            // may take it > 60 units away, skipping this entirely / moving the
+            // particle off to infinity
+            if(ship.attacking.location.distance_from(ship.location.x + v.x,
+                                                     ship.location.y + v.y,
+                                                     ship.location.z + v.z) < 60){
+              v.x = v.y = v.z = 0;
+              v.moving = false;
             }
           }
-          ship.geometry.__dirtyVertices = true;
+          this.geometry.__dirtyVertices = true;
         };
 
         return particleSystem;

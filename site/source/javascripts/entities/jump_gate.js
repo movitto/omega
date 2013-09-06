@@ -153,15 +153,15 @@ function _jump_gate_load_lights(jg){
       });
 
   jg.light1 =
-    UIResources().cached('jump_gate_light1_mesh',
+    UIResources().cached('jump_gate_' + jg.id +'_light1_mesh',
       function(i) {
         return new THREE.Mesh(sphere_geometry, sphere_material);
       });
 
-  // FIXME light not in right pos
   jg.light1.position.set(jg.location.x + -22,
                          jg.location.y + -15,
                          jg.location.z + 175)
+  jg.light1_dir = false;
   jg.light1_dir = false;
   jg.light1.update_particles = function(){
     var c = sphere_material.color.getHex();
