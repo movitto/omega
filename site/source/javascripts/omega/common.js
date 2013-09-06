@@ -115,7 +115,7 @@ var elliptical_path = function(ms){
   // linear eccentricity
   var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
 
-  // center (assumes planet's location's movement_strategy.relative to is set to foci
+  // center (assumes location's movement_strategy.relative to is set to foci
   var cx = -1 * ms.dmajx * le;
   var cy = -1 * ms.dmajy * le;
   var cz = -1 * ms.dmajz * le;
@@ -125,6 +125,7 @@ var elliptical_path = function(ms){
               ms.dminx, ms.dminy, ms.dminz);
   var ab = abwn(0, 0, 1, nv[0], nv[1], nv[2]);
   var ax = cp(0, 0, 1, nv[0], nv[1], nv[2])
+      ax = nrml(ax[0], ax[1], ax[2]);
 
   // path
   for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
