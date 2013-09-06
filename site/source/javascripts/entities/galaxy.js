@@ -12,24 +12,9 @@ function Galaxy(args){
   this.json_class = 'Cosmos::Entities::Galaxy';
   this.background = 'galaxy' + this.background;
 
-  /* override update to update all children instead of overwriting
-   */
+  // override update
   this.old_update = this.update;
-  this.update = function(oargs){
-    var args = $.extend({}, oargs); // copy args
-
-    if(args.location && this.location){
-      this.location.update(args.location);
-      delete args.location;
-    }
-    // assuming that system list is not variable
-    if(args.solar_systems && this.solar_systems){
-      for(var s in args.solar_systems)
-        this.solar_systems[s].update(args.solar_systems[s]);
-      delete args.solar_systems
-    }
-    this.old_update(args);
-  }
+  this.update = _galaxy_update;
 
   // convert children
   this.location = new Location(this.location);
@@ -37,6 +22,7 @@ function Galaxy(args){
   for(var sys in this.children)
     this.solar_systems[sys] = new SolarSystem(this.children[sys]);
 
+  // return children
   this.children = function(){
     return this.solar_systems;
   }
@@ -53,3 +39,20 @@ Galaxy.with_id = function(id, cb){
   });
 }
 
+/* Galaxy::update method
+ */
+function _galaxy_update(oargs){
+  var args = $.extend({}, oargs); // copy args
+
+  if(args.location && this.location){
+    this.location.update(args.location);
+    delete args.location;
+  }
+  // assuming that system list is not variable
+  if(args.solar_systems && this.solar_systems){
+    for(var s in args.solar_systems)
+      this.solar_systems[s].update(args.solar_systems[s]);
+    delete args.solar_systems
+  }
+  this.old_update(args);
+}
