@@ -10,14 +10,36 @@ function Star(args){
   $.extend(this, new Entity(args));
   $.extend(this, new CanvasComponent(args));
 
-  this.json_class = 'Cosmos::Entities::Star';
   var star = this;
+  this.json_class = 'Cosmos::Entities::Star';
 
+  // convert location
   this.location = new Location(this.location);
 
+  // convert color
+  this.icolor = parseInt('0x' + star.color);
+
+  _star_load_mesh(this);
+  _star_load_glow(this);
+  _star_load_flare(this);
+
+  this.added_to = function(scene){
+     star.glow.material.uniforms.viewVector =
+       { type: "v3", value: scene.camera._camera.position };
+  }
+
+  star.clickable_obj = star.glow;
+  //this.components.push(star.glow);
+  //this.components.push(star.sphere);
+  this.components.push(star.lensFlare);
+}
+
+/* Helper to load star mesh resources
+ */
+function _star_load_mesh(star){
   // instantiate sphere to draw star with on canvas
   var sphere_geometry =
-    UIResources().cached('star_sphere_' + this.size + '_geometry',
+    UIResources().cached('star_sphere_' + star.size + '_geometry',
       function(i) {
         var radius = star.size/5, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
@@ -31,15 +53,15 @@ function Star(args){
       });
 
   var sphere_material =
-    UIResources().cached("star_sphere_" + this.color + "_material",
+    UIResources().cached("star_sphere_" + star.color + "_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({//color: parseInt('0x' + star.color),
+        return new THREE.MeshBasicMaterial({//color: star.icolor,
                                             map: sphere_texture,
                                             overdraw : true});
       });
 
-  var sphere =
-    UIResources().cached("star_" + this.id + "_sphere_geometry",
+  star.sphere =
+    UIResources().cached("star_" + star.id + "_sphere",
       function(i) {
         var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
         sphere.position.x = star.location.x;
@@ -48,7 +70,93 @@ function Star(args){
 
         return sphere;
       });
+}
 
-  star.clickable_obj = sphere;
-  this.components.push(sphere);
+/* Helper to load star glow resources
+ */
+function _star_load_glow(star){
+  var glow_geometry =
+    UIResources().get('star_sphere_' + star.size + '_geometry');
+
+  var glow_texture = 
+    UIResources().cached("star_glow_texture",
+      function(i) {
+        return new THREE.ShaderMaterial({
+          uniforms: { 
+            "c":   { type: "f", value: 1.0 },
+            "p":   { type: "f", value: 1.4 },
+            glowColor: { type: "c", value: new THREE.Color(star.icolor) },
+          },
+          vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+          fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+          side: THREE.FrontSide,
+          blending: THREE.AdditiveBlending,
+          transparent: true
+        });
+      });
+
+  star.glow =
+    UIResources().cached("star_" + star.id + "_glow",
+      function(i) {
+        var glow = new THREE.Mesh(glow_geometry, glow_texture);
+        glow.scale.multiplyScalar(1.2);
+        return glow;
+      });
+}
+
+/* Helper to load star flare resources
+ */
+function _star_load_flare(star){
+  var textureFlare0 =
+    UIResources().load_texture(UIResources().images_path + "/textures/lensflare/lensflare0.png");
+  var textureFlare2 =
+    UIResources().load_texture(UIResources().images_path + "/textures/lensflare/lensflare2.png");
+  var textureFlare3 =
+    UIResources().load_texture(UIResources().images_path + "/textures/lensflare/lensflare3.png");
+  var flareColor =
+    new THREE.Color(star.icolor);
+
+  star.lensFlare =
+    new THREE.LensFlare(textureFlare0, 700, 0.0,
+                        THREE.AdditiveBlending, flareColor);
+
+  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 60,  0.6, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 70,  0.7, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 120, 0.9, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 70,  1.0, THREE.AdditiveBlending);
+
+  star.lensFlare.customUpdateCallback = lensFlareUpdateCallback;
+  star.lensFlare.position.set(star.location.x + 100,
+                              star.location.y + 100,
+                              star.location.z + 100);
+}
+
+////////////////////////////// a few helper methods from three.js example
+// http://threejs.org/examples/webgl_lensflares.html
+
+function degToRad(){
+	var degreeToRadiansFactor = Math.PI / 180;
+	return function ( degrees ) {
+		return degrees * degreeToRadiansFactor;
+	};
+}
+
+function lensFlareUpdateCallback( object ) {
+  var f, fl = object.lensFlares.length;
+  var flare;
+  var vecX = -object.positionScreen.x * 2;
+  var vecY = -object.positionScreen.y * 2;
+
+  for( f = 0; f < fl; f++ ) {
+       flare = object.lensFlares[ f ];
+       flare.x = object.positionScreen.x + vecX * flare.distance;
+       flare.y = object.positionScreen.y + vecY * flare.distance;
+       flare.rotation = 0;
+  }
+
+  object.lensFlares[ 2 ].y += 0.025;
+  object.lensFlares[ 3 ].rotation = object.positionScreen.x * 0.5 + degToRad( 45 );
 }
