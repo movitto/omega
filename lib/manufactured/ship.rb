@@ -514,7 +514,7 @@ class Ship
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
          :docked_at => @docked_at,
-         :attacking => @attacking, # TODO pass attacking via reference ?
+         :attacking => @attacking, # FIXME pass attacking via reference (currently if entities are attacking each other this will be circular)
          :mining    => @mining, # TODO pass mining via reference ?
          :location => @location,
          :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),

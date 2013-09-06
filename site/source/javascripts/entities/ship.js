@@ -369,7 +369,7 @@ function _ship_create_trail(x,y,z){
       function(i) {
         return new THREE.ParticleBasicMaterial({
                      color: 0xFFFFFF, size: 20,
-                     map: UIResources().load_texture("images/particle.png"),
+                     map: UIResources().load_texture(UIResources().images_path + "/particle.png"),
                      blending: THREE.AdditiveBlending, transparent: true });
       });
 
@@ -436,7 +436,7 @@ function _ship_create_attack_vector(ship){
       function(i) {
         return new THREE.ParticleBasicMaterial({
                      color: 0xFF0000, size: 50,
-                     map: UIResources().load_texture("images/particle.png"),
+                     map: UIResources().load_texture(UIResources().images_path + "/particle.png"),
                      blending: THREE.AdditiveBlending, transparent: true });
       });
 
@@ -734,6 +734,7 @@ Ship.run_timer = $.timer(function(){
   });
 
   // FIXME how to synchronize timing between this and server?
+  // TODO only ships in current scene
 
   for(var s in ships){
     var sh = ships[s];

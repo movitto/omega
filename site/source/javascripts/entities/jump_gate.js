@@ -158,7 +158,10 @@ function _jump_gate_load_lights(jg){
         return new THREE.Mesh(sphere_geometry, sphere_material);
       });
 
-  jg.light1.position.set(-22,-15,175)
+  // FIXME light not in right pos
+  jg.light1.position.set(jg.location.x + -22,
+                         jg.location.y + -15,
+                         jg.location.z + 175)
   jg.light1_dir = false;
   jg.light1.update_particles = function(){
     var c = sphere_material.color.getHex();
@@ -188,7 +191,7 @@ function _jump_gate_load_effects(jg){
       function(i) {
         return new THREE.ParticleBasicMaterial({
          color: 0x0000FF, size: 20,
-         map: UIResources().load_texture("images/particle.png"),
+         map: UIResources().load_texture(UIResources().images_path + "/particle.png"),
          blending: THREE.AdditiveBlending, transparent: true });
        });
 
@@ -209,7 +212,9 @@ function _jump_gate_load_effects(jg){
       });
 
   jg.effects1 = new THREE.ParticleSystem(particles, pMaterial);
-  jg.effects1.position.set(-30,-25,75)
+  jg.effects1.position.set(jg.location.x + -30,
+                           jg.location.y + -25,
+                           jg.location.z +  75)
   jg.effects1.sortParticles = true;
 
   jg.effects1.update_particles = function(){

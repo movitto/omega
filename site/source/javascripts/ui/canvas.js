@@ -134,6 +134,8 @@ function Scene(args){
   this.subcomponents.push(this.grid)
 
   // setup a timer to run particle subsystems
+  // TODO rename this timer / callback method
+  // to something more generic like effects_timer/update_effects
   this.particle_timer =
     $.timer(function(){
       for(var c in _this._scene.__objects){
