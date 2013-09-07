@@ -407,11 +407,12 @@ class Location
      ny = rand(2) == 0 ? -1 : 1
      nz = rand(2) == 0 ? -1 : 1
 
-     loc = Location.new args.merge({:orientation => [0,0,1]})
-     loc.x = ((min_x.nil? ? 0 : min_x) + (max_x.nil? ? rand : rand(max_x - min_x))) * nx
-     loc.y = ((min_y.nil? ? 0 : min_y) + (max_y.nil? ? rand : rand(max_y - min_y))) * ny
-     loc.z = ((min_z.nil? ? 0 : min_z) + (max_z.nil? ? rand : rand(max_z - min_z))) * nz
+     new_x = ((min_x.nil? ? 0 : min_x) + (max_x.nil? ? rand : rand(max_x - min_x))) * nx
+     new_y = ((min_y.nil? ? 0 : min_y) + (max_y.nil? ? rand : rand(max_y - min_y))) * ny
+     new_z = ((min_z.nil? ? 0 : min_z) + (max_z.nil? ? rand : rand(max_z - min_z))) * nz
+     new_args = {:coordinates => [new_x,new_y,new_z], :orientation => [0,0,1]}.merge args
 
+     loc = Location.new new_args
      return loc
    end
 

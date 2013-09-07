@@ -397,7 +397,7 @@ function Camera(args){
   /* Set camera to its default position
    */
   this.reset = function(){
-    var z = (20 * Math.sqrt(_width) + 20 * Math.sqrt(_height));
+    var z = (20 * Math.sqrt(_width) + 20 * Math.sqrt(_height)) + 2500;
     this.position({x : 0, y : 0, z : z});
     this.focus(this.scene.position());
     this.scene.animate();

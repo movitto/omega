@@ -108,7 +108,11 @@ function _station_create_mesh(){
         mesh.position.y = station.location.y;
         mesh.position.z = station.location.z;
         mesh.rotation.x = mesh.rotation.y = mesh.rotation.z = 0;
-        mesh.scale.x = mesh.scale.y = mesh.scale.z = 5;
+
+        var scale = $omega_config.resources[station.type].scale;
+        mesh.scale.x = scale[0];
+        mesh.scale.y = scale[1];
+        mesh.scale.z = scale[2];
         return mesh;
       });
 

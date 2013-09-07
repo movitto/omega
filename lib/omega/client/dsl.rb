@@ -72,6 +72,11 @@ module Omega
         Motel::Location.random args
       end
 
+      # Utility wrapper to simply return a new location
+      def loc(x,y,z)
+        Motel::Location.new :x => x, :y => y, :z => z
+      end
+
       # Invoke request using the DSL node / endpoint
       def invoke(*args)
         dsl.invoke *args

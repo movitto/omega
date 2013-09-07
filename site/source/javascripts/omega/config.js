@@ -31,14 +31,14 @@ $omega_config = {
   // gfx
   resources    : { 'mining'       : { 'material' : '/meshes/pirateghost/ghostmap_png.png',
                                       'geometry' : '/meshes/pirateghost/pirateghost.js',
-                                      'scale'    : [20, 20, 20],
+                                      'scale'    : [10, 10, 10],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[77,9,-127],[-77,8,-127],[0,20,-240],[0,-10,-240]]},
+                                      'trails'   : [[38,5,-65],[-38,5,-65],[0,10,-110],[0,-5,-110]]},
                    'corvette'     : { 'material' : '/meshes/transportshuttle/texture/transport_shuttle.png',
                                       'geometry' : '/meshes/transportshuttle/texture/TransportShuttle.js',
-                                      'scale'    : [50, 50, 50],
+                                      'scale'    : [40, 40, 40],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[25,0,-100], [-25,0,-100]]},
+                                      'trails'   : [[20,0,-75], [-20,0,-75]]},
                    'transport'    : { 'material' : '/meshes/eris/shipCompleteMap.jpg',
                                       'geometry' : '/meshes/eris/eris.js',
                                       'scale'    : [20, 20, 20],
@@ -64,6 +64,6 @@ $omega_config = {
                                       'scale'    : [120, 120, 100] },
                    'manufacturing' : { 'material' : '/meshes/research.png',
                                        'geometry' : '/meshes/research.js',
-                                       'scale'    : [20, 20, 20] }}
+                                       'scale'    : [15, 15, 15] }}
 
 }

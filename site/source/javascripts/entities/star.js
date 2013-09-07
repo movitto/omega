@@ -117,7 +117,7 @@ function _star_load_flare(star){
     new THREE.Color(star.icolor);
 
   star.lensFlare =
-    new THREE.LensFlare(textureFlare0, 700, 0.0,
+    new THREE.LensFlare(textureFlare0, 1200, 0.0,
                         THREE.AdditiveBlending, flareColor);
 
   star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);

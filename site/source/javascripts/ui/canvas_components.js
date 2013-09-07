@@ -67,22 +67,20 @@ function Axis(args){
                         // elements in distance_geometries
 
   /////////////////////////////////////// private data
-  var size = 250;
-
-  var step = 100;
+  var size = 8192;
 
   var line_geometry =
     UIResources().cached('axis_geometry',
       function(i) {
         var geo = new THREE.Geometry();
-        geo.vertices.push( new THREE.Vector3( 0, 0, -4096 ) );
-        geo.vertices.push( new THREE.Vector3( 0, 0,  4096 ) );
+        geo.vertices.push( new THREE.Vector3( 0, 0, -size ) );
+        geo.vertices.push( new THREE.Vector3( 0, 0,  size ) );
 
-        geo.vertices.push( new THREE.Vector3( 0, -4096, 0 ) );
-        geo.vertices.push( new THREE.Vector3( 0,  4096, 0 ) );
+        geo.vertices.push( new THREE.Vector3( 0, -size, 0 ) );
+        geo.vertices.push( new THREE.Vector3( 0,  size, 0 ) );
 
-        geo.vertices.push( new THREE.Vector3( -4096, 0, 0 ) );
-        geo.vertices.push( new THREE.Vector3(  4096, 0, 0 ) );
+        geo.vertices.push( new THREE.Vector3( -size, 0, 0 ) );
+        geo.vertices.push( new THREE.Vector3(  size, 0, 0 ) );
 
         return geo;
       });

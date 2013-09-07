@@ -247,7 +247,7 @@ Planet.run_timer = $.timer(function(){
       var dist = ms.speed * elapsed / 1000;
 
       // rotate to xy plane
-      var n = rot(pl.location.x-pl.cy, pl.location.y-pl.cy, pl.location.z-pl.cz,
+      var n = rot(pl.location.x-pl.cx, pl.location.y-pl.cy, pl.location.z-pl.cz,
                   - pl.rot_axis_angle,
                   pl.rot_axis[0], pl.rot_axis[1], pl.rot_axis[2])
       var x = n[0] ; var y = n[1]; // z.should == 0

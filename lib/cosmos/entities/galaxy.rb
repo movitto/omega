@@ -19,7 +19,7 @@ class Galaxy
   PARENT_TYPE = 'NilClass'
   CHILD_TYPES = ['SolarSystem']
 
-  NUM_BACKGROUNDS = 4
+  NUM_BACKGROUNDS = 6
 
   # Alias children to solar systems
   alias :solar_systems :children
