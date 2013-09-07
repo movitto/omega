@@ -127,6 +127,7 @@ function _planet_load_mesh(planet){
  */
 function _planet_load_orbit(planet){
   var ms = planet.location.movement_strategy;
+  if(ms == null) return;
 
   // intercepts
   planet.a = ms.p / (1 - Math.pow(ms.e, 2));
@@ -229,7 +230,7 @@ function _planet_load_moons(planet){
  * that checks for planet movement inbetween
  * notifications from server
  */
-Planet.run_timer = $.timer(function(){
+function _planet_movement_cycle(){
   var planets = Entities().select(function(e) {
     return e.json_class == 'Cosmos::Entities::Planet';
   });
@@ -275,4 +276,8 @@ Planet.run_timer = $.timer(function(){
     }
     pl.last_moved = curr;
   }
+}
+
+Planet.run_timer = $.timer(function(){
+  _planet_movement_cycle();
 }, 150, false);

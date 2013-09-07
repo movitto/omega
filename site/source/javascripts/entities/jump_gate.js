@@ -155,29 +155,29 @@ function _jump_gate_load_lights(jg){
   jg.light1 =
     UIResources().cached('jump_gate_' + jg.id +'_light1_mesh',
       function(i) {
-        return new THREE.Mesh(sphere_geometry, sphere_material);
+        var mesh = new THREE.Mesh(sphere_geometry, sphere_material);
+        mesh.position.set(jg.location.x + -22,
+                          jg.location.y + -15,
+                          jg.location.z + 175)
+        jg.light1_dir = false;
+        mesh.update_particles = function(){
+          var c = sphere_material.color.getHex();
+          if(jg.light1_dir)
+            sphere_material.color.setHex(c - 0x100000)
+          else
+            sphere_material.color.setHex(c + 0x100000)
+
+          if(sphere_material.color.getHex() > 0xff0000){
+            sphere_material.color.setHex(0xff0000);
+            jg.light1_dir = !jg.light1_dir;
+          }else if(sphere_material.color.getHex() < 0x000000){
+            sphere_material.color.setHex(0x000000);
+            jg.light1_dir = !jg.light1_dir;
+          }
+        }
+
+        return mesh;
       });
-
-  jg.light1.position.set(jg.location.x + -22,
-                         jg.location.y + -15,
-                         jg.location.z + 175)
-  jg.light1_dir = false;
-  jg.light1_dir = false;
-  jg.light1.update_particles = function(){
-    var c = sphere_material.color.getHex();
-    if(jg.light1_dir)
-      sphere_material.color.setHex(c - 0x100000)
-    else
-      sphere_material.color.setHex(c + 0x100000)
-
-    if(sphere_material.color.getHex() > 0xff0000){
-      sphere_material.color.setHex(0xff0000);
-      jg.light1_dir = !jg.light1_dir;
-    }else if(sphere_material.color.getHex() < 0x000000){
-      sphere_material.color.setHex(0x000000);
-      jg.light1_dir = !jg.light1_dir;
-    }
-  }
 
   jg.components.push(jg.light1);
 }

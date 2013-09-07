@@ -372,7 +372,13 @@ describe("Star", function(){
     assert(st.location).isTypeOf(Location)
   })
 
-  //it("adds THREE clickable sphere component to entity"); // NIY
+  //it("adds THREE sphere component to entity"); // NIY
+  //it("adds clickable shader-based THREE glow component to entity"); // NIY
+  //it("adds THREE flare component to entity"); // NIY
+
+  //context("added to scene", function(){
+  //  //it("sets glow view vector"); // NIY
+  //});
 });}); // Star
 
 pavlov.specify("Planet", function(){
@@ -414,11 +420,26 @@ describe("Planet", function(){
     //  pl.update({moons : [nmn]})
     //  sinon.assert.calledWith(spy, nmn);
     //});
+
+    //it("reloads entity in scene"); // NIY
   });
 
   //it("adds THREE clickable sphere component to entity"); // NIY
   //it("adds THREE line component to entity for orbit"); // NIY
   //it("adds THREE spheres component to entity for moons"); // NIY
+ 
+  //describe("added to scene", function(){
+  //  it("sets current scene"); // NIY
+  //});
+  //describe("removed from scene", function(){
+  //  it("sets current scene to null"); // NIY
+  //});
+
+  //describe("#planet_movement_cycle", function(){
+    //it("retrieves planets in current scene"); // NIY
+    //it("moves planets distance specified by movement strategy and last movement time") // NIY
+    //it("sets last movement on planet") // NIY
+  //})
 });}); // Planet
 
 pavlov.specify("Asteroid", function(){
@@ -459,7 +480,16 @@ describe("JumpGate", function(){
   })
 
   //it("adds THREE clickable mesh component to entity"); // NIY
+  //it("adds THREE light components to entity"); // NIY
+  //it("adds THREE particle system components to entity (effects)"); // NIY
   //it("adds THREE sphere component to entity (selection sphere)"); // NIY
+
+  //describe("added to scene", function(){
+  //  it("sets current scene"); // NIY
+  //});
+  //describe("removed from scene", function(){
+  //  it("sets current scene to null"); // NIY
+  //});
 
   //describe("clicked jump gate", function(){
   //  it("sets selected true"); // NIY
@@ -685,6 +715,13 @@ describe("Ship", function(){
       })
     })
   })
+
+  //describe("#ship_movement_cycle", function(){
+    //it("retrieves ships in current scene"); // NIY
+    //it("moves ships distance specified by movement strategy and last movement time") // NIY
+    //it("rotates ships distance specified by movement strategy and last movement time") // NIY
+    //it("sets last movement on planet") // NIY
+  //})
 });}); // Ship
 
 pavlov.specify("Station", function(){

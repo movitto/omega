@@ -279,7 +279,7 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(spy, s.location.id);
     });
 
-    describe("entity movement/rotation/stop", function(){
+    describe("entity movement/rotation/stop/changed_strategy", function(){
       it("invokes a motel_event", function(){
         var u = complete_ui();
         var n = new TestNode();
@@ -290,6 +290,7 @@ pavlov.specify("omega.js", function(){
         assert(s.location.callbacks['motel::on_movement'].length).equals(1)
         assert(s.location.callbacks['motel::on_rotation'].length).equals(1)
         assert(s.location.callbacks['motel::location_stopped'].length).equals(1)
+        assert(s.location.callbacks['motel::changed_strategy'].length).equals(1)
 
         var oloc = { id : 'l42' };
         var nloc = { id : 'l42' }
@@ -741,6 +742,12 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(handle_events, ui, node, e1);
       sinon.assert.calledWith(handle_events, ui, node, e2);
     });
+
+    it("clears click callbacks", function(){
+      var spy = sinon.spy(e1, 'clear_callbacks')
+      handle_events(ui, node, e1);
+      sinon.assert.calledWith(spy, 'click')
+    })
 
     it("handles click event", function(){
       handle_events(ui, node, e1);

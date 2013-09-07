@@ -99,6 +99,12 @@ describe("Events", function(){
   })
 
   describe("#track_movement", function(){
+    it("handles motel::changed_strategy server event", function(){
+      var spy = sinon.spy(ServerEvents(), 'handle')
+      Events.track_movement('loc1', 10)
+      sinon.assert.calledWith(spy, 'motel::changed_strategy')
+    });
+
     it("handles motel::location_stopped server event", function(){
       var spy = sinon.spy(ServerEvents(), 'handle')
       Events.track_movement('loc1', 10)
@@ -115,6 +121,12 @@ describe("Events", function(){
       var spy = sinon.spy(ServerEvents(), 'handle')
       Events.track_movement('loc1', 10)
       sinon.assert.calledWith(spy, 'motel::on_rotation')
+    })
+
+    it("invokes motel::track_strategy", function(){
+      var spy = sinon.spy(Entities().node(), 'ws_request')
+      Events.track_movement('loc1', 10)
+      sinon.assert.calledWith(spy, 'motel::track_strategy', 'loc1')
     })
 
     it("invokes motel::track_stops", function(){

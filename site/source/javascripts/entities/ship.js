@@ -733,7 +733,7 @@ function _ship_clicked_in(scene){
  * that checks for ship movement inbetween
  * notifications from server
  */
-Ship.run_timer = $.timer(function(){
+function _ship_movement_cycle(){
   var ships = Entities().select(function(e) {
     return e.json_class == 'Manufactured::Ship';
   });
@@ -779,4 +779,8 @@ Ship.run_timer = $.timer(function(){
       sh.last_moved = null;
     }
   }
+}
+
+Ship.run_timer = $.timer(function(){
+  _ship_movement_cycle();
 }, 150, false);

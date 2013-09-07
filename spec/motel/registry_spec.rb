@@ -110,8 +110,7 @@ describe Registry do
 
         r.should_receive(:raise_event).
           with(:changed_strategy,
-               an_instance_of(Location),
-               an_instance_of(Motel::MovementStrategies::Linear)).
+               an_instance_of(Location)).
           and_call_original
         r.should_receive(:raise_event).once.and_call_original # :updated
         r.update(l1, &with_id(l.id))
@@ -135,8 +134,7 @@ describe Registry do
                  an_instance_of(Location)).and_call_original
           r.should_receive(:raise_event).
             with(:changed_strategy,
-                 an_instance_of(Location),
-                 an_instance_of(Motel::MovementStrategies::Linear)).and_call_original
+                 an_instance_of(Location)).and_call_original
           r.should_receive(:raise_event).
             with(:stopped, an_instance_of(Location))
           r.update(l1, &with_id(l.id))

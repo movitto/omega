@@ -328,11 +328,15 @@ describe("UIListComponent", function(){
       assert(lc.items).includes({ id : 'a' })
     });
 
+    //it("wires up click_item event"); // NIY
+
     describe("existing item with same id", function(){
       it("overwrites old item", function(){
         lc.add_item({ id : 'a' })
         assert(lc.items[0]).isSameAs({ id : 'a' })
       });
+
+      //it("does not wire up click_item event"); // NIY
     });
     
     //it("wires up item click handler")
