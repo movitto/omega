@@ -416,17 +416,13 @@ module Resolution
 
         # remove event handlers
         evnts.each { |evnt|
-          eid = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
-          Missions::RJR.registry.update({:invalid => true}) { |e|
-            e.is_a?(Omega::Server::EventHandler) && e.event_id == eid
-          }
+          eid = Missions::Events::Manufactured.gen_id(entity.id, evnt)
+          Missions::RJR.registry.cleanup_event(eid)
         }
 
         # remove expiration event
         eid = "mission-#{mission.id}-expired"
-        Missions::RJR.registry.update({:invalid => true}) { |e|
-          e.is_a?(Omega::Server::Event) && e.id == eid
-        }
+        Missions::RJR.registry.cleanup_event(eid)
       }
     }
   end

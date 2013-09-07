@@ -761,20 +761,27 @@ module DSL
         Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
       end
 
-      it "invalidate each entity/event handler" do
+      it "removes each entity/event handler" do
         @node.should_receive(:invoke)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
-        Missions::RJR.registry.entity{ |e|
-          e.is_a?(Omega::Server::EventHandler) && e.event_id == "#{@sh.id}_destroyed"
-        }.invalid.should be_true
+        Missions::RJR.registry.should_receive(:cleanup_event).
+                               with("#{@sh.id}_destroyed").
+                               and_call_original
+        Missions::RJR.registry.should_receive(:cleanup_event).
+                               once.and_call_original
+        lambda{
+          Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
+        }.should change{Missions::RJR.registry.entities.size}.by(-2)
       end
 
       it "removes mission expired event" do
         @node.should_receive(:invoke)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
-        Missions::RJR.registry.entity{ |e|
-          e.is_a?(Omega::Server::Event) && e.id == @eid
-        }.invalid.should be_true
+        Missions::RJR.registry.should_receive(:cleanup_event).
+                               with(@eid).and_call_original
+        Missions::RJR.registry.should_receive(:cleanup_event).
+                               once.and_call_original
+        lambda{
+          Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
+        }.should change{Missions::RJR.registry.entities.size}.by(-2)
       end
     end
 

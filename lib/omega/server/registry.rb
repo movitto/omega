@@ -281,9 +281,8 @@ module Registry
   #   run { run_events }
   def run_events
     self.entities.
-      select { |e| e.kind_of?(Event) && e.time_elapsed? &&
-                   !e.invoked  && !e.invalid
-      }.each { |evnt| run_event(evnt) }
+      select { |e| e.kind_of?(Event) && e.time_elapsed? }.
+      each { |evnt| run_event(evnt) }
 
     DEFAULT_EVENT_POLL
   end
@@ -324,10 +323,25 @@ module Registry
       end
     }
 
-    # TODO delete event and/or add to optional event graveyard?
-    event.invoked = true
-    self.update(event) { |e| e.is_a?(Event) && e.id == event.id }
+    cleanup_event event.id
   end
+
+  public
+
+  # Cleanup an event and handlers specified by id
+  def cleanup_event(event_id)
+    self.safe_exec { |entities|
+      to_remove =
+        entities.select { |e|
+          (e.is_a?(Event) && e.id == event_id) ||
+          (e.is_a?(EventHandler) && e.event_id == event_id) }
+
+      # TODO optional event 'graveyard'
+      @entities -= to_remove
+    }
+  end
+
+  private
 
   # Run commands registered in the local registry
   #

@@ -474,18 +474,6 @@ describe Registry do
       $invoked2.should be_false
     end
 
-    it "only runs events that are not already invoked" do
-      e1 = Event.new :timestamp => (Time.now - 10),
-                     :handlers  => [@h1]
-      e2 = Event.new :timestamp => (Time.now - 10), :invoked => true,
-                     :handlers  => [@h2]
-      @registry << e1
-      @registry << e2
-      @registry.send :run_events
-      $invoked1.should be_true
-      $invoked2.should be_false
-    end
-
     it "adds global event handlers to event" do
       e = Event.new :id => 'foobar', :timestamp => (Time.now - 10)
       eh1 = EventHandler.new :event_id => 'foobar', :handlers => [@h1]
@@ -525,20 +513,13 @@ describe Registry do
       end
     end
 
-    it "sets event.invoked to true" do
-      e = Event.new :timestamp => (Time.now - 10), :handlers => [@h1]
-      @registry << e
-      @registry.send :run_events
-      @registry.entities.last.invoked.should be_true
-    end
-
-    it "updates event in registry" do
+    it "deletes event in registry" do
       e = Event.new :id => 'eid',
                     :timestamp => (Time.now - 10),
                     :handlers => [@h1]
       @registry << e
-      @registry.should_receive(:update).
-                with { |evnt| evnt.id.should == 'eid' }
+      @registry.should_receive(:cleanup_event).
+                with('eid')
       @registry.send :run_events
     end
 
@@ -546,6 +527,27 @@ describe Registry do
       e = Event.new :timestamp => (Time.now - 10)
       @registry << e
       @registry.send(:run_events).should == Registry::DEFAULT_EVENT_POLL
+    end
+  end
+
+  describe "#cleanup_event" do
+    before(:each) do
+      @e = Event.new :id => 'eid'
+      @eh1 = EventHandler.new :event_id => 'eid'
+      @eh2 = EventHandler.new :event_id => 'eid'
+      @registry << @e
+      @registry << @eh1
+      @registry << @eh2
+    end
+
+    it "removes event and handlers from registry" do
+      lambda{
+        @registry.send :cleanup_event, 'eid'
+      }.should change{@registry.entities.size}.by(-3)
+
+      @registry.entities {|e|
+        e.id == 'eid' || e.event_id == 'eid'
+      }.should be_empty
     end
   end
 

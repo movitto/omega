@@ -14,12 +14,6 @@ class Event
   # Timestamp which event is set to occur
   attr_accessor :timestamp
 
-  # Boolean indicating if handler was invoked
-  attr_accessor :invoked
-
-  # Boolean indicating if event was invalidated
-  attr_accessor :invalid
-
   # Callable objects to be invoked upon event
   attr_accessor :handlers
 
@@ -33,30 +27,21 @@ class Event
 
   # Return boolean indicating if all checks pass for event execution
   def should_exec?
-    time_elapsed? && !self.invoked && !self.invalid
+    time_elapsed?
   end
 
   # Omega::Server::Event initializer
   #
   # @param [Hash] args hash of options to initialize event with
   # @option args [Time] :timestamp, 'timestamp' timestamp to assign to event
-  # @option args [Boolean]  :invoked, 'invoked' boolean indicating if the handler was invoked
-  # @option args [Boolean]  :invalid, 'invalid' boolean indicating if the event was invalidated
   # @option args [Array<Callable>] :handlers, 'handlers' callable objects to invoke on event
   def initialize(args = {})
     attr_from_args args, :timestamp => Time.now,
                          :handlers  =>       [],
-                         :invoked   =>    false,
-                         :invalid   =>    false,
                          :id        =>      nil,
                          :registry  =>      nil
 
     @timestamp = Time.parse(@timestamp) if @timestamp.is_a?(String)
-  end
-
-  # Update event attributes
-  def update(args = {})
-    update_from args, :invalid, :invoked
   end
 
   # Invoke the registered handler w/ the specified args
@@ -70,8 +55,6 @@ class Event
   # Return event json data
   def json_data
     {:id        => id,
-     :invoked   => invoked,
-     :invalid   => invalid,
      :timestamp => timestamp}
   end
 
@@ -171,18 +154,9 @@ class EventHandler
   # Handlers to invoke when event occurs
   attr_accessor :handlers
 
-  # Boolean indicating if this handler was invalidated
-  attr_accessor :invalid
-
   def initialize(args = {}, &block)
     attr_from_args args, :event_id => nil,
-                         :handlers => [block].compact,
-                         :invalid  => false
-  end
-
-  # Update handler attributes
-  def update(args = {})
-    update_from args, :invalid
+                         :handlers => [block].compact
   end
 
   # Convert handler to json representation and return it
@@ -190,7 +164,6 @@ class EventHandler
     {
       'json_class' => self.class.name,
       'data'       => {:event_id => event_id,
-                       :invalid  => invalid,
                        :handlers => handlers}
     }.to_json(*a)
   end

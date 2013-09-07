@@ -38,22 +38,6 @@ describe Event do
       end
     end
 
-    context "event already invoked" do
-      it "returns false" do
-        e = Event.new :invoked => true
-        e.should_receive(:time_elapsed?).and_return(true)
-        e.should_exec?.should be_false
-      end
-    end
-
-    context "event is invalid" do
-      it "returns false" do
-        e = Event.new :invoked => false, :invalid => true
-        e.should_receive(:time_elapsed?).and_return(true)
-        e.should_exec?.should be_false
-      end
-    end
-
     it "returns true" do
       e = Event.new
       e.should_receive(:time_elapsed?).and_return(true)
@@ -71,8 +55,6 @@ describe Event do
       e = Event.new
       e.timestamp.should == Time.now
       e.handlers.should == []
-      e.invoked.should be_false
-      e.invalid.should be_false
       e.registry.should be_nil
     end
 
@@ -81,13 +63,9 @@ describe Event do
       registry = Object.new
       e = Event.new :timestamp => t,
                     :handlers  => [:foobar],
-                    :invoked   => true,
-                    :invalid   => true,
                     :registry  => registry
       e.timestamp.should == t
       e.handlers.should == [:foobar]
-      e.invoked.should be_true
-      e.invalid.should be_true
       e.registry.should == registry
     end
 
@@ -104,12 +82,6 @@ describe Event do
       e.handlers.first.should_receive :call
       e.invoke
     end
-
-    it "sets invoked to true" do
-      e = Event.new
-      e.invoke
-      e.invoked.should be_true
-    end
   end
 
   describe "#to_json" do
@@ -117,14 +89,10 @@ describe Event do
       t = Time.now
       event = Event.new :id => 'event321',
                         :timestamp => t,
-                        :invalid => true,
-                        :invoked => true,
                         :handlers => [:cb1]
       j = event.to_json
       j.should include('"json_class":"Omega::Server::Event"')
       j.should include('"id":"event321"')
-      j.should include('"invalid":true')
-      j.should include('"invoked":true')
       j.should include('"timestamp":"'+t.to_s+'"')
       j.should include('"handlers":["cb1"]')
     end
@@ -133,15 +101,13 @@ describe Event do
   describe "#json_create" do
     it "return event from json format" do
       t = Time.parse('2013-03-10 15:33:41 -0400')
-      j = '{"json_class":"Omega::Server::Event","data":{"id":"event321","timestamp":"2013-03-10 15:33:41 -0400","invoked":true,"invalid":true,"handlers":["cb1"]}}'
+      j = '{"json_class":"Omega::Server::Event","data":{"id":"event321","timestamp":"2013-03-10 15:33:41 -0400","handlers":["cb1"]}}'
       e = JSON.parse(j)
 
       e.class.should == Omega::Server::Event
       e.id.should == 'event321'
       e.timestamp.to_i.should == t.to_i
       e.handlers.should == ['cb1']
-      e.invoked.should be_true
-      e.invalid.should be_true
     end
   end
 end # describe Event
