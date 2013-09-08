@@ -63,10 +63,17 @@ end
 
 def main()
   # setup cmd line options
+  admin_mode = false
   opts = OptionParser.new do |opts|
     opts.on("-h", "--help", "Print help message") do
        puts opts
        exit
+    end
+
+    opts.on("-a", "--admin",
+      "Run server in administrative mode, adds a few globally-\
+accessible administrative methods") do
+         admin_mode = true
     end
   end
 
@@ -146,6 +153,12 @@ def main()
     multi_node.dispatcher.add_module('manufactured/rjr/inspect')
     multi_node.dispatcher.add_module('missions/rjr/inspect')
     multi_node.dispatcher.add_module('stats/rjr/inspect')
+  end
+
+  # add admin interfaces
+  if admin_mode
+    puts "\e[1mWarning: Running Server In Admin Mode, Admin Functions Added Are Available To All Users\e[0m"
+    multi_node.dispatcher.add_module('manufactured/rjr/admin')
   end
 
   # create the default roles
