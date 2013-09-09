@@ -135,7 +135,8 @@ def dispatch_missions_rjr_init(dispatcher)
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
 
-  # add callback for manufactured events
+  # add callback for manufactured events, overrid environment it runs in
   m = Missions::RJR::CALLBACK_METHODS
   rjr.node.dispatcher.handle('manufactured::event_occurred', &m[:manufactured_event])
+  rjr.node.dispatcher.env 'manufactured::event_occurred', Missions::RJR
 end

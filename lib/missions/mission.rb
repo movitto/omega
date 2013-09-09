@@ -159,7 +159,11 @@ class Mission
     @failed     = false
 
     @victory_callbacks.each { |vcb|
-      vcb.call self
+begin
+        vcb.call self
+rescue Exception => e
+puts "err #{e}"
+end
     }
   end
 

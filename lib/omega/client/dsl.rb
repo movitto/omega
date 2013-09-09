@@ -367,6 +367,12 @@ module Omega
         invoke 'manufactured::create_entity', sh
       end
 
+      # Dock ship at the specified station
+      def dock(ship_id, station_id)
+        RJR::Logger.info "Docking #{ship_id} at #{station_id}"
+        invoke 'manufactured::dock', ship_id, station_id
+      end
+
       ########################################################################
 
       # Schedule new periodic event w/ missions subsystem

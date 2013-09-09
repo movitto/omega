@@ -35,8 +35,8 @@ class Manufactured < Omega::Server::Event
         when 'attacked_stopped','attacked'                       then
           manufactured_event_args[1].id
   
-        when 'defended_stopped','defended','destroyed'           then
-          manufactured_event_args[2].id
+        when 'defended_stopped','defended','destroyed_by'        then
+          manufactured_event_args[1].id
   
         when 'resource_collected'                                then
           # TODO also incoporate resource_source_id (param 2) ?

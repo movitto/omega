@@ -49,7 +49,7 @@ tamora   = user 'tamora',       'aromat',       :npc => true
 
 ##################################################### entities
 
-# TODO logout as admin, login as macbeth/hamlet/othello so as to properly set creator_user_id
+# TODO logout as admin, login as macbeth/hamlet/othello so as to properly set creator_id
 
 castle_macbeth =
   station('castle-macbeth', :user_id => 'Macbeth', :type => :defense,
@@ -60,7 +60,7 @@ macbeth_ship =
   ship('macbeth-ship', :user_id => 'Macbeth', :type => :destroyer,
        :system_id => castle_macbeth.system_id,
        :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
-#macbeth_ship.dock_to(castle_macbeth) if macbeth_ship.docked_at.nil?
+dock(macbeth_ship.id, castle_macbeth.id) if macbeth_ship.docked_at.nil?
 
 elsinore =
   station('elsinore', :user_id => 'Hamlet', :type => :mining,
@@ -71,7 +71,7 @@ hamlet_ship =
   ship('hamlet-ship', :user_id => 'Hamlet', :type => :corvette,
        :system_id => elsinore.system_id,
        :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
-#hamlet_ship.dock_to(elsinore) if hamlet_ship.docked_at.nil?
+dock(hamlet_ship.id, elsinore.id) if hamlet_ship.docked_at.nil?
 
 cyprus =
   station('cyprus', :user_id => 'Othello', :type => :commerce,
@@ -82,7 +82,7 @@ othello_ship =
   ship('othello-ship', :user_id => 'Othello', :type => :battlecruiser,
        :system_id => cyprus.system_id,
        :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
-#othello_ship.dock_to(cyprus) if othello_ship.docked_at.nil?
+dock(othello_ship.id, cyprus.id) if othello_ship.docked_at.nil?
 
 rome =
   station('rome', :user_id => 'Ceasar', :type => :commerce,
@@ -93,13 +93,13 @@ octavius_ship =
   ship('octavius-ship', :user_id => 'Octavius', :type => :exploration,
        :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
-#octavius_ship.dock_to(rome) if octavius_ship.docked_at.nil?
+dock(octavius_ship.id, rome.id) if octavius_ship.docked_at.nil?
 
 titus_ship =
   ship('titus-ship', :user_id => 'Titus', :type => :bomber,
        :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
-#titus_ship.dock_to(rome) if titus_ship.docked_at.nil?
+dock(titus_ship.id, rome.id) if titus_ship.docked_at.nil?
 
 penglai =
   station('penglai', :user_id => 'Shennong', :type => :science,
@@ -153,28 +153,28 @@ youdu =
 es = msn[:opponent].id.downcase + '_ship'
 
 mission gen_uuid, :title => msn[:title],
-  :creator_user_id => msn[:creator].id, :timeout => 360,
+  :creator_id => msn[:creator].id, :timeout => 360,
   :description => msn[:description],
 
   :requirements => Requirements.shared_station,
 
   :assignment_callbacks =>
     [Assignment.create_entity(es,
-      :id       => "#{es}-" + Motel.gen_uuid,
+      #:id       => "#{es}-" + Motel.gen_uuid,
       :type     => :corvette, # TODO autodefend on attack
       :user_id  => msn[:opponent].id,
       :solar_system => rand_system,
       :location    => msn[:location]),
      Assignment.schedule_expiration_event,
-     Assignment.subscribe_to(es, "destroyed",
+     Assignment.subscribe_to(es, "destroyed_by",
                              Event.create_victory_event)],
 
   :victory_conditions =>
     Query.check_entity_hp(es),
 
   :victory_callbacks => 
-    [Resolution.add_resource(Cosmos::Resource.new(:material_id => msn[:reward],
-                                                  :quantity => 50)),
+    [Resolution.add_reward(Cosmos::Resource.new(:material_id => msn[:reward],
+                                                :quantity => 50)),
      Resolution.update_user_attributes,
      Resolution.cleanup_events(es, 'destroyed'),
      Resolution.recycle_mission],
@@ -198,7 +198,7 @@ mid = gen_uuid
 
 # mining
 mission mid, :title => "Collect #{q1} of #{type}-#{name}",
-  :creator_user_id => shennong.id, :timeout => 3600,
+  :creator_id => shennong.id, :timeout => 3600,
   :description => 'The emperor needs you to collect resources for the good of the people',
   :mission_data => { :target => "#{type}-#{name}", :quantity => q1, :resources => Hash.new(0) },
 
@@ -233,7 +233,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 
 # transport
 mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.id}",
-  :creator_user_id => shennong.id, :timeout => 3600,
+  :creator_id => shennong.id, :timeout => 3600,
   :description => "The will of the people dictates resources be moved from #{src} to #{dst}",
   :mission_data => { :check_transfer => { :dst => dst, :q => q2, :rs => "#{type}-#{name}" } },
 
@@ -265,7 +265,7 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
 # loot
 eid = "#{mid}-enemy-#{rand(2)}"
 mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
-  :creator_user_id => shennong.id, :timeout => 3600,
+  :creator_id => shennong.id, :timeout => 3600,
   :description => 'Shennong commands you retrieve resource from the tyrant Chi You, will you heed his call?',
   :mission_data => { :loot => [], :check_loot => {:res => "#{type}-#{name}", :q => q3} },
 

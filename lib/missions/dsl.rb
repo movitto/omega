@@ -30,6 +30,8 @@ class Proxy
   def self.method_missing(method_id, *args)
     DSL.constants.each { |c|
       dc = DSL.const_get(c)
+      # XXX different dsl categories cannot define methods
+      # with the same name, would be nice to resolve this
       if(dc.methods.include?(method_id))
         return Proxy.new :dsl_category => c.to_s,
                          :dsl_method   => method_id.to_s,
@@ -164,6 +166,7 @@ module Assignment
   def self.create_entity(id, entity_params={})
     proc { |mission|
       # create new entity using specified params
+      entity_params[:id] = Motel.gen_uuid if entity_params[:id].nil?
       entity = Manufactured::Ship.new entity_params
       mission.mission_data[id] = entity
 
@@ -382,12 +385,15 @@ end
 # Mission Resolution
 module Resolution
   # Add resource to a user owned entity
-  def self.add_resource(rs)
+  def self.add_reward(rs)
     proc { |mission|
       # TODO better way to get user ship than this
+      # TODO try other ships if add_resource fails
       entity = Query.user_ships.call(mission).first
 
       # add resources to player's cargo
+      rs.id = Motel.gen_uuid
+      rs.entity = entity
       Missions::RJR::node.invoke('manufactured::add_resource', entity.id, rs)
     }
   end
