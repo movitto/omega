@@ -179,10 +179,11 @@ module Assignment
   # Create an asteroid w/ the specified params
   def self.create_asteroid(id, entity_params={})
     proc { |mission|
+      entity_params[:id] = Motel.gen_uuid if entity_params[:id].nil?
+      entity_params[:name] = entity_params[:id] if entity_params[:name].nil?
       ast = Cosmos::Entities::Asteroid.new entity_params
       mission.mission_data[id] = ast
-      Missions::RJR::node.invoke 'cosmos::create_entity',
-                                 ast, entity_params[:solar_system]
+      Missions::RJR::node.invoke 'cosmos::create_entity', ast
       Missions::DSL.update_mission mission
     }
   end
@@ -191,8 +192,9 @@ module Assignment
   def self.create_resource(entity_id, rs_params={})
     proc { |mission|
       entity = mission.mission_data[entity_id]
-      rs  = Cosmos::Resource.new rs_params
-      Missions::RJR::node.notify 'cosmos::set_resource', entity.id, rs
+      rs  = Cosmos::Resource.new({:id => Motel.gen_uuid,
+                                  :entity => entity}.merge(rs_params))
+      Missions::RJR::node.notify 'cosmos::set_resource', rs
     }
   end
 
@@ -200,7 +202,8 @@ module Assignment
   def self.add_resource(entity_id, rs_params={})
     proc { |mission|
       entity = mission.mission_data[entity_id]
-      rs  = Cosmos::Resource.new(rs_params)
+      rs  = Cosmos::Resource.new({:id => Motel.gen_uuid,
+                                  :entity => entity}.merge(rs_params))
       Missions::RJR::node.notify 'manufactured::add_resource', entity.id, rs
     }
   end
@@ -212,9 +215,10 @@ module Assignment
       entities = [entities] unless entities.is_a?(Array)
       handlers = [handlers] unless handlers.is_a?(Array)
 
-      entities.each { |entity|
-        entity = mission.mission_data[entity] if entity.is_a?(String)
-
+      entities.collect { |entity|
+        # this could be an array
+        entity.is_a?(String) ? mission.mission_data[entity] : entity
+      }.flatten.each { |entity|
         # add handler to registry
         eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
         handler = Omega::Server::EventHandler.new(:event_id => eid) { |e|
@@ -248,10 +252,11 @@ end
 module Event
   def self.resource_collected
     proc { |mission, evnt|
-      rs = evnt.manufactured_event_args[2].id
+      rs = evnt.manufactured_event_args[2].material_id
       q  = evnt.manufactured_event_args[3]
-      mission.mission_data[:resources] ||= Hash.new { |h,k| h[k] = 0 }
-      mission.mission_data[:resources][rs] += q
+      mission.mission_data['resources']     ||= {}
+      mission.mission_data['resources'][rs] ||= 0
+      mission.mission_data['resources'][rs]  += q
       Missions::DSL.update_mission mission
 
       if Query.check_mining_quantity.call(mission)
@@ -264,7 +269,8 @@ module Event
     proc { |mission, evnt|
       dst = evnt.manufactured_event_args[2]
       rs  = evnt.manufactured_event_args[3]
-      mission.mission_data[:last_transfer] = { :dst => dst, :rs => rs }
+      mission.mission_data['last_transfer'] =
+        { 'dst' => dst, 'rs' => rs.material_id, 'q' => rs.quantity }
       Missions::DSL.update_mission mission
 
       if Query.check_transfer.call(mission)
@@ -275,8 +281,8 @@ module Event
 
   def self.entity_destroyed
     proc { |mission, evnt|
-      mission.mission_data[:destroyed] ||= []
-      mission.mission_data[:destroyed] << evnt
+      mission.mission_data['destroyed'] ||= []
+      mission.mission_data['destroyed'] << evnt
       Missions::DSL.update_mission mission
     }
   end
@@ -284,8 +290,8 @@ module Event
   def self.collected_loot
     proc { |mission, evnt|
       loot = evnt.manufactured_event_args[2]
-      mission.mission_data[:loot] ||= []
-      mission.mission_data[:loot] << loot
+      mission.mission_data['loot'] ||= []
+      mission.mission_data['loot'] << loot
       Missions::DSL.update_mission mission
 
       if Query.check_loot.call(mission)
@@ -330,34 +336,34 @@ module Query
   # Return bool indicating if user has acquired target mining quantity
   def self.check_mining_quantity
     proc { |mission|
-      q = mission.mission_data[:resources][mission.mission_data[:target]]
-      mission.mission_data[:quantity] <= q
+      q = mission.mission_data['resources'][mission.mission_data['target']]
+      mission.mission_data['quantity'] <= q
     }
   end
 
   # Return bool indicating if user has transfered the target resource
   def self.check_transfer
     proc { |mission|
-      mission.mission_data[:last_transfer] &&
+      mission.mission_data['last_transfer'] &&
 
-      mission.mission_data[:check_transfer][:dst] ==
-      mission.mission_data[:last_transfer][:dst]  &&
+      mission.mission_data['check_transfer']['dst'].id ==
+      mission.mission_data['last_transfer']['dst'].id  &&
 
-      mission.mission_data[:check_transfer][:rs].material_id ==
-      mission.mission_data[:last_transfer][:rs].material_id  &&
+      mission.mission_data['check_transfer']['rs'] ==
+      mission.mission_data['last_transfer']['rs']  &&
 
-      mission.mission_data[:check_transfer][:rs].quantity >=
-      mission.mission_data[:last_transfer][:rs].quantity
+      mission.mission_data['check_transfer']['q'] >=
+      mission.mission_data['last_transfer']['q']
     }
   end
 
   # Return boolean indicating if user has collected the target loot
   def self.check_loot
     proc { |mission|
-      !mission.mission_data[:loot].nil?
-      !mission.mission_data[:loot].find { |rs|
-        rs.material_id == mission.mission_data[:check_loot].material_id &&
-        rs.quantity    >= mission.mission_data[:check_loot].quantity
+      !mission.mission_data['loot'].nil?
+      !mission.mission_data['loot'].find { |rs|
+        rs.material_id == mission.mission_data['check_loot']['res'] &&
+        rs.quantity    >= mission.mission_data['check_loot']['q']
       }.nil?
     }
   end
@@ -365,11 +371,11 @@ module Query
   # Return ships the user owned that matches the speicifed properties filter
   def self.user_ships(filter={})
     proc { |mission|
-      filter = proc { |i| true } unless filter
+      filter = proc { |i| true } unless filter # FIXME
       Missions::RJR::node.invoke('manufactured::get_entity',
                   'of_type', 'Manufactured::Ship',
                   'owned_by', mission.assigned_to_id).
-           pselect(filter)
+        select { |s| filter.keys.all? { |k| s.send(k).to_s == filter[k].to_s }}
     }
   end
 

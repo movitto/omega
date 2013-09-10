@@ -58,6 +58,10 @@ $user_id = test_user.id
 test_ship = ship(gen_uuid, :user_id => test_user.id,
                  :system_id => athena.id, :location => rand_location,
                  :type => :corvette)
+test_mining_ship =
+  ship(gen_uuid, :user_id => test_user.id,
+       :system_id => athena.id, :location => rand_location,
+       :type => :mining)
 
 #######################################
 # Helper methods
@@ -83,7 +87,7 @@ $missions.each { |id, scenario, args|
 
   #######################################
   # run through requirements, setting up scenario where they are satisfied
-  args[:requirements] = [args[:requirements]].flatten
+  args[:requirements] = [args[:requirements]].flatten.compact
   args[:requirements].each { |req|
     puts "satisfying req #{req.dsl_method}".yellow
     case req.dsl_method
@@ -98,14 +102,19 @@ $missions.each { |id, scenario, args|
                                   :system_id => station.system_id,
                                   :docked_at => station,
                                   :location  => station.location + [10,10,10],
-                                  :type => :corvette
+                                  :type => :corvette,
+                                  :cargo_capacity => 5000
       invoke('manufactured::create_entity', sh)
     when "docked_at" then
       # create user ship docked at specified station
       station = req.params.first
       sh = Manufactured::Ship.new :id => gen_uuid,
+                                  :user_id => $user_id,
                                   :system_id => station.system_id,
-                                  :docked_at => station
+                                  :docked_at => station,
+                                  :location  => station.location + [10,10,10],
+                                  :type => :corvette,
+                                  :cargo_capacity => 5000
       invoke('manufactured::create_entity', sh)
     end
   }
@@ -170,9 +179,11 @@ $missions.each { |id, scenario, args|
       # TODO ensure missions registry has event handler for specified
       #      manufactured event and ensure missions rjr node is subscribe
       #      to manufactured event callback
+      print "skipping".blue
 
     when 'schedule_expiration_event' then
       # TODO ensure missions registry has mission expiration event
+      print "skipping".blue
     end
 
     puts ""
@@ -203,41 +214,34 @@ $missions.each { |id, scenario, args|
                'destroyed_by', test_ship)
 
       when 'check_mining_quantity' then
-        # set tracked mission resource quantity to
-        # target mission resource quantity
-        smission.mission_data[:quantity] =
-          smission.mission_data[:resources][mission.mission_data[:target]]
-
         # trigger resource collected callback
-        res = Cosmos::Resource.new :material_id => smission.mission_data[:target],
-                                   :quantity    => smission.mission_data[:quantity]
-        invoke('manufactured::admin::run_callbacks', test_ship.id,
-               'resource_collected', test_ship, res)
+        m = smission.mission_data['target']
+        q = smission.mission_data['quantity']
+        res = Cosmos::Resource.new(:material_id => m, :quantity => q)
+        invoke('manufactured::admin::run_callbacks', test_mining_ship.id,
+               'resource_collected', res, q)
 
       when 'check_transfer' then
-        # set tracked mission transfer entity to target
-        # mission transfer entity
-        ct  = smission.mission_data[:check_transfer]
-        res = Cosmos::Resource.new(:material_id => ct[:rs].material_id,
-                                   :quantity    => ct[:rs].quantity)
-        smission.mission_data[:last_transfer] =
-          { :dst => ct[:dst], :rs  => res }
-
         # trigger transferred_to callback
-        invoke('manufactured::admin::run_callbacks', test_ship.id,
-               'transferred_to', test_ship, ct[:dst], res)
+# FIXME will not work if more than one ship is saved in mission data
+        entity_id = smission.mission_data.values.find { |d|
+                      d.is_a?(Manufactured::Ship) }.id
+        ct  = smission.mission_data['check_transfer']
+        res = Cosmos::Resource.new(:material_id => ct['rs'],
+                                   :quantity    => ct['q'])
+        invoke('manufactured::admin::run_callbacks', entity_id,
+               'transferred_to', ct['dst'], res)
 
       when 'collected_loot' then
         # set tracked mission loot to target
         # mission loot
-        cl = smission.mission_data[:check_loot]
-        res =Cosmos::Resource.new(:material_id => cl.material_id,
-                                  :quantity    => cl.quantity) 
-        smission.mission_data[:loot] = [res]
+        cl = smission.mission_data['check_loot']
+        res =Cosmos::Resource.new(:material_id => cl['res'],
+                                  :quantity    => cl['q']) 
 
         # trigger collected_loot callback
         invoke('manufactured::admin::run_callbacks', test_ship.id,
-               'collected_loot', test_ship, res)
+               'collected_loot', res)
 
       end
     }
@@ -269,9 +273,11 @@ $missions.each { |id, scenario, args|
 
       when 'cleanup_events' then
         # TODO ensure event handlers and expiration event are removed
+        print "skipping".blue
 
       when 'recycle_mission' then
         # TODO ensure mission is cloned / new mission added
+        print "skipping".blue
       end
 
       puts ""
@@ -296,8 +302,10 @@ $missions.each { |id, scenario, args|
 
       when 'cleanup_events' then
         # TODO
+        print "skipping".blue
       when 'recycle_mission' then
         # TODO
+        print "skipping".blue
       end
 
       puts ""

@@ -54,15 +54,6 @@ class Array
       should_keep
     end
   end
-
-  # select all elements with the specified properties (attributes)
-  def pselect(properties={})
-    self.select { |i|
-      properties.keys.all? { |pk|
-        i.send(pk) == properties[pk]
-      }
-    }
-  end
 end
 
 class String

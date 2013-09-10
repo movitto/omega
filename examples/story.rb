@@ -204,17 +204,19 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 
   :assignment_callbacks =>
     [Assignment.store(mid + '-mining-ships',
-        Query.user_ships(:type => :mining )), # FIXME misses any mining ships created after assignment
+       Query.user_ships(:type => :mining )), # FIXME misses any mining ships created after assignment
      Assignment.create_asteroid(mid + '-asteroid',
-      :name => mid,
+      #:id => mid,
+      #:name => mid,
       :solar_system => rand_system,
       :location => Motel::Location.random(:max => 2000)),
      Assignment.create_resource(mid + '-asteroid',
                                 :material_id => "#{type}-#{name}",
                                 :quantity    => q1),
      Assignment.schedule_expiration_event,
-     Assignment.subscribe_to(mid + '-mining-ships', "resource_collected",
-                                         Event.resource_collected)],
+     Assignment.subscribe_to(mid + '-mining-ships',
+                             "resource_collected",
+                             Event.resource_collected)],
 
   :victory_conditions =>
     Query.check_mining_quantity,
@@ -274,7 +276,7 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
                       Query.user_ships)] + # FIXME misses any ships created after assignment
     Array.new(3) { |i|
       Assignment.create_entity("#{mid}-enemy-#{i}",
-        :id       => Motel.gen_uuid,
+        #:id       => Motel.gen_uuid,
         :type     => :corvette, # TODO autodefend on attack
         :user_id  => chiyou.id,
         :solar_system => rand_system,

@@ -46,6 +46,7 @@ module Missions::RJR
      ['modify', 'user_attributes'],
      ['view',   'cosmos_entities'],
      ['modify', 'cosmos_entities'],
+     ['create', 'cosmos_entities'],
      ['view',   'manufactured_entities'],
      ['create', 'manufactured_entities'],
      ['modify', 'manufactured_entities'],

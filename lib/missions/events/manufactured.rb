@@ -20,43 +20,49 @@ class Manufactured < Omega::Server::Event
 
   # Manufactured Event intializer
   def initialize(*manufactured_event_args)
-    if manufactured_event_args.first.is_a?(Hash)
-      # execution path when converting from json
-      super(manufactured_event_args.first)
-
-    else
-      @manufactured_event_args = manufactured_event_args
-  
-      # generate event id from args
-      # XXX not pretty but works for now
-      manu_event = manufactured_event_args.first
-      entity_id =
-        case manu_event
-        when 'attacked_stopped','attacked'                       then
-          manufactured_event_args[1].id
-  
-        when 'defended_stopped','defended','destroyed_by'        then
-          manufactured_event_args[1].id
-  
-        when 'resource_collected'                                then
-          # TODO also incoporate resource_source_id (param 2) ?
-          manufactured_event_args[1].id
-  
-        when 'mining_stopped'                                    then
-          # TODO also incoporate resource_source_id (param 3) ?
-          manufactured_event_args[2].id
-  
-        when 'construction_complete','partial_construction'      then
-          manufactured_event_args[1].id
-  
-        when 'transferred_from','transferred_to'                 then
-          manufactured_event_args[1].id
-  
-        end
-      id = self.class.gen_id(entity_id, manu_event)
-  
-      super(:id => id, :timestamp => Time.now)
+    if  manufactured_event_args.first.is_a?(Hash)
+      if manufactured_event_args.first.has_key?('manufactured_event_args')
+        manufactured_event_args =
+          manufactured_event_args.first['manufactured_event_args'].flatten
+      else
+        super(manufactured_event_args.first)
+        return
+      end
     end
+
+    @manufactured_event_args = manufactured_event_args
+  
+    # generate event id from args
+    # TODO right now we're just taking care of cases we need,]
+    # add support for more manu events as they are required
+    manu_event = manufactured_event_args.first
+    entity_id =
+      case manu_event
+      when 'destroyed_by'        then
+        manufactured_event_args[1].id
+  
+      when 'resource_collected'  then
+        manufactured_event_args[1].id
+  
+      when 'transferred_to'      then
+        manufactured_event_args[1].id
+
+      when 'collected_loot'      then
+        manufactured_event_args[1].id
+  
+      end
+    id = self.class.gen_id(entity_id, manu_event)
+  
+    super(:id => id, :timestamp => Time.now)
+  end
+
+  # Convert event to json representation and return it
+  def to_json(*a)
+    {
+      'json_class' => self.class.name,
+      'data'       =>
+        json_data.merge({:manufactured_event_args => @manufactured_event_args})
+    }.to_json(*a)
   end
 end
 
