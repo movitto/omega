@@ -344,7 +344,7 @@ class Ship
   def update(ship)
     update_from(ship, :hp, :shield_level, :distance_moved, :resources,
                       :parent_id, :parent, :system_id, :solar_system,
-                      :location, :mining, :attacking)
+                      :location, :mining, :attacking, :docked_at)
   end
 
   # Return boolean indicating if this ship is valid

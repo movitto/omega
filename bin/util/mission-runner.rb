@@ -2,14 +2,15 @@
 # Helper utility to run missions
 #
 # Run this script with the path to a mission setup script, for example:
-#   RUBYLIB='lib' ./bin/util/mission-runner.rb ./examples/story.rb
+#   RUBYLIB='lib' ./bin/util/mission-runner.rb ./examples/story.rb <args_to_story.rb>
 #
 # The missions defined in story.rb will be created on the server side
 # before being evaluated here. This script will run through and execute
 # each mission, from satisfying reqs, to assigning it, to completing
 # it/failing it, each stage is verified and results are reported.
 #
-# *Note* this requires 'admin' mode to be enabled in the omega-server
+# *Note* this requires 'admin' mode to be enabled in the omega-server.
+# Also if user attributes are disabled, related checks will fail (see TODO below)
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -18,8 +19,10 @@
 
 require 'colored'
 require 'omega/client/dsl'
+require 'users/attributes/stats'
 
 STORY_SCRIPT = ARGV.shift
+STORY_ARGS   = ARGV
 $missions = []
 
 #######################################
@@ -44,24 +47,28 @@ end
 
 #######################################
 # require story script user specified
-ARGV = ['Athena'] # XXX remove me
 $: << File.dirname(STORY_SCRIPT)
 require File.basename(STORY_SCRIPT, ".rb")
-athena = system('Athena') # XXX remove me
+
+# XXX for time being just assume first are is system
+# we're primarily operating in
+athena = system(ARGV.first)
 
 #######################################
 # setup user to run through missions
 test_user = user 'test-user', 'test-user'
 $user_id = test_user.id
 
-# create a ship
-test_ship = ship(gen_uuid, :user_id => test_user.id,
-                 :system_id => athena.id, :location => rand_location,
-                 :type => :corvette)
-test_mining_ship =
+# create a couple ships
+test_corvette =
   ship(gen_uuid, :user_id => test_user.id,
        :system_id => athena.id, :location => rand_location,
-       :type => :mining)
+        :type => :corvette, :cargo_capacity => 5000)
+
+test_miner =
+  ship(gen_uuid, :user_id => test_user.id,
+       :system_id => athena.id, :location => rand_location,
+       :type => :mining, :cargo_capacity => 5000)
 
 #######################################
 # Helper methods
@@ -70,11 +77,11 @@ test_mining_ship =
 def mission_attrs_for(user_id)
   current_user = invoke('users::get_entity', 'with_id', user_id)
   attr = current_user.attributes.find { |a|
-    a.type == Users::Attributes::MissionsCompleted.id }
-  successes = attr.nil? ? 0 : attr.total
+    a.type.id == Users::Attributes::MissionsCompleted.id }
+  successes = attr.nil? ? 0 : attr.level
   attr = current_user.attributes.find { |a|
-      a.type == Users::Attributes::MissionsFailed.id }
-  failures = attr.nil? ? 0 : attr.total
+      a.type.id == Users::Attributes::MissionsFailed.id }
+  failures = attr.nil? ? 0 : attr.level
   [successes,failures]
 end
 
@@ -83,7 +90,7 @@ end
 $missions.each { |id, scenario, args|
   # retrieve server mission
   smission = invoke('missions::get_mission', 'with_id', id)
-  puts "processing mission #{smission.id}".yellow
+  puts "processing mission #{smission.title}".yellow
 
   #######################################
   # run through requirements, setting up scenario where they are satisfied
@@ -97,38 +104,25 @@ $missions.each { |id, scenario, args|
                         'of_type', 'Manufactured::Ship',
                         'owned_by', smission.creator_id).
                   collect { |sh| sh.docked_at }.compact.first
-      sh = Manufactured::Ship.new :id => gen_uuid,
-                                  :user_id => $user_id,
-                                  :system_id => station.system_id,
-                                  :docked_at => station,
-                                  :location  => station.location + [10,10,10],
-                                  :type => :corvette,
-                                  :cargo_capacity => 5000
-      invoke('manufactured::create_entity', sh)
+      test_miner.dock_at station
+      invoke('manufactured::admin::set', test_miner)
     when "docked_at" then
       # create user ship docked at specified station
       station = req.params.first
-      sh = Manufactured::Ship.new :id => gen_uuid,
-                                  :user_id => $user_id,
-                                  :system_id => station.system_id,
-                                  :docked_at => station,
-                                  :location  => station.location + [10,10,10],
-                                  :type => :corvette,
-                                  :cargo_capacity => 5000
-      invoke('manufactured::create_entity', sh)
+      test_miner.dock_at station
+      invoke('manufactured::admin::set', test_miner)
     end
   }
 
   #######################################
   # assign mission
-  puts "Assigning mission #{id}".yellow
+  puts "Assigning mission #{smission.title}".yellow
   invoke('missions::assign_mission', id, $user_id)
 
   # refresh server mission
   smission = invoke('missions::get_mission', 'with_id', id)
 
   # validate results of assignment callbacks
-# FIXME raise errs / output if checks fail
   args[:assignment_callbacks].each { |cb|
     print "validating assignment callback #{cb.dsl_method} ".yellow
 
@@ -211,25 +205,22 @@ $missions.each { |id, scenario, args|
         entity.hp = 0
         invoke('manufactured::admin::set', entity)
         invoke('manufactured::admin::run_callbacks', entity_id,
-               'destroyed_by', test_ship)
+               'destroyed_by', test_corvette)
 
       when 'check_mining_quantity' then
         # trigger resource collected callback
         m = smission.mission_data['target']
         q = smission.mission_data['quantity']
         res = Cosmos::Resource.new(:material_id => m, :quantity => q)
-        invoke('manufactured::admin::run_callbacks', test_mining_ship.id,
+        invoke('manufactured::admin::run_callbacks', test_miner.id,
                'resource_collected', res, q)
 
       when 'check_transfer' then
         # trigger transferred_to callback
-# FIXME will not work if more than one ship is saved in mission data
-        entity_id = smission.mission_data.values.find { |d|
-                      d.is_a?(Manufactured::Ship) }.id
         ct  = smission.mission_data['check_transfer']
         res = Cosmos::Resource.new(:material_id => ct['rs'],
                                    :quantity    => ct['q'])
-        invoke('manufactured::admin::run_callbacks', entity_id,
+        invoke('manufactured::admin::run_callbacks', test_miner.id,
                'transferred_to', ct['dst'], res)
 
       when 'collected_loot' then
@@ -240,7 +231,7 @@ $missions.each { |id, scenario, args|
                                   :quantity    => cl['q']) 
 
         # trigger collected_loot callback
-        invoke('manufactured::admin::run_callbacks', test_ship.id,
+        invoke('manufactured::admin::run_callbacks', test_corvette.id,
                'collected_loot', res)
 
       end
@@ -265,6 +256,7 @@ $missions.each { |id, scenario, args|
         print result ? "failed".red : "succeeded".green
 
       when 'update_user_attributes' then
+        # TODO skip is user attributes disabled
         # ensure user has updated attribute
         nsuccesses, nfailures = mission_attrs_for $user_id
         result = nsuccesses == successes + 1 &&
@@ -287,13 +279,13 @@ $missions.each { |id, scenario, args|
     # sleep for a few event poll delays
     sleep(Omega::Server::Registry::DEFAULT_EVENT_POLL * 2)
 
-    # TODO sleep if 1s timeout hasn't yet transpired
     args[:failure_callbacks].each { |cb|
       print "validating failure callback #{cb.dsl_method} ".yellow
 
       case cb.dsl_method
       #when 'add_reward' then
       when 'update_user_attributes' then
+        # TODO skip is user attributes disabled
         # ensure user has updated attribute
         nsuccesses, nfailures = mission_attrs_for $user_id
         result = nsuccesses == successes &&

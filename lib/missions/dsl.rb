@@ -13,6 +13,9 @@ module Missions
 # The DSL methods themselves just return procedures to be registered
 # with the various mission callback to be executed at various stages
 # in the mission lifecycles (assignment, victory, expiration, etc)
+
+require 'users/attributes/stats'
+
 module DSL
 
 # Client DSL

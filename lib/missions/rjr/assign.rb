@@ -59,7 +59,13 @@ assign_mission = proc { |mission_id, user_id|
   }
 
   # invoke assignment callbacks
-  assignment_callbacks.each { |cb| cb.call mission }
+  assignment_callbacks.each { |cb|
+    begin
+      cb.call mission
+    rescue Exception => e
+      RJR::Logger.warn "error in mission #{mission.id} assignment: #{e}"
+    end
+  }
 
   # return mission
   mission

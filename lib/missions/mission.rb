@@ -159,11 +159,11 @@ class Mission
     @failed     = false
 
     @victory_callbacks.each { |vcb|
-begin
+      begin
         vcb.call self
-rescue Exception => e
-puts "err #{e}"
-end
+      rescue Exception => e
+        RJR::Logger.warn "error in mission #{self.id} victory: #{e}"
+      end
     }
   end
 
@@ -178,7 +178,11 @@ end
     @failed     = true
 
     @failure_callbacks.each { |fcb|
-      fcb.call self
+      begin
+        fcb.call self
+      rescue Exception => e
+        RJR::Logger.warn "error in mission #{self.id} failure: #{e}"
+      end
     }
   end
 
@@ -217,6 +221,8 @@ end
       :failed               => false
     
     @assigned_time = Time.parse(@assigned_time) if @assigned_time.is_a?(String)
+
+    # TODO convert all mission data keys to strings
 
     CALLBACKS.each { |cb|
       c = "@#{cb}".intern

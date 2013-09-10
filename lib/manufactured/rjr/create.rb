@@ -42,6 +42,7 @@ create_entity = proc { |entity|
   # TODO also ensure user has attribute enabling them to
   # create entity of the specified type
   # TODO exclude entities w/ hp == 0
+  # TODO exclude npcs from this requirement
   n = registry.entities { |e|
     Registry::VALID_TYPES.include?(e.class) &&
                 e.user_id == entity.user_id    }.size
