@@ -97,7 +97,7 @@ accessible administrative methods") do
                               :node_types  => ['amqp', 'tcp', 'ws', 'www', 'local']
 
   required_atts = :node_id, :amqp_broker, :ws_host, :www_host, :tcp_host, :ws_port, :www_port, :tcp_port, :node_types,
-                  :admin_user, :admin_pass, :irc_server, :irc_port, :irc_channel
+                  :admin_user, :admin_pass
   unless config.has_attributes? required_atts
      puts "Must specify config options for #{required_atts.inspect}"
      exit
