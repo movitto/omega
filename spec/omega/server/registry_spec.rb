@@ -271,6 +271,40 @@ describe Registry do
     end
   end
 
+  describe "#proxy_for" do
+    it "returns proxy entity for entity retrieved by the specified selector" do
+      e1 = Object.new
+      e2 = Object.new
+      @registry << e1
+      @registry << e2
+      e1.stub(:to_json).and_return('{}')
+      e2.stub(:to_json).and_return('{}')
+      p = @registry.proxy_for { |e| true }
+      #p.should be_an_instance_of(ProxyEntity) # TODO
+      p.should == e1
+    end
+
+    context "entity not found" do
+      it "returns null" do
+        p = @registry.proxy_for { |e| e == 1 }
+        p.should be_nil
+      end
+    end
+
+    it "sets registry on proxy entity" do
+        e = Object.new
+        e.stub(:to_json).and_return('{}')
+        e.stub(:foobar) {
+          lambda{
+            @registry.safe_exec {}
+          }.should raise_error(ThreadError)
+        }
+        @registry << e
+        p = @registry.proxy_for { |e| true }
+        p.foobar
+    end
+  end
+
   describe "#safe_exec" do
     it "safely executes a block of code" do
       @registry.safe_exec { |entities|

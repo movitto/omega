@@ -7,6 +7,7 @@ require 'json'
 
 require 'omega/server/event'
 require 'omega/server/command'
+require 'omega/server/proxy'
 
 module Omega
 module Server
@@ -178,6 +179,7 @@ module Registry
   #
   # TODO invalidate proxy if entity is deleted ?
   def proxy_for(&selector)
+    init_registry
     @lock.synchronize {
       rentity = @entities.find &selector
       rentity.nil? ? nil : ProxyEntity.new(rentity, self)

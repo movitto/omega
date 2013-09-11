@@ -40,6 +40,11 @@ describe ProxyEntity do
        }
     @p.foobar 5
   end
+
+  it "returns original return value" do
+    @e.should_receive(:foobar).and_return(42)
+    @p.foobar.should == 42
+  end
 end # describe ProxyEntity
 
 end # module Server

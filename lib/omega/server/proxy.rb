@@ -20,12 +20,15 @@ class ProxyEntity
   protected
 
   def method_missing(name, *args, &block)
+    ret = nil
     old_entity = nil
     @registry.safe_exec { |entities|
       old_entity = JSON.parse(@entity.to_json)
-      @entity.send(name, *args, &block)
+      ret = @entity.send(name, *args, &block)
     }
+    # TODO only invoke if entity changed?
     @registry.raise_event(:updated, @entity, old_entity)
+    ret
   end
 end
 
