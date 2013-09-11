@@ -15,9 +15,6 @@ module Motel
 # Motel::Registry is a singleton class/object which acts as the primary
 # mechanism to run locations in the system.
 class Registry
-  LOCATION_EVENTS = [:movement, :rotation, :proximity,
-                     :stopped, :changed_strategy]
-
   include Omega::Server::Registry
 
   private

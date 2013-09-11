@@ -178,9 +178,9 @@ remove_callbacks = proc { |*args|
   # if set, callback type to remove will be other param
   cb_type = args.length > 1 ? args[1] : nil
   unless cb_type.nil? ||
-         Registry::LOCATION_EVENTS.collect { |e| e.to_s }.include?(cb_type)
+         LOCATION_EVENTS.collect { |e| e.to_s }.include?(cb_type)
     raise ArgumentError,
-      "callback_type must be nil or one of #{Registry::LOCATION_EVENTS.join(', ')}"
+      "callback_type must be nil or one of #{LOCATION_EVENTS.join(', ')}"
   end
 
   # TODO verify request is coming from

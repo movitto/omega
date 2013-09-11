@@ -92,6 +92,28 @@ describe Location do
       # TODO coordinates, orientation, parent_id, callbacks, restrict, other params
     end
 
+    it "converts string callback keys to symbols" do
+      l = Location.new :callbacks => { 'movement' => 42 }
+      l.callbacks.should == { :movement => 42 }
+    end
+
+    context "invalid string callback key" do
+      it "raises ArgumentError" do
+        lambda{
+          l = Location.new :callbacks => { 'invalid' => 42 }
+        }.should raise_error(ArgumentError)
+      end
+
+      it "does not create symbol" do
+        lambda{
+          begin
+            l = Location.new :callbacks => { 'new_cb_123' => 42 }
+          rescue
+          end
+        }.should_not change{Symbol.all_symbols.size}
+      end
+    end
+
     [:x, :y, :z, :orientation_x, :orientation_y, :orientation_z].each { |p|
        it "converts #{p} to float" do
          l = Location.new p => "42"

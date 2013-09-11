@@ -6,6 +6,7 @@
 require 'time'
 require 'json'
 require 'motel/movement_strategy'
+require 'motel/common'
 require 'omega/common'
 
 module Motel
@@ -147,11 +148,15 @@ class Location
 
       # convert string callback keys into symbols
       callbacks.keys.each { |k|
-        # FIXME ensure string correspond's to
+        # ensure string correspond's to
         # valid callback type before interning
         if k.is_a?(String)
-          callbacks[k.intern] = callbacks[k]
-          callbacks.delete(k)
+          if LOCATION_EVENTS.collect { |e| e.to_s }.include?(k)
+            callbacks[k.intern] = callbacks[k]
+            callbacks.delete(k)
+          else
+            raise ArgumentError, "invalid callback specified"
+          end
         end
       }
 

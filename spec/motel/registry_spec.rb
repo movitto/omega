@@ -149,7 +149,7 @@ describe Registry do
       l2 = Location.new :id => 1
       r = Registry.new
       r << l1
-      Registry::LOCATION_EVENTS.each { |e|
+      LOCATION_EVENTS.each { |e|
         l1.should_receive(:raise_event).with(e, "#{e}_arg")
         r.raise_event(e, l2, "#{e}_arg")
       }
