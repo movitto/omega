@@ -166,8 +166,22 @@ module Registry
 
     }
 
+    # TODO make sure proxy operations are kept in sync w/ update operations
+    #   (see proxy_for below and ProxyEntity definition)
     self.raise_event(:updated, rentity, old_entity) unless rentity.nil?
     return !rentity.nil?
+  end
+
+  # Return proxy object for entity specified by selector
+  # which may be used to update entity safely w/out going
+  # directly through the registry
+  #
+  # TODO invalidate proxy if entity is deleted ?
+  def proxy_for(&selector)
+    @lock.synchronize {
+      rentity = @entities.find &selector
+      rentity.nil? ? nil : ProxyEntity.new(rentity, self)
+    }
   end
 
   ####################### execution
