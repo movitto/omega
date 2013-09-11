@@ -286,6 +286,35 @@ describe DSL do
     end
   end
 
+  describe "#require_state" do
+    it "invokes validation with entity" do
+      e = Object.new
+      v = proc { |e| }
+      v.should_receive(:call).with(e).and_return(true)
+      require_state e, &v
+    end
+
+    context "validation passes" do
+      it "does not raise error" do
+        e = Object.new
+        v = proc { |e| true }
+        lambda {
+          require_state e, &v
+        }.should_not raise_error
+      end
+    end
+
+    context "validation fails" do
+      it "does raises ValidationError" do
+        e = Object.new
+        v = proc { |e| false }
+        lambda {
+          require_state e, &v
+        }.should raise_error(ValidationError)
+      end
+    end
+  end
+
   describe "#with" do
     it "TODO"
   end

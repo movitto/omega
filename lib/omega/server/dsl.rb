@@ -155,6 +155,15 @@ module Omega
         filters
       end
 
+      # Require entity to be in the state specified by the given callback.
+      # Raise ValidationError otherwise
+      def require_state(entity, msg=nil, &validation)
+        unless validation.call entity
+          msg ||= "#{entity} did not pass validation"
+          raise ValidationError, msg
+        end
+      end
+
       # Generate a selector from block which is called to determine selection
       def matching(&bl)
         proc { |e| bl.call(e) }
