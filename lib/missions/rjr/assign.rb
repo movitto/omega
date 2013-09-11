@@ -67,6 +67,12 @@ assign_mission = proc { |mission_id, user_id|
     end
   }
 
+  # add permissions to view mission to owner
+  # (others will now be excluded as it is assigned)
+  user_role = "user_role_#{user_id}"
+  node.invoke('users::add_privilege', user_role,
+              "view", "mission-#{mission.id}")
+
   # return mission
   mission
 }

@@ -105,6 +105,19 @@ module Missions::RJR
         it "logs error"
       end
 
+      it "grants view mission to assigned user" do
+        u = create(:user)
+        m = create(:mission, :id => 'mission1')
+        @s.node.should_receive(:invoke).
+                with("users::add_privilege",
+                     "user_role_#{u.id}",
+                     "view", 'mission-' + m.id).and_call_original
+        @s.node.should_receive(:invoke).at_least(1).times.and_call_original
+        @s.assign_mission m.id, u.id
+        Users::RJR.registry.entity{ |e| e.id == u.id }.
+                            has_privilege_on?('view', 'mission-' + m.id).should be_true
+      end
+
       it "returns mission" do
         m = create(:mission)
         r = @s.assign_mission(m.id, create(:user).id)

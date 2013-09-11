@@ -91,8 +91,6 @@ class Mission
   # Array of callbacks which to invoke on assignment
   attr_accessor :assignment_callbacks
 
-# FIXME removed get user and add priv to user role:
-
   # Assign mission to the specified user
   def assign_to(user)
     return unless self.assignable_to?(user)
