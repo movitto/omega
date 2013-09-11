@@ -5,7 +5,6 @@
 
 require 'spec_helper'
 require 'omega/server/event'
-require 'sproc'
 
 require 'timecop'
 
@@ -128,14 +127,6 @@ describe PeriodicEvent do
       @p.send(:handle_event)
     end
 
-    it "invokes event" do
-      $invoked = false
-      # XXX use an sproc here as template event will be copied
-      @p.template_event = Event.new :handlers => [SProc.new { $invoked = true }]
-      @p.invoke
-      $invoked.should be_true
-    end
-
     it "generates id for next periodic event" do
       @p.invoke
       e = @registry.instance_variable_get(:@entities).last
@@ -147,12 +138,23 @@ describe PeriodicEvent do
       e1.id.should == 'periodic-2'
     end
 
+    it "adds event to registry to be run" do
+      e = Event.new :id => 'test'
+      @p.template_event = e
+      lambda {
+        @p.invoke
+      }.should change{@registry.entities.size}.by(2)
+      r = @registry.instance_variable_get(:@entities).first
+      r.should be_an_instance_of(Event)
+      r.id.should == e.id
+    end
+
     it "schedules new periodic event" do
       e = Event.new :id => 'test'
       @p.template_event = e
       lambda {
         @p.invoke
-      }.should change{@registry.entities.size}.by(1)
+      }.should change{@registry.entities.size}.by(2)
       r = @registry.instance_variable_get(:@entities).last
       r.should be_an_instance_of(PeriodicEvent)
       r.template_event.id.should == e.id

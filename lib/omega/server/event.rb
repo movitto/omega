@@ -97,10 +97,8 @@ class PeriodicEvent < Event
     # copy template event
     nevent = JSON.parse @template_event.to_json
 
-    # run event
-    # FIXME doesn't run global event handlers for event,
-    # should just add event to registry to be run
-    nevent.invoke nevent
+    # add event to registry to be run
+    registry << nevent
 
     # generate an id
     nid = nil
