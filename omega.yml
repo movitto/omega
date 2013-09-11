@@ -55,10 +55,6 @@ email_enabled: true
 smtp_host: 'localhost'
 smtp_from_address: 'mo@morsi.org'
 
-irc_server: 'irc.freenode.net'
-irc_port: 6667
-irc_channel: '#unv-chat'
-
 recaptcha_enabled: true
 recaptcha_pub_key:  'CHANGE_ME' # FIXME: not currently used, need to set in javascript client
 recaptcha_priv_key: 'CHANGE_ME'
