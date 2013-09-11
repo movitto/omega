@@ -222,7 +222,13 @@ class Mission
     
     @assigned_time = Time.parse(@assigned_time) if @assigned_time.is_a?(String)
 
-    # TODO convert all mission data keys to strings
+    # convert all mission data keys to strings
+    @mission_data.keys.each { |k|
+      unless k.is_a?(String)
+        @mission_data[k.to_s] = @mission_data[k]
+        @mission_data.delete(k)
+      end
+    }
 
     CALLBACKS.each { |cb|
       c = "@#{cb}".intern

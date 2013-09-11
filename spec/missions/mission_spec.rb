@@ -466,6 +466,11 @@ describe Mission do
       m.assigned_time.should == t
     end
 
+    it "converts all mission data keys to strings" do
+      m = Mission.new :mission_data => {:foo => :bar}
+      m.mission_data.should == {'foo' => :bar}
+    end
+
     [:requirements, :assignment_callbacks, :victory_conditions,
      :victory_callbacks, :failure_callbacks].each { |c|
       it "converts #{c} into an array" do
