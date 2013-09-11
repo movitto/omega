@@ -52,6 +52,22 @@ module Motel::RJR
                 callbacks[:movement].first.endpoint_id.should == 'foobar'
     end
 
+    context "source node is invalid" do
+      it "raises a PermissionError" do
+        l = create(:location)
+
+        @s.instance_variable_get(:@rjr_headers)['source_node'] = nil
+        lambda{
+          @s.track_handler l.id, 20
+        }.should raise_error(PermissionError)
+
+        @s.instance_variable_get(:@rjr_headers)['source_node'] = ''
+        lambda{
+          @s.track_handler l.id, 20
+        }.should raise_error(PermissionError)
+      end
+    end
+
     it "sets handler on location callback" do
       l = create(:location)
       @n.message_headers['source_node'] = 'foobar'

@@ -95,10 +95,13 @@ track_handler = proc { |*args|
   # validate remaining args and generate callback
   cb = cb_from_args(@rjr_method, args)
 
+  # source node is required
+  raise PermissionError,
+    "source node is required" unless  @rjr_headers['source_node'].is_a?(String) &&
+                                     !@rjr_headers['source_node'].empty?
+
   # set endpoint of callback
   cb.endpoint_id = @rjr_headers['source_node']
-
-  # FIXME raise error if source_node is nil
 
   # use rjr callback to send notification back to client
   cb.handler = proc{ |*args|
