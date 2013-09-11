@@ -38,6 +38,9 @@ class Manufactured < Omega::Server::Event
     manu_event = manufactured_event_args.first
     entity_id =
       case manu_event
+      when 'attacked'            then
+        manufactured_event_args[1].id
+
       when 'destroyed_by'        then
         manufactured_event_args[1].id
   

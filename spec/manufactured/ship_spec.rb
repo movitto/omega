@@ -198,6 +198,13 @@ describe Ship do
       sh.attacking.should == 42
     end
 
+    it "updates ship docked_at" do
+      st = Station.new
+      sh = Ship.new
+      sh.update Ship.new(:docked_at => st)
+      sh.docked_at.should == st
+    end
+
     it "ignores other properties" do
       sh = Ship.new
       sh.update Ship.new(:max_shield_level => 42)

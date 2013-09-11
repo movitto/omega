@@ -11,7 +11,7 @@ describe "#gen_uuid" do
     uuid = Motel.gen_uuid 
     uuid.should be_an_instance_of(String)
     uuid.size.should == 36
-    uuid.should =~ /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
+    uuid.should =~ UUID_PATTERN
     Motel.gen_uuid.should_not == uuid
   end
 end

@@ -91,6 +91,20 @@ module Missions::RJR
         @s.assign_mission m.id, u.id
       end
 
+      context "error during a mission assignmnent callback" do
+        it "catches error and continues" do
+          u = create(:user)
+          m = create(:mission, :id => 'mission1')
+          r = Missions::RJR.registry.safe_exec{ |es| es.find &with_id(m.id) }
+          r.assignment_callbacks << proc { raise "Err" }
+          r.assignment_callbacks << proc { true }
+          r.assignment_callbacks.last.should_receive(:call)
+          @s.assign_mission m.id, u.id
+        end
+
+        it "logs error"
+      end
+
       it "returns mission" do
         m = create(:mission)
         r = @s.assign_mission(m.id, create(:user).id)

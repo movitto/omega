@@ -162,7 +162,7 @@ class Mission
       begin
         vcb.call self
       rescue Exception => e
-        RJR::Logger.warn "error in mission #{self.id} victory: #{e}"
+        ::RJR::Logger.warn "error in mission #{self.id} victory: #{e}"
       end
     }
   end
@@ -181,7 +181,7 @@ class Mission
       begin
         fcb.call self
       rescue Exception => e
-        RJR::Logger.warn "error in mission #{self.id} failure: #{e}"
+        ::RJR::Logger.warn "error in mission #{self.id} failure: #{e}"
       end
     }
   end

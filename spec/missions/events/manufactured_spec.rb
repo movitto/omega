@@ -28,15 +28,9 @@ describe Manufactured do
 
       # TODO test all manufactured callbacks, see API for list
       @events = 
-        [['attacked', @attacker, @defender],
-         ['attacked_stopped', @attacker, @defender],
-         ['defended', @attacker, @defender],
-         ['defended_stopped', @attacker, @defender],
-         ['destroyed', @attacker, @defender],
-         ['mining_stopped', 'resource_depleted', @miner, @rs],
+        [['destroyed_by', @attacker, @defender],
          ['resource_collected', @miner, @rs],
-         ['construction_complete', @station, @constru],
-         ['partial_construction', @station, @constru, 0.5]]
+         ['collected_loot', @attacker, @rs]]
     end
 
     it "sets manufactured event id" do
@@ -56,6 +50,29 @@ describe Manufactured do
          m = Missions::Events::Manufactured.new *me
          m.manufactured_event_args.should == me
        }
+    end
+
+    it "accepts event params" do
+      m = Missions::Events::Manufactured.new :id => 'ship-destroyed'
+      m.id.should == 'ship-destroyed'
+    end
+
+    it "accepts mnaufactured event args in the parameter hash" do
+      s = build(:ship, :id => 'ship')
+      m = Missions::Events::Manufactured.new 'manufactured_event_args' =>
+            ['destroyed_by', s]
+      m.manufactured_event_args.should == ['destroyed_by', s]
+      m.id.should == 'ship_destroyed_by'
+    end
+  end
+
+  describe "#to_json" do
+    it "returns the event in json format" do
+      m = Missions::Events::Manufactured.new 'manufactured_event_args' =>
+            ['destroyed', 'ship']
+      j = m.to_json
+      j.should include('"json_class":"Missions::Events::Manufactured"')
+      j.should include('"manufactured_event_args":["destroyed","ship"]')
     end
   end
 

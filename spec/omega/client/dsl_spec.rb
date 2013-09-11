@@ -289,6 +289,19 @@ describe DSL do
     end
   end
 
+  describe "#dock" do
+    it "docks ship to station" do
+      sh = create(:valid_ship,
+                  :location => Motel::Location.new(:coordinates => [0,0,0]))
+      st = create(:valid_station, :solar_system => sh.solar_system,
+                  :location => Motel::Location.new(:coordinates => [0,0,0]))
+      dock sh.id, st.id
+      Manufactured::RJR.registry.
+                        entity(&with_id(sh.id)).
+                        docked_at.id.should == st.id
+    end
+  end
+
   describe "#schedule_event" do
     it "creates new periodic missions event" do
       e = schedule_event 10, Omega::Server::Event.new(:id => 'event123')

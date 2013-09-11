@@ -152,6 +152,9 @@ module Missions::RJR
       dispatch_missions_rjr_init(@d)
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
+
+    it "add manufactured::event_occurred callback to dispatcher"
+    it "executes manufactured::event_occurred callbacks in Missions::RJR env"
   end
 
 end # module Missions::RJR

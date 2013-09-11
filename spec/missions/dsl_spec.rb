@@ -222,6 +222,16 @@ module DSL
         @m.mission_data['ship1'].type.should == :mining
       end
 
+      it 'generates a new id if not specified' do
+        @node.should_receive(:invoke)
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
+        @m.mission_data['ship1'].id.should_not be_nil
+        @m.mission_data['ship1'].id.should =~ UUID_PATTERN
+
+        Assignment.create_entity('ship1', :id => 'ship1', 'type' => :mining).call(@m) 
+        @m.mission_data['ship1'].id.should == 'ship1'
+      end
+
       it "invokes manufactured::create_entity" do
         @node.should_receive(:invoke).
               with('manufactured::create_entity', an_instance_of(Manufactured::Ship))
@@ -236,17 +246,39 @@ module DSL
 
       it "creates and stores new asteroid in mission data" do
         @node.should_receive(:invoke)
-        Assignment.create_asteroid('ast1', 'name' => 'ast1').call(@m) 
+        Assignment.create_asteroid('ast1', :name => 'ast1').call(@m) 
         @m.mission_data['ast1'].should be_an_instance_of(Cosmos::Entities::Asteroid)
         @m.mission_data['ast1'].name.should == "ast1"
+      end
+
+      it 'generates a new id if not specified' do
+        @node.should_receive(:invoke)
+        Assignment.create_asteroid('ast1').call(@m) 
+        @m.mission_data['ast1'].id.should_not be_nil
+        @m.mission_data['ast1'].id.should =~ UUID_PATTERN
+
+        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m) 
+        @m.mission_data['ast1'].id.should == 'ast2'
+      end
+
+      it 'sets the asteroid name if not specified' do
+        @node.should_receive(:invoke)
+        Assignment.create_asteroid('ast1').call(@m) 
+        @m.mission_data['ast1'].name.should_not be_nil
+        @m.mission_data['ast1'].name.should =~ UUID_PATTERN
+
+        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m) 
+        @m.mission_data['ast1'].name.should == 'ast2'
+
+        Assignment.create_asteroid('ast1', :name => 'ast3').call(@m) 
+        @m.mission_data['ast1'].name.should == 'ast3'
       end
 
       it "invokes cosmos::create_entity" do
         sys = build(:solar_system);
         @node.should_receive(:invoke).
               with('cosmos::create_entity',
-                   an_instance_of(Cosmos::Entities::Asteroid),
-                   sys)
+                   an_instance_of(Cosmos::Entities::Asteroid))
         Assignment.create_asteroid('ast1', 'name' => 'ast1',
                                    :solar_system => sys).call(@m) 
       end
@@ -266,10 +298,19 @@ module DSL
         @node.should_receive(:notify).
               with { |*args|
                 args[0].should == "cosmos::set_resource"
-                args[1].should == 'ast1_id'
-                args[2].should be_an_instance_of(Cosmos::Resource)
-                args[2].material_id.should == 'element-gold'
+                args[1].should be_an_instance_of(Cosmos::Resource)
+                args[1].material_id.should == 'element-gold'
               }
+        Assignment.create_resource('ast1', :material_id => 'element-gold').
+                   call(@m)
+      end
+
+      it "generates a new resource id if not set" do
+        @node.should_receive(:notify).
+          with { |*args|
+            args[1].id.should_not be_nil
+            args[1].id.should =~ UUID_PATTERN
+          }
         Assignment.create_resource('ast1', :material_id => 'element-gold').
                    call(@m)
       end
@@ -296,6 +337,17 @@ module DSL
         Assignment.add_resource('ast1', :material_id => 'element-gold').
                    call(@m)
       end
+
+      it "generates a new resource id if not set" do
+        @m.mission_data['ship1'] = build(:ship)
+        @node.should_receive(:notify).
+          with { |*args|
+            args[2].id.should_not be_nil
+            args[2].id.should =~ UUID_PATTERN
+          }
+        Assignment.add_resource('ship1', :material_id => 'element-gold').
+                   call(@m)
+      end
     end
 
     describe "#subscribe_to" do
@@ -317,6 +369,8 @@ module DSL
       end
 
       it "handles multiple entities / handlers"
+
+      it "handles multiple entities retrieved from mission data"
 
       it "adds events handler for manufactured event" do
         @node.should_receive(:invoke)
@@ -397,10 +451,10 @@ module DSL
         Query.should_receive(:check_mining_quantity).twice.and_return(proc{ false })
 
         Event.resource_collected.call(@m, @evnt)
-        @m.mission_data[:resources][@rs.id].should == 50
+        @m.mission_data['resources'][@rs.material_id].should == 50
 
         Event.resource_collected.call(@m, @evnt)
-        @m.mission_data[:resources][@rs.id].should == 100
+        @m.mission_data['resources'][@rs.material_id].should == 100
       end
 
       it "invokes Query.check_mining_quantity" do
@@ -436,7 +490,8 @@ module DSL
       it "set last_transfer on mission data" do
         Query.should_receive(:check_transfer).and_return(proc{ false })
         Event.transferred_out.call(@m, @evnt)
-        @m.mission_data[:last_transfer].should == { :dst => @dst, :rs => @rs}
+        @m.mission_data['last_transfer'].should ==
+          { 'dst' => @dst, 'rs' => @rs.material_id, 'q' => @rs.quantity }
       end
 
       it "invokes Query.check_transfer" do
@@ -464,7 +519,7 @@ module DSL
 
       it "adds events to mission data" do
         Event.entity_destroyed.call(@m, 42)
-        @m.mission_data[:destroyed].should == [42]
+        @m.mission_data['destroyed'].should == [42]
       end
     end
 
@@ -482,7 +537,7 @@ module DSL
       it "adds collected loot to mission data" do
         Query.should_receive(:check_loot).and_return(proc{ false })
         Event.collected_loot.call(@m, @evnt)
-        @m.mission_data[:loot].should == [@rs]
+        @m.mission_data['loot'].should == [@rs]
       end
 
       it "invokes Query.check_loot" do
@@ -567,9 +622,9 @@ module DSL
 
     describe "#check_mining_quantity" do
       before(:each) do
-        @m.mission_data[:resources] = {}
-        @m.mission_data[:target]    = 'metal-alluminum'
-        @m.mission_data[:quantity]  = 50
+        @m.mission_data['resources'] = {}
+        @m.mission_data['target']    = 'metal-alluminum'
+        @m.mission_data['quantity']  = 50
       end
 
       it "generates a proc" do
@@ -578,13 +633,13 @@ module DSL
 
       context "target quantity >= quantity" do
         it "returns true" do
-          @m.mission_data[:resources]['metal-alluminum'] = 100
+          @m.mission_data['resources']['metal-alluminum'] = 100
           Query.check_mining_quantity.call(@m).should be_true
         end
       end
       context "target quantity < quantity" do
         it "returns false" do
-          @m.mission_data[:resources]['metal-alluminum'] = 10
+          @m.mission_data['resources']['metal-alluminum'] = 10
           Query.check_mining_quantity.call(@m).should be_false
         end
       end
@@ -594,7 +649,8 @@ module DSL
       before(:each) do
         @dst = build(:ship)
         @rs  = build(:resource)
-        @m.mission_data[:check_transfer] = { :dst => @dst, :rs => @rs }
+        @m.mission_data['check_transfer'] =
+          { 'dst' => @dst, 'rs' => @rs.material_id, 'q' => @rs.quantity }
       end
 
       it "generates a proc" do
@@ -603,14 +659,17 @@ module DSL
 
       context "last transfer matches check" do
         it "returns true" do
-          @m.mission_data[:last_transfer] = { :dst => @dst, :rs => @rs }
+          @m.mission_data['last_transfer'] =
+          { 'dst' => @dst, 'rs' => @rs.material_id, 'q' => @rs.quantity }
           Query.check_transfer.call(@m).should be_true
         end
       end
 
       context "last transfer does not match check " do
         it "returns false" do
-          @m.mission_data[:last_transfer] = { :dst => @dst, :rs => build(:resource) }
+          @rs = build(:resource)
+          @m.mission_data['last_transfer'] =
+            { 'dst' => @dst, 'rs' => @rs.material_id, 'q' => @rs.quantity }
           Query.check_transfer.call(@m).should be_false
         end
       end
@@ -619,7 +678,8 @@ module DSL
     describe "#check_loot" do
       before(:each) do
         @rs  = build(:resource)
-        @m.mission_data[:check_loot] = @rs
+        @m.mission_data['check_loot'] =
+          {'res' => @rs.material_id, 'q' => @rs.quantity}
       end
 
       it "generates a proc" do
@@ -628,13 +688,13 @@ module DSL
 
       context "loot matching check found" do
         it "returns true" do
-          @m.mission_data[:loot] = [@rs]
+          @m.mission_data['loot'] = [@rs]
           Query.check_loot.call(@m).should be_true
         end
       end
       context "no loot matching check found" do
         it "returns false" do
-          @m.mission_data[:loot] = [build(:resource)]
+          @m.mission_data['loot'] = [build(:resource)]
           Query.check_loot.call(@m).should be_false
         end
       end
@@ -685,9 +745,9 @@ module DSL
       @m = build(:mission)
     end
 
-    describe "#add_resource" do
+    describe "#add_reward" do
       it "generates a proc" do
-        Resolution.add_resource(build(:resource)).should be_an_instance_of(Proc)
+        Resolution.add_reward(build(:resource)).should be_an_instance_of(Proc)
       end
 
       it "invokes Query.user_ships" do
@@ -695,7 +755,7 @@ module DSL
         Query.should_receive(:user_ships).and_return(us)
         us.should_receive(:call).with(@m).and_return([build(:ship)])
         @node.should_receive(:invoke)
-        Resolution.add_resource(build(:resource)).call(@m)
+        Resolution.add_reward(build(:resource)).call(@m)
       end
 
       it "invokes manufactured::add_resource" do
@@ -704,7 +764,7 @@ module DSL
         Query.should_receive('user_ships').and_return(proc { [sh] })
         @node.should_receive(:invoke).
               with('manufactured::add_resource', sh.id, rs)
-        Resolution.add_resource(rs).call(@m)
+        Resolution.add_reward(rs).call(@m)
       end
     end
 

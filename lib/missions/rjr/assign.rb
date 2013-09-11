@@ -63,7 +63,7 @@ assign_mission = proc { |mission_id, user_id|
     begin
       cb.call mission
     rescue Exception => e
-      RJR::Logger.warn "error in mission #{mission.id} assignment: #{e}"
+      ::RJR::Logger.warn "error in mission #{mission.id} assignment: #{e}"
     end
   }
 

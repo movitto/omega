@@ -329,6 +329,19 @@ describe Mission do
       m.victory_callbacks.last.should_receive :call
       m.victory!
     end
+
+    context "error during a victory callback" do
+      it "catches error and continues" do
+        u = build(:user)
+        m = Mission.new :victory_callbacks => [proc { raise Exception },
+                                               proc { 2 }]
+        m.assign_to(u)
+        m.victory_callbacks.last.should_receive :call
+        m.victory!
+      end
+
+      it "logs error"
+    end
   end
 
   describe "#failed!" do
@@ -378,6 +391,19 @@ describe Mission do
       m.failure_callbacks.first.should_receive :call
       m.failure_callbacks.last.should_receive :call
       m.failed!
+    end
+
+    context "error during a failure callback" do
+      it "catches error and continues" do
+        u = build(:user)
+        m = Mission.new :failure_callbacks => [proc { raise Exception },
+                                               proc { 2 }]
+        m.assign_to(u)
+        m.failure_callbacks.last.should_receive :call
+        m.failed!
+      end
+
+      it "logs error"
     end
   end
 

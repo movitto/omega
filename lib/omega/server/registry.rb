@@ -319,7 +319,7 @@ module Registry
       begin
         h.call event
       rescue Exception => err
-        RJR::Logger.warn "error in event #{event}: #{err}"
+        RJR::Logger.warn ["error in event handler for #{event}", err] + err.backtrace
       end
     }
 
