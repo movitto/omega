@@ -178,17 +178,23 @@ module Registry
     return !rentity.nil?
   end
 
-  # Return proxy object for entity specified by selector
-  # which may be used to update entity safely w/out going
+  # Return proxy objects for entities specified by selector
+  # which may be used to update entities safely w/out going
   # directly through the registry
   #
-  # TODO invalidate proxy if entity is deleted ?
-  def proxy_for(&selector)
+  # TODO invalidate proxies if corresponding entities are deleted ?
+  def proxies_for(&selector)
     init_registry
     @lock.synchronize {
-      rentity = @entities.find &selector
-      rentity.nil? ? nil : ProxyEntity.new(rentity, self)
+      @entities.select(&selector).
+                collect { |e| ProxyEntity.new(e, self) }
     }
+  end
+
+  # Return a single proxy object for the first matched entity,
+  # nil if not found
+  def proxy_for(&selector)
+    proxies_for(&selector).first
   end
 
   ####################### execution
@@ -369,8 +375,7 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_commands }
   def run_commands
-    self.entities.
-      select { |e| e.kind_of?(Command) }.
+    self.proxies_for { |e| e.kind_of?(Command) }.
       each   { |cmd|
         begin
           # registry/node isn't serialized w/ other
@@ -387,18 +392,18 @@ module Registry
           end
 
           # subsequent commands w/ the same id will break
-          # system if command updates itself in or removes
-          # itself from the registry, use check_command 
-          # below to mitigate this
-          # TODO move to an ensure block below rescue ?
+          # system if command updates is removed from
+          # the registry here, use check_command below 
+          # to mitigate this
           if cmd.remove?
             cmd.run_hooks :last
 
             # TODO introduce optional command 'graveyard' at some point
             # to store history of previously executed commands
-            delete      { |e| e.id == cmd.id }
-          else
-            update(cmd) { |e| e.id == cmd.id }
+
+            delete { |e| e.id == cmd.id &&   # find registry cmd and
+                         e.last_ran_at     } # ensure it hasn't been
+                                             # swapped out / already deleted
           end
 
 
@@ -411,8 +416,6 @@ module Registry
   end
 
   # Check commands/enforce unique id's
-  #
-  # TODO race condition if command is currently running (wrong command may be updated in run_commands)
   #
   # Optional internal helper method, utilize like so:
   #   on(:added) { |c| check_command(c) if c.kind_of?(Omega::Server::Command) }
