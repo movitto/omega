@@ -3,6 +3,14 @@
 # Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# FIXME resolve entity state transition edge cases:
+#       (perhaps centralized mechanism here?)
+# ship states:
+#  docked/attacking/defendending/mining/
+#  transferring/collecting/moving/jumping/alive/dead
+# station states:
+#  transferring/constructing/jumping/with ships docked
+
 require 'omega/server/registry'
 require 'omega/server/command'
 require 'manufactured/ship'
@@ -37,6 +45,14 @@ class Registry
 
   private
 
+  def validate_entity(entities, entity)
+    # ensure entity id not taken
+    entities.find { |re| re.id == entity.id }.nil? &&
+
+    # ensure valid entity
+    entity.valid?
+  end
+
   def check_entity(entity, old_entity=nil)
     @lock.synchronize {
       # TODO resolve system references here ?
@@ -52,16 +68,11 @@ class Registry
     # validate entities upon creation
     self.validation = proc { |r,e|
       # accept manufactured commands
-      e.kind_of?(Omega::Server::Command) || # && e.class.modulize.include?("Manufactured")
+      e.kind_of?(Omega::Server::Command) ||
+      # && e.class.modulize.include?("Manufactured")
 
-       # confirm entity type
-      (VALID_TYPES.include?(e.class) &&
-
-       # ensure entity id not take
-       r.find { |re| re.id == e.id }.nil? &&
-
-       # ensure valid entity
-       e.valid?)
+       # confirm entity type & validate
+      (VALID_TYPES.include?(e.class) && validate_entity(r, e))
     }
 
     # sanity checks on entity

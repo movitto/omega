@@ -513,9 +513,14 @@ class Ship
          :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
+
+         # FIXME simply pass id of these entities, not entities themselves.
+         # For performance reasons and also to prevent circular
+         # references in certain cases (eg two ships attacking each other)
          :docked_at => @docked_at,
-         :attacking => @attacking, # FIXME pass attacking via reference (currently if entities are attacking each other this will be circular)
-         :mining    => @mining, # TODO pass mining via reference ?
+         :attacking => @attacking,
+         :mining    => @mining,
+
          :location => @location,
          :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),
          :resources => @resources}
