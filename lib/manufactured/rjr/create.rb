@@ -11,9 +11,42 @@ require 'users/attributes/own'
 
 module Manufactured::RJR
 
+# helper to validate use attributes upon entity creation
+def validate_user_attributes(entities, entity)
+  # only applies to ships / stations
+  # TODO skip this requirement if entity belongs to a npc user
+  if entity.is_a?(Ship) || entity.is_a?(Station)
+    # retrieve alive entities belonging to user
+    n = entities.count { |e| (e.is_a?(Ship) || e.is_a?(Station)) &&
+                              e.user_id == entity.user_id        &&
+                            (!e.is_a?(Ship) || e.alive?)            }
+
+    require_attribute :node => Manufactured::RJR.node,
+      :user_id => entity.user_id,
+      :attribute_id => Users::Attributes::EntityManagementLevel.id,
+      :level => n+1
+
+    # TODO also ensure user has attribute enabling them to
+    # create entity of the specified type
+  end
+end
+
+# callback to validate user attributes upon entity creation
+#
+# Defined here as it requires access to node, added to registry below
+validate_user_attributes = proc { |entities, entity|
+  validated = true
+  begin
+    @manu_validator ||= Object.new.extend(Manufactured::RJR) # XXX
+    @manu_validator.validate_user_attributes(entities, entity)
+  rescue ValidationError => e
+    validated = false
+  end
+  validated
+}
+
 # create specified entity in registry
 create_entity = proc { |entity|
-
   ###################### validate data
 
   # require create-manufactured_entities
@@ -36,20 +69,9 @@ create_entity = proc { |entity|
     begin node.invoke('users::get_entity', 'with_id', entity.user_id)
     rescue Exception => e ; raise DataNotFound, entity.user_id if user.nil? end
 
-  # Ensure user can create another entity
-  # FIXME needs to be run atomically with entity being added to registry
-  #       (or move to registry validation?)
-  # TODO also ensure user has attribute enabling them to
-  # create entity of the specified type
-  # TODO exclude entities w/ hp == 0
-  # TODO exclude npcs from this requirement
-  n = registry.entities { |e|
-    Registry::VALID_TYPES.include?(e.class) &&
-                e.user_id == entity.user_id    }.size
-  require_attribute :node => node,
-    :user_id => entity.user_id,
-    :attribute_id => Users::Attributes::EntityManagementLevel.id,
-    :level => n+1
+  # run user attribute validation ahead of time
+  #  (not required but useful error to raise here
+  validate_user_attributes(registry.entities, entity)
 
   ###################### create/modify entity & supporting data 
 
@@ -152,7 +174,8 @@ construct_entity = proc { |manufacturer_id, *args|
   [station, entity]
 }
 
-CREATE_METHODS = { :create_entity => create_entity,
+CREATE_METHODS = { :validate_user_attributes  => validate_user_attributes,
+                   :create_entity    => create_entity,
                    :construct_entity => construct_entity }
 end
 
@@ -160,4 +183,10 @@ def dispatch_manufactured_rjr_create(dispatcher)
   m = Manufactured::RJR::CREATE_METHODS
   dispatcher.handle 'manufactured::create_entity',    &m[:create_entity]
   dispatcher.handle 'manufactured::construct_entity', &m[:construct_entity]
+
+  # register entity validation method w/ registry
+  unless Manufactured::RJR.registry.validation_methods.
+                           include?(m[:validate_user_attributes])
+    Manufactured::RJR.registry.validation_callback &m[:validate_user_attributes]
+  end
 end

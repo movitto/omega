@@ -8,6 +8,14 @@ require 'manufactured/rjr/create'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
+  describe "#validate_user_attributes" do
+    context "user has maximum number of entities" do
+      it "returns false"
+    end
+
+    it "returns true"
+  end
+
   describe "#create_entity" do
     include Omega::Server::DSL # for with_id below
 
@@ -314,6 +322,18 @@ module Manufactured::RJR
       dispatch_manufactured_rjr_create(d)
       d.handlers.keys.should include("manufactured::construct_entity")
     end
+
+    it "adds validate user attributes to registry validation callbacks" do
+      d = ::RJR::Dispatcher.new
+      dispatch_manufactured_rjr_create(d)
+      Manufactured::RJR.registry.validation_methods.size.should == 2
+      Manufactured::RJR.registry.validation_methods.
+        should include(Manufactured::RJR::CREATE_METHODS[:validate_user_attributes])
+
+      dispatch_manufactured_rjr_create(d)
+      Manufactured::RJR.registry.validation_methods.size.should == 2
+    end
+
   end
 
 end #module Manufactured::RJR
