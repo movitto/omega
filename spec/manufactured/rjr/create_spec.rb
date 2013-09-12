@@ -311,6 +311,12 @@ module Manufactured::RJR
   end # describe #construct_entity
 
   describe "#dispatch_manufactured_rjr_create" do
+    after(:each) do
+      # XXX need to remove validation callback added
+      Manufactured::RJR.registry.validation_methods.delete \
+        Manufactured::RJR::CREATE_METHODS[:validate_user_attributes]
+    end
+
     it "adds manufactured::create_entity to dispatcher" do
       d = ::RJR::Dispatcher.new
       dispatch_manufactured_rjr_create(d)
