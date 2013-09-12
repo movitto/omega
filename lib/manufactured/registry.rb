@@ -66,7 +66,7 @@ class Registry
     init_registry
 
     # validate entities upon creation
-    self.validation = proc { |r,e|
+    self.validation_callback { |r,e|
       # accept manufactured commands
       e.kind_of?(Omega::Server::Command) ||
       # && e.class.modulize.include?("Manufactured")

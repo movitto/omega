@@ -80,7 +80,7 @@ class Registry
     init_registry
 
     # validate user/role id or session's user id is unique on creation
-    self.validation = proc { |r,e|
+    self.validation_callback { |r,e|
       [User, Role, Session].include?(e.class) &&
 
       (e.is_a?(Session) ?

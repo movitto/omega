@@ -114,7 +114,7 @@ describe Registry do
 
     context "validation is set" do
       before(:each) do
-        @registry.validation = proc { |entities, e|
+        @registry.validation_callback { |entities, e|
           !entities.include?(e)
         }
       end
@@ -161,6 +161,55 @@ describe Registry do
 
           @registry << 1
           @added.should == 2
+        end
+      end
+    end
+
+    context "multiple validations are set" do
+      before(:each) do
+        @first = true
+        @second = true
+        @registry.validation_callback { |entities, e|
+          @first
+        }
+        @registry.validation_callback { |entities, e|
+          @second
+        }
+      end
+
+      context "all validations passes" do
+        it "adds entity" do
+          @registry << 1
+          @registry.entities.should == [1]
+        end
+
+        it "returns true" do
+          @registry.<<(1).should be_true
+        end
+
+        it "raises added event" do
+          @registry << 1
+          @added.should == 1
+        end
+      end
+
+      context "one or more validations fail" do
+        before(:each) do
+          @second = false
+        end
+
+        it "doesn't add the entity" do
+          @registry << 1
+          @registry.entities.should == []
+        end
+
+        it "returns false" do
+          @registry.<<(1).should be_false
+        end
+
+        it "doesn't raise added event" do
+          @registry << 1
+          @added.should be_nil
         end
       end
     end

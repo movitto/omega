@@ -47,8 +47,8 @@ module Registry
 
     @event_handlers ||= Hash.new() { |h,k| h[k] = [] }
 
-    @validation     ||= proc { |entities, e| true }
     @retrieval      ||= proc { |e| }
+    @validation_methods ||= []
   end
 
   ####################### node / user
@@ -59,7 +59,12 @@ module Registry
 
   attr_accessor :user
 
-  attr_accessor :validation
+  attr_accessor :validation_methods
+
+  # Add validation method to registry
+  def validation_callback(&bl)
+    @validation_methods << bl
+  end
 
   attr_accessor :retrieval
   
@@ -106,9 +111,9 @@ module Registry
 
   # Add entity to local registry.
   #
-  # Invokes registered validation callback before
+  # Invokes registered validation callbacks before
   # adding to ensure enitity should be added. If
-  # validation returns false, entity will not be
+  # any validation returns false, entity will not be
   # added.
   #
   # Raises :added event on self w/ entity
@@ -116,7 +121,7 @@ module Registry
     init_registry
     add = false
     @lock.synchronize {
-      add = @validation.call(@entities, entity)
+      add = @validation_methods.all? { |v| v.call(@entities, entity) }
       @entities << entity if add
     }
 

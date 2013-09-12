@@ -130,7 +130,7 @@ class Registry
     init_registry
 
     # validate location ids are unique before creating
-    self.validation = proc { |r,e|
+    self.validation_callback { |r,e|
       e.is_a?(Location) &&
       
       !r.collect { |l| l.id }.include?(e.id)

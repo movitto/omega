@@ -61,7 +61,7 @@ class Registry
     init_registry
 
     # validate entities, ensure
-    self.validation = proc { |r,e|
+    self.validation_callback { |r,e|
       # they are of valid type and valid
       VALID_TYPES.include?(e.class) && e.valid? &&
 
