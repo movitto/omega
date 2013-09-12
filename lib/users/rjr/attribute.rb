@@ -18,18 +18,14 @@ update_attribute = proc { |user_id, attribute_id, change|
                     :entity => "user_attributes")
 
   # retrieve specified user from registry
-  user = registry.entity &with_id(user_id)
+  user = registry.proxy_for &with_id(user_id)
 
   # valid user id must be specified
   raise DataNotFound, user_id if user.nil?
 
   # only update attribute if user attributes are enabled
-  if Users::RJR.user_attrs_enabled
-    # FIXME these two operations should be atomic
-    #       (along w/ entitiy retrieval above)
-    user.update_attribute!(attribute_id, change)
-    registry.update(user, &with_id(user.id)) # safe update
-  end
+  user.update_attribute!(attribute_id,
+                               change) if Users::RJR.user_attrs_enabled
 
   user
 }
