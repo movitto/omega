@@ -17,6 +17,7 @@
 
     = javascript_include_tag "vendor/jquery-1.7.1.min"
     = yield_content :javascripts
+    = javascript_include_tag "omega/config" # include latest config externally
   
   %body{:class => page_classes}
     #navigation
