@@ -54,11 +54,18 @@ def setup_signals(config, node)
     node.invoke('manufactured::restore_state', current_backup)
   }
 
-  # halt on int
-  Signal.trap("INT") {
-    EventMachine.stop
-    #multi_node.terminate
+  on_halt = proc {
+    puts "Terminating"
+    # XXX thread needed as we can't block from signal trap
+    Thread.new {
+      # XXX amqp gem requires explicit shutdown operation,
+      #     this should be taken can of in rjr
+      ::AMQP.stop { || node.halt }
+    }
   }
+
+  trap("TERM", &on_halt)
+  trap("INT", &on_halt)
 end
 
 def main()

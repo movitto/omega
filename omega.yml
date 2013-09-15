@@ -45,12 +45,6 @@ users_rjr_pass: 'sresu'
 stats_rjr_user: 'stats'
 stats_rjr_pass: 'stats'
 
-remote_location_manager_user: 'rlm'
-remote_location_manager_pass: 'mlr'
-
-remote_cosmos_manager_user: 'rcm'
-remote_cosmos_manager_pass: 'mcr'
-
 email_enabled: true
 smtp_host: 'localhost'
 smtp_from_address: 'mo@morsi.org'
