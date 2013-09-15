@@ -14,8 +14,8 @@
 //= require_directory "./entities"
 
 //= require "vendor/google_recaptcha_ajax"
-//= require 'vendor/jquery.jplayer.min'
-//= require 'vendor/jquery.jplayer.playlist.min'
+//= require 'vendor/jquery.jplayer-2.4.0.min'
+//= require 'vendor/jquery.jplayer.playlist-2.3.0.min'
 
 ////////////////////////////////////////// session
 
@@ -832,9 +832,9 @@ var wire_up_audio_player = function(ui, node){
     new jPlayerPlaylist({
           jPlayer: "#jquery_jplayer_1",
           cssSelectorAncestor: "#jplayer_container"},
-          [{ title: "track1", wav: audio_path + "/simple2.wav" },
-           { title: "track2", wav: audio_path + "/simple4.wav" }],
-          {swfPath: "js", supplied: "wav", loop: "true"});
+          [{ title: "track1", oga: audio_path + "/simple2.ogg" },
+           { title: "track2", oga: audio_path + "/simple4.ogg" }],
+          {supplied: "oga", loop: "true"});
 
   ui.effects_player =
     new EffectsPlayer({path: audio_path + "/effects/"});
