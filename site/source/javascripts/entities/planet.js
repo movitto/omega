@@ -15,8 +15,14 @@ function Planet(args){
   var planet = this;
   this.json_class = 'Cosmos::Entities::Planet';
 
+  // initialize missing children
+  if(!this.moons) this.moons = [];
+
   // convert location
   this.location = new Location(this.location);
+  for(var c = 0; c < this.children.length; c++){
+    this.moons.push(new Moon(this.children[c]))
+  }
 
   /* override update
    */
@@ -65,7 +71,7 @@ function _planet_update(oargs){
       this.sphere.position.z = this.location.z;
     }
 
-    for(var m in this.moons){
+    for(var m = 0; m < this.moons.length; m++){
       var moon = this.moons[m];
       var ms   = this.moon_spheres[m];
       if(ms){
@@ -167,7 +173,7 @@ function _planet_load_orbit(planet){
       function(i) {
         var geometry = new THREE.Geometry();
         var first = null, last = null;
-        for(var o in planet.orbit){
+        for(var o = 0; o < planet.orbit.length; o++){
           if(o != 0){ // && (o % 3 == 0)){
             var orbit  = planet.orbit[o];
             var porbit = planet.orbit[o-1];
@@ -210,7 +216,7 @@ function _planet_load_moons(planet){
 
 
   planet.moon_spheres = [];
-  for(var m in planet.moons){
+  for(var m = 0; m < planet.moons.length; m++){
     var moon = planet.moons[m];
     var sphere =
       UIResources().cached("moon_"+ moon.id +"sphere",
@@ -238,7 +244,7 @@ function _planet_movement_cycle(){
   // FIXME how to synchronize timing between this and server?
   // TODO only planets in current scene
 
-  for(var p in planets){
+  for(var p = 0; p < planets.length; p++){
     var pl = planets[p];
     var ms = pl.location.movement_strategy;
 

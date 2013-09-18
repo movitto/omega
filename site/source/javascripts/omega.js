@@ -99,7 +99,7 @@ var process_entities = function(ui, node, entities){
     ui.account_info.entities(uowned);
   }
 
-  for(var e in entities)
+  for(var e = 0; e < entities.length; e++)
     process_entity(ui, node, entities[e]);
 };
 
@@ -336,7 +336,7 @@ var manufactured_event = function(ui, node, eargs){
   // refresh popup if showing entity
   var selected = Entities().select(function(e){ return e.selected; })[0]
   if(selected){
-    for(var e in entities){
+    for(var e = 0; e < entities.length; e++){
       if(entities[e].id == selected.id){
         refresh_entity_container(ui, node, entities[e]);
         break;
@@ -350,8 +350,8 @@ var manufactured_event = function(ui, node, eargs){
 var process_stats = function(stats){
   // add badges to account info
   if(stats.result){
-    for(var s in stats.result){
-      for(var v in stats.result[s].value){
+    for(var s = 0; s < stats.result.length; s++){
+      for(var v = 0; v < stats.result[s].value.length; v++){
         if(stats.result[s].value[v] == Session.current_session.user_id){
           ui.account_info.add_badge(stats.result[s].id, stats.result[s].description, v);
           break;
@@ -367,7 +367,8 @@ var process_stats = function(stats){
  */
 var handle_events = function(ui, node, entity){
   if($.isArray(entity)){
-    for(var e in entity) handle_events(ui, node, entity[e]);
+    for(var e = 0; e < entity.length; e++)
+      handle_events(ui, node, entity[e]);
     return;
   }
 
@@ -443,7 +444,7 @@ var clicked_asteroid = function(ui, node, asteroid){
     function(res){
       if(res.error == null){
         var details = [{ id : 'resources_title', text : 'Resources: <br/>'}];
-        for(var r in res.result){
+        for(var r = 0; r < res.result.length; r++){
           var rres = res.result[r];
           details.push({ id   : rres.id, 
                          text : rres.quantity + " of " +
@@ -506,13 +507,13 @@ var clicked_ship = function(ui, node, ship){
                e.location.is_within(100, sh.location);
       });
 
-      for(var e in entities){
+      for(var e = 0; e < entities.length; e++){
         var entity = entities[e];
         // remotely retrieve resource sources
         node.web_request('cosmos::get_resources', entity.id,
           function(res){
             if(!res.error){
-              for(var r in res.result){
+              for(var r = 0; r < res.result.length; r++){
                 var rres    = res.result[r];
                 var restxt = rres.material_id + " (" + rres.quantity + ")";
                 var text   =
@@ -567,7 +568,7 @@ var load_system = function(id, ui, node, callback){
         Entities().set(s.id, s);
 
         // run callbacks
-        for(var cb in $system_callbacks[s.id])
+        for(var cb = 0; cb < $system_callbacks[s.id].length; cb++)
           $system_callbacks[s.id][cb].apply(s, [s]);
         $system_callbacks[s.id] = [];
 
@@ -585,20 +586,20 @@ var load_system = function(id, ui, node, callback){
         handle_events(ui, node, s.jump_gates);
 
         // store planet in registy
-        for(var p in s.planets){
+        for(var p = 0; p < s.planets.length; p++){
           var planet = s.planets[p];
           Entities().set(planet.id, planet);
           Entities().set('location-' + planet.location.id, planet.location);
         }
 
         // store asteroids in registry
-        for(var a in s.asteroids){
+        for(var a = 0; a < s.asteroids.length; a++){
           var ast = s.asteroids[a];
           Entities().set(ast.id, ast);
         }
 
         // store jump gates in registry & load endpoints
-        for(var j in s.jump_gates){
+        for(var j = 0; j < s.jump_gates.length; j++){
           var jg = s.jump_gates[j];
           Entities().set(jg.id, jg);
           (function(jg){ // XXX need closure to preserve jg during async request
@@ -616,7 +617,7 @@ var load_system = function(id, ui, node, callback){
           s.galaxy = g;
 
           // overwrite system in galaxy.solar_systems
-          for(var sys in g.solar_systems){
+          for(var sys = 0; sys < g.solar_systems.length; sys++){
             if(g.solar_systems[sys].id == s.id){
               g.solar_systems[sys] = s;
               break;
@@ -654,15 +655,15 @@ var load_galaxy = function(id, ui, node, callback){
         Entities().set(g.id, g);
 
         // run callbacks
-        for(var cb in $galaxy_callbacks[g.id])
+        for(var cb = 0; cb < $galaxy_callbacks[g.id].length; cb++)
           $galaxy_callbacks[g.id][cb].apply(g, [g]);
         $galaxy_callbacks[g.id] = []
 
         // swap systems in
         // right now we only set those retrieved from the server
-        for(var sys in this.solar_systems){
-          var rsys = Entities().get(this.solar_systems[sys].id)
-          if(rsys && rsys != -1) this.solar_systems[sys] = rsys;
+        for(var sys = 0; sys < g.solar_systems.length; sys++){
+          var rsys = Entities().get(g.solar_systems[sys].id)
+          if(rsys && rsys != -1) g.solar_systems[sys] = rsys;
         }
 
         // wire up solar system events
@@ -866,7 +867,7 @@ var wire_up_entities_lists = function(ui, node){
     // get latest mission data from server
     Mission.all(function(missions){
       // store missions in the registry
-      for(var m in missions)
+      for(var m = 0; m < missions.length; m++)
         Entities().set(missions[m].id, missions[m]);
 
       show_missions(missions, ui);
@@ -912,7 +913,7 @@ var set_scene = function(ui, node, entity, location){
   if(location) ui.canvas_container.canvas.scene.camera.focus(location);
 
   // set new skybox background
-  ui.canvas_container.canvas.scene.skybox.background(entity.background)
+  ui.canvas_container.canvas.scene.skybox.background(entity.background);
 
   // add new skybox
   ui.canvas_container.canvas.scene.add_component(ui.canvas_container.canvas.scene.skybox.components[0]);
@@ -920,7 +921,7 @@ var set_scene = function(ui, node, entity, location){
   // track planet movement
   // TODO remove callbacks of planets in old system
   if(entity.json_class == "Cosmos::Entities::SolarSystem"){
-    for(var p in entity.planets){
+    for(var p = 0; p < entity.planets.length; p++){
       var planet = entity.planets[p];
       Events.track_movement(planet.location.id, $omega_config.planet_movement);
       // FIXME should only be on_movement for planets
@@ -959,7 +960,7 @@ var show_missions = function(missions, ui){
 
   }else{
     var missions_text = '';
-    for(var m in unassigned)
+    for(var m = 0; m < unassigned.length; m++)
       missions_text += unassigned[m].title + ' ' +
                        unassigned[m].assign_cmd + '<br/>';
     missions_text += '<br/>(Victorious: ' + victorious.length + ' / Failed: ' + failed.length + ')'
@@ -1009,7 +1010,7 @@ var wire_up_canvas = function(ui, node){
                 e.user_id != Session.current_session.user_id;
       })
 
-    for(var e in old_entities){
+    for(var e = 0; e < old_entities.length; e++){
       var oentity = old_entities[e];
       Events.stop_track_movement(oentity.location.id);
       Events.stop_track_manufactured(oentity.id);

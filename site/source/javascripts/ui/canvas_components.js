@@ -118,7 +118,7 @@ function Axis(args){
     UIResources().cached('axis_distance_markers',
       function(i){
         var dm = [];
-        for(var geometry in distance_geometries){
+        for(var geometry = 0; geometry < distance_geometries.length; geometry++){
           var mesh = new THREE.Mesh(distance_geometries[geometry],
                                     distance_material);
           mesh.position.x = 0;

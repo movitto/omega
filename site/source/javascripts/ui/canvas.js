@@ -138,7 +138,7 @@ function Scene(args){
   // to something more generic like effects_timer/update_effects
   this.particle_timer =
     $.timer(function(){
-      for(var c in _this._scene.__objects){
+      for(var c = 0; c < _this._scene.__objects.length; c++){
         var obj = _this._scene.__objects[c];
         if(obj.update_particles)
           obj.update_particles();
@@ -169,7 +169,7 @@ function Scene(args){
    */
   this.add_entity = function(entity){
     this.entities[entity.id] = entity;
-    for(var comp in entity.components)
+    for(var comp = 0; comp < entity.components.length; comp++)
       this.add_component(entity.components[comp]);
     entity.added_to(this);
   }
@@ -188,7 +188,7 @@ function Scene(args){
     var entity = this.entities[entity_id];
     if(entity == null) return;
 
-    for(var comp in entity.components)
+    for(var comp = 0; comp < entity.components.length; comp++)
       this.remove_component(entity.components[comp]);
     entity.removed_from(this);
   }
@@ -247,10 +247,10 @@ function Scene(args){
     this.root = entity;
 
     var children = entity.children();
-    for(var child in children){
-      child = children[child];
-      if(child)
-        this.add_entity(child);
+    for(var child = 0; child < children.length; child++){
+      ch = children[child];
+      if(ch)
+        this.add_entity(ch);
     }
 
     this.raise_event('set', entity);
@@ -685,7 +685,7 @@ function CanvasComponent(args){
   /* Hide the Component in the scene
    */
   this.shide = function(){
-    for(var component in this.components){
+    for(var component = 0; component < this.components.length; component++){
       this.scene.remove_component(this.components[component]);
     }
     showing = false;
@@ -697,7 +697,7 @@ function CanvasComponent(args){
   this.sshow = function(){
     showing = true;
     this.toggle_canvas().attr(':checked', true)
-    for(var component in this.components){
+    for(var component = 0; component < this.components.length; component++){
       this.scene.add_component(this.components[component]);
     }
   }

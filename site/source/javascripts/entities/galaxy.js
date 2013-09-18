@@ -19,7 +19,7 @@ function Galaxy(args){
   // convert children
   this.location = new Location(this.location);
   this.solar_systems = [];
-  for(var sys in this.children)
+  for(var sys = 0; sys < this.children.length; sys++)
     this.solar_systems[sys] = new SolarSystem(this.children[sys]);
 
   // return children
@@ -50,7 +50,7 @@ function _galaxy_update(oargs){
   }
   // assuming that system list is not variable
   if(args.solar_systems && this.solar_systems){
-    for(var s in args.solar_systems)
+    for(var s = 0; s < args.solar_systems.length; s++)
       this.solar_systems[s].update(args.solar_systems[s]);
     delete args.solar_systems
   }

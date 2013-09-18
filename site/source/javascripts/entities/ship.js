@@ -111,7 +111,7 @@ Ship.owned_by = function(user_id, cb){
                                 'owned_by', user_id, function(res){
     if(res.result){
       var ships = [];
-      for(var e in res.result){
+      for(var e = 0; e < res.result.length; e++){
         ships.push(new Ship(res.result[e]));
       }
       cb.apply(null, [ships])
@@ -128,7 +128,7 @@ Ship.owned_by = function(user_id, cb){
 function _ship_resolve_mining_target(sys_id, mining_target){
   var sys  = Entities().get(sys_id);
   var asts = sys ? sys.asteroids : [];
-  for(var a in asts)
+  for(var a = 0; a < asts.length; a++)
     if(asts[a].id == mining_target.entity_id)
       return asts[a];
   return null;
@@ -169,7 +169,7 @@ function _ship_update(oargs){
 
   // ...same w/ trails...
   if(this.trails){
-    for(var t in this.trails){
+    for(var t = 0; t < this.trails.length; t++){
       var trail = this.trails[t];
       var conf_trail = $omega_config.resources[this.type].trails[t];
       trail.position.x = this.location.x + conf_trail[0];
@@ -242,7 +242,7 @@ function _ship_update(oargs){
 
   // remove any components during reload scene callback
   if(this.current_scene) this.current_scene.reload_entity(this, function(s, e){
-    for(var r in to_remove)
+    for(var r = 0; r < to_remove.length; r++)
       e.components.splice(e.components.indexOf(to_remove[r]), 1);
   });
 
@@ -420,7 +420,7 @@ function _ship_load_trails(ship){
   var trails = ship.type ? $omega_config.resources[ship.type].trails : null;
   if(trails){
     ship.trails = [];
-    for(var t in trails){
+    for(var t = 0; t < trails.length; t++){
       var trail  = trails[t];
       var ntrail = ship.create_trail(trail[0], trail[1], trail[2])
       ship.trails.push(ntrail);
@@ -486,7 +486,7 @@ function _ship_create_attack_vector(ship){
         particleSystem.sortParticles = true;
 
         particleSystem.update_particles = function(){
-          for(var p in this.geometry.vertices){
+          for(var p = 0; p < this.geometry.vertices.length; p++){
             var v = this.geometry.vertices[p];
             if(Math.floor( Math.random() * 25 ) == 1)
               v.moving = true;
@@ -550,7 +550,7 @@ function _ship_render_details(){
   var details = ['Ship: ' + this.id + '<br/>',
                  '@ ' + this.location.to_s() + '<br/>',
                  "Resources: <br/>"];
-  for(var r in this.resources){
+  for(var r = 0; r < this.resources.length; r++){
     var res = this.resources[r];
     details.push(res.quantity + " of " + res.material_id + "<br/>")
   }
@@ -587,6 +587,7 @@ var _ship_selection =
       ['Launch Attack',
        function(){
         // load attack target selection from ships in the vicinity
+        var ship = this;
         var entities = Entities().select(function(e) {
           return e.json_class == 'Manufactured::Ship'            &&
                  e.user_id    != Session.current_session.user_id &&
@@ -595,7 +596,7 @@ var _ship_selection =
         });
 
         var text = "Select " + this.id + " target<br/>";
-        for(var e in entities){
+        for(var e = 0; e < entities.length; e++){
           var entity = entities[e];
           text += '<span id="cmd_attack_'+entity.id+'" class="cmd_attack dialog_cmds">' + entity.id + '</span>';
         }
@@ -606,6 +607,7 @@ var _ship_selection =
       ['Dock Ship',
        function(){
         // load dock target selection from stations in the vicinity
+        var ship = this;
         var entities = Entities().select(function(e) {
           return e.json_class == 'Manufactured::Station' &&
                  e.belongs_to_current_user() &&
@@ -613,7 +615,7 @@ var _ship_selection =
         });
 
         var text = 'Dock ' + this.id + ' at<br/>';
-        for(var e in entities){
+        for(var e = 0; e < entities.length; e++){
           var entity = entities[e];
           text += '<span id="cmd_dock_' + entity.id + '" class="cmd_dock dialog_cmds">' + entity.id + '</span>';
         }
@@ -623,7 +625,7 @@ var _ship_selection =
     'cmd_mine_select' :
       ['Start Mining',
        function(){
-        return "Select resource to mine with "+ ship.id +" <br/>";
+        return "Select resource to mine with "+ this.id +" <br/>";
       }]
   };
 
@@ -741,7 +743,7 @@ function _ship_movement_cycle(){
   // FIXME how to synchronize timing between this and server?
   // TODO only ships in current scene
 
-  for(var s in ships){
+  for(var s = 0; s < ships; s++){
     var sh = ships[s];
     if(sh.location.movement_strategy.json_class ==
        'Motel::MovementStrategies::Linear'){

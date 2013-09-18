@@ -49,7 +49,7 @@ Mission.all = function(cb){
                                 function(res){
     var missions = [];
     if(res.result)
-      for(var m in res.result)
+      for(var m = 0; m < res.result.length; m++)
         missions.push(new Mission(res.result[m]));
     cb.apply(null, [missions]);
   });

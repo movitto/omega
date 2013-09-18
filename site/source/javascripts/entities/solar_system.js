@@ -30,7 +30,7 @@ function SolarSystem(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var c in this.children){
+  for(var c = 0; c < this.children.length; c++){
     if(this.children[c].json_class == 'Cosmos::Entities::Star')
       this.stars.push(new Star(this.children[c]))
     else if(this.children[c].json_class == 'Cosmos::Entities::Planet')
@@ -94,7 +94,7 @@ SolarSystem.entities_under = function(id, cb){
   Entities().node().web_request('manufactured::get_entities', 'under', id, function(res){
     if(res.result){
       var cbv = [];
-      for(var e in res.result){
+      for(var e = 0; e < res.result.length; e++){
         var entity = res.result[e];
         if(entity.json_class == "Manufactured::Ship")
           entity = new Ship(entity);
@@ -121,24 +121,24 @@ function _solar_system_update(oargs){
     delete args.location;
   }
   if(args.stars && this.stars){
-    for(var s in args.stars)
+    for(var s = 0; s < args.stars.length; s++)
       this.stars[s].update(args.stars[s]);
     delete args.stars;
   }
   // assuming that planets/asteroids/jump gates lists are not variable
   // (though individual properties such as location may be)
   if(args.planets && this.planets){
-    for(var p in args.planets)
+    for(var p = 0; p < args.planets.length; p++)
       this.planets[p].update(args.planets[p]);
     delete args.planets
   }
   if(args.asteroids && this.asteroids){
-    for(var a in args.asteroids)
+    for(var a = 0; a < args.asteroids.length; a++)
       this.asteroids[a].update(args.asteroids[a]);
     delete args.asteroids
   }
   if(args.jump_gates && this.jump_gates){
-    for(var j in args.jump_gates)
+    for(var j = 0; j < args.jump_gates.length; j++)
       this.jump_gates[j].update(args.jump_gates[j]);
     delete args.jump_gates
   }

@@ -76,7 +76,7 @@ function StatusIndicator(args){
   /* Return boolean indicating if state is currently represented locally
    */
   this.has_state = function(state){
-    for(var s in states)
+    for(var s = 0; s < states.length; s++)
       if(states[s] == state)
         return true;
     return false;
@@ -210,7 +210,7 @@ function AccountInfoContainer(args){
   this.entities = function(entities){
     var ships_container    = $('#account_info_ships');
     var stations_container = $('#account_info_stations');
-    for(var e in entities){
+    for(var e = 0; e < entities.length; e++){
       if(entities[e].json_class == 'Manufactured::Ship')
         ships_container.append(entities[e].id + ' ')
       else if(entities[e].json_class == 'Manufactured::Station')

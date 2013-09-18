@@ -197,7 +197,7 @@ function UIComponent(args){
 
     if(this.component())
       this.component().show();
-    for(var cmp in this.subcomponents)
+    for(var cmp = 0; cmp < this.subcomponents.length; cmp++)
       this.subcomponents[cmp].show();
     this.raise_event('show');
   }
@@ -211,7 +211,7 @@ function UIComponent(args){
 
     if(this.component())
       this.component().hide();
-    for(var cmp in this.subcomponents)
+    for(var cmp = 0; cmp < this.subcomponents.length; cmp++)
       this.subcomponents[cmp].hide();
     this.raise_event('hide');
   }
@@ -272,7 +272,7 @@ function UIComponent(args){
     if(typeof sides === "str")
       sides = [sides];
 
-    for(var side in sides){
+    for(var side = 0; side < sides.length; side++){
       if(sides[side] == 'top')
         comp.css({top : comp.position().top});
       else if(sides[side] == 'left')
@@ -329,13 +329,13 @@ function UIListComponent(args){
    */
   this.add_item = function(item){
     if($.isArray(item)){
-      for(var i in item)
+      for(var i = 0; i < item.length; i++)
         this.add_item(item[i]);
       return;
     }
 
     var overwrote = false
-    for(var i in this.items){
+    for(var i = 0; i < this.items.length; i++){
       if(this.items[i].id == item.id){
         this.items[i] = item;
         overwrote = true;
@@ -363,7 +363,7 @@ function UIListComponent(args){
     this.component().html('');
     var text = '';
     this.items.sort(this.sort);
-    for(var i in this.items)
+    for(var i = 0; i < this.items.length; i++)
       text += '<' +this.item_wrapper+ ' id="' + this.items[i].id + '">' +
               this.items[i].text + '</' +this.item_wrapper + '>';
     this.component().html(text);
@@ -373,7 +373,7 @@ function UIListComponent(args){
    */
   this.add_text = function(text){
     if($.isArray(text)){
-      for(var i in text)
+      for(var i = 0; i < text.length; i++)
         this.add_text(text[i]);
       return;
     }

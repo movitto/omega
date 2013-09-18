@@ -81,16 +81,19 @@ function _star_load_glow(star){
   var glow_texture = 
     UIResources().cached("star_glow_texture",
       function(i) {
+        var vertex_shader   = document.getElementById( 'vertexShader'   );
+        var fragment_shader = document.getElementById( 'fragmentShader' );
+        vertex_shader   = vertex_shader   ? vertex_shader.textContent   : null;
+        fragment_shader = fragment_shader ? fragment_shader.textContent : null;
+
         return new THREE.ShaderMaterial({
           uniforms: { 
             "c":   { type: "f", value: 1.0 },
             "p":   { type: "f", value: 1.4 },
             glowColor: { type: "c", value: new THREE.Color(star.icolor) },
           },
-          vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-          fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-          side: THREE.FrontSide,
-          blending: THREE.AdditiveBlending,
+          vertexShader: vertex_shader, fragmentShader: fragment_shader,
+          side: THREE.FrontSide, blending: THREE.AdditiveBlending,
           transparent: true
         });
       });

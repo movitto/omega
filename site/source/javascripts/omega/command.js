@@ -29,7 +29,7 @@ function ServerEvents(){
    */
   _this.handle = function(server_event){
     if($.isArray(server_event)){
-      for(var e in server_event)
+      for(var e = 0; e < server_event.length; e++)
         _this.handle(server_event[e]);
       return;
     }
@@ -186,7 +186,7 @@ var Commands = {
     // we are assuming endpoint system is loaded from server
     //   (we do this in the clicked jump gate callback)
     var endpoint = jg.endpoint_system;
-    for(var entity in entities){
+    for(var entity = 0; entity < entities.length; entity++){
       entity = entities[entity];
       Commands.jump_ship(entity, endpoint);
       jg.raise_event('triggered', entity);
@@ -291,7 +291,7 @@ var Commands = {
    */
   transfer_resources : function(ship, station_id, cb){
     if(cb == null) cb = function(res){};
-    for(var r in ship.resources){
+    for(var r = 0; r < ship.resources.length; r++){
       var res = new JRObject('Cosmos::Resource', ship.resources[r]);
       Entities().node().web_request('manufactured::transfer_resource',
                                     ship.id, station_id, res, cb);

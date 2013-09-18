@@ -166,6 +166,7 @@ class Mining < Omega::Server::Command
     removed_resource = false
     resource_transferred = false
     begin
+      # TODO make this variable by including a randomized 'inefficiency' factor
       @resource.quantity -= r.quantity
       removed_resource = true
       @ship.add_resource r

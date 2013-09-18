@@ -69,7 +69,7 @@ Station.owned_by = function(user_id, cb){
                                 'owned_by', user_id, function(res){
     if(res.result){
       var stations = [];
-      for(var e in res.result){
+      for(var e = 0; e < res.result.length; e++){
         stations.push(new Station(res.result[e]));
       }
       cb.apply(null, [stations])
@@ -154,7 +154,7 @@ function _station_render_details(){
   var details = ['Station: ' + this.id + '<br/>',
                  '@ ' + this.location.to_s() + '<br/>',
                  "Resources: <br/>"];
-  for(var r in this.resources){
+  for(var r = 0; r < this.resources.length; r++){
     var res = this.resources[r];
     details.push(res.quantity + " of " + res.material_id + "<br/>")
   }

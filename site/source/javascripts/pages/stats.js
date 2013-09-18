@@ -23,7 +23,7 @@ function refresh_stats(stat_result){
 // retrieve all stats, refresh ui, and
 // schedule this again in 5s
 function refresh_cycle(){
-  for(var stati in $omega_config['stats']){
+  for(var stati = 0; stati < $omega_config['stats']; stati++){
     var stat = $omega_config['stats'][stati];
     Statistic.with_id(stat[0], stat[1], refresh_stats);
   }

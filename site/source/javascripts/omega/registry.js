@@ -14,7 +14,7 @@ function EventTracker(){
   this.on = function(cb_id, cb){
     // if array is passed in, call this on each element
     if($.isArray(cb_id)){
-      for(var i in cb_id)
+      for(var i = 0; i < cb_id.length; i++)
         this.on(cb_id[i], cb);
       return;
     }
@@ -32,7 +32,7 @@ function EventTracker(){
     }else{
       // if array is passed in, call this on each element
       if($.isArray(evnt)){
-        for(var i in evnt)
+        for(var i = 0; i < evnt.length; i++)
           this.clear_callbacks(evnt[i]);
         return;
       }
@@ -49,7 +49,7 @@ function EventTracker(){
     var evnt = args.shift();
     args.unshift(this);
     if(this.callbacks[evnt])
-      for(var e in this.callbacks[evnt])
+      for(var e = 0; e < this.callbacks[evnt].length; e++)
         this.callbacks[evnt][e].apply(this, args);
   }
 
