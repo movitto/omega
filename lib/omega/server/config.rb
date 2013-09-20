@@ -104,8 +104,18 @@ class Config
     end
   end
 
+  # Convert config to hash
+  def to_h
+    cp = Hash[@data]
+    cp.each { |k,v| cp[k] = v.to_h if v.is_a?(Config) }
+    cp
+  end
+
   # Return or set value of the config option specified by the name
   #   of a missing method invoked on the config object
+  #
+  # FIXME want to invoke methods such as enumerator methods (collect,each)
+  # on object itself
   def method_missing(sym, *args)
     if sym.to_s =~ /(.+)=$/
       self[$1] = args.first

@@ -186,7 +186,8 @@ module Omega
           raise ArgumentError, "galaxy nil" if @galaxy.nil?
 
           # initialize system
-          sargs = args.merge({:id => gen_uuid, :name => name,
+          sargs = args.merge({:id => args[:id] || gen_uuid,
+                              :name => name,
                               :galaxy => @galaxy})
           sys  = Cosmos::Entities::SolarSystem.new(sargs)
 
@@ -212,6 +213,25 @@ module Omega
         dsl.run sys, :solar_system => sys, &bl
 
         # return system
+        sys
+      end
+
+      # Create a reference to a system running on a remote node
+      #
+      # @param [String] id string id of the system
+      # @param [String] id of the remote node proxy\
+      #   (proxy must be setup for this id on the server side)
+      # @return [Cosmos::Entities::SolarSystem] Proxied Solar System created
+      def proxied_system(system_id, proxy_id, system_args={})
+        # TODO how to send request to proxied server so that
+        # system properties (name, location) can just be copied ?
+        sargs = system_args.merge({:id => system_id,
+                                   :proxy_to => proxy_id})
+        sys  = Cosmos::Entities::SolarSystem.new(sargs)
+
+        # create system
+        RJR::Logger.info "Creating proxy solar system #{sys} to #{proxy_id}"
+        invoke 'cosmos::create_entity', sys
         sys
       end
 

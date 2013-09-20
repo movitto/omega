@@ -73,6 +73,7 @@ class Registry
 
       # if required, parent_id is set and is valid reference
       (e.class::PARENT_TYPE == 'NilClass' ||
+        !e.proxy_to.nil? ||
        (!e.parent_id.nil? &&
         !r.find { |re| re.id == e.parent_id }.nil?) ) &&
 

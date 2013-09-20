@@ -212,6 +212,7 @@ module Omega
       #
       # @param [Cosmos::Entities::SolarSystem,Omega::Client::SolarSystem,String] system system or name of system which to jump to
       def jump_to(system)
+        # TODO should we refresh system anyways even if its a SolarSystem instance?
         system =
           node.invoke('cosmos::get_entity',
                       'with_id', system) if system.is_a?(String)

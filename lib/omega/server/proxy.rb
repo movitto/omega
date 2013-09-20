@@ -40,12 +40,13 @@ class ProxyNode
     def set_config(config)
       # create nodes for target by 'proxy_to' in config
       @nodes ||=
-        config.proxy_to.collect { |id, opts|
-          ProxyNode.new :id       => id,
+        config.proxy_to.to_h.collect { |id, opts| # XXX to_h needed,
+                                                  # see fixme in config class
+          ProxyNode.new :id       => id.to_s,
                         :node_id  => config.proxy_node_id,
-                        :user_id  => opts.user_id,
-                        :password => opts.password,
-                        :dst      => opts.dst
+                        :user_id  => opts[:user_id],
+                        :password => opts[:password],
+                        :dst      => opts[:dst]
         } if config.proxy_to
     end
   end

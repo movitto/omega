@@ -173,6 +173,18 @@ describe DSL do
     end
   end
 
+  describe "#proxied_system" do
+    it "creates the specified proxied system" do
+      s = proxied_system('system1', 'remote1',
+                           :name => 'system1')
+      s.should be_an_instance_of(Cosmos::Entities::SolarSystem)
+      s.id.should == 'system1'
+      s.name.should == 'system1'
+      s.proxy_to.should == 'remote1'
+      Cosmos::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+    end
+  end
+
   describe "#asteroid" do
     it "creates a new asteroid" do
       a = nil
