@@ -4,6 +4,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/server/proxy'
 require 'manufactured/rjr/init'
 
 module Manufactured::RJR
@@ -82,14 +83,14 @@ def move_entity_between_systems(entity, sys)
     raise OperationError, "#{entity} not by jump gate" unless near_jg
     raise OperationError, "#{entity} docked"           if entity.docked?
   end
-  
+
   # set parent and location
   # TODO set loc x, y, z to vicinity of reverse jump gate
   #       (gate to current system in destination system) if it exists ?
   entity.parent = sys
   entity.location.movement_strategy =
     Motel::MovementStrategies::Stopped.instance
-  
+
   # TODO add subscriptions to cosmos system
   #      to detect when ships jump in / out
   
@@ -98,8 +99,23 @@ def move_entity_between_systems(entity, sys)
   node.invoke('motel::remove_callbacks', entity.location.id, 'movement')
   node.invoke('motel::remove_callbacks', entity.location.id, 'rotation')
 
-  # update registry entity
-  registry.update entity, &with_id(entity.id)
+  if !sys.proxy_to.nil?
+    proxy = Omega::Server::ProxyNode.with_id(sys.proxy_to).login
+
+    # TODO invoke users::get with_id entity.user_id &
+    # if not present users::create_user ?
+    # or perhaps err out ('user not authorized to jump to remote system')?
+
+    proxy.invoke 'manufactured::create_entity', entity
+
+    # XXX remove entity from local registry
+    registry.delete &with_id(entity.id)
+    # FIXME also delete location from motel, remove related privs
+
+  else
+    # update registry entity
+    registry.update entity, &with_id(entity.id)
+  end
 
   nil
 end
@@ -128,6 +144,7 @@ move_entity = proc { |id, loc|
     rescue Exception => e ; raise DataNotFound, parent_id end
   raise ValidationError, parent unless parent.is_a?(Cosmos::Entities::SolarSystem)
   
+  # FIXME should go before parent retrieval above
   # update the entity's location & solar system
   entity.location =
     node.invoke('motel::get_location', 'with_id', entity.location.id)

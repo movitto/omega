@@ -45,6 +45,22 @@ users_rjr_pass: 'sresu'
 stats_rjr_user: 'stats'
 stats_rjr_pass: 'stats'
 
+# additional users that will be created / granted
+# privileges on server startup
+#additional_users:
+#  -
+#    user_id: 'user1'
+#    password: 'secret'
+#    permissions: [['view', 'cosmos_entities'], ['create', 'manufactured_entities']]
+
+# configurations for internal proxies to other server nodes
+#proxy_node_id: 'omega-proxy'
+#proxy_to:
+#  'remote-omega':
+#    dst: 'jsonrpc://localhost:8999'
+#    user_id:  'distsys1'
+#    password: '1systsid'
+
 email_enabled: true
 smtp_host: 'localhost'
 smtp_from_address: 'mo@morsi.org'

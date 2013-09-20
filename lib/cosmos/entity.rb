@@ -22,6 +22,10 @@ module Entity
     @location.movement_strategy = strategy unless @location.nil?
   end
 
+  # If set to remote node, server will proxy operations relavent
+  # to this entity to the specified node
+  attr_accessor :proxy_to
+
   # ID of parent to which entity belongs
   attr_accessor :parent_id
 
@@ -55,6 +59,7 @@ module Entity
     attr_from_args args, :id            => nil,
                          :name          => nil,
                          :location      => nil,
+                         :proxy_to      => nil,
                          :parent_id     => nil,
                          :parent        => nil,
                          :children      =>  [],
@@ -89,7 +94,11 @@ module Entity
 
     !@id.nil? && @id.is_a?(String) && @id   != "" &&
     !@name.nil? && @name.is_a?(String) && @name != "" &&
-    (self.class::PARENT_TYPE == 'NilClass' || !@parent_id.nil?) &&
+
+    (self.class::PARENT_TYPE == 'NilClass' ||
+       !@proxy_to.nil? || !@parent_id.nil?   ) &&
+    # TODO also verify parenti_id and proxy_to aren't both set?
+
     (@parent.nil? || @parent.class.to_s.demodulize == self.class::PARENT_TYPE) &&
     !@location.nil? && @location.is_a?(Motel::Location) && @location.valid? &&
      ch.is_a?(Array) &&
@@ -155,7 +164,8 @@ module Entity
      :location  => @location,
      :children  => @children,
      :metadata  => @metadata,
-     :parent_id => @parent_id
+     :parent_id => @parent_id,
+     :proxy_to  => @proxy_to
     }
   end
 

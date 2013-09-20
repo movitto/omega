@@ -49,6 +49,7 @@ describe Entity do
     it "sets default entity values" do
       @e.init_entity
       @e.id.should be_nil
+      @e.proxy_to.should be_nil
       @e.parent_id.should be_nil
       @e.parent.should be_nil
       @e.children.should == []
@@ -61,12 +62,14 @@ describe Entity do
       c = Entities::Planet.new
       @e .init_entity :location => l,
                       :id => 42,
+                      :proxy_to => 'amqp://remote-omega',
                       :parent_id => p.id,
                       :parent => p,
                       :children => [c],
                       :metadata => { :foo => :bar}
       @e.location.should == l
       @e.id.should == 42
+      @e.proxy_to.should == 'amqp://remote-omega'
       @e.parent_id.should == p.id
       @e.parent.should == p
       @e.children.should == [c]
@@ -137,9 +140,10 @@ describe Entity do
       end
     end
   
-    context "parent_id is nil" do
+    context "parent_id and proxy_to are nil" do
       it "returns false" do
         @e.parent_id  = nil
+        @e.proxy_to   = nil
         @e.entity_valid?.should be_false
       end
     end
@@ -162,6 +166,14 @@ describe Entity do
       it "returns false" do
         @e.children = [:foo]
         @e.entity_valid?.should be_false
+      end
+    end
+
+    context "parent_id is nil but proxy_to is set" do
+      it "returns true" do
+        @e.parent_id  = nil
+        @e.proxy_to   = 'jsonrpc://localhost:8999'
+        @e.entity_valid?.should be_true
       end
     end
   
@@ -358,12 +370,14 @@ describe Entity do
       @e.children = [c]
       @e.metadata = { :foo => 'bar' }
       @e.parent_id = 'parent'
+      @e.proxy_to = 'ws://localhost:7777'
       @e.entity_json.should == {:id => 'foo',
                                 :name => 'bar',
                                 :location => @e.location,
                                 :children => @e.children,
                                 :metadata => { :foo => 'bar' },
-                                :parent_id => 'parent'}
+                                :parent_id => 'parent',
+                                :proxy_to => 'ws://localhost:7777'}
     end
   end
 end # module Entity

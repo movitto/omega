@@ -31,7 +31,7 @@ class Config
    CONFIG_CLASSES = [Cosmos::RJR, Manufactured::RJR,
                      Missions::RJR, Stats::RJR, 
                      Users::RJR, Users::Registry,
-                     Users::EmailHelper]
+                     Users::EmailHelper, Omega::Server::ProxyNode]
 
   # Instantiate new Config instance and load values from the config files
   #

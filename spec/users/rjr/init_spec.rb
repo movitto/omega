@@ -121,6 +121,51 @@ module Users::RJR
       dispatch_users_rjr_init(@d)
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
+
+    context "additional users configured" do
+      before(:each) do
+        @au1 = {:user_id  => 'foo',
+                :password => 'oof',
+                :permissions => [['view', 'cosmos_entities'], ['modify']]}
+        @au2 = {:user_id  => 'bar',
+                :password => 'rab'}
+        Users::RJR.additional_users = [@au1, @au2]
+      end
+
+      it "creates the additional users" do
+        dispatch_users_rjr_init(@d)
+        ru1 = Users::RJR.registry.proxy_for(&with_id('foo'))
+        ru2 = Users::RJR.registry.proxy_for(&with_id('bar'))
+
+        ru1.should_not be_nil
+        ru1.valid_login?('foo', 'oof').should be_true
+
+        ru2.should_not be_nil
+        ru2.valid_login?('bar', 'rab').should be_true
+      end
+
+      context "an additional user exists" do
+        it "does not raise error, creates other users" do
+          Users::RJR.registry << Users::User.new(:id => 'foo')
+          Users::RJR.registry << Users::Role.new(:id => 'user_role_foo')
+          lambda{
+            dispatch_users_rjr_init(@d)
+          }.should_not raise_error
+
+          ru2 = Users::RJR.registry.proxy_for(&with_id('bar'))
+          ru2.should_not be_nil
+          ru2.valid_login?('bar', 'rab').should be_true
+        end
+      end
+
+      it "adds permissions to users" do
+        dispatch_users_rjr_init(@d)
+        ru1 = Users::RJR.registry.entity(&with_id('foo'))
+
+        ru1.has_privilege?('modify').should be_true
+        ru1.has_privilege_on?('view', 'cosmos_entities').should be_true
+      end
+    end
   end
 
 end # module Users::RJR

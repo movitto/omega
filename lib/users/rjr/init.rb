@@ -46,6 +46,9 @@ module Users::RJR
   # Password to use to communicate w/ other modules over the local rjr node
   attr_accessor :users_rjr_password
 
+  # List of additional users to create
+  attr_accessor :additional_users
+
   # @!endgroup
   end
 
@@ -61,6 +64,7 @@ module Users::RJR
     self.permenant_users    = config.permenant_users
     self.users_rjr_username = config.users_rjr_user
     self.users_rjr_password = config.users_rjr_pass
+    self.additional_users   = config.additional_users
   end
 
 def self.user
@@ -118,4 +122,24 @@ def dispatch_users_rjr_init(dispatcher)
 
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
+
+  # create configured users w/ configured permissions
+  Users::RJR::additional_users.each { |user|
+    nuser = Users::User.new :id => user[:user_id],
+                            :password => user[:password],
+                            :registration_code => nil
+    begin rjr.node.invoke('users::create_user', nuser)
+    rescue Exception => e ; end
+
+    role_id = "user_role_#{nuser.id}"
+    user[:permissions].each { |permission_entity|
+      permission = permission_entity.first
+      entity     = permission_entity.size > 1 ? permission_entity[1] : nil
+      if entity.nil?
+        rjr.node.invoke('users::add_privilege', role_id, permission)
+      else
+        rjr.node.invoke('users::add_privilege', role_id, permission, entity)
+      end
+    } if user[:permissions]
+  } if Users::RJR::additional_users
 end

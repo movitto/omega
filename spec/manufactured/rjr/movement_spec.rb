@@ -169,10 +169,46 @@ module Manufactured::RJR
       move_entity_between_systems(@sh, @nsys)
     end
 
-    it "updates registry entity" do
-      @registry.should_receive(:update).with(@sh).and_call_original
-      move_entity_between_systems(@sh, @nsys)
-      @rsh.system_id.should == @nsys.id
+    context "system.proxy_to is set" do
+      before(:each) do
+        @nsys.proxy_to = 'remote-server'
+        @p = Omega::Server::ProxyNode.new :dst => 'jsonrpc://localhost:8888'
+        @p.stub(:login).and_return(@p)
+        @p.stub(:invoke)
+      end
+
+      it "retreives specified proxy" do
+        Omega::Server::ProxyNode.should_receive(:with_id).
+                                 with('remote-server').and_return(@p)
+        move_entity_between_systems(@sh, @nsys)
+      end
+
+      it "logs in using proxy" do
+        Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
+                                 
+        @p.should_receive(:login)
+        move_entity_between_systems(@sh, @nsys)
+      end
+
+      it "invokes manufactured::create_entity with proxy" do
+        Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
+        @p.should_receive(:invoke).with('manufactured::create_entity', @sh)
+        move_entity_between_systems(@sh, @nsys)
+      end
+
+      it "deletes entity from registry" do
+        Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
+        registry.should_receive(:delete) # TODO test selector
+        move_entity_between_systems(@sh, @nsys)
+      end
+    end
+
+    context "system.proxy_to is not set" do
+      it "updates registry entity" do
+        @registry.should_receive(:update).with(@sh).and_call_original
+        move_entity_between_systems(@sh, @nsys)
+        @rsh.system_id.should == @nsys.id
+      end
     end
   end # describe #move_entity_between_systems
 
