@@ -375,7 +375,7 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_commands }
   def run_commands
-    self.proxies_for { |e| e.kind_of?(Command) }.
+    self.entities { |e| e.kind_of?(Command) }.
       each   { |cmd|
         begin
           # registry/node isn't serialized w/ other
@@ -392,7 +392,7 @@ module Registry
           end
 
           # subsequent commands w/ the same id will break
-          # system if command updates is removed from
+          # system if command updated is removed from
           # the registry here, use check_command below 
           # to mitigate this
           if cmd.remove?
@@ -404,11 +404,13 @@ module Registry
             delete { |e| e.id == cmd.id &&   # find registry cmd and
                          e.last_ran_at     } # ensure it hasn't been
                                              # swapped out / already deleted
+          else
+            self << cmd
           end
 
 
         rescue Exception => err
-          RJR::Logger.warn "error in command #{cmd}: #{err}"
+          RJR::Logger.warn "error in command #{cmd}: #{err} : #{err.backtrace.join("\n")}"
         end
       }
 
@@ -423,8 +425,15 @@ module Registry
     @lock.synchronize {
       rcommands = @entities.select { |e| e.id == command.id }
       if rcommands.size > 1
+        # keep last one that was added
+        ncommand = rcommands.last
+
+        # unless one has an added_at timestamp at at later date
+        rcommands.sort! { |c1,c2| c1.added_at <=> c2.added_at }
+        ncommand = rcommands.last if rcommands.last.added_at > ncommand.added_at
+
         @entities -= rcommands
-        @entities << rcommands.last
+        @entities << ncommand
       end
     }
   end

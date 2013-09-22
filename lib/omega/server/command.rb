@@ -24,6 +24,9 @@ class Command
   # Special flag, indicates if 'first' hooks was called
   attr_accessor :ran_first_hooks
 
+  # Time command was added to the registry
+  attr_accessor :added_at
+
   # Time of last time command was run
   attr_accessor :last_ran_at
 
@@ -42,6 +45,7 @@ class Command
   def initialize(args = {})
     attr_from_args args, :id              => nil,
                          :exec_rate       => nil,
+                         :added_at        => Time.now.to_s, # XXX .to_s needed so time comparisons are acurate
                          :last_ran_at     => nil,
                          :ran_first_hooks => false,
                          :hooks =>  {:first  => [proc { self.first_hook  }],
@@ -49,12 +53,14 @@ class Command
                                      :after  => [proc { self.after_hook  }],
                                      :last   => [proc { self.last_hook   }]}
 
+    @added_at    = Time.parse(@added_at)    if @added_at.is_a?(String)
     @last_ran_at = Time.parse(@last_ran_at) if @last_ran_at.is_a?(String)
     #\@id = \@id.intern if \@id.is_a?(String)
   end
 
+  # TODO this needed?
   def update(cmd)
-    update_from(cmd, :ran_first_hooks, :last_ran_at, :exec_rate)
+    update_from(cmd, :ran_first_hooks, :added_at, :last_ran_at, :exec_rate)
   end
 
   # 'first' hook definition
@@ -107,6 +113,7 @@ class Command
     {:id              => id,
      :exec_rate       => exec_rate,
      :ran_first_hooks => ran_first_hooks,
+     :added_at        => added_at,
      :last_ran_at     => last_ran_at}
    end
 
