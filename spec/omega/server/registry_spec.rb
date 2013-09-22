@@ -652,7 +652,7 @@ describe Registry do
   describe "#run_commands" do
     before(:each) do
       @c = Command.new
-      @registry << @c
+      @registry.stub(:entities).and_return([@c])
     end
 
     it "sets registry on command" do
