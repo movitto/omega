@@ -283,6 +283,7 @@ function _jump_gate_render_details(){
 /* JumpGate::clicked_in method
  */
 function _jump_gate_clicked_in(scene){
+  var jg = this;
   this.selected = true;
 
   $('#cmd_trigger_jg').die();

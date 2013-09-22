@@ -167,6 +167,7 @@ function _station_render_details(){
 /* Station::clicked_in method
  */
 function _station_clicked_in(scene){
+  var station = this;
   $('#cmd_construct').die();
   $('#cmd_construct').live('click', function(e){
     Commands.construct_entity(station,

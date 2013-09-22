@@ -339,17 +339,20 @@ output.tests    = run_tests(output)
 
 # periodically sync entities & resources
 EventMachine.add_periodic_timer(5) {
-  # FIXME: refresh
-  #output.users.each    { |u|
-  #  # FIXME won't get new ships / stations
-  #  u.get
-  #  u.ships.each    { |s| s.get }
-  #  u.stations.each { |s| s.get }
-  #}
-  #output.galaxies.each { |g| g.get }
-  output.tests = run_tests(output)
-
-  output.refresh
+  # XXX need to use thread so as
+  # not to hold up reactor
+  Thread.new{
+    # FIXME: refresh
+    #output.users.each    { |u|
+    #  # FIXME won't get new ships / stations
+    #  u.get
+    #  u.ships.each    { |s| s.get }
+    #  u.stations.each { |s| s.get }
+    #}
+    #output.galaxies.each { |g| g.get }
+    output.tests = run_tests(output)
+    output.refresh
+  }
 }
 
 output.handle_input # blocks

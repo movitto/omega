@@ -16,8 +16,8 @@ $(document).ready(function(){
     console.log(e);
 
     // show login & registration errors in an alert box
-    if(e['error']['class'] == 'Omega::DataNotFound' &&
-       e['error']['message'].slice(0,4) == "user")
+    if(e['error']['class'] == 'Omega::DataNotFound')
+       // && e['error']['message'].slice(0,4) == "user")
          alert(e['error']['message']);
 
     else if(e['error']['class'] == 'ArgumentError' &&
