@@ -65,6 +65,8 @@ module Manufactured::RJR
 
   describe "#reset" do
     it "clears manufactured registry" do
+      setup_manufactured
+
       sys = create(:solar_system)
       loc = create(:location, :parent_id => sys.location.id)
       Manufactured::RJR.registry << build(:valid_ship, :location => loc, :solar_system => sys)
