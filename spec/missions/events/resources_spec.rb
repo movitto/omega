@@ -12,31 +12,71 @@ module Missions
 module Events
 describe PopulateResource do
   describe "#handle_event" do
+    before(:each) do
+      @a = Cosmos::Entities::Asteroid.new :id => 'ast'
+      @r = Cosmos::Resource.new :type => 'metal', :name => 'steel'
+      @e = PopulateResource.new :entity => @a, :resource => @r, :quantity => 50
+    end
+
     context "resource == :random" do
-      it "picks random resource"
+      it "picks random resource" do
+        Missions::RJR.node.should_receive(:invoke) # stub out invoke
+
+        @e.resource = :random
+
+        rs = [1,2,3]
+        @e.stub!(:rand).with(3).and_return(1)
+        rs.should_receive(:[]).with(1).and_return(@r)
+        @e.from_resources = rs
+
+        @e.send :handle_event
+        @e.resource.should == @r
+      end
     end
 
     context "entity == :random" do
-      it "picks random entity"
+      it "picks random entity" do
+        Missions::RJR.node.should_receive(:invoke) # stub out invoke
+
+        @e.entity = :random
+
+        as = [1,2,3]
+        @e.stub!(:rand).with(3).and_return(1)
+        as.should_receive(:[]).with(1).and_return(@a)
+        @e.from_entities = as
+
+        @e.send :handle_event
+        @e.entity.should == @a
+        @e.resource.entity_id.should == @a.id
+      end
     end
 
     context "quantity == :random" do
-      it "picks random quantity"
+      it "picks random quantity" do
+        Missions::RJR.node.should_receive(:invoke) # stub out invoke
+
+        @e.quantity = :random
+        @e.stub!(:rand).
+               with(PopulateResource::DEFAULT_QUANTITY).
+               and_return(42)
+
+        @e.send :handle_event
+        @e.quantity.should == 42
+        @e.resource.quantity.should == 42
+      end
     end
 
     it "sets resources" do
-      a = Cosmos::Entities::Asteroid.new :id => 'ast'
-      r = Cosmos::Resource.new
-      e = PopulateResource.new :entity => a, :resource => r, :quantity => 50
       Missions::RJR.node.should_receive(:invoke).
                          with { |m,r|
                            m.should == 'cosmos::set_resource'
                            r.should be_an_instance_of(Cosmos::Resource)
                            r.id.should_not be_nil
-                           r.entity_id.should == a.id
+                           r.entity_id.should == @a.id
+                           r.material_id.should == @r.material_id
                            r.quantity.should == 50
                          }
-      e.send :handle_event
+      @e.send :handle_event
     end
   end
 

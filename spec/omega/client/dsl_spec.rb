@@ -28,14 +28,51 @@ describe DSL do
   end
 
   describe "#login" do
-    it "logs the node in"
-    it "sets session id on node"
+    it "logs the node in" do
+      create(:user, :id => 'foo', :password => 'bar')
+      login('foo', 'bar')
+      s = Users::RJR.registry.entities.last
+      s.should be_an_instance_of(Users::Session)
+      s.user.id.should == 'foo'
+    end
+
+    it "sets @session" do
+      create(:user, :id => 'foo', :password => 'bar')
+      login('foo', 'bar')
+      @session.should_not be_nil
+      @session.user.id.should == 'foo'
+    end
+
+    it "sets session id on node" do
+      create(:user, :id => 'foo', :password => 'bar')
+      login('foo', 'bar')
+      s = Users::RJR.registry.entities.last
+      s.id.should == @n.message_headers['session_id']
+    end
   end
 
   describe "#logout" do
-    it "logs out the session"
-    it "sets session to nil"
-    it "sets nodes session id to nil"
+    before(:each) do
+      create(:user, :id => 'foo', :password => 'bar')
+      login('foo', 'bar')
+    end
+
+    it "logs out the session" do
+      logout
+      Users::RJR.registry.entity { |e|
+        e.is_a?(Users::Session) && e.user.id == 'foo'
+      }.should be_nil
+    end
+
+    it "sets session to nil" do
+      logout
+      @session.should be_nil
+    end
+
+    it "sets nodes session id to nil" do
+      logout
+      @n.message_headers['session_id'].should be_nil
+    end
   end
 
   describe "#user" do
@@ -115,7 +152,16 @@ describe DSL do
         Cosmos::RJR.registry.entity(&with_id(s.id)).should_not be_nil
       end
 
-      it "creates star"
+      it "creates star" do
+        s = nil
+        galaxy('ngal1') { |g|
+          s = system('system1', 'star1')
+        }
+        st = Cosmos::RJR.registry.entity { |e| e.name == 'star1'}
+        st.should_not be_nil
+        st.should be_an_instance_of(Cosmos::Entities::Star)
+        st.parent_id.should == s.id
+      end
 
       context "no galaxy is set" do
         it "raises ArgumentError" do
@@ -326,8 +372,15 @@ describe DSL do
   end
 
   describe DSL::Base do
+    before(:each) do
+      @b = DSL::Base.new
+    end
+
     describe "#rjr_node=" do
-      it "sets rjr node on client"
+      it "sets rjr node on client" do
+        @b.rjr_node = @n
+        @b.node.rjr_node.should == @n
+      end
     end
 
     describe "#join" do

@@ -107,7 +107,12 @@ module Manufactured::RJR
     end
 
     context "rjr connection closed" do
-      it "removes callback from entity"
+      it "removes callback from entity" do
+        @s.subscribe_to @sh.id, 'resource_collected'
+        lambda{
+          @n.send :connection_event, :closed
+        }.should change{@rsh.callbacks.size}.by(-1)
+      end
     end
 
     it "removes old callback for event_type/endpoint" do

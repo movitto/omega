@@ -142,7 +142,15 @@ describe Ship do
       end
     end
 
-    it "sets type based attributes"
+    it "sets type based attributes" do
+      Ship.should_receive(:base_hp).with(:corvette).and_return(50)
+      Ship.should_receive(:base_hp).with(:mining).and_return(100)
+      s1 = Ship.new :type => :corvette
+      s2 = Ship.new :type => :mining
+      s1.hp.should == 50
+      s2.hp.should == 100
+      # TODO test other type based attrs
+    end
   end
 
   describe "#update" do

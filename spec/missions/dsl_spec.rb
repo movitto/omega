@@ -368,11 +368,43 @@ module DSL
         Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m)
       end
 
-      it "handles multiple entities / handlers"
+      it "handles multiple entities / handlers" do
+        sh = build(:ship)
+        handler1 = proc { |m, n, e| }
 
-      it "handles multiple entities retrieved from mission data"
+        @node.stub(:invoke) # stub out invoke
+        @m.mission_data['ship1'] = build(:ship, :id => 'ship1')
+        Assignment.subscribe_to(['ship1', sh], 'destroyed',
+                                [@handler, handler1] ).call(@m)
+        sh1 = Missions::RJR.registry.safe_exec{ |es|
+                es.find { |e| e.event_id == 'ship1_destroyed'} }
+        sh2 = Missions::RJR.registry.safe_exec{ |es|
+                es.find { |e| e.event_id == sh.id + '_destroyed'} }
+        sh1.should_not be_nil
+        sh2.should_not be_nil
+
+        e = Omega::Server::Event.new 
+        @handler.should_receive(:call).with(@m, e).exactly(2).times
+        handler1.should_receive(:call).with(@m, e).exactly(2).times
+        sh1.handlers.first.call e
+        sh2.handlers.first.call e
+      end
+
+      it "handles multiple entities retrieved from mission data" do
+        @node.stub(:invoke) # stub out invoke
+        @m.mission_data['ship1'] = [build(:ship, :id => 'ship1'),
+                                    build(:ship, :id => 'ship2')]
+        Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m)
+
+        sh1 = Missions::RJR.registry.entity{ |e| e.event_id == 'ship1_destroyed'}
+        sh2 = Missions::RJR.registry.entity{ |e| e.event_id == 'ship1_destroyed'}
+        sh1.should_not be_nil
+        sh2.should_not be_nil
+      end
 
       it "adds events handler for manufactured event" do
+        @node.stub(:invoke) # stub out invoke
+
         @node.should_receive(:invoke)
         @m.mission_data['ship1'] = build(:ship, :id => 'ship1')
         Assignment.subscribe_to('ship1', 'destroyed', @handler ).call(@m)
