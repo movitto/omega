@@ -75,10 +75,16 @@ pavlov.specify("omega.js", function(){
 
   describe("login_anon", function(){
     after(function(){
+      if(Entities().node.restore) Entities().node.restore();
       if(Session.login.restore) Session.login.restore();
     })
 
-    // it("sets global node");  // NIY
+    it("sets global node", function(){
+      var spy = sinon.spy(Entities(), 'node');
+      var node = new TestNode();
+      login_anon(node);
+      sinon.assert.calledWith(spy, node);
+    });
 
     it("logs in anon user using session", function(){
       var spy = sinon.spy(Session, 'login');
@@ -87,7 +93,17 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(spy, User.anon_user, n);
     });
 
-    //it("invokes callbacks on login")
+    it("invokes callbacks on login", function(){
+      var spy = sinon.spy(Session, 'login');
+      var spy2 = sinon.spy();
+
+      var n = new TestNode()
+      login_anon(n, spy2);
+
+      var cb = spy.getCall(0).args[2];
+      cb.apply(null, []);
+      sinon.assert.called(spy2);
+    });
   });
 
   describe("#session_established", function(){
@@ -226,7 +242,13 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(spy, 'location-5', s.location);
     })
 
-    // it("appends location- prefix to location registry id"); // NIY
+    it("appends location- prefix to location registry id", function(){
+      var s = new Ship({id : 'ship1', location : new Location({id : 5})})
+      process_entity(complete_ui(), new TestNode(), s);
+      var e = Entities().get('location-5');
+      assert(e).isNotNull();
+      assert(e.id).equals(5);
+    });
 
     it("adds entity to entities container", function(){
       var ui = complete_ui();
@@ -237,7 +259,6 @@ pavlov.specify("omega.js", function(){
         sinon.match({ text : s.id, id : "entities_container-" + s.id }).and(
         sinon.match(function(v) { return v.item.id == s.id })
         ));
-                                     
     })
 
     it("shows entities container", function(){
@@ -357,22 +378,31 @@ pavlov.specify("omega.js", function(){
     });
 
     describe("system loaded", function(){
-      it("sets entity solar system", function(){
+      var sh, sys, cb;
+
+      before(function(){
         var u = complete_ui();
         var n = new TestNode();
-        var s = new Ship({ id : 'ship1',
-                           system_id : 'sys1',
-                           location : new Location({id : 'l42' }) });
+        sh = new Ship({ id : 'ship1',
+                        system_id : 'sys1',
+                        location : new Location({id : 'l42' }) });
         load_system = sinon.spy(load_system);
-        process_entity(u, n, s);
+        process_entity(u, n, sh);
 
-        var sys = new SolarSystem();
-        var cb = load_system.getCall(0).args[3];
+        sys = new SolarSystem();
+        cb = load_system.getCall(0).args[3];
+      })
+
+      it("sets entity solar system", function(){
         cb.apply(null, [sys]);
-        assert(s.solar_system).equals(sys);
+        assert(sh.solar_system).equals(sys);
       });
 
-      // it("refreshes entity"); NIY
+      it("refreshes entity", function(){
+        var spy = sinon.spy(sh, 'refresh');
+        cb.apply(null, [sys]);
+        sinon.assert.called(spy);
+      });
     });
   });
 
@@ -438,6 +468,7 @@ pavlov.specify("omega.js", function(){
         sinon.assert.called(spy);
       });
     });
+
     describe("entity selected", function(){
       it("refreshes entity container", function(){
         entity.selected = true;
@@ -710,9 +741,21 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    //context("one of affected entities is currently selected", function(){
-    //  it("refreshes entity container"); // NIY
-    //})
+    describe("one of affected entities is currently selected", function(){
+      after(function(){
+        if(refresh_entity_container.restore) refresh_entity_container.restore();
+      })
+
+      it("refreshes entity container", function(){
+        miner.selected = true;
+        var nminer = { id : miner.id };
+
+        refresh_entity_container = sinon.spy(refresh_entity_container);
+        manufactured_event(ui, node,
+          [null, 'resource_collected', nminer, {}, 50])
+        sinon.assert.calledWith(refresh_entity_container, ui, node, miner);
+      })
+    })
   });
 
   //describe("#process_stats", function(){ // NIY
@@ -1114,15 +1157,45 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    //describe("on transfer command", function(){
-      //it("updates ship"); // NIY
-      //it("updates station"); // NIY
-      //it("refreshes entity container") // NIY
-    //})
+    describe("on transfer command", function(){
+      var cb, st;
+
+      before(function(){
+        clicked_ship(ui, node, ship);
+        cb = ship.callbacks['cmd_transfer'][0];
+
+        st = new Station({ user_id : 'user1',
+                           location : new Location({x:0,y:0,z:0}) });
+        Entities().set(st.id, st);
+      })
+
+      after(function(){
+        if(refresh_entity_container.restore) refresh_entity_container.restore();
+      })
+
+      it("updates ship", function(){
+        var spy = sinon.spy(ship, 'update');
+        cb.apply(null, ['cmd_transfer', ship, st]);
+        sinon.assert.calledWith(spy, ship)
+      });
+
+      it("updates station", function(){
+        var spy = sinon.spy(st, 'update');
+        cb.apply(null, ['cmd_transfer', ship, st]);
+        sinon.assert.calledWith(spy, st)
+      });
+
+      it("refreshes entity container", function(){
+        refresh_entity_container = sinon.spy(refresh_entity_container);
+        cb.apply(null, ['cmd_transfer', ship, st]);
+        sinon.assert.calledWith(refresh_entity_container, ui, node, ship);
+      });
+    })
   });
 
-  //describe("#clicked_station", function(){ // NIY
+  //describe("#clicked_station", function(){
   //});
+
   //describe("#load_system", function(){ // NIY
   //});
   //describe("#load_galaxy", function(){ // NIY
@@ -1247,6 +1320,10 @@ pavlov.specify("omega.js", function(){
     });
 
     describe("on register link click", function(){
+      after(function(){
+        if(Recaptcha.create.restore) Recaptcha.create.restore();
+      })
+
       it("pops up register dialog", function(){
         wire_up_nav(ui, node);
         var cb = ui.nav_container.register_link.callbacks['click'][0];
@@ -1257,7 +1334,13 @@ pavlov.specify("omega.js", function(){
         assert(ui.dialog.selector).equals('#register_dialog')
       });
 
-      //it("generates recpatcha"); // NIY
+      it("generates recpatcha", function(){
+        var spy = sinon.spy(Recaptcha, 'create')
+        wire_up_nav(ui, node);
+        var cb = ui.nav_container.register_link.callbacks['click'][0];
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, $omega_config.recaptcha_pub, "registration_recaptcha")
+      });
     });
 
     it("handles register button click event", function(){
@@ -1425,7 +1508,7 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  //describe("#wire_up_jplayer", function(){ // NIY ?
+  //describe("#wire_up_audio_player", function(){ // NIY ?
   //});
 
   describe("#wire_up_entities_lists", function(){
@@ -1507,17 +1590,57 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    //describe("on assign mission click", function(){
-    //  describe("error during mission assignment", function(){
-    //    it("shows error in dialog", function(){ // NIY
-    //    });
-    //  });
+    describe("on assign mission click", function(){
+      var cb;
 
-    //  describe("successful mission assignment", function(){
-    //    it("updates registry entity") // NIY
-    //    it("hides dialog"); // NIY
-    //  });
-    //});
+      before(function(){
+        Session.current_session = { user_id : 'foobar' };
+
+        var spy = sinon.spy(Commands, 'assign_mission');
+        wire_up_entities_lists(ui, node);
+
+        $('#qunit-fixture').append("<div class='assign_mission'></div>")
+        $('.assign_mission').trigger('click')
+        cb = spy.getCall(0).args[2];
+      })
+
+      after(function(){
+        Commands.assign_mission.restore();
+      })
+
+      describe("error during mission assignment", function(){
+        it("shows error in dialog", function(){
+          ui.dialog.show = sinon.spy(ui.dialog, 'show')
+          cb.apply(null, [{error : {message : 'foo'}}])
+
+          sinon.assert.called(ui.dialog.show)
+          assert(ui.dialog.title).equals('Could not assign mission')
+          assert(ui.dialog.text).equals('foo');
+        });
+      });
+
+      describe("successful mission assignment", function(){
+        var m;
+
+        before(function(){
+          m = new Mission({id : 'mid'})
+          Entities().set('mid', m)
+        })
+
+        it("updates registry entity", function(){
+          var spy = sinon.spy(m, 'update')
+          var result = {id : 'mid'};
+          cb.apply(null, [{result : result}]);
+          sinon.assert.called(spy, result)
+        });
+
+        it("hides dialog", function(){
+          ui.dialog.hide = sinon.spy(ui.dialog, 'hide')
+          cb.apply(null, [{result : {id : 'mid'}}]);
+          sinon.assert.called(ui.dialog.hide)
+        });
+      });
+    });
   });
 
   describe("#set_scene", function(){
@@ -1611,9 +1734,21 @@ pavlov.specify("omega.js", function(){
           sinon.assert.calledWith(spy, sys.planets[p].location.id);
       });
 
-      //describe("on planet movement event", function(){ // NIY
-      //  it("raises motel event");
-      //});
+      describe("on planet movement event", function(){
+        after(function(){
+          if(motel_event.restore) motel_event.restore();
+        })
+
+        it("raises motel event", function(){
+          motel_event = sinon.spy(motel_event)
+          set_scene(ui, node, sys);
+
+          var pl = sys.planets[0];
+          Entities().set(pl.id, pl)
+          pl.location.raise_event('motel::on_movement', {id : pl.id});
+          sinon.assert.called(motel_event)
+        });
+      });
     });
   });
 
@@ -1791,7 +1926,11 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-    //it("starts particle timer") // NIY
+    it("starts particle timer", function(){
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.particle_timer, 'play')
+      wire_up_canvas(ui, node);
+      sinon.assert.called(spy);
+    });
   });
 
   describe("#wire_up_account_info", function(){
@@ -1839,9 +1978,23 @@ pavlov.specify("omega.js", function(){
         sinon.assert.calledWith(spy2, 'users::update_user')
       });
 
-      //describe("successful user update", function(){ // NIY
-      //  it("pops up an alert w/ confirmation");
-      //});
+      describe("successful user update", function(){
+        after(function(){
+          if(window.alert.restore) window.alert.restore();
+        })
+
+        it("pops up an alert w/ confirmation", function(){
+          // stub out window.alert
+          window.alert = sinon.stub(window, 'alert');
+
+          var spy = sinon.spy(node, 'web_request');
+          cb.apply(null, []);
+          var cb2 = spy.getCall(0).args[2];
+
+          cb2.apply(null, [{result : {}}])
+          sinon.assert.calledWith(window.alert, 'User undefined updated successfully');
+        });
+      });
     })
   });
 

@@ -388,7 +388,14 @@ describe("Planet", function(){
   before(function(){
     disable_three_js();
     m = { id : 'mn1' }
-    pl = new Planet({location : { id : 42 }, moons : [m]})
+    pl = new Planet({
+          location : {
+            id : 42,
+            movement_strategy : {
+              e : 0, p : 10, speed: 1.57,
+              dmajx: 1, dmajy : 0, dmajz : 0,
+              dminx: 0, dminy : 0, dminz : 1}},
+          moons : [m]})
   })
 
   after(function(){
@@ -429,8 +436,28 @@ describe("Planet", function(){
     });
   });
 
+  describe("#refresh", function(){
+    it("invokes update method with self", function(){
+      var spy = sinon.spy(pl, 'update');
+      pl.refresh();
+      sinon.assert.calledWith(spy, pl);
+    });
+  })
+
   //it("adds THREE clickable sphere component to entity"); // NIY
   //it("adds THREE line component to entity for orbit"); // NIY
+
+  it("sets planet orbit properties", function(){
+    assert(pl.a).equals(10);
+    assert(pl.b).equals(10);
+    assert(pl.le).equals(0);
+    assert(pl.cx).equals(0);
+    assert(pl.cy).equals(0);
+    assert(pl.cz).equals(0);
+    assert(roundTo(pl.rot_axis_angle, 2)).equals(1.57);
+    assert(pl.rot_axis).isSameAs([1,0,0]);
+  });
+
   //it("adds THREE spheres component to entity for moons"); // NIY
  
   describe("added to scene", function(){
@@ -450,11 +477,61 @@ describe("Planet", function(){
     });
   });
 
-  //describe("#planet_movement_cycle", function(){
-    //it("retrieves planets in current scene"); // NIY
-    //it("moves planets distance specified by movement strategy and last movement time") // NIY
-    //it("sets last movement on planet") // NIY
-  //})
+  describe("#planet_movement_cycle", function(){
+    var pl1, pl2;
+
+    before(function(){
+      disable_three_js();
+      pl1 = new Planet({location : { movement_strategy : {} }});
+      pl2 = new Planet({location : { movement_strategy : {} }});
+    })
+
+    after(function(){
+      reenable_three_js();
+      if(Entities().select.restore) Entities().select.restore();
+    })
+
+    it("retrieves planets", function(){ // TODO only in current scene
+      var spy = sinon.spy(Entities(), 'select');
+      _planet_movement_cycle();
+      sinon.assert.calledWith(spy,
+        sinon.match.func_domain(false, {json_class : 'Cosmos::Entities::Star'}).and(
+        sinon.match.func_domain(true,  {json_class : 'Cosmos::Entities::Planet'})));
+    });
+
+    it("moves planets", function(){
+      sinon.stub(Entities(), 'select').returns([pl1])
+      pl1.last_moved = new Date() - 1000;
+      pl1.location.x = pl1.location.y = 0 ; pl1.location.z = 10;
+      pl1.cx = pl1.cy = pl1.cz = 0
+      pl1.rot_axis_angle = 0;
+      pl1.rot_axis = [1, 0, 0]
+      pl1.a = 10 ; pl1.b = 10
+      pl1.location.movement_strategy.speed = -1.57
+
+      _planet_movement_cycle();
+      assert(roundTo(pl1.location.x,2)).equals(10);
+      assert(roundTo(pl1.location.y,2)).equals(0.01);
+      assert(pl1.location.z).equals(0);
+    });
+
+    it("refreshes planets", function(){
+      var spy1 = sinon.spy(pl1, 'refresh')
+      var spy2 = sinon.spy(pl2, 'refresh')
+      sinon.stub(Entities(), 'select').returns([pl1, pl2])
+      pl1.last_moved = pl2.last_moved = new Date();
+      _planet_movement_cycle();
+      sinon.assert.called(spy1);
+      sinon.assert.called(spy2);
+    });
+
+    it("sets last movement on planet", function(){
+      sinon.stub(Entities(), 'select').returns([pl1, pl2])
+      _planet_movement_cycle();
+      assert(pl1.last_moved).isNotNull();
+      // TODO verify date
+    });
+  })
 });}); // Planet
 
 pavlov.specify("Asteroid", function(){
@@ -499,29 +576,98 @@ describe("JumpGate", function(){
   //it("adds THREE particle system components to entity (effects)"); // NIY
   //it("adds THREE sphere component to entity (selection sphere)"); // NIY
 
-  //describe("added to scene", function(){
-  //  it("sets current scene"); // NIY
-  //});
-  //describe("removed from scene", function(){
-  //  it("sets current scene to null"); // NIY
-  //});
+  describe("added to scene", function(){
+    it("sets current scene", function(){
+      var scene = new Scene();
+      jg.added_to(scene)
+      assert(jg.current_scene).equals(scene);
+    });
+  });
 
-  //describe("clicked jump gate", function(){
-  //  it("sets selected true"); // NIY
-  //  it("removes old jump gate command callbacks"); // NIY
-  //  it("creates jump gate commands callback"); // NIY
-  //  describe("command trigger jump gate", function(){
-  //    it("invokes trigger jump gate command"); // NIY
-  //  });
-  //  it("sets clickable component to THREE selection sphere"); // NIY
-  //  it("reloads jump gate in scene"); // NIY
-  //})
+  describe("removed from scene", function(){
+    it("sets current scene to null", function(){
+      var scene = new Scene();
+      jg.added_to(scene)
+      jg.removed_from(scene);
+      assert(jg.current_scene).equals(null);
+    });
+  });
 
-  //describe("unselect jump gate", function(){
-  //  it("sets selected to false"); // NIY
-  //  it("reloads jump gate in scene"); // NIY
-  //  it("sets clickable component to THREE mesh"); // NIY
-  //});
+  describe("clicked jump gate", function(){
+    var trigger_cmd = '#cmd_trigger_jg';
+
+    before(function(){
+      $(document).die();
+    })
+
+    after(function(){
+      $(document).die();
+    })
+
+    it("sets selected true", function(){
+      var scene = new Scene();
+      jg.clicked_in(scene);
+      assert(jg.selected).equals(true);
+    });
+
+    it("refreshes jump gate command callback", function(){
+      var cb = function(){};
+      $(trigger_cmd).live('click', cb);
+
+      var scene = new Scene();
+      jg.clicked_in(scene);
+      var events = $.data(document, 'events')['click'];
+      assert(events.length).equals(1);
+      assert(events[0].selector).equals(trigger_cmd);
+      assert(events[0]).isNotEqualTo(cb);
+    });
+
+    describe("command trigger jump gate", function(){
+      after(function(){
+        if(Commands.trigger_jump_gate.restore)
+          Commands.trigger_jump_gate.restore();
+      })
+
+      it("invokes trigger jump gate command", function(){
+        var scene = new Scene();
+        jg.clicked_in(scene);
+
+        var spy = sinon.spy(Commands, 'trigger_jump_gate');
+
+        var cb = $.data(document, 'events')['click'][0];
+        cb.handler.apply(null, []);
+        sinon.assert.called(spy);
+      });
+    });
+
+    // it("sets clickable component to THREE selection sphere"); // NIY
+
+    it("reloads jump gate in scene", function(){
+      var scene = new Scene();
+      var spy = sinon.spy(scene, 'reload_entity')
+      jg.clicked_in(scene);
+      sinon.assert.calledWith(spy, jg);
+    });
+  })
+
+  describe("unselect jump gate", function(){
+    it("sets selected to false", function(){
+      var scene = new Scene();
+      jg.selected = true
+      jg.unselected_in(scene);
+      assert(jg.selected).equals(false);
+    });
+
+    it("reloads jump gate in scene", function(){
+      var scene = new Scene();
+      var spy = sinon.spy(scene, 'reload_entity');
+      jg.unselected_in(scene);
+      sinon.assert.calledWith(spy, jg);
+    });
+
+    //it("removes selection sphere from scene"); // NIY
+    //it("sets clickable component to THREE mesh"); // NIY
+  });
 });}); // JumpGate
 
 pavlov.specify("Ship", function(){
@@ -544,9 +690,17 @@ describe("Ship", function(){
     assert(sh.location).isTypeOf(Location)
   });
 
-  //describe("#resolve_mining_target", function(){
-    //it("resolves mining target from local registry") // NIY
-  //})
+  describe("#resolve_mining_target", function(){
+    it("retrieves mining target from local registry", function(){
+      var ast1 = new Asteroid({id : 'ast1'});
+      var ast2 = new Asteroid({id : 'ast2'});
+      var sys  = new SolarSystem({children : [ast1, ast2]});
+
+      Entities().set('system1', sys);
+      var mt = _ship_resolve_mining_target('system1', {entity_id : 'ast1'});
+      assert(mt).isSameAs(ast1);
+    });
+  })
 
   //describe("#resolve_attack_target", function(){
     //it("resolves attack target from local registry") // NIY (also in code)
@@ -556,10 +710,26 @@ describe("Ship", function(){
     //it("resolves defense target from local registry") // NIY (also in code)
   //})
 
-  //describe("#update", function(){
-  //  it("updates attributes"); // NIY
-  //  it("updates location"); // NIY
-  //  it("updates location movement strategy"); // NIY
+  describe("#update", function(){
+    it("updates attributes", function(){
+      var spy = sinon.spy(sh, 'old_update')
+      sh.update({ id : 'sh2'});
+      sinon.assert.calledWith(spy, {id : 'sh2'});
+    });
+
+    it("updates location", function(){
+      var spy = sinon.spy(sh.location, 'update');
+      var l = {id : 'loc1'}
+      sh.update({location : l})
+      sinon.assert.calledWith(spy, l)
+    });
+
+    it("updates location movement strategy", function(){
+      var l = {id : 'loc1', movement_strategy : 'ms'}
+      sh.update({location : l})
+      assert(sh.location.movement_strategy).equals('ms')
+    });
+
   //  it("updates THREE mesh location"); // NIY
   //  it("sets orientation on mesh") // NIY
   //  it("updates THREE particle system trails position") // NIY
@@ -584,13 +754,23 @@ describe("Ship", function(){
   //  context("ship is not selected", function(){
   //    it("resets ship emissive color"); // NIY
   //  });
-  //  it("reloads entity in scene"); // NIY
-  //  ... // NIY
-  //})
 
-  //describe("#refresh", function(){
-  //  it("invokes update method with self") // NIY
-  //})
+    it("reloads entity in scene", function(){
+      sh.current_scene = new Scene();
+      var spy = sinon.spy(sh.current_scene, 'reload_entity')
+      sh.update();
+      sinon.assert.calledWith(spy, sh);
+      // TODO ensure scene components marked to to be removed actually are
+    });
+  })
+
+  describe("#refresh", function(){
+    it("invokes update method with self", function(){
+      var spy = sinon.spy(sh, 'update');
+      sh.refresh();
+      sinon.assert.calledWith(spy, sh);
+    });
+  })
 
   describe("#belongs_to_user", function(){
     describe("user_id is same as specified user's", function(){
@@ -635,23 +815,91 @@ describe("Ship", function(){
     })
   });
 
-  //describe("ship clicked in scene", function(){
-  //  it("removes ship ui command callbacks"); // NIY
-  //  it("handles ship ui command callbacks"); // NIY
+  describe("ship clicked in scene", function(){
+    var cmds = ['#cmd_move_select', '#cmd_attack_select', '#cmd_dock_select',
+                '#cmd_mine_select', '#cmd_move', '.cmd_attack', '.cmd_dock',
+                '#cmd_undock', '#cmd_transfer', '.cmd_mine'];
+
+    before(function(){
+      $(document).die();
+    })
+
+    after(function(){
+      $(document).die();
+    })
+
+    it("refreshes ship ui command callbacks", function(){
+      var cb = function(){};
+      $(cmds).live('click', cb);
+
+      var scene = new Scene();
+      sh.clicked_in(scene);
+
+      var events = $.data(document, 'events')['click'];
+      assert(events.length).equals(7); //XXX some are grouped
+
+      var selectors = [];
+      for(var i = 0; i < events.length; i++){
+        var sselectors = events[i].selector.split(',');
+        for(var j = 0; j < sselectors.length; j++)
+          selectors.push(sselectors[j]);
+        assert(events[i].handler).isNotEqualTo(cb);
+      }
+
+      for(var i = 0; i < cmds.length; i++){
+        assert(selectors).includes(cmds[i])
+      }
+    });
+
   //  describe("on ship ui command", function(){
   //    it("raises event on ship"); // NIY
   //  });
-  //  // TODO test specific commands
-  //  it("sets selected true"); // NIY
-  //  it("refreshes entity"); // NIY
-  //  it("reloads entity in scene"); // NIY
-  //});
+  //  // TODO test specific commands NIY
+  //
+    it("sets selected true", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+        assert(sh.selected).equals(true);
+    });
 
-  //describe("ship unselected", function(){
-  //  it("sets selected to false"); // NIY
-  //  it("refreshes entity") // NIY
-  //  it("reloads entity in scene"); // NIY
-  //});
+    it("refreshes entity", function(){
+      var spy1 = sinon.spy(sh, 'refresh')
+      var scene = new Scene();
+      sh.clicked_in(scene);
+      sinon.assert.called(spy1);
+    });
+
+    it("reloads entity in scene", function(){
+      sh.current_scene = new Scene();
+      var spy = sinon.spy(sh.current_scene, 'reload_entity')
+      sh.update();
+      sinon.assert.calledWith(spy, sh);
+    });
+  });
+
+  describe("ship unselected", function(){
+    it("sets selected to false", function(){
+      var scene = new Scene();
+      sh.selected = true
+      sh.unselected_in(scene);
+      assert(sh.selected).equals(false);
+    });
+
+    it("refreshes entity", function(){
+      var spy1 = sinon.spy(sh, 'refresh')
+      var scene = new Scene();
+      sh.current_scene = scene;
+      sh.unselected_in(scene);
+      sinon.assert.called(spy1);
+    });
+
+    it("reloads entity in scene", function(){
+      sh.current_scene = new Scene();
+      var spy = sinon.spy(sh.current_scene, 'reload_entity')
+      sh.update();
+      sinon.assert.calledWith(spy, sh);
+    });
+  });
 
   //it("adds THREE clickable mesh component to entity"); // NIY
   //it("creates THREE particle system components for trails defined in ship type config") // NIY
@@ -731,12 +979,69 @@ describe("Ship", function(){
     })
   })
 
-  //describe("#ship_movement_cycle", function(){
-    //it("retrieves ships in current scene"); // NIY
-    //it("moves ships distance specified by movement strategy and last movement time") // NIY
-    //it("rotates ships distance specified by movement strategy and last movement time") // NIY
-    //it("sets last movement on planet") // NIY
-  //})
+  describe("#ship_movement_cycle", function(){
+    var sh1, sh2;
+
+    before(function(){
+      disable_three_js();
+      sh1 = new Ship({location : { movement_strategy : {} }});
+      sh2 = new Ship({location : { movement_strategy : {} }});
+    })
+
+    after(function(){
+      reenable_three_js();
+      if(Entities().select.restore) Entities().select.restore();
+    })
+
+    it("retrieves ship", function(){ // TODO only in current scene
+      var spy = sinon.spy(Entities(), 'select');
+      _ship_movement_cycle();
+      sinon.assert.calledWith(spy,
+        sinon.match.func_domain(false, {json_class : 'Manufactured::Station'}).and(
+        sinon.match.func_domain(true,  {json_class : 'Manufactured::Ship'})));
+    });
+
+    it("moves ships", function(){
+      sh1.last_moved = new Date() - 1000;
+      sh1.location.movement_strategy =
+        {json_class : 'Motel::MovementStrategies::Linear',
+         speed      : 10,
+         dx : 1, dy : 0, dz : 0}
+      sh1.location.x = sh1.location.y = sh1.location.z = 0;
+      sinon.stub(Entities(), 'select').returns([sh1])
+      _ship_movement_cycle();
+      assert(sh1.location.x).equals(10);
+      assert(sh1.location.y).equals(0);
+      assert(sh1.location.z).equals(0);
+    });
+
+    it("rotates ships", function(){
+      sh2.last_moved = new Date() - 1000;
+      sh2.location.orientation_x = 1;
+      sh2.location.orientation_y = 0;
+      sh2.location.orientation_z = 0;
+      sh2.location.movement_strategy =
+        {json_class : 'Motel::MovementStrategies::Rotate',
+         speed      : 1.57,
+         rot_x : 0, rot_y : 0, rot_z : 1, rot_theta : 1.57};
+
+      sinon.stub(Entities(), 'select').returns([sh2])
+      _ship_movement_cycle();
+      assert(roundTo(sh2.location.orientation_x,2)).equals(0);
+      assert(roundTo(sh2.location.orientation_y,2)).equals(1);
+      assert(sh2.location.orientation_z).equals(0);
+    });
+
+    it("sets last movement on ship", function(){
+      sh1.location.movement_strategy.json_class = 'Motel::MovementStrategies::Linear';
+      sh2.location.movement_strategy.json_class = 'Motel::MovementStrategies::Rotate';
+      sinon.stub(Entities(), 'select').returns([sh1, sh1])
+      _ship_movement_cycle();
+      assert(sh1.last_moved).isNotNull();
+      assert(sh2.last_moved).isNotNull();
+      // TODO verify date
+    })
+  })
 });}); // Ship
 
 pavlov.specify("Station", function(){
@@ -797,21 +1102,63 @@ describe("Station", function(){
     })
   });
 
-  //describe("station clicked in scene", function(){
-  //  it("removes station ui command callbacks"); // NIY
-  //  it("handles station ui command callbacks"); // NIY
-  //  describe("on station ui command", function(){
-  //    it("raises event on station"); // NIY
-  //  });
-  //  // TODO test specific commands
-  //  it("sets selected true"); // NIY
-  //  it("reloads entity in scene"); // NIY
-  //});
+  describe("station clicked in scene", function(){
+    var construct_cmd = '#cmd_construct';
 
-  //describe("station unselected", function(){
-  //  it("sets selected to false"); // NIY
-  //  it("reloads entity in scene"); // NIY
-  //});
+    before(function(){
+      $(document).die();
+    })
+
+    after(function(){
+      $(document).die();
+    })
+
+    it("refreshes station ui command callbacks", function(){
+      var cb = function(){};
+      $(construct_cmd).live('click', cb);
+
+      var scene = new Scene();
+      st.clicked_in(scene);
+      var events = $.data(document, 'events')['click'];
+      assert(events.length).equals(1);
+      assert(events[0].selector).equals(construct_cmd);
+      assert(events[0]).isNotEqualTo(cb);
+    });
+
+    //describe("on station ui command", function(){
+    //  it("raises event on station"); // NIY
+    //});
+    // TODO test specific commands NIY
+
+    it("sets selected true", function(){
+      var scene = new Scene();
+      st.clicked_in(scene);
+      assert(st.selected).equals(true);
+    });
+
+    it("reloads entity in scene", function(){
+      var scene = new Scene();
+      var spy = sinon.spy(scene, 'reload_entity')
+      st.clicked_in(scene);
+      sinon.assert.calledWith(spy, st);
+    });
+  });
+
+  describe("station unselected", function(){
+    it("sets selected to false", function(){
+      var scene = new Scene();
+      st.selected = true
+      st.unselected_in(scene);
+      assert(st.selected).equals(false);
+    });
+
+    it("reloads entity in scene", function(){
+      var scene = new Scene();
+      var spy = sinon.spy(scene, 'reload_entity');
+      st.unselected_in(scene);
+      sinon.assert.calledWith(spy, st);
+    });
+  });
 
   describe("#owned_by", function(){
     it("invokes manufactured::get_entities", function(){

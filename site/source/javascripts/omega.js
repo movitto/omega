@@ -160,10 +160,9 @@ var process_entity = function(ui, node, entity){
 
     // XXX run update on self to update in any system-dependent
     // entity attributes (such as mining target/line)
-    entity.update(entity)
+    entity.refresh();
 
     // if system currently displayed on canvas, add to scene if not present
-    // TODO is this needed?
     if(ui.canvas_container &&
        ui.canvas_container.canvas.scene.get() &&
        ui.canvas_container.canvas.scene.get().id == sys.id){
@@ -543,11 +542,6 @@ var clicked_ship = function(ui, node, ship){
 var clicked_station = function(ui, node, station){
   // currently these events only apply to those w/ modify privs on the station
   if(!station.belongs_to_current_user()) return;
-
-  // add entity to scene on construction
-  //station.on('cmd_construct',
-  //  function(st, entity){
-  //});
 };
 
 /* Internal helper to load system
@@ -875,6 +869,7 @@ var wire_up_entities_lists = function(ui, node){
   });
 
   // assign mission when assign link is clicked in popup dialog
+  $('.assign_mission').die();
   $('.assign_mission').live('click', function(e){
     var i = e.currentTarget.id;
     Commands.assign_mission(i, Session.current_session.user_id, function(m){

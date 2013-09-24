@@ -745,7 +745,7 @@ function _ship_movement_cycle(){
   // FIXME how to synchronize timing between this and server?
   // TODO only ships in current scene
 
-  for(var s = 0; s < ships; s++){
+  for(var s = 0; s < ships.length; s++){
     var sh = ships[s];
     if(sh.location.movement_strategy.json_class ==
        'Motel::MovementStrategies::Linear'){
