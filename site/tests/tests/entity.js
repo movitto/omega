@@ -421,19 +421,34 @@ describe("Planet", function(){
     //  sinon.assert.calledWith(spy, nmn);
     //});
 
-    //it("reloads entity in scene"); // NIY
+    it("reloads entity in scene", function(){
+      pl.current_scene = new Scene();
+      var spy = sinon.spy(pl.current_scene, 'reload_entity')
+      pl.update();
+      sinon.assert.calledWith(spy, pl);
+    });
   });
 
   //it("adds THREE clickable sphere component to entity"); // NIY
   //it("adds THREE line component to entity for orbit"); // NIY
   //it("adds THREE spheres component to entity for moons"); // NIY
  
-  //describe("added to scene", function(){
-  //  it("sets current scene"); // NIY
-  //});
-  //describe("removed from scene", function(){
-  //  it("sets current scene to null"); // NIY
-  //});
+  describe("added to scene", function(){
+    it("sets current scene", function(){
+      var scene = new Scene();
+      pl.added_to(scene)
+      assert(pl.current_scene).equals(scene);
+    });
+  });
+
+  describe("removed from scene", function(){
+    it("sets current scene to null", function(){
+      var scene = new Scene();
+      pl.added_to(scene)
+      pl.removed_from(scene);
+      assert(pl.current_scene).equals(null);
+    });
+  });
 
   //describe("#planet_movement_cycle", function(){
     //it("retrieves planets in current scene"); // NIY

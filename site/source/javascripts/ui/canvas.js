@@ -152,7 +152,8 @@ function Scene(args){
     Scene.renderer = new THREE.WebGLRenderer();
   }
   this.renderer = Scene.renderer;
-  this.canvas.component().append(this.renderer.domElement);
+  if(this.canvas)
+    this.canvas.component().append(this.renderer.domElement);
 
   /* override set size to map canvas resizing to renderer resizing
    */
@@ -373,8 +374,10 @@ function Camera(args){
 
   /////////////////////////////////////// private data
 
-  var _width  = this.scene.canvas.width;
-  var _height = this.scene.canvas.height;
+  if(this.scene.canvas){
+    var _width  = this.scene.canvas.width;
+    var _height = this.scene.canvas.height;
+  }
 
   // private initializer
   var new_cam = function(){
