@@ -74,17 +74,98 @@ describe Proximity do
     end
 
     context "event is entered_proximity" do
-      it "TODO"
+      context "coordinates are not within proximity" do
+        it "returns false" do
+          l1 = Motel::Location.new :x => 0, :y => 0, :z => 0
+          l2 = Motel::Location.new :x => 20, :y => 0, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :entered_proximity
+          p.should_invoke?(l1).should be_false
+        end
+      end
+
+      context "coordiantes were and still are within proximity" do
+        it 'returns false' do
+          l1 = Motel::Location.new :x => 0, :y => 1.5, :z => 0.75
+          l2 = Motel::Location.new :x => 2.5, :y => 2.5, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :entered_proximity
+          p.instance_variable_set(:@locations_in_proximity, true)
+          p.should_invoke?(l1).should be_false
+        end
+      end
+
+      context "coordinates were not but now are withing proximity" do
+        it "returns true" do
+          l1 = Motel::Location.new :x => 0, :y => 1.5, :z => 0.75
+          l2 = Motel::Location.new :x => 2.5, :y => 2.5, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :entered_proximity
+          p.instance_variable_set(:@locations_in_proximity, false)
+          p.should_invoke?(l1).should be_true
+        end
+      end
     end
 
     context "event is left_proximity" do
-      it "TODO"
+      context "coordinates are within proximity" do
+        it "returns false" do
+          l1 = Motel::Location.new :x => 0, :y => 1.5, :z => 0.75
+          l2 = Motel::Location.new :x => 2.5, :y => 2.5, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :left_proximity
+          p.should_invoke?(l1).should be_false
+        end
+      end
+
+      context "coordinates were not and still are not within proximity" do
+        it "returns false" do
+          l1 = Motel::Location.new :x => 0, :y => 0, :z => 0
+          l2 = Motel::Location.new :x => 20, :y => 0, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :left_proximity
+          p.instance_variable_set(:@locations_in_proximity, false)
+          p.should_invoke?(l1).should be_false
+        end
+      end
+
+      context "coordinates were but are no longer in proximity" do
+        it 'returns true' do
+          l1 = Motel::Location.new :x => 0, :y => 0, :z => 0
+          l2 = Motel::Location.new :x => 20, :y => 0, :z => 0
+          p  = Proximity.new :to_location => l2,
+                             :max_distance => 10,
+                             :event => :left_proximity
+          p.instance_variable_set(:@locations_in_proximity, true)
+          p.should_invoke?(l1).should be_true
+        end
+      end
     end
   end
 
   describe "#invoke" do
-    it "invokes handler with location,to_location"
-    it "set locations_in_proximity flag"
+    it "invokes handler with location,to_location" do
+      l1 = Motel::Location.new :x => 0, :y => 0, :z => 0
+      l2 = Motel::Location.new :x => 0, :y => 0, :z => 0
+      cb = proc {}
+      p = Proximity.new :to_location => l2, :handler => cb
+      cb.should_receive(:call).with(l1, l2)
+      p.invoke(l1)
+    end
+
+    it "set locations_in_proximity flag" do
+      l1 = Motel::Location.new :x => 0, :y => 0, :z => 0
+      l2 = Motel::Location.new :x => 0, :y => 0, :z => 0
+      p = Proximity.new :to_location => l2, :handler => proc {}
+      p.should_receive(:currently_in_proximity).with(l1).and_return(true)
+      p.invoke(l1)
+      p.instance_variable_get(:@locations_in_proximity).should be_true
+    end
   end
 
   describe "#to_json" do

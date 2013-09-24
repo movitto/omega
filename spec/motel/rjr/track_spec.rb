@@ -80,14 +80,15 @@ module Motel::RJR
     context "callback handler invoked" do
       before(:each) do
         @l = create(:location)
+        @rl = @registry.safe_exec { |es| es.find { |e| e.id == @l.id }}
+
         @s.track_handler @l.id, 20
-        @cb = @registry.safe_exec{
-          @registry.instance_variable_get(:@entities).
-                    find(&with_id(@l.id)).callbacks[:movement].first
-        }
+        @cb = @rl.callbacks[:movement].first
+
         @cb.instance_variable_set(:@orig_x, 30)
         @cb.instance_variable_set(:@orig_y,  0)
         @cb.instance_variable_set(:@orig_z,  0)
+
         @s.instance_variable_set(:@rjr_callback, @n)
       end
 
@@ -142,12 +143,26 @@ module Motel::RJR
       end
 
       context "other exception during callback handler" do
-        it "removes callback from location"
+        it "removes callback from location" do
+          add_privilege @login_role, 'view', 'locations'
+          @n.should_receive(:notify).and_raise(Exception)
+          lambda{
+            @cb.invoke @l, 0, 0, 0
+          }.should change{@rl.callbacks[:movement].size}.by(-1)
+        end
       end
     end
 
     context "rjr connection closed" do
-      it "removes callback from location"
+      it "removes callback from location" do
+        @l = create(:location)
+        @rl = @registry.safe_exec { |es| es.find { |e| e.id == @l.id }}
+        @s.track_handler @l.id, 20
+
+        lambda{
+          @n.send :connection_event, :closed
+        }.should change{@rl.callbacks[:movement].size}.by(-1)
+      end
     end
 
     context "#track_movement" do

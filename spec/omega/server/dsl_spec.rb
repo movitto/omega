@@ -57,10 +57,6 @@ describe DSL do
     end
   end
 
-  describe "#require_node!" do
-    it "TODO"
-  end
-
   describe "#require_privilege" do
     before(:each) do
       @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
@@ -106,7 +102,12 @@ describe DSL do
   end
 
   describe "#current_user" do
-    it "TODO"
+    it "return registry user corresponding to session_id header" do
+      @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
+      u = current_user(:registry => Users::RJR.registry)
+      u.should be_an_instance_of(Users::User)
+      u.id.should == @anon.id
+    end
   end
 
   describe "#check_attribute" do
@@ -316,25 +317,57 @@ describe DSL do
   end
 
   describe "#with" do
-    it "TODO"
+    it "matches objects with specified attribute value" do
+      a = [[1,2], [3,4], [5], [6,7,8], Object.new]
+      r = a.select &with(:size, 2)
+      r.should == [[1,2], [3,4]]
+
+      r = a.find &with(:size, 2)
+      r.should == [1,2]
+    end
   end
 
 
   describe "#with_id" do
-    it "TODO"
+    it "matches objects with specified id" do
+      o1 = OpenStruct.new
+      o1.id = 1
+      o1a = OpenStruct.new
+      o1a.id = 1
+      o2 = OpenStruct.new
+      o2.id = 2
+
+      a = [o1, o1a, o2, Object.new]
+      r = a.select &with_id(1)
+      r.should == [o1, o1a]
+
+      r = a.find &with_id(1)
+      r.should == o1
+    end
   end
 
   describe "#matching" do
-    it "TODO"
+    it "matches objects using specified callback" do
+      a = [1,2,3,4]
+      r = a.select(&matching { |e| e % 2 == 0})
+      r.should == [2,4]
+
+      r = a.find(&matching { |e| e % 2 == 0})
+      r.should == 2
+    end
   end
 
   describe "#is_cmd" do
     context "entity is a Omega::Server::Command" do
-      it "returns true"
+      it "returns true" do
+        is_cmd?(Omega::Server::Command.new).should be_true
+      end
     end
 
     context "entity is not a Omega::Server::Command" do
-      it "returns false"
+      it "returns false" do
+        is_cmd?(Object.new).should be_false
+      end
     end
   end
 

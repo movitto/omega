@@ -40,9 +40,9 @@ module Omega
       end
 
       # Require rjr node of the specified type, else raise a permission err
-      def require_node!(type)
-        # TODO
-      end
+      # TODO
+      #def require_node!(type)
+      #end
 
       # Require privileges using the specified registry
       def require_privilege(args = {})
