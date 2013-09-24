@@ -1992,7 +1992,7 @@ pavlov.specify("omega.js", function(){
           var cb2 = spy.getCall(0).args[2];
 
           cb2.apply(null, [{result : {}}])
-          sinon.assert.calledWith(window.alert, 'User undefined updated successfully');
+          sinon.assert.calledWith(window.alert, 'User  updated successfully');
         });
       });
     })

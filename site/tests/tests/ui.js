@@ -328,15 +328,21 @@ describe("UIListComponent", function(){
       assert(lc.items).includes({ id : 'a' })
     });
 
-    //it("wires up click_item event"); // NIY
+    it("wires up click_item event", function(){
+      var spy = sinon.spy();
+      lc.on('click_item', spy)
+      var item = { id : 'a' }
+      $('#qunit-fixture').append('<div id="a"></div>')
+      lc.add_item(item);
+      $('#a').trigger('click');
+      sinon.assert.calledWith(spy, lc, item)
+    });
 
     describe("existing item with same id", function(){
       it("overwrites old item", function(){
         lc.add_item({ id : 'a' })
         assert(lc.items[0]).isSameAs({ id : 'a' })
       });
-
-      //it("does not wire up click_item event"); // NIY
     });
     
     //it("wires up item click handler")
@@ -544,12 +550,21 @@ describe("Canvas", function(){
     // TODO verify actual size
   })
 
-  //describe("canvas shown", function(){ // NIY
-  //  it("shows 'Hide' on canvas toggle control")
-  //});
-  //describe("canvas hidden", function(){ // NIY
-  //  it("shows 'Show' on canvas toggle control")
-  //});
+  describe("canvas shown", function(){
+    it("shows 'Hide' on canvas toggle control", function(){
+      canvas = new Canvas({});
+      canvas.show();
+      assert(canvas.toggle_control().html()).equals('Hide')
+    })
+  });
+
+  describe("canvas hidden", function(){
+    it("shows 'Show' on canvas toggle control", function(){
+      canvas = new Canvas({});
+      canvas.hide();
+      assert(canvas.toggle_control().html()).equals('Show')
+    })
+  });
 
   describe("canvas resized", function(){
     it("resizes scene", function(){
@@ -635,7 +650,10 @@ describe("Scene", function(){
     assert(scene.grid).isTypeOf(Grid);
   })
 
-  //it("creates timer to run particle systems") // NIY
+  it("creates timer to run particle systems", function(){
+    assert(canvas.scene.particle_timer).isNotNull();
+    // TODO assert is stopped & interval
+  });
 
   //context("particle timer event", function(){
     //it("runs update_particles on all scene objects which define it") // NIY
@@ -1255,7 +1273,10 @@ describe("EntitiesContainer", function(){
     ec = new EntitiesContainer({div_id : '#test_ec'});
   })
 
-  //it("encapsulates list subcomponent"); // NIY
+  it("encapsulates list subcomponent", function(){
+    assert(ec.list).isNotNull();
+    //assert(ec.list.prototype).equals(UIListComponent); TODO
+  });
 
   it("wraps item list in a ul", function(){
     ec.list.add_text("foobar")
@@ -1278,10 +1299,22 @@ describe("EntitiesContainer", function(){
     })
   });
 
-  //describe("#hide_all", function(){ // NIY
-  //  it("hides all entities containers")
-  //  it("hides missions button")
-  //});
+  describe("#hide_all", function(){ // NIY
+    before(function(){
+      $('#qunit-fixture').append('<div id="hide-test1" class="entities_container"></div>')
+      $('#qunit-fixture').append('<div id="missions_button"></div>')
+    })
+
+    it("hides all entities containers", function(){
+      EntitiesContainer.hide_all();
+      assert($('#hide-test1').css('display')).equals('none')
+    })
+
+    it("hides missions button", function(){
+      EntitiesContainer.hide_all();
+      assert($('#missions_button').css('display')).equals('none')
+    })
+  });
 });}); // EntitiesContainer
 
 pavlov.specify("StatusIndicator", function(){
@@ -1422,64 +1455,84 @@ describe("NavContainer", function(){
   });
 });}); // NavContainer
 
-//pavlov.specify("AccountInfoContainer", function(){
-//describe("AccountInfoContainer", function(){
-//  var aic;
-//
-//  before(function(){
-//    aic = new AccountInfoContainer();
-//  })
-//
-//  describe("#username", function(){
-//    it("gets username input value", function(){ // NIY
-//      $('#account_info_username input').attr('value', 'foobar');
-//      assert(aic.username()).equals('foobar')
-//    })
-//
-//    it("sets username input value", function(){ // NIY
-//      aic.username('test');
-//      assert($('#account_info_username input').attr('value')).equals('test');
-//    })
-//  });
-//
-//  describe("#password", function(){
-//    it("gets password input value", function(){ // NIY
-//      $('#user_password input').attr('value', 'foobar');
-//      assert(aic.password()).equals('foobar')
-//    })
-//
-//    it("sets password input value", function(){ // NIY
-//      aic.password('foobar');
-//      assert($('#user_password input').attr('value')).equals('foobar');
-//    })
-//  });
-//
-//  describe("#email", function(){
-//    it("gets email input value") // NIY
-//    it("sets email input value") // NIY
-//  });
+pavlov.specify("AccountInfoContainer", function(){
+describe("AccountInfoContainer", function(){
+  var aic;
+
+  before(function(){
+    aic = new AccountInfoContainer();
+  })
+
+  describe("#username", function(){
+    it("gets username input value", function(){
+      $('#account_info_username input').attr('value', 'foobar');
+      assert(aic.username()).equals('foobar')
+    })
+
+    it("sets username input value", function(){
+      aic.username('test');
+      assert($('#account_info_username input').attr('value')).equals('test');
+    })
+  });
+
+  describe("#password", function(){
+    it("gets password input value", function(){
+      $('#user_password').attr('value', 'foobar');
+      assert(aic.password()).equals('foobar')
+    })
+  });
+
+  describe("#email", function(){
+    it("gets email input value", function(){
+      $('#account_info_email input').attr('value', 'foo@bar');
+      assert(aic.email()).equals('foo@bar')
+    });
+
+    it("sets email input value", function(){
+      aic.email('foo@bar');
+      assert($('#account_info_email input').attr('value')).equals('foo@bar');
+    });
+  });
 //  describe("#gravatar", function(){
-//    it("gets gravatar page component value") // NIY
 //    it("sets gravatar page component value") // NIY
 //  });
 //  describe("#entities", function(){
 //    it("sets entities list") // NIY
 //  });
-//  describe("#passwords_match", function(){
-//    describe("passwords match", function(){
-//      it("returns true") // NIY
-//    });
-//    describe("passwords don't match", function(){
-//      it("returns false") // NIY
-//    });
-//  });
-//  describe("#user", function(){
-//    it("returns new user created from inputs") // NIY
-//  });
+
+  describe("#passwords_match", function(){
+    describe("passwords match", function(){
+      it("returns true", function(){
+        $('#user_password').attr('value', 'foobar');
+        $('#user_confirm_password').attr('value', 'foobar');
+        assert(aic.passwords_match()).equals(true);
+      })
+    });
+    describe("passwords don't match", function(){
+      it("returns false", function(){
+        $('#user_password').attr('value', 'foobar');
+        $('#user_confirm_password').attr('value', 'barfoo');
+        assert(aic.passwords_match()).equals(false);
+      });
+    });
+  });
+
+  describe("#user", function(){
+    it("returns new user created from inputs", function(){
+      $('#account_info_username input').attr('value', 'uid');
+      $('#user_password').attr('value', 'pass');
+      $('#account_info_email input').attr('value', 'u@ser');
+      var u =aic.user();
+      assert(u.id).equals('uid');
+      assert(u.password).equals('pass');
+      assert(u.email).equals('u@ser');
+    });
+  });
+
 //  describe("#add_badge", function(){
 //    it("it adds badge to ui"); // NIY
 //  });
-//});}); // AccountInfoContainer
+});}); // AccountInfoContainer
 //
 //pavlov.specify("EffectsContainer", function(){
 //describe("EffectsContainer", function(){

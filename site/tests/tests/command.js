@@ -53,7 +53,11 @@ describe("ServerEvents", function(){
         //sinon.assert.calledWith(spy, 'motel::on_movement', with_id(42))
       })
 
-      //it("appends location- to id of location before looking up"); // NIY
+      it("retrieves locations from registry", function(){
+        var spy = sinon.spy(Entities(), 'get')
+        cb.apply(se, [{json_class : 'Motel::Location', id : 42}])
+        sinon.assert.calledWith(spy, 'location-42');
+      });
 
       it("raises server event on entity", function(){
         var entity = new Entity();
@@ -533,8 +537,6 @@ describe("Commands", function(){
     before(function(){
       st = new Station({id : 'station1'})
     });
-
-    //it("generates new uuid for new entity"); // NIY
 
     it("invokes manufactured::construct_entity", function(){
       var spy = sinon.spy(Entities().node(), 'web_request');
