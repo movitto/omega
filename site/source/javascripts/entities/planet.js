@@ -20,8 +20,10 @@ function Planet(args){
 
   // convert location
   this.location = new Location(this.location);
-  for(var c = 0; c < this.children.length; c++){
-    this.moons.push(new Moon(this.children[c]))
+  if(this.children){
+    for(var c = 0; c < this.children.length; c++){
+      this.moons.push(new Moon(this.children[c]))
+    }
   }
 
   /* override update

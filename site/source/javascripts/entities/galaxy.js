@@ -19,8 +19,10 @@ function Galaxy(args){
   // convert children
   this.location = new Location(this.location);
   this.solar_systems = [];
-  for(var sys = 0; sys < this.children.length; sys++)
-    this.solar_systems[sys] = new SolarSystem(this.children[sys]);
+  if(this.children){
+    for(var sys = 0; sys < this.children.length; sys++)
+      this.solar_systems[sys] = new SolarSystem(this.children[sys]);
+  }
 
   // return children
   this.children = function(){

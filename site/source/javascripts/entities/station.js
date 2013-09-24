@@ -154,9 +154,11 @@ function _station_render_details(){
   var details = ['Station: ' + this.id + '<br/>',
                  '@ ' + this.location.to_s() + '<br/>',
                  "Resources: <br/>"];
-  for(var r = 0; r < this.resources.length; r++){
-    var res = this.resources[r];
-    details.push(res.quantity + " of " + res.material_id + "<br/>")
+  if(this.resources){
+    for(var r = 0; r < this.resources.length; r++){
+      var res = this.resources[r];
+      details.push(res.quantity + " of " + res.material_id + "<br/>")
+    }
   }
 
   if(this.belongs_to_current_user())

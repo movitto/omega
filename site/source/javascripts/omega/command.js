@@ -186,8 +186,8 @@ var Commands = {
     // we are assuming endpoint system is loaded from server
     //   (we do this in the clicked jump gate callback)
     var endpoint = jg.endpoint_system;
-    for(var entity = 0; entity < entities.length; entity++){
-      entity = entities[entity];
+    for(var entityi = 0; entityi < entities.length; entityi++){
+      entity = entities[entityi];
       Commands.jump_ship(entity, endpoint);
       jg.raise_event('triggered', entity);
     }

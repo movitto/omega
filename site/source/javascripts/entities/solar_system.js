@@ -30,15 +30,17 @@ function SolarSystem(args){
 
   // convert children
   this.location = new Location(this.location);
-  for(var c = 0; c < this.children.length; c++){
-    if(this.children[c].json_class == 'Cosmos::Entities::Star')
-      this.stars.push(new Star(this.children[c]))
-    else if(this.children[c].json_class == 'Cosmos::Entities::Planet')
-      this.planets.push(new Planet(this.children[c]))
-    else if(this.children[c].json_class == 'Cosmos::Entities::Asteroid')
-      this.asteroids.push(new Asteroid(this.children[c]))
-    else if(this.children[c].json_class == 'Cosmos::Entities::JumpGate')
-      this.jump_gates.push(new JumpGate(this.children[c]))
+  if(this.children){
+    for(var c = 0; c < this.children.length; c++){
+      if(this.children[c].json_class == 'Cosmos::Entities::Star')
+        this.stars.push(new Star(this.children[c]))
+      else if(this.children[c].json_class == 'Cosmos::Entities::Planet')
+        this.planets.push(new Planet(this.children[c]))
+      else if(this.children[c].json_class == 'Cosmos::Entities::Asteroid')
+        this.asteroids.push(new Asteroid(this.children[c]))
+      else if(this.children[c].json_class == 'Cosmos::Entities::JumpGate')
+        this.jump_gates.push(new JumpGate(this.children[c]))
+    }
   }
 
   // adding jump gates lines is defered to later when we
