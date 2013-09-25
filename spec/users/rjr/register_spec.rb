@@ -38,7 +38,19 @@ module Users::RJR
     end
 
     context "recaptcha not valid" do
-      it "raises ArgumentError"
+      it "raises ArgumentError" do
+        Users::RJR.recaptcha_enabled = true
+        http = stub(Object)
+        http.should_receive(:body_str).and_return("false anything else")
+        Curl::Easy.should_receive(:http_post).and_return(http)
+
+        u = build(:user, :recaptcha_challenge => 'required',
+                         :recaptcha_response  => 'required')
+        @s.instance_variable_set(:@rjr_client_ip, 'required')
+        lambda {
+          @s.register u
+        }.should raise_error(ArgumentError, "invalid recaptcha")
+      end
     end
 
     context "user cannot be created" do
@@ -61,7 +73,13 @@ module Users::RJR
                  collect { |e| e.id }.should include(u.id)
     end
 
-    it "sends registration email"
+    it "sends registration email" do
+      u = build(:user, :email => 'user@user.user')
+      Users::EmailHelper.email_enabled = false
+      EmailHelper.instance.should_receive(:send_email).
+                  with(u.email, an_instance_of(String)) # TODO validate email contents
+      @s.register u
+    end
 
     it "returns user" do
       u = build(:user)
