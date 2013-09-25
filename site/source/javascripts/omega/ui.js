@@ -86,6 +86,7 @@ function UIResources(){
 
     loader.load(path, function(geometry){
       _this.raise_event(evnt, geometry);
+      _this.raise_event('geometry_loaded', geometry);
       _this.clear_callbacks(evnt);
     }, UIResources().images_path + '/meshes');
   }

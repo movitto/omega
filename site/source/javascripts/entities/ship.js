@@ -209,6 +209,7 @@ function _ship_update(oargs){
 
   // handle attack state changes
   if(args.attacking){
+    // TODO _ship_resolve_attack_target (also for defense target?)
     if(this.attack_particles){
       if(this.components.indexOf(this.attack_particles) == -1)
         this.components.push(this.attack_particles);

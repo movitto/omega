@@ -1,5 +1,3 @@
-// TODO test specific entity ui components / operations
-
 pavlov.specify("Entity", function(){
 describe("Entity", function(){
   before(function(){
@@ -98,7 +96,6 @@ describe("Galaxy", function(){
   })
 
   after(function(){
-    reenable_three_js();
     if(Entities().node().web_request.restore) Entities().node().web_request.restore();
   })
 
@@ -195,7 +192,6 @@ describe("SolarSystem", function(){
   })
 
   after(function(){
-    reenable_three_js();
     if(Entities().node().web_request.restore) Entities().node().web_request.restore();
   })
 
@@ -272,14 +268,6 @@ describe("SolarSystem", function(){
   it("converts child jump gates", function(){
     assert(sys.jump_gates[0]).isTypeOf(JumpGate);
   });
-
-  //describe("#add_jump_gate", function(){
-  //  it("adds THREE line component to entity"); // NIY
-  //});
-
-  //it("adds THREE clickable sphere component to entity"); // NIY
-  //it("adds THREE plane component to entity"); // NIY
-  //it("adds THREE text label component to entity"); // NIY
 
   describe("#children", function(){
     it("returns child star, planets, asteroids, jump gates, and manu entities", function(){
@@ -364,21 +352,9 @@ describe("Star", function(){
     st = new Star({location : { id : 42 }})
   })
 
-  after(function(){
-    reenable_three_js();
-  })
-
   it("converts location", function(){
     assert(st.location).isTypeOf(Location)
   })
-
-  //it("adds THREE sphere component to entity"); // NIY
-  //it("adds clickable shader-based THREE glow component to entity"); // NIY
-  //it("adds THREE flare component to entity"); // NIY
-
-  //context("added to scene", function(){
-  //  //it("sets glow view vector"); // NIY
-  //});
 });}); // Star
 
 pavlov.specify("Planet", function(){
@@ -396,10 +372,6 @@ describe("Planet", function(){
               dmajx: 1, dmajy : 0, dmajz : 0,
               dminx: 0, dminy : 0, dminz : 1}},
           moons : [m]})
-  })
-
-  after(function(){
-    reenable_three_js();
   })
 
   it("converts location", function(){
@@ -420,14 +392,6 @@ describe("Planet", function(){
       sinon.assert.calledWith(spy, l)
     });
 
-    //it("updates THREE sphere position") // NIY
-
-    //it("updates moons' THREE sphere positions", function(){ // NIY
-    //  var nmn = { id : 'mn1'}
-    //  pl.update({moons : [nmn]})
-    //  sinon.assert.calledWith(spy, nmn);
-    //});
-
     it("reloads entity in scene", function(){
       pl.current_scene = new Scene();
       var spy = sinon.spy(pl.current_scene, 'reload_entity')
@@ -444,9 +408,6 @@ describe("Planet", function(){
     });
   })
 
-  //it("adds THREE clickable sphere component to entity"); // NIY
-  //it("adds THREE line component to entity for orbit"); // NIY
-
   it("sets planet orbit properties", function(){
     assert(pl.a).equals(10);
     assert(pl.b).equals(10);
@@ -458,8 +419,6 @@ describe("Planet", function(){
     assert(pl.rot_axis).isSameAs([1,0,0]);
   });
 
-  //it("adds THREE spheres component to entity for moons"); // NIY
- 
   describe("added to scene", function(){
     it("sets current scene", function(){
       var scene = new Scene();
@@ -487,7 +446,6 @@ describe("Planet", function(){
     })
 
     after(function(){
-      reenable_three_js();
       if(Entities().select.restore) Entities().select.restore();
     })
 
@@ -543,15 +501,9 @@ describe("Asteroid", function(){
     ast = new Asteroid({location : { id : 42 }})
   })
 
-  after(function(){
-    reenable_three_js();
-  })
-
   it("converts location", function(){
     assert(ast.location).isTypeOf(Location)
   })
-
-  //it("adds THREE clickable mesh component to entity"); // NIY
 });}); // Asteroid
 
 pavlov.specify("JumpGate", function(){
@@ -563,18 +515,9 @@ describe("JumpGate", function(){
     jg = new JumpGate({location : { id : 42 }})
   })
 
-  after(function(){
-    reenable_three_js();
-  })
-
   it("converts location", function(){
     assert(jg.location).isTypeOf(Location)
   })
-
-  //it("adds THREE clickable mesh component to entity"); // NIY
-  //it("adds THREE light components to entity"); // NIY
-  //it("adds THREE particle system components to entity (effects)"); // NIY
-  //it("adds THREE sphere component to entity (selection sphere)"); // NIY
 
   describe("added to scene", function(){
     it("sets current scene", function(){
@@ -640,8 +583,6 @@ describe("JumpGate", function(){
       });
     });
 
-    // it("sets clickable component to THREE selection sphere"); // NIY
-
     it("reloads jump gate in scene", function(){
       var scene = new Scene();
       var spy = sinon.spy(scene, 'reload_entity')
@@ -664,9 +605,6 @@ describe("JumpGate", function(){
       jg.unselected_in(scene);
       sinon.assert.calledWith(spy, jg);
     });
-
-    //it("removes selection sphere from scene"); // NIY
-    //it("sets clickable component to THREE mesh"); // NIY
   });
 });}); // JumpGate
 
@@ -682,7 +620,6 @@ describe("Ship", function(){
   })
 
   after(function(){
-    reenable_three_js();
     if(Entities().node().web_request.restore) Entities().node().web_request.restore();
   })
 
@@ -705,7 +642,7 @@ describe("Ship", function(){
   //describe("#resolve_attack_target", function(){
     //it("resolves attack target from local registry") // NIY (also in code)
   //})
-  //
+
   //describe("#resolve_defense_target", function(){
     //it("resolves defense target from local registry") // NIY (also in code)
   //})
@@ -729,31 +666,6 @@ describe("Ship", function(){
       sh.update({location : l})
       assert(sh.location.movement_strategy).equals('ms')
     });
-
-  //  it("updates THREE mesh location"); // NIY
-  //  it("sets orientation on mesh") // NIY
-  //  it("updates THREE particle system trails position") // NIY
-  //  it("sets orientation of trails")
-  //  context("ship is moving and trail components are not added", function(){
-  //    it("adds trail components to entity");
-  //  });
-  //  context("ship is stopped and trail components are added", function(){
-  //    it("removes trail components from entity");
-  //  });
-  //  context("ship attacking", function(){
-  //    it("sets THREE attack line position"); // NIY
-  //    it("adds THREE attack line component to entity"); // NIY
-  //  });
-  //  context("ship mining", function(){
-  //    it("sets THREE mining line position"); // NIY
-  //    it("adds THREE mining line component to entity"); // NIY
-  //  });
-  //  context("ship is selected", function(){
-  //    it("sets mesh emissive color") // NIY
-  //  });
-  //  context("ship is not selected", function(){
-  //    it("resets ship emissive color"); // NIY
-  //  });
 
     it("reloads entity in scene", function(){
       sh.current_scene = new Scene();
@@ -901,24 +813,6 @@ describe("Ship", function(){
     });
   });
 
-  //it("adds THREE clickable mesh component to entity"); // NIY
-  //it("creates THREE particle system components for trails defined in ship type config") // NIY
-  //it("create THREE partitcle system component (for attack)"); // NIY
-  //it("create THREE line component (for mining line)"); // NIY
-
-  //context("updating ship trails particles", function(){
-  //  it("moves linearily away from ship"); // NIY
-  //  it("decays with a given lifespan"); // NIY
-  //  it("sets lifespan of center particles to greater than outer particles") // NIY
-  //});
-  //
-  //context("updating ship attack particles", function(){
-  //  it("moves particles linearily between attacker location and defender location"); // NIY
-  //  context("particle arriving at defender location", function(){
-  //    it("resets particle to originating from attacker location"); // NIY
-  //  });
-  //});
-
   describe("#with_id", function(){
     it("invokes manufactured::get_entity", function(){
       var spy = sinon.spy(Entities().node(), 'web_request')
@@ -989,7 +883,6 @@ describe("Ship", function(){
     })
 
     after(function(){
-      reenable_three_js();
       if(Entities().select.restore) Entities().select.restore();
     })
 
@@ -1056,15 +949,12 @@ describe("Station", function(){
   })
 
   after(function(){
-    reenable_three_js();
     if(Entities().node().web_request.restore) Entities().node().web_request.restore();
   })
 
   it("converts location", function(){
     assert(st.location).isTypeOf(Location)
   });
-
-  //it("adds THREE clickable mesh component to entity"); // NIY
 
   describe("#belongs_to_user", function(){
     describe("user_id is same as specified user's", function(){

@@ -6,15 +6,23 @@
 
 //////////////////////////////// helper methods
 
+$old_ui_resources_cached = null;
 function disable_three_js(){
   // disable three by overloading UIResources().cached
-  $old_ui_resources_cached = UIResources().cached;
+  if($old_ui_resources_cached == null)
+    $old_ui_resources_cached = UIResources().cached;
   UIResources().cached = function(id){ return null ;}
 }
 
 function reenable_three_js(){
-  if(typeof($old_ui_resources_cached) !== "undefined")
+  if($old_ui_resources_cached != null){
     UIResources().cached = $old_ui_resources_cached;
+    $old_ui_resources_cached = null;
+  }
+}
+
+function clear_three_js(){
+  UIResources().clear();
 }
 
 function create_mouse_event(evnt){

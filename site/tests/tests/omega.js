@@ -167,7 +167,6 @@ pavlov.specify("omega.js", function(){
     })
 
     after(function(){
-      reenable_three_js();
       if(process_entity.restore) process_entity.restore();
       if(Entities().set.restore) Entities().set.restore();
       if(handle_events.restore) handle_events.restore();
@@ -216,7 +215,7 @@ pavlov.specify("omega.js", function(){
 
     describe("entity in registry", function(){
       it("updates entity", function(){
-        var s = new Ship();
+        var s = new Ship({location : {movement_strategy : {}}});
         Entities().set('ship1', s)
         var spy = sinon.spy(s, 'update');
 

@@ -1125,8 +1125,6 @@ describe("Skybox", function(){
         sb.background('foobar');
         assert(sb.background()).equals('foobar')
     })
-
-    //it("adds THREE skybox mesh component to entity"); // NIY
   });
 });}); // Skybox
 

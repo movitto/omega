@@ -266,7 +266,6 @@ describe("Commands", function(){
   })
 
   after(function(){
-    reenable_three_js();
     Session.current_session = null;
     if(Entities().select.restore) Entities().select.restore();
     if(Commands.jump_ship.restore) Commands.jump_ship.restore();
