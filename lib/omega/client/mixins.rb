@@ -81,9 +81,8 @@ module Omega
           begin
             eh.call self, *eargs
           rescue Exception, StandardError => e
-            # TODO use logger instead?
-            puts "err in #{id} #{event} handler:"
-            puts "#{([e] + e.backtrace).join("\n")}"
+            ::RJR::Logger.warn "err in #{id} #{event} handler:"
+            ::RJR::Logger.warn "#{([e] + e.backtrace).join("\n")}"
           end
             
         } if @event_handlers && @event_handlers[event]
@@ -93,9 +92,8 @@ module Omega
           begin
             eh.call self, *eargs
           rescue Exception, StandardError => e
-            # TODO use logger instead?
-            puts "err in #{id} 'all' handler:"
-            puts "#{([e] + e.backtrace).join("\n")}"
+            ::RJR::Logger.warn "err in #{id} 'all' handler:"
+            ::RJR::Logger.warn "#{([e] + e.backtrace).join("\n")}"
           end
         } if @event_handlers && @event_handlers[:all]
       end

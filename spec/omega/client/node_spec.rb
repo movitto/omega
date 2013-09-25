@@ -6,6 +6,7 @@
 require 'spec_helper'
 require 'omega/client/node'
 require 'omega/client/dsl'
+require 'rjr/nodes/tcp'
 
 module Omega::Client
 describe Node do
@@ -21,7 +22,11 @@ describe Node do
   end
 
   describe "#rjr_node=" do
-    it "sets rjr node"
+    it "sets rjr node" do
+      n = Node.new
+      n.rjr_node = @n
+      n.rjr_node.should == @n
+    end
 
     it "sets rjr node headers" do
       n = Node.new
@@ -29,21 +34,34 @@ describe Node do
       @n.message_headers['source_node'].should == @n.node_id
     end
 
-    it "sets endpoint"
+    it "sets endpoint" do
+      n = Node.new
+      @n = RJR::Nodes::TCP.new
+      n.rjr_node = @n
+      n.endpoint.should == 'jsonrpc://localhost:8181'
+    end
   end
 
   describe "#invoke" do
     it "invokes method to endpoint using node" do
       n = Node.new
       n.rjr_node = @n
-      u = n.invoke('users::get_entity', 'with_id', @u.id)
+      args = ['users::get_entity', 'with_id', @u.id]
+      @n.should_receive(:invoke).with(*args).and_call_original
+      u = n.invoke(*args)
       u.should be_an_instance_of(Users::User)
       u.id.should == @u.id
     end
   end
 
   describe "#notify" do
-    it "sends notification to endpoint using node"
+    it "sends notification to endpoint using node" do
+      n = Node.new
+      n.rjr_node = @n
+      args = ['users::get_entity', 'with_id', @u.id]
+      @n.should_receive(:notify).with(*args).and_call_original
+      n.notify(*args)
+    end
   end
 
   describe "#handles?" do
@@ -86,19 +104,33 @@ describe Node do
     end
 
     context "rjr method invoked" do
-      it "runs all registered handlers" do
-        n = Node.new
-        n.rjr_node = @n
-        handler = proc {}
-        n.handle 'foo', &handler
+      before(:each) do
+        @node = Node.new
+        @node.rjr_node = @n
+      end
 
+      it "runs all registered handlers" do
+        handler = proc {}
+        @node.handle 'foo', &handler
         handler.should_receive(:call).with(42)
         @n.invoke 'foo', 42
       end
 
-      it "discards errors in event handlers"
+      # not implemented in code yet
+      #it "discards errors in event handlers" do
+      #  handler = proc { raise Exception }
+      #  @node.handle 'foo', &handler
+      #  handler.should_receive(:call).and_call_original
+      #  lambda {
+      #    @n.invoke 'foo', 42
+      #  }.should_not raise_error
+      #end
 
-      it "returns nil"
+      it "returns nil" do
+        handler = proc {}
+        @node.handle 'foo', &handler
+        @n.invoke('foo', 42).should be_nil
+      end
     end
   end
 

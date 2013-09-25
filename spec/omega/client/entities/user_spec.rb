@@ -8,10 +8,25 @@ require 'omega/client/entities/user'
 
 module Omega::Client
   describe User do
+    before(:each) do
+      Omega::Client::User.node.rjr_node = @n
+    end
 
     describe "#login" do
-      it "logs the specified user in"
-      it "sets session_id message header on node"
+      it "logs the specified user in" do
+        create(:user, :id => 'foo', :password => 'bar')
+        User.login 'foo', 'bar'
+        s = Users::RJR.registry.entities.last
+        s.should be_an_instance_of(Users::Session)
+        s.user.id.should == 'foo'
+      end
+
+      it "sets session_id message header on node" do
+        create(:user, :id => 'foo', :password => 'bar')
+        User.login 'foo', 'bar'
+        s = Users::RJR.registry.entities.last
+        User.node.rjr_node.message_headers['session_id'].should == s.id
+      end
     end
 
   end # describe User

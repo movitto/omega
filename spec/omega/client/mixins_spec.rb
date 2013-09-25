@@ -22,12 +22,14 @@ module OmegaTest
         :off   => lambda { |e| @off_toggles_called = true } }
 
     attr_accessor :setup_run
+    attr_accessor :updated
 
     entity_event :setup_event => { :setup => proc { |e| @setup_run = true } }
 
     entity_event :subscribe_event => { :subscribe => 'subscribe_method' }
 
-    entity_event :notification_event => { :notification => 'notification_method' }
+    entity_event :notification_event => { :notification => 'notification_method',
+                                          :update => proc { |e,*args| e.updated = true }}
 
     entity_event :match_event => { :notification => 'match_method',
                                     :match => proc { |e,*args| false } }
@@ -36,6 +38,13 @@ module OmegaTest
     entity_init{ |e|
       @entity_initialized = true
     }
+  end
+
+  class Trackable1
+    include Omega::Client::Trackable
+    include Omega::Client::TrackEntity
+    entity_type Manufactured::Station
+    get_method "manufactured::get_entity"
   end
 end
 
@@ -50,7 +59,12 @@ module Omega::Client
     end
 
     describe "#refresh" do
-      it "refreshes the local entity from the server"
+      it "refreshes the local entity from the server" do
+        s1 = create(:valid_ship)
+        r = OmegaTest::Trackable.get(s1.id)
+        @n.should_receive(:invoke).with('manufactured::get_entity', 'with_id', s1.id)
+        r.refresh
+      end
     end
 
     describe "#method_missing" do
@@ -92,7 +106,12 @@ module Omega::Client
     end
 
     describe "#clear_handlers" do
-      it "clears handlers for all events"
+      it "clears handlers for all events" do
+        @t.handle(:foo) {}
+        @t.handles?(:foo).should be_true
+        @t.clear_handlers
+        @t.handles?(:foo).should be_false
+      end
     end
 
     describe "#clear_handlers_for" do
@@ -123,7 +142,18 @@ module Omega::Client
       end
 
       context "error during handlers" do
-        it "catches exception / continues gracefully"
+        it "catches exception / continues gracefully" do
+          @t = OmegaTest::Trackable.get(create(:valid_ship).id)
+
+          h = proc { raise Exception, "pwnd" }
+          h.should_receive(:call).exactly(2).times.and_call_original
+
+          @t.handle(:foo, &h)
+          @t.handle(:all, &h)
+          lambda {
+            @t.raise_event :foo
+          }.should_not raise_error
+        end
       end
     end
 
@@ -176,8 +206,18 @@ module Omega::Client
       end
 
       context "notification handler invoked" do
+        before(:each) do
+          e = stub(Object)
+          @t.entity = e
+        end
+
         context "update callback is set" do
-          it "invokes update callback"
+          it "invokes update callback" do
+            @t.handle(:notification_event) {}
+            m = @t.class.node.handlers['notification_method'].first
+            @t.instance_exec :foo, &m
+            @t.updated.should be_true
+          end
         end
 
         it "raises event on entity" do
@@ -187,7 +227,16 @@ module Omega::Client
           @t.instance_exec :foo, &m
         end
 
-        it "serializes entity events"
+        it "serializes entity events" do
+          m = nil
+          @t.handle(:notification_event) {
+            lambda {
+              @t.instance_exec :foo, &m
+            }.should raise_error(ThreadError)
+          }
+          m = @t.class.node.handlers['notification_method'].first
+          @t.instance_exec :foo, &m
+        end
 
         context "match is false" do
           it "does not raise event" do
@@ -371,7 +420,13 @@ module Omega::Client
     end
 
     describe "#server_state" do
-      it "registers new initialization method"
+      it "registers new initialization method" do
+        # XXX FIXME very hacky way to verify this
+        loc  = OmegaTest::Trackable.method(:server_state).source_location.last
+        init = OmegaTest::Trackable.instance_variable_get(:@entity_init).
+                 collect { |ei| ei.source_location.last == loc + 1}
+        init.should_not be_nil
+      end
 
       context "entity intialization" do
         # entity is initialized via init_entity in TrackState#before(:each)
@@ -481,25 +536,57 @@ module Omega::Client
     end
 
     describe "#refresh" do
-      it "refreshes all entities"
+      it "refreshes all entities" do
+        s1 = create(:valid_ship)
+        s2 = create(:valid_ship)
+        t1 = OmegaTest::Trackable.get(s1.id)
+        t2 = OmegaTest::Trackable.get(s2.id)
+        t1.should_receive(:refresh)
+        t2.should_receive(:refresh)
+        OmegaTest::Trackable.refresh
+      end
     end
 
     describe "#cached" do
       context "entity w/ id in list" do
-        it "returns entity"
+        it "returns entity" do
+          s1 = create(:valid_ship)
+          t1 = OmegaTest::Trackable.get(s1.id)
+          OmegaTest::Trackable.cached(s1.id).should == t1
+        end
       end
 
       context "entity w/ id not in list" do
-        it "retrieves entity w/ id"
+        it "retrieves entity w/ id" do
+          s1 = create(:valid_ship)
+          OmegaTest::Trackable.should_receive(:get).with(s1.id).and_return(s1)
+          OmegaTest::Trackable.cached(s1.id).should == s1
+        end
       end
     end
 
     describe "TrackEntity#entities" do
-      it "returns entities from all TrackEntity subclasses"
+      it "returns entities from all TrackEntity subclasses" do
+        sh1 = create(:valid_ship)
+        st1 = create(:valid_station)
+        t1 = OmegaTest::Trackable.get(sh1.id)
+        t2 = OmegaTest::Trackable1.get(st1.id)
+        TrackEntity.entities.should include(t1)
+        TrackEntity.entities.should include(t2)
+      end
     end
 
     describe "TrackEntity#clear_entities" do
-      it "clears entities in all TrackEntity subclasses"
+      it "clears entities in all TrackEntity subclasses" do
+        sh1 = create(:valid_ship)
+        st1 = create(:valid_station)
+        t1 = OmegaTest::Trackable.get(sh1.id)
+        t2 = OmegaTest::Trackable1.get(st1.id)
+        TrackEntity.clear_entities
+        TrackEntity.entities.should == []
+        OmegaTest::Trackable.entities.should == []
+        OmegaTest::Trackable1.entities.should == []
+      end
     end
   end
 end # module Omega::Client
