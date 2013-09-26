@@ -763,11 +763,312 @@ describe("Ship", function(){
       }
     });
 
-  //  describe("on ship ui command", function(){
-  //    it("raises event on ship"); // NIY
-  //  });
-  //  // TODO test specific commands NIY
-  //
+    describe("cmd_move_select", function(){
+      it("raises event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        var mcb  = sinon.spy();
+        sh.on('cmd_move_select',   mcb);
+
+        $('#qunit-fixture').append('<div id="cmd_move_select"></div>');
+        $('#cmd_move_select').trigger('click')
+
+        // TODO verify dialog contents
+        sinon.assert.calledWith(mcb,  sh, sh, 'Move Ship',     sinon.match.string);
+      });
+    });
+
+    describe("cmd_attack_select", function(){
+      it("raises event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        var acb  = sinon.spy();
+        sh.on('cmd_attack_select', acb);
+
+        $('#qunit-fixture').append('<div id="cmd_attack_select"></div>');
+        $('#cmd_attack_select').trigger('click')
+        sinon.assert.calledWith(acb,  sh, sh, 'Launch Attack', sinon.match.string);
+      });
+    });
+
+    describe("cmd_dock_select", function(){
+      it("raises event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        var dcb  = sinon.spy();
+        sh.on('cmd_dock_select',   dcb);
+
+        $('#qunit-fixture').append('<div id="cmd_dock_select"></div>');
+        $('#cmd_dock_select').trigger('click')
+        sinon.assert.calledWith(dcb,  sh, sh, 'Dock Ship',     sinon.match.string);
+      });
+    });
+
+    describe("cmd_mine_select", function(){
+      it("raises event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        var micb = sinon.spy();
+        sh.on('cmd_mine_select',   micb);
+
+        $('#qunit-fixture').append('<div id="cmd_mine_select"></div>');
+        $('#cmd_mine_select').trigger('click')
+        sinon.assert.calledWith(micb, sh, sh, 'Start Mining',  sinon.match.string);
+      });
+    });
+
+    describe("cmd_move", function(){
+      after(function(){
+        Commands.move_ship.restore();
+      })
+
+      it("moves ship", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.move_ship = sinon.spy(Commands, 'move_ship');
+        $('#qunit-fixture').append('<div id="cmd_move"></div>');
+        $('#qunit-fixture').append('<input id="dest_x" type="text" value="100"></input>');
+        $('#qunit-fixture').append('<input id="dest_y" type="text" value="200"></input>');
+        $('#qunit-fixture').append('<input id="dest_z" type="text" value="300"></input>')
+        $('#cmd_move').trigger('click')
+        sinon.assert.calledWith(Commands.move_ship, sh, "100", "200", "300", sinon.match.func)
+      });
+
+      it("raises cmd_move event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.move_ship = sinon.spy(Commands, 'move_ship');
+        $('#qunit-fixture').append('<div id="cmd_move">');
+        $('#cmd_move').trigger('click')
+        var cb = Commands.move_ship.getCall(0).args[4];
+
+        var spy = sinon.spy();
+        sh.on('cmd_move', spy)
+        cb.apply(null);
+        sinon.assert.calledWith(spy, sh, sh)
+      })
+    });
+
+    describe("cmd_attack", function(){
+      after(function(){
+        Commands.launch_attack.restore();
+      })
+
+      it("launches attack", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.launch_attack = sinon.spy(Commands, 'launch_attack');
+        $('#qunit-fixture').append('<div id="cmd_attack_foobar" class="cmd_attack"></div>');
+        var target = {};
+        Entities().set('foobar', target)
+
+        $('#cmd_attack_foobar').trigger('click')
+        sinon.assert.calledWith(Commands.launch_attack, sh, target, sinon.match.func);
+      });
+
+      it("raises cmd_attack event", function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.launch_attack = sinon.spy(Commands, 'launch_attack');
+        $('#qunit-fixture').append('<div id="cmd_attack_foobar" class="cmd_attack"></div>');
+        var target = {};
+        Entities().set('foobar', target)
+        $('#cmd_attack_foobar').trigger('click')
+        var cb = Commands.launch_attack.getCall(0).args[2];
+
+        var spy = sinon.spy();
+        sh.on('cmd_attack', spy)
+        cb.apply(null);
+        sinon.assert.calledWith(spy, sh, sh, target)
+      })
+    });
+
+    describe("cmd_dock", function(){
+      var station;
+
+      before(function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.dock_ship = sinon.spy(Commands, 'dock_ship');
+        $('#qunit-fixture').append('<div id="cmd_dock_foobar" class="cmd_dock"></div>');
+        $('#qunit-fixture').append('<div id="cmd_dock_select"></div>');
+        $('#qunit-fixture').append('<div id="cmd_undock" style="display: none"></div>');
+        $('#qunit-fixture').append('<div id="cmd_transfer" style="display: none"></div>');
+        station = {};
+        Entities().set('foobar', station)
+      })
+
+      after(function(){
+        Commands.dock_ship.restore();
+      })
+
+      it("docks ship", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        sinon.assert.calledWith(Commands.dock_ship, sh, station, sinon.match.func);
+      });
+
+      it("hides dock selection dialog", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        ok(!$('#cmd_dock_select').is(':visible'));
+      })
+
+      it("shows undock cmd", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        ok($('#cmd_undock').is(':visible'));
+      })
+
+      it("shows transfer cmd", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        ok($('#cmd_transfer').is(':visible'));
+      })
+
+      it("updates ship", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        var cb = Commands.dock_ship.getCall(0).args[2];
+        var spy = sinon.spy(sh, 'update');
+        var res = {};
+        cb.apply(null, [{result : res}]);
+        sinon.assert.calledWith(spy, res);
+      });
+
+      it("raises cmd_dock event", function(){
+        $('#cmd_dock_foobar').trigger('click')
+        var cb = Commands.dock_ship.getCall(0).args[2];
+        var spy = sinon.spy();
+        sh.on('cmd_dock', spy)
+        var res = {};
+        cb.apply(null, [{result : res}]);
+        sinon.assert.calledWith(spy, sh, sh, res)
+      })
+    });
+
+    describe("cmd_undock", function(){
+      var station;
+
+      before(function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.undock_ship = sinon.spy(Commands, 'undock_ship');
+        $('#qunit-fixture').append('<div id="cmd_dock_select" style="display: none"></div>');
+        $('#qunit-fixture').append('<div id="cmd_undock"></div>');
+        $('#qunit-fixture').append('<div id="cmd_transfer"></div>');
+      })
+
+      after(function(){
+        Commands.undock_ship.restore();
+      })
+
+      it("undocks ship", function(){
+        $('#cmd_undock').trigger('click')
+        sinon.assert.calledWith(Commands.undock_ship, sh, sinon.match.func);
+      });
+
+      it("shows dock selection cmd", function(){
+        $('#cmd_undock').trigger('click')
+        ok($('#cmd_dock_select').is(':visible'));
+      })
+
+      it("hides undock cmd", function(){
+        $('#cmd_undock').trigger('click')
+        ok(!$('#cmd_undock').is(':visible'));
+      })
+
+      it("shows transfer cmd", function(){
+        $('#cmd_undock').trigger('click')
+        ok(!$('#cmd_transfer').is(':visible'));
+      })
+
+      it("updates ship", function(){
+        $('#cmd_undock').trigger('click')
+        var cb = Commands.undock_ship.getCall(0).args[1];
+        var spy = sinon.spy(sh, 'update');
+        var res = {};
+        cb.apply(null, [{result : res}]);
+        sinon.assert.calledWith(spy, res);
+      })
+
+      it("raises cmd_undock event", function(){
+        $('#cmd_undock').trigger('click')
+        var cb = Commands.undock_ship.getCall(0).args[1];
+        var spy = sinon.spy();
+        sh.on('cmd_undock', spy)
+        var res = {};
+        cb.apply(null, [{result : res}]);
+        sinon.assert.calledWith(spy, sh, sh);
+      });
+    });
+
+    describe("cmd_transfer", function(){
+      before(function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+        sh.docked_at = {id : 'foobar'}
+        sh.resources = [];
+
+        Commands.transfer_resources = sinon.spy(Commands, 'transfer_resources');
+        $('#qunit-fixture').append('<div id="cmd_transfer"></div>');
+      })
+
+      after(function(){
+        Commands.transfer_resources.restore();
+      })
+
+      it("transfers resources", function(){
+        $('#cmd_transfer').trigger('click')
+        sinon.assert.calledWith(Commands.transfer_resources,
+                                sh, 'foobar', sinon.match.func);
+      })
+
+      it("raises cmd_transfer event", function(){
+        $('#cmd_transfer').trigger('click')
+        var cb = Commands.transfer_resources.getCall(0).args[2];
+        var spy = sinon.spy();
+        sh.on('cmd_transfer', spy)
+        var res = [{}, {}]
+        cb.apply(null, [{result : res}]);
+        sinon.assert.calledWith(spy, sh, res[0], res[1]);
+      });
+    });
+
+    describe("cmd_mine", function(){
+      before(function(){
+        var scene = new Scene();
+        sh.clicked_in(scene);
+
+        Commands.start_mining = sinon.spy(Commands, 'start_mining');
+        $('#qunit-fixture').append('<div id="cmd_mine_foobar" class="cmd_mine"></div>');
+      })
+
+      after(function(){
+        Commands.start_mining.restore();
+      })
+
+      it("starts mining", function(){
+        $('#cmd_mine_foobar').trigger('click')
+        sinon.assert.calledWith(Commands.start_mining,
+                                sh, 'foobar', sinon.match.func);
+      })
+
+      it("raises cmd_mine event", function(){
+        $('#cmd_mine_foobar').trigger('click')
+        var cb = Commands.start_mining.getCall(0).args[2];
+        var spy = sinon.spy();
+        sh.on('cmd_mine', spy)
+        cb.apply(null, []);
+        sinon.assert.calledWith(spy, sh, sh, 'foobar');
+      });
+    });
+
     it("sets selected true", function(){
         var scene = new Scene();
         sh.clicked_in(scene);
@@ -1015,10 +1316,35 @@ describe("Station", function(){
       assert(events[0]).isNotEqualTo(cb);
     });
 
-    //describe("on station ui command", function(){
-    //  it("raises event on station"); // NIY
-    //});
-    // TODO test specific commands NIY
+    describe("cmd_construct", function(){
+      before(function(){
+        var scene = new Scene();
+        st.clicked_in(scene);
+
+        Commands.construct_entity = sinon.spy(Commands, 'construct_entity');
+        $('#qunit-fixture').append('<div id="cmd_construct"></div>');
+      })
+
+      after(function(){
+        Commands.construct_entity.restore();
+      })
+
+      it("starts construction", function(){
+        $('#cmd_construct').trigger('click')
+        sinon.assert.calledWith(Commands.construct_entity,
+                                st, sinon.match.func);
+      })
+
+      it("raises cmd_mine event", function(){
+        $('#cmd_construct').trigger('click')
+        var cb = Commands.construct_entity.getCall(0).args[1];
+        var spy = sinon.spy();
+        st.on('cmd_construct', spy)
+        var nsh = {};
+        cb.apply(null, [{result: [{},nsh]}]);
+        sinon.assert.calledWith(spy, st); // TODO verify also called w/ new ship
+      });
+    });
 
     it("sets selected true", function(){
       var scene = new Scene();

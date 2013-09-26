@@ -54,7 +54,14 @@ module Motel::RJR
       @d.environments[/motel::.*/].should  == Motel::RJR
     end
 
-    it "adds motel rjr modules to dispatcher"
+    it "adds motel rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('motel/rjr/create')
+      @d.should_receive(:add_module).with('motel/rjr/get')
+      @d.should_receive(:add_module).with('motel/rjr/update')
+      @d.should_receive(:add_module).with('motel/rjr/track')
+      @d.should_receive(:add_module).with('motel/rjr/state')
+      dispatch_motel_rjr_init(@d)
+    end
   end
 
 end # module Users::RJR

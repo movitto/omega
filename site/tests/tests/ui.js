@@ -655,10 +655,29 @@ describe("Scene", function(){
     // TODO assert is stopped & interval
   });
 
-  //context("particle timer event", function(){
-    //it("runs update_particles on all scene objects which define it") // NIY
-    //it("animates scene") // NIY
-  //})
+  describe("particle timer event", function(){
+    var cb;
+    before(function(){
+      cb = canvas.scene.particle_timer.action;
+    })
+
+    it("runs update_particles on all scene objects which define it", function(){
+      var o1 = {};
+      var o2 = {update_particles : function(){}}
+      canvas.scene._scene.__objects.push(o1);
+      canvas.scene._scene.__objects.push(o2);
+
+      var spy = sinon.spy(o2, 'update_particles');
+      cb.apply(null);
+      sinon.assert.called(spy);
+    });
+
+    it("animates scene", function(){
+      var spy = sinon.spy(canvas.scene, 'animate');
+      cb.apply(null);
+      sinon.assert.called(spy);
+    });
+  })
 
   describe("#set_size", function(){
     it("it sets THREE renderer size", function(){
@@ -1494,9 +1513,17 @@ describe("AccountInfoContainer", function(){
 //  describe("#gravatar", function(){
 //    it("sets gravatar page component value") // NIY
 //  });
-//  describe("#entities", function(){
-//    it("sets entities list") // NIY
-//  });
+
+  describe("#entities", function(){
+    it("sets entities lists", function(){
+      var sh1 = new Ship({id : 'sh1', type : 'corvette'});
+      var sh2 = new Ship({id : 'sh2', type : 'corvette'});
+      var st1 = new Station({id : 'st1', type : 'manufacturing'});
+      aic.entities([sh1, sh2, st1])
+      assert($('#account_info_ships').text()).equals('sh1 sh2 ')
+      assert($('#account_info_stations').text()).equals('st1 ');
+    });
+  });
 
   describe("#passwords_match", function(){
     describe("passwords match", function(){

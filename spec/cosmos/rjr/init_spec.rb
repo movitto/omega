@@ -83,7 +83,13 @@ module Cosmos::RJR
       @d.environments[/cosmos::.*/].should  == Cosmos::RJR
     end
 
-    it "adds cosmos rjr modules to dispatcher"
+    it "adds cosmos rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('cosmos/rjr/create')
+      @d.should_receive(:add_module).with('cosmos/rjr/get')
+      @d.should_receive(:add_module).with('cosmos/rjr/resources')
+      @d.should_receive(:add_module).with('cosmos/rjr/state')
+      dispatch_cosmos_rjr_init(@d)
+    end
 
     it "sets dispatcher on node" do
       dispatch_cosmos_rjr_init(@d)
@@ -109,7 +115,16 @@ module Cosmos::RJR
       end
     end
 
-    it "adds additional privileges to user"
+    it "adds additional privileges to user" do
+      Cosmos::RJR::PRIVILEGES.each { |p,e|
+        Cosmos::RJR.node.should_receive(:invoke).
+          with('users::add_privilege',
+               "user_role_#{Cosmos::RJR.user.id}",
+                p, e)
+      }
+      Cosmos::RJR.node.should_receive(:invoke).at_least(1).and_call_original
+      dispatch_cosmos_rjr_init(@d)
+    end
 
     it "logs in the user using the node" do
       lambda{ # XXX @d.add_module above will have already called dispatch_init

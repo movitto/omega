@@ -370,26 +370,149 @@ describe("Ship", function(){
       //}
     });
 
-  //  context("ship is moving and trail components are not added", function(){
-  //    it("adds trail components to entity");
-  //  });
-  //  context("ship is stopped and trail components are added", function(){
-  //    it("removes trail components from entity");
-  //  });
-  //  context("ship attacking", function(){
-  //    it("sets THREE attack line position"); // NIY
-  //    it("adds THREE attack line component to entity"); // NIY
-  //  });
-  //  context("ship mining", function(){
-  //    it("sets THREE mining line position"); // NIY
-  //    it("adds THREE mining line component to entity"); // NIY
-  //  });
-  //  context("ship is selected", function(){
-  //    it("sets mesh emissive color") // NIY
-  //  });
-  //  context("ship is not selected", function(){
-  //    it("resets ship emissive color"); // NIY
-  //  });
+    describe("ship is moving and trail components are not added", function(){
+      it("adds trail components to entity", function(){
+        load_ship();
+        ok($.inArray(sh.components, sh.trails[0]) == -1)
+        sh.update({location : {movement_strategy :
+          {json_class : 'Motel::MovementStrategies::Linear'}}})
+        for(var i = 0; i < sh.trails.length; i++)
+          assert(sh.components).includes(sh.trails[i]);
+      });
+    });
+
+    describe("ship is stopped and trail components are added", function(){
+      it("removes trail components from entity", function(){
+        load_ship();
+        sh.update({location : {movement_strategy :
+          {json_class :'Motel::MovementStrategies::Linear'}}})
+        assert(sh.components).includes(sh.trails[0]);
+        sh.update({location : {movement_strategy :
+          {json_class : 'Motel::MovementStrategies::Stopped'}}})
+        for(var i = 0; i < sh.trails.length; i++)
+          ok($.inArray(sh.components, sh.trails[i]) == -1)
+      });
+    });
+
+    describe("ship attacking", function(){
+      it("sets THREE attack line position", function(){
+        load_ship();
+        var target = new Ship({location : {x:10,y:20,z:30}, type : 'mining'});
+        sh.update({location : {x:100,y:100,z:200}, attacking : target})
+
+        var dist = sh.location.distance_from(target.location.x,
+                                             target.location.y,
+                                             target.location.z)
+
+        assert(sh.attack_particles.position.x).equals(100);
+        assert(sh.attack_particles.position.y).equals(100);
+        assert(sh.attack_particles.position.z).equals(200);
+        assert(sh.attack_particles.geometry.scalex).equals(60 / dist * -90);
+        assert(sh.attack_particles.geometry.scaley).equals(60 / dist * -80);
+        assert(sh.attack_particles.geometry.scalez).equals(60 / dist * -170);
+      });
+
+      it("adds THREE attack line component to entity", function(){
+        load_ship();
+        ok($.inArray(sh.components, sh.attack_particles) == -1)
+        var target = new Ship({location : {x:10,y:20,z:30}, type : 'mining'});
+        sh.update({attacking : target})
+        assert(sh.components).includes(sh.attack_particles);
+      });
+    });
+
+    describe("ship not attacking", function(){
+      it("removes THREE attack line component", function(){
+        load_ship();
+        var target = new Ship({location : {x:10,y:20,z:30}, type : 'mining'});
+        sh.update({attacking : target})
+        assert(sh.components).includes(sh.attack_particles);
+        sh.update({});
+        ok($.inArray(sh.components, sh.attack_particles) == -1)
+      });
+    })
+
+    function load_resource(sys){
+      var ast  = new Asteroid({id : 'ast1', system_id : sys,
+                               location : {x:20,y:20,z:30}});
+      var ssys = new SolarSystem({id:sys, children : [ast]})
+      Entities().set(sys, ssys);
+      var resource = {entity_id: ast.id};
+      return resource;
+    }
+
+    describe("ship mining", function(){
+      it("sets THREE mining line position", function(){
+        load_ship();
+        sh.system_id = 'system1'
+
+        var resource = load_resource('system1');
+        sh.update({mining: resource, location : {x:100,y:100,z:200}})
+
+        assert(sh.mining_line.geometry.vertices[0].x).equals(100);
+        assert(sh.mining_line.geometry.vertices[0].y).equals(100);
+        assert(sh.mining_line.geometry.vertices[0].z).equals(200);
+        assert(sh.mining_line.geometry.vertices[1].x).equals(20);
+        assert(sh.mining_line.geometry.vertices[1].y).equals(20);
+        assert(sh.mining_line.geometry.vertices[1].z).equals(30);
+      });
+
+      it("adds THREE mining line component to entity", function(){
+        load_ship();
+        sh.system_id = 'system1'
+
+        var resource = load_resource('system1');
+        ok($.inArray(sh.components, sh.mining_line) == -1)
+        sh.update({mining: resource, location : {x:100,y:100,z:200}})
+        assert(sh.components).includes(sh.mining_line);
+      });
+    });
+
+    describe("ship not mining", function(){
+      it("removes mining line component", function(){
+        load_ship();
+        sh.system_id = 'system1'
+
+        var resource = load_resource('system1')
+        sh.update({mining: resource, location : {x:100,y:100,z:200}})
+
+        assert(sh.components).includes(sh.mining_line);
+        sh.update({});
+        ok($.inArray(sh.components, sh.mining_line) == -1)
+      })
+    });
+
+    describe("ship is selected", function(){
+      it("sets mesh emissive color", async(function(){
+        var verified = false;
+        UIResources().on('geometry_loaded', function(){
+          if(verified || !sh || !sh.mesh) return;
+          verified = true;
+          sh.selected = true;
+          sh.update({});
+          assert(sh.mesh.material.emissive.getHex()).equals(0xff0000)
+          resume();
+        });
+        load_ship();
+      }));
+    });
+
+    describe("ship is not selected", function(){
+      it("resets ship emissive color", async(function(){
+        var verified = false;
+        UIResources().on('geometry_loaded', function(){
+          if(verified || !sh || !sh.mesh) return;
+          verified = true;
+          sh.selected = true;
+          sh.update({});
+          sh.selected = false;
+          sh.update({});
+          assert(sh.mesh.material.emissive.getHex()).equals(0);
+          resume();
+        });
+        load_ship();
+      }));
+    });
   })
 
   it("adds THREE clickable mesh component to entity", async(function(){
@@ -437,15 +560,15 @@ describe("Ship", function(){
     assert(comp.material.__proto__).equals(THREE.LineBasicMaterial.prototype);
   });
 
-  //context("updating ship trails particles", function(){
+  //describe("updating ship trails particles", function(){
   //  it("moves linearily away from ship"); // NIY
   //  it("decays with a given lifespan"); // NIY
   //  it("sets lifespan of center particles to greater than outer particles") // NIY
   //});
   //
-  //context("updating ship attack particles", function(){
+  //describe("updating ship attack particles", function(){
   //  it("moves particles linearily between attacker location and defender location"); // NIY
-  //  context("particle arriving at defender location", function(){
+  //  describe("particle arriving at defender location", function(){
   //    it("resets particle to originating from attacker location"); // NIY
   //  });
   //});

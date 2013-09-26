@@ -71,7 +71,17 @@ module Users::RJR
       @d.environments[/users::.*/].should  == Users::RJR
     end
 
-    it "adds users rjr modules to dispatcher"
+    it "adds users rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('users/rjr/create')
+      @d.should_receive(:add_module).with('users/rjr/get')
+      @d.should_receive(:add_module).with('users/rjr/update')
+      @d.should_receive(:add_module).with('users/rjr/permissions')
+      @d.should_receive(:add_module).with('users/rjr/register')
+      @d.should_receive(:add_module).with('users/rjr/session')
+      @d.should_receive(:add_module).with('users/rjr/attribute')
+      @d.should_receive(:add_module).with('users/rjr/state')
+      dispatch_users_rjr_init(@d)
+    end
 
     it "sets dispatcher on node" do
       dispatch_users_rjr_init(@d)

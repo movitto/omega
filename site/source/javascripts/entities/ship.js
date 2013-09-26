@@ -226,7 +226,7 @@ function _ship_update(oargs){
   // handle mining state changes
   if(args.mining){
     this.mining = args.mining;
-    this.mining.entity = _ship_resolve_mining_target(this.mining);
+    this.mining.entity = _ship_resolve_mining_target(this.system_id, this.mining);
 
     if(this.mining_line){
       if(this.components.indexOf(this.mining_line) == -1)

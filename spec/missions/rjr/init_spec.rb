@@ -110,7 +110,13 @@ module Missions::RJR
       @d.environments[/missions::.*/].should  == Missions::RJR
     end
 
-    it "adds missions rjr modules to dispatcher"
+    it "adds missions rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('missions/rjr/create')
+      @d.should_receive(:add_module).with('missions/rjr/get')
+      @d.should_receive(:add_module).with('missions/rjr/assign')
+      @d.should_receive(:add_module).with('missions/rjr/state')
+      dispatch_missions_rjr_init(@d)
+    end
 
     it "sets dispatcher on node" do
       dispatch_missions_rjr_init(@d)
@@ -136,7 +142,16 @@ module Missions::RJR
       end
     end
 
-    it "adds additional privileges to user"
+    it "adds additional privileges to user" do
+      Missions::RJR::PRIVILEGES.each { |p,e|
+        Missions::RJR.node.should_receive(:invoke).
+          with('users::add_privilege',
+               "user_role_#{Missions::RJR.user.id}",
+                p, e)
+      }
+      Missions::RJR.node.should_receive(:invoke).at_least(1).and_call_original
+      dispatch_missions_rjr_init(@d)
+    end
 
     it "logs in the user using the node" do
       lambda{ # XXX @d.add_module above will have already called dispatch_init
@@ -153,8 +168,16 @@ module Missions::RJR
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
 
-    it "add manufactured::event_occurred callback to dispatcher"
-    it "executes manufactured::event_occurred callbacks in Missions::RJR env"
+    it "add manufactured::event_occurred callback to dispatcher" do
+      @d.handles?('manufactured::event_occurred').should be_false
+      dispatch_missions_rjr_init(@d)
+      @d.handles?('manufactured::event_occurred').should be_true
+    end
+
+    it "executes manufactured::event_occurred callbacks in Missions::RJR env" do
+      dispatch_missions_rjr_init(@d)
+      @d.environments['manufactured::event_occurred'].should  == Missions::RJR
+    end
   end
 
 end # module Missions::RJR

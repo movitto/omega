@@ -174,7 +174,19 @@ module Manufactured::RJR
       @d.environments[/manufactured::.*/].should  == Manufactured::RJR
     end
 
-    it "adds manufactured rjr modules to dispatcher"
+    it "adds manufactured rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('manufactured/rjr/create')
+      @d.should_receive(:add_module).with('manufactured/rjr/get')
+      @d.should_receive(:add_module).with('manufactured/rjr/state')
+      @d.should_receive(:add_module).with('manufactured/rjr/events')
+      @d.should_receive(:add_module).with('manufactured/rjr/resources')
+      @d.should_receive(:add_module).with('manufactured/rjr/movement')
+      @d.should_receive(:add_module).with('manufactured/rjr/dock')
+      @d.should_receive(:add_module).with('manufactured/rjr/mining')
+      @d.should_receive(:add_module).with('manufactured/rjr/attack')
+      @d.should_receive(:add_module).with('manufactured/rjr/loot')
+      dispatch_manufactured_rjr_init(@d)
+    end
 
     it "sets dispatcher on node" do
       dispatch_manufactured_rjr_init(@d)
@@ -200,7 +212,16 @@ module Manufactured::RJR
       end
     end
 
-    it "adds additional privileges to user"
+    it "adds additional privileges to user" do
+      Manufactured::RJR::PRIVILEGES.each { |p,e|
+        Manufactured::RJR.node.should_receive(:invoke).
+          with('users::add_privilege',
+               "user_role_#{Manufactured::RJR.user.id}",
+                p, e)
+      }
+      Manufactured::RJR.node.should_receive(:invoke).at_least(1).and_call_original
+      dispatch_manufactured_rjr_init(@d)
+    end
 
     it "logs in the user using the node" do
       lambda{ # XXX @d.add_module above will have already called dispatch_init
@@ -217,9 +238,24 @@ module Manufactured::RJR
       @rjr.node.message_headers['source_node'].should_not be_nil
     end
 
-    it "add motel::on_movement callback to dispatcher"
-    it "add motel::on_rotation callback to dispatcher"
-    it "executes motel::on_movement/motel::on_rotation callbacks in Manufactured::RJR env"
+    it "add motel::on_movement callback to dispatcher" do
+      @d.handles?('motel::on_movement').should be_false
+      dispatch_manufactured_rjr_init(@d)
+      @d.handles?('motel::on_movement').should be_true
+    end
+
+    it "add motel::on_rotation callback to dispatcher" do
+      @d.handles?('motel::on_rotation').should be_false
+      dispatch_manufactured_rjr_init(@d)
+      @d.handles?('motel::on_rotation').should be_true
+    end
+
+    it "executes motel::on_movement/motel::on_rotation callbacks in Manufactured::RJR env" do
+      dispatch_manufactured_rjr_init(@d)
+      @d.environments['motel::on_movement'].should  == Manufactured::RJR
+      @d.environments['motel::on_rotation'].should  == Manufactured::RJR
+    end
+
   end
 
 end # module Manufactured::RJR

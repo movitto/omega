@@ -48,7 +48,10 @@ module Stats::RJR
       @d.environments[/stats::.*/].should == Stats::RJR
     end
 
-    it "adds stats rjr modules to dispatcher"
+    it "adds stats rjr modules to dispatcher" do
+      @d.should_receive(:add_module).with('stats/rjr/get')
+      dispatch_stats_rjr_init(@d)
+    end
 
     it "sets dispatcher on node" do
       dispatch_stats_rjr_init(@d)

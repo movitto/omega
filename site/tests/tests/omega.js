@@ -280,7 +280,7 @@ pavlov.specify("omega.js", function(){
       it("removes entity from scene", function(){
         var u = complete_ui();
         var n = new TestNode();
-        var s = new Ship({ id : 'ship1' })
+        var s = new Ship({ id : 'ship1', location : {movement_strategy : {}} })
         process_entity(u, n, s)
         assert(s.callbacks['jumped'].length).equals(1);
 
@@ -303,7 +303,7 @@ pavlov.specify("omega.js", function(){
       it("invokes a motel_event", function(){
         var u = complete_ui();
         var n = new TestNode();
-        var s = new Ship({ id : 'ship1', location : new Location({id : 'l42' }) });
+        var s = new Ship({ id : 'ship1', location : new Location({id : 'l42', movement_strategy : {} }) });
         Entities().set(s.id, s);
 
         process_entity(u, n, s);
@@ -384,7 +384,7 @@ pavlov.specify("omega.js", function(){
         var n = new TestNode();
         sh = new Ship({ id : 'ship1',
                         system_id : 'sys1',
-                        location : new Location({id : 'l42' }) });
+                        location : new Location({id : 'l42', movement_strategy : {}}) });
         load_system = sinon.spy(load_system);
         process_entity(u, n, sh);
 
@@ -503,7 +503,7 @@ pavlov.specify("omega.js", function(){
     describe("resource_collected", function(){
       it("updates ship", function(){
         var spy = sinon.spy(miner, 'update')
-        var nminer = { id : miner.id };
+        var nminer = { id : miner.id, location : {movement_strategy : {}} };
         manufactured_event(ui, node,
           [null, 'resource_collected', nminer, {}, 50])
         sinon.assert.calledWith(spy, nminer)
@@ -1195,10 +1195,53 @@ pavlov.specify("omega.js", function(){
   //describe("#clicked_station", function(){
   //});
 
-  //describe("#load_system", function(){ // NIY
-  //});
-  //describe("#load_galaxy", function(){ // NIY
-  //});
+  describe("#load_system", function(){
+    describe("cached system exists locally", function(){
+      it("invokes callbacks on cached system", function(){
+        var sys = {};
+        Entities().set('sys1', sys)
+        var spy = sinon.spy();
+        load_system('sys1', complete_ui(), new TestNode(), spy)
+        sinon.assert.calledWith(spy, sys);
+      });
+    });
+  
+    //describe("cached system does not exist locally", function(){
+    //  it("it retrieves solar system with id"); // NIY
+    //  it("sets system in registry"); // NIY
+    //  it("runs stored load_system callbacks"); // NIY
+    //  it("shows system in locations container"); // NIY
+    //  it("wires up child asteroid events"); // NIY
+    //  it("wires up child jump gate events"); // NIY
+    //  it("stores child planets in the registry"); // NIY
+    //  it("stores child asteroids in the registry"); // NIY
+    //  it("stores child jump gates in the registry"); // NIY
+    //  it("loads parent galaxy"); // NIY
+    //  it("sets parent galaxy on system"); // NIY
+    //  it("adds self to galaxy child systems"); // NIY
+    //});
+  });
+
+  describe("#load_galaxy", function(){
+    describe("cached galaxy exists locally", function(){
+      it("invokes callbacks on cached galaxy", function(){
+        var gal = {};
+        Entities().set('gal1', gal)
+        var spy = sinon.spy();
+        load_galaxy('gal1', complete_ui(), new TestNode(), spy);
+        sinon.assert.calledWith(spy, gal);
+      });
+    });
+
+  //  describe("cached galaxy does not exist locally", function(){
+  //    it("it retrieves galaxy with id"); // NIY
+  //    it("sets galaxy in registry"); // NIY
+  //    it("runs stored load_galaxy callbacks"); // NIY
+  //    it("shows galaxy in locations container"); // NIY
+  //    it("saws child solar system in from registry") // NIY
+  //    it("wires up child system events"); // NIY
+  //  });
+  });
 
   describe("#wire_up_ui", function(){
     var ui, node;
@@ -1877,8 +1920,10 @@ pavlov.specify("omega.js", function(){
         
         sys = new SolarSystem({id : 'sys1', location : new Location()})
         Session.current_session = { user_id : 'user1' }
-        sh1 = new Ship({ id : 'sh1', user_id : 'user2', system_id : 'sys2', location : new Location({id : 5}) });
-        sh2 = new Ship({ id : 'sh2', system_id : 'sys1' , location : new Location()});
+        sh1 = new Ship({ id : 'sh1', user_id : 'user2', system_id : 'sys2',
+                         location : new Location({id : 5, movement_strategy : {}}) });
+        sh2 = new Ship({ id : 'sh2', system_id : 'sys1' , 
+                         location : new Location({movement_strategy : {}})});
 
         Entities().set(sh1.id, sh1);
         Entities().set(sh2.id, sh2);
