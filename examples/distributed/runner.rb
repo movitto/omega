@@ -49,7 +49,7 @@ proxied_system $athena.id, 'universe1',
                :location => $athena.location
 
 $gate_to_athena = jump_gate $agathon, $athena,
-                         :location => loc(375,176,-286)
+                         :location => loc(-275,76,286)
 
 logout
 
@@ -63,7 +63,7 @@ proxied_system $agathon.id, 'universe2',
                :location => $agathon.location
 
 $gate_to_agathon = jump_gate $athena, $agathon,
-                          :location => loc(-375,-176,286)
+                          :location => loc(-275,-176,286)
 
 user 'player', 'reylap' do |u|
   role :regular_user
@@ -94,13 +94,12 @@ def log_player_into(server)
 end
 
 def refresh_ship
-puts 'refresh' + Omega::Client::Trackable.node.endpoint 
-  run_ship Omega::Client::Ship.get('player-corvette-ship1')
+  @sh ||= Omega::Client::Ship.get('player-corvette-ship1')
+  @sh.refresh
+  run_ship @sh
 end
 
 def run_ship(sh)
-puts 'run' + Omega::Client::Trackable.node.endpoint 
-puts sh.system_id
   if sh.system_id == 'Athena'
     sh.move_to(:location => $gate_to_agathon.location + [10, 10, 10]) do
       sh.jump_to('Agathon')
