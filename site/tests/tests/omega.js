@@ -1206,20 +1206,115 @@ pavlov.specify("omega.js", function(){
       });
     });
   
-    //describe("cached system does not exist locally", function(){
-    //  it("it retrieves solar system with id"); // NIY
-    //  it("sets system in registry"); // NIY
-    //  it("runs stored load_system callbacks"); // NIY
-    //  it("shows system in locations container"); // NIY
-    //  it("wires up child asteroid events"); // NIY
-    //  it("wires up child jump gate events"); // NIY
-    //  it("stores child planets in the registry"); // NIY
-    //  it("stores child asteroids in the registry"); // NIY
-    //  it("stores child jump gates in the registry"); // NIY
-    //  it("loads parent galaxy"); // NIY
-    //  it("sets parent galaxy on system"); // NIY
-    //  it("adds self to galaxy child systems"); // NIY
-    //});
+    describe("cached system does not exist locally", function(){
+      var sys, cb;
+      var ui, node;
+
+      before(function(){
+        ui = complete_ui(); 
+        node = new TestNode();
+        Entities().node(node);
+
+        var ast1 = new Asteroid();
+        var ast2 = new Asteroid();
+        var jg1  = new JumpGate();
+        var pl1  = new Planet({id : 'pl1', location : {}, color : 0});
+        var pl2  = new Planet({id : 'pl2', location : {}, color : 0});
+        sys = new SolarSystem({id : 'sys1', name : 'sys1', parent_id : 'gal1',
+                               children : [ast1, ast2, jg1, pl1, pl2]});
+
+        $system_callbacks = {};
+        $system_callbacks[sys.id] = [];
+        SolarSystem.with_id = sinon.spy(SolarSystem, 'with_id');
+        load_system(sys.id, ui, node);
+        cb = SolarSystem.with_id.getCall(0).args[1];
+      });
+
+      after(function(){
+        SolarSystem.with_id.restore();
+        if(handle_events.restore) handle_events.restore();
+        if(load_galaxy.restore) load_galaxy.restore();
+      })
+
+      it("it retrieves solar system with id", function(){
+        load_system('sys1', complete_ui(), new TestNode());
+        sinon.assert.calledWith(SolarSystem.with_id, 'sys1')
+      });
+
+      it("sets system in registry", function(){
+        cb.apply(null, [sys])
+        assert(Entities().get('sys1')).equals(sys);
+      });
+
+      it("runs stored load_system callbacks", function(){
+        var spy = sinon.spy(function(){});
+        $system_callbacks[sys.id] = [spy];
+        cb.apply(null, [sys])
+        sinon.assert.calledWith(spy, sys)
+      });
+
+      it("shows system in locations container", function(){
+        cb.apply(null, [sys])
+        var item = ui.canvas_container.locations_list.list.items[0];
+        assert(item.item).equals(sys)
+        assert(item.id).equals('locations_container-' + sys.id)
+        assert(item.text).equals('System: ' + sys.name)
+      });
+
+      it("wires up child asteroid events", function(){
+        handle_events = sinon.spy(handle_events);
+        cb.apply(null, [sys])
+        sinon.assert.calledWith(handle_events, ui, node, sys.asteroids);
+      });
+
+      it("wires up child jump gate events", function(){
+        handle_events = sinon.spy(handle_events);
+        cb.apply(null, [sys])
+        sinon.assert.calledWith(handle_events, ui, node, sys.jump_gates);
+      });
+
+      it("stores child planets in the registry", function(){
+        cb.apply(null, [sys])
+        for(var i = 0; i < sys.planets.length; i++)
+          assert(Entities().get(sys.planets[i].id)).isNotNull();
+      });
+
+      it("stores child asteroids in the registry", function(){
+        cb.apply(null, [sys])
+        for(var i = 0; i < sys.asteroids.length; i++)
+          assert(Entities().get(sys.asteroids[i].id)).isNotNull();
+      });
+
+      it("stores child jump gates in the registry", function(){
+        cb.apply(null, [sys])
+        for(var i = 0; i < sys.jump_gates.length; i++)
+          assert(Entities().get(sys.jump_gates[i].id)).isNotNull();
+      });
+
+      it("loads parent galaxy", function(){
+        load_galaxy = sinon.spy(load_galaxy);
+        cb.apply(null, [sys])
+        sinon.assert.calledWith(load_galaxy, 'gal1', ui, node, sinon.match.func);
+      });
+
+      it("sets parent galaxy on system", function(){
+        load_galaxy = sinon.spy(load_galaxy);
+        cb.apply(null, [sys])
+        var cb2 = load_galaxy.getCall(0).args[3];
+        var g = new Galaxy({});
+        cb2.apply(null, [g])
+        assert(sys.galaxy).equals(g);
+      });
+
+      it("adds self to galaxy child systems", function(){
+        load_galaxy = sinon.spy(load_galaxy);
+        cb.apply(null, [sys])
+        var cb2 = load_galaxy.getCall(0).args[3];
+        var g = new Galaxy({children : [{id : 'sys1'}]});
+        cb2.apply(null, [g])
+        assert(g.solar_systems[0]).equals(sys);
+      });
+    });
   });
 
   describe("#load_galaxy", function(){
@@ -1233,14 +1328,65 @@ pavlov.specify("omega.js", function(){
       });
     });
 
-  //  describe("cached galaxy does not exist locally", function(){
-  //    it("it retrieves galaxy with id"); // NIY
-  //    it("sets galaxy in registry"); // NIY
-  //    it("runs stored load_galaxy callbacks"); // NIY
-  //    it("shows galaxy in locations container"); // NIY
-  //    it("saws child solar system in from registry") // NIY
-  //    it("wires up child system events"); // NIY
-  //  });
+    describe("cached galaxy does not exist locally", function(){
+      var gal, cb;
+      var ui, node;
+
+      before(function(){
+        ui = complete_ui(); 
+        node = new TestNode();
+        Entities().node(node);
+
+        var sys1 = new SolarSystem();
+        var sys2 = new SolarSystem();
+        gal = new Galaxy({id : 'gal1', name : 'gal1',
+                               children : [sys1, sys2]});
+
+        $galaxy_callbacks = {};
+        $galaxy_callbacks[gal.id] = [];
+        Galaxy.with_id = sinon.spy(Galaxy, 'with_id');
+        load_galaxy(gal.id, ui, node);
+        cb = Galaxy.with_id.getCall(0).args[1];
+      });
+
+      after(function(){
+        Galaxy.with_id.restore();
+        if(handle_events.restore) handle_events.restore();
+      })
+
+      it("it retrieves galaxy with id", function(){
+        load_galaxy('gal1', complete_ui(), new TestNode());
+        sinon.assert.calledWith(Galaxy.with_id, 'gal1')
+      });
+
+      it("sets galaxy in registry", function(){
+        cb.apply(null, [gal])
+        assert(Entities().get('gal1')).equals(gal);
+      });
+
+      it("runs stored load_galaxy callbacks", function(){
+        var spy = sinon.spy(function(){});
+        $galaxy_callbacks[gal.id] = [spy];
+        cb.apply(null, [gal])
+        sinon.assert.calledWith(spy, gal)
+      });
+
+      it("shows system in locations container", function(){
+        cb.apply(null, [gal])
+        var item = ui.canvas_container.locations_list.list.items[0];
+        assert(item.item).equals(gal)
+        assert(item.id).equals('locations_container-' + gal.id)
+        assert(item.text).equals('Galaxy: ' + gal.name)
+      });
+
+      //it("swaps child solar system in from registry"); // NIY
+
+      it("wires up child system events", function(){
+        handle_events = sinon.spy(handle_events);
+        cb.apply(null, [gal])
+        sinon.assert.calledWith(handle_events, ui, node, gal.solar_systems);
+      });
+    });
   });
 
   describe("#wire_up_ui", function(){

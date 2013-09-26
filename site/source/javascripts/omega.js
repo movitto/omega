@@ -627,7 +627,7 @@ var load_system = function(id, ui, node, callback){
 
   if(entity != -1)
     callback.apply(null, [entity]);
-  else
+  else if(callback != null)
     $system_callbacks[id].push(callback);
 }
 
@@ -679,7 +679,7 @@ var load_galaxy = function(id, ui, node, callback){
 
   if(entity != -1)
     callback.apply(null, [entity]);
-  else
+  else if(callback != null)
     $galaxy_callbacks[id].push(callback);
 }
 
