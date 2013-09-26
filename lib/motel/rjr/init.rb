@@ -43,6 +43,7 @@ def dispatch_motel_rjr_init(dispatcher)
   dispatcher.add_module('motel/rjr/create')
   dispatcher.add_module('motel/rjr/get')
   dispatcher.add_module('motel/rjr/update')
+  dispatcher.add_module('motel/rjr/delete')
   dispatcher.add_module('motel/rjr/track')
   dispatcher.add_module('motel/rjr/state')
 end

@@ -58,6 +58,7 @@ module Motel::RJR
       @d.should_receive(:add_module).with('motel/rjr/create')
       @d.should_receive(:add_module).with('motel/rjr/get')
       @d.should_receive(:add_module).with('motel/rjr/update')
+      @d.should_receive(:add_module).with('motel/rjr/delete')
       @d.should_receive(:add_module).with('motel/rjr/track')
       @d.should_receive(:add_module).with('motel/rjr/state')
       dispatch_motel_rjr_init(@d)
