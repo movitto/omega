@@ -49,6 +49,7 @@ module Manufactured::RJR
      ['create', 'locations'      ],
      ['view',   'locations'      ],
      ['modify', 'locations'      ],
+     ['delete', 'locations'      ],
      ['create', 'manufactured_entities']]
 
   def self.user

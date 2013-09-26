@@ -109,8 +109,9 @@ def move_entity_between_systems(entity, sys)
     proxy.invoke 'manufactured::create_entity', entity
 
     # XXX remove entity from local registry
+    # FIXME also remove related privs
     registry.delete &with_id(entity.id)
-    # FIXME also delete location from motel, remove related privs
+    node.invoke('motel::delete_location', entity.location.id)
 
   else
     # update registry entity

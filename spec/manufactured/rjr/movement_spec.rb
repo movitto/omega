@@ -201,6 +201,14 @@ module Manufactured::RJR
         registry.should_receive(:delete) # TODO test selector
         move_entity_between_systems(@sh, @nsys)
       end
+
+      it "deletes entity location from motel" do
+        Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
+        Manufactured::RJR.node.should_receive(:invoke).
+                          with("motel::delete_location", @sh.location.id)
+        Manufactured::RJR.node.should_receive(:invoke).at_least(:once)
+        move_entity_between_systems(@sh, @nsys)
+      end
     end
 
     context "system.proxy_to is not set" do
