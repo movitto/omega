@@ -134,7 +134,17 @@ module Manufactured::RJR
           }.should raise_error(OperationError)
         end
 
-        it "deletes motel location"
+        it "deletes motel location" do
+          @s.node.should_receive(:invoke).
+                  with("motel::delete_location", @sh.id).and_call_original # XXX assuming loc.id == sh.id
+          @s.node.should_receive(:invoke).at_least(:once).and_call_original
+          begin
+            @s.create_entity(@sh)
+          rescue OperationError
+          end
+
+          Motel::RJR.registry.entity(&with_id(@sh.id))
+        end
       end
 
       it "creates new entity in registry" do

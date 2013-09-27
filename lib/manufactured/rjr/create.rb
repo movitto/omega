@@ -101,9 +101,14 @@ create_entity = proc { |entity|
   entity.location.parent = entity.parent.location
   
   # store entity, throw error if not added
-  # FIXME need to delete the location from motel if entity isn't added
   added = registry << entity
-  raise OperationError, "#{entity} not created" unless added
+  unless added
+    # delete the location from motel if entity isn't added
+    node.invoke('motel::delete_location', entity.location.id)
+
+    # raise err
+    raise OperationError, "#{entity} not created"
+  end
   
   # add permissions to view & modify entity to owner
   user_role = "user_role_#{user.id}"
