@@ -108,7 +108,7 @@ describe Role do
   describe "#json_create" do
     it "should return role from json" do
       j = '{"json_class":"Users::Role","data":{"id":"role42","privileges":[{"json_class":"Users::Privilege","data":{"id":"view","entity_id":"users"}}]}}'
-      r = JSON.parse(j)
+      r = ::RJR.parse_json(j)
 
       r.class.should == Users::Role
       r.id.should == "role42"

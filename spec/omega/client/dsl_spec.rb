@@ -274,7 +274,7 @@ describe DSL do
       }
       m.should be_an_instance_of(Cosmos::Entities::Moon)
       wait_for_notify
-      Cosmos::RJR.registry.entity(&with_id(m.id)).should_not be_nil
+      Cosmos::RJR.registry.entity{|es| es.name == 'mn1' }.should_not be_nil
     end
 
     context "@planet is nil" do

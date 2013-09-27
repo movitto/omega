@@ -189,7 +189,7 @@ describe Proximity do
   describe "#json_create" do
     it "returns callback from json format" do
       j = '{"json_class":"Motel::Callbacks::Proximity","data":{"endpoint_id":"baz","max_distance":10,"max_x":5,"max_y":0,"max_z":0,"event":"entered_proximity"}}'
-      cb = JSON.parse(j)
+      cb = RJR.parse_json(j)
 
       cb.class.should == Motel::Callbacks::Proximity
       cb.endpoint_id.should == "baz"

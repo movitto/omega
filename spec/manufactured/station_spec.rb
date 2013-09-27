@@ -7,6 +7,7 @@ require 'spec_helper'
 require 'manufactured/station'
 require 'cosmos/entities/solar_system'
 require 'omega/server/callback'
+require 'rjr/common'
 
 module Manufactured
 describe Station do
@@ -330,7 +331,7 @@ describe Station do
   describe "#json_create" do
     it "returns station from json format" do
       j = '{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":420,"type":"science","size":20,"docking_distance":100,"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[]}}'
-      s = JSON.parse(j)
+      s = ::RJR.parse_json(j)
 
       s.class.should == Manufactured::Station
       s.id.should == "station42"

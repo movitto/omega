@@ -9,6 +9,7 @@ require 'motel/location'
 require 'motel/movement_strategies/linear'
 require 'motel/callbacks/movement'
 require 'omega/server/callback'
+require 'rjr/common'
 
 module Motel
 describe Location do
@@ -520,7 +521,7 @@ describe Location do
   describe "#json_create" do
     it "returns location from json format" do
       j = '{"json_class":"Motel::Location","data":{"y":-20,"restrict_view":false,"parent_id":15,"restrict_modify":true,"movement_strategy":{"json_class":"Motel::MovementStrategies::Linear","data":{"direction_vector_x":1,"direction_vector_y":0,"direction_vector_z":0,"step_delay":1,"speed":51}},"z":0.5,"x":10,"orientation_z":0.5,"id":42}}'
-      l = JSON.parse(j)
+      l = ::RJR.parse_json(j)
 
       l.class.should == Motel::Location
       l.id.should == 42

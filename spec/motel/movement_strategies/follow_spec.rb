@@ -191,7 +191,7 @@ describe Follow do
   describe "#json_create" do
     it "returns follow from json format" do
       j = '{"json_class":"Motel::MovementStrategies::Follow","data":{"speed":15,"tracked_location_id":1,"distance":22,"step_delay":20}}'
-      m = JSON.parse(j)
+      m = RJR.parse_json(j)
 
       m.class.should == Motel::MovementStrategies::Follow
       m.step_delay.should == 20

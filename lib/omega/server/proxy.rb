@@ -24,7 +24,7 @@ class ProxyEntity
     ret = nil
     old_entity = nil
     @registry.safe_exec { |entities|
-      old_entity = JSON.parse(@entity.to_json)
+      old_entity = RJR.parse_json(@entity.to_json)
       ret = @entity.send(name, *args, &block)
     }
     # TODO only invoke if entity changed?

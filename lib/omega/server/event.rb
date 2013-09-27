@@ -95,7 +95,7 @@ class PeriodicEvent < Event
   # Handle event, invoke tempate and schedule another
   def handle_event
     # copy template event
-    nevent = JSON.parse @template_event.to_json
+    nevent = RJR.parse_json @template_event.to_json
 
     # add event to registry to be run
     registry << nevent

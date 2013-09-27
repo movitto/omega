@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'stats/stat'
+require 'rjr/common'
 
 module Stats
 describe Stat do
@@ -62,7 +63,7 @@ describe Stat do
   describe "#json_create" do
     it "returns stat from json format" do
       j = '{"json_class":"Stats::Stat","data":{"id":"stat1","description":"test"}}'
-      s = JSON.parse(j)
+      s = ::RJR.parse_json(j)
 
       s.class.should == Stats::Stat
       s.id.should == 'stat1'
@@ -102,7 +103,7 @@ describe StatResult do
   describe "#json_create" do
     it "returns stat result from json format" do
       j = '{"json_class":"Stats::StatResult","data":{"stat_id":"stat1","args":["fooz"],"value":"foo"}}'
-      r = JSON.parse(j)
+      r = ::RJR.parse_json(j)
 
       r.class.should == Stats::StatResult
       r.stat_id.should == 'stat1'

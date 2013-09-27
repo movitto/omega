@@ -415,7 +415,7 @@ describe User do
   describe "#json_create" do
     it "returns user from json format" do
       j = '{"data":{"email":"user@42.omega","password":"foobar","id":"user42"},"json_class":"Users::User"}'
-      u = JSON.parse(j)
+      u = ::RJR.parse_json(j)
 
       u.class.should == Users::User
       u.id.should == "user42"

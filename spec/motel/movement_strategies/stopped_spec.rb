@@ -41,7 +41,7 @@ describe Stopped do
   describe "#json_create" do
     it "returns singleton instnace" do
       j  = '{"json_class":"Motel::MovementStrategies::Stopped","data":{}}'
-      ms = JSON.parse j
+      ms = RJR.parse_json j
       ms.should == Motel::MovementStrategies::Stopped.instance
     end
   end

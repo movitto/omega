@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
+require 'rjr/common'
 
 module Users
 describe Privilege do
@@ -45,7 +46,7 @@ describe Privilege do
   describe "#json_create" do
     it "should return privilege from json" do
       j = '{"data":{"entity_id":"e1","id":"p1"},"json_class":"Users::Privilege"}'
-      p = JSON.parse(j)
+      p = ::RJR.parse_json(j)
 
       p.class.should == Users::Privilege
       p.id.should == "p1"

@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'sproc'
+require 'rjr/common'
 
 describe "SProc" do
   it "should serialize a block to a string" do
@@ -29,7 +30,7 @@ describe "SProc" do
 
   it "should be convertable from json" do
     j = '{"json_class":"SProc","data":{"sblock":"proc { (1 + 2) }"}}'
-    s = JSON.parse(j)
+    s = RJR.parse_json(j)
 
     s.class.should == SProc
     s.sblock.should == "proc { (1 + 2) }"

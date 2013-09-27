@@ -3,9 +3,10 @@
 # Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'cosmos/resource'
-
 require 'spec_helper'
+
+require 'cosmos/resource'
+require 'rjr/common'
 
 module Cosmos
 describe Resource do
@@ -109,7 +110,7 @@ describe Resource do
   describe "#json_create" do
     it "returns resource from json format" do
       j = '{"json_class":"Cosmos::Resource","data":{"id":"metal-titanium","quantity":50,"entity_id":"ast1"}}'
-      r = JSON.parse(j)
+      r = ::RJR.parse_json(j)
 
       r.class.should == Cosmos::Resource
       r.id.should == 'metal-titanium'

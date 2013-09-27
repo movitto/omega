@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'missions/dsl'
+require 'rjr/common'
 
 module Missions
 module DSL
@@ -95,7 +96,7 @@ module DSL
       describe "#json_create" do
         it "returns proxy from json format" do
           j = '{"json_class":"Missions::DSL::Client::Proxy","data":{"dsl_category":"Query","dsl_method":"check_mining_quantity","params":[42]}}'
-          p = JSON.parse(j)
+          p = ::RJR.parse_json(j)
 
           p.class.should == Missions::DSL::Client::Proxy
           p.dsl_category.should == 'Query'

@@ -155,7 +155,7 @@ describe Asteroid do
   describe "#json_create" do
     it "returns asteroid from json format" do
       j = '{"data":{"color":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Asteroid"}'
-      a = JSON.parse(j)
+      a = RJR.parse_json(j)
 
       a.class.should == Cosmos::Entities::Asteroid
       a.name.should == 'asteroid1'

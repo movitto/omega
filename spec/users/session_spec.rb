@@ -76,7 +76,7 @@ describe Session do
   describe "#json_create" do
     it "returns session from json format" do
       j = '{"json_class":"Users::Session","data":{"user":{"json_class":"Users::User","data":{"id":"user1","email":null,"roles":null,"permenant":false,"npc":false,"attributes":null,"password":null,"registration_code":null}},"id":"1234","refreshed_time":"2013-05-30 00:43:54 -0400"}}'
-      s = JSON.parse(j)
+      s = ::RJR.parse_json(j)
 
       s.class.should == Users::Session
       s.id.should == "1234"

@@ -90,7 +90,7 @@ module Registry
       rentities.each { |r| @retrieval.call(r) }
 
       # we use json serialization to perform a deep clone 
-      result = Array.new(JSON.parse(rentities.to_json))
+      result = Array.new(RJR.parse_json(rentities.to_json))
 
       result
     }
@@ -164,7 +164,7 @@ module Registry
 
       unless rentity.nil?
         # copy it
-        old_entity = JSON.parse(rentity.to_json)
+        old_entity = RJR.parse_json(rentity.to_json)
 
         # update it
         rentity.update(entity)
@@ -454,7 +454,7 @@ module Registry
   def restore(io)
     init_registry
     io.each_line { |json|
-      self << JSON.parse(json)
+      self << RJR.parse_json(json)
     }
   end
 

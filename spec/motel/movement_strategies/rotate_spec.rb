@@ -133,7 +133,7 @@ describe Rotate do
   describe "#json_create" do
     it "returns linear from json format" do
       j = '{"json_class":"Motel::MovementStrategies::Rotate","data":{"step_delay":1,"rot_theta":0.1,"rot_x":1,"rot_y":0,"rot_z":0}}'
-      m = JSON.parse(j)
+      m = RJR.parse_json(j)
 
       m.class.should == Motel::MovementStrategies::Rotate
       m.step_delay.should == 1

@@ -29,7 +29,7 @@ describe Stopped do
   describe "#json_create" do
     it "returns callback from json format" do
       j = '{"json_class":"Motel::Callbacks::Stopped","data":{"endpoint_id":"baz"}}'
-      cb = JSON.parse(j)
+      cb = RJR.parse_json(j)
 
       cb.class.should == Motel::Callbacks::Stopped
       cb.endpoint_id.should == "baz"
