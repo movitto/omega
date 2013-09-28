@@ -138,19 +138,18 @@ move_entity = proc { |id, loc|
   # verify location
   raise ValidationError, loc unless loc.is_a?(Motel::Location)
 
+  # update the entity's location & solar system
+  entity.location =
+    node.invoke('motel::get_location', 'with_id', entity.location.id)
+  entity.solar_system =
+    node.invoke('cosmos::get_entity',  'with_location', entity.location.parent_id)
+
   # lookup target system
   parent_id = loc.parent_id.nil? ? entity.system_id : loc.parent_id
   parent =
     begin node.invoke('cosmos::get_entity', 'with_location', parent_id)
     rescue Exception => e ; raise DataNotFound, parent_id end
   raise ValidationError, parent unless parent.is_a?(Cosmos::Entities::SolarSystem)
-  
-  # FIXME should go before parent retrieval above
-  # update the entity's location & solar system
-  entity.location =
-    node.invoke('motel::get_location', 'with_id', entity.location.id)
-  entity.solar_system =
-    node.invoke('cosmos::get_entity',  'with_location', entity.location.parent_id)
   
   # if parents don't match, we are moving entity between systems
   if entity.parent.id != parent.id
