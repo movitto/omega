@@ -26,7 +26,6 @@ get_entities = proc { |*args|
       c.location.parent = e.location
     }
   }
-# FIXME update entities in registry
 
   # if id of entity is specified, only return single entity
   return_first = args.include?('with_id')   ||

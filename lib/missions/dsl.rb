@@ -374,7 +374,6 @@ module Query
   # Return ships the user owned that matches the speicifed properties filter
   def self.user_ships(filter={})
     proc { |mission|
-      filter = proc { |i| true } unless filter # FIXME
       Missions::RJR::node.invoke('manufactured::get_entity',
                   'of_type', 'Manufactured::Ship',
                   'owned_by', mission.assigned_to_id).

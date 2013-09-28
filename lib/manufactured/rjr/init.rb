@@ -96,6 +96,8 @@ module Manufactured::RJR
   #
   # FIXME while this is being processed entity may have rotated/moved
   # additional times, any way to correct this?
+  # (perhaps option in motel to pause location after a particular
+  #  callback is invoked, until a method is invoked to start it again)
   motel_event = proc { |loc|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
     #raise ValidationError, "not a location" unless loc.is_a?(Motel::Location)
