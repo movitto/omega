@@ -423,7 +423,6 @@ class Ship
   # @param [Manufactured::Entity] entity entity to check if ship can attack
   # @return [true,false] indicating if ship can attack entity
   def can_attack?(entity)
-    # TODO incoporate alliances ?
     ATTACK_TYPES.include?(@type) && !self.docked? &&
     (@location.parent_id == entity.location.parent_id) &&
     (@location - entity.location) <= @attack_distance  &&

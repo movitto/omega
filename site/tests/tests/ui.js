@@ -1316,7 +1316,7 @@ describe("EntitiesContainer", function(){
     })
   });
 
-  describe("#hide_all", function(){ // NIY
+  describe("#hide_all", function(){
     before(function(){
       $('#qunit-fixture').append('<div id="hide-test1" class="entities_container"></div>')
       $('#qunit-fixture').append('<div id="missions_button"></div>')

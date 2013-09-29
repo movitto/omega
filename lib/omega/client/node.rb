@@ -55,7 +55,6 @@ module Omega
           # add handler to rjr_node
           client_node = self
           @rjr_node.dispatcher.handle(rjr_method) { |*args|
-            # TODO catch / discard errors
             client_node.handlers[rjr_method].each { |h| h.call *args }
             nil
           }
