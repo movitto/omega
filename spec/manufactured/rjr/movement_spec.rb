@@ -209,6 +209,22 @@ module Manufactured::RJR
         Manufactured::RJR.node.should_receive(:invoke).at_least(:once)
         move_entity_between_systems(@sh, @nsys)
       end
+
+      it "removes permissions to entity and location from owner's role" do
+        role_id = "user_role_#{@sh.user_id}"
+        Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
+        Manufactured::RJR.node.should_receive(:invoke).
+                          with("users::remove_privilege", role_id,
+                               'view', "manufactured_entity-#{@sh.id}")
+        Manufactured::RJR.node.should_receive(:invoke).
+                          with("users::remove_privilege", role_id,
+                               'modify', "manufactured_entity-#{@sh.id}")
+        Manufactured::RJR.node.should_receive(:invoke).
+                          with("users::remove_privilege", role_id,
+                               'view', "location-#{@sh.location.id}")
+        Manufactured::RJR.node.should_receive(:invoke).at_least(:once)
+        move_entity_between_systems(@sh, @nsys)
+      end
     end
 
     context "system.proxy_to is not set" do

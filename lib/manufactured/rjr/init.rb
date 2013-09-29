@@ -52,6 +52,17 @@ module Manufactured::RJR
      ['delete', 'locations'      ],
      ['create', 'manufactured_entities']]
 
+  # Helper method to generate the permissions granted
+  # to the owner of a manufactured entity upon creation
+  def owner_permissions_for(entity)
+    entity_id   = entity.id
+    location_id = entity.location.id
+
+    [["view",   "manufactured_entity-#{entity_id}"],
+     ['modify', "manufactured_entity-#{entity_id}"],
+     ['view',            "location-#{location_id}"]]
+  end
+
   def self.user
     @user ||= Users::User.new(:id       => Manufactured::RJR::manufactured_rjr_username,
                               :password => Manufactured::RJR::manufactured_rjr_password,

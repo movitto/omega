@@ -112,11 +112,9 @@ create_entity = proc { |entity|
   
   # add permissions to view & modify entity to owner
   user_role = "user_role_#{user.id}"
-  [["view",   "manufactured_entity-#{entity.id}"],
-   ['modify', "manufactured_entity-#{entity.id}"],
-   ['view',   "location-#{entity.location.id}"]].each { |p,e|
+  owner_permissions_for(entity).each { |p,e|
      node.invoke('users::add_privilege', user_role, p, e)
-   }
+  }
   
   ############################ return entity
   entity
