@@ -44,10 +44,13 @@ class Role
   #   May take one of two forms specifying the instance of the privilege class itself to add, or an id and entity_id
   #   to create the privilege with
   def add_privilege(*args)
-    privilege = nil
-    privilege = args.first if args.size == 1 && args.first.is_a?(Users::Privilege)
-    privilege = Privilege.new(:id => args.first, :entity_id => args.last) if privilege.nil? &&
-                                                                             args.size == 2
+    privilege = args[0].is_a?(Users::Privilege) ?
+                args[0] : Privilege.new(:id => args.first)
+
+    if privilege.entity_id.nil? && !args[1].nil?
+      privilege.entity_id = args[1]
+    end
+
     @privileges << privilege unless privilege.nil? ||
                                      @privileges.include?(privilege) ||
                                     !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
