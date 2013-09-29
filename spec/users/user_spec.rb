@@ -215,6 +215,48 @@ describe User do
     end
   end
 
+  describe "#has_role?" do
+    context "use has the specified role" do
+      it "returns true" do
+        r = Role.new :id => 'r'
+        u = User.new
+        u.add_role(r)
+        u.has_role?(r.id).should be_true
+      end
+    end
+
+    context "user does not have the specified role" do
+      it "returns false" do
+        r = Role.new :id => 'r'
+        u = User.new
+        u.has_role?(r.id).should be_false
+      end
+    end
+  end
+
+  describe "#remove_role" do
+    it "removes the role from the user" do
+      r = Role.new :id => 'r'
+      u = User.new
+      u.add_role(r)
+      u.has_role?(r.id).should be_true
+      u.remove_role(r.id)
+      u.has_role?(r.id).should be_false
+    end
+    
+    context "user does not have role" do
+      it "does nothing" do
+        r1 = Role.new :id => 'r1'
+        r2 = Role.new :id => 'r2'
+        u = User.new
+        u.add_role(r1)
+        u.roles.should == [r1]
+        u.remove_role(r2.id)
+        u.roles.should == [r1]
+      end
+    end
+  end
+
   describe "#valid?" do
     before(:each) do
       @u = User.new :id => 'foobar', :password => 'barfoo',

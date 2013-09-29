@@ -53,6 +53,14 @@ class Role
                                     !@privileges.find { |p| p.id == privilege.id && p.entity_id == privilege.entity_id }.nil?
   end
 
+  # Remove privilege from role
+  #
+  # @param privilege_id id of the privilege to remove
+  # @param entity_id optional id of the entity which to remove privilege to
+  def remove_privilege(privilege_id, entity_id=nil)
+    @privileges.reject! { |p| p.id == privilege_id && p.entity_id == entity_id }
+  end
+
   # Returns boolean indicating if the role has the specified privilege on the specified entity
   #
   # @param [String] privilege_id id of privilege to lookup in local privileges array

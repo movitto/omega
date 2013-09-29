@@ -41,14 +41,41 @@ describe Role do
     end
   end
 
-  #describe "#remove_privilege" do
-  #  it "removes privilege" do
-  #    r = Users::Role.new
-  #    p = Users::Privilege.new
-  #    r.add_privilege(p)
-  #    r.remove_privilege
-  #  end
-  #end
+  describe "#remove_privilege" do
+    it "removes privilege" do
+      r = Users::Role.new
+      p1 = Users::Privilege.new :id => 'p1'
+      p2 = Users::Privilege.new :id => 'p1', :entity_id => 'e1'
+
+      r.add_privilege(p1)
+      r.add_privilege(p2)
+      r.has_privilege?(p1.id).should be_true
+      r.has_privilege_on?(p2.id, p2.entity_id).should be_true
+
+      r.remove_privilege p1.id
+      r.has_privilege?(p1.id).should be_false
+      r.has_privilege_on?(p2.id, p2.entity_id).should be_true
+
+      r.remove_privilege p2.id, p2.entity_id
+      r.has_privilege_on?(p2.id, p2.entity_id).should be_false
+    end
+
+    context "user does not have privilege" do
+      it "does nothing" do
+        r = Users::Role.new
+        p = Users::Privilege.new :id => 'p1'
+
+        r.add_privilege(p)
+        r.has_privilege?(p.id).should be_true
+
+        r.remove_privilege 'p2'
+        r.has_privilege?(p.id).should be_true
+
+        r.remove_privilege p.id, 'e1'
+        r.has_privilege?(p.id).should be_true
+      end
+    end
+  end
 
   describe "#has_privilege_on" do
     before(:each) do

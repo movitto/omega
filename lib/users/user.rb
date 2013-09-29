@@ -183,8 +183,22 @@ class User
   def add_role(role)
     @roles ||= []
     @roles << role unless role.nil? ||
-                          @roles.include?(role) ||
-                         !@roles.find { |r| r.id == role.id }.nil?
+                          has_role?(role.id)
+  end
+
+  # Return bool indicating if the user has the specified role
+  # 
+  # @param [String] role_id id of the role to look for
+  # @return bool indicating if the user has the role
+  def has_role?(role_id)
+    @roles ||= []
+    @roles.any? { |r| r.id == role_id }
+  end
+
+  # Remove the specified role from the user
+  def remove_role(role_id)
+    return unless has_role?(role_id)
+    @roles.reject! { |r| r.id == role_id }
   end
 
   # Return boolean indicating if the user is valid.
