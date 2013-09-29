@@ -123,7 +123,20 @@ describe Attack do
         @e2.hp = 0
       end
 
-      it "updates ships user destroyed and user ship destroyed attributes"
+      it "updates ships user destroyed and user ship destroyed attributes" do
+        u1 = Users::RJR.registry.proxy_for { |e| e.id == @e1.user_id }
+        u2 = Users::RJR.registry.proxy_for { |e| e.id == @e2.user_id }
+
+        enable_attributes {
+          u1.attribute(Users::Attributes::ShipsUserDestroyed.id).should be_nil
+          u2.attribute(Users::Attributes::UserShipsDestroyed.id).should be_nil
+
+          @a.last_hook
+
+          u1.attribute(Users::Attributes::ShipsUserDestroyed.id).level.should == 1
+          u2.attribute(Users::Attributes::UserShipsDestroyed.id).level.should == 1
+        }
+      end
 
       it "runs destroyed callbacks" do
         @re2.should_receive(:run_callbacks).with('defended_stop', @e1)

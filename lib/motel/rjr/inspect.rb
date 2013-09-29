@@ -9,19 +9,31 @@
 # - # times specified location was updated
 # - location callbacks w/ their endpoints, callback params, and # of times invoked
 
-def dispatch_motel_rjr_inspect(dispatcher)
-  # retrieve status of motel subsystem
-  dispatcher.handle "motel::status" do
-    by_strategy =
-      Motel::MovementStrategies.constants.map { |s|
-        ms = Motel::MovementStrategies.const_get(s)
-        [ms, registry.entities.select { |e| e.is_a?(Motel::Location) && e.ms.is_a?(ms) }.size]
-      }
+module Motel::RJR
 
-    {
-      :running       => registry.running?,
-      :num_locations => registry.entities.size,
-      :movement_strategies => by_strategy
+# retrieve status of motel subsystem
+get_status = proc {
+  by_strategy =
+    Motel::MovementStrategies.constants.collect { |s|
+      ms  = Motel::MovementStrategies.const_get(s)
+      num = registry.entities.select { |e|
+              e.is_a?(Motel::Location) && e.ms.is_a?(ms)
+            }.size
+      [ms, num]
     }
-  end
+  by_strategy = Hash[*by_strategy.flatten]
+
+  {
+    :running       => registry.running?,
+    :num_locations => registry.entities.size,
+    :movement_strategies => by_strategy
+  }
+}
+
+INSPECT_METHODS = { :get_status => get_status }
+end
+
+def dispatch_motel_rjr_inspect(dispatcher)
+  m = Motel::RJR::INSPECT_METHODS
+  dispatcher.handle "motel::status", &m[:get_status]
 end
