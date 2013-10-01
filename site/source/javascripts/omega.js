@@ -701,6 +701,8 @@ this.wire_up_ui = function(ui, node){
       wire_up_canvas(ui, node);
     else if(component == "account_info")
       wire_up_account_info(ui, node);
+    else if(component == "preload")
+      preload_resources(ui);
   }
 };
 
@@ -1047,3 +1049,38 @@ var wire_up_account_info = function(ui, node){
     });
 };
 
+////////////////////////////////////////// resources
+
+/* Internal helper to preload specified resources
+ */
+var preload_resources = function(ui){
+  if(ui.preload.resource){
+    for(var r = 0; r < ui.preload.resource.length; r++){
+      if(ui.preload.resource[r] == 'all'){
+        // TODO
+      }else{
+        var res = $omega_config.resources[ui.preload.resource[r]];
+        if(res['material']){
+          var tx = UIResources().images_path + res['material'];
+          UIResources().load_texture(tx);
+        }
+
+        if(res['geometry']){
+          var geo = UIResources().images_path + res['geometry'];
+          UIResources().load_geometry(geo);
+        }
+      }
+    }
+  }
+
+  if(ui.preload.skybox){
+    for(var s = 0; s < ui.preload.skybox.length; s++){
+      if(ui.preload.skybox[s] == 'all'){
+        // TODO
+      }else{
+        ui.canvas_container.canvas.scene.
+              skybox.background(ui.preload.skybox[s]);
+      }
+    }
+  }
+};

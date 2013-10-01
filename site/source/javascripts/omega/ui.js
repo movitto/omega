@@ -81,7 +81,7 @@ function UIResources(){
     var evnt = 'geometry_'+path+'_loaded';
     var loading = false;
     if(_this.callbacks[evnt] && _this.callbacks[evnt].length > 0) loading = true;
-    _this.on(evnt, function(r, g){ cb.apply(null, [g]); })
+    if(cb) _this.on(evnt, function(r, g){ cb.apply(null, [g]); })
     if(loading) return;
 
     loader.load(path, function(geometry){

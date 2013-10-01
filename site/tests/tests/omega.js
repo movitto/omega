@@ -1403,6 +1403,7 @@ pavlov.specify("omega.js", function(){
       if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
       if(wire_up_canvas.restore) wire_up_canvas.restore();
       if(wire_up_account_info.restore) wire_up_account_info.restore();
+      if(preload_resources.restore) preload_resources.restore();
     })
 
     it("wires up all ui subsystems", function(){
@@ -1412,6 +1413,7 @@ pavlov.specify("omega.js", function(){
       wire_up_entities_lists = sinon.spy(wire_up_entities_lists);
       wire_up_canvas = sinon.spy(wire_up_canvas);
       wire_up_account_info = sinon.spy(wire_up_account_info);
+      preload_resources = sinon.spy(preload_resources);
 
       wire_up_ui(ui, node);
       sinon.assert.calledWith(wire_up_nav, ui, node);
@@ -1420,6 +1422,7 @@ pavlov.specify("omega.js", function(){
       sinon.assert.calledWith(wire_up_entities_lists, ui, node);
       sinon.assert.calledWith(wire_up_canvas, ui, node);
       sinon.assert.calledWith(wire_up_account_info, ui, node);
+      sinon.assert.calledWith(preload_resources, ui);
     });
   });
 
@@ -2186,6 +2189,43 @@ pavlov.specify("omega.js", function(){
         });
       });
     })
+  });
+
+  describe("#preload_resources", function(){
+    var ui, node;
+
+    before(function(){
+      ui = complete_ui();
+      node = new TestNode();
+    })
+
+    after(function(){
+      if(UIResources().load_texture.restore) UIResources().load_texture.restore();
+      if(UIResources().load_geometry.restore) UIResources().load_geometry.restore();
+    })
+
+    it("loads texture resources", function(){
+      var spy = sinon.spy(UIResources(), 'load_texture');
+      ui.preload.resource = ['corvette'];
+      preload_resources(ui);
+      sinon.assert.calledWith(spy,
+        UIResources().images_path + $omega_config.resources['corvette']['material'])
+    });
+
+    it("loads geometry resources", function(){
+      var spy = sinon.spy(UIResources(), 'load_geometry');
+      ui.preload.resource = ['corvette'];
+      preload_resources(ui);
+      sinon.assert.calledWith(spy,
+        UIResources().images_path + $omega_config.resources['corvette']['geometry'])
+    });
+
+    it("loads skybox resources", function(){
+      var spy = sinon.spy(ui.canvas_container.canvas.scene.skybox, 'background');
+      ui.preload.skybox = ['galaxy3'];
+      preload_resources(ui);
+      sinon.assert.calledWith(spy, 'galaxy3');
+    });
   });
 
 }); // omega.js

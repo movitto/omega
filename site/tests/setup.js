@@ -57,12 +57,14 @@ function complete_ui(){
   var canvas_container    = new CanvasContainer();
   var dialog              = new Dialog();
   var account_info        = new AccountInfoContainer();
+  var preload             = {};
   var ui = {nav_container    : nav_container,
             audio_player     : audio_player,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
             dialog           : dialog,
-            account_info     : account_info };
+            account_info     : account_info,
+            preload          : preload };
   return ui;
 }
 
