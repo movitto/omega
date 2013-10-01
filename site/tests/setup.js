@@ -160,6 +160,9 @@ pavlov.specify.extendAssertions({
     ok(typeof(actual) === expected ||
        actual.constructor === expected, message);
   },
+  isOfType: function(actual, expected, message){
+    ok(actual.__proto__ === expected.prototype, message);
+  },
   includes: function(array, value, message) {
     var found = false;
     for(var ai in array){

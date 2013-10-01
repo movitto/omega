@@ -237,7 +237,7 @@ function AccountInfoContainer(args){
   /* add a badge to account into page
    */
   this.add_badge = function(id, description, rank){
-    var container = $('#account_info_badges');
+    var badges = $('#account_info_badges');
     // display top n badge
     badges.append("<div class='badge' " +
                   "     style='background: url(\"" + $omega_config.prefix +

@@ -757,9 +757,23 @@ pavlov.specify("omega.js", function(){
     })
   });
 
-  //describe("#process_stats", function(){ // NIY
-  //  it("adds badges to account info");
-  //});
+  describe("#process_stats", function(){
+    before(function(){
+      ui = complete_ui();
+      node = new TestNode();
+    });
+
+    it("adds badges to account info", function(){
+      var spy = sinon.spy(ui.account_info, 'add_badge');
+      var results = [{id: 'st1', description: 'dst1', value: ['user1', 'user2']},
+                     {id: 'st2', description: 'dst2', value: ['user2', 'user1']}];
+      Session.current_session = { user_id : 'user1' }
+
+      process_stats({result : results});
+      sinon.assert.calledWith(spy, 'st1', 'dst1', 0);
+      sinon.assert.calledWith(spy, 'st2', 'dst2', 1);
+    });
+  });
 
   describe("#handle_events", function(){
     var ui, node;
@@ -1331,14 +1345,15 @@ pavlov.specify("omega.js", function(){
     describe("cached galaxy does not exist locally", function(){
       var gal, cb;
       var ui, node;
+      var sys1, sys2;
 
       before(function(){
         ui = complete_ui(); 
         node = new TestNode();
         Entities().node(node);
 
-        var sys1 = new SolarSystem();
-        var sys2 = new SolarSystem();
+        sys1 = new SolarSystem();
+        sys2 = new SolarSystem();
         gal = new Galaxy({id : 'gal1', name : 'gal1',
                                children : [sys1, sys2]});
 
@@ -1379,7 +1394,13 @@ pavlov.specify("omega.js", function(){
         assert(item.text).equals('Galaxy: ' + gal.name)
       });
 
-      //it("swaps child solar system in from registry"); // NIY
+      it("swaps child solar system in from registry", function(){
+        gal.solar_systems[0].id = 'sys1';
+        var nsys1 = new SolarSystem({id : sys1.id})
+        Entities().set('sys1', nsys1)
+        cb.apply(null, [gal])
+        assert(gal.solar_systems[0]).equals(nsys1);
+      });
 
       it("wires up child system events", function(){
         handle_events = sinon.spy(handle_events);
@@ -1699,8 +1720,28 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  //describe("#wire_up_audio_player", function(){ // NIY ?
-  //});
+  describe("#wire_up_audio_player", function(){
+    before(function(){
+      ui = complete_ui();
+      node = new TestNode();
+    });
+
+    it("wires up jplayer", function(){
+      wire_up_audio_player(ui, node);
+      assert(ui.audio_player.playlist).isOfType(jPlayerPlaylist)
+      assert(ui.audio_player.playlist.cssSelector.jPlayer).
+        equals("#jquery_jplayer_1");
+      assert(ui.audio_player.playlist.cssSelector.cssSelectorAncestor).
+        equals("#jplayer_container");
+    });
+
+    it("wires up effects player", function(){
+      wire_up_audio_player(ui, node);
+      assert(ui.effects_player).isOfType(EffectsPlayer)
+      assert(ui.effects_player.path).
+        equals("http://" + $omega_config["host"] + $omega_config["prefix"] + "/audio/effects/")
+    });
+  });
 
   describe("#wire_up_entities_lists", function(){
     var ui, node;
