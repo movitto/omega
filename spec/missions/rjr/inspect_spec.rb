@@ -9,12 +9,42 @@ require 'rjr/dispatcher'
 
 module Missions::RJR
   describe "#status" do
-    it "returns registry.running?"
-    it "returns events.size"
-    it "returns missions.size"
-    it "returns active missions.size"
-    it "returns victorious missions.size"
-    it "returns failed missions.size"
+    before(:each) do
+      Missions::RJR.registry << Omega::Server::Event.new(:id => 'ev1')
+      Missions::RJR.registry << Omega::Server::Event.new(:id => 'ev2')
+
+      create(:mission)
+      create(:assigned_mission)
+      create(:victorious_mission)
+      create(:failed_mission)
+
+      dispatch_to @s, Missions::RJR, :INSPECT_METHODS
+    end
+
+    it "returns registry.running?" do
+      Missions::RJR.registry.should_receive(:running?).and_return(:foo)
+      @s.get_status[:running].should == :foo
+    end
+
+    it "returns events.size" do
+      @s.get_status[:events].should == 2
+    end
+
+    it "returns missions.size" do
+      @s.get_status[:missions].should == 4
+    end
+
+    it "returns active missions.size" do
+      @s.get_status[:active].should == 1
+    end
+
+    it "returns victorious missions.size" do
+      @s.get_status[:victorious].should == 1
+    end
+
+    it "returns failed missions.size" do
+      @s.get_status[:failed].should == 1
+    end
   end # describe "#status"
 
   describe "#dispatch_missions_rjr_inspect" do

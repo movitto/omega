@@ -30,15 +30,43 @@ module Omega::Client
     end
 
     describe "#jump_gates" do
-      it "caches jump gate endpoints"
+      it "caches jump gate endpoints" do
+        rsys = Cosmos::Entities::SolarSystem.new :id => 'rsys'
+        sys = Cosmos::Entities::SolarSystem.new :children =>
+                [Cosmos::Entities::JumpGate.new(:id => 'jg1', :endpoint => rsys),
+                 Cosmos::Entities::JumpGate.new(:id => 'jg2', :endpoint_id => 'rem_sys')]
+
+        s = Omega::Client::SolarSystem.new
+        s.entity = sys
+        SolarSystem.should_receive(:cached).with('rem_sys').once
+        SolarSystem.should_not_receive(:cached).with('rsys')
+        s.jump_gates.should == s.jump_gates
+      end
     end
 
     describe "#asteroids" do
-      it "retrieves asteroid resources"
+      it "retrieves asteroid resources" do
+        sys  = Cosmos::Entities::SolarSystem.new :children =>
+                [Cosmos::Entities::Asteroid.new(:id => 'ast1')]
+
+        s = Omega::Client::SolarSystem.new
+        s.entity = sys
+
+        @n.should_receive(:invoke).with('cosmos::get_resources', 'ast1').and_return(:res)
+        s.asteroids.should == sys.asteroids
+        sys.asteroids.first.resources.should == :res
+      end
     end
 
     describe "#entities" do
-      it "retrieves entities in system"
+      it "retrieves entities in system" do
+        e = Cosmos::Entities::SolarSystem.new
+        s = Omega::Client::SolarSystem.new
+        s.entity = e
+        @n.should_receive(:invoke).with('manufactured::get_entities', 'under', s.id).
+                                   and_return([:ent])
+        s.entities.should == [:ent]
+      end
     end
 
     describe "#with_fewest" do
@@ -187,16 +215,40 @@ module Omega::Client
                   a[0].should == 'manufactured::move_entity'
                   a[1].should == @i.entity.location.id
                   a[2].coordinates.should == l.coordinates
+                  a[2].parent_id.should == @i.location.parent_id
                 }
         @i.move_to :location => l
       end
 
       context "destination == :closest station" do
-        it "retrieves location to move from closest(:station)"
+        it "retrieves location to move from closest(:station)" do
+          l = build(:location)
+          st = Manufactured::Station.new(:location => l)
+          @i.should_receive(:closest).with(:station).and_return(st)
+          @i.node.should_receive(:invoke).
+                  with{ |*a|
+                    a[0].should == 'manufactured::move_entity'
+                    a[1].should == @i.entity.location.id
+                    a[2].coordinates.should == l.coordinates
+                    a[2].parent_id.should == @i.location.parent_id
+                  }
+          @i.move_to :destination => :closest_station
+        end
       end
 
       context "destination = other" do
-        it "retrieves location to move from destination.location"
+        it "retrieves location to move from destination.location" do
+          l = build(:location)
+          st = Manufactured::Station.new(:location => l)
+          @i.node.should_receive(:invoke).
+                  with{ |*a|
+                    a[0].should == 'manufactured::move_entity'
+                    a[1].should == @i.entity.location.id
+                    a[2].coordinates.should == l.coordinates
+                    a[2].parent_id.should == @i.location.parent_id
+                  }
+          @i.move_to :destination => st
+        end
       end
     end
 
@@ -238,7 +290,12 @@ module Omega::Client
         @i.jump_to s
       end
 
-      it "updates local entity"
+      it "updates local entity" do
+        s = create(:solar_system)
+        @i.node.should_receive(:invoke).and_return(:foo)
+        @i.jump_to s
+        @i.entity.should == :foo
+      end
 
       it "raises :jumped event" do
         s = create(:solar_system)
@@ -282,7 +339,12 @@ module Omega::Client
         @h.transfer @h.resources.first, @t
       end
 
-      it "updates source/target entities"
+      it "updates source/target entities" do
+        @h.node.should_receive(:invoke).and_return([:foo, :bar])
+        @h.transfer @h.resources.first, @t
+        @h.entity.should == :foo
+        #@t.entity.should == :bar
+      end
 
       it "raises transfered event" do
         @h.node.should_receive(:invoke).and_return([@h, @t])

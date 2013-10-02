@@ -340,8 +340,6 @@ describe Mission do
         m.victory_callbacks.last.should_receive :call
         m.victory!
       end
-
-      it "logs error"
     end
   end
 
@@ -403,8 +401,6 @@ describe Mission do
         m.failure_callbacks.last.should_receive :call
         m.failed!
       end
-
-      it "logs error"
     end
   end
 

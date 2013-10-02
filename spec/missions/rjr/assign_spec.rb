@@ -101,8 +101,6 @@ module Missions::RJR
           r.assignment_callbacks.last.should_receive(:call)
           @s.assign_mission m.id, u.id
         end
-
-        it "logs error"
       end
 
       it "grants view mission to assigned user" do
