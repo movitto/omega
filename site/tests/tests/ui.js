@@ -1510,9 +1510,17 @@ describe("AccountInfoContainer", function(){
       assert($('#account_info_email input').attr('value')).equals('foo@bar');
     });
   });
-//  describe("#gravatar", function(){
-//    it("sets gravatar page component value") // NIY
-//  });
+
+  describe("#gravatar", function(){
+    it("sets gravatar page component value", function(){
+      var hsh  = md5('foo@bar');
+      var gurl = 'http://gravatar.com/avatar/' + hsh + '?s=175';
+
+      aic.gravatar('foo@bar');
+      assert($('#account_logo').html()).
+        equals('<img src="'+gurl+'" alt="gravatar" title="gravatar">');
+    });
+  });
 
   describe("#entities", function(){
     it("sets entities lists", function(){
@@ -1554,13 +1562,46 @@ describe("AccountInfoContainer", function(){
     });
   });
 
-//  describe("#add_badge", function(){
-//    it("it adds badge to ui"); // NIY
-//  });
+  describe("#add_badge", function(){
+    it("it adds badge to ui", function(){
+      aic.add_badge('bid', 'bdd', 1);
+      assert($('#account_info_badges').html()).equals(
+        '<div class="badge" style="background: url(\''+
+          $omega_config.prefix+
+        '/images/badges/bid.png\');">bdd: 2</div>');
+    });
+  });
+
 });}); // AccountInfoContainer
-//
-//pavlov.specify("EffectsContainer", function(){
-//describe("EffectsContainer", function(){
-//  it("TODO"); // NIY
-//});
-//});
+
+pavlov.specify("EffectsContainer", function(){
+describe("EffectsContainer", function(){
+  var ec;
+
+  before(function(){
+    ec = new EffectsPlayer({path : 'path/'});
+  })
+
+  it("wires up a jplayer instance", function(){ // NIY how to actually test jplayer init
+    assert(ec._player.selector).equals('#effects_jplayer')
+    //assert(ec._player.init.jPlayer).isNotNull();
+    //assert($(ec.div_id).jPlayer("option", "cssSelectorAncestor")).equals("effects_jplayer_container");
+  });
+
+  describe("#play", function(){
+    it("sets jplayer media", function(){
+      var spy = sinon.spy(ec._player, 'jPlayer');
+      ec.play('foo');
+      ec.play('foo');
+      sinon.assert.calledWith(spy, 'setMedia', { wav : 'path/foo'})
+      sinon.assert.calledThrice(spy); // one call to setMedia and two play calls,
+    })
+
+    it("plays jplayer", function(){
+      var spy = sinon.spy(ec._player, 'jPlayer');
+      ec.play('foo');
+      sinon.assert.calledWith(spy, 'play');
+    });
+  });
+});
+});

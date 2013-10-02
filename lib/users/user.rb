@@ -105,7 +105,7 @@ class User
                    :recaptcha_response  => nil,
                    :npc => false, :attributes => nil,
                    :secure_password => false, :permenant => false,
-                   :roles => roles
+                   :roles => roles # [] ???
 
     @attributes.each { |attr|
       attr.user = self

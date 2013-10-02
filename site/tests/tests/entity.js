@@ -639,14 +639,6 @@ describe("Ship", function(){
     });
   })
 
-  //describe("#resolve_attack_target", function(){
-    //it("resolves attack target from local registry") // NIY (also in code)
-  //})
-
-  //describe("#resolve_defense_target", function(){
-    //it("resolves defense target from local registry") // NIY (also in code)
-  //})
-
   describe("#update", function(){
     it("updates attributes", function(){
       var spy = sinon.spy(sh, 'old_update')

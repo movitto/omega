@@ -200,7 +200,7 @@ function AccountInfoContainer(args){
     var container = $('#account_logo');
     if(user_email){
       var gravatar_url = 'http://gravatar.com/avatar/' + md5(user_email) + '?s=175';
-      container.html('<img src="'+gravatar_url+'" alt="gravatar" title="gravatar"></img>');
+      container.html('<img src="'+gravatar_url+'" alt="gravatar" title="gravatar">');
     }
     return container.html();
   }
@@ -237,12 +237,13 @@ function AccountInfoContainer(args){
   /* add a badge to account into page
    */
   this.add_badge = function(id, description, rank){
-    var badges = $('#account_info_badges');
     // display top n badge
-    badges.append("<div class='badge' " +
-                  "     style='background: url(\"" + $omega_config.prefix +
-                                       "/images/badges/"+ id +".png\");'>"+
-                                    description + ': ' + (rank+1)+"</div>");
+    var badges = $('#account_info_badges');
+    var btxt = '<div class="badge" style="background: url(\'' +
+                  $omega_config.prefix + '/images/badges/' + id +'.png\');">'+
+                  description + ': ' + (rank+1)+'</div>';
+
+    badges.append(btxt);
   }
 }
 
@@ -264,6 +265,7 @@ function EffectsPlayer(args){
       cssSelectorAncestor: '#effects_jplayer_container',
       swfPath: "js", supplied: "wav", loop : false
     });
+console.log($(this.div_id).jPlayer("option", "cssSelectorAncestor"))
 
   this.play = function(media){
     if(this.current_media != media){
