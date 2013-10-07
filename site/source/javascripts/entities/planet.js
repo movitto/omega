@@ -255,11 +255,16 @@ function _planet_movement_cycle(){
       var elapsed = curr - pl.last_moved;
       var dist = ms.speed * elapsed / 1000;
 
-      // rotate to xy plane
-      var n = rot(pl.location.x-pl.cx, pl.location.y-pl.cy, pl.location.z-pl.cz,
-                  - pl.rot_axis_angle,
-                  pl.rot_axis[0], pl.rot_axis[1], pl.rot_axis[2])
-      var x = n[0] ; var y = n[1]; // z.should == 0
+      //rotate to xy plane, skip if not rotated
+      var x,y; //z should == 0
+      if(pl.rot_axis_angle != 0){
+        var n = rot(pl.location.x-pl.cx, pl.location.y-pl.cy, pl.location.z-pl.cz,
+                    - pl.rot_axis_angle,
+                    pl.rot_axis[0], pl.rot_axis[1], pl.rot_axis[2])
+        x = n[0] ; y = n[1];
+      }else{
+       x = pl.location.x-pl.cx; y = pl.location.y - pl.cy;
+      }
 
       // calc intercepts / current angle (x = a*Math.cos(i))
       //var angle = Math.atan2(y,x)
@@ -273,9 +278,14 @@ function _planet_movement_cycle(){
       // calculate new position
       var x = pl.a * Math.cos(new_angle);
       var y = pl.b * Math.sin(new_angle);
-      var n = rot(x,y,0,
-                  pl.rot_axis_angle,
-                  pl.rot_axis[0],pl.rot_axis[1],pl.rot_axis[2])
+      var n;
+      if(pl.rot_axis_angle != 0){
+        n = rot(x,y,0,
+                pl.rot_axis_angle,
+                pl.rot_axis[0],pl.rot_axis[1],pl.rot_axis[2])
+      }else{
+        n[0] = x; n[1] = y; n[2] = 0;
+      }
       pl.location.x = n[0] + pl.cx;
       pl.location.y = n[1] + pl.cy;
       pl.location.z = n[2] + pl.cz;

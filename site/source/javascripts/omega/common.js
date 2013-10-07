@@ -131,7 +131,13 @@ var elliptical_path = function(ms){
   for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
     var x = a * Math.cos(i);
     var y = b * Math.sin(i);
-    var n = rot(x, y, 0, ab, ax[0], ax[1], ax[2]);
+    //skip rotation if axis is not rotated
+    var n;
+    if(ab != 0){
+      n = rot(x, y, 0, ab, ax[0], ax[1], ax[2]);
+    }else{
+      n = [x,y,0];
+    }
     n[0] += cx; n[1] += cy; n[2] += cz;
     path.push(n);
   }
