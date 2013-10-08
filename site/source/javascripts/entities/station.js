@@ -19,7 +19,7 @@ function Station(args){
   /// trigger a blank update to refresh components from current state
   this.refresh = function(){
     this.update(this);
-  });
+  };
 
   // Return bool indicating if station belongs to the specified user
   this.belongs_to_user = function(user){
