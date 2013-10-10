@@ -59,6 +59,14 @@ function UIResources(){
     return material;
   }
 
+  /* Loads a texture cube from the materials at the specified path
+   */
+  _this.load_texture_cube = function(paths){
+    return THREE.ImageUtils.loadTextureCube(paths, {}, function(t){
+      _this.raise_event('texture_loaded', t);
+    });
+  }
+
   /* Loads specified json
    */
   _this.load_json = function(path, cb){

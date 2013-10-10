@@ -26,22 +26,32 @@ function Skybox(args){
       var path   = UIResources().images_path +
                    '/skybox/' + this.bg + '/';
       var materials = [
-        UIResources().load_texture_material(path + 'px.' + format),
-        UIResources().load_texture_material(path + 'nx.' + format),
-        UIResources().load_texture_material(path + 'pz.' + format),
-        UIResources().load_texture_material(path + 'nz.' + format),
-        UIResources().load_texture_material(path + 'py.' + format),
-        UIResources().load_texture_material(path + 'ny.' + format)
+        path + 'px.' + format,
+        path + 'nx.' + format,
+        path + 'pz.' + format,
+        path + 'nz.' + format,
+        path + 'py.' + format,
+        path + 'ny.' + format
       ];
 
       skybox_mesh =
         UIResources().cached('skybox_'+this.bg+'_mesh',
           function(i){
-            var skyboxMesh =
-              new THREE.Mesh(new THREE.CubeGeometry( size, size, size,
-                                                     7, 7, 7, materials ),
-                             new THREE.MeshFaceMaterial());
-            skyboxMesh.scale.x = - 1;
+            var geometry = new THREE.CubeGeometry(size, size, size,
+                                                  7, 7, 7);
+            //var material = new THREE.MeshFaceMaterial();
+            var shader = THREE.ShaderLib["cube"];
+            shader.uniforms["tCube"].value = UIResources().load_texture_cube(materials);
+            var material = new THREE.ShaderMaterial({
+              fragmentShader : shader.fragmentShader,
+              vertexShader   : shader.vertexShader,
+              uniforms       : shader.uniforms,
+              depthWrite     : false,
+              side           : THREE.BackSide
+            })
+
+            var skyboxMesh = new THREE.Mesh(geometry, material);
+            //skyboxMesh.scale.x = - 1;
             return skyboxMesh;
           });
       this.components = [skybox_mesh];
