@@ -21,6 +21,7 @@ function Star(args){
 
   _star_load_mesh(this);
   _star_load_glow(this);
+  _star_load_light(this);
   _star_load_flare(this);
 
   this.added_to = function(scene){
@@ -28,10 +29,12 @@ function Star(args){
        { type: "v3", value: scene.camera._camera.position };
   }
 
-  star.clickable_obj = star.glow;
-  //this.components.push(star.glow);
-  //this.components.push(star.sphere);
-  this.components.push(star.lensFlare);
+  //star.clickable_obj = star.glow;
+  this.shader_components.push(star.glow);
+  this.shader_components.push(star.shader_sphere);
+  this.components.push(star.sphere);
+  //this.components.push(star.light);
+  //this.components.push(star.lensFlare);
 }
 
 /* Helper to load star mesh resources
@@ -70,6 +73,18 @@ function _star_load_mesh(star){
 
         return sphere;
       });
+
+  star.shader_sphere =
+    UIResources().cached("star_" + star.id + "_shader_sphere",
+      function(i) {
+        var sphere = new THREE.Mesh(sphere_geometry.clone(),
+                                    new THREE.MeshBasicMaterial({color: 0x000000}));
+        sphere.position.x = star.location.x;
+        sphere.position.y = star.location.y;
+        sphere.position.z = star.location.z;
+
+        return sphere;
+      });
 }
 
 /* Helper to load star glow resources
@@ -78,23 +93,34 @@ function _star_load_glow(star){
   var glow_geometry =
     UIResources().get('star_sphere_' + star.size + '_geometry');
 
+  //var glow_texture =
+  //  UIResources().cached("star_shader_" + star.color + "_material",
+  //    function(i) {
+  //      return new THREE.MeshBasicMaterial({//color: star.icolor,
+  //                                          map: sphere_texture,
+  //                                          overdraw : true,
+  //                                          transparent : true,
+  //                                          opacity: 0.50});
+  //    });
+
   var glow_texture = 
     UIResources().cached("star_glow_texture",
       function(i) {
-        var vertex_shader   = document.getElementById( 'vertexShader'   );
-        var fragment_shader = document.getElementById( 'fragmentShader' );
+        var vertex_shader   = document.getElementById( 'vertexShaderAtmosphere'   );
+        var fragment_shader = document.getElementById( 'fragmentShaderAtmosphere' );
         vertex_shader   = vertex_shader   ? vertex_shader.textContent   : null;
         fragment_shader = fragment_shader ? fragment_shader.textContent : null;
 
         return new THREE.ShaderMaterial({
           uniforms: { 
-            "c":   { type: "f", value: 1.0 },
-            "p":   { type: "f", value: 1.4 },
-            glowColor: { type: "c", value: new THREE.Color(star.icolor) },
+            "c":   { type: "f", value: 0.5 },
+            "p":   { type: "f", value: 4.0 },
+            //glowColor: { type: "c", value: new THREE.Color(star.icolor) },
           },
           vertexShader: vertex_shader, fragmentShader: fragment_shader,
-          side: THREE.FrontSide, blending: THREE.AdditiveBlending,
-          transparent: true
+          side: THREE.BackSide
+          //side: THREE.FrontSide, blending: THREE.AdditiveBlending,
+          //transparent: true
         });
       });
 
@@ -104,6 +130,17 @@ function _star_load_glow(star){
         var glow = new THREE.Mesh(glow_geometry, glow_texture);
         glow.scale.multiplyScalar(1.2);
         return glow;
+      });
+}
+
+/* Helper to load star light resources
+ */
+function _star_load_light(star){
+  star.light =
+    UIResources().cached("star_" + star.color + "_light",
+      function(i) {
+        var light = new THREE.DirectionalLight(star.icolor, 1);
+        return light;
       });
 }
 
@@ -120,21 +157,21 @@ function _star_load_flare(star){
     new THREE.Color(star.icolor);
 
   star.lensFlare =
-    new THREE.LensFlare(textureFlare0, 1200, 0.0,
+    new THREE.LensFlare(textureFlare0, 1000, 0.0,
                         THREE.AdditiveBlending, flareColor);
 
-  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare2, 512, 0.0, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare3, 60,  0.6, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare3, 70,  0.7, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare3, 120, 0.9, THREE.AdditiveBlending);
-  star.lensFlare.add(textureFlare3, 70,  1.0, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare2, 512, 0.8, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare2, 512, 0.8, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare2, 512, 0.8, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 120,  0.6, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 240,  0.7, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 240, 0.9, THREE.AdditiveBlending);
+  star.lensFlare.add(textureFlare3, 140,  1.0, THREE.AdditiveBlending);
 
   star.lensFlare.customUpdateCallback = lensFlareUpdateCallback;
-  star.lensFlare.position.set(star.location.x + 100,
-                              star.location.y + 100,
-                              star.location.z + 100);
+  star.lensFlare.position.set(star.location.x,
+                              star.location.y + star.size/2,
+                              star.location.z);
 }
 
 ////////////////////////////// a few helper methods from three.js example

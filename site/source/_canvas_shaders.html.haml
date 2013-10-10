@@ -23,3 +23,43 @@
       vec3 glow = glowColor * intensity;
         gl_FragColor = vec4( glow, 1.0 );
     }
+
+// two shaders from http://stemkoski.github.io/Three.js/Atmosphere.html
+%script{:id=>"vertexShaderAtmosphere", :type=>"x-shader/x-vertex"}
+  :plain
+    varying vec3 vNormal;
+    void main()
+    {
+      vNormal = normalize( normalMatrix * normal );
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+
+%script{:id=>"fragmentShaderAtmosphere", :type=>"x-shader/x-vertex"}
+  :plain
+    uniform float c;
+    uniform float p;
+    varying vec3 vNormal;
+    void main()
+    {
+      float intensity = pow( c - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), p );
+      gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
+    }
+
+// two shaders from http://stemkoski.github.io/Three.js/Shader-Halo.html
+%script{:id=>"vertexShaderHalo", :type=>"x-shader/x-vertex"}
+  :plain
+    varying vec3 vNormal;
+    void main()
+    {
+        vNormal = normalize( normalMatrix * normal );
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+    }
+
+%script{:id=>"fragmentShaderHalo", :type=>"x-shader/x-vertex"}
+  :plain
+    varying vec3 vNormal;
+    void main()
+    {
+        float intensity = pow( 0.7 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
+        gl_FragColor = vec4( 1.0, 1.0, 1.0, 1.0 ) * intensity;
+    }
