@@ -121,6 +121,9 @@ function Scene(args){
 
   this._scene    = new THREE.Scene();
 
+  /// additional scene/camera for shader
+  this._shader_scene = new THREE.Scene();
+
   var nargs   = $.extend({scene : this}, args);
   this.canvas = nargs['canvas'];
 
@@ -147,18 +150,49 @@ function Scene(args){
     }, 250, false);
 
   if(Scene.renderer == null){
-    // TODO configurable renderer
+    /// TODO configurable renderer
     //Scene.renderer = new THREE.CanvasRenderer({canvas: _canvas});
     Scene.renderer = new THREE.WebGLRenderer();
+
+    var sw = window.innerWidth, sh = window.innerHeight;
+    Scene.renderer.setSize(sw, sh);
+
+    var renderTargetParameters =
+	  	{ minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, 
+	  	  format: THREE.RGBFormat, stencilBuffer: false };
+	  Scene._rendererTarget = new THREE.WebGLRenderTarget(sw, sh, renderTargetParameters);
+
+    Scene._composer = new THREE.EffectComposer(Scene.renderer, Scene._rendererTarget)
+    Scene._shader_composer = new THREE.EffectComposer(Scene.renderer, Scene._rendererTarget)
   }
-  this.renderer = Scene.renderer;
+
   if(this.canvas)
-    this.canvas.component().append(this.renderer.domElement);
+    this.canvas.component().append(Scene.renderer.domElement);
+
+  this.renderer = Scene.renderer;
+  this._composer = Scene._composer;
+  this._shader_composer = Scene._shader_composer;
+/// TODO remove previously registered
+  this._composer.addPass(new THREE.RenderPass(this._scene, this.camera._camera))
+  this._shader_composer.addPass(new THREE.RenderPass(this._shader_scene, this.camera._shader_camera))
+
+  if(Scene.effectBlend == null){
+    Scene.effectBlend = new THREE.ShaderPass( THREE.AdditiveBlendShader, "tDiffuse1" );
+	  Scene.effectBlend.uniforms[ 'tDiffuse2' ].value = Scene._shader_composer.renderTarget2;
+	  Scene.effectBlend.renderToScreen = true;
+	  Scene._composer.addPass( Scene.effectBlend )
+
+    Scene.renderer.autoClear = false;
+    Scene.renderer.setClearColorHex(0x000000, 0.0);
+  }
 
   /* override set size to map canvas resizing to renderer resizing
    */
   this.set_size = function(w, h){
     this.renderer.setSize(w, h);
+    //this._composer.setSize(w,h);
+    //this._shader_composer.setSize(w,h);
+
     this.camera.set_size(w, h);
     this.camera.reset();
   }
@@ -172,6 +206,8 @@ function Scene(args){
     this.entities[entity.id] = entity;
     for(var comp = 0; comp < entity.components.length; comp++)
       this.add_component(entity.components[comp]);
+    for(var comp = 0; comp < entity.shader_components.length; comp++)
+      this.add_shader_component(entity.shader_components[comp]);
     entity.added_to(this);
   }
 
@@ -191,6 +227,8 @@ function Scene(args){
 
     for(var comp = 0; comp < entity.components.length; comp++)
       this.remove_component(entity.components[comp]);
+    for(var comp = 0; comp < entity.shader_components.length; comp++)
+      this.remove_shader_component(entity.shader_components[comp]);
     entity.removed_from(this);
   }
 
@@ -234,12 +272,28 @@ function Scene(args){
     this._scene.add(component);
   }
 
+  /* Add specified component to backend three.js shader scene
+   *
+   * XXX would like to remove this or mark private
+   */
+  this.add_shader_component = function(component){
+    this._shader_scene.add(component);
+  }
+
   /* Remove specified component from backend three.js scene
    *
    * XXX would like to remove this or mark private
    */
   this.remove_component = function(component){
     this._scene.remove(component);
+  }
+
+  /* Remove specified component from backend three.js shader scene
+   *
+   * XXX would like to remove this or mark private
+   */
+  this.remove_shader_component = function(component){
+    this._shader_scene.remove(component);
   }
 
   /* Set root entity of the scene.
@@ -324,17 +378,19 @@ function Scene(args){
 
   /* Request animation frame
    */
+  var _this = this;
   this.animate = function(){
-    requestAnimationFrame(this.render);
+    requestAnimationFrame(_this.render);
   }
 
   /* Internal helper to render scene.
    *
    * !private shouldn't be called by end user!
    */
-  var _this = this;
   this.render = function(){
-    _this.renderer.render(_this._scene, _this.camera._camera);
+    //_this.renderer.render(_this._scene, _this.camera._camera);
+    _this._shader_composer.render();
+    _this._composer.render();
   }
 
   /* Return the position of the backend scene
@@ -381,12 +437,17 @@ function Camera(args){
 
   // private initializer
   var new_cam = function(){
-    return new THREE.PerspectiveCamera(75, _width / _height, 1, 42000 );
+    var aspect = _width / _height;
+    if(isNaN(aspect)) aspect = 1;
+    return new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
     //return new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   }
 
   this._camera = new_cam();
   var looking_at = null;
+
+  /// additional camera for shader
+  this._shader_camera = new_cam();
 
   /////////////////////////////////////// public methods
 
@@ -394,7 +455,11 @@ function Camera(args){
    */
   this.set_size = function(width, height){
     _width = width; _height = height
-    this._camera = new_cam();
+    var aspect = _width / _height;
+    if(isNaN(aspect)) aspect = 1;
+    this._camera.aspect = this._shader_camera.aspect = aspect;
+    this._camera.updateProjectionMatrix();
+    this._shader_camera.updateProjectionMatrix();
   }
 
   /* Set camera to its default position
@@ -422,6 +487,7 @@ function Camera(args){
         looking_at.z = focus.z;
     }
     this._camera.lookAt(looking_at);
+    this._shader_camera.lookAt(looking_at);
     return looking_at;
   }
 
@@ -432,14 +498,20 @@ function Camera(args){
    */
   this.position = function(position){
     if(typeof position !== "undefined"){
-      if(typeof position.x !== "undefined")
+      if(typeof position.x !== "undefined"){
         this._camera.position.x = position.x;
+        this._shader_camera.position.x = position.x
+      }
 
-      if(typeof position.y !== "undefined")
+      if(typeof position.y !== "undefined"){
         this._camera.position.y = position.y;
+        this._shader_camera.position.y = position.y
+      }
 
-      if(typeof position.z !== "undefined")
+      if(typeof position.z !== "undefined"){
         this._camera.position.z = position.z;
+        this._shader_camera.position.z = position.z
+      }
     }
 
     return {x : this._camera.position.x,
@@ -473,6 +545,9 @@ function Camera(args){
     this._camera.position.x = dx + focus.x;
     this._camera.position.y = dy + focus.y;
     this._camera.position.z = dz + focus.z;
+    this._shader_camera.position.x = dx + focus.x;
+    this._shader_camera.position.y = dy + focus.y;
+    this._shader_camera.position.z = dz + focus.z;
 
     this.focus();
   }
@@ -510,6 +585,9 @@ function Camera(args){
     this._camera.position.x = dx + focus.x;
     this._camera.position.y = dy + focus.y;
     this._camera.position.z = dz + focus.z;
+    this._shader_camera.position.x = dx + focus.x;
+    this._shader_camera.position.y = dy + focus.y;
+    this._shader_camera.position.z = dz + focus.z;
 
     this.focus();
   }
@@ -526,6 +604,12 @@ function Camera(args){
     this._camera.position.x += mat.elements[4] * y;
     this._camera.position.y += mat.elements[5] * y;
     this._camera.position.z += mat.elements[6] * y;
+    this._scene_camera.position.x += mat.elements[0] * x;
+    this._scene_camera.position.y += mat.elements[1] * x;
+    this._scene_camera.position.z += mat.elements[2] * x;
+    this._scene_camera.position.x += mat.elements[4] * y;
+    this._scene_camera.position.y += mat.elements[5] * y;
+    this._scene_camera.position.z += mat.elements[6] * y;
 
     var npos   = this.position();
     this.focus({x : focus.x + (npos.x - pos.x),
@@ -670,6 +754,7 @@ function CanvasComponent(args){
     this.scene = args['scene'];
 
   this.components = [];
+  this.shader_components = [];
 
   /* Return toggle canvas page component
    */
@@ -691,6 +776,9 @@ function CanvasComponent(args){
     for(var component = 0; component < this.components.length; component++){
       this.scene.remove_component(this.components[component]);
     }
+    for(var component = 0; component < this.shader_components.length; component++){
+      this.scene.remove_shader_component(this.shader_components[component]);
+    }
     showing = false;
     this.toggle_canvas().attr(':checked', false)
   }
@@ -700,9 +788,10 @@ function CanvasComponent(args){
   this.sshow = function(){
     showing = true;
     this.toggle_canvas().attr(':checked', true)
-    for(var component = 0; component < this.components.length; component++){
+    for(var component = 0; component < this.components.length; component++)
       this.scene.add_component(this.components[component]);
-    }
+    for(var component = 0; component < this.shader_components.length; component++)
+      this.scene.add_shader_component(this.shader_components[component]);
   }
 
   /* Toggle showing/hiding the component in the scene based
@@ -729,3 +818,44 @@ function CanvasComponent(args){
   }
 }
 
+
+////////////////////////////// a few helper shaders from a three.js example
+/// from http://stemkoski.github.io/Three.js/js/shaders/AdditiveBlendShader.js
+THREE.AdditiveBlendShader = {
+
+	uniforms: {
+	
+		"tDiffuse1": { type: "t", value: null },
+		"tDiffuse2": { type: "t", value: null }
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform sampler2D tDiffuse1;",
+		"uniform sampler2D tDiffuse2;",
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vec4 texel1 = texture2D( tDiffuse1, vUv );",
+			"vec4 texel2 = texture2D( tDiffuse2, vUv );",
+			"gl_FragColor = texel1 + texel2;",
+		"}"
+
+	].join("\n")
+
+};
