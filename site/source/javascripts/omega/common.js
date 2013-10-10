@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "vendor/three"
+//= require "vendor/three-r58"
 
 /* Create new array from args
  * http://shifteleven.com/articles/2007/06/28/array-like-objects-in-javascript

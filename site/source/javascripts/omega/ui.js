@@ -5,7 +5,7 @@
  */
 
 //= require "vendor/jquery-ui-1.10.2.min"
-//= require "vendor/three"
+//= require "vendor/three-r58"
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
 //= require "vendor/md5"

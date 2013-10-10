@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "vendor/three"
+//= require "vendor/three-r58"
 //= require "vendor/helvetiker_font/helvetiker_regular.typeface"
 
 /////////////////////////////////////////////////////////////////////
