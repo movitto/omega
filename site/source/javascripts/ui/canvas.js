@@ -152,7 +152,7 @@ function Scene(args){
   if(Scene.renderer == null){
     /// TODO configurable renderer
     //Scene.renderer = new THREE.CanvasRenderer({canvas: _canvas});
-    Scene.renderer = new THREE.WebGLRenderer();
+    Scene.renderer = new THREE.WebGLRenderer({antialias : true});
 
     var sw = window.innerWidth, sh = window.innerHeight;
     Scene.renderer.setSize(sw, sh);
@@ -172,11 +172,16 @@ function Scene(args){
   this.renderer = Scene.renderer;
   this._composer = Scene._composer;
   this._shader_composer = Scene._shader_composer;
-/// TODO remove previously registered
+  /// FIXME remove previously registered
   this._composer.addPass(new THREE.RenderPass(this._scene, this.camera._camera))
   this._shader_composer.addPass(new THREE.RenderPass(this._shader_scene, this.camera._shader_camera))
 
   if(Scene.effectBlend == null){
+    Scene.bloomPass = new THREE.BloomPass(1.25);
+    //Scene.effectFilm = new THREE.FilmPass(0.35, 0.95, 2048, false);
+    Scene._composer.addPass(Scene.bloomPass)
+    //Scene._composer.addPass(Scene.effectFilm)
+
     Scene.effectBlend = new THREE.ShaderPass( THREE.AdditiveBlendShader, "tDiffuse1" );
 	  Scene.effectBlend.uniforms[ 'tDiffuse2' ].value = Scene._shader_composer.renderTarget2;
 	  Scene.effectBlend.renderToScreen = true;
@@ -400,11 +405,6 @@ function Scene(args){
   this.position = function(){
     return this._scene.position;
   }
-
-// FIXME: temp hack to create a global light so all lambert materials
-//        render properly. Add a better lighting system in the future
-var light = new THREE.AmbientLight(0xFFFFFF);
-this._scene.add(light);
 }
 
 /* Instantiate and return a new Camera
@@ -819,7 +819,8 @@ function CanvasComponent(args){
 }
 
 
-////////////////////////////// a few helper shaders from a three.js example
+////////////////////////////// a few helper shaders from various locations
+
 /// from http://stemkoski.github.io/Three.js/js/shaders/AdditiveBlendShader.js
 THREE.AdditiveBlendShader = {
 

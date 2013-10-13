@@ -33,7 +33,7 @@ function Star(args){
   this.shader_components.push(star.glow);
   this.shader_components.push(star.shader_sphere);
   this.components.push(star.sphere);
-  //this.components.push(star.light);
+  this.components.push(star.light);
   //this.components.push(star.lensFlare);
 }
 
@@ -44,7 +44,7 @@ function _star_load_mesh(star){
   var sphere_geometry =
     UIResources().cached('star_sphere_' + star.size + '_geometry',
       function(i) {
-        var radius = star.size/5, segments = 32, rings = 32;
+        var radius = star.size, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 
@@ -58,9 +58,24 @@ function _star_load_mesh(star){
   var sphere_material =
     UIResources().cached("star_sphere_" + star.color + "_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({//color: star.icolor,
-                                            map: sphere_texture,
-                                            overdraw : true});
+        var uniforms = {
+          fogDensity: { type: "f", value: 0.0001 },
+          fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
+          time: { type: "f", value: 1.0 },
+          resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, // XXX
+          uvScale: { type: "v2", value: new THREE.Vector2( 3.0, 1.0 ) },
+          texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "images/textures/lava/cloud.png" ) },
+          texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "images/textures/lava/lavatile.jpg" ) }
+        };
+
+        uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
+        uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
+
+        return new THREE.ShaderMaterial({
+          uniforms: uniforms,
+          vertexShader: document.getElementById( 'vertexShaderLava' ).textContent,
+          fragmentShader: document.getElementById( 'fragmentShaderLava' ).textContent
+        });
       });
 
   star.sphere =
@@ -70,6 +85,14 @@ function _star_load_mesh(star){
         sphere.position.x = star.location.x;
         sphere.position.y = star.location.y;
         sphere.position.z = star.location.z;
+
+        var last = new Date();
+        sphere.update_particles = function(){
+          var now = new Date();
+          var delta = now - last;
+          sphere.material.uniforms.time.value += 0.0004 * delta;
+          last = now;
+        }
 
         return sphere;
       });
@@ -113,7 +136,7 @@ function _star_load_glow(star){
 
         return new THREE.ShaderMaterial({
           uniforms: { 
-            "c":   { type: "f", value: 0.5 },
+            "c":   { type: "f", value: 0.2 },
             "p":   { type: "f", value: 4.0 },
             //glowColor: { type: "c", value: new THREE.Color(star.icolor) },
           },
@@ -128,7 +151,7 @@ function _star_load_glow(star){
     UIResources().cached("star_" + star.id + "_glow",
       function(i) {
         var glow = new THREE.Mesh(glow_geometry, glow_texture);
-        glow.scale.multiplyScalar(1.2);
+        glow.scale.multiplyScalar(1.3);
         return glow;
       });
 }
@@ -139,7 +162,8 @@ function _star_load_light(star){
   star.light =
     UIResources().cached("star_" + star.color + "_light",
       function(i) {
-        var light = new THREE.DirectionalLight(star.icolor, 1);
+        var light = new THREE.PointLight(star.icolor, 1);
+        light.position.set(0, 0, 0);
         return light;
       });
 }

@@ -114,7 +114,7 @@ function _planet_load_mesh(planet){
   var sphere_material =
     UIResources().cached("planet_sphere_" + planet.color + "_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({map: sphere_texture});
+        return new THREE.MeshLambertMaterial({map: sphere_texture});
       });
 
   planet.sphere =

@@ -5,11 +5,22 @@
  */
 
 //= require "vendor/jquery-ui-1.10.2.min"
-//= require "vendor/three-r58"
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
 //= require "vendor/md5"
 //= require "vendor/jquery.timer"
+
+/// three.js and deps
+//= require "vendor/three-r58"
+//= require 'vendor/three/EffectComposer'
+//= require 'vendor/three/RenderPass'
+//= require 'vendor/three/ShaderPass'
+//= require 'vendor/three/MaskPass'
+//= require 'vendor/three/CopyShader'
+//= require 'vendor/three/ConvolutionShader.js'
+//= require 'vendor/three/BloomPass'
+//= require 'vendor/three/FilmShader'
+//= require 'vendor/three/FilmPass'
 
 /* UI Resources registry.
  *
