@@ -43,6 +43,10 @@ function Dialog(args){
                      dialog({title: this.title, width: '450px', closeText: ''}).
                      dialog('option', 'title', this.title).
                      dialog('open');
+
+    /// ensure clicks don't propagate to canvas
+    /// FIXME directly passing stop_prop here doesn't work for some reason
+    $('.ui-dialog').on('mousedown',  function(e){ stop_prop(e);});
   };
 
   /* Hide omega dialog

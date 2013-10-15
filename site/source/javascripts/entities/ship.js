@@ -264,7 +264,7 @@ function _ship_set_orientation(component, is_mesh){
     component.rotation.y = rotation[1];
     component.rotation.z = rotation[2];
   }
-  component.matrix.setRotationFromEuler(component.rotation);
+  component.matrix.makeRotationFromEuler(component.rotation);
 
   // set location orientation
   var oax = cp(0, 0, 1, this.location.orientation_x,
@@ -281,7 +281,7 @@ function _ship_set_orientation(component, is_mesh){
     // TODO expand this to cover all cases where oab > 1.57 or < -1.57
     if(Math.abs(oab - Math.PI) < 0.0001) oax = [0,1,0];
     var orm = new THREE.Matrix4().makeRotationAxis({x:oax[0], y:oax[1], z:oax[2]}, oab);
-    orm.multiplySelf(component.matrix);
+    orm.multiply(component.matrix);
     component.rotation.setEulerFromRotationMatrix(orm);
 
     // rotate everything other than mesh around mesh itself
@@ -291,7 +291,7 @@ function _ship_set_orientation(component, is_mesh){
              component.position.y - this.location.y,
              component.position.z - this.location.z)
       var d = aa.length();
-      orm.rotateAxis(aa);
+      aa.transformDirection(orm);
 
       component.position.x = aa.x * d + this.location.x;
       component.position.y = aa.y * d + this.location.y;

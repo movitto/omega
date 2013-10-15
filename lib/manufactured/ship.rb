@@ -104,7 +104,7 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base attack distance which to assign to the ship
   def self.base_attack_distance(type)
-    100
+    500
   end
 
   # Number of attacks per second ship can launch

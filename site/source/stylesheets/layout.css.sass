@@ -1,7 +1,8 @@
 $white: #FFFFFF
+$black: #000000
 
 body
-  background-color: $white
+  background-color: $black
   margin-left: 5px
   margin-top: 5px
   font-size: 0.9em
@@ -15,13 +16,23 @@ a
   clear: both
 
 #navigation
-  float: left
+  position: absolute
+  left: 10px
+  top:  10px
   border: 1px solid gray
   border-radius: 15px
-  background: url('../images/logo2.png') no-repeat
-  padding-top: 25px
   width: 20%
-  min-width: 325px
+  min-width: 275px
+  background: #585858
+
+#navigation a
+  color: $black
+  font-weight: bold
+
+#navigation_logo
+  background: url('../images/logo2.png') no-repeat
+  min-width: 275px
+  min-height: 25px
 
 #primary_navigation
   padding-left: 15px
@@ -34,8 +45,10 @@ a
   padding-bottom: 3px
 
 #status_icon
+  position: absolute
+  left: 10px
+  bottom: 10px
   text-decoration: blink
   min-width:  114px
   min-height:  26px
-  float: right
   margin-right: 10px

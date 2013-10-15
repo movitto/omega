@@ -68,7 +68,7 @@ jump_gate aphrodite, athena,    :location => loc(-1050, 1050,-1050)
 jump_gate aphrodite, philo,     :location => loc( 1050,-1050, 1050)
 jump_gate philo,     aphrodite, :location => loc( 1050,-1050, 1050)
 
-schedule_event 60,
+schedule_event 6000,
   Missions::Events::PopulateResource.new(\
     :id =>
       'populate-resources',

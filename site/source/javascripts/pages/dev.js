@@ -24,7 +24,7 @@ function add_entity(ui, entity){
 }
 
 function custom_operations(ui, node){
-  ui.canvas_container.canvas.scene.skybox.background('galaxy4');
+  ui.canvas_container.canvas.scene.skybox.background('system1'); // XXX galaxy1, ... crashes ff
   ui.canvas_container.canvas.scene.add_component(ui.canvas_container.canvas.scene.skybox.components[0]);
 
   var star1 = new Star({id : 'star1', color: 'FFFFFF', size: 550,
@@ -58,8 +58,8 @@ function custom_operations(ui, node){
   //var sys1 = new SolarSystem({id : 'sys1', location : loc7);
   //ui.canvas_container.canvas.scene.add_entity(sys1);
 
-  ui.canvas_container.canvas.scene.camera.position({x : 0, y : 150, z : 400})
-  ui.canvas_container.canvas.scene.camera.focus({x : 0, y : 0, z : 0})
+  //ui.canvas_container.canvas.scene.camera.position({x : 0, y : 150, z : 400})
+  //ui.canvas_container.canvas.scene.camera.focus({x : 0, y : 0, z : 0})
   //ui.canvas_container.canvas.scene.camera.rotate(0, 3.14)
   //ui.canvas_container.canvas.scene.camera.zoom(-500);
   ui.canvas_container.canvas.scene.animate();

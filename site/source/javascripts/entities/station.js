@@ -136,7 +136,7 @@ function _station_load_mesh_resources(station){
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[station.type]['material'];
         var t = UIResources().load_texture(path);
-        return new THREE.MeshBasicMaterial({map: t, overdraw: true});
+        return new THREE.MeshLambertMaterial({map: t, overdraw: true});
     });
 
   var mesh_geometry =

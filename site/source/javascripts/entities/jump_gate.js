@@ -90,7 +90,7 @@ function _jump_gate_create_mesh(){
           mesh.rotation.x = rotation[0];
           mesh.rotation.y = rotation[1];
           mesh.rotation.z = rotation[2];
-          mesh.matrix.setRotationFromEuler(mesh.rotation);
+          mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
  
         return mesh;
@@ -121,7 +121,7 @@ function _jump_gate_load_mesh(jg){
   jg.mesh_material =
     UIResources().cached("jump_gate_mesh_material",
       function(i) {
-        return new THREE.MeshBasicMaterial( { map: mesh_texture } );
+        return new THREE.MeshLambertMaterial( { map: mesh_texture } );
       });
 
   jg.mesh_geometry =

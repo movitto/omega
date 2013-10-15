@@ -21,14 +21,13 @@
   
   %body{:class => page_classes}
     #navigation
+      #navigation_logo
       #primary_navigation
-        = link_to "About",  "http://wiki.omegaverse.info/about"
+        = link_to "Project",  "http://github.com/movitto/omega"
         \/
-        = link_to "Wiki",   "http://wiki.omegaverse.info"
+        = link_to "Wiki",   "http://github.com/movitto/omega/wiki"
         \/
         = link_to "Blog",   "http://blog.omegaverse.info"
-        \/
-        = link_to "Forums",   "http://wiki.omegaverse.info/forum:start"
         \/
         = link_to "Stats",  "/stats.html", :only_path => false
         .clear_both

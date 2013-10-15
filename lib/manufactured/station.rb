@@ -116,7 +116,7 @@ class Station
                          :solar_system         => nil,
                          :docking_distance     => 100,
                          :transfer_distance    => 100,
-                         :construction_distance=>  50,
+                         :construction_distance=> 500,
                          :cargo_capacity       => 10000
 
     @location.orientation = [0,0,1] if @location.orientation == [nil, nil, nil]

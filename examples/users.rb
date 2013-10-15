@@ -54,7 +54,7 @@ corvette = ship(USER_NAME + "-corvette-ship1") do |ship|
              ship.type     = :corvette
              ship.user_id  = USER_NAME
              ship.solar_system = starting_system
-             ship.location = Location.new(:x => 1000, :y=> 700, :z => 600,
-             #ship.location = Location.new(:x   => -1150, :y   => 400, :z => -750,
+             #ship.location = Location.new(:x => 1000, :y=> 700, :z => 600,
+             ship.location = Location.new(:x   => 1150, :y   => 700, :z => 600,
                                           :orx =>  0,    :ory =>  0,  :orz =>  1)
            end

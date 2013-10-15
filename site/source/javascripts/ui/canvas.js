@@ -6,12 +6,19 @@
 
 //= require "ui/canvas_components"
 
+//= require 'vendor/three/OrbitControls'
+//= require 'vendor/three/TrackballControls'
+
 /* Wraps a few canvas related components in the ui
  */
 function CanvasContainer(args){
-  this.canvas              = new Canvas();
+  //this.width  = $omega_config.canvas_width;
+  //this.height = $omega_config.canvas_height;
+  var width  = $(document).width()  - 50;
+  var height = $(document).height() - 150;
+  this.canvas = new Canvas({width: width, height: height});
 
-  this.entity_container    = new EntityContainer();
+  this.entity_container = new EntityContainer();
 
   this.locations_list =
     new EntitiesContainer({div_id : '#locations_list'});
@@ -46,15 +53,13 @@ function CanvasContainer(args){
  */
 function Canvas(args){
   $.extend(this, new UIComponent(args));
-
   var nargs       = $.extend({canvas : this}, args);
 
-  this.div_id         = '#omega_canvas';
+  this.div_id            = '#omega_canvas';
   this.toggle_control_id = '#toggle_canvas';
+
   this.scene      = nargs['scene'] ||  new Scene(nargs);
-  this.select_box = new SelectBox(nargs);
   this.subcomponents.push(this.scene)
-  this.subcomponents.push(this.select_box)
 
   this.canvas_component = function(){
     if(this._canvas_component == null)
@@ -65,11 +70,6 @@ function Canvas(args){
   // if current page does not have a canvas, return
   if(this.component().length == 0) return;
 
-  //TODO (also w/ page resize)
-  //this.width  = $omega_config.canvas_width;
-  //this.height = $omega_config.canvas_height;
-  this.width  = $(document).width()  - this.component().offset().left - 50;
-  this.height = $(document).height() - this.component().offset().top  - 50;
   this.scene.set_size(this.width, this.height);
 
   this.on('show', function(c){ this.toggle_control().html('Hide'); });
@@ -87,68 +87,50 @@ function Canvas(args){
     var x = coords[0]; var y = coords[1];
     this.scene.clicked(x, y)
   });
-
-  // XXX need to trigger mouse movement events on canvas itself, not
-  // the container as that should respond to resize events,
-  // temporarily store and set to canvas to wire up callbacks before restoring
-  var old_component = this.component;
-  this.component    = this.canvas_component;
-
-  // delegate move movement events to select box
-  var delegate_to_select = function(c, e){
-    e.target = this.select_box.component()[0];
-    this.select_box.component().trigger(e);
-    // TODO if select box not active & hovering over a component,
-    // invoke a callback (entity.hovered_in(scene))
-  }
-  this.on('mousemove', delegate_to_select);
-  this.on('mousedown', delegate_to_select);
-  this.on('mouseup', delegate_to_select);
-
-  this.component    = old_component;
 }
 
 /* Scene containing entities to render and renderer
  */
 function Scene(args){
-  /////////////////////////////////////// public data
-  $.extend(this, new UIComponent(args));
   var _this = this;
-
-  this.div_id = null;
-  this.entities = {};
-  this.root = null;
-
-  this._scene    = new THREE.Scene();
-
-  /// additional scene/camera for shader
-  this._shader_scene = new THREE.Scene();
-
+  $.extend(this, new UIComponent(args));
   var nargs   = $.extend({scene : this}, args);
   this.canvas = nargs['canvas'];
 
-  //this.selection = new SceneSelection(nargs);
-  this.camera = new Camera(nargs);
-  this.skybox = new Skybox(nargs);
-  this.axis   = new Axis(nargs);
-  this.grid   = new Grid(nargs);
-  this.subcomponents.push(this.camera)
-  this.subcomponents.push(this.axis)
-  this.subcomponents.push(this.grid)
+  this.div_id = null;
+  this.root = null;
+  this.entities = {};
 
-  // setup a timer to run particle subsystems
-  // TODO rename this timer / callback method
-  // to something more generic like effects_timer/update_effects
-  this.particle_timer =
-    $.timer(function(){
-      for(var c = 0; c < _this._scene.__objects.length; c++){
-        var obj = _this._scene.__objects[c];
-        if(obj.update_particles)
-          obj.update_particles();
-      }
-      _this.animate();
-    }, 250, false);
+  /* Request animation frame
+   *
+   * Needs to be available early, so defined here
+   */
+  this.animate = function(){
+    requestAnimationFrame(_this.render);
+  }
 
+  /* Internal helper to render scene.
+   *
+   * Needs to be available early, so defined here
+   * !private shouldn't be called by end user!
+   */
+  this.render = function(){
+    //_this.renderer.render(_this._scene, _this.camera._camera);
+    _this._shader_composer.render();
+    _this._composer.render();
+
+    //_this.camera.controls.update();
+  }
+
+  /////////////////////////////////////// three.js init
+
+  // create new three js scene
+  this._scene    = new THREE.Scene();
+
+  /// additional scene for shader
+  this._shader_scene = new THREE.Scene();
+
+  // initialize global renderer / composers
   if(Scene.renderer == null){
     /// TODO configurable renderer
     //Scene.renderer = new THREE.CanvasRenderer({canvas: _canvas});
@@ -166,16 +148,31 @@ function Scene(args){
     Scene._shader_composer = new THREE.EffectComposer(Scene.renderer, Scene._rendererTarget)
   }
 
-  if(this.canvas)
-    this.canvas.component().append(Scene.renderer.domElement);
+  // add to page
+  if(this.canvas) this.canvas.component().append(Scene.renderer.domElement);
 
+  // assign as local properties for convenience
   this.renderer = Scene.renderer;
   this._composer = Scene._composer;
   this._shader_composer = Scene._shader_composer;
+
+  // used to render various scene
+  this.camera = new Camera(nargs);
+  this.subcomponents.push(this.camera)
+
+  // various components available for use in every scene
+  this.skybox = new Skybox(nargs);
+  this.axis   = new Axis(nargs);
+  this.grid   = new Grid(nargs);
+  this.subcomponents.push(this.axis)
+  this.subcomponents.push(this.grid)
+
+  // add render passes to composers
   /// FIXME remove previously registered
   this._composer.addPass(new THREE.RenderPass(this._scene, this.camera._camera))
   this._shader_composer.addPass(new THREE.RenderPass(this._shader_scene, this.camera._shader_camera))
 
+  // add a few more effect passes, combine composers, and render to screen
   if(Scene.effectBlend == null){
     Scene.bloomPass = new THREE.BloomPass(1.25);
     //Scene.effectFilm = new THREE.FilmPass(0.35, 0.95, 2048, false);
@@ -191,15 +188,16 @@ function Scene(args){
     Scene.renderer.setClearColorHex(0x000000, 0.0);
   }
 
+  // set camera to its original position
+  this.camera.reset();
+
+  /////////////////////////////////////// public methods
+
   /* override set size to map canvas resizing to renderer resizing
    */
   this.set_size = function(w, h){
     this.renderer.setSize(w, h);
-    //this._composer.setSize(w,h);
-    //this._shader_composer.setSize(w,h);
-
     this.camera.set_size(w, h);
-    this.camera.reset();
   }
 
   /* Add specified entity to scene
@@ -267,6 +265,12 @@ function Scene(args){
       this.remove_entity(entity_id);
     }
     this.entities = [];
+  }
+
+  /* Return objects in the scene
+   */
+  this.objects = function(){
+    return this._scene.__objects;
   }
 
   /* Add specified component to backend three.js scene
@@ -337,7 +341,7 @@ function Scene(args){
     var projector = new THREE.Projector();
     var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5),
                                    this.camera._camera);
-    var intersects = ray.intersectObjects(this._scene.__objects);
+    var intersects = ray.intersectObjects(this.objects());
 
     if(intersects.length > 0){
       var entities = this.get().children();
@@ -355,23 +359,6 @@ function Scene(args){
     //if(!clicked_on_entity) controls.clicked_space(x, y);
   }
 
-  /* return 2d page coordinates of 3d coordinate in scene
-   * currently unused
-   */
-  //this.page_coordinate = function(x, y, z){
-  //  // http://zachberry.com/blog/tracking-3d-objects-in-2d-with-three-js/
-  //  var p, v, percX, percY, left, top;
-  //  var projector = new THREE.Projector();
-  //  p = new THREE.Vector3(x, y, z);
-  //  v = projector.projectVector(p, this.camera._camera);
-  //  percX = (v.x + 1) / 2;
-  //  percY = (-v.y + 1) / 2;
-  //  left = percX * this.canvas.width;
-  //  top  = percY * this.canvas.height;
-
-  //  return [left, top];
-  //}
-
   /* unselect entity specified by id entity
    */
   this.unselect = function(entity_id){
@@ -379,23 +366,6 @@ function Scene(args){
     if(entity == null) return;
     entity.unselected_in(this);
     entity.raise_event('unselected', this);
-  }
-
-  /* Request animation frame
-   */
-  var _this = this;
-  this.animate = function(){
-    requestAnimationFrame(_this.render);
-  }
-
-  /* Internal helper to render scene.
-   *
-   * !private shouldn't be called by end user!
-   */
-  this.render = function(){
-    //_this.renderer.render(_this._scene, _this.camera._camera);
-    _this._shader_composer.render();
-    _this._composer.render();
   }
 
   /* Return the position of the backend scene
@@ -411,6 +381,7 @@ function Scene(args){
  */
 function Camera(args){
   /////////////////////////////////////// public data
+  var _this = this;
   $.extend(this, new UIComponent(args));
 
   this.scene = args['scene'];
@@ -435,7 +406,7 @@ function Camera(args){
     var _height = this.scene.canvas.height;
   }
 
-  // private initializer
+  /// private initializers
   var new_cam = function(){
     var aspect = _width / _height;
     if(isNaN(aspect)) aspect = 1;
@@ -443,13 +414,33 @@ function Camera(args){
     //return new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
   }
 
+  var new_controls = function(cam){
+    //return new THREE.TrackballControls(cam);
+    return new THREE.OrbitControls(cam);
+  }
+
+  /// primary scene camera
   this._camera = new_cam();
-  var looking_at = null;
 
   /// additional camera for shader
   this._shader_camera = new_cam();
+  this._shader_camera.position = this._camera.position;
+  this._shader_camera.rotation = this._camera.rotation;
+
+  /// camera controls
+  this.controls = new_controls(this._camera);
+  this.controls.addEventListener('change', this.scene.render);
+  $('#cam_reset').live('click', function(){ _this.reset(); })
+  $('#cam_reset').on('mousedown', stop_prop);
 
   /////////////////////////////////////// public methods
+
+  /* focus the camera on specified target
+   */
+  this.focus = function(location){
+    this.controls.target.set(location.x,location.y,location.z);
+    this.controls.update();
+  }
 
   /* Set the size of the camera
    */
@@ -465,273 +456,13 @@ function Camera(args){
   /* Set camera to its default position
    */
   this.reset = function(){
-    var z = (20 * Math.sqrt(_width) + 20 * Math.sqrt(_height)) + 2500;
-    this.position({x : 0, y : 0, z : z});
-    this.focus(this.scene.position());
-    this.scene.animate();
-  }
+    this.controls.domElement = Scene.renderer.domElement; // XXX need for main, breaks dev
 
-  /* Set/get the point the camera is looking at
-   */
-  this.focus = function(focus){
-    if(looking_at == null){
-      var pos = this.scene.position();
-      looking_at = {x : pos.x, y : pos.y, z : pos.z};
-    }
-    if(focus != null){
-      if(typeof focus.x !== "undefined")
-        looking_at.x = focus.x;
-      if(typeof focus.y !== "undefined")
-        looking_at.y = focus.y;
-      if(typeof focus.z !== "undefined")
-        looking_at.z = focus.z;
-    }
-    this._camera.lookAt(looking_at);
-    this._shader_camera.lookAt(looking_at);
-    return looking_at;
-  }
+    this.controls.object.position.set(0,3000,3000)
+    this.controls.target.set(0,0,0);
 
-  /* Set/get the camera position.
-   *
-   * Takes option position param to set camera position
-   * before returning current camera position.
-   */
-  this.position = function(position){
-    if(typeof position !== "undefined"){
-      if(typeof position.x !== "undefined"){
-        this._camera.position.x = position.x;
-        this._shader_camera.position.x = position.x
-      }
-
-      if(typeof position.y !== "undefined"){
-        this._camera.position.y = position.y;
-        this._shader_camera.position.y = position.y
-      }
-
-      if(typeof position.z !== "undefined"){
-        this._camera.position.z = position.z;
-        this._shader_camera.position.z = position.z
-      }
-    }
-
-    return {x : this._camera.position.x,
-            y : this._camera.position.y,
-            z : this._camera.position.z};
-  }
-
-  /* Zoom the Camera the specified distance from its
-   * current position along the axis indicated by its focus
-   */
-  this.zoom = function(distance){
-    var focus = this.focus();
-
-    var x = this._camera.position.x,
-        y = this._camera.position.y,
-        z = this._camera.position.z;
-    var dx = x - focus.x,
-        dy = y - focus.y,
-        dz = z - focus.z;
-    var dist  = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-    var phi = Math.atan2(dx,dz);
-    var theta   = Math.acos(dy/dist);
-
-    if((dist + distance) <= 0) return;
-    dist += distance;
-
-    dz = dist * Math.sin(theta) * Math.cos(phi);
-    dx = dist * Math.sin(theta) * Math.sin(phi);
-    dy = dist * Math.cos(theta);
-
-    this._camera.position.x = dx + focus.x;
-    this._camera.position.y = dy + focus.y;
-    this._camera.position.z = dz + focus.z;
-    this._shader_camera.position.x = dx + focus.x;
-    this._shader_camera.position.y = dy + focus.y;
-    this._shader_camera.position.z = dz + focus.z;
-
-    this.focus();
-  }
-
-  /* Rotate the camera using a spherical coordiante system.
-   * Specify the number of theta and phi degrees to rotate
-   * the camera from its current position
-   */
-  this.rotate = function(theta_distance, phi_distance){
-    var focus = this.focus();
-
-    var x = this._camera.position.x,
-        y = this._camera.position.y,
-        z = this._camera.position.z;
-    var dx = x - focus.x,
-        dy = y - focus.y,
-        dz = z - focus.z;
-    var dist  = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2) + Math.pow(dz, 2));
-    var phi = Math.atan2(dx,dz);
-    var theta   = Math.acos(dy/dist);
-
-    theta += theta_distance;
-    phi   += phi_distance;
-
-    // prevent camera from going too far up / down
-    if(theta < 0.5)
-      theta = 0.5;
-    else if(theta > (Math.PI - 0.5))
-      theta = Math.PI - 0.5;
-
-    dz = dist * Math.sin(theta) * Math.cos(phi);
-    dx = dist * Math.sin(theta) * Math.sin(phi);
-    dy = dist * Math.cos(theta);
-
-    this._camera.position.x = dx + focus.x;
-    this._camera.position.y = dy + focus.y;
-    this._camera.position.z = dz + focus.z;
-    this._shader_camera.position.x = dx + focus.x;
-    this._shader_camera.position.y = dy + focus.y;
-    this._shader_camera.position.z = dz + focus.z;
-
-    this.focus();
-  }
-
-  // Pan the camera along its own X/Y axis
-  this.pan = function(x, y){
-    var pos   = this.position();
-    var focus = this.focus();
-
-    var mat = this._camera.matrix;
-    this._camera.position.x += mat.elements[0] * x;
-    this._camera.position.y += mat.elements[1] * x;
-    this._camera.position.z += mat.elements[2] * x;
-    this._camera.position.x += mat.elements[4] * y;
-    this._camera.position.y += mat.elements[5] * y;
-    this._camera.position.z += mat.elements[6] * y;
-    this._scene_camera.position.x += mat.elements[0] * x;
-    this._scene_camera.position.y += mat.elements[1] * x;
-    this._scene_camera.position.z += mat.elements[2] * x;
-    this._scene_camera.position.x += mat.elements[4] * y;
-    this._scene_camera.position.y += mat.elements[5] * y;
-    this._scene_camera.position.z += mat.elements[6] * y;
-
-    var npos   = this.position();
-    this.focus({x : focus.x + (npos.x - pos.x),
-                y : focus.y + (npos.y - pos.y),
-                z : focus.z + (npos.z - pos.z)});
-  }
-
-  /* Wire up the camera to the page
-   *
-   * @overrideed
-   */
-  this.old_wire_up = this.wire_up;
-  this.wire_up = function(){
-    this.old_wire_up();
-
-    if(jQuery.fn.mousehold){
-      var _cam = this;
-
-      $(this.control_ids['reset']).click(function(e){
-        _cam.reset();
-      });
-
-      $(this.control_ids['pan_right']).click(function(e){
-        _cam.pan(20, 0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_right']).mousehold(function(e, ctr){
-        _cam.pan(20, 0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_left']).click(function(e){
-        _cam.pan(-20, 0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_left']).mousehold(function(e, ctr){
-        _cam.pan(-20, 0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_up']).click(function(e){
-        _cam.pan(0, 20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_up']).mousehold(function(e, ctr){
-        _cam.pan(0, 20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_down']).click(function(e){
-        _cam.pan(0, -20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['pan_down']).mousehold(function(e, ctr){
-        _cam.pan(0, -20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_right']).click(function(e){
-        _cam.rotate(0.0, 0.2);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_right']).mousehold(function(e, ctr){
-        _cam.rotate(0.0, 0.2);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_left']).click(function(e){
-        _cam.rotate(0.0, -0.2);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_left']).mousehold(function(e, ctr){
-        _cam.rotate(0.0, -0.2);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_up']).click(function(e){
-        _cam.rotate(-0.2, 0.0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_up']).mousehold(function(e, ctr){
-        _cam.rotate(-0.2, 0.0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_down']).click(function(e){
-        _cam.rotate(0.2, 0.0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['rotate_down']).mousehold(function(e, ctr){
-        _cam.rotate(0.2, 0.0);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['zoom_out']).click(function(e){
-        _cam.zoom(20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['zoom_out']).mousehold(function(e, ctr){
-        _cam.zoom(20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['zoom_in']).click(function(e){
-        _cam.zoom(-20);
-        _cam.scene.animate();
-      });
-
-      $(this.control_ids['zoom_in']).mousehold(function(e, ctr){
-        _cam.zoom(-20);
-        _cam.scene.animate();
-      });
-    }
+    this.controls.update();
+    //this.scene.animate();
   }
 }
 
@@ -815,6 +546,9 @@ function CanvasComponent(args){
     var comp = this;
     this.toggle_canvas().live('click', function(e){ comp.stoggle(); });
     this.toggle_canvas().attr('checked', false);
+
+    // XXX ensure clicks don't propagate to canvas
+    this.toggle_canvas().on('mousedown',  stop_prop);
   }
 }
 

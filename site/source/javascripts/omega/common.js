@@ -37,6 +37,13 @@ var obj_values = function(obj){
   return vals;
 }
 
+/* Helper to stop event propagation
+ */
+function stop_prop(e){
+  e.stopPropagation();
+  return false;
+}
+
 /* Generate matcher that selects by id
  */
 function with_id(id){

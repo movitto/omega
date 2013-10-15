@@ -89,7 +89,7 @@ function _asteroid_load_mesh_resources(ast){
   ast.mesh_material =
     UIResources().cached("asteroid_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({map: ast.mesh_texture});
+        return new THREE.MeshLambertMaterial({map: ast.mesh_texture});
         //return new THREE.MeshBasicMaterial( { color: 0x666600, wireframe: false });
       });
 

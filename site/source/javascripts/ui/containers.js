@@ -17,6 +17,9 @@ function EntityContainer(args){
   this.subcomponents.push(this.contents);
 
   this.close_control_id = '#entity_container_close';
+
+  // ensure clicks don't propagate to canvas
+  this.component().on('mousedown',  stop_prop);
 }
 
 /* Instantiate and return a new Entities Container
@@ -38,6 +41,9 @@ function EntitiesContainer(args){
   this.on('mouseleave', function(c, e){
     this.list.hide();
   });
+
+  // ensure clicks don't propagate to canvas
+  this.list.component().on('mousedown', stop_prop);
 }
 
 EntitiesContainer.hide_all = function(){
@@ -157,6 +163,13 @@ function NavContainer(args){
     this.register_link.hide();
     this.login_link.hide();
   }
+
+  // ensure clicks don't propagate to canvas
+  this.login_link.component().on('mousedown', stop_prop);
+  this.login_button.component().on('mousedown', stop_prop);
+  this.register_link.component().on('mousedown', stop_prop);
+  this.register_button.component().on('mousedown', stop_prop);
+  this.logout_link.component().on('mousedown', stop_prop);
 }
 
 /* Instantiate and return a new Account Info Container
@@ -247,17 +260,10 @@ function AccountInfoContainer(args){
   }
 }
 
-// wraps a jplayer instance to play audio tracks
-function AudioPlayer(args){
-  if(args){
-    this.path = args.path;
-  }
-  return this;
-}
-
-// wrapers a jplayer instence to play audio effects
+// Plays audio and canvas effects
 function EffectsPlayer(args){
-  this.path = args.path;
+  var _this = this;
+  $.extend(this, args);
 
   this.div_id = '#effects_jplayer';
   this._player = 
@@ -265,7 +271,6 @@ function EffectsPlayer(args){
       cssSelectorAncestor: '#effects_jplayer_container',
       swfPath: "js", supplied: "wav", loop : false
     });
-console.log($(this.div_id).jPlayer("option", "cssSelectorAncestor"))
 
   this.play = function(media){
     if(this.current_media != media){
@@ -277,4 +282,25 @@ console.log($(this.div_id).jPlayer("option", "cssSelectorAncestor"))
     // TODO support audio sprites / starting time param
     this._player.jPlayer("play");
   }
+
+  this.effects_loop = function(){
+    /// assumes we have handle to scene
+    var objects = this.scene.objects();
+    for(var c = 0; c < objects.length; c++){
+      var obj = objects[c];
+      /// FIXME rename to 'update_effects'
+      if(obj.update_particles)
+        obj.update_particles();
+    }
+    this.scene.animate();
+  }
+
+  this.effects_timer =
+    $.timer(function(){
+      _this.effects_loop();
+    }, 250, false);
+
+  this.start = function(){
+    this.effects_timer.play();
+  };
 }

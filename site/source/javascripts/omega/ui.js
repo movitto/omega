@@ -314,6 +314,10 @@ function UIComponent(args){
     this.close_control().live('click',  function(e) { comp.hide();   });
     this.toggle_control().live('click', function(e) { comp.toggle(); })
 
+    // XXX ensure clicks don't propagate to canvas
+    this.close_control().on('mousedown',  stop_prop);
+    this.toggle_control().on('mousedown',  stop_prop);
+
     this.toggled = true;
     this.toggle();
   }

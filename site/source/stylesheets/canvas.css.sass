@@ -3,21 +3,27 @@
   z-index: -1
 
 canvas
-  border: 1px solid gray
   -moz-border-radius: 15px
   border-radius: 15px
 
 #canvas_controls
-  margin-top: 5px
+  position: absolute
+  right: 10px
+  top:   10px
+  background: #585858
+  border: 1px solid gray
+  -moz-border-radius: 15px
+  border-radius: 15px
 
 #camera_controls
-  float: left
+  display: none
+  float: right
   margin-left: 5px
   padding-left: 5px
   padding-right: 5px
 
 #camera_controls img
-  margin-top: 5px
+  margin-top: 3px
   height: 15px
   width:  15px
 
@@ -32,10 +38,10 @@ img#cam_reset
 .canvas_button
   display: none
   min-height: 22px
-  min-width: 125px
+  min-width: 75px
   float: left
-  padding-left: 5px
-  margin-left: 35px
+  padding-left: 15px
+  margin-right: 35px
   cursor: crosshair
   //background: gray
 
@@ -51,12 +57,16 @@ img#cam_reset
   border-bottom: 1px solid black
   background: white
   position: absolute
+  background: #585858
 
 #axis_controls
   float: right
 
 #axis_controls input
   margin-left: 10px
+  margin-right: 5px
+  margin-bottom: 2px
+  vertical-align: middle
 
 #toggle_canvas
   display: none

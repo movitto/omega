@@ -7,7 +7,7 @@
     varying float intensity;
     void main() 
     {
-        vec3 vNormal = normalize( normalMatrix * normal );
+      vec3 vNormal = normalize( normalMatrix * normal );
       vec3 vNormel = normalize( normalMatrix * viewVector );
       intensity = pow( c - dot(vNormal, vNormel), p );
       

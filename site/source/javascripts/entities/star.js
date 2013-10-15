@@ -24,10 +24,10 @@ function Star(args){
   _star_load_light(this);
   _star_load_flare(this);
 
-  this.added_to = function(scene){
-     star.glow.material.uniforms.viewVector =
-       { type: "v3", value: scene.camera._camera.position };
-  }
+  //this.added_to = function(scene){
+  //   star.glow.material.uniforms.viewVector.value =
+  //     new THREE.Vector3().subVectors( scene.camera._camera.position, star.glow.position );
+  //}
 
   //star.clickable_obj = star.glow;
   this.shader_components.push(star.glow);
@@ -58,18 +58,21 @@ function _star_load_mesh(star){
   var sphere_material =
     UIResources().cached("star_sphere_" + star.color + "_material",
       function(i) {
+        /// FIXME resolve issue w/ poles: http://en.wikipedia.org/wiki/Hairy_ball_theorem
+        /// https://github.com/AnalyticalGraphicsInc/cesium/pull/42
         var uniforms = {
           fogDensity: { type: "f", value: 0.0001 },
           fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
           time: { type: "f", value: 1.0 },
           resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, // XXX
-          uvScale: { type: "v2", value: new THREE.Vector2( 3.0, 1.0 ) },
-          texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "images/textures/lava/cloud.png" ) },
-          texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "images/textures/lava/lavatile.jpg" ) }
+          uvScale: { type: "v2", value: new THREE.Vector2( 2.0, 1.5 ) },
+          texture1: { type: "t", value: UIResources().load_texture(UIResources().images_path + "/textures/lava/cloud.png" ) },
+          texture2: { type: "t", value: UIResources().load_texture(UIResources().images_path + "/textures/lava/lavatile.jpg" ) }
         };
 
         uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
         uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
+        //uniforms.texture1.value.repeat.set(20,20);
 
         return new THREE.ShaderMaterial({
           uniforms: uniforms,
@@ -89,7 +92,8 @@ function _star_load_mesh(star){
         var last = new Date();
         sphere.update_particles = function(){
           var now = new Date();
-          var delta = now - last;
+          var scale = 1;//Math.random() * 5;
+          var delta = (now - last) * scale;
           sphere.material.uniforms.time.value += 0.0004 * delta;
           last = now;
         }
@@ -114,18 +118,9 @@ function _star_load_mesh(star){
  */
 function _star_load_glow(star){
   var glow_geometry =
-    UIResources().get('star_sphere_' + star.size + '_geometry');
+    UIResources().get('star_sphere_' + star.size + '_geometry').clone();
 
-  //var glow_texture =
-  //  UIResources().cached("star_shader_" + star.color + "_material",
-  //    function(i) {
-  //      return new THREE.MeshBasicMaterial({//color: star.icolor,
-  //                                          map: sphere_texture,
-  //                                          overdraw : true,
-  //                                          transparent : true,
-  //                                          opacity: 0.50});
-  //    });
-
+  // TODO: shader doesn't incorporate depth, glow will appear over everything, need to fix
   var glow_texture = 
     UIResources().cached("star_glow_texture",
       function(i) {
@@ -152,6 +147,9 @@ function _star_load_glow(star){
       function(i) {
         var glow = new THREE.Mesh(glow_geometry, glow_texture);
         glow.scale.multiplyScalar(1.3);
+        glow.position.x = star.location.x;
+        glow.position.y = star.location.y;
+        glow.position.z = star.location.z;
         return glow;
       });
 }

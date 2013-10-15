@@ -27,12 +27,10 @@ $(document).ready(function(){
 
   // initialize ui
   var nav_container       = new NavContainer();
-  var audio_player        = new AudioPlayer();
   var status_indicator    = new StatusIndicator();
   var canvas_container    = new CanvasContainer();
   var dialog              = new Dialog();
   var ui = {nav_container    : nav_container,
-            audio_player     : audio_player,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
             dialog           : dialog };

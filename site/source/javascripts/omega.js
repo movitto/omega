@@ -693,13 +693,12 @@ this.wire_up_ui = function(ui, node){
   for(var component in ui){
     if(component === "nav_container")
       wire_up_nav(ui, node);
-    else if(component === "audio_player")
-      wire_up_audio_player(ui, node);
     else if(component == "status_indicator")
       wire_up_status(ui, node);
-    else if(component == "canvas_container")
+    else if(component == "canvas_container"){
       wire_up_canvas(ui, node);
-    else if(component == "account_info")
+      wire_up_effects_player(ui, node);
+    }else if(component == "account_info")
       wire_up_account_info(ui, node);
     else if(component == "preload")
       preload_resources(ui);
@@ -816,25 +815,19 @@ var wire_up_status = function(ui, node){
 
 ////////////////////////////////////////// audio player
 
-/* Internal helper to wire up audio player
+/* Internal helper to wire up effects player
  */
-var wire_up_audio_player = function(ui, node){
-  // TODO dynamic playlist
+var wire_up_effects_player = function(ui, node){
   var audio_path =
     "http://" + $omega_config["host"]    +
                 $omega_config["prefix"]  + "/audio";
-  ui.audio_player.path = audio_path;
-
-  ui.audio_player.playlist =
-    new jPlayerPlaylist({
-          jPlayer: "#jquery_jplayer_1",
-          cssSelectorAncestor: "#jplayer_container"},
-          [{ title: "track1", oga: audio_path + "/simple2.ogg" },
-           { title: "track2", oga: audio_path + "/simple4.ogg" }],
-          {supplied: "oga", loop: "true"});
 
   ui.effects_player =
-    new EffectsPlayer({path: audio_path + "/effects/"});
+    new EffectsPlayer({path: audio_path + "/effects/",
+                       scene: ui.canvas_container.canvas.scene });
+
+  // start the particle subsystem
+  ui.effects_player.start();
 };
 
 ////////////////////////////////////////// entities lists
@@ -885,6 +878,9 @@ var wire_up_entities_lists = function(ui, node){
       }
     });
   });
+
+  // XXX ensure clicks don't propagate to canvas
+  ui.canvas_container.missions_button.component().on('mousedown',  stop_prop);
 };
 
 /* Internal helper to set scene
@@ -989,9 +985,10 @@ var wire_up_canvas = function(ui, node){
   $(window).resize(function(e){
     if(e.target != window) return;
     var c = ui.canvas_container.canvas;
-    c.set_size(($(document).width()  - c.component().offset().left - 50),
-               ($(document).height() - c.component().offset().top  - 50));
+    c.set_size(($(document).width()  - c.component().offset().left - 10),
+               ($(document).height() - c.component().offset().top) - 20);
   });
+  $(window).resize();
 
   // refresh scene whenever texture is loaded
   UIResources().on('texture_loaded', function(t){ ui.canvas_container.canvas.scene.animate(); })
@@ -1023,9 +1020,6 @@ var wire_up_canvas = function(ui, node){
     // reset the camera
     ui.canvas_container.canvas.scene.camera.reset();
   });
-
-  // start the particle subsystem
-  ui.canvas_container.canvas.scene.particle_timer.play();
 }
 
 ////////////////////////////////////////// account info
