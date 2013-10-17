@@ -42,6 +42,11 @@ function Station(args){
   _station_load_mesh_resources(this);
   this.create_mesh();
 
+  // effects to highlight ship
+  this.highlight_pos = {x:0,y:200,z:0};
+  this.highlight_effects = [];
+  _station_create_highlight_effects(this);
+
   // some text to render in details box on click
   this.details = _station_render_details;
 
@@ -93,6 +98,12 @@ function _station_update(oargs){
     delete args.location;
   }
 
+  if(this.selected){
+    this.mesh.material.emissive.setHex(0xff0000);
+  }else{
+    this.mesh.material.emissive.setHex(0);
+  }
+
   // do not update components from args
   if(args.components) delete args.components;
 
@@ -132,7 +143,7 @@ function _station_create_mesh(){
  */
 function _station_load_mesh_resources(station){
   station.mesh_material =
-    UIResources().cached("station_"+station.type +"_material",
+    UIResources().cached("station_"+station.id +"_material",
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[station.type]['material'];
         var t = UIResources().load_texture(path);
@@ -151,6 +162,26 @@ function _station_load_mesh_resources(station){
         return null;
     });
 
+}
+
+/* Helper to create station highlight effects
+ */
+function _station_create_highlight_effects(station){
+  var highlight_mesh =
+    UIResources().cached('station_' + station.id + '_highlight_mesh',
+      function(i){
+        var geometry = new THREE.CylinderGeometry( 0, 40, 80, 8, 2 );
+				var material =  new THREE.MeshBasicMaterial( { color:0x33ff33, shading: THREE.FlatShading } );
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(station.location.x + station.highlight_pos.x,
+                          station.location.y + station.highlight_pos.y,
+                          station.location.z + station.highlight_pos.z);
+        mesh.rotation.set(3.14, 0, 0);
+        return mesh;
+      });
+
+  station.highlight_effects.push(highlight_mesh)
+  station.components.push(highlight_mesh);
 }
 
 /* Station::details method
@@ -187,6 +218,7 @@ function _station_clicked_in(scene){
   });
 
   this.selected = true;
+  this.refresh();
   scene.reload_entity(this);
 }
 
@@ -194,5 +226,6 @@ function _station_clicked_in(scene){
  */
 function _station_unselected_in(scene){
   this.selected = false;
+  this.refresh(); // refresh station components
   scene.reload_entity(this);
 }

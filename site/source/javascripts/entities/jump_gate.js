@@ -256,7 +256,7 @@ function _jump_gate_load_selection_sphere(jg){
       function(i) {
         return new THREE.MeshBasicMaterial({color: 0xffffff,
                                             transparent: true,
-                                            opacity: 0.4});
+                                            opacity: 0.1});
 
       });
 
@@ -264,7 +264,7 @@ function _jump_gate_load_selection_sphere(jg){
     UIResources().cached("jump_gate_" + jg.id + "_container",
                          function(i) {
                            var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
-                           sphere.position.x = jg.location.x;
+                           sphere.position.x = jg.location.x - 20;
                            sphere.position.y = jg.location.y;
                            sphere.position.z = jg.location.z;
                            sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;

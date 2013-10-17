@@ -100,7 +100,7 @@ function _planet_load_mesh(planet){
   var sphere_geometry =
     UIResources().cached('planet_sphere_' + planet.size + '_geometry',
       function(i) {
-        var radius = planet.size, segments = 32, rings = 32;
+        var radius = planet.size * 1.5, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 

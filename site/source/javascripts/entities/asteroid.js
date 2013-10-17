@@ -60,10 +60,13 @@ function _asteroid_create_mesh(){
         mesh.position.z = asteroid.location.z;
 
         var scale = $omega_config.resources['asteroid'].scale;
-        if(scale){
-          mesh.scale.x = scale[0];
-          mesh.scale.y = scale[1];
-          mesh.scale.z = scale[2];
+        if(scale)
+          mesh.scale.set(scale[0], scale[1], scale[2]);
+
+        var rotation = $omega_config.resources['asteroid'].rotation;
+        if(rotation){
+          mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
+          mesh.rotation.z += Math.random() * 3.14;
         }
 
         return mesh;

@@ -376,6 +376,7 @@ var handle_events = function(ui, node, entity){
   entity.on('click', function(e, scene){
     clicked_entity(ui, node, e);
   });
+console.log(entity.callbacks);
 }
 
 /* Internal helper to handle entity click
@@ -413,7 +414,7 @@ var popup_entity_container = function(ui, node, entity){
     ui.canvas_container.canvas.scene.unselect(entity.id);
 
     // always hide the dialog when hiding entity
-    ui.dialog.hide();
+    if(ui.dialog) ui.dialog.hide();
 
   })
   entity.on('unselected', function(e){
@@ -424,6 +425,7 @@ var popup_entity_container = function(ui, node, entity){
 
   // populate entity container w/ details from entity
   ui.canvas_container.entity_container.contents.clear();
+
   ui.canvas_container.entity_container.contents.add_text(entity.details())
 
   ui.canvas_container.entity_container.show();
@@ -887,7 +889,7 @@ var wire_up_entities_lists = function(ui, node){
  */
 var set_scene = function(ui, node, entity, location){
   // hide dialog
-  ui.dialog.hide();
+  if(ui.dialog) ui.dialog.hide();
 
   // unselect selected item
   var selected = Entities().select(function(e){ return (e.id != entity.id) && e.selected; })[0]

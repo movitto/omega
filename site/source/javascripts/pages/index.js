@@ -37,8 +37,8 @@ $(document).ready(function(){
   wire_up_ui(ui, node);
                    
   // show the canvas by default on the index page
-  ui.canvas_container.canvas.show();
-  ui.canvas_container.canvas.lock(['top', 'left']);
+  //ui.canvas_container.canvas.show();
+  //ui.canvas_container.canvas.lock(['top', 'left']);
 
   // restore session
   restore_session(ui, node);

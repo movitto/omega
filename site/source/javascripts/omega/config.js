@@ -31,14 +31,14 @@ $omega_config = {
   // gfx
   resources    : { 'mining'       : { 'material' : '/meshes/pirateghost/ghostmap_png.png',
                                       'geometry' : '/meshes/pirateghost/pirateghost.js',
-                                      'scale'    : [10, 10, 10],
+                                      'scale'    : [5, 5, 5],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[38,5,-65],[-38,5,-65],[0,10,-110],[0,-5,-110]]},
+                                      'trails'   : [[19,2.5,-32.5],[-19,2.5,-32.5],[0,5,-55],[0,-2.5,-55]]},
                    'corvette'     : { 'material' : '/meshes/transportshuttle/texture/transport_shuttle.png',
                                       'geometry' : '/meshes/transportshuttle/texture/TransportShuttle.js',
-                                      'scale'    : [40, 40, 40],
+                                      'scale'    : [20, 20, 20],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[20,0,-75], [-20,0,-75]]},
+                                      'trails'   : [[10,0,-37.5], [-10,0,-37.5]]},
                    'transport'    : { 'material' : '/meshes/eris/shipCompleteMap.jpg',
                                       'geometry' : '/meshes/eris/eris.js',
                                       'scale'    : [20, 20, 20],
@@ -61,9 +61,10 @@ $omega_config = {
                    'planet4'      : { 'material' : '/textures/planet4.png' },
                    'asteroid'     : { 'material' : '/textures/asteroid01.png',
                                       'geometry' : '/meshes/asteroids1.js',
-                                      'scale'    : [120, 120, 100] },
+                                      'scale'    : [90, 90, 40],
+                                      'rotation' : [1.57,3.14,0]},
                    'manufacturing' : { 'material' : '/meshes/research.png',
                                        'geometry' : '/meshes/research.js',
-                                       'scale'    : [15, 15, 15] }}
+                                       'scale'    : [7, 7, 7] }}
 
 }

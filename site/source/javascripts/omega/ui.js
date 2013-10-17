@@ -139,7 +139,7 @@ function UIComponent(args){
 
     var comp = this;
     if(cb_id == 'resize'){
-      this.component().resizable();
+      //this.component().resizable();
       this.component().resize(function(e){
         comp.raise_event('resize', e);
       });

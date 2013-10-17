@@ -92,8 +92,8 @@ function _star_load_mesh(star){
         var last = new Date();
         sphere.update_particles = function(){
           var now = new Date();
-          var scale = 1;//Math.random() * 5;
-          var delta = (now - last) * scale;
+          var delta = (now - last);
+          if(delta > 10000) delta = 0; // XXX large deltas will use up alot of processing power
           sphere.material.uniforms.time.value += 0.0004 * delta;
           last = now;
         }

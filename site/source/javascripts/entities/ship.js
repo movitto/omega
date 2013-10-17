@@ -45,6 +45,11 @@ function Ship(args){
   _ship_load_mesh_resources(this);
   this.create_mesh();
 
+  // effects to highlight ship
+  this.highlight_pos = {x:0,y:200,z:0};
+  this.highlight_effects = [];
+  _ship_create_highlight_effects(this);
+
   // create trails at the specified coordinates relative to ship
   // in accordance to ship config options
   this.create_trail = _ship_create_trail;
@@ -164,6 +169,15 @@ function _ship_update(oargs){
       this.mesh.material.emissive.setHex(0xff0000);
     }else{
       this.mesh.material.emissive.setHex(0);
+    }
+  }
+
+  // same w/ highlight effects
+  if(this.highlight_effects){
+    for(var e = 0; e < this.highlight_effects.length; e++){
+      this.highlight_effects[e].position.set(this.location.x + this.highlight_pos.x,
+                                             this.location.y + this.highlight_pos.y,
+                                             this.location.z + this.highlight_pos.z);
     }
   }
 
@@ -337,7 +351,7 @@ function _ship_create_mesh(){
  */
 function _ship_load_mesh_resources(ship){
   ship.mesh_material =
-    UIResources().cached("ship_"+ship.type+"_mesh_material",
+    UIResources().cached("ship_"+ship.id+"_mesh_material",
       function(i) {
         var path = UIResources().images_path + $omega_config.resources[ship.type]['material'];
         var t = UIResources().load_texture(path);
@@ -364,7 +378,7 @@ function _ship_load_mesh_resources(ship){
  */
 function _ship_create_trail(x,y,z){
   //// create a particle system for ship trail
-  var plane = 10, lifespan = 20;
+  var plane = 3, lifespan = 20;
   var pMaterial =
     UIResources().cached('ship_tail_material',
       function(i) {
@@ -413,6 +427,41 @@ function _ship_create_trail(x,y,z){
   }
 
   return particleSystem;
+}
+
+/* Helper to create ship highlight effects
+ */
+function _ship_create_highlight_effects(ship){
+
+  var highlight_light =
+    UIResources().cached('ship_' + ship.id + '_highlight_light',
+      function(i){
+        var light = new THREE.DirectionalLight(0xFFFFFF, 1);
+        light.position.set(ship.location.x + ship.highlight_pos.x,
+                           ship.location.y + ship.highlight_pos.y,
+                           ship.location.z + ship.highlight_pos.z);
+        light.rotation.set(1.57, 0, 0);
+        return light;
+      });
+
+  var highlight_mesh =
+    UIResources().cached('ship_' + ship.id + '_highlight_mesh',
+      function(i){
+        var geometry = new THREE.CylinderGeometry( 0, 40, 80, 8, 2 );
+				var material =  new THREE.MeshBasicMaterial( { color:0x33ff33, shading: THREE.FlatShading } );
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(ship.location.x + ship.highlight_pos.x,
+                          ship.location.y + ship.highlight_pos.y,
+                          ship.location.z + ship.highlight_pos.z);
+        mesh.rotation.set(3.14, 0, 0);
+        return mesh;
+      });
+
+  //ship.highlight_effects.push(highlight_light)
+  //ship.components.push(highlight_light);
+
+  ship.highlight_effects.push(highlight_mesh)
+  ship.components.push(highlight_mesh);
 }
 
 /* Helper to load ship trails from config
