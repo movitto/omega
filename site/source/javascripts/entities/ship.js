@@ -12,6 +12,8 @@ function Ship(args){
 
   var ship = this;
   this.json_class = 'Manufactured::Ship';
+  this.ignore_properties.push('highlight_effects');
+  this.ignore_properties.push('lamps');
   this.ignore_properties.push('trails');
 
   // convert location
@@ -49,6 +51,9 @@ function Ship(args){
   this.highlight_pos = {x:0,y:200,z:0};
   this.highlight_effects = [];
   _ship_create_highlight_effects(this);
+
+  // lamps to add to the ship
+  _ship_create_lamps(this);
 
   // create trails at the specified coordinates relative to ship
   // in accordance to ship config options
@@ -172,12 +177,24 @@ function _ship_update(oargs){
     }
   }
 
-  // same w/ highlight effects
+  // ...same w/ highlight effects...
   if(this.highlight_effects){
     for(var e = 0; e < this.highlight_effects.length; e++){
       this.highlight_effects[e].position.set(this.location.x + this.highlight_pos.x,
                                              this.location.y + this.highlight_pos.y,
                                              this.location.z + this.highlight_pos.z);
+    }
+  }
+
+  // ...same with lamps...
+  if(this.lamps){
+    for(var l = 0; l < this.lamps.length; l++){
+      var lamp = this.lamps[l];
+      var conf_lamp = $omega_config.resources[this.type].lamps[l];
+      lamp.position.set(this.location.x + conf_lamp[2][0],
+                        this.location.y + conf_lamp[2][1],
+                        this.location.z + conf_lamp[2][2])
+      this.set_orientation(lamp, false);
     }
   }
 
@@ -462,6 +479,24 @@ function _ship_create_highlight_effects(ship){
 
   ship.highlight_effects.push(highlight_mesh)
   ship.components.push(highlight_mesh);
+}
+
+/* Helper to load/create lamps from config
+ */
+function _ship_create_lamps(ship){
+  var lamps = ship.type ? $omega_config.resources[ship.type].lamps : null;
+  if(lamps){
+    ship.lamps = [];
+    for(var t = 0; t < lamps.length; t++){
+      var lamp  = lamps[t];
+      var nlamp = create_lamp(lamp[0], lamp[1])
+      nlamp.position.set(ship.location.x + lamp[2][0],
+                         ship.location.y + lamp[2][1],
+                         ship.location.z + lamp[2][2])
+      ship.lamps.push(nlamp);
+      ship.components.push(nlamp);
+    }
+  }
 }
 
 /* Helper to load ship trails from config

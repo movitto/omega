@@ -376,7 +376,6 @@ var handle_events = function(ui, node, entity){
   entity.on('click', function(e, scene){
     clicked_entity(ui, node, e);
   });
-console.log(entity.callbacks);
 }
 
 /* Internal helper to handle entity click

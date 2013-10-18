@@ -33,12 +33,19 @@ $omega_config = {
                                       'geometry' : '/meshes/pirateghost/pirateghost.js',
                                       'scale'    : [5, 5, 5],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[19,2.5,-32.5],[-19,2.5,-32.5],[0,5,-55],[0,-2.5,-55]]},
+                                      'trails'   : [[19,2.5,-32.5],[-19,2.5,-32.5],[0,5,-55],[0,-2.5,-55]],
+                                      'lamps'    : [[1, 0x0000ff, [0,16,-2]],
+                                                    [2, 0x0000ff, [0,15,-16]],
+                                                    [5, 0x0000ff, [0,0,54]],
+                                                    [5, 0x0000ff, [0,-6,-48]]]},
                    'corvette'     : { 'material' : '/meshes/transportshuttle/texture/transport_shuttle.png',
                                       'geometry' : '/meshes/transportshuttle/texture/TransportShuttle.js',
                                       'scale'    : [20, 20, 20],
                                       'rotation' : [0, 0, 0],
-                                      'trails'   : [[10,0,-37.5], [-10,0,-37.5]]},
+                                      'trails'   : [[10,0,-37.5], [-10,0,-37.5]],
+                                      'lamps'    : [[1, 0x0000ff, [0, -3, 41]],
+                                                    [2, 0x0000ff, [0, 4, 14]],
+                                                    [3, 0x0000ff, [0, -5, -27]]]},
                    'transport'    : { 'material' : '/meshes/eris/shipCompleteMap.jpg',
                                       'geometry' : '/meshes/eris/eris.js',
                                       'scale'    : [20, 20, 20],
@@ -65,6 +72,8 @@ $omega_config = {
                                       'rotation' : [1.57,3.14,0]},
                    'manufacturing' : { 'material' : '/meshes/research.png',
                                        'geometry' : '/meshes/research.js',
-                                       'scale'    : [7, 7, 7] }}
+                                       'scale'    : [7, 7, 7],
+                                       'lamps' : [[5, 0x0000ff, [0,   25, 0]],
+                                                  [5, 0x0000ff, [0, -175, 0]]]}}
 
 }

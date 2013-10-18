@@ -23,8 +23,8 @@ function JumpGate(args){
   this.create_mesh = _jump_gate_create_mesh;
   this.create_mesh();
 
-  // instantiate lights to draw on gate
-  _jump_gate_load_lights(this);
+  // instantiate lamps to draw on gate
+  _jump_gate_create_lamp(this);
 
   // instantiate particle effects to draw on gate
   _jump_gate_load_effects(this);
@@ -137,49 +137,14 @@ function _jump_gate_load_mesh(jg){
       });
 }
 
-/* Helper to load jump gate lights
+/* Helper to create jump gate lamp
  */
-function _jump_gate_load_lights(jg){
-  var sphere_geometry =
-    UIResources().cached('jump_gate_light1_geo',
-      function(i) {
-        return new THREE.SphereGeometry(10, 32, 32);
-      });
-
-  var sphere_material =
-    UIResources().cached('jump_gate_light1_mat',
-      function(i) {
-        return new THREE.MeshBasicMaterial({color: 0xff0000});
-      });
-
-  jg.light1 =
-    UIResources().cached('jump_gate_' + jg.id +'_light1_mesh',
-      function(i) {
-        var mesh = new THREE.Mesh(sphere_geometry, sphere_material);
-        mesh.position.set(jg.location.x + -22,
-                          jg.location.y + -15,
-                          jg.location.z + 175)
-        jg.light1_dir = false;
-        mesh.update_particles = function(){
-          var c = sphere_material.color.getHex();
-          if(jg.light1_dir)
-            sphere_material.color.setHex(c - 0x100000)
-          else
-            sphere_material.color.setHex(c + 0x100000)
-
-          if(sphere_material.color.getHex() > 0xff0000){
-            sphere_material.color.setHex(0xff0000);
-            jg.light1_dir = !jg.light1_dir;
-          }else if(sphere_material.color.getHex() < 0x000000){
-            sphere_material.color.setHex(0x000000);
-            jg.light1_dir = !jg.light1_dir;
-          }
-        }
-
-        return mesh;
-      });
-
-  jg.components.push(jg.light1);
+function _jump_gate_create_lamp(jg){
+  jg.lamp = create_lamp(10, 0xff0000);
+  jg.lamp.position.set(jg.location.x -  22,
+                        jg.location.y -  17,
+                        jg.location.z + 175)
+  jg.components.push(jg.lamp);
 }
 
 /* Helper to load jump gate effects

@@ -152,6 +152,41 @@ var elliptical_path = function(ms){
   return path;
 }
 
+// helper to create a lamp, a commonly reused ui component
+function create_lamp(size, color){
+  var sphere_geometry =
+    UIResources().cached('omega_lamp_geo_' + size,
+      function(i) {
+        return new THREE.SphereGeometry(size, 32, 32);
+      });
+
+  var sphere_material =
+    UIResources().cached('omega_lamp_material_' + color,
+      function(i) {
+        return new THREE.MeshBasicMaterial({color: color});
+      }).clone();;
+
+  var lamp = new THREE.Mesh(sphere_geometry, sphere_material);
+  // reduce color components seperately
+  var diff  = ((color & 0xff0000) != 0) ? 0x100000 : 0;
+      diff += ((color & 0x00ff00) != 0) ? 0x001000 : 0;
+      diff += ((color & 0x0000ff) != 0) ? 0x000010 : 0;
+  lamp.update_particles = function(){
+    // 1/3 chance of skipping this update for variety
+    if(Math.floor(Math.random()*3) != 0){
+      var c  = sphere_material.color.getHex();
+          c -= diff;
+      if(c < 0x000000){
+        sphere_material.color.setHex(color);
+      }else{
+        sphere_material.color.setHex(c);
+      }
+    }
+  }
+
+  return lamp;
+}
+
 // http://stackoverflow.com/questions/15696963/three-js-set-and-read-camera-look-vector
 THREE.Utils = {
     cameraLookDir: function(camera) {

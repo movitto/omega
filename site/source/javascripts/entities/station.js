@@ -12,6 +12,8 @@ function Station(args){
 
   var station = this;
   this.json_class = 'Manufactured::Station';
+  this.ignore_properties.push('highlight_effects');
+  this.ignore_properties.push('lamps');
 
   // convert location
   this.location = new Location(this.location);
@@ -46,6 +48,9 @@ function Station(args){
   this.highlight_pos = {x:0,y:200,z:0};
   this.highlight_effects = [];
   _station_create_highlight_effects(this);
+
+  // lamps to add to the station
+  _station_create_lamps(this);
 
   // some text to render in details box on click
   this.details = _station_render_details;
@@ -182,6 +187,24 @@ function _station_create_highlight_effects(station){
 
   station.highlight_effects.push(highlight_mesh)
   station.components.push(highlight_mesh);
+}
+
+/* Helper to load/create lamps from config
+ */
+function _station_create_lamps(station){
+  var lamps = station.type ? $omega_config.resources[station.type].lamps : null;
+  if(lamps){
+    station.lamps = [];
+    for(var t = 0; t < lamps.length; t++){
+      var lamp  = lamps[t];
+      var nlamp = create_lamp(lamp[0], lamp[1])
+      nlamp.position.set(station.location.x + lamp[2][0],
+                         station.location.y + lamp[2][1],
+                         station.location.z + lamp[2][2])
+      station.lamps.push(nlamp);
+      station.components.push(nlamp);
+    }
+  }
 }
 
 /* Station::details method
