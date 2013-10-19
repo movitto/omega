@@ -235,12 +235,13 @@ function update_galaxy(){
 }
 
 function demo_galaxy(ui, node){
-  var mesh = create_galaxy(ui);
-  ui.canvas_container.canvas.scene.add_component(mesh);
+  //var mesh = create_galaxy(ui);
+  //ui.canvas_container.canvas.scene.add_component(mesh);
 
   var sys = new SolarSystem({id : 'sys1', name: 'sys1', location: create_loc(500, 500, 10)});
   var gal = new Galaxy({id : 'gal1', background : 2,  // XXX galaxy1/3 bg crashes ff
                         children : [sys]})
+  ui.canvas_container.canvas.scene.add_component(gal.mesh);
   set_scene(ui, node, gal);
 }
 
