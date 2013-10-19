@@ -213,6 +213,7 @@ function _solar_system_load_mesh(system){
         sphere.position.x = system.location.x;
         sphere.position.y = system.location.y;
         sphere.position.z = system.location.z ;
+adjp(sphere.position);
         return sphere;
       });
 
@@ -252,6 +253,7 @@ function _solar_system_load_plane(system){
         plane.position.x = system.location.x;
         plane.position.y = system.location.y;
         plane.position.z = system.location.z;
+adjp(plane.position);
 
         plane.rotation.x = -0.5;
         return plane;
@@ -281,8 +283,15 @@ function _solar_system_load_text(system){
         text.position.x = system.location.x;
         text.position.y = system.location.y;
         text.position.z = system.location.z + 50;
+adjp(text.position);
         return text;
       });
 
   system.components.push(system.text);
+}
+
+// XXX
+function adjp(pos){
+  var np = rot(pos.x,pos.y,pos.z,1.57,1,0,0)
+  pos.set(np[0],np[1],np[2])
 }
