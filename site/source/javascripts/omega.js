@@ -925,6 +925,17 @@ var set_scene = function(ui, node, entity, location){
       planet.location.clear_callbacks(events);
       planet.location.on(events, function(){ motel_event(ui,node,arguments);});
     }
+
+    /// remove galaxy particle background if in scene
+    if($galaxy_mesh){
+      ui.canvas_container.canvas.scene.remove_component($galaxy_mesh);
+      $galaxy_mesh = null;
+    }
+
+  }else{
+    ui.canvas_container.canvas.scene.
+       add_component(entity.mesh);
+    $galaxy_mesh = entity.mesh; /// use a global to track this
   }
 }
 
@@ -942,7 +953,6 @@ var show_missions = function(missions, ui){
                           function(m) { return m.failed; });
   var current    = $.grep(assigned,
                           function(m) { return !m.victorious && !m.failed; })[0];
-
 
   if(current){
     ui.dialog.title    = 'Assigned Mission'

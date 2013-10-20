@@ -155,16 +155,18 @@ function _solar_system_update(oargs){
  */
 function _solar_system_add_jump_gate(jg, endpoint){
   var system = this;
+
+  ////////////////////////// add line between systems
   var line_geometry =
     UIResources().cached("jump_gate_" + this.name + "-" + endpoint.name + "_line_geometry",
       function(i) {
         var geometry = new THREE.Geometry();
         geometry.vertices.push(new THREE.Vector3(system.location.x,
-                                                 system.location.y,
+                                                 system.location.y - 50,
                                                  system.location.z));
 
         geometry.vertices.push(new THREE.Vector3(endpoint.location.x,
-                                                 endpoint.location.y,
+                                                 endpoint.location.y + 50,
                                                  endpoint.location.z));
         return geometry;
     });
@@ -172,7 +174,7 @@ function _solar_system_add_jump_gate(jg, endpoint){
   var line_material =
     UIResources().cached("jump_gate_line_material",
       function(i) {
-        return new THREE.LineBasicMaterial({color: 0xFFFFFF});
+        return new THREE.LineBasicMaterial({color: 0xF80000});
     });
 
   var line =
@@ -181,7 +183,66 @@ function _solar_system_add_jump_gate(jg, endpoint){
         return new THREE.Line(line_geometry, line_material);
     });
 
+  _sys_adj_orientation(line.geometry.vertices[0]);
+  _sys_adj_orientation(line.geometry.vertices[1]);
   this.components.push(line);
+
+  ////////////////////////// add particle effect to line
+
+  var particle_material =
+    UIResources().cached("jump_gate_particle_material",
+      function(i) {
+        return new THREE.ParticleBasicMaterial({
+                     color: 0xFF0000, size: 75,
+                     map: UIResources().load_texture(UIResources().images_path + "/particle.png"),
+                     blending: THREE.AdditiveBlending, transparent: true });
+    });
+
+  var particle_geo =
+    UIResources().cached('jump_gate_'+jg.id+'particle_geo',
+      function(i) {
+        var geo = new THREE.Geometry();
+        geo.vertices.push(new THREE.Vector3(0,0,0));
+        return geo;
+      });
+
+  var particles =
+    UIResources().cached('jump_gate_'+jg.id+'particle_system',
+      function(i) {
+        var particleSystem =
+          new THREE.ParticleSystem(particle_geo,
+                                   particle_material);
+        particleSystem.position.x = system.location.x;
+        particleSystem.position.y = system.location.y;
+        particleSystem.position.z = system.location.z;
+        particleSystem.sortParticles = true;
+
+        particleSystem.ticker = 0;
+        particleSystem.update_particles = function(){
+          var v = this.geometry.vertices[0];
+          var d = system.location.distance_from(endpoint.location.x,
+                                                endpoint.location.y,
+                                                endpoint.location.z);
+          var dx = (endpoint.location.x - system.location.x) / d
+          var dy = (endpoint.location.y - system.location.y) / d
+          var dz = (endpoint.location.z - system.location.z) / d
+
+          v.set(this.ticker * dx * 50,
+                this.ticker * dy * 50,
+                this.ticker * dz * 50)
+
+          _sys_adj_orientation(v);
+          this.ticker += 1;
+          if(this.ticker == 20) this.ticker = 0;
+
+          this.geometry.__dirtyVertices = true;
+        };
+
+        return particleSystem;
+      });
+
+  _sys_adj_orientation(particles.position);
+  this.components.push(particles);
 
   // if current scene is set, reload
   if(this.current_scene) this.current_scene.reload_entity(this);
@@ -194,16 +255,14 @@ function _solar_system_load_mesh(system){
   var sphere_geometry =
     UIResources().cached('solar_system_sphere_geometry',
       function(i) {
-        var radius   = 100, segments = 32, rings = 32;
+        var radius   = 50, segments = 32, rings = 32;
         return new THREE.SphereGeometry(radius, segments, rings);
       });
 
   var sphere_material =
     UIResources().cached("solar_system_sphere_material",
       function(i) {
-        return new THREE.MeshBasicMaterial({color: 0xABABAB,
-                                            opacity: 0.1,
-                                            transparent: true});
+        return new THREE.MeshBasicMaterial({opacity: 0, transparent: true});
       });
 
   system.sphere =
@@ -255,7 +314,7 @@ function _solar_system_load_plane(system){
         plane.position.z = system.location.z;
         _sys_adj_orientation(plane.position);
 
-        plane.rotation.x = -0.5;
+        plane.rotation.x = -1.57;
         return plane;
       });
 
@@ -267,7 +326,9 @@ function _solar_system_load_text(system){
   var text3d =
     UIResources().cached("solar_system_" + system.id + "label_geometry",
       function(i) {
-        return new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
+        var geo = new THREE.TextGeometry( system.name, {height: 12, width: 5, curveSegments: 2, font: 'helvetiker', size: 48});
+        THREE.GeometryUtils.center(geo);
+        return geo;
       });
 
   var text_material =
@@ -282,7 +343,7 @@ function _solar_system_load_text(system){
         var text = new THREE.Mesh( text3d, text_material );
         text.position.x = system.location.x;
         text.position.y = system.location.y;
-        text.position.z = system.location.z + 50;
+        text.position.z = system.location.z - 50;
         _sys_adj_orientation(text.position);
         return text;
       });
