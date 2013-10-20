@@ -456,7 +456,7 @@ function Camera(args){
   /* Set camera to its default position
    */
   this.reset = function(){
-    //this.controls.domElement = Scene.renderer.domElement; // XXX need for main, breaks dev
+    this.controls.domElement = Scene.renderer.domElement; // XXX need for main, breaks dev
 
     this.controls.object.position.set(0,3000,3000)
     this.controls.target.set(0,0,0);

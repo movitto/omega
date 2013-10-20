@@ -103,10 +103,12 @@ function _station_update(oargs){
     delete args.location;
   }
 
-  if(this.selected){
-    this.mesh.material.emissive.setHex(0xff0000);
-  }else{
-    this.mesh.material.emissive.setHex(0);
+  if(this.mesh){
+    if(this.selected){
+      this.mesh.material.emissive.setHex(0xff0000);
+    }else{
+      this.mesh.material.emissive.setHex(0);
+    }
   }
 
   // do not update components from args

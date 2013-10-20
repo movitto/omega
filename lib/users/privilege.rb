@@ -37,6 +37,7 @@ class Privilege
   # @param [Users::Privilege] privilege privilege which to compare
   # @return [true,false] indicating if privileges are equal
   def ==(privilege)
+    privilege.is_a?(Privilege) &&
     @id == privilege.id && @entity_id == privilege.entity_id
   end
 
