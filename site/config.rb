@@ -47,13 +47,17 @@
 #   end
 # end
 
+set :http_prefix, "/womega"
+
 set :css_dir, 'stylesheets'
 
 set :js_dir, 'javascripts'
 
 set :images_dir, 'images'
 
-ignore '*tests*'
+ignore 'tests'
+ignore 'tests/'
+ignore 'source/javascripts/vendor/rjr/tests'
 ignore '*LICENSE'
 ignore 'build*'
 
@@ -80,4 +84,6 @@ configure :build do
   # set :http_path, "/Content/images/"
 end
 
-set :http_prefix, "/womega"
+#after_configuration do
+  #sprockets.unregister_postprocessor 'application/javascript', ::Sprockets::SafetyColons
+#end

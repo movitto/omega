@@ -11,7 +11,6 @@ function Skybox(args){
   $.extend(this, new CanvasComponent(args));
 
   /////////////////////////////////////// private data
-  var skyboxMesh = null;
 
   var size = 32768;
 
@@ -34,13 +33,11 @@ function Skybox(args){
         path + 'ny.' + format
       ];
 
-      skybox_mesh =
+      var skybox_mesh =
         UIResources().cached('skybox_'+this.bg+'_mesh',
           function(i){
-            var geometry = new THREE.CubeGeometry(size, size, size,
-                                                  7, 7, 7);
-            //var material = new THREE.MeshFaceMaterial();
-            var shader = THREE.ShaderLib["cube"];
+            var geometry = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
+            var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
             shader.uniforms["tCube"].value = UIResources().load_texture_cube(materials);
             var material = new THREE.ShaderMaterial({
               fragmentShader : shader.fragmentShader,
@@ -51,9 +48,9 @@ function Skybox(args){
             })
 
             var skyboxMesh = new THREE.Mesh(geometry, material);
-            //skyboxMesh.scale.x = - 1;
             return skyboxMesh;
           });
+
       this.components = [skybox_mesh];
     }
     return this.bg;

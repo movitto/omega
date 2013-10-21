@@ -809,7 +809,9 @@ var wire_up_status = function(ui, node){
   });
 
   node.on('msg_received', function(node, res){
-    ui.status_indicator.pop_state();
+    if(res.id){
+      ui.status_indicator.pop_state();
+    }
   });
 
 };
@@ -927,7 +929,7 @@ var set_scene = function(ui, node, entity, location){
     }
 
     /// remove galaxy particle background if in scene
-    if($galaxy_mesh){
+    if(typeof $galaxy_mesh !== "undefined" && $galaxy_mesh){
       ui.canvas_container.canvas.scene.remove_component($galaxy_mesh);
       $galaxy_mesh = null;
     }
@@ -935,7 +937,7 @@ var set_scene = function(ui, node, entity, location){
   }else{
     ui.canvas_container.canvas.scene.
        add_component(entity.mesh);
-    $galaxy_mesh = entity.mesh; /// use a global to track this
+    $galaxy_mesh = entity.mesh; /// XXX use a global to track this
   }
 }
 

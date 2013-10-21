@@ -124,8 +124,8 @@ function _star_load_glow(star){
   var glow_texture = 
     UIResources().cached("star_glow_texture",
       function(i) {
-        var vertex_shader   = document.getElementById( 'vertexShaderAtmosphere'   );
-        var fragment_shader = document.getElementById( 'fragmentShaderAtmosphere' );
+        var vertex_shader   = document.getElementById( 'vertexShaderHalo'   );
+        var fragment_shader = document.getElementById( 'fragmentShaderHalo' );
         vertex_shader   = vertex_shader   ? vertex_shader.textContent   : null;
         fragment_shader = fragment_shader ? fragment_shader.textContent : null;
 

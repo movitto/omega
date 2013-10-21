@@ -32,7 +32,7 @@ function UIResources(){
   var _this = {};
   UIResources._singletonInstance = _this;
 
-  $.extend(_this, new Registry());
+  $.extend(_this, new Registry()); // FIXME remove as uneeded; browser will cache resources anyways
   $.extend(_this, new EventTracker());
 
   // to render textures

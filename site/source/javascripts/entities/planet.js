@@ -73,6 +73,12 @@ function _planet_update(oargs){
       this.sphere.position.z = this.location.z;
     }
 
+    if(this.shader_sphere){
+      this.shader_sphere.position.x = this.location.x;
+      this.shader_sphere.position.y = this.location.y;
+      this.shader_sphere.position.z = this.location.z;
+    }
+
     for(var m = 0; m < this.moons.length; m++){
       var moon = this.moons[m];
       var ms   = this.moon_spheres[m];
@@ -118,7 +124,7 @@ function _planet_load_mesh(planet){
       });
 
   planet.sphere =
-    UIResources().cached("planet_" + planet.id + "_sphere_geometry",
+    UIResources().cached("planet_" + planet.id + "_sphere",
       function(i) {
         var sphere = new THREE.Mesh(sphere_geometry, sphere_material);
         sphere.position.x = planet.location.x;
@@ -127,8 +133,20 @@ function _planet_load_mesh(planet){
         return sphere;
       });
 
+  planet.shader_sphere =
+    UIResources().cached("planet_" + planet.id + "_shader_sphere",
+      function(i) {
+        var sphere = new THREE.Mesh(sphere_geometry.clone(),
+                                    new THREE.MeshBasicMaterial({color: 0x000000}));
+        sphere.position.x = planet.location.x;
+        sphere.position.y = planet.location.y;
+        sphere.position.z = planet.location.z;
+        return sphere;
+      });
+
   planet.clickable_obj = planet.sphere;
   planet.components.push(planet.sphere);
+  planet.shader_components.push(planet.shader_sphere);
 }
 
 /* Helper to load planet orbit

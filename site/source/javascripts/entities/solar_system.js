@@ -162,11 +162,11 @@ function _solar_system_add_jump_gate(jg, endpoint){
       function(i) {
         var geometry = new THREE.Geometry();
         geometry.vertices.push(new THREE.Vector3(system.location.x,
-                                                 system.location.y - 50,
+                                                 system.location.y,
                                                  system.location.z));
 
         geometry.vertices.push(new THREE.Vector3(endpoint.location.x,
-                                                 endpoint.location.y + 50,
+                                                 endpoint.location.y,
                                                  endpoint.location.z));
         return geometry;
     });
@@ -231,9 +231,11 @@ function _solar_system_add_jump_gate(jg, endpoint){
                 this.ticker * dy * 50,
                 this.ticker * dz * 50)
 
-          _sys_adj_orientation(v);
           this.ticker += 1;
-          if(this.ticker == 20) this.ticker = 0;
+          if(endpoint.location.distance_from(system.location.x+v.x,
+                                             system.location.y+v.y,
+                                             system.location.z+v.z) < 100) this.ticker = 0;
+          _sys_adj_orientation(v);
 
           this.geometry.__dirtyVertices = true;
         };

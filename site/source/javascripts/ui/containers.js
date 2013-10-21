@@ -64,10 +64,28 @@ function StatusIndicator(args){
   // stack of states which are currently set
   var states =  [];
 
+  // timer to blink icon
+  var _this = this;
+  var obg = '';
+  var bg_timer = $.timer(function(){
+    var cbg = _this.component().css('background-image');
+
+    if(cbg == '' && obg == ''){
+    }else if(obg != ''){
+      _this.component().css('background', obg)
+      obg = '';
+    }else{
+      obg = cbg;
+      _this.component().css('background', '')
+    }
+  })
+  bg_timer.set({time: 1000, autostart: false})
+
   // Helper set icon background
   this.set_bg = function(bg){
     if(bg == null){
       this.component().css('background', '');
+      bg_timer.stop();
       return;
     }
 
@@ -77,6 +95,7 @@ function StatusIndicator(args){
                   $omega_config['host'] +
                   $omega_config['prefix'] +
                   '/images/status/' + bg + '.png") no-repeat');
+    bg_timer.play();
   }
 
   /* Return boolean indicating if state is currently represented locally
