@@ -96,8 +96,20 @@ function _jump_gate_create_mesh(){
         return mesh;
       });
 
+  this.shader_mesh =
+    UIResources().cached("jump_gate" + this.id + "_shader_mesh",
+      function(i) {
+        var mesh = new THREE.Mesh(jg.mesh_geometry.clone(),
+                                  new THREE.MeshBasicMaterial({color: 0x000000}));
+        mesh.position = jg.mesh.position;
+        mesh.rotation = jg.mesh.rotation;
+        mesh.scale    = jg.mesh.scale;
+        return mesh;
+      });
+
   this.clickable_obj = this.mesh;
   this.components.push(this.mesh);
+  this.shader_components.push(this.shader_mesh);
 
   // reload entity if already in scene
   if(this.current_scene) this.current_scene.reload_entity(this);

@@ -177,6 +177,14 @@ function _ship_update(oargs){
     }
   }
 
+  // same w/ shader mesh
+  if(this.shader_mesh){
+    this.shader_mesh.position.x = this.location.x;
+    this.shader_mesh.position.y = this.location.y;
+    this.shader_mesh.position.z = this.location.z;
+    this.set_orientation(this.shader_mesh, true)
+  }
+
   // ...same w/ highlight effects...
   if(this.highlight_effects){
     for(var e = 0; e < this.highlight_effects.length; e++){
@@ -355,9 +363,21 @@ function _ship_create_mesh(){
         return mesh;
       });
 
+  this.shader_mesh =
+    UIResources().cached("ship_" + this.id + "_shader_mesh",
+      function(i) {
+        var mesh = new THREE.Mesh(ship.mesh_geometry.clone(),
+                                  new THREE.MeshBasicMaterial({color: 0x000000}));
+        mesh.position = ship.mesh.position;
+        mesh.rotation = ship.mesh.rotation;
+        mesh.scale    = ship.mesh.scale;
+        return mesh;
+      });
+
   if(this.hp > 0){
     this.clickable_obj = this.mesh;
     this.components.push(this.mesh);
+    this.shader_components.push(this.shader_mesh);
   }
 
   // reload entity if already in scene

@@ -139,8 +139,20 @@ function _station_create_mesh(){
         return mesh;
       });
 
+  this.shader_mesh =
+    UIResources().cached("station_" + this.id + "_shader_mesh",
+      function(i) {
+        var mesh = new THREE.Mesh(station.mesh_geometry.clone(),
+                                  new THREE.MeshBasicMaterial({color: 0x000000}));
+        mesh.position = station.mesh.position;
+        mesh.rotation = station.mesh.rotation;
+        mesh.scale    = station.mesh.scale;
+        return mesh;
+      });
+
   this.clickable_obj = this.mesh;
   this.components.push(this.mesh);
+  this.shader_components.push(this.shader_mesh);
 
   // reload station if already in scene
   if(this.current_scene) this.current_scene.reload_entity(this);

@@ -138,9 +138,6 @@ function _planet_load_mesh(planet){
       function(i) {
         var sphere = new THREE.Mesh(sphere_geometry.clone(),
                                     new THREE.MeshBasicMaterial({color: 0x000000}));
-        sphere.position.x = planet.location.x;
-        sphere.position.y = planet.location.y;
-        sphere.position.z = planet.location.z;
         return sphere;
       });
 

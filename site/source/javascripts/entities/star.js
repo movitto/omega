@@ -120,7 +120,6 @@ function _star_load_glow(star){
   var glow_geometry =
     UIResources().get('star_sphere_' + star.size + '_geometry').clone();
 
-  // TODO: shader doesn't incorporate depth, glow will appear over everything, need to fix
   var glow_texture = 
     UIResources().cached("star_glow_texture",
       function(i) {

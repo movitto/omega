@@ -72,8 +72,20 @@ function _asteroid_create_mesh(){
         return mesh;
       });
 
+  var shader_mesh =
+    UIResources().cached("asteroid_" + this.id + "_shader_mesh",
+      function(i) {
+        var smesh = new THREE.Mesh(asteroid.mesh_geometry.clone(),
+                                   new THREE.MeshBasicMaterial({color: 0x000000}));
+        smesh.position = mesh.position;
+        smesh.rotation = mesh.rotation;
+        smesh.scale    = mesh.scale;
+        return smesh;
+      });
+
   this.clickable_obj = mesh;
   this.components.push(mesh);
+  this.shader_components.push(shader_mesh);
 
   // reload asteroid if already in scene
   if(this.current_scene) this.current_scene.reload_entity(this);
