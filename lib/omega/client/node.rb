@@ -20,7 +20,9 @@ module Omega
         # load any accessible config
         config = Omega::Config.load :node_id  => 'omega',
                                     :tcp_host => 'localhost',
-                                    :tcp_port =>  8181
+                                    :tcp_port =>  8181,
+                                    :ws_host  => 'localhost',
+                                    :ws_port  => 8080
         self.endpoint=
           case rjr_node.class::RJR_NODE_TYPE
             when :amqp then "#{config.node_id}-queue"

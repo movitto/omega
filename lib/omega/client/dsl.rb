@@ -240,16 +240,15 @@ module Omega
       # \@system _must_ be set to the Cosmos::Entities::SolarSystem
       #  to create the asteroid under
       #
-      # @param [String] name string name of asteroid create
+      # @param [String] id string id of asteroid created
       # @param [Hash] args hash of options to pass directly to asteroid initializer
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroid
       # @return [Cosmos::Entities::Asteroid] asteroid created
-      def asteroid(name, args={}, &bl)
+      def asteroid(id, args={}, &bl)
         system = @solar_system || args[:solar_system]
         raise ArgumentError, "solar_system nil" if system.nil?
 
-        aargs = args.merge({:id => gen_uuid,
-                            :name => name,
+        aargs = args.merge({:id => id, :name => id,
                             :solar_system => system})
         ast = Cosmos::Entities::Asteroid.new(aargs)
                                                
@@ -258,6 +257,51 @@ module Omega
 
         dsl.run ast, :asteroid => ast, &bl
         ast
+      end
+
+      # Create a field of asteroids at the specified locations
+      #
+      # @param [Hash] args hash of options to pass to asteroid initializers
+      # @option args [Array<Motel::Location>] :locations locations to assign to asteroids
+      # @param [Callable] bl option callback block parameter to call w/ the newly created asteroids
+      # @return [Array<Cosmos::Entities::Asteroid>] asteroids created
+      def asteroid_field(args={}, &bl)
+        locs = args[:locations] || []
+
+        asts =
+          locs.collect { |loc|
+            asteroid(gen_uuid,
+                     {:location => loc}.merge(args))
+          }
+
+        dsl.run asts, :asteroids => asts, &bl
+        asts
+      end
+
+      # Create an asteroid belt by creating an asteroid field along an elliptical path
+      #
+      # @param [Hash] args hash of options used to generate elliptical path
+      # @option args [Integer,Float] :p semi_latus_rectum to use when generating the elliptical path
+      # @option args [Integer,Float] :e eccentricity to use when generating the elliptical path
+      # @option args [Array<Array<Float>,Array<Float>] :direction major/minor direction vectors of the elliptical path axis
+      # @param [Callable] bl option callback block parameter to call w/ the newly created asteroids
+      # @return [Array<Cosmos::Entities::Asteroid>] asteroids created
+      def asteroid_belt(args={}, &bl)
+        # TODO make # of asteroids configurable
+        scale = 30
+
+        p,e = args[:p],args[:e]
+        direction = args[:direction]
+        path = Motel.elliptical_path(p,e,direction)
+
+        num  = path.size / scale
+        locs = []
+        0.upto(scale) { |i|
+          p = path[num*i]
+          locs << Motel::Location.new(:x => p[0], :y => p[1], :z => p[2])
+        }
+
+        asteroid_field(:locations => locs, &bl)
       end
 
       # Set new resource on an asteroid and return it.
@@ -300,6 +344,18 @@ module Omega
 
         dsl.run planet, :planet => planet, &bl
         planet
+      end
+
+      # Helper to create a new movement strategy specifying a planet's orbit
+      #
+      # Simply wraps Elliptical movement strategy constructor with some
+      # defaults for now
+      # @param [Hash] args hash of options to pass directly to Elliptical initializer
+      def orbit(args={})
+        # TODO if direction is not specified,
+        #      set orthogonal to orientation of star in parent system?
+        args[:relative_to] ||= Motel::MovementStrategies::Elliptical::FOCI
+        Motel::MovementStrategies::Elliptical.new args
       end
 
       # Create new moon and return it.

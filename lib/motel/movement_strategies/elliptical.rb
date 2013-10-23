@@ -10,6 +10,8 @@ require 'motel/movement_strategy'
 require 'omega/common'
 require 'rjr/common'
 
+# FIXME use the Motel#elliptical_path helper method here
+
 module Motel
 module MovementStrategies
 
@@ -185,12 +187,22 @@ class Elliptical < MovementStrategy
     ### internal helper movement methods
 
     # return the axis-angle representing the rotation of the
-    # direction axis from the standard cartesian axis
-    def axis_rotation
+    # direction axis plane from the standard cartesian axis plane
+    def axis_plane_rotation
       vectors = Motel::CARTESIAN_NORMAL_VECTOR +
-                Motel.normal_vector(dmajx, dmajy, dmajz,
-                                    dminx, dminy, dminz)
-      aa = Motel.axis_angle(*vectors)
+                Motel.cross_product(dmajx,dmajy,dmajz,dminx,dminy,dminz)
+      Motel.axis_angle(*vectors)
+    end
+
+    # return the axis-angle representing the rotation of the
+    # major direction vector from the major direction
+    # vector of the cartesian axis, rotated onto the plane
+    # of the current axis (see #axis_plane_rotation above)
+    def axis_rotation
+      vectors =
+        Motel.rotate(*Motel::MAJOR_CARTESIAN_AXIS, *axis_plane_rotation) + dmaj
+
+      Motel.axis_angle(*vectors)
     end
 
     # return the a,b intercepts of the ellipse
@@ -254,10 +266,15 @@ class Elliptical < MovementStrategy
       # center coordinate
       nx,ny,nz = origin_centered_coordinates location
 
-      # rotate it into 2d cartesian coordiante system
-      aa = axis_rotation
-      aa[0] *= -1
-      nx,ny,nz = Motel.rotate(nx, ny, nz, *aa) unless aa[0] == 0
+      # rotate coordinate plane into 3d cartesian coordinate system...
+      ar = axis_rotation
+      ar[0] *= -1
+      nx,ny,nz = Motel.rotate(nx, ny, nz, *ar)
+
+      # ...then rotate ellipse into 2d cartesian coordiante system
+      apr = axis_plane_rotation
+      apr[0] *= -1
+      nx,ny,nz = Motel.rotate(nx, ny, nz, *apr)
       # assert nz == 0
 
       # calculate theta
@@ -282,8 +299,12 @@ class Elliptical < MovementStrategy
       y = b * Math.sin(theta)
 
       # rotate it into 3d space
-      aa = axis_rotation
-      nx,ny,nz = aa[0] == 0 ? [x,y,0] : Motel.rotate(x, y, 0, *aa)
+      apr = axis_plane_rotation
+      nx,ny,nz = Motel.rotate(x, y, 0, *apr)
+
+      # rotate to new axis
+      ar = axis_rotation
+      nx,ny,nz = Motel.rotate(nx, ny, nz, *ar)
 
       # center coordinate
       cX,cY,cZ = center

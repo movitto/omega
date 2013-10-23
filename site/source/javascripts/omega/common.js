@@ -127,24 +127,25 @@ var elliptical_path = function(ms){
   var cy = -1 * ms.dmajy * le;
   var cz = -1 * ms.dmajz * le;
 
+  // axis plane rotation
+  var nv1 = cp(ms.dmajx,ms.dmajy,ms.dmajz,ms.dminx,ms.dminy,ms.dminz);
+  var ab1 = abwn(0,0,1,nv1[0],nv1[1],nv1[2]);
+  var ax1 = cp(0,0,1,nv1[0],nv1[1],nv1[2]);
+      ax1 = nrml(ax1[0],ax1[1],ax1[2]);
+
   // axis rotation
-  var nv = cp(ms.dmajx, ms.dmajy, ms.dmajz,
-              ms.dminx, ms.dminy, ms.dminz);
-  var ab = abwn(0, 0, 1, nv[0], nv[1], nv[2]);
-  var ax = cp(0, 0, 1, nv[0], nv[1], nv[2])
-      ax = nrml(ax[0], ax[1], ax[2]);
+  var nmaj = rot(1,0,0,ab1,ax1[0],ax1[1],ax1[2]);
+  var ab2 = abwn(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+  var ax2 = cp(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+      ax2 = nrml(ax2[0],ax2[1],ax2[2]);
 
   // path
   for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
     var x = a * Math.cos(i);
     var y = b * Math.sin(i);
-    //skip rotation if axis is not rotated
-    var n;
-    if(ab != 0){
-      n = rot(x, y, 0, ab, ax[0], ax[1], ax[2]);
-    }else{
-      n = [x,y,0];
-    }
+    var n = [x,y,0];
+    n = rot(n[0], n[1], n[2], ab1, ax1[0], ax1[1], ax1[2]);
+    n = rot(n[0], n[1], n[2], ab2, ax2[0], ax2[1], ax2[2]);
     n[0] += cx; n[1] += cy; n[2] += cz;
     path.push(n);
   }

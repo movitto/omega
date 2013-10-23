@@ -28,33 +28,44 @@ galaxy 'Zeus' do |g|
     asteroid gen_uuid, :location => loc(-2000,-1040,-1000) do |ast|
       resource :resource => rand_resource, :quantity => 325
     end
+
     asteroid gen_uuid, :location => loc(2097,283,-1020) do |ast|
       resource :resource => rand_resource, :quantity => 500
     end
-  end
 
-  system 'Aphrodite', 'V866', :location => loc(-1160,357,270) do |sys|
+    asteroid gen_uuid, :location => loc(1537,1296,-3015) do |ast|
+      resource :resource => rand_resource, :quantity => 550
+    end
+
+    asteroid gen_uuid, :location => loc(2664,-1539,-1770) do |ast|
+      resource :resource => rand_resource, :quantity => 550
+    end
+
     asteroid gen_uuid, :location => loc(-1200, -1239,800) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
+
     asteroid gen_uuid, :location => loc(1280,-760,-1960) do |ast|
       resource :resource => rand_resource, :quantity => 750
     end
   end
 
+  system 'Aphrodite', 'V866', :location => loc(-1160,357,270) do |sys|
+    asteroid_field :locations => [rand_location(:min => 500, :max => 2000),
+                                  rand_location(:min => 500, :max => 2000)]
+  end
+
   system 'Philo', 'HU1792', :location => loc(-754,627,481) do |sys|
     planet 'Xeno', :movement_strategy =>
-        Elliptical.new(:relative_to => Elliptical::FOCI,
-                       :speed => 0.02, :e => 0.36, :p => 1080,
-                       :direction => Motel.random_axis)
+      orbit(:speed => 0.02, :e => 0.36, :p => 1080,
+            :direction => Motel.random_axis(:orthogonal_to => [0,1,0]))
   
-    asteroid gen_uuid, :location => loc(1537,1296,-3015) do |ast|
-      resource :resource => rand_resource, :quantity => 550
-    end
-    asteroid gen_uuid, :location => loc(2664,-1539,-1770) do |ast|
-      resource :resource => rand_resource, :quantity => 550
-    end
+    planet 'Aesop', :movement_strategy =>
+      orbit(:e => 0.65, :speed => 0.008, :p => 6000,
+            :direction => Motel.random_axis(:orthogonal_to => [0,1,0]))
 
+    asteroid_belt :e => 0.62, :p => 3000,
+                  :direction => Motel.random_axis(:orthogonal_to => [0,1,0])
   end
 end
 
@@ -69,7 +80,7 @@ jump_gate aphrodite, philo,     :location => loc( 1050,-1050, 1050)
 jump_gate philo,     aphrodite, :location => loc( 1050,-1050, 1050)
 
 schedule_event 6000,
-  Missions::Events::PopulateResource.new(\
+  Missions::Events::PopulateResource.new(
     :id =>
       'populate-resources',
     :from_resources =>

@@ -25,6 +25,10 @@ function add_entity(ui, entity){
   ui.canvas_container.canvas.scene.add_entity(entity);
 }
 
+function add_component(ui, comp){
+  ui.canvas_container.canvas.scene.add_component(comp);
+}
+
 function asteroid_field(ui, locations){
   for(var l = 0; l < locations.length; l++){
     var ast = new Asteroid({id : 'ast' + l, location : locations[l]});
@@ -44,18 +48,40 @@ function asteroid_belt(ui, ms){
   asteroid_field(ui, locs);
 }
 
-function ellipse_ms(nrml, opts){
-  // generate major axis such that maj . nrml = 0
-  var majx = Math.random();
-  var majy = Math.random();
-  var majz = (majx * nrml.x + majy * nrml.y) / -nrml.z;
+function ellipse_ms(enrml, opts){
+  // generate major axis such that maj . enrml = 0
+  var tx = Math.random();
+  var ty = Math.random();
+  var tz = Math.random();
+  var tn = nrml(tx,ty,tz);
+  var maj  = cp(tx,ty,tz,enrml.x,enrml.y,enrml.z)
+  var majn = nrml(maj[0], maj[1], maj[2]);
+  majx = majn[0]; majy = majn[1]; majz = majn[2];
 
   // rotate maj axis by 1.57 around nrml to get min
-  var min = rot(majx,majy,majz,1.57,nrml.x,nrml.y,nrml.z)
-  var minx = min[0]; var miny = min[1]; var minz = min[2];
+  var min = rot(majx,majy,majz,1.57,enrml.x,enrml.y,enrml.z)
+  minn = nrml(min[0],min[1],min[2]);
+  var minx = minn[0]; var miny = minn[1]; var minz = minn[2];
 
   return $.extend({dmajx : majx, dmajy : majy, dmajz : majz,
                    dminx : minx, dminy : miny, dminz : minz}, opts);
+}
+
+function axis_lines(ms, s){
+  var red = new THREE.LineBasicMaterial({color: 0xF80000});
+  var blu = new THREE.LineBasicMaterial({color: 0x00F800});
+  var majg = new THREE.Geometry();
+  var ming = new THREE.Geometry();
+
+  majg.vertices.push(new THREE.Vector3( ms.dmajx*s,  ms.dmajy*s,  ms.dmajz*s));
+  majg.vertices.push(new THREE.Vector3(-ms.dmajx*s, -ms.dmajy*s, -ms.dmajz*s));
+  ming.vertices.push(new THREE.Vector3( ms.dminx*s,  ms.dminy*s,  ms.dminz*s));
+  ming.vertices.push(new THREE.Vector3(-ms.dminx*s, -ms.dminy*s, -ms.dminz*s));
+
+  var maj = new THREE.Line(majg, red);
+  var min = new THREE.Line(ming, blu);
+  return [maj, min];
+
 }
 
 function demo_system(ui, node){
@@ -66,8 +92,10 @@ function demo_system(ui, node){
 
   // generate different orbits w/ the same normal
   var orbit_nrml  = {x : 0.68, y : -0.56, z : 0.45}
+  //var orbit_nrml  = {x : 0, y : 1, z : 0}
 
   var pl1ms = ellipse_ms(orbit_nrml, {p: 3000, speed: 0.01, e : 0.7, })
+
   var planet1 = new Planet({id : 'planet1', size: 50, color: 'ABABAB', location : create_loc(1800,0,0,pl1ms)});
 
   var pl2ms = ellipse_ms(orbit_nrml, {p: 6500, speed: -0.008, e : 0.58, })
@@ -75,7 +103,7 @@ function demo_system(ui, node){
 
   var abms = ellipse_ms(orbit_nrml, {p : 5000, e : 0.62});
 
-  var sys = new SolarSystem({id : 'sys1', background : 1,
+  var sys = new SolarSystem({id : 'sys1', background : 2,
                              children : [jump_gate1, star1, planet1, planet2]})
   jump_gate1 = sys.jump_gates[0];
   star1      = sys.stars[0];
@@ -126,7 +154,8 @@ function demo_galaxy(ui, node){
 }
 
 function custom_operations(ui, node){
-  demo_galaxy(ui, node);
+  //demo_galaxy(ui, node);
+  demo_system(ui, node);
 }
 
 // initialize the page

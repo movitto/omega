@@ -183,6 +183,62 @@ def self.rotated_angle(x, y, z, ox, oy, oz, ax, ay, az)
   ia ? (2 * Math::PI - ra) : ra
 end
 
+# Return path of coordinates corresponding to the elliptical
+# path specified by the parameters
+#
+# @param [Integer,Float] p semi_latus_rectum of the elliptical path
+# @param [Integer,Float] e eccentricity of the elliptical path
+# @param [Array<Array<Float>,Array<Float>>] direction hash representing major/major axis' of path
+def self.elliptical_path(p, e, direction)
+  path = []
+
+  # direction
+  majx = direction[0][0]
+  majy = direction[0][1]
+  majz = direction[0][2]
+  minx = direction[1][0]
+  miny = direction[1][1]
+  minz = direction[1][2]
+
+  # intercepts
+  a = p / (1 - e**2)
+  b = Math.sqrt(p * a)
+
+  # linear eccentricity
+  le = Math.sqrt(a**2 - b**2)
+
+  # center (assumes location's movement_strategy.relative to is set to foci
+  cx = -1 * majx * le
+  cy = -1 * majy * le
+  cz = -1 * majz * le
+
+  # axis plane rotation
+  nv1 = cross_product(majx,majy,majz,minx,miny,minz)
+  ab1 = angle_between(0,0,1,nv1[0],nv1[1],nv1[2])
+  ax1 = cross_product(0,0,1,nv1[0],nv1[1],nv1[2])
+  ax1 = normalize(ax1[0],ax1[1],ax1[2])
+
+  # axis rotation
+  nmaj = rotate(1,0,0,ab1,ax1[0],ax1[1],ax1[2])
+  ab2 = angle_between(nmaj[0],nmaj[1],nmaj[2],majx,majy,majz)
+  ax2 = cross_product(nmaj[0],nmaj[1],nmaj[2],majx,majy,majz)
+  ax2 = normalize(ax2[0],ax2[1],ax2[2])
+
+  # path
+  0.upto(2*Math::PI*100) { |i| i = i.to_f / 100 # 628 data points: 0,0.01,...,6.28
+    x = a * Math.cos(i)
+    y = b * Math.sin(i)
+    n = [x,y,0]
+    n = rotate(n[0], n[1], n[2], ab1, ax1[0], ax1[1], ax1[2])
+    n = rotate(n[0], n[1], n[2], ab2, ax2[0], ax2[1], ax2[2])
+    n[0] += cx; n[1] += cy; n[2] += cz;
+
+    path.push(n);
+  }
+
+  return path
+end
+
 # Return boolean inidicating if two vectors are orthogonal
 #
 # @param [Integer,Float] x1 x component of first vector
@@ -209,29 +265,33 @@ end
 #
 # @param [Hash] args hash of options to use when generating axis
 # @option args [2,3] :dimensions number of dimensions to create axis for. Must be 2 or 3 (if 2, z-coordinate will always be 0)
+# @option args [Array<Float>] :orthogonal_to if pass in, axis orthogonal to the specified vector will be returned
 # @return [Array<Array<Float,Float,Float>,Array<Float,Float,Float>>] array containing two arrays containing the x,y,z coordinates of the axis
 def self.random_axis(args = {})
-  dimensions  = args[:dimensions]  || 3
+  dimensions  = args[:dimensions] || 3
   raise ArgumentError if dimensions != 2 && dimensions != 3
+  
+  # generate random orthogonal vector if not specified
+  orthogonal = args[:orthogonal_to]
+  unless orthogonal
+    orthogonal = [rand,rand,rand]
+    orthogonal = Motel::normalize(*orthogonal)
+  end
 
-  axis = []
+  # generate random tmp vector
+  tx,ty,tz = rand, rand, rand
+  tx,ty,tz = *Motel::normalize(tx,ty,tz)
 
-  # generate random initial axis
-  nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
-  x1,y1,z1 = 0,0,0
-  x1,y1,z1 =
-     nx * rand(10), ny * rand(10), nz * rand(10) while x1 == 0 || y1 == 0 || z1 == 0
-  z1 = 0 if dimensions == 2
-  x1,y1,z1 = *Motel::normalize(x1, y1, z1)
+  # generate first axis vector
+  x1,y1,z1 = *Motel.cross_product(tx,ty,tz,*orthogonal)
+  x1,y1,z1 = *Motel::normalize(x1,y1,z1)
 
-  # generate two coordinates of the second,
-  # calculate the final coordinate
-  nx,ny,nz = (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1), (rand(2) == 0 ? 1 : -1)
-  y2,z2 = 0,0
-  y2,z2 = ny * rand(10), nz * rand(10) while y2 == 0 || z2 == 0
-  z2 = 0 if dimensions == 2
-  x2 = ((y1*y2 + z1*z2) * -1 / x1)
-  x2,y2,z2 = *Motel::normalize(x2, y2, z2)
+  # rotate first axis vector by 1.57 around orthogonal to get other
+  x2,y2,z2 = *Motel.rotate(x1,y1,z1,Math::PI/2,*orthogonal)
+  x2,y2,z2 = *Motel.normalize(x2,y2,z2)
+
+  # 0 out z if 2D
+  z1 = z2 = 0 if dimensions == 0
 
   return [[x1,y1,z1],[x2,y2,z2]]
 end
