@@ -153,6 +153,7 @@ function _jump_gate_load_mesh(jg){
  */
 function _jump_gate_create_lamp(jg){
   jg.lamp = create_lamp(10, 0xff0000);
+  if(!jg.lamp) return;
   jg.lamp.position.set(jg.location.x -  22,
                         jg.location.y -  17,
                         jg.location.z + 175)

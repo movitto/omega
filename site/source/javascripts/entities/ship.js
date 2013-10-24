@@ -494,6 +494,8 @@ function _ship_create_highlight_effects(ship){
         return mesh;
       });
 
+  if(!highlight_mesh) return;
+
   //ship.highlight_effects.push(highlight_light)
   //ship.components.push(highlight_light);
 

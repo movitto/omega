@@ -1420,7 +1420,7 @@ pavlov.specify("omega.js", function(){
     after(function(){
       if(wire_up_nav.restore) wire_up_nav.restore();
       if(wire_up_status.restore) wire_up_status.restore();
-      if(wire_up_audio_player.restore) wire_up_audio_player.restore();
+      if(wr.restore) wire_up_effects_player.restore();
       if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
       if(wire_up_canvas.restore) wire_up_canvas.restore();
       if(wire_up_account_info.restore) wire_up_account_info.restore();
@@ -1430,7 +1430,7 @@ pavlov.specify("omega.js", function(){
     it("wires up all ui subsystems", function(){
       wire_up_nav = sinon.spy(wire_up_nav);
       wire_up_status = sinon.spy(wire_up_status);
-      wire_up_audio_player = sinon.spy(wire_up_audio_player);
+      wire_up_effects_player = sinon.spy(wire_up_effects_player);
       wire_up_entities_lists = sinon.spy(wire_up_entities_lists);
       wire_up_canvas = sinon.spy(wire_up_canvas);
       wire_up_account_info = sinon.spy(wire_up_account_info);
@@ -1439,7 +1439,7 @@ pavlov.specify("omega.js", function(){
       wire_up_ui(ui, node);
       sinon.assert.calledWith(wire_up_nav, ui, node);
       sinon.assert.calledWith(wire_up_status, ui, node);
-      sinon.assert.calledWith(wire_up_audio_player, ui, node);
+      sinon.assert.calledWith(wire_up_effects_player, ui, node);
       sinon.assert.calledWith(wire_up_entities_lists, ui, node);
       sinon.assert.calledWith(wire_up_canvas, ui, node);
       sinon.assert.calledWith(wire_up_account_info, ui, node);
@@ -1720,14 +1720,14 @@ pavlov.specify("omega.js", function(){
     });
   });
 
-  describe("#wire_up_audio_player", function(){
+  describe("#wire_up_effects_player", function(){
     before(function(){
       ui = complete_ui();
       node = new TestNode();
     });
 
     it("wires up jplayer", function(){
-      wire_up_audio_player(ui, node);
+      wire_up_effects_player(ui, node);
       assert(ui.audio_player.playlist).isOfType(jPlayerPlaylist)
       assert(ui.audio_player.playlist.cssSelector.jPlayer).
         equals("#jquery_jplayer_1");
@@ -1736,11 +1736,17 @@ pavlov.specify("omega.js", function(){
     });
 
     it("wires up effects player", function(){
-      wire_up_audio_player(ui, node);
+      wire_up_effects_player(ui, node);
       assert(ui.effects_player).isOfType(EffectsPlayer)
       assert(ui.effects_player.path).
         equals("http://" + $omega_config["host"] + $omega_config["prefix"] + "/audio/effects/")
     });
+
+    it("starts effects player", function(){
+      var spy = sinon.spy(ui.effects_player, 'start');
+      wire_up_effects_player(ui, node);
+      sinon.assert.called(spy);
+    })
   });
 
   describe("#wire_up_entities_lists", function(){

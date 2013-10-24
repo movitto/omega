@@ -74,10 +74,14 @@ function _star_load_mesh(star){
         uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
         //uniforms.texture1.value.repeat.set(20,20);
 
+        var vertex_shader   = document.getElementById( 'vertexShaderLava'   );
+        var fragment_shader = document.getElementById( 'fragmentShaderLava' );
+        vertex_shader   = vertex_shader   ? vertex_shader.textContent   : null;
+        fragment_shader = fragment_shader ? fragment_shader.textContent : null;
+
         return new THREE.ShaderMaterial({
           uniforms: uniforms,
-          vertexShader: document.getElementById( 'vertexShaderLava' ).textContent,
-          fragmentShader: document.getElementById( 'fragmentShaderLava' ).textContent
+          vertexShader: vertex_shader, fragmentShader: fragment_shader
         });
       });
 
@@ -118,7 +122,9 @@ function _star_load_mesh(star){
  */
 function _star_load_glow(star){
   var glow_geometry =
-    UIResources().get('star_sphere_' + star.size + '_geometry').clone();
+    UIResources().get('star_sphere_' + star.size + '_geometry');
+  if(!glow_geometry) return;
+  glow_geometry = glow_geometry.clone();
 
   var glow_texture = 
     UIResources().cached("star_glow_texture",

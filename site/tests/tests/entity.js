@@ -369,7 +369,7 @@ describe("Planet", function(){
             id : 42,
             movement_strategy : {
               e : 0, p : 10, speed: 1.57,
-              dmajx: 1, dmajy : 0, dmajz : 0,
+              dmajx: 0, dmajy : 1, dmajz : 0,
               dminx: 0, dminy : 0, dminz : 1}},
           moons : [m]})
   })
@@ -415,8 +415,15 @@ describe("Planet", function(){
     assert(pl.cx).equals(0);
     assert(pl.cy).equals(0);
     assert(pl.cz).equals(0);
+    assert(roundTo(pl.rot_plane_axis_angle, 2)).equals(1.57);
     assert(roundTo(pl.rot_axis_angle, 2)).equals(1.57);
-    assert(pl.rot_axis).isSameAs([1,0,0]);
+
+    assert(pl.rot_plane_axis[0]).equals(0)
+    assert(pl.rot_plane_axis[1]).equals(1)
+    assert(pl.rot_plane_axis[2]).equals(0)
+    assert(pl.rot_axis[0]).equals(1)
+    assert(pl.rot_axis[1]).equals(0)
+    assert(pl.rot_axis[2]).close(0, 0.00001)
   });
 
   describe("added to scene", function(){
@@ -464,6 +471,8 @@ describe("Planet", function(){
       pl1.cx = pl1.cy = pl1.cz = 0
       pl1.rot_axis_angle = 0;
       pl1.rot_axis = [1, 0, 0]
+      pl1.rot_plane_axis_angle = 0;
+      pl1.rot_plane_axis = [1, 0, 0]
       pl1.a = 10 ; pl1.b = 10
       pl1.location.movement_strategy.speed = -1.57
 
@@ -560,9 +569,9 @@ describe("JumpGate", function(){
       var scene = new Scene();
       jg.clicked_in(scene);
       var events = $.data(document, 'events')['click'];
-      assert(events.length).equals(1);
-      assert(events[0].selector).equals(trigger_cmd);
-      assert(events[0]).isNotEqualTo(cb);
+      assert(events.length).isGreaterThan(0);
+      assert(events[events.length-1].selector).equals(trigger_cmd);
+      assert(events[events.length-1]).isNotEqualTo(cb);
     });
 
     describe("command trigger jump gate", function(){
@@ -577,7 +586,8 @@ describe("JumpGate", function(){
 
         var spy = sinon.spy(Commands, 'trigger_jump_gate');
 
-        var cb = $.data(document, 'events')['click'][0];
+        var events = $.data(document, 'events')['click'];
+        var cb = events[events.length-1];
         cb.handler.apply(null, []);
         sinon.assert.called(spy);
       });
@@ -740,7 +750,7 @@ describe("Ship", function(){
       sh.clicked_in(scene);
 
       var events = $.data(document, 'events')['click'];
-      assert(events.length).equals(7); //XXX some are grouped
+      assert(events.length).isAtLeast(7); //XXX some are grouped
 
       var selectors = [];
       for(var i = 0; i < events.length; i++){
@@ -1303,9 +1313,9 @@ describe("Station", function(){
       var scene = new Scene();
       st.clicked_in(scene);
       var events = $.data(document, 'events')['click'];
-      assert(events.length).equals(1);
-      assert(events[0].selector).equals(construct_cmd);
-      assert(events[0]).isNotEqualTo(cb);
+      assert(events.length).isAtLeast(1);
+      assert(events[events.length-1].selector).equals(construct_cmd);
+      assert(events[events.length-1]).isNotEqualTo(cb);
     });
 
     describe("cmd_construct", function(){

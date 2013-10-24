@@ -166,6 +166,8 @@ function _galaxy_load_mesh(galaxy){
         return mesh;
       });
 
+  if(!mesh) return;
+
   mesh.update_particles = _update_galaxy_mesh;
   //window.setInterval(function(){update_galaxy.apply(mesh,[])},250)
   galaxy.mesh = mesh;

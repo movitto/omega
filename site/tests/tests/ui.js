@@ -532,10 +532,6 @@ describe("Canvas", function(){
     assert(canvas.scene).isTypeOf(Scene);
   })
 
-  it("creates selection box subcomponent", function(){
-    assert(canvas.select_box).isTypeOf(SelectBox);
-  })
-
   describe("#canvas_component", function(){
     it("returns canvas page component", function(){
       assert(canvas.canvas_component().selector).equals('#omega_canvas canvas')
@@ -595,34 +591,6 @@ describe("Canvas", function(){
     })
   });
 
-  
-
-  describe("mouse moved over canvas", function(){
-    it("it delegates to select box", function(){
-      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
-      var evnt = create_mouse_event('mousemove');
-      canvas.raise_event('mousemove', evnt);
-      sinon.assert.calledWith(spy, evnt);
-    });
-  });
-
-  describe("mouse down over canvas", function(){
-    it("it delegates to select box", function(){
-      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
-      var evnt = create_mouse_event('mousedown');
-      canvas.raise_event('mousedown', evnt);
-      sinon.assert.calledWith(spy, evnt);
-    });
-  });
-  describe("mouse up over canvas", function(){
-    it("it delegates to select box", function(){
-      var spy = sinon.spy(canvas.select_box.component(), 'trigger');
-      var evnt = create_mouse_event('mouseup');
-      canvas.raise_event('mouseup', evnt);
-      sinon.assert.calledWith(spy, evnt);
-    });
-  });
-
 });}); // Canvas
 
 pavlov.specify("Scene", function(){
@@ -650,35 +618,6 @@ describe("Scene", function(){
     assert(scene.grid).isTypeOf(Grid);
   })
 
-  it("creates timer to run particle systems", function(){
-    assert(canvas.scene.particle_timer).isNotNull();
-    // TODO assert is stopped & interval
-  });
-
-  describe("particle timer event", function(){
-    var cb;
-    before(function(){
-      cb = canvas.scene.particle_timer.action;
-    })
-
-    it("runs update_particles on all scene objects which define it", function(){
-      var o1 = {};
-      var o2 = {update_particles : function(){}}
-      canvas.scene._scene.__objects.push(o1);
-      canvas.scene._scene.__objects.push(o2);
-
-      var spy = sinon.spy(o2, 'update_particles');
-      cb.apply(null);
-      sinon.assert.called(spy);
-    });
-
-    it("animates scene", function(){
-      var spy = sinon.spy(canvas.scene, 'animate');
-      cb.apply(null);
-      sinon.assert.called(spy);
-    });
-  })
-
   describe("#set_size", function(){
     it("it sets THREE renderer size", function(){
       var spy = sinon.spy(scene.renderer, 'setSize');
@@ -690,12 +629,6 @@ describe("Scene", function(){
       var spy = sinon.spy(scene.camera, 'set_size');
       scene.set_size(10, 30);
       sinon.assert.calledWith(spy, 10, 30);
-    });
-
-    it("resets camera", function(){
-      var spy = sinon.spy(scene.camera, 'reset');
-      scene.set_size(10, 30);
-      sinon.assert.called(spy);
     });
   });
 
@@ -1035,97 +968,52 @@ describe("Camera", function(){
   });
 
   describe("#reset", function(){
+    it("sets controls dom element", function(){
+      cam.reset();
+      assert(cam.controls.domElement).equals(Scene.renderer.domElement)
+    });
+
     it("sets camera position", function(){
-      var spy = sinon.spy(cam, 'position')
+      var spy = sinon.spy(cam.controls.object.position, 'set')
       cam.reset();
-      sinon.assert.called(spy); // TODO verify new position?
+      sinon.assert.calledWith(spy, 0, 3000, 3000);
     });
 
-    it("focuses camera on scene", function(){
-      var spy = sinon.spy(cam, 'focus')
+    it("focuses camera target on scene", function(){
+      var spy = sinon.spy(cam.controls.target, 'set')
       cam.reset();
-      sinon.assert.calledWith(spy, canvas.scene.position());
+      sinon.assert.calledWith(spy, 0,0,0);
     });
 
-    it("animates scene", function(){
-      var spy = sinon.spy(canvas.scene, 'animate')
+    it("updates camera controls", function(){
+      var spy = sinon.spy(cam.controls, 'update')
       cam.reset();
+      sinon.assert.called(spy);
+    });
+
+    //it("animates scene", function(){
+    //  var spy = sinon.spy(canvas.scene, 'animate')
+    //  cam.reset();
+    //  sinon.assert.called(spy);
+    //});
+  });
+
+  describe("#focus", function(){
+    it("sets camera target", function(){
+        var spy = sinon.spy(cam.controls.target, 'set');
+        cam.focus({x:100,y:200,z:100})
+        sinon.assert.calledWith(spy, 100,200,100)
+    });
+
+    it("updates camera controls", function(){
+      var spy = sinon.spy(cam.controls, 'update');
+      cam.focus({x:100,y:200,z:100});
       sinon.assert.called(spy);
     });
   });
 
-  describe("#focus", function(){
-    describe("new focus point specified", function(){
-      it("points THREE camera at focus point", function(){
-        var spy = sinon.spy(cam._camera, 'lookAt');
-        cam.focus({x:100,y:200,z:100})
-        sinon.assert.calledWith(spy, {x:100,y:200,z:100})
-      });
-    });
-
-    it("returns camera focus point", function(){
-      cam.focus({x:100,y:200,z:100})
-      assert(cam.focus()).isSameAs({x:100,y:200,z:100})
-    });
-  });
-
-  describe("#position", function(){
-    describe("new camera position specified", function(){
-      it("sets THREE camera position", function(){
-        cam.position({x: 100, y: 100, z: -200});
-        assert(cam._camera.position.x).equals(100)
-        assert(cam._camera.position.y).equals(100)
-        assert(cam._camera.position.z).equals(-200)
-      });
-    });
-    it("returns camera position", function(){
-      cam.position({x: 100, y: 100, z: -200});
-      assert(cam.position()).isSameAs({x:100, y: 100, z:-200});
-    })
-  });
-
-  describe("#zoom", function(){
-    it("moves camera along its focus axis", function(){
-      // TODO more complex test case?
-      cam.position({x:0,y:0,z:100})
-      cam.focus({x:0,y:0,z:0})
-      var oz = cam.position().z;
-      cam.zoom(-10);
-      assert(cam.position().z).equals(oz - 10);
-
-      cam.zoom(20);
-      assert(cam.position().z).equals(oz + 10);
-    });
-  });
-
-  describe("#rotate", function(){
-    it("rotates camera by specified spherical coordinates", function(){
-      // TODO more complex test case?
-      cam.position({x:1,y:0,z:0})
-      cam.focus({x:0,y:0,z:0})
-      cam.rotate(0, Math.PI);
-      assert(cam.position().x).equals(-1)
-      assert(cam.position().y).close(0, 0.0001)
-      assert(cam.position().z).close(0, 0.0001)
-    });
-  });
-
-  describe("#pan", function(){
-    it("pans camera along its x,y axis", function(){
-      // TODO more complex test case?
-      cam.position({x:0,y:0,z:1})
-      cam.focus({x:0,y:0,z:0})
-      cam.pan(10, -20)
-      assert(cam.position().x).equals(10)
-      assert(cam.position().y).equals(-20)
-      assert(cam.position().z).equals(1)
-    });
-  });
-
-  // TOOD
-  //describe("#wire_up", function(){
-  //  it("wires up page camera controls");
-  //});
+  // TODO
+  // it("wires up page camera controls");
 });}); // Camera
 
 pavlov.specify("Skybox", function(){
@@ -1146,73 +1034,6 @@ describe("Skybox", function(){
     })
   });
 });}); // Skybox
-
-pavlov.specify("SelectBox", function(){
-describe("SelectBox", function(){
-  var sb;
-
-  before(function(){
-    var canvas = new Canvas();
-    sb = canvas.select_box;
-  })
-
-  describe("#start_showing", function(){
-    it("sets down page position", function(){
-      sb.start_showing(-10, -20);
-      assert(sb.dx).equals(-10);
-      assert(sb.dy).equals(-20);
-    })
-
-    it("shows component", function(){
-      var spy = sinon.spy(sb.component(), 'show');
-      sb.start_showing(1,1);
-      sinon.assert.called(spy);
-    })
-  });
-
-  describe("#stop_showing", function(){
-    it("hides component", function(){
-      var spy1 = sinon.spy(sb.component(), 'css');
-      var spy2 = sinon.spy(sb.component(), 'hide');
-      sb.stop_showing();
-      sinon.assert.called(spy2);
-
-      sinon.assert.calledWith(spy1, 'left',       0);
-      sinon.assert.calledWith(spy1, 'top',        0);
-      sinon.assert.calledWith(spy1, 'min-width',  0);
-      sinon.assert.calledWith(spy1, 'min-height', 0);
-    });
-  });
-
-  //describe("#update_area", function(){ // NIY (test w/ different combinations)
-  //  it("adjust component size")
-  //});
-
-  describe("mouse move event", function(){
-    it("updates area", function(){
-      var spy = sinon.spy(sb, 'update_area');
-      sb.raise_event('mousemove', { pageX : 10, pageY : 20})
-      sinon.assert.called(spy);
-    })
-  });
-
-  describe("mouse down event", function(){
-    it("starts showing", function(){
-      var spy = sinon.spy(sb, 'start_showing');
-      sb.raise_event('mousedown', { pageX : 10, pageY : 20})
-      sinon.assert.called(spy);
-    });
-  });
-
-  describe("mouse up event", function(){
-    it("stops showing", function(){
-      var spy = sinon.spy(sb, 'stop_showing');
-      sb.raise_event('mouseup');
-      sinon.assert.called(spy);
-    })
-  });
-
-});}); // SelectBox
 
 pavlov.specify("Dialog", function(){
 describe("Dialog", function(){
@@ -1576,16 +1397,23 @@ describe("AccountInfoContainer", function(){
 
 pavlov.specify("EffectsContainer", function(){
 describe("EffectsContainer", function(){
+  var scene;
   var ec;
 
   before(function(){
-    ec = new EffectsPlayer({path : 'path/'});
+    scene = new Scene({});
+    ec = new EffectsPlayer({path : 'path/', scene : scene});
   })
 
   it("wires up a jplayer instance", function(){ // NIY how to actually test jplayer init
     assert(ec._player.selector).equals('#effects_jplayer')
     //assert(ec._player.init.jPlayer).isNotNull();
     //assert($(ec.div_id).jPlayer("option", "cssSelectorAncestor")).equals("effects_jplayer_container");
+  });
+
+  it("creates timer to run effects", function(){
+    assert(ec.effects_timer).isNotNull();
+    // TODO assert is stopped & interval
   });
 
   describe("#play", function(){
@@ -1601,6 +1429,38 @@ describe("EffectsContainer", function(){
       var spy = sinon.spy(ec._player, 'jPlayer');
       ec.play('foo');
       sinon.assert.calledWith(spy, 'play');
+    });
+  });
+
+  describe("#effects_loop", function(){
+    var cb;
+    before(function(){
+      cb = ec.effects_timer.action;
+    })
+
+    it("runs update_particles on all scene objects which define it", function(){
+      var o1 = {};
+      var o2 = {update_particles : function(){}}
+      scene._scene.__objects.push(o1);
+      scene._scene.__objects.push(o2);
+
+      var spy = sinon.spy(o2, 'update_particles');
+      cb.apply(null);
+      sinon.assert.called(spy);
+    });
+
+    it("animates scene", function(){
+      var spy = sinon.spy(scene, 'animate');
+      cb.apply(null);
+      sinon.assert.called(spy);
+    });
+  });
+
+  describe("#start", function(){
+    it("runs effects timer", function(){
+      var spy = sinon.spy(ec.effects_timer, 'play')
+      ec.start();
+      sinon.assert.called(spy);
     });
   });
 });

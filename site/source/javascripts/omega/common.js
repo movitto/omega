@@ -165,7 +165,9 @@ function create_lamp(size, color){
     UIResources().cached('omega_lamp_material_' + color,
       function(i) {
         return new THREE.MeshBasicMaterial({color: color});
-      }).clone();;
+      });
+  if(!sphere_material) return null;
+  sphere_material = sphere_material.clone();
 
   var lamp = new THREE.Mesh(sphere_geometry, sphere_material);
   // reduce color components seperately

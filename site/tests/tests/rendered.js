@@ -13,10 +13,21 @@ describe("SolarSystem", function(){
       var endpoint = new SolarSystem({location : {x:100,y:100,z:100}});
       sys.add_jump_gate(jg, endpoint);
 
-      var comp = sys.components[sys.components.length-1];
+      var comp = sys.components[sys.components.length-2];
       assert(comp.__proto__).equals(THREE.Line.prototype);
       assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
       assert(comp.material.__proto__).equals(THREE.LineBasicMaterial.prototype);
+    });
+
+    it("adds THREE particle effect component to entity", function(){
+      var jg = new JumpGate();
+      var endpoint = new SolarSystem({location : {x:100,y:100,z:100}});
+      sys.add_jump_gate(jg, endpoint);
+
+      var comp = sys.components[sys.components.length-1];
+      assert(comp.__proto__).equals(THREE.ParticleSystem.prototype);
+      assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
+      assert(comp.material.__proto__).equals(THREE.ParticleBasicMaterial.prototype);
     });
 
     describe("current scene is set", function(){
@@ -68,7 +79,7 @@ describe("Star", function(){
     var comp = star.sphere;
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
     assert(comp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
-    assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+    assert(comp.material.__proto__).equals(THREE.ShaderMaterial.prototype);
   });
 
   it("adds clickable shader-based THREE glow component to entity", function(){

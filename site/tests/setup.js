@@ -156,6 +156,9 @@ pavlov.specify.extendAssertions({
   isGreaterThan: function(actual, expected, message) {
     ok(actual > expected, message);
   },
+  isAtLeast: function(actual, expected, message) {
+    ok(actual >= expected, message);
+  },
   isTypeOf: function(actual, expected, message) {
     ok(typeof(actual) === expected ||
        actual.constructor === expected, message);
