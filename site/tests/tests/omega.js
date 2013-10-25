@@ -1420,7 +1420,7 @@ pavlov.specify("omega.js", function(){
     after(function(){
       if(wire_up_nav.restore) wire_up_nav.restore();
       if(wire_up_status.restore) wire_up_status.restore();
-      if(wr.restore) wire_up_effects_player.restore();
+      if(wire_up_effects_player.restore) wire_up_effects_player.restore();
       if(wire_up_entities_lists.restore) wire_up_entities_lists.restore();
       if(wire_up_canvas.restore) wire_up_canvas.restore();
       if(wire_up_account_info.restore) wire_up_account_info.restore();
@@ -1709,13 +1709,23 @@ pavlov.specify("omega.js", function(){
       assert(node.callbacks['msg_received'].length).equals(1);
     });
 
-    describe("on node msg received", function(){
+    describe("on node response msg received", function(){
       it("pops top status off indicator stack", function(){
         var spy = sinon.spy(ui.status_indicator, 'pop_state')
         wire_up_status(ui, node);
         var cb = node.callbacks['msg_received'][0];
-        cb.apply(null, []);
+        cb.apply(null, [null, {id:'foo'}]);
         sinon.assert.called(spy);
+      });
+    });
+
+    describe("on node notify msg received", function(){
+      it("does not change indicator stack", function(){
+        var spy = sinon.spy(ui.status_indicator, 'pop_state')
+        wire_up_status(ui, node);
+        var cb = node.callbacks['msg_received'][0];
+        cb.apply(null, [null, {}]);
+        sinon.assert.notCalled(spy);
       });
     });
   });
@@ -1724,15 +1734,6 @@ pavlov.specify("omega.js", function(){
     before(function(){
       ui = complete_ui();
       node = new TestNode();
-    });
-
-    it("wires up jplayer", function(){
-      wire_up_effects_player(ui, node);
-      assert(ui.audio_player.playlist).isOfType(jPlayerPlaylist)
-      assert(ui.audio_player.playlist.cssSelector.jPlayer).
-        equals("#jquery_jplayer_1");
-      assert(ui.audio_player.playlist.cssSelector.cssSelectorAncestor).
-        equals("#jplayer_container");
     });
 
     it("wires up effects player", function(){
@@ -2164,12 +2165,6 @@ pavlov.specify("omega.js", function(){
         cb.apply(null, [scene, sys]);
         sinon.assert.called(spy);
       });
-    });
-
-    it("starts particle timer", function(){
-      var spy = sinon.spy(ui.canvas_container.canvas.scene.particle_timer, 'play')
-      wire_up_canvas(ui, node);
-      sinon.assert.called(spy);
     });
   });
 

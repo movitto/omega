@@ -52,14 +52,14 @@ function remove_dialogs(){
 // build a complete ui entity
 function complete_ui(){
   var nav_container       = new NavContainer();
-  var audio_player        = new AudioPlayer();
   var status_indicator    = new StatusIndicator();
   var canvas_container    = new CanvasContainer();
+  var effects_player      = new EffectsPlayer();
   var dialog              = new Dialog();
   var account_info        = new AccountInfoContainer();
   var preload             = {};
   var ui = {nav_container    : nav_container,
-            audio_player     : audio_player,
+            effects_player   : effects_player,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
             dialog           : dialog,
@@ -102,6 +102,7 @@ function TestNode(args){
 
 function after_each(details){
   Entities().clear();
+  UIResources().clear();
   UIResources().clear_callbacks();
   reenable_three_js();
   remove_dialogs();

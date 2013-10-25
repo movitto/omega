@@ -29,6 +29,7 @@ $(document).ready(function(){
   var nav_container       = new NavContainer();
   var status_indicator    = new StatusIndicator();
   var canvas_container    = new CanvasContainer();
+  var effects_player      = new EffectsPlayer();
   var dialog              = new Dialog();
   var ui = {nav_container    : nav_container,
             status_indicator : status_indicator,

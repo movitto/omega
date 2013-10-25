@@ -168,7 +168,9 @@ function Scene(args){
   this.subcomponents.push(this.grid)
 
   // add render passes to composers
-  /// FIXME remove previously registered
+  /// XXX remove previously registered
+  this._composer.passes = [];
+  this._shader_composer.passes = [];
   this._composer.addPass(new THREE.RenderPass(this._scene, this.camera._camera))
   this._shader_composer.addPass(new THREE.RenderPass(this._shader_scene, this.camera._shader_camera))
 

@@ -82,26 +82,14 @@ describe("Star", function(){
     assert(comp.material.__proto__).equals(THREE.ShaderMaterial.prototype);
   });
 
-  it("adds clickable shader-based THREE glow component to entity", function(){
+  it("adds shader-based THREE glow component to entity", function(){
     var comp = star.glow;
-    assert(star.clickable_obj).equals(comp);
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
-    assert(comp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
+
+    // glow geometry is cloned from sphere geo,
+    // glow just produces a THREE.Geometry instance
+    assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
     assert(comp.material.__proto__).equals(THREE.ShaderMaterial.prototype);
-  });
-
-  it("adds THREE flare component to entity", function(){
-    var comp = star.components[0];
-    assert(comp.__proto__).equals(THREE.LensFlare.prototype);
-  });
-
-  describe("added to scene", function(){
-    it("sets glow view vector", function(){
-      var scene = new Scene();
-      star.added_to(scene);
-      assert(star.glow.material.uniforms.viewVector.value).
-        equals(scene.camera._camera.position);
-    });
   });
 });});
 
@@ -141,7 +129,7 @@ describe("Planet", function(){
     assert(pl.clickable_obj).equals(comp);
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
     assert(comp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
-    assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+    assert(comp.material.__proto__).equals(THREE.MeshLambertMaterial.prototype);
     assert(comp.material.map.__proto__).equals(THREE.Texture.prototype);
   });
 
@@ -181,7 +169,7 @@ describe("Asteroid", function(){
       assert(ast.clickable_obj).equals(comp);
       assert(comp.__proto__).equals(THREE.Mesh.prototype);
       assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
-      assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+      assert(comp.material.__proto__).equals(THREE.MeshLambertMaterial.prototype);
       assert(comp.material.map.__proto__).equals(THREE.Texture.prototype);
       resume();
     })
@@ -208,14 +196,14 @@ describe("JumpGate", function(){
       assert(jg.clickable_obj).equals(comp);
       assert(comp.__proto__).equals(THREE.Mesh.prototype);
       assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
-      assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+      assert(comp.material.__proto__).equals(THREE.MeshLambertMaterial.prototype);
       assert(comp.material.map.__proto__).equals(THREE.Texture.prototype);
       resume();
     })
   }));
 
-  it("adds THREE light components to entity", function(){
-    var comp = jg.light1;
+  it("adds lamp components to entity", function(){
+    var comp = jg.lamp;
     assert(jg.components).includes(comp);
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
     assert(comp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
@@ -372,9 +360,9 @@ describe("Ship", function(){
       // should really iterate over original trail, rotating and
       // translating it and comparing to new trail rotation/porition
       //for(var i = 0; i < sh.trails.length; i++){
-        assert(sh.trails[0].position.x).equals(-75);
+        assert(sh.trails[0].position.x).equals(-37.5);
         assert(sh.trails[0].position.y).equals(0);
-        assert(roundTo(sh.trails[0].position.z,2)).equals(-20);
+        assert(roundTo(sh.trails[0].position.z,2)).equals(-10);
         assert(sh.trails[0].rotation.x).equals(0);
         assert(roundTo(sh.trails[0].rotation.y,2)).equals(1.57)
         assert(sh.trails[0].rotation.z).equals(0);
@@ -527,9 +515,11 @@ describe("Ship", function(){
   })
 
   it("adds THREE clickable mesh component to entity", async(function(){
+    var verified = false;
     UIResources().on('geometry_loaded', function(){
       var comp = sh.mesh;
-      if(comp == null) return;
+      if(verified || comp == null) return;
+      verified = true;
       assert(sh.components).includes(comp);
       assert(sh.clickable_obj).equals(comp);
       assert(comp.__proto__).equals(THREE.Mesh.prototype);
@@ -597,13 +587,13 @@ describe("Station", function(){
   it("adds THREE clickable mesh component to entity", async(function(){
     var verified = false;
     UIResources().on('geometry_loaded', function(){
-      if(verified || !st || st.components.length == 0) return;
+      if(verified || !st || st.mesh == null) return;
       verified = true;
-      var comp = st.components[0];
+      var comp = st.mesh;
       assert(st.clickable_obj).equals(comp);
       assert(comp.__proto__).equals(THREE.Mesh.prototype);
       assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
-      assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+      assert(comp.material.__proto__).equals(THREE.MeshLambertMaterial.prototype);
       assert(comp.material.map.__proto__).equals(THREE.Texture.prototype);
       resume();
     })
@@ -614,10 +604,10 @@ pavlov.specify("Skybox", function(){
 describe("Skybox", function(){
   it("adds THREE skybox mesh component to entity", function(){
     var sb = new Skybox();
-    sb.background('galaxy1');
+    sb.background('galaxy2');
     assert(sb.components.length).equals(1)
     assert(sb.components[0].__proto__).equals(THREE.Mesh.prototype);
     assert(sb.components[0].geometry.__proto__).equals(THREE.CubeGeometry.prototype);
-    assert(sb.components[0].material.__proto__).equals(THREE.MeshFaceMaterial.prototype);
+    assert(sb.components[0].material.__proto__).equals(THREE.ShaderMaterial.prototype);
   });
 });});

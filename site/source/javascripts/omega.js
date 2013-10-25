@@ -696,10 +696,11 @@ this.wire_up_ui = function(ui, node){
       wire_up_nav(ui, node);
     else if(component == "status_indicator")
       wire_up_status(ui, node);
-    else if(component == "canvas_container"){
+    else if(component == "canvas_container")
       wire_up_canvas(ui, node);
+    else if(component == "effects_player")
       wire_up_effects_player(ui, node);
-    }else if(component == "account_info")
+    else if(component == "account_info")
       wire_up_account_info(ui, node);
     else if(component == "preload")
       preload_resources(ui);
@@ -825,9 +826,8 @@ var wire_up_effects_player = function(ui, node){
     "http://" + $omega_config["host"]    +
                 $omega_config["prefix"]  + "/audio";
 
-  ui.effects_player =
-    new EffectsPlayer({path: audio_path + "/effects/",
-                       scene: ui.canvas_container.canvas.scene });
+  ui.effects_player.path  = audio_path + "/effects/";
+  ui.effects_player.scene = ui.canvas_container.canvas.scene;
 
   // start the particle subsystem
   ui.effects_player.start();

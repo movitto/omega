@@ -168,7 +168,8 @@ $(document).ready(function(){
   });
 
   // setup interface
-  var ui = {canvas_container    : new CanvasContainer()};
+  var ui = {canvas_container    : new CanvasContainer(),
+            effects_player      : new EffectsPlayer()};
   wire_up_ui(ui, node);
 
   // restore session

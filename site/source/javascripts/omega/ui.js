@@ -8,7 +8,6 @@
 //= require "vendor/mousehold"
 //= require "vendor/utf8_encode"
 //= require "vendor/md5"
-//= require "vendor/jquery.timer"
 
 /// three.js and deps
 //= require "vendor/three-r58"

@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/jquery.timer"
+
 /* Instantiate and return a new Entity Container
  */
 function EntityContainer(args){
@@ -67,25 +69,12 @@ function StatusIndicator(args){
   // timer to blink icon
   var _this = this;
   var obg = '';
-  var bg_timer = $.timer(function(){
-    var cbg = _this.component().css('background-image');
-
-    if(cbg == '' && obg == ''){
-    }else if(obg != ''){
-      _this.component().css('background', obg)
-      obg = '';
-    }else{
-      obg = cbg;
-      _this.component().css('background', '')
-    }
-  })
-  bg_timer.set({time: 1000, autostart: false})
 
   // Helper set icon background
   this.set_bg = function(bg){
     if(bg == null){
       this.component().css('background', '');
-      bg_timer.stop();
+      StatusIndicator.bg_timer.stop();
       return;
     }
 
@@ -95,7 +84,8 @@ function StatusIndicator(args){
                   $omega_config['host'] +
                   $omega_config['prefix'] +
                   '/images/status/' + bg + '.png") no-repeat');
-    bg_timer.play();
+    StatusIndicator._instance = this;
+    StatusIndicator.bg_timer.play();
   }
 
   /* Return boolean indicating if state is currently represented locally
@@ -133,6 +123,20 @@ function StatusIndicator(args){
     }
   }
 }
+
+StatusIndicator.bg_timer = $.timer(function(){
+  var si  = StatusIndicator._instance;
+  var cbg = si.component().css('background-image');
+
+  if(cbg == '' && obg == ''){
+  }else if(obg != ''){
+    si.component().css('background', obg)
+    obg = '';
+  }else{
+    obg = cbg;
+    si.component().css('background', '')
+  }
+}, 1000, false)
 
 /* Instantiate and return a new Nav Container
  */
@@ -314,12 +318,13 @@ function EffectsPlayer(args){
     this.scene.animate();
   }
 
-  this.effects_timer =
-    $.timer(function(){
-      _this.effects_loop();
-    }, 250, false);
-
   this.start = function(){
-    this.effects_timer.play();
+    EffectsPlayer._instance = this;
+    EffectsPlayer.effects_timer.play();
   };
 }
+
+EffectsPlayer.effects_timer =
+  $.timer(function(){
+    EffectsPlayer._instance.effects_loop();
+  }, 250, false);

@@ -24,12 +24,6 @@ function Star(args){
   _star_load_light(this);
   _star_load_flare(this);
 
-  //this.added_to = function(scene){
-  //   star.glow.material.uniforms.viewVector.value =
-  //     new THREE.Vector3().subVectors( scene.camera._camera.position, star.glow.position );
-  //}
-
-  //star.clickable_obj = star.glow;
   this.shader_components.push(star.glow);
   this.shader_components.push(star.shader_sphere);
   this.components.push(star.sphere);

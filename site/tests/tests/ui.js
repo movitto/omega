@@ -1435,7 +1435,8 @@ describe("EffectsContainer", function(){
   describe("#effects_loop", function(){
     var cb;
     before(function(){
-      cb = ec.effects_timer.action;
+      EffectsPlayer._instance = ec;
+      cb = EffectsPlayer.effects_timer.action;
     })
 
     it("runs update_particles on all scene objects which define it", function(){
@@ -1458,7 +1459,7 @@ describe("EffectsContainer", function(){
 
   describe("#start", function(){
     it("runs effects timer", function(){
-      var spy = sinon.spy(ec.effects_timer, 'play')
+      var spy = sinon.spy(EffectsPlayer.effects_timer, 'play')
       ec.start();
       sinon.assert.called(spy);
     });
