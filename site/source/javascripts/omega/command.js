@@ -10,6 +10,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+// TODO register audio effects for various server and ui events
+// (attacking, mining, construction, jump, selection, etc)
+
 /* Server Event Tracker
  *
  * Implements the singleton pattern

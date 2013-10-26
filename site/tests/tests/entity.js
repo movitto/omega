@@ -1259,6 +1259,27 @@ describe("Station", function(){
     assert(st.location).isTypeOf(Location)
   });
 
+  describe("#update", function(){
+    it("updates attributes", function(){
+      st.update({size: 50})
+      assert(st.size).equals(50);
+    });
+
+    it("updates location", function(){
+      var l = {id : 42, x : 50};
+      st.update({location : l})
+      assert(st.location.x).equals(50);
+    });
+  });
+
+  describe("#refresh", function(){
+    it("invokes update method with self", function(){
+      var spy = sinon.spy(st, 'update');
+      st.refresh();
+      sinon.assert.calledWith(spy, st);
+    });
+  });
+
   describe("#belongs_to_user", function(){
     describe("user_id is same as specified user's", function(){
       it("returns true", function(){

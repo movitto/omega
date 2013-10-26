@@ -22,7 +22,7 @@ function Star(args){
   _star_load_mesh(this);
   _star_load_glow(this);
   _star_load_light(this);
-  _star_load_flare(this);
+  //_star_load_flare(this);
 
   this.shader_components.push(star.glow);
   this.shader_components.push(star.shader_sphere);

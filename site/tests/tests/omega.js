@@ -1988,7 +1988,16 @@ pavlov.specify("omega.js", function(){
           sinon.assert.called(motel_event)
         });
       });
+
+      //describe("previous root entity was a galaxy", function(){
+      //  it("removes galaxy background mesh") // NIY
+      //})
     });
+
+    //describe("root entity is a galaxy", function(){
+    //  it("adds galaxy background mesh", function(){ // NIY
+    //  })
+    //});
   });
 
   describe("#show_missions", function(){

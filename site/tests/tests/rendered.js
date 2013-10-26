@@ -1,3 +1,9 @@
+pavlov.specify("Galaxy", function(){
+describe("Galaxy", function(){
+  // it("adds THREE particle system component to entity") // NIY
+  // it("updates particles according with a density wave algorithm"); // NIY
+});});
+
 pavlov.specify("SolarSystem", function(){
 describe("SolarSystem", function(){
   var sys;
@@ -77,20 +83,37 @@ describe("Star", function(){
 
   it("adds THREE sphere component to entity", function(){
     var comp = star.sphere;
+    assert(star.components).includes(comp);
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
     assert(comp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
     assert(comp.material.__proto__).equals(THREE.ShaderMaterial.prototype);
+    // TODO test lava shader animation loop?
   });
 
   it("adds shader-based THREE glow component to entity", function(){
     var comp = star.glow;
+    assert(star.shader_components).includes(comp);
     assert(comp.__proto__).equals(THREE.Mesh.prototype);
 
     // glow geometry is cloned from sphere geo,
     // glow just produces a THREE.Geometry instance
     assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
     assert(comp.material.__proto__).equals(THREE.ShaderMaterial.prototype);
+
+    // also verify shader sphere
+    comp = star.shader_sphere;
+    assert(star.shader_components).includes(comp);
+    assert(comp.__proto__).equals(THREE.Mesh.prototype);
+    assert(comp.geometry.__proto__).equals(THREE.Geometry.prototype);
+    assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
   });
+
+  it("adds THREE light component to entity", function(){
+    var comp = star.light;
+    assert(star.components).includes(comp);
+    assert(comp.__proto__).equals(THREE.PointLight.prototype);
+  });
+
 });});
 
 pavlov.specify("Planet", function(){
@@ -320,6 +343,55 @@ describe("Ship", function(){
       load_ship();
     }));
 
+    it("updates THREE highlight effects location", function(){
+      load_ship();
+      sh.update({location:{x:10,y:-10,z:50}})
+      for(var h = 0; h < sh.highlight_effects.length; h++){
+        var e = sh.highlight_effects[h];
+        assert(e.position.x).equals(10)
+        assert(e.position.y).equals(190); // XXX adjust for static adjustment in class
+        assert(e.position.z).equals(50);
+      }
+    });
+
+    function load_lamps(){
+      var ol = [];
+      var or = [];
+      for(var i = 0; i < sh.lamps.length; i++){
+        var ox = sh.lamps[i].position.x;
+        var oy = sh.lamps[i].position.y;
+        var oz = sh.lamps[i].position.z;
+        var orx = sh.lamps[i].rotation.x;
+        var ory = sh.lamps[i].rotation.y;
+        var orz = sh.lamps[i].rotation.z;
+        ol.push([ox,oy,oz])
+        or.push([orx,ory,orz])
+      }
+      return [ol,or];
+    }
+
+    it("updates lamps location", function(){
+      load_ship();
+      var orig = load_lamps();
+      var ol = orig[0];
+
+      sh.update({location:{x:10,y:-10,z:50}})
+      for(var h = 0; h < sh.lamps.length; h++){
+        var e = sh.lamps[h];
+        assert(e.position.x).equals(ol[h][0] + 10)
+        assert(e.position.y).equals(ol[h][1] - 10);
+        assert(e.position.z).equals(ol[h][2] + 50);
+      }
+    });
+
+    //it("updates lamps orientation", function(){ // NIY
+    //  load_ship();
+    //  var orig = load_lamps();
+    //  var ol = orig[0]; var or = orig[1];
+    //  sh.update({location:{orientation_x:1,orientation_y:0,orientation_z:0}});
+    //  // TODO verify
+    //});
+
     function load_trails(){
       var ot = [];
       var or = [];
@@ -545,6 +617,27 @@ describe("Ship", function(){
     }
   });
 
+  it("creates various ship highlight effects", function(){
+    load_ship();
+    assert(sh.highlight_effects.length).equals(1);
+    var comp = sh.highlight_effects[0];
+    assert(sh.components).includes(comp)
+    assert(comp.__proto__).equals(THREE.Mesh.prototype)
+    assert(comp.geometry.__proto__).equals(THREE.CylinderGeometry.prototype)
+    assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype)
+  });
+
+  it("adds lamp components to entity", function(){
+    load_ship();
+    for(var i = 0; i < sh.lamps.length; i++){
+      var lamp = sh.lamps[i];
+      assert(sh.components).includes(lamp);
+      assert(lamp.__proto__).equals(THREE.Mesh.prototype);
+      assert(lamp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
+      assert(lamp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+    }
+  });
+
   it("create THREE partitcle system component (for attack)", function(){
     load_ship();
     var comp = sh.attack_particles;
@@ -584,6 +677,20 @@ describe("Station", function(){
     clear_three_js();
   })
 
+  //describe("#update", function(){
+  //  describe("station is selected", function(){
+  //    it("sets mesh emissive color", async(function(){ // NIY
+  //      resume();
+  //    }));
+  //  });
+
+  //  describe("ship is not selected", function(){
+  //    it("resets ship emissive color", async(function(){ // NIY
+  //      resume();
+  //    }));
+  //  });
+  //})
+
   it("adds THREE clickable mesh component to entity", async(function(){
     var verified = false;
     UIResources().on('geometry_loaded', function(){
@@ -598,6 +705,25 @@ describe("Station", function(){
       resume();
     })
   }));
+
+  it("creates various station highlight effects", function(){
+    assert(st.highlight_effects.length).equals(1);
+    var comp = st.highlight_effects[0];
+    assert(st.components).includes(comp)
+    assert(comp.__proto__).equals(THREE.Mesh.prototype)
+    assert(comp.geometry.__proto__).equals(THREE.CylinderGeometry.prototype)
+    assert(comp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype)
+  });
+
+  it("adds lamp components to entity", function(){
+    for(var i = 0; i < st.lamps.length; i++){
+      var lamp = st.lamps[i];
+      assert(st.components).includes(lamp);
+      assert(lamp.__proto__).equals(THREE.Mesh.prototype);
+      assert(lamp.geometry.__proto__).equals(THREE.SphereGeometry.prototype);
+      assert(lamp.material.__proto__).equals(THREE.MeshBasicMaterial.prototype);
+    }
+  });
 });});
 
 pavlov.specify("Skybox", function(){
@@ -609,5 +735,6 @@ describe("Skybox", function(){
     assert(sb.components[0].__proto__).equals(THREE.Mesh.prototype);
     assert(sb.components[0].geometry.__proto__).equals(THREE.CubeGeometry.prototype);
     assert(sb.components[0].material.__proto__).equals(THREE.ShaderMaterial.prototype);
+    // TODO verify material uniforms are loaded from galaxy2 background texture cube
   });
 });});

@@ -87,6 +87,7 @@ function _galaxy_load_mesh(galaxy){
                    transparent: true });
       });
 
+  /// see density wave theory:
   /// http://beltoforion.de/galaxy/galaxy_en.html#idRef3
   var geo =
     UIResources().cached("galaxy_" + galaxy.id + "_geometry",

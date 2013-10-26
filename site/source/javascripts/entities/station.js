@@ -234,6 +234,7 @@ function _station_render_details(){
     }
   }
 
+  // TODO allow specification of construction options
   if(this.belongs_to_current_user())
     details.push("<span id='cmd_construct' class='commands'>construct</span>");
   return details;

@@ -410,6 +410,7 @@ describe("CanvasComponent", function(){
     cc = new CanvasComponent({scene : canvas.scene});
     cc.toggle_canvas_id = '#toggle_control';
     cc.components.push({id : 'component1'});
+    cc.shader_components.push({id : 'component2'});
   });
 
   describe("#toggle_canvas", function(){
@@ -430,10 +431,16 @@ describe("CanvasComponent", function(){
   });
 
   describe("#shide", function(){
-    it("removes scene components from scene", function(){
+    it("removes components from scene", function(){
       var spy = sinon.spy(canvas.scene, 'remove_component')
       cc.shide();
       sinon.assert.calledWith(spy, {id : 'component1'})
+    });
+
+    it("removes components from shader scene", function(){
+      var spy = sinon.spy(canvas.scene, 'remove_shader_component')
+      cc.shide();
+      sinon.assert.calledWith(spy, {id : 'component2'})
     });
 
     it("sets showing false", function(){
@@ -460,10 +467,16 @@ describe("CanvasComponent", function(){
       sinon.assert.calledWith(spy, ':checked', true)
     });
 
-    it("adds scene components to scene", function(){
+    it("adds components to scene", function(){
       var spy = sinon.spy(canvas.scene, 'add_component')
       cc.sshow();
       sinon.assert.calledWith(spy, {id : 'component1'})
+    });
+
+    it("adds components to shader scene", function(){
+      var spy = sinon.spy(canvas.scene, 'add_shader_component')
+      cc.sshow();
+      sinon.assert.calledWith(spy, {id : 'component2'})
     });
   })
 
@@ -602,6 +615,8 @@ describe("Scene", function(){
     scene = canvas.scene;
   })
 
+  // it("renders to webgl output") // NIY
+
   it("creates camera subcomponent", function(){
     assert(scene.camera).isTypeOf(Camera);
   })
@@ -617,6 +632,9 @@ describe("Scene", function(){
   it("creates grid subcomponent", function(){
     assert(scene.grid).isTypeOf(Grid);
   })
+
+  //it("adds bloom pass to scene render") // NIY
+  //it("adds custom additive shader pass to scene render") // NIY
 
   describe("#set_size", function(){
     it("it sets THREE renderer size", function(){
@@ -638,6 +656,7 @@ describe("Scene", function(){
     before(function(){
       c = new TestEntity({ id : 42});
       c.components.push(new THREE.Geometry())
+      c.shader_components.push(new THREE.Geometry())
     })
 
     it("adds entity to scene", function(){
@@ -649,6 +668,12 @@ describe("Scene", function(){
       var spy = sinon.spy(scene, 'add_component');
       scene.add_entity(c);
       sinon.assert.calledWith(spy, c.components[0]);
+    });
+
+    it("adds entity shader components to shader scene", function(){
+      var spy = sinon.spy(scene, 'add_shader_component');
+      scene.add_entity(c);
+      sinon.assert.calledWith(spy, c.shader_components[0]);
     });
 
     it("invokes entity.added_to(scene)", function(){
@@ -698,6 +723,15 @@ describe("Scene", function(){
       scene.add_entity(c);
       scene.remove_entity(c.id);
       sinon.assert.calledWith(spy, c.components[0]);
+    });
+
+    it("removes each entity shader component from scene", function(){
+      var spy = sinon.spy(scene, 'remove_shader_component');
+      var c = new TestEntity({ id : 42});
+      c.shader_components.push(new THREE.Geometry())
+      scene.add_entity(c);
+      scene.remove_entity(c.id);
+      sinon.assert.calledWith(spy, c.shader_components[0]);
     });
 
     it("invokes entity.removed_from(scene)", function(){
@@ -796,6 +830,15 @@ describe("Scene", function(){
     })
   });
 
+  describe("#objects", function(){
+    it("returns scene objects", function(){
+      var m = new THREE.Mesh()
+      scene._scene.add(m);
+      assert(scene.objects().length).equals(1);
+      assert(scene.objects()[0]).equals(m);
+    })
+  })
+
   describe("#add_component", function(){
     it("adds component to THREE scene", function(){
       var spy = sinon.spy(scene._scene, 'add');
@@ -805,11 +848,29 @@ describe("Scene", function(){
     });
   });
 
+  describe("#add_shader_component", function(){
+    it("adds component to THREE shader scene", function(){
+      var spy = sinon.spy(scene._shader_scene, 'add');
+      var c = new THREE.Geometry()
+      scene.add_shader_component(c);
+      sinon.assert.calledWith(spy, c);
+    });
+  });
+
   describe("#remove_component", function(){
     it("removes component from THREE scene", function(){
       var spy = sinon.spy(scene._scene, 'remove');
       var c = new THREE.Geometry()
       scene.remove_component(c);
+      sinon.assert.calledWith(spy, c);
+    });
+  });
+
+  describe("#remove_shader_component", function(){
+    it("removes component from THREE shader scene", function(){
+      var spy = sinon.spy(scene._shader_scene, 'remove');
+      var c = new THREE.Geometry()
+      scene.remove_shader_component(c);
       sinon.assert.calledWith(spy, c);
     });
   });
@@ -960,11 +1021,32 @@ describe("Camera", function(){
   //  it("creates new THREE perspective camera");
   //});
 
+  //it("handles cam_reset click") // NIY
+
   describe("#set_size", function(){
-    it("sets aspect ration", function(){
+    it("sets aspect ratio", function(){
       cam.set_size(200, 100);
       assert(cam._camera.aspect).equals(2)
     });
+
+    describe("invalid aspect ratio", function(){
+      it("sets the aspect ratio to 1", function(){
+        cam.set_size();
+        assert(cam._camera.aspect).equals(1)
+      })
+    });
+
+    it("updates camera projection matrix", function(){
+      var spy = sinon.spy(cam._camera, 'updateProjectionMatrix')
+      cam.set_size(200, 100);
+      sinon.assert.called(spy);
+    })
+
+    it("updates shader camera projection matrix", function(){
+      var spy = sinon.spy(cam._shader_camera, 'updateProjectionMatrix')
+      cam.set_size(200, 100);
+      sinon.assert.called(spy);
+    })
   });
 
   describe("#reset", function(){

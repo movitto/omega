@@ -685,6 +685,7 @@ var _ship_selection =
       ['Move Ship',
        function(){
         // coordinate specification
+        // TODO also render a list of entities in selected system, populated this w/ an entity's location if clicked
         return "<div class='dialog_row'>" + this.id + "</div>" +
                "<div class='dialog_row'>X: <input id='dest_x' type='text' value='"+roundTo(this.location.x,2)+"'/></div>" +
                "<div class='dialog_row'>Y: <input id='dest_y' type='text' value='"+roundTo(this.location.y,2)+"'/></div>" +
