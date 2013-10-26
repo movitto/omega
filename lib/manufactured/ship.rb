@@ -104,7 +104,7 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base attack distance which to assign to the ship
   def self.base_attack_distance(type)
-    500
+    400
   end
 
   # Number of attacks per second ship can launch
@@ -227,7 +227,7 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base mining distance which to assign to the ship
   def self.base_mining_distance(type)
-    100
+    400
   end
 
   # @!endgroup
@@ -316,8 +316,8 @@ class Ship
                          :system_id            => nil,
                          :solar_system         => nil,
                          :cargo_capacity       => 100,
-                         :transfer_distance    => 100,
-                         :collection_distance  => 100,
+                         :transfer_distance    => 200,
+                         :collection_distance  => 300,
                          :shield_level         =>   0,
                          :hp                   => nil
 

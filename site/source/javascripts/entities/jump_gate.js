@@ -245,7 +245,6 @@ function _jump_gate_load_selection_sphere(jg){
                            sphere.position.x = jg.location.x - 20;
                            sphere.position.y = jg.location.y;
                            sphere.position.z = jg.location.z;
-                           sphere.scale.x = sphere.scale.y = sphere.scale.z = 5;
                            return sphere;
                          });
 }
