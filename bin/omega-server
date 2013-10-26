@@ -59,7 +59,7 @@ def setup_signals(config, node)
     # XXX thread needed as we can't block from signal trap
     Thread.new {
       # XXX amqp gem requires explicit shutdown operation,
-      #     this should be taken can of in rjr
+      #     this should be taken care of in rjr
       ::AMQP.stop { || node.halt }
     }
   }

@@ -7,7 +7,7 @@ as published by the Free Software Foundation, either version 3
 of the License, or (at your option) any later version.
 
 ## Intro
-The Omega Project aims to develop a universal simulator accessible by registered
+The Omega Project aims to develop a universe simulator accessible by registered
 users over the json-rpc protocol. This allows the most users and developers to access
 and control entities and subsystems via any programming language and transport protocol.
 

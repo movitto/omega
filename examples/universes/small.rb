@@ -58,14 +58,14 @@ galaxy 'Zeus' do |g|
   system 'Philo', 'HU1792', :location => loc(-754,627,481) do |sys|
     planet 'Xeno', :movement_strategy =>
       orbit(:speed => 0.02, :e => 0.36, :p => 1080,
-            :direction => Motel.random_axis(:orthogonal_to => [0,1,0]))
+            :direction => random_axis(:orthogonal_to => [0,1,0]))
   
     planet 'Aesop', :movement_strategy =>
       orbit(:e => 0.65, :speed => 0.008, :p => 6000,
-            :direction => Motel.random_axis(:orthogonal_to => [0,1,0]))
+            :direction => random_axis(:orthogonal_to => [0,1,0]))
 
     asteroid_belt :e => 0.62, :p => 3000,
-                  :direction => Motel.random_axis(:orthogonal_to => [0,1,0])
+                  :direction => random_axis(:orthogonal_to => [0,1,0])
   end
 end
 

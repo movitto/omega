@@ -89,6 +89,9 @@ module Entity
   # * name
   # * location
   # * parent_id
+  #
+  # TODO implement a centralized 'errors' mechanism so invoker can
+  # quickly lookup what is wrong w/ the validation
   def entity_valid?
     ch = children
 
