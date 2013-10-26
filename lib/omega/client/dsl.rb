@@ -270,8 +270,9 @@ module Omega
 
         asts =
           locs.collect { |loc|
-            asteroid(gen_uuid,
-                     {:location => loc}.merge(args))
+            id = gen_uuid
+            loc.id = id
+            asteroid(id, {:location => loc}.merge(args))
           }
 
         dsl.run asts, :asteroids => asts, &bl

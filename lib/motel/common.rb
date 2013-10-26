@@ -291,7 +291,7 @@ def self.random_axis(args = {})
   x2,y2,z2 = *Motel.normalize(x2,y2,z2)
 
   # 0 out z if 2D
-  z1 = z2 = 0 if dimensions == 0
+  z1 = z2 = 0 if dimensions == 2
 
   return [[x1,y1,z1],[x2,y2,z2]]
 end

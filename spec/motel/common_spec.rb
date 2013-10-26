@@ -105,6 +105,10 @@ describe "#rotated_angle" do
   it "returns the angle component of the axis-angle specified by axis and new/old coordinates"
 end
 
+describe "#elliptical_path" do
+  it "returns coordinates in an elliptical path of the specified e/p/direction"
+end
+
 describe "#orthogonal?" do
   context "vectors are orthogonal" do
     it "returns true" do
@@ -172,6 +176,15 @@ describe "#random_axis" do
     axis_vector2[0].should_not == 0
     axis_vector2[1].should_not == 0
     axis_vector2[2].should == 0
+  end
+
+  context "orthogonal_to vector is specified" do
+    it "generates a random axis orthogonal to the specified vector" do
+      v = Motel.rand_vector
+      axis_vector1, axis_vector2 = Motel.random_axis  :orthogonal_to => v
+      Motel.dot_product(*axis_vector1, *v).should be_within(OmegaTest::CLOSE_ENOUGH).of(0)
+      Motel.dot_product(*axis_vector2, *v).should be_within(OmegaTest::CLOSE_ENOUGH).of(0)
+    end
   end
 
   context "dimension < 2 or > 3" do

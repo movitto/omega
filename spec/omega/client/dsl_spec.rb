@@ -209,6 +209,56 @@ describe DSL do
     end
   end
 
+  describe "#asteroid_field" do
+    it "creates asteroids at the specified locations" do
+      l1 = Motel::Location.new :x => 100, :y => 0, :z => 0
+      l2 = Motel::Location.new :x => 200, :y => 0, :z => 0
+
+      asts = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          asts = asteroid_field(:locations => [l1,l2], :size => 10, :color => 'aaaaaa') { |as|
+            as.size.should == 2
+            as.first.location.should == l1
+            as.last.location.should  == l2
+            as.first.size.should     == 10
+            as.last.size.should      == 10
+          }
+        }
+      }
+
+      asts.size.should == 2
+      asts.first.location.should == l1
+      asts.last.location.should  == l2
+      asts.first.size.should     == 10
+      asts.last.size.should      == 10
+      Cosmos::RJR.registry.entity(&with_id(asts.first.id)).should_not be_nil
+      Cosmos::RJR.registry.entity(&with_id(asts.last.id)).should_not be_nil
+    end
+  end
+
+  describe "#asteroid_belt" do
+    it "creates asteroids at locations generated from the specified elliptical path" do
+      num = 31 # XXX
+      p = 100; e = 0.6 ; d = Motel.random_axis
+      path = Motel.elliptical_path(p, e, d)
+
+      asts = nil
+      galaxy('ngal1') { |g|
+        system('system1') { |s|
+          asts = asteroid_belt(:p => p, :e => e, :direction => d) { |as|
+            as.size.should == num
+            as.all? { |a| a.class == Cosmos::Entities::Asteroid }.should == true
+          }
+        }
+      }
+
+      asts.size.should == num
+      asts.all? { |a| a.class == Cosmos::Entities::Asteroid }.should be_true
+      # TODO verify asteroids are evenly spaced out on elliptical path & exist on server
+    end
+  end
+
   describe "#resource" do
     it "creates a new resource" do
       a = r = nil
@@ -255,6 +305,21 @@ describe DSL do
         lambda {
           planet('pl1')
         }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe "#orbit" do
+    it "returns new elliptical movement strategy with the specified params" do
+      e = orbit :speed => 0.01
+      e.should be_an_instance_of(Motel::MovementStrategies::Elliptical)
+      e.speed.should == 0.01
+    end
+
+    context "relative_to not specified" do
+      it "sets relative_to foci" do
+        e = orbit :speed => 0.01
+        e.relative_to.should == Motel::MovementStrategies::Elliptical::FOCI
       end
     end
   end
