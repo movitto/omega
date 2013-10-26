@@ -542,7 +542,7 @@ function _ship_create_attack_vector(ship){
     UIResources().cached('ship_attacking_particle_material',
       function(i) {
         return new THREE.ParticleBasicMaterial({
-                     color: 0xFF0000, size: 50,
+                     color: 0xFF0000, size: 20,
                      map: UIResources().load_texture(UIResources().images_path + "/particle.png"),
                      blending: THREE.AdditiveBlending, transparent: true });
       });
