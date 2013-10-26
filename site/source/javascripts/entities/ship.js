@@ -667,8 +667,8 @@ function _ship_render_details(){
   if(this.belongs_to_current_user()){
     details.push("<span id='cmd_move_select' class='commands'>move</span>");
     details.push("<span id='cmd_attack_select' class='commands'>attack</span>");
-    var dcss = this.docked_at ? 'display: none' : '';
-    var ucss = this.docked_at ? '' : 'display: none';
+    var dcss = this.docked_at_id ? 'display: none' : '';
+    var ucss = this.docked_at_id ? '' : 'display: none';
     details.push("<span id='cmd_dock_select' class='commands' style='" + dcss + "'>dock</span>");
     details.push("<span id='cmd_undock' class='commands' style='" + ucss + "'>undock</span>");
     details.push("<span id='cmd_transfer' class='commands' style='" + ucss + "'>transfer</span>");
@@ -721,7 +721,7 @@ var _ship_selection =
         var entities = Entities().select(function(e) {
           return e.json_class == 'Manufactured::Station' &&
                  e.belongs_to_current_user() &&
-                 e.location.is_within(100, ship.location);
+                 e.location.is_within(e.docking_distance, ship.location);
         });
 
         var text = 'Dock ' + this.id + ' at<br/>';
@@ -813,7 +813,7 @@ function _ship_clicked_in(scene){
   })
 
   $('#cmd_transfer').live('click', function(e){
-    Commands.transfer_resources(ship, ship.docked_at.id,
+    Commands.transfer_resources(ship, ship.docked_at_id,
                                 function(res){
                                   if(!res.error){
                                     var sh = res.result[0];

@@ -234,7 +234,16 @@ class Ship
 
   # {Manufactured::Station} ship is docked to, nil if not docked
   attr_accessor :docked_at
-  def docked_at_id ; @docked_at.nil? ? nil : @docked_at.id end
+
+  # {String} id of the station ship is docked to
+  attr_accessor :docked_at_id
+
+  # override docked_at writer to also store docked_at id
+  def docked_at=(val)
+    @docked_at = val
+    @docked_at_id = val.nil? ? nil : val.id
+    val
+  end
 
   # {Manufactured::Ship} ship being attacked, nil if not attacking
   attr_accessor :attacking
@@ -287,7 +296,8 @@ class Ship
   # @option args [String] :id,'id' id to assign to the ship
   # @option args [String] :user_id,'user_id' id of user that owns the ship
   # @option args [SHIP_TYPE] :type,'type' type to assign to ship, if not set a random type will be assigned
-  # @option args [Manufactured::Station] :docked_at,'docked_at' station which ship is docket at
+  # @option args [Manufactured::Station] :docked_at,'docked_at' station which ship is docked at
+  # @option args [Manufactured::Station] :docked_at_id,'docked_at_id' id of station which ship is docked at
   # @option args [Manufactured::Ship] :attacking,'attacking' manufactured ship which the ship is attacking
   # @option args [Cosmos::Resource] :mining,'mining' resource source which the ship is mining
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
@@ -310,6 +320,7 @@ class Ship
                          :callbacks            =>  [],
                          :resources            =>  [],
                          :docked_at            => nil,
+                         :docked_at_id         => @docked_at_id,
                          :attacking            => nil,
                          :mining               => nil,
                          :location             => nil,
@@ -344,7 +355,7 @@ class Ship
   def update(ship)
     update_from(ship, :hp, :shield_level, :distance_moved, :resources,
                       :parent_id, :parent, :system_id, :solar_system,
-                      :location, :mining, :attacking, :docked_at)
+                      :location, :mining, :attacking, :docked_at, :docked_at_id)
   end
 
   # Return boolean indicating if this ship is valid
@@ -359,6 +370,7 @@ class Ship
   # * type is one of valid TYPES
   # * size corresponds to the correct value for type
   # * docked_at is set to a Manufactured::Station which permits docking
+  # * docked_at_id is valid if ship is docked
   # * attacking is set to Manufactured::Ship that can be attacked
   # * mining is set to Cosmos::Resource that can be mined
   # * solar system is set to Cosmos::SolarSystem
@@ -385,7 +397,8 @@ class Ship
      @shield_level <= @max_shield_level &&
 
     (@docked_at.nil? ||
-     (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at))) &&
+     (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at) &&
+      !@docked_at_id == @docked_at.id)) &&
 
     (@attacking.nil? ||
      (@attacking.is_a?(Manufactured::Ship) && can_attack?(@attacking))) &&
@@ -446,20 +459,20 @@ class Ship
   #
   # @return [true,false] indicating if ship is docked or not
   def docked?
-    !@docked_at.nil?
+    !self.docked_at_id.nil?
   end
 
   # Dock ship at the specified station
   #
   # @param [Manufactured::Station] station station to dock ship at
   def dock_at(station)
-    @docked_at = station
+    self.docked_at = station
   end
 
   # Undock ship from docked station
   def undock
     # TODO check to see if station has given ship undocking clearance
-    @docked_at = nil
+    self.docked_at = nil
   end
 
   # Return boolean indicating if ship is currently attacking
@@ -512,11 +525,11 @@ class Ship
          :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
+         :docked_at_id => @docked_at_id,
 
          # FIXME simply pass id of these entities, not entities themselves.
          # For performance reasons and also to prevent circular
          # references in certain cases (eg two ships attacking each other)
-         :docked_at => @docked_at,
          :attacking => @attacking,
          :mining    => @mining,
 

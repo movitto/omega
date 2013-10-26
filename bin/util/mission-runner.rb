@@ -100,16 +100,16 @@ $missions.each { |id, scenario, args|
     case req.dsl_method
     when "shared_station" then
       # create user ship docked at first creator station w/ ship
-      station = invoke('manufactured::get_entities',
-                        'of_type', 'Manufactured::Ship',
-                        'owned_by', smission.creator_id).
-                  collect { |sh| sh.docked_at }.compact.first
-      test_miner.dock_at station
+      station_id = invoke('manufactured::get_entities',
+                           'of_type', 'Manufactured::Ship',
+                           'owned_by', smission.creator_id).
+                  collect { |sh| sh.docked_at_id }.compact.first
+      test_miner.docked_at_id = station_id
       invoke('manufactured::admin::set', test_miner)
     when "docked_at" then
       # create user ship docked at specified station
-      station = req.params.first
-      test_miner.dock_at station
+      station_id = req.params.first
+      test_miner.docked_at_id = station_id
       invoke('manufactured::admin::set', test_miner)
     end
   }

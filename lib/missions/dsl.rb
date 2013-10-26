@@ -121,16 +121,12 @@ module Requirements
       centities  = Missions::RJR::node.invoke('manufactured::get_entities',
                                               'of_type', 'Manufactured::Ship',
                                               'owned_by', created_by.id)
-      cstats     = centities.collect { |s|
-                     s.docked_at.nil? ? nil : s.docked_at.id
-                   }.compact
+      cstats     = centities.collect { |s| s.docked_at_id }.compact
 
       aentities  = Missions::RJR::node.invoke('manufactured::get_entities',
                                               'of_type', 'Manufactured::Ship',
                                               'owned_by', assigning_to.id)
-      astats     = aentities.collect { |s|
-                     s.docked_at.nil? ? nil : s.docked_at.id
-                   }.compact
+      astats     = aentities.collect { |s| s.docked_at_id }.compact
 
       !(cstats & astats).empty?
     }
@@ -143,9 +139,7 @@ module Requirements
       aentities  = Missions::RJR::node.invoke('manufactured::get_entities',
                                               'of_type', 'Manufactured::Ship',
                                               'owned_by', assigning_to.id)
-      astats     = aentities.collect { |s|
-                     s.docked_at.nil? ? nil : s.docked_at.id
-                   }.compact
+      astats     = aentities.collect { |s| s.docked_at_id }.compact
 
       astats.include?(station.id)
     }

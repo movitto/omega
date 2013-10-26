@@ -10,6 +10,12 @@
 
 # unbridled entity update mechanism
 admin_set = proc { |entity|
+  # XXX special case, resolve foreign references
+  if entity.is_a?(Manufactured::Ship) && entity.docked_at_id
+    entity.docked_at = registry.find &with_id(entity.docked_at_id)
+  end
+  # TODO mining_id, attacking_id
+
   registry.update entity, &with_id(entity.id)
   nil
 }

@@ -60,7 +60,7 @@ macbeth_ship =
   ship('macbeth-ship', :user_id => 'Macbeth', :type => :destroyer,
        :system_id => castle_macbeth.system_id,
        :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
-dock(macbeth_ship.id, castle_macbeth.id) if macbeth_ship.docked_at.nil?
+dock(macbeth_ship.id, castle_macbeth.id) if macbeth_ship.docked_at_id.nil?
 
 elsinore =
   station('elsinore', :user_id => 'Hamlet', :type => :mining,
@@ -71,7 +71,7 @@ hamlet_ship =
   ship('hamlet-ship', :user_id => 'Hamlet', :type => :corvette,
        :system_id => elsinore.system_id,
        :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
-dock(hamlet_ship.id, elsinore.id) if hamlet_ship.docked_at.nil?
+dock(hamlet_ship.id, elsinore.id) if hamlet_ship.docked_at_id.nil?
 
 cyprus =
   station('cyprus', :user_id => 'Othello', :type => :commerce,
@@ -82,7 +82,7 @@ othello_ship =
   ship('othello-ship', :user_id => 'Othello', :type => :battlecruiser,
        :system_id => cyprus.system_id,
        :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
-dock(othello_ship.id, cyprus.id) if othello_ship.docked_at.nil?
+dock(othello_ship.id, cyprus.id) if othello_ship.docked_at_id.nil?
 
 rome =
   station('rome', :user_id => 'Ceasar', :type => :commerce,
@@ -93,13 +93,13 @@ octavius_ship =
   ship('octavius-ship', :user_id => 'Octavius', :type => :exploration,
        :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
-dock(octavius_ship.id, rome.id) if octavius_ship.docked_at.nil?
+dock(octavius_ship.id, rome.id) if octavius_ship.docked_at_id.nil?
 
 titus_ship =
   ship('titus-ship', :user_id => 'Titus', :type => :bomber,
        :system_id => rome.system_id,
        :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
-dock(titus_ship.id, rome.id) if titus_ship.docked_at.nil?
+dock(titus_ship.id, rome.id) if titus_ship.docked_at_id.nil?
 
 penglai =
   station('penglai', :user_id => 'Shennong', :type => :science,
