@@ -72,6 +72,11 @@ module Omega
         Motel::Location.random args
       end
 
+      # Wrapper around Motel.random_axis
+      def random_axis(*args)
+        Motel.random_axis *args
+      end
+
       # Utility wrapper to simply return a new location
       def loc(x,y,z)
         Motel::Location.new :x => x, :y => y, :z => z

@@ -34,6 +34,7 @@ $(document).ready(function(){
   var ui = {nav_container    : nav_container,
             status_indicator : status_indicator,
             canvas_container : canvas_container,
+            effects_player   : effects_player,
             dialog           : dialog };
   wire_up_ui(ui, node);
                    

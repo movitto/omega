@@ -68,7 +68,6 @@ function StatusIndicator(args){
 
   // timer to blink icon
   var _this = this;
-  var obg = '';
 
   // Helper set icon background
   this.set_bg = function(bg){
@@ -124,6 +123,7 @@ function StatusIndicator(args){
   }
 }
 
+var obg = '';
 StatusIndicator.bg_timer = $.timer(function(){
   var si  = StatusIndicator._instance;
   var cbg = si.component().css('background-image');

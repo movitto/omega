@@ -562,12 +562,8 @@ function _ship_create_attack_vector(ship){
     geo.scaley = 60 / dist * dy;
     geo.scalez = 60 / dist * dz;
 
-    for(var i = 0; i < num; ++i){
-      var vert = new THREE.Vector3(0,0,0);
-      if(geo.vertices.length > i)
-        geo.vertices[i] = vert;
-      else
-        geo.vertices.push(vert);
+    for(var i = geo.vertices.length; i < num; ++i){
+      geo.vertices.push(new THREE.Vector3(0,0,0));
     }
   }
 
