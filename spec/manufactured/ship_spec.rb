@@ -79,8 +79,8 @@ describe Ship do
       s.solar_system.should be_nil
       s.system_id.should be_nil
       s.cargo_capacity.should == 100
-      s.transfer_distance.should == 100
-      s.collection_distance.should == 100
+      s.transfer_distance.should == 200
+      s.collection_distance.should == 300
       s.shield_level.should == 0
 
       s.location.should be_an_instance_of(Motel::Location)
@@ -294,7 +294,7 @@ describe Ship do
 
     context "docked_at is invalid" do
       it "returns false" do
-        @s.dock_at(2)
+        @s.dock_at(build(:ship))
         @s.should_not be_valid
 
         st = build(:station,
@@ -669,8 +669,7 @@ describe Ship do
       j.should include('"size":35')
       j.should include('"hp":500')
       j.should include('"shield_level":20')
-      j.should include('"json_class":"Manufactured::Station"')
-      j.should include('"id":"station42"')
+      j.should include('"docked_at_id":"station42"')
       j.should include('"json_class":"Cosmos::Resource"')
       j.should include('"id":"res1"')
       j.should include('"json_class":"Manufactured::Ship"')

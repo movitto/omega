@@ -525,6 +525,7 @@ class Ship
          :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
+         :transfer_distance => @transfer_distance,
          :docked_at_id => @docked_at_id,
 
          # FIXME simply pass id of these entities, not entities themselves.

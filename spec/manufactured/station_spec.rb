@@ -63,10 +63,10 @@ describe Station do
       s.resources.should == []
       s.solar_system.should be_nil
       s.system_id.should be_nil
-      s.docking_distance.should == 100
+      s.docking_distance.should == 200
       s.cargo_capacity.should == 10000
-      s.transfer_distance.should == 100
-      s.construction_distance.should == 50
+      s.transfer_distance.should == 200
+      s.construction_distance.should == 300
 
       s.location.should be_an_instance_of(Motel::Location)
       s.location.coordinates.should == [0,0,1]

@@ -10,7 +10,7 @@ require 'rjr/dispatcher'
 module Manufactured::RJR
   describe "#command" do
     before(:each) do
-      dispatch_to @s, Manufactured::RJR, :INSPECT_METHODS
+      setup_manufactured :INSPECT_METHODS
     end
 
     it "retrieves command by id" do
@@ -23,7 +23,7 @@ module Manufactured::RJR
 
   describe "#status" do
     before(:each) do
-      dispatch_to @s, Manufactured::RJR, :INSPECT_METHODS
+      setup_manufactured :INSPECT_METHODS
     end
 
     it "returns registry.running?" do

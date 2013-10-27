@@ -421,7 +421,7 @@ describe DSL do
       dock sh.id, st.id
       Manufactured::RJR.registry.
                         entity(&with_id(sh.id)).
-                        docked_at.id.should == st.id
+                        docked_at_id.should == st.id
     end
   end
 

@@ -239,7 +239,7 @@ module Omega::Client
 
     describe "#select_target" do
       before(:each) do
-        s = create(:valid_ship, :type => :mining, :mining_distance => 50,
+        s = create(:valid_ship, :type => :mining,
                    :location => build(:location, :x => 0, :y => 0, :z => 0))
         @r = Miner.get(s.id)
 
@@ -249,7 +249,7 @@ module Omega::Client
         @cast.set_resource @cres
 
         @fast = create(:asteroid,
-                       :location => build(:location, :coordinates => [100,0,0]))
+                       :location => build(:location, :coordinates => [s.mining_distance+100,0,0]))
         @fres = create(:resource, :entity => @fast, :quantity => 10)
         @fast.set_resource @fres
       end
