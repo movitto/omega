@@ -73,4 +73,35 @@ class Module
       m.ancestors.include?(self)
     end
   end
+
+  # Define a foreign reference, this will:
+  # - define the normal attribute accessor
+  # - define an attribute accessor for the id attribute
+  # - define attribute writer so that id attribute is set
+  #     when setting attribute
+  # - define id attribute writer so that attribute is set
+  #     to nil if changing id
+  def foreign_reference(*symbols)
+    symbols.each { |symbol|
+      id_symbol      = "#{symbol}_id".intern
+      symbol_attr    = "@#{symbol}".intern
+      id_symbol_attr = "@#{id_symbol}".intern
+      writer_symbol = "#{symbol}=".intern
+      id_writer_symbol = "#{id_symbol}=".intern
+      attr_accessor symbol
+      attr_accessor id_symbol
+      define_method(writer_symbol) { |val|
+        instance_variable_set symbol_attr, val
+        instance_variable_set id_symbol_attr, (val.nil? ? nil : val.id)
+        nil
+      }
+      define_method(id_writer_symbol) { |val|
+        change = val != instance_variable_get(id_symbol_attr)
+        instance_variable_set(id_symbol_attr, val)
+        instance_variable_set(symbol_attr, nil) if change
+        nil
+      }
+    }
+    nil
+  end
 end
