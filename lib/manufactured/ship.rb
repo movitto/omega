@@ -233,6 +233,7 @@ class Ship
   # @!endgroup
 
   # {Manufactured::Station} ship is docked to, nil if not docked
+  # TODO replace w/ foreign_reference
   attr_accessor :docked_at
 
   # {String} id of the station ship is docked to
@@ -246,7 +247,7 @@ class Ship
   end
 
   # {Manufactured::Ship} ship being attacked, nil if not attacking
-  attr_accessor :attacking
+  foreign_reference :attacking
 
   # {Cosmos::Resource} ship is mining, nil if not mining
   attr_accessor :mining
@@ -297,8 +298,9 @@ class Ship
   # @option args [String] :user_id,'user_id' id of user that owns the ship
   # @option args [SHIP_TYPE] :type,'type' type to assign to ship, if not set a random type will be assigned
   # @option args [Manufactured::Station] :docked_at,'docked_at' station which ship is docked at
-  # @option args [Manufactured::Station] :docked_at_id,'docked_at_id' id of station which ship is docked at
-  # @option args [Manufactured::Ship] :attacking,'attacking' manufactured ship which the ship is attacking
+  # @option args [String] :docked_at_id,'docked_at_id' id of station which ship is docked at
+  # @option args [Manufactured::Ship] :attacking,'attacking' ship which this ship is attacking
+  # @option args [String] :attacking_id,'attacking_id' id of ship which this ship is attacking
   # @option args [Cosmos::Resource] :mining,'mining' resource source which the ship is mining
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
   # @option args [Array<Resource>] :resources,'resources' list of resources to set on ship
@@ -322,6 +324,7 @@ class Ship
                          :docked_at            => nil,
                          :docked_at_id         => @docked_at_id,
                          :attacking            => nil,
+                         :attacking_id         => @attacking_id,
                          :mining               => nil,
                          :location             => nil,
                          :system_id            => nil,
@@ -355,7 +358,8 @@ class Ship
   def update(ship)
     update_from(ship, :hp, :shield_level, :distance_moved, :resources,
                       :parent_id, :parent, :system_id, :solar_system,
-                      :location, :mining, :attacking, :docked_at, :docked_at_id)
+                      :location, :mining, :attacking, :attacking_id,
+                      :docked_at, :docked_at_id)
   end
 
   # Return boolean indicating if this ship is valid
@@ -372,6 +376,7 @@ class Ship
   # * docked_at is set to a Manufactured::Station which permits docking
   # * docked_at_id is valid if ship is docked
   # * attacking is set to Manufactured::Ship that can be attacked
+  # * attacking_id is valid if ship is attacking
   # * mining is set to Cosmos::Resource that can be mined
   # * solar system is set to Cosmos::SolarSystem
   # * notification_callbacks is an array of Manufactured::Callbacks
@@ -398,10 +403,11 @@ class Ship
 
     (@docked_at.nil? ||
      (@docked_at.is_a?(Manufactured::Station) && can_dock_at?(@docked_at) &&
-      !@docked_at_id == @docked_at.id)) &&
+      !@docked_at_id == @docked_at.id)) && # ???
 
     (@attacking.nil? ||
-     (@attacking.is_a?(Manufactured::Ship) && can_attack?(@attacking))) &&
+     (@attacking.is_a?(Manufactured::Ship) && can_attack?(@attacking) &&
+      @attacking_id == @attacking.id)) &&
 
     (@mining.nil? ||
      (@mining.is_a?(Cosmos::Resource) && can_mine?(@mining))) &&
@@ -479,19 +485,19 @@ class Ship
   #
   # @return [true,false] indicating if ship is attacking or not
   def attacking?
-    !@attacking.nil?
+    !self.attacking.nil?
   end
 
   # Set ship's attack target
   #
   # @param [Manufactured::Ship] defender ship being attacked
   def start_attacking(defender)
-    @attacking = defender
+    self.attacking = defender
   end
 
   # Clear ship's attacking target
   def stop_attacking
-    @attacking = nil
+    self.attacking = nil
   end
 
 
@@ -527,13 +533,8 @@ class Ship
          :mining_distance => @mining_distance,
          :transfer_distance => @transfer_distance,
          :docked_at_id => @docked_at_id,
-
-         # FIXME simply pass id of these entities, not entities themselves.
-         # For performance reasons and also to prevent circular
-         # references in certain cases (eg two ships attacking each other)
-         :attacking => @attacking,
+         :attacking_id => @attacking_id,
          :mining    => @mining,
-
          :location => @location,
          :system_id => (@solar_system.nil? ? @system_id : @solar_system.id),
          :resources => @resources}
