@@ -1014,7 +1014,7 @@ describe("Ship", function(){
       before(function(){
         var scene = new Scene();
         sh.clicked_in(scene);
-        sh.docked_at = {id : 'foobar'}
+        sh.docked_at_id = 'foobar'
         sh.resources = [];
 
         Commands.transfer_resources = sinon.spy(Commands, 'transfer_resources');
