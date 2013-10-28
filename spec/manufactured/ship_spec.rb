@@ -202,8 +202,10 @@ describe Ship do
 
     it "updates ship attack target" do
       sh = Ship.new
-      sh.update Ship.new(:attacking => 42)
-      sh.attacking.should == 42
+      tgt = Ship.new :id => 'tgt'
+      sh.update Ship.new(:attacking => tgt)
+      sh.attacking.should == tgt
+      sh.attacking_id.should == 'tgt'
     end
 
     it "updates ship docked_at" do
@@ -324,7 +326,7 @@ describe Ship do
     context "attacking is invalid" do
       it "returns false" do
         @s.type = :corvette
-        @s.start_attacking(false)
+        @s.start_attacking(build(:station))
         @s.should_not be_valid
 
         sh = build(:ship,
@@ -673,7 +675,7 @@ describe Ship do
       j.should include('"json_class":"Cosmos::Resource"')
       j.should include('"id":"res1"')
       j.should include('"json_class":"Manufactured::Ship"')
-      j.should include('"id":"ship52"')
+      j.should include('"attacking_id":"ship52"')
       j.should include('"json_class":"Motel::Location"')
       j.should include('"id":20')
       j.should include('"y":-15')

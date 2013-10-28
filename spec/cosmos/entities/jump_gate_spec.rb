@@ -42,7 +42,7 @@ describe JumpGate do
       j = JumpGate.new
       j.endpoint_id.should be_nil
       j.endpoint.should be_nil
-      j.trigger_distance.should == 100
+      j.trigger_distance.should == 300
     end
 
     it "sets attributes" do

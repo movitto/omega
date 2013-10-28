@@ -208,7 +208,7 @@ end
 #     notify does not join before returning, need to give thread
 #     time to run (come up w/ better way todo this)
 def wait_for_notify
-  sleep 0.1
+  sleep 0.5
 end
 
 # Extend session to include a method that forces timeout

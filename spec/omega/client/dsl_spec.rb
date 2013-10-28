@@ -427,6 +427,7 @@ describe DSL do
 
   describe "#schedule_event" do
     it "creates new periodic missions event" do
+      Missions::RJR.registry.stop # stop registry so event doesn't get processed/removed
       e = schedule_event 10, Omega::Server::Event.new(:id => 'event123')
       e.id.should == 'event123-scheduler'
       wait_for_notify
