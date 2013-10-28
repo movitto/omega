@@ -661,6 +661,9 @@ var load_galaxy = function(id, ui, node, callback){
           if(rsys && rsys != -1) g.solar_systems[sys] = rsys;
         }
 
+        // FIXME retrieve jump gates between system & locations
+        // of systems themselves to render
+
         // wire up solar system events
         handle_events(ui, node, g.solar_systems);
 

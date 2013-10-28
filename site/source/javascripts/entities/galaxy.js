@@ -36,12 +36,14 @@ function Galaxy(args){
 /* Return galaxy with the specified id
  */
 Galaxy.with_id = function(id, cb){
-  Entities().node().web_request('cosmos::get_entity', 'with_id', id, function(res){
-    if(res.result){
-      var gal = new Galaxy(res.result);
-      cb.apply(null, [gal]);
-    }
-  });
+  Entities().node().web_request('cosmos::get_entity', 'with_id', id,
+                                                 'recursive', false,
+    function(res){
+      if(res.result){
+        var gal = new Galaxy(res.result);
+        cb.apply(null, [gal]);
+      }
+    });
 }
 
 /* Galaxy::update method
