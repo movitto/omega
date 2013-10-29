@@ -600,6 +600,8 @@ var load_system = function(id, ui, node, callback){
           (function(jg){ // XXX need closure to preserve jg during async request
             load_system(jg.endpoint_id, ui, node, function(jgs){
               if(jgs.json_class == 'Cosmos::Entities::SolarSystem'){
+                // XXX need to wire up system events
+                handle_events(ui, node, jgs);
                 jg.endpoint_system = jgs;
                 s.add_jump_gate(jg, jgs);
               }
@@ -661,8 +663,18 @@ var load_galaxy = function(id, ui, node, callback){
           if(rsys && rsys != -1) g.solar_systems[sys] = rsys;
         }
 
-        // FIXME retrieve jump gates between system & locations
-        // of systems themselves to render
+        // XXX we are assuming systems will be loaded as necesary
+        // elsewhere, eg systems associated w/ player ships & those
+        // with jump gates leading from them. Loading all systems
+        // under a large or distributed galaxy is not feasibly at
+        // the time (small/single-server galaxies should be fine)
+
+        // TODO mechanism to resolve this ^ ?
+        //  -perhaps entity browser-caching mechanism, cache cosmos galaxies & systems
+        //   by id in browser so that subsequent retreivals don't need to be performed
+        //   after a page refresh
+        //  -or perhaps support an efficient server mechanism to allow client to preload
+        //   a amount of simulation data
 
         // wire up solar system events
         handle_events(ui, node, g.solar_systems);

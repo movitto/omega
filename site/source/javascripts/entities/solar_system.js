@@ -48,9 +48,11 @@ function SolarSystem(args){
   this.add_jump_gate = _solar_system_add_jump_gate;
 
   // load solar system graphical resources
-  _solar_system_load_mesh(this);
-  _solar_system_load_plane(this);
-  _solar_system_load_text(this);
+  if(args.location){ // XXX skip if location not yet retrieved
+    _solar_system_load_mesh(this);
+    _solar_system_load_plane(this);
+    _solar_system_load_text(this);
+  }
 
   // return children
   this.children = function(){

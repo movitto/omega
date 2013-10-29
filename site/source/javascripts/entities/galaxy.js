@@ -21,7 +21,7 @@ function Galaxy(args){
   this.solar_systems = [];
   if(this.children){
     for(var sys = 0; sys < this.children.length; sys++)
-      this.solar_systems[sys] = new SolarSystem(this.children[sys]);
+      this.solar_systems[sys] = new SolarSystem({id:this.children[sys]});
   }
 
   // instantiate mesh to draw galaxy on canvas
