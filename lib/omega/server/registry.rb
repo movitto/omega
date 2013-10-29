@@ -307,9 +307,8 @@ module Registry
   # Optional internal helper method, utilize like so:
   #   run { run_events }
   def run_events
-    self.entities.
-      select { |e| e.kind_of?(Event) && e.time_elapsed? }.
-      each { |evnt| run_event(evnt) }
+    self.entities { |e| e.kind_of?(Event) && e.time_elapsed? }.
+         each { |evnt| run_event(evnt) }
 
     DEFAULT_EVENT_POLL
   end
