@@ -117,6 +117,21 @@ module Cosmos::RJR
         r[2].id.should  == s1.parent_id
       end
     end
+
+    context "recursive set to false" do
+      it "only return ids of children and child locations" do
+        add_privilege @login_role, 'view', 'cosmos_entities'
+        g1  = create(:galaxy)
+        s1  = create(:solar_system, :galaxy => g1)
+        p1  = create(:planet, :solar_system => s1)
+        r = @s.get_entities 'with_id', g1.id, 'recursive', false
+        r.id.should == g1.id
+        r.children.size.should == 1
+        r.children.first.should == s1.id
+        r.location.children.size.should == 1
+        r.location.children.first.should == s1.location.id
+      end
+    end
   end # describe #get_entities
 
   describe "#dispatch_cosmos_rjr_get" do
