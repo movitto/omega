@@ -67,13 +67,13 @@ function _galaxy_update(oargs){
 /* Helper method to load galaxy mesh resources
  */
 var galaxy_mesh_props = {
-  particle_size : 30,
+  particle_size : 150,
   eskew         : 1.2,
   estart        : 1,
-  eend          : 1000,
-  einc          : 15,
-  itinc         : 0.05,
-  utinc         : 0.02,
+  eend          : 2000,
+  einc          : 30,
+  itinc         : 0.15,
+  utinc         : 0.03,
   max_z         : 150
 }
 

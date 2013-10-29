@@ -327,4 +327,4 @@ function EffectsPlayer(args){
 EffectsPlayer.effects_timer =
   $.timer(function(){
     EffectsPlayer._instance.effects_loop();
-  }, 250, false);
+  }, 150, false);
