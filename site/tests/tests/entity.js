@@ -92,7 +92,7 @@ describe("Galaxy", function(){
     sys1 = { id : 'sys1'}
     sys2 = { id : 'sys2'}
     galaxy = new Galaxy({location : { id : 42 },
-                         children : [sys1, sys2]});
+                         children : ['sys1', 'sys2']});
   })
 
   after(function(){
@@ -158,7 +158,7 @@ describe("Galaxy", function(){
         var spy = sinon.spy(Entities().node(), 'web_request')
         handler = sinon.spy();
         Galaxy.with_id('gal1', handler)
-        cb = spy.getCall(0).args[3];
+        cb = spy.getCall(0).args[5];
         res = {result : {id : 'gal1'}}
       })
 

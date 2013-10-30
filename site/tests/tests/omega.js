@@ -1324,9 +1324,9 @@ pavlov.specify("omega.js", function(){
         load_galaxy = sinon.spy(load_galaxy);
         cb.apply(null, [sys])
         var cb2 = load_galaxy.getCall(0).args[3];
-        var g = new Galaxy({children : [{id : 'sys1'}]});
+        var g = new Galaxy({children : ['sys1']});
         cb2.apply(null, [g])
-        assert(g.solar_systems[0]).equals(sys);
+        assert(g.solar_systems[0].id).equals(sys.id);
       });
     });
   });

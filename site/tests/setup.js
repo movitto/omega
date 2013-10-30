@@ -109,6 +109,7 @@ function after_each(details){
 }
 
 //function after_all(details){
+// TODO stop timers, clear scene
 //}
 
 //QUnit.moduleStart(before_all);
