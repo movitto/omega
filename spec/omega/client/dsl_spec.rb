@@ -8,7 +8,7 @@ require 'omega/client/dsl'
 
 module Omega
 module Client
-describe DSL do
+describe DSL, :rjr => true do
 
   include Omega::Server::DSL
   include Omega::Client::DSL

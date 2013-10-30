@@ -8,7 +8,7 @@ require 'cosmos/rjr/resources'
 require 'rjr/dispatcher'
 
 module Cosmos::RJR
-  describe "#set_resource" do
+  describe "#set_resource", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -93,7 +93,7 @@ module Cosmos::RJR
     end
   end # describe #set_resource
 
-  describe "#get_resource" do
+  describe "#get_resource", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -137,7 +137,7 @@ module Cosmos::RJR
 
   end # describe "#get_resource"
 
-  describe "#get_resources" do
+  describe "#get_resources", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

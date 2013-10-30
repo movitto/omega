@@ -8,7 +8,7 @@ require 'motel/rjr/get'
 require 'rjr/dispatcher'
 
 module Motel::RJR
-  describe "#get_location" do
+  describe "#get_location", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

@@ -49,7 +49,7 @@ module OmegaTest
 end
 
 module Omega::Client
-  describe Trackable do
+  describe Trackable, :rjr => true do
     before(:each) do
       @t = OmegaTest::Trackable.new
       OmegaTest::Trackable.node.rjr_node = @n
@@ -333,7 +333,7 @@ module Omega::Client
     end
   end # describe Trackable
 
-  describe TrackState do
+  describe TrackState, :rjr => true do
     before(:each) do
       @t = OmegaTest::Trackable.new
       @t.entity = OpenStruct.new(:id => 42)
@@ -478,7 +478,7 @@ module Omega::Client
     end
   end # describe TrackState
 
-  describe TrackEntity do
+  describe TrackEntity, :rjr => true do
     before(:each) do
       OmegaTest::Trackable.node.rjr_node = @n
       setup_manufactured(nil)

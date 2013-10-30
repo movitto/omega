@@ -25,7 +25,7 @@ describe DSL do
     @rjr_headers = {}
   end
 
-  describe "#login" do
+  describe "#login", :rjr => true do
     it "invokes remote login" do
       lambda {
         login @n, @anon.id, @anon.password
@@ -57,7 +57,7 @@ describe DSL do
     end
   end
 
-  describe "#require_privilege" do
+  describe "#require_privilege", :rjr => true do
     before(:each) do
       @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
     end
@@ -81,7 +81,7 @@ describe DSL do
     end
   end
 
-  describe "#check_privilege" do
+  describe "#check_privilege", :rjr => true do
     before(:each) do
       @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
     end
@@ -101,7 +101,7 @@ describe DSL do
     end
   end
 
-  describe "#current_user" do
+  describe "#current_user", :rjr => true do
     it "return registry user corresponding to session_id header" do
       @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
       u = current_user(:registry => Users::RJR.registry)
@@ -110,7 +110,7 @@ describe DSL do
     end
   end
 
-  describe "#check_attribute" do
+  describe "#check_attribute", :rjr => true do
     MAL = Users::Attributes::MissionAgentLevel.id
 
     before(:each) do
@@ -154,7 +154,7 @@ describe DSL do
     end
   end
 
-  describe "#require_attribute" do
+  describe "#require_attribute", :rjr => true do
     MAL = Users::Attributes::MissionAgentLevel.id
 
     before(:each) do

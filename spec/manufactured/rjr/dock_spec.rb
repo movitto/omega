@@ -8,7 +8,7 @@ require 'manufactured/rjr/dock'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#dock" do
+  describe "#dock", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -121,7 +121,7 @@ module Manufactured::RJR
 
   end # describe #dock
 
-  describe "#undock" do
+  describe "#undock", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

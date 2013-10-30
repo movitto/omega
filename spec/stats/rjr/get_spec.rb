@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'stats/rjr/get'
 
 module Stats::RJR
-  describe "#get_stats" do
+  describe "#get_stats", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

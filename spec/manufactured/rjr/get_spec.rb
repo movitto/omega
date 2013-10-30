@@ -8,7 +8,7 @@ require 'manufactured/rjr/get'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#get_entity" do
+  describe "#get_entity", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

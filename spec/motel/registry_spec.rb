@@ -185,7 +185,8 @@ describe Registry do
       before(:each) do
         @t = Time.now
 
-        @l = Location.new :step_delay => 1
+        @l = Location.new :step_delay => 1,
+                          :movement_strategy => Motel::MovementStrategies::Linear.new
         @l.last_moved_at = @t - 2
 
         @r << @l
@@ -193,6 +194,12 @@ describe Registry do
 
       it "moves locations via movement strategy" do
         @l.ms.should_receive(:move)
+        @run_method.call
+      end
+
+      it "skips stopped locations" do
+        @l.ms = Motel::MovementStrategies::Stopped.instance
+        @l.ms.should_not_receive(:move)
         @run_method.call
       end
 
@@ -221,14 +228,19 @@ describe Registry do
       end
     end
 
-    it "returns smallest step_delay of non-moved locations" do # to be used as loop sleep interval
+    it "returns smallest step_delay of non-stopped/non-moved locations" do
       t = Time.now
-      l1 = build(:location, :last_moved_at => t)
+      l1 = build(:location, :last_moved_at => t,
+                 :movement_strategy => Motel::MovementStrategies::Linear.new)
       l1.ms.step_delay = 0.5
-      l2 = build(:location, :last_moved_at => t)
+      l2 = build(:location, :last_moved_at => t,
+                 :movement_strategy => Motel::MovementStrategies::Linear.new)
       l2.ms.step_delay = 0.4
+      l3 = build(:location, :last_moved_at => t)
+      l3.ms.step_delay = 0.2
       @r << l1
       @r << l2
+      @r << l3
 
       @run_method.call.should be_within(CLOSE_ENOUGH).of(0.4)
     end

@@ -8,7 +8,7 @@ require 'missions/rjr/create'
 require 'rjr/dispatcher'
 
 module Missions::RJR
-  describe "#create_event" do
+  describe "#create_event", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -67,7 +67,7 @@ module Missions::RJR
 
   end # describe "#create_event"
 
-  describe "#create_mission" do
+  describe "#create_mission", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

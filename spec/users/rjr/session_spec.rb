@@ -8,7 +8,7 @@ require 'users/rjr/session'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#login" do
+  describe "#login", :rjr => true do
     before(:each) do
       dispatch_to @s, Users::RJR, :SESSION_METHODS
     end
@@ -52,7 +52,7 @@ module Users::RJR
     end
   end # describe #login
 
-  describe "#logout" do
+  describe "#logout", :rjr => true do
     before(:each) do
       dispatch_to @s, Users::RJR, :SESSION_METHODS
     end

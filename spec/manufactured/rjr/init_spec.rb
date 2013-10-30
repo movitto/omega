@@ -63,7 +63,7 @@ module Manufactured::RJR
     end
   end
 
-  describe "#reset" do
+  describe "#reset", :rjr => true do
     it "clears manufactured registry" do
       setup_manufactured
 
@@ -76,7 +76,7 @@ module Manufactured::RJR
     end
   end
 
-  describe "#motel_event" do
+  describe "#motel_event", :rjr => true do
     before(:each) do
       setup_manufactured  :CALLBACK_METHODS
 
@@ -161,7 +161,7 @@ module Manufactured::RJR
     end
   end
 
-  describe "#dispatch_manufactured_rjr_init" do
+  describe "#dispatch_manufactured_rjr_init", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

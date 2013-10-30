@@ -8,7 +8,7 @@ require 'manufactured/rjr/loot'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#collect_loot" do
+  describe "#collect_loot", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

@@ -8,7 +8,7 @@ require 'cosmos/rjr/get'
 require 'rjr/dispatcher'
 
 module Cosmos::RJR
-  describe "#get_entities" do
+  describe "#get_entities", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

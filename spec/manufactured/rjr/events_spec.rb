@@ -8,7 +8,7 @@ require 'manufactured/rjr/events'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#subscribe_to" do
+  describe "#subscribe_to", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -139,7 +139,7 @@ module Manufactured::RJR
     end
   end # describe #subscribe_to
 
-  describe "#remove_callbacks" do
+  describe "#remove_callbacks", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

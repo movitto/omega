@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'manufactured/commands/construction'
 
 module Manufactured::Commands
-describe Construction do
+describe Construction, :rjr => true do
   describe "#id" do
     it "should be unique per station/entity" do
       c = Construction.new

@@ -8,7 +8,7 @@ require 'users/rjr/create'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#create_user" do
+  describe "#create_user", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -96,7 +96,7 @@ module Users::RJR
 
   end # describe "#create_user"
 
-  describe "#create_role" do
+  describe "#create_role", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

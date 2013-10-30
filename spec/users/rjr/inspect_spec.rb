@@ -8,7 +8,7 @@ require 'users/rjr/inspect'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#status" do
+  describe "#status", :rjr => true do
     before(:each) do
       dispatch_to @s, Users::RJR, :INSPECT_METHODS
     end

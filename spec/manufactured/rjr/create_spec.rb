@@ -16,7 +16,7 @@ module Manufactured::RJR
     it "returns true"
   end
 
-  describe "#create_entity" do
+  describe "#create_entity", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -205,7 +205,7 @@ module Manufactured::RJR
     end
   end # describe "#create_entity"
 
-  describe "#construct_entity" do
+  describe "#construct_entity", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

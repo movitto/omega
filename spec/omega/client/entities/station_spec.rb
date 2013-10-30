@@ -15,7 +15,7 @@ module Omega::Client
   #  end
   #end # describe Station
 
-  describe Factory do
+  describe Factory, :rjr => true do
     before(:each) do
       Omega::Client::Factory.node.rjr_node = @n
 

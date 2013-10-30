@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'manufactured/commands/mining'
 
 module Manufactured::Commands
-describe Mining do
+describe Mining, :rjr => true do
   describe "#id" do
     it "should be unique per miner" do
       m = Mining.new

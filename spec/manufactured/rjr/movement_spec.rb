@@ -8,7 +8,7 @@ require 'manufactured/rjr/movement'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#move_entity_in_system" do
+  describe "#move_entity_in_system", :rjr => true do
     include Omega::Server::DSL # for with_id below
     include Manufactured::RJR
 
@@ -104,7 +104,7 @@ module Manufactured::RJR
     end
   end # describe #move_entity_in_system
 
-  describe "#move_entity_between_systems" do
+  describe "#move_entity_between_systems", :rjr => true do
     include Omega::Server::DSL
     include Manufactured::RJR
 
@@ -236,7 +236,7 @@ module Manufactured::RJR
     end
   end # describe #move_entity_between_systems
 
-  describe "#move_entity" do
+  describe "#move_entity", :rjr => true do
     include Omega::Server::DSL
     include Manufactured::RJR
 
@@ -353,7 +353,7 @@ module Manufactured::RJR
     end
   end # describe #move_entity
 
-  describe "#follow_entity" do
+  describe "#follow_entity", :rjr => true do
     include Omega::Server::DSL
     include Manufactured::RJR
 
@@ -501,7 +501,7 @@ module Manufactured::RJR
     end
   end # describe #follow_entity
 
-  describe "#stop_entity" do
+  describe "#stop_entity", :rjr => true do
     include Omega::Server::DSL
 
     before(:each) do

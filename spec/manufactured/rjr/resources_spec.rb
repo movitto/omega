@@ -8,7 +8,7 @@ require 'manufactured/rjr/resources'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#add_resource" do
+  describe "#add_resource", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -89,7 +89,7 @@ module Manufactured::RJR
     end
   end # describe #add_resource
 
-  describe "#transfer_resource" do
+  describe "#transfer_resource", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

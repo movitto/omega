@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'omega/client/entities/ship'
 
 module Omega::Client
-  describe Ship do
+  describe Ship, :rjr => true do
     before(:each) do
       Omega::Client::Ship.node.rjr_node = @n
       @s = Omega::Client::Ship.new
@@ -51,7 +51,7 @@ module Omega::Client
     end
   end # describe Ship
 
-  describe Miner do
+  describe Miner, :rjr => true do
     before(:each) do
       Omega::Client::Miner.node.rjr_node = @n
       @m = Omega::Client::Miner.new
@@ -325,7 +325,7 @@ module Omega::Client
 
   end # describe Miner
 
-  describe Corvette do
+  describe Corvette, :rjr => true do
     before(:each) do
       Omega::Client::Corvette.node.rjr_node = @n
       @m = Omega::Client::Corvette.new

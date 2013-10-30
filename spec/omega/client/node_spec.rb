@@ -9,7 +9,7 @@ require 'omega/client/dsl'
 require 'rjr/nodes/tcp'
 
 module Omega::Client
-describe Node do
+describe Node, :rjr => true do
   include Omega::Client::DSL # to log user in
 
   before(:each) do

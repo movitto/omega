@@ -8,7 +8,7 @@ require 'users/rjr/register'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#register" do
+  describe "#register", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -90,7 +90,7 @@ module Users::RJR
 
   end # describe #register
 
-  describe "#confirm_register" do
+  describe "#confirm_register", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -123,7 +123,7 @@ module Users::RJR
     end
   end # describe #confirm_register
 
-  describe "#dispatch_users_rjr_register" do
+  describe "#dispatch_users_rjr_register", :rjr => true do
     it "adds users::register to dispatcher" do
       d = ::RJR::Dispatcher.new
       dispatch_users_rjr_register(d)

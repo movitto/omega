@@ -8,7 +8,7 @@ require 'users/rjr/get'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#get_entities" do
+  describe "#get_entities", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

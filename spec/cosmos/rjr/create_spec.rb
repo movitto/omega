@@ -9,7 +9,7 @@ require 'motel/rjr/create'
 require 'rjr/dispatcher'
 
 module Cosmos::RJR
-  describe "#create_entity" do
+  describe "#create_entity", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

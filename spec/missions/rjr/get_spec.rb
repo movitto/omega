@@ -8,7 +8,7 @@ require 'missions/rjr/get'
 require 'rjr/dispatcher'
 
 module Missions::RJR
-  describe "#get_missions" do
+  describe "#get_missions", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

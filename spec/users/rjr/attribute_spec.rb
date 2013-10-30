@@ -8,7 +8,7 @@ require 'users/rjr/attribute'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#update_attribute" do
+  describe "#update_attribute", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -91,7 +91,7 @@ module Users::RJR
 
   end # describe "#update_attribute"
 
-  describe "#has_attribute" do
+  describe "#has_attribute", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

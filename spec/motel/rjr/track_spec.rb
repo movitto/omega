@@ -10,7 +10,7 @@ require 'motel/callbacks/stopped'
 require 'rjr/dispatcher'
 
 module Motel::RJR
-  describe "#track_handler" do
+  describe "#track_handler", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -340,7 +340,7 @@ module Motel::RJR
     end
   end # describe #track_handler
 
-  describe "#remove_callbacks" do
+  describe "#remove_callbacks", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

@@ -8,7 +8,7 @@ require 'users/rjr/get'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#add_role" do
+  describe "#add_role", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -82,7 +82,7 @@ module Users::RJR
 
   end # describe #add_role
 
-  describe "#remove_role" do
+  describe "#remove_role", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -168,7 +168,7 @@ module Users::RJR
     end
   end
 
-  describe "#add_privilege" do
+  describe "#add_privilege", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -237,7 +237,7 @@ module Users::RJR
 
   end # describe #add_privilege
 
-  describe "#remove_privilege" do
+  describe "#remove_privilege", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

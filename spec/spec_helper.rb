@@ -6,6 +6,8 @@
 # TODO we currently aren't testing that we
 # are logging anything, this needs tbd
 
+################################################################ deps / env
+
 CURRENT_DIR=File.dirname(__FILE__)
 $: << File.expand_path(CURRENT_DIR + "/../lib")
 
@@ -14,62 +16,82 @@ FactoryGirl.find_definitions
 
 require 'omega/common'
 require 'omega/server/config'
-
 require 'users/attribute'
 require 'users/session'
 require 'users/rjr/init'
-
 require 'motel/movement_strategy'
 require 'motel/rjr/init'
-
 require 'missions/rjr/init'
-
 require 'cosmos/rjr/init'
-
 require 'manufactured/rjr/init'
-
 require 'omega/roles'
-
 require 'omega/client/mixins'
 
-UUID_PATTERN = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
+###################################################### rspec / factory girl
 
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
-  config.before(:all) {
+  config.before(:all) do
     Omega::Config.load.set_config
-  }
 
-  config.before(:each) {
     # setup a node to dispatch requests
     @n = RJR::Nodes::Local.new :node_id => 'server'
+
+    # setup a node for factory girl
+    fgnode = RJR::Nodes::Local.new
+    fgnode.dispatcher.add_module('users/rjr/init')
+    fgnode.dispatcher.add_module('motel/rjr/init')
+    fgnode.dispatcher.add_module('cosmos/rjr/init')
+    fgnode.dispatcher.add_module('missions/rjr/init')
+    fgnode.dispatcher.add_module('manufactured/rjr/init')
+    $fgnode = fgnode # XXX global
+    # TODO set current user ?
+  end
+
+  # TODO split out a tag for each subsystem so that
+  # different dispatchers can be initialized beforehand 
+  # and reused by tests in the subsystem (actual registry
+  # data will still be cleared with after hook)
+  config.before(:each, :rjr => true) do
+    # clear/reinit @n
+    @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
+    @n.message_headers = {}
+    @n.dispatcher.clear!
     @n.dispatcher.add_module('users/rjr/init')
 
     # setup a server which to invoke handlers
+    # XXX would like to move instantiation into
+    # before(:all) hook & just reinit here,
     @s = Object.new
     @s.extend(Omega::Server::DSL)
     @s.instance_variable_set(:@rjr_node, @n)
     set_header 'source_node', @n.node_id
-  }
+  end
 
-  config.after(:each) {
-    Missions::RJR.registry.stop
-    Manufactured::RJR.registry.stop
-    Motel::RJR.registry.stop
+  config.after(:each) do
+    # stop centralized registry loops
+    registries =
+      [Missions::RJR.registry,
+       Manufactured::RJR.registry,
+       Motel::RJR.registry]
+     registries.each { |r| r.stop } # .join ?
 
-    Users::RJR.reset
-    Motel::RJR.reset
-    Missions::RJR.reset
-    Cosmos::RJR.reset
-    Manufactured::RJR.reset
+     # reset subsystems
+     modules =
+      [Users::RJR,    Motel::RJR,
+       Missions::RJR, Cosmos::RJR,
+       Manufactured::RJR]
+     modules.each { |m| m.reset }
+
+    # reset client
     Omega::Client::TrackEntity.clear_entities
     Omega::Client::Trackable.node.handlers = nil
     #Omega::Client::Trackable.instance_variable_set(:@handled, nil) # XXX
-  }
+  end
 
-  config.after(:all) {
-  }
+  config.after(:all) do
+  end
 end
 
 # Build is used to construct entity locally,
@@ -85,20 +107,10 @@ FactoryGirl.define do
     skip_create
 
     # register custom hook to construct the entity serverside
-    before(:create) { |e,i|
-      if @node.nil?
-        @node = RJR::Nodes::Local.new
-        @node.dispatcher.add_module('users/rjr/init')
-        @node.dispatcher.add_module('motel/rjr/init')
-        @node.dispatcher.add_module('cosmos/rjr/init')
-        @node.dispatcher.add_module('missions/rjr/init')
-        @node.dispatcher.add_module('manufactured/rjr/init')
-        # TODO set current user ?
-      end
-
+    before(:create) do |e,i|
       # temporarily disable permission system
       disable_permissions {
-        begin @node.invoke(i.create_method, e)
+        begin $fgnode.invoke(i.create_method, e)
         # assuming operation error just means entity was previously
         # created, and silently ignore
         # (TODO should only rescue OperationError when rjr supports error forwarding)
@@ -106,12 +118,12 @@ FactoryGirl.define do
       }
     
       e.location.id = e.id if e.respond_to?(:location)
-    }
+   end 
 
   end
 end
 
-######################################
+############################################ helper setup & utility methods
 
 # Helper method to temporarily disable permission system
 def disable_permissions
@@ -142,7 +154,8 @@ end
 
 # Helper method to setup manufactured subsystem
 def setup_manufactured(dispatch_methods=nil)
-  dispatch_to @s, Manufactured::RJR, dispatch_methods unless dispatch_methods.nil?
+  dispatch_to @s, Manufactured::RJR,
+                   dispatch_methods  unless dispatch_methods.nil?
   @registry = Manufactured::RJR.registry
 
   @login_user = create(:user)
@@ -150,42 +163,9 @@ def setup_manufactured(dispatch_methods=nil)
   session_id @s.login(@n, @login_user.id, @login_user.password).id
 
   # add users, motel, and cosmos modules, initialze manu module
-  @n.dispatcher.add_module('users/rjr/init')
   @n.dispatcher.add_module('motel/rjr/init')
   @n.dispatcher.add_module('cosmos/rjr/init')
   dispatch_manufactured_rjr_init(@n.dispatcher)
-end
-
-
-# Helper to add privilege on entity (optional) 
-# to the specified role
-def add_privilege(role_id, priv_id, entity_id=nil)
-  # change node type to local here to ensure this goes through
-  o = @n.node_type
-  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
-  r = @n.invoke 'users::add_privilege', role_id, priv_id, entity_id
-  @n.node_type = o
-  r
-end
-
-# Helper to add omega role to user role
-def add_role(user_role, omega_role)
-  # change node type to local here to ensure this goes through
-  o = @n.node_type
-  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
-  r = []
-  Omega::Roles::ROLES[omega_role].each { |p,e|
-    r << @n.invoke('users::add_privilege', user_role, p, e)
-  }
-  @n.node_type = o
-  r
-end
-
-# Helper to add attribute to user
-def add_attribute(user_id, attribute_id, level)
-  disable_permissions {
-    @n.invoke 'users::update_attribute', user_id, attribute_id, level
-  }
 end
 
 # Helper to set rjr header
@@ -219,6 +199,43 @@ class Session
   end
 end
 end
+
+###################################################### helper client methods
+
+# Helper to add privilege on entity (optional) 
+# to the specified role
+def add_privilege(role_id, priv_id, entity_id=nil)
+  # change node type to local here to ensure this goes through
+  o = @n.node_type
+  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
+  r = @n.invoke 'users::add_privilege', role_id, priv_id, entity_id
+  @n.node_type = o
+  r
+end
+
+# Helper to add omega role to user role
+def add_role(user_role, omega_role)
+  # change node type to local here to ensure this goes through
+  o = @n.node_type
+  @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
+  r = []
+  Omega::Roles::ROLES[omega_role].each { |p,e|
+    r << @n.invoke('users::add_privilege', user_role, p, e)
+  }
+  @n.node_type = o
+  r
+end
+
+# Helper to add attribute to user
+def add_attribute(user_id, attribute_id, level)
+  disable_permissions {
+    @n.invoke 'users::update_attribute', user_id, attribute_id, level
+  }
+end
+
+######################################################## data / definitions
+
+UUID_PATTERN = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
 
 module OmegaTest
   CLOSE_ENOUGH=0.00001
@@ -306,3 +323,5 @@ module OmegaTest
     RAND_COLOR     = proc { }
   end
 end
+
+##########################################################################

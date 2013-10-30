@@ -8,7 +8,7 @@ require 'motel/rjr/delete'
 require 'rjr/dispatcher'
 
 module Motel::RJR
-  describe "#delete_location" do
+  describe "#delete_location", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

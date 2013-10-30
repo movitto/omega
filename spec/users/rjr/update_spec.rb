@@ -8,7 +8,7 @@ require 'users/rjr/update'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#update_user" do
+  describe "#update_user", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

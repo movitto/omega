@@ -70,7 +70,7 @@ module Missions::RJR
     end
   end
 
-  describe "#manufactured event" do
+  describe "#manufactured event", :rjr => true do
     before(:each) do
       dispatch_to @s, Missions::RJR, :CALLBACK_METHODS
     end
@@ -97,7 +97,7 @@ module Missions::RJR
     end
   end
 
-  describe "#dispatch_missions_rjr_init" do
+  describe "#dispatch_missions_rjr_init", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

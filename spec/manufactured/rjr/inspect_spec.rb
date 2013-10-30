@@ -8,7 +8,7 @@ require 'manufactured/rjr/inspect'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#command" do
+  describe "#command", :rjr => true do
     before(:each) do
       setup_manufactured :INSPECT_METHODS
     end
@@ -21,7 +21,7 @@ module Manufactured::RJR
     end
   end
 
-  describe "#status" do
+  describe "#status", :rjr => true do
     before(:each) do
       setup_manufactured :INSPECT_METHODS
     end

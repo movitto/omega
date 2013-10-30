@@ -21,7 +21,7 @@ module OmegaTest
 end
 
 module Omega::Client
-  describe SolarSystem do
+  describe SolarSystem, :rjr => true do
     before(:each) do
       Omega::Client::SolarSystem.node.rjr_node = @n
 
@@ -117,7 +117,7 @@ module Omega::Client
     end
   end # describe SolarSystem
 
-  describe InSystem do
+  describe InSystem, :rjr => true do
     before(:each) do
       OmegaTest::InSystem.node.rjr_node = @n
       @i = OmegaTest::InSystem.new
@@ -307,7 +307,7 @@ module Omega::Client
 
   end # describe InSystem
 
-  describe HasCargo do
+  describe HasCargo, :rjr => true do
     before(:each) do
       OmegaTest::HasCargo.node.rjr_node = @n
       @h = OmegaTest::HasCargo.new

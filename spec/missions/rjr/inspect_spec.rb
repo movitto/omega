@@ -8,7 +8,7 @@ require 'missions/rjr/inspect'
 require 'rjr/dispatcher'
 
 module Missions::RJR
-  describe "#status" do
+  describe "#status", :rjr => true do
     before(:each) do
       Missions::RJR.registry << Omega::Server::Event.new(:id => 'ev1')
       Missions::RJR.registry << Omega::Server::Event.new(:id => 'ev2')

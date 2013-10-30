@@ -8,7 +8,7 @@ require 'manufactured/rjr/admin'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#admin::set" do
+  describe "#admin::set", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -26,7 +26,7 @@ module Manufactured::RJR
     end
   end # describe "#admin::set"
 
-  describe "#admin::run_callbacks" do
+  describe "#admin::run_callbacks", :rjr => true do
     before(:each) do
       setup_manufactured :ADMIN_METHODS
     end

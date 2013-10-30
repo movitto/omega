@@ -8,7 +8,7 @@ require 'motel/rjr/inspect'
 require 'rjr/dispatcher'
 
 module Motel::RJR
-  describe "#status" do
+  describe "#status", :rjr => true do
     before(:each) do
       dispatch_to @s, Motel::RJR, :INSPECT_METHODS
     end

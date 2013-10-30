@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'omega/client/entities/user'
 
 module Omega::Client
-  describe User do
+  describe User, :rjr => true do
     before(:each) do
       Omega::Client::User.node.rjr_node = @n
     end

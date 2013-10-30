@@ -35,7 +35,7 @@ module Stats::RJR
     end
   end
 
-  describe "#dispatch_stats_rjr_init" do
+  describe "#dispatch_stats_rjr_init", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

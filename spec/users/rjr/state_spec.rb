@@ -10,7 +10,7 @@ require 'rjr/dispatcher'
 require 'tempfile'
 
 module Users::RJR
-  describe "#save_state" do
+  describe "#save_state", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do
@@ -44,7 +44,7 @@ module Users::RJR
 
   end # describe #save_state
 
-  describe "#restore_state" do
+  describe "#restore_state", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

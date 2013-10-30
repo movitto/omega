@@ -8,7 +8,7 @@ require 'manufactured/rjr/mining'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#start_mining" do
+  describe "#start_mining", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
     before(:each) do

@@ -7,7 +7,7 @@ require 'spec_helper'
 require 'manufactured/commands/attack'
 
 module Manufactured::Commands
-describe Attack do
+describe Attack, :rjr => true do
   describe "#id" do
     it "should be unique per attacker" do
       a = Attack.new
