@@ -22,17 +22,22 @@ begin
   end
 
 rescue LoadError => e
-  require "rspec/core/rake_task"
-  desc "Run all specs"
-  RSpec::Core::RakeTask.new(:specs) do |spec|
-    spec.pattern = 'spec/**/*_spec.rb'
-    spec.rspec_opts = ['--backtrace', '-fd', '-c']
+  begin
+    require "rspec/core/rake_task"
+    desc "Run all specs"
+    RSpec::Core::RakeTask.new(:specs) do |spec|
+      spec.pattern = 'spec/**/*_spec.rb'
+      spec.rspec_opts = ['--backtrace', '-fd', '-c']
+    end
+  rescue LoadError => e
   end
-
 end
 
-require "yard"
-YARD::Rake::YardocTask.new do |t|
+begin
+  require "yard"
+  YARD::Rake::YardocTask.new do |t|
+  end
+rescue LoadError => e
 end
 
 desc 'Print the RJR accessible api'
