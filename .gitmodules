@@ -1,3 +1,0 @@
-[submodule "rjr"]
-	path = lib/rjr
-	url = git://github.com/movitto/rjr.git
