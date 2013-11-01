@@ -49,7 +49,7 @@ class Registry
   end
 
   def run_locations
-    delay = nil
+    moved = []; delay = nil
     self.entities { |loc| !loc.ms.is_a?(MovementStrategies::Stopped) }.
          each { |loc|
       sdelay = loc.movement_strategy.step_delay
@@ -57,6 +57,7 @@ class Registry
                 Time.now - loc.last_moved_at
 
       if elapsed > sdelay
+        moved << loc
         run_location(loc, elapsed)
 
       else
@@ -67,14 +68,13 @@ class Registry
     }
 
     # invoke all proximity_callbacks afterwards
-    # XXX FIXME loading all entities here on each each cycle
-    # results in a noticable performance hit, refactor so this
-    # is done a different way
-    begin
-      self.entities.each { |loc| self.raise_event(:proximity, loc) }
-    rescue Exception => e
-      ::RJR::Logger.warn "error running proximity callbacks: #{e.to_s}"
-    end
+    moved.each { |loc|
+      begin
+        self.raise_event :proximity, loc
+      rescue Exception => e
+        ::RJR::Logger.warn "error running proximity callbacks: #{e.to_s}"
+      end
+    }
 
     delay
   end

@@ -246,8 +246,10 @@ describe Registry do
     end
 
     it "raises proximity events" do
-      @r << build(:location)
-      @r << build(:location)
+      @r << build(:location,
+                  :movement_strategy => Motel::MovementStrategies::Linear.new)
+      @r << build(:location,
+                  :movement_strategy => Motel::MovementStrategies::Linear.new)
       @r.should_receive(:raise_event).with(:proximity, an_instance_of(Location)).twice
       @run_method.call
     end
