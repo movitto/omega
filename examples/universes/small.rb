@@ -8,7 +8,7 @@ require 'rubygems'
 
 require 'omega'
 require 'omega/client/dsl'
-require 'rjr/nodes/amqp'
+require 'rjr/nodes/tcp'
 
 include Omega::Client::DSL
 
@@ -18,7 +18,7 @@ include Motel::MovementStrategies
 RJR::Logger.log_level= ::Logger::INFO
 
 dsl.rjr_node =
-  RJR::Nodes::AMQP.new(:node_id => 'seeder', :broker => 'localhost')
+  RJR::Nodes::TCP.new(:node_id => 'seeder')
 
 # TODO read credentials from config
 login 'admin', 'nimda'
