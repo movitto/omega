@@ -41,35 +41,11 @@ This includes a simple dsl which can be used to setup a simulation as well as an
 event based interface which to query/manipulate entities.
 
 ## Running the Server
+See the [Installation](http://github.com/movitto/omega/wiki/Install) document for
+detailed instruction on setting up / running the server on your system of choice.
 
-First install Omega's dependencies:
-
-    $ gem install rjr
-
-Checkout the project via git
-
-    $ git clone http://github.com/movitto/omega.git
-
-Run the server:
-
-    $ cd omega/
-    $ export RUBYLIB='lib'
-    $ ./bin/omega-server
-
-
-That is it! All the necessary server logic will be invoked to
-setup the remote method handlers and begin listening for requests
-over a variety of protocols! It is then up to clients to invoke
-the rpc methods to create and manipulate server side entities.
-(see 'Invoking' below)
-
-You may configure the application in various ways by editing
-omega.yml which is loaded from the following locations
-(in order, config options from later files will override former ones)
-
-* /etc/omega.yml
-* ~/.omega.yml
-* ./omega.yml
+See the [Configuration](http://github.com/movitto/omega/wiki#configuring-the-server)
+section of the wiki for more information on how to configure the server.
 
 ## Invoking
 [RJR](http://rubydoc.info/github/movitto/rjr/frames)
@@ -151,4 +127,4 @@ To run test suite:
   rake spec
 
 ## Authors
- Mohammed Morsi <mo@morsi.org>
+ Mo Morsi <mo@morsi.org>
