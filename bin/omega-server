@@ -191,7 +191,11 @@ accessible administrative methods") do
   local_node.invoke('users::create_user', anon)
   local_node.invoke('users::add_role',    anon.id, 'anonymous_user')
 
-  setup_signals(config, local_node)
+  # setup signals
+  # FIXME signals not working on windows
+  is_windows = (RUBY_PLATFORM =~ /.*mingw.*/)
+  setup_signals(config, local_node) unless is_windows
+
   multi_node.listen
   multi_node.join
 end
