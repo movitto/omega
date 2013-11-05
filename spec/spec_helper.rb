@@ -153,12 +153,12 @@ def dispatch_to(server, rjr_module, dispatcher_id)
 end
 
 # Helper method to setup manufactured subsystem
-def setup_manufactured(dispatch_methods=nil)
+def setup_manufactured(dispatch_methods=nil, login_user=nil)
   dispatch_to @s, Manufactured::RJR,
                    dispatch_methods  unless dispatch_methods.nil?
   @registry = Manufactured::RJR.registry
 
-  @login_user = create(:user)
+  @login_user = login_user.nil? ? create(:user) : login_user
   @login_role = 'user_role_' + @login_user.id
   session_id @s.login(@n, @login_user.id, @login_user.password).id
 
@@ -224,6 +224,27 @@ def add_role(user_role, omega_role)
   }
   @n.node_type = o
   r
+end
+
+# Helper to reload a superadmin user for client use.
+#
+# superadmin role entails alot of privileges and
+# is used often so continuously recreating w/ add_role
+# is slow, this helper speeds things up (~70% faster on avg)
+def reload_super_admin
+  # XXX global var
+  if $sa.nil?
+    $sa = create(:user)
+    role_id = "user_role_#{$sa.id}"
+    add_role role_id, :superadmin
+    $sa_role = Users::RJR.registry.entity { |e| e.id == role_id }
+  else
+    Users::RJR.registry << $sa_role
+    $sa.roles = [$sa_role]
+    Users::RJR.registry << $sa
+  end
+
+  $sa
 end
 
 # Helper to add attribute to user

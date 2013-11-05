@@ -56,8 +56,7 @@ module Omega::Client
       Omega::Client::Miner.node.rjr_node = @n
       @m = Omega::Client::Miner.new
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#validatation" do
@@ -330,8 +329,7 @@ module Omega::Client
       Omega::Client::Corvette.node.rjr_node = @n
       @m = Omega::Client::Corvette.new
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#validatation" do

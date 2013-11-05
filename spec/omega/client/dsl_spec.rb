@@ -14,9 +14,6 @@ describe DSL, :rjr => true do
   include Omega::Client::DSL
 
   before(:each) do
-    @u = create(:user)
-    add_role "user_role_#{@u.id}", :superadmin
-
     dsl.rjr_node = @n
     @n.dispatcher.add_module('users/rjr/init')
     @n.dispatcher.add_module('motel/rjr/init')
@@ -24,6 +21,7 @@ describe DSL, :rjr => true do
     @n.dispatcher.add_module('manufactured/rjr/init')
     @n.dispatcher.add_module('missions/rjr/init')
 
+    @u = reload_super_admin
     login @u.id, @u.password
   end
 

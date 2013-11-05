@@ -25,8 +25,7 @@ module Omega::Client
     before(:each) do
       Omega::Client::SolarSystem.node.rjr_node = @n
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#jump_gates" do
@@ -122,8 +121,7 @@ module Omega::Client
       OmegaTest::InSystem.node.rjr_node = @n
       @i = OmegaTest::InSystem.new
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#solar_system" do
@@ -190,8 +188,7 @@ module Omega::Client
     describe "#move_to" do
       before(:each) do
         @i.entity = create(:valid_ship)
-        setup_manufactured(nil)
-        add_role @login_role, :superadmin
+        setup_manufactured(nil, reload_super_admin)
       end
 
       it "clears movement handlers" do
@@ -267,8 +264,7 @@ module Omega::Client
     describe "jump_to" do
       before(:each) do
         @i.entity = create(:valid_ship)
-        setup_manufactured(nil)
-        add_role @login_role, :superadmin
+        setup_manufactured(nil, reload_super_admin)
       end
 
       context "system is a string" do
@@ -315,8 +311,7 @@ module Omega::Client
       @h.entity = create(:valid_ship)
       @h.entity.add_resource create(:resource, :id => 'gem-diamond', :quantity => 10)
       @h.entity.add_resource create(:resource, :id => 'gem-ruby',    :quantity => 15)
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
 
       @t = create(:valid_ship)
     end

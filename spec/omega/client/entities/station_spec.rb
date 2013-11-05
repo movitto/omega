@@ -19,8 +19,7 @@ module Omega::Client
     before(:each) do
       Omega::Client::Factory.node.rjr_node = @n
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
 
       f = create(:valid_station, :type => :manufacturing)
       @f = Omega::Client::Factory.get(f.id)

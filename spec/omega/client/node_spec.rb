@@ -13,11 +13,9 @@ describe Node, :rjr => true do
   include Omega::Client::DSL # to log user in
 
   before(:each) do
-    @u = create(:user)
-    add_role "user_role_#{@u.id}", :superadmin
-
     dsl.rjr_node = @n
-    @n.dispatcher.add_module('users/rjr/init')
+
+    @u = reload_super_admin
     login @u.id, @u.password
   end
 

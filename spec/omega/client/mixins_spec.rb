@@ -54,8 +54,7 @@ module Omega::Client
       @t = OmegaTest::Trackable.new
       OmegaTest::Trackable.node.rjr_node = @n
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#refresh" do
@@ -340,8 +339,7 @@ module Omega::Client
       OmegaTest::Trackable.node.rjr_node = @n
       OmegaTest::Trackable.send :init_entity, @t
 
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     describe "#on_state" do
@@ -481,8 +479,7 @@ module Omega::Client
   describe TrackEntity, :rjr => true do
     before(:each) do
       OmegaTest::Trackable.node.rjr_node = @n
-      setup_manufactured(nil)
-      add_role @login_role, :superadmin
+      setup_manufactured(nil, reload_super_admin)
     end
 
     after(:each) do
