@@ -1,0 +1,58 @@
+- content_for :javascripts do
+  = javascript_include_tag "ui/dialog"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "dialog"
+
+#omega_dialog
+
+#login_dialog_title
+  Login
+
+#login_dialog
+  .dialog_content
+    .dialog_row
+      Username:
+      %input#login_username{:type => "text"}
+
+    .dialog_row
+      Password:
+      %input#login_password{:type => "password"}
+
+    .dialog_row
+      %input#login_button{:type => "button", :value => "login"}
+
+#register_dialog_title
+  Register
+
+#register_dialog
+  .dialog_content
+    .dialog_row
+      Username:
+      %input#register_username{:type => "text"}
+
+    .dialog_row
+      Password:
+      %input#register_password{:type => "password"}
+
+    .dialog_row
+      Email:
+      %input#register_email{:type => "text"}
+
+    .dialog_row
+      #omega_recaptcha
+
+    .dialog_row
+      By submitting this form, you are agreeing to The Omegaverse 
+      = link_to 'Terms of Use', '/wiki/Terms_of_Use'
+
+    .dialog_row
+      %input#register_button{:type => "button", :value => "confirm"}
+
+#registration_submitted_dialog
+  .dialog_content
+    .dialog_row
+      Creating account, you should receive a confirmation email momentarily
+
+#registration_failed_dialog
+  .dialog_content

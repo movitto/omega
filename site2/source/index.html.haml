@@ -1,0 +1,20 @@
+---
+title: The Omegaverse
+---
+- content_for :javascripts do
+  = javascript_include_tag "pages/index"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "index"
+
+- content_for :secondary_navigation do
+  = link_to "Register", "#", :id => "register_link"
+  = link_to "My Account",  "account.html", :id => "account_link"
+  \/
+  = link_to "Login",    "#", :id => "login_link"
+  = link_to "Logout",   "#", :id => "logout_link"
+
+= partial :effects_player
+= partial :canvas
+= partial :status_indicator
+= partial :dialog
