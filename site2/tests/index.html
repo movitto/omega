@@ -16,16 +16,26 @@
 
   <!-- omega dependencies -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-2.0.3.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery-ui-1.10.3.min.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery.cookie.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/google_recaptcha_ajax.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/rjr/json.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/rjr/jrw.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/jquery.cookie.js"></script>
 
-  <!-- omega -->
+  <!-- omega core -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/version.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/config.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/node.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/location.js"></script>
+
+  <!-- omega ui -->
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialog.js"></script>
+
+  <!-- omega pages -->
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index.js"></script>
 
   <!-- test setup -->
   <script type="text/javascript" src="http://localhost/omega-test/setup.js"></script>
@@ -35,6 +45,8 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/user.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/location.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/stat.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialog.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/pages/index.js"></script>
 </head>
 
@@ -45,8 +57,37 @@
  <h2 id="qunit-userAgent"></h2>
  <ol id="qunit-tests"></ol>
 
+ <!-- outside fixtures as ajax calls may return after resetting -->
+ <div style="display: none">
+   <div id="omega_recaptcha"></div>
+ </div>
+
  <!-- gets reset after every test -->
  <div id="qunit-fixture">
+   <!-- index navigation -->
+   <a id="register_link" >register</a><a id="account_link" style="display: none">account</a><a id="login_link">login</a><a id="logout_link" style="display: none" >logout</a>
+
+   <!--- dialog.html.haml -->
+   <div id="omega_dialog"></div>
+   <div id="login_dialog">
+     <input id="login_username" type="text" />
+     <input id="login_password" type="password" />
+     <input id="login_button"   type="button" />
+   </div>
+   <div id="login_failed_dialog">
+     <div id="login_err" />
+   </div>
+   <div id="register_dialog">
+     <input id="register_username" type="text" />
+     <input id="register_password" type="password" />
+     <input id="register_email" type="text" />
+     <input id="register_button"   type="button" />
+   </div>
+   <div id="registration_submitted_dialog">
+   </div>
+   <div id="registration_failed_dialog">
+     <div id="registration_err" />
+   </div>
  </div>
 </body>
 </html>

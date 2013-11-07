@@ -14,24 +14,27 @@ Omega.UI.IndexNav = function(parameters){
   this.register_link = $('#register_link');
   this.login_link    = $('#login_link');
   this.logout_link   = $('#logout_link');
+  this.account_link  = $('#account_link');
 
-  /// need a dialog handle to show login/register forms
-  this.index_dialog        = null;
-
-  /// need a session handle to logout
-  this.session             = null;
+  /// need handle to page to
+  /// - interact w/ dialog (login/register forms)
+  /// - logout of session
+  /// - logout using node
+  this.page = null;
 
   $.extend(this, parameters);
 
-  if(session == null)
-    this.show_login_controls();
-  else
-    this.show_logout_controls();
+  if(this.page != null){ /// XXX for tests, shouldn't ever be null
+    if(this.page.session == null)
+      this.show_login_controls();
+    else
+      this.show_logout_controls();
+  }
 
   var _this = this;
-  this.login_link.click(function(event){    _this._login_clicked(evnt); });
-  this.logout_link.click(function(event){   _this._logout_clicked(evnt); });
-  this.register_link.click(function(event){ _this._register_clicked(evnt); });
+  this.login_link.click(function(evnt){    _this._login_clicked(evnt); });
+  this.logout_link.click(function(evnt){   _this._logout_clicked(evnt); });
+  this.register_link.click(function(evnt){ _this._register_clicked(evnt); });
 }
 
 Omega.UI.IndexNav.prototype = {
@@ -50,69 +53,147 @@ Omega.UI.IndexNav.prototype = {
   },
 
   _login_clicked : function(evnt){
-    this.index_dialog.show_login_dialog();
+    this.page.dialog.show_login_dialog();
   },
 
   _logout_clicked : function(evnt){
-    this.session.logout();
+    this.page.session.logout(this.page.node);
     this.show_login_controls();
   },
 
   _register_clicked : function(evnt){
-    this.index_dialog.show_register_dialog();
+    this.page.dialog.show_register_dialog();
   }
 }
 
 Omega.UI.IndexDialog = function(parameters){
+  /// need handle to page to
+  /// - submit login via node
+  /// - set the page session
+  /// - update the page nav
+  /// - retrieve recaptcha from page config
+  /// - submit registration via node
+  this.page = null;
+
+  $.extend(this, parameters);
+
   this.login_button    = $('#login_button');
   this.register_button = $('#register_button');
 
   var _this = this;
   this.login_button.click(function(evnt){    _this._login_clicked(evnt); });
-  this.register_button.click(function(evnt){ _this._register_clicked(evnt); });
+  this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
 }
 
 Omega.UI.IndexDialog.prototype = {
   show_login_dialog : function(){
-    this.title   = $('#login_dialog_title').html();
-    this.content = $('#login_dialog').html();
+    this.hide();
+    this.title   = 'Login';
+    this.div_id  = '#login_dialog';
     this.show();
   },
 
   show_register_dialog : function(){
-    this.title   = $('#register_dialog_title').html();
-    this.content = $('#register_dialog').html();
+    this.hide();
+    this.title   = 'Register';
+    this.div_id  = '#register_dialog';
+
+    Recaptcha.create(this.page.config.recaptcha_pub, 'omega_recaptcha',
+      { theme: "red", callback: Recaptcha.focus_response_field});
+
+    this.show();
+  },
+
+  show_login_failed_dialog : function(err){
+    this.hide();
+    this.title   = 'Login Failed';
+    this.div_id  = '#login_failed_dialog';
+    $('#login_err').html('Login Failed: ' + err);
+    this.show();
+  },
+
+  show_registration_submitted_dialog : function(){
+    this.hide();
+    this.title = 'Registration Submitted';
+    this.div_id = '#registration_submitted_dialog';
+    this.show();
+  },
+
+  show_registration_failed_dialog : function(err){
+    this.hide();
+    this.title = 'Registration Failed';
+    this.div_id = '#registration_failed_dialog';
+    $('#registration_err').html('Failed to create account: ' + err)
     this.show();
   },
 
   _login_clicked : function(evnt){
-    /// TODO Session.login
-    this.hide();
+    var user_id  = $('#login_username').val();
+    var password = $('#login_password').val();
+    var user = new Omega.User({id: user_id, password: password});
+
+    var _this = this;
+    Omega.Session.login(user, this.page.node, function(result){
+      if(result.error){
+        _this.show_login_failed_dialog(result.error.message);
+      }else{
+        _this.hide();
+        _this.page.session = result;
+        _this.page.nav.show_logout_controls();
+      }
+    });
   },
 
   _register_button_clicked : function(evnt){
-    this.title   = $('#register_dialog_title').html();
-    this.content = $('#registration_submitted_dialog').html();
-    /// TODO submit register dialog
+    var user_id       = $('#register_username').val();
+    var user_password = $('#register_password').val();
+    var user_email    = $('#register_email').val();
+    var recaptcha_challenge = Recaptcha.get_challenge();
+    var recaptcha_response  = Recaptcha.get_response();
+    var user = new Omega.User({id: user_id, password: user_password, email: user_email,
+                               recaptcha_challenge: recaptcha_challenge,
+                               recaptcha_response : recaptcha_response});
+
+    var _this = this;
+    this.page.node.http_invoke('users::register', user, function(result){
+      if(result.error){
+        _this.show_registration_failed_dialog(result.error.message);
+      }else{
+        _this.show_registration_submitted_dialog();
+      }
+    });
   }
 };
 
 $.extend(Omega.UI.IndexDialog.prototype,
          new Omega.UI.Dialog());
 
-Omega.Pages.Index = function(parameters){
+Omega.Pages.Index = function(){
+  this.config  = Omega.Config;
+  this.node    = new Omega.Node(this.config);
+
+  var _this = this;
   this.session = Omega.Session.restore_from_cookie();
-  // TODO establish node connection / validate session
+  if(this.session != null){
+    this.session.validate(this.node, function(result){
+      if(result.error){
+        _this.session = null;
+      }
+    });
+  }
 
-  this.canvas           = new Omega.UI.Canvas();
-  this.effects_player   = new Omega.UI.EffectsPlayer();
-  this.status_indicator = new Omega.UI.StatusIndicator();
+  /// not blocking for validation to return,
+  /// assuming it'll arrive before node is used above
 
-  this.dialog           = new Omega.UI.IndexDialog();
-  this.nav              = new Omega.UI.IndexNav({dialog  : this.dialog,
-                                                 session : this.session});
+  //this.canvas           = new Omega.UI.Canvas();
+  //this.effects_player   = new Omega.UI.EffectsPlayer();
+  //this.status_indicator = new Omega.UI.StatusIndicator();
+
+  this.dialog           = new Omega.UI.IndexDialog({page : this});
+  this.nav              = new    Omega.UI.IndexNav({page : this});
 }
 
+//FIXME needs to be enabled for app, disabled for tests
 $(document).ready(function(){
   var index = new Omega.Pages.Index();
 });

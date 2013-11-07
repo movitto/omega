@@ -5,10 +5,13 @@
  */
 
 Omega.Node = function(parameters){
-  this.http_url = 'http://localhost/omega';
-  this.ws_host  = 'localhost';
-  this.ws_port  = 8080;
+  this.http_host   = 'localhost';
+  this.http_path   = '/omega';
+  this.ws_host     = 'localhost';
+  this.ws_port     = 8080;
   $.extend(this, parameters);
+
+  this.http_url = 'http://' + this.http_host + this.http_path;
 
   this.http = new RJR.HttpNode(this.http_url);
   this.ws   = new RJR.WsNode(this.ws_host, this.ws_port);

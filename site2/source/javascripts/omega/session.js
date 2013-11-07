@@ -47,6 +47,16 @@ Omega.Session.prototype = {
    */
   validate : function(node, cb){
     node.http_invoke('users::get_entity', 'with_id', this.user_id, cb);
+  },
+
+  logout : function(node, cb){
+    var _this = this;
+    node.http_invoke('users::logout', this.id, function(response){
+      _this.clear_cookies();
+      _this.clear_headers_on(node)
+      if(cb) cb();
+      _this.dispatchEvent({type: 'logout', data: _this});
+    });
   }
 };
 
@@ -64,21 +74,18 @@ Omega.Session.restore_from_cookie = function(){
 Omega.Session.login = function(user, node, cb){
   node.http_invoke('users::login', user, function(response){
     if(response.error){
-      /// TODO
+      if(cb) cb.apply(null, [response]);
+
     }else{
       var session = new Omega.Session({id      : response.result.id,
                                        user_id : response.result.user.id });
         
       session.set_headers_on(node);
-      if(cb) cb.apply(session, [session]);
+      if(cb) cb.apply(null, [session]);
+      Omega.Session.dispatchEvent({type: 'login', data: session})
     }
   });
 };
 
-Omega.Session.logout = function(session, node, cb){
-  node.http_invoke('users::logout', session.id, function(response){
-    session.clear_cookies();
-    session.clear_headers_on(node)
-    if(cb) cb();
-  });
-};
+THREE.EventDispatcher.prototype.apply( Omega.Session );
+THREE.EventDispatcher.prototype.apply( Omega.Session.prototype );

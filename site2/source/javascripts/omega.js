@@ -4,14 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-var Omega = { REVISION: '1',
-              UI      :  {},
-              Pages   :  {}};
-
 /// omega dependencies
 //= require "vendor/jquery-2.0.3.min"
 //= require "vendor/jquery-ui-1.10.3.min"
 //= require "vendor/jquery.cookie"
+//= require "vendor/google_recaptcha_ajax"
 
 //= require "vendor/three-r62.min"
 
@@ -19,6 +16,8 @@ var Omega = { REVISION: '1',
 //= require "vendor/rjr/jrw"
 
 /// omega
+//= require "omega/version"
+//= require "omega/config"
 //= require "omega/node"
 //= require "omega/session"
 //= require "omega/user"

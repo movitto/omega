@@ -66,6 +66,60 @@ describe("Omega.Session", function(){
     });
   });
 
+  describe("#logout", function(){
+    var node, cb, stub;
+
+    before(function(){
+      node = new Omega.Node();
+      session.id = 'session1';
+      cb   = sinon.spy();
+      stub = sinon.stub(node, 'http_invoke');
+    });
+
+    it("invokes users::logout http request", function(){
+      session.logout(node, cb)
+      assert(stub.getCall(0).args[0]).equals('users::logout');
+      assert(stub.getCall(0).args[1]).equals('session1');
+    });
+
+    describe("logout response handler", function(){
+      var response;
+      var handler;
+
+      before(function(){
+        session.logout(node, cb)
+        handler = stub.getCall(0).args[2];
+      });
+
+      it("clears session headers on node", function(){
+        var spy = sinon.spy(session, 'clear_headers_on')
+        handler(response);
+        sinon.assert.calledWith(spy, node);
+      });
+
+      it("clears session cookies", function(){
+        var spy = sinon.spy(session, 'clear_cookies')
+        handler(response);
+        sinon.assert.called(spy);
+      });
+
+      describe("callback specified", function(){
+        it("invokes callback", function(){
+          handler(response)
+          sinon.assert.called(cb)
+        });
+      });
+
+      it("raises logout event", function(){
+        var spy = sinon.spy();
+        session.addEventListener('logout', spy);
+        handler(response);
+        sinon.assert.called(spy);
+        assert(spy.getCall(0).args[0].data).equals(session);
+      })
+    });
+  });
+
   describe("#restore_from_cookie", function(){
     describe("user and session not null", function(){
       it("returns a new Session", function(){
@@ -130,52 +184,16 @@ describe("Omega.Session", function(){
           assert(session.user_id).equals('user1')
         });
       });
+
+      it("raises login event", function(){
+        var spy = sinon.spy();
+        Omega.Session.addEventListener('login', spy);
+        handler.apply(null, [response]);
+        var session = cb.getCall(0).args[0];
+        sinon.assert.calledWith(spy);
+        assert(spy.getCall(0).args[0].data).equals(session);
+      })
     });
   });
 
-  describe("#logout", function(){
-    var node, cb, stub;
-
-    before(function(){
-      node = new Omega.Node();
-      session = new Omega.Session({id : 'session1'})
-      cb   = sinon.spy();
-      stub = sinon.stub(node, 'http_invoke');
-    });
-
-    it("invokes users::logout http request", function(){
-      Omega.Session.logout(session, node, cb)
-      assert(stub.getCall(0).args[0]).equals('users::logout');
-      assert(stub.getCall(0).args[1]).equals('session1');
-    });
-
-    describe("logout response handler", function(){
-      var response;
-      var handler;
-
-      before(function(){
-        Omega.Session.logout(session, node, cb)
-        handler = stub.getCall(0).args[2];
-      });
-
-      it("clears session headers on node", function(){
-        var spy = sinon.spy(session, 'clear_headers_on')
-        handler(response);
-        sinon.assert.calledWith(spy, node);
-      });
-
-      it("clears session cookies", function(){
-        var spy = sinon.spy(session, 'clear_cookies')
-        handler(response);
-        sinon.assert.called(spy);
-      });
-
-      describe("callback specified", function(){
-        it("invokes callback", function(){
-          handler(response)
-          sinon.assert.called(cb)
-        });
-      });
-    });
-  });
 });}); // Session
