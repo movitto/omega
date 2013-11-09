@@ -56,6 +56,15 @@ describe("Omega.Session", function(){
   });
 
   describe("#validate", function(){
+    it("sets session headers on given node", function(){
+      var node = new Omega.Node();
+      var stub = sinon.stub(node, 'http_invoke');
+
+      var spy = sinon.spy(session, 'set_headers_on');
+      session.validate(node);
+      sinon.assert.calledWith(spy, node);
+    });
+
     it("validates session via http request", function(){
       var node = new Omega.Node();
       var cb = function() {};

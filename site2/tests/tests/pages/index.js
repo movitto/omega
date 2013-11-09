@@ -13,23 +13,6 @@ describe("Omega.UI.IndexNav", function(){
       Omega.UI.IndexNav.prototype.show_logout_controls.restore();
   });
 
-  describe("user session is not null", function(){
-    it("shows logout controls", function(){
-      var spy = sinon.spy(Omega.UI.IndexNav.prototype, 'show_logout_controls');
-      page.session = new Omega.Session();
-      var nav      = new Omega.UI.IndexNav({page : page});
-      sinon.assert.called(spy);
-    });
-  });
-
-  describe("user session is null", function(){
-    it("shows login controls", function(){
-      var spy = sinon.spy(Omega.UI.IndexNav.prototype, 'show_login_controls');
-      var nav     = new Omega.UI.IndexNav({page : page});
-      sinon.assert.called(spy);
-    });
-  });
-
   describe("user clicks login link", function(){
     it("invokes index_dialog.show_login_dialog", function(){
       page.dialog = new Omega.UI.IndexDialog();
@@ -305,10 +288,11 @@ describe("Omega.UI.IndexDialog", function(){
       var login_callback, session;
 
       before(function(){
-        var spy = sinon.spy(Omega.Session, 'login')
+        var stub = sinon.stub(Omega.Session, 'login')
         dialog.login_button.click();
-        login_callback = spy.getCall(0).args[2];
+        login_callback = stub.getCall(0).args[2];
         session = new Omega.Session();
+        session.id = 'foo'
       })
 
       it("hides login dialog", function(){
@@ -409,18 +393,49 @@ describe("Omega.Pages.Index", function(){
     });
 
     describe("session is not valid", function(){
-      it("nullifies session", function(){
+      var index, validate_cb;
+
+      before(function(){
         var session = new Omega.Session();
         var spy = sinon.spy(session, 'validate');
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-        var index = new Omega.Pages.Index();
 
-        var validate_cb = spy.getCall(0).args[1];
+        index = new Omega.Pages.Index();
+        validate_cb = spy.getCall(0).args[1];
+      })
+
+      it("nullifies session", function(){
         validate_cb.apply(null, [{error : {}}]);
         assert(index.session).isNull();
       });
-    })
-  })
+
+      it("shows login controls", function(){
+        var spy = sinon.spy(index.nav, 'show_login_controls');
+        validate_cb.apply(null, [{error : {}}]);
+        sinon.assert.called(spy);
+      });
+    });
+
+    describe("user session is valid", function(){
+      it("shows logout controls", function(){
+        var session = new Omega.Session();
+        var spy = sinon.spy(session, 'validate');
+        var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
+
+        var index = new Omega.Pages.Index();
+        validate_cb = spy.getCall(0).args[1];
+
+        spy = sinon.spy(index.nav, 'show_logout_controls');
+        validate_cb.apply(null, [{}]);
+        sinon.assert.called(spy);
+      });
+    });
+  });
+
+  it("has a status indicator", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
+  });
 
   it("has an index dialog", function(){
     var index = new Omega.Pages.Index();

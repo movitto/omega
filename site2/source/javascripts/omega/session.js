@@ -46,6 +46,7 @@ Omega.Session.prototype = {
    * Callback will be invoked with request result upon response
    */
   validate : function(node, cb){
+    this.set_headers_on(node);
     node.http_invoke('users::get_entity', 'with_id', this.user_id, cb);
   },
 
@@ -79,7 +80,8 @@ Omega.Session.login = function(user, node, cb){
     }else{
       var session = new Omega.Session({id      : response.result.id,
                                        user_id : response.result.user.id });
-        
+
+      session.set_cookies();
       session.set_headers_on(node);
       if(cb) cb.apply(null, [session]);
       Omega.Session.dispatchEvent({type: 'login', data: session})

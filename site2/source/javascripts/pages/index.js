@@ -9,7 +9,9 @@
 //= require "ui/canvas"
 //= require "ui/effects_player"
 //= require "ui/status_indicator"
+//= require "ui/canvas"
 
+// TODO rename to Omega.Pages.Index.Nav ? (same w/ Dialog below)
 Omega.UI.IndexNav = function(parameters){
   this.register_link = $('#register_link');
   this.login_link    = $('#login_link');
@@ -23,13 +25,6 @@ Omega.UI.IndexNav = function(parameters){
   this.page = null;
 
   $.extend(this, parameters);
-
-  if(this.page != null){ /// XXX for tests, shouldn't ever be null
-    if(this.page.session == null)
-      this.show_login_controls();
-    else
-      this.show_logout_controls();
-  }
 
   var _this = this;
   this.login_link.click(function(evnt){    _this._login_clicked(evnt); });
@@ -178,6 +173,9 @@ Omega.Pages.Index = function(){
     this.session.validate(this.node, function(result){
       if(result.error){
         _this.session = null;
+        _this.nav.show_login_controls();
+      }else{
+        _this.nav.show_logout_controls();
       }
     });
   }
@@ -185,15 +183,18 @@ Omega.Pages.Index = function(){
   /// not blocking for validation to return,
   /// assuming it'll arrive before node is used above
 
-  //this.canvas           = new Omega.UI.Canvas();
   //this.effects_player   = new Omega.UI.EffectsPlayer();
-  //this.status_indicator = new Omega.UI.StatusIndicator();
 
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
+  this.canvas           = new       Omega.UI.Canvas({page: this});
+  this.status_indicator = new          Omega.UI.StatusIndicator();
+
+  /// FIXME play status_indicator
+  this.status_indicator.follow_node(this.node);
 }
 
 //FIXME needs to be enabled for app, disabled for tests
-$(document).ready(function(){
-  var index = new Omega.Pages.Index();
-});
+//$(document).ready(function(){
+//  var index = new Omega.Pages.Index();
+//});
