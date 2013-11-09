@@ -1,6 +1,7 @@
-#canvas_controls
-  = image_tag("/images/camera/reset.png", :id => "cam_reset")
+- content_for :stylesheets do
+  = stylesheet_link_tag "canvas"
 
+#canvas_controls
   #locations_list.entities_container
     %b Locations
     %ul
@@ -10,10 +11,10 @@
   #missions_button.canvas_button
     %b Missions
 
-  #axis_controls
-    %input#toggle_axis_canvas{:type => "checkbox"} axis
-
-  .clear_both
+  #toggle_axis
+    %input{:type => "checkbox"}
+    axis
+  = image_tag("/images/reset_cam.png", :id => "cam_reset")
 
 #omega_canvas
 

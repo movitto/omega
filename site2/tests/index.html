@@ -50,6 +50,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/stat.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialog.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/status_indicator.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/ui/canvas.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/pages/index.js"></script>
 </head>
 
@@ -69,6 +70,24 @@
  <div id="qunit-fixture">
    <!-- index navigation -->
    <a id="register_link" >register</a><a id="account_link" style="display: none">account</a><a id="login_link">login</a><a id="logout_link" style="display: none" >logout</a>
+
+   <!-- canvas.html.haml -->
+   <div id="canvas_controls">
+     <div id="locations_list"><ul/></div>
+     <div id="entities_list"><ul/></div>
+     <div id="missions_button"></div>
+     <div id="toggle_axis">
+       <input type="checkbox" />
+     </div>
+   </div>
+   <div id="omega_canvas">
+   <div id="omega_entity_container">
+     <div id="entity_container_close"/>
+     <div id="entity_container_contents"/>
+   </div>
+
+   <!-- status_indicator.html.haml -->
+   <div id="status_icon"></div>
 
    <!--- dialog.html.haml -->
    <div id="omega_dialog"></div>
@@ -91,7 +110,6 @@
    <div id="registration_failed_dialog">
      <div id="registration_err" />
    </div>
-   <div id="status_icon"></div>
  </div>
 </body>
 </html>

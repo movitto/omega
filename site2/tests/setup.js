@@ -4,7 +4,13 @@
 // Specs will fails if stubbed out but not implemented, so
 // tests commented out but marked w/ 'NIY' should be implemented later
 
-//////////////////////////////// helper methods
+//////////////////////////////// helper methods/data
+
+Omega.Pages.Test = function(){
+}
+
+Omega.Pages.Test.prototype = {
+}
 
 //////////////////////////////// test hooks
 

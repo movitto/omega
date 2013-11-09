@@ -13,6 +13,11 @@ describe("Omega.UI.IndexNav", function(){
       Omega.UI.IndexNav.prototype.show_logout_controls.restore();
   });
 
+  it("has a handle to page the nav is on", function(){
+    var nav = new Omega.UI.IndexNav({page : page});
+    assert(nav.page).equals(page);
+  });
+
   describe("user clicks login link", function(){
     it("invokes index_dialog.show_login_dialog", function(){
       page.dialog = new Omega.UI.IndexDialog();
@@ -109,6 +114,12 @@ describe("Omega.UI.IndexDialog", function(){
   after(function(){
     Omega.UI.Dialog.remove();
   })
+
+  it("has a handle to page the dialog is on", function(){
+    var page = new Omega.Pages.Index();
+    var dialog = new Omega.UI.IndexDialog({page : page});
+    assert(dialog.page).equals(page);
+  });
 
   describe("#show_login_dialog", function(){
     it("hides the dialog", function(){
@@ -365,6 +376,7 @@ pavlov.specify("Omega.Pages.Index", function(){
 describe("Omega.Pages.Index", function(){
   after(function(){
     if(Omega.Session.restore_from_cookie.restore) Omega.Session.restore_from_cookie.restore();
+    if(Omega.UI.StatusIndicator.restore) Omega.UI.StatusIndicator.restore();
   });
 
   it("loads config", function(){
@@ -372,12 +384,12 @@ describe("Omega.Pages.Index", function(){
     assert(index.config).equals(Omega.Config);
   });
 
-  it("creates a new node", function(){
+  it("has a node", function(){
     var index = new Omega.Pages.Index();
     assert(index.node).isOfType(Omega.Node);
   });
 
-  it("restores session from cookie", function(){
+  it("has a session restored from cookie", function(){
     var spy = sinon.spy(Omega.Session, 'restore_from_cookie');
     var index = new Omega.Pages.Index();
     sinon.assert.called(spy);
@@ -437,6 +449,14 @@ describe("Omega.Pages.Index", function(){
     assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
   });
 
+  it("instructs status indicator to follow node", function(){
+    var si    = new Omega.UI.StatusIndicator();
+    var spy   = sinon.spy(si, 'follow_node');
+    var stub  = sinon.stub(Omega.UI, 'StatusIndicator').returns(si);
+    var index = new Omega.Pages.Index();
+    sinon.assert.calledWith(spy, index.node);
+  })
+
   it("has an index dialog", function(){
     var index = new Omega.Pages.Index();
     assert(index.dialog).isOfType(Omega.UI.IndexDialog);
@@ -448,4 +468,9 @@ describe("Omega.Pages.Index", function(){
     assert(index.nav).isOfType(Omega.UI.IndexNav);
     assert(index.nav.page).isSameAs(index);
   });
+
+  it("has a canvas", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.canvas).isOfType(Omega.UI.Canvas);
+  })
 });});

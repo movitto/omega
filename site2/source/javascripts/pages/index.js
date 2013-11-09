@@ -176,6 +176,7 @@ Omega.Pages.Index = function(){
         _this.nav.show_login_controls();
       }else{
         _this.nav.show_logout_controls();
+        /// TODO load entities, locations
       }
     });
   }
