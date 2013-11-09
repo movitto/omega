@@ -6,7 +6,8 @@
 
 //////////////////////////////// helper methods/data
 
-Omega.Pages.Test = function(){
+Omega.Pages.Test = function(parameters){
+  $.extend(this, parameters);
 }
 
 Omega.Pages.Test.prototype = {

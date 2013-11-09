@@ -30,6 +30,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/location.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/mission.js"></script>
 
   <!-- omega ui -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialog.js"></script>
@@ -47,6 +48,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/user.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/location.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/mission.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/stat.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/dialog.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/status_indicator.js"></script>
@@ -80,10 +82,10 @@
        <input type="checkbox" />
      </div>
    </div>
-   <div id="omega_canvas">
+   <div id="omega_canvas" ></div>
    <div id="omega_entity_container">
-     <div id="entity_container_close"/>
-     <div id="entity_container_contents"/>
+     <div id="entity_container_close"></div>
+     <div id="entity_container_contents"></div>
    </div>
 
    <!-- status_indicator.html.haml -->
@@ -97,7 +99,7 @@
      <input id="login_button"   type="button" />
    </div>
    <div id="login_failed_dialog">
-     <div id="login_err" />
+     <div id="login_err" ></div>
    </div>
    <div id="register_dialog">
      <input id="register_username" type="text" />
@@ -108,7 +110,17 @@
    <div id="registration_submitted_dialog">
    </div>
    <div id="registration_failed_dialog">
-     <div id="registration_err" />
+     <div id="registration_err" ></div>
+   </div>
+   <div id="missions_dialog">
+     <div id="missions_list" ></div>
+     <div id="completed_missions" ></div>
+   </div>
+   <div id="assigned_missions_dialog">
+     <div id="assigned_mission_title" ></div>
+     <div id="assigned_mission_description" ></div>
+     <div id="assigned_mission_assigned_time" ></div>
+     <div id="assigned_mission_expires" ></div>
    </div>
  </div>
 </body>

@@ -86,7 +86,130 @@ describe("Omega.UI.Canvas.Controls.List", function(){
 
 pavlov.specify("Omega.UI.Canvas.Controls.Button", function(){
 describe("Omega.UI.Canvas.Controls.Button", function(){
+});});
+
+pavlov.specify("Omega.UI.Canvas.Controls.Dialog", function(){
+describe("Omega.UI.Canvas.Controls.Dialog", function(){
+  after(function(){
+    Omega.UI.Dialog.remove();
+  });
+
+  it('has a reference to canvas the dialog is for', function(){
+    var canvas = new Omega.UI.Canvas();
+    var dialog = new Omega.UI.Canvas.Dialog({canvas: canvas});
+    assert(dialog.canvas).equals(canvas);
+  });
+
   describe("#show_missions_dialog", function(){
+    var node, user_id, session, page, canvas, dialog;
+
+    before(function(){
+      user_id = 'user1';
+      node    = new Omega.Node();
+      session = new Omega.Session({user_id: user_id});
+      page    = new Omega.Pages.Test({node: node, session: session});
+      canvas  = new Omega.UI.Canvas({page: page});
+      dialog  = new Omega.UI.Canvas.Dialog({canvas: canvas});
+
+    });
+
+    var get_missions_cb = function(){
+      var spy = sinon.spy(node, 'http_invoke');
+      dialog.show_missions_dialog();
+      var missions_cb = spy.getCall(0).args[1];
+      return missions_cb;
+    }
+
+    it("invokes missions::get_missions", function(){
+      var spy = sinon.spy(node, 'http_invoke');
+      dialog.show_missions_dialog();
+      sinon.assert.calledWith(spy, 'missions::get_missions', sinon.match.func);
+    });
+
+    it("hides dialog", function(){
+      var spy = sinon.spy(dialog, 'hide');
+      get_missions_cb()({})
+      sinon.assert.called(spy);
+    })
+
+    describe("user has assigned mission currently in progress", function(){
+      it("shows mission metadata", function(){
+
+        var mission =
+          new Omega.Mission({title: 'mission1',
+                             description: 'mission description1',
+                             assigned_to_id : user_id,
+                             assigned_time  : new Date().toString() });
+        var response = {result: [mission]}
+
+        get_missions_cb()(response)
+        assert(dialog.title).equals('Assigned Mission');
+        assert(dialog.div_id).equals('#assigned_mission_dialog');
+        assert($('#assigned_mission_title').html()).equals('<b>mission1</b>');
+        assert($('#assigned_mission_description').html()).equals('mission description1');
+        assert($('#assigned_mission_assigned_time').html()).equals('<b>Assigned</b>: ' + mission.assigned_time);
+        assert($('#assigned_mission_expires').html()).equals('<b>Expires</b>: ' + mission.expires());
+      })
+    })
+
+    describe("user does not have assigned mission in process", function(){
+      var response;
+
+      before(function(){
+        var mission1, mission2, mission3,
+            mission4, mission5, mission6;
+        mission1 = new Omega.Mission({id:    'missiona',
+                                      title: 'mission1'});
+        mission2 = new Omega.Mission({id:    'missionb',
+                                      title: 'mission2'});
+        mission3 = new Omega.Mission({id:    'missionc',
+                                      title: 'mission3',
+                                      assigned_to_id : user_id,
+                                      victorious : true});
+        mission4 = new Omega.Mission({id:    'missiond',
+                                      title: 'mission4',
+                                      assigned_to_id : 'another',
+                                      victorious : true});
+        mission5 = new Omega.Mission({id:    'missione',
+                                      title: 'mission5',
+                                      assigned_to_id : user_id,
+                                      failed : true});
+        mission6 = new Omega.Mission({id:    'missionf',
+                                      title: 'mission6',
+                                      assigned_to_id : user_id,
+                                      failed : true});
+
+        response = {result: [mission1, mission2, mission3, mission4, mission5, mission6]};
+      })
+
+      it("shows list of unassigned missions with assignment links", function(){
+        get_missions_cb()(response)
+        assert(dialog.title).equals('Missions');
+        assert(dialog.div_id).equals('#missions_dialog');
+        assert($('#missions_list').html()).equals('mission1 <span id="assign_mission_missiona" class="assign_mission">assign</span><br>mission2 <span id="assign_mission_missionb" class="assign_mission">assign</span><br>');
+      })
+
+      it("should # of successful/failed user missions", function(){
+        get_missions_cb()(response)
+        assert($('#completed_missions').html()).equals('(Victorious: 1 / Failed: 2)');
+      })
+
+      describe("assign mission command", function(){
+        describe("error on mission assignment", function(){
+          //it("shows error in dialog") // NIY
+        })
+
+        describe("successful mission assignment", function(){
+          //it("hides dialog") // NIY
+        })
+      })
+    })
+
+    it("shows dialog", function(){
+      var spy = sinon.spy(dialog, 'hide');
+      get_missions_cb()({})
+      sinon.assert.called(spy);
+    })
   });
 });});
 

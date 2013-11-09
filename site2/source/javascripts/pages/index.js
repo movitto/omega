@@ -195,7 +195,7 @@ Omega.Pages.Index = function(){
   this.status_indicator.follow_node(this.node);
 }
 
+$(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests
-//$(document).ready(function(){
-//  var index = new Omega.Pages.Index();
-//});
+  //var index = new Omega.Pages.Index();
+});
