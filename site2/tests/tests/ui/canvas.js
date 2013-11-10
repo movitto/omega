@@ -105,6 +105,32 @@ describe("Omega.UI.Canvas.Controls.List", function(){
       assert(list.list()).isHidden();
     });
   });
+
+  describe("#add", function(){
+    it("adds new li to list", function(){
+      var item = {};
+      list.add(item)
+      assert(list.list().children('li').length).equals(1);
+    });
+
+    it("sets li text to item text", function(){
+      var item = {text: 'item1'}
+      list.add(item)
+      assert($(list.list().children('li')[0]).html()).equals('item1');
+    });
+
+    it("sets item id in li data", function(){
+      var item = {id: 'item1'}
+      list.add(item)
+      assert($(list.list().children('li')[0]).data('id')).equals('item1');
+    });
+
+    it("sets item in li data", function(){
+      var item = {data: {}}
+      list.add(item)
+      assert($(list.list().children('li')[0]).data('item')).equals(item['data']);
+    });
+  });
 });});
 
 pavlov.specify("Omega.UI.Canvas.Controls.Button", function(){

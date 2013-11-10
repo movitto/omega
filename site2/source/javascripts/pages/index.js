@@ -30,7 +30,7 @@ Omega.UI.IndexNav = function(parameters){
   this.login_link.click(function(evnt){    _this._login_clicked(evnt); });
   this.logout_link.click(function(evnt){   _this._logout_clicked(evnt); });
   this.register_link.click(function(evnt){ _this._register_clicked(evnt); });
-}
+};
 
 Omega.UI.IndexNav.prototype = {
   show_login_controls : function(){
@@ -59,7 +59,7 @@ Omega.UI.IndexNav.prototype = {
   _register_clicked : function(evnt){
     this.page.dialog.show_register_dialog();
   }
-}
+};
 
 Omega.UI.IndexDialog = function(parameters){
   /// need handle to page to
@@ -78,7 +78,7 @@ Omega.UI.IndexDialog = function(parameters){
   var _this = this;
   this.login_button.click(function(evnt){    _this._login_clicked(evnt); });
   this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
-}
+};
 
 Omega.UI.IndexDialog.prototype = {
   show_login_dialog : function(){
@@ -176,7 +176,12 @@ Omega.Pages.Index = function(){
         _this.nav.show_login_controls();
       }else{
         _this.nav.show_logout_controls();
-        /// TODO load entities, locations
+
+        /// load entities owned by user
+        Omega.Ship.owned_by(_this.session.user_id, _this.node,
+          function(ships) { _this.process_entities(ships); });
+        Omega.Station.owned_by(_this.session.user_id, _this.node,
+          function(stations) { _this.process_entities(stations); });
       }
     });
   }
@@ -193,7 +198,40 @@ Omega.Pages.Index = function(){
 
   /// FIXME play status_indicator
   this.status_indicator.follow_node(this.node);
-}
+};
+
+Omega.Pages.Index.prototype = {
+  process_entities : function(entities){
+    var _this = this;
+    for(var e = 0; e < entities.length; e++){
+      var entity = entities[e];
+      var item   = {id: entity.id, text: entity.id, data: entity};
+      this.canvas.controls.entities_list.add(item);
+
+      Omega.SolarSystem.with_id(entity.system_id, this.node,
+        function(solar_system) { _this.process_system(solar_system) });
+    }
+  },
+
+  process_system : function(system){
+    if(system != null){
+      var sitem  = {id: system.id, text: system.name, data: system};
+      this.canvas.controls.locations_list.add(sitem);
+
+      // TODO load jump gate endpoints?
+      var _this = this;
+      Omega.Galaxy.with_id(system.galaxy_id, this.node,
+        function(galaxy) { _this.process_galaxy(galaxy) });
+    }
+  },
+
+  process_galaxy : function(galaxy){
+    if(galaxy != null){
+      var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
+      this.canvas.controls.locations_list.add(gitem);
+    }
+  }
+};
 
 $(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests

@@ -8,6 +8,19 @@ Omega.Ship = function(parameters){
   $.extend(this, parameters);
 };
 
-Omega.Planet.prototype = {
+Omega.Ship.prototype = {
   json_class : 'Manufactured::Ship'
 };
+
+// Return ships owned by the specified user
+Omega.Ship.owned_by = function(user_id, node, cb){
+  node.http_invoke('manufactured::get_entities',
+    'of_type', 'Manufactured::Ship', 'owned_by', user_id,
+    function(response){
+      var ships = [];
+      if(response.result)
+        for(var e = 0; e < response.result.length; e++)
+          ships.push(new Omega.Ship(response.result[e]));
+      cb(ships);
+    });
+}

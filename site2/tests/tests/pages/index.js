@@ -429,18 +429,142 @@ describe("Omega.Pages.Index", function(){
     });
 
     describe("user session is valid", function(){
-      it("shows logout controls", function(){
-        var session = new Omega.Session();
+      var index, session, validate_cb;
+
+      before(function(){
+        session = new Omega.Session({user_id: 'user1'});
         var spy = sinon.spy(session, 'validate');
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
 
-        var index = new Omega.Pages.Index();
+        index = new Omega.Pages.Index();
         validate_cb = spy.getCall(0).args[1];
+      })
 
+      after(function(){
+        if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
+        if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
+      });
+
+      it("shows logout controls", function(){
         spy = sinon.spy(index.nav, 'show_logout_controls');
         validate_cb.apply(null, [{}]);
         sinon.assert.called(spy);
       });
+
+      it("retrieves ships owned by user", function(){
+        var spy = sinon.spy(Omega.Ship, 'owned_by');
+        validate_cb.apply(null, [{}]);
+        sinon.assert.calledWith(spy, session.user_id, index.node, sinon.match.func);
+      });
+
+      it("retrieves stations owned by user", function(){
+        var spy = sinon.spy(Omega.Station, 'owned_by');
+        validate_cb.apply(null, [{}]);
+        sinon.assert.calledWith(spy, session.user_id, index.node, sinon.match.func);
+      });
+
+      it("processes entities retrieved", function(){
+        var shspy = sinon.spy(Omega.Ship, 'owned_by');
+        var stspy = sinon.spy(Omega.Station, 'owned_by');
+        validate_cb.apply(null, [{}]);
+
+        var shcb = shspy.getCall(0).args[2];
+        var stcb = stspy.getCall(0).args[2];
+
+        var spy = sinon.stub(index, 'process_entities');
+        shcb('ships')
+        stcb('stations');
+        sinon.assert.calledWith(spy, 'ships');
+        sinon.assert.calledWith(spy, 'stations');
+      });
+    });
+  });
+
+  describe("#process_entities", function(){
+    var index, ships;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      ships = [new Omega.Ship({id: 'sh1', system_id: 'sys1'}),
+               new Omega.Ship({id: 'sh2', system_id: 'sys2'})];
+    });
+
+    after(function(){
+      if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+    });
+
+    it("adds entities to entities_list", function(){
+      var spy = sinon.spy(index.canvas.controls.entities_list, 'add');
+      index.process_entities(ships);
+      sinon.assert.calledWith(spy, {id: 'sh1', text: 'sh1', data: ships[0]});
+      sinon.assert.calledWith(spy, {id: 'sh2', text: 'sh2', data: ships[1]});
+    });
+
+    it("retrieves systems entities are in", function(){
+      var spy = sinon.spy(Omega.SolarSystem, 'with_id');
+      index.process_entities(ships);
+      sinon.assert.calledWith(spy, 'sys1', index.node, sinon.match.func);
+      sinon.assert.calledWith(spy, 'sys2', index.node, sinon.match.func);
+    });
+
+    it("processes systems retrieved", function(){
+      var spy = sinon.spy(Omega.SolarSystem, 'with_id');
+      index.process_entities(ships);
+      var cb1 = spy.getCall(0).args[2];
+      var cb2 = spy.getCall(1).args[2];
+
+      spy = sinon.spy(index, 'process_system');
+      var sys1 = {}, sys2 = {};
+      cb1(sys1); cb2(sys2);
+      sinon.assert.calledWith(spy, sys1);
+      sinon.assert.calledWith(spy, sys2);
+    });
+  });
+
+  describe("#process_system", function(){
+    var index, system;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      system = {id: 'system1', name: 'systema', galaxy_id: 'gal1'}
+    });
+
+    after(function(){
+      if(Omega.Galaxy.with_id.restore) Omega.Galaxy.with_id.restore();
+    });
+
+    it("adds system to locations_list", function(){
+      var spy = sinon.spy(index.canvas.controls.locations_list, 'add');
+      index.process_system(system)
+      sinon.assert.calledWith(spy, {id: 'system1', text: 'systema', data: system});
+    });
+
+    it("adds retrieves galaxy system is in", function(){
+      var spy = sinon.spy(Omega.Galaxy, 'with_id');
+      index.process_system(system)
+      sinon.assert.calledWith(spy, system.galaxy_id);
+    });
+
+    it("processes galaxy", function(){
+      var spy = sinon.spy(Omega.Galaxy, 'with_id');
+      index.process_system(system)
+      var cb = spy.getCall(0).args[2];
+
+      spy = sinon.spy(index, 'process_galaxy');
+      var galaxy = {};
+      cb(galaxy);
+      sinon.assert.calledWith(spy, galaxy);
+    });
+  });
+
+  describe("#process_galaxy", function(){
+    it("adds galaxy to locations_list", function(){
+      var index = new Omega.Pages.Index();
+      var galaxy = {id: 'galaxy1', name: 'galaxya'}
+
+      var spy = sinon.spy(index.canvas.controls.locations_list, 'add');
+      index.process_galaxy(galaxy)
+      sinon.assert.calledWith(spy, {id: 'galaxy1', text: 'galaxya', data: galaxy});
     });
   });
 

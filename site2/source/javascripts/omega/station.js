@@ -11,3 +11,16 @@ Omega.Station = function(parameters){
 Omega.Station.prototype = {
   json_class : 'Manufactured::Station'
 };
+
+// Return stations owned by the specified user
+Omega.Station.owned_by = function(user_id, node, cb){
+  node.http_invoke('manufactured::get_entities',
+    'of_type', 'Manufactured::Station', 'owned_by', user_id,
+    function(response){
+      var stations = [];
+      if(response.result)
+        for(var e = 0; e < response.result.length; e++)
+          stations.push(new Omega.Station(response.result[e]));
+      cb(stations);
+    });
+}

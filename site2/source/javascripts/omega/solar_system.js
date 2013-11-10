@@ -13,3 +13,14 @@ Omega.SolarSystem = function(parameters){
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem'
 };
+
+// return the solar system with the specified id
+Omega.SolarSystem.with_id = function(id, node, cb){
+  node.http_invoke('cosmos::get_entity',
+    'with_id', id,
+    function(response){
+      var sys = null;
+      if(response.result) sys = new Omega.SolarSystem(response.result);
+      cb(sys);
+    });
+}

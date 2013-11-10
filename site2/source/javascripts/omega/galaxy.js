@@ -13,3 +13,14 @@ Omega.Galaxy = function(parameters){
 Omega.Galaxy.prototype = {
   json_class : 'Cosmos::Entities::Galaxy'
 };
+
+// return the galaxy with the specified id
+Omega.Galaxy.with_id = function(id, node, cb){
+  node.http_invoke('cosmos::get_entity',
+    'with_id', id,
+    function(response){
+      var galaxy = null;
+      if(response.result) galaxy = new Omega.Galaxy(response.result);
+      cb(galaxy);
+    });
+}

@@ -31,8 +31,11 @@ Omega.UI.Canvas.Controls = function(parameters){
 
   $.extend(this, parameters);
 
+  // TODO sort locations list
+
   var _this = this;
   this.missions_button.component().on('click', function(evnt){ _this._missions_button_click(); });
+  // TODO locations / entities list clicks
 };
 
 Omega.UI.Canvas.Controls.prototype = {
@@ -61,6 +64,15 @@ Omega.UI.Canvas.Controls.List.prototype = {
 
   list : function(){
     return $(this.component().children('ul')[0]);
+  },
+
+  // Add new item to list.
+  // Item should specify id, text, data
+  add : function(item){
+    var element = $('<li/>', {text: item['text']});
+    element.data('id', item['id']);
+    element.data('item', item['data']);
+    this.list().append(element);
   },
 
   show : function(){
