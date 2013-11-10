@@ -24,3 +24,5 @@ Omega.Ship.owned_by = function(user_id, node, cb){
       cb(ships);
     });
 }
+
+THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );

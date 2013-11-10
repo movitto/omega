@@ -27,6 +27,15 @@ Omega.Test.Canvas = function(parameters){
   return $omega_test_canvas;
 };
 
+// wait until animation
+function on_animation(canvas, cb){
+  canvas.old_render = canvas.render;
+  canvas.render = function(){
+    canvas.old_render();
+    cb(canvas);
+  }
+}
+
 //////////////////////////////// test hooks
 
 //function before_all(details){

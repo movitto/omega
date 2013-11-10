@@ -24,24 +24,85 @@ describe("Omega.UI.Canvas", function(){
     assert(canvas.page).equals(page);
   });
 
-  it("has a scene", function(){
-    var canvas = Omega.Test.Canvas();
-    assert(canvas.scene).isOfType(THREE.Scene);
+  describe("user clicks canvas", function(){
+    describe("user clicked on entity in scene", function(){
+      it("raises click event on entity", function(){
+        var mesh1  = new THREE.Mesh(new THREE.SphereGeometry(1000, 100, 100),
+                                    new THREE.MeshBasicMaterial({color: 0xABABAB}));
+        var mesh2  = mesh1.clone();
+        mesh1.position.set(1000, 0, 0);
+        mesh2.position.set(0, 0, 0);
+
+        mesh1.omega_entity = new Omega.Ship({id: 'sh1'});
+        mesh2.omega_entity = new Omega.Ship({id: 'sh2'});
+
+        var spy1 = sinon.spy();
+        var spy2 = sinon.spy();
+        mesh1.omega_entity.addEventListener('click', spy1);
+        mesh2.omega_entity.addEventListener('click', spy2);
+
+        var canvas = Omega.Test.Canvas();
+        canvas.scene.add(mesh1);
+        canvas.scene.add(mesh2);
+
+        var side = canvas.canvas.offset().left - canvas.canvas.width();
+        canvas.canvas.css({right: $(document).width() - side});
+        canvas.canvas.show();
+        canvas.canvas.animate();
+
+        var evnt = new jQuery.Event("click");
+        evnt.pageX = canvas.canvas.width()/2;
+        evnt.pageY = canvas.canvas.height()/2;
+        canvas.canvas.trigger(evnt);
+        sinon.assert.calledWith(spy2, {type: 'click'})
+        sinon.assert.notCalled(spy1);
+      });
+    });
   });
 
-  it("has a renderer", function(){
-    var canvas = Omega.Test.Canvas();
-    assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
-  });
+  describe("canvas after #setup", function(){
+    it("has a scene", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.scene).isOfType(THREE.Scene);
+    });
 
-  it("has a perspective camera", function(){
-    var canvas = Omega.Test.Canvas();
-    assert(canvas.cam).isOfType(THREE.PerspectiveCamera);
-  });
+    it("has a renderer", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
+      assert(canvas.renderTarget).isOfType(THREE.WebGLRenderTarget);
+    });
 
-  it("has orbit controls", function(){
-    var canvas = Omega.Test.Canvas();
-    assert(canvas.controls).isOfType(THREE.OrbitControls);
+    it("has two effects composers", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.composer).isOfType(THREE.EffectComposer);
+      assert(canvas.shader_composer).isOfType(THREE.EffectComposer);
+    })
+
+    it("has a perspective camera", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.cam).isOfType(THREE.PerspectiveCamera);
+    });
+
+    it("has orbit controls", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.cam_controls).isOfType(THREE.OrbitControls);
+    });
+
+    it("adds render pass to shader composer", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.shader_composer.passes.length).equals(1);
+      assert(canvas.shader_composer.passes[0]).isOfType(THREE.RenderPass);
+    })
+
+    it("adds a render/bloom/shader passes to composer", function(){
+      var canvas = Omega.Test.Canvas();
+      assert(canvas.composer.passes.length).equals(3);
+      assert(canvas.composer.passes[0]).isOfType(THREE.RenderPass);
+      assert(canvas.composer.passes[1]).isOfType(THREE.BloomPass);
+      assert(canvas.composer.passes[2]).isOfType(THREE.ShaderPass);
+      //assert(canvas.composer.passes[2]); // TODO verify ShaderPass pulls in ShaderComposer via AdditiveBlending
+      assert(canvas.composer.passes[2].renderToScreen).isTrue();
+    });
   });
 });});
 

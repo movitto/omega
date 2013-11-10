@@ -15,6 +15,11 @@ Omega.UI.Canvas = function(parameters){
   this.page = null
 
   $.extend(this, parameters);
+
+  /// XXX rather move this init elsewhere so 'off' isn't needed
+  var _this = this;
+  this.canvas.off('click');
+  this.canvas.click(function(evnt) { _this._canvas_clicked(evnt); })
 };
 
 Omega.UI.Canvas.prototype = {
@@ -60,10 +65,10 @@ Omega.UI.Canvas.prototype = {
     this.shader_cam.rotation = this.cam.rotation;
 
     // TODO configurable controls
-    //this.controls = new THREE.TrackballControls(cam);
-    this.controls = new THREE.OrbitControls(this.cam);
+    //this.cam_controls = new THREE.TrackballControls(cam);
+    this.cam_controls = new THREE.OrbitControls(this.cam);
 
-    // TODO wire up controls, page click events
+    // TODO wire up controls
 
     // TODO clear existing passes?
     var render_pass         = new THREE.RenderPass(this.scene, this.cam);
@@ -82,6 +87,35 @@ Omega.UI.Canvas.prototype = {
 
     this.renderer.autoClear = false;
     this.renderer.setClearColorHex(0x000000, 0.0);
+  },
+
+  _canvas_clicked : function(evnt){
+    // map page coords to canvas scene coords
+    var x = Math.floor(evnt.pageX - this.canvas.offset().left);
+    var y = Math.floor(evnt.pageY - this.canvas.offset().top);
+        x =   x / this.canvas.width() * 2 - 1;
+        y = - y / this.canvas.height() * 2 + 1;
+
+    var projector = new THREE.Projector();
+    var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), this.cam);
+    var intersects = ray.intersectObjects(this.scene.getDescendants());
+
+    if(intersects.length > 0){
+      var entity = intersects[0].object.omega_entity;
+      entity.dispatchEvent({type: 'click'});
+    }
+  },
+
+  // Request animation frame
+  animate : function(){
+    var _this = this;
+    requestAnimationFrame(function() { _this.render(); });
+  },
+
+  // Render scene.
+  render : function(){
+    this.shader_composer.render();
+    this.composer.render();
   }
 };
 
@@ -239,7 +273,7 @@ Omega.UI.Canvas.Dialog.prototype = {
     $('#completed_missions').html(completed_text);
 
     /// wire up assign_mission click events
-    /// XXX rather move this init elsewhere so 'off' isn't needed
+    /// XXX same comment as w/ 'off' in Canvas above
     var _this = this;
     this.component().off('click', '.assign_mission');
     this.component().on( 'click', '.assign_mission', function(evnt) { _this._assign_button_click(evnt); });
