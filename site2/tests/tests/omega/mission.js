@@ -57,4 +57,56 @@ describe("Omega.Mission", function(){
     });
   });
 
+  describe("#assign_to", function(){
+    it("invokes missions::assign_mission request", function(){
+      var mission = new Omega.Mission({id: 'mission1'});
+      var node    = new Omega.Node();
+      var cb      = sinon.spy();
+
+      var spy     = sinon.spy(node, 'http_invoke');
+      mission.assign_to('user1', node, cb);
+      sinon.assert.calledWith(spy, 'missions::assign_mission', 'mission1', 'user1', cb);
+    });
+  });
+
+  describe("#all", function(){
+    it("invokes missions::get_missions request", function(){
+      var node = new Omega.Node();
+      var spy  = sinon.spy(node, 'http_invoke');
+      var cb   = sinon.spy();
+      Omega.Mission.all(node, cb);
+      sinon.assert.calledWith(spy, 'missions::get_missions', sinon.match.func);
+    });
+
+    describe("missions::get_missions callback", function(){
+      var client_cb, get_cb;
+
+      before(function(){
+        var node = new Omega.Node();
+        var stub  = sinon.stub(node, 'http_invoke');
+        client_cb = sinon.spy();
+        Omega.Mission.all(node, client_cb);
+        get_cb   = stub.getCall(0).args[1];
+      });
+
+      it("invokes callback", function(){
+        var response = {result: []};
+        get_cb(response);
+        sinon.assert.calledWith(client_cb, []);
+      });
+
+      it("creates new missions instances", function(){
+        var response = {result : [{id: 'mission1'}, {id: 'mission2'}]};
+        get_cb(response);
+
+        var missions = client_cb.getCall(0).args[0];
+        assert(missions[0]).isOfType(Omega.Mission);
+        assert(missions[0].id).equals('mission1');
+        assert(missions[1]).isOfType(Omega.Mission);
+        assert(missions[1].id).equals('mission2');
+      });
+
+    });
+  });
+
 });}); // Omega.Mission

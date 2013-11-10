@@ -32,5 +32,21 @@ Omega.Mission.prototype = {
   assigned_to : function(user_id){
     return this.assigned_to_id == user_id;
   },
+
+  /// assign mission to specified user
+  assign_to : function(user_id, node, cb){
+    node.http_invoke('missions::assign_mission', this.id, user_id, cb);
+  }
 };
 
+/// Use node to retrieve all missions
+Omega.Mission.all = function(node, cb){
+  node.http_invoke('missions::get_missions', function(response){
+    if(response.result){
+      for(var m = 0; m < response.result.length; m++)
+        response.result[m] = new Omega.Mission(response.result[m]);
+      if(cb) cb(response.result);
+    }
+    // TODO handle get_missions failure
+  });
+};

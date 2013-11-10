@@ -10,6 +10,10 @@ Omega.UI.Dialog = function(parameters){
 }
 
 Omega.UI.Dialog.prototype = {
+  component : function(){
+    return $(this.div_id);
+  },
+
   dialog : function(){
     return $(this.div_id);
   },

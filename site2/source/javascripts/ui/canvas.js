@@ -31,8 +31,17 @@ Omega.UI.Canvas.Controls = function(parameters){
 
   $.extend(this, parameters);
 
-  this.missions_button.component().on('click', function(evnt){ _this.dialog.show_missions_dialog(); });
+  var _this = this;
+  this.missions_button.component().on('click', function(evnt){ _this._missions_button_click(); });
 };
+
+Omega.UI.Canvas.Controls.prototype = {
+  _missions_button_click : function(){
+    var _this = this;
+    var node  = this.canvas.page.node;
+    Omega.Mission.all(node, function(result){ _this.canvas.dialog.show_missions_dialog(result); });
+  }
+}
 
 Omega.UI.Canvas.Controls.List = function(parameters){
   this.div_id = null;
@@ -80,63 +89,90 @@ Omega.UI.Canvas.Dialog = function(parameters){
   this.canvas = null;
 
   $.extend(this, parameters);
+
+  this.assign_mission = $('.assign_mission');
 };
 
 Omega.UI.Canvas.Dialog.prototype = {
-  show_missions_dialog : function(){
+  _assign_button_click : function(evnt){
     var _this = this;
     var node  = this.canvas.page.node;
-    node.http_invoke('missions::get_missions', function(response){
-      var missions   = [];
-      var unassigned = [];
-      var victorious = [];
-      var failed     = [];
-      var current    = null;
+    var user  = this.canvas.page.session.user_id;
 
-      if(response.result){
-        var current_user = _this.canvas.page.session.user_id;
-        for(var m = 0; m < response.result.length; m++){
-          missions.push(new Omega.Mission(response.result[m]));
-        }
-        unassigned = $.grep(missions, function(m) { return m.unassigned(); });
-        assigned   = $.grep(missions, function(m) {
-                                       return m.assigned_to(current_user); });
-        victorious = $.grep(assigned, function(m) {   return m.victorious; });
-        failed     = $.grep(assigned, function(m) {       return m.failed; });
-        current    = $.grep(assigned, function(m) {
-                                       return !m.victorious && !m.failed; })[0];
-      }
+    var mission = $(evnt.currentTarget).data('mission');
+    mission.assign_to(user, node, function(res){ _this._assign_mission_clicked(res); })
+  },
 
-      _this.hide();
+  show_missions_dialog : function(response){
+    var missions   = [];
+    var unassigned = [];
+    var victorious = [];
+    var failed     = [];
+    var current    = null;
 
-      if(current){
-        _this.title  = 'Assigned Mission';
-        _this.div_id = '#assigned_mission_dialog';
-        $('#assigned_mission_title').html('<b>'+current.title+'</b>');
-        $('#assigned_mission_description').html(current.description);
-        $('#assigned_mission_assigned_time').html('<b>Assigned</b>: '+ current.assigned_time);
-        $('#assigned_mission_expires').html('<b>Expires</b>: '+ current.expires());
-        // TODO cancel mission button?
+    if(response.result){
+      var current_user = this.canvas.page.session.user_id;
+      missions   = response.result;
+      unassigned = $.grep(missions, function(m) { return m.unassigned(); });
+      assigned   = $.grep(missions, function(m) {
+                                     return m.assigned_to(current_user); });
+      victorious = $.grep(assigned, function(m) {   return m.victorious; });
+      failed     = $.grep(assigned, function(m) {       return m.failed; });
+      current    = $.grep(assigned, function(m) {
+                                     return !m.victorious && !m.failed; })[0];
+    }
 
-      }else{
-        _this.title = 'Missions';
-        _this.div_id = '#missions_dialog';
-        for(var m = 0; m < unassigned.length; m++){
-          var mission = unassigned[m];
-          var mission_text =
-            mission.title + ' <span id="assign_mission_' + mission.id +
-                                 '" class="assign_mission">assign</span><br>';
-          $('#missions_list').append(mission_text);
-        }
-// FIXME wire up assign_mission events
+    this.hide();
+    if(current) this.show_assigned_mission_dialog(current);
+    else this.show_missions_list_dialog(unassigned, victorious, failed);
+    this.show();
+  },
 
-        var completed_text = '(Victorious: ' + victorious.length +
-                             ' / Failed: ' + failed.length +')';
-        $('#completed_missions').html(completed_text);
-      }
+  show_assigned_mission_dialog : function(mission){
+    this.title  = 'Assigned Mission';
+    this.div_id = '#assigned_mission_dialog';
+    $('#assigned_mission_title').html('<b>'+mission.title+'</b>');
+    $('#assigned_mission_description').html(mission.description);
+    $('#assigned_mission_assigned_time').html('<b>Assigned</b>: '+ mission.assigned_time);
+    $('#assigned_mission_expires').html('<b>Expires</b>: '+ mission.expires());
+    // TODO cancel mission button?
+  },
 
-      _this.show();
-    });
+  show_missions_list_dialog : function(unassigned, victorious, failed){
+    this.title  = 'Missions';
+    this.div_id = '#missions_dialog';
+
+    $('#missions_list').html('');
+    for(var m = 0; m < unassigned.length; m++){
+      var mission      = unassigned[m];
+      var assign_link = $('<span/>', 
+        {'class': 'assign_mission', 
+          text:   'assign' });
+      assign_link.data('mission', mission);
+      $('#missions_list').append(mission.title);
+      $('#missions_list').append(assign_link);
+      $('#missions_list').append('<br/>');
+    }
+
+    var completed_text = '(Victorious: ' + victorious.length +
+                         ' / Failed: ' + failed.length +')';
+    $('#completed_missions').html(completed_text);
+
+    /// wire up assign_mission click events
+    /// XXX rather move this init elsewhere so 'off' isn't needed
+    var _this = this;
+    this.component().off('click', '.assign_mission');
+    this.component().on( 'click', '.assign_mission', function(evnt) { _this._assign_button_click(evnt); });
+  },
+
+  _assign_mission_clicked : function(response){
+    this.hide();
+    if(response.error){
+      this.title = 'Could not assign mission';
+      this.div_id = '#mission_assignment_failed_dialog';
+      $('#mission_assignment_error').html(response.error.message);
+      this.show();
+    }
   }
 };
 
