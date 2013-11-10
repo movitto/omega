@@ -6,12 +6,26 @@
 
 //////////////////////////////// helper methods/data
 
+Omega.Test = {};
+
 Omega.Pages.Test = function(parameters){
   $.extend(this, parameters);
 }
 
 Omega.Pages.Test.prototype = {
 }
+
+// Initializes and returns a singleton canvas
+// instance for use in the test suite
+// (so that THREE can be loaded on demand the
+//  first time it is needed and only once)
+Omega.Test.Canvas = function(parameters){
+  if(typeof($omega_test_canvas) === "undefined"){
+    $omega_test_canvas = new Omega.UI.Canvas();
+    $omega_test_canvas.setup();
+  }
+  return $omega_test_canvas;
+};
 
 //////////////////////////////// test hooks
 

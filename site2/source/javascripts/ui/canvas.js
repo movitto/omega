@@ -17,6 +17,74 @@ Omega.UI.Canvas = function(parameters){
   $.extend(this, parameters);
 };
 
+Omega.UI.Canvas.prototype = {
+  render_params : {
+	  minFilter     : THREE.LinearFilter,
+    magFilter     : THREE.LinearFilter,
+    format        : THREE.RGBFormat,
+    stencilBuffer : false
+  },
+
+  setup : function(){
+    this.scene = new THREE.Scene();
+
+    /// TODO configurable renderer:
+    //this.renderer = new THREE.CanvasRenderer({canvas: });
+    this.renderer = new THREE.WebGLRenderer({antialias : true});
+
+    var sw = window.innerWidth,
+        sh = window.innerHeight;
+    this.renderer.setSize(sw, sh);
+
+	  this.renderTarget =
+      new THREE.WebGLRenderTarget(sw, sh, this.render_params);
+
+    this.composer =
+      new THREE.EffectComposer(this.renderer, this.renderTarget);
+    this.shader_composer =
+      new THREE.EffectComposer(this.renderer, this.renderTarget);
+
+    this.canvas.append(this.renderer.domElement);
+
+    var width  = this.canvas.width;
+    var height = this.canvas.height;
+    var aspect = width / height;
+    if(isNaN(aspect)) aspect = 1;
+
+    // TODO configuable camera
+    //this.cam = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
+    this.cam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
+
+    this.shader_cam = this.cam.clone();
+    this.shader_cam.position = this.cam.position;
+    this.shader_cam.rotation = this.cam.rotation;
+
+    // TODO configurable controls
+    //this.controls = new THREE.TrackballControls(cam);
+    this.controls = new THREE.OrbitControls(this.cam);
+
+    // TODO wire up controls, page click events
+
+    // TODO clear existing passes?
+    var render_pass         = new THREE.RenderPass(this.scene, this.cam);
+    var shader_render_pass  = new THREE.RenderPass(this.shader_scene, this.shader_cam);
+    var bloom_pass          = new THREE.BloomPass(1.25);
+    //var film_pass           = new THREE.FilmPass(0.35, 0.95, 2048, false);
+
+    this.blender_pass       = new THREE.ShaderPass(THREE.AdditiveBlendShader, "tDiffuse1" );
+    this.blender_pass.uniforms[ 'tDiffuse2' ].value = this.shader_composer.renderTarget2;
+	  this.blender_pass.renderToScreen = true;
+
+    this.shader_composer.addPass(shader_render_pass);
+    this.composer.addPass(render_pass);
+    this.composer.addPass(bloom_pass);
+    this.composer.addPass(this.blender_pass);
+
+    this.renderer.autoClear = false;
+    this.renderer.setClearColorHex(0x000000, 0.0);
+  }
+};
+
 Omega.UI.Canvas.Controls = function(parameters){
   this.locations_list   = new Omega.UI.Canvas.Controls.List({  div_id : '#locations_list' });
   this.entities_list    = new Omega.UI.Canvas.Controls.List({  div_id : '#entities_list'  });

@@ -23,6 +23,26 @@ describe("Omega.UI.Canvas", function(){
     var canvas = new Omega.UI.Canvas({page: page});
     assert(canvas.page).equals(page);
   });
+
+  it("has a scene", function(){
+    var canvas = Omega.Test.Canvas();
+    assert(canvas.scene).isOfType(THREE.Scene);
+  });
+
+  it("has a renderer", function(){
+    var canvas = Omega.Test.Canvas();
+    assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
+  });
+
+  it("has a perspective camera", function(){
+    var canvas = Omega.Test.Canvas();
+    assert(canvas.cam).isOfType(THREE.PerspectiveCamera);
+  });
+
+  it("has orbit controls", function(){
+    var canvas = Omega.Test.Canvas();
+    assert(canvas.controls).isOfType(THREE.OrbitControls);
+  });
 });});
 
 pavlov.specify("Omega.UI.Canvas.Controls", function(){

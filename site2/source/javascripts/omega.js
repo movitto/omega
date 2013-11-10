@@ -11,6 +11,14 @@
 //= require "vendor/google_recaptcha_ajax"
 
 //= require "vendor/three-r62.min"
+//= require "vendor/three/CopyShader"
+//= require "vendor/three/EffectComposer"
+//= require "vendor/three/RenderPass"
+//= require "vendor/three/ConvolutionShader"
+//= require "vendor/three/BloomPass"
+//= require "vendor/three/AdditiveShader"
+//= require "vendor/three/ShaderPass"
+//= require "vendor/three/OrbitControls"
 
 //= require "vendor/rjr/json"
 //= require "vendor/rjr/jrw"
