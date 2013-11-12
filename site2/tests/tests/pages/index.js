@@ -18,38 +18,97 @@ describe("Omega.UI.IndexNav", function(){
     assert(nav.page).equals(page);
   });
 
+  describe("#wire_up", function(){
+    var nav;
+
+    before(function(){
+      nav = new Omega.UI.IndexNav({page : page});
+    });
+
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
+    it("registers login link event handlers", function(){
+      assert(nav.login_link).doesNotHandle('click');
+      nav.wire_up();
+      assert(nav.login_link).handles('click');
+    });
+
+    it("registers logout link event handlers", function(){
+      assert(nav.logout_link).doesNotHandle('click');
+      nav.wire_up();
+      assert(nav.logout_link).handles('click');
+    });
+
+    it("registers register link event handlers", function(){
+      assert(nav.register_link).doesNotHandle('click');
+      nav.wire_up();
+      assert(nav.register_link).handles('click');
+    });
+  });
+
   describe("user clicks login link", function(){
+    var nav;
+
+    before(function(){
+      page.dialog  = new Omega.UI.IndexDialog({page: page});
+      nav = new Omega.UI.IndexNav({page : page});
+      nav.wire_up();
+    });
+
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
     it("invokes index_dialog.show_login_dialog", function(){
       page.dialog = new Omega.UI.IndexDialog();
       var spy = sinon.spy(page.dialog, 'show_login_dialog');
-      var nav     = new Omega.UI.IndexNav({page : page});
       nav.login_link.click();
       sinon.assert.called(spy);
     });
   });
 
   describe("user clicks register link", function(){
-    it("invokes index_dialog.show_register_dialog", function(){
+    var nav;
+
+    before(function(){
       page.dialog  = new Omega.UI.IndexDialog({page: page});
+      nav = new Omega.UI.IndexNav({page : page});
+      nav.wire_up();
+    });
+
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
+    it("invokes index_dialog.show_register_dialog", function(){
       var spy = sinon.spy(page.dialog, 'show_register_dialog');
-      var nav     = new Omega.UI.IndexNav({page : page});
       nav.register_link.click();
       sinon.assert.called(spy);
     });
   });
 
   describe("user clicks logout link", function(){
-    it("invokes session.logout", function(){
+    var nav;
+
+    before(function(){
       page.session = new Omega.Session();
+      nav = new Omega.UI.IndexNav({page : page});
+      nav.wire_up();
+    });
+
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
+    it("invokes session.logout", function(){
       var spy = sinon.spy(page.session, 'logout');
-      var nav     = new Omega.UI.IndexNav({page : page});
       nav.logout_link.click();
       sinon.assert.called(spy);
     });
 
     it("shows login controls", function(){
-      page.session = new Omega.Session();
-      var nav     = new Omega.UI.IndexNav({page : page});
       var spy = sinon.spy(nav, 'show_login_controls');
       nav.logout_link.click();
       sinon.assert.called(spy);
@@ -111,14 +170,37 @@ describe("Omega.UI.IndexNav", function(){
 
 pavlov.specify("Omega.UI.IndexDialog", function(){
 describe("Omega.UI.IndexDialog", function(){
+  var page, dialog;
+
+  before(function(){
+    page   = new Omega.Pages.Index();
+    dialog = new Omega.UI.IndexDialog({page : page});
+  });
+
   after(function(){
     Omega.UI.Dialog.remove();
   })
 
   it("has a handle to page the dialog is on", function(){
-    var page = new Omega.Pages.Index();
-    var dialog = new Omega.UI.IndexDialog({page : page});
     assert(dialog.page).equals(page);
+  });
+
+  describe("#wire_up", function(){
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
+    it("registers login button event handlers", function(){
+      assert(dialog.login_button).doesNotHandle('click');
+      dialog.wire_up();
+      assert(dialog.login_button).handles('click');
+    });
+
+    it("registers register button event handlers", function(){
+      assert(dialog.register_button).doesNotHandle('click');
+      dialog.wire_up();
+      assert(dialog.register_button).handles('click');
+    });
   });
 
   describe("#show_login_dialog", function(){
@@ -266,6 +348,7 @@ describe("Omega.UI.IndexDialog", function(){
     before(function(){
       page = new Omega.Pages.Index();
       dialog = page.dialog;
+      dialog.wire_up();
 
       $('#login_username').attr('value', 'uid');
       $('#login_password').attr('value', 'ups');
@@ -273,6 +356,7 @@ describe("Omega.UI.IndexDialog", function(){
 
     after(function(){
       if(Omega.Session.login.restore) Omega.Session.login.restore();
+      Omega.Test.clear_events();
     })
 
     it("logs user in with session", function(){
@@ -331,10 +415,15 @@ describe("Omega.UI.IndexDialog", function(){
     before(function(){
       page = new Omega.Pages.Index();
       dialog = page.dialog;
+      dialog.wire_up();
 
       $('#register_username').attr('value', 'uid');
       $('#register_password').attr('value', 'ups');
       $('#register_email').attr('value', 'uem');
+    });
+
+    after(function(){
+      Omega.Test.clear_events();
     });
 
     it("sends user registration", function(){
@@ -597,4 +686,31 @@ describe("Omega.Pages.Index", function(){
     var index = new Omega.Pages.Index();
     assert(index.canvas).isOfType(Omega.UI.Canvas);
   })
+
+  describe("#wire_up", function(){
+    var index,
+        wire_nav, wire_dialog, wire_canvas;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      wire_nav    = sinon.stub(index.nav,    'wire_up');
+      wire_dialog = sinon.stub(index.dialog, 'wire_up');
+      wire_canvas = sinon.stub(index.canvas, 'wire_up');
+    });
+
+    it("wires up navigation", function(){
+      index.wire_up();
+      sinon.assert.called(wire_nav);
+    });
+
+    it("wires up dialog", function(){
+      index.wire_up();
+      sinon.assert.called(wire_dialog);
+    });
+
+    it("wires up canvas", function(){
+      index.wire_up();
+      sinon.assert.called(wire_canvas);
+    });
+  });
 });});

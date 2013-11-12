@@ -6,14 +6,36 @@
 
 //////////////////////////////// helper methods/data
 
-Omega.Test = {};
-
 Omega.Pages.Test = function(parameters){
   $.extend(this, parameters);
 }
 
 Omega.Pages.Test.prototype = {
 }
+
+Omega.Test = {
+  /// return registered jquery event handlers for selector
+  /// XXX http://stackoverflow.com/questions/2518421/jquery-find-events-handlers-registered-with-an-object
+  events_for : function(element){
+    var handlers = jQuery._data(element[0], "events");
+    if(typeof handlers === "undefined") handlers = null;
+    return handlers;
+  },
+
+  /// remove all event handlers
+  clear_events : function(){
+    $('body *').off();
+  },
+
+  /// wait until animation
+  on_animation : function(canvas, cb){
+    canvas.old_render = canvas.render;
+    canvas.render = function(){
+      canvas.old_render();
+      cb(canvas);
+    };
+  }
+};
 
 // Initializes and returns a singleton canvas
 // instance for use in the test suite
@@ -26,15 +48,6 @@ Omega.Test.Canvas = function(parameters){
   }
   return $omega_test_canvas;
 };
-
-// wait until animation
-function on_animation(canvas, cb){
-  canvas.old_render = canvas.render;
-  canvas.render = function(){
-    canvas.old_render();
-    cb(canvas);
-  }
-}
 
 //////////////////////////////// test hooks
 
@@ -89,19 +102,20 @@ pavlov.specify.extendAssertions({
    */
   notClose: function(actual, expected, minDifference, message) {
     ok(Math.abs(actual - expected) > minDifference, message);
-  }
-});
+  },
 
-pavlov.specify.extendAssertions({
   isGreaterThan: function(actual, expected, message) {
     ok(actual > expected, message);
   },
+
   isAtLeast: function(actual, expected, message) {
     ok(actual >= expected, message);
   },
+
   isOfType: function(actual, expected, message){
     ok(actual.__proto__ === expected.prototype, message);
   },
+
   includes: function(array, value, message) {
     var found = false;
     for(var ai in array){
@@ -113,17 +127,47 @@ pavlov.specify.extendAssertions({
     }
     ok(found, message)
   },
+
   empty: function(array, message) {
     ok(array.length == 0, message)
   },
+
   notEmpty: function(array, message) {
     ok(array.length != 0, message)
   },
+
   isVisible: function(actual, message){
     ok(actual.is(':visible'), message);
   },
+
   isHidden: function(actual, message){
     ok(actual.is(':hidden'), message);
+  },
+
+  handles: function(actual, evnt, message){
+    var handlers = Omega.Test.events_for(actual);
+    ok(handlers != null && handlers[evnt].length > 0, message);
+  },
+
+  doesNotHandle: function(actual, evnt, message){
+    var handlers = Omega.Test.events_for(actual);
+    ok(handlers == null || handlers[evnt].length == 0, message);
+  },
+
+  handlesChild: function(actual, evnt, selector, message){
+    var handlers = Omega.Test.events_for(actual);
+    var check = (handlers != null && handlers[evnt].length > 0);
+    if(check) check = ($.grep(handlers[evnt],
+                function(h){return h.selector == selector;}).length > 0);
+    ok(check, message);
+  },
+
+  doesNotHandleChild: function(actual, evnt, selector, message){
+    var handlers = Omega.Test.events_for(actual);
+    var check = (handlers == null || handlers[evnt].length == 0);
+    if(!check) check = ($.grep(handlers[evnt],
+                 function(h){return h.selector == selector;}).length == 0);
+    ok(check, message);
   }
 })
 

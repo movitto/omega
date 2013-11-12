@@ -25,14 +25,16 @@ Omega.UI.IndexNav = function(parameters){
   this.page = null;
 
   $.extend(this, parameters);
-
-  var _this = this;
-  this.login_link.click(function(evnt){    _this._login_clicked(evnt); });
-  this.logout_link.click(function(evnt){   _this._logout_clicked(evnt); });
-  this.register_link.click(function(evnt){ _this._register_clicked(evnt); });
 };
 
 Omega.UI.IndexNav.prototype = {
+  wire_up : function(){
+    var _this = this;
+    this.login_link.click(function(evnt)   {    _this._login_clicked(evnt); });
+    this.logout_link.click(function(evnt)  {   _this._logout_clicked(evnt); });
+    this.register_link.click(function(evnt){ _this._register_clicked(evnt); });
+  },
+
   show_login_controls : function(){
     this.register_link.show();
     this.login_link.show();
@@ -74,13 +76,15 @@ Omega.UI.IndexDialog = function(parameters){
 
   this.login_button    = $('#login_button');
   this.register_button = $('#register_button');
-
-  var _this = this;
-  this.login_button.click(function(evnt){    _this._login_clicked(evnt); });
-  this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
 };
 
 Omega.UI.IndexDialog.prototype = {
+  wire_up : function(){
+    var _this = this;
+    this.login_button.click(function(evnt)   {           _this._login_clicked(evnt); });
+    this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
+  },
+
   show_login_dialog : function(){
     this.hide();
     this.title   = 'Login';
@@ -201,6 +205,12 @@ Omega.Pages.Index = function(){
 };
 
 Omega.Pages.Index.prototype = {
+  wire_up : function(){
+    this.nav.wire_up();
+    this.dialog.wire_up();
+    this.canvas.wire_up();
+  },
+
   process_entities : function(entities){
     var _this = this;
     for(var e = 0; e < entities.length; e++){

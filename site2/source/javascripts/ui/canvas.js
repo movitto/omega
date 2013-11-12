@@ -15,14 +15,19 @@ Omega.UI.Canvas = function(parameters){
   this.page = null
 
   $.extend(this, parameters);
-
-  /// XXX rather move this init elsewhere so 'off' isn't needed
-  var _this = this;
-  this.canvas.off('click');
-  this.canvas.click(function(evnt) { _this._canvas_clicked(evnt); })
 };
 
 Omega.UI.Canvas.prototype = {
+  wire_up : function(){
+    var _this = this;
+    this.canvas.off('click'); /// <- needed ?
+    this.canvas.click(function(evnt) { _this._canvas_clicked(evnt); })
+
+    this.controls.wire_up();
+    this.dialog.wire_up();
+    //this.entity_container.wire_up();
+  },
+
   render_params : {
 	  minFilter     : THREE.LinearFilter,
     magFilter     : THREE.LinearFilter,
@@ -116,6 +121,16 @@ Omega.UI.Canvas.prototype = {
   render : function(){
     this.shader_composer.render();
     this.composer.render();
+  },
+
+  // Set the scene root entity
+  set_scene_root : function(root){
+    // TODO
+  },
+
+  // Focus the scene camera on the specified location
+  focus_on : function(loc){
+    // TODO
   }
 };
 
@@ -133,14 +148,32 @@ Omega.UI.Canvas.Controls = function(parameters){
 
   $.extend(this, parameters);
 
-  // TODO sort locations list
-
-  var _this = this;
-  this.missions_button.component().on('click', function(evnt){ _this._missions_button_click(); });
-  // TODO locations / entities list clicks
+  /// TODO sort locations list
 };
 
 Omega.UI.Canvas.Controls.prototype = {
+  wire_up : function(){
+    var _this = this;
+
+    this.locations_list.children().on('click',
+      function(evnt){
+        var item = $(evnt.currentTarget).data('item');
+        _this.canvas.set_scene_root(item);
+      })
+
+    this.entities_list.children().on('click',
+      function(evnt){
+        var item = $(evnt.currentTarget).data('item');
+        _this.canvas.set_scene_root(item.solar_system);
+        _this.canvas.focus_on(item.location);
+      })
+
+    this.missions_button.component().on('click',
+      function(evnt){
+        _this._missions_button_click();
+      });
+  },
+
   _missions_button_click : function(){
     var _this = this;
     var node  = this.canvas.page.node;
@@ -151,15 +184,18 @@ Omega.UI.Canvas.Controls.prototype = {
 Omega.UI.Canvas.Controls.List = function(parameters){
   this.div_id = null;
   $.extend(this, parameters)
-
-/// FIXME if div_id not set on init, these will be invalid (also in other components)
-/// (implement setter for div_id?)
-  var _this = this;
-  this.component().on('mouseenter', function(evnt){ _this.show(); });
-  this.component().on('mouseleave', function(evnt){ _this.hide(); });
 };
 
 Omega.UI.Canvas.Controls.List.prototype = {
+  wire_up : function(){
+    /// FIXME if div_id not set on init,
+    /// these will be invalid (also in other components)
+    /// (implement setter for div_id?)
+    var _this = this;
+    this.component().on('mouseenter', function(evnt){ _this.show(); });
+    this.component().on('mouseleave', function(evnt){ _this.hide(); });
+  },
+
   component : function(){
     return $(this.div_id);
   },
@@ -168,9 +204,16 @@ Omega.UI.Canvas.Controls.List.prototype = {
     return $(this.component().children('ul')[0]);
   },
 
+  children : function(){
+    return this.list().children('li');
+  },
+
   // Add new item to list.
   // Item should specify id, text, data
   add : function(item){
+// FIXME child event handlers will not be applied here
+// (perhaps register handlers w/ List instance and have
+//  those be applied as entities are added)
     var element = $('<li/>', {text: item['text']});
     element.data('id', item['id']);
     element.data('item', item['data']);
@@ -208,6 +251,20 @@ Omega.UI.Canvas.Dialog = function(parameters){
 };
 
 Omega.UI.Canvas.Dialog.prototype = {
+  wire_up : function(){
+    /// wire up assign_mission click events
+/// FIXME as w/ lists above if children are added after
+/// wire_up is invoked (or if dialog is hidden during?)
+/// they won't pickup handlers
+    var _this = this;
+    this.component().off('click', '.assign_mission'); // <- XXX needed?
+    this.component().
+      on('click', '.assign_mission',
+         function(evnt) {
+           _this._assign_button_click(evnt);
+         });
+  },
+
   _assign_button_click : function(evnt){
     var _this = this;
     var node  = this.canvas.page.node;
@@ -271,12 +328,6 @@ Omega.UI.Canvas.Dialog.prototype = {
     var completed_text = '(Victorious: ' + victorious.length +
                          ' / Failed: ' + failed.length +')';
     $('#completed_missions').html(completed_text);
-
-    /// wire up assign_mission click events
-    /// XXX same comment as w/ 'off' in Canvas above
-    var _this = this;
-    this.component().off('click', '.assign_mission');
-    this.component().on( 'click', '.assign_mission', function(evnt) { _this._assign_button_click(evnt); });
   },
 
   _assign_mission_clicked : function(response){
