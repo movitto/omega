@@ -25,6 +25,7 @@
 
 /// omega
 //= require "omega/version"
+//= require "omega/common"
 //= require "omega/config"
 //= require "omega/node"
 //= require "omega/session"

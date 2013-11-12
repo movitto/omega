@@ -5,12 +5,19 @@
  */
 
 Omega.SolarSystem = function(parameters){
+  this.components = [];
+  this.shader_components = [];
+
+  this.children   = [];
+  this.background = '';
   $.extend(this, parameters);
 
   this.bg = 'system' + this.background;
+  this.children = Omega.convert_entities(this.children);
 };
 
 Omega.SolarSystem.prototype = {
+  constructor : Omega.SolarSystem,
   json_class : 'Cosmos::Entities::SolarSystem'
 };
 

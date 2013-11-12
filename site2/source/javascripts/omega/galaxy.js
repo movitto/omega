@@ -5,12 +5,19 @@
  */
 
 Omega.Galaxy = function(parameters){
+  this.components = [];
+  this.shader_components = [];
+
+  this.children   = [];
+  this.background = '';
   $.extend(this, parameters);
 
   this.bg = 'galaxy' + this.background;
+  this.children = Omega.convert_entities(this.children);
 };
 
 Omega.Galaxy.prototype = {
+  constructor : Omega.Galaxy,
   json_class : 'Cosmos::Entities::Galaxy'
 };
 

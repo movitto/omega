@@ -37,6 +37,7 @@ Omega.UI.Canvas.prototype = {
 
   setup : function(){
     this.scene = new THREE.Scene();
+    this.shader_scene = new THREE.Scene();
 
     /// TODO configurable renderer:
     //this.renderer = new THREE.CanvasRenderer({canvas: });
@@ -117,7 +118,7 @@ Omega.UI.Canvas.prototype = {
     requestAnimationFrame(function() { _this.render(); });
   },
 
-  // Render scene.
+  // Render scene
   render : function(){
     this.shader_composer.render();
     this.composer.render();
@@ -125,12 +126,34 @@ Omega.UI.Canvas.prototype = {
 
   // Set the scene root entity
   set_scene_root : function(root){
-    // TODO
+    var children = root.children;
+    for(var c = 0; c < children.length; c++)
+      this.add(children[c]);
   },
 
   // Focus the scene camera on the specified location
   focus_on : function(loc){
-    // TODO
+    this.cam_controls.target.set(loc.x,loc.y,loc.z);
+    this.cam_controls.update();
+  },
+
+  // Add specified entity to scene
+  add : function(entity){
+    for(var cc = 0; cc < entity.components.length; cc++)
+      this.scene.add(entity.components[cc]);
+    for(var cc = 0; cc < entity.shader_components.length; cc++)
+      this.shader_scene.add(entity.shader_components[cc]);
+  },
+
+  // Clear entities from the scene
+  clear : function(){
+    var scene_components        = this.scene.getDescendants();
+    var shader_scene_components = this.shader_scene.getDescendants();
+
+    for(var c = 0; c < scene_components.length; c++)
+      this.scene.remove(scene_components[c]);
+    for(var c = 0; c < shader_scene_components.length; c++)
+      this.shader_scene.remove(shader_scene_components[c]);
   }
 };
 

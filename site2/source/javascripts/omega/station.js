@@ -5,6 +5,8 @@
  */
 
 Omega.Station = function(parameters){
+  this.components = [];
+  this.shader_components = [];
   $.extend(this, parameters);
 };
 

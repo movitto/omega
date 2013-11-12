@@ -141,6 +141,78 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.composer.passes[2].renderToScreen).isTrue();
     });
   });
+
+  describe("#set_scene_root", function(){
+    after(function(){
+      Omega.Test.Canvas().clear();
+    })
+
+    it("adds children of root to scene", function(){
+      var star   = new Omega.Star();
+      var planet = new Omega.Planet();
+      var system = new Omega.SolarSystem({children : [star, planet]});
+
+      var canvas = Omega.Test.Canvas();
+      var spy = sinon.spy(canvas, 'add');
+      canvas.set_scene_root(system);
+      sinon.assert.calledWith(spy, star);
+      sinon.assert.calledWith(spy, planet);
+    });
+  });
+
+  describe("#focus_on", function(){
+    after(function(){
+      if(Omega.Test.Canvas().cam_controls.update.restore)
+        Omega.Test.Canvas().cam_controls.update.restore();
+    });
+
+    it("sets camera controls target", function(){
+      var canvas = Omega.Test.Canvas();
+      canvas.focus_on({x:100,y:-100,z:2100});
+      assert(canvas.cam_controls.target.x).equals(100);
+      assert(canvas.cam_controls.target.y).equals(-100);
+      assert(canvas.cam_controls.target.z).equals(2100);
+    });
+
+    it("updates camera controls", function(){
+      var canvas = Omega.Test.Canvas();
+      var spy = sinon.spy(canvas.cam_controls, 'update');
+      canvas.focus_on({x:100,y:-100,z:2100});
+      sinon.assert.called(spy);
+    })
+  });
+
+  describe("#add", function(){
+    it("adds entity components to scene", function(){
+      var mesh   = new THREE.Mesh();
+      var star   = new Omega.Star({components: [mesh]});
+      var canvas = Omega.Test.Canvas();
+      canvas.add(star);
+      assert(canvas.scene.getDescendants()).includes(mesh);
+    });
+
+    it("adds entity shader components to shader scene", function(){
+      var mesh   = new THREE.Mesh();
+      var star   = new Omega.Star({shader_components: [mesh]});
+      var canvas = Omega.Test.Canvas();
+      canvas.add(star);
+      assert(canvas.shader_scene.getDescendants()).includes(mesh);
+    });
+  });
+
+  describe("#clear", function(){
+    it("clears all components from all scenes", function(){
+      var mesh1  = new THREE.Mesh();
+      var mesh2  = new THREE.Mesh();
+      var star   = new Omega.Star({components        : [mesh1],
+                                   shader_components : [mesh2]});
+      var canvas = Omega.Test.Canvas();
+      canvas.add(star);
+      canvas.clear();
+      assert(canvas.scene.getDescendants()).doesNotInclude(mesh1);
+      assert(canvas.shader_scene.getDescendants()).doesNotInclude(mesh2);
+    });
+  });
 });});
 
 pavlov.specify("Omega.UI.Canvas.Controls", function(){
@@ -257,7 +329,7 @@ describe("Omega.UI.Canvas.Controls", function(){
   });
 
   describe("#entities_list item click", function(){
-    var system, ship;
+    var system, ship, focus_stub;
 
     before(function(){
       system = new Omega.SolarSystem({id: 'system1'});
@@ -271,6 +343,12 @@ describe("Omega.UI.Canvas.Controls", function(){
                                   text: ship.id,
                                   data: ship});
       controls.wire_up();
+
+      /// since we're using canvas initialized in 'before'
+      /// block above and not central Omega.Test.Canvas w/
+      /// three.js components, we'll stub out the actual
+      /// focus_on call
+      focus_stub = sinon.stub(canvas, 'focus_on')
     });
 
     after(function(){
@@ -284,9 +362,8 @@ describe("Omega.UI.Canvas.Controls", function(){
     });
 
     it("focuses canvas scene camera on clicked entity's location", function(){
-      var spy = sinon.spy(canvas, 'focus_on');
       $(controls.entities_list.children()[0]).click();
-      sinon.assert.calledWith(spy, ship.location);
+      sinon.assert.calledWith(focus_stub, ship.location);
     });
   });
 });});

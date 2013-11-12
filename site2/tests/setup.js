@@ -128,6 +128,17 @@ pavlov.specify.extendAssertions({
     ok(found, message)
   },
 
+  doesNotInclude: function(array, value, message){
+    var found = false;
+    for(var ai in array){
+      if(QUnit.equiv(array[ai], value)){
+        found = true
+        break
+      }
+    }
+    ok(!found, message);
+  },
+
   empty: function(array, message) {
     ok(array.length == 0, message)
   },

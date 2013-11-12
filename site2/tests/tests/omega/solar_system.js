@@ -1,5 +1,16 @@
 pavlov.specify("Omega.SolarSystem", function(){
 describe("Omega.SolarSystem", function(){
+  it("converts children", function(){
+    var star   = {json_class: 'Cosmos::Entities::Star',   id: 'star1'};
+    var planet = {json_class: 'Cosmos::Entities::Planet', id: 'planet1'};
+    var system = new Omega.SolarSystem({children: [star, planet]});
+    assert(system.children.length).equals(2);
+    assert(system.children[0]).isOfType(Omega.Star);
+    assert(system.children[0].id).equals('star1');
+    assert(system.children[1]).isOfType(Omega.Planet);
+    assert(system.children[1].id).equals('planet1');
+  });
+
   describe("#with_id", function(){
     var node, retrieval_cb, invoke_spy;
 
