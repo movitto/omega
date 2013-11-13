@@ -129,6 +129,7 @@ Omega.UI.Canvas.prototype = {
     var children = root.children;
     for(var c = 0; c < children.length; c++)
       this.add(children[c]);
+    this.animate();
   },
 
   // Focus the scene camera on the specified location
@@ -178,13 +179,13 @@ Omega.UI.Canvas.Controls.prototype = {
   wire_up : function(){
     var _this = this;
 
-    this.locations_list.children().on('click',
+    this.locations_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         _this.canvas.set_scene_root(item);
       })
 
-    this.entities_list.children().on('click',
+    this.entities_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         _this.canvas.set_scene_root(item.solar_system);
@@ -195,6 +196,9 @@ Omega.UI.Canvas.Controls.prototype = {
       function(evnt){
         _this._missions_button_click();
       });
+
+    this.locations_list.wire_up();
+    this.entities_list.wire_up();
   },
 
   _missions_button_click : function(){
@@ -234,9 +238,6 @@ Omega.UI.Canvas.Controls.List.prototype = {
   // Add new item to list.
   // Item should specify id, text, data
   add : function(item){
-// FIXME child event handlers will not be applied here
-// (perhaps register handlers w/ List instance and have
-//  those be applied as entities are added)
     var element = $('<li/>', {text: item['text']});
     element.data('id', item['id']);
     element.data('item', item['data']);

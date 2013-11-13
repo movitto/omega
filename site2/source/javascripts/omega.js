@@ -11,6 +11,7 @@
 //= require "vendor/google_recaptcha_ajax"
 
 //= require "vendor/three-r62.min"
+//= require "vendor/three/MaskPass"
 //= require "vendor/three/CopyShader"
 //= require "vendor/three/EffectComposer"
 //= require "vendor/three/RenderPass"

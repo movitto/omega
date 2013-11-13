@@ -9,7 +9,8 @@ Omega.EntityClasses = function(){
   if(typeof(Omega._EntityClasses) === "undefined"){
     Omega._EntityClasses = 
       [Omega.Galaxy,   Omega.SolarSystem, Omega.Star, Omega.Planet,
-       Omega.Asteroid, Omega.JumpGate,    Omega.Ship, Omega.Station];
+       Omega.Asteroid, Omega.JumpGate,    Omega.Ship, Omega.Station,
+       Omega.Location, Omega.Mission,     Omega.User];
   }
 
   return Omega._EntityClasses;
@@ -43,3 +44,10 @@ Omega.convert_entity = function(entity){
 
   return converted;
 };
+
+// Get a shader
+Omega.get_shader = function(id){
+  var shader = document.getElementById(id);
+  if(shader == null) return shader;
+  return shader.textContent;
+}

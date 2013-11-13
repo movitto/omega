@@ -4,7 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/nav"
 //= require "ui/dialog"
 //= require "ui/canvas"
 //= require "ui/effects_player"
@@ -136,6 +135,8 @@ Omega.UI.IndexDialog.prototype = {
       if(result.error){
         _this.show_login_failed_dialog(result.error.message);
       }else{
+// TODO other post login operations - same as when session.restore_from_cookie
+// returns a valid cookie below
         _this.hide();
         _this.page.session = result;
         _this.page.nav.show_logout_controls();
@@ -218,6 +219,9 @@ Omega.Pages.Index.prototype = {
       var item   = {id: entity.id, text: entity.id, data: entity};
       this.canvas.controls.entities_list.add(item);
 
+/// FIXME skip if already retrieved from server, (also galaxy below)
+/// also some persistent caching mechanism so data doesn't
+/// have to be retrieved on each page request
       Omega.SolarSystem.with_id(entity.system_id, this.node,
         function(solar_system) { _this.process_system(solar_system) });
     }
@@ -230,7 +234,7 @@ Omega.Pages.Index.prototype = {
 
       // TODO load jump gate endpoints?
       var _this = this;
-      Omega.Galaxy.with_id(system.galaxy_id, this.node,
+      Omega.Galaxy.with_id(system.parent_id, this.node,
         function(galaxy) { _this.process_galaxy(galaxy) });
     }
   },
@@ -245,5 +249,7 @@ Omega.Pages.Index.prototype = {
 
 $(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests
-  //var index = new Omega.Pages.Index();
+  var index = new Omega.Pages.Index();
+  index.wire_up();
+  index.canvas.setup();
 });

@@ -34,4 +34,4 @@ describe("Omega.Ship", function(){
       });
     });
   });
-});}); // Omega.Galaxy
+});}); // Omega.Ship
