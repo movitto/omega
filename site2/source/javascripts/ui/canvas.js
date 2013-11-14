@@ -4,14 +4,19 @@
  * Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/dialog"
+
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.Canvas.Controls({canvas: this});
   this.dialog           = new Omega.UI.Canvas.Dialog({canvas: this});
   this.entity_container = new Omega.UI.Canvas.EntityContainer();
+  this.skybox           = new Omega.UI.Canvas.Skybox();
+  this.axis             = new Omega.UI.Canvas.Axis();
   this.canvas           = $('#omega_canvas');
 
-  /// need handle to page canvas is on to
+  /// need handle to page the canvas is on to
   /// - lookup missions
+  /// - access entity config
   this.page = null
 
   $.extend(this, parameters);
@@ -36,6 +41,9 @@ Omega.UI.Canvas.prototype = {
   },
 
   setup : function(){
+    var _this   = this;
+    var padding = 10;
+
     this.scene = new THREE.Scene();
     this.shader_scene = new THREE.Scene();
 
@@ -43,8 +51,8 @@ Omega.UI.Canvas.prototype = {
     //this.renderer = new THREE.CanvasRenderer({canvas: });
     this.renderer = new THREE.WebGLRenderer({antialias : true});
 
-    var sw = window.innerWidth,
-        sh = window.innerHeight;
+    var sw = window.innerWidth  - padding,
+        sh = window.innerHeight - padding;
     this.renderer.setSize(sw, sh);
 
 	  this.renderTarget =
@@ -57,14 +65,13 @@ Omega.UI.Canvas.prototype = {
 
     this.canvas.append(this.renderer.domElement);
 
-    var width  = this.canvas.width;
-    var height = this.canvas.height;
-    var aspect = width / height;
+    var aspect = sw / sh;
     if(isNaN(aspect)) aspect = 1;
 
     // TODO configuable camera
     //this.cam = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
     this.cam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
+console.log(sw + " " + sh + " " + aspect);
 
     this.shader_cam = this.cam.clone();
     this.shader_cam.position = this.cam.position;
@@ -73,8 +80,7 @@ Omega.UI.Canvas.prototype = {
     // TODO configurable controls
     //this.cam_controls = new THREE.TrackballControls(cam);
     this.cam_controls = new THREE.OrbitControls(this.cam);
-
-    // TODO wire up controls
+    this.cam_controls.addEventListener('change', function(){ _this.render(); });
 
     // TODO clear existing passes?
     var render_pass         = new THREE.RenderPass(this.scene, this.cam);
@@ -93,6 +99,17 @@ Omega.UI.Canvas.prototype = {
 
     this.renderer.autoClear = false;
     this.renderer.setClearColorHex(0x000000, 0.0);
+
+    this.cam_controls.domElement = this.renderer.domElement;
+    this.cam_controls.object.position.set(0,100,100);
+    this.cam_controls.target.set(0,0,0);
+    this.cam_controls.update();
+
+    THREEx.WindowResize(this.renderer, this.cam, padding);
+    THREEx.WindowResize(this.shader_renderer, this.shader_cam, padding);
+
+    this.skybox.init_gfx();
+    this.axis.init_gfx();
   },
 
   _canvas_clicked : function(evnt){
@@ -129,6 +146,7 @@ Omega.UI.Canvas.prototype = {
     var children = root.children;
     for(var c = 0; c < children.length; c++)
       this.add(children[c]);
+console.log(this.scene)
     this.animate();
   },
 
@@ -140,10 +158,21 @@ Omega.UI.Canvas.prototype = {
 
   // Add specified entity to scene
   add : function(entity){
+    var _this = this;
+    entity.init_gfx(this.page.config, function(evnt){ _this.animate(); });
+
     for(var cc = 0; cc < entity.components.length; cc++)
       this.scene.add(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
+  },
+
+  // Remove specified entity from scene
+  remove : function(entity){
+    for(var cc = 0; cc < entity.components.length; cc++)
+      this.scene.remove(entity.components[cc]);
+    for(var cc = 0; cc < entity.shader_components.length; cc++)
+      this.shader_scene.remove(entity.shader_components[cc]);
   },
 
   // Clear entities from the scene
@@ -161,13 +190,15 @@ Omega.UI.Canvas.prototype = {
 Omega.UI.Canvas.Controls = function(parameters){
   this.locations_list   = new Omega.UI.Canvas.Controls.List({  div_id : '#locations_list' });
   this.entities_list    = new Omega.UI.Canvas.Controls.List({  div_id : '#entities_list'  });
-  this.missions_button  = new Omega.UI.Canvas.Controls.Button({div_id : '#missions_button'});
-  this.cam_reset_button = new Omega.UI.Canvas.Controls.Button({div_id : '#cam_reset'      });
+  this.missions_button  = $('#missions_button');
+  this.cam_reset        = $('#cam_reset');
+  this.toggle_axis      = $('#toggle_axis input')
 
   /// need handle to canvas to
   /// - set scene
   /// - set camera target
   /// - reset camera
+  /// - add/remove axis from canvas
   this.canvas = null;
 
   $.extend(this, parameters);
@@ -192,9 +223,17 @@ Omega.UI.Canvas.Controls.prototype = {
         _this.canvas.focus_on(item.location);
       })
 
-    this.missions_button.component().on('click',
+    this.missions_button.on('click',
       function(evnt){
         _this._missions_button_click();
+      });
+
+    this.toggle_axis.on('click',
+      function(evnt){
+        if($(evnt.currentTaget).is(':checked'))
+          _this.canvas.add(_this.canvas.axis);
+        else
+          _this.canvas.remove(_this.canvas.axis);
       });
 
     this.locations_list.wire_up();
@@ -250,17 +289,6 @@ Omega.UI.Canvas.Controls.List.prototype = {
 
   hide : function(){
     this.list().hide();
-  }
-};
-
-Omega.UI.Canvas.Controls.Button = function(parameters){
-  this.div_id = null;
-  $.extend(this, parameters);
-};
-
-Omega.UI.Canvas.Controls.Button.prototype = {
-  component : function(){
-    return $(this.div_id);
   }
 };
 
@@ -370,4 +398,90 @@ $.extend(Omega.UI.Canvas.Dialog.prototype,
 
 Omega.UI.Canvas.EntityContainer = function(){
   this.div_id = '#entity_container';
+};
+
+Omega.UI.Canvas.Skybox = function(parameters){
+};
+
+Omega.UI.Canvas.Skybox.prototype = {
+  load_gfx : function(){
+    if(typeof(Omega.UI.Canvas.Skybox.gfx) === 'undefined'){
+      Omega.UI.Canvas.Skybox.gfx = {};
+
+// FIXME (WIP)
+      var size = 32768;
+      var geo  = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
+
+      var format = 'png';
+      var path   = UIResources().images_path +
+                   '/skybox/' + this.bg + '/';
+      var materials = [
+        path + 'px.' + format,
+        path + 'nx.' + format,
+        path + 'pz.' + format,
+        path + 'nz.' + format,
+        path + 'py.' + format,
+        path + 'ny.' + format
+      ]
+
+      var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
+      shader.uniforms["tCube"].value = THREE.ImageUtils.loadTextureCube(materials);
+
+      var material = new THREE.ShaderMaterial({
+        fragmentShader : shader.fragmentShader,
+        vertexShader   : shader.vertexShader,
+        uniforms       : shader.uniforms,
+        depthWrite     : false,
+        side           : THREE.BackSide
+      });
+
+      return new THREE.Mesh(geometry, material);
+    }
+  },
+
+  init_gfx : function(){
+    this.load_gfx();
+  },
+
+  set : function(bg){
+  }
+};
+
+Omega.UI.Canvas.Axis = function(parameters){
+  this.size = 500;
+  this.components = [];
+  this.shader_components = [];
+  $.extend(this, parameters);
+};
+
+Omega.UI.Canvas.Axis.prototype = {
+  load_gfx : function(){
+    if(typeof(Omega.UI.Canvas.Axis.gfx) === 'undefined'){
+      Omega.UI.Canvas.Axis.gfx = {
+        xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000),
+        yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00),
+        xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF)
+      };
+    }
+  },
+
+  init_gfx : function(){
+    if(this.components.length > 0) return;
+    this.load_gfx();
+
+    /// just reference it, assuming we're only going to need the one axis
+    for(var a in Omega.UI.Canvas.Axis.gfx)
+      this.components.push(Omega.UI.Canvas.Axis.gfx[a]);
+  },
+
+  _new_v : function(x,y,z){
+    return new THREE.Vertex(new THREE.Vector3(x,y,z));
+  },
+
+  _new_axis : function(p1, p2, color){
+    var geo = new THREE.Geometry();
+    var mat = new THREE.LineBasicMaterial({color: color, lineWidth: 1});
+    geo.vertices.push(p1, p2);
+    return new THREE.Line(geo, mat);
+  }
 };

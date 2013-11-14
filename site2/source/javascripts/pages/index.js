@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/dialog"
-//= require "ui/canvas"
 //= require "ui/effects_player"
 //= require "ui/status_indicator"
 //= require "ui/canvas"

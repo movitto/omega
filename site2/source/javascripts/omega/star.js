@@ -17,20 +17,19 @@ Omega.Star = function(parameters){
 Omega.Star.prototype = {
   json_class : 'Cosmos::Entities::Star',
 
-  load_gfx : function(){
+  load_gfx : function(config, event_cb){
     if(typeof(Omega.Star.gfx) === 'undefined'){
       Omega.Star.gfx = {};
 
       //// mesh
         // each star instance should override radius in the geometry instance
-        var radius = 100, segments = 32, rings = 32;
+        var radius = 50, segments = 32, rings = 32;
         var mesh_geo = new THREE.SphereGeometry(radius, segments, rings);
 
-        // TODO
-        var lava_path      = images_path + config.resources['star']['lava'];
-        var clouds_path    = images_path + config.resources['star']['clouds'];
-        var lava_texture   = THREE.ImageUtils.loadTexture(lava_path, {});
-        var clouds_texture = THREE.ImageUtils.loadTexture(clouds_path, {});
+        var lava_path      = config.url_prefix + config.images_path + config.resources.star.lava;
+        var clouds_path    = config.url_prefix + config.images_path + config.resources.star.clouds;
+        var lava_texture   = THREE.ImageUtils.loadTexture(lava_path, {}, event_cb);
+        var clouds_texture = THREE.ImageUtils.loadTexture(clouds_path, {}, event_cb);
 
         // XXX
         var resolution =  new THREE.Vector2(window.innerWidth, window.innerHeight)
@@ -88,19 +87,21 @@ Omega.Star.prototype = {
     }
   },
 
-  init_gfx : function(){
-    this.load_gfx();
+  init_gfx : function(config, event_cb){
+    if(this.components.length > 0) return; /// return if already initialized
+
+    this.load_gfx(config, event_cb);
 
     this.mesh  = Omega.Star.gfx.mesh.clone();
-    mesh.position.set(this.location.x, this.location.y, this.location.z);
+    this.mesh.position.set(this.location.x, this.location.y, this.location.z);
     //mesh.geometry // TODO how to adjust radius?
 
-    this.shader_mesh = mesh.clone();
+    this.shader_mesh = this.mesh.clone();
 
     this.glow  = Omega.Star.gfx.glow.clone();
     this.glow.position.set(this.location.x, this.location.y, this.location.z);
 
-    light = Omega.Star.gfx.light.clone();
+    this.light = Omega.Star.gfx.light.clone();
     this.light.position.set(this.location.x, this.location.y, this.location.z);
     this.light.color.setHex(this.color_int);
 

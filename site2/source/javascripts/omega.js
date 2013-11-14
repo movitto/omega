@@ -20,6 +20,7 @@
 //= require "vendor/three/AdditiveShader"
 //= require "vendor/three/ShaderPass"
 //= require "vendor/three/OrbitControls"
+//= require "vendor/three/THREEx.WindowResize"
 
 //= require "vendor/rjr/json"
 //= require "vendor/rjr/jrw"
