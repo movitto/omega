@@ -10,7 +10,7 @@ Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.Canvas.Controls({canvas: this});
   this.dialog           = new Omega.UI.Canvas.Dialog({canvas: this});
   this.entity_container = new Omega.UI.Canvas.EntityContainer();
-  this.skybox           = new Omega.UI.Canvas.Skybox();
+  this.skybox           = new Omega.UI.Canvas.Skybox({canvas: this});
   this.axis             = new Omega.UI.Canvas.Axis();
   this.canvas           = $('#omega_canvas');
 
@@ -71,7 +71,6 @@ Omega.UI.Canvas.prototype = {
     // TODO configuable camera
     //this.cam = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
     this.cam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
-console.log(sw + " " + sh + " " + aspect);
 
     this.shader_cam = this.cam.clone();
     this.shader_cam.position = this.cam.position;
@@ -98,15 +97,14 @@ console.log(sw + " " + sh + " " + aspect);
     this.composer.addPass(this.blender_pass);
 
     this.renderer.autoClear = false;
-    this.renderer.setClearColorHex(0x000000, 0.0);
+    this.renderer.setClearColor(0x000000, 0.0);
 
     this.cam_controls.domElement = this.renderer.domElement;
-    this.cam_controls.object.position.set(0,100,100);
+    this.cam_controls.object.position.set(0,500,500);
     this.cam_controls.target.set(0,0,0);
     this.cam_controls.update();
 
     THREEx.WindowResize(this.renderer, this.cam, padding);
-    THREEx.WindowResize(this.shader_renderer, this.shader_cam, padding);
 
     this.skybox.init_gfx();
     this.axis.init_gfx();
@@ -125,7 +123,7 @@ console.log(sw + " " + sh + " " + aspect);
 
     if(intersects.length > 0){
       var entity = intersects[0].object.omega_entity;
-      entity.dispatchEvent({type: 'click'});
+      if(entity) entity.dispatchEvent({type: 'click'});
     }
   },
 
@@ -137,6 +135,7 @@ console.log(sw + " " + sh + " " + aspect);
 
   // Render scene
   render : function(){
+    this.renderer.clear();
     this.shader_composer.render();
     this.composer.render();
   },
@@ -146,7 +145,6 @@ console.log(sw + " " + sh + " " + aspect);
     var children = root.children;
     for(var c = 0; c < children.length; c++)
       this.add(children[c]);
-console.log(this.scene)
     this.animate();
   },
 
@@ -190,6 +188,7 @@ console.log(this.scene)
 Omega.UI.Canvas.Controls = function(parameters){
   this.locations_list   = new Omega.UI.Canvas.Controls.List({  div_id : '#locations_list' });
   this.entities_list    = new Omega.UI.Canvas.Controls.List({  div_id : '#entities_list'  });
+  this.controls         = $('#canvas_controls');
   this.missions_button  = $('#missions_button');
   this.cam_reset        = $('#cam_reset');
   this.toggle_axis      = $('#toggle_axis input')
@@ -230,11 +229,13 @@ Omega.UI.Canvas.Controls.prototype = {
 
     this.toggle_axis.on('click',
       function(evnt){
-        if($(evnt.currentTaget).is(':checked'))
+        if($(evnt.currentTarget).is(':checked'))
           _this.canvas.add(_this.canvas.axis);
         else
           _this.canvas.remove(_this.canvas.axis);
+        _this.canvas.animate();
       });
+    this.toggle_axis.attr('checked', false);
 
     this.locations_list.wire_up();
     this.entities_list.wire_up();
@@ -401,6 +402,14 @@ Omega.UI.Canvas.EntityContainer = function(){
 };
 
 Omega.UI.Canvas.Skybox = function(parameters){
+  this.components        = [];
+  this.shader_components = [];
+
+  /// need handle to canvas to:
+  /// - access config
+  this.canvas = null;
+
+  $.extend(this, parameters);
 };
 
 Omega.UI.Canvas.Skybox.prototype = {
@@ -408,25 +417,10 @@ Omega.UI.Canvas.Skybox.prototype = {
     if(typeof(Omega.UI.Canvas.Skybox.gfx) === 'undefined'){
       Omega.UI.Canvas.Skybox.gfx = {};
 
-// FIXME (WIP)
       var size = 32768;
       var geo  = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
 
-      var format = 'png';
-      var path   = UIResources().images_path +
-                   '/skybox/' + this.bg + '/';
-      var materials = [
-        path + 'px.' + format,
-        path + 'nx.' + format,
-        path + 'pz.' + format,
-        path + 'nz.' + format,
-        path + 'py.' + format,
-        path + 'ny.' + format
-      ]
-
       var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
-      shader.uniforms["tCube"].value = THREE.ImageUtils.loadTextureCube(materials);
-
       var material = new THREE.ShaderMaterial({
         fragmentShader : shader.fragmentShader,
         vertexShader   : shader.vertexShader,
@@ -435,20 +429,35 @@ Omega.UI.Canvas.Skybox.prototype = {
         side           : THREE.BackSide
       });
 
-      return new THREE.Mesh(geometry, material);
+      Omega.UI.Canvas.Skybox.gfx.mesh = new THREE.Mesh(geo, material);
     }
   },
 
   init_gfx : function(){
+    if(this.components.length > 0) return;
     this.load_gfx();
+
+    /// just reference it, assuming we're only going to need the one skybox
+    this.mesh = Omega.UI.Canvas.Skybox.gfx.mesh;
+    this.components = [this.mesh];
   },
 
-  set : function(bg){
+  set: function(bg){
+    var format = 'png';
+    var config = this.canvas.page.config;
+    var path   = config.url_prefix + config.images_path + '/skybox/' + bg + '/';
+    var materials = [
+      path + 'px.' + format, path + 'nx.' + format,
+      path + 'pz.' + format, path + 'nz.' + format,
+      path + 'py.' + format, path + 'ny.' + format
+    ];
+
+    this.mesh.material.uniforms["tCube"].value = THREE.ImageUtils.loadTextureCube(materials);
   }
 };
 
 Omega.UI.Canvas.Axis = function(parameters){
-  this.size = 500;
+  this.size = 750;
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
@@ -475,7 +484,7 @@ Omega.UI.Canvas.Axis.prototype = {
   },
 
   _new_v : function(x,y,z){
-    return new THREE.Vertex(new THREE.Vector3(x,y,z));
+    return new THREE.Vector3(x,y,z);
   },
 
   _new_axis : function(p1, p2, color){

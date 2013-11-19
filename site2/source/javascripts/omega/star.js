@@ -23,12 +23,12 @@ Omega.Star.prototype = {
 
       //// mesh
         // each star instance should override radius in the geometry instance
-        var radius = 50, segments = 32, rings = 32;
+        var radius = 250, segments = 32, rings = 32;
         var mesh_geo = new THREE.SphereGeometry(radius, segments, rings);
 
         var lava_path      = config.url_prefix + config.images_path + config.resources.star.lava;
         var clouds_path    = config.url_prefix + config.images_path + config.resources.star.clouds;
-        var lava_texture   = THREE.ImageUtils.loadTexture(lava_path, {}, event_cb);
+        var lava_texture   = THREE.ImageUtils.loadTexture(lava_path,   {}, event_cb);
         var clouds_texture = THREE.ImageUtils.loadTexture(clouds_path, {}, event_cb);
 
         // XXX
@@ -40,8 +40,8 @@ Omega.Star.prototype = {
           time:       { type: "f",  value: 1.0 },
           resolution: { type: "v2", value: resolution },
           uvScale:    { type: "v2", value: new THREE.Vector2( 2.0, 1.5 ) },
-          texture1:   { type: "t",  value: lava_texture },
-          texture2:   { type: "t",  value: clouds_texture }
+          texture1:   { type: "t",  value: clouds_texture },
+          texture2:   { type: "t",  value: lava_texture   }
         };
 
         uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
@@ -53,32 +53,10 @@ Omega.Star.prototype = {
         var material = new THREE.ShaderMaterial({
             uniforms       : uniforms,
             vertexShader   : vertex_shader,
-            fragment_shader: fragment_shader});
-
-// TODO migrate texture animation
+            fragmentShader : fragment_shader});
 
         // each star instance should set position of their mesh instance
         Omega.Star.gfx.mesh = new THREE.Mesh(mesh_geo, material);
-
-      //// glow
-        var glow_geo    = mesh_geo.clone();
-
-        vertex_shader   = Omega.get_shader('vertexShaderHalo');
-        fragment_shader = Omega.get_shader('fragmentShaderHalo');
-        uniforms        = {
-          "c":   { type: "f", value: 0.2 },
-          "p":   { type: "f", value: 4.0 },
-        };
-
-        material = new THREE.ShaderMaterial({
-          uniforms       : uniforms,
-          vertexShader   : vertex_shader,
-          fragmentShader : fragment_shader,
-          side           : THREE.BackSide
-        });
-
-        // each star instance should set position of their glow mesh instance
-        Omega.Star.gfx.glow = new THREE.Mesh(glow_geo, material);
 
       //// light
         // each star instance should set the color/position of their light instance
@@ -95,17 +73,12 @@ Omega.Star.prototype = {
     this.mesh  = Omega.Star.gfx.mesh.clone();
     this.mesh.position.set(this.location.x, this.location.y, this.location.z);
     //mesh.geometry // TODO how to adjust radius?
-
-    this.shader_mesh = this.mesh.clone();
-
-    this.glow  = Omega.Star.gfx.glow.clone();
-    this.glow.position.set(this.location.x, this.location.y, this.location.z);
+// TODO migrate texture animation
 
     this.light = Omega.Star.gfx.light.clone();
     this.light.position.set(this.location.x, this.location.y, this.location.z);
     this.light.color.setHex(this.color_int);
 
     this.components = [this.mesh, this.light];
-    this.shader_components = [this.glow, this.shader_mesh];
   },
 };
