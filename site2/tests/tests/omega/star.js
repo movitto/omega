@@ -34,13 +34,6 @@ describe("Omega.Star", function(){
       assert(Omega.Star.gfx.mesh.material).isOfType(THREE.ShaderMaterial);
     });
 
-    it("creates glow for Star", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Star.gfx.glow).isOfType(THREE.Mesh);
-      assert(Omega.Star.gfx.glow.geometry).isOfType(THREE.SphereGeometry);
-      assert(Omega.Star.gfx.glow.material).isOfType(THREE.ShaderMaterial);
-    });
-
     it("creates light for Star", function(){
       Omega.Test.Canvas.Entities();
       assert(Omega.Star.gfx.light).isOfType(THREE.PointLight);
@@ -77,31 +70,9 @@ describe("Omega.Star", function(){
       assert(star.mesh.position.toArray()).equals(100, -100, 200);
     });
 
+    it("sets mesh.omega_entity")
+
     /// it("sets mesh radius") NIY
-
-    it("clones mesh for shader scene", function(){
-      var star = new Omega.Star();
-      var mesh = new THREE.Mesh();
-      var shader_mesh = new THREE.Mesh();
-      sinon.stub(Omega.Star.gfx.mesh.clone).returns(mesh);
-      sinon.stub(mesh, 'clone').returns(shader_mesh);
-      star.init_gfx();
-      assert(star.shader_mesh).equals(shader_mesh);
-    });
-
-    it("clones Star glow", function(){
-      var star = new Omega.Star();
-      var mesh = new THREE.Mesh();
-      sinon.stub(Omega.Star.gfx.glow.clone).returns(mesh);
-      star.init_gfx();
-      assert(star.glow).equals(mesh);
-    });
-
-    it("sets glow position", function(){
-      var star = new Omega.Star({location : new Location({x: 100, y: -100, z: 200});});
-      star.init_gfx();
-      assert(star.glow.position.toArray()).equals(100, -100, 200);
-    });
 
     it("clones Star light", function(){
       var star = new Omega.Star();
@@ -128,12 +99,10 @@ describe("Omega.Star", function(){
       star.init_gfx();
       assert(star.components).equals([star.mesh, star.light]);
     });
+  });
 
-    it("adds shader mesh and glow to star shader scene components", function(){
-      var star = new Omega.Star();
-      star.init_gfx();
-      assert(star.shader_components).equals([star.glow, star.shader_mesh]);
-    });
+  describe("#run_effects", function(){
+    it("updates mesh shader material time value")
   });
 
 });}); // Omega.Star

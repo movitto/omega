@@ -16,6 +16,7 @@ Omega.UI.EffectsPlayer.prototype = {
   interval : 150,
 
   wire_up : function(){
+    /// pause effects player when document is hidden
     var _this = this;
     $(document).on('visibilitychange', function(evnt){
       if(_this.effects_timer){

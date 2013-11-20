@@ -140,6 +140,13 @@ describe("Omega.UI.Canvas", function(){
       //assert(canvas.composer.passes[2]); // TODO verify ShaderPass pulls in ShaderComposer via AdditiveBlending
       assert(canvas.composer.passes[2].renderToScreen).isTrue();
     });
+
+    it("sets camera controls dom element to renderer dom element");
+    it("sets camera controls position");
+    it("sets camera controls target");
+    it("resizes renderer & camera on window resize");
+    it("initializes skybox graphics");
+    it("initializes axis graphics");
   });
 
   describe("#set_scene_root", function(){
@@ -183,6 +190,8 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#add", function(){
+    it("initializes entity graphics");
+
     it("adds entity components to scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({components: [mesh]});
@@ -198,6 +207,11 @@ describe("Omega.UI.Canvas", function(){
       canvas.add(star);
       assert(canvas.shader_scene.getDescendants()).includes(mesh);
     });
+  });
+
+  describe("#remove", function(){
+    it("removes entity components from scene");
+    it("removes entity shader components from shader scene");
   });
 
   describe("#clear", function(){
@@ -277,6 +291,11 @@ describe("Omega.UI.Canvas.Controls", function(){
       controls.wire_up();
       assert(controls.missions_button.component()).handles('click');
     });
+
+    it("registers toggle axis click event handlers");
+    it("unchecks toggle axis control");
+    it("wires up locations list")
+    it("wires up entities list")
   });
 
   describe("missions button click", function(){
@@ -303,6 +322,16 @@ describe("Omega.UI.Canvas.Controls", function(){
       var response = {};
       spy1.getCall(0).args[1](response)
       sinon.assert.calledWith(spy2, response);
+    });
+  });
+
+  describe("#toggle_axis input clicked", function(){
+    describe("input is checked", function(){
+      it("adds axis to canvas scene")
+    });
+
+    describe("input is not checked", function(){
+      it("removes axis from canvas scene")
     });
   });
 
@@ -620,3 +649,39 @@ describe("Omega.UI.Canvas.Controls.Dialog", function(){
 pavlov.specify("Omega.UI.Canvas.EntityContainer", function(){
 describe("Omega.UI.Canvas.EntityContainer", function(){
 });});
+
+pavlov.specify("Omega.UI.Canvas.Skybox", function(){
+describe("Omega.UI.Canvas.Skybox", function(){
+  describe("#load_gfx", function(){
+    describe("graphics are initialized", function(){
+      it("does nothing / just returns");
+    });
+
+    it("creates mesh for skybox");
+  });
+
+  describe("#init_gfx", function(){
+    it("loads skybox gfx");
+    it("adds Skybox mesh to scene components");
+  });
+
+  describe("#set", function(){
+    it("sets mesh material to new background");
+  });
+});}); // Omega.UI.Canvas.Skybox
+
+pavlov.specify("Omega.UI.Canvas.Axis", function(){
+describe("Omega.UI.Canvas.Axis", function(){
+  describe("#load_gfx", function(){
+    describe("graphics are initialized", function(){
+      it("does nothing / just returns");
+    });
+
+    it("creates axis lines for axis");
+  });
+
+  describe("#init_gfx", function(){
+    it("loads axis gfx");
+    it("adds Axis lines to scene components");
+  });
+});}); // Omega.UI.Canvas.Axis
