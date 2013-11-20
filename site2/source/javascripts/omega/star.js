@@ -7,6 +7,7 @@
 Omega.Star = function(parameters){
   this.components        = [];
   this.shader_components = [];
+  this.effects_timestamp = new Date();
 
   this.color             = 'FFFFFF';
   $.extend(this, parameters);
@@ -72,8 +73,8 @@ Omega.Star.prototype = {
 
     this.mesh  = Omega.Star.gfx.mesh.clone();
     this.mesh.position.set(this.location.x, this.location.y, this.location.z);
+    this.mesh.omega_entity = this;
     //mesh.geometry // TODO how to adjust radius?
-// TODO migrate texture animation
 
     this.light = Omega.Star.gfx.light.clone();
     this.light.position.set(this.location.x, this.location.y, this.location.z);
@@ -81,4 +82,12 @@ Omega.Star.prototype = {
 
     this.components = [this.mesh, this.light];
   },
+
+  run_effects : function(){
+    var now = new Date();
+    var delta = (now - this.effects_timestamp);
+    if(delta > 2000) delta = 0;
+    this.mesh.material.uniforms.time.value += 0.0004 * delta;
+    this.effects_timestamp = now;
+  }
 };

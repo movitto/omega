@@ -5,16 +5,19 @@
  */
 
 //= require "ui/canvas"
+//= require "ui/effects_player"
 
 Omega.Pages.Dev = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
   this.canvas  = new Omega.UI.Canvas({page: this});
+  this.effects_player = new Omega.UI.EffectsPlayer({page: this});
 };
 
 Omega.Pages.Dev.prototype = {
   wire_up : function(){
     this.canvas.wire_up();
+    this.effects_player.wire_up();
   },
 
   custom_operations : function(){
@@ -23,10 +26,12 @@ Omega.Pages.Dev.prototype = {
     var children = [star];
     var system = new Omega.SolarSystem({children: children});
 
+    this.effects_player.start();
     this.canvas.setup();
     this.canvas.set_scene_root(system);
-this.canvas.add(this.canvas.axis);
 this.canvas.add(this.canvas.skybox);
+this.canvas.skybox.set('galaxy2')
+
     this.canvas.animate();
   }
 };

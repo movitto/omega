@@ -8,6 +8,7 @@
 //= require "vendor/jquery-2.0.3.min"
 //= require "vendor/jquery-ui-1.10.3.min"
 //= require "vendor/jquery.cookie"
+//= require "vendor/jquery.timer"
 //= require "vendor/google_recaptcha_ajax"
 
 //= require "vendor/three-r62.min"
