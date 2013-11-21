@@ -72,12 +72,12 @@ Omega.Star.prototype = {
     this.load_gfx(config, event_cb);
 
     this.mesh  = Omega.Star.gfx.mesh.clone();
-    this.mesh.position.set(this.location.x, this.location.y, this.location.z);
+    if(this.location) this.mesh.position.set(this.location.x, this.location.y, this.location.z);
     this.mesh.omega_entity = this;
     //mesh.geometry // TODO how to adjust radius?
 
     this.light = Omega.Star.gfx.light.clone();
-    this.light.position.set(this.location.x, this.location.y, this.location.z);
+    if(this.location) this.light.position.set(this.location.x, this.location.y, this.location.z);
     this.light.color.setHex(this.color_int);
 
     this.components = [this.mesh, this.light];

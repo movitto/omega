@@ -11,5 +11,8 @@ Omega.Planet = function(parameters){
 };
 
 Omega.Planet.prototype = {
-  json_class : 'Cosmos::Entities::Planet'
+  json_class : 'Cosmos::Entities::Planet',
+
+  init_gfx : function(config, event_cb){
+  }
 };

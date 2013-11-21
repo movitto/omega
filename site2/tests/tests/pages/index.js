@@ -631,7 +631,7 @@ describe("Omega.Pages.Index", function(){
     it("adds retrieves galaxy system is in", function(){
       var spy = sinon.spy(Omega.Galaxy, 'with_id');
       index.process_system(system)
-      sinon.assert.calledWith(spy, system.galaxy_id);
+      sinon.assert.calledWith(spy, system.parent_id);
     });
 
     it("processes galaxy", function(){

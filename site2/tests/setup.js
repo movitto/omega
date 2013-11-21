@@ -7,6 +7,7 @@
 //////////////////////////////// helper methods/data
 
 Omega.Pages.Test = function(parameters){
+  this.config  = Omega.Config;
   $.extend(this, parameters);
 }
 
@@ -43,7 +44,8 @@ Omega.Test = {
 //  first time it is needed and only once)
 Omega.Test.Canvas = function(){
   if(typeof($omega_test_canvas) === "undefined"){
-    $omega_test_canvas = new Omega.UI.Canvas();
+    $omega_test_page   = new Omega.Pages.Test();
+    $omega_test_canvas = new Omega.UI.Canvas({page : $omega_test_page});
     $omega_test_canvas.setup();
   }
   return $omega_test_canvas;

@@ -23,7 +23,7 @@ describe("Omega.Star", function(){
         Omega.Star.gfx = {};
         Omega.Star.mesh = null;
         new Omega.Star().load_gfx();
-        assert(Omega.mesh.mesh).isNull();
+        assert(Omega.Star.mesh).isNull();
       });
     });
 
