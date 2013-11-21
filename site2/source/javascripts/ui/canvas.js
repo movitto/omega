@@ -414,23 +414,22 @@ Omega.UI.Canvas.Skybox = function(parameters){
 
 Omega.UI.Canvas.Skybox.prototype = {
   load_gfx : function(){
-    if(typeof(Omega.UI.Canvas.Skybox.gfx) === 'undefined'){
-      Omega.UI.Canvas.Skybox.gfx = {};
+    if(typeof(Omega.UI.Canvas.Skybox.gfx) !== 'undefined') return;
+    Omega.UI.Canvas.Skybox.gfx = {};
 
-      var size = 32768;
-      var geo  = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
+    var size = 32768;
+    var geo  = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
 
-      var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
-      var material = new THREE.ShaderMaterial({
-        fragmentShader : shader.fragmentShader,
-        vertexShader   : shader.vertexShader,
-        uniforms       : shader.uniforms,
-        depthWrite     : false,
-        side           : THREE.BackSide
-      });
+    var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
+    var material = new THREE.ShaderMaterial({
+      fragmentShader : shader.fragmentShader,
+      vertexShader   : shader.vertexShader,
+      uniforms       : shader.uniforms,
+      depthWrite     : false,
+      side           : THREE.BackSide
+    });
 
-      Omega.UI.Canvas.Skybox.gfx.mesh = new THREE.Mesh(geo, material);
-    }
+    Omega.UI.Canvas.Skybox.gfx.mesh = new THREE.Mesh(geo, material);
   },
 
   init_gfx : function(){
@@ -465,13 +464,12 @@ Omega.UI.Canvas.Axis = function(parameters){
 
 Omega.UI.Canvas.Axis.prototype = {
   load_gfx : function(){
-    if(typeof(Omega.UI.Canvas.Axis.gfx) === 'undefined'){
-      Omega.UI.Canvas.Axis.gfx = {
-        xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000),
-        yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00),
-        xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF)
-      };
-    }
+    if(typeof(Omega.UI.Canvas.Axis.gfx) !== 'undefined') return;
+    Omega.UI.Canvas.Axis.gfx = {
+      xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000),
+      yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00),
+      xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF)
+    };
   },
 
   init_gfx : function(){
