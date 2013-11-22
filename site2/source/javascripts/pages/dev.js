@@ -23,7 +23,14 @@ Omega.Pages.Dev.prototype = {
   custom_operations : function(){
     var star_loc = new Omega.Location({x:0,y:0,z:0});
     var star   = new Omega.Star({location: star_loc});
-    var children = [star];
+
+    var ms  = {e : 0, p : 500, speed: 1.57,
+               dmajx: 0, dmajy : 1, dmajz : 0,
+               dminx: 0, dminy : 0, dminz : 1};
+    var loc = {id : 42, movement_strategy : ms};
+    var pl  = new Omega.Planet({location : loc});
+
+    var children = [star, pl];
     var system = new Omega.SolarSystem({children: children});
 
     this.effects_player.start();

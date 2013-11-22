@@ -51,3 +51,134 @@ Omega.get_shader = function(id){
   if(shader == null) return shader;
   return shader.textContent;
 }
+
+// The Math Module
+Omega.Math = {
+  intercepts : function(e, p){
+    var a,b;
+    a = p / (1 - Math.pow(e, 2));
+    b = Math.sqrt(p * a);
+    return [a,b];
+  },
+
+  le : function(a, b){
+    return Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+  },
+
+  center : function(dx, dy, dz, le){
+    return [-1 * dx * le,
+            -1 * dy * le,
+            -1 * dz * le];
+  },
+
+  // normalize vector
+  nrml : function(x,y,z){
+    var l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+    x /= l; y /= l; z /= l;
+    return [x,y,z];
+  },
+
+  // return dot product of vectors
+  dp : function(x1, y1, z1, x2, y2, z2){
+    return x1 * x2 + y1 * y2 + z1 * z2;
+  },
+
+  // return cross product of vectors
+  cp : function(x1, y1, z1, x2, y2, z2){
+    var x3 = y1 * z2 - z1 * y2;
+    var y3 = z1 * x2 - x1 * z2;
+    var z3 = x1 * y2 - y1 * x2;
+    // we're not normalizing vector here, if you need 
+    // normal vector make sure to call nrml on your own!
+    return [x3, y3, z3];
+  },
+
+  // angle between
+  abwn : function(x1, y1, z1, x2, y2, z2){
+    var nrml = Omega.Math.nrml;
+    var dp   = Omega.Math.dp;
+    var cp   = Omega.Math.cp;
+
+    var n = nrml(x1, y1, z1);
+    x1 = n[0]; y1 = n[1]; z1 = n[2];
+  
+    n = nrml(x2, y2, z2);
+    x2 = n[0]; y2 = n[1]; z2 = n[2];
+  
+    var d = dp(x1, y1, z1, x2, y2, z2);
+    var a = Math.acos(d);
+    var na = -1 * a;
+  
+    var x = cp(x1, y1, z1, x2, y2, z2);
+    d = dp(x[0], x[1], x[2], 0, 0, 1)
+    return d < 0 ? na : a;
+  },
+
+  // rotate vector around axis angle.
+  // uses rodrigues rotation formula
+  rot : function(x, y, z, angle, ax, ay, az){
+    var nrml = Omega.Math.nrml;
+    var dp   = Omega.Math.dp;
+    var cp   = Omega.Math.cp;
+
+    var n = nrml(ax, ay, az);
+    ax = n[0]; ay = n[1]; az = n[2];
+  
+    var c  = Math.cos(angle); var s = Math.sin(angle);
+    var d  = dp(x, y, z, ax, ay, az);
+    var xp = cp(ax, ay, az, x, y, z);
+    var rx = x * c + xp[0] * s + ax * d * (1-c);
+    var ry = y * c + xp[1] * s + ay * d * (1-c);
+    var rz = z * c + xp[2] * s + az * d * (1-c);
+    return [rx, ry, rz];
+  },
+
+  // calc elliptical path given elliptical movement strategy
+  elliptical_path : function(ms){
+    var nrml = Omega.Math.nrml;
+    var abwn = Omega.Math.abwn;
+    var rot  = Omega.Math.rot;
+    var dp   = Omega.Math.dp;
+    var cp   = Omega.Math.cp;
+
+    var path = [];
+  
+    // intercepts
+    var a = ms.p / (1 - Math.pow(ms.e, 2));
+  
+    var b = Math.sqrt(ms.p * a);
+  
+    // linear eccentricity
+    var le = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+  
+    // center (assumes location's movement_strategy.relative to is set to foci
+    var cx = -1 * ms.dmajx * le;
+    var cy = -1 * ms.dmajy * le;
+    var cz = -1 * ms.dmajz * le;
+  
+    // axis plane rotation
+    var nv1 = cp(ms.dmajx,ms.dmajy,ms.dmajz,ms.dminx,ms.dminy,ms.dminz);
+    var ab1 = abwn(0,0,1,nv1[0],nv1[1],nv1[2]);
+    var ax1 = cp(0,0,1,nv1[0],nv1[1],nv1[2]);
+        ax1 = nrml(ax1[0],ax1[1],ax1[2]);
+  
+    // axis rotation
+    var nmaj = rot(1,0,0,ab1,ax1[0],ax1[1],ax1[2]);
+    var ab2 = abwn(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+    var ax2 = cp(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+        ax2 = nrml(ax2[0],ax2[1],ax2[2]);
+  
+    // path
+    for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
+      var x = a * Math.cos(i);
+      var y = b * Math.sin(i);
+      var n = [x,y,0];
+      n = rot(n[0], n[1], n[2], ab1, ax1[0], ax1[1], ax1[2]);
+      n = rot(n[0], n[1], n[2], ab2, ax2[0], ax2[1], ax2[2]);
+      n[0] += cx; n[1] += cy; n[2] += cz;
+      path.push(n);
+    }
+  
+    return path;
+  }
+};

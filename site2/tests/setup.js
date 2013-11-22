@@ -38,14 +38,24 @@ Omega.Test = {
   }
 };
 
+// Initializes and returns a singleton page
+// instance for use in the test suite
+// (for use w/ singleton canvas and elsewhere below)
+Omega.Test.Page = function(){
+  if(typeof($omega_test_page) === "undefined"){
+    $omega_test_page = new Omega.Pages.Test();
+  }
+  return $omega_test_page;
+};
+
 // Initializes and returns a singleton canvas
 // instance for use in the test suite
 // (so that THREE can be loaded on demand the
 //  first time it is needed and only once)
 Omega.Test.Canvas = function(){
   if(typeof($omega_test_canvas) === "undefined"){
-    $omega_test_page   = new Omega.Pages.Test();
-    $omega_test_canvas = new Omega.UI.Canvas({page : $omega_test_page});
+    var page = Omega.Test.Page();
+    $omega_test_canvas = new Omega.UI.Canvas({page : page});
     $omega_test_canvas.setup();
   }
   return $omega_test_canvas;
@@ -56,10 +66,14 @@ Omega.Test.Canvas = function(){
 Omega.Test.Canvas.Entities = function(){
   if(typeof($omega_test_canvas_entities) === "undefined"){
     $omega_test_canvas_entities = {
-      star : new Omega.Star()
+      star   : new Omega.Star(),
+      planet : new Omega.Planet()
     };
+    var page     = Omega.Test.Page();
+    var config   = page.config;
+    var event_cb = function(){};
     for(var e in $omega_test_canvas_entities)
-      $omega_test_canvas_entities[e].init_gfx();
+      $omega_test_canvas_entities[e].init_gfx(config, event_cb);
   }
   return $omega_test_canvas_entities;
 };

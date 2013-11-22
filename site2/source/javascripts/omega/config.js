@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+// TODO move to top level javascripts/ dir
+
 Omega.Config = {
   // uri & paths
   http_host         : 'localhost',
