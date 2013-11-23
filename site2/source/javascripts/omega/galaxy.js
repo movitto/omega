@@ -120,7 +120,6 @@ Omega.Galaxy.prototype = {
 
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
-
     this.load_gfx(config, event_cb);
 
     this.particles  = Omega.Galaxy.gfx.particles.clone();

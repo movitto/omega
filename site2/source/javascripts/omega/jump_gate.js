@@ -80,7 +80,7 @@ Omega.JumpGate.prototype = {
       Omega.JumpGate.gfx.particles = particle_system;
 
     //// selection sphere
-      /// each star instance should override radius in the geometry instance to set to trigger distance
+      /// each jump gate instance should override radius in the geometry instance to set to trigger distance
       var radius   = 300, segments = 32, rings = 32;
       var geometry = new THREE.SphereGeometry(radius, segments, rings);
       var material = new THREE.MeshBasicMaterial({color       : 0xffffff,
