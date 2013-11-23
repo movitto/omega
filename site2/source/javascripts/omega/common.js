@@ -52,8 +52,37 @@ Omega.get_shader = function(id){
   return shader.textContent;
 }
 
+// Create a lamp
+Omega.create_lamp = function(size, color){
+  var geometry = new THREE.SphereGeometry(size, 32, 32);
+  var material = new THREE.MeshBasicMaterial({color: color});
+  var lamp     = new THREE.Mesh(geometry, material);
+
+  // reduce color components seperately
+  var diff  = ((color & 0xff0000) != 0) ? 0x100000 : 0;
+      diff += ((color & 0x00ff00) != 0) ? 0x001000 : 0;
+      diff += ((color & 0x0000ff) != 0) ? 0x000010 : 0;
+
+  lamp.run_effects = function(){
+    // 1/3 chance of skipping this update for variety
+    if(Math.floor(Math.random()*3) == 0) return;
+    var c  = material.color.getHex();
+        c -= diff;
+    if(c < 0x000000)
+      material.color.setHex(color);
+    else
+      material.color.setHex(c);
+  }
+
+  return lamp;
+}
+
 // The Math Module
 Omega.Math = {
+  dist : function(x,y,z){
+    return Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2));
+  },
+
   intercepts : function(e, p){
     var a,b;
     a = p / (1 - Math.pow(e, 2));

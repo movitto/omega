@@ -15,6 +15,7 @@ Omega.Config = {
 
   url_prefix        :   '/womega',
   images_path       :   '/images',
+  meshes_path       :   '/meshes',
 
   // users
   anon_user         :      'anon',

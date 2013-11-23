@@ -63,15 +63,16 @@ Omega.Test.Canvas = function(){
 
 // Same as Test.Canvas above but for various entities
 // which can be rendered to the canvas
-Omega.Test.Canvas.Entities = function(){
+Omega.Test.Canvas.Entities = function(event_cb){
   if(typeof($omega_test_canvas_entities) === "undefined"){
     $omega_test_canvas_entities = {
       star   : new Omega.Star(),
-      planet : new Omega.Planet()
+      planet : new Omega.Planet(),
+      jump_gate : new Omega.JumpGate()
     };
     var page     = Omega.Test.Page();
     var config   = page.config;
-    var event_cb = function(){};
+    if(!event_cb) event_cb = function(){};
     for(var e in $omega_test_canvas_entities)
       $omega_test_canvas_entities[e].init_gfx(config, event_cb);
   }
