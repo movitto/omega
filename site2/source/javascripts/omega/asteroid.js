@@ -77,6 +77,7 @@ Omega.Asteroid.prototype = {
                                                   _this.location.y,
                                                   _this.location.z));
       _this.mesh.omega_entity = _this;
+      _this.components = [_this.mesh];
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
     });
   }
