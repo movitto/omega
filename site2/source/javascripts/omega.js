@@ -12,6 +12,7 @@
 //= require "vendor/google_recaptcha_ajax"
 
 //= require "vendor/three-r62.min"
+//= require "vendor/helvetiker_font/helvetiker_regular.typeface"
 //= require "vendor/three/MaskPass"
 //= require "vendor/three/CopyShader"
 //= require "vendor/three/EffectComposer"

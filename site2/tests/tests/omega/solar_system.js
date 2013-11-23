@@ -11,6 +11,91 @@ describe("Omega.SolarSystem", function(){
     assert(system.children[1].id).equals('planet1');
   });
 
+  describe("#load_gfx", function(){
+    describe("graphics are initialized", function(){
+      var orig;
+
+      before(function(){
+        orig = Omega.SolarSystem.gfx;
+      })
+
+      after(function(){
+        Omega.SolarSystem.gfx = orig;
+      });
+
+      it("does nothing / just returns", function(){
+        Omega.SolarSystem.gfx = {mesh : null};
+        new Omega.SolarSystem().load_gfx();
+        assert(Omega.SolarSystem.gfx.mesh).isNull();
+      });
+    });
+
+    it("creates mesh for solar system", function(){
+      Omega.Test.Canvas.Entities();
+      assert(Omega.SolarSystem.gfx.mesh).isOfType(THREE.Mesh);
+      assert(Omega.SolarSystem.gfx.mesh.geometry).isOfType(THREE.SphereGeometry);
+      assert(Omega.SolarSystem.gfx.mesh.material).isOfType(THREE.MeshBasicMaterial);
+    });
+
+    it("creates plane for solar system", function(){
+      Omega.Test.Canvas.Entities();
+      assert(Omega.SolarSystem.gfx.plane).isOfType(THREE.Mesh);
+      assert(Omega.SolarSystem.gfx.plane.geometry).isOfType(THREE.PlaneGeometry);
+      assert(Omega.SolarSystem.gfx.plane.material).isOfType(THREE.MeshBasicMaterial);
+    });
+  });
+
+  describe("#init_gfx", function(){
+    before(function(){
+      /// preiinit using test page
+      Omega.Test.Canvas.Entities();
+    });
+
+    after(function(){
+      if(Omega.SolarSystem.gfx){
+        if(Omega.SolarSystem.gfx.mesh.clone.restore) Omega.SolarSystem.gfx.mesh.clone.restore();
+        if(Omega.SolarSystem.gfx.plane.clone.restore) Omega.SolarSystem.gfx.plane.clone.restore();
+      }
+    });
+
+    it("loads galaxy gfx", function(){
+      var solar_system = new Omega.SolarSystem();
+      var load_gfx  = sinon.spy(solar_system, 'load_gfx');
+      solar_system.init_gfx();
+      sinon.assert.called(load_gfx);
+    });
+
+    it("clones SolarSystem mesh", function(){
+      var solar_system = new Omega.SolarSystem();
+      var mesh = new THREE.Mesh();
+      sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
+      solar_system.init_gfx();
+      assert(solar_system.mesh).equals(mesh);
+    });
+
+    it("clones SolarSystem plane", function(){
+      var solar_system = new Omega.SolarSystem();
+      var mesh = new THREE.Mesh();
+      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(mesh);
+      solar_system.init_gfx();
+      assert(solar_system.plane).equals(mesh);
+    });
+
+    it("creates text for solar system", function(){
+      var solar_system = new Omega.SolarSystem();
+      solar_system.init_gfx();
+      assert(solar_system.text).isOfType(THREE.Mesh);
+      assert(solar_system.text.geometry).isOfType(THREE.TextGeometry);
+      assert(solar_system.text.material).isOfType(THREE.MeshBasicMaterial);
+    });
+  });
+
+  describe("#run_effects", function(){
+  });
+
+  describe("#add_jump_gate", function(){
+  });
+
   describe("#with_id", function(){
     var node, retrieval_cb, invoke_spy;
 
