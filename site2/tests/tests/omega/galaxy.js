@@ -8,6 +8,73 @@ describe("Omega.Galaxy", function(){
     assert(galaxy.children[0].id).equals('sys1');
   });
 
+  describe("#load_gfx", function(){
+    describe("graphics are initialized", function(){
+      var orig;
+
+      before(function(){
+        orig = Omega.Galaxy.gfx;
+      })
+
+      after(function(){
+        Omega.Galaxy.gfx = orig;
+      });
+
+      it("does nothing / just returns", function(){
+        Omega.Galaxy.gfx = {particles : null};
+        new Omega.Galaxy().load_gfx();
+        assert(Omega.Galaxy.gfx.particles).isNull();
+      });
+    });
+
+    it("creates particle system for galaxy", function(){
+      Omega.Test.Canvas.Entities();
+
+      assert(Omega.Galaxy.gfx.particles).isOfType(THREE.ParticleSystem);
+      assert(Omega.Galaxy.gfx.particles.geometry).isOfType(THREE.Geometry);
+      assert(Omega.Galaxy.gfx.particles.material).isOfType(THREE.ParticleBasicMaterial);
+      /// TODO verify geometry generated according to density wave theory ?
+    });
+  });
+
+  describe("#init_gfx", function(){
+    before(function(){
+      /// preiinit using test page
+      Omega.Test.Canvas.Entities();
+    });
+
+    after(function(){
+      if(Omega.Galaxy.gfx){
+        if(Omega.Galaxy.gfx.particles.clone.restore) Omega.Galaxy.gfx.particles.clone.restore();
+      }
+    });
+
+    it("loads galaxy gfx", function(){
+      var galaxy    = new Omega.Galaxy();
+      var load_gfx  = sinon.spy(galaxy, 'load_gfx');
+      galaxy.init_gfx();
+      sinon.assert.called(load_gfx);
+    });
+
+    it("clones Galaxy particles", function(){
+      var galaxy = new Omega.Galaxy();
+      var mesh = new THREE.Mesh();
+      sinon.stub(Omega.Galaxy.gfx.particles, 'clone').returns(mesh);
+      galaxy.init_gfx();
+      assert(galaxy.particles).equals(mesh);
+    });
+
+    it("adds particle system to galaxy scene components", function(){
+      var galaxy = new Omega.Galaxy();
+      galaxy.init_gfx();
+      assert(galaxy.components).isSameAs([galaxy.particles]);
+    });
+  });
+
+  describe("#run_effects", function(){
+    //it("updates particle system particles") // NIY
+  });
+
   describe("#with_id", function(){
     var node, retrieval_cb, invoke_spy;
 
