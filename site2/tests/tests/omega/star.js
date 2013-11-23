@@ -16,7 +16,7 @@ describe("Omega.Star", function(){
 
       after(function(){
         Omega.Star.gfx = orig.gfx;
-        if(Omega.Star.gfx) Omega.star.gfx.mesh = orig.mesh;
+        if(Omega.Star.gfx) Omega.Star.gfx.mesh = orig.mesh;
       });
 
       it("does nothing / just returns", function(){
