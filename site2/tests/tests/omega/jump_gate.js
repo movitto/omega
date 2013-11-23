@@ -113,8 +113,6 @@ describe("Omega.JumpGate", function(){
       });
     }));
 
-    /// it("sets mesh radius") NIY
-
     it("clones JumpGate lamp", function(){
       var mesh = new THREE.Mesh();
       sinon.stub(Omega.JumpGate.gfx.lamp, 'clone').returns(mesh);
@@ -156,6 +154,8 @@ describe("Omega.JumpGate", function(){
       jg.init_gfx();
       assert(jg.selection_sphere.position.toArray()).isSameAs([80, -100, 200]);
     });
+
+    /// it("sets selection sphere radius") NIY
 
     it("adds mesh, lamp, particles, and selection sphere to jump gate scene components", function(){
       var jg = new Omega.JumpGate({});

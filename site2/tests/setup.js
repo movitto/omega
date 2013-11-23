@@ -68,7 +68,8 @@ Omega.Test.Canvas.Entities = function(event_cb){
     $omega_test_canvas_entities = {
       star   : new Omega.Star(),
       planet : new Omega.Planet(),
-      jump_gate : new Omega.JumpGate()
+      jump_gate : new Omega.JumpGate(),
+      asteroid  : new Omega.Asteroid(),
     };
     var page     = Omega.Test.Page();
     var config   = page.config;
