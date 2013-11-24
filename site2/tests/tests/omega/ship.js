@@ -47,6 +47,8 @@ describe("Omega.Ship", function(){
         assert(lamp.geometry).isOfType(THREE.SphereGeometry);
       }
     });
+
+    it("creates trails for Ship");
   });
 
   describe("#init_gfx", function(){
@@ -128,9 +130,11 @@ describe("Omega.Ship", function(){
         sinon.assert.called(spies[s]);
     });
 
-    it("sets scene components to ship mesh, highlight effects, and lamps", function(){
+    it("clones Ship trails");
+
+    it("sets scene components to ship mesh, highlight effects, lamps, and trails", function(){
       ship.init_gfx();
-      var expected = [ship.mesh, ship.highlight].concat(ship.lamps);
+      var expected = [ship.mesh, ship.highlight].concat(ship.lamps).concat(ship.trails);
       assert(ship.components).isSameAs(expected);
     });
   });
@@ -149,6 +153,8 @@ describe("Omega.Ship", function(){
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
     });
+
+    it("runs trail effects");
   });
 
   describe("#owned_by", function(){

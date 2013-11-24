@@ -4,7 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO trails, mining, attack lines
+/// TODO mining, attack lines
+/// TODO orientations, updates on movement/rotation
 
 Omega.Ship = function(parameters){
   this.components = [];
@@ -18,6 +19,10 @@ Omega.Ship.prototype = {
   highlight_props : {
     x     :    0, y     : 200, z     : 0,
     rot_x : 3.14, rot_y :   0, rot_z : 0
+  },
+
+  trail_props : {
+    plane : 3, lifespan : 20
   },
 
   load_gfx : function(config, event_cb){
@@ -76,6 +81,44 @@ Omega.Ship.prototype = {
           var slamp = Omega.create_lamp(lamp[0], lamp[1]);
           slamp.position.set(lamp[2][0], lamp[2][1], lamp[2][2]);
           Omega.Ship.gfx[this.type].lamps.push(slamp);
+        }
+      }
+
+    //// trails
+      var trails = config.resources.ships[this.type].trails;
+      Omega.Ship.gfx[this.type].trails = [];
+      if(trails){
+        var trail_texture_path = config.url_prefix + config.images_path + '/particle.png';
+        var trail_texture  = THREE.ImageUtils.loadTexture(trail_texture_path, {}, event_cb);
+        var trail_material = new THREE.ParticleBasicMaterial({
+          color: 0xFFFFFF, size: 20, map: trail_texture,
+          blending: THREE.AdditiveBlending, transparent: true });
+
+        for(var l = 0; l < trails.length; l++){
+          var trail = trails[l];
+          var geo   = new THREE.Geometry();
+
+          var plane    = Omega.Ship.prototype.trail_props.plane;
+          var lifespan = Omega.Ship.prototype.trail_props.lifespan;
+          for(var i = 0; i < plane; ++i){
+            for(var j = 0; j < plane; ++j){
+              var pv = new THREE.Vector3(i, j, 0);
+              pv.velocity = Math.random();
+              pv.lifespan = Math.random() * lifespan;
+              if(i >= plane / 4 && i <= 3 * plane / 4 &&
+                 j >= plane / 4 && j <= 3 * plane / 4 ){
+                   pv.lifespan *= 2;
+                   pv.velocity *= 2;
+              }
+              pv.olifespan = pv.lifespan;
+              geo.vertices.push(pv)
+            }
+          }
+
+          var strail = new THREE.ParticleSystem(geo, trail_material);
+          strail.position.set(trail[0], trail[1], trail[2]);
+          strail.sortParticles = true;
+          Omega.Ship.gfx[this.type].trails.push(strail);
         }
       }
   },
@@ -140,12 +183,42 @@ Omega.Ship.prototype = {
       this.lamps.push(lamp);
       this.components.push(lamp);
     }
+
+    this.trails = [];
+    for(var t = 0; t < Omega.Ship.gfx[this.type].trails.length; t++){
+      var trail = Omega.Ship.gfx[this.type].trails[t].clone();
+      if(this.location)
+        trail.position.add(new THREE.Vector3(this.location.x,
+                                             this.location.y,
+                                             this.location.z));
+      this.trails.push(trail);
+      this.components.push(trail);
+    }
   },
 
   run_effects : function(){
+    // animate lamps
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];
       lamp.run_effects();
+    }
+
+    // animate trails
+    var plane    = Omega.Ship.prototype.trail_props.plane,
+        lifespan = Omega.Ship.prototype.trail_props.lifespan;
+    for(var t = 0; t < this.trails.length; t++){
+      var trail = this.trails[t];
+      var p = plane*plane;
+      while(p--){
+        var pv = trail.geometry.vertices[p]
+        pv.z -= pv.velocity;
+        pv.lifespan -= 1;
+        if(pv.lifespan < 0){
+          pv.z = 0;
+          pv.lifespan = pv.olifespan;
+        }
+      }
+      trail.geometry.__dirtyVertices = true;
     }
   }
 };

@@ -72,6 +72,7 @@ Omega.Test.Canvas.Entities = function(event_cb){
       planet       : new Omega.Planet(),
       jump_gate    : new Omega.JumpGate(),
       asteroid     : new Omega.Asteroid(),
+      ship         : new Omega.Ship({type : 'corvette'}), /// TODO other types
       station      : new Omega.Station({type : 'manufacturing'}) /// TODO other types
     };
     var page     = Omega.Test.Page();
