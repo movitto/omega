@@ -66,12 +66,13 @@ Omega.Test.Canvas = function(){
 Omega.Test.Canvas.Entities = function(event_cb){
   if(typeof($omega_test_canvas_entities) === "undefined"){
     $omega_test_canvas_entities = {
-      galaxy : new Omega.Galaxy(),
+      galaxy       : new Omega.Galaxy(),
       solar_system : new Omega.SolarSystem(),
-      star   : new Omega.Star(),
-      planet : new Omega.Planet(),
-      jump_gate : new Omega.JumpGate(),
-      asteroid  : new Omega.Asteroid(),
+      star         : new Omega.Star(),
+      planet       : new Omega.Planet(),
+      jump_gate    : new Omega.JumpGate(),
+      asteroid     : new Omega.Asteroid(),
+      station      : new Omega.Station({type : 'manufacturing'}) /// TODO other types
     };
     var page     = Omega.Test.Page();
     var config   = page.config;
