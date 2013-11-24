@@ -117,7 +117,6 @@ Omega.JumpGate.prototype = {
 
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
-
     this.load_gfx(config, event_cb);
 
     var _this = this;

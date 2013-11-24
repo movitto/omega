@@ -169,7 +169,6 @@ describe("Omega.JumpGate", function(){
       Omega.Test.Canvas.Entities();
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-console.log(jg.lamp)
       var run_effects = sinon.spy(jg.lamp, 'run_effects');
       jg.run_effects();
       sinon.assert.called(run_effects);
