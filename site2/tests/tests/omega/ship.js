@@ -48,7 +48,16 @@ describe("Omega.Ship", function(){
       }
     });
 
-    it("creates trails for Ship");
+    it("creates trails for Ship", function(){
+      var ship = Omega.Test.Canvas.Entities().ship;
+      assert(Omega.Ship.gfx[ship.type].trails.length).equals(Omega.Config.resources.ships[ship.type].trails.length);
+      for(var t = 0; t < Omega.Ship.gfx[ship.type].trails.length; t++){
+        var trail = Omega.Ship.gfx[ship.type].trails[t];
+        assert(trail).isOfType(THREE.ParticleSystem);
+        assert(trail.material).isOfType(THREE.ParticleBasicMaterial);
+        assert(trail.geometry).isOfType(THREE.Geometry);
+      }
+    });
   });
 
   describe("#init_gfx", function(){
@@ -71,6 +80,10 @@ describe("Omega.Ship", function(){
           for(var l = 0; l < Omega.Ship.gfx[type].lamps.length; l++)
             if(Omega.Ship.gfx[type].lamps[l].clone.restore)
               Omega.Ship.gfx[type].lamps[l].clone.restore();
+        if(Omega.Ship.gfx[type].trails)
+          for(var t = 0; t < Omega.Ship.gfx[type].trails.length; t++)
+            if(Omega.Ship.gfx[type].trails[t].clone.restore)
+              Omega.Ship.gfx[type].trails[t].clone.restore();
       }
     });
 
@@ -130,11 +143,18 @@ describe("Omega.Ship", function(){
         sinon.assert.called(spies[s]);
     });
 
-    it("clones Ship trails");
-
-    it("sets scene components to ship mesh, highlight effects, lamps, and trails", function(){
+    it("clones Ship trails", function(){
+      var spies = [];
+      for(var t = 0; t < Omega.Ship.gfx[type].trails.length; t++)
+        spies.push(sinon.spy(Omega.Ship.gfx[type].trails[t], 'clone'));
       ship.init_gfx();
-      var expected = [ship.mesh, ship.highlight].concat(ship.lamps).concat(ship.trails);
+      for(var s = 0; s < spies.length; s++)
+        sinon.assert.called(spies[s]);
+    });
+
+    it("sets scene components to ship mesh, highlight effects, lamps", function(){
+      ship.init_gfx();
+      var expected = [ship.mesh, ship.highlight].concat(ship.lamps);
       assert(ship.components).isSameAs(expected);
     });
   });
@@ -154,7 +174,7 @@ describe("Omega.Ship", function(){
         sinon.assert.called(spies[s]);
     });
 
-    it("runs trail effects");
+    /// it("runs trail effects"); // NIY
   });
 
   describe("#owned_by", function(){

@@ -192,7 +192,6 @@ Omega.Ship.prototype = {
                                              this.location.y,
                                              this.location.z));
       this.trails.push(trail);
-      this.components.push(trail);
     }
   },
 
