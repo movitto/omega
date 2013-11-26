@@ -30,7 +30,7 @@ Omega.UI.Canvas.prototype = {
 
     this.controls.wire_up();
     this.dialog.wire_up();
-    //this.entity_container.wire_up();
+    this.entity_container.wire_up();
   },
 
   render_params : {
@@ -123,7 +123,10 @@ Omega.UI.Canvas.prototype = {
 
     if(intersects.length > 0){
       var entity = intersects[0].object.omega_entity;
-      if(entity) entity.dispatchEvent({type: 'click'});
+      if(entity){
+        if(entity.has_details) this.entity_container.show(entity);
+        entity.dispatchEvent({type: 'click'});
+      }
     }
   },
 
@@ -398,8 +401,30 @@ $.extend(Omega.UI.Canvas.Dialog.prototype,
          new Omega.UI.Dialog());
 
 Omega.UI.Canvas.EntityContainer = function(){
-  this.div_id = '#entity_container';
 };
+
+Omega.UI.Canvas.EntityContainer.prototype = {
+  div_id      : '#omega_entity_container',
+  close_id    : '#entity_container_close',
+  contents_id : '#entity_container_contents',
+
+  wire_up : function(){
+    var _this = this;
+    $(this.close_id).on('click',
+      function(evnt){
+        if(_this.entity.unselected)
+          _this.entity.unselected();
+      });
+
+    $(this.div_id).hide();
+  },
+
+  show : function(entity){
+    this.entity = entity;
+    $(this.contents_id).html(entity.entity_details());
+    $(this.div_id).show();
+  }
+}
 
 Omega.UI.Canvas.Skybox = function(parameters){
   this.components        = [];

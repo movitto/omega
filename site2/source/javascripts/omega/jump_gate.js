@@ -13,6 +13,8 @@ Omega.JumpGate = function(parameters){
 Omega.JumpGate.prototype = {
   json_class : 'Cosmos::Entities::JumpGate',
 
+  has_details : true,
+
   particle_plane_size :  20,
 
   particle_lifespan   : 200,

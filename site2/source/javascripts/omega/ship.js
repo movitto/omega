@@ -15,6 +15,15 @@ Omega.Ship = function(parameters){
 Omega.Ship.prototype = {
   json_class : 'Manufactured::Ship',
 
+  has_details : true,
+
+  entity_details : function(){
+    return "";
+  },
+
+  unselected : function(){
+  },
+
   highlight_props : {
     x     :    0, y     : 200, z     : 0,
     rot_x : 3.14, rot_y :   0, rot_z : 0

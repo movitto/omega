@@ -13,6 +13,12 @@ Omega.Asteroid = function(parameters){
 Omega.Asteroid.prototype = {
   json_class : 'Cosmos::Entities::Asteroid',
 
+  has_details : true,
+
+  entity_details : function(){
+    return "";
+  },
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Asteroid.gfx) !== 'undefined') return;
     Omega.Asteroid.gfx = {};

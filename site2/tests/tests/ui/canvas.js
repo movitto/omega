@@ -50,11 +50,20 @@ describe("Omega.UI.Canvas", function(){
       sinon.assert.called(spy);
     });
 
-    //it("wires up entity container");
+    it("wires up entity container", function(){
+      var canvas = new Omega.UI.Canvas();
+      var spy = sinon.spy(canvas.entity_container, 'wire_up');
+      canvas.wire_up();
+      sinon.assert.called(spy);
+    });
   });
 
 //  describe("user clicks canvas", function(){
 //    describe("user clicked on entity in scene", function(){
+//      describe("entity has details", function(){
+//        it("shows entity in entity container");
+//      });
+//
 //      it("raises click event on entity", async(function(){
 //        var mesh1  = new THREE.Mesh(new THREE.SphereGeometry(1000, 100, 100),
 //                                    new THREE.MeshBasicMaterial({color: 0xABABAB}));
@@ -746,6 +755,57 @@ describe("Omega.UI.Canvas.Controls.Dialog", function(){
 
 pavlov.specify("Omega.UI.Canvas.EntityContainer", function(){
 describe("Omega.UI.Canvas.EntityContainer", function(){
+  describe("#wire_up", function(){
+    after(function(){
+      Omega.Test.clear_events();
+    });
+
+    it("registers entity container close click event handler", function(){
+      var entity_container = new Omega.UI.Canvas.EntityContainer();
+      assert($(entity_container.close_id)).doesNotHandle('click');
+      entity_container.wire_up();
+      assert($(entity_container.close_id)).handles('click');
+    });
+  });
+
+  describe("#close button clicked", function(){
+    it("unselects entity", function(){
+      var container = new Omega.UI.Canvas.EntityContainer();
+      container.wire_up();
+      var ship = new Omega.Ship();
+      container.show(ship);
+
+      var unselected = sinon.spy(ship, 'unselected');
+      $(container.close_id).click();
+      sinon.assert.called(unselected);
+    });
+  });
+
+  describe("#show", function(){
+    var container, ship;
+
+    before(function(){
+      container = new Omega.UI.Canvas.EntityContainer();
+      ship = new Omega.Ship();
+    });
+
+    it("sets local entity", function(){
+      container.show(ship);
+      assert(container.entity).equals(ship);
+    });
+
+    it("renders entity details in entity container contents", function(){
+      sinon.stub(ship, 'entity_details').returns('details');
+      container.show(ship);
+      assert($(container.contents_id).html()).equals('details');
+    });
+
+    it("shows entity container", function(){
+      assert($(container.div_id)).isHidden();
+      container.show(ship);
+      assert($(container.div_id)).isVisible();
+    });
+  });
 });});
 
 pavlov.specify("Omega.UI.Canvas.Skybox", function(){

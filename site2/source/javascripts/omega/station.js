@@ -13,6 +13,8 @@ Omega.Station = function(parameters){
 Omega.Station.prototype = {
   json_class : 'Manufactured::Station',
 
+  has_details : true,
+
   highlight_props : {
     x     :    0, y     : 200, z     : 0,
     rot_x : 3.14, rot_y :   0, rot_z : 0
