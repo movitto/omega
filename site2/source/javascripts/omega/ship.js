@@ -4,8 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO mining, attack lines
-/// TODO orientations, updates on movement/rotation
+/// TODO orientations, updates on movement/rotation/attack/defense/mining
 
 Omega.Ship = function(parameters){
   this.components = [];
@@ -36,6 +35,9 @@ Omega.Ship.prototype = {
     var rotation        = config.resources.ships[this.type].geometry.rotation;
     var offset          = config.resources.ships[this.type].geometry.offset;
     var scale           = config.resources.ships[this.type].geometry.scale;
+
+    var particle_path     = config.url_prefix + config.images_path + '/particle.png';
+    var particle_texture  = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
 
     //// mesh
       /// each ship instance should set position of mesh
@@ -88,10 +90,8 @@ Omega.Ship.prototype = {
       var trails = config.resources.ships[this.type].trails;
       Omega.Ship.gfx[this.type].trails = [];
       if(trails){
-        var trail_texture_path = config.url_prefix + config.images_path + '/particle.png';
-        var trail_texture  = THREE.ImageUtils.loadTexture(trail_texture_path, {}, event_cb);
         var trail_material = new THREE.ParticleBasicMaterial({
-          color: 0xFFFFFF, size: 20, map: trail_texture,
+          color: 0xFFFFFF, size: 20, map: particle_texture,
           blending: THREE.AdditiveBlending, transparent: true });
 
         for(var l = 0; l < trails.length; l++){
@@ -121,6 +121,22 @@ Omega.Ship.prototype = {
           Omega.Ship.gfx[this.type].trails.push(strail);
         }
       }
+
+    //// attack line
+      var attack_material = new THREE.ParticleBasicMaterial({
+        color: 0xFF0000, size: 20, map: particle_texture,
+        blending: THREE.AdditiveBlending, transparent: true });
+      var attack_geo = new THREE.Geometry();
+      var attack_vector = new THREE.ParticleSystem(attack_geo, attack_material);
+      attack_vector.sortParticles = true;
+      Omega.Ship.gfx[this.type].attack_vector = attack_vector;
+
+
+    //// mining line
+      var mining_material = new THREE.LineBasicMaterial({color: 0x0000FF});
+      var mining_geo      = new THREE.Geometry();
+      var mining_vector   = new THREE.Line(mining_geo, mining_material);
+      Omega.Ship.gfx[this.type].mining_vector = mining_vector;
   },
 
   /// invoked cb when resource is loaded, or immediately if resource is already loaded
@@ -193,6 +209,16 @@ Omega.Ship.prototype = {
                                              this.location.z));
       this.trails.push(trail);
     }
+
+    this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.clone();
+    if(this.location) this.attack_vector.position.set(this.location.x,
+                                                      this.location.y,
+                                                      this.location.z);
+
+    this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
+    if(this.location) this.mining_vector.position.set(this.location.x,
+                                                      this.location.y,
+                                                      this.location.z);
   },
 
   run_effects : function(){
@@ -219,6 +245,8 @@ Omega.Ship.prototype = {
       }
       trail.geometry.__dirtyVertices = true;
     }
+
+    /// TODO animate attack particles
   }
 };
 

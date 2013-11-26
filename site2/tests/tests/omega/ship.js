@@ -58,6 +58,20 @@ describe("Omega.Ship", function(){
         assert(trail.geometry).isOfType(THREE.Geometry);
       }
     });
+
+    it("creates attack vector for Ship", function(){
+      var ship = Omega.Test.Canvas.Entities().ship;
+      assert(Omega.Ship.gfx[ship.type].attack_vector).isOfType(THREE.ParticleSystem);
+      assert(Omega.Ship.gfx[ship.type].attack_vector.material).isOfType(THREE.ParticleBasicMaterial);
+      assert(Omega.Ship.gfx[ship.type].attack_vector.geometry).isOfType(THREE.Geometry);
+    });
+
+    it("creates mining vector for Ship", function(){
+      var ship = Omega.Test.Canvas.Entities().ship;
+      assert(Omega.Ship.gfx[ship.type].mining_vector).isOfType(THREE.Line);
+      assert(Omega.Ship.gfx[ship.type].mining_vector.material).isOfType(THREE.LineBasicMaterial);
+      assert(Omega.Ship.gfx[ship.type].mining_vector.geometry).isOfType(THREE.Geometry);
+    });
   });
 
   describe("#init_gfx", function(){
@@ -84,6 +98,8 @@ describe("Omega.Ship", function(){
           for(var t = 0; t < Omega.Ship.gfx[type].trails.length; t++)
             if(Omega.Ship.gfx[type].trails[t].clone.restore)
               Omega.Ship.gfx[type].trails[t].clone.restore();
+        if(Omega.Ship.gfx[type].attack_vector && Omega.Ship.gfx[type].attack_vector.clone.restore) Omega.Ship.gfx[type].attack_vector.clone.restore();
+        if(Omega.Ship.gfx[type].mining_vector && Omega.Ship.gfx[type].mining_vector.clone.restore) Omega.Ship.gfx[type].mining_vector.clone.restore();
       }
     });
 
@@ -152,6 +168,20 @@ describe("Omega.Ship", function(){
         sinon.assert.called(spies[s]);
     });
 
+    it("clones Ship attack vector", function(){
+      var mesh = new THREE.Mesh();
+      sinon.stub(Omega.Ship.gfx[type].attack_vector, 'clone').returns(mesh);
+      ship.init_gfx();
+      assert(ship.attack_vector).equals(mesh);
+    });
+
+    it("clones Ship mining vector", function(){
+      var mesh = new THREE.Mesh();
+      sinon.stub(Omega.Ship.gfx[type].mining_vector, 'clone').returns(mesh);
+      ship.init_gfx();
+      assert(ship.mining_vector).equals(mesh);
+    });
+
     it("sets scene components to ship mesh, highlight effects, lamps", function(){
       ship.init_gfx();
       var expected = [ship.mesh, ship.highlight].concat(ship.lamps);
@@ -175,6 +205,7 @@ describe("Omega.Ship", function(){
     });
 
     /// it("runs trail effects"); // NIY
+    /// it("runs attack effects"); // NIY
   });
 
   describe("#owned_by", function(){
