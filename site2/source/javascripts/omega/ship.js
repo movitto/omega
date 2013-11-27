@@ -9,22 +9,80 @@
 Omega.Ship = function(parameters){
   this.components = [];
   this.shader_components = [];
+
+  this.location  = new Omega.Location({x:0,y:0,z:0});
+  this.resources = [];
   $.extend(this, parameters);
 };
 
 Omega.Ship.prototype = {
   json_class : 'Manufactured::Ship',
 
+  cmds : [
+    { id    : 'ship_move_',
+      class : 'ship_move',
+      text  : 'move'            },
+
+    { id    : 'ship_attack_',
+      class : 'ship_attack',
+      text  : 'attack'          },
+
+    { id    : 'ship_dock_',
+      class : 'ship_dock',
+      text  : 'dock'            },
+
+    { id    : 'ship_undock_',
+      class : 'ship_undock',
+      text  : 'undock'          },
+
+    { id    : 'ship_transfer_',
+      class : 'ship_transfer',
+      text  : 'transfer'        },
+
+    { id    : 'ship_mine_',
+      class : 'ship_mine',
+      text  : 'mine'            }],
+
   has_details : true,
 
-  retrieve_details : function(){
-    return "";
+  retrieve_details : function(page, details_cb){
+    var title = 'Ship: ' + this.id;
+    var loc   = '@ ' + this.location.to_s();
+
+    var resources = ['Resources:'];
+    for(var r = 0; r < this.resources.length; r++){
+      var resource = this.resources[r];
+      resources.push(resource.quantity + ' of ' + resource.material_id);
+    }
+
+    var cmds = this._create_commands();
+    var details = [title, loc].concat(resources);
+    for(var d = 0; d < details.length; d++) details[d] += '<br/>';
+    details = details.concat(cmds);
+    details_cb(details);
   },
 
-  selected : function(){
+  _create_commands : function(){
+    var commands = [];
+    for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+      var cmd_data = {};
+      $.extend(cmd_data, Omega.Ship.prototype.cmds[c]);
+      $.extend(cmd_data, {id : cmd_data.id + this.id});
+
+      var cmd = $('<span/>', cmd_data);
+      cmd.data('ship', this);
+      commands.push(cmd);
+    }
+
+    return commands;
   },
 
-  unselected : function(){
+  selected : function(page){
+    if(this.mesh) this.mesh.material.emissive.setHex(0xff0000);
+  },
+
+  unselected : function(page){
+    if(this.mesh) this.mesh.material.emissive.setHex(0);
   },
 
   highlight_props : {

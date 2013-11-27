@@ -18,13 +18,13 @@ Omega.JumpGate.prototype = {
   retrieve_details : function(page, details_cb){
     var title = 'Jump Gate to ' + this.endpoint_id;
     var loc   = '@ ' + this.location.to_s();
-    var cmd   = $('<span/>',
+    var trigger_cmd   = $('<span/>',
       {id    : 'trigger_jg_' + this.id,
        class : 'trigger_jg',
-       text  : 'Trigger'});
-    cmd.data('jump_gate', this);
+       text  : 'trigger'});
+    trigger_cmd.data('jump_gate', this);
 
-    var details = [title + '<br/>' + loc + '<br/><br/>', cmd];
+    var details = [title + '<br/>' + loc + '<br/><br/>', trigger_cmd];
     details_cb(details);
   },
 

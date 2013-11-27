@@ -1,5 +1,84 @@
 pavlov.specify("Omega.Ship", function(){
 describe("Omega.Ship", function(){
+  var ship, page;
+
+  before(function(){
+    ship = new Omega.Ship({id : 'ship1',
+                    location  : new Omega.Location({x:99,y:-2,z:100}),
+                    resources : [{quantity : 50, material_id : 'gold'},
+                                 {quantity : 25, material_id : 'ruby'}]});
+    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
+  });
+
+  describe("#retrieve_details", function(){
+    var details_cb;
+
+    before(function(){
+      details_cb = sinon.spy();
+    });
+
+    it("invokes details cb with ship id, location, and resources", function(){
+      var text = ['Ship: ship1<br/>',
+                  '@ 99/-2/100<br/>'      ,
+                  'Resources:<br/>'       ,
+                  '50 of gold<br/>'       ,
+                  '25 of ruby<br/>'      ];
+
+      ship.retrieve_details(page, details_cb);
+      sinon.assert.called(details_cb);
+
+      var details = details_cb.getCall(0).args[0];
+      assert(details[0]).equals(text[0]);
+      assert(details[1]).equals(text[1]);
+      assert(details[2]).equals(text[2]);
+      assert(details[3]).equals(text[3]);
+      assert(details[4]).equals(text[4]);
+    });
+
+    it("invokes details with commands", function(){
+      ship.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+        var cmd = Omega.Ship.prototype.cmds[c];
+        var detail_cmd = details[5+c];
+        assert(detail_cmd[0].id).equals(cmd.id + ship.id);
+        assert(detail_cmd[0].className).equals(cmd.class);
+        assert(detail_cmd.html()).equals(cmd.text);
+      }
+    });
+
+    it("sets ship in all command data", function(){
+      ship.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+        var detail_cmd = details[5+c];
+        assert(detail_cmd.data('ship')).equals(ship);;
+      }
+    });
+  });
+
+  describe("#selected", async(function(){
+    it("sets mesh material emissive", function(){
+      var ship = Omega.Test.Canvas.Entities().ship;
+      ship.retrieve_resource('mesh', function(){
+        ship.selected(Omega.Test.Page());
+        assert(ship.mesh.material.emissive.getHex()).equals(0xff0000);
+        start();
+      });
+    })
+  }));
+
+  describe("#unselected", async(function(){
+    it("resets mesh material emissive", function(){
+      var ship = Omega.Test.Canvas.Entities().ship;
+      ship.retrieve_resource('mesh', function(){
+        ship.unselected(Omega.Test.Page());
+        assert(ship.mesh.material.emissive.getHex()).equals(0);
+        start();
+      });
+    })
+  }));
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;

@@ -31,7 +31,7 @@ describe("Omega.JumpGate", function(){
       assert(details[0]).equals(text);
       assert(details[1][0].id).equals('trigger_jg_jg1');
       assert(details[1][0].className).equals('trigger_jg');
-      assert(details[1].text()).equals('Trigger');
+      assert(details[1].text()).equals('trigger');
     });
 
     it("sets jump gate in trigger command data", function(){

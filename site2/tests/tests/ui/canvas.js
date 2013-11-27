@@ -852,7 +852,7 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
 
     describe("entity_details callback", function(){
       it("appends details to entity container", function(){
-        var retrieve_details = sinon.spy(ship, 'retrieve_details');
+        var retrieve_details = sinon.stub(ship, 'retrieve_details');
         container.show(ship);
 
         var append = sinon.spy(container, 'append');

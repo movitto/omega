@@ -7,6 +7,9 @@
 Omega.Station = function(parameters){
   this.components = [];
   this.shader_components = [];
+
+  this.resources  = [];
+
   $.extend(this, parameters);
 };
 
@@ -14,6 +17,36 @@ Omega.Station.prototype = {
   json_class : 'Manufactured::Station',
 
   has_details : true,
+
+  retrieve_details : function(page, details_cb){
+    var title = 'Station: ' + this.id;
+    var loc   = '@ ' + this.location.to_s();
+
+    var resources = ['Resources:'];
+    for(var r = 0; r < this.resources.length; r++){
+      var resource = this.resources[r];
+      resources.push(resource.quantity + ' of ' + resource.material_id);
+    }
+
+    var construct_cmd = $('<span/>',
+      {id    : 'station_construct_' + this.id,
+       class : 'station_construct',
+       text  : 'construct'})
+     construct_cmd.data('station', this);
+
+    var details = [title, loc].concat(resources);
+    for(var d = 0; d < details.length; d++) details[d] += '<br/>';
+    details.push(construct_cmd);
+    details_cb(details);
+  },
+
+  selected : function(page){
+    if(this.mesh) this.mesh.material.emissive.setHex(0xff0000);
+  },
+
+  unselected : function(page){
+    if(this.mesh) this.mesh.material.emissive.setHex(0);
+  },
 
   highlight_props : {
     x     :    0, y     : 200, z     : 0,

@@ -1,5 +1,67 @@
 pavlov.specify("Omega.Station", function(){
 describe("Omega.Station", function(){
+  var station, page;
+
+  before(function(){
+    station = new Omega.Station({id : 'station1',
+                    location  : new Omega.Location({x:99,y:-2,z:100}),
+                    resources : [{quantity : 50, material_id : 'gold'},
+                                 {quantity : 25, material_id : 'ruby'}]});
+    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
+  });
+
+  describe("#retrieve_details", function(){
+    var details_cb;
+
+    before(function(){
+      details_cb = sinon.spy();
+    });
+
+    it("invokes details cb with station id, location, resources and construction command", function(){
+      var text = ['Station: station1<br/>',
+                  '@ 99/-2/100<br/>'      ,
+                  'Resources:<br/>'       ,
+                  '50 of gold<br/>'       ,
+                  '25 of ruby<br/>'      ];
+
+      station.retrieve_details(page, details_cb);
+      sinon.assert.called(details_cb);
+
+      var details = details_cb.getCall(0).args[0];
+      assert(details[0]).equals(text[0]);
+      assert(details[1]).equals(text[1]);
+      assert(details[2]).equals(text[2]);
+      assert(details[3]).equals(text[3]);
+      assert(details[4]).equals(text[4]);
+      var cmd = details[5];
+      assert(cmd[0].id).equals('station_construct_station1');
+      assert(cmd[0].className).equals('station_construct');
+      assert(cmd.text()).equals('construct');
+    });
+
+    it("sets station in construction command data", function(){
+      station.retrieve_details(page, details_cb);
+      $('#qunit-fixture').append(details_cb.getCall(0).args[0]);
+      assert($('#station_construct_station1').data('station')).equals(station);
+    });
+  });
+
+  describe("#selected", function(){
+    it("sets mesh material emissive", function(){
+      var station = Omega.Test.Canvas.Entities().station;
+      station.selected(Omega.Test.Page());
+      assert(station.mesh.material.emissive.getHex()).equals(0xff0000);
+    });
+  });
+
+  describe("#unselected", function(){
+    it("resets mesh material emissive", function(){
+      var station = Omega.Test.Canvas.Entities().station;
+      station.unselected(Omega.Test.Page());
+      assert(station.mesh.material.emissive.getHex()).equals(0);
+    })
+  });
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;
