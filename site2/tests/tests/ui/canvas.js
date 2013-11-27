@@ -64,6 +64,8 @@ describe("Omega.UI.Canvas", function(){
 //        it("shows entity in entity container");
 //      });
 //
+//      it("invokes clicked_in method on entity");
+//
 //      it("raises click event on entity", async(function(){
 //        var mesh1  = new THREE.Mesh(new THREE.SphereGeometry(1000, 100, 100),
 //                                    new THREE.MeshBasicMaterial({color: 0xABABAB}));

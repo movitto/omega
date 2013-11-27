@@ -21,6 +21,10 @@ Omega.SolarSystem = function(parameters){
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem',
 
+  clicked_in : function(canvas){
+    canvas.set_scene_root(this);
+  },
+
   text_opts : {
     height        : 12,
     width         : 5,

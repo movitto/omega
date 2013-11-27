@@ -125,6 +125,7 @@ Omega.UI.Canvas.prototype = {
       var entity = intersects[0].object.omega_entity;
       if(entity){
         if(entity.has_details) this.entity_container.show(entity);
+        if(entity.clicked_in) this.entity.clicked_in(this);
         entity.dispatchEvent({type: 'click'});
       }
     }
@@ -409,6 +410,8 @@ $.extend(Omega.UI.Canvas.Dialog.prototype,
          new Omega.UI.Dialog());
 
 Omega.UI.Canvas.EntityContainer = function(parameters){
+  this.entity = null;
+
   /// need handle to canvas to
   /// - access page to lookup entity data
   /// - refresh entities in scene
@@ -430,10 +433,12 @@ Omega.UI.Canvas.EntityContainer.prototype = {
           _this.entity.unselected(_this.canvas.page);
       });
 
+    this.entity = null;
     $(this.div_id).hide();
   },
 
   show : function(entity){
+    /// TODO if previous entity selected, unselect
     this.entity = entity;
 
     var _this = this;

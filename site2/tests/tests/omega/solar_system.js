@@ -11,6 +11,17 @@ describe("Omega.SolarSystem", function(){
     assert(system.children[1].id).equals('planet1');
   });
 
+  describe("#clicked_in", function(){
+    it("sets canvas scene root", function(){
+      var canvas = new Omega.UI.Canvas();
+      var set_scene_root = sinon.stub(canvas, 'set_scene_root');
+
+      var system = new Omega.SolarSystem();
+      system.clicked_in(canvas);
+      sinon.assert.calledWith(set_scene_root, system);
+    });
+  });
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;
