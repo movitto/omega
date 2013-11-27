@@ -176,6 +176,14 @@ Omega.UI.Canvas.prototype = {
       this.shader_scene.remove(entity.shader_components[cc]);
   },
 
+  // Remove entity from scene, invoke callback, readd entity to scene
+  reload : function(entity, cb){
+    this.remove(entity);
+    if(cb) cb(entity);
+    this.add(entity);
+    //this.animate(); // TODO or elsewhere?
+  },
+
   // Clear entities from the scene
   clear : function(){
     var scene_components        = this.scene.getDescendants();
@@ -400,7 +408,13 @@ Omega.UI.Canvas.Dialog.prototype = {
 $.extend(Omega.UI.Canvas.Dialog.prototype,
          new Omega.UI.Dialog());
 
-Omega.UI.Canvas.EntityContainer = function(){
+Omega.UI.Canvas.EntityContainer = function(parameters){
+  /// need handle to canvas to
+  /// - access page to lookup entity data
+  /// - refresh entities in scene
+  this.canvas = null;
+
+  $.extend(this, parameters);
 };
 
 Omega.UI.Canvas.EntityContainer.prototype = {
@@ -413,7 +427,7 @@ Omega.UI.Canvas.EntityContainer.prototype = {
     $(this.close_id).on('click',
       function(evnt){
         if(_this.entity.unselected)
-          _this.entity.unselected();
+          _this.entity.unselected(_this.canvas.page);
       });
 
     $(this.div_id).hide();
@@ -421,8 +435,19 @@ Omega.UI.Canvas.EntityContainer.prototype = {
 
   show : function(entity){
     this.entity = entity;
-    $(this.contents_id).html(entity.entity_details());
+
+    var _this = this;
+    if(entity.retrieve_details)
+      entity.retrieve_details(this.canvas.page, function(details){
+        _this.append(details);
+      });
+
+    if(entity.selected) entity.selected(this.canvas.page);
     $(this.div_id).show();
+  },
+
+  append : function(text){
+    $(this.contents_id).append(text);
   }
 }
 

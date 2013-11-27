@@ -79,6 +79,11 @@ Omega.create_lamp = function(size, color){
 
 // The Math Module
 Omega.Math = {
+  round_to : function(value, places){
+    var s = Math.pow(10, places);
+    return Math.round(value * s) / s;
+  },
+
   dist : function(x,y,z){
     return Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2));
   },

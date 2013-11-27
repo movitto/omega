@@ -271,6 +271,39 @@ describe("Omega.UI.Canvas", function(){
     });
   });
 
+  describe("#reload", function(){
+    var jg, canvas;
+
+    before(function(){
+      jg = Omega.Test.Canvas.Entities().jump_gate;
+      canvas = Omega.Test.Canvas();
+      canvas.add(jg);
+    });
+
+    after(function(){
+      if(canvas.remove.restore) canvas.remove.restore();
+      if(canvas.add.restore) canvas.add.restore();
+    });
+
+    it("removes entity from canvas", function(){
+      var remove = sinon.spy(canvas, 'remove');
+      canvas.reload(jg);
+      sinon.assert.calledWith(remove, jg);
+    });
+
+    it("invokes callback with entity", function(){
+      var cb = sinon.spy();
+      canvas.reload(jg, cb);
+      sinon.assert.calledWith(cb, jg);
+    });
+
+    it("adds entity to canvas", function(){
+      var add = sinon.spy(canvas, 'add');
+      canvas.reload(jg);
+      sinon.assert.calledWith(add, jg);
+    });
+  });
+
   describe("#clear", function(){
     it("clears all components from all scenes", function(){
       var mesh1  = new THREE.Mesh();
@@ -559,10 +592,6 @@ describe("Omega.UI.Canvas.Controls.List", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Controls.Button", function(){
-describe("Omega.UI.Canvas.Controls.Button", function(){
-});});
-
 pavlov.specify("Omega.UI.Canvas.Controls.Dialog", function(){
 describe("Omega.UI.Canvas.Controls.Dialog", function(){
   var user_id  = 'user1';
@@ -755,37 +784,58 @@ describe("Omega.UI.Canvas.Controls.Dialog", function(){
 
 pavlov.specify("Omega.UI.Canvas.EntityContainer", function(){
 describe("Omega.UI.Canvas.EntityContainer", function(){
+  it('has a reference to canvas the container is for', function(){
+    var canvas = new Omega.UI.Canvas();
+    var container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
+    assert(container.canvas).equals(canvas);
+  });
+
   describe("#wire_up", function(){
+    var canvas, container;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
+    });
+
     after(function(){
       Omega.Test.clear_events();
     });
 
     it("registers entity container close click event handler", function(){
-      var entity_container = new Omega.UI.Canvas.EntityContainer();
-      assert($(entity_container.close_id)).doesNotHandle('click');
-      entity_container.wire_up();
-      assert($(entity_container.close_id)).handles('click');
+      assert($(container.close_id)).doesNotHandle('click');
+      container.wire_up();
+      assert($(container.close_id)).handles('click');
+    });
+
+    it("hides entity container", function(){
+      $(container.div_id).show();
+      assert($(container.div_id)).isVisible();
+      container.wire_up();
+      assert($(container.div_id)).isHidden();
     });
   });
 
   describe("#close button clicked", function(){
     it("unselects entity", function(){
-      var container = new Omega.UI.Canvas.EntityContainer();
+      var canvas = new Omega.UI.Canvas();
+      var container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
       container.wire_up();
       var ship = new Omega.Ship();
       container.show(ship);
 
       var unselected = sinon.spy(ship, 'unselected');
       $(container.close_id).click();
-      sinon.assert.called(unselected);
+      sinon.assert.calledWith(unselected, canvas.page);
     });
   });
 
   describe("#show", function(){
-    var container, ship;
+    var canvas, container, ship;
 
     before(function(){
-      container = new Omega.UI.Canvas.EntityContainer();
+      canvas = Omega.Test.Canvas();
+      container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
       ship = new Omega.Ship();
     });
 
@@ -794,16 +844,45 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
       assert(container.entity).equals(ship);
     });
 
-    it("renders entity details in entity container contents", function(){
-      sinon.stub(ship, 'entity_details').returns('details');
+    it("retrieves entity details", function(){
+      var retrieve_details = sinon.spy(ship, 'retrieve_details');
       container.show(ship);
-      assert($(container.contents_id).html()).equals('details');
+      sinon.assert.calledWith(retrieve_details, canvas.page, sinon.match.func);
+    });
+
+    describe("entity_details callback", function(){
+      it("appends details to entity container", function(){
+        var retrieve_details = sinon.spy(ship, 'retrieve_details');
+        container.show(ship);
+
+        var append = sinon.spy(container, 'append');
+        var details_cb = retrieve_details.getCall(0).args[1];
+        details_cb('details');
+
+        sinon.assert.calledWith(append, 'details');
+        assert($(container.contents_id).html()).equals('details');
+      });
+    });
+
+    it("invokes entity selected callback", function(){
+      var selected = sinon.spy(ship, 'selected');
+      container.show(ship);
+      sinon.assert.calledWith(selected, canvas.page);
     });
 
     it("shows entity container", function(){
       assert($(container.div_id)).isHidden();
       container.show(ship);
       assert($(container.div_id)).isVisible();
+    });
+  });
+
+  describe("#append", function(){
+    it("appends text to entity container contents", function(){
+      var container = new Omega.UI.Canvas.EntityContainer();
+      assert($(container.contents_id).html()).equals('');
+      container.append('details');
+      assert($(container.contents_id).html()).equals('details');
     });
   });
 });});

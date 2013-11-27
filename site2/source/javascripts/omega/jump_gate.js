@@ -15,6 +15,36 @@ Omega.JumpGate.prototype = {
 
   has_details : true,
 
+  retrieve_details : function(page, details_cb){
+    var title = 'Jump Gate to ' + this.endpoint_id;
+    var loc   = '@ ' + this.location.to_s();
+    var cmd   = $('<span/>',
+      {id    : 'trigger_jg_' + this.id,
+       class : 'trigger_jg',
+       text  : 'Trigger'});
+    cmd.data('jump_gate', this);
+
+    var details = [title + '<br/>' + loc + '<br/><br/>', cmd];
+    details_cb(details);
+  },
+
+  selected : function(page){
+    var _this = this;
+    page.canvas.reload(this, function(){
+      if($.inArray(_this.selection_sphere, _this.components) == -1)
+        _this.components.push(_this.selection_sphere);
+    })
+  },
+
+  unselected : function(page){
+    var _this = this;
+    page.canvas.reload(this, function(){
+      var index;
+      if((index = $.inArray(_this.selection_sphere, _this.components)) != -1)
+        _this.components.splice(index, 1);
+    });
+  },
+
   particle_plane_size :  20,
 
   particle_lifespan   : 200,
@@ -147,7 +177,7 @@ Omega.JumpGate.prototype = {
                                                          this.location.y,
                                                          this.location.z)
 
-    this.components = [this.mesh, this.lamp, this.particles, this.selection_sphere];
+    this.components = [this.mesh, this.lamp, this.particles];
   },
 
   run_effects : function(){

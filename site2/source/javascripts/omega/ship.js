@@ -17,8 +17,11 @@ Omega.Ship.prototype = {
 
   has_details : true,
 
-  entity_details : function(){
+  retrieve_details : function(){
     return "";
+  },
+
+  selected : function(){
   },
 
   unselected : function(){
