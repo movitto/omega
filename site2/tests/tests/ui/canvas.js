@@ -188,6 +188,13 @@ describe("Omega.UI.Canvas", function(){
     after(function(){
       Omega.Test.Canvas().clear();
     })
+    
+    it("sets root entity", function(){
+      var system = new Omega.SolarSystem({});
+      var canvas = Omega.Test.Canvas();
+      canvas.set_scene_root(system);
+      assert(canvas.root).equals(system);
+    });
 
     it("adds children of root to scene", function(){
       var star   = new Omega.Star({id : 1});
@@ -307,6 +314,14 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#clear", function(){
+    it("clears root entity", function(){
+      var system = new Omega.SolarSystem({});
+      var canvas = Omega.Test.Canvas();
+      canvas.set_scene_root(system);
+      canvas.clear();
+      assert(canvas.root).isNull();
+    });
+
     it("clears all components from all scenes", function(){
       var mesh1  = new THREE.Mesh();
       var mesh2  = new THREE.Mesh();
@@ -786,24 +801,22 @@ describe("Omega.UI.Canvas.Dialog", function(){
 
 pavlov.specify("Omega.UI.Canvas.EntityContainer", function(){
 describe("Omega.UI.Canvas.EntityContainer", function(){
+  var canvas, container;
+
+  before(function(){
+    canvas = Omega.Test.Canvas();
+    container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
+  });
+
+  after(function(){
+    Omega.Test.clear_events();
+  });
+
   it('has a reference to canvas the container is for', function(){
-    var canvas = new Omega.UI.Canvas();
-    var container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
     assert(container.canvas).equals(canvas);
   });
 
   describe("#wire_up", function(){
-    var canvas, container;
-
-    before(function(){
-      canvas = Omega.Test.Canvas();
-      container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
-    });
-
-    after(function(){
-      Omega.Test.clear_events();
-    });
-
     it("registers entity container close click event handler", function(){
       assert($(container.close_id)).doesNotHandle('click');
       container.wire_up();
@@ -811,35 +824,62 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
     });
 
     it("hides entity container", function(){
+      var hide = sinon.spy(container, 'hide');
       $(container.div_id).show();
       assert($(container.div_id)).isVisible();
       container.wire_up();
       assert($(container.div_id)).isHidden();
+      sinon.assert.called(hide);
     });
   });
 
   describe("#close button clicked", function(){
-    it("unselects entity", function(){
-      var canvas = new Omega.UI.Canvas();
-      var container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
+    it("it hides entity container", function(){
+      var hide = sinon.spy(container, 'hide');
       container.wire_up();
-      var ship = new Omega.Ship();
-      container.show(ship);
-
-      var unselected = sinon.spy(ship, 'unselected');
       $(container.close_id).click();
+      sinon.assert.calledWith(hide);
+    });
+  });
+
+  describe("#hide", function(){
+    var ship;
+    before(function(){
+      ship = new Omega.Ship();
+      container.show(ship);
+    });
+
+    it("unselects entity", function(){
+      var unselected = sinon.spy(ship, 'unselected');
+      container.hide();
       sinon.assert.calledWith(unselected, canvas.page);
+    });
+
+    it("clears local entity", function(){
+      container.hide();
+      assert(container.entity).isNull();
+    });
+
+    it("hides dom element", function(){
+      $(container.div_id).show();
+      assert($(container.div_id)).isVisible();
+      container.hide();
+      assert($(container.div_id)).isHidden();
     });
   });
 
   describe("#show", function(){
-    var canvas, container, ship;
+    var ship;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
-      container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
       ship = new Omega.Ship();
     });
+
+    it("hides entity container", function(){
+      var hide = sinon.spy(container, 'hide');
+      container.show({});
+      sinon.assert.called(hide);
+    })
 
     it("sets local entity", function(){
       container.show(ship);
@@ -881,10 +921,31 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
 
   describe("#append", function(){
     it("appends text to entity container contents", function(){
-      var container = new Omega.UI.Canvas.EntityContainer();
       assert($(container.contents_id).html()).equals('');
       container.append('details');
       assert($(container.contents_id).html()).equals('details');
+    });
+  });
+
+  describe("#refresh", function(){
+    after(function(){
+    });
+
+    it("reshows scene with current entity", function(){
+      var entity = {};
+      container.show(entity);
+
+      var show = sinon.spy(container, 'show');
+      container.refresh();
+      sinon.assert.calledWith(show, entity);
+    });
+
+    describe("local entity not set", function(){
+      it("does nothing", function(){
+        var show = sinon.spy(container, 'show');
+        container.refresh();
+        sinon.assert.notCalled(show);
+      });
     });
   });
 });});

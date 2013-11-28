@@ -44,6 +44,12 @@ describe("Omega.Station", function(){
       $('#qunit-fixture').append(details_cb.getCall(0).args[0]);
       assert($('#station_construct_station1').data('station')).equals(station);
     });
+
+    it("handles construction command click event", function(){
+      station.retrieve_details(page, details_cb);
+      var construct = details_cb.getCall(0).args[0][5];
+      assert(construct).handles('click');
+    });
   });
 
   describe("#selected", function(){
@@ -60,6 +66,98 @@ describe("Omega.Station", function(){
       station.unselected(Omega.Test.Page());
       assert(station.mesh.material.emissive.getHex()).equals(0);
     })
+  });
+
+  describe("#construct", function(){
+    before(function(){
+      page.node = new Omega.Node();
+    });
+
+    it("invokes manufactured::construct_entity", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      station._construct(page);
+      sinon.assert.calledWith(http_invoke, 'manufactured::construct_entity',
+                  station.id, 'entity_type', 'Ship', 'type', 'mining', 'id');
+      /// TODO match uuid
+    });
+
+    describe("on manufactured::construct_entity response", function(){
+      var ship, station2, system;
+      var handler, error_response, success_response;
+
+      before(function(){
+        var spy = sinon.stub(page.node, 'http_invoke');
+        station._construct(page);
+        handler = spy.getCall(0).args[8];
+
+        system  = new Omega.SolarSystem({id : 'system1'});
+        ship    = new Omega.Ship({parent_id : 'system1'});
+        station2 = new Omega.Station({resources :
+                    [{quantity : 5, material_id : 'diamond'}]});
+
+        error_response = {error : {message : "construct_error"}};
+        success_response = {result : [station2, ship]};
+      });
+
+      after(function(){
+        Omega.UI.Dialog.remove();
+      });
+
+      describe("error during command", function(){
+        it("sets command dialog title", function(){
+          handler(error_response);
+          assert(station.dialog().title).equals('Construction Error');
+        });
+
+        it("shows command dialog", function(){
+          var show = sinon.spy(station.dialog(), 'show');
+          handler(error_response);
+          sinon.assert.called(show);
+          assert(station.dialog().component()).isVisible();
+        });
+
+        it("appends error to command dialog", function(){
+          var append_error = sinon.spy(station.dialog(), 'append_error');
+          handler(error_response);
+          sinon.assert.calledWith(append_error, 'construct_error');
+          assert($('#command_error').html()).equals('construct_error');
+        });
+      });
+
+      describe("successful command response", function(){
+        after(function(){
+          if(page.canvas.add.restore) page.canvas.add.restore();
+          if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+          page.canvas.clear();
+        });
+
+        it("processes constructed ship", function(){
+          var process_entity = sinon.spy(page, 'process_entity');
+          handler(success_response)
+          sinon.assert.calledWith(process_entity, ship);
+        });
+
+        describe("constructed ship is in scene system", function(){
+          it("adds ship to scene", function(){
+            page.canvas.set_scene_root(system);
+            var add = sinon.stub(page.canvas, 'add');
+            handler(success_response);
+            sinon.assert.calledWith(add, ship);
+          });
+        });
+
+        it("updates station resources", function(){
+          handler(success_response);
+          assert(station.resources).isSameAs(station2.resources);
+        });
+
+        it("refreshes entity container", function(){
+          var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+          handler(success_response);
+          sinon.assert.called(refresh);
+        });
+      });
+    });
   });
 
   describe("#load_gfx", function(){

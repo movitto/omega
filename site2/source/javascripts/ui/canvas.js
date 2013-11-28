@@ -13,6 +13,7 @@ Omega.UI.Canvas = function(parameters){
   this.skybox           = new Omega.UI.Canvas.Skybox({canvas: this});
   this.axis             = new Omega.UI.Canvas.Axis();
   this.canvas           = $('#omega_canvas');
+  this.root             = null;
 
   /// need handle to page the canvas is on to
   /// - lookup missions
@@ -146,6 +147,7 @@ Omega.UI.Canvas.prototype = {
 
   // Set the scene root entity
   set_scene_root : function(root){
+    this.root = root;
     var children = root.children;
     for(var c = 0; c < children.length; c++)
       this.add(children[c]);
@@ -187,6 +189,7 @@ Omega.UI.Canvas.prototype = {
 
   // Clear entities from the scene
   clear : function(){
+    this.root = null;
     var scene_components        = this.scene.getDescendants();
     var shader_scene_components = this.shader_scene.getDescendants();
 
@@ -429,16 +432,22 @@ Omega.UI.Canvas.EntityContainer.prototype = {
     var _this = this;
     $(this.close_id).on('click',
       function(evnt){
-        if(_this.entity.unselected)
-          _this.entity.unselected(_this.canvas.page);
+        _this.hide();
       });
+
+    this.hide();
+  },
+
+  hide : function(){
+    if(this.entity && this.entity.unselected)
+      this.entity.unselected(this.canvas.page);
 
     this.entity = null;
     $(this.div_id).hide();
   },
 
   show : function(entity){
-    /// TODO if previous entity selected, unselect
+    this.hide(); // clears / unselects previous entity if any
     this.entity = entity;
 
     var _this = this;
@@ -453,8 +462,12 @@ Omega.UI.Canvas.EntityContainer.prototype = {
 
   append : function(text){
     $(this.contents_id).append(text);
+  },
+
+  refresh : function(){
+    if(this.entity) this.show(this.entity);
   }
-}
+};
 
 Omega.UI.Canvas.Skybox = function(parameters){
   this.components        = [];

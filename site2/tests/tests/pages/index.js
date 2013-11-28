@@ -586,38 +586,52 @@ describe("Omega.Pages.Index", function(){
     after(function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
     });
+    
+    it("invokes process_entity with each entity", function(){
+      var process_entity = sinon.spy(index, 'process_entity');
+      index.process_entities(ships);
+      sinon.assert.calledWith(process_entity, ships[0]);
+      sinon.assert.calledWith(process_entity, ships[1]);
+    });
+  });
+
+  describe("#process_entity", function(){
+    var index, ship;
+    before(function(){
+      index = new Omega.Pages.Index();
+      ship  = new Omega.Ship({id: 'sh1', system_id: 'sys1'});
+    });
+
+    after(function(){
+      if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+    })
 
     it("stores entity in registry", function(){
-      index.process_entities(ships);
-      assert(index.entities).includes(ships[0]);
-      assert(index.entities).includes(ships[1]);
+      index.process_entity(ship);
+      assert(index.entities).includes(ship);
     });
 
     it("adds entities to entities_list", function(){
       var spy = sinon.spy(index.canvas.controls.entities_list, 'add');
-      index.process_entities(ships);
-      sinon.assert.calledWith(spy, {id: 'sh1', text: 'sh1', data: ships[0]});
-      sinon.assert.calledWith(spy, {id: 'sh2', text: 'sh2', data: ships[1]});
+      index.process_entity(ship);
+      sinon.assert.calledWith(spy, {id: 'sh1', text: 'sh1', data: ship});
     });
 
     it("retrieves systems entities are in", function(){
       var spy = sinon.spy(Omega.SolarSystem, 'with_id');
-      index.process_entities(ships);
+      index.process_entity(ship);
       sinon.assert.calledWith(spy, 'sys1', index.node, sinon.match.func);
-      sinon.assert.calledWith(spy, 'sys2', index.node, sinon.match.func);
     });
 
     it("processes systems retrieved", function(){
       var spy = sinon.spy(Omega.SolarSystem, 'with_id');
-      index.process_entities(ships);
-      var cb1 = spy.getCall(0).args[2];
-      var cb2 = spy.getCall(1).args[2];
+      index.process_entity(ship);
+      var cb = spy.getCall(0).args[2];
 
       spy = sinon.spy(index, 'process_system');
-      var sys1 = {}, sys2 = {};
-      cb1(sys1); cb2(sys2);
+      var sys1 = {};
+      cb(sys1);
       sinon.assert.calledWith(spy, sys1);
-      sinon.assert.calledWith(spy, sys2);
     });
   });
 

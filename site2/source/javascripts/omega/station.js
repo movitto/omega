@@ -33,6 +33,7 @@ Omega.Station.prototype = {
        class : 'station_construct',
        text  : 'construct'})
      construct_cmd.data('station', this);
+     construct_cmd.click(function(){ _this._construct(page); });
 
     var details = [title, loc].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
@@ -46,6 +47,38 @@ Omega.Station.prototype = {
 
   unselected : function(page){
     if(this.mesh) this.mesh.material.emissive.setHex(0);
+  },
+
+  // XXX not a big fan of having this here, should eventually be moved elsewhere
+  dialog : function(){
+    if(typeof(this._dialog) === "undefined")
+      this._dialog = new Omega.UI.CommandDialog();
+    return this._dialog;
+  },
+
+  _construct : function(page){
+    var _this = this;
+
+    /// TODO parameterize entity type/init!
+    page.node.http_invoke('manufactured::construct_entity',
+      this.id, 'entity_type', 'Ship', 'type', 'mining', 'id', RJR.guid(),
+      function(response){
+        if(response.error){
+          _this.dialog().title = 'Construction Error';
+          _this.dialog().show();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          var station = response.result[0];
+          var ship    = response.result[1]; // TODO convert ?
+          page.process_entity(ship);
+          if(page.canvas.root && page.canvas.root.id == ship.parent_id)
+            page.canvas.add(ship);
+
+          _this.resources = station.resources;
+          page.canvas.entity_container.refresh();
+        }
+      });
   },
 
   highlight_props : {

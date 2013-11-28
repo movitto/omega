@@ -220,19 +220,23 @@ Omega.Pages.Index.prototype = {
   },
 
   process_entities : function(entities){
-    var _this = this;
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
-      this.entity(entity.id, entity);
-      var item   = {id: entity.id, text: entity.id, data: entity};
-      this.canvas.controls.entities_list.add(item);
+      this.process_entity(entity);
+    }
+  },
+
+  process_entity : function(entity){
+    this.entity(entity.id, entity);
+    var item   = {id: entity.id, text: entity.id, data: entity};
+    this.canvas.controls.entities_list.add(item);
 
 /// FIXME skip if already retrieved from server, (also galaxy below)
 /// also some persistent caching mechanism so data doesn't
 /// have to be retrieved on each page request
-      Omega.SolarSystem.with_id(entity.system_id, this.node,
-        function(solar_system) { _this.process_system(solar_system) });
-    }
+    var _this = this;
+    Omega.SolarSystem.with_id(entity.system_id, this.node,
+      function(solar_system) { _this.process_system(solar_system) });
   },
 
   process_system : function(system){
