@@ -5,6 +5,7 @@ describe("Omega.JumpGate", function(){
   before(function(){
     jg = new Omega.JumpGate({id          : 'jg1',
                              endpoint_id : 'system2',
+                             trigger_distance : 50,
                              location    : new Omega.Location({x:100,y:-200,z:50.5678})});
     page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
   });
@@ -38,6 +39,23 @@ describe("Omega.JumpGate", function(){
       jg.retrieve_details(page, details_cb)
       $('#qunit-fixture').append(details_cb.getCall(0).args[0]);
       assert($('#trigger_jg_jg1').data('jump_gate')).equals(jg);
+    });
+
+    it("handles trigger command click event", function(){
+      jg.retrieve_details(page, details_cb);
+      var trigger_jg = details_cb.getCall(0).args[0][1];
+      assert(trigger_jg).handles('click');
+    });
+
+    describe("trigger command clicked", function(){
+      it("invokes jg.trigger", function(){
+        jg.retrieve_details(page, details_cb);
+        $('#qunit-fixture').append(details_cb.getCall(0).args[0]);
+
+        var trigger = sinon.stub(jg, '_trigger');
+        $('#trigger_jg_jg1').click();
+        sinon.assert.calledWith(trigger, page);
+      });
     });
   });
 
@@ -79,6 +97,94 @@ describe("Omega.JumpGate", function(){
         var during_reload = reload.getCall(0).args[1];
         during_reload();
         assert(jg.components).doesNotInclude(jg.selection_sphere);
+      });
+    });
+  });
+
+  describe("#trigger", function(){
+    var ship1, ship2, ship3, ship4, station1;
+
+    before(function(){
+      ship1 = new Omega.Ship({user_id : 'user1',
+                    location: new Omega.Location({x:100,y:-200,z:50})});
+      ship2 = new Omega.Ship({user_id : 'user1',
+                    location: new Omega.Location({x:105,y:-200,z:50})});
+      ship3 = new Omega.Ship({user_id : 'user1',
+                    location: new Omega.Location({x:1500,y:700,z:-1000})});
+      ship4 = new Omega.Ship({user_id : 'user2',
+                    location: new Omega.Location({x:10,y:20,z:30})});
+      station1 = new Omega.Ship({user_id : 'station'});
+
+      jg.endpoint = new Omega.SolarSystem({id : 'system2',
+                          location : new Omega.Location({id : 'system2_loc'})})
+
+      page.entities = [ship1, ship2, ship3, ship4, station1];
+      page.node     = new Omega.Node();
+      page.session  = new Omega.Session({user_id : 'user1'});
+    });
+
+    it("invokes manufactured::move_entity on all user owned ships in vicinity of gate", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      jg._trigger(page);
+      sinon.assert.calledWith(http_invoke, 'manufactured::move_entity', ship1, ship1.location, sinon.match.func);
+      sinon.assert.calledWith(http_invoke, 'manufactured::move_entity', ship2, ship2.location, sinon.match.func);
+      sinon.assert.neverCalledWith(http_invoke, 'manufactured::move_entity', ship3);
+      sinon.assert.neverCalledWith(http_invoke, 'manufactured::move_entity', ship4);
+      sinon.assert.neverCalledWith(http_invoke, 'manufactured::move_entity', station1);
+    });
+
+    describe("on manufactured::move_entity response", function(){
+      var handler, error_response, success_response;
+
+      before(function(){
+        var spy = sinon.stub(page.node, 'http_invoke');
+        jg._trigger(page);
+        handler = spy.getCall(0).args[3];
+
+        error_response = {error : {message : "jg_error"}};
+        success_response = {result : null};
+      });
+
+      after(function(){
+        Omega.UI.Dialog.remove();
+      });
+
+      describe("error during commend", function(){
+        it("sets command dialog title", function(){
+          handler(error_response);
+          assert(jg.dialog().title).equals('Jump Gate Trigger Error');
+        });
+
+        it("shows command dialog", function(){
+          var show = sinon.spy(jg.dialog(), 'show');
+          handler(error_response);
+          sinon.assert.called(show);
+          assert(jg.dialog().component()).isVisible();
+        });
+
+        it("appends error to command dialog", function(){
+          var append_error = sinon.spy(jg.dialog(), 'append_error');
+          handler(error_response);
+          sinon.assert.calledWith(append_error, 'jg_error');
+          assert($('#command_error').html()).equals('jg_error');
+        });
+      })
+
+      describe("successful command response", function(){
+        after(function(){
+          if(page.canvas.remove.restore) page.canvas.remove.restore();
+        });
+
+        it("sets new system on registry ship", function(){
+          handler(success_response);
+          assert(ship1.system_id).equals('system2');
+        });
+
+        it("removes ship from canvas scene", function(){
+          var spy = sinon.spy(page.canvas, 'remove');
+          handler(success_response);
+          sinon.assert.calledWith(spy, ship1);
+        });
       });
     });
   });

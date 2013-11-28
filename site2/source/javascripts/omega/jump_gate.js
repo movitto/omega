@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/command"
+
 Omega.JumpGate = function(parameters){
   this.components = [];
   this.shader_components = [];
@@ -24,6 +26,9 @@ Omega.JumpGate.prototype = {
        text  : 'trigger'});
     trigger_cmd.data('jump_gate', this);
 
+    var _this = this;
+    trigger_cmd.click(function(){ _this._trigger(page); });
+
     var details = [title + '<br/>' + loc + '<br/><br/>', trigger_cmd];
     details_cb(details);
   },
@@ -33,7 +38,7 @@ Omega.JumpGate.prototype = {
     page.canvas.reload(this, function(){
       if($.inArray(_this.selection_sphere, _this.components) == -1)
         _this.components.push(_this.selection_sphere);
-    })
+    });
   },
 
   unselected : function(page){
@@ -43,6 +48,47 @@ Omega.JumpGate.prototype = {
       if((index = $.inArray(_this.selection_sphere, _this.components)) != -1)
         _this.components.splice(index, 1);
     });
+  },
+
+  // XXX not a big fan of having this here, should eventually be moved elsewhere
+  dialog : function(){
+    if(typeof(this._dialog) === "undefined")
+      this._dialog = new Omega.UI.CommandDialog(); 
+    return this._dialog;
+  },
+
+  _trigger : function(page){
+    var _this = this;
+    var ships = $.grep(page.entities, function(e){
+                  return _this._should_trigger_ship(e, page);
+                });
+
+    for(var s = 0; s < ships.length; s++){
+      var ship = ships[s];
+      (function(ship){ /// XXX need new scope to preserve ship
+        /// XXX make sure endpoint is set! (won't come in w/ server jg)
+        ship.location.parent_id = _this.endpoint.location.id;
+        page.node.http_invoke('manufactured::move_entity', ship, ship.location,
+          function(response){
+            if(response.error){
+              _this.dialog().title = 'Jump Gate Trigger Error';
+              _this.dialog().show();
+              _this.dialog().append_error(response.error.message);
+
+            }else{
+              ship.system_id = _this.endpoint_id;
+              page.canvas.remove(ship);
+            }
+          });
+       })(ship);
+    }
+  },
+
+  _should_trigger_ship : function(entity, page){
+    return entity.json_class == 'Manufactured::Ship' &&
+           entity.belongs_to_user(page.session.user_id) &&
+           entity.location.is_within(this.trigger_distance,
+                                     this.location);
   },
 
   particle_plane_size :  20,

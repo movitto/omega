@@ -18,6 +18,10 @@ Omega.Ship = function(parameters){
 Omega.Ship.prototype = {
   json_class : 'Manufactured::Ship',
 
+  belongs_to_user : function(user_id){
+    return this.user_id == user_id;
+  },
+
   cmds : [
     { id    : 'ship_move_',
       class : 'ship_move',

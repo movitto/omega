@@ -594,8 +594,8 @@ describe("Omega.UI.Canvas.Controls.List", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Controls.Dialog", function(){
-describe("Omega.UI.Canvas.Controls.Dialog", function(){
+pavlov.specify("Omega.UI.Canvas.Dialog", function(){
+describe("Omega.UI.Canvas.Dialog", function(){
   var user_id  = 'user1';
   var node     = new Omega.Node();
   var session  = new Omega.Session({user_id: user_id});

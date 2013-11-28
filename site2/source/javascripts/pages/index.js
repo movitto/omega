@@ -169,6 +169,7 @@ $.extend(Omega.UI.IndexDialog.prototype,
 Omega.Pages.Index = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
+  this.entities = {};
 
   var _this = this;
   this.session = Omega.Session.restore_from_cookie();
@@ -204,6 +205,14 @@ Omega.Pages.Index = function(){
 };
 
 Omega.Pages.Index.prototype = {
+  // entity getter / setter
+  // specify id of entity to get & optional new value to set
+  entity : function(){
+    if(arguments.length > 1)
+      this.entities[arguments[0]] = arguments[1];
+    return this.entities[arguments[0]];
+  },
+
   wire_up : function(){
     this.nav.wire_up();
     this.dialog.wire_up();
@@ -214,6 +223,7 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
+      this.entity(entity.id, entity);
       var item   = {id: entity.id, text: entity.id, data: entity};
       this.canvas.controls.entities_list.add(item);
 

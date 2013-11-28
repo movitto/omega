@@ -478,6 +478,11 @@ describe("Omega.Pages.Index", function(){
     assert(index.node).isOfType(Omega.Node);
   });
 
+  it("has an entities registry", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.entities).isSameAs({});
+  });
+
   it("has a session restored from cookie", function(){
     var spy = sinon.spy(Omega.Session, 'restore_from_cookie');
     var index = new Omega.Pages.Index();
@@ -580,6 +585,12 @@ describe("Omega.Pages.Index", function(){
 
     after(function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+    });
+
+    it("stores entity in registry", function(){
+      index.process_entities(ships);
+      assert(index.entities).includes(ships[0]);
+      assert(index.entities).includes(ships[1]);
     });
 
     it("adds entities to entities_list", function(){
@@ -685,7 +696,16 @@ describe("Omega.Pages.Index", function(){
   it("has a canvas", function(){
     var index = new Omega.Pages.Index();
     assert(index.canvas).isOfType(Omega.UI.Canvas);
-  })
+  });
+
+  describe("#entity", function(){
+    it("gets/sets entity", function(){
+      var index = new Omega.Pages.Index();
+      var foo = {};
+      index.entity('foo', foo);
+      assert(index.entity('foo')).equals(foo);
+    });
+  });
 
   describe("#wire_up", function(){
     var index,
