@@ -10,7 +10,7 @@ Omega.EntityClasses = function(){
     Omega._EntityClasses = 
       [Omega.Galaxy,   Omega.SolarSystem, Omega.Star, Omega.Planet,
        Omega.Asteroid, Omega.JumpGate,    Omega.Ship, Omega.Station,
-       Omega.Location, Omega.Mission,     Omega.User];
+       Omega.Resource, Omega.Location,    Omega.User, Omega.Mission];
   }
 
   return Omega._EntityClasses;

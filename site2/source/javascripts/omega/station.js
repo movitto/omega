@@ -65,7 +65,7 @@ Omega.Station.prototype = {
       function(response){
         if(response.error){
           _this.dialog().title = 'Construction Error';
-          _this.dialog().show();
+          _this.dialog().show_error_dialog();
           _this.dialog().append_error(response.error.message);
 
         }else{

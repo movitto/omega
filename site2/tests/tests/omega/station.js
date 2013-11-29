@@ -110,7 +110,7 @@ describe("Omega.Station", function(){
         });
 
         it("shows command dialog", function(){
-          var show = sinon.spy(station.dialog(), 'show');
+          var show = sinon.spy(station.dialog(), 'show_error_dialog');
           handler(error_response);
           sinon.assert.called(show);
           assert(station.dialog().component()).isVisible();

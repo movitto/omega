@@ -23,29 +23,35 @@ Omega.Ship.prototype = {
   },
 
   cmds : [
-    { id    : 'ship_move_',
-      class : 'ship_move',
-      text  : 'move'            },
+    { id      : 'ship_move_',
+      class   : 'ship_move',
+      text    : 'move',
+      handler : '_select_destination'      },
 
-    { id    : 'ship_attack_',
-      class : 'ship_attack',
-      text  : 'attack'          },
+    { id      : 'ship_attack_',
+      class   : 'ship_attack',
+      text    : 'attack',
+      handler : '_select_attack_target'    },
 
-    { id    : 'ship_dock_',
-      class : 'ship_dock',
-      text  : 'dock'            },
+    { id      : 'ship_dock_',
+      class   : 'ship_dock',
+      text    : 'dock',
+      handler : '_select_docking_station'  },
 
-    { id    : 'ship_undock_',
-      class : 'ship_undock',
-      text  : 'undock'          },
+    { id      : 'ship_undock_',
+      class   : 'ship_undock',
+      text    : 'undock',
+      handler : '_undock'                  },
 
-    { id    : 'ship_transfer_',
-      class : 'ship_transfer',
-      text  : 'transfer'        },
+    { id      : 'ship_transfer_',
+      class   : 'ship_transfer',
+      text    : 'transfer',
+      handler : '_transfer'                },
 
-    { id    : 'ship_mine_',
-      class : 'ship_mine',
-      text  : 'mine'            }],
+    { id      : 'ship_mine_',
+      class   : 'ship_mine',
+      text    : 'mine',
+      handler : '_select_mining_target'    }],
 
   has_details : true,
 
@@ -59,14 +65,15 @@ Omega.Ship.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
-    var cmds = this._create_commands();
+    var cmds = this._create_commands(page);
     var details = [title, loc].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
     details = details.concat(cmds);
     details_cb(details);
   },
 
-  _create_commands : function(){
+  _create_commands : function(page){
+    var _this = this;
     var commands = [];
     for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
       var cmd_data = {};
@@ -75,6 +82,7 @@ Omega.Ship.prototype = {
 
       var cmd = $('<span/>', cmd_data);
       cmd.data('ship', this);
+      cmd.click(function(){ _this[cmd_data.handler](page); });
       commands.push(cmd);
     }
 
@@ -87,6 +95,186 @@ Omega.Ship.prototype = {
 
   unselected : function(page){
     if(this.mesh) this.mesh.material.emissive.setHex(0);
+  },
+
+  /// XXX not a big fan of having this here, should eventually be moved elsewhere
+  dialog : function(){
+    if(typeof(this._dialog) === "undefined")
+      this._dialog = new Omega.UI.CommandDialog();
+    return this._dialog;
+  },
+
+  _select_destination : function(page){
+    this.dialog.show_destination_selection_dialog(page, this);
+  },
+
+  _move : function(page, x, y, z){
+    var _this = this;
+    var nloc = this.location.clone();
+    nloc.x = x; nloc.y = y; nloc.z = z;
+    page.node.http_invoke('manufactured::move_entity', this.id, nloc,
+      function(response){
+        if(response.error){
+          _this.dialog().title = 'Movement Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          _this.dialog().hide();
+          _this.location.movement_strategy = response.result.location.movement_strategy;
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
+  },
+
+  _select_attack_target : function(page){
+    var _this = this;
+    var targets = $.grep(page.entities, function(e){
+                    return  e.json_class == 'Manufactured::Ship'    &&
+                           !e.belongs_to_user(page.session.user_id) &&
+                            e.location.is_within(_this.attack_distance,
+                                                 _this.location);
+                  });
+    this.dialog.show_attack_dialog(page, this, targets);
+  },
+
+  _start_attacking : function(page, evnt){
+    var _this = this;
+    var target = $(evnt.currentTarget).data('target');
+    page.node.http_invoke('manufactured::attack_entity', this.id, target.id,
+      function(response){
+        if(response.error){
+          _this.dialog().title = 'Attack Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          _this.dialog().hide();
+          _this.attacking = target;
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
+  },
+
+  _select_docking_station : function(page){
+    var _this = this;
+    var stations = $.grep(page.entities, function(e){
+                     return e.json_class == 'Manufactured::Station' &&
+                            e.belongs_to_user(page.session.user_id) &&
+                            e.location.is_within(_this.docking_distance,
+                                                _this.location);
+                   });
+    this.dialog.show_docking_dialog(page, this, stations);
+  },
+
+  _dock : function(page, evnt){
+    var station = $(evnt.currentTarget).data('station');
+    page.node.http_invoke('manufactured::dock', this.id, station.id,
+      function(response){
+        if(response.error){
+          _this.dialog().title = 'Docking Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          _this.dialog().hide();
+          _this.docked_at = station;
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
+  },
+
+  _undock : function(page){
+    var _this = this;
+    page.node.http_invoke('manufactured::undock', this.id,
+      function(response){
+        if(response.error){
+          _this.dialog().title = 'Undocking Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+        }else{
+          _this.docked_at = null;
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
+  },
+
+  _transfer : function(page, evnt){
+    var _this = this;
+
+    /// XXX assuming we are transferring to the docked station
+    var station_id = this.docked_to_id;
+    for(var r = 0; r < this.resources.length; r++){
+      page.node.http_invoke('manufactured::transfer_resource',
+        this.id, station_id, this.resources[res],
+          function(response){
+            if(response.error){
+              _this.dialog().title = 'Transfer Error';
+              _this.dialog().show_error_dialog();
+              _this.dialog().append_error(response.error.message);
+
+            }else{
+              var src = response.result[0];
+              var dst = response.result[1];
+              _this.resources = src.resources;
+              /// TODO also update local dst resources
+              page.canvas.reload(_this, function(){
+                _this.update_gfx();
+              });
+            }
+          });
+    }
+  },
+
+  _select_mining_target : function(page){
+    this.dialog.show_mining_dialog(page, this);
+
+    var asteroids = $.grep(page.entities, function(e){
+                      return e.json_class == 'Cosmos::Entities::Asteroid' &&
+                             e.location.is_within(_this.mining_distance,
+                                                  _this.location);
+                    });
+    var _this = this;
+    for(var a = 0; a < asteroids.length; a++){
+      var ast = asteroids[a];
+      page.node.http_invoke('cosmos::get_resources', ast.id,
+        function(response){
+          if(!response.error){
+            for(var r = 0; r < response.result.length; r++){
+              var resource = response.result[r];
+              _this.dialog.append_mining_cmd(page, _this, resource);
+            }
+          }
+        });
+    }
+  },
+
+  _start_mining : function(page, evnt){
+    var _this = this;
+    var resource = $(evnt.currentTarget).data('resource');
+    page.node.http_request('manufactured::start_mining', this.id,
+      resource.id, function(response){
+        if(response.error){
+          _this.dialog().title = 'Mining Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          _this.dialog().hide();
+          _this.mining = response.result.mining;
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
   },
 
   highlight_props : {

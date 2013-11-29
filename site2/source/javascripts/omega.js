@@ -38,6 +38,7 @@
 //= require "omega/mission"
 //= require "omega/stat"
 
+//= require "omega/resource"
 //= require "omega/galaxy"
 //= require "omega/solar_system"
 //= require "omega/star"

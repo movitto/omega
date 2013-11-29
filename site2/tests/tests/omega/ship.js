@@ -62,6 +62,12 @@ describe("Omega.Ship", function(){
         assert(detail_cmd.data('ship')).equals(ship);;
       }
     });
+
+    it("wires up command click events");
+  });
+
+  describe("on command click", function(){
+    it("invokes command handler");
   });
 
   describe("#selected", async(function(){
@@ -85,6 +91,123 @@ describe("Omega.Ship", function(){
       });
     })
   }));
+
+  describe("#_select_destination", function(){
+    it("shows select destination dialog")
+  });
+
+  describe("#move", function(){
+    it("clones location and updates with new coordinates");
+    it("invokes manufactured::move_entity")
+    describe("manufactured::move_entity error", function(){
+      it("shows error dialog");
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::move_entity response", function(){
+      it("hides the dialog");
+      it("updates ship movement strategy");
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
+
+  describe("#select_attack_target", function(){
+    it("shows attack dialog w/ all non-user-owned ships in vicinity")
+  });
+
+  descirbe("#_start_attacking", function(){
+    it("invokes manufactured::attack_entity with command event target")
+    describe("manufactured::attack_entity error", function(){
+      it("shows error dialog")
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::move_entity response", function(){
+      it("hides the dialog");
+      it("updates ship attack target")
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
+
+  describe("#_select_docking_station", function(){
+    it("shows docking dialog w/ all user-owned stations in vicinity of ship")
+  })
+
+  describe("#_dock", function(){
+    it("invokes manufacured::dock with command event station")
+    describe("manufactured::dock error", function(){
+      it("shows error dialog")
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::dock response", function(){
+      it("hides the dialog");
+      it("updates ship docked_at entity")
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
+
+  describe("#_undock", function(){
+    it("invokes manufactured::undock")
+    describe("manufactured::undock error", function(){
+      it("shows error dialog")
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::undock response", function(){
+      it("clears ship docked_at entity")
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
+
+  describe("#_transfer", function(){
+    it("invokes manufactured::transfer_resource with all ship resources");
+
+    describe("manufactured::transfer_resource error", function(){
+      it("shows error dialog")
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::transfer_resource response", function(){
+      it("updates ship resources")
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
+
+  describe("#_select_mining_target", function(){
+    it("shows mining dialog");
+    it("invokes cosmos::get_resources with each asteroid in vicinity of ship")
+    describe("successfull cosmos::get_resources response", function(){
+      it("appends mining command for resources to dialog")
+    });
+  });
+
+  describe("_start_mining", function(){
+    it("invokes manufactured::start_mining with command event resource")
+
+    describe("manufactured::start_mining error", function(){
+      it("shows error dialog")
+      it("sets dialog title")
+      it("appends error to dialog")
+    });
+
+    describe("successful manufactured::start_mining response", function(){
+      it("hides the dialog")
+      it("updates ship mining target")
+      it("reloads ship in canvas scene");
+      it("updates ship graphics");
+    });
+  });
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){

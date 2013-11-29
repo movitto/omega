@@ -156,7 +156,7 @@ describe("Omega.JumpGate", function(){
         });
 
         it("shows command dialog", function(){
-          var show = sinon.spy(jg.dialog(), 'show');
+          var show = sinon.spy(jg.dialog(), 'show_error_dialog');
           handler(error_response);
           sinon.assert.called(show);
           assert(jg.dialog().component()).isVisible();
