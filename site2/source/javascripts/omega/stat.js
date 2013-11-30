@@ -13,3 +13,14 @@ Omega.Stat = function(parameters){
 Omega.Stat.prototype = {
   json_class : 'Stats::StatResult'
 }
+
+Omega.Stat.get = function(id, args, node, cb){
+  node.http_invoke('stats::get', id, args,
+    function(response){
+      var stats = [];
+      if(response.result)
+        for(var s = 0; s < response.result.length; s++)
+          stats.push(new Omega.Stat(response.result[s]));
+      cb(stats);
+    });
+};
