@@ -11,6 +11,11 @@ Omega.Location = function(parameters){
 Omega.Location.prototype = {
   json_class : 'Motel::Location',
 
+  clone : function(){
+     var cloned = new Omega.Location();
+     return $.extend(true, cloned, this); /// deep copy
+  },
+
   /* Return distance location is from the specified x,y,z
    * coordinates
    */

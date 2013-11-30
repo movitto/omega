@@ -16,6 +16,10 @@ Omega.Station = function(parameters){
 Omega.Station.prototype = {
   json_class : 'Manufactured::Station',
 
+  belongs_to_user : function(user_id){
+    return this.user_id == user_id;
+  },
+
   has_details : true,
 
   retrieve_details : function(page, details_cb){

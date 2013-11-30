@@ -24,13 +24,14 @@ Omega.UI.CommandDialog.prototype = {
     this.title  = 'Move Ship';
     this.div_id = '#select_destination_dialog';
     $('#dest_id').html(entity.id);
-    $('#dest_x').value(Omega.Math.round_to(entity.location.x, 2));
-    $('#dest_y').value(Omega.Math.round_to(entity.location.y, 2));
-    $('#dest_z').value(Omega.Math.round_to(entity.location.z, 2));
+    $('#dest_x').val(Omega.Math.round_to(entity.location.x, 2));
+    $('#dest_y').val(Omega.Math.round_to(entity.location.y, 2));
+    $('#dest_z').val(Omega.Math.round_to(entity.location.z, 2));
+    $('#command_move').off('click');
     $('#command_move').click(function(evnt){
-      var nx = $('#dest_x').value();
-      var ny = $('#dest_y').value();
-      var nz = $('#dest_z').value();
+      var nx = $('#dest_x').val();
+      var ny = $('#dest_y').val();
+      var nz = $('#dest_z').val();
       entity._move(page, nx, ny, nz);
     });
     this.show();
@@ -39,22 +40,26 @@ Omega.UI.CommandDialog.prototype = {
   show_attack_dialog : function(page, entity, targets){
     this.title  = 'Launch Attack';
     this.div_id = '#select_attack_target_dialog';
-    $("#attack_id").html('Select ' + entity.id + 'target');
+    $("#attack_id").html('Select ' + entity.id + ' target');
 
     var attack_cmds = [];
     for(var t = 0; t < targets.length; t++){
       var target = targets[t];
       var cmd = $("<span/>",
-        {id    : 'attack_' target.id,
+        {id    : 'attack_' + target.id,
          class : ['cmd_attack', 'dialog_cmd'],
          text  : target.id });
       cmd.data("entity", entity);
       cmd.data("target", target);
-      cmd.click(function(evnt){ entity._start_attacking(page, evnt); })
+      cmd.click(function(evnt){
+        entity._start_attacking(page, evnt);
+        evnt.stopPropagation();
+      })
 
       attack_cmds.push(cmd);
     }
 
+    $('#attack_targets').html('');
     $('#attack_targets').append(attack_cmds);
     this.show();
   },
@@ -62,7 +67,7 @@ Omega.UI.CommandDialog.prototype = {
   show_docking_dialog : function(page, entity, stations){
     this.title  = 'Dock Ship';
     this.div_id = '#select_docking_station_dialog';
-    $('#dock_id').html('Dock ' + entity.id + 'at:');
+    $('#dock_id').html('Dock ' + entity.id + ' at:');
 
     var dock_cmds = [];
     for(var s = 0; s < stations.length; s++){
@@ -73,7 +78,10 @@ Omega.UI.CommandDialog.prototype = {
          text  : station.id});
       cmd.data("entity", entity);
       cmd.data("station", station);
-      cmd.click(function(evnt){ entity._dock(page, evnt); });
+      cmd.click(function(evnt){
+        entity._dock(page, evnt);
+        evnt.stopPropagation();
+      });
 
       dock_cmds.push(cmd);
     }
@@ -93,11 +101,10 @@ Omega.UI.CommandDialog.prototype = {
     var cmd = $("<span/>",
       {id    : "mine_" + resource.id,
        class : ['cmd_mine', 'dialog_cmd'],
-       text  : resource.material_id + '(' + resource.quantity + ')'});
-      cmd.data("entity", entity);
-      cmd.data("resource", resource);
-      cmd.click(function(evnt){ entity._start_mining(page, evnt); });
-    }
+       text  : resource.material_id + ' (' + resource.quantity + ')'});
+    cmd.data("entity", entity);
+    cmd.data("resource", resource);
+    cmd.click(function(evnt){ entity._start_mining(page, evnt); });
 
     $('#mining_targets').append(cmd);
   }

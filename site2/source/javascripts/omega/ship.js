@@ -82,7 +82,11 @@ Omega.Ship.prototype = {
 
       var cmd = $('<span/>', cmd_data);
       cmd.data('ship', this);
-      cmd.click(function(){ _this[cmd_data.handler](page); });
+      cmd.data('handler', cmd_data.handler)
+      cmd.click(function(evnt){
+        var handler = $(evnt.currentTarget).data('handler');
+        _this[handler](page);
+      });
       commands.push(cmd);
     }
 
@@ -105,7 +109,7 @@ Omega.Ship.prototype = {
   },
 
   _select_destination : function(page){
-    this.dialog.show_destination_selection_dialog(page, this);
+    this.dialog().show_destination_selection_dialog(page, this);
   },
 
   _move : function(page, x, y, z){
@@ -137,7 +141,7 @@ Omega.Ship.prototype = {
                             e.location.is_within(_this.attack_distance,
                                                  _this.location);
                   });
-    this.dialog.show_attack_dialog(page, this, targets);
+    this.dialog().show_attack_dialog(page, this, targets);
   },
 
   _start_attacking : function(page, evnt){
@@ -165,13 +169,14 @@ Omega.Ship.prototype = {
     var stations = $.grep(page.entities, function(e){
                      return e.json_class == 'Manufactured::Station' &&
                             e.belongs_to_user(page.session.user_id) &&
-                            e.location.is_within(_this.docking_distance,
-                                                _this.location);
+                            _this.location.is_within(e.docking_distance,
+                                                     e.location);
                    });
-    this.dialog.show_docking_dialog(page, this, stations);
+    this.dialog().show_docking_dialog(page, this, stations);
   },
 
   _dock : function(page, evnt){
+    var _this = this;
     var station = $(evnt.currentTarget).data('station');
     page.node.http_invoke('manufactured::dock', this.id, station.id,
       function(response){
@@ -207,14 +212,14 @@ Omega.Ship.prototype = {
       });
   },
 
-  _transfer : function(page, evnt){
+  _transfer : function(page){
     var _this = this;
 
     /// XXX assuming we are transferring to the docked station
     var station_id = this.docked_to_id;
     for(var r = 0; r < this.resources.length; r++){
       page.node.http_invoke('manufactured::transfer_resource',
-        this.id, station_id, this.resources[res],
+        this.id, station_id, this.resources[r],
           function(response){
             if(response.error){
               _this.dialog().title = 'Transfer Error';
@@ -235,14 +240,14 @@ Omega.Ship.prototype = {
   },
 
   _select_mining_target : function(page){
-    this.dialog.show_mining_dialog(page, this);
+    var _this = this;
+    this.dialog().show_mining_dialog(page, this);
 
     var asteroids = $.grep(page.entities, function(e){
                       return e.json_class == 'Cosmos::Entities::Asteroid' &&
                              e.location.is_within(_this.mining_distance,
                                                   _this.location);
                     });
-    var _this = this;
     for(var a = 0; a < asteroids.length; a++){
       var ast = asteroids[a];
       page.node.http_invoke('cosmos::get_resources', ast.id,
@@ -250,7 +255,7 @@ Omega.Ship.prototype = {
           if(!response.error){
             for(var r = 0; r < response.result.length; r++){
               var resource = response.result[r];
-              _this.dialog.append_mining_cmd(page, _this, resource);
+              _this.dialog().append_mining_cmd(page, _this, resource);
             }
           }
         });
@@ -260,7 +265,7 @@ Omega.Ship.prototype = {
   _start_mining : function(page, evnt){
     var _this = this;
     var resource = $(evnt.currentTarget).data('resource');
-    page.node.http_request('manufactured::start_mining', this.id,
+    page.node.http_invoke('manufactured::start_mining', this.id,
       resource.id, function(response){
         if(response.error){
           _this.dialog().title = 'Mining Error';
@@ -481,6 +486,10 @@ Omega.Ship.prototype = {
     if(this.location) this.mining_vector.position.set(this.location.x,
                                                       this.location.y,
                                                       this.location.z);
+  },
+
+  /// TODO
+  update_gfx : function(){
   },
 
   run_effects : function(){

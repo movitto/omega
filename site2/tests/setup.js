@@ -175,6 +175,10 @@ pavlov.specify.extendAssertions({
     ok(!found, message);
   },
 
+  contains : function(string, value, message){
+    ok(string.indexOf(value) != -1, message);
+  },
+
   empty: function(array, message) {
     ok(array.length == 0, message)
   },
@@ -231,5 +235,12 @@ sinon.match.func_domain = function(){
   return sinon.match(function(value){
            return sinon.match.func &&
                   value.apply(null, params) == expected_return;
-         }, 'func_eval');
+         }, 'func_domain');
+};
+
+// matches type in same manner as pavlov isOfType above
+sinon.match.ofType = function(expected){
+  return sinon.match(function(value){
+           return value.__proto__ == expected.prototype;
+         }, 'type');
 };

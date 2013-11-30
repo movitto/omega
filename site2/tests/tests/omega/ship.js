@@ -4,10 +4,13 @@ describe("Omega.Ship", function(){
 
   before(function(){
     ship = new Omega.Ship({id : 'ship1', user_id : 'user1',
+                    attack_distance : 100,
+                    mining_distance : 100,
                     location  : new Omega.Location({x:99,y:-2,z:100}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
-    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
+    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas(),
+                                 node: new Omega.Node() });
   });
 
   describe("#belongs_to_user", function(){
@@ -63,11 +66,34 @@ describe("Omega.Ship", function(){
       }
     });
 
-    it("wires up command click events");
-  });
+    it("wires up command click events", function(){
+      ship.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+        var detail_cmd = details[5+c];
+        assert(detail_cmd).handles('click');
+      }
+    });
 
-  describe("on command click", function(){
-    it("invokes command handler");
+    describe("on command click", function(){
+      it("invokes command handler", function(){
+        ship.retrieve_details(page, details_cb);
+        var details = details_cb.getCall(0).args[0];
+
+        var stubs = [], cmds = [];
+        for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+          var scmd = Omega.Ship.prototype.cmds[c];
+          stubs.push(sinon.stub(ship, scmd['handler']));
+          cmds.push(details[5+c]);
+        }
+
+        $('#qunit-fixture').append(cmds);
+        for(var c = 0; c < cmds.length; c++)
+          cmds[c].click();
+        for(var s = 0; s < stubs.length; s++)
+          sinon.assert.calledWith(stubs[s], page);
+      });
+    });
   });
 
   describe("#selected", async(function(){
@@ -93,119 +119,615 @@ describe("Omega.Ship", function(){
   }));
 
   describe("#_select_destination", function(){
-    it("shows select destination dialog")
+    it("shows select destination dialog", function(){
+      var show_dialog = sinon.spy(ship.dialog(), 'show_destination_selection_dialog');
+      ship._select_destination(page);
+      sinon.assert.calledWith(show_dialog, page, ship);
+    });
   });
 
-  describe("#move", function(){
-    it("clones location and updates with new coordinates");
-    it("invokes manufactured::move_entity")
-    describe("manufactured::move_entity error", function(){
-      it("shows error dialog");
-      it("sets dialog title")
-      it("appends error to dialog")
+  describe("#_move", function(){
+    it("invokes manufactured::move_entity with updated location", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._move(page, 100, 200, -50);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::move_entity', ship.id,
+        sinon.match.ofType(Omega.Location),
+        sinon.match.func);
+      var loc = http_invoke.getCall(0).args[2];
+      assert(loc).isNotEqualTo(ship.loc);
+      assert(loc.x).equals(100);
+      assert(loc.y).equals(200);
+      assert(loc.z).equals(-50);
     });
 
-    describe("successful manufactured::move_entity response", function(){
-      it("hides the dialog");
-      it("updates ship movement strategy");
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    describe("on manufactured::move_entity response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._move(page, 100, 200, -50);
+        response_cb = http_invoke.getCall(0).args[3];
+
+        var sloc = new Omega.Location({movement_strategy :
+          {json_class : 'Motel::MovementStrategies::Rotate'}});
+        nship = new Omega.Ship({location : sloc});
+        success_response = {result : nship};
+        error_response   = {error  : {message : 'move err'}};
+      });
+
+      describe("error response", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Movement Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'move err');
+        });
+      });
+
+      describe("successful response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        })
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("hides the dialog", function(){
+          var hide = sinon.spy(ship.dialog(), 'hide');
+          response_cb(success_response);
+          sinon.assert.called(hide);
+        });
+
+        it("updates ship movement strategy", function(){
+          response_cb(success_response);
+          assert(ship.location.movement_strategy).equals(nship.location.movement_strategy);
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 
   describe("#select_attack_target", function(){
-    it("shows attack dialog w/ all non-user-owned ships in vicinity")
+    it("shows attack dialog w/ all non-user-owned ships in vicinity", function(){
+      var ship1 = new Omega.Ship({user_id : 'user1', location: new Omega.Location({x:101,y:0,z:101})});
+      var ship2 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:100,y:0,z:100})});
+      var ship3 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:105,y:5,z:105})});
+      var ship4 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:1000,y:1000,z:1000})});
+      var station1 = new Omega.Station();
+      page.entities = [ship1, ship2, ship3, ship4, station1];
+      page.session = new Omega.Session({user_id : 'user1'});
+
+      var show_dialog = sinon.spy(ship.dialog(), 'show_attack_dialog');
+      ship._select_attack_target(page);
+      sinon.assert.calledWith(show_dialog, page, ship, [ship2, ship3]);
+    });
   });
 
-  descirbe("#_start_attacking", function(){
-    it("invokes manufactured::attack_entity with command event target")
-    describe("manufactured::attack_entity error", function(){
-      it("shows error dialog")
-      it("sets dialog title")
-      it("appends error to dialog")
+  describe("#_start_attacking", function(){
+    var tgt, evnt;
+
+    before(function(){
+      tgt = new Omega.Ship({id : 'tgt'});
+      evnt = $.Event('click');
+      evnt.currentTarget = $('<span/>');
+      evnt.currentTarget.data('target', tgt);
     });
 
-    describe("successful manufactured::move_entity response", function(){
-      it("hides the dialog");
-      it("updates ship attack target")
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    it("invokes manufactured::attack_entity with command target", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._start_attacking(page, evnt);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::attack_entity', ship.id,
+        tgt.id, sinon.match.func);
+    });
+
+    describe("on manufactured::attack_entity response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._start_attacking(page, evnt);
+        response_cb = http_invoke.getCall(0).args[3];
+
+        nship = new Omega.Ship({attacking : tgt});
+        success_response = {result : nship};
+        error_response   = {error  : {message : 'attack err'}};
+      });
+
+      describe("error response", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Attack Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'attack err');
+        });
+      });
+
+      describe("successful response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        })
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("hides the dialog", function(){
+          var hide = sinon.spy(ship.dialog(), 'hide');
+          response_cb(success_response);
+          sinon.assert.called(hide);
+        });
+
+        it("updates ship attack target", function(){
+          response_cb(success_response);
+          assert(ship.attacking).equals(tgt);
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 
   describe("#_select_docking_station", function(){
-    it("shows docking dialog w/ all user-owned stations in vicinity of ship")
-  })
+    it("shows docking dialog w/ all user-owned stations in vicinity of ship", function(){
+      var ship1     = new Omega.Ship();
+      var station1  = new Omega.Station({user_id : 'user1', docking_distance : 100,
+                                         location : new Omega.Location({x:100,y:0,z:100})});
+      var station2  = new Omega.Station({user_id : 'user1', docking_distance : 100,
+                                         location : new Omega.Location({x:105,y:5,z:105})});
+      var station3  = new Omega.Station({user_id : 'user2', docking_distance: 100});
+      var station4  = new Omega.Station({user_id : 'user1', docking_distance : 100,
+                                         location : new Omega.Location({x:1000,y:1000,z:1000})});
+      page.entities = [ship1, station1, station2, station3, station4];
+      page.session  = new Omega.Session({user_id : 'user1'});
+
+      var show_dialog = sinon.spy(ship.dialog(), 'show_docking_dialog');
+      ship._select_docking_station(page);
+      sinon.assert.calledWith(show_dialog, page, ship, [station1, station2]);
+    });
+  });
 
   describe("#_dock", function(){
-    it("invokes manufacured::dock with command event station")
-    describe("manufactured::dock error", function(){
-      it("shows error dialog")
-      it("sets dialog title")
-      it("appends error to dialog")
+    var station, evnt;
+
+    before(function(){
+      station = new Omega.Station({id : 'station1'});
+      evnt = $.Event('click');
+      evnt.currentTarget = $('<span/>');
+      evnt.currentTarget.data('station', station);
     });
 
-    describe("successful manufactured::dock response", function(){
-      it("hides the dialog");
-      it("updates ship docked_at entity")
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    it("invokes manufacured::dock with command station", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._dock(page, evnt);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::dock', ship.id, station.id,
+        sinon.match.func);
+    });
+
+    describe("on manufactured::dock response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._dock(page, evnt);
+        response_cb = http_invoke.getCall(0).args[3];
+
+        nship = new Omega.Ship({docked_at : station});
+        success_response = {result : nship};
+        error_response   = {error  : {message : 'dock err'}};
+      });
+
+      describe("manufactured::dock error", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Docking Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'dock err');
+        });
+      });
+
+      describe("successful response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        });
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("hides the dialog", function(){
+          var hide = sinon.spy(ship.dialog(), 'hide');
+          response_cb(success_response);
+          sinon.assert.called(hide);
+        });
+
+        it("updates ship docked at entity", function(){
+          response_cb(success_response);
+          assert(ship.docked_at).equals(station);
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 
   describe("#_undock", function(){
-    it("invokes manufactured::undock")
-    describe("manufactured::undock error", function(){
-      it("shows error dialog")
-      it("sets dialog title")
-      it("appends error to dialog")
+    before(function(){
+      ship.docked_at = new Omega.Station();
     });
 
-    describe("successful manufactured::undock response", function(){
-      it("clears ship docked_at entity")
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    it("invokes manufactured::undock", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._undock(page);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::undock', ship.id,
+        sinon.match.func);
+    });
+
+    describe("on manufactured::undock response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._undock(page);
+        response_cb = http_invoke.getCall(0).args[2];
+
+        nship = new Omega.Ship({});
+        success_response = {result : nship};
+        error_response   = {error  : {message : 'undock err'}};
+      });
+
+      describe("error response", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Undocking Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'undock err');
+        });
+      });
+
+      describe("successful response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        });
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("clears ship docked_at entity", function(){
+          response_cb(success_response);
+          assert(ship.docked_at).isNull();
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 
   describe("#_transfer", function(){
-    it("invokes manufactured::transfer_resource with all ship resources");
+    before(function(){
+      ship.docked_to_id = 'station1';
 
-    describe("manufactured::transfer_resource error", function(){
-      it("shows error dialog")
-      it("sets dialog title")
-      it("appends error to dialog")
+      var res1 = new Omega.Resource();
+      var res2 = new Omega.Resource();
+      ship.resources = [res1, res2];
     });
 
-    describe("successful manufactured::transfer_resource response", function(){
-      it("updates ship resources")
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    it("invokes manufactured::transfer_resource with all ship resources", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._transfer(page);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::transfer_resource', ship.id,
+        ship.docked_to_id, ship.resources[0],
+        sinon.match.func);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::transfer_resource', ship.id,
+        ship.docked_to_id, ship.resources[1],
+        sinon.match.func);
+    });
+
+    describe("on manufactured::transfer_resource response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._transfer(page);
+        response_cb = http_invoke.getCall(0).args[4];
+
+        nship = new Omega.Ship({docked_to : new Omega.Station(),
+                                resources : [new Omega.Resource()]});
+        success_response = {result : [nship, nship.docked_to]};
+        error_response   = {error  : {message : 'transfer err'}};
+      });
+
+      describe("error response", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Transfer Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'transfer err');
+        });
+      });
+
+      describe("successful response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        });
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("updates ship resources", function(){
+          response_cb(success_response);
+          assert(ship.resources).equals(nship.resources);
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 
   describe("#_select_mining_target", function(){
-    it("shows mining dialog");
-    it("invokes cosmos::get_resources with each asteroid in vicinity of ship")
+    var ast1, ast2, ast3;
+    before(function(){
+      ast1 = new Omega.Asteroid({id : 'ast1', location : new Omega.Location({x:100,y:0,z:100})})
+      ast2 = new Omega.Asteroid({id : 'ast2', location : new Omega.Location({x:101,y:1,z:101})});
+      ast3 = new Omega.Asteroid({id : 'ast3', location : new Omega.Location({x:1000,y:1000,z:1000})});
+      var asts = [ast1, ast2, ast3];
+      page.entities = asts;
+    });
+
+    it("shows mining dialog", function(){
+      var show_dialog = sinon.spy(ship.dialog(), 'show_mining_dialog');
+      ship._select_mining_target(page);
+      sinon.assert.calledWith(show_dialog, page, ship);
+    });
+
+    it("invokes cosmos::get_resources with each asteroid in vicinity of ship", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._select_mining_target(page);
+      sinon.assert.calledWith(http_invoke, 'cosmos::get_resources', ast1.id);
+      sinon.assert.calledWith(http_invoke, 'cosmos::get_resources', ast2.id);
+    });
+
     describe("successfull cosmos::get_resources response", function(){
-      it("appends mining command for resources to dialog")
+      var resources, response, response_cb;
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._select_mining_target(page);
+        response_cb = http_invoke.getCall(0).args[2];
+
+        resources = [new Omega.Resource(), new Omega.Resource()];
+        response = {result : resources};
+      });
+
+      it("appends mining command for resources to dialog", function(){
+        var append_cmd = sinon.spy(ship.dialog(), 'append_mining_cmd');
+        response_cb(response);
+        sinon.assert.calledWith(append_cmd, page, ship, resources[0]);
+        sinon.assert.calledWith(append_cmd, page, ship, resources[1]);
+      });
     });
   });
 
   describe("_start_mining", function(){
-    it("invokes manufactured::start_mining with command event resource")
+    var resource, evnt;
 
-    describe("manufactured::start_mining error", function(){
-      it("shows error dialog")
-      it("sets dialog title")
-      it("appends error to dialog")
+    before(function(){
+      resource = new Omega.Resource({id : 'res1'});
+      evnt = $.Event('click');
+      evnt.currentTarget = $('<span/>');
+      evnt.currentTarget.data('resource', resource);
     });
 
-    describe("successful manufactured::start_mining response", function(){
-      it("hides the dialog")
-      it("updates ship mining target")
-      it("reloads ship in canvas scene");
-      it("updates ship graphics");
+    it("invokes manufactured::start_mining with command resource", function(){
+      var http_invoke = sinon.spy(page.node, 'http_invoke');
+      ship._start_mining(page, evnt);
+      sinon.assert.calledWith(http_invoke,
+        'manufactured::start_mining', ship.id, resource.id,
+        sinon.match.func);
+    });
+
+    describe("on manufactured::start_mining response", function(){
+      var response_cb, nship,
+          success_response, error_response;
+
+      before(function(){
+        var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship._start_mining(page, evnt);
+        response_cb = http_invoke.getCall(0).args[3];
+
+        nship = new Omega.Ship({mining: resource});
+        success_response = {result : nship};
+        error_response   = {error  : {message : 'mining err'}};
+      });
+
+      describe("manufactured::start_mining error", function(){
+        it("shows error dialog", function(){
+          var show = sinon.spy(ship.dialog(), 'show_error_dialog');
+          response_cb(error_response);
+          sinon.assert.called(show);
+        });
+
+        it("sets dialog title", function(){
+          response_cb(error_response);
+          assert(ship.dialog().title).equals('Mining Error');
+        });
+
+        it("appends error to dialog", function(){
+          var append = sinon.spy(ship.dialog(), 'append_error');
+          response_cb(error_response);
+          sinon.assert.calledWith(append, 'mining err');
+        });
+      });
+
+      describe("successful manufactured::start_mining response", function(){
+        var reload;
+
+        before(function(){
+          reload = sinon.stub(page.canvas, 'reload');
+        });
+
+        after(function(){
+          page.canvas.reload.restore();
+        });
+
+        it("hides the dialog", function(){
+          var hide = sinon.spy(ship.dialog(), 'hide');
+          response_cb(success_response);
+          sinon.assert.called(hide);
+        });
+
+        it("updates ship mining target", function(){
+          response_cb(success_response);
+          assert(ship.mining).equals(nship.mining);
+        });
+
+        it("reloads ship in canvas scene", function(){
+          response_cb(success_response);
+          sinon.assert.calledWith(reload, ship);
+        });
+
+        it("updates ship graphics", function(){
+          response_cb(success_response);
+          var reload_cb = reload.getCall(0).args[1];
+
+          var update_gfx = sinon.spy(ship, 'update_gfx');
+          reload_cb();
+          sinon.assert.called(update_gfx);
+        });
+      });
     });
   });
 

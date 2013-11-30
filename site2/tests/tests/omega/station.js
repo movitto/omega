@@ -3,11 +3,18 @@ describe("Omega.Station", function(){
   var station, page;
 
   before(function(){
-    station = new Omega.Station({id : 'station1',
+    station = new Omega.Station({id : 'station1', user_id : 'user1',
                     location  : new Omega.Location({x:99,y:-2,z:100}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
+  });
+
+  describe("#belongs_to_user", function(){
+    it("returns bool indicating if station belongs to user", function(){
+      assert(station.belongs_to_user('user1')).isTrue();
+      assert(station.belongs_to_user('user2')).isFalse();
+    });
   });
 
   describe("#retrieve_details", function(){
