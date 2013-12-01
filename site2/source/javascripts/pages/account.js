@@ -4,7 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.AccountDetails = function(parameter){
+//= require 'ui/vendor/utf8_encode'
+//= require 'ui/vendor/md5'
+
+Omega.UI.AccountDetails = function(parameters){
   /// need handle to page to
   /// - access config
   this.page = null;
@@ -15,8 +18,8 @@ Omega.UI.AccountDetails = function(parameter){
 Omega.UI.AccountDetails.prototype = {
   wire_up : function(){
     var _this = this;;
-    $('#account_info_update').die();
-    $('#account_info_update').click(function(){ _this.update(); });
+    //$('#account_info_update').die();
+    $('#account_info_update').click(function(){ _this._update(); });
   },
 
   _update : function(){
@@ -27,10 +30,10 @@ Omega.UI.AccountDetails.prototype = {
       this.page.node.http_invoke('users::update_user', this.user(),
         function(response){
           if(response.error)
-            _this.page.dialog.show_update_error_dialog(response.error_message);
+            _this.page.dialog.show_update_error_dialog(response.error.message);
           else
             _this.page.dialog.show_update_success_dialog();
-        }):
+        });
     }
   },
 
@@ -44,6 +47,10 @@ Omega.UI.AccountDetails.prototype = {
   /// get password
   password : function(){
     return $('#user_password').val();
+  },
+
+  password_confirmation : function(){
+    return $("#user_confirm_password").val();
   },
 
   /// get/set the email element
@@ -86,7 +93,7 @@ Omega.UI.AccountDetails.prototype = {
   /// return bool indicating if password matches confirmation
   passwords_match : function(){
     var pass1 = this.password();
-    var pass2 = $('#user_confirm_password').val();
+    var pass2 = this.password_confirmation();
     return pass1 == pass2;
   },
 
@@ -125,7 +132,7 @@ Omega.UI.AccountDialog.prototype = {
     this.hide();
     this.title = 'Error Updating User';
     this.div_id = '#user_update_error_dialog';
-    $('#update_user_error').html('Error: ' + error_msg)
+    $('#update_user_error').html('Error: ' + error_msg);
     this.show();
   },
 
@@ -137,10 +144,13 @@ Omega.UI.AccountDialog.prototype = {
   }
 };
 
+$.extend(Omega.UI.AccountDialog.prototype,
+         new Omega.UI.Dialog());
+
 Omega.Pages.Account = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
-
+  this.dialog  = new Omega.UI.AccountDialog();
   this.details = new Omega.UI.AccountDetails({page : this});
 
   var _this = this;
@@ -164,7 +174,7 @@ Omega.Pages.Account = function(){
 
         /// load user stats
         /// TODO configurable stats
-        Stat.get('with_most', ['entities', 10], _this.node,
+        Omega.Stat.get('with_most', ['entities', 10], _this.node,
           function(stats) { _this.process_stats(stats); });
       }
     });
