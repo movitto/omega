@@ -308,3 +308,111 @@ describe("Omega.UI.CommandDialog", function(){
     });
   });
 });});
+
+pavlov.specify("Omega.UI.CommandTracker", function(){
+describe("Omega.UI.CommandTracker", function(){
+  describe("callbacks", function(){
+    describe("#motel_event", function(){
+      it("updates entity location");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#resource_collected", function(){
+      it("updates entity mining target");
+      it("updates entity resources");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#mining_stopped", function(){
+      it("clears entity mining target");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#attacked", function(){
+      it("updates entity attacking target");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#attacked_stop", function(){
+      it("clears entity attacking target");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#defended", function(){
+      it("updates entity hp and shield level");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#defended_stop", function(){
+      it("updates entity hp and shield level");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#destroyed_by", function(){
+      it("clears entity attacking target");
+      it("sets entity hp and shield level to 0");
+      it("reloads entity in scene");
+      it("updates entity gfx");
+      it("refreshes entity container");
+    });
+
+    describe("#construction_complete", function(){
+      it("retrieves constructed entity");
+      it("processes constructed entity");
+      it("adds constructed entity to canvas scene");
+    });
+
+    //describe("#partial_construction", function(){
+    //});
+  });
+
+  describe("#track", function(){
+    it("clears node event handlers for event");
+    it("adds new node event handler for event");
+    describe("event occurred", function(){
+      describe("motel event", function(){
+        it("invokes motel_event callback");
+      });
+      describe("resource collected event", function(){
+        it("invokes resource_collected callback")
+      });
+      describe("mining stopped event", function(){
+        it("invokes mining_stopped callback")
+      });
+      describe("attacked event", function(){
+        it("invokes attacked callback")
+      });
+      describe("attacked stop event", function(){
+        it("invokes attacked_stop callback")
+      });
+      describe("defended event", function(){
+        it("invokes defended callback")
+      });
+      describe("defended stop event", function(){
+        it("invokes defended_stop callback")
+      });
+      describe("destroyed_by event", function(){
+        it("invokes destroyed_by callback")
+      });
+      describe("construction_complete event", function(){
+        it("invokes construction_complete callback")
+      });
+      //describe("partial_construction event", function(){
+      //});
+    });
+  })
+});});

@@ -307,6 +307,8 @@ Omega.UI.CommandTracker.prototype = {
     var _this = this;
     Omega.Ship.with_id(constructed.id, function(entity){
       _this.page.process_entity(entity);
+      if(_this.page.canvas.root.id == entity.parent_id)
+        _this.page.canvas.add(entity);
     });
   },
 

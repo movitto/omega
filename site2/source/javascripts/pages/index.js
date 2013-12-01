@@ -171,6 +171,8 @@ Omega.Pages.Index = function(){
   this.node    = new Omega.Node(this.config);
   this.entities = {};
 
+  this.command_tracker = new Omega.UI.CommandTracker({page : this})
+
   var _this = this;
   this.session = Omega.Session.restore_from_cookie();
   if(this.session != null){

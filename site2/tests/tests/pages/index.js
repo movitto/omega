@@ -483,6 +483,8 @@ describe("Omega.Pages.Index", function(){
     assert(index.entities).isSameAs({});
   });
 
+  it("has a command tracker")
+
   it("has a session restored from cookie", function(){
     var spy = sinon.spy(Omega.Session, 'restore_from_cookie');
     var index = new Omega.Pages.Index();
@@ -574,6 +576,10 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
+  describe("#handle_events", function(){
+    it("tracks all motel and manufactured events");
+  });
+
   describe("#process_entities", function(){
     var index, ships;
 
@@ -586,6 +592,8 @@ describe("Omega.Pages.Index", function(){
     after(function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
     });
+
+    it("handles events");
     
     it("invokes process_entity with each entity", function(){
       var process_entity = sinon.spy(index, 'process_entity');
@@ -633,6 +641,28 @@ describe("Omega.Pages.Index", function(){
       cb(sys1);
       sinon.assert.calledWith(spy, sys1);
     });
+
+    it("tracks ships")
+    it("tracks stations")
+  });
+
+  describe("#track_ship", function(){
+    it("invokes motel::track_strategy");
+    it("invokes motel::track_stops");
+    it("invokes motel::track_movement");
+    it("invokes motel::track_rotation");
+    it("invokes motel::subscribe_to resource_collected");
+    it("invokes motel::subscribe_to mining_stopped");
+    it("invokes motel::subscribe_to attacked");
+    it("invokes motel::subscribe_to attacked_stop");
+    it("invokes motel::subscribe_to defended");
+    it("invokes motel::subscribe_to defended_stop");
+    it("invokes motel::subscribe_to destroyed_by");
+  });
+
+  describe("#track_station", function(){
+    it("invokes manufactured::subscribe_to construction_complete");
+    it("invokes manufactured::subscribe_to partial_construction");
   });
 
   describe("#process_system", function(){
