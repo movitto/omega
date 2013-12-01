@@ -181,6 +181,7 @@ Omega.Pages.Index = function(){
       }else{
         _this.nav.show_logout_controls();
 
+/// TODO also process_entities in new scenes on all scene changes
         /// load entities owned by user
         Omega.Ship.owned_by(_this.session.user_id, _this.node,
           function(ships) { _this.process_entities(ships); });
@@ -219,7 +220,17 @@ Omega.Pages.Index.prototype = {
     this.canvas.wire_up();
   },
 
+  handle_events : function(){
+    var events = Omega.UI.CommandTracker.prototype.motel_events +
+                 Omega.UI.CommandTracker.prototype.manufactured_events;
+    for(var e = 0; e < events.length; e++)
+      this.command_tracker.track(events[e];);
+  },
+
   process_entities : function(entities){
+    /// setup callback handlers
+    this.handle_events();
+
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
       this.process_entity(entity);
@@ -237,12 +248,46 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     Omega.SolarSystem.with_id(entity.system_id, this.node,
       function(solar_system) { _this.process_system(solar_system) });
+
+    if(entity.json_class == 'Manufactured::Ship')
+      this.track_ship(entity);
+    else if(entity.json_class == 'Manufactured::Station')
+      this.track_station(entity);
+  },
+
+  track_ship : function(entity){
+    var distance = this.config.ship_movement;
+    var rotation = this.config.ship_rotation;
+
+    /// track strategy,stops,movement,rotation
+    this.node.ws_invoke('motel::track_strategy', entity.location.id);
+    this.node.ws_invoke('motel::track_stops',    entity.location.id);
+    this.node.ws_invoke('motel::track_movement', entity.location.id, distance);
+    this.node.ws_invoke('motel::track_rotation', entity.location.id, rotation);
+
+    /// track mining, offense, defense
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'resource_collected');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'mining_stopped');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'attacked');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'attacked_stop');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'defended');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'defended_stop');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'destroyed_by');
+  },
+
+  track_station : function(entity){
+    /// TODO track jumps
+    /// track construction
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_complete');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'partial_construction');
   },
 
   process_system : function(system){
     if(system != null){
       var sitem  = {id: system.id, text: system.name, data: system};
       this.canvas.controls.locations_list.add(sitem);
+
+      /// TODO track planet movement
 
       // TODO load jump gate endpoints?
       var _this = this;
