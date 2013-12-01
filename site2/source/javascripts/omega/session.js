@@ -10,21 +10,28 @@ Omega.Session = function(parameters){
   $.extend(this, parameters);
 };
 
+/// toggle cookies globally
+Omega.Session.cookies_enabled = true;
+
 Omega.Session.prototype = {
   constructor : Omega.Session,
 
   /* Set the session browser cookies
    */
   set_cookies : function(){
-    $.cookie('omega-session', this.id);
-    $.cookie('omega-user',    this.user_id);
+    if(Omega.Session.cookies_enabled){
+      $.cookie('omega-session', this.id);
+      $.cookie('omega-user',    this.user_id);
+    }
   },
 
   /* Clear the session browser cookies
    */
   clear_cookies : function(){
-    $.cookie('omega-session', null);
-    $.cookie('omega-user',    null);
+    if(Omega.Session.cookies_enabled){
+      $.cookie('omega-session', null);
+      $.cookie('omega-user',    null);
+    }
   },
 
   /* Set session headers on the specified node
@@ -62,8 +69,11 @@ Omega.Session.prototype = {
 };
 
 Omega.Session.restore_from_cookie = function(){
-  var user_id    = $.cookie('omega-user');
-  var session_id = $.cookie('omega-session');
+  var user_id = null, session_id = null;
+  if(Omega.Session.cookies_enabled){
+    user_id    = $.cookie('omega-user');
+    session_id = $.cookie('omega-session');
+  }
 
   var session = null;
   if(user_id != null && session_id != null)

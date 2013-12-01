@@ -17,9 +17,33 @@ describe("Omega.Session", function(){
       assert($.cookie('omega-session')).equals('session1');
       assert($.cookie('omega-user')).equals('foo');
     });
+
+    describe("cookies are disabled", function(){
+      var old_config;
+
+      before(function(){
+        old_config = Omega.Session.cookies_enabled;
+        Omega.Session.cookies_enabled = false;
+      });
+
+      after(function(){
+        Omega.Session.cookies_enabled = old_config;
+      });
+
+      it("does nothing", function(){
+        var s = new Omega.Session({id : 'session1', user_id: 'foo'});
+        s.set_cookies();
+        assert($.cookie('omega-session')).isNull();
+        assert($.cookie('omega-user')).isNull();
+      });
+    });
   });
 
   describe("#clear_cookies", function(){
+    after(function(){
+      Omega.Session.prototype.clear_cookies();
+    });
+
     it("clears session cookies", function(){
       $.cookie('omega-session', 'session1');
       $.cookie('omega-user', 'foo');
@@ -27,6 +51,27 @@ describe("Omega.Session", function(){
       session.clear_cookies();
       assert($.cookie('omega-session')).isNull();
       assert($.cookie('omega-user')).isNull();
+    });
+
+    describe("cookies are disabled", function(){
+      var old_config;
+
+      before(function(){
+        old_config = Omega.Session.cookies_enabled;
+        Omega.Session.cookies_enabled = false;
+      });
+
+      after(function(){
+        Omega.Session.cookies_enabled = old_config;
+      });
+
+      it("does nothing", function(){
+        $.cookie('omega-session', 'session1');
+        $.cookie('omega-user', 'foo');
+        session.clear_cookies();
+        assert($.cookie('omega-session')).equals('session1');
+        assert($.cookie('omega-user')).equals('foo');
+      });
     });
   });
 
@@ -130,6 +175,26 @@ describe("Omega.Session", function(){
   });
 
   describe("#restore_from_cookie", function(){
+    describe("cookies are disabled", function(){
+      var old_config;
+
+      before(function(){
+        old_config = Omega.Session.cookies_enabled;
+        Omega.Session.cookies_enabled = false;
+      });
+
+      after(function(){
+        Omega.Session.cookies_enabled = old_config;
+        Omega.Session.prototype.clear_cookies();
+      });
+
+      it("returns null", function(){
+        $.cookie('omega-user', 'user1');
+        $.cookie('omega-session', 'session1');
+        assert(Omega.Session.restore_from_cookie()).equals(null);
+      });
+    });
+
     describe("user and session not null", function(){
       it("returns a new Session", function(){
         $.cookie('omega-user', 'user1');
