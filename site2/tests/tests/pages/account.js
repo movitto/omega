@@ -6,6 +6,10 @@ describe("Omega.Pages.AccountDetails", function(){
     details = page.details;
   });
 
+  after(function(){
+    Omega.UI.Dialog.remove();
+  });
+
   describe("#wire_up", function(){
     it("wires up account_info_update click events", function(){
       assert($('#account_info_update')).doesNotHandle('click');
