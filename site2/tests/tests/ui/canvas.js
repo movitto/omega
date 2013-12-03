@@ -185,13 +185,17 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#set_scene_root", function(){
+    var canvas;
+    before(function(){
+      canvas = Omega.Test.Canvas();
+    });
+
     after(function(){
       Omega.Test.Canvas().clear();
     })
     
     it("sets root entity", function(){
       var system = new Omega.SolarSystem({});
-      var canvas = Omega.Test.Canvas();
       canvas.set_scene_root(system);
       assert(canvas.root).equals(system);
     });
@@ -201,7 +205,6 @@ describe("Omega.UI.Canvas", function(){
       var planet = new Omega.Planet({id : 2});
       var system = new Omega.SolarSystem({children : [star, planet]});
 
-      var canvas = Omega.Test.Canvas();
       var spy = sinon.spy(canvas, 'add');
       canvas.set_scene_root(system);
       sinon.assert.calledWith(spy, sinon.match.instanceOf(Omega.Star));
@@ -210,7 +213,46 @@ describe("Omega.UI.Canvas", function(){
       assert(spy.getCall(1).args[0].id).equals(2);
     });
 
-    it("raises set_scene_root event");
+    it("raises set_scene_root event", function(){
+      var old_system = new Omega.SolarSystem({});
+      var system = new Omega.SolarSystem({});
+      canvas.set_scene_root(old_system);
+
+      var listener_cb = sinon.spy();
+      canvas.addEventListener('set_scene_root', listener_cb)
+
+      canvas.set_scene_root(system);
+      sinon.assert.called(listener_cb);
+
+      var event_data = listener_cb.getCall(0).args[0].data;
+      assert(event_data.root).equals(system);
+      assert(event_data.old_root).equals(old_system);
+    });
+  });
+
+  describe("is_root", function(){
+    var canvas, system;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      system = new Omega.SolarSystem({id : 42});
+      canvas.set_scene_root(system);
+    });
+
+    after(function(){
+      Omega.Test.Canvas().clear();
+    })
+
+    describe("root entity has specified entity id", function(){
+      it("returns true", function(){
+        assert(canvas.is_root(42)).isTrue();
+      });
+    });
+    describe("root entity does not have specified entity id", function(){
+      it("returns false", function(){
+        assert(canvas.is_root(43)).isFalse();
+      });
+    });
   });
 
   describe("#focus_on", function(){
@@ -324,6 +366,13 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.root).isNull();
     });
 
+    it("clears entities list", function(){
+      var canvas = Omega.Test.Canvas();
+      canvas.entities = [42];
+      canvas.clear();
+      assert(canvas.entities).isSameAs([]);
+    });
+
     it("clears all components from all scenes", function(){
       var mesh1  = new THREE.Mesh();
       var mesh2  = new THREE.Mesh();
@@ -334,6 +383,31 @@ describe("Omega.UI.Canvas", function(){
       canvas.clear();
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh1);
       assert(canvas.shader_scene.getDescendants()).doesNotInclude(mesh2);
+    });
+  });
+
+  describe("#has", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      canvas.entities = [42];
+    });
+
+    after(function(){
+      canvas.clear();
+    });
+
+    describe("scene has specified entity id", function(){
+      it("returns true", function(){
+        assert(canvas.has(42)).isTrue();
+      });
+    });
+
+    describe("scene does not have specified entity id", function(){
+      it("returns false", function(){
+        assert(canvas.has(44)).isFalse();
+      });
     });
   });
 });});

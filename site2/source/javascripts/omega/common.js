@@ -54,6 +54,13 @@ Omega.is_omega_entity = function(entity){
   return false;
 };
 
+// Return bool if obj has a listener for the specified event
+Omega.has_listener_for = function(obj, evnt){
+  return typeof(obj._listeners)       !== "undefined" &&
+         typeof(obj._listeners[evnt]) !== "undefined" &&
+         obj._listeners[evnt].length > 0;
+}
+
 // Get a shader
 Omega.get_shader = function(id){
   var shader = document.getElementById(id);

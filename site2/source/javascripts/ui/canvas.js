@@ -155,7 +155,7 @@ Omega.UI.Canvas.prototype = {
       this.add(children[c]);
     this.animate();
     this.dispatchEvent({type: 'set_scene_root',
-                        data: {root: root, old_root: old_root});
+                        data: {root: root, old_root: old_root}});
   },
 
   /// Return bool indicating if scene is set to the specified root
@@ -204,6 +204,8 @@ Omega.UI.Canvas.prototype = {
   // Clear entities from the scene
   clear : function(){
     this.root = null;
+    this.entities = [];
+    this._listeners = []; /// clear three.js event listeners (XXX hacky, figure out better way)
     var scene_components        = this.scene.getDescendants();
     var shader_scene_components = this.shader_scene.getDescendants();
 

@@ -8,6 +8,7 @@
 
 Omega.Planet = function(parameters){
   this.color = '000000';
+  this.location  = new Omega.Location({x:0,y:0,z:0});
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);

@@ -380,7 +380,7 @@ describe("Omega.UI.IndexDialog", function(){
     });
 
     describe("valid login", function(){
-      var login_callback, session;
+      var login_callback, session, session_validated;
 
       before(function(){
         var stub = sinon.stub(Omega.Session, 'login')
@@ -388,6 +388,9 @@ describe("Omega.UI.IndexDialog", function(){
         login_callback = stub.getCall(0).args[2];
         session = new Omega.Session();
         session.id = 'foo'
+
+        // stub out session validated
+        session_validated = sinon.stub(page, '_session_validated');
       })
 
       it("hides login dialog", function(){
@@ -401,14 +404,10 @@ describe("Omega.UI.IndexDialog", function(){
         assert(page.session).equals(session);
       });
 
-      it("invokes page.session_validated")
-
-      // TODO move to session_validated test
-      it("shows page navigation logout controls", function(){
-        var spy = sinon.spy(page.nav, 'show_logout_controls');
+      it("invokes page.session_validated", function(){
         login_callback.apply(null, [session]);
-        sinon.assert.called(spy);
-      });
+        sinon.assert.called(session_validated);
+      })
     });
   });
 
@@ -531,70 +530,175 @@ describe("Omega.Pages.Index", function(){
     });
 
     describe("user session is valid", function(){
-      var index, session, validate_cb;
+      var index, session, validate_cb, session_validated;
 
       before(function(){
         session = new Omega.Session({user_id: 'user1'});
         var spy = sinon.spy(session, 'validate');
-        var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
+        sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
 
         index = new Omega.Pages.Index();
         validate_cb = spy.getCall(0).args[1];
+
+        // stub out session validated
+        session_validated = sinon.spy(index, '_session_validated');
       })
 
       after(function(){
-        if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
-        if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
-      });
+        Omega.Session.restore_from_cookie.restore();
+      })
 
-      it("invokes session_validated")
-
-      // TODO move the following tests to session_validated tests
-      it("shows logout controls", function(){
-        spy = sinon.spy(index.nav, 'show_logout_controls');
+      it("invokes session_validated", function(){
         validate_cb.apply(null, [{}]);
-        sinon.assert.called(spy);
-      });
-
-      it("retrieves ships owned by user", function(){
-        var spy = sinon.spy(Omega.Ship, 'owned_by');
-        validate_cb.apply(null, [{}]);
-        sinon.assert.calledWith(spy, session.user_id, index.node, sinon.match.func);
-      });
-
-      it("retrieves stations owned by user", function(){
-        var spy = sinon.spy(Omega.Station, 'owned_by');
-        validate_cb.apply(null, [{}]);
-        sinon.assert.calledWith(spy, session.user_id, index.node, sinon.match.func);
-      });
-
-      it("processes entities retrieved", function(){
-        var shspy = sinon.spy(Omega.Ship, 'owned_by');
-        var stspy = sinon.spy(Omega.Station, 'owned_by');
-        validate_cb.apply(null, [{}]);
-
-        var shcb = shspy.getCall(0).args[2];
-        var stcb = stspy.getCall(0).args[2];
-
-        var spy = sinon.stub(index, 'process_entities');
-        shcb('ships')
-        stcb('stations');
-        sinon.assert.calledWith(spy, 'ships');
-        sinon.assert.calledWith(spy, 'stations');
-      });
+        sinon.assert.called(session_validated);
+      })
     });
   });
 
   describe("#_session_validated", function(){
-    /// TODO
+    var index;
+    before(function(){
+      index = new Omega.Pages.Index();
+      index.session = new Omega.Session();
+    });
+
+    after(function(){
+      if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
+      if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
+    });
+
+    it("shows logout controls", function(){
+      spy = sinon.spy(index.nav, 'show_logout_controls');
+      index._session_validated();
+      sinon.assert.called(spy);
+    });
+
+    it("wires up canvas scene change", function(){
+      assert(index.canvas._listeners).isUndefined();
+      index._session_validated();
+      assert(index.canvas._listeners['set_scene_root'].length).equals(1);
+    });
+
+    describe("on canvas scene change", function(){
+      it("invokes page.scene_change", function(){
+        index._session_validated();
+        var scene_changed_cb = index.canvas._listeners['set_scene_root'][0];
+        var scene_change = sinon.stub(index, '_scene_change');
+        scene_changed_cb({data: 'change'});
+        sinon.assert.calledWith(scene_change, 'change')
+      });
+    })
+
+    it("retrieves ships owned by user", function(){
+      var spy = sinon.spy(Omega.Ship, 'owned_by');
+      index._session_validated();
+      sinon.assert.calledWith(spy, index.session.user_id, index.node, sinon.match.func);
+    });
+
+    it("retrieves stations owned by user", function(){
+      var spy = sinon.spy(Omega.Station, 'owned_by');
+      index._session_validated();
+      sinon.assert.calledWith(spy, index.session.user_id, index.node, sinon.match.func);
+    });
+
+    it("processes entities retrieved", function(){
+      var shspy = sinon.spy(Omega.Ship, 'owned_by');
+      var stspy = sinon.spy(Omega.Station, 'owned_by');
+      index._session_validated();
+
+      var shcb = shspy.getCall(0).args[2];
+      var stcb = stspy.getCall(0).args[2];
+
+      var spy = sinon.stub(index, 'process_entities');
+      shcb('ships')
+      stcb('stations');
+      sinon.assert.calledWith(spy, 'ships');
+      sinon.assert.calledWith(spy, 'stations');
+    });
   })
 
   describe("#_scene_change", function(){
+    var index, change;
+    var planet1, planet2, system, old_system,
+        ship1, ship2, ship3, ship4, station1, station2, station3;
+
+    before(function(){
+      index   = new Omega.Pages.Index();
+      session = new Omega.Session({user_id : 'user42'});
+
+      planet1 = new Omega.Planet({location : new Omega.Location({})}); 
+      planet2 = new Omega.Planet({location : new Omega.Location({})}); 
+      system  = new Omega.SolarSystem({id  : 'system42', children : [planet1]});
+      old_system  = new Omega.SolarSystem({id  : 'system43', children : [planet2]});
+
+      ship1   = new Omega.Ship({user_id : 'user42', parent_id : 'system42',
+                                location : new Omega.Location({id : 'l494'})});
+      ship2   = new Omega.Ship({user_id : 'user42', parent_id : 'system43',
+                                location : new Omega.Location({id : 'l495'})});
+      ship3   = new Omega.Ship({user_id : 'user43', parent_id : 'system42',
+                                location : new Omega.Location({id : 'l496'})});
+      ship4   = new Omega.Ship({user_id : 'user43', parent_id : 'system43',
+                                location : new Omega.Location({id : 'l497'})});
+      station1 = new Omega.Station({user_id : 'user42', parent_id : 'system43',
+                                    location : new Omega.Location({id : 'l498'})});
+      station2 = new Omega.Station({user_id : 'user43', parent_id : 'system43',
+                                    location : new Omega.Location({id : 'l499'})});
+      station3 = new Omega.Station({user_id : 'user43', parent_id : 'system42',
+                                    location : new Omega.Location({id : 'l500'})});
+
+      index.session = session;
+      index.root = system;
+      index.entities = [ship1, ship2, ship3, ship4, station1, station2, station3];
+
+      change = {root: system, old_root: old_system}
+    });
+
+    it("stops tracking all non-user-owned ships/stations not in new scene", function(){
+      var stop_tracking_ship = sinon.spy(index, 'stop_tracking_ship');
+      var stop_tracking_station = sinon.spy(index, 'stop_tracking_station');
+      index._scene_change(change)
+      sinon.assert.calledWith(stop_tracking_ship, ship4);
+      sinon.assert.calledWith(stop_tracking_station, station2);
+    });
+
+    it("starts tracking all non-user-owned ships/stations in new scene", function(){
+      var track_ship = sinon.spy(index, 'track_ship');
+      var track_station = sinon.spy(index, 'track_station');
+      index._scene_change(change)
+      sinon.assert.calledWith(track_ship, ship3);
+      sinon.assert.calledWith(track_station, station3);
+    });
+
+    describe("changing to system", function(){
+      it("stops tracks planets in old system", function(){
+        var stop_tracking_planet = sinon.spy(index, 'stop_tracking_planet');
+        index._scene_change(change)
+        sinon.assert.calledWith(stop_tracking_planet, planet2);
+      });
+
+      it("tracks planets in system", function(){
+        var track_planet = sinon.spy(index, 'track_planet');
+        index._scene_change(change);
+        sinon.assert.calledWith(track_planet, planet1);
+      });
+    })
   });
 
-  //describe("#handle_events", function(){
-  //  it("tracks all motel and manufactured events");
-  //});
+  describe("#handle_events", function(){
+    var index;
+    before(function(){
+      index = new Omega.Pages.Index();
+    });
+
+    it("tracks all motel and manufactured events", function(){
+      var events = Omega.UI.CommandTracker.prototype.motel_events +
+                   Omega.UI.CommandTracker.prototype.manufactured_events;
+      var track = sinon.stub(index.command_tracker, 'track');
+      index.handle_events();
+      for(var e = 0; e < events.length; e++)
+        sinon.assert.calledWith(track, events[e]);
+    });
+  });
 
   describe("#process_entities", function(){
     var index, ships;
@@ -742,7 +846,24 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#stop_tracking_ship", function(){
-    // TODO
+    var index, ship, ws_invoke;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      ship = new Omega.Ship({id : 'ship42',
+                             location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes motel::remove_callbacks", function(){
+      index.stop_tracking_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'motel::remove_callbacks', ship.location.id);
+    });
+
+    it("invokes manufactured::remove_callbacks", function(){
+      index.stop_tracking_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::remove_callbacks', ship.id);
+    });
   });
 
   describe("#track_station", function(){
@@ -765,16 +886,50 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
-  describe("#stop_tracking_ship", function(){
-    // TODO
+  describe("#stop_tracking_station", function(){
+    var index, station, ws_invoke;
+    before(function(){
+      index   = new Omega.Pages.Index();
+      station = new Omega.Station({id : 'station42',
+                                   location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes manufactured::remove_callbacks", function(){
+      index.stop_tracking_station(station);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::remove_callbacks', station.id);
+    });
   });
 
   describe("#track_planet", function(){
-    // TODO
+    var index, ship, ws_invoke;
+    before(function(){
+      index = new Omega.Pages.Index();
+      planet = new Omega.Planet({id : 'planet42',
+                                 location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes motel::track_movement", function(){
+      index.track_planet(planet);
+      sinon.assert.calledWith(ws_invoke, 'motel::track_movement',
+        planet.location.id, index.config.planet_movement);
+    });
   });
 
   describe("#stop_tracking_planet", function(){
-    // TODO
+    var index, ship, ws_invoke;
+    before(function(){
+      index = new Omega.Pages.Index();
+      planet = new Omega.Planet({id : 'planet42',
+                                 location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes motel::remove_callbacks", function(){
+      index.stop_tracking_planet(planet);
+      sinon.assert.calledWith(ws_invoke, 'motel::remove_callbacks', planet.location.id);
+    });
   });
 
   describe("#process_system", function(){

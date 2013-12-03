@@ -179,7 +179,7 @@ Omega.Pages.Index = function(){
         _this.session = null;
         _this.nav.show_login_controls();
       }else{
-        _this.session_validated();
+        _this._session_validated();
       }
     });
   }
@@ -217,8 +217,9 @@ Omega.Pages.Index.prototype = {
     this.nav.show_logout_controls();
 
     /// handle scene changes
-    this.canvas.handleEvent('set_scene_root',
-      function(root_entity){ _this._scene_change(root_entity); })
+    if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
+      this.canvas.addEventListener('set_scene_root',
+        function(change){ _this._scene_change(change.data); })
 
     /// load entities owned by user
     Omega.Ship.owned_by(this.session.user_id, this.node,
@@ -237,7 +238,10 @@ Omega.Pages.Index.prototype = {
       $.grep(this.entities, function(entity){
         return (entity.json_class == 'Manufactured::Ship' ||
                 entity.json_class == 'Manufactured::Station' ) &&
-                !entity.belongs_to_user(_this.session.user_id); });
+               (_this.session == null ||
+                !entity.belongs_to_user(_this.session.user_id)); });
+
+    /// taking advantage of fact that these will never match when change scene to a galaxy
     var in_system =
       $.grep(entities, function(entity){
         return entity.parent_id == root.id; })
@@ -246,7 +250,7 @@ Omega.Pages.Index.prototype = {
       $.grep(entities, function(entity){
         return entity.parent_id != root.id; })
 
-    /// remove tracking of entities not in system
+    /// stop tracking entities not in system
     for(var e = 0; e < not_in_system.length; e++){
       var entity = not_in_system[e];
       if(entity.json_class == 'Manufactured::Ship')
@@ -266,16 +270,18 @@ Omega.Pages.Index.prototype = {
 
     /// remove tracking of old planets
     if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
-      for(var p = 0; p < old_root.planets.length; p++){
-        var planet = old_root.planets[p];
+      var planets = old_root.planets();
+      for(var p = 0; p < planets.length; p++){
+        var planet = planets[p];
         this.stop_tracking_planet(planet);
       }
     }
 
     /// track planets in new system if applicable
     if(root.json_class == 'Cosmos::Entities::SolarSystem'){
-      for(var p = 0; p < root.planets.length; p++){
-        var planet = root.planets[p];
+      var planets = root.planets();
+      for(var p = 0; p < planets.length; p++){
+        var planet = planets[p];
         this.track_planet(planet);
       }
     }
@@ -353,11 +359,12 @@ Omega.Pages.Index.prototype = {
   },
 
   track_planet : function(entity){
-    /// TODO
+    var distance = this.config.planet_movement;
+    this.node.ws_invoke('motel::track_movement', entity.location.id, distance);
   },
 
-  stop_tracking_planet : function(){
-    /// TODO
+  stop_tracking_planet : function(entity){
+    this.node.ws_invoke('motel::remove_callbacks', entity.location.id);
   },
 
   process_system : function(system){

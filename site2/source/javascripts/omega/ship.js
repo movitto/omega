@@ -489,7 +489,7 @@ Omega.Ship.prototype = {
                                                       this.location.z);
   },
 
-  /// TODO
+/// TODO
   update_gfx : function(){
   },
 

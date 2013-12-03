@@ -939,6 +939,43 @@ describe("Omega.Ship", function(){
     /// it("runs attack effects"); // NIY
   });
 
+  describe("#get", function(){
+    var node, get_cb, invoke_spy;
+
+    before(function(){
+      node = new Omega.Node();
+      get_cb = sinon.spy();
+      invoke_spy = sinon.stub(node, 'http_invoke');
+    });
+
+    it("invokes manufacutred::get_entity request", function(){
+      Omega.Ship.get('ship1', node, get_cb);
+      sinon.assert.calledWith(invoke_spy,
+        'manufactured::get_entity',
+        'with_id', 'ship1', sinon.match.func);
+    });
+
+    describe("manufactured::get_entity callback", function(){
+      var invoke_cb;
+      before(function(){
+        Omega.Ship.get('ship1', node, get_cb);
+        invoke_cb = invoke_spy.getCall(0).args[3];
+      });
+
+      it("invokes callback with ship", function(){
+        invoke_cb({result : {id: '42'}});
+        sinon.assert.calledWith(get_cb, sinon.match.ofType(Omega.Ship), null);
+      });
+
+      describe("error received", function(){
+        it("invokes callback with error", function(){
+          invoke_cb({error : {message : "err"}});
+          sinon.assert.calledWith(get_cb, null, "err");
+        });
+      });
+    });
+  });
+
   describe("#owned_by", function(){
     var node, retrieval_cb, invoke_spy;
 
@@ -954,7 +991,7 @@ describe("Omega.Ship", function(){
         'of_type', 'Manufactured::Ship', 'owned_by', 'user1');
     });
 
-    describe("cosmos::get_entity callback", function(){
+    describe("manufactured::get_entity callback", function(){
       it("invokes callback", function(){
         Omega.Ship.owned_by('user1', node, retrieval_cb);
         invoke_spy.getCall(0).args[5]({});
