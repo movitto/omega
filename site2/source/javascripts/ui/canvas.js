@@ -14,6 +14,7 @@ Omega.UI.Canvas = function(parameters){
   this.axis             = new Omega.UI.Canvas.Axis();
   this.canvas           = $('#omega_canvas');
   this.root             = null;
+  this.entities         = [];
 
   /// need handle to page the canvas is on to
   /// - lookup missions
@@ -154,6 +155,11 @@ Omega.UI.Canvas.prototype = {
     this.animate();
   },
 
+  /// Return bool indicating if scene is set to the specified root
+  is_root : function(entity_id){
+    return this.root != null && this.root.id == entity_id;
+  },
+
   // Focus the scene camera on the specified location
   focus_on : function(loc){
     this.cam_controls.target.set(loc.x,loc.y,loc.z);
@@ -169,6 +175,8 @@ Omega.UI.Canvas.prototype = {
       this.scene.add(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
+
+    this.entities.push(entity.id);
   },
 
   // Remove specified entity from scene
@@ -177,6 +185,9 @@ Omega.UI.Canvas.prototype = {
       this.scene.remove(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.remove(entity.shader_components[cc]);
+
+    var index = this.entities.indexOf(entity.id);
+    if(index != -1) this.entities.splice(index, 1);
   },
 
   // Remove entity from scene, invoke callback, readd entity to scene
@@ -197,6 +208,11 @@ Omega.UI.Canvas.prototype = {
       this.scene.remove(scene_components[c]);
     for(var c = 0; c < shader_scene_components.length; c++)
       this.shader_scene.remove(shader_scene_components[c]);
+  },
+
+  /// return bool indicating if canvas has entity
+  has : function(entity_id){
+    return this.entities.indexOf(entity_id) != -1;
   }
 };
 

@@ -5,6 +5,7 @@
  */
 
 /// TODO orientations, updates on movement/rotation/attack/defense/mining
+/// TODO remove components if hp == 0
 
 Omega.Ship = function(parameters){
   this.components = [];
@@ -520,6 +521,20 @@ Omega.Ship.prototype = {
     /// TODO animate attack particles
   }
 };
+
+// Return ship with the specified id
+Omega.Ship.get = function(ship_id, node, cb){
+  node.http_invoke('manufactured::get_entity', 'with_id', ship_id,
+    function(response){
+      var ship = null;
+      var err  = null;
+      if(response.result)
+        ship = new Omega.Ship(response.result);
+      else if(response.error)
+        err = response.error.message;
+      cb(ship, err);
+    });
+}
 
 // Return ships owned by the specified user
 Omega.Ship.owned_by = function(user_id, node, cb){

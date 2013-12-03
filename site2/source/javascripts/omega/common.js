@@ -45,6 +45,15 @@ Omega.convert_entity = function(entity){
   return converted;
 };
 
+/// Return bool indicating if entity is an Omega entity
+Omega.is_omega_entity = function(entity){
+  var entity_classes = Omega.EntityClasses();
+  for(var e = 0; e < entity_classes.length; e++)
+    if(entity_classes[e].prototype.json_class == entity.json_class)
+      return true;
+  return false;
+};
+
 // Get a shader
 Omega.get_shader = function(id){
   var shader = document.getElementById(id);

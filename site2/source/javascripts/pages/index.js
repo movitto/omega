@@ -226,7 +226,7 @@ Omega.Pages.Index.prototype = {
     var events = Omega.UI.CommandTracker.prototype.motel_events +
                  Omega.UI.CommandTracker.prototype.manufactured_events;
     for(var e = 0; e < events.length; e++)
-      this.command_tracker.track(events[e];);
+      this.command_tracker.track(events[e]);
   },
 
   process_entities : function(entities){

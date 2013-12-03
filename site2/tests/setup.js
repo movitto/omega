@@ -4,6 +4,8 @@
 // Specs will fails if stubbed out but not implemented, so
 // tests commented out but marked w/ 'NIY' should be implemented later
 
+// TODO incorporate a factory framework to generate test data
+
 //////////////////////////////// helper methods/data
 
 Omega.Pages.Test = function(parameters){

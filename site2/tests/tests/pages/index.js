@@ -483,7 +483,10 @@ describe("Omega.Pages.Index", function(){
     assert(index.entities).isSameAs({});
   });
 
-  it("has a command tracker")
+  it("has a command tracker", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.command_tracker).isOfType(Omega.UI.CommandTracker);
+  });
 
   it("has a session restored from cookie", function(){
     var spy = sinon.spy(Omega.Session, 'restore_from_cookie');
@@ -576,9 +579,9 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
-  describe("#handle_events", function(){
-    it("tracks all motel and manufactured events");
-  });
+  //describe("#handle_events", function(){
+  //  it("tracks all motel and manufactured events");
+  //});
 
   describe("#process_entities", function(){
     var index, ships;
@@ -593,7 +596,11 @@ describe("Omega.Pages.Index", function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
     });
 
-    it("handles events");
+    it("handles events", function(){
+      var handle_events = sinon.spy(index, 'handle_events');
+      index.process_entities(ships);
+      sinon.assert.called(handle_events);
+    });
     
     it("invokes process_entity with each entity", function(){
       var process_entity = sinon.spy(index, 'process_entity');
@@ -604,10 +611,11 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#process_entity", function(){
-    var index, ship;
+    var index, ship, station;
     before(function(){
       index = new Omega.Pages.Index();
       ship  = new Omega.Ship({id: 'sh1', system_id: 'sys1'});
+      station = new Omega.Station({id : 'st1', system_id : 'sys1'})
     });
 
     after(function(){
@@ -642,27 +650,102 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(spy, sys1);
     });
 
-    it("tracks ships")
-    it("tracks stations")
+    it("tracks ships", function(){
+      var track_ship = sinon.spy(index, 'track_ship');
+      index.process_entity(ship);
+      sinon.assert.calledWith(track_ship, ship);
+    });
+
+    it("tracks stations", function(){
+      var track_station = sinon.spy(index, 'track_station');
+      index.process_entity(station);
+      sinon.assert.calledWith(track_station, station);
+    });
   });
 
   describe("#track_ship", function(){
-    it("invokes motel::track_strategy");
-    it("invokes motel::track_stops");
-    it("invokes motel::track_movement");
-    it("invokes motel::track_rotation");
-    it("invokes motel::subscribe_to resource_collected");
-    it("invokes motel::subscribe_to mining_stopped");
-    it("invokes motel::subscribe_to attacked");
-    it("invokes motel::subscribe_to attacked_stop");
-    it("invokes motel::subscribe_to defended");
-    it("invokes motel::subscribe_to defended_stop");
-    it("invokes motel::subscribe_to destroyed_by");
+    var index, ship, ws_invoke;
+    before(function(){
+      index = new Omega.Pages.Index();
+      ship = new Omega.Ship({id : 'ship42',
+                             location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes motel::track_strategy", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'motel::track_strategy', ship.location.id);
+    });
+
+    it("invokes motel::track_stops", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'motel::track_stops', ship.location.id);
+    });
+
+    it("invokes motel::track_movement", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'motel::track_movement', ship.location.id, index.config.ship_movement);
+    });
+
+    it("invokes motel::track_rotation", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'motel::track_rotation', ship.location.id, index.config.ship_rotation);
+    });
+
+    it("invokes motel::subscribe_to resource_collected", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'resource_collected');
+    });
+
+    it("invokes motel::subscribe_to mining_stopped", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'mining_stopped');
+    });
+
+    it("invokes motel::subscribe_to attacked", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'attacked');
+    });
+
+    it("invokes motel::subscribe_to attacked_stop", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'attacked_stop');
+    });
+
+    it("invokes motel::subscribe_to defended", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'defended');
+    });
+
+    it("invokes motel::subscribe_to defended_stop", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'defended_stop');
+    });
+
+    it("invokes motel::subscribe_to destroyed_by", function(){
+      index.track_ship(ship);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'destroyed_by');
+    });
   });
 
   describe("#track_station", function(){
-    it("invokes manufactured::subscribe_to construction_complete");
-    it("invokes manufactured::subscribe_to partial_construction");
+    var index, station, ws_invoke;
+    before(function(){
+      index   = new Omega.Pages.Index();
+      station = new Omega.Station({id : 'station42',
+                                   location : new Omega.Location({id:'loc42'})}); 
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("invokes manufactured::subscribe_to construction_complete", function(){
+      index.track_station(station);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'construction_complete');
+    });
+
+    it("invokes manufactured::subscribe_to partial_construction", function(){
+      index.track_station(station);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'partial_construction');
+    });
   });
 
   describe("#process_system", function(){

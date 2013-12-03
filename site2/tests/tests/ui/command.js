@@ -311,108 +311,509 @@ describe("Omega.UI.CommandDialog", function(){
 
 pavlov.specify("Omega.UI.CommandTracker", function(){
 describe("Omega.UI.CommandTracker", function(){
+  var page, tracker, canvas_reload, canvas_add;
+
+  before(function(){
+    var node = new Omega.Node();
+    page = new Omega.Pages.Test({node : node,
+                                 canvas : Omega.Test.Canvas()});
+    page.canvas.set_scene_root(new Omega.SolarSystem({id : 'system1'}))
+    tracker = new Omega.UI.CommandTracker({page : page});
+
+    /// stub these out so we don't have to load gfx
+    canvas_reload = sinon.stub(page.canvas, 'reload');
+    canvas_add = sinon.stub(page.canvas, 'add');
+  });
+
+  after(function(){
+    page.canvas.reload.restore();
+    page.canvas.add.restore();
+    if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+  });
+
   describe("callbacks", function(){
     describe("#motel_event", function(){
-      it("updates entity location");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var ship, eship, eargs;
+
+      before(function(){
+        ship  = new Omega.Ship({parent_id : 'system1',
+                                location  : new Omega.Location({id:42,x:0,y:0,z:0})});
+        eship = new Omega.Ship({location : new Omega.Location({id:42,x:1,y:1,z:1})});
+                                
+        page.entities = [ship];
+        eargs         = [eship.location];
+      });
+
+      it("updates entity location", function(){
+        tracker._callbacks_motel_event('motel::on_movement', eargs);
+        assert(ship.location).equals(eship.location);
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_motel_event('motel::on_movement', eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_motel_event('motel::on_movement', eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
+
+      it("refreshes entity container", function(){
+        var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+        tracker._callbacks_motel_event('motel::on_movement', eargs);
+        sinon.assert.called(refresh);
+      });
     });
 
     describe("#resource_collected", function(){
-      it("updates entity mining target");
-      it("updates entity resources");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var ship, eship, eargs;
+
+      before(function(){
+        var res  = new Omega.Resource({material_id : 'gold', quantity : 10});
+        var eres = new Omega.Resource({material_id : 'gold', quantity : 50});
+        var ast  = new Omega.Asteroid();
+
+        ship  = new Omega.Ship({id: 'ship1', parent_id : 'system1', resources : [res]});
+        eship = new Omega.Ship({id: 'ship1', resources : [eres], mining: ast});
+        page.entities = [ship];
+        eargs         = ['resource_collected', eship, res, 40];
+      });
+
+      it("updates entity mining target", function(){
+        tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+        assert(ship.mining).equals(eship.mining);
+      });
+
+      it("updates entity resources", function(){
+        tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+        assert(ship.resources).equals(eship.resources);
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
+
+      it("refreshes entity container", function(){
+        var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+        tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+        sinon.assert.called(refresh);
+      });
     });
 
     describe("#mining_stopped", function(){
-      it("clears entity mining target");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var ship, eship, eargs;
+
+      before(function(){
+        var ast = new Omega.Asteroid();
+        ship  = new Omega.Ship({id: 'ship1', parent_id : 'system1', mining: ast});
+        eship = new Omega.Ship({id: 'ship1'});
+
+        var res = new Omega.Resource();
+
+        page.entities = [ship];
+        eargs         = ['mining_stopped', eship, res, 'cargo_full'];
+      });
+
+      after(function(){
+        if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+      });
+
+      it("clears entity mining target", function(){
+        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+        assert(ship.mining).isNull();
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
+
+      it("refreshes entity container", function(){
+        var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+        sinon.assert.called(refresh);
+      });
     });
 
     describe("#attacked", function(){
-      it("updates entity attacking target");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var tgt, etgt, ship, eship, eargs;
+
+      before(function(){
+        tgt    = new Omega.Ship({id : 'target_ship' });
+        etgt   = new Omega.Ship({id : 'target_ship' });
+        ship   = new Omega.Ship({id: 'ship1', parent_id : 'system1'});
+        eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
+
+        page.entities = [ship, tgt];
+        eargs         = ['attacked', eship, etgt];
+      });
+
+      it("updates entity attacking target", function(){
+        tracker._callbacks_attacked("manufactured::event_occurred", eargs);
+        assert(ship.attacking).equals(tgt);
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_attacked("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_attacked("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
     });
 
     describe("#attacked_stop", function(){
-      it("clears entity attacking target");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var tgt, etgt, ship, eship, eargs;
+
+      before(function(){
+        tgt    = new Omega.Ship({id : 'target_ship'});
+        etgt   = new Omega.Ship({id : 'target_ship' });
+        ship   = new Omega.Ship({id: 'ship1', parent_id : 'system1' });
+        eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
+
+        page.entities = [ship, tgt];
+        eargs         = ['attacked', eship, etgt];
+      });
+
+      it("clears entity attacking target", function(){
+        tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
+        assert(ship.attacking).isNull();
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
     });
 
     describe("#defended", function(){
-      it("updates entity hp and shield level");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var tgt, etgt, ship, eship, eargs;
+
+      before(function(){
+        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        etgt   = new Omega.Ship({id : 'target_ship', hp : 77, shield_level : 99 });
+        ship   = new Omega.Ship({id: 'ship1'});
+        eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
+
+        page.entities = [ship, tgt];
+        eargs         = ['defended', eship, etgt];
+      });
+
+      it("updates entity hp and shield level", function(){
+        tracker._callbacks_defended("manufactured::event_occurred", eargs);
+        assert(tgt.hp).equals(77);
+        assert(tgt.shield_level).equals(99);
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_defended("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, tgt, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_defended("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(tgt, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
     });
 
     describe("#defended_stop", function(){
-      it("updates entity hp and shield level");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var tgt, etgt, ship, eship, eargs;
+
+      before(function(){
+        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        etgt   = new Omega.Ship({id : 'target_ship', hp : 77, shield_level : 99 });
+        ship   = new Omega.Ship({id: 'ship1'});
+        eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
+
+        page.entities = [ship, tgt];
+        eargs         = ['defended_stop', eship, etgt];
+      });
+
+      it("updates entity hp and shield level", function(){
+        tracker._callbacks_defended_stop("manufactured::event_occurred", eargs);
+        assert(tgt.hp).equals(77);
+        assert(tgt.shield_level).equals(99);
+      });
+
+      it("reloads entity in scene", function(){
+        tracker._callbacks_defended_stop("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, tgt, sinon.match.func);
+      });
+
+      it("updates entity gfx", function(){
+        tracker._callbacks_defended_stop("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(tgt, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
     });
 
     describe("#destroyed_by", function(){
-      it("clears entity attacking target");
-      it("sets entity hp and shield level to 0");
-      it("reloads entity in scene");
-      it("updates entity gfx");
-      it("refreshes entity container");
+      var tgt, etgt, ship, eship, eargs;
+
+      before(function(){
+        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        etgt   = new Omega.Ship({id : 'target_ship' });
+        ship   = new Omega.Ship({id : 'ship1', parent_id : 'system1' });
+        eship  = new Omega.Ship({id : 'ship1', attacking : etgt});
+
+        page.entities = [ship, tgt];
+        eargs         = ['destroyed_by', eship, etgt];
+      });
+
+      it("clears entity attacking target", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        assert(ship.attacking).isNull();
+      });
+
+      it("sets entity hp and shield level to 0", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        assert(tgt.hp).equals(0);
+        assert(tgt.shield_level).equals(0);
+      });
+
+      it("reloads attacker in scene", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, ship, sinon.match.func);
+      });
+
+      it("updates attacker gfx", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(0).args[1];
+        var update_gfx = sinon.stub(ship, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
+
+      it("reloads defender in scene", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, tgt, sinon.match.func);
+      });
+
+      it("updates defender gfx", function(){
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        var reload_cb = canvas_reload.getCall(1).args[1];
+        var update_gfx = sinon.stub(tgt, 'update_gfx');
+        reload_cb();
+        sinon.assert.called(update_gfx);
+      });
     });
 
     describe("#construction_complete", function(){
-      it("retrieves constructed entity");
-      it("processes constructed entity");
-      it("adds constructed entity to canvas scene");
+      var constructed, station, estation, eargs,
+          get, process_entity, refresh_entity_container;
+
+      before(function(){
+        constructed = new Omega.Ship({id : 'constructed_ship' });
+        station     = new Omega.Station({id : 'station1'});
+        estation    = new Omega.Station({id : 'station1'});
+
+        page.entities = [estation, constructed];
+        eargs         = ['construction_complete', estation, constructed];
+
+        get = sinon.stub(Omega.Ship, 'get');
+        process_entity = sinon.stub(page, 'process_entity');
+        refresh_entity_container = sinon.stub(page.canvas.entity_container, 'refresh');
+      });
+
+      after(function(){
+        if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+        if(Omega.Ship.get.restore) Omega.Ship.get.restore();
+        page.process_entity.restore();
+      });
+
+      it("retrieves constructed entity", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(get, 'constructed_ship', page.node, sinon.match.func);
+      });
+
+      it("processes constructed entity", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        var get_cb = get.getCall(0).args[2];
+        var retrieved = new Omega.Ship();
+        get_cb(retrieved);
+        sinon.assert.calledWith(process_entity, retrieved);
+      });
+
+      it("adds constructed entity to canvas scene", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        var get_cb = get.getCall(0).args[2];
+        var retrieved = new Omega.Ship({parent_id : 'system1'});
+        get_cb(retrieved);
+        sinon.assert.calledWith(canvas_add, retrieved);
+      });
+
+      it("refreshes the entity container", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        var get_cb = get.getCall(0).args[2];
+        var retrieved = new Omega.Ship({parent_id : 'system1'});
+        get_cb(retrieved);
+        sinon.assert.calledWith(refresh_entity_container);
+      });
     });
 
     //describe("#partial_construction", function(){
     //});
   });
 
-  describe("#track", function(){
-    it("clears node event handlers for event");
-    it("adds new node event handler for event");
+  describe("#_msg_received", function(){
+    before(function(){
+      page.entities = [];
+    });
+
     describe("event occurred", function(){
       describe("motel event", function(){
-        it("invokes motel_event callback");
+        it("invokes motel_event callback", function(){
+          var eargs = [{}];
+          var motel_event = sinon.spy(tracker, '_callbacks_motel_event');
+          tracker._msg_received('motel::on_rotation', eargs);
+          sinon.assert.calledWith(motel_event, 'motel::on_rotation', eargs);
+        });
       });
+
       describe("resource collected event", function(){
-        it("invokes resource_collected callback")
+        it("invokes resource_collected callback", function(){
+          var eargs = ['resource_collected', {}];
+          var resource_collected = sinon.spy(tracker, '_callbacks_resource_collected');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(resource_collected, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("mining stopped event", function(){
-        it("invokes mining_stopped callback")
+        it("invokes mining_stopped callback", function(){
+          var eargs = ['mining_stopped', {}];
+          var mining_stopped = sinon.spy(tracker, '_callbacks_mining_stopped');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(mining_stopped, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("attacked event", function(){
-        it("invokes attacked callback")
+        it("invokes attacked callback", function(){
+          var eargs    = ['attacked', {}];
+          var attacked = sinon.spy(tracker, '_callbacks_attacked');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(attacked, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("attacked stop event", function(){
-        it("invokes attacked_stop callback")
+        it("invokes attacked_stop callback", function(){
+          var eargs = ['attacked_stop', {}];
+          var attacked_stop = sinon.spy(tracker, '_callbacks_attacked_stop');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(attacked_stop, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("defended event", function(){
-        it("invokes defended callback")
+        it("invokes defended callback", function(){
+          var eargs = ['defended', {}];
+          var defended = sinon.spy(tracker, '_callbacks_defended');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(defended, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("defended stop event", function(){
-        it("invokes defended_stop callback")
+        it("invokes defended_stop callback", function(){
+          var eargs = ['defended_stop', {}];
+          var defended_stop = sinon.spy(tracker, '_callbacks_defended_stop');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(defended_stop, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("destroyed_by event", function(){
-        it("invokes destroyed_by callback")
+        it("invokes destroyed_by callback", function(){
+          var eargs = ['destroyed_by', {}];
+          var destroyed_by = sinon.spy(tracker, '_callbacks_destroyed_by');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(destroyed_by, 'manufactured::event_occurred', eargs);
+        });
       });
+
       describe("construction_complete event", function(){
-        it("invokes construction_complete callback")
+        it("invokes construction_complete callback", function(){
+          var eargs = ['construction_complete', {}];
+          var construction_complete = sinon.stub(tracker, '_callbacks_construction_complete');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(construction_complete, 'manufactured::event_occurred', eargs);
+        });
       });
+
       //describe("partial_construction event", function(){
       //});
     });
   })
+
+  describe("#track", function(){
+    before(function(){
+      page.entities = [];
+    });
+
+    describe("event handler already registered", function(){
+      it("does nothing / just returns", function(){
+        tracker.track("motel::on_rotation");
+        assert(page.node._listeners['motel::on_rotation'].length).equals(1);
+        tracker.track("motel::on_rotation");
+        assert(page.node._listeners['motel::on_rotation'].length).equals(1);
+      });
+    });
+
+    it("adds new node event handler for event", function(){
+      var add_listener = sinon.spy(page.node, 'addEventListener');
+      tracker.track("motel::on_rotation");
+      sinon.assert.calledWith(add_listener, 'motel::on_rotation', sinon.match.func);
+    });
+
+    describe("on event", function(){
+      it("invokes _msg_received", function(){
+        var msg_received = sinon.spy(tracker, "_msg_received");
+        tracker.track("motel::on_rotation");
+        var handler = page.node._listeners['motel::on_rotation'][0];
+        handler('event_occurred');
+        sinon.assert.calledWith(msg_received, 'motel::on_rotation', ['event_occurred']);
+      });
+    });
+  }); 
 });});
