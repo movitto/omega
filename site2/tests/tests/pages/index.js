@@ -401,6 +401,9 @@ describe("Omega.UI.IndexDialog", function(){
         assert(page.session).equals(session);
       });
 
+      it("invokes page.session_validated")
+
+      // TODO move to session_validated test
       it("shows page navigation logout controls", function(){
         var spy = sinon.spy(page.nav, 'show_logout_controls');
         login_callback.apply(null, [session]);
@@ -544,6 +547,9 @@ describe("Omega.Pages.Index", function(){
         if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
       });
 
+      it("invokes session_validated")
+
+      // TODO move the following tests to session_validated tests
       it("shows logout controls", function(){
         spy = sinon.spy(index.nav, 'show_logout_controls');
         validate_cb.apply(null, [{}]);
@@ -577,6 +583,13 @@ describe("Omega.Pages.Index", function(){
         sinon.assert.calledWith(spy, 'stations');
       });
     });
+  });
+
+  describe("#_session_validated", function(){
+    /// TODO
+  })
+
+  describe("#_scene_change", function(){
   });
 
   //describe("#handle_events", function(){
@@ -728,6 +741,10 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
+  describe("#stop_tracking_ship", function(){
+    // TODO
+  });
+
   describe("#track_station", function(){
     var index, station, ws_invoke;
     before(function(){
@@ -746,6 +763,18 @@ describe("Omega.Pages.Index", function(){
       index.track_station(station);
       sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'partial_construction');
     });
+  });
+
+  describe("#stop_tracking_ship", function(){
+    // TODO
+  });
+
+  describe("#track_planet", function(){
+    // TODO
+  });
+
+  describe("#stop_tracking_planet", function(){
+    // TODO
   });
 
   describe("#process_system", function(){

@@ -133,11 +133,9 @@ Omega.UI.IndexDialog.prototype = {
       if(result.error){
         _this.show_login_failed_dialog(result.error.message);
       }else{
-// TODO other post login operations - same as when session.restore_from_cookie
-// returns a valid cookie below
         _this.hide();
         _this.page.session = result;
-        _this.page.nav.show_logout_controls();
+        _this.page._session_validated();
       }
     });
   },
@@ -181,14 +179,7 @@ Omega.Pages.Index = function(){
         _this.session = null;
         _this.nav.show_login_controls();
       }else{
-        _this.nav.show_logout_controls();
-
-/// TODO also process_entities in new scenes on all scene changes
-        /// load entities owned by user
-        Omega.Ship.owned_by(_this.session.user_id, _this.node,
-          function(ships) { _this.process_entities(ships); });
-        Omega.Station.owned_by(_this.session.user_id, _this.node,
-          function(stations) { _this.process_entities(stations); });
+        _this.session_validated();
       }
     });
   }
@@ -197,7 +188,6 @@ Omega.Pages.Index = function(){
   /// assuming it'll arrive before node is used above
 
   //this.effects_player   = new Omega.UI.EffectsPlayer();
-
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
@@ -220,6 +210,75 @@ Omega.Pages.Index.prototype = {
     this.nav.wire_up();
     this.dialog.wire_up();
     this.canvas.wire_up();
+  },
+
+  _session_validated : function(){
+    var _this = this;
+    this.nav.show_logout_controls();
+
+    /// handle scene changes
+    this.canvas.handleEvent('set_scene_root',
+      function(root_entity){ _this._scene_change(root_entity); })
+
+    /// load entities owned by user
+    Omega.Ship.owned_by(this.session.user_id, this.node,
+      function(ships) { _this.process_entities(ships); });
+    Omega.Station.owned_by(this.session.user_id, this.node,
+      function(stations) { _this.process_entities(stations); });
+  },
+
+  _scene_change : function(change){
+    var root = change.root;
+    var old_root = change.old_root;
+
+    var _this = this;
+    /// assuming user owned entities are always tracked, do not to be manipulated here
+    var entities =
+      $.grep(this.entities, function(entity){
+        return (entity.json_class == 'Manufactured::Ship' ||
+                entity.json_class == 'Manufactured::Station' ) &&
+                !entity.belongs_to_user(_this.session.user_id); });
+    var in_system =
+      $.grep(entities, function(entity){
+        return entity.parent_id == root.id; })
+
+    var not_in_system =
+      $.grep(entities, function(entity){
+        return entity.parent_id != root.id; })
+
+    /// remove tracking of entities not in system
+    for(var e = 0; e < not_in_system.length; e++){
+      var entity = not_in_system[e];
+      if(entity.json_class == 'Manufactured::Ship')
+        this.stop_tracking_ship(entity);
+      else
+        this.stop_tracking_station(entity);
+    }
+
+    /// track entities in system
+    for(var e = 0; e < in_system.length; e++){
+      var entity = in_system[e];
+      if(entity.json_class == 'Manufactured::Ship')
+        this.track_ship(entity);
+      else
+        this.track_station(entity);
+    }
+
+    /// remove tracking of old planets
+    if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
+      for(var p = 0; p < old_root.planets.length; p++){
+        var planet = old_root.planets[p];
+        this.stop_tracking_planet(planet);
+      }
+    }
+
+    /// track planets in new system if applicable
+    if(root.json_class == 'Cosmos::Entities::SolarSystem'){
+      for(var p = 0; p < root.planets.length; p++){
+        var planet = root.planets[p];
+        this.track_planet(planet);
+      }
+    }
   },
 
   handle_events : function(){
@@ -277,6 +336,11 @@ Omega.Pages.Index.prototype = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'destroyed_by');
   },
 
+  stop_tracking_ship : function(entity){
+    this.node.ws_invoke('motel::remove_callbacks', entity.location.id);
+    this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
+  },
+
   track_station : function(entity){
     /// TODO track jumps
     /// track construction
@@ -284,12 +348,22 @@ Omega.Pages.Index.prototype = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'partial_construction');
   },
 
+  stop_tracking_station : function(entity){
+    this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
+  },
+
+  track_planet : function(entity){
+    /// TODO
+  },
+
+  stop_tracking_planet : function(){
+    /// TODO
+  },
+
   process_system : function(system){
     if(system != null){
       var sitem  = {id: system.id, text: system.name, data: system};
       this.canvas.controls.locations_list.add(sitem);
-
-      /// TODO track planet movement
 
       // TODO load jump gate endpoints?
       var _this = this;

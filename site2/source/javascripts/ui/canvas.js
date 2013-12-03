@@ -148,11 +148,14 @@ Omega.UI.Canvas.prototype = {
 
   // Set the scene root entity
   set_scene_root : function(root){
-    this.root = root;
+    var old_root = this.root;
+    this.root    = root;
     var children = root.children;
     for(var c = 0; c < children.length; c++)
       this.add(children[c]);
     this.animate();
+    this.dispatchEvent({type: 'set_scene_root',
+                        data: {root: root, old_root: old_root});
   },
 
   /// Return bool indicating if scene is set to the specified root
@@ -215,6 +218,8 @@ Omega.UI.Canvas.prototype = {
     return this.entities.indexOf(entity_id) != -1;
   }
 };
+
+THREE.EventDispatcher.prototype.apply( Omega.UI.Canvas.prototype );
 
 Omega.UI.Canvas.Controls = function(parameters){
   this.locations_list   = new Omega.UI.Canvas.Controls.List({  div_id : '#locations_list' });

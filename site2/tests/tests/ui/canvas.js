@@ -209,6 +209,8 @@ describe("Omega.UI.Canvas", function(){
       assert(spy.getCall(0).args[0].id).equals(1);
       assert(spy.getCall(1).args[0].id).equals(2);
     });
+
+    it("raises set_scene_root event");
   });
 
   describe("#focus_on", function(){
