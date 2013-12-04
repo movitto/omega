@@ -59,7 +59,43 @@ Omega.has_listener_for = function(obj, evnt){
   return typeof(obj._listeners)       !== "undefined" &&
          typeof(obj._listeners[evnt]) !== "undefined" &&
          obj._listeners[evnt].length > 0;
-}
+};
+  
+// Update three component with specified rotation axis/matrix
+Omega.set_rotation = function(component, rotation){
+  if(rotation.constructor == THREE.Matrix4){
+    rotation.multiply(component.matrix);
+    component.rotation.setEulerFromRotationMatrix(rotation);
+
+  }else{
+    component.rotation.set(rotation[0], rotation[1], rotation[2]);
+    component.matrix.makeRotationFromEuler(component.rotation);
+
+  }
+  return component;
+};
+
+// Rotate position by specified rotation
+Omega.rotate_position = function(component, rotation){
+  var distance = component.length();
+  component.transformDirection(rotation);
+  component.set(component.x * distance,
+                component.y * distance,
+                component.z * distance);
+  return component;
+};
+
+// Translate coordinate, invoke callback, translate it back
+Omega.temp_translate = function(component, translation, cb){
+  component.position.add(-translation.x,
+                         -translation.y,
+                         -translation.z);
+  cb(component);
+  component.position.add(translation.x,
+                         translation.y,
+                         translation.z);
+  return component;
+};
 
 // Get a shader
 Omega.get_shader = function(id){

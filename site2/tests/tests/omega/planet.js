@@ -175,6 +175,10 @@ describe("Omega.Planet", function(){
     });
   });
 
+  describe("#update_gfx", function(){
+    it("updates mesh position");
+  });
+
   describe("#run_effects", function(){
     var pl;
 

@@ -40,5 +40,24 @@ Omega.Location.prototype = {
     return Omega.Math.round_to(this.x, 2) + "/" +
            Omega.Math.round_to(this.y, 2) + "/" +
            Omega.Math.round_to(this.z, 2);
+  },
+
+  /// return rotation matrix generated from axis angle
+  /// between location's orientation and base cartesion
+  /// orientation we're using
+  rotation_matrix : function(){
+    var axis = Omega.Math.cp(0, 0, 1,
+                             this.orientation_x,
+                             this.orientation_y,
+                             this.orientation_z);
+    var axis = Omega.Math.abwn(0, 0, 1,
+                               this.orientation_x,
+                               this.orientation_y,
+                               this.orientation_z);
+    var matrix = new THREE.Matrix3().
+                     makeRotationAxis({x: axis[0],
+                                       y: axis[1],
+                                       z: axis[2]}, angle);
+    return matrix;
   }
 };

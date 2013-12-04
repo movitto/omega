@@ -939,6 +939,70 @@ describe("Omega.Ship", function(){
     /// it("runs attack effects"); // NIY
   });
 
+  describe("#update_gfx", function(){
+    it("updates mesh");
+    it("updates highlight effects");
+    it("updates lamps");
+    it("updates trails");
+    it("updates command vectors");
+    it("updates location state");
+    it("updates command state");
+  });
+
+  describe("#_update_mesh", function(){
+    it("sets mesh position");
+    it("rotates mesh");
+  });
+
+  describe("#_update_highlight_effect", function(){
+    it("sets highlight postion")
+  });
+
+  describe("#_update_lamps", function(){
+    it("sets lamps' position");
+    it("rotates lamps' positions around mesh");
+  });
+
+  describe("#_update_trails", function(){
+    it("sets trail position");
+    it("rotates trails")
+    it("rotates trails' positions around mesh")
+  });
+
+  describe("#_update_command_vectors", function(){
+    it("sets attack vector position");
+    it("sets mining vector position");
+  });
+
+  describe("#_update_location_state", function(){
+    describe("location not stopped", function(){
+      it("adds trails to ship scene components");
+    });
+    describe("location stopped", function(){
+      it("removes trails from ship scene components");
+    });
+  });
+
+  describe("#_update_command_state", function(){
+    describe("ship is attacking", function(){
+      it("sets attack vector properties based on attack target");
+      it("adds attack vector to ship scene components");
+    });
+
+    describe("ship is not attacking", function(){
+      it("removes attack vector from ship scene components")
+    });
+
+    describe("ship is mining", function(){
+      it("sets mining vector properties based on mining target");
+      it("adds mining vector to ship scene components");
+    });
+
+    describe("ship is not mining", function(){
+      it("removes mining vector from ship scene components")
+    });
+  });
+
   describe("#get", function(){
     var node, get_cb, invoke_spy;
 

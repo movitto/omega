@@ -29,4 +29,8 @@ describe("Omega.Location", function(){
       });
     });
   });
+
+  describe("#rotation_matrix", function(){
+    it("creates rotation matrix from location's orientation");
+  });
 });}); // Omega.Location

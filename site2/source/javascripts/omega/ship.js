@@ -4,9 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO orientations, updates on movement/rotation/attack/defense/mining
-/// TODO remove components if hp == 0
-
 Omega.Ship = function(parameters){
   this.components = [];
   this.shader_components = [];
@@ -315,14 +312,18 @@ Omega.Ship.prototype = {
       var _this = this;
       new THREE.JSONLoader().load(geometry_path, function(mesh_geometry){
         var mesh = new THREE.Mesh(mesh_geometry, material);
+        mesh.base_position = mesh.base_rotation = [0,0,0];
         Omega.Ship.gfx[_this.type].mesh = mesh;
-        if(offset)
+        if(offset){
           mesh.position.set(offset[0], offset[1], offset[2]);
+          mesh.base_position = offset;
+        }
         if(scale)
           mesh.scale.set(scale[0], scale[1], scale[2]);
         if(rotation){
           mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
+          mesh.base_rotation = rotation;
         }
         Omega.Ship.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
         event_cb();
@@ -350,6 +351,7 @@ Omega.Ship.prototype = {
           var lamp  = lamps[l];
           var slamp = Omega.create_lamp(lamp[0], lamp[1]);
           slamp.position.set(lamp[2][0], lamp[2][1], lamp[2][2]);
+          slamp.base_position = lamp[2];
           Omega.Ship.gfx[this.type].lamps.push(slamp);
         }
       }
@@ -385,16 +387,20 @@ Omega.Ship.prototype = {
 
           var strail = new THREE.ParticleSystem(geo, trail_material);
           strail.position.set(trail[0], trail[1], trail[2]);
+          strail.base_position = trail;
           strail.sortParticles = true;
           Omega.Ship.gfx[this.type].trails.push(strail);
         }
       }
 
     //// attack line
+      var num_vertices = 20;
       var attack_material = new THREE.ParticleBasicMaterial({
         color: 0xFF0000, size: 20, map: particle_texture,
         blending: THREE.AdditiveBlending, transparent: true });
       var attack_geo = new THREE.Geometry();
+      for(var v = 0; v < num_vertices; v++)
+        attack_geo.push(new THREE.Vector3(0,0,0));
       var attack_vector = new THREE.ParticleSystem(attack_geo, attack_material);
       attack_vector.sortParticles = true;
       Omega.Ship.gfx[this.type].attack_vector = attack_vector;
@@ -403,6 +409,8 @@ Omega.Ship.prototype = {
     //// mining line
       var mining_material = new THREE.LineBasicMaterial({color: 0x0000FF});
       var mining_geo      = new THREE.Geometry();
+      mining_geo.push(new THREE.Vector3(0,0,0));
+      mining_geo.push(new THREE.Vector3(0,0,0));
       var mining_vector   = new THREE.Line(mining_geo, mining_material);
       Omega.Ship.gfx[this.type].mining_vector = mining_vector;
   },
@@ -441,9 +449,15 @@ Omega.Ship.prototype = {
 
     var _this = this;
     Omega.Ship.prototype.retrieve_resource(this.type, 'template_mesh', function(){
-      _this.mesh = Omega.Ship.gfx[_this.type].mesh.clone();
+      var template_mesh = Omega.Ship.gfx[_this.type].mesh;
+      _this.mesh = template_mesh.clone();
+
+      /// XXX copy custom attrs required later
+      _this.mesh.base_position = template_mesh.base_position;
+      _this.mesh.base_rotation = template_mesh.base_rotation;
+
       if(_this.location)
-        _this.mesh.position.set(_this.location.x,
+        _this.mesh.position.add(_this.location.x,
                                 _this.location.y,
                                 _this.location.z);
       _this.mesh.omega_entity = _this;
@@ -452,14 +466,20 @@ Omega.Ship.prototype = {
 
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.run_effects = Omega.Ship.gfx[this.type].highlight.run_effects; /// XXX
-    if(this.location) this.highlight.position.set(this.location.x, this.location.y, this.location.z);
+    if(this.location) this.highlight.position.add(this.location.x, this.location.y, this.location.z);
 
+/// FIXME mesh may not be loaded by this point
     this.components = [this.mesh, this.highlight];
 
     this.lamps = [];
     for(var l = 0; l < Omega.Ship.gfx[this.type].lamps.length; l++){
-      var lamp = Omega.Ship.gfx[this.type].lamps[l].clone();
-      lamp.run_effects = Omega.Ship.gfx[this.type].lamps[l].run_effects; /// XXX
+      var template_lamp = Omega.Ship.gfx[this.type].lamps[l];
+      var lamp = template_lamp.clone();
+
+      /// XXX copy custom attrs required later
+      lamp.base_position = template_lamp.base_position;
+      lamp.run_effects = Omega.Ship.gfx[this.type].lamps[l].run_effects;
+
       if(this.location)
         lamp.position.add(new THREE.Vector3(this.location.x,
                                             this.location.y,
@@ -470,7 +490,12 @@ Omega.Ship.prototype = {
 
     this.trails = [];
     for(var t = 0; t < Omega.Ship.gfx[this.type].trails.length; t++){
-      var trail = Omega.Ship.gfx[this.type].trails[t].clone();
+      var template_trail = Omega.Ship.gfx[this.type].trails[t];
+      var trail = template_trail.clone();
+
+      /// XXX copy custom attrs required later
+      trail.base_position = template_trail.base_position;
+
       if(this.location)
         trail.position.add(new THREE.Vector3(this.location.x,
                                              this.location.y,
@@ -489,8 +514,144 @@ Omega.Ship.prototype = {
                                                       this.location.z);
   },
 
-/// TODO
   update_gfx : function(){
+    if(!this.location) return;
+
+    /// TODO remove components if hp == 0
+    this._update_mesh();
+    this._update_highlight_effects();
+    this._update_lamps();
+    this._update_trails();
+    this._update_command_vectors();
+    this._update_location_state();
+    this._update_command_state();
+  },
+    
+  _update_mesh : function(){
+    if(!this.mesh) return;
+
+    /// update mesh position and orientation
+    this.mesh.position.set(this.location.x, this.location.y, this.location.z);
+    this.mesh.position.add(this.mesh.base_position[0],
+                           this.mesh.base_position[1],
+                           this.mesh.base_position[2]);
+    Omega.update_rotation(this.mesh, this.mesh.base_rotation);
+    Omega.update_rotation(this.mesh, this.location.rotation_matrix());
+  },
+
+  _update_highlight_effects : function(){
+    /// update highlight effects position
+    this.highlight.position.set(this.location.x,
+                                this.location.y,
+                                this.location.z);
+    this.highlight.position.add(Omega.Ship.prototype.highlight_props.x,
+                                Omega.Ship.prototype.highlight_props.y,
+                                Omega.Ship.prototype.highlight_props.z);
+  },
+
+  _update_lamps : function(){
+    /// update lamps position
+    for(var l = 0; l < this.lamps.length; l++){
+      var lamp = this.lamps[l];
+      lamp.position.set(this.location.x, this.location.y, this.location.z);
+      lamp.position.add(lamp.base_position[0],
+                        lamp.base_position[1],
+                        lamp.base_position[2]);
+      Omega.rotate_position(lamp, this.location.rotation_matrix());
+    }
+  },
+
+  _update_trails : function(){
+    /// update trails position and orientation
+    for(var t = 0; t < this.trails.length; t++){
+      var trail = this.trails[l];
+      trail.position.set(this.location.x, this.location.y, this.location.z);
+      trail.position.add(trail.base_position[0],
+                         trail.base_position[1],
+                         trail.base_position[2]);
+      Omega.update_rotation(trail, this.location.rotation_matrix());
+      Omega.rotate_position(trail, this.location.rotation_matrix());
+      if(this.mesh){
+        Omega.update_rotation(trail, this.mesh.base_rotation);
+      }
+    }
+  },
+
+  _update_command_vectors : function(){
+    /// update attack vector position
+    this.attack_vector.position.set(this.location.x, this.location.y, this.location.z);
+
+    /// update mining vector position
+    this.mining_vector.position.set(this.location.x, this.location.y, this.location.z);
+  },
+
+  _update_location_state : function(){
+    /// add/remove trails based on movement strategy
+    if(!this.location.movement_strategy || this.trails.length == 0 return
+    var stopped = "Motel::MovementStrategies::Stopped";
+    var is_stopped = (this.location.movement_strategy.json_class == stopped);
+    var has_trails = (this.components.indexOf(this.trails[0]) != -1);
+
+    if(!is_stopped && !has_trails){
+      for(var t = 0; t < this.trails.length; t++){
+        var trail = this.trails[t];
+        this.components.push(trail);
+      }
+
+    }else if(is_stopped && has_trails){
+      for(var t = 0; t < this.trails.length; t++){
+        var i = this.components.indexOf(this.trails[t]);
+        this.components.splice(i, 1);
+      }
+    }
+  },
+
+  _update_command_state : function(){
+    /// add/remove attack vector depending on ship state
+    var has_attack_vector = this.components.indexOf(this.attack_vector) != -1;
+    if(this.attacking){
+      /// update attack vector properties
+      var dist = this.location.distance_from(this.attacking.location.x,
+                                             this.attacking.location.y,
+                                             this.attacking.location.z);
+
+      /// should be signed to preserve direction
+      var dx = this.attacking.location.x - this.location.x;
+      var dy = this.attacking.location.x - this.location.y;
+      var dz = this.attacking.location.x - this.location.z;
+
+      /// 5 unit particle + 55 unit spacer
+      this.attack_vector.scalex = 60 / dist * dx;
+      this.attack_vector.scaley = 60 / dist * dy;
+      this.attack_vector.scalez = 60 / dist * dz;
+
+      /// add attack vector if not in scene components
+      if(!has_attack_vector) this.components.push(this.attack_vector);
+
+    }else if(has_attack_vector){
+      var i = this.components.indexOf(this.attack_vector);
+      this.components.splice(i, 1);
+    }
+
+    /// add/remove mining vector depending on ship state
+    var has_mining_vector = this.components.indexOf(this.mining_vector) != -1;
+    if(this.mining){
+      /// should be signed to preserve direction
+      var dx = this.attacking.location.x - this.location.x;
+      var dy = this.attacking.location.x - this.location.y;
+      var dz = this.attacking.location.x - this.location.z;
+
+      // update mining vector vertices
+      this.mining_vector.geometry.vertices[0].set(0,0,0);
+      this.mining_vector.geometry.vertices[1].set(dx,dy,dz);
+
+      /// add mining vector if not in scene components
+      if(!has_mining_vector) this.components.push(this.mining_vector);
+        
+    }else if(has_mining_vector){
+      var i = this.components.indexOf(this.mining_vector);
+      this.components.splice(i, 1);
+    }
   },
 
   run_effects : function(){
@@ -501,6 +662,7 @@ Omega.Ship.prototype = {
     }
 
     // animate trails
+    // TODO only if moving
     var plane    = Omega.Ship.prototype.trail_props.plane,
         lifespan = Omega.Ship.prototype.trail_props.lifespan;
     for(var t = 0; t < this.trails.length; t++){
@@ -518,7 +680,32 @@ Omega.Ship.prototype = {
       trail.geometry.__dirtyVertices = true;
     }
 
-    /// TODO animate attack particles
+    /// animate attack particles
+    if(this.attacking){
+      for(var p = 0; p < this.attack_vector.geometry.vertices.length; p++){
+        var vertex = this.attack_vector.geometry.vertices[p];
+        if(Math.floor( Math.random() * 20 ) == 1)
+          vertex.moving = true;
+        if(vertex.moving)
+          vertex.add(this.attack_vector.scalex,
+                     this.attack_vector.scaley,
+                     this.attack_vector.scalez);
+
+        var vertex_dist = 
+          this.attacking.location.distance_from(this.location.x + vertex.x,
+                                                this.location.y + vertex.y,
+                                                this.location.z + vertex.z);
+
+        /// FIXME if attack_vector.scale is large enough so that each
+        /// hop exceeds 60, this check may be missed alltogether &
+        /// particle will contiue to infinity
+        if(vertex_dist < 60){
+          vertex.set(0,0,0);
+          vertex.moving = false;
+        }
+      }
+      this.attack_vector.geometry.__dirtyVertices = true;
+    }
   }
 };
 

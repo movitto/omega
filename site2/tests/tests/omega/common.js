@@ -29,4 +29,18 @@ describe("Omega", function(){
       });
     });
   });
+
+  describe("#set_rotation", function(){
+    it("rotates orientation by matrix")
+    it("rotates orientation by euler-angles")
+  });
+
+  describe("#rotate_position", function(){
+    it("rotates position by matrix")
+  });
+
+  describe("#temp_translate", function(){
+    it("translates component position and invokes callback");
+    it("resets component position");
+  });
 });}); // Omega

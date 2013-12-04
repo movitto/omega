@@ -130,6 +130,10 @@ Omega.Planet.prototype = {
                              this.location.z);
   },
 
+  update_gfx : function(){
+    mesh.position.set(this.location.x, this.location.y, this.location.z);
+  },
+
   run_effects : function(){
     var ms   = this.location.movement_strategy;
     var curr = new Date();
