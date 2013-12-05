@@ -75,7 +75,7 @@ Omega.Test.Canvas.Entities = function(event_cb){
       planet       : new Omega.Planet(),
       jump_gate    : new Omega.JumpGate(),
       asteroid     : new Omega.Asteroid(),
-      ship         : new Omega.Ship({type : 'corvette'}), /// TODO other types
+      ship         : new Omega.Ship({type : 'corvette'}), /// TODO other types, and/or a 'test' type w/ its own config
       station      : new Omega.Station({type : 'manufacturing'}) /// TODO other types
     };
     var page     = Omega.Test.Page();
@@ -140,6 +140,14 @@ pavlov.specify.extendAssertions({
    */
   notClose: function(actual, expected, minDifference, message) {
     ok(Math.abs(actual - expected) > minDifference, message);
+  },
+
+  // Check if set values are close to the specified set
+  areCloseTo : function(actual, expected, maxDifference, message){
+    ok(actual.length == expected.length, message);
+    for(var i = 0; i < actual.length; i++){
+      ok(Math.abs(actual[i] - expected[i]) <= maxDifference, message);
+    }
   },
 
   isGreaterThan: function(actual, expected, message) {

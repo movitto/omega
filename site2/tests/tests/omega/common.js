@@ -30,17 +30,35 @@ describe("Omega", function(){
     });
   });
 
-  describe("#set_rotation", function(){
-    it("rotates orientation by matrix")
-    it("rotates orientation by euler-angles")
-  });
+  //describe("#set_rotation", function(){
+  //  it("rotates orientation by matrix");
+  //  it("rotates orientation by euler-angles");
+  //});
 
-  describe("#rotate_position", function(){
-    it("rotates position by matrix")
-  });
+  //describe("#rotate_position", function(){
+  //  it("rotates position by matrix");
+  //});
 
   describe("#temp_translate", function(){
-    it("translates component position and invokes callback");
-    it("resets component position");
+    var component, translation;
+
+    before(function(){
+      component = {position : new THREE.Vector3(0, 0, 0)};
+      translation = {x : 10, y : -20, z : -30};
+    });
+
+    it("translates component position and invokes callback", function(){
+      var cb = sinon.spy(function(component){
+        assert(component.position.toArray()).isSameAs([-10, 20, 30]);
+      });
+      Omega.temp_translate(component, translation, cb);
+      sinon.assert.called(cb)
+    });
+
+    it("resets component position", function(){
+      var cb = function(){};
+      Omega.temp_translate(component, translation, cb);
+      assert(component.position.toArray()).isSameAs([0,0,0]);
+    });
   });
 });}); // Omega

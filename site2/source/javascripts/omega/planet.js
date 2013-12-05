@@ -117,21 +117,17 @@ Omega.Planet.prototype = {
     this.mesh = Omega.Planet.gfx.mesh.clone();
     this.mesh.omega_entity = this;
     this.mesh.material = this._load_material(config, event_cb, '0x' + this.color);
-    this.refresh_gfx();
+    this.update_gfx();
 
     this._init_orbit_gfx();
     this.components = [this.mesh, this.orbit_mesh];
   },
 
-  refresh_gfx : function(){
+  update_gfx : function(){
     if(this.location && this.mesh)
       this.mesh.position.set(this.location.x,
                              this.location.y,
                              this.location.z);
-  },
-
-  update_gfx : function(){
-    mesh.position.set(this.location.x, this.location.y, this.location.z);
   },
 
   run_effects : function(){
@@ -188,7 +184,7 @@ Omega.Planet.prototype = {
     this.location.y = n[1] + this.cy;
     this.location.z = n[2] + this.cz;
 
-    this.refresh_gfx();
+    this.update_gfx();
     this.last_moved = curr;
   }
 };

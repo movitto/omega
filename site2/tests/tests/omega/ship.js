@@ -940,66 +940,310 @@ describe("Omega.Ship", function(){
   });
 
   describe("#update_gfx", function(){
-    it("updates mesh");
-    it("updates highlight effects");
-    it("updates lamps");
-    it("updates trails");
-    it("updates command vectors");
-    it("updates location state");
-    it("updates command state");
+    var ship;
+
+    before(function(){
+      ship = new Omega.Ship();
+    });
+
+    it("updates mesh", function(){
+      var update_mesh = sinon.spy(ship, '_update_mesh');
+      ship.update_gfx();
+      sinon.assert.called(update_mesh);
+    });
+
+    it("updates highlight effects", function(){
+      var update_highlight_effects = sinon.spy(ship, '_update_highlight_effects');
+      ship.update_gfx();
+      sinon.assert.called(update_highlight_effects);
+    });
+
+    it("updates lamps", function(){
+      var update_lamps = sinon.spy(ship, '_update_lamps');
+      ship.update_gfx();
+      sinon.assert.called(update_lamps);
+    });
+
+    it("updates trails", function(){
+      var update_trails = sinon.spy(ship, '_update_trails');
+      ship.update_gfx();
+      sinon.assert.called(update_trails);
+    });
+
+    it("updates command vectors", function(){
+      var update_command_vectors = sinon.spy(ship, '_update_command_vectors');
+      ship.update_gfx();
+      sinon.assert.called(update_command_vectors);
+    });
+
+    it("updates location state", function(){
+      var update_location_state = sinon.spy(ship, '_update_location_state');
+      ship.update_gfx();
+      sinon.assert.called(update_location_state);
+    });
+
+    it("updates command state", function(){
+      var update_command_state = sinon.spy(ship, '_update_command_state');
+      ship.update_gfx();
+      sinon.assert.called(update_command_state);
+    });
   });
 
   describe("#_update_mesh", function(){
-    it("sets mesh position");
-    it("rotates mesh");
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50,
+                                          orientation_x : 0,
+                                          orientation_y : 0,
+                                          orientation_z : 1});
+    });
+
+    after(function(){
+      if(Omega.set_rotation.restore) Omega.set_rotation.restore();
+    });
+
+    it("sets mesh position", async(function(){
+      var offset = Omega.Config.resources.ships[ship.type].offset;
+      if(!offset) offset = [0,0,0];
+
+      ship.retrieve_resource('mesh', function(){
+        ship._update_mesh();
+        assert(ship.mesh.position.x).equals(ship.location.x + offset[0]);
+        assert(ship.mesh.position.y).equals(ship.location.y + offset[1]);
+        assert(ship.mesh.position.z).equals(ship.location.z + offset[2]);
+        start();
+      });
+    }));
+
+    it("rotates mesh", async(function(){
+      var rotation = Omega.Config.resources.ships[ship.type].rotation;
+
+      var rotate = sinon.spy(Omega, 'set_rotation');
+      ship.retrieve_resource('mesh', function(){
+        ship._update_mesh();
+        sinon.assert.calledWith(rotate, ship.mesh);
+        assert(rotate.getCall(0).args[1]).isSameAs(rotation);
+        assert(rotate.getCall(1).args[1].elements).isSameAs(ship.location.rotation_matrix().elements);
+        start();
+      });
+    }));
   });
 
   describe("#_update_highlight_effect", function(){
-    it("sets highlight postion")
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
+    });
+
+    it("sets highlight postion", function(){
+      var props = Omega.Ship.prototype.highlight_props;
+      ship._update_highlight_effects();
+      assert(ship.highlight.position.x).equals(ship.location.x + props.x);
+      assert(ship.highlight.position.y).equals(ship.location.y + props.y);
+      assert(ship.highlight.position.z).equals(ship.location.z + props.z);
+    });
   });
 
   describe("#_update_lamps", function(){
-    it("sets lamps' position");
-    it("rotates lamps' positions around mesh");
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50,
+                                          orientation_x : 0,
+                                          orientation_y : 0,
+                                          orientation_z : 1});
+    });
+
+    after(function(){
+      if(Omega.rotate_position.restore) Omega.rotate_position.restore();
+    });
+
+    it("sets & rotates lamps' position", function(){
+      var rotate = sinon.spy(Omega, 'rotate_position');
+      var rot_matrix = ship.location.rotation_matrix();
+      ship._update_lamps();
+
+      var config_lamps = Omega.Config.resources.ships[ship.type].lamps;
+      for(var l = 0; l < config_lamps.length; l++){
+        var config_lamp = config_lamps[l];
+        var lamp = ship.lamps[l];
+        assert(lamp.position.x).equals(ship.location.x + config_lamp[2][0]);
+        assert(lamp.position.y).equals(ship.location.y + config_lamp[2][1]);
+        assert(lamp.position.z).equals(ship.location.z + config_lamp[2][2]);
+        sinon.assert.calledWith(rotate, lamp, rot_matrix);
+      }
+    });
   });
 
   describe("#_update_trails", function(){
-    it("sets trail position");
-    it("rotates trails")
-    it("rotates trails' positions around mesh")
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50,
+                                          orientation_x : 0,
+                                          orientation_y : 0,
+                                          orientation_z : 1});
+    });
+
+    after(function(){
+      if(Omega.set_rotation.restore) Omega.set_rotation.restore();
+      if(Omega.rotate_position.restore) Omega.rotate_position.restore();
+    });
+
+    it("sets & rotates trail positions, rotates trail orientation", function(){
+      var set_rotation = sinon.spy(Omega, 'set_rotation');
+      var rotate_position = sinon.spy(Omega, 'rotate_position');
+      var rot_matrix = ship.location.rotation_matrix();
+      ship._update_trails();
+
+      var config_trails = Omega.Config.resources.ships[ship.type].trails;
+      for(var t = 0; t < config_trails.length; t++){
+        var config_trail = config_trails[t];
+        var trail = ship.trails[t];
+        assert(trail.position.x).equals(ship.location.x + config_trail[0]);
+        assert(trail.position.y).equals(ship.location.y + config_trail[1]);
+        assert(trail.position.z).equals(ship.location.z + config_trail[2]);
+        sinon.assert.calledWith(set_rotation, trail, rot_matrix);
+        sinon.assert.calledWith(rotate_position, trail, rot_matrix);
+        /// TODO also test set_rotation(mesh.base_rotation)
+      }
+    });
   });
 
   describe("#_update_command_vectors", function(){
-    it("sets attack vector position");
-    it("sets mining vector position");
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
+    });
+
+    it("sets attack vector position", function(){
+      ship._update_command_vectors();
+      assert(ship.attack_vector.position.x).equals(ship.location.x);
+      assert(ship.attack_vector.position.y).equals(ship.location.y);
+      assert(ship.attack_vector.position.z).equals(ship.location.z);
+    });
+
+    it("sets mining vector position", function(){
+      ship._update_command_vectors();
+      assert(ship.mining_vector.position.x).equals(ship.location.x);
+      assert(ship.mining_vector.position.y).equals(ship.location.y);
+      assert(ship.mining_vector.position.z).equals(ship.location.z);
+    });
   });
 
   describe("#_update_location_state", function(){
-    describe("location not stopped", function(){
-      it("adds trails to ship scene components");
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
     });
+
+    describe("location not stopped", function(){
+      before(function(){
+        ship.location.movement_strategy =
+          {json_class : 'Motel::MovementStrategies::Linear'};
+
+        if(ship.components.indexOf(ship.trails[0]) != -1)
+          for(var t = 0; t < ship.trails.length; t++)
+            ship.components.splice(ship.components.indexOf(ship.trails[t]), 1);
+      });
+
+      it("adds trails to ship scene components", function(){
+        ship._update_location_state();
+        for(var t = 0; t < ship.trails.length; t++)
+          assert(ship.components).includes(ship.trails[t]);
+      });
+    });
+
     describe("location stopped", function(){
-      it("removes trails from ship scene components");
+      before(function(){
+        ship.location.movement_strategy =
+          {json_class : 'Motel::MovementStrategies::Stopped'};
+
+        if(ship.components.indexOf(ship.trails[0]) == -1)
+          for(var t = 0; t < ship.trails.length; t++)
+            ship.components.push(ship.trails[t]);
+      });
+
+      it("removes trails from ship scene components", function(){
+        ship._update_location_state();
+        for(var t = 0; t < ship.trails.length; t++)
+          assert(ship.components).doesNotInclude(ship.trails[t]);
+      });
     });
   });
 
   describe("#_update_command_state", function(){
+    var ship;
+
+    before(function(){
+      ship = Omega.Test.Canvas.Entities().ship;
+      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
+    });
+
     describe("ship is attacking", function(){
-      it("sets attack vector properties based on attack target");
-      it("adds attack vector to ship scene components");
+      before(function(){
+        ship.attacking = new Omega.Ship();
+        if(ship.components.indexOf(ship.attack_vector) != -1)
+          ship.components.splice(ship.components.indexOf(ship.attack_vector), 1);
+      });
+
+      //it("sets attack vector properties based on attack target"); // NIY
+
+      it("adds attack vector to ship scene components", function(){
+        ship._update_command_state();
+        assert(ship.components).includes(ship.attack_vector);
+      });
     });
 
     describe("ship is not attacking", function(){
-      it("removes attack vector from ship scene components")
+      before(function(){
+        ship.attacking = null;
+        if(ship.components.indexOf(ship.attack_vector) == -1)
+          ship.components.push(ship.attack_vector);
+      });
+
+      it("removes attack vector from ship scene components", function(){
+        ship._update_command_state();
+        assert(ship.components).doesNotInclude(ship.attack_vector);
+      });
     });
 
     describe("ship is mining", function(){
-      it("sets mining vector properties based on mining target");
-      it("adds mining vector to ship scene components");
+      before(function(){
+        ship.mining = new Omega.Asteroid({location : new Omega.Location({x:0,y:0,z:0})});
+        if(ship.components.indexOf(ship.mining_vector) != -1)
+          ship.components.splice(ship.components.indexOf(ship.mining_vector), 1);
+      });
+
+      //it("sets mining vector properties based on mining target"); // NIY
+
+      it("adds mining vector to ship scene components", function(){
+        ship._update_command_state();
+        assert(ship.components).includes(ship.mining_vector);
+      });
     });
 
     describe("ship is not mining", function(){
-      it("removes mining vector from ship scene components")
+      before(function(){
+        ship.mining = null;
+        if(ship.components.indexOf(ship.mining_vector) == -1)
+          ship.components.push(ship.mining_vector);
+      });
+
+      it("removes mining vector from ship scene components", function(){
+        ship._update_command_state();
+        assert(ship.components).doesNotInclude(ship.mining_vector);
+      })
     });
   });
 

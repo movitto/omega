@@ -144,9 +144,9 @@ describe("Omega.Planet", function(){
 
     it("refreshes graphics", function(){
       var planet = new Omega.Planet({});
-      var refresh_gfx = sinon.spy(planet, 'refresh_gfx');
+      var update_gfx = sinon.spy(planet, 'update_gfx');
       planet.init_gfx(config, event_cb);
-      sinon.assert.called(refresh_gfx);
+      sinon.assert.called(update_gfx);
     });
 
     it("loads planet orbit gfx", function(){
@@ -164,19 +164,15 @@ describe("Omega.Planet", function(){
     });
   });
 
-  describe("#refresh_gfx", function(){
+  describe("#update_gfx", function(){
     it("sets mesh position from planet location", function(){
       var planet = Omega.Test.Canvas.Entities().planet;
       planet.location = {x : 20, y : 30, z : -20};
-      planet.refresh_gfx();
+      planet.update_gfx();
       assert(planet.mesh.position.x).equals( 20);
       assert(planet.mesh.position.y).equals( 30);
       assert(planet.mesh.position.z).equals(-20);
     });
-  });
-
-  describe("#update_gfx", function(){
-    it("updates mesh position");
   });
 
   describe("#run_effects", function(){
@@ -211,10 +207,10 @@ describe("Omega.Planet", function(){
     });
 
     it("refreshes planet graphics", function(){
-      var refresh_gfx = sinon.spy(pl, 'refresh_gfx');
+      var update_gfx = sinon.spy(pl, 'update_gfx');
       pl.last_moved = new Date();
       pl.run_effects();
-      sinon.assert.called(refresh_gfx);
+      sinon.assert.called(update_gfx);
     });
 
     it("sets planet last movement time", function(){

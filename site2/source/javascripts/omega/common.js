@@ -65,7 +65,7 @@ Omega.has_listener_for = function(obj, evnt){
 Omega.set_rotation = function(component, rotation){
   if(rotation.constructor == THREE.Matrix4){
     rotation.multiply(component.matrix);
-    component.rotation.setEulerFromRotationMatrix(rotation);
+    component.rotation.setFromRotationMatrix(rotation);
 
   }else{
     component.rotation.set(rotation[0], rotation[1], rotation[2]);
@@ -77,23 +77,24 @@ Omega.set_rotation = function(component, rotation){
 
 // Rotate position by specified rotation
 Omega.rotate_position = function(component, rotation){
-  var distance = component.length();
-  component.transformDirection(rotation);
-  component.set(component.x * distance,
-                component.y * distance,
-                component.z * distance);
+  var position = component.position;
+  var distance = position.length();
+  position.transformDirection(rotation);
+  position.set(position.x * distance,
+               position.y * distance,
+               position.z * distance);
   return component;
 };
 
 // Translate coordinate, invoke callback, translate it back
 Omega.temp_translate = function(component, translation, cb){
-  component.position.add(-translation.x,
-                         -translation.y,
-                         -translation.z);
+  component.position.add(new THREE.Vector3(-translation.x,
+                                           -translation.y,
+                                           -translation.z));
   cb(component);
-  component.position.add(translation.x,
-                         translation.y,
-                         translation.z);
+  component.position.add(new THREE.Vector3(translation.x,
+                                           translation.y,
+                                           translation.z));
   return component;
 };
 

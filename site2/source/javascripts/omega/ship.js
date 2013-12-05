@@ -297,9 +297,9 @@ Omega.Ship.prototype = {
     var texture_path    = config.url_prefix + config.images_path + config.resources.ships[this.type].material;
     var geometry_path   = config.url_prefix + config.images_path + config.resources.ships[this.type].geometry;
     var geometry_prefix = config.url_prefix + config.images_path + config.meshes_path;
-    var rotation        = config.resources.ships[this.type].geometry.rotation;
-    var offset          = config.resources.ships[this.type].geometry.offset;
-    var scale           = config.resources.ships[this.type].geometry.scale;
+    var rotation        = config.resources.ships[this.type].rotation;
+    var offset          = config.resources.ships[this.type].offset;
+    var scale           = config.resources.ships[this.type].scale;
 
     var particle_path     = config.url_prefix + config.images_path + '/particle.png';
     var particle_texture  = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
@@ -400,7 +400,7 @@ Omega.Ship.prototype = {
         blending: THREE.AdditiveBlending, transparent: true });
       var attack_geo = new THREE.Geometry();
       for(var v = 0; v < num_vertices; v++)
-        attack_geo.push(new THREE.Vector3(0,0,0));
+        attack_geo.vertices.push(new THREE.Vector3(0,0,0));
       var attack_vector = new THREE.ParticleSystem(attack_geo, attack_material);
       attack_vector.sortParticles = true;
       Omega.Ship.gfx[this.type].attack_vector = attack_vector;
@@ -409,8 +409,8 @@ Omega.Ship.prototype = {
     //// mining line
       var mining_material = new THREE.LineBasicMaterial({color: 0x0000FF});
       var mining_geo      = new THREE.Geometry();
-      mining_geo.push(new THREE.Vector3(0,0,0));
-      mining_geo.push(new THREE.Vector3(0,0,0));
+      mining_geo.vertices.push(new THREE.Vector3(0,0,0));
+      mining_geo.vertices.push(new THREE.Vector3(0,0,0));
       var mining_vector   = new THREE.Line(mining_geo, mining_material);
       Omega.Ship.gfx[this.type].mining_vector = mining_vector;
   },
@@ -457,16 +457,19 @@ Omega.Ship.prototype = {
       _this.mesh.base_rotation = template_mesh.base_rotation;
 
       if(_this.location)
-        _this.mesh.position.add(_this.location.x,
-                                _this.location.y,
-                                _this.location.z);
+        _this.mesh.position.add(new THREE.Vector3(_this.location.x,
+                                                  _this.location.y,
+                                                  _this.location.z));
       _this.mesh.omega_entity = _this;
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
     });
 
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.run_effects = Omega.Ship.gfx[this.type].highlight.run_effects; /// XXX
-    if(this.location) this.highlight.position.add(this.location.x, this.location.y, this.location.z);
+    if(this.location)
+      this.highlight.position.add(new THREE.Vector3(this.location.x,
+                                                    this.location.y,
+                                                    this.location.z));
 
 /// FIXME mesh may not be loaded by this point
     this.components = [this.mesh, this.highlight];
@@ -532,52 +535,66 @@ Omega.Ship.prototype = {
 
     /// update mesh position and orientation
     this.mesh.position.set(this.location.x, this.location.y, this.location.z);
-    this.mesh.position.add(this.mesh.base_position[0],
-                           this.mesh.base_position[1],
-                           this.mesh.base_position[2]);
-    Omega.update_rotation(this.mesh, this.mesh.base_rotation);
-    Omega.update_rotation(this.mesh, this.location.rotation_matrix());
+    this.mesh.position.add(new THREE.Vector3(this.mesh.base_position[0],
+                                             this.mesh.base_position[1],
+                                             this.mesh.base_position[2]));
+    Omega.set_rotation(this.mesh, this.mesh.base_rotation);
+    Omega.set_rotation(this.mesh, this.location.rotation_matrix());
   },
 
   _update_highlight_effects : function(){
+    if(!this.highlight) return;
+
     /// update highlight effects position
     this.highlight.position.set(this.location.x,
                                 this.location.y,
                                 this.location.z);
-    this.highlight.position.add(Omega.Ship.prototype.highlight_props.x,
-                                Omega.Ship.prototype.highlight_props.y,
-                                Omega.Ship.prototype.highlight_props.z);
+    this.highlight.position.add(new THREE.Vector3(Omega.Ship.prototype.highlight_props.x,
+                                                  Omega.Ship.prototype.highlight_props.y,
+                                                  Omega.Ship.prototype.highlight_props.z));
   },
 
   _update_lamps : function(){
+    if(!this.lamps) return;
+    var _this = this;
+
     /// update lamps position
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];
       lamp.position.set(this.location.x, this.location.y, this.location.z);
-      lamp.position.add(lamp.base_position[0],
-                        lamp.base_position[1],
-                        lamp.base_position[2]);
-      Omega.rotate_position(lamp, this.location.rotation_matrix());
+      lamp.position.add(new THREE.Vector3(lamp.base_position[0],
+                                          lamp.base_position[1],
+                                          lamp.base_position[2]));
+      Omega.temp_translate(lamp, this.location, function(tlamp){
+        Omega.rotate_position(tlamp, _this.location.rotation_matrix());
+      });
     }
   },
 
   _update_trails : function(){
+    if(!this.trails) return;
+    var _this = this;
+
     /// update trails position and orientation
     for(var t = 0; t < this.trails.length; t++){
-      var trail = this.trails[l];
+      var trail = this.trails[t];
       trail.position.set(this.location.x, this.location.y, this.location.z);
-      trail.position.add(trail.base_position[0],
-                         trail.base_position[1],
-                         trail.base_position[2]);
-      Omega.update_rotation(trail, this.location.rotation_matrix());
-      Omega.rotate_position(trail, this.location.rotation_matrix());
+      trail.position.add(new THREE.Vector3(trail.base_position[0],
+                                           trail.base_position[1],
+                                           trail.base_position[2]));
+      Omega.set_rotation(trail, this.location.rotation_matrix());
+      Omega.temp_translate(trail, this.location, function(ttrail){
+        Omega.rotate_position(ttrail, _this.location.rotation_matrix());
+      });
       if(this.mesh){
-        Omega.update_rotation(trail, this.mesh.base_rotation);
+        Omega.set_rotation(trail, this.mesh.base_rotation);
       }
     }
   },
 
   _update_command_vectors : function(){
+    if(!this.attack_vector || !this.mining_vector) return;
+
     /// update attack vector position
     this.attack_vector.position.set(this.location.x, this.location.y, this.location.z);
 
@@ -587,7 +604,8 @@ Omega.Ship.prototype = {
 
   _update_location_state : function(){
     /// add/remove trails based on movement strategy
-    if(!this.location.movement_strategy || this.trails.length == 0 return
+    if(!this.location || !this.location.movement_strategy ||
+       !this.trails   ||  this.trails.length == 0) return;
     var stopped = "Motel::MovementStrategies::Stopped";
     var is_stopped = (this.location.movement_strategy.json_class == stopped);
     var has_trails = (this.components.indexOf(this.trails[0]) != -1);
@@ -607,6 +625,8 @@ Omega.Ship.prototype = {
   },
 
   _update_command_state : function(){
+    if(!this.attack_vector || !this.mining_vector) return;
+
     /// add/remove attack vector depending on ship state
     var has_attack_vector = this.components.indexOf(this.attack_vector) != -1;
     if(this.attacking){
@@ -637,9 +657,9 @@ Omega.Ship.prototype = {
     var has_mining_vector = this.components.indexOf(this.mining_vector) != -1;
     if(this.mining){
       /// should be signed to preserve direction
-      var dx = this.attacking.location.x - this.location.x;
-      var dy = this.attacking.location.x - this.location.y;
-      var dz = this.attacking.location.x - this.location.z;
+      var dx = this.mining.location.x - this.location.x;
+      var dy = this.mining.location.x - this.location.y;
+      var dz = this.mining.location.x - this.location.z;
 
       // update mining vector vertices
       this.mining_vector.geometry.vertices[0].set(0,0,0);
@@ -687,9 +707,9 @@ Omega.Ship.prototype = {
         if(Math.floor( Math.random() * 20 ) == 1)
           vertex.moving = true;
         if(vertex.moving)
-          vertex.add(this.attack_vector.scalex,
-                     this.attack_vector.scaley,
-                     this.attack_vector.scalez);
+          vertex.add(new THREE.Vector3(this.attack_vector.scalex,
+                                       this.attack_vector.scaley,
+                                       this.attack_vector.scalez));
 
         var vertex_dist = 
           this.attacking.location.distance_from(this.location.x + vertex.x,
