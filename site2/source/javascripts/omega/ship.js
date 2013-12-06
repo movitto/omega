@@ -449,8 +449,9 @@ Omega.Ship.prototype = {
     this.load_gfx(config, event_cb);
 
     var _this = this;
-    Omega.Ship.prototype.retrieve_resource(this.type, 'template_mesh', function(){
-      var template_mesh = Omega.Ship.gfx[_this.type].mesh;
+    Omega.Ship.prototype.retrieve_resource(this.type, 'template_mesh', function(template_mesh){
+/// TODO add fix to other locations:
+      if(Omega.Ship.gfx[_this.type].mesh != template_mesh) return;
       _this.mesh = template_mesh.clone();
 
       /// XXX copy custom attrs required later
@@ -622,8 +623,8 @@ Omega.Ship.prototype = {
 
       /// should be signed to preserve direction
       var dx = this.attacking.location.x - this.location.x;
-      var dy = this.attacking.location.x - this.location.y;
-      var dz = this.attacking.location.x - this.location.z;
+      var dy = this.attacking.location.y - this.location.y;
+      var dz = this.attacking.location.z - this.location.z;
 
       /// 5 unit particle + 55 unit spacer
       this.attack_vector.scalex = 60 / dist * dx;
@@ -643,8 +644,8 @@ Omega.Ship.prototype = {
     if(this.mining){
       /// should be signed to preserve direction
       var dx = this.mining.location.x - this.location.x;
-      var dy = this.mining.location.x - this.location.y;
-      var dz = this.mining.location.x - this.location.z;
+      var dy = this.mining.location.y - this.location.y;
+      var dz = this.mining.location.z - this.location.z;
 
       // update mining vector vertices
       this.mining_vector.geometry.vertices[0].set(0,0,0);
