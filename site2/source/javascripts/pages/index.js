@@ -269,11 +269,16 @@ Omega.Pages.Index.prototype = {
     }
 
     /// remove tracking of old planets
-    if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
-      var planets = old_root.planets();
-      for(var p = 0; p < planets.length; p++){
-        var planet = planets[p];
-        this.stop_tracking_planet(planet);
+    if(old_root){
+      if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
+        var planets = old_root.planets();
+        for(var p = 0; p < planets.length; p++){
+          var planet = planets[p];
+          this.stop_tracking_planet(planet);
+        }
+      }else{
+        /// remove galaxy particle effects from canvas scene
+        this.canvas.remove(old_root);
       }
     }
 
@@ -284,7 +289,18 @@ Omega.Pages.Index.prototype = {
         var planet = planets[p];
         this.track_planet(planet);
       }
+// TODO also add all manu entities (user owned & not) in system to scene
+// TODO also need to track when entities jump into scene, need a new server
+// event to effectively be able to do this
+    }else{
+      /// add galaxy particle effects to canvas scene
+      this.canvas.add(root);
     }
+
+    /// set scene background
+/// TODO add skybox to scene if not already added?
+/// TODO if adding galaxy, also add particles
+    this.canvas.skybox.set(root.bg);
   },
 
   handle_events : function(){
@@ -305,16 +321,18 @@ Omega.Pages.Index.prototype = {
   },
 
   process_entity : function(entity){
+    var _this = this;
     this.entity(entity.id, entity);
     var item   = {id: entity.id, text: entity.id, data: entity};
     this.canvas.controls.entities_list.add(item);
 
-/// FIXME skip if already retrieved from server, (also galaxy below)
-/// also some persistent caching mechanism so data doesn't
+/// also some persistent caching mechanism so cosmos data doesn't
 /// have to be retrieved on each page request
-    var _this = this;
-    Omega.SolarSystem.with_id(entity.system_id, this.node,
-      function(solar_system) { _this.process_system(solar_system) });
+    if(!this.entity(entity.system_id)){
+      this.entity(entity.system_id, 'placeholder');
+      Omega.SolarSystem.with_id(entity.system_id, this.node,
+        function(solar_system) { _this.process_system(solar_system) });
+    }
 
     if(entity.json_class == 'Manufactured::Ship')
       this.track_ship(entity);
@@ -369,18 +387,24 @@ Omega.Pages.Index.prototype = {
 
   process_system : function(system){
     if(system != null){
+      var _this = this;
+      this.entity(system.id, system);
       var sitem  = {id: system.id, text: system.name, data: system};
       this.canvas.controls.locations_list.add(sitem);
 
       // TODO load jump gate endpoints?
-      var _this = this;
-      Omega.Galaxy.with_id(system.parent_id, this.node,
-        function(galaxy) { _this.process_galaxy(galaxy) });
+      if(!this.entity(system.parent_id)){
+        this.entity(system.parent_id, 'placeholder');
+        Omega.Galaxy.with_id(system.parent_id, this.node,
+          function(galaxy) { _this.process_galaxy(galaxy) });
+      }
     }
   },
 
   process_galaxy : function(galaxy){
     if(galaxy != null){
+/// TODO swap children in from local entities (also in process_system)
+      this.entity(galaxy.id, galaxy);
       var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
       this.canvas.controls.locations_list.add(gitem);
     }
@@ -389,7 +413,7 @@ Omega.Pages.Index.prototype = {
 
 $(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests
-//  var index = new Omega.Pages.Index();
-//  index.wire_up();
-//  index.canvas.setup();
+  var index = new Omega.Pages.Index();
+  index.wire_up();
+  index.canvas.setup();
 });

@@ -15,6 +15,7 @@ Omega.Planet = function(parameters){
 };
 
 Omega.Planet.prototype = {
+  constructor: Omega.Planet,
   json_class : 'Cosmos::Entities::Planet',
 
   load_gfx : function(config, event_cb){
@@ -62,7 +63,8 @@ Omega.Planet.prototype = {
 
     this.rot_plane = {};
     this.rot_plane.angle = Omega.Math.abwn(0, 0, 1, nv[0], nv[1], nv[2]);
-    this.rot_plane.axis  = Omega.Math.cp(0, 0, 1, nv[0], nv[1], nv[2]);
+    if(this.rot_plane.angle == 0) this.rot_plane.axis = [1,0,0];
+    else this.rot_plane.axis  = Omega.Math.cp(0, 0, 1, nv[0], nv[1], nv[2]);
     this.rot_plane.axis  = Omega.Math.nrml(this.rot_plane.axis[0],
                                            this.rot_plane.axis[1],
                                            this.rot_plane.axis[2]);
@@ -188,3 +190,5 @@ Omega.Planet.prototype = {
     this.last_moved = curr;
   }
 };
+
+THREE.EventDispatcher.prototype.apply( Omega.Planet.prototype );

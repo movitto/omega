@@ -9,6 +9,7 @@ Omega.Location = function(parameters){
 };
 
 Omega.Location.prototype = {
+  constructor: Omega.Location,
   json_class : 'Motel::Location',
 
   clone : function(){
@@ -19,10 +20,16 @@ Omega.Location.prototype = {
   /* Return distance location is from the specified x,y,z
    * coordinates
    */
-  distance_from : function(loc){
-    return Math.sqrt(Math.pow(this.x - loc.x, 2) +
-                     Math.pow(this.y - loc.y, 2) +
-                     Math.pow(this.z - loc.z, 2));
+  distance_from : function(x,y,z){
+    if(x.json_class == 'Motel::Location'){
+      z = x.z;
+      y = x.y;
+      x = x.x;
+    }
+
+    return Math.sqrt(Math.pow(this.x - x, 2) +
+                     Math.pow(this.y - y, 2) +
+                     Math.pow(this.z - z, 2));
   },
 
   /* Return boolean indicating if location is less than the

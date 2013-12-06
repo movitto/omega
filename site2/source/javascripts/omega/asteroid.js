@@ -11,6 +11,7 @@ Omega.Asteroid = function(parameters){
 };
 
 Omega.Asteroid.prototype = {
+  constructor: Omega.Asteroid,
   json_class : 'Cosmos::Entities::Asteroid',
 
   has_details : true,
@@ -59,6 +60,7 @@ Omega.Asteroid.prototype = {
       var geometry_prefix = config.url_prefix + config.images_path + config.meshes_path;
       var rotation        = config.resources.asteroid.rotation;
       var scale           = config.resources.asteroid.scale;
+      console.log(scale)
 
       var texture         = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });

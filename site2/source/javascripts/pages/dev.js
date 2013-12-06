@@ -6,6 +6,7 @@
 
 //= require "ui/canvas"
 //= require "ui/effects_player"
+//= require "omega/gen"
 
 Omega.Pages.Dev = function(){
   this.config  = Omega.Config;
@@ -21,23 +22,57 @@ Omega.Pages.Dev.prototype = {
   },
 
   custom_operations : function(){
-    var star_loc = new Omega.Location({x:0,y:0,z:0});
-    var star   = new Omega.Star({location: star_loc});
+    var station1 = new Omega.Station({id : 'st1', type : 'manufacturing',
+      location : new Omega.Location({x: 1250, y: 1250, z: 300,
+                                     orientation_x : 1,
+                                     orientation_y : 0,
+                                     orientation_z : 0})});
+    var ship1 = new Omega.Ship({id : 'sh1', type : 'corvette',
+      location : new Omega.Location({x:-1250, y:-1250, z :300,
+                                     orientation_x : -1,
+                                     orientation_y : 0,
+                                     orientation_z : 0,
+                                     movement_strategy : {json_class : 'Motel::MovementStrategies::Linear' }})});
 
-    var ms  = {e : 0, p : 500, speed: 1.57,
-               dmajx: 0, dmajy : 1, dmajz : 0,
-               dminx: 0, dminy : 0, dminz : 1};
-    var loc = {id : 42, movement_strategy : ms};
-    var pl  = new Omega.Planet({location : loc});
+      
 
-    var children = [star, pl];
-    var system = new Omega.SolarSystem({children: children});
+    var star1 = new Omega.Star();
+    var star2 = new Omega.Star();
+
+    var orbit_nrml = {x : 0, y : 0, z : 1};
+    //var orbit_nrml = {x : 0.68, y : -0.56, z : 0.45};
+
+    var planet1 = new Omega.Planet({location :
+      new Omega.Location({x:500, y:500, z:500,
+        movement_strategy:
+          Omega.Gen.elliptical_ms(orbit_nrml,
+            {p: 3000, speed: 0.01, e : 0.7}) })});
+      
+    var gate1 = new Omega.JumpGate({location:
+      new Omega.Location({x:-1000, y:50, z:500})});
+
+    var ast1 = new Omega.Asteroid({location:
+      new Omega.Location({x:1500, y:1500, z:200})});
+
+    var system1 = new Omega.SolarSystem({id : 'sys1', name : 'sys1',
+        location : new Omega.Location({x: 500, y : 250, z: 500}),
+        children : [star1, ast1, gate1, planet1, station1, ship1]});
+    var system2 = new Omega.SolarSystem({id : 'sys2', name : 'sys2',
+        location : new Omega.Location({x : -400, y : 250, z : -400}),
+        children : [star2]});
+
+    var galaxy = new Omega.Galaxy({children : [system1, system2]});
 
     this.effects_player.start();
     this.canvas.setup();
-    this.canvas.set_scene_root(system);
-this.canvas.add(this.canvas.skybox);
-this.canvas.skybox.set('galaxy2')
+    this.canvas.set_scene_root(system1);
+    //this.canvas.add(galaxy);
+
+    //system1.add_interconn(system2);
+    //this.canvas.reload(system1);
+
+    this.canvas.add(this.canvas.skybox);
+    this.canvas.skybox.set('galaxy2')
 
     this.canvas.animate();
   }

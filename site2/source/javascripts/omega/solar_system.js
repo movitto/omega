@@ -48,7 +48,7 @@ Omega.SolarSystem.prototype = {
       /// each solar system instance should set mesh position
       var radius = 50, segments = 32, rings = 32;
       var geo    = new THREE.SphereGeometry(radius, segments, rings);
-      var mat    = new THREE.MeshBasicMaterial({opacity: 0, transparent: true});
+      var mat    = new THREE.MeshBasicMaterial({opacity: 0.2, transparent: true});
       Omega.SolarSystem.gfx.mesh = new THREE.Mesh(geo, mat);
 
     /// plane
@@ -91,8 +91,9 @@ Omega.SolarSystem.prototype = {
 
     /// text geometry needs to be created on system by system basis
     var text_geo = new THREE.TextGeometry(this.name, Omega.SolarSystem.prototype.text_opts);
+    THREE.GeometryUtils.center(text_geo);
     this.text    = new THREE.Mesh(text_geo, Omega.SolarSystem.gfx.text_material);
-    if(this.location) this.text.position.set(this.location.x, this.location.y, this.location.z - 50);
+    if(this.location) this.text.position.set(this.location.x, this.location.y, this.location.z + 50);
 
     this.components = [this.mesh, this.plane, this.text];
   },
@@ -101,23 +102,13 @@ Omega.SolarSystem.prototype = {
     for(var i = 0; i < this.interconnections.length; i++){
       var interconn = this.interconnections[i];
       var v         = interconn.geometry.vertices[0];
-      var endpoint  = interconn.endpoint;
 
-      var d  = this.location.distance_from(endpoint.location.x,
-                                           endpoint.location.y,
-                                           endpoint.location.z);
-      var dx = (endpoint.location.x - this.location.x) / d;
-      var dy = (endpoint.location.y - this.location.y) / d;
-      var dz = (endpoint.location.z - this.location.z) / d;
-
-      v.set(interconn.ticker * dx * 50,
-            interconn.ticker * dy * 50,
-            interconn.ticker * dz * 50)
+      v.set(interconn.ticker * interconn.dx * 50,
+            interconn.ticker * interconn.dy * 50,
+            interconn.ticker * interconn.dz * 50)
 
       interconn.ticker += 1;
-      if(endpoint.location.distance_from(this.location.x+v.x,
-                                         this.location.y+v.y,
-                                         this.location.z+v.z) < 100)
+      if(interconn.ticker >= interconn.ticks)
         interconn.ticker = 0;
       interconn.geometry.__dirtyVertices = true;
     }
@@ -140,9 +131,18 @@ Omega.SolarSystem.prototype = {
     particle_system.position.set(this.location.x,
                                  this.location.y,
                                  this.location.z);
+
+    var d = this.location.distance_from(endpoint.location);
+    var dx = (endpoint.location.x - this.location.x) / d;
+    var dy = (endpoint.location.y - this.location.y) / d;
+    var dz = (endpoint.location.z - this.location.z) / d;
+
     particle_system.sortParticles = true;
     particle_system.ticker = 0;
-    particle_system.endpoint = endpoint;
+    particle_system.ticks = d / 50;
+    particle_system.dx = dx;
+    particle_system.dy = dy;
+    particle_system.dz = dz;
 
     this.components.push(line);
     this.components.push(particle_system);
@@ -160,3 +160,5 @@ Omega.SolarSystem.with_id = function(id, node, cb){
       cb(sys);
     });
 }
+
+THREE.EventDispatcher.prototype.apply( Omega.SolarSystem.prototype );

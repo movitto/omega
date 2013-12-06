@@ -16,6 +16,7 @@ Omega.Star = function(parameters){
 };
 
 Omega.Star.prototype = {
+  constructor: Omega.Star,
   json_class : 'Cosmos::Entities::Star',
 
   load_gfx : function(config, event_cb){
@@ -24,7 +25,7 @@ Omega.Star.prototype = {
 
     //// mesh
       // each star instance should override radius in the geometry instance
-      var radius = 250, segments = 32, rings = 32;
+      var radius = 750, segments = 32, rings = 32;
       var mesh_geo = new THREE.SphereGeometry(radius, segments, rings);
 
       var lava_path      = config.url_prefix + config.images_path + config.resources.star.lava;
@@ -90,3 +91,5 @@ Omega.Star.prototype = {
     this.effects_timestamp = now;
   }
 };
+
+THREE.EventDispatcher.prototype.apply( Omega.Star.prototype );

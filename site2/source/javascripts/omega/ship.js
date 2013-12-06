@@ -14,6 +14,7 @@ Omega.Ship = function(parameters){
 };
 
 Omega.Ship.prototype = {
+  constructor: Omega.Ship,
   json_class : 'Manufactured::Ship',
 
   belongs_to_user : function(user_id){
@@ -22,32 +23,32 @@ Omega.Ship.prototype = {
 
   cmds : [
     { id      : 'ship_move_',
-      class   : 'ship_move',
+      class   : 'ship_move details_command',
       text    : 'move',
       handler : '_select_destination'      },
 
     { id      : 'ship_attack_',
-      class   : 'ship_attack',
+      class   : 'ship_attack details_command',
       text    : 'attack',
       handler : '_select_attack_target'    },
 
     { id      : 'ship_dock_',
-      class   : 'ship_dock',
+      class   : 'ship_dock details_command',
       text    : 'dock',
       handler : '_select_docking_station'  },
 
     { id      : 'ship_undock_',
-      class   : 'ship_undock',
+      class   : 'ship_undock details_command',
       text    : 'undock',
       handler : '_undock'                  },
 
     { id      : 'ship_transfer_',
-      class   : 'ship_transfer',
+      class   : 'ship_transfer details_command',
       text    : 'transfer',
       handler : '_transfer'                },
 
     { id      : 'ship_mine_',
-      class   : 'ship_mine',
+      class   : 'ship_mine details_command',
       text    : 'mine',
       handler : '_select_mining_target'    }],
 
@@ -455,12 +456,10 @@ Omega.Ship.prototype = {
       /// XXX copy custom attrs required later
       _this.mesh.base_position = template_mesh.base_position;
       _this.mesh.base_rotation = template_mesh.base_rotation;
+      _this.update_gfx();
 
-      if(_this.location)
-        _this.mesh.position.add(new THREE.Vector3(_this.location.x,
-                                                  _this.location.y,
-                                                  _this.location.z));
       _this.mesh.omega_entity = _this;
+      _this.components.push(_this.mesh);
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
     });
 
@@ -471,8 +470,7 @@ Omega.Ship.prototype = {
                                                     this.location.y,
                                                     this.location.z));
 
-/// FIXME mesh may not be loaded by this point
-    this.components = [this.mesh, this.highlight];
+    this.components = [this.highlight];
 
     this.lamps = [];
     for(var l = 0; l < Omega.Ship.gfx[this.type].lamps.length; l++){
@@ -483,10 +481,6 @@ Omega.Ship.prototype = {
       lamp.base_position = template_lamp.base_position;
       lamp.run_effects = Omega.Ship.gfx[this.type].lamps[l].run_effects;
 
-      if(this.location)
-        lamp.position.add(new THREE.Vector3(this.location.x,
-                                            this.location.y,
-                                            this.location.z));
       this.lamps.push(lamp);
       this.components.push(lamp);
     }
@@ -499,22 +493,13 @@ Omega.Ship.prototype = {
       /// XXX copy custom attrs required later
       trail.base_position = template_trail.base_position;
 
-      if(this.location)
-        trail.position.add(new THREE.Vector3(this.location.x,
-                                             this.location.y,
-                                             this.location.z));
       this.trails.push(trail);
     }
 
     this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.clone();
-    if(this.location) this.attack_vector.position.set(this.location.x,
-                                                      this.location.y,
-                                                      this.location.z);
-
     this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
-    if(this.location) this.mining_vector.position.set(this.location.x,
-                                                      this.location.y,
-                                                      this.location.z);
+
+    this.update_gfx();
   },
 
   update_gfx : function(){
@@ -582,13 +567,13 @@ Omega.Ship.prototype = {
       trail.position.add(new THREE.Vector3(trail.base_position[0],
                                            trail.base_position[1],
                                            trail.base_position[2]));
+      if(this.mesh){
+        Omega.set_rotation(trail, this.mesh.base_rotation);
+      }
       Omega.set_rotation(trail, this.location.rotation_matrix());
       Omega.temp_translate(trail, this.location, function(ttrail){
         Omega.rotate_position(ttrail, _this.location.rotation_matrix());
       });
-      if(this.mesh){
-        Omega.set_rotation(trail, this.mesh.base_rotation);
-      }
     }
   },
 
@@ -682,7 +667,6 @@ Omega.Ship.prototype = {
     }
 
     // animate trails
-    // TODO only if moving
     var plane    = Omega.Ship.prototype.trail_props.plane,
         lifespan = Omega.Ship.prototype.trail_props.lifespan;
     for(var t = 0; t < this.trails.length; t++){

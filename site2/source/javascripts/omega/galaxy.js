@@ -17,6 +17,7 @@ Omega.Galaxy = function(parameters){
 };
 
 Omega.Galaxy.prototype = {
+  constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
   mesh_props  : {
@@ -131,6 +132,7 @@ Omega.Galaxy.prototype = {
     this.components = [this.particles];
   },
 
+  /// TODO optimize
   run_effects : function(){
     var gmp = Omega.Galaxy.prototype.mesh_props;
     var geo = this.particles.geometry;
@@ -142,7 +144,7 @@ Omega.Galaxy.prototype = {
       /// calculate current theta
 /// FIXME ellipse property prolly won't be cloned
       var s = vec.ellipse[0]; var rote = vec.ellipse[1];
-      var o = rot(vec.x,vec.y,vec.z,-rote,0,0,1);
+      var o = Omega.Math.rot(vec.x,vec.y,vec.z,-rote,0,0,1);
       var t = Math.asin(o[0]/s);
       if(o[1] < 0) t = Math.PI - t;
 
@@ -150,7 +152,7 @@ Omega.Galaxy.prototype = {
           t+= gmp.utinc/d*100;
       var x = s * Math.sin(t);
       var y = s * Math.cos(t) * gmp.eskew;
-      var n = rot(x,y,o[2],rote,0,0,1)
+      var n = Omega.Math.rot(x,y,o[2],rote,0,0,1)
 
       /// set particle
       vec.set(n[0], n[1], n[2]);
@@ -170,3 +172,5 @@ Omega.Galaxy.with_id = function(id, node, cb){
       cb(galaxy);
     });
 };
+
+THREE.EventDispatcher.prototype.apply( Omega.Galaxy.prototype );

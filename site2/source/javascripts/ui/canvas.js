@@ -9,7 +9,7 @@
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.Canvas.Controls({canvas: this});
   this.dialog           = new Omega.UI.Canvas.Dialog({canvas: this});
-  this.entity_container = new Omega.UI.Canvas.EntityContainer();
+  this.entity_container = new Omega.UI.Canvas.EntityContainer({canvas : this});
   this.skybox           = new Omega.UI.Canvas.Skybox({canvas: this});
   this.axis             = new Omega.UI.Canvas.Axis();
   this.canvas           = $('#omega_canvas');
@@ -102,8 +102,8 @@ Omega.UI.Canvas.prototype = {
     this.renderer.setClearColor(0x000000, 0.0);
 
     this.cam_controls.domElement = this.renderer.domElement;
-    this.cam_controls.object.position.set(0,500,500);
-    this.cam_controls.target.set(0,0,0);
+    this.cam_controls.object.position.set(0,1500,1500);
+this.cam_controls.target.set(-1250,-1250,300);
     this.cam_controls.update();
 
     THREEx.WindowResize(this.renderer, this.cam, padding);
@@ -127,7 +127,7 @@ Omega.UI.Canvas.prototype = {
       var entity = intersects[0].object.omega_entity;
       if(entity){
         if(entity.has_details) this.entity_container.show(entity);
-        if(entity.clicked_in) this.entity.clicked_in(this);
+        if(entity.clicked_in) entity.clicked_in(this);
         entity.dispatchEvent({type: 'click'});
       }
     }
@@ -149,6 +149,7 @@ Omega.UI.Canvas.prototype = {
   // Set the scene root entity
   set_scene_root : function(root){
     var old_root = this.root;
+    this.clear();
     this.root    = root;
     var children = root.children;
     for(var c = 0; c < children.length; c++)
@@ -179,6 +180,10 @@ Omega.UI.Canvas.prototype = {
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
 
+    /// XXX hacky but works for now:
+    entity.sceneReload = function() { _this.reload(entity); };
+    entity.addEventListener('loaded_mesh', entity.sceneReload);
+
     this.entities.push(entity.id);
   },
 
@@ -188,6 +193,9 @@ Omega.UI.Canvas.prototype = {
       this.scene.remove(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.remove(entity.shader_components[cc]);
+
+    /// remove event listener
+    entity.removeEventListener('loaded_mesh', entity.sceneReload);
 
     var index = this.entities.indexOf(entity.id);
     if(index != -1) this.entities.splice(index, 1);
@@ -205,7 +213,7 @@ Omega.UI.Canvas.prototype = {
   clear : function(){
     this.root = null;
     this.entities = [];
-    this._listeners = []; /// clear three.js event listeners (XXX hacky, figure out better way)
+//this._listeners = []; /// clear three.js event listeners (XXX hacky, figure out better way)
     var scene_components        = this.scene.getDescendants();
     var shader_scene_components = this.shader_scene.getDescendants();
 
@@ -466,6 +474,7 @@ Omega.UI.Canvas.EntityContainer.prototype = {
       this.entity.unselected(this.canvas.page);
 
     this.entity = null;
+    $(this.contents_id).html('');
     $(this.div_id).hide();
   },
 
@@ -546,8 +555,10 @@ Omega.UI.Canvas.Skybox.prototype = {
   }
 };
 
+THREE.EventDispatcher.prototype.apply( Omega.UI.Canvas.Skybox.prototype );
+
 Omega.UI.Canvas.Axis = function(parameters){
-  this.size = 750;
+  this.size = 2750;
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
@@ -583,3 +594,5 @@ Omega.UI.Canvas.Axis.prototype = {
     return new THREE.Line(geo, mat);
   }
 };
+
+THREE.EventDispatcher.prototype.apply( Omega.UI.Canvas.Axis.prototype );

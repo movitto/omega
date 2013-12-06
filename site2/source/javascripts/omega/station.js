@@ -14,6 +14,7 @@ Omega.Station = function(parameters){
 };
 
 Omega.Station.prototype = {
+  constructor: Omega.Station,
   json_class : 'Manufactured::Station',
 
   belongs_to_user : function(user_id){
@@ -32,9 +33,10 @@ Omega.Station.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
+    var _this = this;
     var construct_cmd = $('<span/>',
       {id    : 'station_construct_' + this.id,
-       class : 'station_construct',
+       class : 'station_construct details_command',
        text  : 'construct'})
      construct_cmd.data('station', this);
      construct_cmd.click(function(){ _this._construct(page); });
@@ -98,9 +100,9 @@ Omega.Station.prototype = {
     var texture_path    = config.url_prefix + config.images_path + config.resources.stations[this.type].material;
     var geometry_path   = config.url_prefix + config.images_path + config.resources.stations[this.type].geometry;
     var geometry_prefix = config.url_prefix + config.images_path + config.meshes_path;
-    var rotation        = config.resources.stations[this.type].geometry.rotation;
-    var offset          = config.resources.stations[this.type].geometry.offset;
-    var scale           = config.resources.stations[this.type].geometry.scale;
+    var rotation        = config.resources.stations[this.type].rotation;
+    var offset          = config.resources.stations[this.type].offset;
+    var scale           = config.resources.stations[this.type].scale;
 
     //// mesh
       /// each station instance should set position of mesh
@@ -190,14 +192,23 @@ Omega.Station.prototype = {
                                 _this.location.y,
                                 _this.location.z);
       _this.mesh.omega_entity = _this;
+      _this.components.push(_this.mesh);
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
     });
 
+    var highlight_props = Omega.Station.prototype.highlight_props;
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
     this.highlight.run_effects = Omega.Station.gfx[this.type].highlight.run_effects; /// XXX
-    if(this.location) this.highlight.position.set(this.location.x, this.location.y, this.location.z);
+    this.highlight.position.set(highlight_props.x,
+                                highlight_props.y,
+                                highlight_props.z);
+    if(this.location)
+      this.highlight.position.add(new THREE.Vector3(this.location.x,
+                                                    this.location.y,
+                                                    this.location.z));
 
-    this.components = [this.mesh, this.highlight];
+
+    this.components = [this.highlight];
 
     this.lamps = [];
     for(var l = 0; l < Omega.Station.gfx[this.type].lamps.length; l++){

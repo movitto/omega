@@ -13,6 +13,7 @@ Omega.JumpGate = function(parameters){
 };
 
 Omega.JumpGate.prototype = {
+  constructor : Omega.JumpGate,
   json_class : 'Cosmos::Entities::JumpGate',
 
   has_details : true,
@@ -22,7 +23,7 @@ Omega.JumpGate.prototype = {
     var loc   = '@ ' + this.location.to_s();
     var trigger_cmd   = $('<span/>',
       {id    : 'trigger_jg_' + this.id,
-       class : 'trigger_jg',
+       class : 'trigger_jg details_command',
        text  : 'trigger'});
     trigger_cmd.data('jump_gate', this);
 
@@ -91,9 +92,13 @@ Omega.JumpGate.prototype = {
                                      this.location);
   },
 
-  particle_plane_size :  20,
-
-  particle_lifespan   : 200,
+  gfx_props : {
+    particle_plane :  20,
+    particle_life  : 200,
+    lamp_x         : -22,
+    lamp_y         : -17,
+    lamp_z         : 175,
+  },
 
   load_gfx : function(config, event_cb){
     if(typeof(Omega.JumpGate.gfx) !== 'undefined') return;
@@ -103,9 +108,9 @@ Omega.JumpGate.prototype = {
       var texture_path    = config.url_prefix + config.images_path + config.resources.jump_gate.material;
       var geometry_path   = config.url_prefix + config.images_path + config.resources.jump_gate.geometry;
       var geometry_prefix = config.url_prefix + config.images_path + config.meshes_path;
-      var rotation        = config.resources.jump_gate.geometry.rotation;
-      var offset          = config.resources.jump_gate.geometry.offset;
-      var scale           = config.resources.jump_gate.geometry.scale;
+      var rotation        = config.resources.jump_gate.rotation;
+      var offset          = config.resources.jump_gate.offset;
+      var scale           = config.resources.jump_gate.scale;
 
       var texture         = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       texture.wrapS       = texture.wrapT    = THREE.RepeatWrapping;
@@ -133,8 +138,8 @@ Omega.JumpGate.prototype = {
     //// particles
       var particle_path = config.url_prefix + config.images_path + "/particle.png";
       var texture       = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
-      var lifespan      = Omega.JumpGate.prototype.particle_lifespan,
-          plane         = Omega.JumpGate.prototype.particle_plane_size;
+      var lifespan      = Omega.JumpGate.prototype.gfx_props.particle_life,
+          plane         = Omega.JumpGate.prototype.gfx_props.particle_plane;
       var particles_material =
         new THREE.ParticleBasicMaterial({
           color: 0x0000FF, size        : 20,
@@ -205,12 +210,19 @@ Omega.JumpGate.prototype = {
                                                   _this.location.y,
                                                   _this.location.z));
       _this.mesh.omega_entity = _this;
+      _this.components.push(_this.mesh);
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
     });
 
+    var lamp_offset = [Omega.JumpGate.prototype.gfx_props.lamp_x,
+                       Omega.JumpGate.prototype.gfx_props.lamp_y,
+                       Omega.JumpGate.prototype.gfx_props.lamp_z];
     this.lamp = Omega.JumpGate.gfx.lamp.clone();
     this.lamp.run_effects = Omega.JumpGate.gfx.lamp.run_effects; /// XXX
-    if(this.location) this.lamp.position.set(this.location.x, this.location.y, this.location.z);
+    if(this.location)
+      this.lamp.position.set(this.location.x + lamp_offset[0],
+                             this.location.y + lamp_offset[1],
+                             this.location.z + lamp_offset[2]);
 
     this.particles = Omega.JumpGate.gfx.particles.clone();
     if(this.location) this.particles.position.set(this.location.x - 30,
@@ -223,7 +235,7 @@ Omega.JumpGate.prototype = {
                                                          this.location.y,
                                                          this.location.z)
 
-    this.components = [this.mesh, this.lamp, this.particles];
+    this.components = [this.lamp, this.particles];
   },
 
   run_effects : function(){
@@ -231,8 +243,8 @@ Omega.JumpGate.prototype = {
     this.lamp.run_effects();
 
     /// update particles
-    var plane    = Omega.JumpGate.gfx.particle_plane_size,
-        lifespan = Omega.JumpGate.gfx.lifespan;
+    var plane    = Omega.JumpGate.prototype.gfx_props.particle_plane,
+        lifespan = Omega.JumpGate.prototype.gfx_props.particle_life;
 
     var p = plane*plane;
     var not_moving = [];

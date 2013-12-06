@@ -64,8 +64,9 @@ Omega.has_listener_for = function(obj, evnt){
 // Update three component with specified rotation axis/matrix
 Omega.set_rotation = function(component, rotation){
   if(rotation.constructor == THREE.Matrix4){
-    rotation.multiply(component.matrix);
-    component.rotation.setFromRotationMatrix(rotation);
+    var nrot = rotation.clone();
+    nrot.multiply(component.matrix);
+    component.rotation.setFromRotationMatrix(nrot);
 
   }else{
     component.rotation.set(rotation[0], rotation[1], rotation[2]);
@@ -246,15 +247,18 @@ Omega.Math = {
     // axis plane rotation
     var nv1 = cp(ms.dmajx,ms.dmajy,ms.dmajz,ms.dminx,ms.dminy,ms.dminz);
     var ab1 = abwn(0,0,1,nv1[0],nv1[1],nv1[2]);
-    var ax1 = cp(0,0,1,nv1[0],nv1[1],nv1[2]);
-        ax1 = nrml(ax1[0],ax1[1],ax1[2]);
+
+             var ax1;
+    if(ab1 == 0) ax1 = [1,0,0];
+    else         ax1 = cp(0,0,1,nv1[0],nv1[1],nv1[2]);
+                 ax1 = nrml(ax1[0],ax1[1],ax1[2]);
   
     // axis rotation
     var nmaj = rot(1,0,0,ab1,ax1[0],ax1[1],ax1[2]);
     var ab2 = abwn(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
     var ax2 = cp(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
         ax2 = nrml(ax2[0],ax2[1],ax2[2]);
-  
+
     // path
     for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){
       var x = a * Math.cos(i);
