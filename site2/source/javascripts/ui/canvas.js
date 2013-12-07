@@ -44,7 +44,7 @@ Omega.UI.Canvas.prototype = {
 
   setup : function(){
     var _this   = this;
-    var padding = 30;
+    var padding = 30; /// XXX ideally would be 0: jquery dialog appends itself to end of body
 
     this.scene = new THREE.Scene();
     this.shader_scene = new THREE.Scene();
