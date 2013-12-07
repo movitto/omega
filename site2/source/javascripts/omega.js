@@ -11,7 +11,7 @@
 //= require "vendor/jquery.timer"
 //= require "vendor/google_recaptcha_ajax"
 
-//= require "vendor/three-r62.min"
+//= require "vendor/three-r62"
 //= require "vendor/helvetiker_font/helvetiker_regular.typeface"
 //= require "vendor/three/MaskPass"
 //= require "vendor/three/CopyShader"

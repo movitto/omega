@@ -6731,9 +6731,12 @@ THREE.EventDispatcher.prototype = {
 
 	dispatchEvent: function () {
 
-		var array = [];
 
 		return function ( event ) {
+      /// mmorsi change (moved array into closure) v
+      /// if event handler raises another event array will be overloaded, this fixes that
+      /// (file issue w/ three.js)
+		  var array = [];
 
 			if ( this._listeners === undefined ) return;
 
