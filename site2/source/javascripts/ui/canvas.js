@@ -102,9 +102,7 @@ Omega.UI.Canvas.prototype = {
     this.renderer.setClearColor(0x000000, 0.0);
 
     this.cam_controls.domElement = this.renderer.domElement;
-    this.cam_controls.object.position.set(0,1500,1500);
-    this.cam_controls.target.set(0,0,0);
-    this.cam_controls.update();
+    this.reset_cam();
 
     THREEx.WindowResize(this.renderer, this.cam, padding);
 
@@ -131,6 +129,14 @@ Omega.UI.Canvas.prototype = {
         entity.dispatchEvent({type: 'click'});
       }
     }
+  },
+
+  // Reset camera to original position
+  reset_cam : function(){
+    /// TODO configurable original position
+    this.cam_controls.object.position.set(0,1500,1500);
+    this.cam_controls.target.set(0,0,0);
+    this.cam_controls.update();
   },
 
   // Request animation frame
@@ -272,6 +278,11 @@ Omega.UI.Canvas.Controls.prototype = {
     this.missions_button.on('click',
       function(evnt){
         _this._missions_button_click();
+      });
+
+    this.cam_reset.on('click',
+      function(evnt){
+        _this.canvas.reset_cam();
       });
 
     this.toggle_axis.on('click',
