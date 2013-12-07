@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require 'ui/vendor/utf8_encode'
-//= require 'ui/vendor/md5'
+//= require 'vendor/utf8_encode'
+//= require 'vendor/md5'
 
 Omega.UI.AccountDetails = function(parameters){
   /// need handle to page to
@@ -75,19 +75,18 @@ Omega.UI.AccountDetails.prototype = {
 
   /// set entities
   entities : function(entities){
-    var ships_text    = '';
-    var stations_text = '';
-
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
-      if(entity.json_class == 'Manufactured::Ship')
-        ships_text += entity.id + ' ';
-      else if(entity.json_class == 'Manufactured::Station')
-        stations_text += entity.id + ' ';
+      this.entity(entity);
     }
 
-    $('#account_info_ships').append(ships_text);
-    $('#account_info_stations').append(stations_text);
+  },
+
+  entity : function(entity){
+    if(entity.json_class == 'Manufactured::Ship')
+      $('#account_info_ships').append(entity.id + ' ');
+    else if(entity.json_class == 'Manufactured::Station')
+      $('#account_info_stations').append(entity.id + ' ');
   },
 
   /// return bool indicating if password matches confirmation
@@ -107,7 +106,7 @@ Omega.UI.AccountDetails.prototype = {
   /// add a badge to account into page
   add_badge : function(id, description, rank){
     var badges = $('#account_info_badges');
-    var url    = this.page.config.prefix + '/images/badges/' + id + '.png';
+    var url    = this.page.config.url_prefix + '/images/badges/' + id + '.png';
     var badge  = $('<div />',
       {class : 'badge',
        style : "background: url('"+url+"');",
@@ -175,7 +174,7 @@ Omega.Pages.Account = function(){
         /// load user stats
         /// TODO configurable stats
         Omega.Stat.get('with_most', ['entities', 10], _this.node,
-          function(stats) { _this.process_stats(stats); });
+          function(stat_result) { _this.process_stat(stat_result); });
       }
     });
   }
@@ -194,24 +193,23 @@ Omega.Pages.Account.prototype = {
   },
 
   process_entity : function(entity){
-    this.details.entities(entity);
+    this.details.entity(entity);
   },
 
-  process_stats : function(stats){
-    for(var s = 0; s < stats.length; s++){
-      var stat = stats[s];
-      for(var v = 0; v < stat.value.length; v++){
-        var value = stat.value[v];
-        if(value == this.session.user_id){
-          this.details.add_badge(stat.id, stat.description, v)
-          break;
-        }
+  process_stat : function(stat_result){
+    if(stat_result == null) return;
+    var stat = stat_result.stat;
+    for(var v = 0; v < stat_result.value.length; v++){
+      var value = stat_result.value[v];
+      if(value == this.session.user_id){
+        this.details.add_badge(stat.id, stat.description, v)
+        break;
       }
     }
   }
 };
 
 $(document).ready(function(){
-//  var account = new Omega.Pages.Account();
-//  account.wire_up();
+  var account = new Omega.Pages.Account();
+  account.wire_up();
 });
