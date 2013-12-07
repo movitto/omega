@@ -16,6 +16,7 @@ Omega.SolarSystem = function(parameters){
 
   this.bg = 'system' + this.background;
   this.children = Omega.convert_entities(this.children);
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.SolarSystem.prototype = {

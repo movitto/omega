@@ -8,6 +8,8 @@ Omega.Asteroid = function(parameters){
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
+
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Asteroid.prototype = {
@@ -60,7 +62,6 @@ Omega.Asteroid.prototype = {
       var geometry_prefix = config.url_prefix + config.images_path + config.meshes_path;
       var rotation        = config.resources.asteroid.rotation;
       var scale           = config.resources.asteroid.scale;
-      console.log(scale)
 
       var texture         = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });

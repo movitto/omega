@@ -187,7 +187,7 @@ Omega.Pages.Index = function(){
   /// not blocking for validation to return,
   /// assuming it'll arrive before node is used above
 
-  //this.effects_player   = new Omega.UI.EffectsPlayer();
+  this.effects_player   = new Omega.UI.EffectsPlayer({page : this});
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
@@ -233,35 +233,51 @@ Omega.Pages.Index.prototype = {
     var old_root = change.old_root;
 
     var _this = this;
-    /// assuming user owned entities are always tracked, do not to be manipulated here
-    var entities =
-      $.grep(this.entities, function(entity){
-        return (entity.json_class == 'Manufactured::Ship' ||
-                entity.json_class == 'Manufactured::Station' ) &&
-               (_this.session == null ||
-                !entity.belongs_to_user(_this.session.user_id)); });
+    var entities = {};
+    entities.all = Object.keys(this.entities).
+                          map(function (key) { return _this.entities[key]; });
+    entities.manu = $.grep(entities.all, function(entity){
+      return (entity.json_class == 'Manufactured::Ship' ||
+              entity.json_class == 'Manufactured::Station');
+    });
+    entities.user_owned = this.session == null ? [] :
+      $.grep(entities.manu, function(entity){
+        return entity.belongs_to_user(_this.session.user_id);
+      });
+    entities.not_user_owned = this.session == null ? entities.manu :
+      $.grep(entities.manu, function(entity){
+        return !entity.belongs_to_user(_this.session.user_id);
+      });
+    entities.in_root = $.grep(entities.manu, function(entity){
+      return entity.system_id == root.id;
+    });
+    entities.not_in_root = $.grep(entities.manu, function(entity){
+      return entity.system_id != root.id;
+    });
 
-    /// taking advantage of fact that these will never match when change scene to a galaxy
-    var in_system =
-      $.grep(entities, function(entity){
-        return entity.parent_id == root.id; })
+    /// assuming user owned entities are always tracked,
+    /// and do not to be manipulated here
 
-    var not_in_system =
-      $.grep(entities, function(entity){
-        return entity.parent_id != root.id; })
+    /// stop tracking entities not in scene
+    entities.stop_tracking = $.grep(entities.not_in_root, function(entity){
+      return entities.not_user_owned.indexOf(entity) != -1;
+    });
 
-    /// stop tracking entities not in system
-    for(var e = 0; e < not_in_system.length; e++){
-      var entity = not_in_system[e];
+    /// track entities in scene
+    entities.start_tracking = $.grep(entities.in_root, function(entity){
+      return entities.not_user_owned.indexOf(entity) != -1;
+    });
+
+    for(var e = 0; e < entities.stop_tracking.length; e++){
+      var entity = entities.stop_tracking[e];
       if(entity.json_class == 'Manufactured::Ship')
         this.stop_tracking_ship(entity);
       else
         this.stop_tracking_station(entity);
     }
 
-    /// track entities in system
-    for(var e = 0; e < in_system.length; e++){
-      var entity = in_system[e];
+    for(var e = 0; e < entities.start_tracking.length; e++){
+      var entity = entities.start_tracking[e];
       if(entity.json_class == 'Manufactured::Ship')
         this.track_ship(entity);
       else
@@ -282,14 +298,17 @@ Omega.Pages.Index.prototype = {
       }
     }
 
-    /// track planets in new system if applicable
+    /// track planets in new system, add entities to scene
     if(root.json_class == 'Cosmos::Entities::SolarSystem'){
       var planets = root.planets();
       for(var p = 0; p < planets.length; p++){
         var planet = planets[p];
         this.track_planet(planet);
       }
-// TODO also add all manu entities (user owned & not) in system to scene
+      for(var e = 0; e < entities.in_root.length; e++){
+        var entity = entities.in_root[e];
+        this.canvas.add(entity);
+      }
 // TODO also need to track when entities jump into scene, need a new server
 // event to effectively be able to do this
     }else{
@@ -298,9 +317,11 @@ Omega.Pages.Index.prototype = {
     }
 
     /// set scene background
-/// TODO add skybox to scene if not already added?
-/// TODO if adding galaxy, also add particles
     this.canvas.skybox.set(root.bg);
+
+    /// add skybox to scene
+    if(!this.canvas.has(this.canvas.skybox.id))
+      this.canvas.add(this.canvas.skybox);
   },
 
   handle_events : function(){
@@ -328,10 +349,14 @@ Omega.Pages.Index.prototype = {
 
 /// also some persistent caching mechanism so cosmos data doesn't
 /// have to be retrieved on each page request
-    if(!this.entity(entity.system_id)){
+    var system = this.entity(entity.system_id);
+    if(!system){
       this.entity(entity.system_id, 'placeholder');
       Omega.SolarSystem.with_id(entity.system_id, this.node,
         function(solar_system) { _this.process_system(solar_system) });
+
+    }else if(system != 'placeholder'){
+      entity.solar_system = system;
     }
 
     if(entity.json_class == 'Manufactured::Ship')
@@ -392,7 +417,12 @@ Omega.Pages.Index.prototype = {
       var sitem  = {id: system.id, text: system.name, data: system};
       this.canvas.controls.locations_list.add(sitem);
 
-      // TODO load jump gate endpoints?
+      for(var e in this.entities){
+        if(this.entities[e].system_id == system.id)
+          this.entities[e].solar_system = system;
+      }
+
+// TODO load jump gate endpoints?
       if(!this.entity(system.parent_id)){
         this.entity(system.parent_id, 'placeholder');
         Omega.Galaxy.with_id(system.parent_id, this.node,
@@ -416,4 +446,5 @@ $(document).ready(function(){
   var index = new Omega.Pages.Index();
   index.wire_up();
   index.canvas.setup();
+  index.effects_player.start();
 });

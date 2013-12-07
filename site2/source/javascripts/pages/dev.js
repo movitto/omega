@@ -34,7 +34,14 @@ Omega.Pages.Dev.prototype = {
                                      orientation_z : 0,
                                      movement_strategy : {json_class : 'Motel::MovementStrategies::Linear' }})});
 
-      
+    var ship2 = new Omega.Ship({id : 'sh2', type : 'transport',
+      location : new Omega.Location({x:-1450, y:-1450, z :300,
+                                     orientation_x : -1,
+                                     orientation_y : 0,
+                                     orientation_z : 0,
+                                     movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped' }})});
+
+    //ship1.attacking = ship2;
 
     var star1 = new Omega.Star();
     var star2 = new Omega.Star();
@@ -52,11 +59,13 @@ Omega.Pages.Dev.prototype = {
       new Omega.Location({x:-1000, y:50, z:500})});
 
     var ast1 = new Omega.Asteroid({location:
-      new Omega.Location({x:1500, y:1500, z:200})});
+      new Omega.Location({x:-1500, y:-1500, z:200})});
+
+    ship1.mining = ast1;
 
     var system1 = new Omega.SolarSystem({id : 'sys1', name : 'sys1',
         location : new Omega.Location({x: 500, y : 250, z: 500}),
-        children : [star1, ast1, gate1, planet1, station1, ship1]});
+        children : [star1, ast1, gate1, planet1, station1, ship1, ship2]});
     var system2 = new Omega.SolarSystem({id : 'sys2', name : 'sys2',
         location : new Omega.Location({x : -400, y : 250, z : -400}),
         children : [star2]});

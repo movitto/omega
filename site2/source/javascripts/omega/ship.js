@@ -7,10 +7,10 @@
 Omega.Ship = function(parameters){
   this.components = [];
   this.shader_components = [];
-
-  this.location  = new Omega.Location({x:0,y:0,z:0});
   this.resources = [];
   $.extend(this, parameters);
+
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Ship.prototype = {
@@ -437,7 +437,7 @@ Omega.Ship.prototype = {
         break;
     }
 
-    var _this = this;
+    var _this   = this;
     this.addEventListener('loaded_' + resource, function(evnt){
       if(evnt.target == _this) /// event interface defined on prototype, need to distinguish instances
         cb(evnt.data);
@@ -462,6 +462,7 @@ Omega.Ship.prototype = {
       _this.mesh.omega_entity = _this;
       _this.components.push(_this.mesh);
       _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
+      ///_this.removeEventListener('loaded_' + resource, on_load); // TODO
     });
 
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();

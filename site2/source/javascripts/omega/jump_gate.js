@@ -10,6 +10,8 @@ Omega.JumpGate = function(parameters){
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
+
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.JumpGate.prototype = {
@@ -163,15 +165,10 @@ Omega.JumpGate.prototype = {
       Omega.JumpGate.gfx.particles = particle_system;
 
     //// selection sphere
-      /// each jump gate instance should override radius in the geometry instance to set to trigger distance
-      var radius   = 300, segments = 32, rings = 32;
-      var geometry = new THREE.SphereGeometry(radius, segments, rings);
-      var material = new THREE.MeshBasicMaterial({color       : 0xffffff,
-                                                  transparent : true,
-                                                  opacity     : 0.1});
-
-      Omega.JumpGate.gfx.selection_sphere =
-        new THREE.Mesh(geometry, material);
+      Omega.JumpGate.gfx.selection_sphere_material =
+        new THREE.MeshBasicMaterial({color       : 0xffffff,
+                                     transparent : true,
+                                     opacity     : 0.1});
   },
 
   /// invoked cb when resource is loaded, or immediately if resource is already loaded
@@ -229,8 +226,11 @@ Omega.JumpGate.prototype = {
                                                   this.location.y - 25,
                                                   this.location.z + 75);
 
-    // FIXME need to set radius
-    this.selection_sphere = Omega.JumpGate.gfx.selection_sphere.clone();
+    var segments = 32, rings = 32,
+        material = Omega.JumpGate.gfx.selection_sphere_material;
+    var geometry =
+      new THREE.SphereGeometry(this.trigger_distance/2, segments, rings);
+    this.selection_sphere = new THREE.Mesh(geometry, material);
     if(this.location) this.selection_sphere.position.set(this.location.x - 20,
                                                          this.location.y,
                                                          this.location.z)

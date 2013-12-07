@@ -14,6 +14,7 @@ Omega.Galaxy = function(parameters){
 
   this.bg = 'galaxy' + this.background;
   this.children = Omega.convert_entities(this.children);
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Galaxy.prototype = {

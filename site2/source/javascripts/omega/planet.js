@@ -8,10 +8,11 @@
 
 Omega.Planet = function(parameters){
   this.color = '000000';
-  this.location  = new Omega.Location({x:0,y:0,z:0});
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
+
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Planet.prototype = {
@@ -24,7 +25,7 @@ Omega.Planet.prototype = {
 
     //// mesh
       // each planet instance should override radius in the geometry instance
-      var radius   = 100, segments = 32, rings = 32;
+      var radius   = 75, segments = 32, rings = 32;
       var mesh_geo = new THREE.SphereGeometry(radius, segments, rings);
 
       // each planet instance should set texture to that generated from planet color

@@ -8,11 +8,11 @@ Omega.Star = function(parameters){
   this.components        = [];
   this.shader_components = [];
   this.effects_timestamp = new Date();
-
   this.color             = 'FFFFFF';
   $.extend(this, parameters);
 
   this.color_int = parseInt('0x' + this.color);
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Star.prototype = {

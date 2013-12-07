@@ -36,6 +36,8 @@ Omega.convert_entity = function(entity){
       // skip if already converted
       if(entity.constructor == cls)
         converted = entity;
+      else if(entity.data)
+        converted = new cls(entity.data);
       else
         converted = new cls(entity);
       break;

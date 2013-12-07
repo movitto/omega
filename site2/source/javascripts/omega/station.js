@@ -7,10 +7,10 @@
 Omega.Station = function(parameters){
   this.components = [];
   this.shader_components = [];
-
   this.resources  = [];
 
   $.extend(this, parameters);
+  this.location = Omega.convert_entity(this.location)
 };
 
 Omega.Station.prototype = {

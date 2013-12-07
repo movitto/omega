@@ -44,7 +44,7 @@ Omega.UI.Canvas.prototype = {
 
   setup : function(){
     var _this   = this;
-    var padding = 10;
+    var padding = 30;
 
     this.scene = new THREE.Scene();
     this.shader_scene = new THREE.Scene();
@@ -103,7 +103,7 @@ Omega.UI.Canvas.prototype = {
 
     this.cam_controls.domElement = this.renderer.domElement;
     this.cam_controls.object.position.set(0,1500,1500);
-this.cam_controls.target.set(-1250,-1250,300);
+    this.cam_controls.target.set(0,0,0);
     this.cam_controls.update();
 
     THREEx.WindowResize(this.renderer, this.cam, padding);
@@ -513,6 +513,8 @@ Omega.UI.Canvas.Skybox = function(parameters){
 };
 
 Omega.UI.Canvas.Skybox.prototype = {
+  id : 'canvas_skybox',
+
   load_gfx : function(){
     if(typeof(Omega.UI.Canvas.Skybox.gfx) !== 'undefined') return;
     Omega.UI.Canvas.Skybox.gfx = {};
@@ -558,19 +560,24 @@ Omega.UI.Canvas.Skybox.prototype = {
 THREE.EventDispatcher.prototype.apply( Omega.UI.Canvas.Skybox.prototype );
 
 Omega.UI.Canvas.Axis = function(parameters){
-  this.size = 2750;
+  this.size = 5000;
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
 };
 
 Omega.UI.Canvas.Axis.prototype = {
+  id : 'canvas_axis',
+
   load_gfx : function(){
     if(typeof(Omega.UI.Canvas.Axis.gfx) !== 'undefined') return;
     Omega.UI.Canvas.Axis.gfx = {
       xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000),
       yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00),
-      xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF)
+      xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF),
+      distances1 : this._new_marker(3000, 40),
+      distances2 : this._new_marker(2000, 20),
+      distances3 : this._new_marker(1000, 20)
     };
   },
 
@@ -592,6 +599,14 @@ Omega.UI.Canvas.Axis.prototype = {
     var mat = new THREE.LineBasicMaterial({color: color, lineWidth: 1});
     geo.vertices.push(p1, p2);
     return new THREE.Line(geo, mat);
+  },
+
+  _new_marker : function(distance, segments){
+    var mat = new THREE.MeshBasicMaterial({color: 0xcccccc });
+    var geo = new THREE.TorusGeometry(distance, 5, segments, segments);
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = 1.57;
+    return mesh;
   }
 };
 
