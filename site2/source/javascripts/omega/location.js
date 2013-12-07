@@ -6,6 +6,12 @@
 
 Omega.Location = function(parameters){
   $.extend(this, parameters);
+
+  // XXX currently no js obj for movement strategy
+  if(this.movement_strategy && this.movement_strategy.data){
+    $.extend(this.movement_strategy, this.movement_strategy.data);
+    //delete this.movement_strategy['data'];
+  }
 };
 
 Omega.Location.prototype = {

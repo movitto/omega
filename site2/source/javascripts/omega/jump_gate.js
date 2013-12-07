@@ -62,7 +62,7 @@ Omega.JumpGate.prototype = {
 
   _trigger : function(page){
     var _this = this;
-    var ships = $.grep(page.entities, function(e){
+    var ships = $.grep(page.all_entities(), function(e){
                   return _this._should_trigger_ship(e, page);
                 });
 

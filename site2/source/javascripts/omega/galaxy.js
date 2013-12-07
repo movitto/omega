@@ -21,6 +21,27 @@ Omega.Galaxy.prototype = {
   constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
+  systems : function(){
+    return $.grep(this.children, function(c){
+      return c.json_class &&
+             c.json_class == 'Cosmos::Entities::SolarSystem';
+    });
+  },
+
+  set_children_from : function(entities){
+    var systems = this.children;
+    for(var s = 0; s < systems.length; s++){
+      var system = $.grep(entities, function(entity){
+        return entity.id == systems[s].id;
+      })[0];
+
+      if(system != null){
+        this.children[s] = system;
+        system.galaxy = this;
+      }
+    }
+  },
+
   mesh_props  : {
     particle_size : 150,
     eskew         : 1.2,

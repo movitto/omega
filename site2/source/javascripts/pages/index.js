@@ -206,6 +206,15 @@ Omega.Pages.Index.prototype = {
     return this.entities[arguments[0]];
   },
 
+  // return array of all entities
+  all_entities : function(){
+    var _this = this;
+    // TODO exclude placeholder entities?
+    return Object.keys(this.entities).map(function (key) {
+      return _this.entities[key];
+    });
+  },
+
   wire_up : function(){
     this.nav.wire_up();
     this.dialog.wire_up();
@@ -234,9 +243,7 @@ Omega.Pages.Index.prototype = {
 
     var _this = this;
     var entities = {};
-    entities.all = Object.keys(this.entities).
-                          map(function (key) { return _this.entities[key]; });
-    entities.manu = $.grep(entities.all, function(entity){
+    entities.manu = $.grep(this.all_entities(), function(entity){
       return (entity.json_class == 'Manufactured::Ship' ||
               entity.json_class == 'Manufactured::Station');
     });
@@ -347,8 +354,8 @@ Omega.Pages.Index.prototype = {
     var item   = {id: entity.id, text: entity.id, data: entity};
     this.canvas.controls.entities_list.add(item);
 
-/// also some persistent caching mechanism so cosmos data doesn't
-/// have to be retrieved on each page request
+    /// TODO persistent caching mechanism so cosmos data doesn't
+    /// have to be retrieved on each page request
     var system = this.entity(entity.system_id);
     if(!system){
       this.entity(entity.system_id, 'placeholder');
@@ -411,33 +418,55 @@ Omega.Pages.Index.prototype = {
   },
 
   process_system : function(system){
-    if(system != null){
-      var _this = this;
-      this.entity(system.id, system);
-      var sitem  = {id: system.id, text: system.name, data: system};
-      this.canvas.controls.locations_list.add(sitem);
+    if(system == null) return;
+    var _this = this;
+    this.entity(system.id, system);
+    var sitem  = {id: system.id, text: system.name, data: system};
+    this.canvas.controls.locations_list.add(sitem);
 
-      for(var e in this.entities){
-        if(this.entities[e].system_id == system.id)
-          this.entities[e].solar_system = system;
+    for(var e in this.entities){
+      if(this.entities[e].system_id == system.id)
+        this.entities[e].solar_system = system;
+      else if(this.entities[e].jump_gates){
+        var gates = this.entities[e].jump_gates();
+        for(var j = 0; j < gates.length; j++)
+          if(gates[j].endpoint_id == system.id)
+            gates[j].endpoint = system;
+            /// TODO add jg interconnect (& in placeholder below)
       }
+    }
 
-// TODO load jump gate endpoints?
-      if(!this.entity(system.parent_id)){
-        this.entity(system.parent_id, 'placeholder');
-        Omega.Galaxy.with_id(system.parent_id, this.node,
-          function(galaxy) { _this.process_galaxy(galaxy) });
+    var galaxy = this.entity(system.parent_id);
+    if(!galaxy){
+      this.entity(system.parent_id, 'placeholder');
+      Omega.Galaxy.with_id(system.parent_id, this.node,
+        function(galaxy) { _this.process_galaxy(galaxy) });
+    }else if(galaxy != 'placeholder'){
+      galaxy.set_children_from(this.all_entities());
+    }
+
+    // load missing jump gate endpoints
+    var gates = system.jump_gates();
+    for(var j = 0; j < gates.length; j++){
+      var gate = gates[j];
+      var endpoint = this.entity(gate.endpoint_id);
+      if(endpoint == null){
+        this.entity(gate.endpoint_id, 'placeholder');
+        Omega.SolarSystem.with_id(gate.endpoint_id, this.node,
+          function(system){ _this.process_system(system); });
+      }else if(endpoint != 'placeholder'){
+        gate.endpoint = endpoint;
       }
     }
   },
 
   process_galaxy : function(galaxy){
-    if(galaxy != null){
-/// TODO swap children in from local entities (also in process_system)
-      this.entity(galaxy.id, galaxy);
-      var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
-      this.canvas.controls.locations_list.add(gitem);
-    }
+    if(galaxy == null) return;
+    this.entity(galaxy.id, galaxy);
+    var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
+    this.canvas.controls.locations_list.add(gitem);
+
+    galaxy.set_children_from(this.all_entities());
   }
 };
 

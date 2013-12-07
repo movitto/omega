@@ -29,6 +29,13 @@ Omega.SolarSystem.prototype = {
     });
   },
 
+  jump_gates : function(){
+    return $.grep(this.children, function(c){
+      return c.json_class &&
+             c.json_class == 'Cosmos::Entities::JumpGate';
+    });
+  },
+
   clicked_in : function(canvas){
     canvas.set_scene_root(this);
   },

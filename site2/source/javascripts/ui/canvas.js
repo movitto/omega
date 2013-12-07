@@ -266,6 +266,7 @@ Omega.UI.Canvas.Controls.prototype = {
         var item = $(evnt.currentTarget).data('item');
         _this.canvas.set_scene_root(item.solar_system);
         _this.canvas.focus_on(item.location);
+/// TODO also trigger selection / pop up entity details
       })
 
     this.missions_button.on('click',
