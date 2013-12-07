@@ -427,13 +427,8 @@ Omega.Pages.Index.prototype = {
     for(var e in this.entities){
       if(this.entities[e].system_id == system.id)
         this.entities[e].solar_system = system;
-      else if(this.entities[e].jump_gates){
-        var gates = this.entities[e].jump_gates();
-        for(var j = 0; j < gates.length; j++)
-          if(gates[j].endpoint_id == system.id)
-            gates[j].endpoint = system;
-            /// TODO add jg interconnect (& in placeholder below)
-      }
+      else if(this.entities[e].json_class == 'Cosmos::Entities::SolarSystem')
+        this.entities[e].update_children_from(this.all_entities());
     }
 
     var galaxy = this.entity(system.parent_id);
@@ -454,10 +449,9 @@ Omega.Pages.Index.prototype = {
         this.entity(gate.endpoint_id, 'placeholder');
         Omega.SolarSystem.with_id(gate.endpoint_id, this.node,
           function(system){ _this.process_system(system); });
-      }else if(endpoint != 'placeholder'){
-        gate.endpoint = endpoint;
       }
     }
+    system.update_children_from(this.all_entities());
   },
 
   process_galaxy : function(galaxy){

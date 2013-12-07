@@ -36,6 +36,23 @@ Omega.SolarSystem.prototype = {
     });
   },
 
+  update_children_from : function(entities){
+    /// update jg endpoints from entities / add interconnections
+    var gates = this.jump_gates();
+    for(var g = 0; g < gates.length; g++){
+      var gate = gates[g];
+      var system = $.grep(entities, function(entity){
+        return entity.id == gate.endpoint_id;
+      })[0];
+
+      if(system != null){
+        gate.endpoint = system;
+/// FIXME: need this but gfx may not be initialized at this point:
+        //this.add_interconn(system);
+      }
+    }
+  },
+
   clicked_in : function(canvas){
     canvas.set_scene_root(this);
   },
