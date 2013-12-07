@@ -71,7 +71,7 @@ Omega.JumpGate.prototype = {
       (function(ship){ /// XXX need new scope to preserve ship
         /// XXX make sure endpoint is set! (won't come in w/ server jg)
         ship.location.parent_id = _this.endpoint.location.id;
-        page.node.http_invoke('manufactured::move_entity', ship, ship.location,
+        page.node.http_invoke('manufactured::move_entity', ship.id, ship.location,
           function(response){
             if(response.error){
               _this.dialog().title = 'Jump Gate Trigger Error';

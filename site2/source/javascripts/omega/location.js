@@ -18,6 +18,13 @@ Omega.Location.prototype = {
   constructor: Omega.Location,
   json_class : 'Motel::Location',
 
+  toJSON : function(){
+    return {x : this.x,
+            y : this.y,
+            z : this.z,
+            parent_id : this.parent_id};
+  },
+
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
