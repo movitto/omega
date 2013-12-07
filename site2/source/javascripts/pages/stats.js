@@ -5,14 +5,14 @@
  */
 
 Omega.Pages.Stats = function(){
-  this.stats = {};
+  this.stat_results = {};
 
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
 }
 
 Omega.Pages.Stats.prototype = {
-  interval : 5000,
+  interval : 3000,
 
   login : function(cb){
     /// XXX disable session cookies globally
@@ -29,7 +29,7 @@ Omega.Pages.Stats.prototype = {
     this.stats_timer =
       $.timer(function(){
         _this.retrieve_stats();
-      }, Omega.Pages.Stats.prototype.interval);
+      }, Omega.Pages.Stats.prototype.interval, true);
   },
 
   retrieve_stats : function(){
@@ -39,26 +39,25 @@ Omega.Pages.Stats.prototype = {
       var stat_id   = stat[0];
       var stat_args = stat[1];
       Omega.Stat.get(stat_id, stat_args, this.node,
-        function(stats){
-          _this.update_stats(stats);
+        function(stat_result){
+          _this.update_stats(stat_result);
           _this.refresh_stats();
         });
     }
   },
 
-  update_stats : function(stats){
-    for(var s = 0; s < stats.length; s++){
-      var stat = stats[s];
-      this.stats[stat.stat_id] = stat;
-    }
+  update_stats : function(stat_result){
+    var stat = stat_result.stat;
+    this.stat_results[stat.stat_id] = stat_result;
   },
 
   refresh_stats : function(){
     var container = $('#stats ul');
     container.html('');
-    for(var s in this.stats){
-      var stat = this.stats[s];
-      var stat_txt = stat.description + ": " + stat.value;
+    for(var s in this.stat_results){
+      var stat_result = this.stat_results[s];
+      var stat = stat_result.stat;
+      var stat_txt = stat.description + ": " + stat_result.value;
       var stat_li  = $("<li/>", {text : stat_txt});
       container.append(stat_li);
     }
@@ -66,8 +65,8 @@ Omega.Pages.Stats.prototype = {
 }
 
 $(document).ready(function(){
-//  var stats = new Omega.Pages.Stats();
-//  stats.login(function(){
-//    stats.start();
-//  });
+  var stats = new Omega.Pages.Stats();
+  stats.login(function(){
+    stats.start();
+  });
 });
