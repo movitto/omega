@@ -138,8 +138,7 @@ Omega.UI.CommandTracker.prototype = {
     ['manufactured::event_occurred'],
 
   _callbacks_motel_event : function(evnt, event_args){
-console.log(this.page);
-    var entity = $.grep(this.page.entities, function(entity){
+    var entity = $.grep(this.page.all_entities(), function(entity){
                    return entity.location.id == event_args[0].id;
                  })[0];
     if(entity == null) return;
@@ -159,7 +158,7 @@ console.log(this.page);
     var resource = event_args[2];
     var quantity = event_args[3];
 
-    var entity = $.grep(this.page.entities,
+    var entity = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == ship.id; })[0];
     if(entity == null) return;
     entity.mining    = ship.mining;
@@ -179,7 +178,7 @@ console.log(this.page);
     var resource = event_args[2];
     var reason   = event_args[3];
 
-    var entity = $.grep(this.page.entities,
+    var entity = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == ship.id; })[0];
     if(entity == null) return;
     entity.mining    = null;
@@ -197,9 +196,9 @@ console.log(this.page);
     var attacker = event_args[1];
     var defender = event_args[2];
 
-    var pattacker = $.grep(this.page.entities,
+    var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
-    var pdefender = $.grep(this.page.entities,
+    var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
     pattacker.attacking    = pdefender;
@@ -215,9 +214,9 @@ console.log(this.page);
     var attacker = event_args[1];
     var defender = event_args[2];
 
-    var pattacker = $.grep(this.page.entities,
+    var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
-    var pdefender = $.grep(this.page.entities,
+    var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
     pattacker.attacking    = null;
@@ -233,9 +232,9 @@ console.log(this.page);
     var attacker = event_args[1];
     var defender = event_args[2];
 
-    var pattacker = $.grep(this.page.entities,
+    var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
-    var pdefender = $.grep(this.page.entities,
+    var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
     pdefender.hp           = defender.hp;
@@ -252,9 +251,9 @@ console.log(this.page);
     var attacker = event_args[1];
     var defender = event_args[2];
 
-    var pattacker = $.grep(this.page.entities,
+    var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
-    var pdefender = $.grep(this.page.entities,
+    var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
     pdefender.hp           = defender.hp;
@@ -271,9 +270,9 @@ console.log(this.page);
     var attacker = event_args[1];
     var defender = event_args[2];
 
-    var pattacker = $.grep(this.page.entities,
+    var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
-    var pdefender = $.grep(this.page.entities,
+    var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
     pattacker.attacking    = null;
@@ -297,17 +296,19 @@ console.log(this.page);
     var station     = evnt_args[1];
     var constructed = evnt_args[2];
 
-    var pstation = $.grep(this.page.entities,
+    var pstation = $.grep(this.page.all_entities(),
                           function(entity){ return entity.id == station.id; })[0];
 
     // retrieve full entity from server / process
     var _this = this;
     Omega.Ship.get(constructed.id, this.page.node, function(entity){
       _this.page.process_entity(entity);
-      if(_this.page.canvas.is_root(entity.parent_id))
+      if(_this.page.canvas.is_root(entity.system_id))
         _this.page.canvas.add(entity);
     });
 
+    pstation.resources = station.resources;
+    pstation._update_resources();
     this.page.canvas.entity_container.refresh();
   },
 
@@ -356,10 +357,10 @@ console.log(this.page);
     this.handling.push(evnt);
 
     var _this = this;
-    this.page.node.addEventListener(evnt, function(){ 
+    this.page.node.addEventListener(evnt, function(node_evnt){
       var args = [];
-      for(var a = 0; a < arguments.length; a++)
-        args.push(arguments[a]);
+      for(var a = 0; a < node_evnt.data.length; a++)
+        args.push(node_evnt.data[a]);
       _this._msg_received(evnt, args);
     });
   }

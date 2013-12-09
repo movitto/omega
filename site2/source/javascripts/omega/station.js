@@ -11,6 +11,7 @@ Omega.Station = function(parameters){
 
   $.extend(this, parameters);
   this.location = Omega.convert_entity(this.location)
+  this._update_resources();
 };
 
 Omega.Station.prototype = {
@@ -19,6 +20,15 @@ Omega.Station.prototype = {
 
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
+  },
+
+  _update_resources : function(){
+    if(this.resources){
+      for(var r = 0; r < this.resources.length; r++){
+        var res = this.resources[r];
+        if(res.data)  $.extend(res, res.data);
+      }
+    }
   },
 
   has_details : true,
@@ -74,16 +84,12 @@ Omega.Station.prototype = {
           _this.dialog().show_error_dialog();
           _this.dialog().append_error(response.error.message);
 
-        }else{
-          var station = response.result[0];
-          var ship    = response.result[1]; // TODO convert ?
-          page.process_entity(ship);
-          if(page.canvas.root && page.canvas.root.id == ship.parent_id)
-            page.canvas.add(ship);
-
-          _this.resources = station.resources;
-          page.canvas.entity_container.refresh();
-        }
+        }//else{
+           /// entity added to scene, resources updated, entity_container
+           /// refreshed and other operations done in construction event callbacks
+           //var station = response.result[0];
+           //var ship    = response.result[1];
+         //}
       });
   },
 
