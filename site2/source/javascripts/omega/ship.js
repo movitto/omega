@@ -447,6 +447,7 @@ Omega.Ship.prototype = {
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
+    this.components = [];
 
     var _this = this;
     Omega.Ship.prototype.retrieve_resource(this.type, 'template_mesh', function(template_mesh){
@@ -472,7 +473,7 @@ Omega.Ship.prototype = {
                                                     this.location.y,
                                                     this.location.z));
 
-    this.components = [this.highlight];
+    this.components.push(this.highlight);
 
     this.lamps = [];
     for(var l = 0; l < Omega.Ship.gfx[this.type].lamps.length; l++){

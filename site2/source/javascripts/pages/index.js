@@ -333,8 +333,8 @@ Omega.Pages.Index.prototype = {
   },
 
   handle_events : function(){
-    var events = Omega.UI.CommandTracker.prototype.motel_events +
-                 Omega.UI.CommandTracker.prototype.manufactured_events;
+    var events = Omega.UI.CommandTracker.prototype.motel_events.concat(
+                 Omega.UI.CommandTracker.prototype.manufactured_events);
     for(var e = 0; e < events.length; e++)
       this.command_tracker.track(events[e]);
   },
