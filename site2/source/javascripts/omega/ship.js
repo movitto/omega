@@ -10,7 +10,9 @@ Omega.Ship = function(parameters){
   this.resources = [];
   $.extend(this, parameters);
 
+  this.parent_id = this.system_id;
   this.location = Omega.convert_entity(this.location)
+  this._update_resources();
 };
 
 Omega.Ship.prototype = {
@@ -19,6 +21,15 @@ Omega.Ship.prototype = {
 
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
+  },
+
+  _update_resources : function(){
+    if(this.resources){
+      for(var r = 0; r < this.resources.length; r++){
+        var res = this.resources[r];
+        if(res.data)  $.extend(res, res.data);
+      }
+    }
   },
 
   cmds : [
@@ -35,17 +46,26 @@ Omega.Ship.prototype = {
     { id      : 'ship_dock_',
       class   : 'ship_dock details_command',
       text    : 'dock',
-      handler : '_select_docking_station'  },
+      handler : '_select_docking_station',
+      display : function(ship){
+                  return ship.docked_at_id == null;
+                }                          },
 
     { id      : 'ship_undock_',
       class   : 'ship_undock details_command',
       text    : 'undock',
-      handler : '_undock'                  },
+      handler : '_undock',
+      display : function(ship){
+                  return ship.docked_at_id != null;
+                }                          },
 
     { id      : 'ship_transfer_',
       class   : 'ship_transfer details_command',
       text    : 'transfer',
-      handler : '_transfer'                },
+      handler : '_transfer',
+      display : function(ship){
+                  return ship.docked_at_id != null;
+                }                          },
 
     { id      : 'ship_mine_',
       class   : 'ship_mine details_command',
@@ -77,7 +97,10 @@ Omega.Ship.prototype = {
     for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
       var cmd_data = {};
       $.extend(cmd_data, Omega.Ship.prototype.cmds[c]);
-      $.extend(cmd_data, {id : cmd_data.id + this.id});
+
+      var display  = (!cmd_data.display || cmd_data.display(this)) ? '' : 'none';
+      $.extend(cmd_data, {id : cmd_data.id + this.id,
+                          style : 'display: ' + display});
 
       var cmd = $('<span/>', cmd_data);
       cmd.data('ship', this);
@@ -134,7 +157,7 @@ Omega.Ship.prototype = {
 
   _select_attack_target : function(page){
     var _this = this;
-    var targets = $.grep(page.entities, function(e){
+    var targets = $.grep(page.all_entities(), function(e){
                     return  e.json_class == 'Manufactured::Ship'    &&
                            !e.belongs_to_user(page.session.user_id) &&
                             e.location.is_within(_this.attack_distance,
@@ -165,7 +188,7 @@ Omega.Ship.prototype = {
 
   _select_docking_station : function(page){
     var _this = this;
-    var stations = $.grep(page.entities, function(e){
+    var stations = $.grep(page.all_entities(), function(e){
                      return e.json_class == 'Manufactured::Station' &&
                             e.belongs_to_user(page.session.user_id) &&
                             _this.location.is_within(e.docking_distance,
@@ -187,9 +210,11 @@ Omega.Ship.prototype = {
         }else{
           _this.dialog().hide();
           _this.docked_at = station;
+          _this.docked_at_id = station.id;
           page.canvas.reload(_this, function(){
             _this.update_gfx();
           });
+          page.canvas.entity_container.refresh();
         }
       });
   },
@@ -204,9 +229,11 @@ Omega.Ship.prototype = {
           _this.dialog().append_error(response.error.message);
         }else{
           _this.docked_at = null;
+          _this.docked_at_id = null;
           page.canvas.reload(_this, function(){
             _this.update_gfx();
           });
+          page.canvas.entity_container.refresh();
         }
       });
   },
@@ -215,7 +242,7 @@ Omega.Ship.prototype = {
     var _this = this;
 
     /// XXX assuming we are transferring to the docked station
-    var station_id = this.docked_to_id;
+    var station_id = this.docked_at_id;
     for(var r = 0; r < this.resources.length; r++){
       page.node.http_invoke('manufactured::transfer_resource',
         this.id, station_id, this.resources[r],
@@ -228,11 +255,17 @@ Omega.Ship.prototype = {
             }else{
               var src = response.result[0];
               var dst = response.result[1];
+
               _this.resources = src.resources;
+              _this._update_resources();
+              _this.docked_at.resources = dst.resources;
+              _this.docked_at._update_resources();
+
               /// TODO also update local dst resources
               page.canvas.reload(_this, function(){
                 _this.update_gfx();
               });
+              page.canvas.entity_container.refresh();
             }
           });
     }
@@ -242,7 +275,7 @@ Omega.Ship.prototype = {
     var _this = this;
     this.dialog().show_mining_dialog(page, this);
 
-    var asteroids = $.grep(page.entities, function(e){
+    var asteroids = $.grep(page.all_entities(), function(e){
                       return e.json_class == 'Cosmos::Entities::Asteroid' &&
                              e.location.is_within(_this.mining_distance,
                                                   _this.location);
@@ -309,6 +342,7 @@ Omega.Ship.prototype = {
       /// each ship instance should set position of mesh
       var texture      = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       var material     = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
+      Omega.Ship.gfx[this.type].mesh_material = material;
 
       var _this = this;
       new THREE.JSONLoader().load(geometry_path, function(mesh_geometry){
@@ -454,6 +488,9 @@ Omega.Ship.prototype = {
 /// TODO add fix to other locations:
       if(Omega.Ship.gfx[_this.type].mesh != template_mesh) return;
       _this.mesh = template_mesh.clone();
+      // XXX so mesh materials can be independently updated:
+      _this.mesh.material = Omega.Ship.gfx[_this.type].mesh_material.clone();
+      /// FIXME set emissive if ship is selected upon init_gfx
 
       /// XXX copy custom attrs required later
       _this.mesh.base_position = template_mesh.base_position;
@@ -686,6 +723,40 @@ Omega.Ship.prototype = {
       }
       trail.geometry.__dirtyVertices = true;
     }
+
+    /// move ship according to movement strategy to smoothen out movement animation
+    var stopped = 'Motel::MovementStrategies::Stopped';
+    var linear  = 'Motel::MovementStrategies::Linear';
+    var rotate  = 'Motel::MovementStrategies::Rotate';
+    var now     = new Date();
+    if(this.last_moved != null){
+      var elapsed = now - this.last_moved;
+
+      if(this.location.movement_strategy.json_class == linear){
+        var dist = this.location.movement_strategy.speed * elapsed / 1000;
+        this.location.x += this.location.movement_strategy.dx * dist;
+        this.location.y += this.location.movement_strategy.dy * dist;
+        this.location.z += this.location.movement_strategy.dz * dist;
+        this.update_gfx();
+
+      }else if(this.location.movement_strategy.json_class == rotate){
+        var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
+        var new_or = Omega.Math.rot(this.location.orientation_x,
+                                    this.location.orientation_y,
+                                    this.location.orientation_z,
+                                    dist,
+                                    this.location.movement_strategy.rot_x,
+                                    this.location.movement_strategy.rot_y,
+                                    this.location.movement_strategy.rot_z);
+        this.location.orientation_x = new_or[0];
+        this.location.orientation_y = new_or[1];
+        this.location.orientation_z = new_or[2];
+        this.update_gfx();
+      }
+    }
+
+    if(this.location.movement_strategy.json_class != stopped)
+      this.last_moved = now;
 
     /// animate attack particles
     if(this.attacking){

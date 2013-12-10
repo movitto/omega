@@ -70,10 +70,17 @@
 
 #select_destination_dialog.dialog_content
   #dest_id.dialog_row
-  %input{:type => :text}#dest_x.dialog_row
-  %input{:type => :text}#dest_y.dialog_row
-  %input{:type => :text}#dest_z.dialog_row
-  %input{:type => :text}#command_move.dialog_row
+  .dialog_row
+    X:
+    %input#dest_x{:type => :text}
+  .dialog_row
+    Y:
+    %input#dest_y{:type => :text}
+  .dialog_row
+    Z:
+    %input#dest_z{:type => :text}
+  .dialog_row
+    %input#command_move{:value => 'move', :type => :button}
 
 #select_attack_target_dialog.dialog_content
   #attack_id.dialog_row

@@ -123,12 +123,14 @@ Omega.UI.Canvas.prototype = {
 
     if(intersects.length > 0){
       var entity = intersects[0].object.omega_entity;
-      if(entity){
-        if(entity.has_details) this.entity_container.show(entity);
-        if(entity.clicked_in) entity.clicked_in(this);
-        entity.dispatchEvent({type: 'click'});
-      }
+      if(entity) this._clicked_entity(entity);
     }
+  },
+
+  _clicked_entity : function(entity){
+    if(entity.has_details) this.entity_container.show(entity);
+    if(entity.clicked_in) entity.clicked_in(this);
+    entity.dispatchEvent({type: 'click'});
   },
 
   // Reset camera to original position
@@ -272,7 +274,7 @@ Omega.UI.Canvas.Controls.prototype = {
         var item = $(evnt.currentTarget).data('item');
         _this.canvas.set_scene_root(item.solar_system);
         _this.canvas.focus_on(item.location);
-/// TODO also trigger selection / pop up entity details
+        _this.canvas._clicked_entity(item);
       })
 
     this.missions_button.on('click',

@@ -23,7 +23,7 @@ Omega.UI.CommandDialog.prototype = {
   show_destination_selection_dialog : function(page, entity){
     this.title  = 'Move Ship';
     this.div_id = '#select_destination_dialog';
-    $('#dest_id').html(entity.id);
+    $('#dest_id').html('Move ' + entity.id + ' to:');
     $('#dest_x').val(Omega.Math.round_to(entity.location.x, 2));
     $('#dest_y').val(Omega.Math.round_to(entity.location.y, 2));
     $('#dest_z').val(Omega.Math.round_to(entity.location.z, 2));
@@ -47,7 +47,7 @@ Omega.UI.CommandDialog.prototype = {
       var target = targets[t];
       var cmd = $("<span/>",
         {id    : 'attack_' + target.id,
-         class : ['cmd_attack', 'dialog_cmd'],
+         class : 'cmd_attack dialog_cmd',
          text  : target.id });
       cmd.data("entity", entity);
       cmd.data("target", target);
@@ -74,7 +74,7 @@ Omega.UI.CommandDialog.prototype = {
       var station = stations[s];
       var cmd = $("<span/>",
         {id    : "dock_" + station.id,
-         class : ['cmd_dock', 'dialog_cmd'],
+         class : 'cmd_dock dialog_cmd',
          text  : station.id});
       cmd.data("entity", entity);
       cmd.data("station", station);
@@ -100,7 +100,7 @@ Omega.UI.CommandDialog.prototype = {
   append_mining_cmd : function(page, entity, resource){
     var cmd = $("<span/>",
       {id    : "mine_" + resource.id,
-       class : ['cmd_mine', 'dialog_cmd'],
+       class : 'cmd_mine dialog_cmd',
        text  : resource.material_id + ' (' + resource.quantity + ')'});
     cmd.data("entity", entity);
     cmd.data("resource", resource);
@@ -139,10 +139,11 @@ Omega.UI.CommandTracker.prototype = {
 
   _callbacks_motel_event : function(evnt, event_args){
     var entity = $.grep(this.page.all_entities(), function(entity){
-                   return entity.location.id == event_args[0].id;
+                   return entity.location &&
+                          entity.location.id == event_args[0].id;
                  })[0];
     if(entity == null) return;
-    entity.location = event_args[0];
+    entity.location = new Omega.Location(event_args[0]); // TODO should this just be an update?
 
     if(this.page.canvas.is_root(entity.parent_id)){
       this.page.canvas.reload(entity, function(){
@@ -163,6 +164,8 @@ Omega.UI.CommandTracker.prototype = {
     if(entity == null) return;
     entity.mining    = ship.mining;
     entity.resources = ship.resources;
+    entity.resources = station.resources;
+    entity._update_resources();
 
     if(this.page.canvas.is_root(entity.parent_id)){
       this.page.canvas.reload(entity, function(){

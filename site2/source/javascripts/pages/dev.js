@@ -28,17 +28,20 @@ Omega.Pages.Dev.prototype = {
                                      orientation_y : 0,
                                      orientation_z : 0})});
     var ship1 = new Omega.Ship({id : 'sh1', type : 'corvette',
-      location : new Omega.Location({x:-1250, y:-1250, z :300,
-                                     orientation_x : -1,
+      location : new Omega.Location({id : 'ship1',
+                                     x:1250, y:-250, z :300,
+                                     orientation_x : 1,
                                      orientation_y : 0,
                                      orientation_z : 0,
-                                     movement_strategy : {json_class : 'Motel::MovementStrategies::Linear' }})});
+                                     movement_strategy : {json_class : 'Motel::MovementStrategies::Linear',
+                                                          speed: 100, dx : 1, dy : 0, dz : 0}})});
 
-    var ship2 = new Omega.Ship({id : 'sh2', type : 'transport',
-      location : new Omega.Location({x:-1450, y:-1450, z :300,
-                                     orientation_x : -1,
-                                     orientation_y : 0,
-                                     orientation_z : 0,
+    var ship2 = new Omega.Ship({id : 'sh2', type : 'mining',
+      location : new Omega.Location({id : 'ship2',
+                                     x:-1450, y:-1450, z :300,
+                                     orientation_x : 0.82,
+                                     orientation_y : -0.57,
+                                     orientation_z : 0.04,
                                      movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped' }})});
 
     //ship1.attacking = ship2;
@@ -50,7 +53,7 @@ Omega.Pages.Dev.prototype = {
     //var orbit_nrml = {x : 0.68, y : -0.56, z : 0.45};
 
     var planet1 = new Omega.Planet({location :
-      new Omega.Location({x:500, y:500, z:500,
+      new Omega.Location({id : 'pl1', x:500, y:500, z:500,
         movement_strategy:
           Omega.Gen.elliptical_ms(orbit_nrml,
             {p: 3000, speed: 0.01, e : 0.7}) })});
