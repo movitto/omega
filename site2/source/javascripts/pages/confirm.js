@@ -1,0 +1,40 @@
+/* Omega Confirm Page JS
+ *
+ * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+ *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ */
+
+//= require "vendor/purl"
+
+Omega.Pages.Confirm = function(){
+  this.config  = Omega.Config;
+  this.node    = new Omega.Node(this.config);
+};
+
+Omega.Pages.Confirm.prototype = {
+  registration_code : function(){
+    var url = $.url(window.location);
+    return url.param('rc');
+  },
+
+  confirm_registration : function(){
+    var _this = this
+    var code = this.registration_code();
+    this.node.http_invoke('users::confirm_register', code,
+      function(response){ _this._registration_response(); });
+  },
+
+  _registration_response : function(){
+    /// XXX
+    alert("Done... redirecting");
+
+    var host   = this.config.http_host;
+    var prefix = this.config.url_prefix;
+    window.location = 'http://'+host+prefix;
+  }
+};
+
+$(document).ready(function(){
+  var dev = new Omega.Pages.Confirm();
+  dev.confirm_registration();
+});

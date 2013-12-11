@@ -43,9 +43,10 @@ Omega.Mission.prototype = {
 Omega.Mission.all = function(node, cb){
   node.http_invoke('missions::get_missions', function(response){
     if(response.result){
+      var missions = [];
       for(var m = 0; m < response.result.length; m++)
-        response.result[m] = new Omega.Mission(response.result[m]);
-      if(cb) cb(response.result);
+        missions.push(new Omega.Mission(response.result[m]));
+      if(cb) cb(missions);
     }
     // TODO handle get_missions failure
   });

@@ -239,10 +239,12 @@ Omega.Pages.Index.prototype = {
   },
 
   _scene_change : function(change){
-    var root = change.root;
-    var old_root = change.old_root;
+    var _this    = this;
+    var root     = change.root,
+        old_root = change.old_root;
 
-    var _this = this;
+    /// assuming user owned entities are always tracked,
+    /// and do not to be manipulated here
     var entities = {};
     entities.manu = $.grep(this.all_entities(), function(entity){
       return (entity.json_class == 'Manufactured::Ship' ||
@@ -262,20 +264,38 @@ Omega.Pages.Index.prototype = {
     entities.not_in_root = $.grep(entities.manu, function(entity){
       return entity.system_id != root.id;
     });
-
-    /// assuming user owned entities are always tracked,
-    /// and do not to be manipulated here
-
-    /// stop tracking entities not in scene
     entities.stop_tracking = $.grep(entities.not_in_root, function(entity){
+      /// stop tracking entities not in scene
       return entities.not_user_owned.indexOf(entity) != -1;
     });
-
-    /// track entities in scene
     entities.start_tracking = $.grep(entities.in_root, function(entity){
+      /// track entities in scene
       return entities.not_user_owned.indexOf(entity) != -1;
     });
 
+    this._track_scene_entities(entities, root, old_root);
+    this._sync_scene_entities(entities,  root, old_root);
+    this._track_scene_planets(entities,  root, old_root);
+    // TODO also need to track when entities jump into scene, need a new server
+    // event to effectively be able to do this
+
+    /// remove galaxy particle effects from canvas scene
+    if(old_root && old_root.json_class == 'Cosmos::Entities::Galaxy')
+      this.canvas.remove(old_root);
+
+    /// add galaxy particle effects to canvas scene
+    if(root.json_class == 'Cosmos::Entities::Galaxy')
+      this.canvas.add(root);
+
+    /// set scene background
+    this.canvas.skybox.set(root.bg);
+
+    /// add skybox to scene
+    if(!this.canvas.has(this.canvas.skybox.id))
+      this.canvas.add(this.canvas.skybox);
+  },
+
+  _track_scene_entities : function(entities, root, old_root){
     for(var e = 0; e < entities.stop_tracking.length; e++){
       var entity = entities.stop_tracking[e];
       if(entity.json_class == 'Manufactured::Ship')
@@ -284,6 +304,8 @@ Omega.Pages.Index.prototype = {
         this.stop_tracking_station(entity);
     }
 
+    if(root.json_class != "Omega::Cosmos::SolarSystem") return;
+
     for(var e = 0; e < entities.start_tracking.length; e++){
       var entity = entities.start_tracking[e];
       if(entity.json_class == 'Manufactured::Ship')
@@ -291,45 +313,79 @@ Omega.Pages.Index.prototype = {
       else
         this.track_station(entity);
     }
+  },
 
+  _track_scene_planets : function(entities, root, old_root){
     /// remove tracking of old planets
-    if(old_root){
-      if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
-        var planets = old_root.planets();
-        for(var p = 0; p < planets.length; p++){
-          var planet = planets[p];
-          this.stop_tracking_planet(planet);
-        }
-      }else{
-        /// remove galaxy particle effects from canvas scene
-        this.canvas.remove(old_root);
-      }
-    }
-
-    /// track planets in new system, add entities to scene
-    if(root.json_class == 'Cosmos::Entities::SolarSystem'){
-      var planets = root.planets();
+    if(old_root && old_root.json_class == 'Omega::Cosmos::SolarSystem'){
+      var planets = old_root.planets();
       for(var p = 0; p < planets.length; p++){
         var planet = planets[p];
-        this.track_planet(planet);
+        this.stop_tracking_planet(planet);
       }
-      for(var e = 0; e < entities.in_root.length; e++){
-        var entity = entities.in_root[e];
-        this.canvas.add(entity);
-      }
-// TODO also need to track when entities jump into scene, need a new server
-// event to effectively be able to do this
-    }else{
-      /// add galaxy particle effects to canvas scene
-      this.canvas.add(root);
     }
 
-    /// set scene background
-    this.canvas.skybox.set(root.bg);
+    if(root.json_class != "Omega::Cosmos::SolarSystem") return;
 
-    /// add skybox to scene
-    if(!this.canvas.has(this.canvas.skybox.id))
-      this.canvas.add(this.canvas.skybox);
+    var planets = root.planets();
+    for(var p = 0; p < planets.length; p++){
+      var planet = planets[p];
+      this.track_planet(planet);
+    }
+  },
+
+  _sync_scene_entities : function(entities, root, old_root){
+    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
+    var _this = this;
+
+    for(var e = 0; e < entities.in_root.length; e++){
+      var entity = entities.in_root[e];
+      if(entity.hp > 0)
+        this.canvas.add(entity);
+    }
+
+    /// retrieve all entities in the current system, add to scene if missing
+    Omega.Ship.under(root.id, this.node, function(ships){
+      _this._process_retrieved_scene_entities(ships, entities);
+    });
+
+    Omega.Station.under(root.id, this.node, function(stations){
+      _this._process_retrieved_scene_entities(stations, entities);
+    });
+  },
+
+  _process_retrieved_scene_entities : function(entities, entity_map){
+    for(var e = 0; e < entities.length; e++){
+      var entity = entities[e];
+
+      var local      = this.entity(entity.id);
+      var user_owned = entity.user_id == this.session.user_id;
+      var same_scene = this.canvas.root.id == entity.system_id;
+      var in_scene   = this.canvas.has(entity.id);
+      var tracking   = $.grep(entity_map.start_tracking, function(track_entity){
+                         return track_entity.id == entity.id; })[0] != null;
+
+      /// same assumption as in _scene_change above, that
+      /// user owned entities are already being tracked
+      if(!user_owned){
+        this.entity(entity.id, entity);
+
+        /// XXX !!! really ugly, incase old entity is already part of scene
+        if(local != null){
+          entity.components        = local.components;
+          entity.shader_components = local.shader_components;
+        }
+
+        if(same_scene && !in_scene && entity.hp > 0)
+          this.canvas.add(entity);
+        if(!tracking){
+          if(entity.json_class == 'Manufactured::Ship')
+            this.track_ship(entity);
+          else
+            this.track_station(entity);
+        }
+      }
+    }
   },
 
   handle_events : function(){

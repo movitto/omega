@@ -31,7 +31,6 @@ Omega.UI.Canvas.prototype = {
     this.canvas.click(function(evnt) { _this._canvas_clicked(evnt); })
 
     this.controls.wire_up();
-    this.dialog.wire_up();
     this.entity_container.wire_up();
   },
 
@@ -180,18 +179,21 @@ Omega.UI.Canvas.prototype = {
 
   // Add specified entity to scene
   add : function(entity){
+    /// XXX hacky but works for now:
     var _this = this;
-    entity.init_gfx(this.page.config, function(evnt){ _this.animate(); });
+    entity.sceneReload = function(evnt) { 
+      if(entity.mesh == evnt.data && _this.has(entity.id))
+        _this.reload(entity);
+    };
+    entity.addEventListener('loaded_mesh', entity.sceneReload);
 
+    entity.init_gfx(this.page.config, function(evnt){ _this.animate(); });
     for(var cc = 0; cc < entity.components.length; cc++)
       this.scene.add(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
 
-    /// XXX hacky but works for now:
-    entity.sceneReload = function() { _this.reload(entity); };
-    entity.addEventListener('loaded_mesh', entity.sceneReload);
-
+/// needs to go before init_gfx incase mesh is loaded/entity reloaded:
     this.entities.push(entity.id);
   },
 
@@ -304,7 +306,7 @@ Omega.UI.Canvas.Controls.prototype = {
   _missions_button_click : function(){
     var _this = this;
     var node  = this.canvas.page.node;
-    Omega.Mission.all(node, function(result){ _this.canvas.dialog.show_missions_dialog(result); });
+    Omega.Mission.all(node, function(missions){ _this.canvas.dialog.show_missions_dialog(missions); });
   }
 }
 
@@ -364,20 +366,6 @@ Omega.UI.Canvas.Dialog = function(parameters){
 };
 
 Omega.UI.Canvas.Dialog.prototype = {
-  wire_up : function(){
-    /// wire up assign_mission click events
-/// FIXME as w/ lists above if children are added after
-/// wire_up is invoked (or if dialog is hidden during?)
-/// they won't pickup handlers
-    var _this = this;
-    this.component().off('click', '.assign_mission'); // <- XXX needed?
-    this.component().
-      on('click', '.assign_mission',
-         function(evnt) {
-           _this._assign_button_click(evnt);
-         });
-  },
-
   _assign_button_click : function(evnt){
     var _this = this;
     var node  = this.canvas.page.node;
@@ -387,24 +375,20 @@ Omega.UI.Canvas.Dialog.prototype = {
     mission.assign_to(user, node, function(res){ _this._assign_mission_clicked(res); })
   },
 
-  show_missions_dialog : function(response){
-    var missions   = [];
+  show_missions_dialog : function(missions){
     var unassigned = [];
     var victorious = [];
     var failed     = [];
     var current    = null;
 
-    if(response.result){
-      var current_user = this.canvas.page.session.user_id;
-      missions   = response.result;
-      unassigned = $.grep(missions, function(m) { return m.unassigned(); });
-      assigned   = $.grep(missions, function(m) {
+    var current_user = this.canvas.page.session.user_id;
+    unassigned = $.grep(missions, function(m) { return m.unassigned(); });
+    assigned   = $.grep(missions, function(m) {
                                      return m.assigned_to(current_user); });
-      victorious = $.grep(assigned, function(m) {   return m.victorious; });
-      failed     = $.grep(assigned, function(m) {       return m.failed; });
-      current    = $.grep(assigned, function(m) {
-                                     return !m.victorious && !m.failed; })[0];
-    }
+    victorious = $.grep(assigned, function(m) {   return m.victorious; });
+    failed     = $.grep(assigned, function(m) {       return m.failed; });
+    current    = $.grep(assigned, function(m) {
+                                   return !m.victorious && !m.failed; })[0];
 
     this.hide();
     if(current) this.show_assigned_mission_dialog(current);
@@ -423,6 +407,7 @@ Omega.UI.Canvas.Dialog.prototype = {
   },
 
   show_missions_list_dialog : function(unassigned, victorious, failed){
+    var _this = this;
     this.title  = 'Missions';
     this.div_id = '#missions_dialog';
 
@@ -433,6 +418,10 @@ Omega.UI.Canvas.Dialog.prototype = {
         {'class': 'assign_mission', 
           text:   'assign' });
       assign_link.data('mission', mission);
+      assign_link.click(function(evnt){
+        _this._assign_button_click(evnt);
+        evnt.stopPropagation();
+      });
       $('#missions_list').append(mission.title);
       $('#missions_list').append(assign_link);
       $('#missions_list').append('<br/>');

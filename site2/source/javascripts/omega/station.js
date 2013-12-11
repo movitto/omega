@@ -12,6 +12,8 @@ Omega.Station = function(parameters){
   $.extend(this, parameters);
   this.location = Omega.convert_entity(this.location)
   this._update_resources();
+
+  this.hp = 100; /// XXX interim compatability hack
 };
 
 Omega.Station.prototype = {
@@ -249,5 +251,18 @@ Omega.Station.owned_by = function(user_id, node, cb){
       cb(stations);
     });
 }
+
+// Returns stations in the specified system
+Omega.Station.under = function(system_id, node, cb){
+  node.http_invoke('manufactured::get_entities',
+    'of_type', 'Manufactured::Station', 'under', system_id,
+    function(response){
+      var stations = [];
+      if(response.result)
+        for(var s = 0; s < response.result.length; s++)
+          stations.push(new Omega.Station(response.result[s]));
+      cb(stations);
+    });
+};
 
 THREE.EventDispatcher.prototype.apply( Omega.Station.prototype );

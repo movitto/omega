@@ -77,6 +77,7 @@ Omega.Ship.prototype = {
   retrieve_details : function(page, details_cb){
     var title = 'Ship: ' + this.id;
     var loc   = '@ ' + this.location.to_s();
+    var hp    = 'HP: ' + this.hp;
 
     var resources = ['Resources:'];
     for(var r = 0; r < this.resources.length; r++){
@@ -84,10 +85,14 @@ Omega.Ship.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
-    var cmds = this._create_commands(page);
-    var details = [title, loc].concat(resources);
+    var details = [title, loc, hp].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
-    details = details.concat(cmds);
+
+    if(page.session && this.belongs_to_user(page.session.user_id)){
+      var cmds = this._create_commands(page);
+      details = details.concat(cmds);
+    }
+
     details_cb(details);
   },
 
@@ -161,7 +166,8 @@ Omega.Ship.prototype = {
                     return  e.json_class == 'Manufactured::Ship'    &&
                            !e.belongs_to_user(page.session.user_id) &&
                             e.location.is_within(_this.attack_distance,
-                                                 _this.location);
+                                                 _this.location)    &&
+                            e.hp > 0;
                   });
     this.dialog().show_attack_dialog(page, this, targets);
   },
@@ -275,28 +281,31 @@ Omega.Ship.prototype = {
     var _this = this;
     this.dialog().show_mining_dialog(page, this);
 
-    var asteroids = $.grep(page.all_entities(), function(e){
-                      return e.json_class == 'Cosmos::Entities::Asteroid' &&
-                             e.location.is_within(_this.mining_distance,
-                                                  _this.location);
-                    });
+    var asteroids = this.solar_system.asteroids();
+    asteroids = $.grep(asteroids, function(e){
+                  return e.location.is_within(_this.mining_distance,
+                                              _this.location);
+                });
     for(var a = 0; a < asteroids.length; a++){
       var ast = asteroids[a];
-      page.node.http_invoke('cosmos::get_resources', ast.id,
-        function(response){
-          if(!response.error){
-            for(var r = 0; r < response.result.length; r++){
-              var resource = response.result[r];
-              _this.dialog().append_mining_cmd(page, _this, resource);
+      (function(ast){
+        page.node.http_invoke('cosmos::get_resources', ast.id,
+          function(response){
+            if(!response.error){
+              for(var r = 0; r < response.result.length; r++){
+                var resource = response.result[r];
+                _this.dialog().append_mining_cmd(page, _this, resource, ast);
+              }
             }
-          }
-        });
+          });
+      })(ast);
     }
   },
 
   _start_mining : function(page, evnt){
     var _this = this;
     var resource = $(evnt.currentTarget).data('resource');
+    var asteroid = $(evnt.currentTarget).data('asteroid');
     page.node.http_invoke('manufactured::start_mining', this.id,
       resource.id, function(response){
         if(response.error){
@@ -306,7 +315,8 @@ Omega.Ship.prototype = {
 
         }else{
           _this.dialog().hide();
-          _this.mining = response.result.mining;
+          _this.mining = resource;
+          _this.mining_asteroid = asteroid;
           page.canvas.reload(_this, function(){
             _this.update_gfx();
           });
@@ -365,7 +375,7 @@ Omega.Ship.prototype = {
       }, geometry_prefix);
 
     //// highlight effects
-      /// each ship instance should set position of mesh
+      /// each ship instance should set position of highlight
       var highlight_geometry = new THREE.CylinderGeometry( 0, 40, 80, 8, 2 );
       var highlight_material = new THREE.MeshBasicMaterial({ color:0x33ff33,
                                                              shading: THREE.FlatShading } );
@@ -377,6 +387,9 @@ Omega.Ship.prototype = {
                                   Omega.Ship.prototype.highlight_props.rot_y,
                                   Omega.Ship.prototype.highlight_props.rot_z);
       Omega.Ship.gfx[this.type].highlight = highlight_mesh;
+      Omega.Ship.gfx[this.type].nonuser_highlight_material =
+        new THREE.MeshBasicMaterial({ color:0xFF0000,
+                                      shading: THREE.FlatShading } );
 
     //// lamps
       var lamps = config.resources.ships[this.type].lamps;
@@ -509,7 +522,7 @@ Omega.Ship.prototype = {
       this.highlight.position.add(new THREE.Vector3(this.location.x,
                                                     this.location.y,
                                                     this.location.z));
-
+    /// TODO change highlight mesh material if ship doesn't belong to user
     this.components.push(this.highlight);
 
     this.lamps = [];
@@ -680,11 +693,11 @@ Omega.Ship.prototype = {
 
     /// add/remove mining vector depending on ship state
     var has_mining_vector = this.components.indexOf(this.mining_vector) != -1;
-    if(this.mining){
+    if(this.mining && this.mining_asteroid){
       /// should be signed to preserve direction
-      var dx = this.mining.location.x - this.location.x;
-      var dy = this.mining.location.y - this.location.y;
-      var dz = this.mining.location.z - this.location.z;
+      var dx = this.mining_asteroid.location.x - this.location.x;
+      var dy = this.mining_asteroid.location.y - this.location.y;
+      var dz = this.mining_asteroid.location.z - this.location.z;
 
       // update mining vector vertices
       this.mining_vector.geometry.vertices[0].set(0,0,0);
@@ -813,5 +826,18 @@ Omega.Ship.owned_by = function(user_id, node, cb){
       cb(ships);
     });
 }
+
+// Returns ships in the specified system
+Omega.Ship.under = function(system_id, node, cb){
+  node.http_invoke('manufactured::get_entities',
+    'of_type', 'Manufactured::Ship', 'under', system_id,
+    function(response){
+      var ships = [];
+      if(response.result)
+        for(var s = 0; s < response.result.length; s++)
+          ships.push(new Omega.Ship(response.result[s]));
+      cb(ships);
+    });
+};
 
 THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );

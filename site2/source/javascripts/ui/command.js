@@ -97,13 +97,14 @@ Omega.UI.CommandDialog.prototype = {
     this.show();
   },
 
-  append_mining_cmd : function(page, entity, resource){
+  append_mining_cmd : function(page, entity, resource, asteroid){
     var cmd = $("<span/>",
       {id    : "mine_" + resource.id,
        class : 'cmd_mine dialog_cmd',
        text  : resource.material_id + ' (' + resource.quantity + ')'});
     cmd.data("entity", entity);
     cmd.data("resource", resource);
+    cmd.data("asteroid", asteroid);
     cmd.click(function(evnt){ entity._start_mining(page, evnt); });
 
     $('#mining_targets').append(cmd);
@@ -163,8 +164,9 @@ Omega.UI.CommandTracker.prototype = {
                         function(entity){ return entity.id == ship.id; })[0];
     if(entity == null) return;
     entity.mining    = ship.mining;
+    /// FIXME also need to lookup & set entity.mining_asteroid
+    /// incase entity is already mining on being loaded
     entity.resources = ship.resources;
-    entity.resources = station.resources;
     entity._update_resources();
 
     if(this.page.canvas.is_root(entity.parent_id)){
@@ -184,7 +186,8 @@ Omega.UI.CommandTracker.prototype = {
     var entity = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == ship.id; })[0];
     if(entity == null) return;
-    entity.mining    = null;
+    entity.mining          = null;
+    entity.mining_asteroid = null;
 
     if(this.page.canvas.is_root(entity.parent_id)){
       this.page.canvas.reload(entity, function(){
@@ -232,8 +235,8 @@ Omega.UI.CommandTracker.prototype = {
   },
 
   _callbacks_defended : function(evnt, event_args){
-    var attacker = event_args[1];
-    var defender = event_args[2];
+    var defender = event_args[1];
+    var attacker = event_args[2];
 
     var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
@@ -243,7 +246,8 @@ Omega.UI.CommandTracker.prototype = {
     pdefender.hp           = defender.hp;
     pdefender.shield_level = defender.shield_level;
 
-    if(this.page.canvas.is_root(pdefender.parent_id)){
+    if(this.page.canvas.is_root(pdefender.parent_id) &&
+       this.page.canvas.has(pdefender.id)){
       this.page.canvas.reload(pdefender, function(){
         if(pdefender.update_gfx) pdefender.update_gfx();
       });
@@ -251,8 +255,8 @@ Omega.UI.CommandTracker.prototype = {
   },
 
   _callbacks_defended_stop : function(evnt, event_args){
-    var attacker = event_args[1];
-    var defender = event_args[2];
+    var defender = event_args[1];
+    var attacker = event_args[2];
 
     var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
@@ -262,7 +266,8 @@ Omega.UI.CommandTracker.prototype = {
     pdefender.hp           = defender.hp;
     pdefender.shield_level = defender.shield_level;
 
-    if(this.page.canvas.is_root(pdefender.parent_id)){
+    if(this.page.canvas.is_root(pdefender.parent_id) &&
+       this.page.canvas.has(pdefender.id)){
       this.page.canvas.reload(pdefender, function(){
         if(pdefender.update_gfx) pdefender.update_gfx();
       });
@@ -270,8 +275,8 @@ Omega.UI.CommandTracker.prototype = {
   },
 
   _callbacks_destroyed_by : function(evnt, event_args){
-    var attacker = event_args[1];
-    var defender = event_args[2];
+    var defender = event_args[1];
+    var attacker = event_args[2];
 
     var pattacker = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == attacker.id; })[0];
@@ -289,9 +294,9 @@ Omega.UI.CommandTracker.prototype = {
     }
 
     if(this.page.canvas.is_root(pdefender.parent_id)){
-      this.page.canvas.reload(pdefender, function(){
-        if(pdefender.update_gfx) pdefender.update_gfx();
-      });
+      /// allow defender to tidy up gfx b4 removing from scene:
+      pdefender.update_gfx();
+      this.page.canvas.remove(pdefender);
     }
   },
 

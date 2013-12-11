@@ -22,6 +22,13 @@ Omega.SolarSystem = function(parameters){
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem',
 
+  asteroids : function(){
+    return $.grep(this.children, function(c){
+      return c.json_class &&
+             c.json_class == 'Cosmos::Entities::Asteroid';
+    });
+  },
+
   planets : function(){
     return $.grep(this.children, function(c){
       return c.json_class &&
