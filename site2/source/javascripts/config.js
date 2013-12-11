@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-// TODO move to top level javascripts/ dir
-
 Omega.Config = {
   // uri & paths
   http_host         : 'localhost',
@@ -21,7 +19,7 @@ Omega.Config = {
   anon_user         :      'anon',
   anon_pass         :      'nona',
   recaptcha_enabled :        true,
-  recaptcha_pub     : '6LflM9QSAAAAAHsPkhWc7OPrwV4_AYZfnhWh3e3n',
+  recaptcha_pub     : 'change me',
 
   // ui
   //canvas_width      :         900,

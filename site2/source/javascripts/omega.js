@@ -30,7 +30,7 @@
 /// omega
 //= require "omega/version"
 //= require "omega/common"
-//= require "omega/config"
+//= require "config"
 //= require "omega/node"
 //= require "omega/session"
 //= require "omega/user"
