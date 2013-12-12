@@ -189,10 +189,13 @@ Omega.JumpGate.prototype = {
     }
 
     var _this = this;
-    this.addEventListener('loaded_' + resource, function(evnt){
-      if(evnt.target == _this) /// event interface defined on prototype, need to distinguish instances
+    var loaded_cb = function(evnt){
+      if(evnt.target == _this){ /// event interface defined on prototype, need to distinguish instances
         cb(evnt.data);
-    });
+        _this.removeEventListener('loaded_' + resource, loaded_cb);
+      }
+    };
+    this.addEventListener('loaded_' + resource, loaded_cb);
   },
 
   init_gfx : function(config, event_cb){

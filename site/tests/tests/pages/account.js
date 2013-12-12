@@ -361,14 +361,14 @@ describe("Omega.Pages.Account", function(){
     });
 
     describe("retrieve stats callback", function(){
-      it("processes_stats with stats retrieved", function(){
+      it("invokes processes_stat with stats retrieved", function(){
         var get_stat = sinon.spy(Omega.Stat, 'get');
         validate_cb({result : user});
         var get_stat_cb = get_stat.getCall(0).args[3];
-        var process_stats = sinon.spy(acct, 'process_stats');
-        var stats = [new Omega.Stat({value : []})];
-        get_stat_cb(stats);
-        sinon.assert.calledWith(process_stats, stats);
+        var process_stat = sinon.spy(acct, 'process_stat');
+        var stat = new Omega.Stat({value : []});
+        get_stat_cb(stat);
+        sinon.assert.calledWith(process_stat, stat);
       })
     });
   });
@@ -405,7 +405,7 @@ describe("Omega.Pages.Account", function(){
 
   describe("#process_entity", function(){
     it("adds entity to account info entity details", function(){
-      var add_entity = sinon.spy(page.details, 'entities');
+      var add_entity = sinon.spy(page.details, 'entity');
       var ship = new Omega.Ship();
       page.process_entity(ship);
       sinon.assert.calledWith(add_entity, ship);

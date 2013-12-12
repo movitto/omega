@@ -15,17 +15,14 @@ describe("Omega.Stat", function(){
     });
 
     describe("stats::get response", function(){
-      it("invokes callback with converted stats", function(){
-        var stats = [{id : 'foo'}, {id : 'bar'}];
+      it("invokes callback with converted stat", function(){
+        var stat = {id : 'foo'};
         Omega.Stat.get('with_most', ['entities'], node, retrieval_cb);
-        invoke_spy.getCall(0).args[3]({result : stats});
+        invoke_spy.getCall(0).args[3]({result : stat});
         sinon.assert.called(retrieval_cb);
-        var rstats = retrieval_cb.getCall(0).args[0];
-        assert(rstats.length).equals(2);
-        assert(rstats[0]).isOfType(Omega.Stat);
-        assert(rstats[1]).isOfType(Omega.Stat);
-        assert(rstats[0].id).equals('foo');
-        assert(rstats[1].id).equals('bar');
+        var rstat = retrieval_cb.getCall(0).args[0];
+        assert(rstat).isOfType(Omega.Stat);
+        assert(rstat.id).equals('foo');
       });
     });
   });

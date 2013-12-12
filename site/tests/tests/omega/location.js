@@ -36,7 +36,6 @@ describe("Omega.Location", function(){
       assert(loc.rotation_matrix().elements).areCloseTo([0,0,-1,0,0,1,0,0,1,0,0,0,0,0,0,1], 5);
 
       var loc = new Omega.Location({orientation_x: 0, orientation_y : 0, orientation_z : 1});
-      console.log(loc.rotation_matrix())
       assert(loc.rotation_matrix().elements).areCloseTo([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1], 5);
 
       var loc = new Omega.Location({orientation_x: 0, orientation_y : 1, orientation_z : 0});

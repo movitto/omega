@@ -14,7 +14,11 @@ Omega.Pages.Test = function(parameters){
 }
 
 Omega.Pages.Test.prototype = {
-  process_entity : function(entity){}
+  process_entity : function(entity){},
+
+  all_entities : function(){
+    return Omega.obj_values(this.entities);
+  }
 }
 
 Omega.Test = {

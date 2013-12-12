@@ -193,7 +193,6 @@ Omega.UI.Canvas.prototype = {
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
 
-/// needs to go before init_gfx incase mesh is loaded/entity reloaded:
     this.entities.push(entity.id);
   },
 
@@ -224,8 +223,10 @@ Omega.UI.Canvas.prototype = {
     this.root = null;
     this.entities = [];
 //this._listeners = []; /// clear three.js event listeners (XXX hacky, figure out better way)
-    var scene_components        = this.scene.getDescendants();
-    var shader_scene_components = this.shader_scene.getDescendants();
+    var scene_components =
+      this.scene ? this.scene.getDescendants() : [];
+    var shader_scene_components =
+      this.shader_scene ? this.shader_scene.getDescendants() : [];
 
     for(var c = 0; c < scene_components.length; c++)
       this.scene.remove(scene_components[c]);
@@ -381,7 +382,8 @@ Omega.UI.Canvas.Dialog.prototype = {
     var failed     = [];
     var current    = null;
 
-    var current_user = this.canvas.page.session.user_id;
+    var current_user =
+      this.canvas.page.session ? this.canvas.page.session.user_id : null;
     unassigned = $.grep(missions, function(m) { return m.unassigned(); });
     assigned   = $.grep(missions, function(m) {
                                      return m.assigned_to(current_user); });

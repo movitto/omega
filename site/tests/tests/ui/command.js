@@ -49,7 +49,7 @@ describe("Omega.UI.CommandDialog", function(){
 
     it("sets dest entity id", function(){
       dialog.show_destination_selection_dialog(page, ship);
-      assert($('#dest_id').html()).equals(ship.id);
+      assert($('#dest_id').html()).equals('Move ' + ship.id + ' to:');
     });
 
     it("sets current x coordinate as dest x", function(){
@@ -336,7 +336,7 @@ describe("Omega.UI.CommandTracker", function(){
       var ship, eship, eargs;
 
       before(function(){
-        ship  = new Omega.Ship({parent_id : 'system1',
+        ship  = new Omega.Ship({system_id : 'system1',
                                 location  : new Omega.Location({id:42,x:0,y:0,z:0})});
         eship = new Omega.Ship({location : new Omega.Location({id:42,x:1,y:1,z:1})});
                                 
@@ -346,8 +346,16 @@ describe("Omega.UI.CommandTracker", function(){
 
       it("updates entity location", function(){
         tracker._callbacks_motel_event('motel::on_movement', eargs);
-        assert(ship.location).equals(eship.location);
+        assert(ship.location).isSameAs(eship.location);
       });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          ship.parent_id = 'system2';
+          tracker._callbacks_motel_event('motel::on_movement', eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
+      })
 
       it("reloads entity in scene", function(){
         tracker._callbacks_motel_event('motel::on_movement', eargs);
@@ -377,7 +385,7 @@ describe("Omega.UI.CommandTracker", function(){
         var eres = new Omega.Resource({material_id : 'gold', quantity : 50});
         var ast  = new Omega.Asteroid();
 
-        ship  = new Omega.Ship({id: 'ship1', parent_id : 'system1', resources : [res]});
+        ship  = new Omega.Ship({id: 'ship1', system_id : 'system1', resources : [res]});
         eship = new Omega.Ship({id: 'ship1', resources : [eres], mining: ast});
         page.entities = [ship];
         eargs         = ['resource_collected', eship, res, 40];
@@ -392,6 +400,14 @@ describe("Omega.UI.CommandTracker", function(){
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
         assert(ship.resources).equals(eship.resources);
       });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          ship.parent_id = 'system2';
+          tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
+      })
 
       it("reloads entity in scene", function(){
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
@@ -418,7 +434,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       before(function(){
         var ast = new Omega.Asteroid();
-        ship  = new Omega.Ship({id: 'ship1', parent_id : 'system1', mining: ast});
+        ship  = new Omega.Ship({id: 'ship1', system_id : 'system1', mining: ast});
         eship = new Omega.Ship({id: 'ship1'});
 
         var res = new Omega.Resource();
@@ -434,6 +450,14 @@ describe("Omega.UI.CommandTracker", function(){
       it("clears entity mining target", function(){
         tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
         assert(ship.mining).isNull();
+      });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          ship.parent_id = 'system2';
+          tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
       });
 
       it("reloads entity in scene", function(){
@@ -462,7 +486,7 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         tgt    = new Omega.Ship({id : 'target_ship' });
         etgt   = new Omega.Ship({id : 'target_ship' });
-        ship   = new Omega.Ship({id: 'ship1', parent_id : 'system1'});
+        ship   = new Omega.Ship({id: 'ship1', system_id : 'system1'});
         eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
 
         page.entities = [ship, tgt];
@@ -472,6 +496,14 @@ describe("Omega.UI.CommandTracker", function(){
       it("updates entity attacking target", function(){
         tracker._callbacks_attacked("manufactured::event_occurred", eargs);
         assert(ship.attacking).equals(tgt);
+      });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          ship.parent_id = 'system2';
+          tracker._callbacks_attacked("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
       });
 
       it("reloads entity in scene", function(){
@@ -494,7 +526,7 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         tgt    = new Omega.Ship({id : 'target_ship'});
         etgt   = new Omega.Ship({id : 'target_ship' });
-        ship   = new Omega.Ship({id: 'ship1', parent_id : 'system1' });
+        ship   = new Omega.Ship({id: 'ship1', system_id : 'system1' });
         eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
 
         page.entities = [ship, tgt];
@@ -504,6 +536,14 @@ describe("Omega.UI.CommandTracker", function(){
       it("clears entity attacking target", function(){
         tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
         assert(ship.attacking).isNull();
+      });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          ship.parent_id = 'system2';
+          tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
       });
 
       it("reloads entity in scene", function(){
@@ -524,19 +564,32 @@ describe("Omega.UI.CommandTracker", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        tgt    = new Omega.Ship({id : 'target_ship', system_id : 'system1' });
         etgt   = new Omega.Ship({id : 'target_ship', hp : 77, shield_level : 99 });
         ship   = new Omega.Ship({id: 'ship1'});
         eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
 
         page.entities = [ship, tgt];
-        eargs         = ['defended', eship, etgt];
+        page.canvas.entities = [tgt.id];
+        eargs         = ['defended', etgt, eship];
+      });
+
+      after(function(){
+        page.canvas.clear();
       });
 
       it("updates entity hp and shield level", function(){
         tracker._callbacks_defended("manufactured::event_occurred", eargs);
         assert(tgt.hp).equals(77);
         assert(tgt.shield_level).equals(99);
+      });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          tgt.parent_id = 'system2';
+          tracker._callbacks_defended("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
       });
 
       it("reloads entity in scene", function(){
@@ -557,19 +610,28 @@ describe("Omega.UI.CommandTracker", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        tgt    = new Omega.Ship({id : 'target_ship', system_id : 'system1' });
         etgt   = new Omega.Ship({id : 'target_ship', hp : 77, shield_level : 99 });
         ship   = new Omega.Ship({id: 'ship1'});
         eship  = new Omega.Ship({id: 'ship1', attacking : etgt});
 
         page.entities = [ship, tgt];
-        eargs         = ['defended_stop', eship, etgt];
+        page.canvas.entities = [tgt.id];
+        eargs         = ['defended_stop', etgt, eship];
       });
 
       it("updates entity hp and shield level", function(){
         tracker._callbacks_defended_stop("manufactured::event_occurred", eargs);
         assert(tgt.hp).equals(77);
         assert(tgt.shield_level).equals(99);
+      });
+
+      describe("entity not in scene", function(){
+        it("does not reload entity", function(){
+          tgt.parent_id = 'system2';
+          tracker._callbacks_defended_stop("manufactured::event_occurred", eargs);
+          sinon.assert.notCalled(canvas_reload);
+        });
       });
 
       it("reloads entity in scene", function(){
@@ -590,13 +652,18 @@ describe("Omega.UI.CommandTracker", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        tgt    = new Omega.Ship({id : 'target_ship', parent_id : 'system1' });
+        tgt    = new Omega.Ship({id : 'target_ship', system_id : 'system1' });
         etgt   = new Omega.Ship({id : 'target_ship' });
-        ship   = new Omega.Ship({id : 'ship1', parent_id : 'system1' });
+        ship   = new Omega.Ship({id : 'ship1', system_id : 'system1' });
         eship  = new Omega.Ship({id : 'ship1', attacking : etgt});
 
         page.entities = [ship, tgt];
-        eargs         = ['destroyed_by', eship, etgt];
+        page.canvas.entities = [ship.id, tgt.id];
+        eargs         = ['destroyed_by', etgt, eship];
+      });
+
+      after(function(){
+        if(page.canvas.remove.restore) page.canvas.remove.restore();
       });
 
       it("clears entity attacking target", function(){
@@ -623,17 +690,17 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.called(update_gfx);
       });
 
-      it("reloads defender in scene", function(){
-        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        sinon.assert.calledWith(canvas_reload, tgt, sinon.match.func);
-      });
 
       it("updates defender gfx", function(){
-        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        var reload_cb = canvas_reload.getCall(1).args[1];
         var update_gfx = sinon.stub(tgt, 'update_gfx');
-        reload_cb();
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
         sinon.assert.called(update_gfx);
+      });
+
+      it("removes defender from scene", function(){
+        var canvas_remove = sinon.stub(page.canvas, 'remove');
+        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_remove, tgt);
       });
     });
 
@@ -676,7 +743,7 @@ describe("Omega.UI.CommandTracker", function(){
       it("adds constructed entity to canvas scene", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
         var get_cb = get.getCall(0).args[2];
-        var retrieved = new Omega.Ship({parent_id : 'system1'});
+        var retrieved = new Omega.Ship({system_id : 'system1'});
         get_cb(retrieved);
         sinon.assert.calledWith(canvas_add, retrieved);
       });
@@ -684,7 +751,7 @@ describe("Omega.UI.CommandTracker", function(){
       it("refreshes the entity container", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
         var get_cb = get.getCall(0).args[2];
-        var retrieved = new Omega.Ship({parent_id : 'system1'});
+        var retrieved = new Omega.Ship({system_id : 'system1'});
         get_cb(retrieved);
         sinon.assert.calledWith(refresh_entity_container);
       });
@@ -811,7 +878,7 @@ describe("Omega.UI.CommandTracker", function(){
         var msg_received = sinon.spy(tracker, "_msg_received");
         tracker.track("motel::on_rotation");
         var handler = page.node._listeners['motel::on_rotation'][0];
-        handler('event_occurred');
+        handler({data : ['event_occurred']});
         sinon.assert.calledWith(msg_received, 'motel::on_rotation', ['event_occurred']);
       });
     });

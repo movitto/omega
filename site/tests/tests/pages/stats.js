@@ -75,24 +75,25 @@ describe("Omega.Pages.Stats", function(){
     });
 
     describe("omega stat retrieved", function(){
-      var get_cb, stats;
+      var get_cb, stat;
+
       before(function(){
         var get = sinon.stub(Omega.Stat, 'get');
         page.retrieve_stats();
         get_cb = get.getCall(0).args[3];
 
-        stats = [new Omega.Stat(), new Omega.Stat()];
+        stat = new Omega.Stat({stat: {stat_id : 'sid'}});
       });
 
       it("updates stats", function(){
         var update_stats = sinon.spy(page, 'update_stats');
-        get_cb(stats)
-        sinon.assert.calledWith(update_stats, stats);
+        get_cb(stat)
+        sinon.assert.calledWith(update_stats, stat);
       });
 
       it("refreshes stats", function(){
         var refresh_stats = sinon.spy(page, 'refresh_stats');
-        get_cb(stats)
+        get_cb(stat)
         sinon.assert.called(refresh_stats);
       });
     });
@@ -101,33 +102,32 @@ describe("Omega.Pages.Stats", function(){
   describe("#update_stats", function(){
     var stats, stats1;
     before(function(){
-      stats = [new Omega.Stat({stat_id : 'stat1'}), new Omega.Stat({stat_id : 'stat2'})];
-      stats1 = [new Omega.Stat({stat_id : 'stat1'})];
+      stat  = new Omega.Stat({stat : {stat_id : 'stat1'}});
+      stat1 = new Omega.Stat({stat : {stat_id : 'stat1'}});
     });
 
     it("stores stats locally", function(){
-      page.update_stats(stats);
-      assert(page.stats['stat1']).equals(stats[0]);
-      assert(page.stats['stat2']).equals(stats[1]);
+      page.update_stats(stat);
+      assert(page.stat_results['stat1']).equals(stat);
     });
 
     it("overwrites duplicate stats", function(){
-      page.update_stats(stats);
-      page.update_stats(stats1);
-      assert(page.stats['stat1']).equals(stats1[0]);
-      assert(page.stats['stat2']).equals(stats[1]);
+      page.update_stats(stat);
+      page.update_stats(stat1);
+      assert(page.stat_results['stat1']).equals(stat1);
     });
   });
 
   describe("refresh_stats", function(){
     it("adds stats to ui", function(){
       $('#stats ul').html('<li>foo</li>');
-      page.stats = {'stat1' : new Omega.Stat({stat_id : 'stat1',
-                                              description : 'dstat1',
-                                              value : 10}),
-                    'stat2' : new Omega.Stat({stat_id : 'stat2',
-                                              description: 'dstat2',
-                                              value : 20})};
+      page.stat_results =
+        {'stat1' : new Omega.Stat({value : 10, stat :
+                         {stat_id : 'stat1',
+                          description : 'dstat1'}}),
+         'stat2' : new Omega.Stat({value : 20, stat :
+                         {stat_id : 'stat2',
+                          description: 'dstat2'}})};
 
       page.refresh_stats();
       var text = $('#stats ul').html();

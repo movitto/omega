@@ -40,10 +40,10 @@ describe("Omega.Planet", function(){
       var page   = Omega.Test.Page();
       var basepath = 'http://' + page.config.http_host + page.config.url_prefix + page.config.images_path + '/textures/planet';
       var planet = Omega.Test.Canvas.Entities().planet;
-      planet.color = '0x000000';
+      planet.color = '000000';
       var mat = planet._load_material(page.config, function(){});
       assert(mat.map.image.src).equals(basepath + '0.png');
-      planet.color = '0x000001';
+      planet.color = '000001';
       mat = planet._load_material(page.config, function(){});
       assert(mat.map.image.src).equals(basepath + '1.png');
     });
@@ -54,7 +54,7 @@ describe("Omega.Planet", function(){
       var ms  = {e : 0, p : 10, speed: 1.57,
                  dmajx: 0, dmajy : 1, dmajz : 0,
                  dminx: 0, dminy : 0, dminz : 1};
-      var loc = {id : 42, movement_strategy : ms};
+      var loc = new Omega.Location({id : 42, movement_strategy : ms});
       var pl  = new Omega.Planet({location : loc});
       pl._calc_orbit();
 
@@ -88,7 +88,7 @@ describe("Omega.Planet", function(){
       var ms  = {e : 0, p : 10, speed: 1.57,
                  dmajx: 0, dmajy : 1, dmajz : 0,
                  dminx: 0, dminy : 0, dminz : 1};
-      var loc = {id : 42, movement_strategy : ms};
+      var loc = new Omega.Location({id : 42, movement_strategy : ms});
       var pl  = new Omega.Planet({location : loc});
       pl._init_orbit_gfx();
       assert(pl.orbit_mesh).isOfType(THREE.Line);
@@ -167,7 +167,7 @@ describe("Omega.Planet", function(){
   describe("#update_gfx", function(){
     it("sets mesh position from planet location", function(){
       var planet = Omega.Test.Canvas.Entities().planet;
-      planet.location = {x : 20, y : 30, z : -20};
+      planet.location = new Omega.Location({x : 20, y : 30, z : -20});
       planet.update_gfx();
       assert(planet.mesh.position.x).equals( 20);
       assert(planet.mesh.position.y).equals( 30);
@@ -183,8 +183,8 @@ describe("Omega.Planet", function(){
       // XXX should specify full movement strategy & invoke
       // 'pl._calc_orbit' instead of specifying calculated
       // orbit properties manually
-      var loc = {id : 42, x : 0, y : 0, z : 10,
-                 movement_strategy : {speed: -1.57}};
+      var loc = new Omega.Location({id : 42, x : 0, y : 0, z : 10,
+                 movement_strategy : {speed: -1.57}});
       pl  = new Omega.Planet({
                   location : loc,
                   last_moved : new Date() - 1000,

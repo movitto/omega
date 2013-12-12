@@ -6716,7 +6716,8 @@ THREE.EventDispatcher.prototype = {
 
 	removeEventListener: function ( type, listener ) {
 
-		if ( this._listeners === undefined ) return;
+    /// mmorsi change (added || to conditional checking existance of type) v
+		if ( this._listeners === undefined || this._listeners[type] === undefined) return;
 
 		var listeners = this._listeners;
 		var index = listeners[ type ].indexOf( listener );

@@ -4,13 +4,15 @@ describe("Omega.Ship", function(){
 
   before(function(){
     ship = new Omega.Ship({id : 'ship1', user_id : 'user1',
+                    hp : 42,
                     attack_distance : 100,
                     mining_distance : 100,
                     location  : new Omega.Location({x:99,y:-2,z:100}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas(),
-                                 node: new Omega.Node() });
+                                 node: new Omega.Node(),
+                                 session: new Omega.Session({user_id : 'user1'})});
   });
 
   describe("#belongs_to_user", function(){
@@ -30,6 +32,7 @@ describe("Omega.Ship", function(){
     it("invokes details cb with ship id, location, and resources", function(){
       var text = ['Ship: ship1<br/>',
                   '@ 99/-2/100<br/>'      ,
+                  'HP: 42<br/>'           ,
                   'Resources:<br/>'       ,
                   '50 of gold<br/>'       ,
                   '25 of ruby<br/>'      ];
@@ -43,6 +46,7 @@ describe("Omega.Ship", function(){
       assert(details[2]).equals(text[2]);
       assert(details[3]).equals(text[3]);
       assert(details[4]).equals(text[4]);
+      assert(details[5]).equals(text[5]);
     });
 
     it("invokes details with commands", function(){
@@ -50,7 +54,7 @@ describe("Omega.Ship", function(){
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
         var cmd = Omega.Ship.prototype.cmds[c];
-        var detail_cmd = details[5+c];
+        var detail_cmd = details[6+c];
         assert(detail_cmd[0].id).equals(cmd.id + ship.id);
         assert(detail_cmd[0].className).equals(cmd.class);
         assert(detail_cmd.html()).equals(cmd.text);
@@ -61,7 +65,7 @@ describe("Omega.Ship", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[5+c];
+        var detail_cmd = details[6+c];
         assert(detail_cmd.data('ship')).equals(ship);;
       }
     });
@@ -70,7 +74,7 @@ describe("Omega.Ship", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[5+c];
+        var detail_cmd = details[6+c];
         assert(detail_cmd).handles('click');
       }
     });
@@ -84,7 +88,7 @@ describe("Omega.Ship", function(){
         for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
           var scmd = Omega.Ship.prototype.cmds[c];
           stubs.push(sinon.stub(ship, scmd['handler']));
-          cmds.push(details[5+c]);
+          cmds.push(details[6+c]);
         }
 
         $('#qunit-fixture').append(cmds);
@@ -216,13 +220,19 @@ describe("Omega.Ship", function(){
   });
 
   describe("#select_attack_target", function(){
-    it("shows attack dialog w/ all non-user-owned ships in vicinity", function(){
-      var ship1 = new Omega.Ship({user_id : 'user1', location: new Omega.Location({x:101,y:0,z:101})});
-      var ship2 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:100,y:0,z:100})});
-      var ship3 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:105,y:5,z:105})});
-      var ship4 = new Omega.Ship({user_id : 'user2', location: new Omega.Location({x:1000,y:1000,z:1000})});
+    it("shows attack dialog w/ all non-user-owned ships in vicinity with hp > 0", function(){
+      var ship1 = new Omega.Ship({user_id : 'user1', hp : 100, location:
+                    new Omega.Location({x:101,y:0,z:101})});
+      var ship2 = new Omega.Ship({user_id : 'user2', hp : 100, location:
+                    new Omega.Location({x:100,y:0,z:100})});
+      var ship3 = new Omega.Ship({user_id : 'user2', hp : 100, location:
+                    new Omega.Location({x:105,y:5,z:105})});
+      var ship4 = new Omega.Ship({user_id : 'user2', hp : 100, location:
+                    new Omega.Location({x:1000,y:1000,z:1000})});
+      var ship5 = new Omega.Ship({user_id : 'user2', hp : 0, location:
+                    new Omega.Location({x:106,y:6,z:106})});
       var station1 = new Omega.Station();
-      page.entities = [ship1, ship2, ship3, ship4, station1];
+      page.entities = [ship1, ship2, ship3, ship4, ship5, station1];
       page.session = new Omega.Session({user_id : 'user1'});
 
       var show_dialog = sinon.spy(ship.dialog(), 'show_attack_dialog');
@@ -511,7 +521,7 @@ describe("Omega.Ship", function(){
 
   describe("#_transfer", function(){
     before(function(){
-      ship.docked_to_id = 'station1';
+      ship.docked_at_id = 'station1';
 
       var res1 = new Omega.Resource();
       var res2 = new Omega.Resource();
@@ -523,11 +533,11 @@ describe("Omega.Ship", function(){
       ship._transfer(page);
       sinon.assert.calledWith(http_invoke,
         'manufactured::transfer_resource', ship.id,
-        ship.docked_to_id, ship.resources[0],
+        ship.docked_at_id, ship.resources[0],
         sinon.match.func);
       sinon.assert.calledWith(http_invoke,
         'manufactured::transfer_resource', ship.id,
-        ship.docked_to_id, ship.resources[1],
+        ship.docked_at_id, ship.resources[1],
         sinon.match.func);
     });
 
@@ -537,12 +547,13 @@ describe("Omega.Ship", function(){
 
       before(function(){
         var http_invoke = sinon.spy(page.node, 'http_invoke');
+        ship.docked_at = new Omega.Station();
         ship._transfer(page);
         response_cb = http_invoke.getCall(0).args[4];
 
-        nship = new Omega.Ship({docked_to : new Omega.Station(),
+        nship = new Omega.Ship({docked_at : ship.docked_at,
                                 resources : [new Omega.Resource()]});
-        success_response = {result : [nship, nship.docked_to]};
+        success_response = {result : [nship, nship.docked_at]};
         error_response   = {error  : {message : 'transfer err'}};
       });
 
@@ -605,7 +616,7 @@ describe("Omega.Ship", function(){
       ast2 = new Omega.Asteroid({id : 'ast2', location : new Omega.Location({x:101,y:1,z:101})});
       ast3 = new Omega.Asteroid({id : 'ast3', location : new Omega.Location({x:1000,y:1000,z:1000})});
       var asts = [ast1, ast2, ast3];
-      page.entities = asts;
+      ship.solar_system = new Omega.SolarSystem({children: asts});
     });
 
     it("shows mining dialog", function(){
@@ -922,7 +933,8 @@ describe("Omega.Ship", function(){
 
   describe("#run_effects", function(){
     it("runs lamp effects", function(){
-      var ship = new Omega.Ship({type : 'corvette'});
+      var ship = new Omega.Ship({type : 'corvette', location :
+                   new Omega.Location({movement_strategy : {}})});
       ship.init_gfx();
 
       var spies = [];
@@ -943,7 +955,7 @@ describe("Omega.Ship", function(){
     var ship;
 
     before(function(){
-      ship = new Omega.Ship();
+      ship = new Omega.Ship({location : new Omega.Location()});
     });
 
     it("updates mesh", function(){
@@ -1192,9 +1204,13 @@ describe("Omega.Ship", function(){
 
     describe("ship is attacking", function(){
       before(function(){
-        ship.attacking = new Omega.Ship();
+        ship.attacking = new Omega.Ship({location : new Omega.Location({x:1,y:2,z:3})});
         if(ship.components.indexOf(ship.attack_vector) != -1)
           ship.components.splice(ship.components.indexOf(ship.attack_vector), 1);
+      });
+
+      after(function(){
+        ship.attacking = null;
       });
 
       //it("sets attack vector properties based on attack target"); // NIY
@@ -1220,7 +1236,8 @@ describe("Omega.Ship", function(){
 
     describe("ship is mining", function(){
       before(function(){
-        ship.mining = new Omega.Asteroid({location : new Omega.Location({x:0,y:0,z:0})});
+        ship.mining = {json_class : 'Cosmos::Resource'};
+        ship.mining_asteroid = new Omega.Asteroid({location : new Omega.Location({x:0,y:0,z:0})});
         if(ship.components.indexOf(ship.mining_vector) != -1)
           ship.components.splice(ship.components.indexOf(ship.mining_vector), 1);
       });

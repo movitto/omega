@@ -209,11 +209,8 @@ Omega.Pages.Index.prototype = {
 
   // return array of all entities
   all_entities : function(){
-    var _this = this;
     // TODO exclude placeholder entities?
-    return Object.keys(this.entities).map(function (key) {
-      return _this.entities[key];
-    });
+    return Omega.obj_values(this.entities);
   },
 
   wire_up : function(){
@@ -304,7 +301,7 @@ Omega.Pages.Index.prototype = {
         this.stop_tracking_station(entity);
     }
 
-    if(root.json_class != "Omega::Cosmos::SolarSystem") return;
+    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
 
     for(var e = 0; e < entities.start_tracking.length; e++){
       var entity = entities.start_tracking[e];
@@ -317,7 +314,7 @@ Omega.Pages.Index.prototype = {
 
   _track_scene_planets : function(entities, root, old_root){
     /// remove tracking of old planets
-    if(old_root && old_root.json_class == 'Omega::Cosmos::SolarSystem'){
+    if(old_root && old_root.json_class == 'Cosmos::Entities::SolarSystem'){
       var planets = old_root.planets();
       for(var p = 0; p < planets.length; p++){
         var planet = planets[p];
@@ -325,7 +322,7 @@ Omega.Pages.Index.prototype = {
       }
     }
 
-    if(root.json_class != "Omega::Cosmos::SolarSystem") return;
+    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
 
     var planets = root.planets();
     for(var p = 0; p < planets.length; p++){
@@ -523,8 +520,8 @@ Omega.Pages.Index.prototype = {
 
 $(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests
-  var index = new Omega.Pages.Index();
-  index.wire_up();
-  index.canvas.setup();
-  index.effects_player.start();
+  //var index = new Omega.Pages.Index();
+  //index.wire_up();
+  //index.canvas.setup();
+  //index.effects_player.start();
 });

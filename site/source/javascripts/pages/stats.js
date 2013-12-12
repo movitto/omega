@@ -40,8 +40,10 @@ Omega.Pages.Stats.prototype = {
       var stat_args = stat[1];
       Omega.Stat.get(stat_id, stat_args, this.node,
         function(stat_result){
-          _this.update_stats(stat_result);
-          _this.refresh_stats();
+          if(stat_result){
+            _this.update_stats(stat_result);
+            _this.refresh_stats();
+          }
         });
     }
   },
@@ -65,8 +67,8 @@ Omega.Pages.Stats.prototype = {
 }
 
 $(document).ready(function(){
-  var stats = new Omega.Pages.Stats();
-  stats.login(function(){
-    stats.start();
-  });
+  //var stats = new Omega.Pages.Stats();
+  //stats.login(function(){
+  //  stats.start();
+  //});
 });

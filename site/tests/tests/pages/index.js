@@ -624,6 +624,7 @@ describe("Omega.Pages.Index", function(){
 
     before(function(){
       index   = new Omega.Pages.Index();
+      index.canvas = Omega.Test.Canvas();
       session = new Omega.Session({user_id : 'user42'});
 
       planet1 = new Omega.Planet({location : new Omega.Location({})}); 
@@ -631,19 +632,19 @@ describe("Omega.Pages.Index", function(){
       system  = new Omega.SolarSystem({id  : 'system42', children : [planet1]});
       old_system  = new Omega.SolarSystem({id  : 'system43', children : [planet2]});
 
-      ship1   = new Omega.Ship({user_id : 'user42', parent_id : 'system42',
+      ship1   = new Omega.Ship({user_id : 'user42', system_id : 'system42',
                                 location : new Omega.Location({id : 'l494'})});
-      ship2   = new Omega.Ship({user_id : 'user42', parent_id : 'system43',
+      ship2   = new Omega.Ship({user_id : 'user42', system_id : 'system43',
                                 location : new Omega.Location({id : 'l495'})});
-      ship3   = new Omega.Ship({user_id : 'user43', parent_id : 'system42',
+      ship3   = new Omega.Ship({user_id : 'user43', system_id : 'system42',
                                 location : new Omega.Location({id : 'l496'})});
-      ship4   = new Omega.Ship({user_id : 'user43', parent_id : 'system43',
+      ship4   = new Omega.Ship({user_id : 'user43', system_id : 'system43',
                                 location : new Omega.Location({id : 'l497'})});
-      station1 = new Omega.Station({user_id : 'user42', parent_id : 'system43',
+      station1 = new Omega.Station({user_id : 'user42', system_id : 'system43', type : 'manufacturing',
                                     location : new Omega.Location({id : 'l498'})});
-      station2 = new Omega.Station({user_id : 'user43', parent_id : 'system43',
+      station2 = new Omega.Station({user_id : 'user43', system_id : 'system43', type : 'manufacturing',
                                     location : new Omega.Location({id : 'l499'})});
-      station3 = new Omega.Station({user_id : 'user43', parent_id : 'system42',
+      station3 = new Omega.Station({user_id : 'user43', system_id : 'system42', type : 'manufacturing',
                                     location : new Omega.Location({id : 'l500'})});
 
       index.session = session;
@@ -651,6 +652,10 @@ describe("Omega.Pages.Index", function(){
       index.entities = [ship1, ship2, ship3, ship4, station1, station2, station3];
 
       change = {root: system, old_root: old_system}
+    });
+
+    after(function(){
+      index.canvas.clear();
     });
 
     it("stops tracking all non-user-owned ships/stations not in new scene", function(){
@@ -665,8 +670,8 @@ describe("Omega.Pages.Index", function(){
       var track_ship = sinon.spy(index, 'track_ship');
       var track_station = sinon.spy(index, 'track_station');
       index._scene_change(change)
-      sinon.assert.calledWith(track_ship, ship3);
-      sinon.assert.calledWith(track_station, station3);
+      sinon.assert.called(track_ship, ship3);
+      sinon.assert.called(track_station, station3);
     });
 
     describe("changing to system", function(){
@@ -691,8 +696,8 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("tracks all motel and manufactured events", function(){
-      var events = Omega.UI.CommandTracker.prototype.motel_events +
-                   Omega.UI.CommandTracker.prototype.manufactured_events;
+      var events = Omega.UI.CommandTracker.prototype.motel_events.concat(
+                   Omega.UI.CommandTracker.prototype.manufactured_events);
       var track = sinon.stub(index.command_tracker, 'track');
       index.handle_events();
       for(var e = 0; e < events.length; e++)
@@ -705,8 +710,10 @@ describe("Omega.Pages.Index", function(){
 
     before(function(){
       index = new Omega.Pages.Index();
-      ships = [new Omega.Ship({id: 'sh1', system_id: 'sys1'}),
-               new Omega.Ship({id: 'sh2', system_id: 'sys2'})];
+      ships = [new Omega.Ship({id: 'sh1', system_id: 'sys1',
+                               location : new Omega.Location()}),
+               new Omega.Ship({id: 'sh2', system_id: 'sys2',
+                               location : new Omega.Location()})];
     });
 
     after(function(){
@@ -718,7 +725,7 @@ describe("Omega.Pages.Index", function(){
       index.process_entities(ships);
       sinon.assert.called(handle_events);
     });
-    
+
     it("invokes process_entity with each entity", function(){
       var process_entity = sinon.spy(index, 'process_entity');
       index.process_entities(ships);
@@ -731,8 +738,8 @@ describe("Omega.Pages.Index", function(){
     var index, ship, station;
     before(function(){
       index = new Omega.Pages.Index();
-      ship  = new Omega.Ship({id: 'sh1', system_id: 'sys1'});
-      station = new Omega.Station({id : 'st1', system_id : 'sys1'})
+      ship  = new Omega.Ship({id: 'sh1', system_id: 'sys1', location : new Omega.Location()});
+      station = new Omega.Station({id : 'st1', system_id : 'sys1', location : new Omega.Location()})
     });
 
     after(function(){
@@ -761,7 +768,7 @@ describe("Omega.Pages.Index", function(){
       index.process_entity(ship);
       var cb = spy.getCall(0).args[2];
 
-      spy = sinon.spy(index, 'process_system');
+      spy = sinon.stub(index, 'process_system');
       var sys1 = {};
       cb(sys1);
       sinon.assert.calledWith(spy, sys1);
@@ -937,7 +944,7 @@ describe("Omega.Pages.Index", function(){
 
     before(function(){
       index = new Omega.Pages.Index();
-      system = {id: 'system1', name: 'systema', galaxy_id: 'gal1'}
+      system = new Omega.SolarSystem({id: 'system1', name: 'systema', galaxy_id: 'gal1'});
     });
 
     after(function(){
@@ -962,7 +969,7 @@ describe("Omega.Pages.Index", function(){
       var cb = spy.getCall(0).args[2];
 
       spy = sinon.spy(index, 'process_galaxy');
-      var galaxy = {};
+      var galaxy = new Omega.Galaxy();
       cb(galaxy);
       sinon.assert.calledWith(spy, galaxy);
     });
@@ -971,7 +978,7 @@ describe("Omega.Pages.Index", function(){
   describe("#process_galaxy", function(){
     it("adds galaxy to locations_list", function(){
       var index = new Omega.Pages.Index();
-      var galaxy = {id: 'galaxy1', name: 'galaxya'}
+      var galaxy = new Omega.Galaxy({id: 'galaxy1', name: 'galaxya'});
 
       var spy = sinon.spy(index.canvas.controls.locations_list, 'add');
       index.process_galaxy(galaxy)

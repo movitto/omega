@@ -91,9 +91,9 @@ describe("Omega.SolarSystem", function(){
     });
 
     it("sets mesh position", function(){
-      var solar_system = new Omega.SolarSystem({location : {x: 50, y: 60, z: -75}});
+      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
-      assert(solar_system.plane.position.toArray()).isSameAs([50, 60, -75]);
+      assert(solar_system.mesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("clones SolarSystem plane", function(){
@@ -105,7 +105,7 @@ describe("Omega.SolarSystem", function(){
     });
 
     it("sets plane position", function(){
-      var solar_system = new Omega.SolarSystem({location : {x: 50, y: 60, z: -75}});
+      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
       assert(solar_system.plane.position.toArray()).isSameAs([50, 60, -75]);
     });
@@ -119,9 +119,9 @@ describe("Omega.SolarSystem", function(){
     });
 
     it("sets text position", function(){
-      var solar_system = new Omega.SolarSystem({location : {x: 50, y: 60, z: -75}});
+      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
-      assert(solar_system.text.position.toArray()).isSameAs([50, 60, -125]);
+      assert(solar_system.text.position.toArray()).isSameAs([50, 60, -25]);
     });
     
     it("adds mesh, plane, text to solar system scene components", function(){
@@ -140,8 +140,8 @@ describe("Omega.SolarSystem", function(){
     
     before(function(){
       Omega.Test.Canvas.Entities();
-      system   = new Omega.SolarSystem({location : {x:100,y:200,z:300}});
-      endpoint = new Omega.SolarSystem({location : {x:-300,y:-200,z:-100}});
+      system   = new Omega.SolarSystem({location : new Omega.Location({x:100,y:200,z:300})});
+      endpoint = new Omega.SolarSystem({location : new Omega.Location({x:-300,y:-200,z:-100})});
     });
 
     it("adds line to solar system scene components", function(){
@@ -160,7 +160,6 @@ describe("Omega.SolarSystem", function(){
       assert(particles.material).isOfType(THREE.ParticleBasicMaterial);
       assert(particles.geometry.vertices.length).equals(1);
       assert(particles.ticker).equals(0);
-      assert(particles.endpoint).equals(endpoint);
       assert(system.interconnections).isSameAs([particles]);
     });
   });

@@ -42,7 +42,7 @@ describe("Omega.Station", function(){
       assert(details[4]).equals(text[4]);
       var cmd = details[5];
       assert(cmd[0].id).equals('station_construct_station1');
-      assert(cmd[0].className).equals('station_construct');
+      assert(cmd[0].className).equals('station_construct details_command');
       assert(cmd.text()).equals('construct');
     });
 
@@ -128,40 +128,6 @@ describe("Omega.Station", function(){
           handler(error_response);
           sinon.assert.calledWith(append_error, 'construct_error');
           assert($('#command_error').html()).equals('construct_error');
-        });
-      });
-
-      describe("successful command response", function(){
-        after(function(){
-          if(page.canvas.add.restore) page.canvas.add.restore();
-          if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
-          page.canvas.clear();
-        });
-
-        it("processes constructed ship", function(){
-          var process_entity = sinon.spy(page, 'process_entity');
-          handler(success_response)
-          sinon.assert.calledWith(process_entity, ship);
-        });
-
-        describe("constructed ship is in scene system", function(){
-          it("adds ship to scene", function(){
-            page.canvas.set_scene_root(system);
-            var add = sinon.stub(page.canvas, 'add');
-            handler(success_response);
-            sinon.assert.calledWith(add, ship);
-          });
-        });
-
-        it("updates station resources", function(){
-          handler(success_response);
-          assert(station.resources).isSameAs(station2.resources);
-        });
-
-        it("refreshes entity container", function(){
-          var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
-          handler(success_response);
-          sinon.assert.called(refresh);
         });
       });
     });
@@ -295,9 +261,9 @@ describe("Omega.Station", function(){
         sinon.assert.called(spies[s]);
     });
 
-    it("sets scene components to station mesh, highlight effects, and lamps", function(){
+    it("sets scene components to station highlight effects, and lamps", function(){
       station.init_gfx();
-      var expected = [station.mesh, station.highlight].concat(station.lamps);
+      var expected = [station.highlight].concat(station.lamps);
       assert(station.components).isSameAs(expected);
     });
   });

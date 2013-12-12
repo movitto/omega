@@ -58,6 +58,13 @@ Omega.is_omega_entity = function(entity){
   return false;
 };
 
+// Return values in the specified obj
+Omega.obj_values = function(obj){
+  return Object.keys(obj).map(function (key) {
+    return obj[key];
+  });
+};
+
 // Return bool if obj has a listener for the specified event
 Omega.has_listener_for = function(obj, evnt){
   return typeof(obj._listeners)       !== "undefined" &&

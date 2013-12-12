@@ -43,13 +43,6 @@ describe("Omega.UI.Canvas", function(){
       sinon.assert.called(spy);
     });
 
-    it("wires up dialog", function(){
-      var canvas = new Omega.UI.Canvas();
-      var spy = sinon.spy(canvas.dialog, 'wire_up');
-      canvas.wire_up();
-      sinon.assert.called(spy);
-    });
-
     it("wires up entity container", function(){
       var canvas = new Omega.UI.Canvas();
       var spy = sinon.spy(canvas.entity_container, 'wire_up');
@@ -160,8 +153,8 @@ describe("Omega.UI.Canvas", function(){
     it("sets camera controls position", function(){
       var canvas = Omega.Test.Canvas();
       assert(canvas.cam_controls.object.position.x).close(0,   0.01);
-      assert(canvas.cam_controls.object.position.y).close(500, 0.01);
-      assert(canvas.cam_controls.object.position.z).close(500, 0.01);
+      assert(canvas.cam_controls.object.position.y).close(1500, 0.01);
+      assert(canvas.cam_controls.object.position.z).close(1500, 0.01);
     });
 
     it("sets camera controls target", function(){
@@ -596,7 +589,7 @@ describe("Omega.UI.Canvas.Controls", function(){
       system = new Omega.SolarSystem({id: 'system1'});
       ship   = new Omega.Ship({id: 'ship1',
                                solar_system: system,
-                               location: {}});
+                               location: new Omega.Location()});
       controls.locations_list.add({id: system.id,
                                    text: system.id,
                                    data: system});
@@ -725,8 +718,8 @@ describe("Omega.UI.Canvas.Dialog", function(){
   var victorious_missions = [mission3];
   var failed_missions     = [mission5, mission6];
   var missions_responses  =
-    {active   : {result: [mission1]},
-     inactive : {result:  inactive_missions}};
+    {active   : [mission1],
+     inactive : inactive_missions};
 
   before(function(){
     dialog  = new Omega.UI.Canvas.Dialog({canvas: canvas});
@@ -740,19 +733,6 @@ describe("Omega.UI.Canvas.Dialog", function(){
     var canvas = new Omega.UI.Canvas();
     var dialog = new Omega.UI.Canvas.Dialog({canvas: canvas});
     assert(dialog.canvas).equals(canvas);
-  });
-
-  describe("#wire_up", function(){
-    after(function(){
-      Omega.Test.clear_events();
-    });
-
-    it("registers assign mission click event handlers", function(){
-      var dialog = new Omega.UI.Canvas.Dialog();
-      assert(dialog.component()).doesNotHandleChild('click', '.assign_mission');
-      canvas.wire_up();
-      assert(dialog.component()).handlesChild('click', '.assign_mission');
-    });
   });
 
   describe("#show_missions_dialog", function(){
@@ -823,7 +803,6 @@ describe("Omega.UI.Canvas.Dialog", function(){
 
     before(function(){
       dialog.show_missions_list_dialog(unassigned_missions, [], []);
-      dialog.wire_up();
       mission = unassigned_missions[0];
     });
 
@@ -921,7 +900,7 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
   describe("#hide", function(){
     var ship;
     before(function(){
-      ship = new Omega.Ship();
+      ship = new Omega.Ship({location : new Omega.Location()});
       container.show(ship);
     });
 
@@ -948,7 +927,7 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
     var ship;
 
     before(function(){
-      ship = new Omega.Ship();
+      ship = new Omega.Ship({location : new Omega.Location()});
     });
 
     it("hides entity container", function(){
