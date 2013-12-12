@@ -1,5 +1,7 @@
 pavlov.specify("Omega.Planet", function(){
 describe("Omega.Planet", function(){
+  it("converts location");
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;

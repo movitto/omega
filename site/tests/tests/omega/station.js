@@ -10,11 +10,18 @@ describe("Omega.Station", function(){
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
   });
 
+  it("converts location");
+  it("updates resources");
+
   describe("#belongs_to_user", function(){
     it("returns bool indicating if station belongs to user", function(){
       assert(station.belongs_to_user('user1')).isTrue();
       assert(station.belongs_to_user('user2')).isFalse();
     });
+  });
+
+  describe("_update_resources", function(){
+    it("converts resources from json data");
   });
 
   describe("#retrieve_details", function(){
@@ -245,6 +252,8 @@ describe("Omega.Station", function(){
       });
     }));
 
+    it("adds mesh to components");
+
     it("clones Station highlight effects", function(){
       var mesh = new THREE.Mesh();
       sinon.stub(Omega.Station.gfx[type].highlight, 'clone').returns(mesh);
@@ -316,6 +325,14 @@ describe("Omega.Station", function(){
         assert(stations[1]).isOfType(Omega.Station);
         assert(stations[1].id).equals('st2');
       });
+    });
+  });
+
+  describe("#under", function(){
+    it("invokes manufactured::get_entities request");
+    describe("manufactured::get_entities callback", function(){
+      it("converts results to ship instances")
+      it("invokes callback with ship instances")
     });
   });
 });}); // Omega.Galaxy

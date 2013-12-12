@@ -292,6 +292,8 @@ describe("Omega.UI.CommandDialog", function(){
       assert($(cmds[0]).data('resource')).equals(resource);
     });
 
+    it("sets asteroid on mining command")
+
     describe("on mining command click", function(){
       before(function(){
         dialog.append_mining_cmd(page, ship, resource);
@@ -399,6 +401,7 @@ describe("Omega.UI.CommandTracker", function(){
       it("updates entity resources", function(){
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
         assert(ship.resources).equals(eship.resources);
+        /// TODO assert _update_resources _invoked
       });
 
       describe("entity not in scene", function(){
@@ -451,6 +454,8 @@ describe("Omega.UI.CommandTracker", function(){
         tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
         assert(ship.mining).isNull();
       });
+
+      it("clears entity mining asteroid");
 
       describe("entity not in scene", function(){
         it("does not reload entity", function(){
@@ -747,6 +752,8 @@ describe("Omega.UI.CommandTracker", function(){
         get_cb(retrieved);
         sinon.assert.calledWith(canvas_add, retrieved);
       });
+
+      it("updates station resources");
 
       it("refreshes the entity container", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);

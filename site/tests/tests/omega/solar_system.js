@@ -1,5 +1,7 @@
 pavlov.specify("Omega.SolarSystem", function(){
 describe("Omega.SolarSystem", function(){
+  it("sets background"):
+
   it("converts children", function(){
     var star   = {json_class: 'Cosmos::Entities::Star',   id: 'star1'};
     var planet = {json_class: 'Cosmos::Entities::Planet', id: 'planet1'};
@@ -9,6 +11,24 @@ describe("Omega.SolarSystem", function(){
     assert(system.children[0].id).equals('star1');
     assert(system.children[1]).isOfType(Omega.Planet);
     assert(system.children[1].id).equals('planet1');
+  });
+
+  it("converts location");
+
+  describe("#asteroids", function(){
+    it("returns asteroid children");
+  });
+
+  describe("#planets", function(){
+    it("returns planet children");
+  });
+
+  describe("#jump_gates", function(){
+    it("returns jump_gate children");
+  });
+
+  describe("#update_children_from", function(){
+    it("sets child jump gate endpoints from entity list");
   });
 
   describe("#clicked_in", function(){
@@ -162,6 +182,8 @@ describe("Omega.SolarSystem", function(){
       assert(particles.ticker).equals(0);
       assert(system.interconnections).isSameAs([particles]);
     });
+
+    it("sets dx/dy/dz/ticks on particle system");
   });
 
   describe("#with_id", function(){

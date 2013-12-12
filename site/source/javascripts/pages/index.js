@@ -520,8 +520,8 @@ Omega.Pages.Index.prototype = {
 
 $(document).ready(function(){
 //FIXME needs to be enabled for app, disabled for tests
-  //var index = new Omega.Pages.Index();
-  //index.wire_up();
-  //index.canvas.setup();
-  //index.effects_player.start();
+  var index = new Omega.Pages.Index();
+  index.wire_up();
+  index.canvas.setup();
+  index.effects_player.start();
 });

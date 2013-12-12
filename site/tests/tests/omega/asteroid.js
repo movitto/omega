@@ -1,5 +1,7 @@
 pavlov.specify("Omega.Asteroid", function(){
 describe("Omega.Asteroid", function(){
+  it("converts location");
+
   describe("#retrieve_details", function(){
     var ast, page, details_cb;
 

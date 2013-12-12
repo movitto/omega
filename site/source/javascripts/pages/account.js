@@ -210,6 +210,6 @@ Omega.Pages.Account.prototype = {
 };
 
 $(document).ready(function(){
-  //var account = new Omega.Pages.Account();
-  //account.wire_up();
+  var account = new Omega.Pages.Account();
+  account.wire_up();
 });

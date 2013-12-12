@@ -21,6 +21,10 @@ describe("Omega", function(){
       assert(converted.id).equals('ship1');
     });
 
+    describe("json entity passed in", function(){
+      it("returns js instances converted from json data")
+    });
+
     describe("js entity passed in", function(){
       it("returns the entity", function(){
         var ship = new Omega.Ship({id : 'ship1'});

@@ -14,6 +14,8 @@ describe("Omega.JumpGate", function(){
     if(page.canvas.reload.restore) page.canvas.reload.restore();
   });
 
+  it("converts location");
+
   describe("#retrieve_details", function(){
     var details_cb;
 
@@ -299,6 +301,8 @@ describe("Omega.JumpGate", function(){
         start();
       });
     }));
+
+    it("adds mesh to components");
 
     it("clones JumpGate lamp", function(){
       var mesh = new THREE.Mesh();

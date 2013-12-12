@@ -1,11 +1,24 @@
 pavlov.specify("Omega.Galaxy", function(){
 describe("Omega.Galaxy", function(){
+  it("sets background");
+
   it("converts children", function(){
     var system = {json_class: 'Cosmos::Entities::SolarSystem', id: 'sys1'};
     var galaxy = new Omega.Galaxy({children: [system]});
     assert(galaxy.children.length).equals(1);
     assert(galaxy.children[0]).isOfType(Omega.SolarSystem);
     assert(galaxy.children[0].id).equals('sys1');
+  });
+
+  it("converts location");;
+
+  describe("#systems", function(){
+    it("returns system children");
+  });
+
+  describe("#set_children_from", function(){
+    it("swaps child systems in from entity list");
+    it("sets galaxy on systems swapped in");
   });
 
   describe("#load_gfx", function(){

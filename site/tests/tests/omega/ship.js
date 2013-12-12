@@ -15,11 +15,19 @@ describe("Omega.Ship", function(){
                                  session: new Omega.Session({user_id : 'user1'})});
   });
 
+  it("sets parent_id = to system_id")
+  it("converts location");
+  it("updates resources")
+
   describe("#belongs_to_user", function(){
     it("returns bool indicating if ship belongs to user", function(){
       assert(ship.belongs_to_user('user1')).isTrue();
       assert(ship.belongs_to_user('user2')).isFalse();
     });
+  });
+
+  describe("#_update_resources", function(){
+    it("converts resources from json data");
   });
 
   describe("#retrieve_details", function(){
@@ -59,6 +67,24 @@ describe("Omega.Ship", function(){
         assert(detail_cmd[0].className).equals(cmd.class);
         assert(detail_cmd.html()).equals(cmd.text);
       }
+    });
+
+    describe("ship does not belong to user", function(){
+      it("does not invoke details with commands");
+    });
+
+    it("hides commands 'display' returns false for");
+
+    describe("ship is not docked", function(){
+      it("displays dock cmd");
+      it("hides undock cmd");
+      it("hides transfer cmd");
+    });
+
+    describe("ship is docked", function(){
+      it("hides dock cmd");
+      it("displays undock cmd");
+      it("displays transfer cmd");
     });
 
     it("sets ship in all command data", function(){
@@ -423,6 +449,8 @@ describe("Omega.Ship", function(){
           assert(ship.docked_at).equals(station);
         });
 
+        it("updates ship docked at id");
+
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
           sinon.assert.calledWith(reload, ship);
@@ -436,6 +464,8 @@ describe("Omega.Ship", function(){
           reload_cb();
           sinon.assert.called(update_gfx);
         });
+
+        it("refreshes entity container");
       });
     });
   });
@@ -502,6 +532,8 @@ describe("Omega.Ship", function(){
           assert(ship.docked_at).isNull();
         });
 
+        it("clears ship docked_at id");
+
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
           sinon.assert.calledWith(reload, ship);
@@ -515,6 +547,8 @@ describe("Omega.Ship", function(){
           reload_cb();
           sinon.assert.called(update_gfx);
         });
+
+        it("refreshes entity container");
       });
     });
   });
@@ -592,6 +626,8 @@ describe("Omega.Ship", function(){
           assert(ship.resources).equals(nship.resources);
         });
 
+        it("updates station resources");
+
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
           sinon.assert.calledWith(reload, ship);
@@ -605,6 +641,8 @@ describe("Omega.Ship", function(){
           reload_cb();
           sinon.assert.called(update_gfx);
         });
+
+        it("refreshes entity container");
       });
     });
   });
@@ -867,7 +905,7 @@ describe("Omega.Ship", function(){
       });
     }));
 
-    it("sets mesh position", async(function(){
+    it("sets mesh base position/rotation", async(function(){
       ship.init_gfx();
       ship.retrieve_resource('mesh', function(){
         assert(ship.mesh.position.x).equals(100);
@@ -884,6 +922,10 @@ describe("Omega.Ship", function(){
         start();
       });
     }));
+
+    it("updates_gfx in mesh cb");
+
+    it("adds mesh to components");
 
     it("clones Ship highlight effects", function(){
       var mesh = new THREE.Mesh();
@@ -929,6 +971,8 @@ describe("Omega.Ship", function(){
       var expected = [ship.mesh, ship.highlight].concat(ship.lamps);
       assert(ship.components).isSameAs(expected);
     });
+
+    it("updates_gfx");
   });
 
   describe("#run_effects", function(){
@@ -948,6 +992,7 @@ describe("Omega.Ship", function(){
     });
 
     /// it("runs trail effects"); // NIY
+    /// it("moves ship according to movement strategy"); // NIY
     /// it("runs attack effects"); // NIY
   });
 
@@ -1333,6 +1378,14 @@ describe("Omega.Ship", function(){
         assert(ships[1]).isOfType(Omega.Ship);
         assert(ships[1].id).equals('sh2');
       });
+    });
+  });
+
+  describe("#under", function(){
+    it("invokes manufactured::get_entities request");
+    describe("manufactured::get_entities callback", function(){
+      it("converts results to ship instances")
+      it("invokes callback with ship instances")
     });
   });
 });}); // Omega.Ship

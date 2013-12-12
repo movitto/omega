@@ -67,8 +67,8 @@ Omega.Pages.Stats.prototype = {
 }
 
 $(document).ready(function(){
-  //var stats = new Omega.Pages.Stats();
-  //stats.login(function(){
-  //  stats.start();
-  //});
+  var stats = new Omega.Pages.Stats();
+  stats.login(function(){
+    stats.start();
+  });
 });

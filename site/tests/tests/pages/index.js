@@ -617,6 +617,8 @@ describe("Omega.Pages.Index", function(){
     });
   })
 
+  /// NIY test updated _scene_change & other processing methods
+
   describe("#_scene_change", function(){
     var index, change;
     var planet1, planet2, system, old_system,
@@ -999,6 +1001,8 @@ describe("Omega.Pages.Index", function(){
     sinon.assert.calledWith(spy, index.node);
   })
 
+  it("has an effects player");
+
   it("has an index dialog", function(){
     var index = new Omega.Pages.Index();
     assert(index.dialog).isOfType(Omega.UI.IndexDialog);
@@ -1023,6 +1027,10 @@ describe("Omega.Pages.Index", function(){
       index.entity('foo', foo);
       assert(index.entity('foo')).equals(foo);
     });
+  });
+
+  describe("#all_entities", function(){
+    it("returns array of all entities");
   });
 
   describe("#wire_up", function(){

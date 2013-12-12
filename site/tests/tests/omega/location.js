@@ -1,5 +1,15 @@
 pavlov.specify("Omega.Location", function(){
 describe("Omega.Location", function(){
+  it("converts movement strategy from json");
+
+  describe("#toJSON", function(){
+    it("returns location in json format")
+  });
+
+  describe("#clone", function(){
+    it("returns cloned location")
+  });
+
   describe("#distance_from", function(){
     it("returns distance from location to specified coordiante", function(){
       var l1 = new Omega.Location({x:0,y:0,z:0});
