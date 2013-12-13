@@ -617,8 +617,6 @@ describe("Omega.Pages.Index", function(){
     });
   })
 
-  /// NIY test updated _scene_change & other processing methods
-
   describe("#_scene_change", function(){
     var index, change;
     var planet1, planet2, system, old_system,
@@ -651,44 +649,298 @@ describe("Omega.Pages.Index", function(){
 
       index.session = session;
       index.root = system;
-      index.entities = [ship1, ship2, ship3, ship4, station1, station2, station3];
+      index.entities = {'sh1' : ship1, 'sh2' : ship2, 'sh3' : ship3, 'sh4' : ship4,
+                        'st1' : station1, 'st2' : station2, 'st3' : station3};
 
       change = {root: system, old_root: old_system}
     });
 
     after(function(){
       index.canvas.clear();
+      if(index.canvas.remove.restore) index.canvas.remove.restore();
+      if(index.canvas.add.restore) index.canvas.add.restore();
+      if(index.canvas.skybox.set.restore) index.canvas.skybox.set.restore();
     });
 
-    it("stops tracking all non-user-owned ships/stations not in new scene", function(){
+    it("creates entity map", function(){
+      /// for now just verify first paramater on call to _track_scene_entities
+      /// wwhich is the entity map
+      var spy = sinon.spy(index, '_track_scene_entities');
+      index._scene_change(change)
+      var entities = spy.getCall(0).args[0];
+
+      assert(entities.manu).isSameAs(index.all_entities());
+      assert(entities.user_owned).isSameAs([ship1, ship2, station1]);
+      assert(entities.not_user_owned).isSameAs([ship3, ship4, station2, station3]);
+      assert(entities.in_root).isSameAs([ship1, ship3, station3]);
+      assert(entities.not_in_root).isSameAs([ship2, ship4, station1, station2]);
+      assert(entities.stop_tracking).isSameAs([ship4, station2]);
+      assert(entities.start_tracking).isSameAs([ship3, station3]);
+    });
+
+    it("starts tracking scene entities", function(){
+      var track_scene_entities = sinon.spy(index, '_track_scene_entities');
+      index._scene_change(change)
+      sinon.assert.calledWith(track_scene_entities,
+        sinon.match.object, change.root, change.old_root);
+    });
+
+    it("syncs scene entiites", function(){
+      var sync_scene_entities = sinon.spy(index, '_sync_scene_entities');
+      index._scene_change(change)
+      sinon.assert.calledWith(sync_scene_entities,
+        sinon.match.object, change.root, change.old_root);
+    });
+
+    it("tracks scene planets", function(){
+      var track_scene_planets = sinon.spy(index, '_track_scene_planets');
+      index._scene_change(change)
+      sinon.assert.calledWith(track_scene_planets,
+        sinon.match.object, change.root, change.old_root);
+    });
+
+    describe("changing scene from galaxy", function(){
+      it("removes galaxy from scene entities", function(){
+        var remove = sinon.spy(index.canvas, 'remove');
+        change.old_root = new Omega.Galaxy();
+        index._scene_change(change);
+        sinon.assert.calledWith(remove, change.old_root);
+      });
+    });
+
+    describe("changing scene to galaxy", function(){
+      it("adds galaxy to scene entities", function(){
+        var add = sinon.spy(index.canvas, 'add');
+        change.root = new Omega.Galaxy();
+        index._scene_change(change);
+        sinon.assert.calledWith(add, change.root);
+      });
+    });
+
+    it("sets scene skybox background", function(){
+      var set_skybox = sinon.spy(index.canvas.skybox, 'set');
+      index._scene_change(change);
+      sinon.assert.calledWith(set_skybox, change.root.bg);
+    });
+
+    it("adds skybox to scene", function(){
+      index.canvas.remove(index.canvas.skybox);
+      assert(index.canvas.has(index.canvas.skybox.id)).isFalse();
+      index._scene_change(change);
+      assert(index.canvas.has(index.canvas.skybox.id)).isTrue();
+    });
+  });
+
+  describe("#_track_scene_entities", function(){
+    var index, ship, station, system;
+    before(function(){
+      index = new Omega.Pages.Index();
+      ship  = new Omega.Ship({location : new Omega.Location()});
+      station = new Omega.Station({location : new Omega.Location()});
+      system = new Omega.SolarSystem();
+    });
+
+    it("stops tracking specified entities", function(){
+      var entities = {stop_tracking : [ship, station], start_tracking : []};
       var stop_tracking_ship = sinon.spy(index, 'stop_tracking_ship');
       var stop_tracking_station = sinon.spy(index, 'stop_tracking_station');
-      index._scene_change(change)
-      sinon.assert.calledWith(stop_tracking_ship, ship4);
-      sinon.assert.calledWith(stop_tracking_station, station2);
+      index._track_scene_entities(entities, system, system)
+      sinon.assert.calledWith(stop_tracking_ship, ship);
+      sinon.assert.calledWith(stop_tracking_station, station);
     });
 
-    it("starts tracking all non-user-owned ships/stations in new scene", function(){
+    it("starts tracking specified entities", function(){
+      var entities = {start_tracking : [ship, station], stop_tracking : []};
       var track_ship = sinon.spy(index, 'track_ship');
       var track_station = sinon.spy(index, 'track_station');
-      index._scene_change(change)
-      sinon.assert.called(track_ship, ship3);
-      sinon.assert.called(track_station, station3);
+      index._track_scene_entities(entities, system, system);
+      sinon.assert.called(track_ship, ship);
+      sinon.assert.called(track_station, station);
+    });
+  });
+
+  describe("#_track_scene_planets", function(){
+    var index, system, old_system, planet, old_planet;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+
+      planet = new Omega.Planet({location : new Omega.Location()});
+      old_planet = new Omega.Planet({location : new Omega.Location()});
+
+      system = new Omega.SolarSystem({children : [planet]});
+      old_system = new Omega.SolarSystem({children: [old_planet]});
+    });
+
+    describe("changing from system", function(){
+      it("stops tracks planets in old system", function(){
+        var stop_tracking_planet = sinon.spy(index, 'stop_tracking_planet');
+        index._track_scene_planets({}, system, old_system)
+        sinon.assert.calledWith(stop_tracking_planet, old_planet);
+      });
     });
 
     describe("changing to system", function(){
-      it("stops tracks planets in old system", function(){
-        var stop_tracking_planet = sinon.spy(index, 'stop_tracking_planet');
-        index._scene_change(change)
-        sinon.assert.calledWith(stop_tracking_planet, planet2);
-      });
-
       it("tracks planets in system", function(){
         var track_planet = sinon.spy(index, 'track_planet');
-        index._scene_change(change);
-        sinon.assert.calledWith(track_planet, planet1);
+        index._track_scene_planets({}, system, old_system);
+        sinon.assert.calledWith(track_planet, planet);
       });
-    })
+    });
+  });
+
+  describe("_sync_scene_entities", function(){
+    var index, system, old_system, ship1, ship2, station1;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      index.canvas = Omega.Test.Canvas();
+      index.session = new Omega.Session({user_id : 'user42'});
+      system = new Omega.SolarSystem({ id : 'sys42'});
+      old_system = new Omega.SolarSystem();
+      ship1 = new Omega.Ship({hp : 50, location : new Omega.Location()});
+      ship2 = new Omega.Ship({hp : 0, location : new Omega.Location()});
+      station1 = new Omega.Station({location : new Omega.Location()});
+
+      index.canvas.root = system;
+      canvas_add = sinon.stub(index.canvas, 'add');
+    });
+
+    after(function(){
+      index.canvas.clear();
+      index.canvas.add.restore();
+      if(Omega.Ship.under.restore) Omega.Ship.under.restore();
+      if(Omega.Station.under.restore) Omega.Station.under.restore();
+    });
+
+    describe("not changing scene to system", function(){
+      it("does nothing / just returns", function(){
+        index._sync_scene_entities({in_root : [ship1]}, new Omega.Galaxy(), old_system);
+        sinon.assert.notCalled(canvas_add);
+      });
+    });
+
+    it("adds entities in root w/ hp>0 to canvas scene", function(){
+      index._sync_scene_entities({in_root : [ship1, ship2]}, system, old_system);
+      sinon.assert.calledWith(canvas_add, ship1);
+    });
+
+    it("retrieves all ships under root", function(){
+      var under = sinon.spy(Omega.Ship, 'under');
+      index._sync_scene_entities({in_root : []}, system, old_system);
+      sinon.assert.calledWith(under, system.id, index.node, sinon.match.func);
+    });
+
+    describe("retrieve ship callback", function(){
+      it("processes retrieved scene entities", function(){
+        var entity_map = {in_root : [], start_tracking: []};
+        var under = sinon.spy(Omega.Ship, 'under');
+        index._sync_scene_entities(entity_map, system, old_system);
+
+        var process = sinon.spy(index, '_process_retrieved_scene_entities');
+        var under_cb = under.getCall(0).args[2];
+        under_cb([ship1]);
+        sinon.assert.calledWith(process, [ship1], entity_map);
+      });
+    });
+
+    it("retrieves all stations under root", function(){
+      var under = sinon.spy(Omega.Station, 'under');
+      index._sync_scene_entities({in_root : []}, system, old_system);
+      sinon.assert.calledWith(under, system.id, index.node, sinon.match.func);
+    });
+
+    describe("retrieve station callback", function(){
+      it("processes retrieved scene entities", function(){
+        var entity_map = {in_root : [], start_tracking: []};
+        var under = sinon.spy(Omega.Station, 'under');
+        index._sync_scene_entities(entity_map, system, old_system);
+
+        var process = sinon.spy(index, '_process_retrieved_scene_entities');
+        var under_cb = under.getCall(0).args[2];
+        under_cb([station1]);
+        sinon.assert.calledWith(process, [station1], entity_map);
+      });
+    });
+  });
+
+  describe("#_process_retrieved_scene_entities", function(){
+    var index, system, ship1, ship2, station1, entities, entity_map, canvas_add;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      index.canvas = Omega.Test.Canvas();
+      index.session = new Omega.Session({user_id : 'user42'})
+
+      system = new Omega.SolarSystem({id : 'system43'});
+      ship1 = new Omega.Ship({ id : 'sh1', user_id : 'user42', system_id : 'system43', hp : 100,
+                               location : new Omega.Location()});
+      ship2 = new Omega.Ship({ id : 'sh2', user_id : 'user43', system_id : 'system43', hp : 100,
+                               location : new Omega.Location()});
+      ship3 = new Omega.Ship({ id : 'sh3', user_id : 'user43', system_id : 'system43', hp : 0,
+                               location : new Omega.Location()});
+      ship4 = new Omega.Ship({ id : 'sh4', user_id : 'user43', system_id : 'system43', hp : 100,
+                               location : new Omega.Location()});
+      ship5 = new Omega.Ship({ id : 'sh5', user_id : 'user43', system_id : 'system43', hp : 100,
+                               location : new Omega.Location()});
+      station1 = new Omega.Station({ id : 'st1', system_id : 'system43',
+                               location : new Omega.Location()});
+      station2 = new Omega.Station({ id : 'st2', system_id : 'system43',
+                               location : new Omega.Location()});
+      entities = [ship1, ship2, ship3, ship4, ship5, station1, station2];
+      entity_map = {start_tracking : [ship5, station2]}
+
+      index.canvas.root = system;
+      index.canvas.entities = [ship4.id];
+      canvas_add = sinon.stub(index.canvas, 'add');
+    });
+
+    after(function(){
+      index.canvas.add.restore();
+    });
+
+    it("does not process user owned entities", function(){
+      index._process_retrieved_scene_entities(entities, entity_map);
+      assert(index.entity(ship1.id)).isUndefined();
+    });
+
+    it("adds entities to local registry", function(){
+      index._process_retrieved_scene_entities(entities, entity_map);
+      assert(index.entity(ship2.id)).equals(ship2);
+      assert(index.entity(ship3.id)).equals(ship3);
+      assert(index.entity(ship4.id)).equals(ship4);
+      assert(index.entity(ship5.id)).equals(ship5);
+      assert(index.entity(station1.id)).equals(station1);
+      assert(index.entity(station2.id)).equals(station2);
+    });
+
+    describe("entity has hp > 0, is under scene root, but not in scene", function(){
+      it("adds entity to canvas scene", function(){
+        index._process_retrieved_scene_entities(entities, entity_map);
+        sinon.assert.calledWith(canvas_add, ship2);
+        sinon.assert.calledWith(canvas_add, ship5);
+        sinon.assert.calledWith(canvas_add, station1);
+        sinon.assert.calledWith(canvas_add, station2);
+        sinon.assert.neverCalledWith(canvas_add, ship3);
+        sinon.assert.neverCalledWith(canvas_add, ship4);
+      });
+    });
+
+    describe("not tracking entity", function(){
+      it("tracks ships", function(){
+        var track_ship = sinon.spy(index, 'track_ship');
+        index._process_retrieved_scene_entities(entities, entity_map);
+        sinon.assert.calledWith(track_ship, ship2);
+        sinon.assert.neverCalledWith(track_ship, ship5);
+      });
+
+      it("tracks stations", function(){
+        var track_station = sinon.spy(index, 'track_station');
+        index._process_retrieved_scene_entities(entities, entity_map);
+        sinon.assert.calledWith(track_station, station1);
+        sinon.assert.neverCalledWith(track_station, station2);
+      });
+    });
   });
 
   describe("#handle_events", function(){
@@ -946,11 +1198,34 @@ describe("Omega.Pages.Index", function(){
 
     before(function(){
       index = new Omega.Pages.Index();
-      system = new Omega.SolarSystem({id: 'system1', name: 'systema', galaxy_id: 'gal1'});
+      endpoint = new Omega.SolarSystem({id : 'endpoint'});
+      jg = new Omega.JumpGate({endpoint_id : endpoint.id})
+      system = new Omega.SolarSystem({id: 'system1', name: 'systema',
+                                      parent_id: 'gal1', children: [jg]});
     });
 
     after(function(){
       if(Omega.Galaxy.with_id.restore) Omega.Galaxy.with_id.restore();
+      if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+    });
+
+    it("stores system in local entity registry", function(){
+      index.process_system(system);
+      assert(index.entity(system.id)).equals(system);
+    });
+
+    it("sets solar_system attribute of local registry entities that reference the system", function(){
+      var ship1 = new Omega.Ship({id : 'sh1', system_id : system.id})
+      index.entity(ship1.id, ship1);
+      index.process_system(system);
+      assert(ship1.solar_system).equals(system);
+    });
+
+    it("updates local registry systems' children from local entity registry", function(){
+      index.entity(system.id, system);
+      var update_children = sinon.spy(system, 'update_children_from');
+      index.process_system(endpoint);
+      sinon.assert.calledWith(update_children, sinon.match.array);
     });
 
     it("adds system to locations_list", function(){
@@ -975,9 +1250,55 @@ describe("Omega.Pages.Index", function(){
       cb(galaxy);
       sinon.assert.calledWith(spy, galaxy);
     });
+
+    describe("galaxy already retrieved", function(){
+      it("updates galaxy children from local entity registry", function(){
+        var galaxy = new Omega.Galaxy({id : system.parent_id});
+        index.entity(galaxy.id, galaxy)
+
+        var set_children = sinon.spy(galaxy, 'set_children_from');
+        index.process_system(system);
+        sinon.assert.calledWith(set_children, sinon.match.array);
+      });
+    });
+
+    it("retrieves missing jg endpoints", function(){
+      var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+      index.process_system(system);
+      sinon.assert.calledWith(with_id, endpoint.id, index.node, sinon.match.func);
+    });
+
+    it("processes system with jg endpoints retrieved", function(){
+      var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+      index.process_system(system);
+
+      var process_system = sinon.spy(index, 'process_system');
+      var retrieval_cb = with_id.getCall(0).args[2];
+      retrieval_cb(endpoint);
+      sinon.assert.calledWith(process_system, endpoint);
+    });
+
+    it("updates system children from local entities registry", function(){
+      var update_children = sinon.spy(system, 'update_children_from');
+      index.process_system(system);
+      sinon.assert.calledWith(update_children, index.all_entities());
+    });
   });
 
   describe("#process_galaxy", function(){
+    var index;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+    });
+
+    it("stores galaxy in local entity registry", function(){
+      var galaxy = new Omega.Galaxy({id: 'galaxy1'});
+      var index  = new Omega.Pages.Index();
+      index.process_galaxy(galaxy);
+      assert(index.entity(galaxy.id)).equals(galaxy);
+    })
+
     it("adds galaxy to locations_list", function(){
       var index = new Omega.Pages.Index();
       var galaxy = new Omega.Galaxy({id: 'galaxy1', name: 'galaxya'});
@@ -985,6 +1306,13 @@ describe("Omega.Pages.Index", function(){
       var spy = sinon.spy(index.canvas.controls.locations_list, 'add');
       index.process_galaxy(galaxy)
       sinon.assert.calledWith(spy, {id: 'galaxy1', text: 'galaxya', data: galaxy});
+    });
+
+    it("sets galaxy children from local entities registry", function(){
+      var galaxy = new Omega.Galaxy({id: 'galaxy1'});
+      var set_children = sinon.spy(galaxy, 'set_children_from');
+      index.process_galaxy(galaxy);
+      sinon.assert.calledWith(set_children, sinon.match.array);
     });
   });
 
@@ -1001,7 +1329,11 @@ describe("Omega.Pages.Index", function(){
     sinon.assert.calledWith(spy, index.node);
   })
 
-  it("has an effects player");
+  it("has an effects player", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.effects_player).isOfType(Omega.UI.EffectsPlayer);
+    assert(index.effects_player.page).equals(index);
+  });
 
   it("has an index dialog", function(){
     var index = new Omega.Pages.Index();
@@ -1030,7 +1362,13 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#all_entities", function(){
-    it("returns array of all entities");
+    it("returns array of all entities", function(){
+      var ship1 = new Omega.Ship({id : 'sh1'});
+      var ship2 = new Omega.Ship({id : 'sh2'});
+      var index = new Omega.Pages.Index();
+      index.entities = {'sh1' : ship1, 'sh2' : ship2};
+      assert(index.all_entities()).isSameAs([ship1, ship2]);
+    });
   });
 
   describe("#wire_up", function(){

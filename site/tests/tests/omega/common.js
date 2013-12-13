@@ -22,7 +22,14 @@ describe("Omega", function(){
     });
 
     describe("json entity passed in", function(){
-      it("returns js instances converted from json data")
+      it("returns js instances converted from json data", function(){
+        var json = {json_class : 'Motel::Location', data : {x : 10, y : 10, z: -42}};
+        var converted = Omega.convert_entity(json);
+        assert(converted).isOfType(Omega.Location);
+        assert(converted.x).equals(10);
+        assert(converted.y).equals(10);
+        assert(converted.z).equals(-42);
+      });
     });
 
     describe("js entity passed in", function(){

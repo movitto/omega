@@ -1,6 +1,13 @@
 pavlov.specify("Omega.Planet", function(){
 describe("Omega.Planet", function(){
-  it("converts location");
+  it("converts location", function(){
+    var planet = new Omega.Planet({location :
+      {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    assert(planet.location).isOfType(Omega.Location);
+    assert(planet.location.x).equals(10);
+    assert(planet.location.y).equals(20);
+    assert(planet.location.z).equals(30);
+  });
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){

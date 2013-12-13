@@ -499,7 +499,7 @@ Omega.Pages.Index.prototype = {
     for(var j = 0; j < gates.length; j++){
       var gate = gates[j];
       var endpoint = this.entity(gate.endpoint_id);
-      if(endpoint == null){
+      if(!endpoint){
         this.entity(gate.endpoint_id, 'placeholder');
         Omega.SolarSystem.with_id(gate.endpoint_id, this.node,
           function(system){ _this.process_system(system); });

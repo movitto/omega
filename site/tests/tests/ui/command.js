@@ -259,15 +259,16 @@ describe("Omega.UI.CommandDialog", function(){
   });
 
   describe("#append_mining_cmd", function(){
-    var ship, resource;
+    var ship, resource, ast;
 
     before(function(){
       ship = new Omega.Ship({id : 'ship1'});
       resource = new Omega.Resource({id : 'tres', material_id : 'ruby', quantity : 50 });
+      ast = new Omega.Asteroid({id : 'ast1'});
     });
 
     it("adds mining command for specified resource to dialog", function(){
-      dialog.append_mining_cmd(page, ship, resource);
+      dialog.append_mining_cmd(page, ship, resource, ast);
       var cmds = $('#mining_targets').children();
       assert(cmds.length).equals(1);
       assert(cmds[0].id).equals('mine_tres');
@@ -275,28 +276,32 @@ describe("Omega.UI.CommandDialog", function(){
       assert(cmds[0].className).contains('dialog_cmd');
       assert(cmds[0].innerHTML).equals('ruby (50)');
 
-      dialog.append_mining_cmd(page, ship, resource);
+      dialog.append_mining_cmd(page, ship, resource, ast);
       var cmds = $('#mining_targets').children();
       assert(cmds.length).equals(2);
     });
 
     it("sets entity on mining command", function(){
-      dialog.append_mining_cmd(page, ship, resource);
+      dialog.append_mining_cmd(page, ship, resource, ast);
       var cmds = $('#mining_targets').children();
       assert($(cmds[0]).data('entity')).equals(ship);
     });
 
     it("sets resource on mining command", function(){
-      dialog.append_mining_cmd(page, ship, resource);
+      dialog.append_mining_cmd(page, ship, resource, ast);
       var cmds = $('#mining_targets').children();
       assert($(cmds[0]).data('resource')).equals(resource);
     });
 
-    it("sets asteroid on mining command")
+    it("sets asteroid on mining command", function(){
+      dialog.append_mining_cmd(page, ship, resource, ast);
+      var cmds = $('#mining_targets').children();
+      assert($(cmds[0]).data('asteroid')).equals(ast);
+    });
 
     describe("on mining command click", function(){
       before(function(){
-        dialog.append_mining_cmd(page, ship, resource);
+        dialog.append_mining_cmd(page, ship, resource, ast);
       });
 
       it("invokes entity._start_mining with event", function(){
@@ -306,6 +311,7 @@ describe("Omega.UI.CommandDialog", function(){
         var evnt = start_mining.getCall(0).args[1];
         assert($(evnt.currentTarget).data('entity')).equals(ship);
         assert($(evnt.currentTarget).data('resource')).equals(resource);
+        assert($(evnt.currentTarget).data('asteroid')).equals(ast);
       });
     });
   });
@@ -399,9 +405,10 @@ describe("Omega.UI.CommandTracker", function(){
       });
 
       it("updates entity resources", function(){
+        var update_resources = sinon.spy(ship, '_update_resources');
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
-        assert(ship.resources).equals(eship.resources);
-        /// TODO assert _update_resources _invoked
+        assert(ship.resources).isSameAs(eship.resources);
+        sinon.assert.called(update_resources);
       });
 
       describe("entity not in scene", function(){
@@ -455,7 +462,10 @@ describe("Omega.UI.CommandTracker", function(){
         assert(ship.mining).isNull();
       });
 
-      it("clears entity mining asteroid");
+      it("clears entity mining asteroid", function(){
+        tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
+        assert(ship.mining_asteroid).isNull();
+      });
 
       describe("entity not in scene", function(){
         it("does not reload entity", function(){
@@ -716,9 +726,9 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         constructed = new Omega.Ship({id : 'constructed_ship' });
         station     = new Omega.Station({id : 'station1'});
-        estation    = new Omega.Station({id : 'station1'});
+        estation    = new Omega.Station({id : 'station1', resources : [{'material_id' : 'gold'}]});
 
-        page.entities = [estation, constructed];
+        page.entities = [station, constructed];
         eargs         = ['construction_complete', estation, constructed];
 
         get = sinon.stub(Omega.Ship, 'get');
@@ -753,13 +763,15 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(canvas_add, retrieved);
       });
 
-      it("updates station resources");
+      it("updates station resources", function(){
+        var update_resources = sinon.spy(station, '_update_resources');
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        sinon.assert.called(update_resources);
+        assert(estation.resources).isSameAs(estation.resources)
+      });
 
       it("refreshes the entity container", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-        var get_cb = get.getCall(0).args[2];
-        var retrieved = new Omega.Ship({system_id : 'system1'});
-        get_cb(retrieved);
         sinon.assert.calledWith(refresh_entity_container);
       });
     });

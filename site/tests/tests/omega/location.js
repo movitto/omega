@@ -1,13 +1,28 @@
 pavlov.specify("Omega.Location", function(){
 describe("Omega.Location", function(){
-  it("converts movement strategy from json");
+  it("converts movement strategy from json", function(){
+    var loc =
+      new Omega.Location({movement_strategy :
+        {json_class : 'Motel::MovementStrategies::Linear', data : {speed: 50}}});
+    assert(loc.movement_strategy.json_class).equals('Motel::MovementStrategies::Linear');
+    assert(loc.movement_strategy.speed).equals(50);
+  });
 
   describe("#toJSON", function(){
-    it("returns location in json format")
+    it("returns location in json format", function(){
+      var expected = {x : 50, y : -50, z : 100, parent_id : 42};
+      var loc = new Omega.Location(expected);
+      assert(loc.toJSON()).isSameAs(expected);
+    });
   });
 
   describe("#clone", function(){
-    it("returns cloned location")
+    it("returns cloned location", function(){
+      var loc = new Omega.Location({x : 42});
+      var loc2 = loc.clone();
+      assert(loc2).isNotEqualTo(loc);
+      assert(loc2).isSameAs(loc);
+    })
   });
 
   describe("#distance_from", function(){

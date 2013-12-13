@@ -30,6 +30,7 @@ Omega.Test = {
     return handlers;
   },
 
+
   /// remove all event handlers
   clear_events : function(){
     $('body *').off();
@@ -232,6 +233,18 @@ pavlov.specify.extendAssertions({
     var check = (handlers == null || handlers[evnt].length == 0);
     if(!check) check = ($.grep(handlers[evnt],
                  function(h){return h.selector == selector;}).length == 0);
+    ok(check, message);
+  },
+
+  handlesEvent : function(actual, evnt, message){
+    var listeners = actual._listeners;
+    var check = (listeners && listeners[evnt] && listeners[evnt].length > 0);
+    ok(check, message);
+  },
+
+  doesNotHandleEvent : function(actual, evnt, message){
+    var listeners = actual._listeners;
+    var check = (!listeners || !listeners[evnt] || listeners[evnt].length == 0);
     ok(check, message);
   }
 })

@@ -1,6 +1,9 @@
 pavlov.specify("Omega.Galaxy", function(){
 describe("Omega.Galaxy", function(){
-  it("sets background");
+  it("sets background", function(){
+    var galaxy = new Omega.Galaxy({background : 1});
+    assert(galaxy.bg).equals('galaxy1');
+  });
 
   it("converts children", function(){
     var system = {json_class: 'Cosmos::Entities::SolarSystem', id: 'sys1'};
@@ -10,15 +13,44 @@ describe("Omega.Galaxy", function(){
     assert(galaxy.children[0].id).equals('sys1');
   });
 
-  it("converts location");;
+  it("converts location", function(){
+    var galaxy = new Omega.Galaxy({location : {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    assert(galaxy.location).isOfType(Omega.Location);
+    assert(galaxy.location.x).equals(10);
+    assert(galaxy.location.y).equals(20);
+    assert(galaxy.location.z).equals(30);
+  });
 
   describe("#systems", function(){
-    it("returns system children");
+    it("returns system children", function(){
+      var sys1 = {json_class : 'Cosmos::Entities::SolarSystem', data : {id : 'sys1'}};
+      var galaxy = new Omega.Galaxy({children : [sys1]});
+      assert(galaxy.children.length).equals(1);
+      assert(galaxy.children[0]).isOfType(Omega.SolarSystem);
+    });
   });
 
   describe("#set_children_from", function(){
-    it("swaps child systems in from entity list");
-    it("sets galaxy on systems swapped in");
+    var systems, galaxy;
+
+    before(function(){
+      systems  = [new Omega.SolarSystem({id : 'sys1'}),
+                  new Omega.SolarSystem({id : 'sys2'})]
+      gsystems = [new Omega.SolarSystem({id : 'sys1'})]
+      galaxy   =  new Omega.Galaxy({children: gsystems});
+    });
+
+    it("swaps child systems in from entity list", function(){
+      galaxy.set_children_from(systems);
+      assert(galaxy.children.length).equals(1);
+      assert(galaxy.children[0]).equals(systems[0]);
+    });
+
+    it("sets galaxy on systems swapped in", function(){
+      galaxy.set_children_from(systems);
+      assert(galaxy.children[0].galaxy).equals(galaxy);
+      assert(systems[1].galaxy).isUndefined();
+    });
   });
 
   describe("#load_gfx", function(){

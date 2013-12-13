@@ -15,9 +15,18 @@ describe("Omega.Ship", function(){
                                  session: new Omega.Session({user_id : 'user1'})});
   });
 
-  it("sets parent_id = to system_id")
-  it("converts location");
-  it("updates resources")
+  it("sets parent_id = to system_id", function(){
+    var ship = new Omega.Ship({system_id : 'system1'});
+    assert(ship.parent_id).equals('system1');
+  });
+
+  it("converts location", function(){
+    var ship = new Omega.Ship({location : {json_class: 'Motel::Location', y : -42}});
+    assert(ship.location).isOfType(Omega.Location);
+    assert(ship.location.y).equals(-42);
+  });
+
+  //it("updates resources"); /// NIY test update_resources is invoked
 
   describe("#belongs_to_user", function(){
     it("returns bool indicating if ship belongs to user", function(){
@@ -27,7 +36,13 @@ describe("Omega.Ship", function(){
   });
 
   describe("#_update_resources", function(){
-    it("converts resources from json data");
+    it("converts resources from json data", function(){
+      var ship = new Omega.Ship({resources : [{data : {material_id : 'steel'}},
+                                              {data : {material_id : 'plastic'}}]});
+      assert(ship.resources.length).equals(2);
+      assert(ship.resources[0].material_id).equals('steel');
+      assert(ship.resources[1].material_id).equals('plastic');
+    });
   });
 
   describe("#retrieve_details", function(){
@@ -70,21 +85,64 @@ describe("Omega.Ship", function(){
     });
 
     describe("ship does not belong to user", function(){
-      it("does not invoke details with commands");
+      it("does not invoke details with commands", function(){
+        ship.user_id = 'user2';
+        ship.retrieve_details(page, details_cb);
+        var details = details_cb.getCall(0).args[0];
+        assert(details.length).equals(6);
+      });
     });
 
-    it("hides commands 'display' returns false for");
+    it("hides commands 'display' returns false for", function(){
+      ship.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
+        var cmd = Omega.Ship.prototype.cmds[c];
+        var detail_cmd = details[6+c];
+        var display = (!cmd.display || cmd.display(ship)) ? 'block' : 'none';
+        assert(detail_cmd.css('display')).equals(display);
+      }
+    });
 
     describe("ship is not docked", function(){
-      it("displays dock cmd");
-      it("hides undock cmd");
-      it("hides transfer cmd");
+      before(function(){
+        ship.retrieve_details(page, function(details){
+          $('#qunit-fixture').append(details);
+        });
+      });
+
+      it("displays dock cmd", function(){
+        assert($('#ship_dock_' + ship.id)).isVisible();
+      });
+
+      it("hides undock cmd", function(){
+        assert($('#ship_undock_' + ship.id)).isHidden();
+      });
+
+      it("hides transfer cmd", function(){
+        assert($('#ship_transfer_' + ship.id)).isHidden();
+      });
     });
 
     describe("ship is docked", function(){
-      it("hides dock cmd");
-      it("displays undock cmd");
-      it("displays transfer cmd");
+      before(function(){
+        ship.docked_at_id = 'station1';
+        ship.retrieve_details(page, function(details){
+          $('#qunit-fixture').append(details);
+        });
+      });
+
+      it("hides dock cmd", function(){
+        assert($('#ship_dock_' + ship.id)).isHidden();
+      });
+
+      it("displays undock cmd", function(){
+        assert($('#ship_undock_' + ship.id)).isVisible();
+      });
+
+      it("displays transfer cmd", function(){
+        assert($('#ship_transfer_' + ship.id)).isVisible();
+      });
     });
 
     it("sets ship in all command data", function(){
@@ -436,6 +494,8 @@ describe("Omega.Ship", function(){
 
         after(function(){
           page.canvas.reload.restore();
+          if(page.canvas.entity_container.refresh.restore)
+            page.canvas.entity_container.refresh.restore();
         });
 
         it("hides the dialog", function(){
@@ -449,7 +509,10 @@ describe("Omega.Ship", function(){
           assert(ship.docked_at).equals(station);
         });
 
-        it("updates ship docked at id");
+        it("updates ship docked at id", function(){
+          response_cb(success_response);
+          assert(ship.docked_at_id).equals(station.id);
+        });
 
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
@@ -465,7 +528,11 @@ describe("Omega.Ship", function(){
           sinon.assert.called(update_gfx);
         });
 
-        it("refreshes entity container");
+        it("refreshes entity container", function(){
+          var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+          response_cb(success_response);
+          sinon.assert.called(refresh);
+        });
       });
     });
   });
@@ -525,6 +592,8 @@ describe("Omega.Ship", function(){
 
         after(function(){
           page.canvas.reload.restore();
+          if(page.canvas.entity_container.refresh.restore)
+            page.canvas.entity_container.refresh.restore();
         });
 
         it("clears ship docked_at entity", function(){
@@ -532,7 +601,10 @@ describe("Omega.Ship", function(){
           assert(ship.docked_at).isNull();
         });
 
-        it("clears ship docked_at id");
+        it("clears ship docked_at_id", function(){
+          response_cb(success_response);
+          assert(ship.docked_at_id).isNull();
+        });
 
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
@@ -548,7 +620,11 @@ describe("Omega.Ship", function(){
           sinon.assert.called(update_gfx);
         });
 
-        it("refreshes entity container");
+        it("refreshes entity container", function(){
+          var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+          response_cb(success_response);
+          sinon.assert.called(refresh);
+        });
       });
     });
   });
@@ -581,13 +657,16 @@ describe("Omega.Ship", function(){
 
       before(function(){
         var http_invoke = sinon.spy(page.node, 'http_invoke');
-        ship.docked_at = new Omega.Station();
+        station = new Omega.Station();
+        nstation = new Omega.Station({resources : [{data : {material_id : 'silver'}}]});
+
+        ship.docked_at = station;
         ship._transfer(page);
         response_cb = http_invoke.getCall(0).args[4];
 
-        nship = new Omega.Ship({docked_at : ship.docked_at,
+        nship = new Omega.Ship({docked_at : nstation,
                                 resources : [new Omega.Resource()]});
-        success_response = {result : [nship, nship.docked_at]};
+        success_response = {result : [nship, nstation]};
         error_response   = {error  : {message : 'transfer err'}};
       });
 
@@ -619,6 +698,8 @@ describe("Omega.Ship", function(){
 
         after(function(){
           page.canvas.reload.restore();
+          if(page.canvas.entity_container.refresh.restore)
+            page.canvas.entity_container.refresh.restore();
         });
 
         it("updates ship resources", function(){
@@ -626,7 +707,11 @@ describe("Omega.Ship", function(){
           assert(ship.resources).equals(nship.resources);
         });
 
-        it("updates station resources");
+        it("updates station resources", function(){
+          response_cb(success_response);
+          assert(station.resources.length).equals(1);
+          assert(station.resources[0].material_id).equals('silver');
+        });
 
         it("reloads ship in canvas scene", function(){
           response_cb(success_response);
@@ -642,7 +727,11 @@ describe("Omega.Ship", function(){
           sinon.assert.called(update_gfx);
         });
 
-        it("refreshes entity container");
+        it("refreshes entity container", function(){
+          var refresh = sinon.spy(page.canvas.entity_container, 'refresh');
+          response_cb(success_response);
+          sinon.assert.called(refresh);
+        });
       });
     });
   });
@@ -881,6 +970,8 @@ describe("Omega.Ship", function(){
         if(Omega.Ship.gfx[type].attack_vector && Omega.Ship.gfx[type].attack_vector.clone.restore) Omega.Ship.gfx[type].attack_vector.clone.restore();
         if(Omega.Ship.gfx[type].mining_vector && Omega.Ship.gfx[type].mining_vector.clone.restore) Omega.Ship.gfx[type].mining_vector.clone.restore();
       }
+      if(Omega.Ship.prototype.retrieve_resource.restore)
+        Omega.Ship.prototype.retrieve_resource.restore();
     });
 
     it("loads ship gfx", function(){
@@ -908,9 +999,9 @@ describe("Omega.Ship", function(){
     it("sets mesh base position/rotation", async(function(){
       ship.init_gfx();
       ship.retrieve_resource('mesh', function(){
-        assert(ship.mesh.position.x).equals(100);
-        assert(ship.mesh.position.y).equals(-100);
-        assert(ship.mesh.position.z).equals(200);
+        var template_mesh = Omega.Ship.gfx[ship.type].mesh;
+        assert(ship.mesh.base_position).equals(template_mesh.base_position);
+        assert(ship.mesh.base_rotation).equals(template_mesh.base_rotation);
         start();
       });
     }));
@@ -923,9 +1014,23 @@ describe("Omega.Ship", function(){
       });
     }));
 
-    it("updates_gfx in mesh cb");
+    it("updates_gfx in mesh cb", function(){
+      var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
+      ship.init_gfx();
+      var retrieve_resource_cb = retrieve_resource.getCall(0).args[2];
 
-    it("adds mesh to components");
+      var update_gfx = sinon.spy(ship, 'update_gfx');
+      retrieve_resource_cb(Omega.Ship.gfx[ship.type].mesh);
+      sinon.assert.called(update_gfx);
+    });
+
+    it("adds mesh to components", async(function(){
+      ship.init_gfx();
+      ship.retrieve_resource('mesh', function(){
+        assert(ship.components).includes(ship.mesh);
+        start();
+      });
+    }));
 
     it("clones Ship highlight effects", function(){
       var mesh = new THREE.Mesh();
@@ -972,7 +1077,11 @@ describe("Omega.Ship", function(){
       assert(ship.components).isSameAs(expected);
     });
 
-    it("updates_gfx");
+    it("updates_gfx", function(){
+      var update_gfx = sinon.spy(ship, 'update_gfx');
+      ship.init_gfx();
+      sinon.assert.called(update_gfx);
+    });
   });
 
   describe("#run_effects", function(){
@@ -1382,10 +1491,35 @@ describe("Omega.Ship", function(){
   });
 
   describe("#under", function(){
-    it("invokes manufactured::get_entities request");
+    var node, retrieval_cb, invoke_spy;
+
+    before(function(){
+      node         = new Omega.Node();
+      retrieval_cb = sinon.spy();
+      invoke_spy   = sinon.stub(node, 'http_invoke');
+    });
+
+    it("invokes manufactured::get_entities request", function(){
+      Omega.Ship.under('system1', node, retrieval_cb);
+      sinon.assert.calledWith(invoke_spy, 'manufactured::get_entities',
+        'of_type', 'Manufactured::Ship', 'under', 'system1');
+    });
+
     describe("manufactured::get_entities callback", function(){
-      it("converts results to ship instances")
-      it("invokes callback with ship instances")
+      it("invokes callback", function(){
+        Omega.Ship.under('system1', node, retrieval_cb);
+        invoke_spy.getCall(0).args[5]({});
+        sinon.assert.called(retrieval_cb);
+      });
+
+      it("converts results to ship instances", function(){
+        Omega.Ship.under('system1', node, retrieval_cb);
+        invoke_spy.getCall(0).args[5]({result : [{id : 'sh1'}]});
+        var ships = retrieval_cb.getCall(0).args[0];
+        assert(ships.length).equals(1);
+        assert(ships[0]).isOfType(Omega.Ship);
+        assert(ships[0].id).equals('sh1');
+      });
     });
   });
 });}); // Omega.Ship

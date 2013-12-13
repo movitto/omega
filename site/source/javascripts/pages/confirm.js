@@ -12,8 +12,16 @@ Omega.Pages.Confirm = function(){
 };
 
 Omega.Pages.Confirm.prototype = {
+  /// XXX needed to stub out get/set window location in test suite
+  url : function(){
+    return window.location;
+  },
+  redirect_to : function(value){
+    window.locaiton = value;
+  },
+
   registration_code : function(){
-    var url = $.url(window.location);
+    var url = $.url(this.url());
     return url.param('rc');
   },
 
@@ -30,7 +38,7 @@ Omega.Pages.Confirm.prototype = {
 
     var host   = this.config.http_host;
     var prefix = this.config.url_prefix;
-    window.location = 'http://'+host+prefix;
+    this.redirect_to('http://'+host+prefix);
   }
 };
 

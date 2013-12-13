@@ -1,6 +1,12 @@
 pavlov.specify("Omega.Asteroid", function(){
 describe("Omega.Asteroid", function(){
-  it("converts location");
+  it("converts location", function(){
+    var ast = new Omega.Asteroid({location : {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    assert(ast.location).isOfType(Omega.Location);
+    assert(ast.location.x).equals(10);
+    assert(ast.location.y).equals(20);
+    assert(ast.location.z).equals(30);
+  });
 
   describe("#retrieve_details", function(){
     var ast, page, details_cb;

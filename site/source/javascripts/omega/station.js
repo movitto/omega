@@ -192,6 +192,8 @@ Omega.Station.prototype = {
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
 
+    this.components = [];
+
     var _this = this;
     Omega.Station.prototype.retrieve_resource(this.type, 'template_mesh', function(){
       _this.mesh = Omega.Station.gfx[_this.type].mesh.clone();
@@ -216,7 +218,7 @@ Omega.Station.prototype = {
                                                     this.location.z));
 
 
-    this.components = [this.highlight];
+    this.components.push(this.highlight);
 
     this.lamps = [];
     for(var l = 0; l < Omega.Station.gfx[this.type].lamps.length; l++){

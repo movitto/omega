@@ -10,8 +10,13 @@ describe("Omega.Station", function(){
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
   });
 
-  it("converts location");
-  it("updates resources");
+  it("converts location", function(){
+    var station = new Omega.Station({location : {json_class: 'Motel::Location', y : -42}});
+    assert(station.location).isOfType(Omega.Location);
+    assert(station.location.y).equals(-42);
+  });
+
+  //it("updates resources"); /// NIY test update_resources is invoked
 
   describe("#belongs_to_user", function(){
     it("returns bool indicating if station belongs to user", function(){
@@ -20,8 +25,14 @@ describe("Omega.Station", function(){
     });
   });
 
-  describe("_update_resources", function(){
-    it("converts resources from json data");
+  describe("#_update_resources", function(){
+    it("converts resources from json data", function(){
+      var station = new Omega.Station({resources : [{data : {material_id : 'steel'}},
+                                                    {data : {material_id : 'plastic'}}]});
+      assert(station.resources.length).equals(2);
+      assert(station.resources[0].material_id).equals('steel');
+      assert(station.resources[1].material_id).equals('plastic');
+    });
   });
 
   describe("#retrieve_details", function(){
@@ -252,7 +263,13 @@ describe("Omega.Station", function(){
       });
     }));
 
-    it("adds mesh to components");
+    it("adds mesh to components", async(function(){
+      station.init_gfx();
+      station.retrieve_resource('mesh', function(){
+        assert(station.components).includes(station.mesh);
+        start();
+      });
+    }));
 
     it("clones Station highlight effects", function(){
       var mesh = new THREE.Mesh();
@@ -272,8 +289,9 @@ describe("Omega.Station", function(){
 
     it("sets scene components to station highlight effects, and lamps", function(){
       station.init_gfx();
-      var expected = [station.highlight].concat(station.lamps);
-      assert(station.components).isSameAs(expected);
+      assert(station.components).includes(station.highlight);
+      for(var l = 0; l < station.lamps.length; l++)
+        assert(station.components).includes(station.lamps[l]);
     });
   });
 
@@ -329,10 +347,35 @@ describe("Omega.Station", function(){
   });
 
   describe("#under", function(){
-    it("invokes manufactured::get_entities request");
+    var node, retrieval_cb, invoke_spy;
+
+    before(function(){
+      node         = new Omega.Node();
+      retrieval_cb = sinon.spy();
+      invoke_spy   = sinon.stub(node, 'http_invoke');
+    });
+
+    it("invokes manufactured::get_entities request", function(){
+      Omega.Station.under('system1', node, retrieval_cb);
+      sinon.assert.calledWith(invoke_spy, 'manufactured::get_entities',
+        'of_type', 'Manufactured::Station', 'under', 'system1');
+    });
+
     describe("manufactured::get_entities callback", function(){
-      it("converts results to ship instances")
-      it("invokes callback with ship instances")
+      it("invokes callback", function(){
+        Omega.Station.under('system1', node, retrieval_cb);
+        invoke_spy.getCall(0).args[5]({});
+        sinon.assert.called(retrieval_cb);
+      });
+
+      it("converts results to station instances", function(){
+        Omega.Station.under('system1', node, retrieval_cb);
+        invoke_spy.getCall(0).args[5]({result : [{id : 'st1'}]});
+        var stations = retrieval_cb.getCall(0).args[0];
+        assert(stations.length).equals(1);
+        assert(stations[0]).isOfType(Omega.Station);
+        assert(stations[0].id).equals('st1');
+      });
     });
   });
 });}); // Omega.Galaxy

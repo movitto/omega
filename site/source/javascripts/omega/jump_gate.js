@@ -202,6 +202,8 @@ Omega.JumpGate.prototype = {
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
 
+    this.components = [];
+
     var _this = this;
     Omega.JumpGate.prototype.retrieve_resource('template_mesh', function(){
       _this.mesh = Omega.JumpGate.gfx.mesh.clone();
@@ -238,7 +240,8 @@ Omega.JumpGate.prototype = {
                                                          this.location.y,
                                                          this.location.z)
 
-    this.components = [this.lamp, this.particles];
+    this.components.push(this.lamp);
+    this.components.push(this.particles);
   },
 
   run_effects : function(){

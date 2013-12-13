@@ -1,6 +1,9 @@
 pavlov.specify("Omega.SolarSystem", function(){
 describe("Omega.SolarSystem", function(){
-  it("sets background"):
+  it("sets background", function(){
+    var sys = new Omega.SolarSystem({background : 1});
+    assert(sys.bg).equals('system1');
+  });
 
   it("converts children", function(){
     var star   = {json_class: 'Cosmos::Entities::Star',   id: 'star1'};
@@ -13,22 +16,56 @@ describe("Omega.SolarSystem", function(){
     assert(system.children[1].id).equals('planet1');
   });
 
-  it("converts location");
+  it("converts location", function(){
+    var system = new Omega.SolarSystem({location : {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    assert(system.location).isOfType(Omega.Location);
+    assert(system.location.x).equals(10);
+    assert(system.location.y).equals(20);
+    assert(system.location.z).equals(30);
+  });
 
   describe("#asteroids", function(){
-    it("returns asteroid children");
+    it("returns asteroid children", function(){
+      var ast1 = new Omega.Asteroid();
+      var ast2 = new Omega.Asteroid();
+      var planet1 = new Omega.Planet();
+      var system = new Omega.SolarSystem({children : [ast1, ast2, planet1]})
+      assert(system.asteroids()).isSameAs([ast1, ast2]);
+    });
   });
 
   describe("#planets", function(){
-    it("returns planet children");
+    it("returns planet children", function(){
+      var ast1 = new Omega.Asteroid();
+      var planet1 = new Omega.Planet();
+      var planet2 = new Omega.Planet();
+      var system = new Omega.SolarSystem({children : [ast1, planet1, planet2]})
+      assert(system.planets()).isSameAs([planet1, planet2]);
+    });
   });
 
   describe("#jump_gates", function(){
-    it("returns jump_gate children");
+    it("returns jump_gate children", function(){
+      var star1 = new Omega.Star();
+      var jg1 = new Omega.JumpGate();
+      var jg2 = new Omega.JumpGate();
+      var system = new Omega.SolarSystem({children : [star1, jg1, jg2]})
+      assert(system.jump_gates()).isSameAs([jg1, jg2]);
+    });
   });
 
   describe("#update_children_from", function(){
-    it("sets child jump gate endpoints from entity list");
+    it("sets child jump gate endpoints from entity list", function(){
+      var jg1  = new Omega.JumpGate({endpoint_id : 'sys1'});
+      var jg2  = new Omega.JumpGate({endpoint_id : 'sys2'});
+      var sys1 = new Omega.SolarSystem({id : 'sys1'});
+      var sys2 = new Omega.SolarSystem({id : 'sys2'});
+      var sys3 = new Omega.SolarSystem({id : 'sys3', children: [jg1, jg2]});
+      var entities = [sys1, sys2, sys3];
+      sys3.update_children_from(entities);
+      assert(jg1.endpoint).equals(sys1);
+      assert(jg2.endpoint).equals(sys2);
+    });
   });
 
   describe("#clicked_in", function(){
@@ -183,7 +220,19 @@ describe("Omega.SolarSystem", function(){
       assert(system.interconnections).isSameAs([particles]);
     });
 
-    it("sets dx/dy/dz/ticks on particle system");
+    it("sets dx/dy/dz/ticks on particle system", function(){
+      system.add_interconn(endpoint);
+      var particles = system.components[1];
+      var d = system.location.distance_from(endpoint.location);
+      var dx = (endpoint.location.x - system.location.x) / d;
+      var dy = (endpoint.location.y - system.location.y) / d;
+      var dz = (endpoint.location.z - system.location.z) / d;
+
+      assert(particles.dx).equals(dx);
+      assert(particles.dy).equals(dy);
+      assert(particles.dz).equals(dz);
+      assert(particles.ticks).equals(d/50);
+    });
   });
 
   describe("#with_id", function(){

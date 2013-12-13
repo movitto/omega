@@ -14,7 +14,13 @@ describe("Omega.JumpGate", function(){
     if(page.canvas.reload.restore) page.canvas.reload.restore();
   });
 
-  it("converts location");
+  it("converts location", function(){
+    var jump_gate = new Omega.JumpGate({location : {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    assert(jump_gate.location).isOfType(Omega.Location);
+    assert(jump_gate.location.x).equals(10);
+    assert(jump_gate.location.y).equals(20);
+    assert(jump_gate.location.z).equals(30);
+  });
 
   describe("#retrieve_details", function(){
     var details_cb;
@@ -302,7 +308,14 @@ describe("Omega.JumpGate", function(){
       });
     }));
 
-    it("adds mesh to components");
+    it("adds mesh to components", async(function(){
+      var jg = new Omega.JumpGate({});
+      jg.init_gfx();
+      jg.retrieve_resource('mesh', function(){
+        assert(jg.components).includes(jg.mesh);
+        start();
+      });
+    }));
 
     it("clones JumpGate lamp", function(){
       var mesh = new THREE.Mesh();
@@ -354,7 +367,8 @@ describe("Omega.JumpGate", function(){
     it("adds lamp, and particles to jump gate scene components", function(){
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.components).isSameAs([jg.lamp, jg.particles]);
+      assert(jg.components).includes(jg.lamp);
+      assert(jg.components).includes(jg.particles);
     });
   });
 
