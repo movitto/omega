@@ -19,7 +19,7 @@ Omega.UI.Canvas = function(parameters){
   /// need handle to page the canvas is on to
   /// - lookup missions
   /// - access entity config
-  this.page = null
+  this.page = null;
 
   $.extend(this, parameters);
 };

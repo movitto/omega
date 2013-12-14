@@ -192,10 +192,11 @@ Omega.Pages.Index = function(){
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
-  this.status_indicator = new          Omega.UI.StatusIndicator();
+  this.status_indicator = new Omega.UI.StatusIndicator({page : this});
 
   /// wire up status_indicator
-  this.status_indicator.follow_node(this.node);
+  this.status_indicator.follow_node(this.node, 'loading');
+  Omega.UI.Loader.status_indicator = this.status_indicator;
 };
 
 Omega.Pages.Index.prototype = {

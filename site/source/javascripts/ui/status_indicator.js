@@ -7,7 +7,14 @@
 Omega.UI.StatusIndicator = function(parameters){
   /// stack of states which are currently set
   this.states =  [];
-}
+
+  /// need handle to page the canvas is on to
+  /// - lookup missions
+  /// - access entity config
+  this.page = null;
+
+  $.extend(this, parameters);
+};
 
 Omega.UI.StatusIndicator.prototype = {
   div_id    : '#status_icon',
@@ -24,8 +31,8 @@ Omega.UI.StatusIndicator.prototype = {
       return;
     }
 
-/// FIXME host/prefix from where?
-    var url = '/images/status/' + new_bg + '.png';
+    var url = this.page.config.url_prefix + this.page.config.images_path +
+              '/status/' + new_bg + '.png';
     this.component().css('background', 'url("' + url + '") no-repeat');
   },
 

@@ -5,18 +5,22 @@
  */
 
 Omega.UI.Loader = {
+  status_indicator : null,
+
   preload : function(){
     if(Omega.UI.Loader.preloaded) return;
     Omega.UI.Loader.preloaded = true;
 
-    this.preload_meshes();
-    this.preload_skybox();
+    if(this.status_indicator) this.status_indicator.push_state('loading_resource');
+    var config = Omega.Config;
+    this.preload_meshes(config);
+    this.preload_skybox(config);
     /// TODO load cosmos entities/heirarchies ?
+    if(this.status_indicator) this.status_indicator.pop_state();
   },
 
   /// preload entity meshes and gfx to be cloned later
-  preload_meshes : function(){
-    var config = Omega.Config;
+  preload_meshes : function(config){
     (new Omega.SolarSystem()).load_gfx(config);
     (new Omega.Galaxy()).load_gfx(config);
     (new Omega.Star()).load_gfx(config);
@@ -32,7 +36,7 @@ Omega.UI.Loader = {
   },
 
   /// preload skybox backgrounds
-  preload_skybox : function(){
+  preload_skybox : function(config){
     var skybox = new Omega.UI.Canvas.Skybox();
     skybox.init_gfx();
     for(var s = 1; s <= config.resources.backgrounds.solar_system; s++){
