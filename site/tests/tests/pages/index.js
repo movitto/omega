@@ -563,6 +563,7 @@ describe("Omega.Pages.Index", function(){
     });
 
     after(function(){
+      if(Omega.UI.Loader.preload.restore) Omega.UI.Loader.preload.restore();
       if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
       if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
     });
@@ -571,6 +572,12 @@ describe("Omega.Pages.Index", function(){
       spy = sinon.spy(index.nav, 'show_logout_controls');
       index._session_validated();
       sinon.assert.called(spy);
+    });
+
+    it("preloads resources", function(){
+      var preload = sinon.spy(Omega.UI.Loader, 'preload');
+      index._session_validated();
+      sinon.assert.called(preload);
     });
 
     it("wires up canvas scene change", function(){

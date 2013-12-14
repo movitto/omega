@@ -43,6 +43,8 @@ Omega.Pages.Confirm.prototype = {
 };
 
 $(document).ready(function(){
+  if(Omega.Test) return;
+
   var dev = new Omega.Pages.Confirm();
   dev.confirm_registration();
 });

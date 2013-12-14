@@ -118,7 +118,7 @@ Omega.Station.prototype = {
       var material     = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
 
       var _this = this;
-      new THREE.JSONLoader().load(geometry_path, function(mesh_geometry){
+      Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
         var mesh = new THREE.Mesh(mesh_geometry, material);
         Omega.Station.gfx[_this.type].mesh = mesh;
         if(offset)
@@ -130,7 +130,7 @@ Omega.Station.prototype = {
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
         Omega.Station.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
-        event_cb();
+        if(event_cb) event_cb();
       }, geometry_prefix);
 
     //// highlight effects

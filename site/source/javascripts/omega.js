@@ -48,3 +48,5 @@
 
 //= require "omega/ship"
 //= require "omega/station"
+
+//= require "ui/loader"

@@ -35,6 +35,8 @@ Omega.Config = {
 
   // gfx
   resources    : {
+    'backgrounds'  : { 'galaxy' : 6, 'solar_system' : 7},
+
     'solar_system' : { 'material' : '/solar_system.png'},
     'star'         : { 'clouds'   : '/textures/lava/cloud.png',
                        'lava'     : '/textures/lava/lavatile.jpg'},
@@ -74,8 +76,8 @@ Omega.Config = {
                          'geometry' : '/meshes/eris/eris.json',
                          'scale'    : [20, 20, 20],
                          'rotation' : [1.57, 0, 0]},
-      'destroyer'    : { 'material' : '/meshes/monera_smuggler/The Model/morena_map-smuggler.png',
-                         'geometry' : '/meshes/monera_smuggler/The Model/monera_smuggler.json',
+      'destroyer'    : { 'material' : '/meshes/monera_smuggler/morena_map-smuggler.png',
+                         'geometry' : '/meshes/monera_smuggler/monera_smuggler.json',
                          'scale'    : [20, 20, 20] ,
                          'rotation' : [-1.57, 0, -1.57] },
 

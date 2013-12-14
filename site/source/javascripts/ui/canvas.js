@@ -548,9 +548,9 @@ Omega.UI.Canvas.Skybox.prototype = {
     this.components = [this.mesh];
   },
 
-  set: function(bg){
+  set: function(bg, config){
     var format = 'png';
-    var config = this.canvas.page.config;
+    if(!config) config = this.canvas.page.config;
     var path   = config.url_prefix + config.images_path + '/skybox/' + bg + '/';
     var materials = [
       path + 'px.' + format, path + 'nx.' + format,

@@ -66,7 +66,7 @@ Omega.Asteroid.prototype = {
       var texture         = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });
 
-      new THREE.JSONLoader().load(geometry_path, function(mesh_geometry){
+      Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
         var mesh = new THREE.Mesh(mesh_geometry, mesh_material);
         Omega.Asteroid.gfx.mesh = mesh;
         if(scale)
@@ -76,7 +76,7 @@ Omega.Asteroid.prototype = {
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
         Omega.Asteroid.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
-        event_cb();
+        if(event_cb) event_cb();
       }, geometry_prefix);
   },
 

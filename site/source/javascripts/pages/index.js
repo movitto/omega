@@ -194,7 +194,7 @@ Omega.Pages.Index = function(){
   this.canvas           = new       Omega.UI.Canvas({page: this});
   this.status_indicator = new          Omega.UI.StatusIndicator();
 
-  /// FIXME play status_indicator
+  /// wire up status_indicator
   this.status_indicator.follow_node(this.node);
 };
 
@@ -222,6 +222,9 @@ Omega.Pages.Index.prototype = {
   _session_validated : function(){
     var _this = this;
     this.nav.show_logout_controls();
+
+    /// preload resources
+    Omega.UI.Loader.preload();
 
     /// handle scene changes
     if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
@@ -519,7 +522,8 @@ Omega.Pages.Index.prototype = {
 };
 
 $(document).ready(function(){
-//FIXME needs to be enabled for app, disabled for tests
+  if(Omega.Test) return;
+
   var index = new Omega.Pages.Index();
   index.wire_up();
   index.canvas.setup();

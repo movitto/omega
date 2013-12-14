@@ -355,7 +355,7 @@ Omega.Ship.prototype = {
       Omega.Ship.gfx[this.type].mesh_material = material;
 
       var _this = this;
-      new THREE.JSONLoader().load(geometry_path, function(mesh_geometry){
+      Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
         var mesh = new THREE.Mesh(mesh_geometry, material);
         mesh.base_position = mesh.base_rotation = [0,0,0];
         Omega.Ship.gfx[_this.type].mesh = mesh;
@@ -371,7 +371,7 @@ Omega.Ship.prototype = {
           mesh.base_rotation = rotation;
         }
         Omega.Ship.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
-        event_cb();
+        if(event_cb) event_cb();
       }, geometry_prefix);
 
     //// highlight effects
