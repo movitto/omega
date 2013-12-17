@@ -35,7 +35,7 @@ Omega.Config = {
 
   // gfx
   resources    : {
-    'backgrounds'  : { 'galaxy' : 6, 'solar_system' : 7},
+    'backgrounds'  : { 'galaxy' : 5, 'solar_system' : 5},
 
     'solar_system' : { 'material' : '/solar_system.png'},
     'star'         : { 'clouds'   : '/textures/lava/cloud.png',
@@ -55,8 +55,8 @@ Omega.Config = {
                        'scale'    : [90, 90, 40],
                        'rotation' : [1.57,3.14,0]},
     'ships'        : {
-      'mining'       : { 'material' : '/meshes/pirateghost/ghostmap_png.png',
-                         'geometry' : '/meshes/pirateghost/pirateghost.json',
+      'mining'       : { 'material' : '/textures/hull.png',
+                         'geometry' : '/meshes/Agasicles/agasicles.json',
                          'scale'    : [5, 5, 5],
                          'rotation' : [0, 0, 0],
                          'trails'   : [[19,2.5,-32.5],[-19,2.5,-32.5],[0,5,-55],[0,-2.5,-55]],
@@ -76,10 +76,9 @@ Omega.Config = {
                          'geometry' : '/meshes/eris/eris.json',
                          'scale'    : [20, 20, 20],
                          'rotation' : [1.57, 0, 0]},
-      'destroyer'    : { 'material' : '/meshes/monera_smuggler/morena_map-smuggler.png',
-                         'geometry' : '/meshes/monera_smuggler/monera_smuggler.json',
-                         'scale'    : [20, 20, 20] ,
-                         'rotation' : [-1.57, 0, -1.57] },
+      'destroyer'    : { 'material' : '/textures/AeraHull.png',
+                         'geometry' : '/meshes/Leonidas/yavok.json',
+                         'scale'    : [2, 2, 2] },
 
     },
 

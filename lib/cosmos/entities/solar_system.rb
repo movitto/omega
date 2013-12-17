@@ -19,7 +19,7 @@ class SolarSystem
   PARENT_TYPE = 'Galaxy'
   CHILD_TYPES = ['Star', 'Planet', 'JumpGate', 'Asteroid']
 
-  NUM_BACKGROUNDS = 7
+  NUM_BACKGROUNDS = 5
 
   # {Cosmos::Galaxy} parent of the solar system
   alias :galaxy :parent
