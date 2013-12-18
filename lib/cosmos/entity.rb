@@ -174,23 +174,6 @@ module Entity
 
 end # module Entity
 
-# Expanded Cosmos Entity which provides an environment
-#
-# Assumes class including this defines 'NUM_BACKGROUNDS'
-module EnvEntity
-  # Environment ackground
-  attr_accessor :background
-
-  def init_env_entity(args = {})
-    attr_from_args args, :background => (rand(self.class::NUM_BACKGROUNDS) + 1)
-  end
-
-  # Return env entity json attributes
-  def env_entity_json
-    {:background => @background}
-  end
-end
-
 # Expanded Cosmos Entity which resides in a system and has some
 # basic characteristics.
 #

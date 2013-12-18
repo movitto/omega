@@ -11,16 +11,17 @@ Omega.SolarSystem = function(parameters){
   this.interconnections = [];
 
   this.children   = [];
-  this.background = '';
   $.extend(this, parameters);
 
-  this.bg = 'system' + this.background;
+  this.bg = Omega.str_to_bg(this.id);
+
   this.children = Omega.convert_entities(this.children);
   this.location = Omega.convert_entity(this.location)
 };
 
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem',
+
 
   asteroids : function(){
     return $.grep(this.children, function(c){

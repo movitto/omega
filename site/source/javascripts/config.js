@@ -35,8 +35,6 @@ Omega.Config = {
 
   // gfx
   resources    : {
-    'backgrounds'  : { 'galaxy' : 5, 'solar_system' : 5},
-
     'solar_system' : { 'material' : '/solar_system.png'},
     'star'         : { 'clouds'   : '/textures/lava/cloud.png',
                        'lava'     : '/textures/lava/lavatile.jpg'},
@@ -64,18 +62,18 @@ Omega.Config = {
                                        [2, 0x0000ff, [0,15,-16]],
                                        [5, 0x0000ff, [0,0,54]],
                                        [5, 0x0000ff, [0,-6,-48]]]},
-      'corvette'     : { 'material' : '/meshes/transportshuttle/texture/transport_shuttle.png',
-                         'geometry' : '/meshes/transportshuttle/texture/TransportShuttle.json',
-                         'scale'    : [20, 20, 20],
+      'corvette'     : { 'material' : '/textures/hull.png',
+                         'geometry' : '/meshes/Sickle/sickle.json',
+                         'scale'    : [5, 5, 5],
                          'rotation' : [0, 0, 0],
                          'trails'   : [[10,0,-37.5], [-10,0,-37.5]],
                          'lamps'    : [[1, 0x0000ff, [0, -3, 41]],
                                        [2, 0x0000ff, [0, 4, 14]],
                                        [3, 0x0000ff, [0, -5, -27]]]},
-      'transport'    : { 'material' : '/meshes/eris/shipCompleteMap.jpg',
-                         'geometry' : '/meshes/eris/eris.json',
-                         'scale'    : [20, 20, 20],
-                         'rotation' : [1.57, 0, 0]},
+      'transport'    : { 'material' : '/textures/AeraHull.png',
+                         'geometry' : '/meshes/Agesipolis/agesipolis.json',
+                         'scale'    : [5, 5, 5],
+                         'rotation' : [0, 0, 0]},
       'destroyer'    : { 'material' : '/textures/AeraHull.png',
                          'geometry' : '/meshes/Leonidas/yavok.json',
                          'scale'    : [2, 2, 2] },
@@ -83,7 +81,7 @@ Omega.Config = {
     },
 
     'stations'      : {
-      'manufacturing' : { 'material' : '/meshes/research.png',
+      'manufacturing' : { 'material' : '/meshes/research1.png',
                           'geometry' : '/meshes/research.json',
                           'scale'    : [7, 7, 7],
                           'lamps' : [[5, 0x0000ff, [0,   25, 0]],

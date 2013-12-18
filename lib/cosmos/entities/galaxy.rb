@@ -14,12 +14,9 @@ module Entities
 # {Cosmos::Registry}. May contain local solar_system children
 class Galaxy
   include Cosmos::Entity
-  include Cosmos::EnvEntity
 
   PARENT_TYPE = 'NilClass'
   CHILD_TYPES = ['SolarSystem']
-
-  NUM_BACKGROUNDS = 5
 
   # Alias children to solar systems
   alias :solar_systems :children
@@ -43,7 +40,7 @@ class Galaxy
   # Return json representation of galaxy
   def to_json(*a)
     { :json_class => self.class.name,
-      :data       => entity_json.merge(env_entity_json)
+      :data       => entity_json
     }.to_json(*a)
   end
 

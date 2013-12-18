@@ -65,6 +65,19 @@ Omega.obj_values = function(obj){
   });
 };
 
+/// TODO: centralize # of backgrounds in config
+Omega._num_backgrounds = 5;
+
+/// XXX: helper to convert string to skybox bg
+Omega.str_to_bg = function(str){
+  str = str ? '0x' + str : '0';
+  str = str.replace(/-/g, '').
+            replace(/_/g, '').
+            replace(/[a-zA-Z]/g, '');
+  str = str.substr(0, 4);
+  return parseInt(str) % Omega._num_backgrounds + 1;
+};
+
 // Return bool if obj has a listener for the specified event
 Omega.has_listener_for = function(obj, evnt){
   return typeof(obj._listeners)       !== "undefined" &&

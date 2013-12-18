@@ -9,10 +9,10 @@ Omega.Galaxy = function(parameters){
   this.shader_components = [];
 
   this.children   = [];
-  this.background = '';
   $.extend(this, parameters);
 
-  this.bg = 'galaxy' + this.background;
+  this.bg = Omega.str_to_bg(this.id);
+
   this.children = Omega.convert_entities(this.children);
   this.location = Omega.convert_entity(this.location)
 };

@@ -14,12 +14,9 @@ module Entities
 # planets, asteroid, and jump gates.
 class SolarSystem
   include Cosmos::Entity
-  include Cosmos::EnvEntity
 
   PARENT_TYPE = 'Galaxy'
   CHILD_TYPES = ['Star', 'Planet', 'JumpGate', 'Asteroid']
-
-  NUM_BACKGROUNDS = 5
 
   # {Cosmos::Galaxy} parent of the solar system
   alias :galaxy :parent
@@ -61,7 +58,7 @@ class SolarSystem
   # Return json representation of solar system
   def to_json(*a)
     { :json_class => self.class.name,
-      :data       => entity_json.merge(env_entity_json)
+      :data       => entity_json
     }.to_json(*a)
   end
 
