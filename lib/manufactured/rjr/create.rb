@@ -173,6 +173,8 @@ construct_entity = proc { |manufacturer_id, *args|
   # add construction command to registry to be run in loop cycle
   registry << Commands::Construction.new(:station => station, :entity => entity)
 
+  # TODO update station returned or return rstation
+
   # Return station and constructed entity
   [station, entity]
 }
