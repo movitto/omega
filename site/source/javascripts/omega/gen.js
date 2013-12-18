@@ -5,6 +5,12 @@
  */
 
 Omega.Gen = {
+  next_id : function(){
+    if(!Omega.Gen._next_id) Omega.Gen._next_id = 0;
+    Omega.Gen._next_id += 1;
+    return Omega.Gen._next_id;
+  },
+
   elliptical_ms : function(enrml, opts){
     /// generate major axis such that maj . enrml = 0
     var tx   = Math.random();
@@ -46,5 +52,41 @@ Omega.Gen = {
       asteroids.push(ast);
     }
     return asteroids;
+  },
+
+  ship : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'ship' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
+    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
+    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
+    if(!opts.location.movement_strategy)
+      opts.location.movement_strategy =
+        {json_class : 'Motel::MovementStrategies::Stopped'};
+
+    return new Omega.Ship(opts);
+  },
+
+  station : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'station' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
+    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
+    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
+    if(!opts.location.movement_strategy)
+      opts.location.movement_strategy =
+        {json_class : 'Motel::MovementStrategies::Stopped'};
+
+    return new Omega.Station(opts);
   }
 };
