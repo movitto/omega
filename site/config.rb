@@ -60,6 +60,7 @@ ignore 'tests/'
 ignore 'source/javascripts/vendor/rjr/tests'
 ignore '*LICENSE'
 ignore 'build*'
+ignore '*source*'
 
 # Build-specific configuration
 configure :build do
