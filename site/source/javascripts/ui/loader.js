@@ -39,11 +39,8 @@ Omega.UI.Loader = {
   preload_skybox : function(config){
     var skybox = new Omega.UI.Canvas.Skybox();
     skybox.init_gfx();
-    for(var s = 1; s <= config.resources.backgrounds.solar_system; s++){
+    for(var b = 1; b <= Omega.num_backgrounds; b++){
       skybox.set('system' + s, config);
-    }
-    for(var g = 1; g <= config.resources.backgrounds.galaxy; g++){
-      skybox.set('galaxy' + g, config);
     }
   },
 

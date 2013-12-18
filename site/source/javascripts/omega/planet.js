@@ -41,7 +41,7 @@ Omega.Planet.prototype = {
   },
 
   _load_material : function(config, event_cb){
-    var colori  = parseInt('0x' + this.color) % _this._num_textures;
+    var colori  = parseInt('0x' + this.color) % this._num_textures;
     var texture = config.resources['planet' + colori].material;
     var path    = config.url_prefix + config.images_path + texture;
     var sphere_texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
