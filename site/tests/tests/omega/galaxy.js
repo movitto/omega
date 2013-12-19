@@ -2,7 +2,7 @@ pavlov.specify("Omega.Galaxy", function(){
 describe("Omega.Galaxy", function(){
   it("sets background", function(){
     var galaxy = new Omega.Galaxy({background : 1});
-    assert(galaxy.bg).equals('galaxy1');
+    assert(galaxy.bg).equals(1);
   });
 
   it("converts children", function(){

@@ -981,20 +981,19 @@ describe("Omega.Ship", function(){
       sinon.assert.called(load_gfx);
     });
 
-    it("clones Ship mesh", async(function(){
+    it("clones template mesh", function(){
       var mesh = new THREE.Mesh();
-      /// need to wait till template mesh is loaded b4 wiring up stub
-      Omega.Ship.prototype.
-        retrieve_resource('corvette', 'template_mesh', function(){
-          sinon.stub(Omega.Ship.gfx[type].mesh, 'clone').returns(mesh);
-        });
+      var cloned = new THREE.Mesh();
 
+      var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
       ship.init_gfx();
-      ship.retrieve_resource('mesh', function(){
-        assert(ship.mesh).equals(mesh);
-        start();
-      });
-    }));
+      sinon.assert.calledWith(retrieve_resource, 'template_mesh_' + ship.type, sinon.match.func);
+      var retrieve_resource_cb = retrieve_resource.getCall(0).args[1];
+
+      var clone = sinon.stub(mesh, 'clone').returns(cloned);
+      retrieve_resource_cb(mesh);
+      assert(ship.mesh).equals(cloned);
+    });
 
     it("sets mesh base position/rotation", async(function(){
       ship.init_gfx();
@@ -1017,7 +1016,7 @@ describe("Omega.Ship", function(){
     it("updates_gfx in mesh cb", function(){
       var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
       ship.init_gfx();
-      var retrieve_resource_cb = retrieve_resource.getCall(0).args[2];
+      var retrieve_resource_cb = retrieve_resource.getCall(0).args[1];
 
       var update_gfx = sinon.spy(ship, 'update_gfx');
       retrieve_resource_cb(Omega.Ship.gfx[ship.type].mesh);

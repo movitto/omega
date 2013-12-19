@@ -2,7 +2,7 @@ pavlov.specify("Omega.SolarSystem", function(){
 describe("Omega.SolarSystem", function(){
   it("sets background", function(){
     var sys = new Omega.SolarSystem({background : 1});
-    assert(sys.bg).equals('system1');
+    assert(sys.bg).equals(1);
   });
 
   it("converts children", function(){

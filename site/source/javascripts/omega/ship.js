@@ -129,6 +129,7 @@ Omega.Ship.prototype = {
   },
 
   /// XXX not a big fan of having this here, should eventually be moved elsewhere
+  /// TODO replace w/ page.command_dialog
   dialog : function(){
     if(typeof(this._dialog) === "undefined")
       this._dialog = new Omega.UI.CommandDialog();
@@ -478,6 +479,8 @@ Omega.Ship.prototype = {
       /// XXX copy custom attrs required later
       _this.mesh.base_position = template_mesh.base_position;
       _this.mesh.base_rotation = template_mesh.base_rotation;
+      if(!_this.mesh.base_position) _this.mesh.base_position = [0,0,0];
+      if(!_this.mesh.base_rotation) _this.mesh.base_rotation = [0,0,0];
       _this.update_gfx();
 
       _this.mesh.omega_entity = _this;

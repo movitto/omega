@@ -7,15 +7,15 @@ describe("Omega.UI.Canvas", function(){
   })
 
   it('has a canvas controls instance', function(){
-    assert(canvas.controls).isOfType(Omega.UI.Canvas.Controls);
+    assert(canvas.controls).isOfType(Omega.UI.CanvasControls);
   });
 
   it('has a canvas dialog instance', function(){
-    assert(canvas.dialog).isOfType(Omega.UI.Canvas.Dialog);
+    assert(canvas.dialog).isOfType(Omega.UI.CanvasDialog);
   });
 
   it('has a entity container instance', function(){
-    assert(canvas.entity_container).isOfType(Omega.UI.Canvas.EntityContainer);
+    assert(canvas.entity_container).isOfType(Omega.UI.CanvasEntityContainer);
     assert(canvas.entity_container.canvas).equals(canvas);
   });
 
@@ -157,9 +157,9 @@ describe("Omega.UI.Canvas", function(){
 
     it("sets camera controls position", function(){
       var canvas = Omega.Test.Canvas();
-      assert(canvas.cam_controls.object.position.x).close(0,   0.01);
-      assert(canvas.cam_controls.object.position.y).close(1500, 0.01);
-      assert(canvas.cam_controls.object.position.z).close(1500, 0.01);
+      assert(canvas.cam_controls.object.position.x).close(Omega.Config.cam.position[0], 0.01);
+      assert(canvas.cam_controls.object.position.y).close(Omega.Config.cam.position[1], 0.01);
+      assert(canvas.cam_controls.object.position.z).close(Omega.Config.cam.position[2], 0.01);
     });
 
     it("sets camera controls target", function(){
@@ -197,9 +197,9 @@ describe("Omega.UI.Canvas", function(){
     it("sets camera controls position", function(){
       controls.object.position.set(100,100,100);
       canvas.reset_cam();
-      assert(controls.object.position.x).close(0,   0.01);
-      assert(controls.object.position.y).close(1500, 0.01);
-      assert(controls.object.position.z).close(1500, 0.01);
+      assert(controls.object.position.x).close(Omega.Config.cam.position[0], 0.01);
+      assert(controls.object.position.y).close(Omega.Config.cam.position[1], 0.01);
+      assert(controls.object.position.z).close(Omega.Config.cam.position[2], 0.01);
     });
 
     it("sets camera controls target", function(){
@@ -513,24 +513,24 @@ describe("Omega.UI.Canvas", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Controls", function(){
-describe("Omega.UI.Canvas.Controls", function(){
+pavlov.specify("Omega.UI.CanvasControls", function(){
+describe("Omega.UI.CanvasControls", function(){
   var node, page, canvas, controls;
   
   before(function(){
     node = new Omega.Node();
     page = new Omega.Pages.Test({node: node});
     canvas = new Omega.UI.Canvas({page: page});
-    controls = new Omega.UI.Canvas.Controls({canvas: canvas});
+    controls = new Omega.UI.CanvasControls({canvas: canvas});
   });
 
   it('has a locations list', function(){
-    assert(controls.locations_list).isOfType(Omega.UI.Canvas.Controls.List);
+    assert(controls.locations_list).isOfType(Omega.UI.CanvasControlsList);
     assert(controls.locations_list.div_id).equals('#locations_list');
   });
 
   it('has an entities list', function(){
-    assert(controls.entities_list).isOfType(Omega.UI.Canvas.Controls.List);
+    assert(controls.entities_list).isOfType(Omega.UI.CanvasControlsList);
     assert(controls.entities_list.div_id).equals('#entities_list');
   });
 
@@ -552,7 +552,7 @@ describe("Omega.UI.Canvas.Controls", function(){
     });
 
     it("registers locations list event handlers", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       controls.locations_list.add({id: 'id1', text: 'item1', data: null});
       assert(controls.locations_list.component()).doesNotHandle('click');
       controls.wire_up();
@@ -560,7 +560,7 @@ describe("Omega.UI.Canvas.Controls", function(){
     });
 
     it("registers entities list event handlers", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       controls.entities_list.add({id: 'id1', text: 'item1', data: null});
       assert(controls.entities_list.component()).doesNotHandle('click');
       controls.wire_up();
@@ -568,42 +568,42 @@ describe("Omega.UI.Canvas.Controls", function(){
     });
 
     it("registers missions button event handlers", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       assert(controls.missions_button).doesNotHandle('click');
       controls.wire_up();
       assert(controls.missions_button).handles('click');
     });
 
     it("registers canvas reset button event handler", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       assert(controls.cam_reset).doesNotHandle('click');
       controls.wire_up();
       assert(controls.cam_reset).handles('click');
     });
 
     it("registers toggle axis click event handlers", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       assert(controls.toggle_axis).doesNotHandle('click');
       controls.wire_up();
       assert(controls.toggle_axis).handles('click');
     });
 
     it("unchecks toggle axis control", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       controls.toggle_axis.attr('checked', true);
       controls.wire_up();
       assert(controls.toggle_axis.is('checked')).equals(false);
     });
 
     it("wires up locations list", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       var spy = sinon.spy(controls.locations_list, 'wire_up');
       controls.wire_up();
       sinon.assert.called(spy);
     });
 
     it("wires up entities list", function(){
-      var controls = new Omega.UI.Canvas.Controls();
+      var controls = new Omega.UI.CanvasControls();
       var spy = sinon.spy(controls.entities_list, 'wire_up');
       controls.wire_up();
       sinon.assert.called(spy);
@@ -640,7 +640,7 @@ describe("Omega.UI.Canvas.Controls", function(){
   describe("#canvas_reset button clicked", function(){
     before(function(){
       canvas = Omega.Test.Canvas();
-      controls = new Omega.UI.Canvas.Controls({canvas: canvas});
+      controls = new Omega.UI.CanvasControls({canvas: canvas});
       controls.wire_up();
     });
 
@@ -659,7 +659,7 @@ describe("Omega.UI.Canvas.Controls", function(){
   describe("#toggle_axis input clicked", function(){
     before(function(){
       canvas = Omega.Test.Canvas();
-      controls = new Omega.UI.Canvas.Controls({canvas: canvas});
+      controls = new Omega.UI.CanvasControls({canvas: canvas});
       controls.wire_up();
     });
 
@@ -763,12 +763,12 @@ describe("Omega.UI.Canvas.Controls", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Controls.List", function(){
-describe("Omega.UI.Canvas.Controls.List", function(){
+pavlov.specify("Omega.UI.CanvasControlsList", function(){
+describe("Omega.UI.CanvasControlsList", function(){
   var list;
 
   before(function(){
-    list = new Omega.UI.Canvas.Controls.List({div_id: '#locations_list'});
+    list = new Omega.UI.CanvasControlsList({div_id: '#locations_list'});
     list.wire_up();
   })
 
@@ -818,8 +818,8 @@ describe("Omega.UI.Canvas.Controls.List", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Dialog", function(){
-describe("Omega.UI.Canvas.Dialog", function(){
+pavlov.specify("Omega.UI.CanvasDialog", function(){
+describe("Omega.UI.CanvasDialog", function(){
   var user_id  = 'user1';
   var node     = new Omega.Node();
   var session  = new Omega.Session({user_id: user_id});
@@ -862,7 +862,7 @@ describe("Omega.UI.Canvas.Dialog", function(){
      inactive : inactive_missions};
 
   before(function(){
-    dialog  = new Omega.UI.Canvas.Dialog({canvas: canvas});
+    dialog  = new Omega.UI.CanvasDialog({canvas: canvas});
   });
 
   after(function(){
@@ -871,7 +871,7 @@ describe("Omega.UI.Canvas.Dialog", function(){
 
   it('has a reference to canvas the dialog is for', function(){
     var canvas = new Omega.UI.Canvas();
-    var dialog = new Omega.UI.Canvas.Dialog({canvas: canvas});
+    var dialog = new Omega.UI.CanvasDialog({canvas: canvas});
     assert(dialog.canvas).equals(canvas);
   });
 
@@ -994,13 +994,13 @@ describe("Omega.UI.Canvas.Dialog", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.EntityContainer", function(){
-describe("Omega.UI.Canvas.EntityContainer", function(){
+pavlov.specify("Omega.UI.CanvasEntityContainer", function(){
+describe("Omega.UI.CanvasEntityContainer", function(){
   var canvas, container;
 
   before(function(){
     canvas = Omega.Test.Canvas();
-    container = new Omega.UI.Canvas.EntityContainer({canvas: canvas});
+    container = new Omega.UI.CanvasEntityContainer({canvas: canvas});
   });
 
   after(function(){
@@ -1151,29 +1151,29 @@ describe("Omega.UI.Canvas.EntityContainer", function(){
   });
 });});
 
-pavlov.specify("Omega.UI.Canvas.Skybox", function(){
-describe("Omega.UI.Canvas.Skybox", function(){
+pavlov.specify("Omega.UI.CanvasSkybox", function(){
+describe("Omega.UI.CanvasSkybox", function(){
   var orig;
 
   before(function(){
-    orig = Omega.UI.Canvas.Skybox.gfx;
+    orig = Omega.UI.CanvasSkybox.gfx;
   });
 
   after(function(){
-    Omega.UI.Canvas.Skybox.gfx = orig;
+    Omega.UI.CanvasSkybox.gfx = orig;
   });
   
   it("has the id: canvas_skybox", function(){
-    var skybox = new Omega.UI.Canvas.Skybox();
+    var skybox = new Omega.UI.CanvasSkybox();
     assert(skybox.id).equals('canvas_skybox');
   })
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       it("does nothing / just returns", function(){
-        Omega.UI.Canvas.Skybox.gfx = {};
-        new Omega.UI.Canvas.Skybox().load_gfx();
-        assert(Omega.UI.Canvas.Skybox.gfx.mesh).isUndefined();
+        Omega.UI.CanvasSkybox.gfx = {};
+        new Omega.UI.CanvasSkybox().load_gfx();
+        assert(Omega.UI.CanvasSkybox.gfx.mesh).isUndefined();
       });
     });
 
@@ -1187,14 +1187,14 @@ describe("Omega.UI.Canvas.Skybox", function(){
 
   describe("#init_gfx", function(){
     it("loads skybox gfx", function(){
-      var skybox = new Omega.UI.Canvas.Skybox();
+      var skybox = new Omega.UI.CanvasSkybox();
       var load_gfx = sinon.spy(skybox, 'load_gfx');
       skybox.init_gfx();
       sinon.assert.called(load_gfx);
     });
 
     it("adds Skybox mesh to scene components", function(){
-      var skybox = new Omega.UI.Canvas.Skybox();
+      var skybox = new Omega.UI.CanvasSkybox();
       skybox.init_gfx();
       assert(skybox.components[0]).equals(skybox.mesh);
     });
@@ -1202,7 +1202,7 @@ describe("Omega.UI.Canvas.Skybox", function(){
 
   describe("#set", function(){
     it("sets mesh material to new background", function(){
-      var skybox = new Omega.UI.Canvas.Skybox({canvas: Omega.Test.Canvas()});
+      var skybox = new Omega.UI.CanvasSkybox({canvas: Omega.Test.Canvas()});
       skybox.init_gfx();
       var oldB = skybox.mesh.material.uniforms["tCube"].value;
       skybox.set('galaxy1');
@@ -1210,63 +1210,63 @@ describe("Omega.UI.Canvas.Skybox", function(){
       assert(oldB).isNotEqualTo(newB); // XXX should validate actual new value
     });
   });
-});}); // Omega.UI.Canvas.Skybox
+});}); // Omega.UI.CanvasSkybox
 
-pavlov.specify("Omega.UI.Canvas.Axis", function(){
-describe("Omega.UI.Canvas.Axis", function(){
+pavlov.specify("Omega.UI.CanvasAxis", function(){
+describe("Omega.UI.CanvasAxis", function(){
   var orig;
 
   before(function(){
-    orig = Omega.UI.Canvas.Axis.gfx;
+    orig = Omega.UI.CanvasAxis.gfx;
   });
 
   after(function(){
-    Omega.UI.Canvas.Axis.gfx = orig;
+    Omega.UI.CanvasAxis.gfx = orig;
   });
 
   it("has the id: canvas_axis", function(){
-    var axis = new Omega.UI.Canvas.Axis();
+    var axis = new Omega.UI.CanvasAxis();
     assert(axis.id).equals('canvas_axis');
   });
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       it("does nothing / just returns", function(){
-        Omega.UI.Canvas.Axis.gfx = {};
-        new Omega.UI.Canvas.Axis().load_gfx();
-        assert(Omega.UI.Canvas.Axis.gfx.xy).isUndefined();
+        Omega.UI.CanvasAxis.gfx = {};
+        new Omega.UI.CanvasAxis().load_gfx();
+        assert(Omega.UI.CanvasAxis.gfx.xy).isUndefined();
       });
     });
 
     it("creates axis lines", function(){
       var canvas = Omega.Test.Canvas();
-      assert(Omega.UI.Canvas.Axis.gfx.xy).isOfType(THREE.Line);
-      assert(Omega.UI.Canvas.Axis.gfx.xz).isOfType(THREE.Line);
-      assert(Omega.UI.Canvas.Axis.gfx.yz).isOfType(THREE.Line);
+      assert(Omega.UI.CanvasAxis.gfx.xy).isOfType(THREE.Line);
+      assert(Omega.UI.CanvasAxis.gfx.xz).isOfType(THREE.Line);
+      assert(Omega.UI.CanvasAxis.gfx.yz).isOfType(THREE.Line);
     });
 
     it("creates distance markers", function(){
       var canvas = Omega.Test.Canvas();
-      assert(Omega.UI.Canvas.Axis.gfx.distances1).isOfType(THREE.Mesh);
-      assert(Omega.UI.Canvas.Axis.gfx.distances2).isOfType(THREE.Mesh);
-      assert(Omega.UI.Canvas.Axis.gfx.distances3).isOfType(THREE.Mesh);
+      assert(Omega.UI.CanvasAxis.gfx.distances1).isOfType(THREE.Mesh);
+      assert(Omega.UI.CanvasAxis.gfx.distances2).isOfType(THREE.Mesh);
+      assert(Omega.UI.CanvasAxis.gfx.distances3).isOfType(THREE.Mesh);
     });
   });
 
   describe("#init_gfx", function(){
     it("loads axis gfx", function(){
-      var axis     = new Omega.UI.Canvas.Axis();
+      var axis     = new Omega.UI.CanvasAxis();
       var load_gfx = sinon.spy(axis, 'load_gfx');
       axis.init_gfx();
       sinon.assert.called(load_gfx);
     });
 
     it("adds Axis lines to scene components", function(){
-      var axis     = new Omega.UI.Canvas.Axis();
+      var axis     = new Omega.UI.CanvasAxis();
       axis.init_gfx();
-      assert(axis.components[0]).equals(Omega.UI.Canvas.Axis.gfx.xy);
-      assert(axis.components[1]).equals(Omega.UI.Canvas.Axis.gfx.yz);
-      assert(axis.components[2]).equals(Omega.UI.Canvas.Axis.gfx.xz);
+      assert(axis.components[0]).equals(Omega.UI.CanvasAxis.gfx.xy);
+      assert(axis.components[1]).equals(Omega.UI.CanvasAxis.gfx.yz);
+      assert(axis.components[2]).equals(Omega.UI.CanvasAxis.gfx.xz);
     });
   });
-});}); // Omega.UI.Canvas.Axis
+});}); // Omega.UI.CanvasAxis
