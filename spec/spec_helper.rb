@@ -330,12 +330,6 @@ module OmegaTest
     end
   end
 
-  class CosmosEnvEntity < CosmosEntity
-    include Cosmos::EnvEntity
-
-    NUM_BACKGROUNDS = 5
-  end
-
   class CosmosSystemEntity < CosmosEntity
     include Cosmos::SystemEntity
     VALIDATE_SIZE  = proc { |v| true }

@@ -65,12 +65,6 @@ describe SolarSystem do
       SolarSystem.any_instance.should_receive(:init_entity).with(args)
       SolarSystem.new args
     end
-
-    it "initializes env entity" do
-      args = {}
-      SolarSystem.any_instance.should_receive(:init_env_entity).with(args)
-      SolarSystem.new args
-    end
   end
 
   describe "#valid?" do

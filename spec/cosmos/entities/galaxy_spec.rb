@@ -14,12 +14,6 @@ describe Galaxy do
       Galaxy.any_instance.should_receive(:init_entity).with(args)
       Galaxy.new args
     end
-
-    it "initializes env entity" do
-      args = {}
-      Galaxy.any_instance.should_receive(:init_env_entity).with(args)
-      Galaxy.new args
-    end
   end
 
   describe "#valid?" do

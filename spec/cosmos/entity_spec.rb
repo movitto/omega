@@ -382,33 +382,6 @@ describe Entity do
   end
 end # module Entity
 
-describe EnvEntity do
-  before(:each) do
-    @e = OmegaTest::CosmosEnvEntity.new
-  end
-
-  describe "#init_env_entity" do
-    it "sets default environment entity values" do
-      @e.init_env_entity
-      @e.background.should < OmegaTest::CosmosEnvEntity::NUM_BACKGROUNDS
-      @e.background.should >= 0
-    end
-
-    it "sets environment entity values" do
-      @e.init_env_entity :background => 5
-      @e.background.should == 5
-    end
-  end
-  
-  describe "#env_entity_json" do
-    it "returns environment entity json attributes" do
-      @e.init_env_entity :background => 5
-      j = @e.env_entity_json
-      j.should == {:background => 5}
-    end
-  end
-end # describe EnvEntity
-
 describe SystemEntity do
   before(:each) do
     @e = OmegaTest::CosmosSystemEntity.new
