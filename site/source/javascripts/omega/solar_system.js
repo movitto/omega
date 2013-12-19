@@ -55,8 +55,7 @@ Omega.SolarSystem.prototype = {
 
       if(system != null){
         gate.endpoint = system;
-/// FIXME: need this but gfx may not be initialized at this point:
-        //this.add_interconn(system);
+        this.add_interconn(system);
       }
     }
   },
@@ -129,6 +128,13 @@ Omega.SolarSystem.prototype = {
     if(this.location) this.text.position.set(this.location.x, this.location.y, this.location.z + 50);
 
     this.components = [this.mesh, this.plane, this.text];
+
+    if(this._queued_interconns){
+      for(var i = 0; i < this._queued_interconns.length; i++){
+        this.add_interconn(this._queued_interconns[i]);
+      }
+      this._queued_interconns = null;
+    }
   },
 
   run_effects : function(){
@@ -148,6 +154,12 @@ Omega.SolarSystem.prototype = {
   },
 
   add_interconn : function(endpoint){
+    if(this.components.length == 0){
+      if(!this._queued_interconns) this._queued_interconns = [];
+      this._queued_interconns.push(endpoint);
+      return;
+    }
+
     var geometry = new THREE.Geometry();
     geometry.vertices.push(new THREE.Vector3(this.location.x,
                                              this.location.y,
