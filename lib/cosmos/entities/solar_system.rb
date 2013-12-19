@@ -40,7 +40,6 @@ class SolarSystem
   # Cosmos::SolarSystem intializer
   def initialize(args = {})
     init_entity(args)
-    init_env_entity(args)
 
     attr_from_args args, :galaxy => @parent
   end

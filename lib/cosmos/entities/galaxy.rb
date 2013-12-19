@@ -24,7 +24,6 @@ class Galaxy
   # Cosmos::Galaxy intializer
   def initialize(args = {})
     init_entity(args)
-    init_env_entity(args)
   end
 
   # Return boolean indicating if this galaxy is valid.
