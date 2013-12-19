@@ -88,5 +88,12 @@ Omega.Gen = {
         {json_class : 'Motel::MovementStrategies::Stopped'};
 
     return new Omega.Station(opts);
+  },
+
+  linear_ms : function(opts){
+    var ms = {json_class : 'Motel::MovementStrategies::Linear',
+              speed : 100, dx : 1, dy : 0, dz : 0};
+    $.extend(ms, opts);
+    return ms;
   }
 };
