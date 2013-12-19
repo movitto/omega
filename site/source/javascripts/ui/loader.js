@@ -37,7 +37,7 @@ Omega.UI.Loader = {
 
   /// preload skybox backgrounds
   preload_skybox : function(config){
-    var skybox = new Omega.UI.Canvas.Skybox();
+    var skybox = new Omega.UI.CanvasSkybox();
     skybox.init_gfx();
     for(var b = 1; b <= Omega.num_backgrounds; b++){
       skybox.set('system' + s, config);
