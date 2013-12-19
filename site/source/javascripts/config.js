@@ -24,6 +24,8 @@ Omega.Config = {
   // ui
   //canvas_width      :         900,
   //canvas_height     :         400,
+  cam : {position : [0, 2500, 2500],
+         target   : [0,    0,    0]},
 
   // event tracking
   ship_movement     :          10,

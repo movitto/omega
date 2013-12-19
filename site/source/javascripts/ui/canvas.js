@@ -138,9 +138,15 @@ Omega.UI.Canvas.prototype = {
 
   // Reset camera to original position
   reset_cam : function(){
-    /// TODO configurable original position
-    this.cam_controls.object.position.set(0,1500,1500);
-    this.cam_controls.target.set(0,0,0);
+    var default_position = this.page.config.cam.position;
+    var default_target   = this.page.config.cam.target;
+
+    this.cam_controls.object.position.set(default_position[0],
+                                          default_position[1],
+                                          default_position[2]);
+    this.cam_controls.target.set(default_target[0],
+                                 default_target[1],
+                                 default_target[2]);
     this.cam_controls.update();
   },
 
@@ -226,7 +232,6 @@ Omega.UI.Canvas.prototype = {
   clear : function(){
     this.root = null;
     this.entities = [];
-//this._listeners = []; /// clear three.js event listeners (XXX hacky, figure out better way)
     var scene_components =
       this.scene ? this.scene.getDescendants() : [];
     var shader_scene_components =
