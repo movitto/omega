@@ -130,7 +130,7 @@ Omega.JumpGate.prototype = {
           mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
-        Omega.JumpGate.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
+        Omega.JumpGate.prototype.loaded_resource('template_mesh', mesh);
         if(event_cb) event_cb();
       }, geometry_prefix);
 
@@ -140,8 +140,8 @@ Omega.JumpGate.prototype = {
     //// particles
       var particle_path = config.url_prefix + config.images_path + "/particle.png";
       var texture       = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
-      var lifespan      = Omega.JumpGate.prototype.gfx_props.particle_life,
-          plane         = Omega.JumpGate.prototype.gfx_props.particle_plane;
+      var lifespan      = this.gfx_props.particle_life,
+          plane         = this.gfx_props.particle_plane;
       var particles_material =
         new THREE.ParticleBasicMaterial({
           color: 0x0000FF, size        : 20,
@@ -171,33 +171,6 @@ Omega.JumpGate.prototype = {
                                      opacity     : 0.1});
   },
 
-  /// invoked cb when resource is loaded, or immediately if resource is already loaded
-  retrieve_resource : function(resource, cb){
-    switch(resource){
-      case 'template_mesh':
-        if(Omega.JumpGate.gfx && Omega.JumpGate.gfx.mesh){
-          cb(Omega.JumpGate.gfx.mesh);
-          return;
-        }
-        break;
-      case 'mesh':
-        if(this.mesh){
-          cb(this.mesh);
-          return;
-        }
-        break;
-    }
-
-    var _this = this;
-    var loaded_cb = function(evnt){
-      if(evnt.target == _this){ /// event interface defined on prototype, need to distinguish instances
-        cb(evnt.data);
-        _this.removeEventListener('loaded_' + resource, loaded_cb);
-      }
-    };
-    this.addEventListener('loaded_' + resource, loaded_cb);
-  },
-
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
@@ -205,20 +178,20 @@ Omega.JumpGate.prototype = {
     this.components = [];
 
     var _this = this;
-    Omega.JumpGate.prototype.retrieve_resource('template_mesh', function(){
-      _this.mesh = Omega.JumpGate.gfx.mesh.clone();
+    Omega.JumpGate.prototype.retrieve_resource('template_mesh', function(template_mesh){
+      _this.mesh = template_mesh.clone();
       if(_this.location)
         _this.mesh.position.add(new THREE.Vector3(_this.location.x,
                                                   _this.location.y,
                                                   _this.location.z));
       _this.mesh.omega_entity = _this;
       _this.components.push(_this.mesh);
-      _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
+      _this.loaded_resource('mesh', _this.mesh);
     });
 
-    var lamp_offset = [Omega.JumpGate.prototype.gfx_props.lamp_x,
-                       Omega.JumpGate.prototype.gfx_props.lamp_y,
-                       Omega.JumpGate.prototype.gfx_props.lamp_z];
+    var lamp_offset = [this.gfx_props.lamp_x,
+                       this.gfx_props.lamp_y,
+                       this.gfx_props.lamp_z];
     this.lamp = Omega.JumpGate.gfx.lamp.clone();
     this.lamp.run_effects = Omega.JumpGate.gfx.lamp.run_effects; /// XXX
     if(this.location)
@@ -249,8 +222,8 @@ Omega.JumpGate.prototype = {
     this.lamp.run_effects();
 
     /// update particles
-    var plane    = Omega.JumpGate.prototype.gfx_props.particle_plane,
-        lifespan = Omega.JumpGate.prototype.gfx_props.particle_life;
+    var plane    = this.gfx_props.particle_plane,
+        lifespan = this.gfx_props.particle_life;
 
     var p = plane*plane;
     var not_moving = [];
@@ -275,4 +248,4 @@ Omega.JumpGate.prototype = {
   }
 };
 
-THREE.EventDispatcher.prototype.apply( Omega.JumpGate.prototype );
+Omega.UI.ResourceLoader.prototype.apply(Omega.JumpGate.prototype);

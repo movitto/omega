@@ -38,6 +38,9 @@
 //= require "omega/mission"
 //= require "omega/stat"
 
+//= require "ui/loader"
+//= require "ui/resource_loader"
+
 //= require "omega/resource"
 //= require "omega/galaxy"
 //= require "omega/solar_system"
@@ -48,5 +51,3 @@
 
 //= require "omega/ship"
 //= require "omega/station"
-
-//= require "ui/loader"

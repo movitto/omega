@@ -370,7 +370,7 @@ Omega.Ship.prototype = {
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
           mesh.base_rotation = rotation;
         }
-        Omega.Ship.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
+        Omega.Ship.prototype.loaded_resource('template_mesh_' + _this.type, mesh);
         if(event_cb) event_cb();
       }, geometry_prefix);
 
@@ -380,12 +380,12 @@ Omega.Ship.prototype = {
       var highlight_material = new THREE.MeshBasicMaterial({ color:0x33ff33,
                                                              shading: THREE.FlatShading } );
       var highlight_mesh     = new THREE.Mesh(highlight_geometry, highlight_material);
-      highlight_mesh.position.set(Omega.Ship.prototype.highlight_props.x,
-                                  Omega.Ship.prototype.highlight_props.y,
-                                  Omega.Ship.prototype.highlight_props.z);
-      highlight_mesh.rotation.set(Omega.Ship.prototype.highlight_props.rot_x,
-                                  Omega.Ship.prototype.highlight_props.rot_y,
-                                  Omega.Ship.prototype.highlight_props.rot_z);
+      highlight_mesh.position.set(this.highlight_props.x,
+                                  this.highlight_props.y,
+                                  this.highlight_props.z);
+      highlight_mesh.rotation.set(this.highlight_props.rot_x,
+                                  this.highlight_props.rot_y,
+                                  this.highlight_props.rot_z);
       Omega.Ship.gfx[this.type].highlight = highlight_mesh;
       Omega.Ship.gfx[this.type].nonuser_highlight_material =
         new THREE.MeshBasicMaterial({ color:0xFF0000,
@@ -416,8 +416,8 @@ Omega.Ship.prototype = {
           var trail = trails[l];
           var geo   = new THREE.Geometry();
 
-          var plane    = Omega.Ship.prototype.trail_props.plane;
-          var lifespan = Omega.Ship.prototype.trail_props.lifespan;
+          var plane    = this.trail_props.plane;
+          var lifespan = this.trail_props.lifespan;
           for(var i = 0; i < plane; ++i){
             for(var j = 0; j < plane; ++j){
               var pv = new THREE.Vector3(i, j, 0);
@@ -463,43 +463,13 @@ Omega.Ship.prototype = {
       Omega.Ship.gfx[this.type].mining_vector = mining_vector;
   },
 
-  /// invoked cb when resource is loaded, or immediately if resource is already loaded
-  retrieve_resource : function(type, resource, cb){
-    if(!cb && typeof(resource) === "function"){ /// XXX
-       cb = resource; resource = type;
-    }
-
-    switch(resource){
-      case 'template_mesh':
-        if(Omega.Ship.gfx[type] && Omega.Ship.gfx[type].mesh){
-          cb(Omega.Ship.gfx[type].mesh);
-          return;
-        }
-        break;
-      case 'mesh':
-        if(this.mesh){
-          cb(this.mesh);
-          return;
-        }
-        break;
-    }
-
-    var _this   = this;
-    this.addEventListener('loaded_' + resource, function(evnt){
-      if(evnt.target == _this) /// event interface defined on prototype, need to distinguish instances
-        cb(evnt.data);
-    });
-  },
-
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
     this.components = [];
 
     var _this = this;
-    Omega.Ship.prototype.retrieve_resource(this.type, 'template_mesh', function(template_mesh){
-/// TODO add fix to other locations:
-      if(Omega.Ship.gfx[_this.type].mesh != template_mesh) return;
+    Omega.Ship.prototype.retrieve_resource('template_mesh_' + this.type, function(template_mesh){
       _this.mesh = template_mesh.clone();
       // XXX so mesh materials can be independently updated:
       _this.mesh.material = Omega.Ship.gfx[_this.type].mesh_material.clone();
@@ -512,8 +482,7 @@ Omega.Ship.prototype = {
 
       _this.mesh.omega_entity = _this;
       _this.components.push(_this.mesh);
-      _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
-      ///_this.removeEventListener('loaded_' + resource, on_load); // TODO
+      _this.loaded_resource('mesh', _this.mesh);
     });
 
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
@@ -587,9 +556,9 @@ Omega.Ship.prototype = {
     this.highlight.position.set(this.location.x,
                                 this.location.y,
                                 this.location.z);
-    this.highlight.position.add(new THREE.Vector3(Omega.Ship.prototype.highlight_props.x,
-                                                  Omega.Ship.prototype.highlight_props.y,
-                                                  Omega.Ship.prototype.highlight_props.z));
+    this.highlight.position.add(new THREE.Vector3(this.highlight_props.x,
+                                                  this.highlight_props.y,
+                                                  this.highlight_props.z));
   },
 
   _update_lamps : function(){
@@ -720,8 +689,8 @@ Omega.Ship.prototype = {
     }
 
     // animate trails
-    var plane    = Omega.Ship.prototype.trail_props.plane,
-        lifespan = Omega.Ship.prototype.trail_props.lifespan;
+    var plane    = this.trail_props.plane,
+        lifespan = this.trail_props.lifespan;
     for(var t = 0; t < this.trails.length; t++){
       var trail = this.trails[t];
       var p = plane*plane;
@@ -840,4 +809,4 @@ Omega.Ship.under = function(system_id, node, cb){
     });
 };
 
-THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );
+Omega.UI.ResourceLoader.prototype.apply( Omega.Ship.prototype );

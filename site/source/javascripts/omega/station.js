@@ -129,7 +129,7 @@ Omega.Station.prototype = {
           mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
-        Omega.Station.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
+        Omega.Station.prototype.loaded_resource('template_mesh_' + _this.type, mesh);
         if(event_cb) event_cb();
       }, geometry_prefix);
 
@@ -139,12 +139,12 @@ Omega.Station.prototype = {
       var highlight_material = new THREE.MeshBasicMaterial({ color:0x33ff33,
                                                              shading: THREE.FlatShading } );
       var highlight_mesh     = new THREE.Mesh(highlight_geometry, highlight_material);
-      highlight_mesh.position.set(Omega.Station.prototype.highlight_props.x,
-                                  Omega.Station.prototype.highlight_props.y,
-                                  Omega.Station.prototype.highlight_props.z);
-      highlight_mesh.rotation.set(Omega.Station.prototype.highlight_props.rot_x,
-                                  Omega.Station.prototype.highlight_props.rot_y,
-                                  Omega.Station.prototype.highlight_props.rot_z);
+      highlight_mesh.position.set(this.highlight_props.x,
+                                  this.highlight_props.y,
+                                  this.highlight_props.z);
+      highlight_mesh.rotation.set(this.highlight_props.rot_x,
+                                  this.highlight_props.rot_y,
+                                  this.highlight_props.rot_z);
       Omega.Station.gfx[this.type].highlight = highlight_mesh;
 
     //// lamps
@@ -160,34 +160,6 @@ Omega.Station.prototype = {
       }
   },
 
-  /// invoked cb when resource is loaded, or immediately if resource is already loaded
-  retrieve_resource : function(type, resource, cb){
-    if(!cb && typeof(resource) === "function"){ /// XXX
-       cb = resource; resource = type;
-    }
-
-    switch(resource){
-      case 'template_mesh':
-        if(Omega.Station.gfx[type] && Omega.Station.gfx[type].mesh){
-          cb(Omega.Station.gfx[type].mesh);
-          return;
-        }
-        break;
-      case 'mesh':
-        if(this.mesh){
-          cb(this.mesh);
-          return;
-        }
-        break;
-    }
-
-    var _this = this;
-    this.addEventListener('loaded_' + resource, function(evnt){
-      if(evnt.target == _this) /// event interface defined on prototype, need to distinguish instances
-        cb(evnt.data);
-    });
-  },
-
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
@@ -195,23 +167,22 @@ Omega.Station.prototype = {
     this.components = [];
 
     var _this = this;
-    Omega.Station.prototype.retrieve_resource(this.type, 'template_mesh', function(){
-      _this.mesh = Omega.Station.gfx[_this.type].mesh.clone();
+    Omega.Station.prototype.retrieve_resource('template_mesh_' + this.type, function(template_mesh){
+      _this.mesh = template_mesh.clone();
       if(_this.location)
         _this.mesh.position.set(_this.location.x,
                                 _this.location.y,
                                 _this.location.z);
       _this.mesh.omega_entity = _this;
       _this.components.push(_this.mesh);
-      _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
+      _this.loaded_resource('mesh', _this.mesh);
     });
 
-    var highlight_props = Omega.Station.prototype.highlight_props;
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
     this.highlight.run_effects = Omega.Station.gfx[this.type].highlight.run_effects; /// XXX
-    this.highlight.position.set(highlight_props.x,
-                                highlight_props.y,
-                                highlight_props.z);
+    this.highlight.position.set(this.highlight_props.x,
+                                this.highlight_props.y,
+                                this.highlight_props.z);
     if(this.location)
       this.highlight.position.add(new THREE.Vector3(this.location.x,
                                                     this.location.y,
@@ -267,4 +238,4 @@ Omega.Station.under = function(system_id, node, cb){
     });
 };
 
-THREE.EventDispatcher.prototype.apply( Omega.Station.prototype );
+Omega.UI.ResourceLoader.prototype.apply( Omega.Station.prototype );

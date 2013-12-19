@@ -75,32 +75,9 @@ Omega.Asteroid.prototype = {
           mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
           mesh.matrix.makeRotationFromEuler(mesh.rotation);
         }
-        Omega.Asteroid.prototype.dispatchEvent({type: 'loaded_template_mesh', data: mesh});
+        Omega.Asteroid.prototype.loaded_resource('template_mesh', mesh);
         if(event_cb) event_cb();
       }, geometry_prefix);
-  },
-
-  retrieve_resource : function(resource, cb){
-    switch(resource){
-      case 'template_mesh':
-        if(Omega.Asteroid.gfx && Omega.Asteroid.gfx.mesh){
-          cb(Omega.Asteroid.gfx.mesh);
-          return;
-        }
-        break;
-      case 'mesh':
-        if(this.mesh){
-          cb(this.mesh);
-          return;
-        }
-        break;
-    }
-
-    var _this = this;
-    this.addEventListener('loaded_' + resource, function(evnt){
-      if(evnt.target == _this) /// event interface defined on prototype, need to distinguish instances
-        cb(evnt.data);
-    });
   },
 
   init_gfx : function(config, event_cb){
@@ -109,17 +86,17 @@ Omega.Asteroid.prototype = {
     this.load_gfx(config, event_cb);
 
     var _this = this;
-    Omega.Asteroid.prototype.retrieve_resource('template_mesh', function(){
-      _this.mesh = Omega.Asteroid.gfx.mesh.clone();
+    Omega.Asteroid.prototype.retrieve_resource('template_mesh', function(template_mesh){
+      _this.mesh = template_mesh.clone();
       if(_this.location)
         _this.mesh.position.add(new THREE.Vector3(_this.location.x,
                                                   _this.location.y,
                                                   _this.location.z));
       _this.mesh.omega_entity = _this;
       _this.components = [_this.mesh];
-      _this.dispatchEvent({type: 'loaded_mesh', data: _this.mesh});
+      _this.loaded_resource('mesh', _this.mesh);
     });
   }
 };
 
-THREE.EventDispatcher.prototype.apply( Omega.Asteroid.prototype );
+Omega.UI.ResourceLoader.prototype.apply(Omega.Asteroid.prototype);

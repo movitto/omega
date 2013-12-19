@@ -13,14 +13,14 @@ Omega.UI.Loader = {
 
     if(this.status_indicator) this.status_indicator.push_state('loading_resource');
     var config = Omega.Config;
-    this.preload_meshes(config);
+    this.preload_resources(config);
     this.preload_skybox(config);
     /// TODO load cosmos entities/heirarchies ?
     if(this.status_indicator) this.status_indicator.pop_state();
   },
 
   /// preload entity meshes and gfx to be cloned later
-  preload_meshes : function(config){
+  preload_resources : function(config){
     (new Omega.SolarSystem()).load_gfx(config);
     (new Omega.Galaxy()).load_gfx(config);
     (new Omega.Star()).load_gfx(config);
