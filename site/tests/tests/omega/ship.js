@@ -184,27 +184,21 @@ describe("Omega.Ship", function(){
     });
   });
 
-  describe("#selected", async(function(){
+  describe("#selected", function(){
     it("sets mesh material emissive", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      ship.retrieve_resource('mesh', function(){
-        ship.selected(Omega.Test.Page());
-        assert(ship.mesh.material.emissive.getHex()).equals(0xff0000);
-        start();
-      });
-    })
-  }));
+      ship.selected(Omega.Test.Page());
+      assert(ship.mesh.material.emissive.getHex()).equals(0xff0000);
+    });
+  });
 
-  describe("#unselected", async(function(){
+  describe("#unselected", function(){
     it("resets mesh material emissive", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      ship.retrieve_resource('mesh', function(){
-        ship.unselected(Omega.Test.Page());
-        assert(ship.mesh.material.emissive.getHex()).equals(0);
-        start();
-      });
+      ship.unselected(Omega.Test.Page());
+      assert(ship.mesh.material.emissive.getHex()).equals(0);
     })
-  }));
+  });
 
   describe("#_select_destination", function(){
     it("shows select destination dialog", function(){
@@ -888,16 +882,13 @@ describe("Omega.Ship", function(){
       });
     });
 
-    it("creates mesh for Ship", async(function(){
+    it("creates mesh for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      ship.retrieve_resource('mesh', function(){
-        assert(Omega.Ship.gfx[ship.type].mesh).isOfType(THREE.Mesh);
-        assert(Omega.Ship.gfx[ship.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
-        assert(Omega.Ship.gfx[ship.type].mesh.geometry).isOfType(THREE.Geometry);
-        start();
-        /// TODO assert material texture & geometry src path values
-      });
-    }));
+      assert(Omega.Ship.gfx[ship.type].mesh).isOfType(THREE.Mesh);
+      assert(Omega.Ship.gfx[ship.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Ship.gfx[ship.type].mesh.geometry).isOfType(THREE.Geometry);
+      /// TODO assert material texture & geometry src path values
+    });
 
     it("creates highlight effects for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
@@ -995,23 +986,17 @@ describe("Omega.Ship", function(){
       assert(ship.mesh).equals(cloned);
     });
 
-    it("sets mesh base position/rotation", async(function(){
+    it("sets mesh base position/rotation", function(){
       ship.init_gfx();
-      ship.retrieve_resource('mesh', function(){
-        var template_mesh = Omega.Ship.gfx[ship.type].mesh;
-        assert(ship.mesh.base_position).equals(template_mesh.base_position);
-        assert(ship.mesh.base_rotation).equals(template_mesh.base_rotation);
-        start();
-      });
-    }));
+      var template_mesh = Omega.Ship.gfx[ship.type].mesh;
+      assert(ship.mesh.base_position).equals(template_mesh.base_position);
+      assert(ship.mesh.base_rotation).equals(template_mesh.base_rotation);
+    });
 
-    it("sets mesh omega_entity", async(function(){
+    it("sets mesh omega_entity", function(){
       ship.init_gfx();
-      ship.retrieve_resource('mesh', function(){
-        assert(ship.mesh.omega_entity).equals(ship);
-        start();
-      });
-    }));
+      assert(ship.mesh.omega_entity).equals(ship);
+    });
 
     it("updates_gfx in mesh cb", function(){
       var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
@@ -1023,13 +1008,10 @@ describe("Omega.Ship", function(){
       sinon.assert.called(update_gfx);
     });
 
-    it("adds mesh to components", async(function(){
+    it("adds mesh to components", function(){
       ship.init_gfx();
-      ship.retrieve_resource('mesh', function(){
-        assert(ship.components).includes(ship.mesh);
-        start();
-      });
-    }));
+      assert(ship.components).includes(ship.mesh);
+    });
 
     it("clones Ship highlight effects", function(){
       var mesh = new THREE.Mesh();
@@ -1169,31 +1151,25 @@ describe("Omega.Ship", function(){
       if(Omega.set_rotation.restore) Omega.set_rotation.restore();
     });
 
-    it("sets mesh position", async(function(){
+    it("sets mesh position", function(){
       var offset = Omega.Config.resources.ships[ship.type].offset;
       if(!offset) offset = [0,0,0];
 
-      ship.retrieve_resource('mesh', function(){
-        ship._update_mesh();
-        assert(ship.mesh.position.x).equals(ship.location.x + offset[0]);
-        assert(ship.mesh.position.y).equals(ship.location.y + offset[1]);
-        assert(ship.mesh.position.z).equals(ship.location.z + offset[2]);
-        start();
-      });
-    }));
+      ship._update_mesh();
+      assert(ship.mesh.position.x).equals(ship.location.x + offset[0]);
+      assert(ship.mesh.position.y).equals(ship.location.y + offset[1]);
+      assert(ship.mesh.position.z).equals(ship.location.z + offset[2]);
+    });
 
-    it("rotates mesh", async(function(){
+    it("rotates mesh", function(){
       var rotation = Omega.Config.resources.ships[ship.type].rotation;
 
       var rotate = sinon.spy(Omega, 'set_rotation');
-      ship.retrieve_resource('mesh', function(){
-        ship._update_mesh();
-        sinon.assert.calledWith(rotate, ship.mesh);
-        assert(rotate.getCall(0).args[1]).isSameAs(rotation);
-        assert(rotate.getCall(1).args[1].elements).isSameAs(ship.location.rotation_matrix().elements);
-        start();
-      });
-    }));
+      ship._update_mesh();
+      sinon.assert.calledWith(rotate, ship.mesh);
+      assert(rotate.getCall(0).args[1]).isSameAs(rotation);
+      assert(rotate.getCall(1).args[1].elements).isSameAs(ship.location.rotation_matrix().elements);
+    });
   });
 
   describe("#_update_highlight_effect", function(){

@@ -271,3 +271,29 @@ sinon.match.ofType = function(expected){
            return value.__proto__ == expected.prototype;
          }, 'type');
 };
+
+//////////////////////////////// config/init
+
+QUnit.config.autostart = false;
+
+Omega.Test.init = function(){
+  /// preload all canvas entity resources before starting test suite
+  var loaded = 0, entities_with_resources = [];
+  var start_on_load = function(){
+    loaded += 1;
+    if(loaded == entities_with_resources.length)
+      QUnit.start();
+  };
+
+  var entities = Omega.Test.Canvas.Entities();
+  for(var e in entities){
+    if(entities[e].retrieve_resource)
+      entities_with_resources.push(entities[e]);
+  }
+
+  for(var e = 0; e < entities_with_resources.length; e++)
+    entities_with_resources[e].retrieve_resource('mesh', start_on_load);
+}
+
+/// should be triggered after QUnit.load
+$(window).on('load', Omega.Test.init);

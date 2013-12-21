@@ -170,16 +170,13 @@ describe("Omega.Station", function(){
       });
     });
 
-    it("creates mesh for Station", async(function(){
+    it("creates mesh for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
-      station.retrieve_resource('mesh', function(){
-        assert(Omega.Station.gfx[station.type].mesh).isOfType(THREE.Mesh);
-        assert(Omega.Station.gfx[station.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
-        assert(Omega.Station.gfx[station.type].mesh.geometry).isOfType(THREE.Geometry);
-        start();
+      assert(Omega.Station.gfx[station.type].mesh).isOfType(THREE.Mesh);
+      assert(Omega.Station.gfx[station.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Station.gfx[station.type].mesh.geometry).isOfType(THREE.Geometry);
         /// TODO assert material texture & geometry src path values
-      });
-    }));
+    });
 
     it("creates highlight effects for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
@@ -246,31 +243,22 @@ describe("Omega.Station", function(){
       assert(station.mesh).equals(cloned);
     });
 
-    it("sets mesh position", async(function(){
+    it("sets mesh position", function(){
       station.init_gfx();
-      station.retrieve_resource('mesh', function(){
-        assert(station.mesh.position.x).equals(100);
-        assert(station.mesh.position.y).equals(-100);
-        assert(station.mesh.position.z).equals(200);
-        start();
-      });
-    }));
+      assert(station.mesh.position.x).equals(100);
+      assert(station.mesh.position.y).equals(-100);
+      assert(station.mesh.position.z).equals(200);
+    });
 
-    it("sets mesh omega_entity", async(function(){
+    it("sets mesh omega_entity", function(){
       station.init_gfx();
-      station.retrieve_resource('mesh', function(){
-        assert(station.mesh.omega_entity).equals(station);
-        start();
-      });
-    }));
+      assert(station.mesh.omega_entity).equals(station);
+    });
 
-    it("adds mesh to components", async(function(){
+    it("adds mesh to components", function(){
       station.init_gfx();
-      station.retrieve_resource('mesh', function(){
-        assert(station.components).includes(station.mesh);
-        start();
-      });
-    }));
+      assert(station.components).includes(station.mesh);
+    });
 
     it("clones Station highlight effects", function(){
       var mesh = new THREE.Mesh();

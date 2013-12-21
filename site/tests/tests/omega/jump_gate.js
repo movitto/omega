@@ -219,16 +219,13 @@ describe("Omega.JumpGate", function(){
       });
     });
 
-    it("creates mesh for JumpGate", async(function(){
+    it("creates mesh for JumpGate", function(){
       var jg = Omega.Test.Canvas.Entities().jump_gate;
-      jg.retrieve_resource('mesh', function(){
-        assert(Omega.JumpGate.gfx.mesh).isOfType(THREE.Mesh);
-        assert(Omega.JumpGate.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
-        assert(Omega.JumpGate.gfx.mesh.geometry).isOfType(THREE.Geometry);
-        /// TODO assert material texture & geometry src path values ?
-        start();
-      });
-    }));
+      assert(Omega.JumpGate.gfx.mesh).isOfType(THREE.Mesh);
+      assert(Omega.JumpGate.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.JumpGate.gfx.mesh.geometry).isOfType(THREE.Geometry);
+      /// TODO assert material texture & geometry src path values ?
+    });
 
     it("creates lamp for JumpGate", function(){
       Omega.Test.Canvas.Entities();
@@ -271,7 +268,7 @@ describe("Omega.JumpGate", function(){
       sinon.assert.called(load_gfx);
     });
 
-    it("clones JumpGate mesh", async(function(){
+    it("clones JumpGate mesh", function(){
       var mesh = new THREE.Mesh();
       /// need to wait till template mesh is loaded b4 wiring up stub
       Omega.JumpGate.prototype.
@@ -281,41 +278,29 @@ describe("Omega.JumpGate", function(){
 
       var jg = new Omega.JumpGate();
       jg.init_gfx();
-      jg.retrieve_resource('mesh', function(){
-        assert(jg.mesh).equals(mesh);
-        start();
-      });
-    }));
+      assert(jg.mesh).equals(mesh);
+    });
 
-    it("sets mesh position", async(function(){
+    it("sets mesh position", function(){
       var offset = Omega.Config.resources.jump_gate.offset;
       var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      jg.retrieve_resource('mesh', function(){
-        assert(jg.mesh.position.x).equals(100  + offset[0]);
-        assert(jg.mesh.position.y).equals(-100 + offset[1]);
-        assert(jg.mesh.position.z).equals(200  + offset[2]);
-        start();
-      });
-    }));
+      assert(jg.mesh.position.x).equals(100  + offset[0]);
+      assert(jg.mesh.position.y).equals(-100 + offset[1]);
+      assert(jg.mesh.position.z).equals(200  + offset[2]);
+    });
 
-    it("sets mesh.omega_entity", async(function(){
+    it("sets mesh.omega_entity", function(){
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      jg.retrieve_resource('mesh', function(){
-        assert(jg.mesh.omega_entity).equals(jg);
-        start();
-      });
-    }));
+      assert(jg.mesh.omega_entity).equals(jg);
+    });
 
-    it("adds mesh to components", async(function(){
+    it("adds mesh to components", function(){
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      jg.retrieve_resource('mesh', function(){
-        assert(jg.components).includes(jg.mesh);
-        start();
-      });
-    }));
+      assert(jg.components).includes(jg.mesh);
+    });
 
     it("clones JumpGate lamp", function(){
       var mesh = new THREE.Mesh();

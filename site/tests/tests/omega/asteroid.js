@@ -108,16 +108,13 @@ describe("Omega.Asteroid", function(){
       });
     });
 
-    it("creates mesh for Asteroid", async(function(){
+    it("creates mesh for Asteroid", function(){
       var asteroid = Omega.Test.Canvas.Entities().asteroid;
-      asteroid.retrieve_resource('mesh', function(){
-        assert(Omega.Asteroid.gfx.mesh).isOfType(THREE.Mesh);
-        assert(Omega.Asteroid.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
-        assert(Omega.Asteroid.gfx.mesh.geometry).isOfType(THREE.Geometry);
-        /// TODO assert material texture & geometry src path values ?
-        start();
-      });
-    }));
+      assert(Omega.Asteroid.gfx.mesh).isOfType(THREE.Mesh);
+      assert(Omega.Asteroid.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Asteroid.gfx.mesh.geometry).isOfType(THREE.Geometry);
+      /// TODO assert material texture & geometry src path values ?
+    });
   });
 
   describe("#init_gfx", function(){
@@ -139,7 +136,7 @@ describe("Omega.Asteroid", function(){
       sinon.assert.called(load_gfx);
     });
 
-    it("clones Asteroid mesh", async(function(){
+    it("clones Asteroid mesh", function(){
       var mesh = new THREE.Mesh();
       /// need to wait till template mesh is loaded b4 wiring up stub
       Omega.Asteroid.prototype.
@@ -149,40 +146,28 @@ describe("Omega.Asteroid", function(){
 
       var ast = new Omega.Asteroid();
       ast.init_gfx();
-      ast.retrieve_resource('mesh', function(){
-        assert(ast.mesh).equals(mesh);
-        start();
-      });
-    }));
+      assert(ast.mesh).equals(mesh);
+    });
 
-    it("sets mesh position", async(function(){
+    it("sets mesh position", function(){
       var ast = new Omega.Asteroid({location : new Omega.Location({x: 100, y: -100, z: 200})});
       ast.init_gfx();
-      ast.retrieve_resource('mesh', function(){
-        assert(ast.mesh.position.x).equals(100);
-        assert(ast.mesh.position.y).equals(-100);
-        assert(ast.mesh.position.z).equals(200);
-        start();
-      });
-    }));
+      assert(ast.mesh.position.x).equals(100);
+      assert(ast.mesh.position.y).equals(-100);
+      assert(ast.mesh.position.z).equals(200);
+    });
 
-    it("sets mesh.omega_entity", async(function(){
+    it("sets mesh.omega_entity", function(){
       var ast = new Omega.Asteroid({});
       ast.init_gfx();
-      ast.retrieve_resource('mesh', function(){
-        assert(ast.mesh.omega_entity).equals(ast);
-        start();
-      });
-    }));
+      assert(ast.mesh.omega_entity).equals(ast);
+    });
 
-    it("adds mesh to asteroid scene components", async(function(){
+    it("adds mesh to asteroid scene components", function(){
       var ast = new Omega.Asteroid();
       ast.init_gfx();
-      ast.retrieve_resource('mesh', function(){
-        assert(ast.components).isSameAs([ast.mesh]);
-        start();
-      });
-    }));
+      assert(ast.components).isSameAs([ast.mesh]);
+    });
   });
 
 });}); // Omega.Asteroid

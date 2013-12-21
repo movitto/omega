@@ -186,6 +186,15 @@ describe("Omega.SolarSystem", function(){
       solar_system.init_gfx();
       assert(solar_system.components).isSameAs([solar_system.mesh, solar_system.plane, solar_system.text]);
     });
+
+    it("invokes add_interconnect with queued interconnections", function(){
+      var solar_system = new Omega.SolarSystem({location : new Omega.Location()});
+      var endpoint = new Omega.SolarSystem({location : new Omega.Location()});
+      solar_system._queued_interconns = [endpoint]
+      var add_interconn = sinon.spy(solar_system, 'add_interconn');
+      solar_system.init_gfx();
+      sinon.assert.calledWith(add_interconn, endpoint);
+    })
   });
 
   describe("#run_effects", function(){
@@ -197,13 +206,23 @@ describe("Omega.SolarSystem", function(){
     
     before(function(){
       Omega.Test.Canvas.Entities();
-      system   = new Omega.SolarSystem({location : new Omega.Location({x:100,y:200,z:300})});
+      system   = new Omega.SolarSystem({location : new Omega.Location({x:100,y:200,z:300}),
+                                        components : [new THREE.Mesh()]});
       endpoint = new Omega.SolarSystem({location : new Omega.Location({x:-300,y:-200,z:-100})});
+    });
+
+    describe("system gfx components not initialized", function(){
+      it("adds line to queued interconns", function(){
+        system.components = [];
+        system.add_interconn(endpoint);
+        assert(system._queued_interconns).isSameAs([endpoint]);
+        assert(system.components.length).equals(0);
+      });
     });
 
     it("adds line to solar system scene components", function(){
       system.add_interconn(endpoint);
-      var line = system.components[0];
+      var line = system.components[1];
       assert(line).isOfType(THREE.Line);
       assert(line.geometry.vertices[0].toArray()).isSameAs([100,200,300]);
       assert(line.geometry.vertices[1].toArray()).isSameAs([-300,-200,-100]);
@@ -212,7 +231,7 @@ describe("Omega.SolarSystem", function(){
 
     it("adds particle system to solar system scene components and interconnects", function(){
       system.add_interconn(endpoint);
-      var particles = system.components[1];
+      var particles = system.components[2];
       assert(particles).isOfType(THREE.ParticleSystem);
       assert(particles.material).isOfType(THREE.ParticleBasicMaterial);
       assert(particles.geometry.vertices.length).equals(1);
@@ -222,7 +241,7 @@ describe("Omega.SolarSystem", function(){
 
     it("sets dx/dy/dz/ticks on particle system", function(){
       system.add_interconn(endpoint);
-      var particles = system.components[1];
+      var particles = system.components[2];
       var d = system.location.distance_from(endpoint.location);
       var dx = (endpoint.location.x - system.location.x) / d;
       var dy = (endpoint.location.y - system.location.y) / d;
