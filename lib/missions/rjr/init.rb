@@ -44,6 +44,7 @@ module Missions::RJR
   PRIVILEGES =
     [['view',   'users'],
      ['modify', 'user_attributes'],
+     ['view',   'users_events'],
      ['view',   'cosmos_entities'],
      ['modify', 'cosmos_entities'],
      ['create', 'cosmos_entities'],
@@ -101,7 +102,14 @@ module Missions::RJR
     nil
   }
 
-  CALLBACK_METHODS = { :manufactured_event => manufactured_event }
+  users_event = proc { |*args|
+    raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
+    # TODO allow admin to register events for users registration
+    nil
+  }
+
+  CALLBACK_METHODS = { :manufactured_event => manufactured_event,
+                       :users_event        => users_event       }
 
 end # module Missions::RJR
 
@@ -136,8 +144,13 @@ def dispatch_missions_rjr_init(dispatcher)
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
 
-  # add callback for manufactured events, overrid environment it runs in
+  # add callback for manufactured events, override environment it runs in
   m = Missions::RJR::CALLBACK_METHODS
   rjr.node.dispatcher.handle('manufactured::event_occurred', &m[:manufactured_event])
   rjr.node.dispatcher.env 'manufactured::event_occurred', Missions::RJR
+
+  # add callback for users events, subscribe to registered_user event
+  rjr.node.dispatcher.handle('users::event_occurred', &m[:users_event])
+  rjr.node.dispatcher.env 'users::event_occurred', Missions::RJR
+  rjr.node.invoke('users::subscribe_to', 'registered_user')
 end

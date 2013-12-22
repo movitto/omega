@@ -97,6 +97,25 @@ module Missions::RJR
     end
   end
 
+  describe "#users event", :rjr => true do
+    before(:each) do
+      dispatch_to @s, Missions::RJR, :CALLBACK_METHODS
+    end
+
+    context "not local node" do
+      it "raises PermissionError" do
+        @n.node_type = 'local-test'
+        lambda {
+          @s.users_event 'anything'
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    it "returns nil" do
+      @s.users_event.should be_nil
+    end
+  end
+
   describe "#dispatch_missions_rjr_init", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
@@ -156,7 +175,7 @@ module Missions::RJR
     it "logs in the user using the node" do
       lambda{ # XXX @d.add_module above will have already called dispatch_init
         dispatch_missions_rjr_init(@d)
-      }.should change{Users::RJR.registry.entities.size}.by(3)
+      }.should change{Users::RJR.registry.entities.size}.by(4)
       Users::RJR.registry.
                  entity(&matching{ |s| s.is_a?(Users::Session) &&
                                        s.user.id == Missions::RJR.user.id }).
@@ -177,6 +196,23 @@ module Missions::RJR
     it "executes manufactured::event_occurred callbacks in Missions::RJR env" do
       dispatch_missions_rjr_init(@d)
       @d.environments['manufactured::event_occurred'].should  == Missions::RJR
+    end
+
+    it "adds users::event_occurred callback to dispatcher" do
+      @d.handles?('users::event_occurred').should be_false
+      dispatch_missions_rjr_init(@d)
+      @d.handles?('users::event_occurred').should be_true
+    end
+
+    it "executes users::event_occurred callback in Missions::RJR env" do
+      dispatch_missions_rjr_init(@d)
+      @d.environments['users::event_occurred'].should  == Missions::RJR
+    end
+
+    it "subscribes to registered_user event using the node" do
+      @rjr.node.should_receive(:invoke).with('users::subscribe_to', 'registered_user')
+      @rjr.node.should_receive(:invoke).at_least(:once).and_call_original
+      dispatch_missions_rjr_init(@d)
     end
   end
 
