@@ -118,6 +118,15 @@ module Users::RJR
                }).should be_nil
     end
 
+    it "adds RegisteredUser Event to queue" do
+      lambda {
+        @s.confirm_register 'foobar'
+      }.should change{Users::RJR.registry.entities.size}.by(1)
+      event = Users::RJR.registry.entities.last
+      event.should be_an_instance_of(Users::Events::RegisteredUser)
+      event.user.id.should == @u.id
+    end
+
     it "returns nil" do
       @s.confirm_register('foobar').should be_nil
     end

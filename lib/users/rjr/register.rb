@@ -6,6 +6,7 @@
 require 'curb' # XXX replace
 
 require 'users/rjr/init'
+require 'users/events/registered_user'
 
 module Users::RJR
 
@@ -70,6 +71,9 @@ confirm_register = proc { |registration_code|
   # safely nullify registration code
   user.registration_code = nil
   registry.update(user, &with_id(user.id))
+
+  # dispatch a registered user event
+  registry << Users::Events::RegisteredUser.new(user)
 
   # return nil
   nil

@@ -92,7 +92,7 @@ class PeriodicEvent < Event
 
   private
 
-  # Handle event, invoke tempate and schedule another
+  # Handle event, invoke template and schedule another
   def handle_event
     # copy template event
     nevent = RJR.parse_json @template_event.to_json
@@ -152,9 +152,21 @@ class EventHandler
   # Handlers to invoke when event occurs
   attr_accessor :handlers
 
+  # Set true to keep event handler in registry after execution
+  attr_accessor :persist
+
+  # RJR Node Endpoint which this handler is registered for
+  attr_accessor :endpoint_id
+
   def initialize(args = {}, &block)
     attr_from_args args, :event_id => nil,
-                         :handlers => [block].compact
+                         :handlers => [block].compact,
+                         :persist  => false,
+                         :endpoint_id => nil
+  end
+
+  def exec(&block)
+    @handlers << block
   end
 
   # Convert handler to json representation and return it
@@ -162,7 +174,9 @@ class EventHandler
     {
       'json_class' => self.class.name,
       'data'       => {:event_id => event_id,
-                       :handlers => handlers}
+                       :handlers => handlers,
+                       :persist  => persist,
+                       :endpoint_id => endpoint_id}
     }.to_json(*a)
   end
 

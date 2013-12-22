@@ -633,9 +633,11 @@ describe Registry do
       @e = Event.new :id => 'eid'
       @eh1 = EventHandler.new :event_id => 'eid'
       @eh2 = EventHandler.new :event_id => 'eid'
+      @eh3 = EventHandler.new :event_id => 'eid', :persist => true
       @registry << @e
       @registry << @eh1
       @registry << @eh2
+      @registry << @eh3
     end
 
     it "removes event and handlers from registry" do
@@ -644,8 +646,16 @@ describe Registry do
       }.should change{@registry.entities.size}.by(-3)
 
       @registry.entities {|e|
-        e.id == 'eid' || e.event_id == 'eid'
+        (e.is_a?(Event) && e.id == 'eid') ||
+        (e.is_a?(EventHandler) && e.event_id == 'eid' && !e.persist)
       }.should be_empty
+    end
+
+    it "skips persistent handlers" do
+      @registry.send :cleanup_event, 'eid'
+      @registry.entities {|e|
+        e.is_a?(EventHandler) && e.event_id == 'eid' && e.persist
+      }.size.should == 1
     end
   end
 

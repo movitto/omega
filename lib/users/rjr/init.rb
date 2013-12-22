@@ -113,6 +113,7 @@ def dispatch_users_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('users/rjr/register')
   rjr.node.dispatcher.add_module('users/rjr/session')
   rjr.node.dispatcher.add_module('users/rjr/attribute')
+  rjr.node.dispatcher.add_module('users/rjr/events')
   rjr.node.dispatcher.add_module('users/rjr/state')
   rjr.node.message_headers['source_node'] = 'users'
 

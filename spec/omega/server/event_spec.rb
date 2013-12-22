@@ -212,24 +212,42 @@ describe EventHandler do
       eh = EventHandler.new
       eh.event_id.should be_nil
       eh.handlers.should == []
+      eh.persist.should be_false
+      eh.endpoint_id.should be_nil
     end
 
     it "sets attributes" do
       h = proc {}
-      eh = EventHandler.new :event_id => :foo, &h
+      eh = EventHandler.new :event_id    => :foo,
+                            :persist     => true,
+                            :endpoint_id => 'eh', &h
       eh.event_id.should == :foo
+      eh.handlers.should == [h]
+      eh.persist.should be_true
+      eh.endpoint_id.should == 'eh'
+    end
+  end
+
+  describe "#exec" do
+    it "adds block to handlers" do
+      h  = proc {}
+      eh = EventHandler.new
+      eh.exec &h
       eh.handlers.should == [h]
     end
   end
 
   describe "#to_json" do
     it "returns handler in json format" do
-      handler = EventHandler.new :event_id => :foo, :handlers => [:bar]
+      handler = EventHandler.new :event_id => :foo, :handlers => [:bar],
+                                 :persist => true, :endpoint_id => 'eid'
 
       j = handler.to_json
       j.should include('"json_class":"Omega::Server::EventHandler"')
       j.should include('"event_id":"foo"')
       j.should include('"handlers":["bar"]')
+      j.should include('"persist":true')
+      j.should include('"endpoint_id":"eid"')
     end
   end
 

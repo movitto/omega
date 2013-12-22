@@ -79,6 +79,7 @@ module Users::RJR
       @d.should_receive(:add_module).with('users/rjr/register')
       @d.should_receive(:add_module).with('users/rjr/session')
       @d.should_receive(:add_module).with('users/rjr/attribute')
+      @d.should_receive(:add_module).with('users/rjr/events')
       @d.should_receive(:add_module).with('users/rjr/state')
       dispatch_users_rjr_init(@d)
     end

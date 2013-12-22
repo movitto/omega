@@ -354,13 +354,14 @@ module Registry
 
   public
 
-  # Cleanup an event and handlers specified by id
+  # Cleanup an event and handlers specified by id.
+  # Skip event handlers marked as persistant
   def cleanup_event(event_id)
     self.safe_exec { |entities|
       to_remove =
         entities.select { |e|
           (e.is_a?(Event) && e.id == event_id) ||
-          (e.is_a?(EventHandler) && e.event_id == event_id) }
+          (e.is_a?(EventHandler) && e.event_id == event_id && !e.persist) }
 
       # TODO optional event 'graveyard'
       @entities -= to_remove

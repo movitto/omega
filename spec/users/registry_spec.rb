@@ -82,6 +82,11 @@ describe Registry do
     end
   end
 
+  it "runs event loop" do
+    r = Registry.new
+    r.instance_variable_get(:@event_loops).should include{ run_events }
+  end
+
   describe "#valid_login?" do
     before(:each) do
       @r = Registry.new

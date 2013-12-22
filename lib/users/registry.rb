@@ -6,6 +6,7 @@
 require 'rjr/common'
 require 'users/session'
 require 'omega/server/registry'
+require 'omega/server/event'
 
 module Users
 
@@ -81,12 +82,13 @@ class Registry
 
     # validate user/role id or session's user id is unique on creation
     self.validation_callback { |r,e|
-      [User, Role, Session].include?(e.class) &&
+      e.kind_of?(Omega::Server::Event) ||
+      ([User, Role, Session].include?(e.class) &&
 
-      (e.is_a?(Session) ?
-         r.select  { |re| re.is_a?(Session)      }.
-           find    { |s|  s.user.id == e.user.id }.nil? :
-         r.find    { |re| re.id == e.id          }.nil?)
+       (e.is_a?(Session) ?
+          r.select  { |re| re.is_a?(Session)      }.
+            find    { |s|  s.user.id == e.user.id }.nil? :
+          r.find    { |re| re.id == e.id          }.nil?))
     }
     
     # set user timestamps on creation
@@ -103,7 +105,12 @@ class Registry
 
     # sanity checks on session
     on(:added)   { |e|    check_session(e) if e.is_a?(Users::Session) }
+
+    # run local events
+    run { run_events }
   end
+
+  ####################### public users registry api / utility methods
 
   # Return boolean indicating if login credentials for the specified user are valid
   #
@@ -238,7 +245,5 @@ class Registry
 
     session.user
   end
-
-end
-
-end
+end # class Registry
+end # module Users
