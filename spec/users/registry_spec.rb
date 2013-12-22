@@ -82,6 +82,24 @@ describe Registry do
     end
   end
 
+  context "adding event handler" do
+    it "enforces unique event/endpoint" do
+      r = Registry.new
+      h1 = Omega::Server::EventHandler.new :event => 'registered_user',
+                                           :endpoint_id => 'node1'
+      h2 = Omega::Server::EventHandler.new :event => 'registered_user',
+                                           :endpoint_id => 'node1'
+      h3 = Omega::Server::EventHandler.new :event => 'registered_user',
+                                           :endpoint_id => 'node2'
+      r << h1
+      r << h2
+      r << h3
+      r.entities.length.should == 2
+      r.entities[0].endpoint_id.should == 'node1'
+      r.entities[1].endpoint_id.should == 'node2'
+    end
+  end
+
   it "runs event loop" do
     r = Registry.new
     r.instance_variable_get(:@event_loops).should include{ run_events }

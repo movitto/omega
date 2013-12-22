@@ -74,6 +74,21 @@ class Registry
     }
   end
 
+  def sanitize_event_handlers(event_handler)
+    @lock.synchronize {
+      # remove any duplicate event handlers,
+      # keeping the specified one
+      handlers = @entities.select { |h|
+        h.kind_of?(Omega::Server::EventHandler) &&
+        h.event_id == event_handler.event_id &&
+        h.endpoint_id == event_handler.endpoint_id
+      }
+
+      handlers.delete(event_handler)
+      @entities -= handlers
+    }
+  end
+
   public
 
   # Users::Registry intitializer
@@ -83,12 +98,13 @@ class Registry
     # validate user/role id or session's user id is unique on creation
     self.validation_callback { |r,e|
       e.kind_of?(Omega::Server::Event) ||
+      e.kind_of?(Omega::Server::EventHandler) ||
       ([User, Role, Session].include?(e.class) &&
 
        (e.is_a?(Session) ?
           r.select  { |re| re.is_a?(Session)      }.
             find    { |s|  s.user.id == e.user.id }.nil? :
-          r.find    { |re| re.id == e.id          }.nil?))
+          r.find    { |re| re.class == e.class && re.id == e.id }.nil?))
     }
     
     # set user timestamps on creation
@@ -105,6 +121,9 @@ class Registry
 
     # sanity checks on session
     on(:added)   { |e|    check_session(e) if e.is_a?(Users::Session) }
+
+    # uniqueness checks on event handlers
+    on(:added)   { |e| sanitize_event_handlers(e) if e.kind_of?(Omega::Server::EventHandler) }
 
     # run local events
     run { run_events }

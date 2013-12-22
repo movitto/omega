@@ -47,7 +47,7 @@ subscribe_to = proc { |event|
       ::RJR::Logger.warn "users event #{event} handler permission error #{e}"
       err = true
 
-    rescue ::RJR::Error::ConnectionError => e
+    rescue ::RJR::Errors::ConnectionError => e
       ::RJR::Logger.warn "users event #{event} client disconnected #{e}"
       err = true
       # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
@@ -71,14 +71,8 @@ subscribe_to = proc { |event|
                        :registry    => registry
   }
 
-  # delete old callback and register new
-  registry.safe_exec {
-# FIXME will deadlock, but needs to be atomic:
-    #delete_handler_for :event       => event,
-    #                   :endpoint_id => handler.endpoint_id,
-    #                   :registry    => registry
-    #registry << handler
-  }
+  # add handler to registry (registry will ensure uniqueness)
+  registry << handler
 
   # return nil
   nil

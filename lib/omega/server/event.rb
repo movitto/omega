@@ -169,6 +169,13 @@ class EventHandler
     @handlers << block
   end
 
+  # Run handlers, note this method *isn't* invoked in registry event cycle
+  def invoke(*args)
+    @handlers.each { |h|
+      h.call *args
+    }
+  end
+
   # Convert handler to json representation and return it
   def to_json(*a)
     {
