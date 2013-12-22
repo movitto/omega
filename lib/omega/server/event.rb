@@ -176,14 +176,18 @@ class EventHandler
     }
   end
 
+  # Return event handler json data
+  def json_data
+    {:event_id    => event_id,
+     :persist     => persist,
+     :endpoint_id => endpoint_id}
+  end
+
   # Convert handler to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:event_id => event_id,
-                       :handlers => handlers,
-                       :persist  => persist,
-                       :endpoint_id => endpoint_id}
+      'data'       => json_data.merge({:handlers => handlers})
     }.to_json(*a)
   end
 

@@ -54,13 +54,21 @@ class Proxy
                          :params       =>  []
   end
 
-  def self.resolve(mission)
+  def self.resolve(args={})
+    mission = args[:mission]
+    event_handler = args[:event_handler]
+
     Mission::CALLBACKS.each { |cb|
       cbs = mission.send(cb)
       cbs.each_index { |i|
         cbs[i] = cbs[i].resolve if cbs[i].is_a?(Proxy)
       }
-    }
+    } if mission
+
+    event_handler.missions_callbacks.each_index { |cbi|
+      cb = event_handler.missions_callbacks[cbi]
+      event_handler.missions_callbacks[cbi] = cb.resolve if cb.is_a?(Proxy)
+    } if event_handler
   end
 
   def resolve

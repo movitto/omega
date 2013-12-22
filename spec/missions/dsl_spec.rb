@@ -41,7 +41,7 @@ module DSL
           m.requirements << proxy1
 
           proxy1.should_receive(:resolve)
-          Proxy.resolve(m)
+          Proxy.resolve(:mission => m)
         end
       end
 

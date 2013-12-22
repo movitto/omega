@@ -141,6 +141,7 @@ module Missions::RJR
       @d.should_receive(:add_module).with('missions/rjr/create')
       @d.should_receive(:add_module).with('missions/rjr/get')
       @d.should_receive(:add_module).with('missions/rjr/assign')
+      @d.should_receive(:add_module).with('missions/rjr/hooks')
       @d.should_receive(:add_module).with('missions/rjr/state')
       dispatch_missions_rjr_init(@d)
     end

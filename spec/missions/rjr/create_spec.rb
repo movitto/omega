@@ -119,7 +119,7 @@ module Missions::RJR
 
       it "resolves mission dsl references" do
         new_mission = build(:mission)
-        Missions::DSL::Client::Proxy.should_receive(:resolve).with(new_mission)
+        Missions::DSL::Client::Proxy.should_receive(:resolve).with(:mission => new_mission)
         @s.create_mission(new_mission)
       end
 

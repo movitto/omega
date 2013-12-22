@@ -42,7 +42,7 @@ create_mission = proc { |mission|
     current_user(:registry => user_registry) if mission.creator_id.nil?
 
   # resolve mission dsl references
-  Missions::DSL::Client::Proxy.resolve(mission)
+  Missions::DSL::Client::Proxy.resolve(:mission => mission)
 
   # add mission to registry
   registry << mission

@@ -128,6 +128,7 @@ def dispatch_missions_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('missions/rjr/create')
   rjr.node.dispatcher.add_module('missions/rjr/get')
   rjr.node.dispatcher.add_module('missions/rjr/assign')
+  rjr.node.dispatcher.add_module('missions/rjr/hooks')
   rjr.node.dispatcher.add_module('missions/rjr/state')
   rjr.node.message_headers['source_node'] = 'missions'
 
