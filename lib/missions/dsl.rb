@@ -218,6 +218,8 @@ module Assignment
       }.flatten.each { |entity|
         # add handler to registry
         eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
+        # TODO mark event handler as persistant &
+        # remove handlers on mission completion/failure
         handler = Omega::Server::EventHandler.new(:event_id => eid) { |e|
                     handlers.each { |h| h.call(mission, e) }
                   }
