@@ -44,6 +44,11 @@ class Event
     @timestamp = Time.parse(@timestamp) if @timestamp.is_a?(String)
   end
 
+  # Optional args which may be attached to class.
+  # Meant for subclasses, not used in central omega subsystem
+  def event_args
+  end
+
   # Invoke the registered handler w/ the specified args
   #
   # @param [Array] args catch-all array of args to invoke handler with

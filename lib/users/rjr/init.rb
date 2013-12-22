@@ -99,6 +99,8 @@ end
 end # module Users::RJR
 
 def dispatch_users_rjr_init(dispatcher)
+  Users::RJR.registry.start
+
   # init defaults
   Users::RJR.permenant_users ||= []
 

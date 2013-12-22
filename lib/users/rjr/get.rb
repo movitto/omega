@@ -13,6 +13,8 @@ get_entities = proc { |*args|
   filters = filters_from_args args,
     :with_id  => proc { |e, id| e.id         == id },
     :of_type  => proc { |e, t|  e.class.to_s == t  }
+  filters.unshift proc { |e| !e.kind_of?(Omega::Server::Event) &&
+                             !e.kind_of?(Omega::Server::EventHandler) }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
   # if id of entity is specified, only return single entity

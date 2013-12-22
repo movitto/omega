@@ -31,7 +31,7 @@ subscribe_to = proc { |event|
   handler.endpoint_id = @rjr_headers['source_node']
   handler.persist = true
   handler.event_id  = event
-  handler.exec do |*args|
+  handler.exec do |omega_event|
     err = false
 
     begin
@@ -41,7 +41,7 @@ subscribe_to = proc { |event|
                         :entity    => 'users_events'
 
       # invoke method via rjr callback notification
-      @rjr_callback.notify 'users::event_occurred', event, *args
+      @rjr_callback.notify 'users::event_occurred', event, *omega_event.event_args
 
     rescue Omega::PermissionError => e
       ::RJR::Logger.warn "users event #{event} handler permission error #{e}"

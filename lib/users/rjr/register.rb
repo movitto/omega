@@ -73,7 +73,7 @@ confirm_register = proc { |registration_code|
   registry.update(user, &with_id(user.id))
 
   # dispatch a registered user event
-  registry << Users::Events::RegisteredUser.new(user)
+  registry << Users::Events::RegisteredUser.new(:user => user)
 
   # return nil
   nil

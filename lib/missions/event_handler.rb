@@ -12,10 +12,16 @@ module Missions
 class EventHandler < Omega::Server::EventHandler
   # Missions DSL callbacks registered with the event handler
   attr_accessor :missions_callbacks
+  alias :handlers :missions_callbacks
 
   def initialize(args={})
-    attr_from_args args, :missions_callbacks => []
+    attr_from_args args,
+                   :missions_callbacks => []
     super(args)
+  end
+
+  def exec(cb)
+    @missions_callbacks << cb
   end
 
   def to_json(*a)

@@ -108,6 +108,7 @@ end # class Proxy
 Requirements = Proxy
 Assignment   = Proxy
 Event        = Proxy
+EventHandler = Proxy
 Query        = Proxy
 Resolution   = Proxy
 
@@ -326,6 +327,31 @@ module Event
   end
 
   # TODO 'continuation' event to create more entities or whatever else
+end
+
+# Mission related event handlers
+module EventHandler
+  def self.event_create_entity(args={})
+    event = args['event']
+    entity_type = args['entity_type']
+    case event
+    when 'registered_user' then
+      proc { |event|
+        args[:id] = Motel.gen_uuid if args[:id].nil?
+        args[:user_id] = event.users_event_args[1].id
+        entity = entity_type == 'Manufactured::Ship' ?
+            Manufactured::Ship.new(args) :
+            Manufactured::Station.new(args)
+
+        # TODO only if ship does not exist
+        Missions::RJR::node.invoke('manufactured::create_entity', entity)
+      }
+
+    else
+      nil
+
+    end
+  end
 end
 
 # Mission Queries

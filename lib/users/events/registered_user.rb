@@ -16,16 +16,23 @@ class RegisteredUser < Omega::Server::Event
   attr_accessor :user
 
   # RegisteredUser Event intializer
-  def initialize(user=nil)
-    @user = user
-    super(:id => ID)
+  def initialize(args={})
+    attr_from_args args, :user => nil
+# FIXME need unique id for event cycle but need to be able to listen to all registered_user events
+    #id = "#{ID}-#{user.nil? ? nil : user.id}"
+    id = ID
+    super(:id => id)
+  end
+
+  def event_args
+    [user]
   end
 
   # Convert event to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => @user
+      'data'       => {:user => @user}
     }.to_json(*a)
   end
 

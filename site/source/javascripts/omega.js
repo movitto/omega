@@ -25,7 +25,7 @@
 //= require "vendor/three/THREEx.WindowResize"
 
 //= require "vendor/rjr/json"
-//= require "vendor/rjr/jrw"
+//= require "vendor/rjr/jrw-0.17.1"
 
 /// omega
 //= require "omega/version"

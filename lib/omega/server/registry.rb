@@ -324,13 +324,13 @@ module Registry
       self.safe_exec { |entities|
         revent =
           entities.find { |e|
-            e.is_a?(Event) && e.id == event.id
+            e.kind_of?(Event) && e.id == event.id
           }
         revent.registry = self
 
         ghandlers =
           entities.select { |e|
-            e.is_a?(EventHandler) && e.event_id == event.id
+            e.kind_of?(EventHandler) && e.event_id == event.id
           }.collect { |e| e.handlers }.flatten
 
         revent.handlers + ghandlers

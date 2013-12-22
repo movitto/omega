@@ -18,6 +18,8 @@ require 'cosmos/entities/moon'
 require 'manufactured/ship'
 require 'manufactured/station'
 
+require 'missions/event_handler'
+
 require 'omega/client/node'
 require 'omega/resources'
 
@@ -480,6 +482,15 @@ module Omega
         RJR::Logger.info "Creating mission #{mission}"
         notify 'missions::create_mission', mission
         mission
+      end
+
+      def missions_event_handler(event, handler_method, args={})
+        dsl_handler = Missions::DSL::Client::EventHandler.send(handler_method,
+                                                 args.merge({:event => event}))
+        handler = Missions::EventHandler.new :event_id => event,
+                                             :persist  => true
+        handler.exec dsl_handler
+        handler 
       end
 
       #########################################################################

@@ -188,7 +188,8 @@ class Registry
   #   specified privileges can be found
   def require_privilege(args = {})
     unless check_privilege(args)
-      err = "require_privilege(#{args.inspect}): user does not have required privilege"
+      log_args = args.reject { |k,v| k == :registry }.inspect
+      err = "require_privilege(#{log_args}): user does not have required privilege"
 
       # TODO custom error messages
       ::RJR::Logger.warn err
@@ -221,15 +222,17 @@ class Registry
       entity_ids    << pe[:entity]
     }
 
+    log_args = args.reject { |k,v| k == :registry }.inspect
+
     session = entities { |e| e.is_a?(Session) && e.id == session_id }.first
     if session.nil?
-      ::RJR::Logger.warn "check_privilege(#{args.inspect}): session not found"
+      ::RJR::Logger.warn "check_privilege(#{log_args}): session not found"
       return false
     end
 
     if session.timed_out?
       destroy_session :session_id => session.id
-      ::RJR::Logger.warn "check_privilege(#{args.inspect}): session timeout"
+      ::RJR::Logger.warn "check_privilege(#{log_args}): session timeout"
       return false
     end
 
