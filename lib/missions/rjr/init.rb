@@ -11,6 +11,7 @@ require 'users/rjr/init'
 # require mission event types
 require 'missions/events/resources'
 require 'missions/events/manufactured'
+require 'missions/events/users'
 
 module Missions::RJR
   include Omega#::Exceptions
@@ -104,7 +105,9 @@ module Missions::RJR
 
   users_event = proc { |*args|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
-    # TODO allow admin to register events for users registration
+
+    event = Missions::Events::Users.new :users_event_args => args
+    registry << event
     nil
   }
 

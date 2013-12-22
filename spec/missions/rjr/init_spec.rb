@@ -97,7 +97,7 @@ module Missions::RJR
     end
   end
 
-  describe "#users event", :rjr => true do
+  describe "#users_event", :rjr => true do
     before(:each) do
       dispatch_to @s, Missions::RJR, :CALLBACK_METHODS
     end
@@ -109,6 +109,14 @@ module Missions::RJR
           @s.users_event 'anything'
         }.should raise_error(PermissionError)
       end
+    end
+
+    it "creates new users event" do
+      user = build(:user)
+      lambda {
+        @s.users_event 'registered_user', user
+      }.should change{Missions::RJR.registry.entities.size}.by(1)
+      Missions::RJR.registry.entities.last.id.should == "registered_user"
     end
 
     it "returns nil" do
