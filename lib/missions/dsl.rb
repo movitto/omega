@@ -331,13 +331,14 @@ end
 
 # Mission related event handlers
 module EventHandler
-  def self.event_create_entity(args={})
-    event = args['event']
-    entity_type = args['entity_type']
+  def self.on_event_create_entity(args={})
+    event       = args[:event]       || args['event']
+    entity_type = args[:entity_type] || args['entity_type']
+    id          = args[:id]          || args['id']
     case event
     when 'registered_user' then
       proc { |event|
-        args[:id] = Motel.gen_uuid if args[:id].nil?
+        args[:id]      = id || Motel.gen_uuid
         args[:user_id] = event.users_event_args[1].id
         entity = entity_type == 'Manufactured::Ship' ?
             Manufactured::Ship.new(args) :
@@ -350,6 +351,20 @@ module EventHandler
     else
       nil
 
+    end
+  end
+
+  def self.on_event_add_role(args={})
+    event = args[:event] || args['event']
+    role  = args[:role]  || args['role']
+    case event
+    when 'registered_user' then
+      proc { |event|
+        user_id = event.users_event_args[1].id
+        Missions::RJR::node.invoke('users::add_role', user_id, role)
+      }
+    else
+      nil
     end
   end
 end

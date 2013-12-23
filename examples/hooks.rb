@@ -18,24 +18,29 @@ login 'admin', 'nimda'
 STARTING_SYSTEM = system(ARGV.shift)
 
 # register post-user creation hooks
-# TODO set locations
 create_corvette =
-  missions_event_handler('registered_user', :event_create_entity,
+  missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Ship',
-                         :type => 'corvette', :solar_system => STARTING_SYSTEM)
+                         :type => 'corvette', :solar_system => STARTING_SYSTEM,
+                         :location => rand_location(:max => 2000)}
 
 create_miner =
-  missions_event_handler('registered_user', :event_create_entity,
+  missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Ship',
-                         :type => 'mining', :solar_system => STARTING_SYSTEM)
+                         :type => 'mining', :solar_system => STARTING_SYSTEM,
+                         :location => rand_location(:max => 2000))
 
 create_station =
-  missions_event_handler('registered_user', :event_create_entity,
+  missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Station',
-                         :type => 'manufacturing', :solar_system => STARTING_SYSTEM)
+                         :type => 'manufacturing', :solar_system => STARTING_SYSTEM,
+                         :location => rand_location(:max => 2000))
 
-# TODO add privilege to user to view cosmos entities
+setup_role =
+  missions_event_handler('registered_user', :on_event_add_role,
+                         :role => :regular_user)
 
 invoke 'missions::add_hook', create_corvette
 invoke 'missions::add_hook', create_miner
 invoke 'missions::add_hook', create_station
+invoke 'missions::add_hook', setup_role
