@@ -75,13 +75,13 @@ if stats
   pp "num_of planets:       #{node.invoke(url, 'stats::get', 'num_of', 'planets')}"
   pp "num_of missions:      #{node.invoke(url, 'stats::get', 'num_of', 'missions')}"
 
-  pp "with_most entities:   #{node.invoke(url, 'stats::get', 'with_most', 'entities')}"
-  pp "with_most kills:      #{node.invoke(url, 'stats::get', 'with_most', 'kills')}"
-  pp "with_most times_killed: #{node.invoke(url, 'stats::get', 'with_most', 'times_killed')}"
-  pp "with_most resources_collected: #{node.invoke(url, 'stats::get', 'with_most', 'resources_collected')}"
-  pp "with_most loot_collected: #{node.invoke(url, 'stats::get', 'with_most', 'loot_collected')}"
-  pp "with_most distance_moved: #{node.invoke(url, 'stats::get', 'with_most', 'distance_moved')}"
-  pp "with_most missions_completed: #{node.invoke(url, 'stats::get', 'with_most', 'missions_completed')}"
+  pp "with_most entities:   #{node.invoke(url, 'stats::get', 'users_with_most', 'entities')}"
+  pp "with_most kills:      #{node.invoke(url, 'stats::get', 'users_with_most', 'kills')}"
+  pp "with_most times_killed: #{node.invoke(url, 'stats::get', 'users_with_most', 'times_killed')}"
+  pp "with_most resources_collected: #{node.invoke(url, 'stats::get', 'users_with_most', 'resources_collected')}"
+  pp "with_most loot_collected: #{node.invoke(url, 'stats::get', 'users_with_most', 'loot_collected')}"
+  pp "with_most distance_moved: #{node.invoke(url, 'stats::get', 'users_with_most', 'distance_moved')}"
+  pp "with_most missions_completed: #{node.invoke(url, 'stats::get', 'users_with_most', 'missions_completed')}"
 
-  pp "with_least times_killed: #{node.invoke(url, 'stats::get', 'with_least', 'times_killed')}"
+  pp "with_least times_killed: #{node.invoke(url, 'stats::get', 'users_with_least', 'times_killed')}"
 end

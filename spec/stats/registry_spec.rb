@@ -10,7 +10,8 @@ require 'users/attributes/stats'
 describe Stats do
 
   it "has statistics" do
-    Stats::STATISTICS.collect { |s| s.id }.should == [:num_of, :with_most, :with_least]
+    Stats::STATISTICS.collect { |s| s.id }.should ==
+      [:num_of, :users_with_most, :users_with_least]
   end
 
   describe "#get_stat" do
@@ -113,10 +114,10 @@ describe Stats do
     end
   end # describe #num_of
 
-  describe "#with_most" do
+  describe "#users_with_most" do
 
     before(:each) do
-      @stat = Stats.get_stat(:with_most)
+      @stat = Stats.get_stat(:users_with_most)
 
     end
 
@@ -292,11 +293,11 @@ describe Stats do
         @stat.generate('entities', 2).value.size.should == 2
       end
     end
-  end # describe #with_most
+  end # describe #users_with_most
 
-  describe "#with_least" do
+  describe "#users_with_least" do
     before(:each) do
-      @stat = Stats.get_stat(:with_least)
+      @stat = Stats.get_stat(:users_with_least)
     end
 
     context "invalid entity type" do
@@ -362,7 +363,7 @@ describe Stats do
         @stat.generate('times_killed', 1).value.should == [user1.id]
       end
     end
-  end # describe #with_least
+  end # describe #users_with_least
 
   # TODO test other static stats here ...
 

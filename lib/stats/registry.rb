@@ -57,7 +57,7 @@ num_of = Stat.new(:id => :num_of,
 # Return list of up to <num_to_return> user ids sorted
 # by the number of the specified entity they are associated with
 
-with_most_proc = proc { |entity_type, num_to_return|
+users_with_most_proc = proc { |entity_type, num_to_return|
   user_ids = []
 
   case entity_type
@@ -111,15 +111,15 @@ with_most_proc = proc { |entity_type, num_to_return|
   user_ids[0...num_to_return]
 }
 
-with_most = Stat.new(:id => :with_most,
+users_with_most = Stat.new(:id => :users_with_most,
                      :description => 'Users w/ the most entities',
-                     :generator => with_most_proc)
+                     :generator => users_with_most_proc)
 
 ################################################################
 
 # Return list of up to <num_to_return> user ids sorted in reverse
 # by the number of the specified entity they are associated with
-with_least_proc = proc { |entity_type, num_to_return|
+users_with_least_proc = proc { |entity_type, num_to_return|
   user_ids = []
   case entity_type
   when "times_killed" then
@@ -142,13 +142,13 @@ with_least_proc = proc { |entity_type, num_to_return|
   user_ids[0...num_to_return]
 }
 
-with_least = Stat.new(:id => :with_least,
+users_with_least = Stat.new(:id => :users_with_least,
                       :description => 'Users w/ the least entities',
-                      :generator => with_least_proc)
+                      :generator => users_with_least_proc)
 
 ################################################################
 
-STATISTICS = [num_of, with_most, with_least]
+STATISTICS = [num_of, users_with_most, users_with_least]
 
 def  self.get_stat(id)
   STATISTICS.find { |s| s.id.to_s == id.to_s}

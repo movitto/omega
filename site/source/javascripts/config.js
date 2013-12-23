@@ -33,7 +33,7 @@ Omega.Config = {
   planet_movement   :          50,
 
   // stats
-  stats             : [['num_of', 'users'], ['with_most', 'entities', 10]],
+  stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],
 
   // gfx
   resources    : {

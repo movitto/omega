@@ -34,7 +34,7 @@ Omega.Pages.Account = function(){
 
         /// load user stats
         /// TODO configurable stats
-        Omega.Stat.get('with_most', ['entities', 10], _this.node,
+        Omega.Stat.get('users_with_most', ['entities', 10], _this.node,
           function(stat_result) { _this.process_stat(stat_result); });
       }
     });

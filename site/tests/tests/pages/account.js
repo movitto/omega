@@ -108,7 +108,7 @@ describe("Omega.Pages.Account", function(){
     it("retrieves user stats", function(){
       var get_stat = sinon.spy(Omega.Stat, 'get');
       validate_cb({result : user});
-      sinon.assert.calledWith(get_stat, 'with_most', ['entities', 10], acct.node, sinon.match.func);
+      sinon.assert.calledWith(get_stat, 'users_with_most', ['entities', 10], acct.node, sinon.match.func);
     });
 
     describe("retrieve stats callback", function(){
