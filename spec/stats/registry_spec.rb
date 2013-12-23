@@ -11,7 +11,7 @@ describe Stats do
 
   it "has statistics" do
     Stats::STATISTICS.collect { |s| s.id }.should ==
-      [:num_of, :users_with_most, :users_with_least]
+      [:num_of, :users_with_most, :users_with_least, :systems_with_most]
   end
 
   describe "#get_stat" do
@@ -364,6 +364,51 @@ describe Stats do
       end
     end
   end # describe #users_with_least
+
+  describe "#systems_with_most" do
+    before(:each) do
+      @stat = Stats.get_stat(:systems_with_most)
+      @entities = [build(:ship, :system_id => 'system2'),
+                   build(:ship, :system_id => 'system1'),
+                   build(:ship, :system_id => 'system2')]
+    end
+
+    context "invalid entity type" do
+      it "should return empty array" do
+        @stat.generate('invalid').value.should == []
+      end
+    end
+
+    context "entities" do
+      it "returns system ids sorted by number of entities in them" do
+        Stats::RJR.node.should_receive(:invoke).
+                   with('manufactured::get_entities').
+                   and_return(@entities)
+
+        @stat.generate('entities').value.should == ['system2', 'system1']
+      end
+    end
+
+    context "num to return not specified" do
+      it "returns array of all system ids" do
+        Stats::RJR.node.should_receive(:invoke).
+                   with('manufactured::get_entities').
+                   and_return(@entities)
+
+        @stat.generate('entities').value.length.should == 2
+      end
+    end
+
+    context "num to return specified" do
+      it "returns array of first n user ids" do
+        Stats::RJR.node.should_receive(:invoke).
+                   with('manufactured::get_entities').
+                   and_return(@entities)
+
+        @stat.generate('entities', 1).value.length.should == 1
+      end
+    end
+  end
 
   # TODO test other static stats here ...
 

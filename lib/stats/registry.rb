@@ -148,7 +148,38 @@ users_with_least = Stat.new(:id => :users_with_least,
 
 ################################################################
 
-STATISTICS = [num_of, users_with_most, users_with_least]
+# Return list of up to <num_to_return> system ids sorted
+# by the number of the specified entity they are associated with
+
+systems_with_most_proc = proc { |entity_type, num_to_return|
+  system_ids = []
+
+  case entity_type
+  # sort cosmos systems by # of entities in them
+  when "entities" then
+    system_ids =
+      Stats::RJR.node.invoke('manufactured::get_entities').
+              inject(Hash.new(0)) { |h,e|
+                 h[e.system_id] += 1; h
+              }.sort_by { |k,v| v }.reverse.
+              collect { |e| e.first }
+
+  end
+
+  num_to_return ||= system_ids.size
+
+  # return
+  system_ids[0...num_to_return]
+}
+
+systems_with_most = Stat.new(:id => :systems_with_most,
+                      :description => 'Systems w/ the most entities',
+                      :generator => systems_with_most_proc)
+
+
+################################################################
+
+STATISTICS = [num_of, users_with_most, users_with_least, systems_with_most]
 
 def  self.get_stat(id)
   STATISTICS.find { |s| s.id.to_s == id.to_s}
