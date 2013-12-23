@@ -26,7 +26,7 @@ describe("Omega.Planet", function(){
       it("does nothing / just returns", function(){
         Omega.Planet.gfx = {};
         Omega.Planet.mesh = null;
-        new Omega.Planet().load_gfx();
+        new Omega.Planet().load_gfx(Omega.Config);
         assert(Omega.Planet.mesh).isNull();
       });
     });
