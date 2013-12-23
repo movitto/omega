@@ -41,16 +41,22 @@ describe("Omega.Pages.Index", function(){
     });
 
     describe("session is not valid", function(){
-      var index, validate_cb;
+      var session, index, validate_cb;
 
       before(function(){
-        var session = new Omega.Session();
+        session = new Omega.Session();
         var spy = sinon.spy(session, 'validate');
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
 
         index = new Omega.Pages.Index();
         validate_cb = spy.getCall(0).args[1];
       })
+
+      it("clears session cookies", function(){
+        var clear_cookies = sinon.spy(session, 'clear_cookies');
+        validate_cb.apply(null, [{error : {}}]);
+        sinon.assert.called(clear_cookies);
+      });
 
       it("nullifies session", function(){
         validate_cb.apply(null, [{error : {}}]);

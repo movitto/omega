@@ -23,6 +23,7 @@ Omega.Pages.Index = function(){
   if(this.session != null){
     this.session.validate(this.node, function(result){
       if(result.error){
+        if(_this.session) _this.session.clear_cookies();
         _this.session = null;
         _this.nav.show_login_controls();
       }else{
