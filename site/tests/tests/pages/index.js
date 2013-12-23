@@ -1,10 +1,5 @@
 pavlov.specify("Omega.Pages.Index", function(){
 describe("Omega.Pages.Index", function(){
-  after(function(){
-    if(Omega.Session.restore_from_cookie.restore) Omega.Session.restore_from_cookie.restore();
-    if(Omega.UI.StatusIndicator.restore) Omega.UI.StatusIndicator.restore();
-  });
-
   it("loads config", function(){
     var index = new Omega.Pages.Index();
     assert(index.config).equals(Omega.Config);
@@ -25,74 +20,94 @@ describe("Omega.Pages.Index", function(){
     assert(index.command_tracker).isOfType(Omega.UI.CommandTracker);
   });
 
-  it("has a session restored from cookie", function(){
-    var spy = sinon.spy(Omega.Session, 'restore_from_cookie');
-    var index = new Omega.Pages.Index();
-    sinon.assert.called(spy);
-  });
-
-  describe("session is not null", function(){
-    it("validates session", function(){
-      var session = new Omega.Session();
-      var spy = sinon.spy(session, 'validate');
-      var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-      var index = new Omega.Pages.Index();
-      sinon.assert.calledWith(spy, index.node);
+  describe("#validate_session", function(){
+    after(function(){
+      if(Omega.Session.restore_from_cookie.restore) Omega.Session.restore_from_cookie.restore();
     });
 
-    describe("session is not valid", function(){
-      var session, index, validate_cb;
+    it("restores session from cookie", function(){
+      var restore = sinon.spy(Omega.Session, 'restore_from_cookie');
+      var index = new Omega.Pages.Index();
+      index.validate_session();
+      sinon.assert.called(restore);
+    });
 
-      before(function(){
-        session = new Omega.Session();
+    describe("session is not null", function(){
+      it("validates session", function(){
+        var session = new Omega.Session();
         var spy = sinon.spy(session, 'validate');
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-
-        index = new Omega.Pages.Index();
-        validate_cb = spy.getCall(0).args[1];
-      })
-
-      it("clears session cookies", function(){
-        var clear_cookies = sinon.spy(session, 'clear_cookies');
-        validate_cb.apply(null, [{error : {}}]);
-        sinon.assert.called(clear_cookies);
+        var index = new Omega.Pages.Index();
+        index.validate_session();
+        sinon.assert.calledWith(spy, index.node);
       });
 
-      it("nullifies session", function(){
-        validate_cb.apply(null, [{error : {}}]);
-        assert(index.session).isNull();
+      describe("session is not valid", function(){
+        var session, index, validate_cb;
+
+        before(function(){
+          session = new Omega.Session();
+          var spy = sinon.spy(session, 'validate');
+          var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
+
+          index = new Omega.Pages.Index();
+          index.validate_session();
+          validate_cb = spy.getCall(0).args[1];
+        })
+
+        it("clears session cookies", function(){
+          var clear_cookies = sinon.spy(session, 'clear_cookies');
+          validate_cb.apply(null, [{error : {}}]);
+          sinon.assert.called(clear_cookies);
+        });
+
+        it("nullifies session", function(){
+          validate_cb.apply(null, [{error : {}}]);
+          assert(index.session).isNull();
+        });
+
+        it("invokes session_invalid", function(){
+          var session_invalid = sinon.spy(index, "_session_invalid");
+          validate_cb.apply(null, [{error : {}}]);
+          sinon.assert.called(session_invalid);
+        });
       });
 
-      it("shows login controls", function(){
-        var spy = sinon.spy(index.nav, 'show_login_controls');
-        validate_cb.apply(null, [{error : {}}]);
-        sinon.assert.called(spy);
+      describe("user session is valid", function(){
+        var index, session, validate_cb, session_validated;
+
+        before(function(){
+          session = new Omega.Session({user_id: 'user1'});
+          var spy = sinon.spy(session, 'validate');
+          sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
+
+          index = new Omega.Pages.Index();
+          index.validate_session();
+          validate_cb = spy.getCall(0).args[1];
+
+          // stub out session validated
+          session_validated = sinon.spy(index, '_session_validated');
+        })
+
+        after(function(){
+          Omega.Session.restore_from_cookie.restore();
+        })
+
+        it("invokes session_validated", function(){
+          validate_cb.apply(null, [{}]);
+          sinon.assert.called(session_validated);
+        })
       });
     });
 
-    describe("user session is valid", function(){
-      var index, session, validate_cb, session_validated;
-
-      before(function(){
-        session = new Omega.Session({user_id: 'user1'});
-        var spy = sinon.spy(session, 'validate');
-        sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-
-        index = new Omega.Pages.Index();
-        validate_cb = spy.getCall(0).args[1];
-
-        // stub out session validated
-        session_validated = sinon.spy(index, '_session_validated');
-      })
-
-      after(function(){
-        Omega.Session.restore_from_cookie.restore();
-      })
-
-      it("invokes session_validated", function(){
-        validate_cb.apply(null, [{}]);
-        sinon.assert.called(session_validated);
-      })
+    describe("#session is null", function(){
+      it("invokes session_invalid", function(){
+        var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(null);
+        var index = new Omega.Pages.Index();
+        var session_invalid = sinon.spy(index, "_session_invalid");
+        index.validate_session();
+        sinon.assert.called(session_invalid);
+      });
     });
   });
 
@@ -164,6 +179,15 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(spy, 'stations');
     });
   })
+
+  describe("#_session_invalid", function(){
+    it("shows login controls", function(){
+      var index = new Omega.Pages.Index();
+      var show_login = sinon.spy(index.nav, 'show_login_controls');
+      index._session_invalid();
+      sinon.assert.called(show_login);
+    });
+  });
 
   describe("#_scene_change", function(){
     var index, change;
@@ -869,14 +893,6 @@ describe("Omega.Pages.Index", function(){
     assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
   });
 
-  it("instructs status indicator to follow node", function(){
-    var si    = new Omega.UI.StatusIndicator();
-    var spy   = sinon.spy(si, 'follow_node');
-    var stub  = sinon.stub(Omega.UI, 'StatusIndicator').returns(si);
-    var index = new Omega.Pages.Index();
-    sinon.assert.calledWith(spy, index.node);
-  })
-
   it("has an effects player", function(){
     var index = new Omega.Pages.Index();
     assert(index.effects_player).isOfType(Omega.UI.EffectsPlayer);
@@ -944,5 +960,11 @@ describe("Omega.Pages.Index", function(){
       index.wire_up();
       sinon.assert.called(wire_canvas);
     });
+
+    it("instructs status indicator to follow node", function(){
+      var spy   = sinon.spy(index.status_indicator, 'follow_node');
+      index.wire_up();
+      sinon.assert.calledWith(spy, index.node);
+    })
   });
 });});

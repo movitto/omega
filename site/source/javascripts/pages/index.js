@@ -16,34 +16,12 @@ Omega.Pages.Index = function(){
   this.node    = new Omega.Node(this.config);
   this.entities = {};
 
-  this.command_tracker = new Omega.UI.CommandTracker({page : this})
-
-  var _this = this;
-  this.session = Omega.Session.restore_from_cookie();
-  if(this.session != null){
-    this.session.validate(this.node, function(result){
-      if(result.error){
-        if(_this.session) _this.session.clear_cookies();
-        _this.session = null;
-        _this.nav.show_login_controls();
-      }else{
-        _this._session_validated();
-      }
-    });
-  }
-
-  /// not blocking for validation to return,
-  /// assuming it'll arrive before node is used above
-
+  this.command_tracker  = new Omega.UI.CommandTracker({page : this})
   this.effects_player   = new Omega.UI.EffectsPlayer({page : this});
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
   this.status_indicator = new Omega.UI.StatusIndicator({page : this});
-
-  /// wire up status_indicator
-  this.status_indicator.follow_node(this.node, 'loading');
-  Omega.UI.Loader.status_indicator = this.status_indicator;
 };
 
 Omega.Pages.Index.prototype = {
@@ -65,6 +43,28 @@ Omega.Pages.Index.prototype = {
     this.nav.wire_up();
     this.dialog.wire_up();
     this.canvas.wire_up();
+
+    /// wire up status_indicator
+    this.status_indicator.follow_node(this.node, 'loading');
+    Omega.UI.Loader.status_indicator = this.status_indicator;
+  },
+
+  validate_session : function(){
+    var _this = this;
+    this.session = Omega.Session.restore_from_cookie();
+    if(this.session != null){
+      this.session.validate(this.node, function(result){
+        if(result.error){
+          if(_this.session) _this.session.clear_cookies();
+          _this.session = null;
+          _this._session_invalid();
+        }else{
+          _this._session_validated();
+        }
+      });
+    }else{
+      _this._session_invalid();
+    }
   },
 
   _session_validated : function(){
@@ -84,6 +84,15 @@ Omega.Pages.Index.prototype = {
       function(ships) { _this.process_entities(ships); });
     Omega.Station.owned_by(this.session.user_id, this.node,
       function(stations) { _this.process_entities(stations); });
+  },
+
+  _session_invalid : function(){
+    this.nav.show_login_controls();
+
+    // preload resources
+    Omega.UI.Loader.preload();
+
+    // TODO load/display cosmos
   },
 
   _scene_change : function(change){
@@ -376,4 +385,5 @@ $(document).ready(function(){
   index.wire_up();
   index.canvas.setup();
   index.effects_player.start();
+  index.validate_session();
 });
