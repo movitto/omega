@@ -102,6 +102,8 @@ Omega.JumpGate.prototype = {
     lamp_z         : 175,
   },
 
+  async_gfx : 3,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.JumpGate.gfx) !== 'undefined') return;
     Omega.JumpGate.gfx = {};

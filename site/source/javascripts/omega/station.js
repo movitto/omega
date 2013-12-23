@@ -100,6 +100,8 @@ Omega.Station.prototype = {
     rot_x : 3.14, rot_y :   0, rot_z : 0
   },
 
+  async_gfx : 2,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Station.gfx)            === 'undefined') Omega.Station.gfx = {};
     if(typeof(Omega.Station.gfx[this.type]) !== 'undefined') return;

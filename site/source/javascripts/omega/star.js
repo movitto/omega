@@ -19,6 +19,8 @@ Omega.Star.prototype = {
   constructor: Omega.Star,
   json_class : 'Cosmos::Entities::Star',
 
+  async_gfx : 2,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Star.gfx) !== 'undefined') return;
     Omega.Star.gfx = {};

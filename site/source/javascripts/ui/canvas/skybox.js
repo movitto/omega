@@ -46,7 +46,7 @@ Omega.UI.CanvasSkybox.prototype = {
     this.components = [this.mesh];
   },
 
-  set: function(bg, config){
+  set: function(bg, config, event_cb){
     var format = 'png';
     if(!config) config = this.canvas.page.config;
     var path   = config.url_prefix + config.images_path + '/skybox/skybox' + bg + '/';
@@ -56,7 +56,8 @@ Omega.UI.CanvasSkybox.prototype = {
       path + 'py.' + format, path + 'ny.' + format
     ];
 
-    this.mesh.material.uniforms["tCube"].value = THREE.ImageUtils.loadTextureCube(materials);
+    this.mesh.material.uniforms["tCube"].value =
+      THREE.ImageUtils.loadTextureCube(materials, {}, event_cb);
   }
 };
 

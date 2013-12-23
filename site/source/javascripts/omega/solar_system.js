@@ -72,6 +72,8 @@ Omega.SolarSystem.prototype = {
     size          : 48
   },
 
+  async_gfx : 2,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.SolarSystem.gfx) !== 'undefined') return;
     Omega.SolarSystem.gfx = {};

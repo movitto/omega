@@ -22,9 +22,18 @@ Omega.Planet.prototype = {
   /// TODO: centralize number of planet textures
   _num_textures : 4,
 
+  colori : function(){
+    return parseInt('0x' + this.color) % this._num_textures;
+  },
+
+  async_gfx : 1,
+
   load_gfx : function(config, event_cb){
-    if(typeof(Omega.Planet.gfx) !== 'undefined') return;
-    Omega.Planet.gfx = {};
+    if(typeof(Omega.Planet.gfx) === 'undefined') Omega.Planet.gfx = {};
+
+    var colori = this.colori();
+    if(typeof(Omega.Planet.gfx[colori]) !== 'undefined') return;
+    Omega.Planet.gfx[colori] = {};
 
     //// mesh
       // each planet instance should override radius in the geometry instance
@@ -41,8 +50,7 @@ Omega.Planet.prototype = {
   },
 
   _load_material : function(config, event_cb){
-    var colori  = parseInt('0x' + this.color) % this._num_textures;
-    var texture = config.resources['planet' + colori].material;
+    var texture = config.resources['planet' + this.colori()].material;
     var path    = config.url_prefix + config.images_path + texture;
     var sphere_texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
     return new THREE.MeshLambertMaterial({map: sphere_texture});

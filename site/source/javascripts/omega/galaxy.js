@@ -122,6 +122,8 @@ Omega.Galaxy.prototype = {
     return geo;
   },
 
+  async_gfx : 1,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Galaxy.gfx) !== 'undefined') return;
     Omega.Galaxy.gfx = {};

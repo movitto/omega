@@ -334,6 +334,8 @@ Omega.Ship.prototype = {
     plane : 3, lifespan : 20
   },
 
+  async_gfx : 3,
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Ship.gfx)            === 'undefined') Omega.Ship.gfx = {};
     if(typeof(Omega.Ship.gfx[this.type]) !== 'undefined') return;
