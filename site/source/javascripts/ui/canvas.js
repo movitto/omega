@@ -46,8 +46,9 @@ Omega.UI.Canvas.prototype = {
   },
 
   setup : function(){
-    var _this   = this;
-    var padding = 30; /// XXX ideally would be 0: jquery dialog appends itself to end of body
+    var _this    = this;
+    var wpadding =  0,
+        hpadding = 12;
 
     this.scene = new THREE.Scene();
     this.shader_scene = new THREE.Scene();
@@ -56,8 +57,8 @@ Omega.UI.Canvas.prototype = {
     //this.renderer = new THREE.CanvasRenderer({canvas: });
     this.renderer = new THREE.WebGLRenderer({antialias : true});
 
-    var sw = window.innerWidth  - padding,
-        sh = window.innerHeight - padding;
+    var sw = window.innerWidth  - wpadding,
+        sh = window.innerHeight - hpadding;
     this.renderer.setSize(sw, sh);
 
 	  this.renderTarget =
@@ -107,7 +108,7 @@ Omega.UI.Canvas.prototype = {
     this.cam_controls.domElement = this.renderer.domElement;
     this.reset_cam();
 
-    THREEx.WindowResize(this.renderer, this.cam, padding);
+    THREEx.WindowResize(this.renderer, this.cam, wpadding, hpadding);
 
     this.skybox.init_gfx();
     this.axis.init_gfx();

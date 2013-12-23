@@ -26,12 +26,13 @@ var THREEx	= THREEx 		|| {};
  * @param {Object} renderer the renderer to update
  * @param {Object} Camera the camera to update
 */
-THREEx.WindowResize	= function(renderer, camera, padding){
-  if(padding == null || typeof(padding) === 'undefined') padding = 0;
+THREEx.WindowResize	= function(renderer, camera, wpadding, hpadding){
+  if(wpadding == null || typeof(wpadding) === 'undefined') wpadding = 0;
+  if(hpadding == null || typeof(hpadding) === 'undefined') hpadding = 0;
 
 	var callback	= function(){
-    var width  = window.innerWidth  - padding;
-    var height = window.innerHeight - padding;
+    var width  = window.innerWidth  - wpadding;
+    var height = window.innerHeight - hpadding;
 
 		// notify the renderer of the size change
 		renderer.setSize(width, height);
