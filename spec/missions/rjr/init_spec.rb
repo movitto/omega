@@ -132,6 +132,11 @@ module Missions::RJR
       @rjr = Object.new.extend(Missions::RJR)
     end
 
+    it "starts missions registry" do
+      Missions::RJR.registry.should_receive(:start)
+      dispatch_missions_rjr_init(@d)
+    end
+
     it "dispatches missions* in Missions::RJR environment" do
       dispatch_missions_rjr_init(@d)
       @d.environments[/missions::.*/].should  == Missions::RJR

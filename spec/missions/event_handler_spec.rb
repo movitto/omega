@@ -17,6 +17,15 @@ describe EventHandler do
     end
   end
 
+  describe "#exec" do
+    it "adds cb to mission callbacks" do
+      h = proc {}
+      eh = Missions::EventHandler.new
+      eh.exec h
+      eh.missions_callbacks.should == [h]
+    end
+  end
+
   describe "#to_json" do
     it "should return event handler in json format" do
       eh = Missions::EventHandler.new :event_id => 'event',

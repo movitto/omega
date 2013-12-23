@@ -179,6 +179,16 @@ module Omega
         with(:id, eid)
       end
 
+      # Generate a selector which matches entities _not_
+      # descending from the Omega::Server namespace
+      def in_subsystem
+        proc { |e|
+          !e.class.ancestors.any? { |cl|
+            cl.to_s =~ /Omega::Server::.*/
+          }
+        }
+      end
+
       # Return boolean indicating if specified entity is a command
       def is_cmd?(entity)
         entity.kind_of?(Omega::Server::Command)

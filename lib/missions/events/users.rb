@@ -13,6 +13,9 @@ class Users < Omega::Server::Event
   # Array of args received pertaining to the users event
   attr_accessor :users_event_args
 
+  # Needed for Event interface compatability
+  alias :event_args :users_event_args
+
   # Users Event intializer
   def initialize(args={})
     attr_from_args args, :users_event_args => []

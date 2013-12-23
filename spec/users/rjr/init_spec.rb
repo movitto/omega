@@ -66,6 +66,11 @@ module Users::RJR
       @rjr = Object.new.extend(Users::RJR)
     end
 
+    it "starts users registry" do
+      Users::RJR.registry.should_receive(:start)
+      dispatch_users_rjr_init(@d)
+    end
+
     it "dispatches users* in Users::RJR environment" do
       dispatch_users_rjr_init(@d)
       @d.environments[/users::.*/].should  == Users::RJR

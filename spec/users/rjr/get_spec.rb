@@ -27,8 +27,8 @@ module Users::RJR
 
       create(:user)
       create(:user)
-      n = Users::RJR.registry.entities.size
-      i = Users::RJR.registry.entities.collect { |e| e.id }
+      n = Users::RJR.registry.entities(&in_subsystem).size
+      i = Users::RJR.registry.entities(&in_subsystem).collect { |e| e.id }
       s = @s.get_entities
       s.size.should == n
       s.collect { |e| e.id }.should == i

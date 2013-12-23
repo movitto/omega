@@ -447,6 +447,24 @@ describe DSL, :rjr => true do
     end
   end
 
+  describe "#missions_event_handler" do
+    it "returns persistent missions event handler" do
+      h = missions_event_handler 'registered_user', :on_event_create_entity
+      h.should be_an_instance_of(Missions::EventHandler)
+      h.event_id.should == 'registered_user'
+      h.persist.should be_true
+    end
+
+    it "returns proxy to specified missions dsl event handler" do
+      proxy = Missions::DSL::Client::Proxy.new
+      Missions::DSL::Client::EventHandler.should_receive(:on_event_create_entity).
+        with({:event => 'registered_user', :type => 'foo'}).and_return(proxy)
+      h = missions_event_handler 'registered_user', :on_event_create_entity, :type => 'foo'
+      h.missions_callbacks.size.should == 1
+      h.missions_callbacks.first.should == proxy
+    end
+  end
+
   describe DSL::Base do
     before(:each) do
       @b = DSL::Base.new

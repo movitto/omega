@@ -237,7 +237,7 @@ def reload_super_admin
     $sa = create(:user)
     role_id = "user_role_#{$sa.id}"
     add_role role_id, :superadmin
-    $sa_role = Users::RJR.registry.entity { |e| e.id == role_id }
+    $sa_role = Users::RJR.registry.entity { |e| e.is_a?(Users::Role) && e.id == role_id }
   else
     Users::RJR.registry << $sa_role
     $sa.roles = [$sa_role]

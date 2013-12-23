@@ -12,6 +12,8 @@ module Missions
 class EventHandler < Omega::Server::EventHandler
   # Missions DSL callbacks registered with the event handler
   attr_accessor :missions_callbacks
+
+  # Needed to comply w/ EventHandler interface used in omega registry
   alias :handlers :missions_callbacks
 
   def initialize(args={})

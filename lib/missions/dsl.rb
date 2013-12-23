@@ -330,6 +330,7 @@ module Event
 end
 
 # Mission related event handlers
+# XXX rename these methods
 module EventHandler
   def self.on_event_create_entity(args={})
     event       = args[:event]       || args['event']

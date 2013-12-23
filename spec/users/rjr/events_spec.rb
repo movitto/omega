@@ -55,12 +55,13 @@ module Users::RJR
         @handler = @registry.safe_exec { |entities| entities.last }
 
         @s.instance_variable_set(:@rjr_callback, @n)
+        @event = Missions::Events::Users.new :users_event_args => [@u]
       end
 
       context "insufficient permissions (view-users_events)" do
         it "deletes handler from registry" do
           lambda {
-            @handler.invoke @u
+            @handler.invoke @event
           }.should change{@registry.entities.size}.by(-1)
         end
       end
@@ -68,7 +69,7 @@ module Users::RJR
       it "sends notification of users::event_occurred via rjr callback" do
         add_privilege @login_role, 'view', 'users_events'
         @n.should_receive(:notify).with('users::event_occurred', 'registered_user', @u)
-        @handler.invoke @u
+        @handler.invoke @event
       end
 
       context "connection error during notification" do
@@ -76,7 +77,7 @@ module Users::RJR
           add_privilege @login_role, 'view', 'users_events'
           @n.should_receive(:notify).and_raise(::RJR::Errors::ConnectionError)
           lambda{
-            @handler.invoke @u
+            @handler.invoke @event
           }.should change{@registry.entities.size}.by(-1)
         end
       end
@@ -86,7 +87,7 @@ module Users::RJR
           add_privilege @login_role, 'view', 'users_events'
           @n.should_receive(:notify).and_raise(Exception)
           lambda{
-            @handler.invoke @u
+            @handler.invoke @event
           }.should change{@registry.entities.size}.by(-1)
         end
       end

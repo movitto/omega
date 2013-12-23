@@ -13,6 +13,7 @@ require 'rjr/nodes/tcp'
 require 'users/session'
 
 require 'users/attributes/other'
+require 'missions/event_handler'
 
 module Omega
 module Server
@@ -354,6 +355,16 @@ describe DSL do
 
       r = a.find(&matching { |e| e % 2 == 0})
       r.should == 2
+    end
+  end
+
+  describe "#in_subsystem" do
+    it "matches objects _not_ descending from the Omega::Server namespace" do
+      n1 = Omega::Server::EventHandler.new
+      n2 = Missions::EventHandler.new
+      y = Users::User.new
+      a = [n1,n2,y]
+      a.select(&in_subsystem).should == [y]
     end
   end
 

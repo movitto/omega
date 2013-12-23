@@ -12,7 +12,7 @@ describe RegisteredUser do
   describe "#initialize" do
     it "sets user" do
       u = Users::User.new
-      ru = RegisteredUser.new u
+      ru = RegisteredUser.new :user => u
       ru.user.should == u
     end
 
@@ -25,7 +25,7 @@ describe RegisteredUser do
   describe "#to_json" do
     it "returns the event in json format" do
       u = Users::User.new :id => 'user1'
-      ru = RegisteredUser.new u
+      ru = RegisteredUser.new :user => u
 
       j = ru.to_json
       j.should include('"json_class":"Users::Events::RegisteredUser"')
