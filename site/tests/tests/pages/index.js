@@ -55,17 +55,6 @@ describe("Omega.Pages.Index", function(){
           validate_cb = spy.getCall(0).args[1];
         })
 
-        it("clears session cookies", function(){
-          var clear_cookies = sinon.spy(session, 'clear_cookies');
-          validate_cb.apply(null, [{error : {}}]);
-          sinon.assert.called(clear_cookies);
-        });
-
-        it("nullifies session", function(){
-          validate_cb.apply(null, [{error : {}}]);
-          assert(index.session).isNull();
-        });
-
         it("invokes session_invalid", function(){
           var session_invalid = sinon.spy(index, "_session_invalid");
           validate_cb.apply(null, [{error : {}}]);
@@ -136,22 +125,6 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.called(preload);
     });
 
-    it("wires up canvas scene change", function(){
-      assert(index.canvas._listeners).isUndefined();
-      index._session_validated();
-      assert(index.canvas._listeners['set_scene_root'].length).equals(1);
-    });
-
-    describe("on canvas scene change", function(){
-      it("invokes page.scene_change", function(){
-        index._session_validated();
-        var scene_changed_cb = index.canvas._listeners['set_scene_root'][0];
-        var scene_change = sinon.stub(index, '_scene_change');
-        scene_changed_cb({data: 'change'});
-        sinon.assert.calledWith(scene_change, 'change')
-      });
-    })
-
     it("retrieves ships owned by user", function(){
       var spy = sinon.spy(Omega.Ship, 'owned_by');
       index._session_validated();
@@ -181,11 +154,57 @@ describe("Omega.Pages.Index", function(){
   })
 
   describe("#_session_invalid", function(){
+    var session, index;
+    before(function(){
+      index = new Omega.Pages.Index();
+      session = new Omega.Session();
+      index.session = session;
+    });
+
+    after(function(){
+      if(Omega.UI.Loader.preload.restore) Omega.UI.Loader.preload.restore();
+      if(Omega.Session.login.restore) Omega.Session.login.restore();
+    });
+
+    it("clears session cookies", function(){
+      var clear_cookies = sinon.spy(session, 'clear_cookies');
+      index._session_invalid();
+      sinon.assert.called(clear_cookies);
+    });
+
+    it("nullifies session", function(){
+      index._session_invalid();
+      assert(index.session).isNull();
+    });
+
     it("shows login controls", function(){
-      var index = new Omega.Pages.Index();
       var show_login = sinon.spy(index.nav, 'show_login_controls');
       index._session_invalid();
       sinon.assert.called(show_login);
+    });
+
+    it("preloads resources", function(){
+      var preload = sinon.spy(Omega.UI.Loader, 'preload');
+      index._session_invalid();
+      sinon.assert.called(preload);
+    });
+
+    it("logs anon user in", function(){
+      var login = sinon.spy(Omega.Session, 'login')
+      index._session_invalid();
+      sinon.assert.calledWith(login, sinon.match(function(u){
+        return u.id == Omega.Config.anon_user && u.password == Omega.Config.anon_pass;
+      }), index.node, sinon.match.func);
+    });
+
+    it("loads default entities", function(){
+      var login = sinon.spy(Omega.Session, 'login')
+      index._session_invalid();
+      var login_cb = login.getCall(0).args[2];
+
+      var load_default = sinon.spy(index, '_load_default_entities');
+      login_cb({});
+      sinon.assert.called(load_default);
     });
   });
 
@@ -542,6 +561,7 @@ describe("Omega.Pages.Index", function(){
                                location : new Omega.Location()})];
     });
 
+/// TODO remove?:
     after(function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
     });
@@ -569,7 +589,7 @@ describe("Omega.Pages.Index", function(){
     });
 
     after(function(){
-      if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+      if(Omega.UI.Loader.load_system.restore) Omega.UI.Loader.load_system.restore();
     })
 
     it("stores entity in registry", function(){
@@ -584,20 +604,27 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("retrieves systems entities are in", function(){
-      var spy = sinon.spy(Omega.SolarSystem, 'with_id');
+      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_entity(ship);
-      sinon.assert.calledWith(spy, 'sys1', index.node, sinon.match.func);
+      sinon.assert.calledWith(load_system, 'sys1', index, sinon.match.func);
     });
 
     it("processes systems retrieved", function(){
-      var spy = sinon.spy(Omega.SolarSystem, 'with_id');
+      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_entity(ship);
-      var cb = spy.getCall(0).args[2];
+      var cb = load_system.getCall(0).args[2];
 
       spy = sinon.stub(index, 'process_system');
       var sys1 = {};
       cb(sys1);
       sinon.assert.calledWith(spy, sys1);
+    });
+
+    it("sets solar system on entity", function(){
+      var system = new Omega.SolarSystem();
+      sinon.stub(Omega.UI.Loader, 'load_system').returns(system);
+      index.process_entity(ship);
+      assert(ship.solar_system).equals(system);
     });
 
     it("tracks ships", function(){
@@ -777,8 +804,8 @@ describe("Omega.Pages.Index", function(){
     });
 
     after(function(){
-      if(Omega.Galaxy.with_id.restore) Omega.Galaxy.with_id.restore();
-      if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
+      if(Omega.UI.Loader.load_system.restore) Omega.UI.Loader.load_system.restore();
+      if(Omega.UI.Loader.load_galaxy.restore) Omega.UI.Loader.load_galaxy.restore();
     });
 
     it("stores system in local entity registry", function(){
@@ -807,15 +834,15 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("adds retrieves galaxy system is in", function(){
-      var spy = sinon.spy(Omega.Galaxy, 'with_id');
+      var load_galaxy = sinon.spy(Omega.UI.Loader, 'load_galaxy');
       index.process_system(system)
-      sinon.assert.calledWith(spy, system.parent_id);
+      sinon.assert.calledWith(load_galaxy, system.parent_id, index, sinon.match.func);
     });
 
     it("processes galaxy", function(){
-      var spy = sinon.spy(Omega.Galaxy, 'with_id');
+      var load_galaxy = sinon.spy(Omega.UI.Loader, 'load_galaxy');
       index.process_system(system)
-      var cb = spy.getCall(0).args[2];
+      var cb = load_galaxy.getCall(0).args[2];
 
       spy = sinon.spy(index, 'process_galaxy');
       var galaxy = new Omega.Galaxy();
@@ -835,17 +862,17 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("retrieves missing jg endpoints", function(){
-      var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_system(system);
-      sinon.assert.calledWith(with_id, endpoint.id, index.node, sinon.match.func);
+      sinon.assert.calledWith(load_system, endpoint.id, index, sinon.match.func);
     });
 
     it("processes system with jg endpoints retrieved", function(){
-      var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_system(system);
 
       var process_system = sinon.spy(index, 'process_system');
-      var retrieval_cb = with_id.getCall(0).args[2];
+      var retrieval_cb = load_system.getCall(0).args[2];
       retrieval_cb(endpoint);
       sinon.assert.calledWith(process_system, endpoint);
     });
@@ -961,10 +988,26 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.called(wire_canvas);
     });
 
+    it("wires up canvas scene change", function(){
+      assert(index.canvas._listeners).isUndefined();
+      index.wire_up();
+      assert(index.canvas._listeners['set_scene_root'].length).equals(1);
+    });
+
+    describe("on canvas scene change", function(){
+      it("invokes page.scene_change", function(){
+        index.wire_up();
+        var scene_changed_cb = index.canvas._listeners['set_scene_root'][0];
+        var scene_change = sinon.stub(index, '_scene_change');
+        scene_changed_cb({data: 'change'});
+        sinon.assert.calledWith(scene_change, 'change')
+      });
+    })
+
     it("instructs status indicator to follow node", function(){
       var spy   = sinon.spy(index.status_indicator, 'follow_node');
       index.wire_up();
       sinon.assert.calledWith(spy, index.node);
-    })
+    });
   });
 });});

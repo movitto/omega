@@ -90,21 +90,23 @@ Omega.UI.Loader = {
   load_system : function(system_id, page, retrieval_cb){
     var system = page.entity(system_id);
     if(!system){
+      if(!retrieval_cb) retrieval_cb = function(){};
       page.entity(system_id, Omega.UI.Loader.placeholder);
       Omega.SolarSystem.with_id(system_id, page.node, retrieval_cb)
     }
 
-    return system;
+    return system ? system : Omega.UI.Loader.placeholder;
   },
 
   /// TODO: same comment about persistent caching as w/ load_system above
   load_galaxy : function(galaxy_id, page, retrieval_cb){
     var galaxy = page.entity(galaxy_id);
     if(!galaxy){
+      if(!retrieval_cb) retrieval_cb = function(){};
       page.entity(galaxy_id, Omega.UI.Loader.placeholder);
       Omega.Galaxy.with_id(galaxy_id, page.node, retrieval_cb)
     }
 
-    return galaxy;
+    return galaxy ? galaxy : Omega.UI.Loader.placeholder;
   }
 };

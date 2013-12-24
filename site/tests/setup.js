@@ -15,10 +15,11 @@ Omega.Pages.Test = function(parameters){
 
 Omega.Pages.Test.prototype = {
   process_entity : function(entity){},
+  entity : function(){},
 
   all_entities : function(){
     return Omega.obj_values(this.entities);
-  }
+  },
 }
 
 Omega.Test = {
@@ -277,6 +278,9 @@ sinon.match.ofType = function(expected){
 QUnit.config.autostart = false;
 
 Omega.Test.init = function(){
+  /// clear cookies
+  Omega.Session.prototype.clear_cookies();
+
   /// preload all canvas entity resources before starting test suite
   var loaded = 0, entities_with_resources = [];
   var start_on_load = function(){

@@ -112,9 +112,11 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     Omega.Stat.get('systems_with_most', ['entities', 5], this.node,
       function(stat_result){
-        for(var s = 0; s < stat_result.value.length; s++){
-          Omega.UI.Loader.load_system(stat_result.value[s], _this,
-            function(solar_system) { _this.process_system(solar_system); });
+        if(stat_result){
+          for(var s = 0; s < stat_result.value.length; s++){
+            Omega.UI.Loader.load_system(stat_result.value[s], _this,
+              function(solar_system) { _this.process_system(solar_system); });
+          }
         }
       });
   },
