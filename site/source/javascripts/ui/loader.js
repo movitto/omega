@@ -90,9 +90,12 @@ Omega.UI.Loader = {
   load_system : function(system_id, page, retrieval_cb){
     var system = page.entity(system_id);
     if(!system){
-      if(!retrieval_cb) retrieval_cb = function(){};
       page.entity(system_id, Omega.UI.Loader.placeholder);
-      Omega.SolarSystem.with_id(system_id, page.node, retrieval_cb)
+      Omega.SolarSystem.with_id(system_id, page.node,
+        function(system){
+          page.entity(system_id, system);
+          if(retrieval_cb) retrieval_cb(system);
+        });
     }
 
     return system ? system : Omega.UI.Loader.placeholder;
@@ -102,9 +105,12 @@ Omega.UI.Loader = {
   load_galaxy : function(galaxy_id, page, retrieval_cb){
     var galaxy = page.entity(galaxy_id);
     if(!galaxy){
-      if(!retrieval_cb) retrieval_cb = function(){};
       page.entity(galaxy_id, Omega.UI.Loader.placeholder);
-      Omega.Galaxy.with_id(galaxy_id, page.node, retrieval_cb)
+      Omega.Galaxy.with_id(galaxy_id, page.node,
+        function(galaxy){
+          page.entity(galaxy_id, galaxy);
+          if(retrieval_cb) retrieval_cb(galaxy);
+        });
     }
 
     return galaxy ? galaxy : Omega.UI.Loader.placeholder;

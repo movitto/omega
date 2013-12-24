@@ -108,7 +108,6 @@ describe("Omega.Pages.Index", function(){
     });
 
     after(function(){
-      if(Omega.UI.Loader.preload.restore) Omega.UI.Loader.preload.restore();
       if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
       if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
     });
@@ -117,12 +116,6 @@ describe("Omega.Pages.Index", function(){
       spy = sinon.spy(index.nav, 'show_logout_controls');
       index._session_validated();
       sinon.assert.called(spy);
-    });
-
-    it("preloads resources", function(){
-      var preload = sinon.spy(Omega.UI.Loader, 'preload');
-      index._session_validated();
-      sinon.assert.called(preload);
     });
 
     it("retrieves ships owned by user", function(){
@@ -162,7 +155,6 @@ describe("Omega.Pages.Index", function(){
     });
 
     after(function(){
-      if(Omega.UI.Loader.preload.restore) Omega.UI.Loader.preload.restore();
       if(Omega.Session.login.restore) Omega.Session.login.restore();
     });
 
@@ -181,12 +173,6 @@ describe("Omega.Pages.Index", function(){
       var show_login = sinon.spy(index.nav, 'show_login_controls');
       index._session_invalid();
       sinon.assert.called(show_login);
-    });
-
-    it("preloads resources", function(){
-      var preload = sinon.spy(Omega.UI.Loader, 'preload');
-      index._session_invalid();
-      sinon.assert.called(preload);
     });
 
     it("logs anon user in", function(){
@@ -808,11 +794,6 @@ describe("Omega.Pages.Index", function(){
       if(Omega.UI.Loader.load_galaxy.restore) Omega.UI.Loader.load_galaxy.restore();
     });
 
-    it("stores system in local entity registry", function(){
-      index.process_system(system);
-      assert(index.entity(system.id)).equals(system);
-    });
-
     it("sets solar_system attribute of local registry entities that reference the system", function(){
       var ship1 = new Omega.Ship({id : 'sh1', system_id : system.id})
       index.entity(ship1.id, ship1);
@@ -890,13 +871,6 @@ describe("Omega.Pages.Index", function(){
     before(function(){
       index = new Omega.Pages.Index();
     });
-
-    it("stores galaxy in local entity registry", function(){
-      var galaxy = new Omega.Galaxy({id: 'galaxy1'});
-      var index  = new Omega.Pages.Index();
-      index.process_galaxy(galaxy);
-      assert(index.entity(galaxy.id)).equals(galaxy);
-    })
 
     it("adds galaxy to locations_list", function(){
       var index = new Omega.Pages.Index();

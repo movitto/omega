@@ -58,6 +58,8 @@ Omega.Pages.Index.prototype = {
   validate_session : function(){
     var _this = this;
     this.session = Omega.Session.restore_from_cookie();
+    /// TODO split out anon user session into third case where we: (?)
+    /// - show login controls, load default entities
     if(this.session != null && this.session.user_id != this.config.anon_user){
       this.session.validate(this.node, function(result){
         if(result.error){
@@ -75,9 +77,6 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     this.nav.show_logout_controls();
 
-    /// preload resources
-    Omega.UI.Loader.preload();
-
     /// load entities owned by user
     Omega.Ship.owned_by(this.session.user_id, this.node,
       function(ships) { _this.process_entities(ships); });
@@ -91,9 +90,6 @@ Omega.Pages.Index.prototype = {
     if(_this.session) _this.session.clear_cookies();
     _this.session = null;
     this.nav.show_login_controls();
-
-    // preload resources
-    Omega.UI.Loader.preload();
 
     // login as anon
     var anon = new Omega.User({id : this.config.anon_user,
@@ -354,7 +350,6 @@ Omega.Pages.Index.prototype = {
   process_system : function(system){
     if(system == null) return;
     var _this = this;
-    this.entity(system.id, system);
     var sitem  = {id: system.id, text: system.name, data: system};
     this.canvas.controls.locations_list.add(sitem);
 
@@ -384,7 +379,6 @@ Omega.Pages.Index.prototype = {
 
   process_galaxy : function(galaxy){
     if(galaxy == null) return;
-    this.entity(galaxy.id, galaxy);
     var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
     this.canvas.controls.locations_list.add(gitem);
 
@@ -395,6 +389,10 @@ Omega.Pages.Index.prototype = {
 $(document).ready(function(){
   if(Omega.Test) return;
 
+  // immediately start preloading missing resources
+  Omega.UI.Loader.preload();
+
+  // wire up / startup ui
   var index = new Omega.Pages.Index();
   index.wire_up();
   index.canvas.setup();

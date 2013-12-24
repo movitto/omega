@@ -39,10 +39,31 @@ describe("Omega.UI.Loader", function(){
 
       it("retrieves system with specified id", function(){
         var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
-        var cb = function(){};
-        Omega.UI.Loader.load_system('system1', page, cb)
-        sinon.assert.calledWith(with_id, 'system1', page.node, cb);
+        Omega.UI.Loader.load_system('system1', page)
+        sinon.assert.calledWith(with_id, 'system1', page.node, sinon.match.func);
       });
+
+      it("stores system in page entity registry", function(){
+        var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+        Omega.UI.Loader.load_system('system1', page)
+
+        var with_id_cb = with_id.getCall(0).args[2];
+        var system = new Omega.SolarSystem();
+        var set = sinon.spy(page, 'entity')
+        with_id_cb(system)
+        sinon.assert.calledWith(set, 'system1', system);
+      })
+
+      it("invokes callback", function(){
+        var cb = sinon.spy();
+        var with_id = sinon.spy(Omega.SolarSystem, 'with_id');
+        Omega.UI.Loader.load_system('system1', page, cb)
+
+        var with_id_cb = with_id.getCall(0).args[2];
+        var system = new Omega.SolarSystem();
+        with_id_cb(system)
+        sinon.assert.calledWith(cb, system);
+      })
     })
   });
 
@@ -76,8 +97,30 @@ describe("Omega.UI.Loader", function(){
         var with_id = sinon.spy(Omega.Galaxy, 'with_id');
         var cb = function(){};
         Omega.UI.Loader.load_galaxy('galaxy1', page, cb)
-        sinon.assert.calledWith(with_id, 'galaxy1', page.node, cb);
+        sinon.assert.calledWith(with_id, 'galaxy1', page.node, sinon.match.func);
       });
+
+      it("stores galaxy in page entity registry", function(){
+        var with_id = sinon.spy(Omega.Galaxy, 'with_id');
+        Omega.UI.Loader.load_galaxy('galaxy1', page)
+
+        var with_id_cb = with_id.getCall(0).args[2];
+        var galaxy = new Omega.Galaxy();
+        var set = sinon.spy(page, 'entity')
+        with_id_cb(galaxy)
+        sinon.assert.calledWith(set, 'galaxy1', galaxy);
+      });
+
+      it("invokes callback", function(){
+        var cb = sinon.spy();
+        var with_id = sinon.spy(Omega.Galaxy, 'with_id');
+        Omega.UI.Loader.load_galaxy('galaxy1', page, cb)
+
+        var with_id_cb = with_id.getCall(0).args[2];
+        var galaxy = new Omega.Galaxy();
+        with_id_cb(galaxy)
+        sinon.assert.calledWith(cb, galaxy);
+      })
     })
   });
 });});
