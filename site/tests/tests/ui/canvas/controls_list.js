@@ -26,6 +26,15 @@ describe("Omega.UI.CanvasControlsList", function(){
     });
   });
 
+  describe("#clear", function(){
+    it("clears list items", function(){
+      var item = {};
+      list.add(item)
+      list.clear();
+      assert(list.list().children('li').length).equals(0);
+    });
+  });
+
   describe("#add", function(){
     it("adds new li to list", function(){
       var item = {};
@@ -52,4 +61,3 @@ describe("Omega.UI.CanvasControlsList", function(){
     });
   });
 });});
-

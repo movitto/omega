@@ -108,10 +108,16 @@ describe("Omega.UI.IndexNav", function(){
       sinon.assert.called(spy);
     });
 
-    it("shows login controls", function(){
-      var spy = sinon.spy(nav, 'show_login_controls');
+    it("clears entities list", function(){
+      var clear_entities = sinon.spy(page.canvas.controls.entities_list, 'clear');
       nav.logout_link.click();
-      sinon.assert.called(spy);
+      sinon.assert.calledWith(clear_entities);
+    });
+
+    it("invokes page session_invalid", function(){
+      var session_invalid = sinon.spy(page, '_session_invalid');
+      nav.logout_link.click();
+      sinon.assert.called(session_invalid);
     });
   });
 

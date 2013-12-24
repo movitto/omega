@@ -47,9 +47,9 @@ Omega.UI.IndexNav.prototype = {
   },
 
   _logout_clicked : function(evnt){
-    /// TODO clear locations/entities lists in canvas controls
     this.page.session.logout(this.page.node);
-    this.show_login_controls();
+    this.page.canvas.controls.entities_list.clear();
+    this.page._session_invalid();
   },
 
   _register_clicked : function(evnt){
