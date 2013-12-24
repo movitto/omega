@@ -268,17 +268,10 @@ Omega.Pages.Index.prototype = {
     var item   = {id: entity.id, text: entity.id, data: entity};
     this.canvas.controls.entities_list.add(item);
 
-    /// TODO persistent caching mechanism so cosmos data doesn't
-    /// have to be retrieved on each page request
-    var system = this.entity(entity.system_id);
-    if(!system){
-      this.entity(entity.system_id, 'placeholder');
-      Omega.SolarSystem.with_id(entity.system_id, this.node,
-        function(solar_system) { _this.process_system(solar_system) });
-
-    }else if(system != 'placeholder'){
+    var system = Omega.UI.Loader.load_system(entity.system_id, this,
+      function(solar_system) { _this.process_system(solar_system); });
+    if(system && system != Omega.UI.Loader.placeholder)
       entity.solar_system = system;
-    }
 
     if(entity.json_class == 'Manufactured::Ship')
       this.track_ship(entity);
@@ -345,25 +338,19 @@ Omega.Pages.Index.prototype = {
         this.entities[e].update_children_from(this.all_entities());
     }
 
-    var galaxy = this.entity(system.parent_id);
-    if(!galaxy){
-      this.entity(system.parent_id, 'placeholder');
-      Omega.Galaxy.with_id(system.parent_id, this.node,
-        function(galaxy) { _this.process_galaxy(galaxy) });
-    }else if(galaxy != 'placeholder'){
+    var galaxy = Omega.UI.Loader.load_galaxy(system.parent_id, this,
+      function(galaxy) { _this.process_galaxy(galaxy) });
+    if(galaxy && galaxy != Omega.UI.Loader.placeholder)
       galaxy.set_children_from(this.all_entities());
-    }
 
     // load missing jump gate endpoints
     var gates = system.jump_gates();
     for(var j = 0; j < gates.length; j++){
       var gate = gates[j];
-      var endpoint = this.entity(gate.endpoint_id);
-      if(!endpoint){
-        this.entity(gate.endpoint_id, 'placeholder');
-        Omega.SolarSystem.with_id(gate.endpoint_id, this.node,
-          function(system){ _this.process_system(system); });
-      }
+      Omega.UI.Loader.load_system(gate.endpoint_id, this,
+        function(system){
+          _this.process_system(system);
+        });
     }
     system.update_children_from(this.all_entities());
   },

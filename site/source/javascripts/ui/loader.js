@@ -5,6 +5,7 @@
  */
 
 Omega.UI.Loader = {
+  placeholder : 'PLACEHOLDER',
   status_indicator : null,
 
   preload : function(){
@@ -27,7 +28,6 @@ Omega.UI.Loader = {
 
     this.preload_resources(config, event_cb);
     this.preload_skybox(config, event_cb);
-    /// TODO load cosmos entities/heirarchies ?
   },
 
   _entities_to_preload : function(config){
@@ -82,5 +82,29 @@ Omega.UI.Loader = {
     if(!Omega.UI.Loader.json_loader)
       Omega.UI.Loader.json_loader = new THREE.JSONLoader();
     return Omega.UI.Loader.json_loader;
+  },
+
+  /// TODO persistent caching mechanism so cosmos data doesn't
+  /// have to be retrieved on each page request w/ mechanism
+  /// for server to invalidate client data
+  load_system : function(system_id, page, retrieval_cb){
+    var system = page.entity(system_id);
+    if(!system){
+      page.entity(system_id, Omega.UI.Loader.placeholder);
+      Omega.SolarSystem.with_id(system_id, page.node, retrieval_cb)
+    }
+
+    return system;
+  },
+
+  /// TODO: same comment about persistent caching as w/ load_system above
+  load_galaxy : function(galaxy_id, page, retrieval_cb){
+    var galaxy = page.entity(galaxy_id);
+    if(!galaxy){
+      page.entity(galaxy_id, Omega.UI.Loader.placeholder);
+      Omega.Galaxy.with_id(galaxy_id, page.node, retrieval_cb)
+    }
+
+    return galaxy;
   }
 };
