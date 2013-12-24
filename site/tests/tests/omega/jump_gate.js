@@ -27,6 +27,7 @@ describe("Omega.JumpGate", function(){
 
     before(function(){
       details_cb = sinon.spy();
+      page.session = new Omega.Session();
     });
 
     it("invokes details cb with jg endpoint id, location, and trigger command", function(){
@@ -41,6 +42,14 @@ describe("Omega.JumpGate", function(){
       assert(details[1][0].id).equals('trigger_jg_jg1');
       assert(details[1][0].className).equals('trigger_jg details_command');
       assert(details[1].text()).equals('trigger');
+    });
+
+    describe("page session is null", function(){
+      it("does not invoke details with trigger command", function(){
+        page.session = null;
+        jg.retrieve_details(page, details_cb);
+        assert(details_cb.getCall(0).args[0].length).equals(1);
+      });
     });
 
     it("sets jump gate in trigger command data", function(){

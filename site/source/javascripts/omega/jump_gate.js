@@ -32,7 +32,9 @@ Omega.JumpGate.prototype = {
     var _this = this;
     trigger_cmd.click(function(){ _this._trigger(page); });
 
-    var details = [title + '<br/>' + loc + '<br/><br/>', trigger_cmd];
+    /// exclude trigger_cmd if page.session is null
+    var details_text = title + '<br/>' + loc + '<br/><br/>';
+    var details = page.session ? [details_text, trigger_cmd] : [details_text];
     details_cb(details);
   },
 
