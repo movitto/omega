@@ -10,6 +10,16 @@ module Stats
 
 ################################################################
 
+universe_id_proc = proc {
+  Stats::RJR.universe_id
+}
+
+universe_id = Stat.new(:id => :universe_id,
+                       :description => 'Unique ID of the universe',
+                       :generator   => universe_id_proc)
+
+################################################################
+
 # Return number of specified entity
 
 num_of_proc = proc { |entity_type|
@@ -179,7 +189,7 @@ systems_with_most = Stat.new(:id => :systems_with_most,
 
 ################################################################
 
-STATISTICS = [num_of, users_with_most, users_with_least, systems_with_most]
+STATISTICS = [universe_id, num_of, users_with_most, users_with_least, systems_with_most]
 
 def  self.get_stat(id)
   STATISTICS.find { |s| s.id.to_s == id.to_s}

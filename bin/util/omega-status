@@ -19,7 +19,7 @@ stats     = false
 
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
-    pp opts
+    puts opts
     exit
   end
 
@@ -66,6 +66,7 @@ if stats
   node.message_headers['session_id'] = session.id
 
   require 'stats/stat'
+  pp "universe_id:          #{node.invoke(url, 'stats::get', 'universe_id')}"
   pp "num_of users:         #{node.invoke(url, 'stats::get', 'num_of', 'users')}"
   pp "num_of entities:      #{node.invoke(url, 'stats::get', 'num_of', 'entities')}"
   pp "num_of ships:         #{node.invoke(url, 'stats::get', 'num_of', 'ships')}"

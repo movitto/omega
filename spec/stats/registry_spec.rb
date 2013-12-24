@@ -11,7 +11,7 @@ describe Stats do
 
   it "has statistics" do
     Stats::STATISTICS.collect { |s| s.id }.should ==
-      [:num_of, :users_with_most, :users_with_least, :systems_with_most]
+      [:universe_id, :num_of, :users_with_most, :users_with_least, :systems_with_most]
   end
 
   describe "#get_stat" do
@@ -19,6 +19,22 @@ describe Stats do
       s = Stats.get_stat(:num_of)
       s.should be_an_instance_of(Stats::Stat)
       s.id.should == :num_of
+    end
+  end
+
+  describe "#universe_id" do
+    before(:each) do
+      @universe_id = Stats::RJR.universe_id
+      @stat = Stats.get_stat(:universe_id)
+    end
+
+    after(:each) do
+      Stats::RJR.universe_id = @universe_id
+    end
+
+    it "returns universe id" do
+      Stats::RJR.universe_id = 'foobar'
+      @stat.generate.value.should == 'foobar'
     end
   end
 

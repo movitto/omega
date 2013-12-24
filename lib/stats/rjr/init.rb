@@ -18,17 +18,21 @@ module RJR
 
   class << self
     # @!group Config options
+
+    # Unique universe identifier
+    attr_accessor :universe_id
   
     # User to use to communicate w/ other modules over the local rjr node
     attr_accessor :stats_rjr_username
   
     # Password to use to communicate w/ other modules over the local rjr node
     attr_accessor :stats_rjr_password
-  
+
     # Set config options using Omega::Config instance
     #
     # @param [Omega::Config] config object containing config options
     def set_config(config)
+      self.universe_id         = config.universe_id    || Motel.gen_uuid # XXX gen_uuid should be moved into omega/common
       self.stats_rjr_username  = config.stats_rjr_user
       self.stats_rjr_password  = config.stats_rjr_pass
     end

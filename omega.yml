@@ -10,6 +10,7 @@ permenant_users: ['admin', 'anon', 'manufactured', 'cosmos', 'users', 'missions'
 user_perms_enabled: true
 user_attrs_enabled: false
 
+#universe_id: 'universe1'
 node_id: 'omega'
 node_types: ['amqp', 'tcp', 'ws', 'www', 'local']
 
