@@ -44,6 +44,12 @@ Omega.Pages.Index.prototype = {
     this.dialog.wire_up();
     this.canvas.wire_up();
 
+    /// handle scene changes
+    var _this = this;
+    if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
+      this.canvas.addEventListener('set_scene_root',
+        function(change){ _this._scene_change(change.data); })
+
     /// wire up status_indicator
     this.status_indicator.follow_node(this.node, 'loading');
     Omega.UI.Loader.status_indicator = this.status_indicator;
@@ -52,11 +58,9 @@ Omega.Pages.Index.prototype = {
   validate_session : function(){
     var _this = this;
     this.session = Omega.Session.restore_from_cookie();
-    if(this.session != null){
+    if(this.session != null && this.session.user_id != this.config.anon_user){
       this.session.validate(this.node, function(result){
         if(result.error){
-          if(_this.session) _this.session.clear_cookies();
-          _this.session = null;
           _this._session_invalid();
         }else{
           _this._session_validated();
@@ -74,11 +78,6 @@ Omega.Pages.Index.prototype = {
     /// preload resources
     Omega.UI.Loader.preload();
 
-    /// handle scene changes
-    if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
-      this.canvas.addEventListener('set_scene_root',
-        function(change){ _this._scene_change(change.data); })
-
     /// load entities owned by user
     Omega.Ship.owned_by(this.session.user_id, this.node,
       function(ships) { _this.process_entities(ships); });
@@ -87,12 +86,37 @@ Omega.Pages.Index.prototype = {
   },
 
   _session_invalid : function(){
+    var _this = this;
+
+    if(_this.session) _this.session.clear_cookies();
+    _this.session = null;
     this.nav.show_login_controls();
 
     // preload resources
     Omega.UI.Loader.preload();
 
-    // TODO load/display cosmos
+    // login as anon
+    var anon = new Omega.User({id : this.config.anon_user,
+                               password : this.config.anon_pass});
+    Omega.Session.login(anon, this.node, function(result){
+      if(result.error){
+        //_this.dialog.show_critical_error_dialog();
+      }else{
+        _this._load_default_entities();
+      }
+    });
+  },
+
+  _load_default_entities : function(){
+    // load systems w/ most ships/stations
+    var _this = this;
+    Omega.Stat.get('systems_with_most', ['entities', 5], this.node,
+      function(stat_result){
+        for(var s = 0; s < stat_result.value.length; s++){
+          Omega.UI.Loader.load_system(stat_result.value[s], _this,
+            function(solar_system) { _this.process_system(solar_system); });
+        }
+      });
   },
 
   _scene_change : function(change){
@@ -216,7 +240,8 @@ Omega.Pages.Index.prototype = {
       var entity = entities[e];
 
       var local      = this.entity(entity.id);
-      var user_owned = entity.user_id == this.session.user_id;
+      var user_owned = this.session != null ?
+                         entity.user_id == this.session.user_id : false;
       var same_scene = this.canvas.root.id == entity.system_id;
       var in_scene   = this.canvas.has(entity.id);
       var tracking   = $.grep(entity_map.start_tracking, function(track_entity){
