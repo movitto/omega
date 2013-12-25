@@ -65,17 +65,78 @@ RJR.JRMessage.convert_params = function(params){
   for(var p = 0; p < params.length; p++){
     var param = params[p];
     if(RJR.is_jr_object(param)){
-      // FIXME need to check each param property as well (converting if necessary)
-      var json_class = param['json_class'];
-      delete param['json_class'];
-      jrparams.push({json_class: json_class,
-                     data      :      param});
-    }else if(RJR.is_array(param))
+      jrparams.push(RJR.JRMessage.convert_obj_to_jr_obj(param));
+    }else if(RJR.is_array(param)){
+      /// TODO s/convert_params/convert_array_to_jr_array here ?
+      /// (or could the whole convert_params method could be
+      ///  consolidated with that one ?)
       jrparams.push(RJR.JRMessage.convert_params(param));
-    else
+    }else
       jrparams.push(param);
   }
   return jrparams;
+}
+
+// Convert single json object to jr object
+RJR.JRMessage.convert_obj_to_jr_obj= function(obj){
+  var jr_obj = $.extend(true, {}, obj)
+  var json_class = jr_obj['json_class'];
+  delete jr_obj['json_class'];
+
+  /// iterate over object properties
+  for(var p in jr_obj){
+    if(RJR.is_jr_object(jr_obj[p]))
+      jr_obj[p] = RJR.JRMessage.convert_obj_to_jr_obj(jr_obj[p]);
+    else if(RJR.is_array(jr_obj[p]))
+      jr_obj[p] = RJR.JRMessage.convert_array_to_jr_array(jr_obj[p]);
+  }
+
+  return {json_class: json_class,
+          data      :    jr_obj};
+}
+
+// Convert single json object from jr object
+RJR.JRMessage.convert_obj_from_jr_obj = function(jr_obj){
+  var obj = $.extend(true, {}, jr_obj)
+  if(obj.data){
+    $.extend(obj, obj.data);
+    delete obj['data'];
+  }
+
+  for(var p in obj){
+    if(RJR.is_jr_object(obj[p]))
+      obj[p] = RJR.JRMessage.convert_obj_from_jr_obj(obj[p]);
+    else if(RJR.is_array(obj[p]))
+      obj[p] = RJR.JRMessage.convert_array_from_jr_array(obj[p]);
+  }
+
+  return obj;
+}
+
+// Recursively convert array to jr object array
+RJR.JRMessage.convert_array_to_jr_array = function(array){
+  var jr_array = $.extend(true, [], array)
+  for(var a = 0; a < jr_array.length; a++){
+    if(RJR.is_jr_object(jr_array[a]))
+      jr_array[a] = RJR.JRMessage.convert_obj_to_jr_obj(jr_array[a]);
+    else if(RJR.is_array(jr_array[a]))
+      jr_array[a] = RJR.JRMesage.convert_array_to_jr_array(jr_array[a]);
+  }
+
+  return jr_array;
+}
+
+// Convert json object array from jr object array
+RJR.JRMessage.convert_array_from_jr_array = function(jr_array){
+  var array = $.extend(true, [], jr_array)
+  for(var a = 0; a < array.length; a++){
+    if(RJR.is_jr_object(array[a]))
+      array[a] = RJR.JRMessage.convert_obj_from_jr_obj(array[a]);
+    else if(RJR.is_array(jr_array[a]))
+      array[a] = RJR.JRMessage.convert_array_from_jr_array(array[a]);
+  }
+
+  return array;
 }
 
 // Parse a json string to a JRMessage
