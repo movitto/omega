@@ -19,7 +19,8 @@ Omega.Location.prototype = {
   json_class : 'Motel::Location',
 
   toJSON : function(){
-    return {x : this.x,
+    return {json_class : this.json_class,
+            x : this.x,
             y : this.y,
             z : this.z,
             parent_id : this.parent_id};

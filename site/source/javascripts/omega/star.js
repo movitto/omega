@@ -19,6 +19,16 @@ Omega.Star.prototype = {
   constructor: Omega.Star,
   json_class : 'Cosmos::Entities::Star',
 
+  toJSON : function(){
+    return {json_class : this.json_class,
+            id         : this.id,
+            name       : this.name,
+            location   : this.location,
+            parent_id  : this.parent_id,
+            color      : this.color,
+            size       : this.size};
+  },
+
   async_gfx : 2,
 
   load_gfx : function(config, event_cb){

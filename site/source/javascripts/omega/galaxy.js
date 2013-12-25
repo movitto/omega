@@ -21,6 +21,19 @@ Omega.Galaxy.prototype = {
   constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
+  toJSON : function(){
+    var children_json = [];
+    for(var c = 0; c < this.children.length; c++)
+      children_json.push(this.children[c].toJSON())
+
+    return {json_class : this.json_class,
+            id         : this.id,
+            name       : this.name,
+            location   : this.location.toJSON(),
+            parent_id  : this.parent_id,
+            children   : children_json};
+  },
+
   systems : function(){
     return $.grep(this.children, function(c){
       return c.json_class &&

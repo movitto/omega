@@ -18,6 +18,15 @@ Omega.JumpGate.prototype = {
   constructor : Omega.JumpGate,
   json_class : 'Cosmos::Entities::JumpGate',
 
+  toJSON : function(){
+    return {json_class  : this.json_class,
+            id          : this.id,
+            name        : this.name,
+            location    : this.location,
+            parent_id   : this.parent_id,
+            endpoint_id : this.endpoint_id};
+  },
+
   has_details : true,
 
   retrieve_details : function(page, details_cb){

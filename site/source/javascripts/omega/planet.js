@@ -19,6 +19,16 @@ Omega.Planet.prototype = {
   constructor: Omega.Planet,
   json_class : 'Cosmos::Entities::Planet',
 
+  toJSON : function(){
+    return {json_class : this.json_class,
+            id         : this.id,
+            name       : this.name,
+            location   : this.location,
+            parent_id  : this.parent_id,
+            color      : this.color,
+            size       : this.size};
+  },
+
   /// TODO: centralize number of planet textures
   _num_textures : 4,
 
