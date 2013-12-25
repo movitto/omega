@@ -21,13 +21,21 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#validate_session", function(){
+    var index, session_valid, session_invalid;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+
+      session_valid = sinon.stub(index, '_session_validated');
+      session_invalid = sinon.stub(index, '_session_invalid');
+    });
+
     after(function(){
       if(Omega.Session.restore_from_cookie.restore) Omega.Session.restore_from_cookie.restore();
     });
 
     it("restores session from cookie", function(){
       var restore = sinon.spy(Omega.Session, 'restore_from_cookie');
-      var index = new Omega.Pages.Index();
       index.validate_session();
       sinon.assert.called(restore);
     });
@@ -37,45 +45,38 @@ describe("Omega.Pages.Index", function(){
         var session = new Omega.Session();
         var spy = sinon.spy(session, 'validate');
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-        var index = new Omega.Pages.Index();
         index.validate_session();
         sinon.assert.calledWith(spy, index.node);
       });
 
       describe("session is not valid", function(){
-        var session, index, validate_cb;
+        var session, validate_cb;
 
         before(function(){
           session = new Omega.Session();
           var spy = sinon.spy(session, 'validate');
           var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
 
-          index = new Omega.Pages.Index();
           index.validate_session();
           validate_cb = spy.getCall(0).args[1];
         })
 
         it("invokes session_invalid", function(){
-          var session_invalid = sinon.spy(index, "_session_invalid");
           validate_cb.apply(null, [{error : {}}]);
           sinon.assert.called(session_invalid);
         });
       });
 
       describe("user session is valid", function(){
-        var index, session, validate_cb, session_validated;
+        var session, validate_cb, session_validated;
 
         before(function(){
           session = new Omega.Session({user_id: 'user1'});
           var spy = sinon.spy(session, 'validate');
           sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
 
-          index = new Omega.Pages.Index();
           index.validate_session();
           validate_cb = spy.getCall(0).args[1];
-
-          // stub out session validated
-          session_validated = sinon.spy(index, '_session_validated');
         })
 
         after(function(){
@@ -84,7 +85,7 @@ describe("Omega.Pages.Index", function(){
 
         it("invokes session_validated", function(){
           validate_cb.apply(null, [{}]);
-          sinon.assert.called(session_validated);
+          sinon.assert.called(session_valid);
         })
       });
     });
@@ -92,8 +93,6 @@ describe("Omega.Pages.Index", function(){
     describe("#session is null", function(){
       it("invokes session_invalid", function(){
         var stub = sinon.stub(Omega.Session, 'restore_from_cookie').returns(null);
-        var index = new Omega.Pages.Index();
-        var session_invalid = sinon.spy(index, "_session_invalid");
         index.validate_session();
         sinon.assert.called(session_invalid);
       });
@@ -101,6 +100,39 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#_session_validated", function(){
+    var index, load_universe, load_user_entities;
+    before(function(){
+      index = new Omega.Pages.Index();
+
+      /// stub out call to load_universe and load_user_entities
+      load_universe = sinon.stub(Omega.UI.Loader, 'load_universe');
+      load_user_entities = sinon.stub(index, '_load_user_entities');
+    });
+
+    after(function(){
+      Omega.UI.Loader.load_universe.restore();
+    });
+
+    it("shows logout controls", function(){
+      spy = sinon.spy(index.nav, 'show_logout_controls');
+      index._session_validated();
+      sinon.assert.called(spy);
+    });
+
+    it("loads universe id", function(){
+      index._session_validated();
+      sinon.assert.calledWith(load_universe, index, sinon.match.func);
+    });
+
+    it("loads user entities", function(){
+      index._session_validated();
+      var load_cb = load_universe.getCall(0).args[1];
+      load_cb();
+      sinon.assert.called(load_user_entities);
+    });
+  });
+
+  describe("#_load_user_entities", function(){
     var index;
     before(function(){
       index = new Omega.Pages.Index();
@@ -112,28 +144,22 @@ describe("Omega.Pages.Index", function(){
       if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
     });
 
-    it("shows logout controls", function(){
-      spy = sinon.spy(index.nav, 'show_logout_controls');
-      index._session_validated();
-      sinon.assert.called(spy);
-    });
-
     it("retrieves ships owned by user", function(){
       var spy = sinon.spy(Omega.Ship, 'owned_by');
-      index._session_validated();
+      index._load_user_entities();
       sinon.assert.calledWith(spy, index.session.user_id, index.node, sinon.match.func);
     });
 
     it("retrieves stations owned by user", function(){
       var spy = sinon.spy(Omega.Station, 'owned_by');
-      index._session_validated();
+      index._load_user_entities();
       sinon.assert.calledWith(spy, index.session.user_id, index.node, sinon.match.func);
     });
 
     it("processes entities retrieved", function(){
       var shspy = sinon.spy(Omega.Ship, 'owned_by');
       var stspy = sinon.spy(Omega.Station, 'owned_by');
-      index._session_validated();
+      index._load_user_entities();
 
       var shcb = shspy.getCall(0).args[2];
       var stcb = stspy.getCall(0).args[2];
@@ -147,14 +173,18 @@ describe("Omega.Pages.Index", function(){
   })
 
   describe("#_session_invalid", function(){
-    var session, index;
+    var session, index, load_universe;
     before(function(){
       index = new Omega.Pages.Index();
       session = new Omega.Session();
       index.session = session;
+
+      /// stub out load universe call
+      load_universe = sinon.stub(Omega.UI.Loader, 'load_universe');
     });
 
     after(function(){
+      Omega.UI.Loader.load_universe.restore();
       if(Omega.Session.login.restore) Omega.Session.login.restore();
     });
 
@@ -176,20 +206,32 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("logs anon user in", function(){
-      var login = sinon.spy(Omega.Session, 'login')
+      var login = sinon.stub(Omega.Session, 'login')
       index._session_invalid();
       sinon.assert.calledWith(login, sinon.match(function(u){
         return u.id == Omega.Config.anon_user && u.password == Omega.Config.anon_pass;
       }), index.node, sinon.match.func);
     });
 
-    it("loads default entities", function(){
-      var login = sinon.spy(Omega.Session, 'login')
+    it("loads universe id", function(){
+      var login = sinon.stub(Omega.Session, 'login')
+
       index._session_invalid();
       var login_cb = login.getCall(0).args[2];
 
-      var load_default = sinon.spy(index, '_load_default_entities');
       login_cb({});
+      sinon.assert.calledWith(load_universe, index, sinon.match.func);
+    });
+
+    it("loads default entities", function(){
+      var login = sinon.stub(Omega.Session, 'login')
+      index._session_invalid();
+      var login_cb = login.getCall(0).args[2];
+      login_cb({});
+
+      var load_cb = load_universe.getCall(0).args[1];
+      var load_default = sinon.stub(index, '_load_default_entities');
+      load_cb();
       sinon.assert.called(load_default);
     });
   });
@@ -553,13 +595,16 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("handles events", function(){
+      // stub out process_entity
+      sinon.stub(index, 'process_entity');
+
       var handle_events = sinon.spy(index, 'handle_events');
       index.process_entities(ships);
       sinon.assert.called(handle_events);
     });
 
     it("invokes process_entity with each entity", function(){
-      var process_entity = sinon.spy(index, 'process_entity');
+      var process_entity = sinon.stub(index, 'process_entity');
       index.process_entities(ships);
       sinon.assert.calledWith(process_entity, ships[0]);
       sinon.assert.calledWith(process_entity, ships[1]);
@@ -567,15 +612,20 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#process_entity", function(){
-    var index, ship, station;
+    var index, ship, station, load_system;
     before(function(){
       index = new Omega.Pages.Index();
       ship  = new Omega.Ship({id: 'sh1', system_id: 'sys1', location : new Omega.Location()});
       station = new Omega.Station({id : 'st1', system_id : 'sys1', location : new Omega.Location()})
+
+      /// stub out load system, galaxy
+      load_system = sinon.stub(Omega.UI.Loader, 'load_system');
+      sinon.stub(Omega.UI.Loader, 'load_galaxy');
     });
 
     after(function(){
-      if(Omega.UI.Loader.load_system.restore) Omega.UI.Loader.load_system.restore();
+      Omega.UI.Loader.load_system.restore();
+      Omega.UI.Loader.load_galaxy.restore();
     })
 
     it("stores entity in registry", function(){
@@ -590,13 +640,11 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("retrieves systems entities are in", function(){
-      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_entity(ship);
       sinon.assert.calledWith(load_system, 'sys1', index, sinon.match.func);
     });
 
     it("processes systems retrieved", function(){
-      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_entity(ship);
       var cb = load_system.getCall(0).args[2];
 
@@ -608,6 +656,7 @@ describe("Omega.Pages.Index", function(){
 
     it("sets solar system on entity", function(){
       var system = new Omega.SolarSystem();
+      Omega.UI.Loader.load_system.restore(); /// XXX
       sinon.stub(Omega.UI.Loader, 'load_system').returns(system);
       index.process_entity(ship);
       assert(ship.solar_system).equals(system);
@@ -779,7 +828,7 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#process_system", function(){
-    var index, system;
+    var index, system, load_system;
 
     before(function(){
       index = new Omega.Pages.Index();
@@ -787,6 +836,8 @@ describe("Omega.Pages.Index", function(){
       jg = new Omega.JumpGate({endpoint_id : endpoint.id})
       system = new Omega.SolarSystem({id: 'system1', name: 'systema',
                                       parent_id: 'gal1', children: [jg]});
+      load_system = sinon.stub(Omega.UI.Loader, 'load_system');
+      load_galaxy = sinon.stub(Omega.UI.Loader, 'load_galaxy');
     });
 
     after(function(){
@@ -815,17 +866,15 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("adds retrieves galaxy system is in", function(){
-      var load_galaxy = sinon.spy(Omega.UI.Loader, 'load_galaxy');
       index.process_system(system)
       sinon.assert.calledWith(load_galaxy, system.parent_id, index, sinon.match.func);
     });
 
     it("processes galaxy", function(){
-      var load_galaxy = sinon.spy(Omega.UI.Loader, 'load_galaxy');
       index.process_system(system)
       var cb = load_galaxy.getCall(0).args[2];
 
-      spy = sinon.spy(index, 'process_galaxy');
+      spy = sinon.stub(index, 'process_galaxy');
       var galaxy = new Omega.Galaxy();
       cb(galaxy);
       sinon.assert.calledWith(spy, galaxy);
@@ -835,6 +884,7 @@ describe("Omega.Pages.Index", function(){
       it("updates galaxy children from local entity registry", function(){
         var galaxy = new Omega.Galaxy({id : system.parent_id});
         index.entity(galaxy.id, galaxy)
+        Omega.UI.Loader.load_galaxy.restore();
 
         var set_children = sinon.spy(galaxy, 'set_children_from');
         index.process_system(system);
@@ -843,16 +893,14 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("retrieves missing jg endpoints", function(){
-      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_system(system);
       sinon.assert.calledWith(load_system, endpoint.id, index, sinon.match.func);
     });
 
     it("processes system with jg endpoints retrieved", function(){
-      var load_system = sinon.spy(Omega.UI.Loader, 'load_system');
       index.process_system(system);
 
-      var process_system = sinon.spy(index, 'process_system');
+      var process_system = sinon.stub(index, 'process_system');
       var retrieval_cb = load_system.getCall(0).args[2];
       retrieval_cb(endpoint);
       sinon.assert.calledWith(process_system, endpoint);

@@ -79,12 +79,18 @@ Omega.Pages.Index.prototype = {
 
     // grab universe id
     Omega.UI.Loader.load_universe(this, function(){
-      /// load entities owned by user
-      Omega.Ship.owned_by(_this.session.user_id, this.node,
-        function(ships) { _this.process_entities(ships); });
-      Omega.Station.owned_by(_this.session.user_id, this.node,
-        function(stations) { _this.process_entities(stations); });
+      _this._load_user_entities();
     });
+  },
+
+  _load_user_entities : function(){
+    var _this = this;
+
+    /// load entities owned by user
+    Omega.Ship.owned_by(this.session.user_id, this.node,
+      function(ships) { _this.process_entities(ships); });
+    Omega.Station.owned_by(this.session.user_id, this.node,
+      function(stations) { _this.process_entities(stations); });
   },
 
   _session_invalid : function(){

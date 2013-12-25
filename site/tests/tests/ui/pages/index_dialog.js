@@ -173,7 +173,7 @@ describe("Omega.UI.IndexDialog", function(){
   });
 
   describe("login button clicked", function(){
-    var dialog, page;
+    var dialog, page, login;
 
     before(function(){
       page = new Omega.Pages.Index();
@@ -182,27 +182,27 @@ describe("Omega.UI.IndexDialog", function(){
 
       $('#login_username').attr('value', 'uid');
       $('#login_password').attr('value', 'ups');
+
+      login = sinon.stub(Omega.Session, 'login')
     })
 
     after(function(){
-      if(Omega.Session.login.restore) Omega.Session.login.restore();
+      Omega.Session.login.restore();
       Omega.Test.clear_events();
     })
 
     it("logs user in with session", function(){
-      var spy = sinon.spy(Omega.Session, 'login')
       dialog.login_button.click();
-      sinon.assert.calledWith(spy, sinon.match(function(v){
+      sinon.assert.calledWith(login, sinon.match(function(v){
         return v.id == 'uid' && v.password == 'ups';
       }), page.node);
     });
 
     describe("login error", function(){
       it("shows login_failed dialog", function(){
-        var spy = sinon.stub(Omega.Session, 'login')
         dialog.login_button.click();
 
-        var login_callback = spy.getCall(0).args[2];
+        var login_callback = login.getCall(0).args[2];
         spy = sinon.spy(dialog, 'show_login_failed_dialog');
         login_callback.apply(null, [{error: {message: 'invalid credentials'}}]);
         sinon.assert.calledWith(spy, 'invalid credentials');
@@ -213,9 +213,8 @@ describe("Omega.UI.IndexDialog", function(){
       var login_callback, session, session_validated;
 
       before(function(){
-        var stub = sinon.stub(Omega.Session, 'login')
         dialog.login_button.click();
-        login_callback = stub.getCall(0).args[2];
+        login_callback = login.getCall(0).args[2];
         session = new Omega.Session();
         session.id = 'foo'
 

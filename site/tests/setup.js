@@ -9,13 +9,19 @@
 //////////////////////////////// helper methods/data
 
 Omega.Pages.Test = function(parameters){
+  this.entities = {};
   this.config  = Omega.Config;
   $.extend(this, parameters);
 }
 
 Omega.Pages.Test.prototype = {
   process_entity : function(entity){},
-  entity : function(){},
+  entity : function(){
+    /// XXX copied from index, need to introduce common page base and/or helpers
+    if(arguments.length > 1)
+      this.entities[arguments[0]] = arguments[1];
+    return this.entities[arguments[0]];
+  },
 
   all_entities : function(){
     return Omega.obj_values(this.entities);
@@ -98,8 +104,9 @@ Omega.Test.Canvas.Entities = function(event_cb){
 //function before_all(details){
 //}
 
-//function before_each(details){
-//}
+function before_each(details){
+  Omega.UI.Loader.clear_storage();
+}
 
 //function after_each(details){
 //}
@@ -108,7 +115,7 @@ Omega.Test.Canvas.Entities = function(event_cb){
 //}
 
 //QUnit.moduleStart(before_all);
-//QUnit.testStart(before_each);
+QUnit.testStart(before_each);
 //QUnit.testDone(after_each);
 //QUnit.moduleDone(after_all);
 
