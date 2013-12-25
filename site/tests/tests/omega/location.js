@@ -11,7 +11,8 @@ describe("Omega.Location", function(){
   describe("#toJSON", function(){
     it("returns location in json format", function(){
       var expected = {json_class : 'Motel::Location',
-                      x : 50, y : -50, z : 100, parent_id : 42};
+                      x : 50, y : -50, z : 100, parent_id : 42,
+                      movement_strategy : {}};
       var loc = new Omega.Location(expected);
       assert(loc.toJSON()).isSameAs(expected);
     });

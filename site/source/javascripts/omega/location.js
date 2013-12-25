@@ -23,7 +23,8 @@ Omega.Location.prototype = {
             x : this.x,
             y : this.y,
             z : this.z,
-            parent_id : this.parent_id};
+            parent_id : this.parent_id,
+            movement_strategy : this.movement_strategy};
   },
 
   clone : function(){

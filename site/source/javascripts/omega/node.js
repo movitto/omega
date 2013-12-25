@@ -4,6 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO handle page visibility changes? connect/disconnect websocket?
+/// also need to handle visiblity change & reregister tracking callbacks in pages
+
 Omega.Node = function(parameters){
   this.http_host   = 'localhost';
   this.http_path   = '/omega';

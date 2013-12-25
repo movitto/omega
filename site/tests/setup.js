@@ -101,8 +101,10 @@ Omega.Test.Canvas.Entities = function(event_cb){
 
 //////////////////////////////// test hooks
 
-//function before_all(details){
-//}
+function before_all(details){
+  /// clear cookies
+  Omega.Session.prototype.clear_cookies();
+}
 
 function before_each(details){
   Omega.UI.Loader.clear_storage();
@@ -111,13 +113,15 @@ function before_each(details){
 //function after_each(details){
 //}
 
-//function after_all(details){
-//}
+function after_all(details){
+  /// clear cookies
+  Omega.Session.prototype.clear_cookies();
+}
 
-//QUnit.moduleStart(before_all);
+QUnit.moduleStart(before_all);
 QUnit.testStart(before_each);
 //QUnit.testDone(after_each);
-//QUnit.moduleDone(after_all);
+QUnit.moduleDone(after_all);
 
 //////////////////////////////// custom assertions
 
@@ -285,9 +289,6 @@ sinon.match.ofType = function(expected){
 QUnit.config.autostart = false;
 
 Omega.Test.init = function(){
-  /// clear cookies
-  Omega.Session.prototype.clear_cookies();
-
   /// preload all canvas entity resources before starting test suite
   var loaded = 0, entities_with_resources = [];
   var start_on_load = function(){

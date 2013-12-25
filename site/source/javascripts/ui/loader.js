@@ -90,6 +90,7 @@ Omega.UI.Loader = {
     $.localStorage.removeAll();
   },
 
+  /// TODO url param that when detected will always force a cache invalidation
   load_universe : function(page, retrieval_cb){
     /// retrieve & store universe_id stat,
     Omega.Stat.get('universe_id', null, page.node,
