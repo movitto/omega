@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/jquery.storageapi-1.6.0.min"
+
 Omega.UI.Loader = {
   placeholder : 'PLACEHOLDER',
   status_indicator : null,
@@ -84,35 +86,98 @@ Omega.UI.Loader = {
     return Omega.UI.Loader.json_loader;
   },
 
-  /// TODO persistent caching mechanism so cosmos data doesn't
-  /// have to be retrieved on each page request w/ mechanism
-  /// for server to invalidate client data
+  clear_storage : function(){
+    $.localStorage.removeAll();
+  },
+
+  load_universe : function(page, retrieval_cb){
+    /// retrieve & store universe_id stat,
+    Omega.Stat.get('universe_id', null, page.node,
+      function(stat_result){
+        /// if different than existing one, invalidate stored cosmos data
+        var orig = $.localStorage.get('omega.universe_id');
+        if(orig != stat_result.value){
+          var keys = $.localStorage.keys();
+          for(var k = 0; k < keys.length; k++){
+            if(keys[k].substr(0, 13) == 'omega.cosmos.'){
+              $.localStorage.remove(keys[k]);
+            }
+          }
+        }
+
+        $.localStorage.set('omega.universe_id', stat_result.value);
+        if(retrieval_cb) retrieval_cb(stat_result.value);
+      });
+  },
+
   load_system : function(system_id, page, retrieval_cb){
+    /// first try to load from page cache
     var system = page.entity(system_id);
-    if(!system){
-      page.entity(system_id, Omega.UI.Loader.placeholder);
+    if(system){
+      /// XXX for consistency would like to uncomment,
+      /// but will result in infite recursive call w/
+      /// how load_system is currently used, need to fix
+      //if(retrieval_cb) retrieval_cb(system);
+      return system;
+    }
+
+    /// then from browser storage
+    system = $.localStorage.get('omega.cosmos.' + system_id);
+    if(system && system != Omega.UI.Loader.placeholder){
+      system = RJR.JRMessage.convert_obj_from_jr_obj(system);
+      system = new Omega.SolarSystem(system);
+      page.entity(system_id, system);
+      if(retrieval_cb) retrieval_cb(system);
+      return system;
+
+    /// then from server
+    }else if(!system){
+      system = Omega.UI.Loader.placeholder;
+      page.entity(system_id, system);
+
       Omega.SolarSystem.with_id(system_id, page.node,
         function(system){
           page.entity(system_id, system);
+          var jr_system = RJR.JRMessage.convert_obj_to_jr_obj(system.toJSON());
+          $.localStorage.set('omega.cosmos.' + system_id, jr_system);
           if(retrieval_cb) retrieval_cb(system);
         });
     }
 
-    return system ? system : Omega.UI.Loader.placeholder;
+    return system;
   },
 
-  /// TODO: same comment about persistent caching as w/ load_system above
   load_galaxy : function(galaxy_id, page, retrieval_cb){
+    /// first try to load from page cache
     var galaxy = page.entity(galaxy_id);
-    if(!galaxy){
-      page.entity(galaxy_id, Omega.UI.Loader.placeholder);
+    if(galaxy){
+      /// same note about retrieval_cb as in load_system above
+      return galaxy;
+    }
+
+    /// then from browser storage
+    galaxy = $.localStorage.get('omega.cosmos.' + galaxy_id);
+    if(galaxy && galaxy != Omega.UI.Loader.placeholder){
+      galaxy = RJR.JRMessage.convert_obj_from_jr_obj(galaxy);
+      galaxy = new Omega.Galaxy(galaxy);
+      page.entity(galaxy_id, galaxy);
+      if(retrieval_cb) retrieval_cb(galaxy);
+      return galaxy;
+
+    /// then from server
+    }else if(!galaxy){
+      galaxy = Omega.UI.Loader.placeholder;
+      page.entity(galaxy_id, galaxy);
+
       Omega.Galaxy.with_id(galaxy_id, page.node,
         function(galaxy){
           page.entity(galaxy_id, galaxy);
+          var jr_galaxy = RJR.JRMessage.convert_obj_to_jr_obj(galaxy.toJSON());
+          $.localStorage.set('omega.cosmos.' + galaxy_id, jr_galaxy);
           if(retrieval_cb) retrieval_cb(galaxy);
         });
     }
 
-    return galaxy ? galaxy : Omega.UI.Loader.placeholder;
+    return galaxy;
   }
 };

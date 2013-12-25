@@ -77,11 +77,14 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     this.nav.show_logout_controls();
 
-    /// load entities owned by user
-    Omega.Ship.owned_by(this.session.user_id, this.node,
-      function(ships) { _this.process_entities(ships); });
-    Omega.Station.owned_by(this.session.user_id, this.node,
-      function(stations) { _this.process_entities(stations); });
+    // grab universe id
+    Omega.UI.Loader.load_universe(this, function(){
+      /// load entities owned by user
+      Omega.Ship.owned_by(_this.session.user_id, this.node,
+        function(ships) { _this.process_entities(ships); });
+      Omega.Station.owned_by(_this.session.user_id, this.node,
+        function(stations) { _this.process_entities(stations); });
+    });
   },
 
   _session_invalid : function(){
@@ -98,7 +101,9 @@ Omega.Pages.Index.prototype = {
       if(result.error){
         //_this.dialog.show_critical_error_dialog();
       }else{
-        _this._load_default_entities();
+        Omega.UI.Loader.load_universe(_this, function(){
+          _this._load_default_entities();
+        });
       }
     });
   },
