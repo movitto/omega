@@ -24,6 +24,25 @@ describe("Omega.SolarSystem", function(){
     assert(system.location.z).equals(30);
   });
 
+  describe("#toJSON", function(){
+    it("returns system json data", function(){
+      var sys  = {id        : 'sys1',
+                  name      : 'sys1n',
+                  parent_id : 'gal1',
+                  location  : new Omega.Location({id : 'sys1l'}),
+                  children  : [new Omega.Star({id : 'star1',
+                                 location : new Omega.Location({id:'loc1'})})]};
+
+      var osys = new Omega.SolarSystem(sys);
+      var json = osys.toJSON();
+
+      sys.json_class  = osys.json_class;
+      sys.location    = sys.location.toJSON();
+      sys.children[0] = sys.children[0].toJSON();
+      assert(json).isSameAs(sys);
+    });
+  });
+
   describe("#asteroids", function(){
     it("returns asteroid children", function(){
       var ast1 = new Omega.Asteroid();

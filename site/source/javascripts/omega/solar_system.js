@@ -30,7 +30,7 @@ Omega.SolarSystem.prototype = {
     return {json_class : this.json_class,
             id         : this.id,
             name       : this.name,
-            location   : this.location.toJSON(),
+            location   : this.location ? this.location.toJSON() : null,
             parent_id  : this.parent_id,
             children   : children_json};
   },

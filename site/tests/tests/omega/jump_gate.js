@@ -22,6 +22,23 @@ describe("Omega.JumpGate", function(){
     assert(jump_gate.location.z).equals(30);
   });
 
+  describe("#toJSON", function(){
+    it("returns jump gate json data", function(){
+      var jg  = {id          : 'jg1',
+                 name        : 'jg1n',
+                 parent_id   : 'sys1',
+                 location    : new Omega.Location({id : 'jg1l'}),
+                 endpoint_id : 'sys2'};
+
+      var ojg  = new Omega.JumpGate(jg);
+      var json = ojg.toJSON();
+
+      jg.json_class  = ojg.json_class;
+      jg.location    = jg.location.toJSON();
+      assert(json).isSameAs(jg);
+    });
+  });
+
   describe("#retrieve_details", function(){
     var details_cb;
 

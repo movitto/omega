@@ -8,6 +8,23 @@ describe("Omega.Asteroid", function(){
     assert(ast.location.z).equals(30);
   });
 
+  describe("#toJSON", function(){
+    it("returns asteroid json data", function(){
+      var ast  = {id        : 'ast1',
+                  name      : 'ast1n',
+                  location  : new Omega.Location({id : 'ast1l'}),
+                  parent_id : 'system1',
+                  color     : '0A0A0A',
+                  size      : 100}
+      var oast = new Omega.Asteroid(ast);
+      var json = oast.toJSON();
+
+      ast.json_class = oast.json_class;
+      ast.location = ast.location.toJSON();
+      assert(json).isSameAs(ast);
+    });
+  });
+
   describe("#retrieve_details", function(){
     var ast, page, details_cb;
 

@@ -29,8 +29,7 @@ Omega.Galaxy.prototype = {
     return {json_class : this.json_class,
             id         : this.id,
             name       : this.name,
-            location   : this.location.toJSON(),
-            parent_id  : this.parent_id,
+            location   : this.location ? this.location.toJSON() : null,
             children   : children_json};
   },
 

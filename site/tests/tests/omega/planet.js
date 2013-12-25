@@ -9,6 +9,24 @@ describe("Omega.Planet", function(){
     assert(planet.location.z).equals(30);
   });
 
+  describe("#toJSON", function(){
+    it("returns planet json data", function(){
+      var pl  = {id          : 'pl1',
+                 name        : 'pl1n',
+                 parent_id   : 'sys1',
+                 location    : new Omega.Location({id : 'pl1l'}),
+                 color       : 'ABABAB',
+                 size        : 100};
+
+      var opl  = new Omega.Planet(pl);
+      var json = opl.toJSON();
+
+      pl.json_class  = opl.json_class;
+      pl.location    = pl.location.toJSON();
+      assert(json).isSameAs(pl);
+    });
+  });
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;

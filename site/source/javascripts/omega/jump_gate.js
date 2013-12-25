@@ -22,7 +22,7 @@ Omega.JumpGate.prototype = {
     return {json_class  : this.json_class,
             id          : this.id,
             name        : this.name,
-            location    : this.location,
+            location    : this.location ? this.location.toJSON() : null,
             parent_id   : this.parent_id,
             endpoint_id : this.endpoint_id};
   },

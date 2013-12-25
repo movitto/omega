@@ -5,6 +5,24 @@ describe("Omega.Galaxy", function(){
     assert(galaxy.bg).equals(1);
   });
 
+  describe("#toJSON", function(){
+    it("returns galaxy json data", function(){
+      var gal  = {id        : 'gal1',
+                  name      : 'gal1n',
+                  location  : new Omega.Location({id : 'gal1l'}),
+                  children  : [new Omega.SolarSystem({id : 'sys1',
+                                 location : new Omega.Location({id:'loc1'})})]};
+
+      var ogal = new Omega.Galaxy(gal);
+      var json = ogal.toJSON();
+
+      gal.json_class  = ogal.json_class;
+      gal.location    = gal.location.toJSON();
+      gal.children[0] = gal.children[0].toJSON();
+      assert(json).isSameAs(gal);
+    });
+  });
+
   it("converts children", function(){
     var system = {json_class: 'Cosmos::Entities::SolarSystem', id: 'sys1'};
     var galaxy = new Omega.Galaxy({children: [system]});

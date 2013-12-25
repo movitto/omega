@@ -5,6 +5,24 @@ describe("Omega.Star", function(){
     assert(star.color_int).equals(0xABABAB);
   });
 
+  describe("#toJSON", function(){
+    it("returns planet json data", function(){
+      var st  = {id          : 'st1',
+                 name        : 'st1n',
+                 parent_id   : 'sys1',
+                 location    : new Omega.Location({id : 'st1l'}),
+                 color       : 'ABABAB',
+                 size        : 100};
+
+      var ost  = new Omega.Star(st);
+      var json = ost.toJSON();
+
+      st.json_class  = ost.json_class;
+      st.location    = st.location.toJSON();
+      assert(json).isSameAs(st);
+    });
+  });
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
       var orig;
