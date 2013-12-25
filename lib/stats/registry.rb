@@ -173,6 +173,7 @@ systems_with_most_proc = proc { |entity_type, num_to_return|
                  h[e.system_id] += 1; h
               }.sort_by { |k,v| v }.reverse.
               collect { |e| e.first }
+    # FIXME append the systems w/ 0 entities
 
   end
 
