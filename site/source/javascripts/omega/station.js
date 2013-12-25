@@ -45,6 +45,7 @@ Omega.Station.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
+    /// TODO do not display if ship does not belong to current user:
     var _this = this;
     var construct_cmd = $('<span/>',
       {id    : 'station_construct_' + this.id,
