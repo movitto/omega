@@ -40,6 +40,9 @@ Omega.UI.CanvasControls.prototype = {
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         _this.canvas.set_scene_root(item.solar_system);
+        _this.canvas.cam.position.set(item.location.x + 500,
+                                      item.location.y + 500,
+                                      item.location.z + 500);
         _this.canvas.focus_on(item.location);
         _this.canvas._clicked_entity(item);
       })
