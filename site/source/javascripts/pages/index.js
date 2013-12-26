@@ -132,6 +132,7 @@ Omega.Pages.Index.prototype = {
           }
         }
       });
+
   },
 
   _scene_change : function(change){
@@ -211,6 +212,8 @@ Omega.Pages.Index.prototype = {
     }
   },
 
+  /// TODO remove planet tracking, current planet effects cycle moves it anyways;
+  /// need to invoke update planet locations on scene change so as to sync up
   _track_scene_planets : function(entities, root, old_root){
     /// remove tracking of old planets
     if(old_root && old_root.json_class == 'Cosmos::Entities::SolarSystem'){
@@ -267,13 +270,9 @@ Omega.Pages.Index.prototype = {
       if(!user_owned){
         this.entity(entity.id, entity);
 
-        /// XXX !!! really ugly, incase old entity is already part of scene
-        if(local != null){
-          entity.components        = local.components;
-          entity.shader_components = local.shader_components;
-        }
-
-        if(same_scene && !in_scene && entity.hp > 0)
+        if(local && in_scene)
+          this.canvas.remove(local);
+        if(same_scene && entity.hp > 0)
           this.canvas.add(entity);
         if(!tracking){
           if(entity.json_class == 'Manufactured::Ship')
@@ -281,6 +280,8 @@ Omega.Pages.Index.prototype = {
           else
             this.track_station(entity);
         }
+
+        /// TODO if logged in as anon, also add entity to entity_list if not present
       }
     }
   },

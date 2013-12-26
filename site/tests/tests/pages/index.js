@@ -500,7 +500,8 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#_process_retrieved_scene_entities", function(){
-    var index, system, ship1, ship2, station1, entities, entity_map, canvas_add;
+    var index, system, ship1, ship2, station1, entities, entity_map,
+        canvas_add, canvas_remove;
 
     before(function(){
       index = new Omega.Pages.Index();
@@ -512,6 +513,7 @@ describe("Omega.Pages.Index", function(){
                                location : new Omega.Location()});
       ship2 = new Omega.Ship({ id : 'sh2', user_id : 'user43', system_id : 'system43', hp : 100,
                                location : new Omega.Location()});
+      lship2 = new Omega.Ship({ id : 'sh2', user_id : 'user43', system_id : 'system43'});
       ship3 = new Omega.Ship({ id : 'sh3', user_id : 'user43', system_id : 'system43', hp : 0,
                                location : new Omega.Location()});
       ship4 = new Omega.Ship({ id : 'sh4', user_id : 'user43', system_id : 'system43', hp : 100,
@@ -525,13 +527,16 @@ describe("Omega.Pages.Index", function(){
       entities = [ship1, ship2, ship3, ship4, ship5, station1, station2];
       entity_map = {start_tracking : [ship5, station2]}
 
+      index.entity(lship2.id, lship2);
       index.canvas.root = system;
-      index.canvas.entities = [ship4.id];
+      index.canvas.entities = [ship2.id, ship4.id];
       canvas_add = sinon.stub(index.canvas, 'add');
+      canvas_remove = sinon.stub(index.canvas, 'remove');
     });
 
     after(function(){
       index.canvas.add.restore();
+      index.canvas.remove.restore();
     });
 
     it("does not process user owned entities", function(){
@@ -549,15 +554,22 @@ describe("Omega.Pages.Index", function(){
       assert(index.entity(station2.id)).equals(station2);
     });
 
-    describe("entity has hp > 0, is under scene root, but not in scene", function(){
+    describe("local entity is in scene", function(){
+      it("removes entity from scene", function(){
+        index._process_retrieved_scene_entities(entities, entity_map);
+        sinon.assert.calledWith(canvas_remove, lship2);
+      });
+    });
+
+    describe("entity has hp > 0 and is under scene root", function(){
       it("adds entity to canvas scene", function(){
         index._process_retrieved_scene_entities(entities, entity_map);
         sinon.assert.calledWith(canvas_add, ship2);
+        sinon.assert.calledWith(canvas_add, ship4);
         sinon.assert.calledWith(canvas_add, ship5);
         sinon.assert.calledWith(canvas_add, station1);
         sinon.assert.calledWith(canvas_add, station2);
         sinon.assert.neverCalledWith(canvas_add, ship3);
-        sinon.assert.neverCalledWith(canvas_add, ship4);
       });
     });
 
