@@ -5,6 +5,8 @@
  */
 
 Omega.UI.EffectsPlayer = function(parameters){
+  this.entities = [];
+
   /// need handle to page to
   /// - get canvas scene entities
   this.page = null;
@@ -28,6 +30,17 @@ Omega.UI.EffectsPlayer.prototype = {
     });
   },
 
+  add : function(entity){
+    this.entities.push(entity);
+  },
+
+  remove : function(entity_id){
+    var entity = $.grep(this.entities, function(e){
+      return e.id == entity_id;
+    })[0];
+    this.entities.splice(this.entities.indexOf(entity), 1);
+  },
+
   start : function(){
     this._create_timer();
     this.effects_timer.play();
@@ -45,11 +58,9 @@ Omega.UI.EffectsPlayer.prototype = {
   },
 
   _run_effects : function(){
-    var objects = this.page.canvas.scene.getDescendants();
-    for(var c = 0; c < objects.length; c++){
-      var obj = objects[c];
-      if(obj.omega_entity && obj.omega_entity.run_effects)
-        obj.omega_entity.run_effects();
+    for(var e = 0; e < this.entities.length; e++){
+      var entity = this.entities[e];
+      if(entity.run_effects) entity.run_effects();
     }
     this.page.canvas.animate();
   }

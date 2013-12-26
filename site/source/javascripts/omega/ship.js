@@ -491,6 +491,7 @@ Omega.Ship.prototype = {
     });
 
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
+    this.highlight.omega_entity = this;
     this.highlight.run_effects = Omega.Ship.gfx[this.type].highlight.run_effects; /// XXX
     if(this.location)
       this.highlight.position.add(new THREE.Vector3(this.location.x,

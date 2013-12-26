@@ -208,6 +208,7 @@ Omega.UI.Canvas.prototype = {
     for(var cc = 0; cc < entity.shader_components.length; cc++)
       this.shader_scene.add(entity.shader_components[cc]);
 
+    this.page.effects_player.add(entity);
     this.entities.push(entity.id);
   },
 
@@ -221,6 +222,7 @@ Omega.UI.Canvas.prototype = {
     /// remove event listener
     entity.removeEventListener('loaded_mesh', entity.sceneReload);
 
+    this.page.effects_player.remove(entity.id);
     var index = this.entities.indexOf(entity.id);
     if(index != -1) this.entities.splice(index, 1);
   },

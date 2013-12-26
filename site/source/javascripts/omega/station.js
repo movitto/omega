@@ -182,6 +182,7 @@ Omega.Station.prototype = {
     });
 
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
+    this.highlight.omega_entity = this;
     this.highlight.run_effects = Omega.Station.gfx[this.type].highlight.run_effects; /// XXX
     this.highlight.position.set(this.highlight_props.x,
                                 this.highlight_props.y,
