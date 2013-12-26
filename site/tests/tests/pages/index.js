@@ -119,6 +119,12 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.called(spy);
     });
 
+    it("handles events", function(){
+      var handle_events = sinon.spy(index, 'handle_events');
+      index._session_validated();
+      sinon.assert.called(handle_events);
+    });
+
     it("loads universe id", function(){
       index._session_validated();
       sinon.assert.calledWith(load_universe, index, sinon.match.func);
@@ -211,6 +217,16 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(login, sinon.match(function(u){
         return u.id == Omega.Config.anon_user && u.password == Omega.Config.anon_pass;
       }), index.node, sinon.match.func);
+    });
+
+    it("handles events", function(){
+      var login = sinon.stub(Omega.Session, 'login')
+      index._session_invalid();
+
+      var handle_events = sinon.spy(index, 'handle_events');
+      var login_cb = login.getCall(0).args[2];
+      login_cb({});
+      sinon.assert.called(handle_events);
     });
 
     it("loads universe id", function(){
@@ -592,15 +608,6 @@ describe("Omega.Pages.Index", function(){
 /// TODO remove?:
     after(function(){
       if(Omega.SolarSystem.with_id.restore) Omega.SolarSystem.with_id.restore();
-    });
-
-    it("handles events", function(){
-      // stub out process_entity
-      sinon.stub(index, 'process_entity');
-
-      var handle_events = sinon.spy(index, 'handle_events');
-      index.process_entities(ships);
-      sinon.assert.called(handle_events);
     });
 
     it("invokes process_entity with each entity", function(){

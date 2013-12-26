@@ -77,6 +77,9 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     this.nav.show_logout_controls();
 
+    /// setup callback handlers
+    this.handle_events();
+
     // grab universe id
     Omega.UI.Loader.load_universe(this, function(){
       _this._load_user_entities();
@@ -107,6 +110,9 @@ Omega.Pages.Index.prototype = {
       if(result.error){
         //_this.dialog.show_critical_error_dialog();
       }else{
+        /// setup callback handlers
+        _this.handle_events();
+
         Omega.UI.Loader.load_universe(_this, function(){
           _this._load_default_entities();
         });
@@ -287,9 +293,6 @@ Omega.Pages.Index.prototype = {
   },
 
   process_entities : function(entities){
-    /// setup callback handlers
-    this.handle_events();
-
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
       this.process_entity(entity);
