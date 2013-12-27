@@ -136,6 +136,7 @@ Omega.Pages.Index.prototype = {
 
   },
 
+/// FIXME selected entity not dissapearing / being unselected on scene change
   _scene_change : function(change){
     var _this    = this;
     var root     = change.root,

@@ -4,6 +4,8 @@
  * Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO follow selected entity w/ camera?
+
 Omega.UI.CanvasEntityContainer = function(parameters){
   this.entity = null;
 
