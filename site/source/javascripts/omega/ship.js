@@ -77,6 +77,7 @@ Omega.Ship.prototype = {
   retrieve_details : function(page, details_cb){
     var title = 'Ship: ' + this.id;
     var loc   = '@ ' + this.location.to_s();
+    var orien = '> ' + this.location.orientation_s();
     var hp    = 'HP: ' + this.hp;
 
     var resources = ['Resources:'];
@@ -85,7 +86,7 @@ Omega.Ship.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
-    var details = [title, loc, hp].concat(resources);
+    var details = [title, loc, orien, hp].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
 
     if(page.session && this.belongs_to_user(page.session.user_id)){

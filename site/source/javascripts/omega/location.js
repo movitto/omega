@@ -64,6 +64,14 @@ Omega.Location.prototype = {
            Omega.Math.round_to(this.z, 2);
   },
 
+  /* Convert orientation to short, human readable string
+   */
+  orientation_s : function(){
+    return Omega.Math.round_to(this.orientation_x, 2) + "/" +
+           Omega.Math.round_to(this.orientation_y, 2) + "/" +
+           Omega.Math.round_to(this.orientation_z, 2);
+  },
+
   /// return rotation matrix generated from axis angle
   /// between location's orientation and base cartesion
   /// orientation we're using
