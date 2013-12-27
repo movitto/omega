@@ -76,6 +76,7 @@ Omega.Pages.Index.prototype = {
   _session_validated : function(){
     var _this = this;
     this.nav.show_logout_controls();
+    this.canvas.controls.missions_button.show();
 
     /// setup callback handlers
     this.handle_events();
