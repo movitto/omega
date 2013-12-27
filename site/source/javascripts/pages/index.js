@@ -411,6 +411,7 @@ $(document).ready(function(){
   var index = new Omega.Pages.Index();
   index.wire_up();
   index.canvas.setup();
+  index.effects_player.wire_up();
   index.effects_player.start();
   index.validate_session();
 });
