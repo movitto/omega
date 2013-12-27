@@ -174,7 +174,7 @@ Omega.Pages.Index.prototype = {
 
     this._track_scene_entities(entities, root, old_root);
     this._sync_scene_entities(entities,  root, old_root);
-    this._track_scene_planets(entities,  root, old_root);
+    this._sync_scene_planets(entities,  root, old_root);
     // TODO also need to track when entities jump into scene, need a new server
     // event to effectively be able to do this
 
@@ -214,24 +214,26 @@ Omega.Pages.Index.prototype = {
     }
   },
 
-  /// TODO remove planet tracking, current planet effects cycle moves it anyways;
-  /// need to invoke update planet locations on scene change so as to sync up
-  _track_scene_planets : function(entities, root, old_root){
-    /// remove tracking of old planets
-    if(old_root && old_root.json_class == 'Cosmos::Entities::SolarSystem'){
-      var planets = old_root.planets();
-      for(var p = 0; p < planets.length; p++){
-        var planet = planets[p];
-        this.stop_tracking_planet(planet);
-      }
-    }
-
+  /// refresh latest scene planet location from server
+  _sync_scene_planets : function(entities, root, old_root){
     if(root.json_class != "Cosmos::Entities::SolarSystem") return;
 
+    var _this = this;
     var planets = root.planets();
     for(var p = 0; p < planets.length; p++){
       var planet = planets[p];
-      this.track_planet(planet);
+      this.node.http_invoke('motel::get_location',
+        'with_id', planet.location.id,
+        function(response){
+          if(response.result){
+            planet.location = new Omega.Location(response.result);
+            if(_this.canvas.is_root(root.id)){
+              _this.canvas.reload(planet, function(){
+                planet.update_gfx();
+              });
+            }
+          }
+        });
     }
   },
 
@@ -362,11 +364,6 @@ Omega.Pages.Index.prototype = {
 
   stop_tracking_station : function(entity){
     this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
-  },
-
-  track_planet : function(entity){
-    var distance = this.config.planet_movement;
-    this.node.ws_invoke('motel::track_movement', entity.location.id, distance);
   },
 
   stop_tracking_planet : function(entity){

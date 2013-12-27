@@ -20,6 +20,7 @@ Omega.Location.prototype = {
 
   toJSON : function(){
     return {json_class : this.json_class,
+            id : this.id,
             x : this.x,
             y : this.y,
             z : this.z,

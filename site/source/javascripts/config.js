@@ -30,7 +30,6 @@ Omega.Config = {
   // event tracking
   ship_movement     :          10,
   ship_rotation     :        0.01,
-  planet_movement   :          50,
 
   // stats
   stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],
