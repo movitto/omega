@@ -121,6 +121,8 @@ class Registry
         # if changing to stopped movement strategy
         stopping = nloc.ms.is_a?(MovementStrategies::Stopped)
 
+        # reset last moved at
+        nloc.last_moved_at = nil
       end
     }
 
