@@ -241,6 +241,7 @@ Omega.Pages.Index.prototype = {
     for(var e = 0; e < entities.in_root.length; e++){
       var entity = entities.in_root[e];
       if(entity.hp > 0)
+/// FIXME entity might already be in scene (ex login after viewing as anon), check and remove if so
         this.canvas.add(entity);
     }
 
@@ -310,8 +311,10 @@ Omega.Pages.Index.prototype = {
   process_entity : function(entity){
     var _this = this;
     this.entity(entity.id, entity);
-    var item   = {id: entity.id, text: entity.id, data: entity};
-    this.canvas.controls.entities_list.add(item);
+    if(!this.canvas.controls.entities_list.has(entity.id)){
+      var item = {id: entity.id, text: entity.id, data: entity};
+      this.canvas.controls.entities_list.add(item);
+    }
 
     var system = Omega.UI.Loader.load_system(entity.system_id, this,
       function(solar_system) { _this.process_system(solar_system); });

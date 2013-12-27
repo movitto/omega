@@ -39,7 +39,7 @@ Omega.UI.CanvasControls.prototype = {
     this.entities_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
-        _this.canvas.set_scene_root(item.solar_system);
+        _this.canvas.set_scene_root(item.solar_system); /// TODO only if scene is different than one we're setting
         _this.canvas.cam.position.set(item.location.x + 500,
                                       item.location.y + 500,
                                       item.location.z + 500);
