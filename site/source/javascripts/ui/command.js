@@ -144,7 +144,13 @@ Omega.UI.CommandTracker.prototype = {
                           entity.location.id == event_args[0].id;
                  })[0];
     if(entity == null) return;
-    entity.location = new Omega.Location(event_args[0]); // TODO should this just be an update?
+    var new_loc = new Omega.Location(event_args[0]);
+
+    // reset last moved if movement strategy changed
+    if(entity.location.movement_strategy.json_class == new_loc.json_class)
+      entity.last_moved = null;
+
+    entity.location = new_loc; // TODO should this just be an update?
 
     if(this.page.canvas.is_root(entity.parent_id)){
       this.page.canvas.reload(entity, function(){
