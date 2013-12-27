@@ -48,7 +48,6 @@ Omega.UI.IndexNav.prototype = {
 
   _logout_clicked : function(evnt){
     this.page.session.logout(this.page.node);
-    this.page.canvas.controls.entities_list.clear();
     this.page.canvas.controls.missions_button.hide();
     this.page._session_invalid();
   },

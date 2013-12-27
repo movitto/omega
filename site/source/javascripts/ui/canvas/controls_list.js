@@ -35,6 +35,14 @@ Omega.UI.CanvasControlsList.prototype = {
     this.children().remove();
   },
 
+  has : function(entity_id){
+    var children = this.children();
+    for(var c = 0; c < children.length; c++)
+      if($(children[c]).data('id') == entity_id)
+        return true;
+    return false;
+  },
+
   // Add new item to list.
   // Item should specify id, text, data
   add : function(item){

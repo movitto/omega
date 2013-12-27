@@ -257,6 +257,7 @@ Omega.Pages.Index.prototype = {
   _process_retrieved_scene_entities : function(entities, entity_map){
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
+      entity.solar_system = this.entity(entity.system_id);
 
       var local      = this.entity(entity.id);
       var user_owned = this.session != null ?
@@ -282,7 +283,12 @@ Omega.Pages.Index.prototype = {
             this.track_station(entity);
         }
 
-        /// TODO if logged in as anon, also add entity to entity_list if not present
+
+        /// also add entity to entity_list if not present
+        if(!this.canvas.controls.entities_list.has(entity.id)){
+          var item = {id: entity.id, text: entity.id, data: entity};
+          this.canvas.controls.entities_list.add(item);
+        }
       }
     }
   },
