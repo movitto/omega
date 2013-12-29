@@ -12,8 +12,6 @@ Omega.Station = function(parameters){
   $.extend(this, parameters);
   this.location = Omega.convert_entity(this.location)
   this._update_resources();
-
-  this.hp = 100; /// XXX interim compatability hack
 };
 
 Omega.Station.prototype = {
@@ -22,6 +20,11 @@ Omega.Station.prototype = {
 
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
+  },
+
+  alive : function(){
+    /// XXX interim compatability hack
+    return true;
   },
 
   _update_resources : function(){

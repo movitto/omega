@@ -23,6 +23,10 @@ Omega.Ship.prototype = {
     return this.user_id == user_id;
   },
 
+  alive : function(){
+    return this.hp > 0;
+  },
+
   _update_resources : function(){
     if(this.resources){
       for(var r = 0; r < this.resources.length; r++){
@@ -32,6 +36,8 @@ Omega.Ship.prototype = {
     }
   },
 
+  /// TODO only display cmds if entity is alive
+  /// (also possibly omit entity from entities list?)
   cmds : [
     { id      : 'ship_move_',
       class   : 'ship_move details_command',
@@ -169,7 +175,7 @@ Omega.Ship.prototype = {
                            !e.belongs_to_user(page.session.user_id) &&
                             e.location.is_within(_this.attack_distance,
                                                  _this.location)    &&
-                            e.hp > 0;
+                            e.alive()
                   });
     this.dialog().show_attack_dialog(page, this, targets);
   },

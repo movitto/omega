@@ -107,6 +107,8 @@ class Attack < Omega::Server::Command
       end
 
       # invoke defender's 'destroyed' callbacks
+      # TODO need to issue call to motel to update defender ms to stopped,
+      # as well as stop other defender operations such as mining and attacking
       run_callbacks(@defender, 'destroyed_by', @attacker)
     end
 

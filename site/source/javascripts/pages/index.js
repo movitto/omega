@@ -243,7 +243,7 @@ Omega.Pages.Index.prototype = {
 
     for(var e = 0; e < entities.in_root.length; e++){
       var entity = entities.in_root[e];
-      if(entity.hp > 0)
+      if(entity.alive())
 /// FIXME entity might already be in scene (ex login after viewing as anon), check and remove if so
         this.canvas.add(entity);
     }
@@ -278,7 +278,7 @@ Omega.Pages.Index.prototype = {
 
         if(local && in_scene)
           this.canvas.remove(local);
-        if(same_scene && entity.hp > 0)
+        if(same_scene && entity.alive())
           this.canvas.add(entity);
         if(!tracking){
           if(entity.json_class == 'Manufactured::Ship')

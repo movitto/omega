@@ -229,10 +229,10 @@ Omega.UI.Canvas.prototype = {
 
   // Remove entity from scene, invoke callback, readd entity to scene
   reload : function(entity, cb){
+    var in_scene = this.has(entity.id);
     this.remove(entity);
     if(cb) cb(entity);
-    this.add(entity);
-    //this.animate(); // TODO or elsewhere?
+    if(in_scene) this.add(entity);
   },
 
   // Clear entities from the scene
