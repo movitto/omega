@@ -116,6 +116,19 @@ describe Registry do
         r.update(l1, &with_id(l.id))
       end
 
+      it "sets location.last_moved_at to nil" do
+        l = build(:location, :last_moved_at => Time.now)
+        r = Registry.new
+        r << l
+
+        l1 = Location.new
+        l1.update l
+        l1.movement_strategy = MovementStrategies::Linear.new
+        r.update(l1, &with_id(l.id))
+
+        r.entity(&with_id(l.id)).last_moved_at.should be_nil
+      end
+
       context "changing to stopped" do
         it "raises stopped event" do
           l   = build(:location)
