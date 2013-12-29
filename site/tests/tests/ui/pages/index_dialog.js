@@ -20,6 +20,15 @@ describe("Omega.UI.IndexDialog", function(){
       Omega.Test.clear_events();
     });
 
+    it("registered login field enter key handlers", function(){
+      assert(dialog.login_fields[0]).doesNotHandle('keypress');
+      assert(dialog.login_fields[1]).doesNotHandle('keypress');
+      dialog.wire_up();
+      assert(dialog.login_fields[0]).handles('keypress');
+      assert(dialog.login_fields[1]).handles('keypress');
+      /// TODO ensure event handler calls _login_clicked only when enter key is pressed
+    });
+
     it("registers login button event handlers", function(){
       assert(dialog.login_button).doesNotHandle('click');
       dialog.wire_up();

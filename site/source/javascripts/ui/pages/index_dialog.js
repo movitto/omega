@@ -15,6 +15,7 @@ Omega.UI.IndexDialog = function(parameters){
 
   $.extend(this, parameters);
 
+  this.login_fields = [$('#login_username'), $('#login_password')];
   this.login_button    = $('#login_button');
   this.register_button = $('#register_button');
 };
@@ -22,6 +23,10 @@ Omega.UI.IndexDialog = function(parameters){
 Omega.UI.IndexDialog.prototype = {
   wire_up : function(){
     var _this = this;
+    for(var l = 0; l < this.login_fields.length; l++)
+      this.login_fields[l].keypress(function(evnt){
+        if(evnt.which == 13) _this._login_clicked(evnt);
+      });
     this.login_button.click(function(evnt)   {           _this._login_clicked(evnt); });
     this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
   },
