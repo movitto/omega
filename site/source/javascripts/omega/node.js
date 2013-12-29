@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO handle socket connection closed event
-
 Omega.Node = function(parameters){
   this.http_host   = 'localhost';
   this.http_path   = '/omega';
@@ -23,6 +21,7 @@ Omega.Node = function(parameters){
   this.http.message_received = function(msg){ _this._http_msg_received(msg); }
   this.ws.onerror            = function(msg){ _this._on_err(msg);            }
   this.http.onerror          = function(msg){ _this._on_err(msg);            }
+  this.ws.onclose            = function(){    _this._on_close();             }
 };
 
 Omega.Node.prototype = {
@@ -87,6 +86,12 @@ Omega.Node.prototype = {
        err.error.class == 'Service Unavailable')
       err.disconnected = true;
     var evnt = $.extend(err, {type:'error'});
+    this.dispatchEvent(evnt);
+  },
+
+  /// ws close callback
+  _on_close : function(){
+    var evnt = {type : 'closed'};
     this.dispatchEvent(evnt);
   }
 };

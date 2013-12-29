@@ -32,6 +32,9 @@ Omega.UI.IndexDialog.prototype = {
       if(err.disconnected)
         _this.show_critical_err_dialog(err.error.class)
     });
+    node.addEventListener('closed', function(){
+      _this.show_critical_err_dialog("Connection Closed");
+    });
   },
 
   show_critical_err_dialog : function(msg){
