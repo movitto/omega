@@ -81,7 +81,6 @@ Omega.Node.prototype = {
 
   /// ws & http error callback
   _on_err : function(err){
-    /// TODO verify this handles all http & socket errors
     if(err.error && err.error.code  == 503 &&
        err.error.class == 'Service Unavailable')
       err.disconnected = true;

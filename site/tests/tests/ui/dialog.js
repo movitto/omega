@@ -51,4 +51,19 @@ describe("Omega.UI.Dialog", function(){
       assert($('#qunit-fixture .ui-dialog').length).equals(0);
     });
   });
+
+  describe("#keep_open", function(){
+    it("disables dialog escape key", function(){
+      var dialog = new Omega.UI.Dialog();
+      dialog.keep_open();
+      assert(dialog.dialog().dialog('option', 'closeOnEscape')).isFalse();
+    });
+
+    it("hides dialog close button", function(){
+      var dialog = new Omega.UI.Dialog();
+      dialog.show();
+      dialog.keep_open();
+      assert($('.ui-dialog-titlebar-close')).isHidden();
+    });
+  });
 });});

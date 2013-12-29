@@ -33,6 +33,73 @@ describe("Omega.UI.IndexDialog", function(){
     });
   });
 
+  describe("#follow_node", function(){
+    var node, show_dialog;
+
+    before(function(){
+      node = new Omega.Node();
+
+      show_dialog = sinon.spy(dialog, 'show_critical_err_dialog');
+    });
+
+    it("listens for node closed and disconnection error events", function(){
+      dialog.follow_node(node);
+      assert(node).handlesEvent('error');
+      assert(node).handlesEvent('closed');
+    });
+
+    describe("on node disconnection", function(){
+      it("shows critical err dialog", function(){
+        dialog.follow_node(node);
+        node.dispatchEvent({type: 'error', disconnected: true, error : {class : 'disconnected'}});
+        sinon.assert.called(show_dialog);
+      });
+    });
+
+    describe("on node closed", function(){
+      it("shows critical err dialog", function(){
+        dialog.follow_node(node);
+        node.dispatchEvent({type: 'closed'});
+        sinon.assert.called(show_dialog);
+      });
+    })
+  });
+
+  describe("#show_critical_err_dialog", function(){
+    it("hides the dialog", function(){
+      var dialog = new Omega.UI.IndexDialog();
+      var spy = sinon.spy(dialog, 'hide');
+      dialog.show_critical_err_dialog();
+      sinon.assert.called(spy);
+    });
+
+    it("displays critical err dialog", function(){
+      var dialog = new Omega.UI.IndexDialog();
+      dialog.show_critical_err_dialog();
+      assert(dialog.title).equals('Critical Error');
+      assert(dialog.div_id).equals('#critical_err_dialog');
+    });
+
+    it("sets the critical error message", function(){
+      var dialog = new Omega.UI.IndexDialog();
+      dialog.show_critical_err_dialog('Disconnected');
+      assert($('#critical_err').html()).equals('Critical Error: Disconnected');
+    });
+
+    it("shows the dialog", function(){
+      var dialog = new Omega.UI.IndexDialog();
+      dialog.show_critical_err_dialog();
+      assert(dialog.dialog()).isVisible();
+    });
+
+    it("keeps the dialog open", function(){
+      var dialog = new Omega.UI.IndexDialog();
+      var keep_open = sinon.spy(dialog, 'keep_open');
+      dialog.show_critical_err_dialog();
+      sinon.assert.called(keep_open);
+    });
+  });
+
   describe("#show_login_dialog", function(){
     it("hides the dialog", function(){
       var dialog = new Omega.UI.IndexDialog();

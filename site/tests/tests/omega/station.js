@@ -25,6 +25,12 @@ describe("Omega.Station", function(){
     });
   });
 
+  describe("#alive", function(){
+    it("returns true", function(){
+      assert(new Omega.Station().alive()).isTrue();
+    });
+  });
+
   describe("#_update_resources", function(){
     it("converts resources from json data", function(){
       var station = new Omega.Station({resources : [{data : {material_id : 'steel'}},
@@ -265,6 +271,11 @@ describe("Omega.Station", function(){
       sinon.stub(Omega.Station.gfx[type].highlight, 'clone').returns(mesh);
       station.init_gfx();
       assert(station.highlight).equals(mesh);
+    });
+
+    it("sets omega_entity on highlight effects", function(){
+      station.init_gfx();
+      assert(station.highlight.omega_entity).equals(station);
     });
 
     it("clones Station lamps", function(){

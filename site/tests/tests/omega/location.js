@@ -10,7 +10,7 @@ describe("Omega.Location", function(){
 
   describe("#toJSON", function(){
     it("returns location in json format", function(){
-      var expected = {json_class : 'Motel::Location',
+      var expected = {json_class : 'Motel::Location', id : 'l43',
                       x : 50, y : -50, z : 100, parent_id : 42,
                       movement_strategy : {}};
       var loc = new Omega.Location(expected);
@@ -54,6 +54,22 @@ describe("Omega.Location", function(){
         var l2 = new Omega.Location({x:0,y:0,z:100})
         assert(l1.is_within(10, l2)).isFalse();
       });
+    });
+  });
+
+  describe("#to_s", function(){
+    it("returns location coordinates in string format", function(){
+      var loc = new Omega.Location({x:11, y:22, z:-3});
+      assert(loc.to_s()).equals('11/22/-3');
+    });
+  });
+
+  describe("#orientation_s", function(){
+    it("returns location orientation in string format", function(){
+      var loc = new Omega.Location({orientation_x:0,
+                                    orientation_y:0,
+                                    orientation_z:1});
+      assert(loc.orientation_s()).equals('0/0/1');
     });
   });
 

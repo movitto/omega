@@ -7,7 +7,10 @@ describe("Omega.Ship", function(){
                     hp : 42,
                     attack_distance : 100,
                     mining_distance : 100,
-                    location  : new Omega.Location({x:99,y:-2,z:100}),
+                    location  : new Omega.Location({x:99,y:-2,z:100,
+                                                    orientation_x:0,
+                                                    orientation_y:0,
+                                                    orientation_z:1}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas(),
@@ -35,6 +38,22 @@ describe("Omega.Ship", function(){
     });
   });
 
+  describe("#alive", function(){
+    describe("ship hp > 0", function(){
+      it("returns true", function(){
+        var ship = new Omega.Ship({hp:42});
+        assert(ship.alive()).isTrue();
+      });
+    });
+
+    describe("ship hp == 0", function(){
+      it("returns false", function(){
+        var ship = new Omega.Ship({hp:0});
+        assert(ship.alive()).isFalse();
+      });
+    });
+  });
+
   describe("#_update_resources", function(){
     it("converts resources from json data", function(){
       var ship = new Omega.Ship({resources : [{data : {material_id : 'steel'}},
@@ -54,7 +73,8 @@ describe("Omega.Ship", function(){
 
     it("invokes details cb with ship id, location, and resources", function(){
       var text = ['Ship: ship1<br/>',
-                  '@ 99/-2/100<br/>'      ,
+                  '@ 99/-2/100<br/>',
+                  '> 0/0/1<br/>'          ,
                   'HP: 42<br/>'           ,
                   'Resources:<br/>'       ,
                   '50 of gold<br/>'       ,
@@ -70,6 +90,7 @@ describe("Omega.Ship", function(){
       assert(details[3]).equals(text[3]);
       assert(details[4]).equals(text[4]);
       assert(details[5]).equals(text[5]);
+      assert(details[6]).equals(text[6]);
     });
 
     it("invokes details with commands", function(){
@@ -77,7 +98,7 @@ describe("Omega.Ship", function(){
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
         var cmd = Omega.Ship.prototype.cmds[c];
-        var detail_cmd = details[6+c];
+        var detail_cmd = details[7+c];
         assert(detail_cmd[0].id).equals(cmd.id + ship.id);
         assert(detail_cmd[0].className).equals(cmd.class);
         assert(detail_cmd.html()).equals(cmd.text);
@@ -89,7 +110,7 @@ describe("Omega.Ship", function(){
         ship.user_id = 'user2';
         ship.retrieve_details(page, details_cb);
         var details = details_cb.getCall(0).args[0];
-        assert(details.length).equals(6);
+        assert(details.length).equals(7);
       });
     });
 
@@ -98,7 +119,7 @@ describe("Omega.Ship", function(){
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
         var cmd = Omega.Ship.prototype.cmds[c];
-        var detail_cmd = details[6+c];
+        var detail_cmd = details[7+c];
         var display = (!cmd.display || cmd.display(ship)) ? 'block' : 'none';
         assert(detail_cmd.css('display')).equals(display);
       }
@@ -149,7 +170,7 @@ describe("Omega.Ship", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[6+c];
+        var detail_cmd = details[7+c];
         assert(detail_cmd.data('ship')).equals(ship);;
       }
     });
@@ -158,7 +179,7 @@ describe("Omega.Ship", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[6+c];
+        var detail_cmd = details[7+c];
         assert(detail_cmd).handles('click');
       }
     });
@@ -172,7 +193,7 @@ describe("Omega.Ship", function(){
         for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
           var scmd = Omega.Ship.prototype.cmds[c];
           stubs.push(sinon.stub(ship, scmd['handler']));
-          cmds.push(details[6+c]);
+          cmds.push(details[7+c]);
         }
 
         $('#qunit-fixture').append(cmds);
@@ -298,7 +319,7 @@ describe("Omega.Ship", function(){
   });
 
   describe("#select_attack_target", function(){
-    it("shows attack dialog w/ all non-user-owned ships in vicinity with hp > 0", function(){
+    it("shows attack dialog w/ all non-user-owned ships in vicinity that are alive", function(){
       var ship1 = new Omega.Ship({user_id : 'user1', hp : 100, location:
                     new Omega.Location({x:101,y:0,z:101})});
       var ship2 = new Omega.Ship({user_id : 'user2', hp : 100, location:
@@ -1018,6 +1039,11 @@ describe("Omega.Ship", function(){
       sinon.stub(Omega.Ship.gfx[type].highlight, 'clone').returns(mesh);
       ship.init_gfx();
       assert(ship.highlight).equals(mesh);
+    });
+
+    it("sets omega_entity on highlight effects", function(){
+      ship.init_gfx();
+      assert(ship.highlight.omega_entity).equals(ship);
     });
 
     it("clones Ship lamps", function(){

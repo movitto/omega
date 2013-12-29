@@ -26,12 +26,48 @@ describe("Omega.UI.CanvasControlsList", function(){
     });
   });
 
+  describe("#component", function(){
+    it("returns list jquery component", function(){
+      assert(list.component()).isSameAs($('#locations_list'));
+    });
+  });
+
+  describe("#list", function(){
+    it("returns list dom component", function(){
+      assert(list.list()).isSameAs($($('#locations_list ul')[0]));
+    });
+  });
+
+  describe("#children", function(){
+    it("returns children under list", function(){
+      $('#locations_list ul').append('<li id="c1"/>');
+      assert(list.children().length).equals(1);
+      assert(list.children()[0].id).equals('c1');
+    });
+  });
+
   describe("#clear", function(){
     it("clears list items", function(){
       var item = {};
       list.add(item)
       list.clear();
       assert(list.list().children('li').length).equals(0);
+    });
+  });
+
+  describe("#has", function(){
+    describe("list has child entity with the specified id", function(){
+      it("returns true", function(){
+        var item = {id : 'foobar'};
+        list.add(item);
+        assert(list.has('foobar')).isTrue();
+      });
+    });
+
+    describe("list does not have child entity with the specified id", function(){
+      it("returns false", function(){
+        assert(list.has('foobar')).isFalse();
+      });
     });
   });
 
@@ -58,6 +94,22 @@ describe("Omega.UI.CanvasControlsList", function(){
       var item = {data: {}}
       list.add(item)
       assert($(list.list().children('li')[0]).data('item')).equals(item['data']);
+    });
+  });
+
+  describe("#show", function(){
+    it("shows component", function(){
+      $('#locations_list ul').hide();
+      list.show();
+      assert($('#locations_list ul')).isVisible();
+    });
+  });
+
+  describe("#hide", function(){
+    it("hides component", function(){
+      list.show();
+      list.hide();
+      assert($('#locations_list ul')).isHidden();
     });
   });
 });});

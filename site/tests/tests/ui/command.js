@@ -345,8 +345,10 @@ describe("Omega.UI.CommandTracker", function(){
 
       before(function(){
         ship  = new Omega.Ship({system_id : 'system1',
-                                location  : new Omega.Location({id:42,x:0,y:0,z:0})});
-        eship = new Omega.Ship({location : new Omega.Location({id:42,x:1,y:1,z:1})});
+                                location  : new Omega.Location({id:42,x:0,y:0,z:0,
+                                  movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped'}})});
+        eship = new Omega.Ship({location : new Omega.Location({id:42,x:1,y:1,z:1,
+                                  movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped'}})});
                                 
         page.entities = [ship];
         eargs         = [eship.location];
@@ -355,6 +357,23 @@ describe("Omega.UI.CommandTracker", function(){
       it("updates entity location", function(){
         tracker._callbacks_motel_event('motel::on_movement', eargs);
         assert(ship.location).isSameAs(eship.location);
+      });
+
+      describe("changing movement strategy", function(){
+        it("sets entity.last_moved to null", function(){
+          eship.location.movement_strategy.json_class = 'Motel::MovementStrategies::Linear'
+          ship.last_moved = new Date();
+          tracker._callbacks_motel_event('motel::on_movement', eargs);
+          assert(ship.last_moved).isNull();
+        })
+      })
+
+      describe("not changing movement strategy", function(){
+        it("sets entity.last_moved to now", function(){
+          ship.last_moved = null;
+          tracker._callbacks_motel_event('motel::on_movement', eargs);
+          assert(ship.last_moved).isSameAs(new Date());
+        });
       });
 
       describe("entity not in scene", function(){

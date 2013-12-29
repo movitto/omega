@@ -82,6 +82,20 @@ describe("Omega.UI.StatusIndicator", function(){
     });
   });
 
+  describe("#clear", function(){
+    it("clears all stats from status indicator", function(){
+      si.push_state('st1');
+      si.clear();
+      assert(si.has_state('st1')).isFalse();
+    });
+
+    it("clears background", function(){
+      var set_bg = sinon.spy(si, 'background')
+      si.clear();
+      sinon.assert.calledWith(set_bg, null);
+    });
+  })
+
   describe("#follow_node", function(){
     var node;
 
@@ -108,6 +122,13 @@ describe("Omega.UI.StatusIndicator", function(){
       node._http_msg_received({}); /// notifications have no id
       assert(si.has_state('loading')).isTrue();
     });
+
+    it("clears states on node disconnection errors", function(){
+      var clear = sinon.spy(si, 'clear');
+      si.follow_node(node, 'loading');
+      node.dispatchEvent({type: 'error', disconnected : true});
+      sinon.assert.called(clear);
+    })
   });
 
   describe("#animate", function(){

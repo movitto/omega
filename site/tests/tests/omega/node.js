@@ -65,6 +65,18 @@ describe("Omega.Node", function(){
       sinon.assert.called(spy);
       assert(spy.getCall(0).args[0].data == err);
     });
+
+    describe("http node connection error", function(){
+      it("sets error.disconnected to true", function(){
+        var spy = sinon.spy();
+        node.addEventListener('error', spy);
+
+        var err = {error : {code : 503, class : 'Service Unavailable'}};
+        node.http.onerror(err)
+        sinon.assert.called(spy);
+        assert(spy.getCall(0).args[0].disconnected).isTrue();
+      })
+    })
   });
 
   describe("ws node error", function(){
@@ -78,6 +90,15 @@ describe("Omega.Node", function(){
       assert(spy.getCall(0).args[0].data == err);
     });
   });
+
+  describe("ws node closed", function(){
+    it("raises closed event on node", function(){
+      var spy = sinon.spy();
+      node.addEventListener('closed', spy);
+      node.ws.onclose()
+      sinon.assert.called(spy);
+    });
+  })
 
   describe("#ws_invoke", function(){
     var invoke_stub;

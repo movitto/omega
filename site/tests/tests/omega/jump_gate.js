@@ -28,7 +28,8 @@ describe("Omega.JumpGate", function(){
                  name        : 'jg1n',
                  parent_id   : 'sys1',
                  location    : new Omega.Location({id : 'jg1l'}),
-                 endpoint_id : 'sys2'};
+                 endpoint_id : 'sys2',
+                 trigger_distance : 42};
 
       var ojg  = new Omega.JumpGate(jg);
       var json = ojg.toJSON();

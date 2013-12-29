@@ -370,10 +370,6 @@ Omega.Pages.Index.prototype = {
     this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
   },
 
-  stop_tracking_planet : function(entity){
-    this.node.ws_invoke('motel::remove_callbacks', entity.location.id);
-  },
-
   process_system : function(system){
     if(system == null) return;
     var _this = this;

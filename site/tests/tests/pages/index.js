@@ -114,9 +114,15 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("shows logout controls", function(){
-      spy = sinon.spy(index.nav, 'show_logout_controls');
+      var spy = sinon.spy(index.nav, 'show_logout_controls');
       index._session_validated();
       sinon.assert.called(spy);
+    });
+
+    it("shows the missions button", function(){
+      var show = sinon.spy(index.canvas.controls.missions_button, 'show')
+      index._session_validated();
+      sinon.assert.called(show);
     });
 
     it("handles events", function(){
@@ -327,10 +333,10 @@ describe("Omega.Pages.Index", function(){
         sinon.match.object, change.root, change.old_root);
     });
 
-    it("tracks scene planets", function(){
-      var track_scene_planets = sinon.spy(index, '_track_scene_planets');
+    it("syncs scene planets", function(){
+      var sync_scene_planets = sinon.spy(index, '_sync_scene_planets');
       index._scene_change(change)
-      sinon.assert.calledWith(track_scene_planets,
+      sinon.assert.calledWith(sync_scene_planets,
         sinon.match.object, change.root, change.old_root);
     });
 
@@ -394,32 +400,54 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
-  describe("#_track_scene_planets", function(){
-    var index, system, old_system, planet, old_planet;
+  describe("#_sync_scene_planets", function(){
+    var index, http_invoke, canvas_reload,
+        system, old_system, planet, old_planet, loc;
 
     before(function(){
       index = new Omega.Pages.Index();
+
+      /// stub out call to server and reload
+      http_invoke = sinon.stub(index.node, 'http_invoke');
+      canvas_reload = sinon.stub(index.canvas, 'reload');
 
       planet = new Omega.Planet({location : new Omega.Location()});
       old_planet = new Omega.Planet({location : new Omega.Location()});
 
       system = new Omega.SolarSystem({children : [planet]});
       old_system = new Omega.SolarSystem({children: [old_planet]});
-    });
 
-    describe("changing from system", function(){
-      it("stops tracks planets in old system", function(){
-        var stop_tracking_planet = sinon.spy(index, 'stop_tracking_planet');
-        index._track_scene_planets({}, system, old_system)
-        sinon.assert.calledWith(stop_tracking_planet, old_planet);
-      });
+      index.canvas.root = system;
+      loc = new Omega.Location();
     });
 
     describe("changing to system", function(){
-      it("tracks planets in system", function(){
-        var track_planet = sinon.spy(index, 'track_planet');
-        index._track_scene_planets({}, system, old_system);
-        sinon.assert.calledWith(track_planet, planet);
+      it("updates planet locations", function(){
+        index._sync_scene_planets({}, system, old_system);
+        sinon.assert.calledWith(http_invoke, 'motel::get_location',
+                                'with_id', planet.location.id, sinon.match.func)
+        var cb = http_invoke.getCall(0).args[3];
+
+        cb({result : loc})
+        assert(planet.location).isSameAs(loc);
+      });
+
+      it("reloads canvas in scene", function(){
+        index._sync_scene_planets({}, system, old_system);
+        var cb = http_invoke.getCall(0).args[3];
+        cb({result : loc})
+        sinon.assert.calledWith(canvas_reload, planet, sinon.match.func)
+      })
+
+      it("updates planet gfx", function(){
+        index._sync_scene_planets({}, system, old_system);
+        var cb = http_invoke.getCall(0).args[3];
+        cb({result : loc})
+
+        var update_gfx = sinon.stub(planet, 'update_gfx');
+        cb = canvas_reload.getCall(0).args[1];
+        cb();
+        sinon.assert.called(update_gfx)
       });
     });
   });
@@ -501,7 +529,7 @@ describe("Omega.Pages.Index", function(){
 
   describe("#_process_retrieved_scene_entities", function(){
     var index, system, ship1, ship2, station1, entities, entity_map,
-        canvas_add, canvas_remove;
+        canvas_add, canvas_remove, list_add;
 
     before(function(){
       index = new Omega.Pages.Index();
@@ -527,16 +555,28 @@ describe("Omega.Pages.Index", function(){
       entities = [ship1, ship2, ship3, ship4, ship5, station1, station2];
       entity_map = {start_tracking : [ship5, station2]}
 
+      index.entity(system.id, system);
       index.entity(lship2.id, lship2);
       index.canvas.root = system;
       index.canvas.entities = [ship2.id, ship4.id];
       canvas_add = sinon.stub(index.canvas, 'add');
       canvas_remove = sinon.stub(index.canvas, 'remove');
+      list_add = sinon.stub(index.canvas.controls.entities_list, 'add');
+
+      index.canvas.controls.entities_list.clear();
     });
 
     after(function(){
       index.canvas.add.restore();
       index.canvas.remove.restore();
+      index.canvas.controls.entities_list.add.restore();
+    });
+
+    it("sets entity solar system", function(){
+      index._process_retrieved_scene_entities(entities, entity_map);
+      for(var e = 0; e < entities.length; e++){
+        assert(entities[e].solar_system).equals(system);
+      }
     });
 
     it("does not process user owned entities", function(){
@@ -561,7 +601,7 @@ describe("Omega.Pages.Index", function(){
       });
     });
 
-    describe("entity has hp > 0 and is under scene root", function(){
+    describe("entity is alive and is under scene root", function(){
       it("adds entity to canvas scene", function(){
         index._process_retrieved_scene_entities(entities, entity_map);
         sinon.assert.calledWith(canvas_add, ship2);
@@ -588,6 +628,19 @@ describe("Omega.Pages.Index", function(){
         sinon.assert.neverCalledWith(track_station, station2);
       });
     });
+
+    describe("entity list does not have entity", function(){
+      it("adds entity to list", function(){
+        index._process_retrieved_scene_entities(entities, entity_map);
+        sinon.assert.called(list_add);
+        var ids = ['sh2', 'sh3', 'sh4', 'sh5', 'st1', 'st2'];
+        for(var i = 0; i < ids.length; i++){
+          var call = list_add.getCall(i);
+          assert(call.args[0].id).equals(ids[i]);
+          assert(call.args[0].text).equals(ids[i]);
+        }
+      })
+    })
   });
 
   describe("#handle_events", function(){
@@ -815,37 +868,6 @@ describe("Omega.Pages.Index", function(){
     });
   });
 
-  describe("#track_planet", function(){
-    var index, ship, ws_invoke;
-    before(function(){
-      index = new Omega.Pages.Index();
-      planet = new Omega.Planet({id : 'planet42',
-                                 location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
-    });
-
-    it("invokes motel::track_movement", function(){
-      index.track_planet(planet);
-      sinon.assert.calledWith(ws_invoke, 'motel::track_movement',
-        planet.location.id, index.config.planet_movement);
-    });
-  });
-
-  describe("#stop_tracking_planet", function(){
-    var index, ship, ws_invoke;
-    before(function(){
-      index = new Omega.Pages.Index();
-      planet = new Omega.Planet({id : 'planet42',
-                                 location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
-    });
-
-    it("invokes motel::remove_callbacks", function(){
-      index.stop_tracking_planet(planet);
-      sinon.assert.calledWith(ws_invoke, 'motel::remove_callbacks', planet.location.id);
-    });
-  });
-
   describe("#process_system", function(){
     var index, system, load_system;
 
@@ -1005,13 +1027,14 @@ describe("Omega.Pages.Index", function(){
 
   describe("#wire_up", function(){
     var index,
-        wire_nav, wire_dialog, wire_canvas;
+        wire_nav, wire_dialog, wire_canvas, dialog_follow;
 
     before(function(){
       index = new Omega.Pages.Index();
       wire_nav    = sinon.stub(index.nav,    'wire_up');
       wire_dialog = sinon.stub(index.dialog, 'wire_up');
       wire_canvas = sinon.stub(index.canvas, 'wire_up');
+      dialog_follow = sinon.stub(index.dialog, 'follow_node');
     });
 
     it("wires up navigation", function(){
@@ -1022,6 +1045,11 @@ describe("Omega.Pages.Index", function(){
     it("wires up dialog", function(){
       index.wire_up();
       sinon.assert.called(wire_dialog);
+    });
+
+    it("instructs dialog to follow node", function(){
+      index.wire_up();
+      sinon.assert.calledWith(dialog_follow, index.node);
     });
 
     it("wires up canvas", function(){

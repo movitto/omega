@@ -47,6 +47,14 @@ Omega.UI.EffectsPlayer.prototype = {
     this.entities.splice(this.entities.indexOf(entity), 1);
   },
 
+  clear : function(){
+    this.entities = [];
+  },
+
+  has : function(entity_id){
+    return $.grep(this.entities, function(e){ return e.id == entity_id }).length > 0;
+  },
+
   start : function(){
     this._create_timer();
     this.effects_timer.play();

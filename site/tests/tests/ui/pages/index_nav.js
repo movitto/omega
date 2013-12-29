@@ -108,10 +108,10 @@ describe("Omega.UI.IndexNav", function(){
       sinon.assert.called(spy);
     });
 
-    it("clears entities list", function(){
-      var clear_entities = sinon.spy(page.canvas.controls.entities_list, 'clear');
+    it("hides the missions button", function(){
+      var hide = sinon.spy(page.canvas.controls.missions_button, 'hide');
       nav.logout_link.click();
-      sinon.assert.calledWith(clear_entities);
+      sinon.assert.calledWith(hide);
     });
 
     it("invokes page session_invalid", function(){

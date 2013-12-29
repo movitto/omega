@@ -147,8 +147,11 @@ Omega.UI.CommandTracker.prototype = {
     var new_loc = new Omega.Location(event_args[0]);
 
     // reset last moved if movement strategy changed
-    if(entity.location.movement_strategy.json_class == new_loc.json_class)
+    if(entity.location.movement_strategy.json_class !=
+       new_loc.movement_strategy.json_class)
       entity.last_moved = null;
+    else
+      entity.last_moved = new Date();
 
     entity.location = new_loc; // TODO should this just be an update?
 

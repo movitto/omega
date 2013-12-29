@@ -208,7 +208,7 @@ describe("Omega.UI.CanvasControls", function(){
       system = new Omega.SolarSystem({id: 'system1'});
       ship   = new Omega.Ship({id: 'ship1',
                                solar_system: system,
-                               location: new Omega.Location()});
+                               location: new Omega.Location({x:100, y:200, z:-100})});
       controls.locations_list.add({id: system.id,
                                    text: system.id,
                                    data: system});
@@ -223,6 +223,7 @@ describe("Omega.UI.CanvasControls", function(){
       /// focus_on and render calls
       focus_stub = sinon.stub(canvas, 'focus_on')
       render_stub = sinon.stub(canvas, 'render')
+      canvas.cam = {position : new THREE.Vector3()};
     });
 
     after(function(){
@@ -233,6 +234,11 @@ describe("Omega.UI.CanvasControls", function(){
       var spy = sinon.spy(canvas, 'set_scene_root');
       $(controls.entities_list.children()[0]).click();
       sinon.assert.calledWith(spy, ship.solar_system);
+    });
+
+    it("sets camera position to proximity of entity", function(){
+      $(controls.entities_list.children()[0]).click();
+      assert(canvas.cam.position.toArray()).isSameAs([600, 700, 400]);
     });
 
     it("focuses canvas scene camera on clicked entity's location", function(){

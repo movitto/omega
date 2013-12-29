@@ -52,6 +52,7 @@ describe("Omega.UI.Canvas", function(){
     });
   });
 
+///TODO uncomment?
 //  describe("user clicks canvas", function(){
 //    describe("user clicked on entity in scene", function(){
 //      it("invokes canvas._clicked_entity");
@@ -322,15 +323,22 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#add", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      canvas.page.effects_player = new Omega.UI.EffectsPlayer();
+    });
+
     after(function(){
       Omega.Test.Canvas().clear();
+      Omega.Test.Page().effects_player.clear();
       if(canvas.reload.restore) canvas.reload.restore();
     });
 
     it("initializes entity graphics", function(){
       var star   = new Omega.Star({});
       var spy    = sinon.spy(star, 'init_gfx')
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       sinon.assert.calledWith(spy, canvas.page.config, sinon.match.func);
       // TODO verify callback animates scene
@@ -339,7 +347,6 @@ describe("Omega.UI.Canvas", function(){
     it("adds entity components to scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({components: [mesh]});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       assert(canvas.scene.getDescendants()).includes(mesh);
     });
@@ -347,14 +354,12 @@ describe("Omega.UI.Canvas", function(){
     it("adds entity shader components to shader scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({shader_components: [mesh]});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       assert(canvas.shader_scene.getDescendants()).includes(mesh);
     });
 
     it("wires up loaded_mesh event handler", function(){
       var star   = new Omega.Star({});
-      var canvas = Omega.Test.Canvas();
       assert(star).doesNotHandleEvent('loaded_mesh');
       canvas.add(star);
       assert(star).handlesEvent('loaded_mesh');
@@ -374,9 +379,14 @@ describe("Omega.UI.Canvas", function(){
     //  });
     //});
 
+    it("adds entity to effects player", function(){
+      var star   = new Omega.Star({});
+      canvas.add(star);
+      assert(canvas.page.effects_player.has(star.id)).isTrue();
+    });
+
     it("adds entity id to local entities registry", function(){
       var star   = new Omega.Star({id : 42});
-      var canvas = Omega.Test.Canvas();
       assert(canvas.entities).doesNotInclude(42);
       canvas.add(star);
       assert(canvas.entities).includes(42);
@@ -384,6 +394,12 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#remove", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+    });
+
     after(function(){
       Omega.Test.Canvas().clear
     });
@@ -391,7 +407,6 @@ describe("Omega.UI.Canvas", function(){
     it("removes entity components from scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({components: [mesh]});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       canvas.remove(star);
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh);
@@ -400,7 +415,6 @@ describe("Omega.UI.Canvas", function(){
     it("removes entity shader components from shader scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({shader_components: [mesh]});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       canvas.remove(star);
       assert(canvas.shader_scene.getDescendants()).doesNotInclude(mesh);
@@ -408,16 +422,21 @@ describe("Omega.UI.Canvas", function(){
 
     it("removes loaded_mesh event handler", function(){
       var star   = new Omega.Star({});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       assert(star).handlesEvent('loaded_mesh');
       canvas.remove(star);
       assert(star).doesNotHandleEvent('loaded_mesh');
     });
 
+    it("removes entity from effects player", function(){
+      var star   = new Omega.Star({});
+      canvas.add(star);
+      canvas.remove(star);
+      assert(canvas.page.effects_player.has(star.id)).isFalse();
+    });
+
     it("removes entity id from local entities registry", function(){
       var star   = new Omega.Star({id : 42});
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       assert(canvas.entities).includes(42);
       canvas.remove(star);
@@ -437,6 +456,7 @@ describe("Omega.UI.Canvas", function(){
     after(function(){
       if(canvas.remove.restore) canvas.remove.restore();
       if(canvas.add.restore) canvas.add.restore();
+      Omega.Test.Canvas().clear();
     });
 
     it("removes entity from canvas", function(){
@@ -456,6 +476,16 @@ describe("Omega.UI.Canvas", function(){
       canvas.reload(jg);
       sinon.assert.calledWith(add, jg);
     });
+
+/// FIXME:
+    //describe("entity was not in scene", function(){
+    //  it("does not reload entity", function(){
+    //    var add = sinon.spy(canvas, 'add');
+    //    star = Omega.Test.Canvas.Entities().star;
+    //    canvas.reload(star);
+    //    sinon.assert.notCalled(add);
+    //  })
+    //});
   });
 
   describe("#clear", function(){
