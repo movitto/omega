@@ -27,6 +27,18 @@ Omega.UI.CommandDialog.prototype = {
     $('#dest_x').val(Omega.Math.round_to(entity.location.x, 2));
     $('#dest_y').val(Omega.Math.round_to(entity.location.y, 2));
     $('#dest_z').val(Omega.Math.round_to(entity.location.z, 2));
+
+    var dest_fields = [$('#dest_x'), $('#dest_y'), $('#dest_z')];
+    for(var d = 0; d < dest_fields.length; d++){
+      dest_fields[d].off('keypress');
+      dest_fields[d].keypress(function(evnt){
+        var nx = $('#dest_x').val();
+        var ny = $('#dest_y').val();
+        var nz = $('#dest_z').val();
+        if(evnt.which == 13) entity._move(page, nx, ny, nz);
+      });
+    }
+
     $('#command_move').off('click');
     $('#command_move').click(function(evnt){
       var nx = $('#dest_x').val();

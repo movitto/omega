@@ -67,6 +67,33 @@ describe("Omega.UI.CommandDialog", function(){
       assert($('#dest_z').val()).equals('-20.1');
     });
 
+    it("wires up dest field enter keypress events", function(){
+      assert($('#dest_x')).doesNotHandle('keypress');
+      assert($('#dest_y')).doesNotHandle('keypress');
+      assert($('#dest_z')).doesNotHandle('keypress');
+      dialog.show_destination_selection_dialog(page, ship);
+      assert($('#dest_x')).handles('keypress');
+      assert($('#dest_y')).handles('keypress');
+      assert($('#dest_z')).handles('keypress');
+    });
+
+    describe("on dest field enter keypress", function(){
+      before(function(){
+        dialog.show_destination_selection_dialog(page, ship);
+      });
+
+      it("invokes entity._move with coordinates from inputs", function(){
+        $('#dest_x').val('-188.9');
+        $('#dest_y').val('-2.42');
+        $('#dest_z').val('1');
+
+        var move = sinon.spy(ship, '_move');
+        $('#dest_x').trigger(jQuery.Event('keypress', {which : 13}));
+        sinon.assert.calledWith(move, page, '-188.9', '-2.42', '1');
+      });
+    });
+
+
     it("wires up move command button", function(){
       assert($('#command_move')).doesNotHandle('click');
       dialog.show_destination_selection_dialog(page, ship);
