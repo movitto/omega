@@ -24,7 +24,8 @@ Omega.JumpGate.prototype = {
             name        : this.name,
             location    : this.location ? this.location.toJSON() : null,
             parent_id   : this.parent_id,
-            endpoint_id : this.endpoint_id};
+            endpoint_id : this.endpoint_id,
+            trigger_distance : this.trigger_distance};
   },
 
   has_details : true,
