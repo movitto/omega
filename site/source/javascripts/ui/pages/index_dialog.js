@@ -33,6 +33,7 @@ Omega.UI.IndexDialog.prototype = {
         _this.show_critical_err_dialog(err.error.class)
     });
     node.addEventListener('closed', function(){
+      /// TODO skip if this closing corresponds to page being refreshed
       _this.show_critical_err_dialog("Connection Closed");
     });
   },
