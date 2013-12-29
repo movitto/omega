@@ -65,6 +65,11 @@ Omega.UI.StatusIndicator.prototype = {
       this.background(null)
   },
 
+  clear : function(){
+    this.states = [];
+    this.background(null);
+  },
+
   /// Follow node, push/pop specified state off stack upon node activity
   follow_node : function(node, state){
     var _this = this;
@@ -77,6 +82,11 @@ Omega.UI.StatusIndicator.prototype = {
       if(response.id){
         _this.pop_state();
       }
+    });
+
+    node.addEventListener('error', function(err){
+      if(err.disconnected)
+        _this.clear();
     });
   },
 

@@ -41,7 +41,11 @@ Omega.Pages.Index.prototype = {
 
   wire_up : function(){
     this.nav.wire_up();
+
+    /// wire up dialog
     this.dialog.wire_up();
+    this.dialog.follow_node(this.node);
+
     this.canvas.wire_up();
 
     /// handle scene changes

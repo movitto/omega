@@ -29,6 +29,11 @@ Omega.UI.Dialog.prototype = {
   hide : function(){
     this.dialog().dialog(); // needed incase dialog not already initialized
     this.dialog().dialog('close');
+  },
+
+  keep_open : function(){
+    this.dialog().dialog({closeOnEscape: false});
+    $(".ui-dialog-titlebar-close").hide();
   }
 };
 

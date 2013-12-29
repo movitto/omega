@@ -26,6 +26,24 @@ Omega.UI.IndexDialog.prototype = {
     this.register_button.click(function(evnt){ _this._register_button_clicked(evnt); });
   },
 
+  follow_node : function(node){
+    var _this = this;
+    node.addEventListener('error', function(err){
+      if(err.disconnected)
+        _this.show_critical_err_dialog(err.error.class)
+    });
+  },
+
+  show_critical_err_dialog : function(msg){
+    if(!msg) msg = '';
+    this.hide();
+    this.title  = 'Critical Error';
+    this.div_id = '#critical_err_dialog';
+    $('#critical_err').html('Critical Error: ' + msg);
+    this.show();
+    this.keep_open();
+  },
+
   show_login_dialog : function(){
     this.hide();
     this.title   = 'Login';

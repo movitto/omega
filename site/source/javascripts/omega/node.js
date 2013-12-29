@@ -4,8 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO handle page visibility changes? connect/disconnect websocket?
-/// also need to handle visiblity change & reregister tracking callbacks in pages
+/// TODO handle socket connection closed event
 
 Omega.Node = function(parameters){
   this.http_host   = 'localhost';
@@ -83,6 +82,10 @@ Omega.Node.prototype = {
 
   /// ws & http error callback
   _on_err : function(err){
+    /// TODO verify this handles all http & socket errors
+    if(err.error && err.error.code  == 503 &&
+       err.error.class == 'Service Unavailable')
+      err.disconnected = true;
     var evnt = $.extend(err, {type:'error'});
     this.dispatchEvent(evnt);
   }
