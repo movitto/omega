@@ -1,6 +1,9 @@
 #!/usr/bin/ruby
 # Helper utility to take & verify an omega backup
 #
+# Relies on the omega inspection interface (see bin/omega-server
+# for how to enable)
+#
 # This script should be run w/out arguments like so:
 #   RUBYLIB='lib' ./bin/util/verify-backup.rb
 
@@ -13,7 +16,8 @@ require 'rjr/nodes/tcp'
 USER     = 'admin'
 PASSWORD = 'nimda'
 URL      = 'jsonrpc://localhost:8181'
-SERVER   = 'bin/omega-server'
+SERVER   = 'bin\/omega-server'
+SERVER_LOG = 'backup-server.log'
 
 TO_VERIFY = {
   :classes =>
@@ -35,8 +39,8 @@ TO_VERIFY = {
      Manufactured::Loot => :loot,
      Missions::Mission => :mission,
      Missions::Events::Manufactured => :missions_event_manu,
-     Missions::Events::User => :missions_event_user,
-     Missions::Events::PopulateResource => :missions_event_resource}
+     Missions::Events::Users => :missions_event_user,
+     Missions::Events::PopulateResource => :missions_event_resource},
 
   :event => [:id, :timestamp],
 
@@ -48,14 +52,17 @@ TO_VERIFY = {
   :role => [:id, :privileges],
     
   :attribute => [:type, :level, :progression, :user],
+
+  :privilege => [:id, :entity_id],
     
-  :user_events => [:user]
+  :user_events => [:user],
 
   :location =>
-    [:id, :parent_id, :x, :y, :z, :parent, :children,
-     :orientation_x, :orientation_y, :orientation_z,
+    [:id, :parent_id, :parent, :children,
+     # FIXME should verify but may have moved:
+     #:x, :y, :z, :orientation_x, :orientation_y, :orientation_z, :last_moved_at,
      :movement_strategy, :next_movement_strategy,
-     :restrict_view, :restrict_modify, :last_moved_at],
+     :restrict_view, :restrict_modify],
 
   :movement_strategy => [:step_delay],
     
@@ -108,28 +115,12 @@ TO_VERIFY = {
 
 ### helpers
 
-class AssertionError < RuntimeError ; end
-def assert(&bl)
-  raise AssertionError unless yield
-end
-
-def verify(orig,current)
-  # TODO skip if already verified (how to determine?)
-  attrs = TO_VERIFY[TO_VERIFY[:classes][orig.class]]
-  attrs.each do |a|
-    oval = orig.send(a)
-    cval = current.send(a)
-
-    if TO_VERIFY[:classes].keys.any? { |cl| oval.kind_of?(cl) }
-      verify oval, cval
-    else
-      assert { oval == cval }
-    end
-  end
-end
-
 def node
   @node ||= RJR::Nodes::TCP.new :node_id => 'omega-verify-backup'
+end
+
+def reset_node
+  @node = nil
 end
 
 def url
@@ -151,145 +142,199 @@ end
 
 def entities
   { :users =>
-      {:users => node.invoke(url, 'users::get_entities', 'of_type', 'Users::User')
-       :roles => node.invoke(url, 'users::get_entities', 'of_type', 'Users::Role')}
+      {:users => node.invoke(url, 'users::get_entities', 'of_type', 'Users::User'),
+       :roles => node.invoke(url, 'users::get_entities', 'of_type', 'Users::Role')},
     :motel =>
-      {:locations => node.invoke(url, 'motel::get_location')}
+      {:locations => node.invoke(url, 'motel::get_location')},
     :manu =>
       {:ships    => node.invoke(url, 'manufactured::get_entities',
                               'of_type', 'Manufactured::Ship' ),
        :stations => node.invoke(url, 'manufactured::get_entities',
-                              'of_type', 'Manufactured::Station')}
+                              'of_type', 'Manufactured::Station')},
     :missions =>
       {:missions => node.invoke(url, 'missions::get_missions')} }
 end
 
 def backup_file
-  @backup_file ||= Tempfile.new
+  @backup_file ||= Tempfile.new('omega-verify-backup')
+end
+
+def pid
+  pid = nil
+  Dir['/proc/[0-9]*/cmdline'].each do |p|
+    if File.read(p) =~ /.*#{SERVER}.*/
+      pid = p.split('/')[2].to_i
+      break
+    end
+  end
+  pid
 end
 
 def backup_server
-  node.invoke(url, 'users::save_state',        backup_file.path)
-  node.invoke(url, 'motel::save_state',        backup_file.path)
-  node.invoke(url, 'cosmos::save_state',       backup_file.path)
-  node.invoke(url, 'manufactured::save_state', backup_file.path)
-  node.invoke(url, 'missions::save_state',     backup_file.path)
-  backup_file
+  Process.kill "USR1", pid
+sleep 20
 end
 
 def restore_server
-  node.invoke('users::restore_state',        backup_file.path)
-  node.invoke('motel::restore_state',        backup_file.path)
-  node.invoke('cosmos::restore_state',       backup_file.path)
-  node.invoke('manufactured::restore_state', backup_file.path)
-  node.invoke('missions::restore_state',     backup_file.path)
+  Process.kill "USR2", pid
+sleep 20
+end
+
+def kill_server
+  raise "server process not found" if pid.nil?
+  Process.kill "TERM", pid
 end
 
 def restart_server
-  # TODO
+  kill_server
+  reset_node
+  sleep 2 # old server cool down time
+  fork do
+    `#{SERVER} >& #{SERVER_LOG}`
+  end
+  sleep 2 # new server start up time
 end
 
-def verify_users(results)
+class AssertionError < RuntimeError ; end
+def assert(message='', &bl)
+  raise AssertionError, message unless yield
+end
+
+def verify(msg, orig, current)
+  # TODO skip if orig already verified (how to determine?)
+  TO_VERIFY[:classes].keys.each do |cl|
+    next unless orig.kind_of?(cl)
+    attrs = TO_VERIFY[TO_VERIFY[:classes][cl]]
+    attrs.each do |a|
+      oval = orig.send(a)
+      cval = current.send(a)
+
+      if oval.is_a?(Array)
+        # assuming attribute array isn't multidimensional
+        0.upto(oval.size-1) do |i|
+          ovali = oval[i]
+          cvali = cval[i]
+
+          if TO_VERIFY[:classes].keys.any? { |cl| ovali.kind_of?(cl) }
+            verify "#{msg}:#{a}[#{i}]", ovali, cvali
+          else
+            assert("#{msg}:#{ovali.to_s} != #{cvali.to_s}") { ovali == cvali }
+          end
+        end
+
+      elsif TO_VERIFY[:classes].keys.any? { |cl| oval.kind_of?(cl) }
+        verify "#{msg}:#{a}", oval, cval
+      else
+        assert("#{msg}:#{oval.to_s} != #{cval.to_s}") { oval == cval }
+      end
+    end
+  end
+end
+
+def verify_users(result)
   ostatus   = result[:orig][:status]
   cstatus   = result[:current][:status]
   oentities = result[:orig][:entities]
   centities = result[:current][:entities]
 
   # verify user status and entities
-  assert { ostatus[:users][:users] == cstatus[:users][:users] }
-  0.upto(oentities[:users][:users].size) do |u|
+  assert { ostatus[:users]['users'] == cstatus[:users]['users'] }
+  0.upto(oentities[:users][:users].size-1) do |u|
     ouser = oentities[:users][:users][u]
     nuser = centities[:users][:users][u]
-    verify ouser, nuser
+    verify "user #{ouser.id}", ouser, nuser
   end
   
   # verify role status and entities
-  assert { ostatus[:users][:roles] == cstatus[:users][:roles] }
-  0.upto(oentities[:users][:roles].size) do |r|
+  assert { ostatus[:users]['roles'] == cstatus[:users]['roles'] }
+  0.upto(oentities[:users][:roles].size-1) do |r|
     orole = oentities[:users][:roles][r]
     nrole = centities[:users][:roles][r]
-    verify orole, nrole
+    verify "role #{orole.id}", orole, nrole
   end
   
   # TODO need to retrieve / verify events
 end
 
-def verify_motel(results)
+def verify_motel(result)
   ostatus   = result[:orig][:status]
   cstatus   = result[:current][:status]
   oentities = result[:orig][:entities]
   centities = result[:current][:entities]
 
   # verify location status and entities
-  assert { ostatus[:motel][:num_locations] == cstatus[:motel][:num_locations] }
-  0.upto(oentities[:motel][:locations].length).each do |i|
+  assert { ostatus[:motel]['num_locations'] == cstatus[:motel]['num_locations'] }
+  0.upto(oentities[:motel][:locations].size-1).each do |i|
     oloc = oentities[:motel][:locations][i]
     cloc = centities[:motel][:locations][i]
-    verify oloc, cloc
+    verify "location #{oloc.id}", oloc, cloc
   end
 end
 
-def verify_cosmos(results)
-  # TODO cosmos entities & resources
+def verify_cosmos(result)
+# TODO cosmos entities & resources
 end
 
-def verify_manu(results)
+def verify_manu(result)
   ostatus   = result[:orig][:status]
   cstatus   = result[:current][:status]
   oentities = result[:orig][:entities]
   centities = result[:current][:entities]
 
   # verify ship status and entities
-  assert { ostatus[:manu][:ships] == cstatus[:manu][:ships] }
-  0.upto(oentities[:manu][:ships].length).each do |i|
+  assert { ostatus[:manu]['ships'] == cstatus[:manu]['ships'] }
+  0.upto(oentities[:manu][:ships].size-1).each do |i|
     oship = oentities[:manu][:ships][i]
     cship = centities[:manu][:ships][i]
-    verify oship, cship
+    verify "ship #{oship.id}", oship, cship
   end
 
   # verify station status and entities
-  assert { ostatus[:manu][:stations] == cstatus[:manu][:stations] }
-  0.upto(oentities[:manu][:stations].length).each do |i|
+  assert { ostatus[:manu]['stations'] == cstatus[:manu]['stations'] }
+  0.upto(oentities[:manu][:stations].size-1).each do |i|
     ostation = oentities[:manu][:stations][i]
     cstation = centities[:manu][:stations][i]
-    verify ostation, cstation
+    verify "station #{ostation.id}", ostation, cstation
   end
 
   # verify no commands
-  assert { status[:manu][:commands].length == 0 }
+  assert { cstatus[:manu]['commands'].size == 0 }
 
   # TODO need to verify loot
 end
 
-def verify_missions(results)
+def verify_missions(result)
   ostatus   = result[:orig][:status]
   cstatus   = result[:current][:status]
   oentities = result[:orig][:entities]
   centities = result[:current][:entities]
 
   # verify mission status and entities
-  assert { ostatus[:missions][:missions] == cstatus[:missions][:missions] }
-  0.upto(oentities[:missions][:missions].length).each do |i|
+  assert { ostatus[:missions]['missions'] == cstatus[:missions]['missions'] }
+  0.upto(oentities[:missions][:missions].size-1).each do |i|
     omission = oentities[:missions][:missions][i]
     cmission = centities[:missions][:missions][i]
-    verify omission, cmission
+    verify "mission #{omission.id}", omission, cmission
+  end
 
   # TODO need to verify events
 end
 
-def verify_all(results)
-  verify_users    results
-  verify_motel    results
-  verify_cosmos   results
-  verify_manu     results
-  verify_missions results
+def verify_all(result)
+  verify_users    result
+  verify_motel    result
+  verify_cosmos   result
+  verify_manu     result
+  verify_missions result
 end
 
 ### main
 login
 orig_status  = status
-orig_entites = entities
+orig_entities = entities
 backup_server
+
+begin
 restart_server
 login
 restore_server
@@ -297,3 +342,15 @@ current_status   = status
 current_entities = entities
 verify_all :orig     => {:status => orig_status,    :entities => orig_entities},
            :current  => {:status => current_status, :entities => current_entities}
+
+nyan = <<EOS
+-_-_-_-_-_-_-_,------,
+_-_-_-_-_-_-_-|   /\\_/\\
+-_-_-_-_-_-_-~|__( ^ .^)
+_-_-_-_-_-_-_-""  ""       verified!
+EOS
+puts nyan
+
+ensure
+kill_server
+end
