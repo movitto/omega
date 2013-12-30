@@ -795,6 +795,21 @@ describe Registry do
       s.should include('"id":2')
       s.should include('"json_class":"OmegaTest::ServerEntity"')
     end
+
+    it "skips entity classes marked to exclude" do
+      @registry.backup_excludes = [Command]
+      @registry << Command.new(:id => 'cid')
+      @registry << OmegaTest::ServerEntity.new(:id => '1')
+
+      sio = StringIO.new
+      @registry.save(sio)
+      s = sio.string
+
+      s.should include('"json_class":"OmegaTest::ServerEntity"')
+      s.should_not include('"json_class":"Omega::Command"')
+      s.should include('"id":"1"')
+      s.should_not include('"id":"cid"')
+    end
   end
 
   describe "#restore" do

@@ -49,6 +49,8 @@ module Registry
 
     @retrieval      ||= proc { |e| }
     @validation_methods ||= []
+
+    @backup_excludes ||= []
   end
 
   ####################### node / user
@@ -442,11 +444,17 @@ module Registry
 
   public
 
+  attr_accessor :backup_excludes
+
   # Save state
   def save(io)
     init_registry
     @lock.synchronize {
-      @entities.each { |entity| io.write entity.to_json + "\n" }
+      @entities.each { |entity|
+        should_exclude = @backup_excludes.any? { |exclude_class|
+                                  entity.kind_of?(exclude_class) }
+        io.write entity.to_json + "\n" unless should_exclude
+      }
     }
   end
 
