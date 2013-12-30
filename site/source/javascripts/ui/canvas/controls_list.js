@@ -31,6 +31,11 @@ Omega.UI.CanvasControlsList.prototype = {
     return this.list().children('li');
   },
 
+  /// for now assume the first non-ul element under container is title
+  title : function(){
+    return this.component().children(':not(ul)')[0];
+  },
+
   clear : function(){
     this.children().remove();
   },
@@ -50,6 +55,10 @@ Omega.UI.CanvasControlsList.prototype = {
     element.data('id', item['id']);
     element.data('item', item['data']);
     this.list().append(element);
+
+    /// animate list title when adding first element
+    if(this.children().length == 1 && this.title())
+      $(this.title()).effect("pulsate", {times : 3}, 2000);
   },
 
   show : function(){
