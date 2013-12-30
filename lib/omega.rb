@@ -16,6 +16,7 @@ require 'users/attributes/interact'
 require 'users/attributes/other'
 require 'users/attributes/own'
 require 'users/attributes/stats'
+require 'users/events/registered_user'
 
 require 'motel/location'
 
@@ -52,3 +53,4 @@ require 'manufactured/commands/shield_refresh'
 require 'missions/mission'
 require 'missions/events/manufactured'
 require 'missions/events/resources'
+require 'missions/events/users'

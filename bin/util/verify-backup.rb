@@ -146,6 +146,21 @@ def entities
        :roles => node.invoke(url, 'users::get_entities', 'of_type', 'Users::Role')},
     :motel =>
       {:locations => node.invoke(url, 'motel::get_location')},
+    :cosmos =>
+      {:asteroids     => node.invoke(url, 'cosmos::get_entities',
+                        'of_type', 'Cosmos::Entities::Asteroid'),
+       :galaxies      => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy'),
+       :jump_gates    => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy'),
+       :moons         => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy'),
+       :planets       => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy'),
+       :solar_systems => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy'),
+       :stars         => node.invoke(url, 'cosmos::get_entities',
+                          'of_type', 'Comsos::Entities::Galaxy')},
     :manu =>
       {:ships    => node.invoke(url, 'manufactured::get_entities',
                               'of_type', 'Manufactured::Ship' ),
@@ -172,12 +187,12 @@ end
 
 def backup_server
   Process.kill "USR1", pid
-sleep 20
+  sleep 20
 end
 
 def restore_server
   Process.kill "USR2", pid
-sleep 20
+  sleep 20
 end
 
 def kill_server
@@ -272,7 +287,20 @@ def verify_motel(result)
 end
 
 def verify_cosmos(result)
-# TODO cosmos entities & resources
+  ostatus   = result[:orig][:status]
+  cstatus   = result[:current][:status]
+  oentities = result[:orig][:entities]
+  centities = result[:current][:entities]
+
+  oentities[:cosmos].each do |cl,entities|
+    0.upto(entities.size-1) do |i|
+      oentity = oentities[:cosmos][cl][i]
+      centity = centities[:cosmos][cl][i]
+      verify "#{cl} #{oentity.id}", oentity, centity
+    end
+  end
+
+  # TODO need to verify resources (& status once it's available)
 end
 
 def verify_manu(result)
