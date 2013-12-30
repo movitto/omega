@@ -95,6 +95,9 @@ class Registry
   def initialize
     init_registry
 
+    exclude_from_backup Users::Session
+    exclude_from_backup Omega::Server::EventHandler
+
     # validate user/role id or session's user id is unique on creation
     self.validation_callback { |r,e|
       e.kind_of?(Omega::Server::Event) ||

@@ -65,6 +65,8 @@ class Registry
   def initialize
     init_registry
 
+    exclude_from_backup Omega::Server::Command
+
     # validate entities upon creation
     self.validation_callback { |r,e|
       # accept manufactured commands

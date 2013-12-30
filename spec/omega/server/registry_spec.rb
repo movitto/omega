@@ -806,7 +806,7 @@ describe Registry do
       s = sio.string
 
       s.should include('"json_class":"OmegaTest::ServerEntity"')
-      s.should_not include('"json_class":"Omega::Command"')
+      s.should_not include('"json_class":"Omega::Server::Command"')
       s.should include('"id":"1"')
       s.should_not include('"id":"cid"')
     end

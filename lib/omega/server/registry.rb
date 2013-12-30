@@ -446,6 +446,10 @@ module Registry
 
   attr_accessor :backup_excludes
 
+  def exclude_from_backup(cl)
+    @backup_excludes << cl
+  end
+
   # Save state
   def save(io)
     init_registry

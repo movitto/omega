@@ -7,6 +7,7 @@
 
 require 'rjr/common'
 require 'omega/server/registry'
+require 'omega/server/callback'
 require 'motel/movement_strategies/follow'
 require 'motel/movement_strategies/stopped'
 
@@ -134,6 +135,8 @@ class Registry
 
   def initialize
     init_registry
+
+    exclude_from_backup Omega::Server::Callback
 
     # validate location ids are unique before creating
     self.validation_callback { |r,e|

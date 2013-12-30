@@ -42,6 +42,10 @@ class Registry
 
   # Initialize the Missions::Registry
   def initialize
+    init_registry
+
+    exclude_from_backup Omega::Server::EventHandler
+
     # perform a few sanity checks on mission / update missing attributes
     on(:added)   { |m|    check_mission(m)    if m.is_a?(Mission) }
 
