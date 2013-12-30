@@ -30,6 +30,21 @@ describe("Omega.UI.CanvasEntityContainer", function(){
       assert($(container.div_id)).isHidden();
       sinon.assert.called(hide);
     });
+
+    it("registers entity container keydown event handler", function(){
+      assert($(container.div_id)).doesNotHandle('keydown');
+      container.wire_up();
+      assert($(container.div_id)).handles('keydown');
+    });
+
+    describe("on entity container enter key", function(){
+      it("hides entity container", function(){
+        var hide = sinon.spy(container, 'hide');
+        container.wire_up();
+        $(container.div_id).trigger(jQuery.Event('keydown', {keyCode: 27}));
+        sinon.assert.called(hide);
+      });
+    })
   });
 
   describe("#close button clicked", function(){
@@ -121,6 +136,11 @@ describe("Omega.UI.CanvasEntityContainer", function(){
       assert($(container.div_id)).isHidden();
       container.show(ship);
       assert($(container.div_id)).isVisible();
+    });
+
+    it("sets focus on entity container", function(){
+      container.show(ship);
+      assert($(container.div_id).is(':focus')).isTrue();
     });
   });
 

@@ -22,12 +22,24 @@ Omega.UI.CanvasEntityContainer.prototype = {
   close_id    : '#entity_container_close',
   contents_id : '#entity_container_contents',
 
+  component : function(){
+    return $(this.div_id);
+  },
+
   wire_up : function(){
     var _this = this;
+    $(this.close_id).off('click');
     $(this.close_id).on('click',
       function(evnt){
         _this.hide();
       });
+
+    /// handle esc key, hide the entity container
+    $(this.div_id).off('keydown');
+    $(this.div_id).keydown(function(evnt){
+       if(evnt.keyCode == 27)
+         _this.hide();
+    });
 
     this.hide();
   },
@@ -53,6 +65,7 @@ Omega.UI.CanvasEntityContainer.prototype = {
 
     if(entity.selected) entity.selected(this.canvas.page);
     $(this.div_id).show();
+    $(this.div_id).focus();
   },
 
   append : function(text){
