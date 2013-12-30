@@ -33,30 +33,39 @@ def setup_signals(config, node)
   # backup on usr1
   Signal.trap("USR1") {
     puts "Backup"
-    Dir.mkdir(config.backup_dir) unless File.directory?(config.backup_dir)
-    backup_file = "#{config.backup_dir}backup.unv"
-    current_backup = "#{backup_file}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
-    node.invoke('users::save_state', current_backup)
-    node.invoke('motel::save_state', current_backup)
-    node.invoke('cosmos::save_state', current_backup)
-    node.invoke('manufactured::save_state', current_backup)
-    FileUtils.rm_f(backup_file) if File.symlink?(backup_file)
-    FileUtils.ln_s(File.expand_path(current_backup), backup_file)
+    # XXX thread needed as we can't block from signal trap,
+    # should figure out a more elegant solution
+    Thread.new {
+      Dir.mkdir(config.backup_dir) unless File.directory?(config.backup_dir)
+      backup_file = "#{config.backup_dir}backup.unv"
+      current_backup = "#{backup_file}.#{Time.now.strftime("%Y.%m.%d-%H.%M.%S")}"
+      node.invoke('users::save_state', current_backup)
+      node.invoke('motel::save_state', current_backup)
+      node.invoke('cosmos::save_state', current_backup)
+      node.invoke('manufactured::save_state', current_backup)
+      node.invoke('missions::save_state', current_backup)
+      FileUtils.rm_f(backup_file) if File.symlink?(backup_file)
+      FileUtils.ln_s(File.expand_path(current_backup), backup_file)
+    }
   }
 
   # restore on usr2
   Signal.trap("USR2") {
     puts "Restore"
-    current_backup = backup_file = "#{config.backup_dir}backup.unv"
-    node.invoke('users::restore_state', current_backup)
-    node.invoke('motel::restore_state', current_backup)
-    node.invoke('cosmos::restore_state', current_backup)
-    node.invoke('manufactured::restore_state', current_backup)
+    # XXX Same hack as w/ restore above
+    Thread.new {
+      current_backup = backup_file = "#{config.backup_dir}backup.unv"
+      node.invoke('users::restore_state', current_backup)
+      node.invoke('motel::restore_state', current_backup)
+      node.invoke('cosmos::restore_state', current_backup)
+      node.invoke('manufactured::restore_state', current_backup)
+      node.invoke('missions::restore_state', current_backup)
+    }
   }
 
   on_halt = proc {
     puts "Terminating"
-    # XXX thread needed as we can't block from signal trap
+    # XXX Same hack as w/ restore above
     Thread.new {
       # XXX amqp gem requires explicit shutdown operation,
       #     this should be taken care of in rjr
