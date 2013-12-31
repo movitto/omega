@@ -44,7 +44,7 @@ module Cosmos::RJR
         new_entity = build(:galaxy)
         lambda {
           @s.create_entity(new_entity)
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       context "non-entity specified" do
