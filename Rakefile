@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require "rake/packagetask"
-Rake::PackageTask.new("omega", "0.5.2") do |p|
+Rake::PackageTask.new("omega", "0.6.1") do |p|
   p.need_tar = true
   p.package_files.include("bin/**/*","examples/**/*", "lib/**/*",
                           "site/**/*", "spec/**/*", "vendor/**/*",
