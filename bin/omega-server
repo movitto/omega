@@ -149,7 +149,19 @@ accessible administrative methods") do
     RJR::Logger.add_filter proc { |m| !(m =~ /.*get_entit.*/ ) }
     RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
     #RJR::Logger.highlight proc { |m| m =~ /.*text to hightlight.*/}
-    # TODO allow user to add / customize filters and highlights via config file (and command line flags?)
+  end
+  
+  # get logging filters from config
+  unless config[:log_filters].nil?
+    config[:log_filters].each { |string| 
+      begin
+        regexp = Regexp.new string
+        RJR::Logger.add_filter proc { |m| !(m =~ regexp) }        
+      rescue RegexpError => e
+        puts "Invalid regexp set as filter (#{e.to_s}) - Exiting" # should we probably keep running?
+        exit
+      end
+    }
   end
 
   # setup the omega systems
