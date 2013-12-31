@@ -51,7 +51,7 @@ TO_VERIFY = {
 
   :role => [:id, :privileges],
     
-  :attribute => [:type, :level, :progression, :user],
+  :attribute => [:type, :level, :progression], # FIXME should also verify user but results in circular reference
 
   :privilege => [:id, :entity_id],
     
@@ -78,7 +78,7 @@ TO_VERIFY = {
     [:tracked_location_id, :tracked_location, :distance, :speed],
 
   :resource =>
-    [:id, :material_id, :entity_id, :entity, :quantity],
+    [:id, :material_id, :entity_id, :quantity], # FIXME should also test entity but results in circular reference
 
   :ship =>
     [:id, :user_id, :size, :distance_moved, :type, :movement_speed,
@@ -216,7 +216,7 @@ def assert(message='', &bl)
 end
 
 def verify(msg, orig, current)
-  # TODO skip if orig already verified (how to determine?)
+# TODO skip if orig already verified (how to determine?)
   TO_VERIFY[:classes].keys.each do |cl|
     next unless orig.kind_of?(cl)
     attrs = TO_VERIFY[TO_VERIFY[:classes][cl]]
