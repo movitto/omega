@@ -32,14 +32,21 @@ create_user = proc { |user|
   user.update_attribute! \
     Attributes::EntityManagementLevel.id, 5 unless user.permenant
 
+  # create new user role for user,
+  # needs to be before user creation so references are valid
+  role = Role.new :id => "user_role_#{user.id}"
+  begin node.invoke('users::create_role', role)
+  rescue Exception => e
+    raise OperationError, "#{user.id} role #{role.id} not created"
+  end
+
   # store user
   added = registry << user
+  # FIXME delete role if user not added
   raise OperationError, "#{user.id} already exists" if !added
   
-  # create new user role for user, add it to user, assign it view/modify privs
+  # add role to user and add view/modify privs to it
   # TODO how to handle role/privilege creation/assignment errors ?
-  role = Role.new :id => "user_role_#{user.id}"
-  node.invoke('users::create_role', role)
   node.invoke('users::add_role', user.id, role.id)
   node.invoke('users::add_privilege', role.id, 'view',   "user-#{user.id}")
   node.invoke('users::add_privilege', role.id, 'modify', "user-#{user.id}")

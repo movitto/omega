@@ -54,10 +54,21 @@ module Users::RJR
       end
     end
 
+    context "role could not be created" do
+      it "raises OperationError" do
+        new_user = build(:user)
+        create(:role, :id => "user_role_#{new_user.id}")
+        lambda {
+          @s.create_user(new_user)
+        }.should raise_error(OperationError)
+      end
+    end
+
     context "existing user-id specified" do
       it "raises OperationError" do
+        new_user = create(:user)
         lambda {
-          @s.create_user(@login_user)
+          @s.create_user(new_user)
         }.should raise_error(OperationError)
       end
     end
