@@ -43,7 +43,7 @@ module Users::RJR
           role = create(:role)
           lambda {
             @s.add_role(user.id, role.id)
-          }.should_not raise_error(PermissionError)
+          }.should_not raise_error()
         end
       end
     end
@@ -105,7 +105,7 @@ module Users::RJR
       it "does not raise permission error" do
         lambda {
           @s.remove_role(@user.id, @role.id)
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
     end
 
@@ -128,7 +128,7 @@ module Users::RJR
           add_privilege(@login_role, 'modify', 'roles')
           lambda {
             @s.remove_role(@user.id, @role.id)
-          }.should_not raise_error(PermissionError)
+          }.should_not raise_error()
         end
       end
     end
@@ -201,7 +201,7 @@ module Users::RJR
           role = create(:role)
           lambda {
             @s.add_privilege(role.id, 'view')
-          }.should_not raise_error(PermissionError)
+          }.should_not raise_error()
         end
       end
     end
@@ -258,7 +258,7 @@ module Users::RJR
       it "does not raise permission error" do
         lambda {
           @s.remove_privilege(@role.id, 'view')
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
     end
 
@@ -281,7 +281,7 @@ module Users::RJR
           add_privilege(@login_role, 'modify', 'roles')
           lambda {
             @s.remove_privilege(@role.id, 'view')
-          }.should_not raise_error(PermissionError)
+          }.should_not raise_error()
         end
       end
     end

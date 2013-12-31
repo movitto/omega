@@ -38,7 +38,7 @@ module Motel::RJR
         loc = create(:location)
         lambda {
           @s.delete_location(loc.id)
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       context "invalid location_id specified" do

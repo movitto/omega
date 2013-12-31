@@ -172,7 +172,7 @@ describe HasCargo do
 
         lambda{
           @e.remove_resource r
-        }.should_not raise_error(RuntimeError)
+        }.should_not raise_error()
       end
     end
 

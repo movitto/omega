@@ -49,7 +49,7 @@ module Manufactured::RJR
         s = build_ship
         lambda {
           @s.create_entity(s)
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       context "invalid entity type specified" do
@@ -247,7 +247,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.construct_entity @st.id, @construct
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       it "filters all properties but id, type, and entity_type" do

@@ -298,7 +298,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.move_entity @sh.id, @l
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       context "invalid location" do
@@ -446,7 +446,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.follow_entity @sh.id, @sh1.id, 10
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       it "updates entity & target location & system" do
@@ -551,7 +551,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.stop_entity @sh.id
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       it "updates entity location" do
