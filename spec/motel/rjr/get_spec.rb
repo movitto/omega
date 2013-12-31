@@ -54,7 +54,7 @@ module Motel::RJR
             l = create(:location, :restrict_view => false)
             lambda {
               @s.get_location 'with_id', l.id
-            }.should_not raise_error(PermissionError)
+            }.should_not raise_error()
           end
 
           it "returns corresponding location" do

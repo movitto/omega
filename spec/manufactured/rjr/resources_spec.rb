@@ -43,7 +43,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.add_resource 'whatever', @rs
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       context "invalid entity id" do
@@ -160,7 +160,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.transfer_resource @src.id, @dst.id, @rs
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       it "updates src/dst locations from motel" do

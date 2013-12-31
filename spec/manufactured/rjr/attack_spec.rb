@@ -83,7 +83,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.attack_entity @at.id, @df.id
-        }.should_not raise_error(PermissionError)
+        }.should_not raise_error()
       end
 
       it "creates new attack command" do
