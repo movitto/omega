@@ -228,7 +228,7 @@ describe Registry do
         r = Registry.new
         r.should_receive(:check_privilege).and_return(false)
         lambda {
-          r.require_privilege :args
+          r.require_privilege :args => nil
         }.should raise_error(Omega::PermissionError)
       end
     end

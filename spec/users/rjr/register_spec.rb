@@ -70,6 +70,7 @@ module Users::RJR
       }.should change{Users::RJR.registry.entities.size}.by(2)
       Users::RJR.registry.
                  entities.
+                 select  { |e| e.is_a?(Users::User) }.
                  collect { |e| e.id }.should include(u.id)
     end
 

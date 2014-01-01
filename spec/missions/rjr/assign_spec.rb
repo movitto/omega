@@ -112,7 +112,7 @@ module Missions::RJR
                      "view", 'mission-' + m.id).and_call_original
         @s.node.should_receive(:invoke).at_least(1).times.and_call_original
         @s.assign_mission m.id, u.id
-        Users::RJR.registry.entity{ |e| e.id == u.id }.
+        Users::RJR.registry.entity{ |e| e.is_a?(Users::User) && e.id == u.id }.
                             has_privilege_on?('view', 'mission-' + m.id).should be_true
       end
 
