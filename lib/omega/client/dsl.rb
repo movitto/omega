@@ -36,7 +36,7 @@ module Omega
     #
     #   # create a new galaxy/system/planet
     #   galaxy 'Zeus' do |g|
-    #     system 'Athena', 'HR1925', :location => 
+    #     system 'Athena', 'HR1925', :location =>
     #       Location.new(:x => 240, :y => -360, :z => 110) do |sys|
     #         planet 'Aphrodite', :movement_strategy =>
     #           Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
@@ -184,7 +184,7 @@ module Omega
       # @return [Cosmos::Entities::SolarSystem] system found or created
       def system(name, star_name = nil, args = {}, &bl)
         # lookup / return system
-        sys = 
+        sys =
           begin dsl.node.invoke('cosmos::get_entity', 'with_name', name)
           rescue Exception => e ; end
 
@@ -258,7 +258,7 @@ module Omega
         aargs = args.merge({:id => id, :name => id,
                             :solar_system => system})
         ast = Cosmos::Entities::Asteroid.new(aargs)
-                                               
+
         RJR::Logger.info "Creating asteroid #{ast} under #{system.name}"
         invoke 'cosmos::create_entity', ast
 
@@ -490,7 +490,7 @@ module Omega
         handler = Missions::EventHandler.new :event_id => event,
                                              :persist  => true
         handler.exec dsl_handler
-        handler 
+        handler
       end
 
       #########################################################################

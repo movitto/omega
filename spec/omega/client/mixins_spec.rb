@@ -15,7 +15,7 @@ module OmegaTest
     include Omega::Client::TrackEntity
     entity_type Manufactured::Ship
     get_method "manufactured::get_entity"
-  
+
     server_state :test_state,
       { :check => lambda { |e| @toggled ||= false ; @toggled = !@toggled },
         :on    => lambda { |e| @on_toggles_called  = true },

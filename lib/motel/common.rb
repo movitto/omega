@@ -172,7 +172,7 @@ def self.rotated_angle(x, y, z, ox, oy, oz, ax, ay, az)
   oa = angle_between(ox,oy,oz,ax,ay,az)
   ad = Math.sin(oa)
 
-  # calc the rotation angle 
+  # calc the rotation angle
   hsa = nd/ad/2
   hsa = hsa.round_to(0) if hsa.abs > 1 # compensate for rounding errors
   ra = Math.asin(hsa)*2
@@ -270,7 +270,7 @@ end
 def self.random_axis(args = {})
   dimensions  = args[:dimensions] || 3
   raise ArgumentError if dimensions != 2 && dimensions != 3
-  
+
   # generate random orthogonal vector if not specified
   orthogonal = args[:orthogonal_to]
   unless orthogonal

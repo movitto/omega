@@ -12,7 +12,7 @@ module Motel
 module MovementStrategies
 
 # The Linear MovementStrategy moves a location
-# in a linear manner as defined by a 
+# in a linear manner as defined by a
 # unit direction vector and a floating point
 # speed.
 #
@@ -23,7 +23,7 @@ class Linear < MovementStrategy
 
    # Unit vector corresponding to the linear movement direction
    attr_accessor :dx, :dy, :dz
-   
+
    # Distance the location moves per second
    attr_accessor :speed
 
@@ -37,7 +37,7 @@ class Linear < MovementStrategy
    # @option args [Float] :dy coordinate of direction vector
    # @option args [Float] :dz z coordinate of direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @raise [Motel::InvalidMovementStrategy] 
+   # @raise [Motel::InvalidMovementStrategy]
    # if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil

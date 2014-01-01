@@ -9,16 +9,16 @@ require 'omega/server/command'
 module Manufactured
 module Commands
 
-# Represents action of one {Manufactured::Ship} attacking another 
+# Represents action of one {Manufactured::Ship} attacking another
 #
 # Registered with the registry by a client when attacker commences
 # attacking and periodically run by registry until attacked stops,
 # defender is destroyed, or one of several other conditions occur.
 #
-# Invokes {Omega::Server::Callback}s registered with the attacker 
+# Invokes {Omega::Server::Callback}s registered with the attacker
 # and defender before/during/after the attack cycle with the event type,
 # the attacking ship, and the defending ship as params
-# 
+#
 # The callback events/types invoked include:
 # * 'attacked_stop' - invoked on the attacker when attacker stops attacking
 # * 'attacked_stop' - invoked on the defender when attacker stops attacking
@@ -37,7 +37,7 @@ class Attack < Omega::Server::Command
   # Return the unique id of this attack command.
   #
   # Currently a ship may only attack one other at a time,
-  # TODO incorporate multiple weapons and area based weapons 
+  # TODO incorporate multiple weapons and area based weapons
   # (multiple defenders) into this
   def id
     id = @attacker.nil? ? "" : @attacker.id.to_s
@@ -79,7 +79,7 @@ class Attack < Omega::Server::Command
 
   def last_hook
     @attacker.stop_attacking
- 
+
     # check if defender has been destroyed
     if @defender.hp == 0
       ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"

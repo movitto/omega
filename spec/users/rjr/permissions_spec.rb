@@ -307,7 +307,7 @@ module Users::RJR
       @s.remove_privilege(@role.id, 'view')
       @rrole.has_privilege?('view').should be_false
     end
-    
+
     context "entity specified" do
       context "roles does not have privilege on entity" do
         it "raises ArgumentError" do

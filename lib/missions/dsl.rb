@@ -22,7 +22,7 @@ module DSL
 module Client
 
 # Client side dsl proxy
-# 
+#
 # Mechanism to allow clients to specify dsl methods to be used in
 # server side operations.
 #
@@ -226,7 +226,7 @@ module Assignment
         entity.is_a?(String) ? mission.mission_data[entity] : entity
       }.flatten.each { |entity|
         # add handler to registry
-        eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt) 
+        eid     = Missions::Events::Manufactured.gen_id(entity.id, evnt)
         # TODO mark event handler as persistant &
         # remove handlers on mission completion/failure
         handler = Omega::Server::EventHandler.new(:event_id => eid) { |e|

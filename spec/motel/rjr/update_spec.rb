@@ -82,7 +82,7 @@ module Motel::RJR
         @s.update_location n
         Motel::RJR.registry.entity(&with_id(n.id)).x.should == 5000
       end
-      
+
       it "returns location" do
         n = create(:location)
         @s.update_location(n).id.should == n.id

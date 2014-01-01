@@ -12,18 +12,18 @@ module Manufactured::RJR
 # Internal helper, move an entity in a single system
 def move_entity_in_system(entity, loc)
   # TODO may want to incorporate fuel into this at some point
-  
+
   # only ships can moving in a system for now, also ensure not docked
   raise OperationError, "#{entity} not ship" unless entity.is_a?(Ship)
   raise OperationError, "#{entity} docked"   unless !entity.docked?
-        
+
   # calculate distance to move along each access
   dx = loc.x - entity.location.x
   dy = loc.y - entity.location.y
   dz = loc.z - entity.location.z
   distance = loc - entity.location
   raise OperationError, "#{entity} at location" if distance < 1
-  
+
   # Create linear movement strategy w/ movement trajectory
   linear =
     Motel::MovementStrategies::Linear.new :dx => dx/distance,
@@ -33,12 +33,12 @@ def move_entity_in_system(entity, loc)
 
   # calculate the orientation difference
   od = entity.location.orientation_difference(*loc.coordinates)
-  
+
   # if we are close enough to correct orientation,
   # register linear movement strategy with entity
   if od.first.abs < (Math::PI / 8)
     entity.location.movement_strategy = linear
-  
+
   # if we need to adjust orientation before moving,
   # register rotation movement strategy w/ entity
   else
@@ -53,11 +53,11 @@ def move_entity_in_system(entity, loc)
     # register rotation w/ location, linear as next movement strategy
     entity.location.movement_strategy = rotate
     entity.location.next_movement_strategy = linear
-  
+
     # track location rotation
     node.invoke('motel::track_rotation', entity.location.id, *od)
   end
-  
+
   # track location movement and update location
   node.invoke('motel::track_movement', entity.location.id, distance)
   node.invoke('motel::update_location', entity.location)
@@ -93,7 +93,7 @@ def move_entity_between_systems(entity, sys)
 
   # TODO add subscriptions to cosmos system
   #      to detect when ships jump in / out
-  
+
   # update location and remove movement callbacks
   node.invoke('motel::update_location',  entity.location)
   node.invoke('motel::remove_callbacks', entity.location.id, 'movement')
@@ -155,7 +155,7 @@ move_entity = proc { |id, loc|
     begin node.invoke('cosmos::get_entity', 'with_location', parent_id)
     rescue Exception => e ; raise DataNotFound, parent_id end
   raise ValidationError, parent unless parent.is_a?(Cosmos::Entities::SolarSystem)
-  
+
   # if parents don't match, we are moving entity between systems
   if entity.parent.id != parent.id
     move_entity_between_systems(entity, parent)
@@ -164,7 +164,7 @@ move_entity = proc { |id, loc|
   else
     move_entity_in_system(entity, loc)
   end
-  
+
   # return entity
   entity
 }
@@ -173,7 +173,7 @@ move_entity = proc { |id, loc|
 follow_entity = proc { |id, target_id, distance|
   # ensure different entity id's specified
   raise ArgumentError, "#{id} == #{target_id}" if id == target_id
-  
+
   # retrieve entities from registry, validate
   entity = registry.entity &with_id(id)
   target = registry.entity &with_id(target_id)
@@ -181,10 +181,10 @@ follow_entity = proc { |id, target_id, distance|
   raise DataNotFound, target_id if target.nil?
   raise ArgumentError, entity   unless entity.is_a?(Ship)
   raise ArgumentError, target   unless target.is_a?(Ship)
-  
+
   # ensure valid distance specified
   raise ArgumentError, distance unless distance.numeric? && distance > 0
-  
+
   # require modify on follower, view on followee
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "manufactured_entity-#{entity.id}"},
@@ -194,30 +194,30 @@ follow_entity = proc { |id, target_id, distance|
      {:privilege => 'view', :entity => 'manufactured_entities'}]
 
   # update the locations and systems
-  entity.location = 
+  entity.location =
     node.invoke('motel::get_location', 'with_id', entity.location.id)
-  target.location = 
+  target.location =
     node.invoke('motel::get_location', 'with_id', target.location.id)
-  entity.solar_system = 
+  entity.solar_system =
     node.invoke('cosmos::get_entity', 'with_location', entity.location.parent_id)
-  target.solar_system = 
+  target.solar_system =
     node.invoke('cosmos::get_entity', 'with_location', target.location.parent_id)
-  
+
   # ensure entities are in the same system
   raise ArgumentError,
     "#{entity.system_id} != #{target.system_id}" if entity.system_id !=
                                                            target.system_id
-  
+
   # ensure entity isn't docked
   raise OperationError, "#{entity} is docked" if entity.docked?
-  
+
   # set the movement strategy, update the location
   entity.location.movement_strategy =
     Motel::MovementStrategies::Follow.new :distance => distance,
                                 :speed => entity.movement_speed,
                      :tracked_location_id => target.location.id
   node.invoke('motel::update_location', entity.location)
-  
+
   # return the entity
   entity
 }

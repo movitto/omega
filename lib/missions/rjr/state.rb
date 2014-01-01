@@ -24,7 +24,7 @@ restore_state = proc { |input|
 STATE_METHODS = { :save_state => save_state,
                   :restore_state => restore_state }
 
-end 
+end
 
 def dispatch_missions_rjr_state(dispatcher)
   m = Missions::RJR::STATE_METHODS

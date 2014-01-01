@@ -121,7 +121,7 @@ describe Station do
     it "returns true" do
       @s.should be_valid
     end
-    
+
     context "id is invalid" do
       it "returns false" do
         @s.id = nil

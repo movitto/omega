@@ -57,7 +57,7 @@ describe Loot do
     it "returns true" do
       @l.should be_valid
     end
-    
+
     context "id is invalid" do
       it "returns false" do
         @l.id = nil
@@ -100,7 +100,7 @@ describe Loot do
       location= Motel::Location.new :id => 20, :y => -15
       res1    = build(:resource)
 
-      l = Manufactured::Loot.new(:id => 'loot1', :solar_system => system1, 
+      l = Manufactured::Loot.new(:id => 'loot1', :solar_system => system1,
                                  :location => location,
                                  :resources => {res1.id => 100})
 

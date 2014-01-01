@@ -212,7 +212,7 @@ class OmegaNcurses
     if @current_panel.window == @view_windows[:cosmos] ||
        @current_panel.window == @view_windows[:manu]
       @controls_win.move(7,1)
-      @controls_win.addstr("R to toggle resources") 
+      @controls_win.addstr("R to toggle resources")
     end
   end
 

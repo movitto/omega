@@ -187,7 +187,7 @@ class User
   end
 
   # Return bool indicating if the user has the specified role
-  # 
+  #
   # @param [String] role_id id of the role to look for
   # @return bool indicating if the user has the role
   def has_role?(role_id)

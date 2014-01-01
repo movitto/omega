@@ -18,7 +18,7 @@ module Manufactured::RJR
       @sh = create(:valid_ship,    :solar_system => @sys)
       @st = create(:valid_station, :solar_system => @sys)
 
-      @rsh,@rst = 
+      @rsh,@rst =
         @registry.safe_exec { |entities|
           [entities.find(&with_id(@sh.id)),
            entities.find(&with_id(@st.id))]
@@ -131,7 +131,7 @@ module Manufactured::RJR
       @st = create(:valid_station, :solar_system => @sys)
       @sh = create(:valid_ship,    :solar_system => @sys)
 
-      @rsh,@rst = 
+      @rsh,@rst =
         @registry.safe_exec { |entities|
           [entities.find(&with_id(@sh.id)),
            entities.find(&with_id(@st.id))]

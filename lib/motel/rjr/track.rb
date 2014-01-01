@@ -46,7 +46,7 @@ def cb_from_args(rjr_method, args)
                             :axis_z       => az,
                             :rjr_event    => 'motel::on_rotation',
                             :event_type   => :rotation
-                             
+
   when 'motel::track_proximity'
     olid = args.shift
     oloc = registry.entity &with_id(olid)
@@ -65,7 +65,7 @@ def cb_from_args(rjr_method, args)
                              :to_location  => oloc,
                              :rjr_event    => 'motel::on_proximity',
                              :event_type   => :proximity
-                              
+
   when 'motel::track_stops'
     Callbacks::Stopped.new :rjr_event   => 'motel::location_stopped',
                            :event_type  => :stopped
@@ -111,7 +111,7 @@ track_handler = proc { |*args|
     begin
       # ensure user has access to view location
       if loc.restrict_view
-        require_privilege :registry => user_registry, :any => 
+        require_privilege :registry => user_registry, :any =>
           [{:privilege => 'view', :entity => "location-#{loc.id}"},
            {:privilege => 'view', :entity => 'locations'}]
       end
@@ -137,7 +137,7 @@ track_handler = proc { |*args|
     rescue Exception => e
       ::RJR::Logger.warn "exception raised when invoking #{loc.id} #{cb.rjr_event} callback: #{e}"
       err = true
-    
+
     ensure
       if err
         registry.safe_exec { |entities|

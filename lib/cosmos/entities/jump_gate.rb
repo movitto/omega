@@ -11,7 +11,7 @@ module Entities
 # Represents a link between two systems.
 #
 # Reside in a {Cosmos::SolarSystem} (the jump_gate's parent) at a
-# specified location and references another system (the endpoint). 
+# specified location and references another system (the endpoint).
 # Primarily interacted with by {Manufactured::Ship} instances who
 # require jump gates to travel inbetween systems
 class JumpGate

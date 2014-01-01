@@ -63,7 +63,7 @@ transfer_resource = proc { |*args|
     node.invoke('motel::get_location', 'with_id', src.location.id)
   dst.location =
     node.invoke('motel::get_location', 'with_id', dst.location.id)
-  
+
   # if resources not specified, transfer all from source to dst
   resources = src.resources if resources.nil?
 

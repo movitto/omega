@@ -54,7 +54,7 @@ module Missions::RJR
         it "only return entities assignable to user" do
           m1 = create(:mission, :assigned_to => create(:user))
           m2 = create(:mission)
-          m = @s.get_missions 'assignable_to', @login_user.id 
+          m = @s.get_missions 'assignable_to', @login_user.id
           m.size.should == 1
           m.first.id.should == m2.id
         end
@@ -63,7 +63,7 @@ module Missions::RJR
       context "assigned_to specified" do
         it "returns entity assigned to user" do
           m = create(:mission, :assigned_to => @login_user)
-          r = @s.get_missions 'assigned_to', @login_user.id 
+          r = @s.get_missions 'assigned_to', @login_user.id
           r.id.should == m.id
         end
       end

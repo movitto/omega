@@ -13,7 +13,7 @@ module Missions::RJR
 # create a server side hook
 add_hook = proc { |handler|
   # require create on missions_hooks
-  require_privilege :registry  => user_registry, 
+  require_privilege :registry  => user_registry,
                     :privilege => 'create',
                     :entity    => 'missions_hooks'
 

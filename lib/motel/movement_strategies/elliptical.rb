@@ -16,12 +16,12 @@ module Motel
 module MovementStrategies
 
 # The Elliptical MovementStrategy moves a location
-# on an elliptical path described by major/minor 
+# on an elliptical path described by major/minor
 # axis direction vectors, and an eccentricity /
 # semi_latus_rectum.
 #
 # The path equation also depends on the value of the relative_to
-# field indicating if the parent location 
+# field indicating if the parent location
 # is the center or a foci of the ellipse.
 # Lastly a speed value is required indicating the
 # angular velocity of the location.
@@ -216,7 +216,7 @@ class Elliptical < MovementStrategy
 
     # return the linear eccentricity of the ellipse
     # le = sqrt(a^2 - b^2)
-    def linear_eccentricity 
+    def linear_eccentricity
       a,b = intercepts
       Math.sqrt(a**2 - b**2);
     end
@@ -229,8 +229,8 @@ class Elliptical < MovementStrategy
       a,b = intercepts
       le  = linear_eccentricity
 
-      centerX = -1 * dmajx * le; 
-      centerY = -1 * dmajy * le; 
+      centerX = -1 * dmajx * le;
+      centerY = -1 * dmajy * le;
       centerZ = -1 * dmajz * le;
       return centerX, centerY, centerZ
     end
@@ -243,8 +243,8 @@ class Elliptical < MovementStrategy
       a,b = intercepts
       le  = linear_eccentricity
 
-      focusX = dmajx * le; 
-      focusY = dmajy * le; 
+      focusX = dmajx * le;
+      focusY = dmajy * le;
       focusZ = dmajz * le;
       return focusX, focusY, focusZ
     end
@@ -257,7 +257,7 @@ class Elliptical < MovementStrategy
              location.z - cZ
     end
 
-    # return the theta corresponding to the position of a 
+    # return the theta corresponding to the position of a
     # location on the elliptical path.
     #
     #  derived formula for theta from x,y,z elliptical path equations (see below) and linear transformations:
@@ -285,7 +285,7 @@ class Elliptical < MovementStrategy
       below = ny < 0
 
       # adjust to compensate for acos loss if necessary
-      t = 2 * Math::PI - t if (below) 
+      t = 2 * Math::PI - t if (below)
 
       return t
     end

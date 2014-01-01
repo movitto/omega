@@ -32,7 +32,7 @@ collect_loot = proc { |ship_id, loot_id|
                                 loot.can_transfer?(ship, r) &&
                                 ship.can_accept?(r)
                               }
-  
+
   total = 0
 
   # run the transfer in the registry

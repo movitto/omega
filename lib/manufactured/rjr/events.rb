@@ -65,7 +65,7 @@ subscribe_to = proc { |entity_id, event|
       ensure
         if err
           registry.safe_exec { |entities|
-            rentity = entities.find &with_id(entity.id) 
+            rentity = entities.find &with_id(entity.id)
             rentity.callbacks.delete(cb)
             rentity.callbacks.compact!
           }
@@ -83,7 +83,7 @@ subscribe_to = proc { |entity_id, event|
 
   # delete old callback and register new
   registry.safe_exec { |entities|
-    old = 
+    old =
       rentity.callbacks.find { |c|
         c.event_type  == cb.event_type &&
         c.endpoint_id == cb.endpoint_id

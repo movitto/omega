@@ -32,7 +32,7 @@ admin_run_callbacks = proc { |entity_id, *args|
 ADMIN_METHODS = { :set   => admin_set, :run_callbacks => admin_run_callbacks }
 
 def dispatch_manufactured_rjr_admin(dispatcher)
-  dispatcher.handle "manufactured::admin::set", 
+  dispatcher.handle "manufactured::admin::set",
                      &ADMIN_METHODS[:set]
 
   dispatcher.handle "manufactured::admin::run_callbacks",

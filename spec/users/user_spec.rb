@@ -243,7 +243,7 @@ describe User do
       u.remove_role(r.id)
       u.has_role?(r.id).should be_false
     end
-    
+
     context "user does not have role" do
       it "does nothing" do
         r1 = Role.new :id => 'r1'

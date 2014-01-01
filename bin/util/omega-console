@@ -60,7 +60,7 @@ Pry.config.commands = Pry::CommandSet.new do
       description "Omega Client DSL Method"
       group 'omega'
       command_options :keep_retval => true
-  
+
       def process(*args)
         $console.send(self.command_name, *args)
       end

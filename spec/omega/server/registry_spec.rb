@@ -287,7 +287,7 @@ describe Registry do
 
     context "selected entity found" do
       it "updates entity" do
-        @registry.update(@e2a, &@select_e2) 
+        @registry.update(@e2a, &@select_e2)
         @e2.should == @e2a
       end
 
@@ -304,7 +304,7 @@ describe Registry do
 
     context "selected entity not found" do
       it "does not update entity" do
-        @registry.update(@e3a, &@select_e3) 
+        @registry.update(@e3a, &@select_e3)
         @e3.should == @orig_e3
       end
 
@@ -440,7 +440,7 @@ describe Registry do
       @m.synchronize { @c.wait @m, 0.1 }
       @ran.should >= 1
     end
-    
+
     context "running registry" do
       it "starts event loop in new worker thread" do
         # start then run

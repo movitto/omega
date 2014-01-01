@@ -151,7 +151,7 @@ module Omega
         if(type == :station)
           #user_owned = args[:user_owned] ? lambda { |e| e.user_id == Node.user.id } :
           #                                 lambda { |e| true }
-          entities = 
+          entities =
             Omega::Client::Station.entities.select { |e|
               e.location.parent_id == self.location.parent_id
             }.#select(&user_owned).
@@ -159,7 +159,7 @@ module Omega
                               (self.location - b.location) }
 
         elsif(type == :resource)
-          entities = 
+          entities =
             self.solar_system.asteroids.select { |ast|
               ast.resources.find { |rs| rs.quantity > 0 }
             }.flatten.sort { |a,b|

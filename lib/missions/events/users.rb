@@ -19,7 +19,7 @@ class Users < Omega::Server::Event
   # Users Event intializer
   def initialize(args={})
     attr_from_args args, :users_event_args => []
-  
+
     # users event should be the first arg
     event = @users_event_args.first
     super(args.merge({:id => event, :timestamp => Time.now}))

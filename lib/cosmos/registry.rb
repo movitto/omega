@@ -22,11 +22,11 @@ class Registry
   include Omega::Server::Registry
   include Cosmos::Entities
 
-  VALID_TYPES = 
+  VALID_TYPES =
     [Galaxy, SolarSystem, JumpGate, Star, Planet, Moon, Asteroid]
 
   private
-  
+
   def check_entity(entity)
     @lock.synchronize{
       re = @entities.find { |e| e.id == entity.id }

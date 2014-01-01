@@ -204,7 +204,7 @@ module Omega
         rs  = ast.resources.find { |rsi| rsi.quantity > 0 }
 
         if ast.location - location < mining_distance
-          # server resource may by depleted at any point, 
+          # server resource may by depleted at any point,
           # need to catch errors, and try elsewhere
           begin
             mine(rs)

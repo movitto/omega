@@ -185,7 +185,7 @@ module Manufactured::RJR
 
       it "logs in using proxy" do
         Omega::Server::ProxyNode.should_receive(:with_id).and_return(@p)
-                                 
+
         @p.should_receive(:login)
         move_entity_between_systems(@sh, @nsys)
       end

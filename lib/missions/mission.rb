@@ -217,7 +217,7 @@ class Mission
       :failure_callbacks    =>  [],
       :victorious           => false,
       :failed               => false
-    
+
     @assigned_time = Time.parse(@assigned_time) if @assigned_time.is_a?(String)
 
     # convert all mission data keys to strings

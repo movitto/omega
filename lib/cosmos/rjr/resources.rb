@@ -39,7 +39,7 @@ set_resource = proc { |resource|
 # retrieve resource specified by id
 get_resource = proc { |resource_id|
   # search for resource in entities in the registry
-  resource = 
+  resource =
     registry.entities.
              collect { |e| e.resources if e.respond_to?(:resources) }. # XXX
              flatten.compact.find { |r| r.id == resource_id }

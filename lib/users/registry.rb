@@ -109,7 +109,7 @@ class Registry
             find    { |s|  s.user.id == e.user.id }.nil? :
           r.find    { |re| re.class == e.class && re.id == e.id }.nil?))
     }
-    
+
     # set user timestamps on creation
     on(:added) { |e|
       if e.is_a?(User)

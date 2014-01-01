@@ -46,7 +46,7 @@ module Omega
       # Register handler for the specified event
       #
       # @param [Symbol] event event to handle
-      # @param [Array<Object>] args initialization parameters 
+      # @param [Array<Object>] args initialization parameters
       # @param [Callable] handler callback to invoke on event
       def handle(event, *args, &handler)
         esetup = self.class.event_setup[event]
@@ -84,7 +84,7 @@ module Omega
             ::RJR::Logger.warn "err in #{id} #{event} handler:"
             ::RJR::Logger.warn "#{([e] + e.backtrace).join("\n")}"
           end
-            
+
         } if @event_handlers && @event_handlers[event]
 
         # run :all callbacks
@@ -110,10 +110,10 @@ module Omega
 
       private
 
-      # Methods that are defined on the class including 
+      # Methods that are defined on the class including
       # the Trackable module
       module ClassMethods
-        
+
         # Class wrapper around Trackable.node
         def node
           Trackable.node
@@ -122,7 +122,7 @@ module Omega
         # Define server side entity type to track
         def entity_type(type=nil)
           @entity_type = type unless type.nil?
-          @entity_type.nil? ? 
+          @entity_type.nil? ?
             (self.superclass.respond_to?(:entity_type) ?
              self.superclass.entity_type : nil) :
              @entity_type
@@ -164,7 +164,7 @@ module Omega
         # Get/set the method used to retrieve serverside entities.
         def get_method(method_name=nil)
           @get_method = method_name unless method_name.nil?
-          @get_method.nil? ? 
+          @get_method.nil? ?
             (self.superclass.respond_to?(:get_method) ?
              self.superclass.get_method : nil) :
              @get_method
@@ -420,7 +420,7 @@ module Omega
         end
       end
 
-      # Methods that are defined on the class including 
+      # Methods that are defined on the class including
       # the TrackState module
       module ClassMethods
         # Define a state for this entity type which clients can register
@@ -519,7 +519,7 @@ module Omega
         @entities = []
       end
 
-      # Methods that are defined on the class including 
+      # Methods that are defined on the class including
       # the TrackState module
       module ClassMethods
         # Return all entities of the local type

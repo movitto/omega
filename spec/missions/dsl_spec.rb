@@ -192,7 +192,7 @@ module DSL
       @node = Missions::RJR::node.as_null_object
       @m = build(:mission)
     end
-    
+
     describe "#store" do
       before(:each) do
         @lookup = proc { |m,n| 42 }
@@ -220,25 +220,25 @@ module DSL
 
       it "create and stores new ship in mission data" do
         @node.should_receive(:invoke)
-        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m)
         @m.mission_data['ship1'].should be_an_instance_of(Manufactured::Ship)
         @m.mission_data['ship1'].type.should == :mining
       end
 
       it 'generates a new id if not specified' do
         @node.should_receive(:invoke)
-        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m)
         @m.mission_data['ship1'].id.should_not be_nil
         @m.mission_data['ship1'].id.should =~ UUID_PATTERN
 
-        Assignment.create_entity('ship1', :id => 'ship1', 'type' => :mining).call(@m) 
+        Assignment.create_entity('ship1', :id => 'ship1', 'type' => :mining).call(@m)
         @m.mission_data['ship1'].id.should == 'ship1'
       end
 
       it "invokes manufactured::create_entity" do
         @node.should_receive(:invoke).
               with('manufactured::create_entity', an_instance_of(Manufactured::Ship))
-        Assignment.create_entity('ship1', 'type' => :mining).call(@m) 
+        Assignment.create_entity('ship1', 'type' => :mining).call(@m)
       end
     end
 
@@ -249,31 +249,31 @@ module DSL
 
       it "creates and stores new asteroid in mission data" do
         @node.should_receive(:invoke)
-        Assignment.create_asteroid('ast1', :name => 'ast1').call(@m) 
+        Assignment.create_asteroid('ast1', :name => 'ast1').call(@m)
         @m.mission_data['ast1'].should be_an_instance_of(Cosmos::Entities::Asteroid)
         @m.mission_data['ast1'].name.should == "ast1"
       end
 
       it 'generates a new id if not specified' do
         @node.should_receive(:invoke)
-        Assignment.create_asteroid('ast1').call(@m) 
+        Assignment.create_asteroid('ast1').call(@m)
         @m.mission_data['ast1'].id.should_not be_nil
         @m.mission_data['ast1'].id.should =~ UUID_PATTERN
 
-        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m) 
+        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m)
         @m.mission_data['ast1'].id.should == 'ast2'
       end
 
       it 'sets the asteroid name if not specified' do
         @node.should_receive(:invoke)
-        Assignment.create_asteroid('ast1').call(@m) 
+        Assignment.create_asteroid('ast1').call(@m)
         @m.mission_data['ast1'].name.should_not be_nil
         @m.mission_data['ast1'].name.should =~ UUID_PATTERN
 
-        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m) 
+        Assignment.create_asteroid('ast1', :id => 'ast2').call(@m)
         @m.mission_data['ast1'].name.should == 'ast2'
 
-        Assignment.create_asteroid('ast1', :name => 'ast3').call(@m) 
+        Assignment.create_asteroid('ast1', :name => 'ast3').call(@m)
         @m.mission_data['ast1'].name.should == 'ast3'
       end
 
@@ -283,7 +283,7 @@ module DSL
               with('cosmos::create_entity',
                    an_instance_of(Cosmos::Entities::Asteroid))
         Assignment.create_asteroid('ast1', 'name' => 'ast1',
-                                   :solar_system => sys).call(@m) 
+                                   :solar_system => sys).call(@m)
       end
     end
 
@@ -386,7 +386,7 @@ module DSL
         sh1.should_not be_nil
         sh2.should_not be_nil
 
-        e = Omega::Server::Event.new 
+        e = Omega::Server::Event.new
         @handler.should_receive(:call).with(@m, e).exactly(2).times
         handler1.should_receive(:call).with(@m, e).exactly(2).times
         sh1.handlers.first.call e
@@ -422,7 +422,7 @@ module DSL
           Assignment.subscribe_to(sh, 'destroyed', @handler).call(@m)
           handler = Missions::RJR.registry.safe_exec{ |entities| entities.last }
 
-          e = Omega::Server::Event.new 
+          e = Omega::Server::Event.new
           @handler.should_receive(:call).with(@m, e)
           handler.handlers.first.call e
         end

@@ -13,7 +13,7 @@
 # XXX bug w/ sourcify 0.6.0 and method hash parameters, use > 0.6.0.rc4
 # https://github.com/ngty/sourcify/issues/27
 
-# XXX make sure to define sprocs on their own lines: 
+# XXX make sure to define sprocs on their own lines:
 # https://github.com/ngty/sourcify#2-multiple-matching-procs-per-line-error
 
 require 'sourcify'

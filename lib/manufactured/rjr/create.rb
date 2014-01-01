@@ -53,11 +53,11 @@ create_entity = proc { |entity|
   require_privilege :registry  => user_registry,
                     :privilege => 'create',
                     :entity    => 'manufactured_entities'
-  
+
   # validate type of entity
   raise ValidationError,
     entity unless Registry::VALID_TYPES.include?(entity.class)
-  
+
   # swap out the parent w/ the one stored in the cosmos registry
   parent =
     begin node.invoke('cosmos::get_entity', 'with_id', entity.system_id)
@@ -73,10 +73,10 @@ create_entity = proc { |entity|
   #  (not required but useful error to raise here
   validate_user_attributes(registry.entities, entity)
 
-  ###################### create/modify entity & supporting data 
+  ###################### create/modify entity & supporting data
 
   # modify base ship attributes from user attributes
-  # entity attribute |          user attribute           | scale 
+  # entity attribute |          user attribute           | scale
   [[:movement_speed,   Users::Attributes::PilotLevel.id,   20],
    [:damage_dealt,     Users::Attributes::OffenseLevel.id, 10],
    [:max_shield_level, Users::Attributes::DefenseLevel.id, 10],
@@ -90,7 +90,7 @@ create_entity = proc { |entity|
     Cosmos::Resource.new(:id => Motel.gen_uuid,
                          :material_id => 'metal-steel',
                          :quantity => 100) if entity.is_a?(Station)
-  
+
   # create location in motel, swap it in locally
   entity.location.id = entity.id
   entity.location =
@@ -99,7 +99,7 @@ create_entity = proc { |entity|
       raise OperationError, "#{entity.location} not created"
     end
   entity.location.parent = entity.parent.location
-  
+
   # store entity, throw error if not added
   added = registry << entity
   unless added
@@ -109,13 +109,13 @@ create_entity = proc { |entity|
     # raise err
     raise OperationError, "#{entity} not created"
   end
-  
+
   # add permissions to view & modify entity to owner
   user_role = "user_role_#{user.id}"
   owner_permissions_for(entity).each { |p,e|
      node.invoke('users::add_privilege', user_role, p, e)
   }
-  
+
   ############################ return entity
   entity
 }
@@ -153,10 +153,10 @@ construct_entity = proc { |manufacturer_id, *args|
   raise OperationError,
     "#{station} can't construct #{args}" unless station.can_construct?(args)
 
-  ###################### create entity & supporting data 
+  ###################### create entity & supporting data
 
   # invoke update operations on registry station
-  entity = 
+  entity =
     registry.safe_exec { |entities|
       # grab registry station
       rstation = entities.find &with_id(station.id)

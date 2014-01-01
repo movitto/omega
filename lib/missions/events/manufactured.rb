@@ -31,7 +31,7 @@ class Manufactured < Omega::Server::Event
     end
 
     @manufactured_event_args = manufactured_event_args
-  
+
     # generate event id from args
     # TODO right now we're just taking care of cases we need,]
     # add support for more manu events as they are required
@@ -43,19 +43,19 @@ class Manufactured < Omega::Server::Event
 
       when 'destroyed_by'        then
         manufactured_event_args[1].id
-  
+
       when 'resource_collected'  then
         manufactured_event_args[1].id
-  
+
       when 'transferred_to'      then
         manufactured_event_args[1].id
 
       when 'collected_loot'      then
         manufactured_event_args[1].id
-  
+
       end
     id = self.class.gen_id(entity_id, manu_event)
-  
+
     super(:id => id, :timestamp => Time.now)
   end
 

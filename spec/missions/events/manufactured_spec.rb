@@ -27,7 +27,7 @@ describe Manufactured do
                                           :quantity => 50
 
       # TODO test all manufactured callbacks, see API for list
-      @events = 
+      @events =
         [['destroyed_by', @attacker, @defender],
          ['resource_collected', @miner, @rs],
          ['collected_loot', @attacker, @rs]]

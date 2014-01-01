@@ -9,7 +9,7 @@ require 'motel/movement_strategy'
 module Motel
 module MovementStrategies
 
-# Stopped is the default MovementStrategy which does nothing 
+# Stopped is the default MovementStrategy which does nothing
 class Stopped < MovementStrategy
    include Singleton
 

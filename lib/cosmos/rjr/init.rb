@@ -66,11 +66,11 @@ module Cosmos::RJR
   def user_registry
     Cosmos::RJR.user_registry
   end
-  
+
   def self.registry
     @registry ||= Cosmos::Registry.new
   end
-  
+
   def registry
     Cosmos::RJR.registry
   end

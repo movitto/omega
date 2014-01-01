@@ -28,7 +28,7 @@ class ChangedStrategy < Omega::Server::Callback
     # set before so that on first run callback is invoked
     #@orig_ms = loc.ms if @orig_ms.nil?
     loc.ms.class != @orig_ms.class
-  end  
+  end
 
   public
 

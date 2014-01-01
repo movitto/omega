@@ -62,7 +62,7 @@ module Omega
           }
         end
 
-        @handlers[rjr_method] << bl 
+        @handlers[rjr_method] << bl
       end
 
     end

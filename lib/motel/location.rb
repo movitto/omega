@@ -180,7 +180,7 @@ class Location
    end
 
    # Validate the location's properties
-   # 
+   #
    # @return bool indicating if the location is valid or not
    #
    # Currently tests
@@ -207,7 +207,7 @@ class Location
 
    # Return this location's coordinates in an array
    #
-   # @return [Array<Float,Float,Float>] array containing this 
+   # @return [Array<Float,Float,Float>] array containing this
    # location's x,y,z coordinates
    def coordinates
      [@x, @y, @z]

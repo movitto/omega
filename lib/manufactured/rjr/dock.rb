@@ -15,7 +15,7 @@ dock = proc { |ship_id, station_id|
   station = registry.entity &with_id(station_id)
   raise DataNotFound, ship_id    if ship.nil?    || !ship.is_a?(Ship)
   raise DataNotFound, station_id if station.nil? || !station.is_a?(Station)
-  
+
   # require modify on ship
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
@@ -25,7 +25,7 @@ dock = proc { |ship_id, station_id|
   #require_privilege :registry => user_registry, :any =>
   #  [{:privilege => 'modify', :entity => "manufactured_entity-#{station.id}"},
   #   {:privilege => 'modify', :entity => 'manufactured_entities'}]
-  
+
   # retrieve ship location from motel
   ship.location =
     node.invoke('motel::get_location', 'with_id', ship.location.id)
@@ -45,7 +45,7 @@ dock = proc { |ship_id, station_id|
                                                rsh.can_dock_at?(rst)
     rsh.dock_at(rst)
   }
-  
+
   # set ship movement strategy to stopped, update in motel
   # TODO optinally set position of ship in proximity of station
   ship.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
@@ -53,7 +53,7 @@ dock = proc { |ship_id, station_id|
 
   # XXX set docked at of ship we're returning
   ship.docked_at = station
-  
+
   # return ship
   ship
 }
@@ -63,12 +63,12 @@ undock = proc { |ship_id|
   # retrieve / validate ship
   ship = registry.entity &with_id(ship_id)
   raise DataNotFound, ship_id if ship.nil? || !ship.is_a?(Ship)
-  
+
   # require modify on ship
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
      {:privilege => 'modify', :entity => 'manufactured_entities'}]
-  
+
   # undock registry ship
   registry.safe_exec { |entities|
     # grab ship from registry
@@ -77,14 +77,14 @@ undock = proc { |ship_id|
     # ensure it is docked
     # TODO optionally require a station's docking clearance at some point
     raise OperationError, "not docked" unless rs.docked?
-  
+
     # undock it
     rs.undock
   }
 
   # XXX nullify docked at of ship we're returning
   ship.docked_at = nil
-  
+
   # return ship
   ship
 }
@@ -95,7 +95,7 @@ DOCK_METHODS = { :dock   => dock,
 end # module Manufactured::RJR
 
 def dispatch_manufactured_rjr_dock(dispatcher)
-  m = Manufactured::RJR::DOCK_METHODS 
+  m = Manufactured::RJR::DOCK_METHODS
   dispatcher.handle 'manufactured::dock',   &m[:dock]
   dispatcher.handle 'manufactured::undock', &m[:undock]
 end

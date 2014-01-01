@@ -20,7 +20,7 @@ get_missions = proc { |*args|
   # exclude missions which user does not have access to view
   missions.reject! { |m|
     privs = [{:privilege => 'view', :entity => 'missions'},
-             {:privilege => 'view', :entity => "mission-#{m.id}"}] + 
+             {:privilege => 'view', :entity => "mission-#{m.id}"}] +
              (m.assigned_to_id.nil? ?
                [{:privilege => 'view', :entity => 'unassigned_missions'}] : [])
     !check_privilege :registry => user_registry, :any => privs

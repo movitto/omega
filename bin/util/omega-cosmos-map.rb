@@ -12,7 +12,7 @@ require 'rgl/dot'
 
 UNIVERSE = ARGV.shift || "examples/universes/complete.rb"
 
-$current_graph = current_galaxy = current_system = 
+$current_graph = current_galaxy = current_system =
 current_star = current_planet = current_moon = nil
 
 graphs = {}

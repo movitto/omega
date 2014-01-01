@@ -36,7 +36,7 @@ describe Proximity do
           it "returns true" do
             l1 = Motel::Location.new :x => 0, :y => 1.5, :z => 0.75
             l2 = Motel::Location.new :x => 2.5, :y => 2.5, :z => 0
-            p = Proximity.new :to_location => l2, :max_distance => 10 
+            p = Proximity.new :to_location => l2, :max_distance => 10
             p.should_invoke?(l1).should be_true
           end
         end

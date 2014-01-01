@@ -50,11 +50,11 @@ TO_VERIFY = {
      :last_login_at, :permenant, :npc, :attributes], # FIXME recaptcha also needed
 
   :role => [:id, :privileges],
-    
+
   :attribute => [:type, :level, :progression], # FIXME should also verify user but results in circular reference
 
   :privilege => [:id, :entity_id],
-    
+
   :user_events => [:user],
 
   :location =>
@@ -65,7 +65,7 @@ TO_VERIFY = {
      :restrict_view, :restrict_modify],
 
   :movement_strategy => [:step_delay],
-    
+
   :linear => [:dx, :dy, :dz, :speed],
 
   :rotate => [:rot_x, :rot_y, :rot_z, :rot_theta],
@@ -259,7 +259,7 @@ def verify_users(result)
     nuser = centities[:users][:users][u]
     verify "user #{ouser.id}", ouser, nuser
   end
-  
+
   # verify role status and entities
   assert { ostatus[:users]['roles'] == cstatus[:users]['roles'] }
   0.upto(oentities[:users][:roles].size-1) do |r|
@@ -267,7 +267,7 @@ def verify_users(result)
     nrole = centities[:users][:roles][r]
     verify "role #{orole.id}", orole, nrole
   end
-  
+
   # TODO need to retrieve / verify events
 end
 

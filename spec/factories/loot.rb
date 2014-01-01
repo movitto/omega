@@ -6,7 +6,7 @@ FactoryGirl.define do
     #server_entity
     skip_create
     before(:create) { |e,i|
-      e.location.id = e.id 
+      e.location.id = e.id
       Motel::RJR.registry << e.location
       Manufactured::RJR.registry << e
     }

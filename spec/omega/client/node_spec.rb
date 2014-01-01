@@ -158,7 +158,7 @@ end # module Omega::Client
 #    $times_invoked.should == 1
 #    $te.attr.should == 1
 #    $times_invoked.should == 1
-#    
+#
 #    sleep 1.1
 #    $te.attr.should == 2
 #    $times_invoked.should == 2

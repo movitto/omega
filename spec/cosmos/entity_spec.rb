@@ -15,7 +15,7 @@ describe Entity do
   before(:each) do
     @e = OmegaTest::CosmosEntity.new
   end
-  
+
   describe "#movement_strategy=" do
     it "sets movement stategy on location" do
       m = Motel::MovementStrategies::Linear.new
@@ -24,7 +24,7 @@ describe Entity do
       @e.location.movement_strategy.should == m
     end
   end
-  
+
   describe "#parent=" do
     it "sets parent" do
       g = Entities::Galaxy.new
@@ -44,7 +44,7 @@ describe Entity do
       @e.location.parent.should == g.location
     end
   end
-  
+
   describe "#init_entity" do
     it "sets default entity values" do
       @e.init_entity
@@ -75,7 +75,7 @@ describe Entity do
       @e.children.should == [c]
       @e.metadata.should == { :foo => :bar }
     end
-  
+
     context "location not specified" do
       it "creates location" do
         @e.init_entity
@@ -92,7 +92,7 @@ describe Entity do
         @e.location.orientation.should == [0,0,1]
       end
     end
-  
+
     context "movement strategy specified" do
       it "assigns movement strategy to location" do
         m = Motel::MovementStrategies::Linear.new
@@ -101,7 +101,7 @@ describe Entity do
       end
     end
   end
-  
+
   describe "#entity_valid?" do
     before(:each) do
       @e.id   = "entity_id"
@@ -126,7 +126,7 @@ describe Entity do
         @e.entity_valid?.should be_false
       end
     end
-  
+
     context "name is invalid" do
       it "returns false" do
         @e.name = nil
@@ -139,7 +139,7 @@ describe Entity do
         @e.entity_valid?.should be_false
       end
     end
-  
+
     context "parent_id and proxy_to are nil" do
       it "returns false" do
         @e.parent_id  = nil
@@ -147,21 +147,21 @@ describe Entity do
         @e.entity_valid?.should be_false
       end
     end
-  
+
     context "parent is invalid" do
       it "returns false" do
         @e.parent = Entities::Galaxy.new
         @e.entity_valid?.should be_false
       end
     end
-  
+
     context "location is invalid" do
       it "returns false" do
         @e.location.id = nil
         @e.entity_valid?.should be_false
       end
     end
-  
+
     context "children are invalid" do
       it "returns false" do
         @e.children = [:foo]
@@ -176,7 +176,7 @@ describe Entity do
         @e.entity_valid?.should be_true
       end
     end
-  
+
     it "returns true" do
       @e.entity_valid?.should be_true
     end
@@ -223,12 +223,12 @@ describe Entity do
       @e.add_child @c
       @e.children.should == [@c]
     end
-    
+
     it "returns child" do
       @e.add_child(@c).should == @c
     end
   end
-  
+
   describe "#remove_child" do
     before(:each) do
       @e = OmegaTest::CosmosEntity.new :id => 'entity'
@@ -257,7 +257,7 @@ describe Entity do
       end
     end
   end
-  
+
   describe "#has_children?" do
     before(:each) do
       @e = OmegaTest::CosmosEntity.new :id => 'entity'
@@ -273,14 +273,14 @@ describe Entity do
         @e.should have_children
       end
     end
-  
+
     context "entity does not have children" do
       it "returns false" do
         @e.should_not have_children
       end
     end
   end
-  
+
   describe "#has_child?" do
     before(:each) do
       @e = OmegaTest::CosmosEntity.new :id => 'entity'
@@ -296,14 +296,14 @@ describe Entity do
         @e.should have_child(@c)
       end
     end
-  
+
     context "entity has specified child id" do
       it "returns true" do
         @e.add_child @c
         @e.should have_child(@c.id)
       end
     end
-  
+
     context "entity does not have specified child" do
       it "returns false" do
         c2 = OmegaTest::CosmosEntity.new
@@ -311,7 +311,7 @@ describe Entity do
         @e.should_not have_child(c2)
       end
     end
-  
+
     context "entity does not have specified child id" do
       it "returns false" do
         c2 = OmegaTest::CosmosEntity.new :id => 'c2'
@@ -320,7 +320,7 @@ describe Entity do
       end
     end
   end
-  
+
   describe "#each_child" do
     it "calls block for each child with self and child" do
       c1 = OmegaTest::CosmosEntity.new
@@ -347,20 +347,20 @@ describe Entity do
       @e.each_child &p
     end
   end
-  
+
   describe "#accepts_resource?" do
     it "returns false by default" do
       @e.accepts_resource?('whatever').should be_false
     end
   end
-  
+
   describe "#to_s" do
     it "returns entity in string format" do
       @e.name = 'foobar'
       @e.to_s.should == "CosmosEntity-foobar"
     end
   end
-  
+
   describe "#entity_json" do
     it "returns entity json attributes" do
       @e.id = 'foo'
@@ -402,7 +402,7 @@ describe SystemEntity do
       @e.color.should == :bar
     end
   end
-  
+
   describe "#system_entity_valid?" do
     it "invokes validate_size to validate size" do
       @e.size = 5
@@ -427,7 +427,7 @@ describe SystemEntity do
         @e.system_entity_valid?.should be_false
       end
     end
-  
+
     context "invalid color" do
       it "returns false" do
         @e.size = 5
@@ -437,7 +437,7 @@ describe SystemEntity do
       end
     end
   end
-  
+
   describe "#system_entity_json" do
     it "returns systemenvironment entity json attributes" do
       @e.size = 4

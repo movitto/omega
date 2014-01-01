@@ -128,7 +128,7 @@ module Omega::Client
 
       it "adds mining stopped handler" do
         @r.event_handlers[:mining_stopped].size.should == 0
-        @r.start_bot 
+        @r.start_bot
         @r.event_handlers[:mining_stopped].size.should == 1
       end
 
@@ -301,7 +301,7 @@ module Omega::Client
         @r.should_receive(:move_to)
         @r.select_target
       end
-      
+
       context "arrived at closest resource" do
         it "starts mining resource" do
           @r.should_receive(:closest).with(:resource).and_return([@fast])

@@ -19,7 +19,7 @@ module Motel
 class MovementStrategy
    # The minimum number of seconds the runner should wait before invoking move
    attr_accessor :step_delay
-   
+
    # MovementStrategy initializer
    #
    # @param [Hash] args hash of options to initialize movement strategy with

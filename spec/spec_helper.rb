@@ -50,7 +50,7 @@ RSpec.configure do |config|
   end
 
   # TODO split out a tag for each subsystem so that
-  # different dispatchers can be initialized beforehand 
+  # different dispatchers can be initialized beforehand
   # and reused by tests in the subsystem (actual registry
   # data will still be cleared with after hook)
   config.before(:each, :rjr => true) do
@@ -116,9 +116,9 @@ FactoryGirl.define do
         # (TODO should only rescue OperationError when rjr supports error forwarding)
         rescue Exception => e ; end
       }
-    
+
       e.location.id = e.id if e.respond_to?(:location)
-   end 
+   end
 
   end
 end
@@ -173,7 +173,7 @@ def set_header(header, value)
   @n.message_headers[header] = value
   h = @s.instance_variable_get(:@rjr_headers) || {}
   h[header] = value
-  @s.instance_variable_set(:@rjr_headers, h) 
+  @s.instance_variable_set(:@rjr_headers, h)
 end
 
 # Helper to set session id
@@ -202,7 +202,7 @@ end
 
 ###################################################### helper client methods
 
-# Helper to add privilege on entity (optional) 
+# Helper to add privilege on entity (optional)
 # to the specified role
 def add_privilege(role_id, priv_id, entity_id=nil)
   # change node type to local here to ensure this goes through
@@ -288,14 +288,14 @@ module OmegaTest
               :level_down  => lambda { |attr| @level_down_invoked  = true },
               :progression => lambda { |attr| @progression_invoked = true },
               :regression  => lambda { |attr| @regression_invoked  = true }
-  
+
     def self.reset_callbacks
       @level_up_invoked    = false
       @level_down_invoked  = false
       @progression_invoked = false
       @regression_invoked  = false
     end
-  
+
     def self.level_up ; @level_up_invoked ; end
     def self.level_down ; @level_down_invoked ; end
     def self.progression ; @progression_invoked ; end
@@ -304,12 +304,12 @@ module OmegaTest
 
   class MovementStrategy < Motel::MovementStrategy
      attr_accessor :times_moved
-  
+
      def initialize(args = {})
        @times_moved = 0
        @step_delay = 1
      end
-  
+
      def move(loc, elapsed_time)
        @times_moved += 1
      end

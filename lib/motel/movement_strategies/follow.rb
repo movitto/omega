@@ -37,7 +37,7 @@ class Follow < MovementStrategy
 
    # Distance away from tracked location to try to maintain
    attr_accessor :distance
-   
+
    # Distance the location moves per second (when moving)
    attr_accessor :speed
 

@@ -10,7 +10,7 @@ require 'rjr/common'
 
 module Users
 describe Attribute do
-  
+
   describe "#initialize" do
     it "sets default properties" do
       a = Attribute.new

@@ -2,7 +2,7 @@
 # permissions to quickly update movement strategy speed /
 # rotatation axis / etc. Intended to be invoked over the
 # udp transport
-# 
+#
 # Would require a tighter movement cycle for these types of
 # locations along w/ a more granular callback system. Perhaps
 # alternative implementations of these mechanisms can be

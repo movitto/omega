@@ -39,7 +39,7 @@ module Omega::Client::DSL
     sargs = args
     fargs = args.merge({:timeout => 1}) # quick expiration
     $missions << [sid, :success, sargs]
-    $missions << [fid, :failed,  fargs] 
+    $missions << [fid, :failed,  fargs]
     old_mission(sid, sargs)
     old_mission(fid, fargs)
   end
@@ -228,7 +228,7 @@ $missions.each { |id, scenario, args|
         # mission loot
         cl = smission.mission_data['check_loot']
         res =Cosmos::Resource.new(:material_id => cl['res'],
-                                  :quantity    => cl['q']) 
+                                  :quantity    => cl['q'])
 
         # trigger collected_loot callback
         invoke('manufactured::admin::run_callbacks', test_corvette.id,

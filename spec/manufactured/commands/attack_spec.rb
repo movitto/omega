@@ -287,7 +287,7 @@ describe Attack, :rjr => true do
   describe "#remove" do
     context "defender's hp == 0" do
       it "returns true" do
-        e = build(:ship, :hp => 0) 
+        e = build(:ship, :hp => 0)
         a = Attack.new :defender => e
         a.remove?.should be_true
       end
@@ -295,8 +295,8 @@ describe Attack, :rjr => true do
 
     context "attacker cannot attack defender" do
       it "returns true" do
-        e1 = build(:ship, :hp => 10) 
-        e2 = build(:ship, :hp => 10) 
+        e1 = build(:ship, :hp => 10)
+        e2 = build(:ship, :hp => 10)
         e2.should_receive(:can_attack?).and_return(false)
         a = Attack.new :defender => e1, :attacker => e2
         a.remove?.should be_true
@@ -304,8 +304,8 @@ describe Attack, :rjr => true do
     end
 
     it "returns false" do
-      e1 = build(:ship, :hp => 10) 
-      e2 = build(:ship, :hp => 10) 
+      e1 = build(:ship, :hp => 10)
+      e2 = build(:ship, :hp => 10)
       e2.should_receive(:can_attack?).and_return(true)
       a = Attack.new :defender => e1, :attacker => e2
       a.remove?.should be_false

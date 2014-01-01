@@ -15,7 +15,7 @@ assign_mission = proc { |mission_id, user_id|
 
   # retrieve user from server
   # if problems retrieving, raise argument error
-  user = 
+  user =
     begin node.invoke('users::get_entity', 'with_id', user_id)
     rescue Exception => e ; raise ArgumentError, user_id end
 

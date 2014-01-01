@@ -79,7 +79,7 @@ module Omega
 
       # Filter properties able / not able to be set by the end user
       def filter_properties(data, filter = {})
-        is_hash = data.is_a?(Hash) 
+        is_hash = data.is_a?(Hash)
         ndata   = is_hash ? {} : data.class.new
         if filter[:allow]
           filter[:allow] = [filter[:allow]] unless filter[:allow].is_a?(Array)
@@ -106,7 +106,7 @@ module Omega
       #
       # @example generating filters from args
       #   def get_data(*args)
-      #     filters = 
+      #     filters =
       #       filters_from_args args,
       #         :with_id   => proc { |e, id| e.id == id },
       #         :between   => proc { |e, lval, gval|
@@ -141,12 +141,12 @@ module Omega
           # arity of the filter method (minus one, assume first param
           # is for the entity to match with the filter)
           params  = []
-          nparams = filter.arity - 1 # 
+          nparams = filter.arity - 1 #
           0.upto(nparams - 1) {
             params << nargs.shift
           } if nparams > 0
 
-          # addd a procedure calling the filter with the 
+          # addd a procedure calling the filter with the
           # specified entity and parameter list to the filter list
           # XXX need to define/call an inline function to bind filter/params variables
           filters << proc { |f,p| proc { |e| f.call e, *p } }.call(filter, params)

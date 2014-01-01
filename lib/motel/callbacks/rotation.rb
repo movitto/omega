@@ -30,7 +30,7 @@ class Rotation < Omega::Server::Callback
     elsif loc.ms.class.ancestors.include?(Motel::MovementStrategies::Rotatable)
       Motel.rotated_angle(*loc.orientation, @orig_ox, @orig_oy, @orig_oz,
                           loc.ms.rot_x, loc.ms.rot_y, loc.ms.rot_z)
-       
+
     else
       0 # throw err or other?
     end

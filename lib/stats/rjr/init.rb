@@ -21,10 +21,10 @@ module RJR
 
     # Unique universe identifier
     attr_accessor :universe_id
-  
+
     # User to use to communicate w/ other modules over the local rjr node
     attr_accessor :stats_rjr_username
-  
+
     # Password to use to communicate w/ other modules over the local rjr node
     attr_accessor :stats_rjr_password
 
@@ -36,7 +36,7 @@ module RJR
       self.stats_rjr_username  = config.stats_rjr_user
       self.stats_rjr_password  = config.stats_rjr_pass
     end
-  
+
     # @!endgroup
   end
 

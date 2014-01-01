@@ -19,7 +19,7 @@ module Omega
 module Server
 describe DSL do
   include Omega::Server::DSL
-  
+
   before(:each) do
     @anon = create(:anon)
     @rjr_node = @n

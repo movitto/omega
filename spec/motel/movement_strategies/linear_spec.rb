@@ -106,7 +106,7 @@ describe Linear do
     end
 
     it "moves location in direction by speed * elapsed_time" do
-      linear = Linear.new :step_delay => 5, :speed => 20, 
+      linear = Linear.new :step_delay => 5, :speed => 20,
                           :dx => 5,
                           :dy => 5,
                           :dz => 5

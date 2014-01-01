@@ -8,7 +8,7 @@ require 'spec_helper'
 module Motel
 describe "#gen_uuid" do
   it "returns a random uuid" do
-    uuid = Motel.gen_uuid 
+    uuid = Motel.gen_uuid
     uuid.should be_an_instance_of(String)
     uuid.size.should == 36
     uuid.should =~ UUID_PATTERN

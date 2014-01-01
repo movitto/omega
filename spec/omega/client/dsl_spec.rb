@@ -90,7 +90,7 @@ describe DSL, :rjr => true do
       it "accepts user params" do
         u = user('foo1', 'bar', :npc => true)
         u.id.should == 'foo1'
-    
+
         ru = Users::RJR.registry.entity &with_id('foo1')
         ru.npc.should be_true
       end
@@ -356,7 +356,7 @@ describe DSL, :rjr => true do
         s1 = system('system1')
         s2 = system('system2')
       }
-  
+
       jg = jump_gate s1, s2
       jg.parent_id.should == s1.id
       jg.endpoint_id.should == s2.id

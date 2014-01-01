@@ -480,7 +480,7 @@ describe Mission do
   describe "#update" do
     it "updates mission attributes from args" do
       t = Time.now
-      m = Mission.new :id   => "mission123", 
+      m = Mission.new :id   => "mission123",
                       :title => "test_mission",
                       :description => "test_missiond",
                       :creator_id  => "user42",
@@ -495,7 +495,7 @@ describe Mission do
                       :victorious => true,
                       :failed => true
 
-      m.update(:id   => "mission124", 
+      m.update(:id   => "mission124",
                :title => "test_missionu",
                :description => "test_missiondu",
                :creator_id  => "user44",
@@ -528,7 +528,7 @@ describe Mission do
 
     it "updates mission attributes from mission" do
       t = Time.now
-      m1 = Mission.new :id   => "mission123", 
+      m1 = Mission.new :id   => "mission123",
                        :title => "test_mission",
                        :description => "test_missiond",
                        :creator_id  => "user42",
@@ -564,7 +564,7 @@ describe Mission do
   describe "#clone" do
     it "returns copy of mission" do
       t = Time.now
-      m = Mission.new :id   => "mission123", 
+      m = Mission.new :id   => "mission123",
                       :title => "test_mission",
                       :description => "test_missiond",
                       :creator_id  => "user42",

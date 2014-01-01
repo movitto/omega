@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 # Retrieve omega server status
-# 
+#
 # Requires omega-server to be in debugging mode
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>

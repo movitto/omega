@@ -150,7 +150,7 @@ accessible administrative methods") do
     RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
     #RJR::Logger.highlight proc { |m| m =~ /.*text to hightlight.*/}
   end
-  
+
   # get logging filters from config
   unless config[:log_filters].nil?
     config[:log_filters].each { |filter_str|

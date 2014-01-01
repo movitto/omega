@@ -166,7 +166,7 @@ describe Follow do
 
       follow.move l1, 1
       l1.x.should == 10
- 
+
       follow.move l1, 1
       l1.x.should == 10
     end

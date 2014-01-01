@@ -47,7 +47,7 @@ ATTACK_METHODS = { :attack_entity   => attack_entity }
 end # module Manufactured::RJR
 
 def dispatch_manufactured_rjr_attack(dispatcher)
-  m = Manufactured::RJR::ATTACK_METHODS 
+  m = Manufactured::RJR::ATTACK_METHODS
   dispatcher.handle 'manufactured::attack_entity', &m[:attack_entity]
   # dispatcher.handle('manufactured::stop_attack', 'TODO')
 end

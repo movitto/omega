@@ -19,7 +19,7 @@ describe Stopped do
       stopped = Stopped.instance
       l = build(:location)
       x,y,z = l.coordinates
-                              
+
       # make sure location does not move
       stopped.move l, 10
       l.x.should == x

@@ -32,7 +32,7 @@ module Users::RJR
     context "login is not valid" do
       it "raises ArgumentError" do
         u = create(:user)
-        lambda { 
+        lambda {
           @s.login User.new(:id => u.id, :password => 'invalid')
         }.should raise_error(ArgumentError)
       end
@@ -90,7 +90,7 @@ module Users::RJR
       session_id s.id
       @s.logout(s.id).should be_nil
     end
-    
+
   end # describe #logout
 
   describe "#dispatch_users_rjr_session" do

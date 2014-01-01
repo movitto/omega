@@ -69,7 +69,7 @@ module Registry
   end
 
   attr_accessor :retrieval
-  
+
   ####################### entities
 
   # TODO an 'old_entities' tracker where clients may put items
@@ -91,7 +91,7 @@ module Registry
       # invoke retrieval to update each registry entity
       rentities.each { |r| @retrieval.call(r) }
 
-      # we use json serialization to perform a deep clone 
+      # we use json serialization to perform a deep clone
       result = Array.new(RJR.parse_json(rentities.to_json))
 
       result
@@ -395,7 +395,7 @@ module Registry
 
           # subsequent commands w/ the same id will break
           # system if command updated is removed from
-          # the registry here, use check_command below 
+          # the registry here, use check_command below
           # to mitigate this
           if cmd.remove?
             cmd.run_hooks :last

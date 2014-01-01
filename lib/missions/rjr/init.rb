@@ -22,13 +22,13 @@ module Missions::RJR
 
   class << self
     # @!group Config options
-  
+
     # User to use to communicate w/ other modules over the local rjr node
     attr_accessor :missions_rjr_username
-  
+
     # Password to use to communicate w/ other modules over the local rjr node
     attr_accessor :missions_rjr_password
-  
+
     # Set config options using Omega::Config instance
     #
     # @param [Omega::Config] config object containing config options
@@ -36,7 +36,7 @@ module Missions::RJR
       self.missions_rjr_username  = config.missions_rjr_user
       self.missions_rjr_password  = config.missions_rjr_pass
     end
-  
+
     # @!endgroup
   end
 
@@ -60,7 +60,7 @@ module Missions::RJR
                               :password => Missions::RJR::missions_rjr_password,
                               :registration_code => nil)
   end
-  
+
   def user
     Missions::RJR.user
   end
@@ -68,7 +68,7 @@ module Missions::RJR
   def self.node
     @node ||= ::RJR::Nodes::Local.new :node_id => self.user.id
   end
-  
+
   def node
     Missions::RJR.node
   end
@@ -80,11 +80,11 @@ module Missions::RJR
   def user_registry
     Missions::RJR.user_registry
   end
-  
+
   def self.registry
     @registry ||= Missions::Registry.new
   end
-  
+
   def registry
     Missions::RJR.registry
   end
@@ -97,7 +97,7 @@ module Missions::RJR
 
   manufactured_event = proc { |*args|
     raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
-  
+
     event = Missions::Events::Manufactured.new *args
     registry << event
     nil

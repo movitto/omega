@@ -98,7 +98,7 @@ module HasCargo
   def cargo_space
     self.cargo_capacity - self.cargo_quantity
   end
-  
+
   # Return bool indicating if resources are valid
   def resources_valid?
     @resources.is_a?(Array) &&
@@ -164,7 +164,7 @@ module HasCargo
       }
 
     same_entity =
-      id == to_entity.id 
+      id == to_entity.id
 
     same_system =
       (location.parent_id == to_entity.location.parent_id)

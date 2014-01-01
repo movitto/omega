@@ -19,13 +19,13 @@ start_mining = proc { |ship_id, resource_id|
   resource =
     begin node.invoke('cosmos::get_resource', resource_id)
     rescue Exception => e ; raise DataNotFound, resource_id end
-  
-  
+
+
   # require modify manufactured entity
   require_privilege :registry => user_registry, :any =>
     [{:privilege => 'modify', :entity => "manufactured_entity-#{ship.id}"},
      {:privilege => 'modify', :entity => 'manufactured_entities'}]
-  
+
   # create mining command and register it
   cmd = Commands::Mining.new :ship => ship, :resource => resource
   registry << cmd
@@ -39,7 +39,7 @@ MINING_METHODS = { :start_mining   => start_mining }
 end # module Manufactured::RJR
 
 def dispatch_manufactured_rjr_mining(dispatcher)
-  m = Manufactured::RJR::MINING_METHODS 
+  m = Manufactured::RJR::MINING_METHODS
   dispatcher.handle 'manufactured::start_mining', &m[:start_mining]
   # dispatcher.handle('manufactured::stop_mining', 'TODO')
 end

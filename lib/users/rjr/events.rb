@@ -83,7 +83,7 @@ unsubscribe = proc { |event|
   source_node = @rjr_headers['source_node']
 
   # require view on users entities
-  require_privilege :registry  => registry, 
+  require_privilege :registry  => registry,
                     :privilege => 'view',
                     :entity    => 'users_events'
 

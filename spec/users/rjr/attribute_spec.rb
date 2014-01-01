@@ -21,7 +21,7 @@ module Users::RJR
 
       @attr = OmegaTest::Attribute.id
 
-      @o = Users::RJR.user_attrs_enabled 
+      @o = Users::RJR.user_attrs_enabled
       Users::RJR.user_attrs_enabled = true
     end
 
@@ -58,10 +58,10 @@ module Users::RJR
           }.should raise_error(DataNotFound)
         end
       end
-  
+
       context "user attributes disabled" do
         before(:each) do
-          @o = Users::RJR.user_attrs_enabled 
+          @o = Users::RJR.user_attrs_enabled
           Users::RJR.user_attrs_enabled = false
         end
 
@@ -74,16 +74,16 @@ module Users::RJR
           @s.update_attribute @login_user.id, @attr, 1
         end
       end
-  
+
       it "updates attribute in registry" do
         @s.update_attribute @login_user.id, @attr, 1
         u = Users::RJR.registry.entity &with_id(@login_user.id)
         u.has_attribute?(@attr, 1).should be_true
       end
-  
+
       it "returns user" do
         r = @s.update_attribute @login_user.id, @attr, 1
-  
+
         r.should be_an_instance_of(User)
         r.id.should == @login_user.id
       end
@@ -104,7 +104,7 @@ module Users::RJR
 
       @attr = OmegaTest::Attribute.id.to_s
 
-      @o = Users::RJR.user_attrs_enabled 
+      @o = Users::RJR.user_attrs_enabled
       Users::RJR.user_attrs_enabled = true
     end
 
@@ -160,7 +160,7 @@ module Users::RJR
 
     context "user attributes disabled" do
       before(:each) do
-        @o = Users::RJR.user_attrs_enabled 
+        @o = Users::RJR.user_attrs_enabled
         Users::RJR.user_attrs_enabled = false
       end
 

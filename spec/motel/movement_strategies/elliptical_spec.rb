@@ -43,8 +43,8 @@ describe Elliptical do
                          :e => 0.5, :p => 10,
                          :dmajx => 1, :dmajy =>  3, :dmajz => 2,
                          :dminx => 3, :dminy => -1, :dminz => 0
-                                  
-      # the orthogonal direction vectors get normalized                                  
+
+      # the orthogonal direction vectors get normalized
       e.dmajx.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.267261241912424)
       e.dmajy.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.801783725737273)
       e.dmajz.should be_within(OmegaTest::CLOSE_ENOUGH).of(0.534522483824849)
@@ -208,7 +208,7 @@ describe Elliptical do
       m = Elliptical.new :relative_to => Elliptical::CENTER,
                          :step_delay => 21, :speed => 42, :e => 0.5, :p => 420,
                          :direction  => [-1,0,0,0,-1,0]
-                         
+
       j = m.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Elliptical"')
       j.should include('"step_delay":21')

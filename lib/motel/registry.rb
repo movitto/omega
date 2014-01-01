@@ -89,11 +89,11 @@ class Registry
           l.id == nloc.parent_id
         } unless nloc.parent_id.nil?
 
-      oparent = oloc.nil? || oloc.parent_id.nil? ? 
+      oparent = oloc.nil? || oloc.parent_id.nil? ?
                                              nil :
                   @entities.find { |l| l.id == oloc.parent_id }
 
-      if oparent != nparent 
+      if oparent != nparent
         oparent.remove_child(rloc) unless oparent.nil?
 
         # TODO if nparent.nil? throw error?
@@ -141,7 +141,7 @@ class Registry
     # validate location ids are unique before creating
     self.validation_callback { |r,e|
       e.is_a?(Location) &&
-      
+
       !r.collect { |l| l.id }.include?(e.id)
     }
 

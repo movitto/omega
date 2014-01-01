@@ -84,7 +84,7 @@ module Cosmos::RJR
       Cosmos::RJR.registry.entity(&with_id(a.id)).resources.size.should == 1
       Cosmos::RJR.registry.entity(&with_id(a.id)).resources.first.id.should == r.id
     end
- 
+
     it "returns nil" do
       add_privilege(@login_role, 'modify', 'cosmos_entities')
       a = create(:asteroid)

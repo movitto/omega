@@ -44,7 +44,7 @@ create_user = proc { |user|
   added = registry << user
   # FIXME delete role if user not added
   raise OperationError, "#{user.id} already exists" if !added
-  
+
   # add role to user and add view/modify privs to it
   # TODO how to handle role/privilege creation/assignment errors ?
   node.invoke('users::add_role', user.id, role.id)

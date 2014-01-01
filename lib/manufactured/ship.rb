@@ -203,7 +203,7 @@ class Ship
   end
 
   # Quatity of resource being mined that can be extracted each time mining operation is performed
-  attr_accessor :mining_quantity 
+  attr_accessor :mining_quantity
 
   # Base mining quantity of a ship of the specified type.
   #

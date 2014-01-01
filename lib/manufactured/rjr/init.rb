@@ -20,13 +20,13 @@ module Manufactured::RJR
 
   class << self
     # @!group Config options
-  
+
     # User to use to communicate w/ other modules over the local rjr node
     attr_accessor :manufactured_rjr_username
-  
+
     # Password to use to communicate w/ other modules over the local rjr node
     attr_accessor :manufactured_rjr_password
-  
+
     # Set config options using Omega::Config instance
     #
     # @param [Omega::Config] config object containing config options
@@ -34,13 +34,13 @@ module Manufactured::RJR
       self.manufactured_rjr_username  = config.manufactured_rjr_user
       self.manufactured_rjr_password  = config.manufactured_rjr_pass
     end
-  
+
     # @!endgroup
   end
 
   ######################################## Manufactured::RJR data
 
-  PRIVILEGES = 
+  PRIVILEGES =
     [['view',   'cosmos_entities'],
      ['modify', 'cosmos_entities'],
      ['view',   'users'          ],
@@ -76,7 +76,7 @@ module Manufactured::RJR
   def self.node
     @node ||= ::RJR::Nodes::Local.new :node_id => self.user.id
   end
-  
+
   def node
     Manufactured::RJR.node
   end
@@ -88,11 +88,11 @@ module Manufactured::RJR
   def user_registry
     Manufactured::RJR.user_registry
   end
-  
+
   def self.registry
     @registry ||= Manufactured::Registry.new
   end
-  
+
   def registry
     Manufactured::RJR.registry
   end
@@ -132,10 +132,10 @@ module Manufactured::RJR
       loc.movement_strategy =
         loc.next_movement_strategy || stopped
       loc.next_movement_strategy = stopped
-    
+
       # update location
       node.invoke('motel::update_location', loc)
-    
+
       # remove callbacks if changing movement strategy
       if old != loc.movement_strategy
         if old.is_a?(Motel::MovementStrategies::Linear)
