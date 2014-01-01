@@ -127,5 +127,5 @@ To run test suite:
   rake spec
 
 ## Authors
- Mo Morsi <mo@morsi.org>
- Nicolas Satragno <nsatragno@gmail.com>
+* Mo Morsi <mo@morsi.org>
+* Nicolas Satragno <nsatragno@gmail.com>
