@@ -607,7 +607,7 @@ describe Registry do
         @registry << e
         lambda {
           @registry.send :run_events
-        }.should_not raise_error(Exception)
+        }.should_not raise_error
       end
     end
 
