@@ -92,6 +92,16 @@ module Cosmos::RJR
         end
       end
 
+      context "non-existent parent-id specified" do
+        it "raises OperationError" do
+          entity = create(:galaxy)
+          entity.parent_id = "foobar"
+          lambda {
+            @s.create_entity(entity)
+          }.should raise_error(OperationError)
+        end
+      end
+
       context "existing entity-name specified" do
         it "raises OperationError" do
           entity = create(:galaxy)
