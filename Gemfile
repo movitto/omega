@@ -22,4 +22,7 @@ gem 'ncursesw'      # requires ncurses-devel
 group :test do
   gem 'rake'
   gem 'rspec'
+  gem 'factory_girl'
+  gem 'timecop'
+  gem 'sourcify'
 end
