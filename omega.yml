@@ -4,6 +4,9 @@ backup_dir: './backups/'
 
 log_level: 'debug'
 
+# logging filters - specify regexes to exclude from the omega logs
+#log_filters: ['users::login', 'subscribe_to']
+
 # TODO should admin/anon be permenant?
 permenant_users: ['admin', 'anon', 'manufactured', 'cosmos', 'users', 'missions', 'stats', 'rlm', 'rcm' ]
 
@@ -69,9 +72,6 @@ smtp_from_address: 'mo@morsi.org'
 recaptcha_enabled: true
 recaptcha_pub_key:  'CHANGE_ME' # FIXME: not currently used, need to set in javascript client
 recaptcha_priv_key: 'CHANGE_ME'
-
-# logging filters - specify regexes to exclude from the omega logs
-#log_filters: ['regexp1', 'regexp2']
 
 # TODO config options for
 # rjr: node threads, node timeout
