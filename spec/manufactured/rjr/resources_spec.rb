@@ -42,8 +42,8 @@ module Manufactured::RJR
 
       it "does not raise PermissionError" do
         lambda {
-          @s.add_resource 'whatever', @rs
-        }.should_not raise_error()
+          @s.add_resource @sh.id, @rs
+        }.should_not raise_error
       end
 
       context "invalid entity id" do
