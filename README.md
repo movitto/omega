@@ -128,3 +128,4 @@ To run test suite:
 
 ## Authors
  Mo Morsi <mo@morsi.org>
+ Nicolas Satragno <nsatragno@gmail.com>
