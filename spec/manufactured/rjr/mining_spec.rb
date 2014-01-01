@@ -54,7 +54,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda{
           @s.start_mining @miner.id, @rs.id
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       it "creates new mining command" do

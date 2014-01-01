@@ -153,13 +153,12 @@ accessible administrative methods") do
   
   # get logging filters from config
   unless config[:log_filters].nil?
-    config[:log_filters].each { |string| 
+    config[:log_filters].each { |filter_str|
       begin
-        regexp = Regexp.new string
-        RJR::Logger.add_filter proc { |m| !(m =~ regexp) }        
-      rescue RegexpError => e
-        puts "Invalid regexp set as filter (#{e.to_s}) - Exiting" # should we probably keep running?
-        exit
+        filter = Regexp.new filter_str
+        RJR::Logger.add_filter proc { |m| !(m =~ filter) }
+      rescue RegexpError
+        puts "Invalid log filter: #{filter_str}"
       end
     }
   end

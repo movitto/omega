@@ -77,7 +77,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.collect_loot @sh.id, @lt.id
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       it "updates ship location" do

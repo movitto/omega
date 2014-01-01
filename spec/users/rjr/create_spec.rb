@@ -41,7 +41,7 @@ module Users::RJR
           new_user = build(:user)
           lambda {
             @s.create_user(new_user)
-          }.should_not raise_error()
+          }.should_not raise_error
         end
       end
     end
@@ -140,7 +140,7 @@ module Users::RJR
           new_role = build(:role)
           lambda {
             @s.create_role(new_role)
-          }.should_not raise_error()
+          }.should_not raise_error
         end
       end
     end

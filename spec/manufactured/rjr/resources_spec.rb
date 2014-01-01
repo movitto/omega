@@ -160,7 +160,7 @@ module Manufactured::RJR
       it "does not raise PermissionError" do
         lambda {
           @s.transfer_resource @src.id, @dst.id, @rs
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       it "updates src/dst locations from motel" do

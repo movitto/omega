@@ -38,7 +38,7 @@ module Missions::RJR
         new_event = build(:event)
         lambda {
           @s.create_event(new_event)
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       context "non-event specified" do
@@ -98,7 +98,7 @@ module Missions::RJR
         new_mission = build(:mission)
         lambda {
           @s.create_mission(new_mission)
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       context "non-mission specified" do

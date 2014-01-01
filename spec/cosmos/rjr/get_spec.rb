@@ -75,7 +75,7 @@ module Cosmos::RJR
           g = create(:galaxy)
           lambda {
             @s.get_entities 'with_id', g.id
-          }.should_not raise_error()
+          }.should_not raise_error
         end
 
         it "returns corresponding entity" do

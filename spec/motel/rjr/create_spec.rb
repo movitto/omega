@@ -38,7 +38,7 @@ module Motel::RJR
         new_location = build(:location)
         lambda {
           @s.create_location(new_location)
-        }.should_not raise_error()
+        }.should_not raise_error
       end
 
       context "non-location specified" do
