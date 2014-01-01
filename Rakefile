@@ -69,5 +69,5 @@ namespace :site do
     system("middleman build")
   end
 
-  # FIXME doc and test tasks for site
+  # FIXME doc, package, and test tasks for site
 end
