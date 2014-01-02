@@ -222,10 +222,43 @@ describe("Omega.Ship", function(){
   });
 
   describe("#_select_destination", function(){
+    var st, sh1, sh2, ast1, jg1, jg2;
+
+    before(function(){
+      ship.system_id = 'sys1';
+      st   = new Omega.Station({id : 'station1', system_id : 'sys1'});
+      sh1  = new Omega.Ship({id : ship.id, system_id : 'sys1'});
+      sh2  = new Omega.Ship({id : 'ship2', system_id : 'sys1'});
+      ast1 = new Omega.Asteroid({id : 'ast1'});
+      jg1  = new Omega.JumpGate({id : 'jg1'});
+      jg2  = new Omega.JumpGate({id : 'jg2'});
+
+      page.canvas.root = new Omega.SolarSystem({id : 'sys1',
+                           children : [ast1, jg1, jg2]});
+      page.entity(st.id, st);
+      page.entity(sh1.id, sh1);
+      page.entity(sh2.id, sh2);
+    });
+
+    after(function(){
+      page.canvas.root = null;
+    });
+
     it("shows select destination dialog", function(){
       var show_dialog = sinon.spy(ship.dialog(), 'show_destination_selection_dialog');
       ship._select_destination(page);
-      sinon.assert.calledWith(show_dialog, page, ship);
+      sinon.assert.calledWith(show_dialog, page, ship, sinon.match.object);
+    });
+
+    it("retrieves entities to render in destination select box", function(){
+      var show_dialog = sinon.spy(ship.dialog(), 'show_destination_selection_dialog');
+      ship._select_destination(page);
+
+      var entities = show_dialog.getCall(0).args[2];
+      assert(entities['stations']).isSameAs([st]);
+      assert(entities['ships']).isSameAs([sh2]);
+      assert(entities['asteroids']).isSameAs([ast1]);
+      assert(entities['jump_gates']).isSameAs([jg1,jg2]);
     });
   });
 

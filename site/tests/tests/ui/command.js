@@ -28,11 +28,17 @@ describe("Omega.UI.CommandDialog", function(){
   });
 
   describe("#show_destination_selection_dialog", function(){
-    var ship;
+    var ship, dests,
+        dstation;
 
     before(function(){
       ship = new Omega.Ship({id : 'ship1',
                              location : new Omega.Location({x:10.12,y:10.889,z:-20.1})});
+
+      dstation = new Omega.Station({id : 'st1', location : new Omega.Location})
+      dests = {
+        stations : [dstation]
+      };
     });
 
     it("sets dialog title", function(){
@@ -51,6 +57,53 @@ describe("Omega.UI.CommandDialog", function(){
       dialog.show_destination_selection_dialog(page, ship);
       assert($('#dest_id').html()).equals('Move ' + ship.id + ' to:');
     });
+
+    it("hides dest and coords selection sections", function(){
+      dialog.show_destination_selection_dialog(page, ship);
+      assert($('#dest_selection_section')).isHidden();
+      assert($('#coords_selection_section')).isHidden();
+    });
+
+    it("wires up select dest section click handler", function(){
+      assert($('#select_destination')).doesNotHandle('click');
+      dialog.show_destination_selection_dialog(page, ship);
+      assert($('#select_destination')).handles('click');
+    });
+
+    it("wires up select coords section click handler", function(){
+      assert($('#select_coordinates')).doesNotHandle('click');
+      dialog.show_destination_selection_dialog(page, ship);
+      assert($('#select_coordinates')).handles('click');
+    })
+
+    it("adds specified destinations to dest selection box", function(){
+      assert($('#dest_selection').children().length).equals(0);
+      dialog.show_destination_selection_dialog(page, ship, dests);
+
+      var entities = $('#dest_selection').children();
+      assert(entities.length).equals(2);
+      assert($(entities[0]).text()).equals('');
+      assert($(entities[1]).data('id')).equals(dstation.id);
+      assert($(entities[1]).text()).equals('station: ' + dstation.id);
+      assert($(entities[1]).data('location')).isSameAs(dstation.location);
+    });
+
+    it("wires up destination select box option clicks", function(){
+      dialog.show_destination_selection_dialog(page, ship, dests);
+      var entity = $($('#dest_selection').children()[1]);
+      assert(entity).handles('click');
+    });
+
+    describe("on destination selection", function(){
+      it("invokes entity._move w/ coordinates", function(){
+        var move = sinon.stub(ship, '_move');
+
+        dialog.show_destination_selection_dialog(page, ship, dests);
+        $($('#dest_selection').children()[1]).trigger('click');
+        /// TODO test location coordinates + offset
+        sinon.assert.calledWith(move, page);
+      });
+    })
 
     it("sets current x coordinate as dest x", function(){
       dialog.show_destination_selection_dialog(page, ship);
