@@ -27,6 +27,10 @@ Omega.Station.prototype = {
     return true;
   },
 
+  in_system : function(system_id){
+    return this.system_id == system_id;
+  },
+
   _update_resources : function(){
     if(this.resources){
       for(var r = 0; r < this.resources.length; r++){

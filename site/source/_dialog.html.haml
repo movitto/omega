@@ -70,17 +70,28 @@
 
 #select_destination_dialog.dialog_content
   #dest_id.dialog_row
+
   .dialog_row
-    X:
-    %input#dest_x{:type => :text}
+    %img#select_destination.dialog_section_toggle
+    Select Destination:
+  #dest_selection_section
+    %select#dest_selection
+
   .dialog_row
-    Y:
-    %input#dest_y{:type => :text}
-  .dialog_row
-    Z:
-    %input#dest_z{:type => :text}
-  .dialog_row
-    %input#command_move{:value => 'move', :type => :button}
+    %img#select_coordinates.dialog_section_toggle
+    Select Coordinates
+  #coords_selection_section
+    .dialog_row
+      X:
+      %input#dest_x{:type => :text}
+    .dialog_row
+      Y:
+      %input#dest_y{:type => :text}
+    .dialog_row
+      Z:
+      %input#dest_z{:type => :text}
+    .dialog_row
+      %input#command_move{:value => 'move', :type => :button}
 
 #select_attack_target_dialog.dialog_content
   #attack_id.dialog_row

@@ -27,6 +27,10 @@ Omega.Ship.prototype = {
     return this.hp > 0;
   },
 
+  in_system : function(system_id){
+    return this.system_id == system_id;
+  },
+
   _update_resources : function(){
     if(this.resources){
       for(var r = 0; r < this.resources.length; r++){
@@ -144,7 +148,19 @@ Omega.Ship.prototype = {
   },
 
   _select_destination : function(page){
-    this.dialog().show_destination_selection_dialog(page, this);
+    var _this = this;
+    var in_system = {};
+    in_system['stations'] = $.grep(page.all_entities(), function(e){
+      return e.json_class == 'Manufactured::Station' &&
+             e.in_system(_this.system_id); }),
+    in_system['ships'] = $.grep(page.all_entities(), function(e){
+      return e.json_class == 'Manufactured::Ship' &&
+             e.id != _this.id &&
+             e.in_system(_this.system_id); }),
+    in_system['asteroids'] = page.canvas.root.asteroids();
+    in_system['jump_gates'] = page.canvas.root.jump_gates();
+
+    this.dialog().show_destination_selection_dialog(page, this, in_system);
   },
 
   _move : function(page, x, y, z){
