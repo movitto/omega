@@ -57,6 +57,106 @@ describe DSL do
       end
     end
   end
+  
+  describe "#persistent_transport?" do
+    context "rjr node is persistent" do
+      before(:each) do
+        @rjr_node = Object.new
+        @rjr_node.stub(:persistent?).and_return(true)
+      end
+
+      it "returns true" do
+        persistent_transport?.should be_true
+      end
+    end
+
+    context "rjr node is not persistent" do
+      before(:each) do
+        @rjr_node = Object.new
+        @rjr_node.stub(:persistent?).and_return(false)
+      end
+
+      it "returns false" do
+        persistent_transport?.should be_false
+      end
+    end
+  end
+
+  describe "#require_persistent_transport!" do
+    context "transport is persistent" do
+      before(:each) do
+        @rjr_node = Object.new
+        @rjr_node.stub(:persistent?).and_return(true)
+      end
+
+      it "does not raise error" do
+        lambda {
+          require_persistent_transport!
+        }.should_not raise_error
+      end
+    end
+
+    context "transport is not persistent" do
+      before(:each) do
+        @rjr_node = Object.new
+        @rjr_node.stub(:persistent?).and_return(false)
+      end
+
+      it "raises OperationError" do
+        lambda {
+          require_persistent_transport!
+        }.should raise_error(OperationError)
+      end
+    end
+  end
+
+  describe "#from_valid_source?" do
+    before(:each) do
+      @rjr_headers = {}
+    end
+
+    context "source_node rjr header is a non empty string" do
+      it "returns true" do
+        @rjr_headers['source_node'] = 'node-user1'
+        from_valid_source?.should be_true
+      end
+    end
+
+    context "source_node rjr header is anything else" do
+      it "returns false" do
+        from_valid_source?.should be_false
+
+        @rjr_headers['source_node'] = ''
+        from_valid_source?.should be_false
+
+        @rjr_headers['source_node'] = 42
+        from_valid_source?.should be_false
+      end
+    end
+  end
+
+  describe "#require_valid_source!" do
+    before(:each) do
+      @rjr_headers = {}
+    end
+
+    context "valid source node" do
+      it "does not raise error" do
+        @rjr_headers['source_node'] = 'node-user1'
+        lambda {
+          require_valid_source!
+        }.should_not raise_error
+      end
+    end
+
+    context "invalid source node" do
+      it "raises PermissionError" do
+        lambda {
+          require_valid_source!
+        }.should raise_error(PermissionError)
+      end
+    end
+  end
 
   describe "#require_privilege", :rjr => true do
     before(:each) do
@@ -108,6 +208,40 @@ describe DSL do
       u = current_user(:registry => Users::RJR.registry)
       u.should be_an_instance_of(Users::User)
       u.id.should == @anon.id
+    end
+  end
+
+  describe "#current_session", :rjr => true do
+    it "returns registry session corresponding to session_id header" do
+      @rjr_headers['session_id'] = login(@n, @anon.id, @anon.password).id
+      s = current_session(:registry => Users::RJR.registry)
+      s.should be_an_instance_of(Users::Session)
+      s.id.should == @rjr_headers['session_id']
+    end
+  end
+
+  describe "#validate_session_source!", :rjr => true do
+    before(:each) do
+      session = login(@n, @anon.id, @anon.password)
+      @rjr_headers['session_id'] = session.id
+      @rjr_headers['source_node'] = session.endpoint_id
+    end
+
+    context "current session endpoint doesn't match source_node rjr header" do
+      it "raises PermissionError" do
+        @rjr_headers['source_node'] = 'something_else'
+        lambda {
+          validate_session_source! :registry => Users::RJR.registry
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "current sesison endpoint matches source_node rjr header" do
+      it "does not raise and error" do
+        lambda {
+          validate_session_source! :registry => Users::RJR.registry
+        }.should_not raise_error
+      end
     end
   end
 

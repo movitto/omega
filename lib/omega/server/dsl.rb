@@ -44,6 +44,29 @@ module Omega
       #def require_node!(type)
       #end
 
+      # Return bool indicating if request has come in over a persistent transport
+      def persistent_transport?
+        @rjr_node.persistent?
+      end
+
+      # Raise error is transport is not persistent
+      def require_persistent_transport!(err=nil)
+        err = "request must come in on persistent transport" if err.nil?
+        raise OperationError, err unless persistent_transport?
+      end
+
+      # Return bool indiciating if source node is valid / can be used by Omega
+      def from_valid_source?
+         @rjr_headers['source_node'].is_a?(String) &&
+        !@rjr_headers['source_node'].empty?
+      end
+
+      # Raise error if source node is not valid
+      def require_valid_source!(err=nil)
+        err = "source node is required" if err.nil?
+        raise PermissionError, err unless from_valid_source?
+      end
+
       # Require privileges using the specified registry
       def require_privilege(args = {})
         registry = args[:registry] || args[:user_registry]
@@ -62,6 +85,22 @@ module Omega
       def current_user(args = {})
         registry = args[:registry] || args[:user_registry]
         registry.current_user :session => @rjr_headers['session_id']
+      end
+
+      # Return the current logging session using the specified registry
+      def current_session(args = {})
+        registry = args[:registry] || args[:user_registry]
+        registry.current_session :id => @rjr_headers['session_id']
+      end
+
+      # Raise an error if the endpoint which the session was established on
+      # is not the same as the specified source node
+      def validate_session_source!(args = {})
+        # TODO if this is false we should invalidate session,
+        # log the err, and send an email to the admin / etc
+        matched = current_session(args).endpoint_id == @rjr_headers['source_node']
+        err = args[:msg] || "source/session mismatch!"
+        raise PermissionError, err unless matched
       end
 
       # Check if the user has the specified attribute
