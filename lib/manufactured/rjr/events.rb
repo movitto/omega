@@ -18,12 +18,10 @@ subscribe_to = proc { |entity_id, event|
   # grab direct handle to registry entity
   rentity = registry.safe_exec { |entities| entities.find &with_id(entity.id) }
 
-  # TODO option to verify request is coming from
-  #      authenticated source node which current
-  #      connection was established on
-
-  # TODO ensure that rjr_node_type supports
-  #      persistant connections
+  # validate persistent transport, source node, & source/session match
+  require_persistent_transport!
+  require_valid_source!
+  validate_session_source! :registry => user_registry
 
   cb = Omega::Server::Callback.new
   cb.endpoint_id  = @rjr_headers['source_node']
@@ -99,9 +97,9 @@ subscribe_to = proc { |entity_id, event|
 
 # remove callbacks registered for entity
 remove_callbacks = proc { |entity_id|
-  # TODO option to verify request is coming from
-  #      authenticated source node which current
-  #      connection was established on
+  # verify source node / session endpoint match
+  require_valid_source!
+  validate_session_source! :registry => user_registry
   source_node = @rjr_headers['source_node']
 
   # retrieve/validate entity

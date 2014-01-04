@@ -42,6 +42,33 @@ module Manufactured::RJR
       end
     end
 
+    context "rjr transport is not persistent" do
+      it "raises an OperationError" do
+        @n.should_receive(:persistent?).and_return(false)
+        lambda{
+          @s.subscribe_to @sh.id, 'resource_collected'
+        }.should raise_error(OperationError)
+      end
+    end
+
+    context "invalid source node" do
+      it "raises a PermissionError" do
+        source_node 42
+        lambda{
+          @s.subscribe_to @sh.id, 'resource_collected'
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "source node / session source mismatch" do
+      it "raises a PermissionError" do
+        source_node 'mismatch'
+        lambda{
+          @s.subscribe_to @sh.id, 'resource_collected'
+        }.should raise_error(PermissionError)
+      end
+    end
+
     it "creates new callback for event type" do
       lambda{
         @s.subscribe_to @sh.id, 'resource_collected'
@@ -152,6 +179,24 @@ module Manufactured::RJR
       @cb2  = Omega::Server::Callback.new :endpoint_id => @n.node_id
       @rsh.callbacks << @cb1
       @rsh.callbacks << @cb2
+    end
+
+    context "invalid source node" do
+      it "raises a PermissionError" do
+        source_node 42
+        lambda {
+          @s.remove_callbacks @sh.id
+        }.should raise_error(PermissionError) # TODO verify message to ensure err was caused by invalid source?
+      end
+    end
+
+    context "source node / session source mismatch" do
+      it "raises a PermissionError" do
+        source_node 'mismatch'
+        lambda {
+          @s.remove_callbacks @sh.id
+        }.should raise_error(PermissionError) # TODO verify message to ensure err was cause by mismatch?
+      end
     end
 
     context "invalid entity id/type" do
