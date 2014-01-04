@@ -22,9 +22,10 @@ end
 
 # subscribe client to users event
 subscribe_to = proc { |event|
-  # TODO like manufactured, need to verify request is
-  # coming from authenticated source node which current
-  # connection was established on
+  # validate persistent transport, source node, & source/session match
+  require_persistent_transport!
+  require_valid_source!
+  validate_session_source! :registry => registry
 
   # create a new persistent event handler to send notifications back to client
   handler = Omega::Server::EventHandler.new
@@ -79,7 +80,9 @@ subscribe_to = proc { |event|
 }
 
 unsubscribe = proc { |event|
-  # TODO same source_node/session-id verification note as above
+  # verify source node / session endpoint match
+  require_valid_source!
+  validate_session_source! :registry => registry
   source_node = @rjr_headers['source_node']
 
   # require view on users entities

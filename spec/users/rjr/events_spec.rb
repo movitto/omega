@@ -38,6 +38,33 @@ module Users::RJR
       @u = create(:user)
     end
 
+    context "rjr transport is not persistent" do
+      it "raises an OperationError" do
+        @n.should_receive(:persistent?).and_return(false)
+        lambda{
+          @s.subscribe_to 'registered_user'
+        }.should raise_error(OperationError)
+      end
+    end
+
+    context "invalid source node" do
+      it "raises a PermissionError" do
+        source_node 42
+        lambda{
+          @s.subscribe_to 'registered_user'
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "source node / session source mismatch" do
+      it "raises a PermissionError" do
+        source_node 'mismatch'
+        lambda{
+          @s.subscribe_to 'registered_user'
+        }.should raise_error(PermissionError)
+      end
+    end
+
     it "creates new persistant event handler for event/endpoint to registry" do
       lambda{
         @s.subscribe_to 'registered_user'
@@ -125,6 +152,27 @@ module Users::RJR
       @registry << eh1
       @registry << eh2
       @registry << eh3
+    end
+
+    context "invalid source node" do
+      it "raises a PermissionError" do
+        source_node 42
+        lambda {
+          @s.unsubscribe 'registered_user'
+        # TODO verify message to ensure err was caused by invalid source?
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "source node / session source mismatch" do
+      it "raises a PermissionError" do
+        source_node 'mismatch'
+        lambda {
+          @s.unsubscribe 'registered_user'
+
+        # TODO verify message to ensure err was cause by mismatch?
+        }.should raise_error(PermissionError)
+      end
     end
 
     context "insufficient permissions (view-users_events)" do
