@@ -85,20 +85,16 @@ track_handler = proc { |*args|
   raise DataNotFound, loc_id if loc.nil?
 
   # grab direct handle to registry location
+  # TODO replace w/ registry.proxy_for
   rloc = registry.safe_exec { |entities| entities.find &with_id(loc.id) }
-
-  # TODO verify request is coming from
-  # authenticated source node which current connection
-  # was established on and ensure that rjr_node_type
-  # supports persistant connections
 
   # validate remaining args and generate callback
   cb = cb_from_args(@rjr_method, args)
 
-  # source node is required
-  raise PermissionError,
-    "source node is required" unless  @rjr_headers['source_node'].is_a?(String) &&
-                                     !@rjr_headers['source_node'].empty?
+  # validate persistent transport, source node, & source/session match
+  require_persistent_transport!
+  require_valid_source!
+  validate_session_source! :registry => user_registry
 
   # set endpoint of callback
   cb.endpoint_id = @rjr_headers['source_node']
@@ -186,9 +182,8 @@ remove_callbacks = proc { |*args|
       "callback_type must be nil or one of #{LOCATION_EVENTS.join(', ')}"
   end
 
-  # TODO verify request is coming from
-  # authenticated source node which current connection
-  # was established on
+  require_valid_source!
+  validate_session_source! :registry => user_registry
   source_node = @rjr_headers['source_node']
 
   # remove callback of the specified type or of all types

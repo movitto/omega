@@ -19,9 +19,13 @@ module Motel::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      session_id @s.login(@n, @login_user.id, @login_user.password)
+      @session = @s.login(@n, @login_user.id, @login_user.password)
+      session_id  @session
+      source_node @session
 
       @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
+
+      @l = create(:location)
     end
 
     context "specified loc_id not found" do
@@ -32,54 +36,77 @@ module Motel::RJR
       end
     end
 
+    context "rjr transport is not persistent" do
+      it "raises an OperationError" do
+        @n.should_receive(:persistent?).and_return(false)
+        lambda {
+          @s.track_handler @l.id, 20
+        }.should raise_error(OperationError)
+      end
+    end
+
+    context "invalid source node" do
+      it "raises a PermissionError" do
+        source_node 42
+        lambda {
+          @s.track_handler @l.id, 20
+        }.should raise_error(PermissionError)
+      end
+    end
+
+    context "source node / session source mismatch" do
+      it "raises a PermissionError" do
+        source_node 'mismatch'
+        lambda {
+          @s.track_handler @l.id, 20
+        }.should raise_error(PermissionError)
+      end
+    end
+
     it "returns nil" do
-      l = create(:location)
-      @s.track_handler(l.id, 20).should be_nil
+      @s.track_handler(@l.id, 20).should be_nil
     end
 
     it "adds a new location callback to registry location" do
-      l = create(:location)
-      @s.track_handler l.id, 20
-      @registry.entity(&with_id(l.id)).
+      @s.track_handler @l.id, 20
+      @registry.entity(&with_id(@l.id)).
                 callbacks[:movement].size.should == 1
     end
 
     it "sets endpoint id on location callback" do
-      l = create(:location)
-      @s.instance_variable_get(:@rjr_headers)['source_node'] = 'foobar'
-      @s.track_handler l.id, 20
-      @registry.entity(&with_id(l.id)).
+      # update source_node and session endpoint to avoid mismatch error
+      source_node 'foobar'
+      Users::RJR.registry.proxy_for(&with_id(@session.id)).endpoint_id = 'foobar'
+
+      @s.track_handler @l.id, 20
+      @registry.entity(&with_id(@l.id)).
                 callbacks[:movement].first.endpoint_id.should == 'foobar'
     end
 
     context "source node is invalid" do
       it "raises a PermissionError" do
-        l = create(:location)
-
         @s.instance_variable_get(:@rjr_headers)['source_node'] = nil
         lambda{
-          @s.track_handler l.id, 20
+          @s.track_handler @l.id, 20
         }.should raise_error(PermissionError)
 
         @s.instance_variable_get(:@rjr_headers)['source_node'] = ''
         lambda{
-          @s.track_handler l.id, 20
+          @s.track_handler @l.id, 20
         }.should raise_error(PermissionError)
       end
     end
 
     it "sets handler on location callback" do
-      l = create(:location)
       @n.message_headers['source_node'] = 'foobar'
-      @s.track_handler l.id, 20
-      @registry.entity(&with_id(l.id)).
+      @s.track_handler @l.id, 20
+      @registry.entity(&with_id(@l.id)).
                 callbacks[:movement].first.
                 should be_an_instance_of(Callbacks::Movement)
     end
 
     context "callback handler invoked" do
       before(:each) do
-        @l = create(:location)
         @rl = @registry.safe_exec { |es| es.find { |e| e.id == @l.id }}
 
         @s.track_handler @l.id, 20
@@ -155,7 +182,6 @@ module Motel::RJR
 
     context "rjr connection closed" do
       it "removes callback from location" do
-        @l = create(:location)
         @rl = @registry.safe_exec { |es| es.find { |e| e.id == @l.id }}
         @s.track_handler @l.id, 20
 
@@ -348,16 +374,18 @@ module Motel::RJR
 
       @login_user = create(:user)
       @login_role = 'user_role_' + @login_user.id
-      session_id @s.login(@n, @login_user.id, @login_user.password)
+      @session = @s.login(@n, @login_user.id, @login_user.password)
+      session_id @session
 
       @registry = Motel::RJR.registry
+
+      @l = create(:location)
     end
 
     context "insufficient permissions" do
       it "should raise PermissionError" do
-        l = create(:location)
         lambda {
-          @s.remove_callbacks l.id
+          @s.remove_callbacks @l.id
         }.should raise_error(PermissionError)
       end
     end
@@ -377,69 +405,83 @@ module Motel::RJR
 
       context "callback type is invalid" do
         it "raises ArgumentError" do
-          l = create(:location)
           lambda {
-            @s.remove_callbacks l.id, 'invalid'
+            @s.remove_callbacks @l.id, 'invalid'
           }.should raise_error(ArgumentError)
         end
       end
 
+      context "invalid source node" do
+        it "raises a PermissionError" do
+          source_node 42
+          lambda {
+            @s.remove_callbacks @l.id
+          }.should raise_error(PermissionError)
+        end
+      end
+
+      context "source node / session source mismatch" do
+        it "raises a PermissionError" do
+          source_node 'mismatch'
+          lambda {
+            @s.remove_callbacks @l.id
+          }.should raise_error(PermissionError)
+        end
+      end
 
       it "removes location callbacks" do
-        l = create(:location)
         @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
-        @s.track_handler l.id, 20
+        @s.track_handler @l.id, 20
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-        @s.track_handler l.id, 1.57, 1, 0, 0
+        @s.track_handler @l.id, 1.57, 1, 0, 0
         lambda {
-          @s.remove_callbacks l.id
-        }.should change{@registry.entity(&with_id(l.id)).
+          @s.remove_callbacks @l.id
+        }.should change{@registry.entity(&with_id(@l.id)).
                                   callbacks.values.size}.by(-2)
       end
 
       context "callback type is specified" do
         it "remove location callbacks of specified type" do
-          l = create(:location)
           @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
-          @s.track_handler l.id, 20
+          @s.track_handler @l.id, 20
           @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-          @s.track_handler l.id, 1.57, 1, 0, 0
+          @s.track_handler @l.id, 1.57, 1, 0, 0
           lambda {
-            @s.remove_callbacks l.id, 'rotation'
-          }.should change{@registry.entity(&with_id(l.id)).
+            @s.remove_callbacks @l.id, 'rotation'
+          }.should change{@registry.entity(&with_id(@l.id)).
                                     callbacks.values.flatten.size}.by(-1)
-          @registry.entity(&with_id(l.id)).callbacks[:movement].size.should == 1
-          @registry.entity(&with_id(l.id)).callbacks[:proximity].should be_nil
+          @registry.entity(&with_id(@l.id)).callbacks[:movement].size.should == 1
+          @registry.entity(&with_id(@l.id)).callbacks[:proximity].should be_nil
         end
       end
 
       it "only removed callbacks for the rjr_node" do
-        l = create(:location)
-
-        @s.instance_variable_get(:@rjr_headers)['source_node'] = 'foobar'
+        source_node 'foobar'
+        Users::RJR.registry.proxy_for(&with_id(@session.id)).endpoint_id = 'foobar'
         @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
-        @s.track_handler l.id, 20
+        @s.track_handler @l.id, 20
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-        @s.track_handler l.id, 1.57, 1, 0, 0
+        @s.track_handler @l.id, 1.57, 1, 0, 0
 
-        @s.instance_variable_get(:@rjr_headers)['source_node'] = 'barfoo'
+        source_node 'barfoo'
+        Users::RJR.registry.proxy_for(&with_id(@session.id)).endpoint_id = 'barfoo'
         @s.instance_variable_set(:@rjr_method, 'motel::track_movement')
-        @s.track_handler l.id, 20
+        @s.track_handler @l.id, 20
         @s.instance_variable_set(:@rjr_method, 'motel::track_rotation')
-        @s.track_handler l.id, 1.57, 1, 0, 0
+        @s.track_handler @l.id, 1.57, 1, 0, 0
 
         lambda {
-          @s.remove_callbacks l.id, 'rotation'
-        }.should change{@registry.entity(&with_id(l.id)).
+          @s.remove_callbacks @l.id, 'rotation'
+        }.should change{@registry.entity(&with_id(@l.id)).
                                   callbacks.values.flatten.size}.by(-1)
         lambda {
-          @s.remove_callbacks l.id
-        }.should change{@registry.entity(&with_id(l.id)).
+          @s.remove_callbacks @l.id
+        }.should change{@registry.entity(&with_id(@l.id)).
                                   callbacks.values.flatten.size}.by(-1)
 
-        @registry.entity(&with_id(l.id)).callbacks[:movement].
+        @registry.entity(&with_id(@l.id)).callbacks[:movement].
                           first.endpoint_id.should == 'foobar'
-        @registry.entity(&with_id(l.id)).callbacks[:rotation].
+        @registry.entity(&with_id(@l.id)).callbacks[:rotation].
                           first.endpoint_id.should == 'foobar'
       end
     end

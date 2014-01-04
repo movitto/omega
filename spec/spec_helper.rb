@@ -182,6 +182,12 @@ def session_id(id)
   set_header 'session_id', id
 end
 
+# Helper to set source node
+def source_node(source_node)
+  source_node = source_node.endpoint_id if source_node.is_a?(Users::Session)
+  set_header 'source_node', source_node
+end
+
 # Helper to wait for notification
 #
 # XXX local node notifications are processed w/ a thread which
