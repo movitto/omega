@@ -80,7 +80,8 @@ class Registry
       # keeping the specified one
       handlers = @entities.select { |h|
         h.kind_of?(Omega::Server::EventHandler) &&
-        h.event_id == event_handler.event_id &&
+        (h.event_id.nil?   || h.event_id   == event_handler.event_id)   &&
+        (h.event_type.nil? || h.event_type == event_handler.event_type) &&
         h.endpoint_id == event_handler.endpoint_id
       }
 

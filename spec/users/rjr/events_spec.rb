@@ -13,7 +13,7 @@ module Users::RJR
 
     it "removes registry handler for specified event/endpoint" do
       registry = Users::Registry.new
-      registry << Omega::Server::EventHandler.new(:event_id => 'registered_user',
+      registry << Omega::Server::EventHandler.new(:event_type => 'registered_user',
                                                   :endpoint_id => 'node1')
       registry.entities.size.should == 1
       delete_handler_for :event => 'registered_user',
@@ -73,7 +73,7 @@ module Users::RJR
       handler.should be_an_instance_of(Omega::Server::EventHandler)
       handler.endpoint_id.should == @n.node_id
       handler.persist.should be_true
-      handler.event_id.should == 'registered_user'
+      handler.event_type.should == 'registered_user'
     end
 
     context "handler invoked" do
@@ -143,11 +143,11 @@ module Users::RJR
       @login_role = 'user_role_' + @login_user.id
       session_id @s.login(@n, @login_user.id, @login_user.password)
 
-      eh1 = Omega::Server::EventHandler.new(:event_id => 'registered_user',
+      eh1 = Omega::Server::EventHandler.new(:event_type => 'registered_user',
                                             :endpoint_id => @n.node_id)
-      eh2 = Omega::Server::EventHandler.new(:event_id => 'foo',
+      eh2 = Omega::Server::EventHandler.new(:event_type => 'foo',
                                             :endpoint_id => @n.node_id)
-      eh3 = Omega::Server::EventHandler.new(:event_id => 'registered_user',
+      eh3 = Omega::Server::EventHandler.new(:event_type => 'registered_user',
                                             :endpoint_id => 'randnode')
       @registry << eh1
       @registry << eh2
@@ -189,7 +189,7 @@ module Users::RJR
         @s.unsubscribe 'registered_user'
       }.should change{@registry.entities.length}.by(-1)
       @registry.entity { |e| e.is_a?(Omega::Server::EventHandler) &&
-                             e.event_id == 'registered_user' &&
+                             e.event_type == 'registered_user' &&
                              e.endpoint_id == @n.node_id }.should be_nil
     end
 

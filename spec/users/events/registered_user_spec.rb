@@ -10,15 +10,23 @@ module Users
 module Events
 describe RegisteredUser do
   describe "#initialize" do
+    before(:each) do
+      @u = Users::User.new :id => 'user1'
+    end
+
     it "sets user" do
-      u = Users::User.new
-      ru = RegisteredUser.new :user => u
-      ru.user.should == u
+      ru = RegisteredUser.new :user => @u
+      ru.user.should == @u
     end
 
     it "sets event id" do
-      ru = RegisteredUser.new
-      ru.id.should == RegisteredUser::ID
+      ru = RegisteredUser.new :user => @u
+      ru.id.should == RegisteredUser::TYPE + '-' + @u.id
+    end
+
+    it "sets event type" do
+      ru = RegisteredUser.new :user => @u
+      ru.type.should == RegisteredUser::TYPE
     end
   end
 

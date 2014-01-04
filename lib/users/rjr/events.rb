@@ -15,7 +15,7 @@ def delete_handler_for(args={})
 
   registry.delete { |entity|
     entity.is_a?(Omega::Server::EventHandler) &&
-    entity.event_id == event &&
+    entity.event_type == event &&
     entity.endpoint_id == endpoint_id
   }
 end
@@ -31,7 +31,7 @@ subscribe_to = proc { |event|
   handler = Omega::Server::EventHandler.new
   handler.endpoint_id = @rjr_headers['source_node']
   handler.persist = true
-  handler.event_id  = event
+  handler.event_type  = event
   handler.exec do |omega_event|
     err = false
 

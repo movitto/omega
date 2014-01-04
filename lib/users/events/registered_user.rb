@@ -10,7 +10,7 @@ module Events
 
 # Spawned by the local users subsystem
 class RegisteredUser < Omega::Server::Event
-  ID = 'registered_user'
+  TYPE = 'registered_user'
 
   # Handle to user that was registered
   attr_accessor :user
@@ -18,10 +18,8 @@ class RegisteredUser < Omega::Server::Event
   # RegisteredUser Event intializer
   def initialize(args={})
     attr_from_args args, :user => nil
-# FIXME need unique id for event cycle but need to be able to listen to all registered_user events
-    #id = "#{ID}-#{user.nil? ? nil : user.id}"
-    id = ID
-    super(:id => id)
+    id = "#{TYPE}-#{user.nil? ? nil : user.id}"
+    super(:id => id, :type => TYPE)
   end
 
   def event_args
