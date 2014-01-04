@@ -11,6 +11,9 @@ class Event
   # Id of the event
   attr_accessor :id
 
+  # Optional type of event
+  attr_accessor :type
+
   # Timestamp which event is set to occur
   attr_accessor :timestamp
 
@@ -39,7 +42,8 @@ class Event
     attr_from_args args, :timestamp => Time.now,
                          :handlers  =>       [],
                          :id        =>      nil,
-                         :registry  =>      nil
+                         :registry  =>      nil,
+                         :type      =>      nil
 
     @timestamp = Time.parse(@timestamp) if @timestamp.is_a?(String)
   end
@@ -60,6 +64,7 @@ class Event
   # Return event json data
   def json_data
     {:id        => id,
+     :type      => type,
      :timestamp => timestamp}
   end
 
@@ -154,6 +159,9 @@ class EventHandler
   # Event ID which to look for
   attr_accessor :event_id
 
+  # Event Type which to look for
+  attr_accessor :event_type
+
   # Handlers to invoke when event occurs
   attr_accessor :handlers
 
@@ -165,9 +173,16 @@ class EventHandler
 
   def initialize(args = {}, &block)
     attr_from_args args, :event_id => nil,
+                         :event_type => nil,
                          :handlers => [block].compact,
                          :persist  => false,
                          :endpoint_id => nil
+  end
+
+  # Return bool indicating if this handles is meant for the specified event
+  def matches?(event)
+    (event_id.nil?   || event_id   == event.id) &&
+    (event_type.nil? || event_type == event.type)
   end
 
   def exec(&block)
@@ -184,6 +199,7 @@ class EventHandler
   # Return event handler json data
   def json_data
     {:event_id    => event_id,
+     :event_type  => event_type,
      :persist     => persist,
      :endpoint_id => endpoint_id}
   end
@@ -201,7 +217,6 @@ class EventHandler
     handler = new(o['data'])
     return handler
   end
-
 end
 
 end # module Server

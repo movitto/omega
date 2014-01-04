@@ -555,9 +555,11 @@ describe Registry do
   describe "#run_events" do
     before(:each) do
       # XXX use sprocs as handlers will be serialized
-      $invoked1, $invoked2 = false, false
+      # XXX these shouldn't be globals
+      $invoked1, $invoked2, $invoked3 = false, false, false
       @h1 = SProc.new { $invoked1 = true }
       @h2 = SProc.new { $invoked2 = true }
+      @h3 = SProc.new { $invoked3 = true }
     end
 
     it "only runs events whose time elapsed" do
@@ -573,15 +575,19 @@ describe Registry do
     end
 
     it "adds global event handlers to event" do
-      e = Event.new :id => 'foobar', :timestamp => (Time.now - 10)
+      e = Event.new :id => 'foobar', :type => 'et',
+                    :timestamp => (Time.now - 10)
       eh1 = EventHandler.new :event_id => 'foobar', :handlers => [@h1]
       eh2 = EventHandler.new :event_id => 'barfoo', :handlers => [@h2]
+      eh3 = EventHandler.new :event_type => 'et',   :handlers => [@h3]
       @registry << eh1
       @registry << eh2
+      @registry << eh3
       @registry << e
       @registry.send :run_events
       $invoked1.should be_true
       $invoked2.should be_false
+      $invoked3.should be_true
     end
 
     it "sets registry on event to self" do
@@ -617,7 +623,10 @@ describe Registry do
                     :handlers => [@h1]
       @registry << e
       @registry.should_receive(:cleanup_event).
-                with('eid')
+                with { |event|
+                  event.should be_an_instance_of(Event)
+                  event.id.should == 'eid'
+                }
       @registry.send :run_events
     end
 
@@ -642,7 +651,7 @@ describe Registry do
 
     it "removes event and handlers from registry" do
       lambda{
-        @registry.send :cleanup_event, 'eid'
+        @registry.send :cleanup_event, @e
       }.should change{@registry.entities.size}.by(-3)
 
       @registry.entities {|e|
@@ -652,7 +661,7 @@ describe Registry do
     end
 
     it "skips persistent handlers" do
-      @registry.send :cleanup_event, 'eid'
+      @registry.send :cleanup_event, @e
       @registry.entities {|e|
         e.is_a?(EventHandler) && e.event_id == 'eid' && e.persist
       }.size.should == 1

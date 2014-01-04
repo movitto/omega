@@ -332,7 +332,7 @@ module Registry
 
         ghandlers =
           entities.select { |e|
-            e.kind_of?(EventHandler) && e.event_id == event.id
+            e.kind_of?(EventHandler) && e.matches?(event)
           }.collect { |e| e.handlers }.flatten
 
         revent.handlers + ghandlers
@@ -351,19 +351,19 @@ module Registry
       end
     }
 
-    cleanup_event event.id
+    cleanup_event event
   end
 
   public
 
-  # Cleanup an event and handlers specified by id.
+  # Cleanup specified event and handlers
   # Skip event handlers marked as persistant
-  def cleanup_event(event_id)
+  def cleanup_event(event)
     self.safe_exec { |entities|
       to_remove =
         entities.select { |e|
-          (e.is_a?(Event) && e.id == event_id) ||
-          (e.is_a?(EventHandler) && e.event_id == event_id && !e.persist) }
+          (e.is_a?(Event) && e.id == event.id) ||
+          (e.is_a?(EventHandler) && e.matches?(event) && !e.persist) }
 
       # TODO optional event 'graveyard'
       @entities -= to_remove

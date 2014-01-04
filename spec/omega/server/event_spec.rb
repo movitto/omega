@@ -54,7 +54,9 @@ describe Event do
       e = Event.new
       e.timestamp.should == Time.now
       e.handlers.should == []
+      e.id.should be_nil
       e.registry.should be_nil
+      e.type.should be_nil
     end
 
     it "sets attributes" do
@@ -62,10 +64,14 @@ describe Event do
       registry = Object.new
       e = Event.new :timestamp => t,
                     :handlers  => [:foobar],
-                    :registry  => registry
+                    :registry  => registry,
+                    :id => 'e1',
+                    :type => 'te1'
       e.timestamp.should == t
       e.handlers.should == [:foobar]
+      e.id.should == 'e1'
       e.registry.should == registry
+      e.type.should == 'te1'
     end
 
     it "converts timestamp" do
@@ -87,11 +93,13 @@ describe Event do
     it "return event in json format" do
       t = Time.now
       event = Event.new :id => 'event321',
+                        :type => 'event_type',
                         :timestamp => t,
                         :handlers => [:cb1]
       j = event.to_json
       j.should include('"json_class":"Omega::Server::Event"')
       j.should include('"id":"event321"')
+      j.should include('"type":"event_type"')
       j.should include('"timestamp":"'+t.to_s+'"')
       j.should include('"handlers":["cb1"]')
     end
@@ -211,6 +219,7 @@ describe EventHandler do
     it "sets defaults" do
       eh = EventHandler.new
       eh.event_id.should be_nil
+      eh.event_type.should be_nil
       eh.handlers.should == []
       eh.persist.should be_false
       eh.endpoint_id.should be_nil
@@ -219,12 +228,48 @@ describe EventHandler do
     it "sets attributes" do
       h = proc {}
       eh = EventHandler.new :event_id    => :foo,
+                            :event_type  => :foo_type,
                             :persist     => true,
                             :endpoint_id => 'eh', &h
       eh.event_id.should == :foo
+      eh.event_type.should == :foo_type
       eh.handlers.should == [h]
       eh.persist.should be_true
       eh.endpoint_id.should == 'eh'
+    end
+  end
+
+  describe "#matches?" do
+    context "event_id set" do
+      context "event_id matches" do
+        it "returns true" do
+          eh = EventHandler.new :event_id => 'foo'
+          eh.matches?(Event.new(:id => 'foo')).should be_true
+        end
+      end
+
+      context "event_id does not match" do
+        it "returns false" do
+          eh = EventHandler.new :event_id => 'foobar'
+          eh.matches?(Event.new(:id => 'foo')).should be_false
+        end
+      end
+    end
+
+    context "event_type set" do
+      context "event_type matches" do
+        it "returns true" do
+          eh = EventHandler.new :event_type => 'foo'
+          eh.matches?(Event.new(:type => 'foo')).should be_true
+        end
+      end
+
+      context "event_type does not match" do
+        it "returns false" do
+          eh = EventHandler.new :event_type => 'foobar'
+          eh.matches?(Event.new(:type => 'foo')).should be_false
+        end
+      end
     end
   end
 
@@ -240,11 +285,13 @@ describe EventHandler do
   describe "#to_json" do
     it "returns handler in json format" do
       handler = EventHandler.new :event_id => :foo, :handlers => [:bar],
-                                 :persist => true, :endpoint_id => 'eid'
+                                 :persist => true, :endpoint_id => 'eid',
+                                 :event_type => :foo_type
 
       j = handler.to_json
       j.should include('"json_class":"Omega::Server::EventHandler"')
       j.should include('"event_id":"foo"')
+      j.should include('"event_type":"foo_type"')
       j.should include('"handlers":["bar"]')
       j.should include('"persist":true')
       j.should include('"endpoint_id":"eid"')
