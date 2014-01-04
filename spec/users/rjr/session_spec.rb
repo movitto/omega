@@ -11,6 +11,9 @@ module Users::RJR
   describe "#login", :rjr => true do
     before(:each) do
       dispatch_to @s, Users::RJR, :SESSION_METHODS
+
+      # set the source_node rjr header
+      @s.instance_variable_get(:@rjr_headers)['source_node'] = 'node-user1'
     end
 
     context "user not specified" do
@@ -49,6 +52,7 @@ module Users::RJR
       s = @s.login(u)
       s.should be_an_instance_of(Session)
       s.user.id.should == u.id
+      s.endpoint_id.should == 'node-user1'
     end
   end # describe #login
 

@@ -27,6 +27,9 @@ class Session
   # Handle to the user which established the session
   attr_accessor :user
 
+  # ID of the rjr node which this session was established on
+  attr_accessor :endpoint_id
+
   # Number of seconds which inactivity is allowed before invalidating the session.
   #
   # TODO make configurable
@@ -41,7 +44,8 @@ class Session
     attr_from_args args,
                    :user => nil,
                    :id   => Motel::gen_uuid,
-                   :refreshed_time => Time.now
+                   :refreshed_time => Time.now,
+                   :endpoint_id => nil
 
     @refreshed_time =
       Time.parse(@refreshed_time) if @refreshed_time.is_a?(String)
@@ -72,7 +76,10 @@ class Session
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => {:user => user, :id => id, :refreshed_time => refreshed_time}
+      'data'       => {:user           => user,
+                       :id             => id,
+                       :refreshed_time => refreshed_time,
+                       :endpoint_id    => endpoint_id}
     }.to_json(*a)
   end
 

@@ -139,26 +139,30 @@ describe Registry do
         @u = User.new :id => 'user1'
         @r = Registry.new
         @r << @u
+        @source_node = 'node1'
       end
 
       it "adds new session to registry" do
         @r.entities.size.should == 1
 
-        @r.create_session(@u)
+        @r.create_session(@u, @source_node)
         @r.entities.size.should == 2
         @r.entities.first.id.should == @u.id
         @r.entities.last.should be_an_instance_of(Session)
-        @r.entities.last.user.id.should == @u.id
+
+        s = @r.entities.last
+        s.user.id.should == @u.id
+        s.endpoint_id.should == @source_node
       end
 
       it "returns new session" do
-        s = @r.create_session(@u)
+        s = @r.create_session(@u, @source_node)
         s.should be_an_instance_of(Session)
         s.user.should == @u
       end
 
       it "sets user last login time" do
-        s = @r.create_session(@u)
+        s = @r.create_session(@u, @source_node)
         s.user.last_login_at.should_not be_nil
       end
     end
@@ -168,7 +172,8 @@ describe Registry do
         @u = User.new
         @r = Registry.new
         @r << @u
-        @s = @r.create_session(@u)
+        @source_node = 'node1'
+        @s = @r.create_session(@u, @source_node)
       end
 
       context "session timed out" do
@@ -177,20 +182,20 @@ describe Registry do
         end
 
         it "destroys current session" do
-          @r.create_session(@u)
+          @r.create_session(@u, @source_node)
           @r.entities.size.should == 2
           @r.entities.collect { |e| e.id }.should_not include(@s.id)
         end
 
         it "returns new session" do
-          s1 = @r.create_session(@u)
+          s1 = @r.create_session(@u, @source_node)
           s1.should_not == @s
         end
       end
 
       context "session still valid" do
         it "returns current session" do
-          s1 = @r.create_session(@u)
+          s1 = @r.create_session(@u, @source_node)
           s1.id.should == @s.id
         end
       end
@@ -202,7 +207,7 @@ describe Registry do
       @u = User.new :id => 'user1'
       @r = Registry.new
       @r << @u
-      @s = @r.create_session(@u)
+      @s = @r.create_session(@u, 'node1')
     end
 
     it "destroys session by id" do
@@ -253,7 +258,7 @@ describe Registry do
       @u  = User.new :id => 'user1', :roles => [@ro]
       @r  << @ro
       @r  << @u
-      @s  = @r.create_session(@u)
+      @s  = @r.create_session(@u, 'node1')
     end
 
     context "user perms disabled" do
@@ -384,7 +389,7 @@ describe Registry do
       @u = User.new
       @r = Registry.new
       @r << @u
-      @s = @r.create_session(@u)
+      @s = @r.create_session(@u, 'node1')
     end
 
     context "specified session not found" do
@@ -407,15 +412,52 @@ describe Registry do
       end
 
       it "returns nil" do
-        @u = @r.current_user :session => @s.id
-        @u.should be_nil
+        @r.current_user(:session => @s.id).should be_nil
       end
     end
 
     context "specified session is valid" do
       it "returns session user" do
-        @u = @r.current_user :session => @s.id
-        @u.id.should == @u.id
+        u = @r.current_user :session => @s.id
+        u.id.should == @u.id
+      end
+    end
+  end
+
+  describe "#current_session" do
+    before(:each) do
+      @u = User.new
+      @r = Registry.new
+      @r << @u
+      @s = @r.create_session(@u, 'node1')
+    end
+
+    context "specified session not found" do
+      it "returns nil" do
+        @r.current_session(:id => '0').should be_nil
+      end
+    end
+
+    context "specified session timed out" do
+      before(:each) do
+        @s.expire!
+      end
+
+      it "deletes session" do
+        @r.current_session :id => @s.id
+        @r.entity { |e| e.id == @s.id }.should be_nil
+      end
+
+      it "returns nil" do
+        @r.current_session(:id => @s.id).should be_nil
+      end
+    end
+
+    context "specified session is valid" do
+      it "returns session user" do
+        s = @r.current_session :id => @s.id
+        s.should be_an_instance_of(Users::Session)
+        s.id.should == @s.id
       end
     end
   end

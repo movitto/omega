@@ -150,7 +150,9 @@ class Registry
   # Return session for the specified user, if none exists create one first
   #
   # @param [Users::User] user which to create the session for
-  def create_session(user)
+  # @param [String] source_node id of rjr node which this
+  #   session was established on
+  def create_session(user, source_node)
     # just return user session if already existing
     session = self.entities { |e|
       e.is_a?(Session) && e.user.id == user.id
@@ -165,7 +167,9 @@ class Registry
     return session unless session.nil?
 
     user.last_login_at = Time.now
-    session = Session.new :user => user, :refreshed_time => user.last_login_at
+    session = Session.new :user           => user,
+                          :refreshed_time => user.last_login_at,
+                          :endpoint_id    => source_node
     self << session
     return session
   end
@@ -252,7 +256,8 @@ class Registry
     return false
   end
 
-  # Return the {Users::User} corresponding to the specified session
+  # Return the {Users::User} corresponding to the specified active session id
+  # If session has expired, it is invalided and nil is returned
   #
   # @param [Hash] args session args which to lookup the user with
   # @option args [String] :session id of the session to lookup corresponding user for
@@ -270,5 +275,27 @@ class Registry
 
     session.user
   end
+
+  # Return the active {Users::Session} cooresponding to the specified id.
+  # If session has expired, it is invalidated and nil is returned
+  #
+  # @param [Hash] args options to use to lookup session
+  # @option args [String] :id id of the session to lookup
+  # @return [Users::Session,nil] session corresponding to id or nil
+  #   if not found or exipired
+  def current_session(args = {})
+    session_id = args[:id]
+
+    session = self.entity{ |e| e.is_a?(Session) && e.id == session_id }
+
+    return nil if session.nil?
+    if session.timed_out?
+      destroy_session :session_id => session.id
+      return nil
+    end
+
+    session
+  end
+
 end # class Registry
 end # module Users

@@ -18,10 +18,11 @@ describe Session do
     it "sets attributes" do
       id = Motel.gen_uuid
       u = User.new :id => 'user1'
-      s = Session.new :id => id, :user => u
+      s = Session.new :id => id, :user => u, :endpoint_id => 'node1'
       s.id.should == id
       s.user.id.should == 'user1'
       s.refreshed_time.should_not be_nil
+      s.endpoint_id.should == 'node1'
     end
   end
 
@@ -62,7 +63,7 @@ describe Session do
   describe "#to_json" do
     it "returns json representation of session" do
       u = User.new :id => 'user1'
-      s = Session.new :id => '1234', :user => u
+      s = Session.new :id => '1234', :user => u, :endpoint_id => 'node1'
 
       j = s.to_json
       j.should include('"json_class":"Users::Session"')
@@ -70,6 +71,7 @@ describe Session do
       j.should include('"json_class":"Users::User"')
       j.should include('"id":"user1"')
       j.should include('"refreshed_time":')
+      j.should include('"endpoint_id":"node1"')
     end
   end
 

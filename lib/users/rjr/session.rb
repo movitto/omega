@@ -19,14 +19,13 @@ login = proc { |user|
   raise DataNotFound, user.id if ruser.nil?
 
   session = nil
+  source_node = @rjr_headers['source_node'] # TODO ensure not nil ?
+                                            # will there ever be a case where nil value is ok?
 
   # validate login
   if registry.valid_login?(user.id, user.password)
     # create the session
-    session = registry.create_session(ruser)
-
-    # TODO store the rjr node which this user session was
-    # established on for use in other handlers
+    session = registry.create_session(ruser, source_node)
 
   # else raise error
   else
