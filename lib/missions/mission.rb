@@ -20,6 +20,25 @@ class Mission
   CALLBACKS = [:requirements, :assignment_callbacks, :victory_conditions,
                :victory_callbacks, :failure_callbacks]
 
+  # Original callbacks registered with mission.
+  # Used to restore missions from json backups and such
+  attr_accessor :orig_callbacks
+
+  # Store current callbacks to orig_callbacks
+  def store_callbacks
+    @orig_callbacks = {}
+    CALLBACKS.each { |cb|
+      @orig_callbacks[cb.to_s] = self.instance_variable_get "@#{cb}".intern
+    }
+  end
+
+  # Restore callbacks from orig_callbacks
+  def restore_callbacks
+    CALLBACKS.each { |cb|
+      self.instance_variable_set "@#{cb}".intern, @orig_callbacks[cb.to_s]
+    }
+  end
+
   # Unique string id of the mission
   attr_accessor :id
 
@@ -194,6 +213,7 @@ class Mission
   # @option args [String] :assigned_to_id,'assigned_to_id' id of user that the mission is assigned to
   # @option args [Time]   :assigned_time,'assigned_time' time the mission was assigned to user
   # @option args [Integer] :timeout,'timeout' seconds which mission assignment is valid for
+  # @option args [Array<String>] :orig_callbacks,'orig_callbacks' callbacks which to register with orig_callbacks
   # @option args [Array<String,Callables>] :requirements,'requirements' requirements which to validate upon assigning mission
   # @option args [Array<String,Callables>] :assignment_callbacks,'assignment_callbacks' callbacks which to invoke upon assigning mission
   # @option args [Array<String,Callables>] :victory_conditions,'victory_conditions' conditions which to determine if mission is completed
@@ -210,6 +230,7 @@ class Mission
       :assigned_to_id       => nil,
       :assigned_time        => nil,
       :timeout              => nil,
+      :orig_callbacks       =>  {},
       :requirements         =>  [],
       :assignment_callbacks =>  [],
       :victory_conditions   =>  [],
@@ -274,6 +295,7 @@ class Mission
                        :assigned_to_id => assigned_to_id,
                        :timeout => timeout,
                        :assigned_time => assigned_time,
+                       :orig_callbacks       => orig_callbacks,
                        :requirements         => requirements,
                        :assignment_callbacks => assignment_callbacks,
                        :victory_conditions   => victory_conditions,

@@ -3,9 +3,6 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# FIXME need to serialize mission procs on backup
-# (perhaps keep client proxies passed in on mission creation & use those ?)
-
 require 'missions/rjr/init'
 
 module Missions::RJR

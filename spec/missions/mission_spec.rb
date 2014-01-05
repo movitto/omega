@@ -8,6 +8,26 @@ require 'rjr/common'
 
 module Missions
 describe Mission do
+  describe "#store_callbacks" do
+    it "stores all CALLBACKS in orig_callbacks" do
+      m = Mission.new :requirements => ['a'], :victory_callbacks => ['b']
+      m.store_callbacks
+      m.orig_callbacks.should == {"requirements"         => ['a'],
+                                  "assignment_callbacks" => [],
+                                  "victory_conditions"   => [],
+                                  "victory_callbacks"    => ['b'],
+                                  "failure_callbacks"    => []}
+    end
+  end
+
+  describe "#restore_callbacks" do
+    it "restores all CALLBACKS from orig_callbacks" do
+      m = Mission.new :orig_callbacks => {'requirements' => ['a']}
+      m.restore_callbacks
+      m.requirements.should == ['a']
+    end
+  end
+
   describe "#assignable_to?" do
     context "assigned to id is set" do
       it "returns false" do
@@ -421,7 +441,8 @@ describe Mission do
                       :victory_callbacks => [:vca1],
                       :failure_callbacks => [:fc1],
                       :victorious        => true,
-                      :failed            => true
+                      :failed            => true,
+                      :orig_callbacks    => {'requirements' => ['req2']}
       m.id.should == "mission123"
       m.title.should == "test_mission"
       m.description.should == "test_missiond"
@@ -429,6 +450,7 @@ describe Mission do
       m.assigned_to_id.should == "user43"
       m.assigned_time.should == t
       m.timeout.should == 500
+      m.orig_callbacks.should == {'requirements' => ['req2']}
       m.requirements.should == [:req1]
       m.assignment_callbacks.should == [:asi1]
       m.victory_conditions.should == [:vco1]
@@ -448,6 +470,7 @@ describe Mission do
       m.assigned_to_id.should be_nil
       m.assigned_time.should be_nil
       m.timeout.should be_nil
+      m.orig_callbacks.should == {}
       m.requirements.should == []
       m.assignment_callbacks.should == []
       m.victory_conditions.should == []
@@ -606,6 +629,7 @@ describe Mission do
                                       :assigned_to_id => "user43",
                                       :assigned_time => t,
                                       :timeout => 500,
+                                      :orig_callbacks => {'requirements' => ['req2']},
                                       :requirements => [:req1],
                                       :victory_conditions => [:vco1],
                                       :victory_callbacks => [:vca1],
@@ -621,6 +645,7 @@ describe Mission do
       j.should include('"assigned_to_id":"user43"')
       j.should include('"assigned_time":"'+t.to_s+'"')
       j.should include('"timeout":500')
+      j.should include('"orig_callbacks":{"requirements":["req2"]}')
       j.should include('"requirements":["req1"]')
       j.should include('"victory_conditions":["vco1"]')
       j.should include('"victory_callbacks":["vca1"]')

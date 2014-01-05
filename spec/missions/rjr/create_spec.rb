@@ -117,6 +117,12 @@ module Missions::RJR
         end
       end
 
+      it "stores original mission callbacks" do
+        mission = build(:mission)
+        mission.should_receive :store_callbacks
+        @s.create_mission(mission)
+      end
+
       it "resolves mission dsl references" do
         new_mission = build(:mission)
         Missions::DSL::Client::Proxy.should_receive(:resolve).with(:mission => new_mission)

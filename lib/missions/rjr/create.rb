@@ -41,6 +41,9 @@ create_mission = proc { |mission|
   mission.creator =
     current_user(:registry => user_registry) if mission.creator_id.nil?
 
+  # Backup original callbacks
+  mission.store_callbacks
+
   # resolve mission dsl references
   Missions::DSL::Client::Proxy.resolve(:mission => mission)
 

@@ -53,5 +53,16 @@ class Registry
     run { run_events }
   end
 
+  # Override registry restore operation
+  def restore(io)
+    super(io)
+
+    # run through missions, restore callbacks from orig_callbacks
+    self.safe_exec { |entities|
+      entities.select { |e| e.is_a?(Mission) }.
+               each   { |m| m.restore_callbacks }
+    }
+  end
+
 end # class Registry
 end # module Missions
