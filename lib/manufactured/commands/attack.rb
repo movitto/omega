@@ -44,6 +44,11 @@ class Attack < Omega::Server::Command
     "attack-cmd-#{id}"
   end
 
+  def processes?(entity)
+    entity.is_a?(Manufactured::Ship) &&
+    (entity.id == attacker.id || entity.id == defender.id)
+  end
+
   # Manufactured::Commands::Attack initializer
   # @param [Hash] args hash of options to initialize attack command with
   # @option args [Manufactured::Ship] :attacker ship attacking the defender
@@ -90,6 +95,11 @@ class Attack < Omega::Server::Command
 
       # TODO issue call to motel to lock destroyed ship's location
       # (when that operation is supported)
+
+      # Stop commands related to destroyed ship.
+      # All commands should auto-stop if related entity is not alive
+      # but this stops the commands immediately so that it's done w/
+      registry.stop_commands_for(@defender)
 
       # set user attributes
       invoke('users::update_attribute', @attacker.user_id,

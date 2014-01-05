@@ -17,6 +17,23 @@ describe ShieldRefresh do
     end
   end
 
+  describe "#processes?" do
+    before(:each) do
+      @s = ShieldRefresh.new
+      @s.entity = build(:ship)
+    end
+
+    context "entity is entity whose shield is being refreshed" do
+      it "returns true" do
+        @s.processes?(@s.entity).should be_true
+      end
+    end
+
+    it "returns false" do
+      @s.processes?(build(:ship)).should be_false
+    end
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       s = ShieldRefresh.new

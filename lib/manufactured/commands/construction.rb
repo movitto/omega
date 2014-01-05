@@ -46,6 +46,10 @@ class Construction < Omega::Server::Command
     "#{sid}-#{eid}"
   end
 
+  def processes?(tentity)
+    tentity.is_a?(Manufactured::Station) && tentity.id == station.id
+  end
+
   # Manufactured::Commands::Construction initializer
   #
   # @param [Hash] args hash of options to initialize mining command with

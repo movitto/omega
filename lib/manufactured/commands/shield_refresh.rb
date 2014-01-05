@@ -28,6 +28,10 @@ class ShieldRefresh < Omega::Server::Command
     "shield-refresh-cmd-#{@entity.nil? ? "" : @entity.id.to_s}"
   end
 
+  def processes?(tentity)
+    tentity.is_a?(Manufactured::Ship) && tentity.id == entity.id
+  end
+
   # Manufactured::Commands::ShieldRefresh initializer
   #
   # @param [Hash] args hash of options to initialize mining command with

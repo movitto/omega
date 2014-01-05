@@ -16,6 +16,30 @@ describe Attack, :rjr => true do
     end
   end
 
+  describe "#processes?" do
+    before(:each) do
+      @a = Attack.new
+      @a.attacker = build(:ship)
+      @a.defender = build(:ship)
+    end
+
+    context "entity is attacker" do
+      it "returns true" do
+        @a.processes?(@a.attacker).should be_true
+      end
+    end
+
+    context "entity is defender" do
+      it "returns true" do
+        @a.processes?(@a.defender).should be_true
+      end
+    end
+
+    it "returns false" do
+      @a.processes?(build(:ship)).should be_false
+    end
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       a = Attack.new
@@ -130,6 +154,11 @@ describe Attack, :rjr => true do
           args.last.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
         }
         @a.should_receive(:invoke).with(any_args).at_least(:twice)
+        @a.last_hook
+      end
+
+      it "stops registry commands for destroyed ship" do
+        @registry.should_receive(:stop_commands_for).with(@e2)
         @a.last_hook
       end
 

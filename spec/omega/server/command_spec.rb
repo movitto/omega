@@ -14,6 +14,12 @@ module Omega
 module Server
 
 describe Command do
+  describe "#processes?" do
+    it "does not process anything by default" do
+      Command.new.processes?("anything").should be_false
+    end
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       c = Command.new

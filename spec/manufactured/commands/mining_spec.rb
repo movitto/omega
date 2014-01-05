@@ -16,6 +16,23 @@ describe Mining, :rjr => true do
     end
   end
 
+  describe "#processes?" do
+    before(:each) do
+      @m = Mining.new
+      @m.ship = build(:ship)
+    end
+
+    context "entity is miner" do
+      it "returns true" do
+        @m.processes?(@m.ship).should be_true
+      end
+    end
+
+    it "returns false" do
+      @m.processes?(build(:ship)).should be_false
+    end
+  end
+
   describe "#gen_resource" do
     it "creates new resource from local copy" do
       m = Mining.new :resource => build(:resource), :ship => build(:ship)

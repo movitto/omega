@@ -17,6 +17,23 @@ describe Construction, :rjr => true do
     end
   end
 
+  describe "#processes?" do
+    before(:each) do
+      @c = Construction.new
+      @c.station = build(:station)
+    end
+
+    context "entity is the station" do
+      it "returns true" do
+        @c.processes?(@c.station).should be_true
+      end
+    end
+
+    it "returns false" do
+      @c.processes?(build(:station)).should be_false
+    end
+  end
+
   describe "#initialize" do
     it "sets defaults" do
       c = Construction.new

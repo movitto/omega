@@ -88,5 +88,20 @@ class Registry
     run { run_commands }
   end
 
+  def stop_commands_for(entity)
+    # stop all commands related to entity
+    @lock.synchronize {
+      to_remove = []
+      @entities.each { |reg_entity|
+        if reg_entity.kind_of?(Omega::Server::Command) &&
+           reg_entity.processes?(entity) # TODO flush out processes? methods
+          to_remove << reg_entity
+        end
+      }
+
+      @entities -= to_remove
+    }
+  end
+
 end # class Registry
 end # module Manufactured

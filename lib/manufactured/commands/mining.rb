@@ -29,6 +29,10 @@ class Mining < Omega::Server::Command
   # {Cosmos::Resource} being mined
   attr_accessor :resource
 
+  def processes?(entity)
+    entity.is_a?(Manufactured::Ship) && entity.id == ship.id
+  end
+
   # Return the unique id of this mining command.
   #
   # Currently a ship may only mine one source at a time,

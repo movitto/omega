@@ -36,6 +36,13 @@ class Command
   # Node which to use to perform additional queries
   attr_accessor :node
 
+  # Return bool indicating if command processes the specified entity.
+  # By default returns false but may be overridden by specific commands
+  # in other subsystems
+  def processes?(entity)
+    false
+  end
+
   # Omega::Server::Command initializer
   #
   # @param [Hash] args hash of options to initialize event with
