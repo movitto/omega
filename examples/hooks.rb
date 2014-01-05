@@ -22,7 +22,7 @@ create_corvette =
   missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Ship',
                          :type => 'corvette', :solar_system => STARTING_SYSTEM,
-                         :location => rand_location(:max => 2000)}
+                         :location => rand_location(:max => 2000))
 
 create_miner =
   missions_event_handler('registered_user', :on_event_create_entity,
