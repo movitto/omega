@@ -42,8 +42,12 @@ create_user = proc { |user|
 
   # store user
   added = registry << user
-  # FIXME delete role if user not added
-  raise OperationError, "#{user.id} already exists" if !added
+
+  # if unable to add, delete role and raise err
+  if !added
+    registry.delete &with_id(role.id)
+    raise OperationError, "#{user.id} already exists"
+  end
 
   # add role to user and add view/modify privs to it
   # TODO how to handle role/privilege creation/assignment errors ?

@@ -65,6 +65,19 @@ module Users::RJR
     end
 
     context "existing user-id specified" do
+      it "deletes created role from registry" do
+        new_user = create(:user)
+        role_id = 'user_role_' + new_user.id
+        @registry.delete &with_id(role_id) # manually delete orig role so it is recreated
+        lambda{
+          begin
+            @s.create_user(new_user)
+          rescue OperationError
+          end
+        }.should_not change{@registry.entities.size}
+        @registry.entity(&with_id(role_id)).should be_nil
+      end
+
       it "raises OperationError" do
         new_user = create(:user)
         lambda {
