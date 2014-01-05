@@ -69,6 +69,7 @@ describe HasCargo do
     e.resources = []
     e.cargo_capacity = 100
     e.location = build(:location)
+    e.eigenclass.send(:define_method, :alive?) { true }
     e
   end
 
@@ -262,6 +263,14 @@ describe HasCargo do
   describe "#can_accept?" do
     before(:each) do
       @r = Cosmos::Resource.new :id => 'metal-titanium'
+    end
+
+    context "entity is not alive" do
+      it "returns false" do
+        @e.should_receive(:alive?).and_return(false)
+        @r.quantity = 50
+        @e.can_accept?(@r).should be_false
+      end
     end
 
     context "cargo capacity would be exceeded" do

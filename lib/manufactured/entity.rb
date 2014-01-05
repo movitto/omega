@@ -180,7 +180,7 @@ module HasCargo
   #
   # @param [Resource] resource being transferred
   def can_accept?(resource, quantity=resource.quantity)
-    self.cargo_quantity + quantity <= @cargo_capacity
+    self.alive? && self.cargo_quantity + quantity <= @cargo_capacity
   end
 
 
