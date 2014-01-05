@@ -123,6 +123,16 @@ describe Attack, :rjr => true do
         @e2.hp = 0
       end
 
+      it "sets destroyed ship's location's movement strategy to stopped" do
+        @a.should_receive(:invoke).with('motel::update_location',
+                                        an_instance_of(Motel::Location)) { |*args|
+          args.last.id.should == @e2.location.id
+          args.last.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+        }
+        @a.should_receive(:invoke).with(any_args).at_least(:twice)
+        @a.last_hook
+      end
+
       it "updates ships user destroyed and user ship destroyed attributes" do
         u1 = Users::RJR.registry.proxy_for { |e| e.id == @e1.user_id }
         u2 = Users::RJR.registry.proxy_for { |e| e.id == @e2.user_id }

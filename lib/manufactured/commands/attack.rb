@@ -84,9 +84,12 @@ class Attack < Omega::Server::Command
     if @defender.hp == 0
       ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
 
-      # FIXME need to invalidate/remove registry defender so that additional
-      # operations (move, attack, mine) do not succeed and other entities do
-      # not recognize / acknowledge them
+      # update ship's movement strategy to stopped
+      @defender.location.movement_strategy = Motel::MovementStrategies::Stopped.instance
+      invoke("motel::update_location", @defender.location)
+
+      # TODO issue call to motel to lock destroyed ship's location
+      # (when that operation is supported)
 
       # set user attributes
       invoke('users::update_attribute', @attacker.user_id,
@@ -107,8 +110,6 @@ class Attack < Omega::Server::Command
       end
 
       # invoke defender's 'destroyed' callbacks
-      # TODO need to issue call to motel to update defender ms to stopped,
-      # as well as stop other defender operations such as mining and attacking
       run_callbacks(@defender, 'destroyed_by', @attacker)
     end
 
