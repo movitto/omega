@@ -166,6 +166,11 @@ class Station
     # TODO validate cargo properties when they become variable
   end
 
+  # Just for compatability for now, always return true
+  def alive?
+    true
+  end
+
   # Return true / false indicating station permits specified ship to dock
   #
   # @param [Manufactured::Ship] ship ship which to give or deny docking clearance

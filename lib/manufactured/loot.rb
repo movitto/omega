@@ -61,6 +61,11 @@ class Loot
     (@solar_system.nil? || @solar_system.is_a?(Cosmos::Entities::SolarSystem))
   end
 
+  # Just for compatability for now, always return true
+  def alive?
+    true
+  end
+
   # Convert loot to json representation and return it
   def to_json(*a)
     {
