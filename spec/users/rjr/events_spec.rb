@@ -8,21 +8,6 @@ require 'users/rjr/events'
 require 'rjr/dispatcher'
 
 module Users::RJR
-  describe "#delete_handler_for" do
-    include Users::RJR
-
-    it "removes registry handler for specified event/endpoint" do
-      registry = Users::Registry.new
-      registry << Omega::Server::EventHandler.new(:event_type => 'registered_user',
-                                                  :endpoint_id => 'node1')
-      registry.entities.size.should == 1
-      delete_handler_for :event => 'registered_user',
-                         :endpoint_id => 'node1',
-                         :registry => registry
-      registry.entities.should be_empty
-    end
-  end
-
   describe "#subscribe_to", :rjr => true do
     before(:each) do
       dispatch_to @s, Users::RJR, :EVENTS_METHODS

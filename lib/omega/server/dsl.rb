@@ -232,6 +232,21 @@ module Omega
       def is_cmd?(entity)
         entity.kind_of?(Omega::Server::Command)
       end
+
+      # Helper to delete event handler in registry for event/endpoint
+      def delete_event_handler_for(args={})
+        event_id    = args[:event_id]
+        event_type  = args[:event_type]
+        endpoint_id = args[:endpoint_id]
+        registry    = args[:registry]
+      
+        registry.delete { |entity|
+          entity.is_a?(Omega::Server::EventHandler) &&
+          (event_id.nil?   || entity.event_id   == event_id) &&
+          (event_type.nil? || entity.event_type == event_type) &&
+          entity.endpoint_id == endpoint_id
+        }
+      end
     end
   end
 end

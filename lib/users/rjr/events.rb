@@ -7,21 +7,8 @@ require 'users/rjr/init'
 
 module Users::RJR
 
-# Helper to delete event handler in registry for event/endpoint
-def delete_handler_for(args={})
-  event       = args[:event]
-  endpoint_id = args[:endpoint_id]
-  registry    = args[:registry]
-
-  registry.delete { |entity|
-    entity.is_a?(Omega::Server::EventHandler) &&
-    entity.event_type == event &&
-    entity.endpoint_id == endpoint_id
-  }
-end
-
 # subscribe client to users event
-subscribe_to = proc { |event|
+subscribe_to = proc { |event_type|
   # validate persistent transport, source node, & source/session match
   require_persistent_transport!
   require_valid_source!
@@ -31,7 +18,7 @@ subscribe_to = proc { |event|
   handler = Omega::Server::EventHandler.new
   handler.endpoint_id = @rjr_headers['source_node']
   handler.persist = true
-  handler.event_type  = event
+  handler.event_type  = event_type
   handler.exec do |omega_event|
     err = false
 
@@ -42,34 +29,34 @@ subscribe_to = proc { |event|
                         :entity    => 'users_events'
 
       # invoke method via rjr callback notification
-      @rjr_callback.notify 'users::event_occurred', event, *omega_event.event_args
+      @rjr_callback.notify 'users::event_occurred', event_type, *omega_event.event_args
 
     rescue Omega::PermissionError => e
-      ::RJR::Logger.warn "users event #{event} handler permission error #{e}"
+      ::RJR::Logger.warn "users event #{event_type} handler permission error #{e}"
       err = true
 
     rescue ::RJR::Errors::ConnectionError => e
-      ::RJR::Logger.warn "users event #{event} client disconnected #{e}"
+      ::RJR::Logger.warn "users event #{event_type} client disconnected #{e}"
       err = true
       # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
 
     rescue Exception => e
-      ::RJR::Logger.warn "exception during users #{event} callback #{e} #{e.backtrace}"
+      ::RJR::Logger.warn "exception during users #{event_type} callback #{e} #{e.backtrace}"
       err = true
 
     ensure
       # remove handler on all errors
-      delete_handler_for :event       => event,
-                         :endpoint_id => handler.endpoint_id,
-                         :registry    => registry             if err
+      delete_event_handler_for :event_type  => event_type,
+                               :endpoint_id => handler.endpoint_id,
+                               :registry    => registry             if err
     end
   end
 
   # delete callback on connection events
   @rjr_node.on(:closed){ |node|
-    delete_handler_for :event       => event,
-                       :endpoint_id => handler.endpoint_id,
-                       :registry    => registry
+    delete_event_handler_for :event_type  => event_type,
+                             :endpoint_id => handler.endpoint_id,
+                             :registry    => registry
   }
 
   # add handler to registry (registry will ensure uniqueness)
@@ -79,7 +66,7 @@ subscribe_to = proc { |event|
   nil
 }
 
-unsubscribe = proc { |event|
+unsubscribe = proc { |event_type|
   # verify source node / session endpoint match
   require_valid_source!
   validate_session_source! :registry => registry
@@ -91,9 +78,9 @@ unsubscribe = proc { |event|
                     :entity    => 'users_events'
 
   # remove registered handler
-  delete_handler_for :event       => event,
-                     :endpoint_id => source_node,
-                     :registry    => registry
+  delete_event_handler_for :event_type  => event_type,
+                           :endpoint_id => source_node,
+                           :registry    => registry
 
   # return nil
   nil

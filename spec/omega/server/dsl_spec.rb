@@ -516,6 +516,29 @@ describe DSL do
     end
   end
 
+  describe "#delete_event_handler_for" do
+    before(:each) do
+      @eh1 = Omega::Server::EventHandler.new(:event_id => 'registered_user-10',
+                                             :event_type => 'registered_user',
+                                             :endpoint_id => 'node1')
+      @registry = Users::Registry.new
+      @registry << @eh1
+    end
+
+    it "removes registry handler for specified event id/endpoint" do
+      delete_event_handler_for :event_id => 'registered_user-10',
+                               :endpoint_id => 'node1',
+                               :registry => @registry
+      @registry.entities.should be_empty
+    end
+
+    it "removes registry handler for specified event type/endpoint" do
+      delete_event_handler_for :event_type => 'registered_user',
+                               :endpoint_id => 'node1',
+                               :registry => @registry
+      @registry.entities.should be_empty
+    end
+  end
 end
 
 end # module Server
