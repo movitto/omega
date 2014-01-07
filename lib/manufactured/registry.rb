@@ -47,7 +47,9 @@ class Registry
 
   def validate_entity(entities, entity)
     # ensure entity id not taken
-    entities.find { |re| re.id == entity.id }.nil? &&
+    entities.find { |re|
+      re.class == entity.class && re.id == entity.id
+    }.nil? &&
 
     # ensure valid entity
     entity.valid?
@@ -56,7 +58,7 @@ class Registry
   def check_entity(entity, old_entity=nil)
     @lock.synchronize {
       # TODO resolve system references here ?
-      rentity = @entities.find { |e| e.id == entity.id }
+      #rentity = @entities.find { |e| e.id == entity.id }
     }
   end
 

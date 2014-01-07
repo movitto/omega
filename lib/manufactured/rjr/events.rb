@@ -1,125 +1,231 @@
-# manufactured::subscribe_to, manufactured::remove_callbacks
-# rjr definitions
+# manufactured::subscribe_to, manufactured::remove_callbacks,
+# manufactured::unsubscribe rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/common'
+require 'manufactured/event_handler'
 require 'manufactured/rjr/init'
 
 module Manufactured::RJR
 
-# subscribe client to manufactured event
-subscribe_to = proc { |entity_id, event|
-  entity = registry.entity &with_id(entity_id)
-  raise DataNotFound,
-           entity_id if entity.nil? ||
-                       ![Station, Ship].include?(entity.class)
+# Bool indicating if specified event is in manufactured events namespace
+# TODO move to omega server dsl (?)
+def subsystem_event?(event_type)
+  Manufactured::Events.module_classes.any? { |evnt_class|
+    evnt_class::TYPE.to_s == event_type.to_s
+  }
+end
 
-  # grab direct handle to registry entity
-  rentity = registry.safe_exec { |entities| entities.find &with_id(entity.id) }
+# Bool indicating if specified entity is a subsystem entity.
+# *note* right now we're not considering Loot to be here as those
+# entities shouldn't be processed here
+def subsystem_entity?(entity)
+  entity.is_a?(Ship) || entity.is_a?(Station)
+end
 
-  # validate persistent transport, source node, & source/session match
-  require_persistent_transport!
-  require_valid_source!
-  validate_session_source! :registry => user_registry
+# Bool indicating if specified entity is a cosmos subsystem entity
+def cosmos_entity?(entity)
+  Cosmos::Entities.module_classes.any? { |cl| entity.is_a?(cl) }
+end
 
-  cb = Omega::Server::Callback.new
-  cb.endpoint_id  = @rjr_headers['source_node']
-  cb.rjr_event    = 'manufactured::event_occurred'
-  cb.event_type   = event
-  cb.handler =
-    proc { |entity, *args|
-      err = false
-
-      begin
-        # ensure user has access to view entity
-        require_privilege :registry => user_registry, :any =>
-          [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-           {:privilege => 'view', :entity => 'manufactured_entities'}]
-
-        # invoke method via rjr callback notification
-        #
-        # args does not include event/entity at this point, just simply has any
-        # remaining event arguments
-        #
-        # XXX args transformation between server callbacks being
-        # invoked (in manufactured::commands) and here is somewhat
-        # convoluted, would be nice to simplify
-        @rjr_callback.notify 'manufactured::event_occurred', event, entity, *args
-
-      rescue Omega::PermissionError => e
-        ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
-        err = true
-
-      rescue ::RJR::Errors::ConnectionError => e
-        ::RJR::Logger.warn "entity #{entity.id} client disconnected #{e}"
-        err = true
-        # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
-
-      rescue Exception => e
-        ::RJR::Logger.warn "exception during #{entity.id} callback #{e} #{e.backtrace}"
-        err = true
-
-      ensure
-        if err
-          registry.safe_exec { |entities|
-            rentity = entities.find &with_id(entity.id)
-            rentity.callbacks.delete(cb)
-            rentity.callbacks.compact!
-          }
+def subscribe_to_subsystem_event(event_type, endpoint_id, *event_args)
+  handler = Manufactured::EventHandler.new :event_type  => event_type,
+                                           :endpoint_id => endpoint_id,
+                                           :event_args  => event_args,
+                                           :persist     => true
+  handler.exec do |manu_event|
+    err,err_msg = false,nil
+    begin
+      # run through event args, running permission
+      # checks on restricted entities
+      # XXX hacky, would be nice to do this in a more structured manner
+      manu_event.event_args.each { |arg|
+        if subsystem_entity?(arg)
+          require_privilege :registry  => user_registry, :any =>
+            [{:privilege => 'view', :entity => "manufactured_entity-#{arg.id}"},
+             {:privilege => 'view', :entity => 'manufactured_entities'}]
+        elsif cosmos_entity?(arg)
+          require_privilege :registry  => user_registry, :any =>
+            [{:privilege => 'view', :entity => "cosmos_entity-#{arg.id}"},
+             {:privilege => 'view', :entity => 'cosmos_entities'}]
+        elsif arg.is_a?(Motel::Location)
+          require_privilege :registry  => user_registry, :any =>
+            [{:privilege => 'view', :entity => "location-#{arg.id}"},
+             {:privilege => 'view', :entity => 'locations'}] if arg.restrict_view
         end
-      end
-    }
+      }
 
-  # delete callback on connection events
-  @rjr_node.on(:closed){ |node|
-    registry.safe_exec { |entities|
-      rentity.callbacks.delete(cb)
-      rentity.callbacks.compact!
-    }
+      @rjr_callback.notify 'manufactured::event_occurred',
+                            event_type, *manu_event.event_args
+
+    rescue Omega::PermissionError => e
+          err = true
+      err_msg = "manufactured event #{event_type} " \
+                "handler permission error #{e}"
+
+    rescue ::RJR::Errors::ConnectionError => e
+          err = true
+      err_msg = "manufactured event #{event_type} " \
+                "client disconnected #{e}"
+
+    rescue Exception => e
+          err = true
+      err_msg = "exception during manufactured #{event_type} " \
+                "callback #{e} #{e.backtrace}"
+
+    ensure
+      if err
+        ::RJR::Logger.warn err_msg
+        delete_event_handler_for(:event_type  => event_type,
+                                 :endpoint_id => endpoint_id,
+                                 :registry    => registry)
+      end
+    end
+  end
+
+  # registry event handler checks ensures endpoint/event_type uniqueness
+  registry << handler
+end
+
+def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
+  cb = Omega::Server::Callback.new :event_type  => event_type,
+                                   :endpoint_id => endpoint_id,
+                                   :rjr_event => 'manufactured::event_occurred'
+  cb.handler = proc { |entity, *args|
+    err = false
+
+    begin
+      # ensure user has access to view entity
+      require_privilege :registry => user_registry, :any =>
+        [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+         {:privilege => 'view', :entity => 'manufactured_entities'}]
+
+      # invoke method via rjr callback notification
+      #
+      # args does not include event/entity at this point, just simply has any
+      # remaining event arguments
+      #
+      # XXX args transformation between server callbacks being
+      # invoked (in manufactured::commands) and here is somewhat
+      # convoluted, would be nice to simplify
+      @rjr_callback.notify 'manufactured::event_occurred', event_type, entity, *args
+
+    rescue Omega::PermissionError => e
+      ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
+      err = true
+
+    rescue ::RJR::Errors::ConnectionError => e
+      ::RJR::Logger.warn "entity #{entity.id} client disconnected #{e}"
+      err = true
+      # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
+
+    rescue Exception => e
+      ::RJR::Logger.warn "exception during #{entity.id} callback #{e} #{e.backtrace}"
+      err = true
+
+    ensure
+      registry.safe_exec{ |entities|
+        rentity = entities.find &with_id(entity.id)
+        rentity.remove_callbacks(:event_type  => event_type,
+                                 :endpoint_id => endpoint_id)
+      } if err
+    end
   }
 
-  # delete old callback and register new
   registry.safe_exec { |entities|
-    old =
-      rentity.callbacks.find { |c|
-        c.event_type  == cb.event_type &&
-        c.endpoint_id == cb.endpoint_id
-      }
-    rentity.callbacks.delete(old) unless old.nil?
-    rentity.callbacks.compact!
+    rentity = entities.find &with_id(entity_id)
+
+    # important need to atomically delete callbacks w/ same endpoint_id:
+    rentity.remove_callbacks(:event_type  => cb.event_type,
+                             :endpoint_id => cb.endpoint_id)
     rentity.callbacks << cb
   }
+end
 
-  # return entity
-  entity
+# subscribe client to manufactured event
+subscribe_to = proc { |*args|
+  # validate persistent transport
+  require_persistent_transport!
+
+  # validate source node
+  require_valid_source!
+
+  # validate source/session match
+  validate_session_source! :registry => user_registry
+
+  # who is subscribing
+  endpoint_id = @rjr_headers['source_node']
+
+  raise ArgumentError if args.empty?
+
+  if subsystem_event?(args.first)
+    event_type = args.shift
+    subscribe_to_subsystem_event event_type, endpoint_id, *args
+
+    @rjr_node.on(:closed){ |node|
+      delete_event_handler_for :event_type  => event_type,
+                               :endpoint_id => endpoint_id,
+                               :registry    => registry
+    }
+
+  else
+    entity_id, event_type = *args
+
+    entity = registry.entity &with_id(entity_id)
+    raise DataNotFound, entity_id unless subsystem_entity?(entity)
+
+    subscribe_to_entity_event entity_id, event_type, endpoint_id
+
+    @rjr_node.on(:closed){ |node|
+      registry.safe_exec{ |entities|
+        rentity = entities.find &with_id(entity_id)
+        rentity.remove_callbacks(:event_type  => event_type,
+                                 :endpoint_id => endpoint_id)
+      }
+    }
+  end
+
+  # return nil
+  nil
 }
 
 # remove callbacks registered for entity
-remove_callbacks = proc { |entity_id|
+remove_callbacks = proc { |*args|
   # verify source node / session endpoint match
   require_valid_source!
   validate_session_source! :registry => user_registry
   source_node = @rjr_headers['source_node']
 
-  # retrieve/validate entity
-  entity = registry.entity &with_id(entity_id)
-  raise DataNotFound, entity_id if entity.nil? ||
-                                   ![Station, Ship].include?(entity.class)
+  raise ArgumentError if args.empty?
 
-  # require view on entity
-  require_privilege :registry => user_registry, :any =>
-    [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
-     {:privilege => 'view', :entity => 'manufactured_entities'}]
+  if subsystem_event?(args.first)
+    event_type = args.first
+    delete_event_handler_for :event_type  => event_type,
+                             :endpoint_id => source_node,
+                             :registry    => registry
+  else
+    entity_id = args.first
 
-  # remove callbacks from registry entity
-  registry.safe_exec { |entities|
-    rentity = entities.find &with_id(entity.id)
-    rentity.callbacks.reject!{ |c| c.endpoint_id == source_node }
-  }
+    # retrieve/validate entity
+    entity = registry.entity &with_id(entity_id)
+    raise DataNotFound, entity_id unless subsystem_entity?(entity)
 
-  # return entity
-  entity
+    # require view on entity
+    require_privilege :registry => user_registry, :any =>
+      [{:privilege => 'view', :entity => "manufactured_entity-#{entity.id}"},
+       {:privilege => 'view', :entity => 'manufactured_entities'}]
+
+    # remove callbacks from registry entity
+    registry.safe_exec { |entities|
+      rentity = entities.find &with_id(entity_id)
+      rentity.remove_callbacks(:endpoint_id => source_node)
+    }
+  end
+
+  # return nil
+  nil
 }
 
 EVENTS_METHODS = { :subscribe_to     => subscribe_to,
@@ -129,5 +235,6 @@ end
 def dispatch_manufactured_rjr_events(dispatcher)
   m = Manufactured::RJR::EVENTS_METHODS
   dispatcher.handle 'manufactured::subscribe_to',     &m[:subscribe_to]
-  dispatcher.handle 'manufactured::remove_callbacks', &m[:remove_callbacks]
+  dispatcher.handle ['manufactured::remove_callbacks', 'manufactured::unsubscribe'],
+                     &m[:remove_callbacks]
 end

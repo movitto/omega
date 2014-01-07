@@ -22,7 +22,7 @@ class SystemJump < Omega::Server::Event
   def initialize(args={})
     attr_from_args args, :old_system => nil,
                          :entity     => nil
-    id = "#{TYPE}-#{entity.id}"
+    id = "#{TYPE}-#{entity ? entity.id : nil}"
     super(:id => id, :type => TYPE)
   end
 
