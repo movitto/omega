@@ -234,6 +234,16 @@ module Manufactured::RJR
         @rsh.system_id.should == @nsys.id
       end
     end
+
+    it "adds new SystemJump event to registry" do
+      lambda{
+        move_entity_between_systems(@sh, @nsys)
+      }.should change{@registry.entities.length}.by(1)
+      event = @registry.entities.last
+      event.should be_an_instance_of(Manufactured::Events::SystemJump)
+      event.entity.id.should == @sh.id
+      event.old_system.id.should == @sys.id
+    end
   end # describe #move_entity_between_systems
 
   describe "#move_entity", :rjr => true do

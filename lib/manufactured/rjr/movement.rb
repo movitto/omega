@@ -6,6 +6,7 @@
 
 require 'omega/server/proxy'
 require 'manufactured/rjr/init'
+require 'manufactured/events/system_jump'
 
 module Manufactured::RJR
 
@@ -87,12 +88,10 @@ def move_entity_between_systems(entity, sys)
   # set parent and location
   # TODO set loc x, y, z to vicinity of reverse jump gate
   #       (gate to current system in destination system) if it exists ?
+  orig_parent = entity.parent
   entity.parent = sys
   entity.location.movement_strategy =
     Motel::MovementStrategies::Stopped.instance
-
-  # TODO add subscriptions to cosmos system
-  #      to detect when ships jump in / out
 
   # update location and remove movement callbacks
   node.invoke('motel::update_location',  entity.location)
@@ -122,6 +121,11 @@ def move_entity_between_systems(entity, sys)
     # update registry entity
     registry.update entity, &with_id(entity.id)
   end
+
+  # run new system_jump event in registry
+  event = Manufactured::Events::SystemJump.new :old_system => orig_parent,
+                                               :entity => entity
+  registry << event
 
   nil
 end

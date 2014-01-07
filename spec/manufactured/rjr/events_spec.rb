@@ -159,10 +159,9 @@ module Manufactured::RJR
       @rsh.callbacks.last.should be_an_instance_of Omega::Server::Callback
     end
 
-    it "returns entity" do
+    it "returns nil" do
       r = @s.subscribe_to @sh.id, 'resource_collected'
-      r.should be_an_instance_of(Ship)
-      r.id.should == @sh.id
+      r.should be_nil
     end
   end # describe #subscribe_to
 
@@ -228,11 +227,10 @@ module Manufactured::RJR
       @rsh.callbacks.last.endpoint_id.should_not == @n.node_id
     end
 
-    it "returns entity" do
+    it "returns nil" do
       add_privilege @login_role, 'view', 'manufactured_entities'
       r = @s.remove_callbacks @sh.id
-      r.should be_an_instance_of Ship
-      r.id.should == @sh.id
+      r.should be_nil
     end
 
   end # describe remove_callbacks

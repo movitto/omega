@@ -351,6 +351,8 @@ module Registry
             e.kind_of?(EventHandler) && e.matches?(event)
           }.collect { |e| e.handlers }.flatten
 
+        # TODO at some point should change this to dispatch through
+        # the events & handlers themselves (eg Event & EventHandler #invoke)
         revent.handlers + ghandlers
       }
 

@@ -55,6 +55,7 @@ RSpec.configure do |config|
   # data will still be cleared with after hook)
   config.before(:each, :rjr => true) do
     # clear/reinit @n
+    @n.clear_event_handlers
     @n.node_type = RJR::Nodes::Local::RJR_NODE_TYPE
     @n.message_headers = {}
     @n.dispatcher.clear!
