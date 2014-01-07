@@ -22,8 +22,14 @@ create_entity = proc { |entity|
   entity.location.id = entity.id
 
   # need to set entity's location's parent_id to entity's parent's location id
-  entity.location.parent =
-    registry.entity(&with_id(entity.parent_id)).location if entity.parent_id
+  # check if parent_id is valid first
+  if entity.parent_id
+    parent = registry.entity(&with_id(entity.parent_id))
+    raise OperationError,
+      "#{entity} not created - parent #{entity.parent_id} not found" if parent.nil?
+    entity.location.parent =
+      parent.location
+  end
 
   # ensure entity is valid
   raise ValidationError, entity unless entity.valid?
