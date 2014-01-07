@@ -8,6 +8,8 @@
 # Omega Simulation Framework
 module Omega ; end
 
+# TODO update
+
 require 'users/user'
 require 'users/role'
 require 'users/session'

@@ -14,6 +14,9 @@ class Event
   # Optional type of event
   attr_accessor :type
 
+  # TODO also add a 'tags' field
+  # (clients should be able to subscribe to events w/ any tag)
+
   # Timestamp which event is set to occur
   attr_accessor :timestamp
 

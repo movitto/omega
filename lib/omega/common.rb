@@ -74,6 +74,11 @@ class Module
     end
   end
 
+  def module_classes
+    self.constants.collect { |c| self.const_get(c)}.
+                   select  { |c| c.kind_of?(Class) }
+  end
+
   # Define a foreign reference, this will:
   # - define the normal attribute accessor
   # - define an attribute accessor for the id attribute
