@@ -176,11 +176,10 @@ Omega.Pages.Index.prototype = {
       return entities.not_user_owned.indexOf(entity) != -1;
     });
 
+    this._track_system_events(root, old_root);
     this._track_scene_entities(entities, root, old_root);
     this._sync_scene_entities(entities,  root, old_root);
     this._sync_scene_planets(entities,  root, old_root);
-    // TODO also need to track when entities jump into scene, need a new server
-    // event to effectively be able to do this
 
     /// remove galaxy particle effects from canvas scene
     if(old_root && old_root.json_class == 'Cosmos::Entities::Galaxy')
@@ -196,6 +195,11 @@ Omega.Pages.Index.prototype = {
     /// add skybox to scene
     if(!this.canvas.has(this.canvas.skybox.id))
       this.canvas.add(this.canvas.skybox);
+  },
+
+  _track_system_events : function(root, old_root){
+    this.node.ws_invoke('manufactured::unsubscribe',  'system_jump');
+    this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'to', root.id);
   },
 
   _track_scene_entities : function(entities, root, old_root){

@@ -319,6 +319,13 @@ describe("Omega.Pages.Index", function(){
       assert(entities.start_tracking).isSameAs([ship3, station3]);
     });
 
+    it("starts tracking scene events", function(){
+      var track_system_events = sinon.spy(index, '_track_system_events');
+      index._scene_change(change);
+      sinon.assert.calledWith(track_system_events,
+        change.root, change.old_root);
+    })
+
     it("starts tracking scene entities", function(){
       var track_scene_entities = sinon.spy(index, '_track_scene_entities');
       index._scene_change(change)
@@ -326,7 +333,7 @@ describe("Omega.Pages.Index", function(){
         sinon.match.object, change.root, change.old_root);
     });
 
-    it("syncs scene entiites", function(){
+    it("syncs scene entities", function(){
       var sync_scene_entities = sinon.spy(index, '_sync_scene_entities');
       index._scene_change(change)
       sinon.assert.calledWith(sync_scene_entities,
@@ -369,6 +376,26 @@ describe("Omega.Pages.Index", function(){
       assert(index.canvas.has(index.canvas.skybox.id)).isFalse();
       index._scene_change(change);
       assert(index.canvas.has(index.canvas.skybox.id)).isTrue();
+    });
+  });
+
+  describe("#_track_system_events", function(){
+    var index, http_invoke, system;
+    before(function(){
+      index  = new Omega.Pages.Index();
+      system = new Omega.SolarSystem({id : 'system1'});
+
+      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    });
+
+    it("unsubscribes to system_jump events", function(){
+      index._track_system_events(system, system);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::unsubscribe', 'system_jump');
+    });
+
+    it("subscribes to system_jump events to new scene root", function(){
+      index._track_system_events(system, system);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', 'system_jump', 'to', system.id);
     });
   });
 
