@@ -98,7 +98,7 @@ module Cosmos::RJR
           entity.parent_id = "foobar"
           lambda {
             @s.create_entity(entity)
-          }.should raise_error(OperationError)
+          }.should raise_error(DataNotFound)
         end
       end
 

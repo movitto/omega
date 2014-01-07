@@ -25,7 +25,7 @@ create_entity = proc { |entity|
   # check if parent_id is valid first
   if entity.parent_id
     parent = registry.entity(&with_id(entity.parent_id))
-    raise OperationError,
+    raise DataNotFound,
       "#{entity} not created - parent #{entity.parent_id} not found" if parent.nil?
     entity.location.parent =
       parent.location
