@@ -66,12 +66,16 @@ class Registry
     init_registry
 
     exclude_from_backup Omega::Server::Command
+    exclude_from_backup Omega::Server::EventHandler
 
     # validate entities upon creation
     self.validation_callback { |r,e|
       # accept manufactured commands
       e.kind_of?(Omega::Server::Command) ||
       # && e.class.modulize.include?("Manufactured")
+
+      e.kind_of?(Omega::Server::Event) ||
+      e.kind_of?(Omega::Server::EventHandler) ||
 
        # confirm entity type & validate
       (VALID_TYPES.include?(e.class) && validate_entity(r, e))
@@ -84,8 +88,14 @@ class Registry
     # sanity checks on commands
     on(:added)   { |c|    check_command(c)   if c.kind_of?(Omega::Server::Command) }
 
+    # uniqueness checks on event handlers
+    on(:added)   { |e| sanitize_event_handlers(e) if e.kind_of?(Omega::Server::EventHandler) }
+
     # run commands
     run { run_commands }
+
+    # run events
+    run { run_events }
   end
 
   def stop_commands_for(entity)
