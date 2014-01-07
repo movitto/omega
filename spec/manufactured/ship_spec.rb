@@ -52,6 +52,37 @@ describe Ship do
     end
   end
 
+  describe "#remove_callbacks" do
+    before(:each) do
+      @cb1 = Omega::Server::Callback.new :event_type  => :movement,
+                                         :endpoint_id => 'node1'
+      @cb2 = Omega::Server::Callback.new :event_type  => :movement,
+                                         :endpoint_id => 'node2'
+      @cb3 = Omega::Server::Callback.new :event_type  => :rotation,
+                                         :endpoint_id => 'node1'
+      @s = Ship.new :callbacks => [@cb1, @cb2, @cb3]
+    end
+
+    it "removes callbacks corresponding to the specified event type" do
+      @s.remove_callbacks :event_type => :movement
+      @s.callbacks.size.should == 1
+      @s.callbacks.first.should == @cb3
+    end
+
+    it "removes callbacks corresponding to the specified endpoint id" do
+      @s.remove_callbacks :endpoint_id => 'node1'
+      @s.callbacks.size.should == 1
+      @s.callbacks.first.should == @cb2
+    end
+
+    it "removes callbacks corresponding to the specified event/endpoint" do
+      @s.remove_callbacks :event_type => :movement, :endpoint_id => 'node1'
+      @s.callbacks.size.should == 2
+      @s.callbacks[0].should == @cb2
+      @s.callbacks[1].should == @cb3
+    end
+  end
+
   describe "#docked_at_id" do
     it "returns id of station ship is docked at" do
       st = Station.new :id => 42

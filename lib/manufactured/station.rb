@@ -50,6 +50,14 @@ class Station
                each   { |c| c.invoke self, *args  }
   end
 
+  # Remove callbacks matching the specified args
+  def remove_callbacks(args={})
+    @callbacks.reject! { |cb|
+      (!args.has_key?(:event_type)  || cb.event_type  == args[:event_type]) &&
+      (!args.has_key?(:endpoint_id) || cb.endpoint_id == args[:endpoint_id])
+    }
+  end
+
   # Max distance a ship can be from station to dock with it
   attr_accessor :docking_distance
 
