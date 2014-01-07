@@ -548,6 +548,25 @@ describe Registry do
     end
   end
 
+  describe "#sanitize_event_handlers" do
+    it "removes event handlers w/ duplicate event/endpoints" do
+      h1 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+                                           :endpoint_id => 'node1'
+      h2 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+                                           :endpoint_id => 'node1'
+      h3 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+                                           :endpoint_id => 'node2'
+      @registry << h1
+      @registry << h2
+      @registry << h3
+      @registry.entities.length.should == 3
+      @registry.send :sanitize_event_handlers, h1
+      @registry.entities.length.should == 2
+      @registry.entities[0].endpoint_id.should == 'node1'
+      @registry.entities[1].endpoint_id.should == 'node2'
+    end
+  end
+
   describe "#run_event" do
     it "TODO: some of run_events was split out into run_event, test that here"
   end

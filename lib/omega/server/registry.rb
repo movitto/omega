@@ -290,6 +290,22 @@ module Registry
 
   private
 
+  # remove any duplicate event handlers,
+  # keeping the specified one
+  def sanitize_event_handlers(event_handler)
+    @lock.synchronize {
+      handlers = @entities.select { |h|
+        h.kind_of?(Omega::Server::EventHandler) &&
+        (h.event_id.nil?   || h.event_id   == event_handler.event_id)   &&
+        (h.event_type.nil? || h.event_type == event_handler.event_type) &&
+        h.endpoint_id == event_handler.endpoint_id
+      }
+
+      handlers.delete(event_handler)
+      @entities -= handlers
+    }
+  end
+
   def start_worker(lp)
     th =
       Thread.new(lp){ |lp|
