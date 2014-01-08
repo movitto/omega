@@ -31,6 +31,51 @@ describe("Omega.Station", function(){
     });
   });
 
+  describe("update_system", function(){
+    it("sets solar_system", function(){
+      var st = new Omega.Station();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      st.update_system(sys);
+      assert(st.solar_system).equals(sys);
+    });
+
+    it("sets system_id", function(){
+      var st = new Omega.Station();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      st.update_system(sys);
+      assert(st.system_id).equals(sys.id);
+    });
+
+    it("sets parent_id", function(){
+      var st = new Omega.Station();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      st.update_system(sys);
+      assert(st.parent_id).equals(sys.id);
+    });
+  });
+
+  describe("#in_system", function(){
+    var st, sys;
+    before(function(){
+      st  = new Omega.Station();
+      sys = new Omega.SolarSystem({id : 'sys1'});
+      st.update_system(sys);
+    });
+
+    describe("station is in system", function(){
+      it("returns true", function(){
+        assert(st.in_system(sys.id)).isTrue();
+      });
+    });
+
+    describe("station is not in system", function(){
+      it("returns false", function(){
+        assert(st.in_system('foobar')).isFalse();
+      });
+    });
+  });
+
+
   describe("#_update_resources", function(){
     it("converts resources from json data", function(){
       var station = new Omega.Station({resources : [{data : {material_id : 'steel'}},

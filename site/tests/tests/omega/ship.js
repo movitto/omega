@@ -54,6 +54,50 @@ describe("Omega.Ship", function(){
     });
   });
 
+  describe("update_system", function(){
+    it("sets solar_system", function(){
+      var sh = new Omega.Ship();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      sh.update_system(sys);
+      assert(sh.solar_system).equals(sys);
+    });
+
+    it("sets system_id", function(){
+      var sh = new Omega.Ship();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      sh.update_system(sys);
+      assert(sh.system_id).equals(sys.id);
+    });
+
+    it("sets parent_id", function(){
+      var sh = new Omega.Ship();
+      var sys = new Omega.SolarSystem({id : 'sys1'});
+      sh.update_system(sys);
+      assert(sh.parent_id).equals(sys.id);
+    });
+  });
+
+  describe("#in_system", function(){
+    var sh, sys;
+    before(function(){
+      sh  = new Omega.Ship();
+      sys = new Omega.SolarSystem({id : 'sys1'});
+      sh.update_system(sys);
+    });
+
+    describe("ship is in system", function(){
+      it("returns true", function(){
+        assert(sh.in_system(sys.id)).isTrue();
+      });
+    });
+
+    describe("ship is not in system", function(){
+      it("returns false", function(){
+        assert(sh.in_system('foobar')).isFalse();
+      });
+    });
+  });
+
   describe("#_update_resources", function(){
     it("converts resources from json data", function(){
       var ship = new Omega.Ship({resources : [{data : {material_id : 'steel'}},

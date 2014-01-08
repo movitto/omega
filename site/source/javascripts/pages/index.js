@@ -269,7 +269,7 @@ Omega.Pages.Index.prototype = {
   _process_retrieved_scene_entities : function(entities, entity_map){
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
-      entity.solar_system = this.entity(entity.system_id);
+      entity.update_system(this.entity(entity.system_id));
 
       var local      = this.entity(entity.id);
       var user_owned = this.session != null ?
@@ -330,7 +330,7 @@ Omega.Pages.Index.prototype = {
     var system = Omega.UI.Loader.load_system(entity.system_id, this,
       function(solar_system) { _this.process_system(solar_system); });
     if(system && system != Omega.UI.Loader.placeholder)
-      entity.solar_system = system;
+      entity.update_system(system);
 
     if(entity.json_class == 'Manufactured::Ship')
       this.track_ship(entity);
@@ -382,7 +382,7 @@ Omega.Pages.Index.prototype = {
 
     for(var e in this.entities){
       if(this.entities[e].system_id == system.id)
-        this.entities[e].solar_system = system;
+        this.entities[e].update_system(system);
       else if(this.entities[e].json_class == 'Cosmos::Entities::SolarSystem')
         this.entities[e].update_children_from(this.all_entities());
     }

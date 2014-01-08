@@ -27,6 +27,14 @@ Omega.Station.prototype = {
     return true;
   },
 
+  update_system : function(new_system){
+    this.solar_system = new_system;
+    if(new_system){
+      this.system_id    = new_system.id;
+      this.parent_id    = new_system.id;
+    }
+  },
+
   in_system : function(system_id){
     return this.system_id == system_id;
   },
