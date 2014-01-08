@@ -60,13 +60,13 @@ namespace :site do
   task 'preview' do
     puts "Starting middleman at http://localhost:4567"
     Dir.chdir 'site'
-    system("middleman server -p 4567 --verbose")
+    exec("middleman server -p 4567 --verbose")
   end
 
   desc 'Build the site'
   task 'build' do
     Dir.chdir 'site'
-    system("middleman build")
+    exec("middleman build")
   end
 
   # FIXME doc, package, and test tasks for site
