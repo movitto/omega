@@ -83,6 +83,11 @@ Omega.Session.restore_from_cookie = function(){
 };
 
 Omega.Session.login = function(user, node, cb){
+  /// upon session creation, server will store the source node / endpoint
+  /// which the session is established on, need to set that now
+  var session = new Omega.Session({user_id : user.id});
+  session.set_headers_on(node);
+
   node.http_invoke('users::login', user, function(response){
     if(response.error){
       if(cb) cb.apply(null, [response]);

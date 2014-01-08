@@ -226,6 +226,11 @@ describe("Omega.Session", function(){
       stub = sinon.stub(node, 'http_invoke');
     });
 
+    it("sets source_node header to id of user being logged in", function(){
+      Omega.Session.login(user, node, cb)
+      assert(node.http.headers['source_node']).equals(user.id);
+    });
+
     it("invokes users::login http request", function(){
       Omega.Session.login(user, node, cb)
       assert(stub.getCall(0).args[0]).equals('users::login');
