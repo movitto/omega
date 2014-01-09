@@ -10,7 +10,7 @@ module Events
 
 # Spawned by the local users subsystem
 class RegisteredUser < Omega::Server::Event
-  TYPE = 'registered_user'
+  TYPE = :registered_user
 
   # Handle to user that was registered
   attr_accessor :user
@@ -19,7 +19,7 @@ class RegisteredUser < Omega::Server::Event
   def initialize(args={})
     attr_from_args args, :user => nil
     id = "#{TYPE}-#{user.nil? ? nil : user.id}"
-    super(:id => id, :type => TYPE)
+    super(:id => id, :type => TYPE.to_s)
   end
 
   def event_args
