@@ -392,6 +392,27 @@ Omega.UI.CommandTracker.prototype = {
     /// TODO
   },
 
+  _callbacks_system_jump : function(evnt, evnt_args){
+    var jumped     = evnt_args[1];
+    var old_system = evnt_args[2];
+
+    var in_root = this.page.canvas.is_root(jumped.system_id);
+    var pentity = $.grep(this.page.all_entities(),
+                         function(entity){ return entity.id == jumped.id })[0];
+    var psystem = $.grep(this.page.all_entities(),
+                         function(entity){ return entity.id == jumped.system_id; })[0];
+
+    if(!pentity) pentity = Omega.convert_entity(jumped);
+    pentity.update_system(psystem);
+
+    if(in_root){
+      this.page.process_entity(pentity);
+      this.page.canvas.add(pentity);
+    }else{
+      this.page.entity(pentity.id, pentity);
+    }
+  },
+
   _msg_received : function(evnt, event_args){
     if(Omega.UI.CommandTracker.prototype.motel_events.indexOf(evnt) != -1){
       this._callbacks_motel_event(evnt, event_args);
@@ -424,6 +445,9 @@ Omega.UI.CommandTracker.prototype = {
 
       }else if(mevnt == 'partial_construction'){
         this._callbacks_partial_construction(evnt, event_args);
+
+      }else if(mevnt == 'system_jump'){
+        this._callbacks_system_jump(evnt, event_args);
       }
     }
   },

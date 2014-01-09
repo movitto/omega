@@ -87,6 +87,8 @@ def subscribe_to_subsystem_event(event_type, endpoint_id, *event_args)
 
   # registry event handler checks ensures endpoint/event_type uniqueness
   registry << handler
+
+  nil
 end
 
 def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
@@ -142,6 +144,8 @@ def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
                              :endpoint_id => cb.endpoint_id)
     rentity.callbacks << cb
   }
+
+  nil
 end
 
 # subscribe client to manufactured event

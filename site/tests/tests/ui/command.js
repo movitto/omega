@@ -877,6 +877,63 @@ describe("Omega.UI.CommandTracker", function(){
 
     //describe("#partial_construction", function(){
     //});
+
+    describe("#system_jump", function(){
+      var jumped, system, ejumped, estation,
+          eargs, process_entity;
+
+      before(function(){
+        system  = new Omega.SolarSystem({id : 'sys1'});
+        esystem = new Omega.SolarSystem({id : 'sys1'});
+        nsys    = new Omega.SolarSystem({id : 'sys2'});
+        psys    = new Omega.SolarSystem({id : 'sys2'});
+
+        jumped = new Omega.Ship({id : 'sh1' });
+        ejumped = new Omega.Ship({id : 'sh1',
+                                  solar_system :  nsys,
+                                  system_id : nsys.id});
+
+        eargs = ['system_jump', ejumped, esystem];
+
+        process_entity = sinon.stub(page, 'process_entity');
+      });
+
+      after(function(){
+        process_entity.restore();
+      });
+
+      it("updates entity system", function(){
+        page.entities = [jumped, psys];
+        tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
+        assert(page.entity(jumped.id).solar_system).equals(psys);
+      });
+
+      describe("entity does not exist locally", function(){
+        it("stores entity in registry", function(){
+          page.entities = [psys];
+          tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
+          assert(page.entity(jumped.id)).isNotNull();
+        });
+      });
+
+      describe("entity in scene root", function(){
+        before(function(){
+          page.canvas.set_scene_root(psys);
+        });
+
+        it("processes_entity on page", function(){
+          page.entities = [jumped, psys];
+          tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
+          sinon.assert.calledWith(process_entity, jumped);
+        });
+
+        it("adds entity to canvas", function(){
+          page.entities = [jumped, psys];
+          tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
+          sinon.assert.calledWith(canvas_add, jumped);
+        });
+      });
+    });
   });
 
   describe("#_msg_received", function(){
@@ -968,6 +1025,15 @@ describe("Omega.UI.CommandTracker", function(){
 
       //describe("partial_construction event", function(){
       //});
+
+      describe("system_jump event", function(){
+        it("invokes system_jump callback", function(){
+          var eargs = ['system_jump', {}]
+          var system_jump = sinon.stub(tracker, '_callbacks_system_jump');
+          tracker._msg_received('manufactured::event_occurred', eargs)
+          sinon.assert.calledWith(system_jump, 'manufactured::event_occurred', eargs)
+        });
+      });
     });
   })
 

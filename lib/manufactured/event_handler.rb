@@ -25,7 +25,8 @@ class EventHandler < Omega::Server::EventHandler
   def to_json(*a)
     { 'json_class' => self.class.name,
       'data'       =>
-        json_data.merge({:event_args => event_args})
+        json_data.merge({:event_args => event_args,
+                         :handlers => handlers})
     }.to_json(*a)
   end
 

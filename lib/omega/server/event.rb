@@ -208,6 +208,17 @@ class EventHandler
   end
 
   # Convert handler to json representation and return it
+  #
+  # XXX handlers allows us to pass procs through registry serialization
+  # to where they need to be used which is required but is iffy at best
+  # (eg registry serialization shouldn't be bypassed though there is
+  #  no security vulnerabilty because of this AFAIK).
+  #
+  # Look into a more robust solution for this (perhaps static
+  # EventHandler specific callbacks or something similar to the missions
+  # dsl proxy system)
+  #
+  # Also applies to to_json methods in EventHandler subclasses
   def to_json(*a)
     {
       'json_class' => self.class.name,

@@ -23,7 +23,7 @@ class SystemJump < Omega::Server::Event
     attr_from_args args, :old_system => nil,
                          :entity     => nil
     id = "#{TYPE}-#{entity ? entity.id : nil}"
-    super(:id => id, :type => TYPE)
+    super(:id => id, :type => TYPE.to_s)
   end
 
   def event_args
