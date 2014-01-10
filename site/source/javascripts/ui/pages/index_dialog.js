@@ -35,20 +35,22 @@ Omega.UI.IndexDialog.prototype = {
     var _this = this;
     node.addEventListener('error', function(err){
       if(err.disconnected)
-        _this.show_critical_err_dialog(err.error.class)
+        _this.show_critical_err_dialog('Critical Error:', err.error.class)
     });
     node.addEventListener('closed', function(){
-      /// TODO skip if this closing corresponds to page being refreshed
-      _this.show_critical_err_dialog("Connection Closed");
+      /// TODO if not unloading attempt reconnecting for a configurable
+      /// amount of attempts (w/ a configurable duration inbetween)
+      var title = _this.page.unloading ?  'Connection Closed' : 'Critical Error: ';
+      _this.show_critical_err_dialog(title, "Connection Closed");
     });
   },
 
-  show_critical_err_dialog : function(msg){
+  show_critical_err_dialog : function(title, msg){
     if(!msg) msg = '';
     this.hide();
-    this.title  = 'Critical Error';
+    this.title  = title;
     this.div_id = '#critical_err_dialog';
-    $('#critical_err').html('Critical Error: ' + msg);
+    $('#critical_err').html(msg);
     this.show();
     this.keep_open();
   },

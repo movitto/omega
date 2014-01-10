@@ -27,6 +27,10 @@ Omega.Node = function(parameters){
 Omega.Node.prototype = {
   constructor : Omega.Node,
 
+  close : function(){
+    this.ws.close();
+  },
+
   /* Set header value on the local rjr nodes.
    *
    * @param {String} header name of the header to set

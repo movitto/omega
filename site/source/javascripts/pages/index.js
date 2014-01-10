@@ -59,6 +59,12 @@ Omega.Pages.Index.prototype = {
     Omega.UI.Loader.status_indicator = this.status_indicator;
   },
 
+  /// cleanup index page operations
+  unload : function(){
+    this.unloading = true;
+    this.ws.close();
+  },
+
   validate_session : function(){
     var _this = this;
     this.session = Omega.Session.restore_from_cookie();
@@ -430,4 +436,8 @@ $(document).ready(function(){
   index.effects_player.wire_up();
   index.effects_player.start();
   index.validate_session();
+
+  $(window).on('beforeunload', function(){
+    index.unload();
+  });
 });
