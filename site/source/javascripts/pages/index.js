@@ -225,10 +225,7 @@ Omega.Pages.Index.prototype = {
 
     for(var e = 0; e < entities.start_tracking.length; e++){
       var entity = entities.start_tracking[e];
-      if(entity.json_class == 'Manufactured::Ship')
-        this.track_ship(entity);
-      else
-        this.track_station(entity);
+      this.track_entity(entity);
     }
   },
 
@@ -261,8 +258,7 @@ Omega.Pages.Index.prototype = {
 
     for(var e = 0; e < entities.in_root.length; e++){
       var entity = entities.in_root[e];
-      if(entity.alive())
-/// FIXME entity might already be in scene (ex login after viewing as anon), check and remove if so
+      if(entity.alive() && !this.canvas.has(entity.id))
         this.canvas.add(entity);
     }
 
@@ -294,22 +290,17 @@ Omega.Pages.Index.prototype = {
       if(!user_owned){
         this.entity(entity.id, entity);
 
-        if(local && in_scene)
-          this.canvas.remove(local);
-        if(same_scene && entity.alive())
-          this.canvas.add(entity);
-        if(!tracking){
-          if(entity.json_class == 'Manufactured::Ship')
-            this.track_ship(entity);
-          else
-            this.track_station(entity);
-        }
+        if(entity.alive()){
+          if(same_scene && !in_scene)
+            this.canvas.add(entity);
+          if(!tracking)
+            this.track_entity(entity);
 
-
-        /// also add entity to entity_list if not present
-        if(!this.canvas.controls.entities_list.has(entity.id)){
-          var item = {id: entity.id, text: entity.id, data: entity};
-          this.canvas.controls.entities_list.add(item);
+          /// also add entity to entity_list if not present
+          if(!this.canvas.controls.entities_list.has(entity.id)){
+            var item = {id: entity.id, text: entity.id, data: entity};
+            this.canvas.controls.entities_list.add(item);
+          }
         }
       }
     }
@@ -342,6 +333,10 @@ Omega.Pages.Index.prototype = {
     if(system && system != Omega.UI.Loader.placeholder)
       entity.update_system(system);
 
+    this.track_entity(entity);
+  },
+
+  track_entity : function(entity){
     if(entity.json_class == 'Manufactured::Ship')
       this.track_ship(entity);
     else if(entity.json_class == 'Manufactured::Station')
