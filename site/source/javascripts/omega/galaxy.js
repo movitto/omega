@@ -146,7 +146,7 @@ Omega.Galaxy.prototype = {
 
       var material = new THREE.ParticleBasicMaterial({
         size: Omega.Galaxy.prototype.mesh_props.particle_size,
-        vertexColors: true, transparent: true,
+        vertexColors: true, transparent: true, depthWrite: false,
         map: texture, blending: THREE.AdditiveBlending
       });
 

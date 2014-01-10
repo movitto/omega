@@ -65,6 +65,8 @@ Omega.UI.CanvasEntityContainer.prototype = {
 
     if(entity.selected) entity.selected(this.canvas.page);
     $(this.div_id).show();
+
+    /// TODO should only occur when showing for first time but not refreshing
     $(this.div_id).focus();
   },
 

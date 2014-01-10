@@ -24,7 +24,7 @@ Omega.Config = {
   // ui
   //canvas_width      :         900,
   //canvas_height     :         400,
-  cam : {position : [0, 2500, 2500],
+  cam : {position : [2000, 3000, 3000],
          target   : [0,    0,    0]},
 
   // event tracking
@@ -43,7 +43,7 @@ Omega.Config = {
                        'geometry' : '/meshes/wormhole_generator/wormhole_generator.json',
                        'scale'    : [50, 50, 50],
                        'rotation' : [1.57, 0, 0],
-                       'offset'   : [-150, 0, 0]},
+                       'offset'   : [-130, 0, 0]},
     'planet0'      : { 'material' : '/textures/planet0.png' },
     'planet1'      : { 'material' : '/textures/planet1.png' },
     'planet2'      : { 'material' : '/textures/planet2.png' },

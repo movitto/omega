@@ -71,7 +71,8 @@ Omega.Station.prototype = {
 
     var details = [title, loc].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
-    details.push(construct_cmd);
+    if(page.session && this.belongs_to_user(page.session.user_id))
+      details.push(construct_cmd);
     details_cb(details);
   },
 

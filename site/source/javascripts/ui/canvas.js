@@ -31,8 +31,26 @@ Omega.UI.Canvas = function(parameters){
 Omega.UI.Canvas.prototype = {
   wire_up : function(){
     var _this = this;
-    this.canvas.off('click'); /// <- needed ?
-    this.canvas.click(function(evnt) { _this._canvas_clicked(evnt); })
+    this.canvas.off('mousedown mouseup mouseleave'); /// <- needed ?
+
+    /// mouseup / down must occur within 1/2 second
+    /// to be registered as a click
+    /// TODO selection box
+    var click_duration = 500, timestamp = null;
+    this.canvas.mousedown(function(evnt){ timestamp = new Date();});
+    this.canvas.mouseup(function(evnt) {
+      if(new Date() - timestamp < click_duration){
+        timestamp = null;
+        _this._canvas_clicked(evnt);
+      }
+    })
+
+    this.canvas.on('mouseleave', function(){
+      //_this.canvas.trigger('mouseup');
+      var evnt = document.createEvent('MouseEvents');
+      evnt.initMouseEvent('mouseup', 1, 1, window, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, null);
+      _this.cam_controls.domElement.dispatchEvent(evnt);
+    });
 
     this.controls.wire_up();
     this.entity_container.wire_up();
@@ -88,6 +106,8 @@ Omega.UI.Canvas.prototype = {
     // TODO configurable controls
     //this.cam_controls = new THREE.TrackballControls(cam);
     this.cam_controls = new THREE.OrbitControls(this.cam);
+    this.cam_controls.minDistance =  1000;
+    this.cam_controls.maxDistance = 14000;
     this.cam_controls.addEventListener('change', function(){ _this.render(); });
 
     // TODO clear existing passes?

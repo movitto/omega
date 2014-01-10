@@ -20,12 +20,6 @@ Omega.UI.EffectsPlayer.prototype = {
   wire_up : function(){
     /// pause effects player when document is hidden
     var _this = this;
-    $(window).on('blur', function(evnt){
-      if(_this.effects_timer) _this.effects_timer.stop();
-    });
-    $(window).on('focus', function(evnt){
-      if(_this.effects_timer) _this.effects_timer.play();
-    });
     $(document).on('visibilitychange', function(evnt){
       if(_this.effects_timer){
         if(document.hidden)

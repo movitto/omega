@@ -119,7 +119,7 @@ Omega.SolarSystem.prototype = {
       var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
       Omega.SolarSystem.gfx.interconn_particle_material =
         new THREE.ParticleBasicMaterial({
-          color: 0xFF0000, size: 75, transparent: true ,
+          color: 0xFF0000, size: 50, transparent: true , depthWrite: false,
           map: texture, blending: THREE.AdditiveBlending
         });
   },

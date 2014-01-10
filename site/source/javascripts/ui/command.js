@@ -31,14 +31,14 @@ Omega.UI.CommandDialog.prototype = {
     $('#coords_selection_section').hide();
 
     /// Wire up select destination section toggle
-    $('#select_destination').off('click');
-    $('#select_destination').click(function(){
+    $('#select_destination, #select_dest_title').off('click');
+    $('#select_destination, #select_dest_title').click(function(){
       $('#dest_selection_section').toggle();
     });
 
     /// Wire up select coordinates section toggle
-    $('#select_coordinates').off('click');
-    $('#select_coordinates').click(function(){
+    $('#select_coordinates, #select_coords_title').off('click');
+    $('#select_coordinates, #select_coords_title').click(function(){
       $('#coords_selection_section').toggle();
     });
 

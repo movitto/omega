@@ -109,9 +109,12 @@ Omega.JumpGate.prototype = {
   gfx_props : {
     particle_plane :  20,
     particle_life  : 200,
-    lamp_x         : -22,
+    lamp_x         : -02,
     lamp_y         : -17,
     lamp_z         : 175,
+    particles_x    : -10,
+    particles_y    : -25,
+    particles_z    :  75
   },
 
   async_gfx : 3,
@@ -158,7 +161,7 @@ Omega.JumpGate.prototype = {
           plane         = this.gfx_props.particle_plane;
       var particles_material =
         new THREE.ParticleBasicMaterial({
-          color: 0x0000FF, size        : 20,
+          color: 0x0000FF, size        : 20, depthWrite: false,
           map  : texture,  transparent : true,
           blending: THREE.AdditiveBlending
         });
@@ -181,7 +184,7 @@ Omega.JumpGate.prototype = {
     //// selection sphere
       Omega.JumpGate.gfx.selection_sphere_material =
         new THREE.MeshBasicMaterial({color       : 0xffffff,
-                                     transparent : true,
+                                     transparent : true, depthWrite: false,
                                      opacity     : 0.1});
   },
 
@@ -213,10 +216,13 @@ Omega.JumpGate.prototype = {
                              this.location.y + lamp_offset[1],
                              this.location.z + lamp_offset[2]);
 
+    var particles_offset = [this.gfx_props.particles_x,
+                            this.gfx_props.particles_y,
+                            this.gfx_props.particles_z];
     this.particles = Omega.JumpGate.gfx.particles.clone();
-    if(this.location) this.particles.position.set(this.location.x - 30,
-                                                  this.location.y - 25,
-                                                  this.location.z + 75);
+    if(this.location) this.particles.position.set(this.location.x + particles_offset[0],
+                                                  this.location.y + particles_offset[1],
+                                                  this.location.z + particles_offset[2]);
 
     var segments = 32, rings = 32,
         material = Omega.JumpGate.gfx.selection_sphere_material;

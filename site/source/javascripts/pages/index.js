@@ -82,6 +82,10 @@ Omega.Pages.Index.prototype = {
     this.nav.show_logout_controls();
     this.canvas.controls.missions_button.show();
 
+    /// refresh entity container, no effect if hidden / entity doesn't belong
+    /// to user, else entity controls will now be shown
+    this.canvas.entity_container.refresh();
+
     /// setup callback handlers
     this.handle_events();
 
