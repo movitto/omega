@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO some sort of timed auto-login helper for development
+
 //= require "ui/effects_player"
 //= require "ui/status_indicator"
 //= require "ui/canvas"
