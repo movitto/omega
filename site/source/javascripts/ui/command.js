@@ -51,18 +51,18 @@ Omega.UI.CommandDialog.prototype = {
 
       var entities = dests[entity_class];
       for(var e = 0; e < entities.length; e++){
-        var dest = entities[e]
+        var dest = entities[e];
         var option = $('<option/>', {text : title + ': ' + dest.id});
         option.data('id', dest.id);
         option.data('location', dest.location);
-        option.click(function(evnt){
-          /// generate new coords a random offset from location
-          var loc = $(evnt.currentTarget).data('location');
-          var offset = Math.floor(Math.random() * 100) + 50; /// TODO parameterize via config
-          entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
-        });
         dest_selection.append(option);
       }
+      dest_selection.parent().change(function(evnt){ //wiring onChange to the select element
+        /// generate new coords a random offset from location
+        var loc = $(evnt.currentTarget).find(":selected").data('location');
+        var offset = Math.floor(Math.random() * 100) + 50; /// TODO parameterize via config
+        entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
+      });
     }
 
     /// Set coordinates inputs to current coordinates
