@@ -224,6 +224,17 @@ Omega.Station.prototype = {
     }
   },
 
+  cp_gfx : function(from){
+    /// return if not initialized
+    if(!from.components || from.components.length == 0) return;
+
+    this.components        = from.components;
+    this.shader_components = from.shader_components;
+    this.mesh              = from.mesh;
+    this.highlight         = from.highlight;
+    this.lamps             = from.lamps;
+  },
+
   run_effects : function(){
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];

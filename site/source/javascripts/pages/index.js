@@ -152,7 +152,6 @@ Omega.Pages.Index.prototype = {
 
   },
 
-/// FIXME selected entity not dissapearing / being unselected on scene change
   _scene_change : function(change){
     var _this    = this;
     var root     = change.root,
@@ -192,6 +191,9 @@ Omega.Pages.Index.prototype = {
     this._track_scene_entities(entities, root, old_root);
     this._sync_scene_entities(entities,  root, old_root);
     this._sync_scene_planets(entities,  root, old_root);
+
+    /// unselect currently selected entity (if any)
+    this.canvas.entity_container.hide();
 
     /// remove galaxy particle effects from canvas scene
     if(old_root && old_root.json_class == 'Cosmos::Entities::Galaxy')
@@ -290,6 +292,7 @@ Omega.Pages.Index.prototype = {
       /// same assumption as in _scene_change above, that
       /// user owned entities are already being tracked
       if(!user_owned){
+        if(local) entity.cp_gfx(local);
         this.entity(entity.id, entity);
 
         if(entity.alive()){
@@ -324,7 +327,11 @@ Omega.Pages.Index.prototype = {
 
   process_entity : function(entity){
     var _this = this;
+
+    var local = this.entity(entity.id);
+    if(local) entity.cp_gfx(local);
     this.entity(entity.id, entity);
+
     if(!this.canvas.controls.entities_list.has(entity.id)){
       var item = {id: entity.id, text: entity.id, data: entity};
       this.canvas.controls.entities_list.add(item);
