@@ -24,7 +24,7 @@ dsl.rjr_node =
 login 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
-  system 'Athena', 'HR1925', :location => loc(620,-720,230) do |sys|
+  system 'Athena', 'HR1925', :location => loc(950,-20,-230) do |sys|
     asteroid gen_uuid, :location => loc(-2000,-1040,-1000) do |ast|
       resource :resource => rand_resource, :quantity => 325
     end
@@ -50,12 +50,12 @@ galaxy 'Zeus' do |g|
     end
   end
 
-  system 'Aphrodite', 'V866', :location => loc(-1160,357,270) do |sys|
+  system 'Aphrodite', 'V866', :location => loc(-1160,57,-570) do |sys|
     asteroid_field :locations => [rand_location(:min => 500, :max => 2000),
                                   rand_location(:min => 500, :max => 2000)]
   end
 
-  system 'Philo', 'HU1792', :location => loc(-754,627,481) do |sys|
+  system 'Philo', 'HU1792', :location => loc(-954,27,881) do |sys|
     planet 'Xeno', :movement_strategy =>
       orbit(:speed => 0.02, :e => 0.36, :p => 1080,
             :direction => random_axis(:orthogonal_to => [0,1,0]))
