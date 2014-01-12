@@ -6,6 +6,8 @@
 
 // TODO also load planet moons
 
+/// TODO also planet rotations
+
 Omega.Planet = function(parameters){
   this.color = '000000';
   this.components = [];

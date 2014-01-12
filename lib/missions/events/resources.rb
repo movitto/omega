@@ -3,6 +3,12 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO some way of capping this / conditionalizing to halt or
+# temporarily stop at some point, eg if an asteroid, system or
+# universe has the max resources, etc
+
+# TODO perhaps make this a command instead of an event?
+
 require 'omega/server/event'
 require 'missions/rjr/init'
 
