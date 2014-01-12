@@ -47,10 +47,10 @@ Omega.Star.prototype = {
       // each star instance should set position of their mesh instance
       Omega.Star.gfx.mesh = new THREE.Mesh(mesh_geo, material);
 
-    /// shader mesh
+    /// glow
       var smesh_geo       = mesh_geo.clone();
-      var vertex_shader   = Omega.get_shader('vertexShaderHalo');
-      var fragment_shader = Omega.get_shader('fragmentShaderHalo');
+      var vertex_shader   = Omega.get_shader('vertexShaderStar');
+      var fragment_shader = Omega.get_shader('fragmentShaderStar');
       var shader = new THREE.ShaderMaterial({
         uniforms: {
           "c":   { type: "f", value: 0.4 },
@@ -62,8 +62,8 @@ Omega.Star.prototype = {
         blending: THREE.AdditiveBlending,
         transparent: true
       });
-      Omega.Star.gfx.shader_mesh = new THREE.Mesh(smesh_geo, shader);
-      Omega.Star.gfx.shader_mesh.scale.set(1.2, 1.2, 1.2);
+      Omega.Star.gfx.glow = new THREE.Mesh(smesh_geo, shader);
+      Omega.Star.gfx.glow.scale.set(1.2, 1.2, 1.2);
 
     //// light
       // each star instance should set the color/position of their light instance
@@ -81,15 +81,15 @@ Omega.Star.prototype = {
     this.mesh.omega_entity = this;
     //mesh.geometry // TODO how to adjust radius?
 
-    this.shader_mesh = Omega.Star.gfx.shader_mesh.clone();
-    this.shader_mesh.position = this.mesh.position;
-    this.shader_mesh.rotation = this.mesh.rotation;
+    this.glow = Omega.Star.gfx.glow.clone();
+    this.glow.position = this.mesh.position;
+    this.glow.rotation = this.mesh.rotation;
 
     this.light = Omega.Star.gfx.light.clone();
     if(this.location) this.light.position.set(this.location.x, this.location.y, this.location.z);
     this.light.color.setHex(this.color_int);
 
-    this.components = [this.shader_mesh, this.mesh, this.light];
+    this.components = [this.glow, this.mesh, this.light];
   }
 };
 
