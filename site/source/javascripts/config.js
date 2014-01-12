@@ -37,7 +37,7 @@ Omega.Config = {
   // gfx
   resources    : {
     'solar_system' : { 'material' : '/solar_system.png'},
-    'star'         : { 'texture'  : '/textures/sun.gif' },
+    'star'         : { 'texture'  : '/textures/sun.jpg' },
     'jump_gate'    : { 'material' : '/meshes/wormhole_generator/generatormap.jpg',
                        'geometry' : '/meshes/wormhole_generator/wormhole_generator.json',
                        'scale'    : [50, 50, 50],
