@@ -68,6 +68,7 @@ Omega.UI.Canvas.prototype = {
     hpadding : 26
   },
 
+  /// TODO simplify, currently don't need shader scene & bloom pass, simplifies alot of things
   setup : function(){
     var _this    = this;
 
@@ -106,7 +107,7 @@ Omega.UI.Canvas.prototype = {
     // TODO configurable controls
     //this.cam_controls = new THREE.TrackballControls(cam);
     this.cam_controls = new THREE.OrbitControls(this.cam);
-    this.cam_controls.minDistance =  1000;
+    this.cam_controls.minDistance =  1750;
     this.cam_controls.maxDistance = 14000;
     this.cam_controls.addEventListener('change', function(){ _this.render(); });
 
@@ -118,11 +119,11 @@ Omega.UI.Canvas.prototype = {
 
     this.blender_pass       = new THREE.ShaderPass(THREE.AdditiveBlendShader, "tDiffuse1" );
     this.blender_pass.uniforms[ 'tDiffuse2' ].value = this.shader_composer.renderTarget2;
-	  this.blender_pass.renderToScreen = true;
+    this.blender_pass.renderToScreen = true;
 
     this.shader_composer.addPass(shader_render_pass);
     this.composer.addPass(render_pass);
-    this.composer.addPass(bloom_pass);
+    //this.composer.addPass(bloom_pass);
     this.composer.addPass(this.blender_pass);
 
     this.renderer.autoClear = false;
@@ -186,6 +187,7 @@ Omega.UI.Canvas.prototype = {
     this.renderer.clear();
     this.shader_composer.render();
     this.composer.render();
+    //this.renderer.render(this.scene, this.cam);
   },
 
   // Set the scene root entity
