@@ -99,7 +99,9 @@ describe("Omega.UI.CommandDialog", function(){
         var move = sinon.stub(ship, '_move');
 
         dialog.show_destination_selection_dialog(page, ship, dests);
-        $($('#dest_selection').children()[1]).trigger('click');
+        var entity = $("#dest_selection");
+        entity.children()[1].trigger('click');
+        entity.trigger('change');
         /// TODO test location coordinates + offset
         sinon.assert.calledWith(move, page);
       });
