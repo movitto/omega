@@ -88,10 +88,10 @@ describe("Omega.UI.CommandDialog", function(){
       assert($(entities[1]).data('location')).isSameAs(dstation.location);
     });
 
-    it("wires up destination select box option clicks", function(){
+    it("wires up destination select box option change", function(){
       dialog.show_destination_selection_dialog(page, ship, dests);
-      var entity = $($('#dest_selection').children()[1]);
-      assert(entity).handles('click');
+      var entity = $('#dest_selection');
+      assert(entity).handles('change');
     });
 
     describe("on destination selection", function(){
