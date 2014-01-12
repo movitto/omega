@@ -143,18 +143,18 @@ end # class Command
 module CommandHelpers
   # update entity in registry
   def update_registry(entity)
-    registry.update(entity) { |e| e.id == entity.id }
+    registry.update(entity) { |e| e.respond_to?(:id) && e.id == entity.id }
   end
 
   # retrieve entity from registry
   def retrieve(entity_id)
-    registry.entity { |e| e.id == entity_id }
+    registry.entity { |e| e.respond_to?(:id) && e.id == entity_id }
   end
 
   # run callbacks with args on the registry entity
   def run_callbacks(entity, *args)
     registry.safe_exec { |entities|
-      e = entities.find { |e| e.id == entity.id }
+      e = entities.find { |e| e.respond_to?(:id) && e.id == entity.id }
       e.run_callbacks *args
     }
   end

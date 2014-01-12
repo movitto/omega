@@ -421,9 +421,10 @@ module Registry
             # TODO introduce optional command 'graveyard' at some point
             # to store history of previously executed commands
 
-            delete { |e| e.id == cmd.id &&   # find registry cmd and
-                         e.last_ran_at     } # ensure it hasn't been
-                                             # swapped out / already deleted
+            delete { |e| e.kind_of?(Command) && # find registry cmd and
+                         e.id == cmd.id      && # ensure it hasn't been
+                         e.last_ran_at }        # swapped out / already deleted
+
           else
             self << cmd
           end
@@ -443,7 +444,9 @@ module Registry
   #   on(:added) { |c| check_command(c) if c.kind_of?(Omega::Server::Command) }
   def check_command(command)
     @lock.synchronize {
-      rcommands = @entities.select { |e| e.id == command.id }
+      rcommands = @entities.select { |e|
+        e.kind_of?(Command) && e.id == command.id
+      }
       if rcommands.size > 1
         # keep last one that was added
         ncommand = rcommands.last
