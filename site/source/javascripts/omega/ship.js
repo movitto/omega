@@ -194,6 +194,7 @@ Omega.Ship.prototype = {
     page.node.http_invoke('manufactured::move_entity', this.id, nloc,
       function(response){
         if(response.error){
+          _this.dialog().clear_errors();
           _this.dialog().title = 'Movement Error';
           _this.dialog().show_error_dialog();
           _this.dialog().append_error(response.error.message);
