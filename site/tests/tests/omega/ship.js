@@ -266,29 +266,42 @@ describe("Omega.Ship", function(){
   });
 
   describe("#context_action", function(){
-    var move_objects = [];
+    var move_objects;
 
     before(function(){
-      move_objects.push(new Omega.Ship({id : 'ship2', system_id : 'sys1', 
-                             location  : new Omega.Location({x:12,y:53,z:16})}));
-      move_objects.push(new Omega.Planet({id : 'planet_1', system_id : 'sys1', 
-                             location  : new Omega.Location({x:16,y:35,z:76})}));
-      move_objects.push(new Omega.Asteroid({id : 'ast1',
-                             location  : new Omega.Location({x:25,y:30,z:66})}));
-      move_objects.push(new Omega.JumpGate({id : 'jg1',
-                             location  : new Omega.Location({x:-14,y:6,z:-8})}));
-      move_objects.push(new Omega.Station({id : 'st1',
-                             location  : new Omega.Location({x:-5,y:3,z:-86})}));
+      move_objects = [
+        new Omega.Ship({id : 'ship2', system_id : 'sys1',
+             location  : new Omega.Location({x:12,y:53,z:16})}),
+        new Omega.Planet({id : 'planet_1', system_id : 'sys1',
+             location  : new Omega.Location({x:16,y:35,z:76})}),
+        new Omega.Asteroid({id : 'ast1',
+             location  : new Omega.Location({x:25,y:30,z:66})}),
+        new Omega.JumpGate({id : 'jg1',
+             location  : new Omega.Location({x:-14,y:6,z:-8})}),
+        new Omega.Station({id : 'st1',
+             location  : new Omega.Location({x:-5,y:3,z:-86})})
+      ];
+
       page.canvas.root = new Omega.SolarSystem({id : 'sys1',
                            children : move_objects});
     });
 
     it("invokes move command on ships/stations/asteroids/planets/jump_gates", function(){
-      var move = sinon.spy(ship, '_move');
+      var offset = Omega.Config.movement_offset;
+      var move   = sinon.spy(ship, '_move');
+
       move_objects.forEach(function(entity){
         ship.context_action(entity, page);
-        offset = Omega.Config.movement_offset;
-        assert(move.calledWith(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset)).isTrue();
+        sinon.assert(move).calledWith(page);
+
+        var move_args = move.lastCall.args;
+        var validate = [move_args[0] - entity.location.x,
+                        move_args[1] - entity.location.y,
+                        move_args[2] - entity.location.z];
+        validate.forEach(function(dist){
+          assert(dist).isLessThan(offset.max);
+          assert(dist).isGreaterThan(offset.min);
+        });
       });
     });
 

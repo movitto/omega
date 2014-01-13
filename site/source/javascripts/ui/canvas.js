@@ -173,9 +173,10 @@ Omega.UI.Canvas.prototype = {
   },
 
   _rclicked_entity : function(entity){
-    if (this.entity_container.entity) {
-      this.entity_container.entity.context_action(entity, this.page);
-      this.entity_container.dispatchEvent({type: 'rclick'});
+    var selected = this.entity_container.entity;
+    if (selected) {
+      if(selected.context_action) selected.context_action(entity, this.page);
+      entity.dispatchEvent({type: 'rclick'});
     }
   },
 

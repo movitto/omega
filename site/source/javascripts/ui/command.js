@@ -61,6 +61,7 @@ Omega.UI.CommandDialog.prototype = {
         /// generate new coords a random offset from location
         var loc = $(evnt.currentTarget).find(":selected").data('location');
         var offset = page.config.movement_offset;
+            offset = (Math.random() * (offset.max - offset.min)) + offset.min;
         entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
       });
     }

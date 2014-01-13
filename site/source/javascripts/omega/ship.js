@@ -150,6 +150,7 @@ Omega.Ship.prototype = {
   //TODO register mine/dock callbacks
   context_action : function(entity, page){
     var offset = page.config.movement_offset;
+        offset = (Math.random() * (offset.max - offset.min)) + offset.min;
     if (entity.json_class == "Cosmos::Entities::Asteroid" ||
         entity.json_class == "Manufactured::Station"      ||
         entity.json_class == "Cosmos::Entities::JumpGate"  )
