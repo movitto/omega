@@ -31,6 +31,9 @@ Omega.Config = {
   ship_movement     :          10,
   ship_rotation     :        0.01,
 
+  //movement
+  movement_offset   :          100,
+
   // stats
   stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],
 

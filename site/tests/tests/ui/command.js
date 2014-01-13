@@ -35,7 +35,7 @@ describe("Omega.UI.CommandDialog", function(){
       ship = new Omega.Ship({id : 'ship1',
                              location : new Omega.Location({x:10.12,y:10.889,z:-20.1})});
 
-      dstation = new Omega.Station({id : 'st1', location : new Omega.Location})
+      dstation = new Omega.Station({id : 'st1', location : new Omega.Location({x:50,y:-52,z:61})})
       dests = {
         stations : [dstation]
       };
@@ -97,13 +97,13 @@ describe("Omega.UI.CommandDialog", function(){
     describe("on destination selection", function(){
       it("invokes entity._move w/ coordinates", function(){
         var move = sinon.stub(ship, '_move');
-
         dialog.show_destination_selection_dialog(page, ship, dests);
         var entity = $("#dest_selection");
-        entity.children()[1].trigger('click');
+        entity[0].selectedIndex = 1;
         entity.trigger('change');
-        /// TODO test location coordinates + offset
-        sinon.assert.calledWith(move, page);
+        var loc = $(entity.children()[1]).data('location');
+        var offset = Omega.Config.movement_offset;
+        sinon.assert.calledWith(move, page, loc.x + offset, loc.y + offset, loc.z + offset);
       });
     })
 

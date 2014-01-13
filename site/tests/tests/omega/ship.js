@@ -279,18 +279,16 @@ describe("Omega.Ship", function(){
                              location  : new Omega.Location({x:-14,y:6,z:-8})}));
       move_objects.push(new Omega.Station({id : 'st1',
                              location  : new Omega.Location({x:-5,y:3,z:-86})}));
-      move_objects.push(new Omega.Star({id : 'sun',
-                           location  : new Omega.Location({x:12,y:32,z:82})}));
       page.canvas.root = new Omega.SolarSystem({id : 'sys1',
                            children : move_objects});
     });
 
     it("invokes move command on ships/stations/asteroids/planets/jump_gates", function(){
       var move = sinon.spy(ship, '_move');
-      move_objects.forEach(function(entity) {
+      move_objects.forEach(function(entity){
         ship.context_action(entity, page);
-        /// TODO test location coordinates + offset
-        sinon.assert.calledWith(move, page);
+        offset = Omega.Config.movement_offset;
+        assert(move.calledWith(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset)).isTrue();
       });
     });
 
