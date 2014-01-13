@@ -24,6 +24,9 @@ Omega.Location.prototype = {
             x : this.x,
             y : this.y,
             z : this.z,
+            orientation_x : this.orientation_x,
+            orientation_y : this.orientation_y,
+            orientation_z : this.orientation_z,
             parent_id : this.parent_id,
             movement_strategy : this.movement_strategy};
   },

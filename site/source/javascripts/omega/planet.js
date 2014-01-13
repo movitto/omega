@@ -150,10 +150,27 @@ Omega.Planet.prototype = {
   },
 
   update_gfx : function(){
-    if(this.location && this.mesh)
-      this.mesh.position.set(this.location.x,
-                             this.location.y,
-                             this.location.z);
+    if(this.mesh){
+      if(this.location)
+        this.mesh.position.set(this.location.x,
+                               this.location.y,
+                               this.location.z);
+      if(this.spin_angle){
+        var rot = new THREE.Matrix4();
+
+        /// XXX intentionally swapping axis y/z here,
+        /// We should generate a unique orientation orthogonal to
+        /// orbital axis (or at a slight angle off that) on planet creation
+        rot.makeRotationAxis(new THREE.Vector3(this.location.orientation_x,
+                                               this.location.orientation_z,
+                                               this.location.orientation_y).normalize(),
+                             this.spin_angle);
+        //this.mesh.matrix.multiply(rot);
+        rot.multiply(this.mesh.matrix);
+        this.mesh.matrix = rot;
+        this.mesh.rotation.setFromRotationMatrix(this.mesh.matrix);
+      }
+    }
   },
 
   run_effects : function(){
@@ -161,6 +178,7 @@ Omega.Planet.prototype = {
     var curr = new Date();
     if(!this.last_moved){
       this.last_moved = curr;
+      this.spin_angle = 0;
       return;
     }
 
@@ -209,6 +227,9 @@ Omega.Planet.prototype = {
     this.location.x = n[0] + this.cx;
     this.location.y = n[1] + this.cy;
     this.location.z = n[2] + this.cz;
+
+    this.spin_angle += elapsed / 350000;
+    if(this.spin_angle > 2*Math.PI) this.spin_angle = 0;
 
     this.update_gfx();
     this.last_moved = curr;
