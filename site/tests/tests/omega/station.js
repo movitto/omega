@@ -7,7 +7,8 @@ describe("Omega.Station", function(){
                     location  : new Omega.Location({x:99,y:-2,z:100}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
-    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas()});
+    page = new Omega.Pages.Test({canvas: Omega.Test.Canvas(),
+                                 session : new Omega.Session({user_id : 'user1'})});
   });
 
   it("converts location", function(){

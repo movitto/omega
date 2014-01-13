@@ -167,6 +167,10 @@ pavlov.specify.extendAssertions({
     }
   },
 
+  isLessThan: function(actual, expected, message) {
+    ok(actual < expected, message);
+  },
+
   isGreaterThan: function(actual, expected, message) {
     ok(actual > expected, message);
   },

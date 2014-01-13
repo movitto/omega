@@ -57,7 +57,7 @@ galaxy 'Zeus' do |g|
 
   system 'Philo', 'HU1792', :location => loc(-954,27,881) do |sys|
     planet 'Xeno', :movement_strategy =>
-      orbit(:speed => 0.02, :e => 0.36, :p => 1080,
+      orbit(:speed => 0.02, :e => 0.36, :p => 4080,
             :direction => random_axis(:orthogonal_to => [0,1,0]))
   
     planet 'Aesop', :movement_strategy =>

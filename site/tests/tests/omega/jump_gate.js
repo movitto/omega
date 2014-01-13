@@ -357,7 +357,7 @@ describe("Omega.JumpGate", function(){
     it("sets particles position", function(){
       var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      assert(jg.particles.position.toArray()).isSameAs([70, -125, 275]);
+      assert(jg.particles.position.toArray()).isSameAs([90, -125, 275]);
     });
 
     it("creates a selection sphere for jg", function(){

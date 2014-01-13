@@ -292,12 +292,12 @@ describe("Omega.Ship", function(){
 
       move_objects.forEach(function(entity){
         ship.context_action(entity, page);
-        sinon.assert(move).calledWith(page);
+        sinon.assert.calledWith(move, page);
 
         var move_args = move.lastCall.args;
-        var validate = [move_args[0] - entity.location.x,
-                        move_args[1] - entity.location.y,
-                        move_args[2] - entity.location.z];
+        var validate = [move_args[1] - entity.location.x,
+                        move_args[2] - entity.location.y,
+                        move_args[3] - entity.location.z];
         validate.forEach(function(dist){
           assert(dist).isLessThan(offset.max);
           assert(dist).isGreaterThan(offset.min);

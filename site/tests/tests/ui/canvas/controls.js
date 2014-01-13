@@ -238,7 +238,7 @@ describe("Omega.UI.CanvasControls", function(){
 
     it("sets camera position to proximity of entity", function(){
       $(controls.entities_list.children()[0]).click();
-      assert(canvas.cam.position.toArray()).isSameAs([600, 700, 400]);
+      assert(canvas.cam.position.toArray()).isSameAs([600, 700, -600]);
     });
 
     it("focuses canvas scene camera on clicked entity's location", function(){

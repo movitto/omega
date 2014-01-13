@@ -628,11 +628,9 @@ describe("Omega.Pages.Index", function(){
       });
     });
 
-    describe("entity is alive and is under scene root", function(){
+    describe("entity is alive, under scene root, and not in scene", function(){
       it("adds entity to canvas scene", function(){
         index._process_retrieved_scene_entities(entities, entity_map);
-        sinon.assert.calledWith(canvas_add, ship2);
-        sinon.assert.calledWith(canvas_add, ship4);
         sinon.assert.calledWith(canvas_add, ship5);
         sinon.assert.calledWith(canvas_add, station1);
         sinon.assert.calledWith(canvas_add, station2);
