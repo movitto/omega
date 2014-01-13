@@ -148,15 +148,16 @@ Omega.Ship.prototype = {
   },
 
   //TODO register mine/dock callbacks
-  contextAction : function(entity, page){
+  context_action : function(entity, page){
+    var offset = Math.floor(Math.random() * 100) + 50; /// TODO parameterize via config
     if (entity.json_class == "Cosmos::Entities::Asteroid" ||
         entity.json_class == "Manufactured::Station"      ||
         entity.json_class == "Cosmos::Entities::JumpGate"  )
-      this._move(page, entity.location.x, entity.location.y, entity.location.z);
+      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
     //TODO change move strat to follow
     if (entity.json_class == "Manufactured::Ship"      ||
         entity.json_class == "Cosmos::Entities::Planet" )
-      this._move(page, entity.location.x, entity.location.y, entity.location.z);
+      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
   },
 
   /// XXX not a big fan of having this here, should eventually be moved elsewhere
