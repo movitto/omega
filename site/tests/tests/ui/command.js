@@ -35,7 +35,7 @@ describe("Omega.UI.CommandDialog", function(){
       ship = new Omega.Ship({id : 'ship1',
                              location : new Omega.Location({x:10.12,y:10.889,z:-20.1})});
 
-      dstation = new Omega.Station({id : 'st1', location : new Omega.Location})
+      dstation = new Omega.Station({id : 'st1', location : new Omega.Location({x:50,y:-52,z:61})})
       dests = {
         stations : [dstation]
       };
@@ -88,20 +88,22 @@ describe("Omega.UI.CommandDialog", function(){
       assert($(entities[1]).data('location')).isSameAs(dstation.location);
     });
 
-    it("wires up destination select box option clicks", function(){
+    it("wires up destination select box option change", function(){
       dialog.show_destination_selection_dialog(page, ship, dests);
-      var entity = $($('#dest_selection').children()[1]);
-      assert(entity).handles('click');
+      var entity = $('#dest_selection');
+      assert(entity).handles('change');
     });
 
     describe("on destination selection", function(){
       it("invokes entity._move w/ coordinates", function(){
         var move = sinon.stub(ship, '_move');
-
         dialog.show_destination_selection_dialog(page, ship, dests);
-        $($('#dest_selection').children()[1]).trigger('click');
-        /// TODO test location coordinates + offset
-        sinon.assert.calledWith(move, page);
+        var entity = $("#dest_selection");
+        entity[0].selectedIndex = 1;
+        entity.trigger('change');
+        var loc = $(entity.children()[1]).data('location');
+        var offset = Omega.Config.movement_offset;
+        sinon.assert.calledWith(move, page, loc.x + offset, loc.y + offset, loc.z + offset);
       });
     })
 

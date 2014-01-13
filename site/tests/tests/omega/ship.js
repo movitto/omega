@@ -265,6 +265,38 @@ describe("Omega.Ship", function(){
     })
   });
 
+  describe("#context_action", function(){
+    var move_objects = [];
+
+    before(function(){
+      move_objects.push(new Omega.Ship({id : 'ship2', system_id : 'sys1', 
+                             location  : new Omega.Location({x:12,y:53,z:16})}));
+      move_objects.push(new Omega.Planet({id : 'planet_1', system_id : 'sys1', 
+                             location  : new Omega.Location({x:16,y:35,z:76})}));
+      move_objects.push(new Omega.Asteroid({id : 'ast1',
+                             location  : new Omega.Location({x:25,y:30,z:66})}));
+      move_objects.push(new Omega.JumpGate({id : 'jg1',
+                             location  : new Omega.Location({x:-14,y:6,z:-8})}));
+      move_objects.push(new Omega.Station({id : 'st1',
+                             location  : new Omega.Location({x:-5,y:3,z:-86})}));
+      page.canvas.root = new Omega.SolarSystem({id : 'sys1',
+                           children : move_objects});
+    });
+
+    it("invokes move command on ships/stations/asteroids/planets/jump_gates", function(){
+      var move = sinon.spy(ship, '_move');
+      move_objects.forEach(function(entity){
+        ship.context_action(entity, page);
+        offset = Omega.Config.movement_offset;
+        assert(move.calledWith(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset)).isTrue();
+      });
+    });
+
+    after(function(){
+      page.canvas.root = null;
+    });
+  });
+
   describe("#_select_destination", function(){
     var st, sh1, sh2, ast1, jg1, jg2;
 

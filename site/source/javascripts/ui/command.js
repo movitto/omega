@@ -57,10 +57,10 @@ Omega.UI.CommandDialog.prototype = {
         option.data('location', dest.location);
         dest_selection.append(option);
       }
-      dest_selection.parent().change(function(evnt){ //wiring onChange to the select element
+      dest_selection.change(function(evnt){ //wiring onChange to the select element
         /// generate new coords a random offset from location
         var loc = $(evnt.currentTarget).find(":selected").data('location');
-        var offset = Math.floor(Math.random() * 100) + 50; /// TODO parameterize via config
+        var offset = page.config.movement_offset;
         entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
       });
     }

@@ -152,7 +152,17 @@ Omega.UI.Canvas.prototype = {
 
     if(intersects.length > 0){
       var entity = intersects[0].object.omega_entity;
-      if(entity) this._clicked_entity(entity);
+      if(entity)
+        switch (evnt.which){
+          case 1: //Left click
+            this._clicked_entity(entity);
+            break;
+          case 3: //Right click
+            this._rclicked_entity(entity);
+            break;
+          case 4: //Middle click
+            break;
+      }
     }
   },
 
@@ -160,6 +170,13 @@ Omega.UI.Canvas.prototype = {
     if(entity.has_details) this.entity_container.show(entity);
     if(entity.clicked_in) entity.clicked_in(this);
     entity.dispatchEvent({type: 'click'});
+  },
+
+  _rclicked_entity : function(entity){
+    if (this.entity_container.entity) {
+      this.entity_container.entity.context_action(entity, this.page);
+      this.entity_container.dispatchEvent({type: 'rclick'});
+    }
   },
 
   // Reset camera to original position

@@ -147,6 +147,19 @@ Omega.Ship.prototype = {
     if(this.mesh) this.mesh.material.emissive.setHex(0);
   },
 
+  //TODO register mine/dock callbacks
+  context_action : function(entity, page){
+    var offset = page.config.movement_offset;
+    if (entity.json_class == "Cosmos::Entities::Asteroid" ||
+        entity.json_class == "Manufactured::Station"      ||
+        entity.json_class == "Cosmos::Entities::JumpGate"  )
+      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+    //TODO change move strat to follow
+    if (entity.json_class == "Manufactured::Ship"      ||
+        entity.json_class == "Cosmos::Entities::Planet" )
+      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+  },
+
   /// XXX not a big fan of having this here, should eventually be moved elsewhere
   /// TODO replace w/ page.command_dialog
   dialog : function(){
