@@ -15,6 +15,10 @@ Omega.UI.CommandDialog.prototype = {
     $('#command_error').append(message);
   },
 
+  clear_errors : function(){
+    $('#command_error').empty();
+  },
+
   show_error_dialog : function(){
     this.div_id = '#command_dialog';
     this.show();
