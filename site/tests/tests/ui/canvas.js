@@ -30,11 +30,15 @@ describe("Omega.UI.Canvas", function(){
       Omega.Test.clear_events();
     });
 
-    it("registers canvas click event handler", function(){
+    it("registers canvas mouseup/mousedown/mouseleave event handlers", function(){
       var canvas = new Omega.UI.Canvas();
-      assert($(canvas.canvas.selector)).doesNotHandle('click');
+      assert($(canvas.canvas.selector)).doesNotHandle('mousedown');
+      assert($(canvas.canvas.selector)).doesNotHandle('mouseup');
+      assert($(canvas.canvas.selector)).doesNotHandle('mouseout');
       canvas.wire_up();
-      assert($(canvas.canvas.selector)).handles('click');
+      assert($(canvas.canvas.selector)).handles('mousedown');
+      assert($(canvas.canvas.selector)).handles('mouseup');
+      assert($(canvas.canvas.selector)).handles('mouseout');
     });
 
     it("wires up controls", function(){
@@ -141,14 +145,13 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.shader_composer.passes[0]).isOfType(THREE.RenderPass);
     })
 
-    it("adds a render/bloom/shader passes to composer", function(){
+    it("adds a render/shader passes to composer", function(){
       var canvas = Omega.Test.Canvas();
-      assert(canvas.composer.passes.length).equals(3);
+      assert(canvas.composer.passes.length).equals(2);
       assert(canvas.composer.passes[0]).isOfType(THREE.RenderPass);
-      assert(canvas.composer.passes[1]).isOfType(THREE.BloomPass);
-      assert(canvas.composer.passes[2]).isOfType(THREE.ShaderPass);
-      //assert(canvas.composer.passes[2]); // TODO verify ShaderPass pulls in ShaderComposer via AdditiveBlending
-      assert(canvas.composer.passes[2].renderToScreen).isTrue();
+      assert(canvas.composer.passes[1]).isOfType(THREE.ShaderPass);
+      //assert(canvas.composer.passes[1]); // TODO verify ShaderPass pulls in ShaderComposer via AdditiveBlending
+      assert(canvas.composer.passes[1].renderToScreen).isTrue();
     });
 
     it("sets camera controls dom element to renderer dom element", function(){

@@ -621,13 +621,6 @@ describe("Omega.Pages.Index", function(){
       assert(index.entity(station2.id)).equals(station2);
     });
 
-    describe("local entity is in scene", function(){
-      it("removes entity from scene", function(){
-        index._process_retrieved_scene_entities(entities, entity_map);
-        sinon.assert.calledWith(canvas_remove, lship2);
-      });
-    });
-
     describe("entity is alive, under scene root, and not in scene", function(){
       it("adds entity to canvas scene", function(){
         index._process_retrieved_scene_entities(entities, entity_map);
@@ -658,7 +651,7 @@ describe("Omega.Pages.Index", function(){
       it("adds entity to list", function(){
         index._process_retrieved_scene_entities(entities, entity_map);
         sinon.assert.called(list_add);
-        var ids = ['sh2', 'sh3', 'sh4', 'sh5', 'st1', 'st2'];
+        var ids = ['sh2', 'sh4', 'sh5', 'st1', 'st2'];
         for(var i = 0; i < ids.length; i++){
           var call = list_add.getCall(i);
           assert(call.args[0].id).equals(ids[i]);

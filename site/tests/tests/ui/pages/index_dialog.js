@@ -85,14 +85,14 @@ describe("Omega.UI.IndexDialog", function(){
     it("displays critical err dialog", function(){
       var dialog = new Omega.UI.IndexDialog();
       dialog.show_critical_err_dialog();
-      assert(dialog.title).equals('Critical Error');
       assert(dialog.div_id).equals('#critical_err_dialog');
     });
 
-    it("sets the critical error message", function(){
+    it("sets the critical error title/message", function(){
       var dialog = new Omega.UI.IndexDialog();
-      dialog.show_critical_err_dialog('Disconnected');
-      assert($('#critical_err').html()).equals('Critical Error: Disconnected');
+      dialog.show_critical_err_dialog('CE', 'Disconnected');
+      assert(dialog.title).equals('CE');
+      assert($('#critical_err').html()).equals('Disconnected');
     });
 
     it("shows the dialog", function(){

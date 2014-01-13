@@ -97,13 +97,24 @@ describe("Omega.UI.CommandDialog", function(){
     describe("on destination selection", function(){
       it("invokes entity._move w/ coordinates", function(){
         var move = sinon.stub(ship, '_move');
+
         dialog.show_destination_selection_dialog(page, ship, dests);
         var entity = $("#dest_selection");
         entity[0].selectedIndex = 1;
+
         entity.trigger('change');
         var loc = $(entity.children()[1]).data('location');
         var offset = Omega.Config.movement_offset;
-        sinon.assert.calledWith(move, page, loc.x + offset, loc.y + offset, loc.z + offset);
+
+        sinon.assert.calledWith(move, page);
+        var args = move.getCall(0).args;
+        var validate = [args[1] - loc.x,
+                        args[2] - loc.y,
+                        args[3] - loc.z];
+        validate.forEach(function(dist){
+          assert(dist).isLessThan(offset.max);
+          assert(dist).isGreaterThan(offset.min);
+        });
       });
     })
 

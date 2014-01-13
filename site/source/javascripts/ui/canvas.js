@@ -31,7 +31,7 @@ Omega.UI.Canvas = function(parameters){
 Omega.UI.Canvas.prototype = {
   wire_up : function(){
     var _this = this;
-    this.canvas.off('mousedown mouseup mouseleave'); /// <- needed ?
+    this.canvas.off('mousedown mouseup mouseleave mouseout'); /// <- needed ?
 
     /// mouseup / down must occur within 1/2 second
     /// to be registered as a click
@@ -45,7 +45,7 @@ Omega.UI.Canvas.prototype = {
       }
     })
 
-    this.canvas.on('mouseleave', function(){
+    this.canvas.on('mouseleave', function(){ /// XXX resulting in a mouseout event
       //_this.canvas.trigger('mouseup');
       var evnt = document.createEvent('MouseEvents');
       evnt.initMouseEvent('mouseup', 1, 1, window, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, null);
