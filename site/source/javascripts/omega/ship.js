@@ -149,16 +149,18 @@ Omega.Ship.prototype = {
 
   //TODO register mine/dock callbacks
   context_action : function(entity, page){
-    var offset = page.config.movement_offset;
-        offset = (Math.random() * (offset.max - offset.min)) + offset.min;
-    if (entity.json_class == "Cosmos::Entities::Asteroid" ||
-        entity.json_class == "Manufactured::Station"      ||
-        entity.json_class == "Cosmos::Entities::JumpGate"  )
-      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
-    //TODO change move strat to follow
-    if (entity.json_class == "Manufactured::Ship"      ||
-        entity.json_class == "Cosmos::Entities::Planet" )
-      this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+    if (page.session && this.belongs_to_user(page.session.user_id)){
+      var offset = page.config.movement_offset;
+          offset = (Math.random() * (offset.max - offset.min)) + offset.min;
+      if (entity.json_class == "Cosmos::Entities::Asteroid" ||
+          entity.json_class == "Manufactured::Station"      ||
+          entity.json_class == "Cosmos::Entities::JumpGate"  )
+        this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+      //TODO change move strat to follow
+      if (entity.json_class == "Manufactured::Ship"      ||
+          entity.json_class == "Cosmos::Entities::Planet" )
+        this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+    }
   },
 
   /// XXX not a big fan of having this here, should eventually be moved elsewhere
