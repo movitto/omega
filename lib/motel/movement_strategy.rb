@@ -34,7 +34,7 @@ class MovementStrategy
    end
 
    # Return bool indicating if we should change movement strategy
-   def change?
+   def change?(loc)
      false
    end
 

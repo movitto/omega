@@ -25,7 +25,7 @@ describe MovementStrategy do
   end
 
   it "should not indicate it should be changed" do
-    MovementStrategy.new.change?.should be_false
+    MovementStrategy.new.change?(Location.new).should be_false
   end
 
   describe "#move" do
