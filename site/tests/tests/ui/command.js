@@ -18,6 +18,14 @@ describe("Omega.UI.CommandDialog", function(){
     });
   });
 
+  describe("#clear_errors", function(){
+    it("clears errors from dialog", function(){
+      $('#command_error').html('foobar');
+      dialog.clear_errors();
+      assert($('#command_error').html()).equals('');
+    })
+  });
+
   describe("#show_error_dialog", function(){
     it("shows the command_dialog", function(){
       var show = sinon.spy(dialog, 'show');

@@ -305,6 +305,18 @@ describe("Omega.Ship", function(){
       });
     });
 
+    describe("ship does not belong to user", function(){
+      it("does not invoke move command", function(){
+        var move   = sinon.spy(ship, '_move');
+        ship.user_id = 'foouser';
+
+        move_objects.forEach(function(entity){
+          ship.context_action(entity, page);
+        });
+        sinon.assert.notCalled(move);
+      });
+    });
+
     after(function(){
       page.canvas.root = null;
     });
@@ -383,6 +395,12 @@ describe("Omega.Ship", function(){
       });
 
       describe("error response", function(){
+        it("clears error dialog", function(){
+          var clear = sinon.spy(ship.dialog(), 'clear_errors');
+          response_cb(error_response);
+          sinon.assert.called(clear);
+        });
+
         it("shows error dialog", function(){
           var show = sinon.spy(ship.dialog(), 'show_error_dialog');
           response_cb(error_response);
