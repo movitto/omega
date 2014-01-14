@@ -61,14 +61,15 @@ Omega.UI.CommandDialog.prototype = {
         option.data('location', dest.location);
         dest_selection.append(option);
       }
-      dest_selection.change(function(evnt){ //wiring onChange to the select element
-        /// generate new coords a random offset from location
-        var loc = $(evnt.currentTarget).find(":selected").data('location');
-        var offset = page.config.movement_offset;
-            offset = (Math.random() * (offset.max - offset.min)) + offset.min;
-        entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
-      });
     }
+    dest_selection.off('change');
+    dest_selection.change(function(evnt){ //wiring onChange to the select element
+      /// generate new coords a random offset from location
+      var loc = $(evnt.currentTarget).find(":selected").data('location');
+      var offset = page.config.movement_offset;
+          offset = (Math.random() * (offset.max - offset.min)) + offset.min;
+      entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
+    });
 
     /// Set coordinates inputs to current coordinates
     /// TODO offset a bit so default movement doesn't result in 'already at location' error
