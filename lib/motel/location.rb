@@ -80,8 +80,8 @@ class Location
      self.movement_strategy == Motel::MovementStrategies::Stopped.instance
    end
 
-  # Next movement strategy, optionally used to register a movement strategy
-  # which to set next (this is not performed by motel / up to the end user)
+  # Next movement strategy, optionally used to register
+  # a movement strategy which to set next
   attr_accessor :next_movement_strategy
 
 
@@ -100,6 +100,18 @@ class Location
    # Used internally in the motel subsystem
    attr_accessor :last_moved_at
 
+  # Distance moved since the last reset
+  attr_accessor :distance_moved
+
+  # Angle rotated since the last reset
+  attr_accessor :angle_rotated
+
+  # Resets attributes used to internally track location
+  def reset_tracked_attributes
+    @distance_moved = 0
+    @angle_rotated  = 0
+  end
+
   # Location initializer
   # @param [Hash] args hash of options to initialize location with
   # @option args [Integer] :id,'id' id to assign to the location
@@ -117,6 +129,8 @@ class Location
   # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
   # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
    def initialize(args = {})
+      reset_tracked_attributes
+
       @x, @y, @z = *(args[:coordinates] || args['coordinates'] || [])
 
       @orientation_x, @orientation_y, @orientation_z =
@@ -140,6 +154,8 @@ class Location
         :orx               => @orientation_x,
         :ory               => @orientation_y,
         :orz               => @orientation_z,
+        :distance_moved    => @distance_moved,
+        :angle_rotated     => @angle_rotated,
         :restrict_view     => true,
         :restrict_modify   => true,
         :last_moved_at     => nil
@@ -342,6 +358,8 @@ class Location
        'json_class' => self.class.name,
        'data'       =>
          {:id => id,
+          :distance_moved => distance_moved,
+          :angle_rotated  => angle_rotated,
           :x => x, :y => y, :z => z,
           :orientation_x => orientation_x,
           :orientation_y => orientation_y,

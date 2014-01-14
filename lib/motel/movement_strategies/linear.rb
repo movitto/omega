@@ -27,6 +27,8 @@ class Linear < MovementStrategy
    # Distance the location moves per second
    attr_accessor :speed
 
+   # Stop location movement automatically after this distance moved, optional
+   attr_accessor :stop_distance
 
    # Motel::MovementStrategies::Linear initializer
    #
@@ -40,7 +42,8 @@ class Linear < MovementStrategy
    # @raise [Motel::InvalidMovementStrategy]
    # if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
-     attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil
+     attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil,
+                          :stop_distance => nil
      init_rotation(args)
      super(args)
 
@@ -62,6 +65,13 @@ class Linear < MovementStrategy
      @speed.numeric? && @speed > 0 && valid_rotation?
    end
 
+   # Returns true if we've moved more than specified distance or
+   # change_due_to_rotation? returns true
+   def change?(loc)
+     change_due_to_rotation?(loc) ||
+     (!stop_distance.nil? && loc.distance_moved >= stop_distance)
+   end
+
    # Implementation of {Motel::MovementStrategy#move}
    def move(loc, elapsed_seconds)
      unless valid?
@@ -78,6 +88,7 @@ class Linear < MovementStrategy
      loc.x += distance * dx
      loc.y += distance * dy
      loc.z += distance * dz
+     loc.distance_moved += distance
 
      # skip rotation if orientation is not set
      unless loc.orientation.any? { |lo| lo.nil? }
@@ -90,6 +101,7 @@ class Linear < MovementStrategy
      { 'json_class' => self.class.name,
        'data'       => { :step_delay => step_delay,
                          :speed => speed,
+                         :stop_distance => stop_distance,
                          :dx => dx,
                          :dy => dy,
                          :dz => dz }.merge(rotation_json)

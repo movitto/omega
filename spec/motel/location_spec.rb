@@ -50,7 +50,29 @@ describe Location do
     end
   end
 
+  describe "#reset_tracked_attributes" do
+    it "should reset distance moved" do
+      l = Location.new
+      l.distance_moved = 50
+      l.reset_tracked_attributes
+      l.distance_moved.should == 0
+    end
+
+    it "should reset angle rotated" do
+      l = Location.new
+      l.angle_rotated = 3.14
+      l.reset_tracked_attributes
+      l.angle_rotated.should == 0
+    end
+  end
+
   describe "#initialize" do
+    it "sets default tracked attributes" do
+      l = Location.new
+      l.distance_moved = 50
+      l.angle_rotated.should == 0
+    end
+
     it "sets default coordinates" do
       l = Location.new
       l.coordinates.should == [nil,nil,nil]
@@ -492,6 +514,7 @@ describe Location do
                        :x => 10, :y => -20, :z => 0.5,
                        :orientation => [0, 0, -1],
                        :restrict_view => false, :restrict_modify => true,
+                       :distance_moved => 123, :angle_rotated => 0.12,
                        :parent_id => 15,
                        :movement_strategy =>
                          Motel::MovementStrategies::Linear.new(:speed => 51))
@@ -506,6 +529,8 @@ describe Location do
       j.should include('"orientation_x":0')
       j.should include('"orientation_y":0')
       j.should include('"orientation_z":-1')
+      j.should include('"distance_moved":123')
+      j.should include('"angle_rotated":0.12')
       j.should include('"restrict_view":false')
       j.should include('"restrict_modify":true')
       j.should include('"parent_id":15')

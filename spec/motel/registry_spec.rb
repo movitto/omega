@@ -129,6 +129,21 @@ describe Registry do
         r.entity(&with_id(l.id)).last_moved_at.should be_nil
       end
 
+      it "resets tracked location attributes" do
+        l = build(:location, :distance_moved => 500, :angle_rotated => 50)
+        r = Registry.new
+        r << l
+
+        l1 = Location.new
+        l1.update l
+        l1.movement_strategy = MovementStrategies::Linear.new
+        r.update(l1, &with_id(l.id))
+
+        rl = r.entity(&with_id(l.id))
+        rl.distance_moved.should == 0
+        rl.angle_rotated.should == 0
+      end
+
       context "changing to stopped" do
         it "raises stopped event" do
           l   = build(:location)
@@ -219,6 +234,47 @@ describe Registry do
       it "sets location last_moved_at" do
         @run_method.call
         @l.last_moved_at.should == @t
+      end
+
+      context "movement strategy indicates it should be changed" do
+        before(:each) do
+          @rl = @r.safe_exec { |es| es.find &with_id(@l.id) }
+          @rl.movement_strategy.should_receive(:change?).and_return(true)
+        end
+
+        it "sets movement strategy to next movement strategy" do
+          @ms = Motel::MovementStrategies::Rotate.new
+          @rl.next_movement_strategy = @ms
+          @r.send :run_locations
+          @rl.movement_strategy.should == @ms
+        end
+
+        it "sets next movement strategy to stopped" do
+          @ms = Motel::MovementStrategies::Rotate.new
+          @rl.next_movement_strategy = @ms
+          @r.send :run_locations
+          @rl.next_movement_strategy.should == Motel::MovementStrategies::Stopped.instance
+        end
+
+        it "resets tracked attributes" do
+          @rl.should_receive(:reset_tracked_attributes)
+          @r.send :run_locations
+        end
+
+        it "invokes changed_strategy callbacks" do
+          @r.should_receive(:raise_event).with(:changed_strategy, an_instance_of(Location))
+          @r.should_receive(:raise_event).at_least(:twice)
+          @r.send :run_locations
+        end
+
+        context "movement strategy changed to stopped" do
+          it 'invokes stopped callbacks' do
+            @l.next_movement_strategy = Motel::MovementStrategies::Stopped.instance
+            @r.should_receive(:raise_event).with(:stopped, an_instance_of(Location))
+            @r.should_receive(:raise_event).at_least(:twice)
+            @r.send :run_locations
+          end
+        end
       end
 
       it "raises movement event" do

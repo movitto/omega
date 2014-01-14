@@ -16,18 +16,21 @@ describe Linear do
       linear.dy.should == 0
       linear.dz.should == 0
       linear.speed.should == nil
+      linear.stop_distance.should be_nil
     end
 
     it "sets attributes" do
       linear = Linear.new :dx => 1,
                           :dy => 2,
-                          :dz => 3, :speed => 5
+                          :dz => 3, :speed => 5,
+                          :stop_distance => 150
 
       # ensure linear vector gets automatically normailized
       dx,dy,dz = Motel.normalize 1,2,3
       linear.dx.should == dx
       linear.dy.should == dy
       linear.dz.should == dz
+      linear.stop_distance.should == 150
 
       linear.speed.should == 5
     end
@@ -89,6 +92,48 @@ describe Linear do
     end
   end
 
+  describe "#change?" do
+    before(:each) do
+      @loc = Motel::Location.new
+    end
+
+    context "change due to rotation" do
+      it "returns true" do
+        linear = Linear.new
+        linear.should_receive(:change_due_to_rotation?).and_return(true)
+        linear.change?(@loc).should be_true
+      end
+    end
+
+    context "no change due to rotation" do
+      context "stop distance is nil" do
+        it "returns false" do
+          linear = Linear.new
+          linear.stop_distance = nil
+          linear.change?(@loc).should be_false
+        end
+      end
+
+      context "loc.distance moved < stop distance" do
+        it "returns false" do
+          linear = Linear.new
+          @loc.distance_moved = 5
+          linear.stop_distance = 10
+          linear.change?(@loc).should be_false
+        end
+      end
+
+      context "loc.distance moved >= stop distance" do
+        it "returns true" do
+          linear = Linear.new
+          @loc.distance_moved = 10
+          linear.stop_distance = 5
+          linear.change?(@loc).should be_true
+        end
+      end
+    end
+  end
+
   describe "#move" do
     before(:each) do
       @l = Motel::Location.new
@@ -137,6 +182,13 @@ describe Linear do
       l.z.should == z + dz * linear.speed * 5
     end
 
+    it "appends distance moved to loc.distance_moved" do
+      linear = Linear.new :step_delay => 5, :speed => 20
+      l = Motel::Location.new :x => 0, :y => 0, :z => 0
+      linear.move l, 1
+      l.distance_moved.should == 20
+    end
+
     it "rotates location" do
       linear = Linear.new :speed => 5, :step_delay => 5,
                           :rot_theta => 0.11
@@ -174,7 +226,8 @@ describe Linear do
                        :rot_z      =>  0,
                        :dx =>  1,
                        :dz =>  0,
-                       :dz =>  0
+                       :dz =>  0,
+                       :stop_distance => 150
       j = m.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Linear"')
       j.should include('"step_delay":20')
@@ -186,12 +239,13 @@ describe Linear do
       j.should include('"dx":1')
       j.should include('"dy":0')
       j.should include('"dz":0')
+      j.should include('"stop_distance":150')
     end
   end
 
   describe "#json_create" do
     it "returns linear from json format" do
-      j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"dx":1,"dy":0,"step_delay":20,"dz":0,"rot_theta":5.14,"rot_x":-1,"rot_y":0,"rot_z":0}}'
+      j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"stop_distance":150,"dx":1,"dy":0,"step_delay":20,"dz":0,"rot_theta":5.14,"rot_x":-1,"rot_y":0,"rot_z":0}}'
       m = RJR.parse_json(j)
 
       m.class.should == Motel::MovementStrategies::Linear
@@ -204,6 +258,7 @@ describe Linear do
       m.rot_x.should == -1
       m.rot_y.should == 0
       m.rot_z.should == 0
+      m.stop_distance.should == 150
     end
   end
 

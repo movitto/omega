@@ -48,6 +48,38 @@ describe Rotatable do
     end
   end
 
+  describe "#change_due_to_rotation?" do
+    before(:each) do
+      @loc = Motel::Location.new
+    end
+
+    context "stop_angle nil" do
+      it "returns false" do
+        r = Rotate.new
+        r.stop_angle = nil
+        r.change_due_to_rotation?(@loc).should be_false
+      end
+    end
+
+    context "loc.angle_rotated < stop_angle" do
+      it "returns false" do
+        r = Rotate.new
+        r.stop_angle = 1.57
+        @loc.angle_rotated = 1.1
+        r.change_due_to_rotation?(@loc).should be_false
+      end
+    end
+
+    context "loc.angle_rotated >= stop_angle" do
+      it "returns true" do
+        r = Rotate.new
+        r.stop_angle = 1.1
+        @loc.angle_rotated = 1.57
+        r.change_due_to_rotation?(@loc).should be_true
+      end
+    end
+  end
+
   describe "#rotate" do
     it "rotates location by rot_theta scaled with elapsed time around rot axis" do
       rot = Rotate.new :speed => 5, :step_delay => 5
@@ -69,6 +101,13 @@ describe Rotatable do
       rot.move l, 5
       l.orientation.should ==
         Motel.rotate(*orientation, 5*rt, rx, ry, rz)
+    end
+
+    it "appends angle rotated to loc.angle_rotated" do
+      rot = Rotate.new :rot_theta => 1.57, :step_delay => 5
+      l = Motel::Location.new :orientation => [1,0,0]
+      rot.move l, 1
+      l.angle_rotated.should == 1.57
     end
   end
 
@@ -102,6 +141,14 @@ describe Rotate do
     end
   end
 
+  describe "#change?" do
+    it "dispatches to change_due_to_rotation?" do
+      r = Rotate.new
+      r.should_receive(:change_due_to_rotation?).and_return(:val)
+      r.change?(Motel::Location.new).should == :val
+    end
+  end
+
   describe "#rotate" do
     context "rotate is not valid" do
       it "does not rotate location" do
@@ -118,7 +165,7 @@ describe Rotate do
   describe "#to_json" do
     it "returns rotate in json format" do
       rot = Rotate.new :rot_theta => 0.1, :step_delay => 1,
-                       :rot_x => 0, :rot_y => 0, :rot_z => -1
+                       :rot_x => 0, :rot_y => 0, :rot_z => -1, :stop_angle => 0.33
 
       j = rot.to_json
       j.should include('"json_class":"Motel::MovementStrategies::Rotate"')
@@ -127,6 +174,7 @@ describe Rotate do
       j.should include('"rot_x":0')
       j.should include('"rot_y":0')
       j.should include('"rot_z":-1')
+      j.should include('"stop_angle":0.33')
     end
   end
 

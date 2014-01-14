@@ -15,12 +15,16 @@ module MovementStrategies
     # Axis angle describing rotation
     attr_accessor :rot_x, :rot_y, :rot_z, :rot_theta
 
+    # Stop location rotation automatically after this many degrees, optional
+    attr_accessor :stop_angle
+
     # Initialize rotation params from args hash
     def init_rotation(args = {})
       attr_from_args args, :rot_theta => 0,
                            :rot_x     => 0,
                            :rot_y     => 0,
-                           :rot_z     => 1
+                           :rot_z     => 1,
+                           :stop_angle => nil
     end
 
     # Return boolean indicating if rotation parameters are valid
@@ -30,18 +34,26 @@ module MovementStrategies
      Motel.normalized?(@rot_x, @rot_y, @rot_z)
     end
 
+    # Return boolean indicating if location has rotated by specified stop_angle
+    def change_due_to_rotation?(loc)
+      !stop_angle.nil? && loc.angle_rotated >= stop_angle
+    end
+
     # Rotate the specified location. Takes same parameters
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
     def rotate(loc, elapsed_seconds)
       # update location's orientation
+      # TODO if loc.angle_rotated + angle_rotated > stop_angle only move by  stop_angle - loc.angle_rotated
+      angle_rotated = @rot_theta * elapsed_seconds
       nor =
         Motel.rotate(loc.orx, loc.ory, loc.orz,
-                     @rot_theta * elapsed_seconds,
+                     angle_rotated,
                      @rot_x, @rot_y, @rot_z)
       loc.orx = nor[0]
       loc.ory = nor[1]
       loc.orz = nor[2]
+      loc.angle_rotated += angle_rotated
       loc.orientation
     end
 
@@ -55,7 +67,8 @@ module MovementStrategies
       {:rot_theta => rot_theta,
        :rot_x     => rot_x,
        :rot_y     => rot_y,
-       :rot_z     => rot_z}
+       :rot_z     => rot_z,
+       :stop_angle => stop_angle}
     end
   end
 
@@ -71,6 +84,11 @@ class Rotate < MovementStrategy
   # Return boolean indicating if this movement strategy is valid
   def valid?
     valid_rotation?
+  end
+
+  # Return true if we should change ms due to rotation
+  def change?(loc)
+    change_due_to_rotation?(loc)
   end
 
   # Implementation of {Motel::MovementStrategy#move}

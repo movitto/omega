@@ -33,6 +33,11 @@ class MovementStrategy
      false
    end
 
+   # Return bool indicating if we should change movement strategy
+   def change?
+     false
+   end
+
    # Moves the given location, specifying the number of seconds which have
    # elapsed since move was last called
    def move(location, elapsed_seconds)

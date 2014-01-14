@@ -25,6 +25,7 @@ class Registry
 
     begin
       old_coords, old_orientation = nil, nil
+      changing = stopping = false
 
       # operate on registry entity so that retrieval, movement,
       # and storage are atomic on latest location (which
@@ -36,12 +37,25 @@ class Registry
 
         loc.movement_strategy.move loc, elapsed
         loc.last_moved_at = Time.now
+
+        if loc.movement_strategy.change?(loc)
+          # TODO s/next_movement_strategy/next_movement_strategies, allow
+          # a queue of movement strategies to be set
+          loc.movement_strategy = loc.next_movement_strategy
+          loc.next_movement_strategy = Motel::MovementStrategies::Stopped.instance
+          changing = true
+          stopping = loc.movement_strategy == Motel::MovementStrategies::Stopped.instance
+          loc.reset_tracked_attributes
+
+        end
       }
 
       # invoke movement and rotation callbacks
       # TODO invoke these async so as not to hold up the runner
       self.raise_event(:movement, loc, *old_coords)
       self.raise_event(:rotation, loc, *old_orientation)
+      self.raise_event(:changed_strategy, loc) if changing
+      self.raise_event(:stopped,          loc) if stopping
 
     rescue Exception => e
       ::RJR::Logger.warn "error running location/callbacks for #{loc.id}: #{e.to_s}"
@@ -124,6 +138,7 @@ class Registry
 
         # reset last moved at
         nloc.last_moved_at = nil
+        nloc.reset_tracked_attributes
       end
     }
 

@@ -20,6 +20,14 @@ describe MovementStrategy do
     end
   end
 
+  it "should not be valid" do
+    MovementStrategy.new.should_not be_valid
+  end
+
+  it "should not indicate it should be changed" do
+    MovementStrategy.new.change?.should be_false
+  end
+
   describe "#move" do
     it "does nothing" do
       l = Location.new :x => 100, :y => -200, :z => 300
