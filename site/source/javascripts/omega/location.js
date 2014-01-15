@@ -31,6 +31,10 @@ Omega.Location.prototype = {
             movement_strategy : this.movement_strategy};
   },
 
+  orientation : function(){
+    return [this.orientation_x, this.orientation_y, this.orientation_z];
+  },
+
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
@@ -84,6 +88,7 @@ Omega.Location.prototype = {
                              this.orientation_x,
                              this.orientation_y,
                              this.orientation_z);
+    var axis = Omega.Math.nrml(axis[0], axis[1], axis[2]);
     var angle = Omega.Math.abwn(0, 0, 1,
                                 this.orientation_x,
                                 this.orientation_y,
