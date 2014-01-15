@@ -102,7 +102,7 @@ Omega.set_rotation = function(component, rotation){
 
 // Rotate position by specified rotation
 Omega.rotate_position = function(component, rotation){
-  var position = component.position;
+  var position = component.position ? component.position : component;
   var distance = position.length();
   position.transformDirection(rotation);
   position.set(position.x * distance,

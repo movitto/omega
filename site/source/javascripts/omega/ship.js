@@ -382,6 +382,8 @@ Omega.Ship.prototype = {
     plane : 3, lifespan : 20
   },
 
+  debug_gfx : false,
+
   async_gfx : 3,
 
   load_gfx : function(config, event_cb){
@@ -512,6 +514,20 @@ Omega.Ship.prototype = {
       mining_geo.vertices.push(new THREE.Vector3(0,0,0));
       var mining_vector   = new THREE.Line(mining_geo, mining_material);
       Omega.Ship.gfx[this.type].mining_vector = mining_vector;
+
+    /// trajectories
+      var trajectory1_mat = new THREE.LineBasicMaterial({color : 0x0000FF});
+      var trajectory2_mat = new THREE.LineBasicMaterial({color : 0x00FF00});
+      var trajectory1_geo = new THREE.Geometry();
+      var trajectory2_geo = new THREE.Geometry();
+      trajectory1_geo.vertices.push(new THREE.Vector3(0,0,0));
+      trajectory1_geo.vertices.push(new THREE.Vector3(0,0,0));
+      trajectory2_geo.vertices.push(new THREE.Vector3(0,0,0));
+      trajectory2_geo.vertices.push(new THREE.Vector3(0,0,0));
+      var trajectory1 = new THREE.Line(trajectory1_geo, trajectory1_mat);
+      var trajectory2 = new THREE.Line(trajectory2_geo, trajectory2_mat);
+      Omega.Ship.gfx[this.type].trajectory1 = trajectory1;
+      Omega.Ship.gfx[this.type].trajectory2 = trajectory2;
   },
 
   init_gfx : function(config, event_cb){
@@ -574,6 +590,13 @@ Omega.Ship.prototype = {
 
     this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.clone();
     this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
+    this.trajectory1   = Omega.Ship.gfx[this.type].trajectory1.clone();
+    this.trajectory2   = Omega.Ship.gfx[this.type].trajectory2.clone();
+
+    if(this.debug_gfx){
+      this.components.push(this.trajectory1);
+      this.components.push(this.trajectory2);
+    }
 
     this.update_gfx();
   },
@@ -590,6 +613,8 @@ Omega.Ship.prototype = {
     this.trails            = from.trails;
     this.attack_vector     = from.attack_vector;
     this.mining_vector     = from.mining_vector;
+    this.trajectory1       = from.trajectory1;
+    this.trajectory2       = from.trajectory2;
   },
 
   update_gfx : function(){
@@ -600,6 +625,7 @@ Omega.Ship.prototype = {
     this._update_highlight_effects();
     this._update_lamps();
     this._update_trails();
+    this._update_trajectories();
     this._update_command_vectors();
     this._update_location_state();
     this._update_command_state();
@@ -607,6 +633,7 @@ Omega.Ship.prototype = {
     
   _update_mesh : function(){
     if(!this.mesh) return;
+    var _this = this;
 
     /// update mesh position and orientation
     this.mesh.position.set(this.location.x, this.location.y, this.location.z);
@@ -665,6 +692,32 @@ Omega.Ship.prototype = {
         Omega.rotate_position(ttrail, _this.location.rotation_matrix());
       });
     }
+  },
+
+  _update_trajectories : function(){
+    if(!this.trajectory1 || !this.trajectory2) return;
+
+    var loc = this.location;
+    var orientation = loc.orientation();
+
+    this.trajectory1.position.set(loc.x, loc.y, loc.z);
+    this.trajectory2.position.set(loc.x, loc.y, loc.z);
+
+    var t1v0 = this.trajectory1.geometry.vertices[0];
+    var t1v1 = this.trajectory1.geometry.vertices[1];
+    t1v0.set(0, 0, 0);
+    t1v1.set(orientation[0] * 100,
+             orientation[1] * 100,
+             orientation[2] * 100);
+
+    var t2v0 = this.trajectory2.geometry.vertices[0];
+    var t2v1 = this.trajectory2.geometry.vertices[1];
+    t2v0.set(0, 0, 0);
+    t2v1.set(0, 50, 0);
+    Omega.rotate_position(t2v1, loc.rotation_matrix());
+
+    this.trajectory1.geometry.verticesNeedUpdate = true;
+    this.trajectory2.geometry.verticesNeedUpdate = true;
   },
 
   _update_command_vectors : function(){
@@ -771,7 +824,7 @@ Omega.Ship.prototype = {
           pv.lifespan = pv.olifespan;
         }
       }
-      trail.geometry.__dirtyVertices = true;
+      trail.geometry.verticesNeedUpdate = true;
     }
 
     /// move ship according to movement strategy to smoothen out movement animation
@@ -832,7 +885,7 @@ Omega.Ship.prototype = {
           vertex.moving = false;
         }
       }
-      this.attack_vector.geometry.__dirtyVertices = true;
+      this.attack_vector.geometry.verticesNeedUpdate = true;
     }
   }
 };

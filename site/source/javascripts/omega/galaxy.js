@@ -194,7 +194,7 @@ Omega.Galaxy.prototype = {
       vec.set(n[0], n[1], n[2]);
     }
 
-    geo.__dirtyVertices = true;
+    geo.verticesNeedUpdate = true;
   }
 };
 

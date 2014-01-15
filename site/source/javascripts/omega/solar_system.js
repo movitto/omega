@@ -163,7 +163,7 @@ Omega.SolarSystem.prototype = {
       interconn.ticker += 1;
       if(interconn.ticker >= interconn.ticks)
         interconn.ticker = 0;
-      interconn.geometry.__dirtyVertices = true;
+      interconn.geometry.verticesNeedUpdate = true;
     }
   },
 
