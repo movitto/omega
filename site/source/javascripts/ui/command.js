@@ -393,7 +393,6 @@ Omega.UI.CommandTracker.prototype = {
     // retrieve full entity from server / process
     var _this = this;
     Omega.Ship.get(constructed.id, this.page.node, function(entity){
-console.log(entity)
       _this.page.process_entity(entity);
       if(_this.page.canvas.is_root(entity.system_id))
         _this.page.canvas.add(entity);
@@ -417,6 +416,8 @@ console.log(entity)
       this.page.canvas.reload(pstation, function(){ pstation.update_gfx(); });
       this.page.canvas.animate();
     }
+
+    /// TODO should pop up dialog or similar w/ reason for failure
 
     this.page.canvas.entity_container.refresh();
   },
