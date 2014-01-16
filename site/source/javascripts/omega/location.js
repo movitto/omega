@@ -88,11 +88,11 @@ Omega.Location.prototype = {
                              this.orientation_x,
                              this.orientation_y,
                              this.orientation_z);
-    var axis = Omega.Math.nrml(axis[0], axis[1], axis[2]);
     var angle = Omega.Math.abwn(0, 0, 1,
                                 this.orientation_x,
                                 this.orientation_y,
                                 this.orientation_z);
+    if(!angle == 0) axis = Omega.Math.nrml(axis[0], axis[1], axis[2]);
     var matrix = new THREE.Matrix4().
                      makeRotationAxis({x: axis[0],
                                        y: axis[1],
