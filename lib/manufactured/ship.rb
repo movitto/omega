@@ -146,6 +146,9 @@ class Ship
   # Hit points the ship has
   attr_accessor :hp
 
+  # Max hp the ship can have
+  attr_accessor :max_hp
+
   # Base hp of a ship of the specified type.
   #
   # TODO right now just return a fixed hp for every ship,
@@ -313,7 +316,6 @@ class Ship
   # @option args [Array<Manufactured::Callback>] :notifications,'notifications' array of manufactured callbacks to assign to ship
   # @option args [Array<Resource>] :resources,'resources' list of resources to set on ship
   # @option args [Float,Int] :hp,'hp' hit points to assign to ship
-  # @option args [Float,Int] :max_shield_level,'max_shield_level' max_shield_level to assign to ship
   # @option args [Float,Int] :shield_level,'shield_level' shield_level to assign to ship
   # @option args [Cosmos::SolarSystem] :solar_system,'solar_system' solar system which the ship is in
   # @option args [Motel::Location] :location,'location' location of the ship in the solar system
@@ -348,6 +350,7 @@ class Ship
       args[:movement_strategy] if args.has_key?(:movement_strategy)
 
     @hp                   = Ship.base_hp(@type) if @hp.nil?
+    @max_hp               = Ship.base_hp(@type)
     @movement_speed       = Ship.base_movement_speed(@type)
     @rotation_speed       = Ship.base_rotation_speed(@type)
     @attack_distance      = Ship.base_attack_distance(@type)
@@ -529,6 +532,7 @@ class Ship
   end
 
   # Convert ship to json representation and return it
+  # TODO also add 'optimized' or some other mode/flag just returning variable properties
   def to_json(*a)
     {
       'json_class' => self.class.name,
@@ -536,6 +540,7 @@ class Ship
         {:id => id, :user_id => user_id,
          :type => type, :size => size,
          :hp => @hp, :shield_level => @shield_level,
+         :max_hp => @max_hp, :max_shield_level => @max_shield_level,
          :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,
