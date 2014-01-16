@@ -382,6 +382,10 @@ Omega.Ship.prototype = {
     plane : 3, lifespan : 20
   },
 
+  health_bar_props : {
+    length : 200
+  },
+
   debug_gfx : false,
 
   async_gfx : 3,
@@ -528,6 +532,21 @@ Omega.Ship.prototype = {
       var trajectory2 = new THREE.Line(trajectory2_geo, trajectory2_mat);
       Omega.Ship.gfx[this.type].trajectory1 = trajectory1;
       Omega.Ship.gfx[this.type].trajectory2 = trajectory2;
+
+    /// health bars
+      var hp_remaining_mat = new THREE.LineBasicMaterial({color : 0x0000FF, linewidth: 3});
+      var hp_depleted_mat  = new THREE.LineBasicMaterial({color : 0xFF0000, linewidth: 3});
+      var hp_remaining_geo = new THREE.Geometry();
+      var hp_depleted_geo  = new THREE.Geometry();
+      var len = this.health_bar_props.length;
+      hp_depleted_geo.vertices.push(new THREE.Vector3(-len/2, 100, 0));
+      hp_depleted_geo.vertices.push(new THREE.Vector3(-len/2, 100, 0));
+      hp_remaining_geo.vertices.push(new THREE.Vector3(-len/2, 100, 0));
+      hp_remaining_geo.vertices.push(new THREE.Vector3(len/2, 100, 0));
+      var hp_depleted  = new THREE.Line(hp_depleted_geo,  hp_depleted_mat);
+      var hp_remaining = new THREE.Line(hp_remaining_geo, hp_remaining_mat);
+      Omega.Ship.gfx[this.type].hp_bars =
+        {depleted : hp_depleted, remaining : hp_remaining};
   },
 
   init_gfx : function(config, event_cb){
@@ -598,6 +617,12 @@ Omega.Ship.prototype = {
       this.components.push(this.trajectory2);
     }
 
+    this.hp_bars =
+      {depleted   : Omega.Ship.gfx[this.type].hp_bars.depleted.clone(),
+       remaining  : Omega.Ship.gfx[this.type].hp_bars.remaining.clone()};
+    this.components.push(this.hp_bars.depleted);
+    this.components.push(this.hp_bars.remaining);
+
     this.update_gfx();
   },
 
@@ -615,6 +640,7 @@ Omega.Ship.prototype = {
     this.mining_vector     = from.mining_vector;
     this.trajectory1       = from.trajectory1;
     this.trajectory2       = from.trajectory2;
+    this.hp_bars           = from.hp_bars;
   },
 
   update_gfx : function(){
@@ -626,6 +652,7 @@ Omega.Ship.prototype = {
     this._update_lamps();
     this._update_trails();
     this._update_trajectories();
+    this._update_hp_bars();
     this._update_command_vectors();
     this._update_location_state();
     this._update_command_state();
@@ -718,6 +745,29 @@ Omega.Ship.prototype = {
 
     this.trajectory1.geometry.verticesNeedUpdate = true;
     this.trajectory2.geometry.verticesNeedUpdate = true;
+  },
+
+  _update_hp_bars : function(){
+    if(!this.hp_bars) return;
+
+    this.hp_bars.depleted.position.set(this.location.x,
+                                       this.location.y,
+                                       this.location.z);
+    this.hp_bars.remaining.position.set(this.location.x,
+                                        this.location.y,
+                                        this.location.z);
+
+    var tlen = this.health_bar_props.length;
+    var rlen = (this.hp / this.max_hp) * tlen;
+    var dlen = tlen - rlen;
+    var border = (this.hp < this.max_hp / 2) ?
+                 (dlen - tlen / 2) : (tlen / 2 - rlen);
+    this.hp_bars.depleted.geometry.vertices[1].x  = border;
+    this.hp_bars.remaining.geometry.vertices[0].x = border;
+
+    // TODO rotate to always face screen (but not affected by ship orientation)
+    this.hp_bars.depleted.geometry.verticesNeedUpdate  = true;
+    this.hp_bars.remaining.geometry.verticesNeedUpdate = true;
   },
 
   _update_command_vectors : function(){
