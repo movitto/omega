@@ -381,21 +381,59 @@ Omega.UI.CommandTracker.prototype = {
     var pstation = $.grep(this.page.all_entities(),
                           function(entity){ return entity.id == station.id; })[0];
 
+    pstation.construction_percent = 0;
+    pstation.resources = station.resources;
+    pstation._update_resources();
+
+    if(this.page.canvas.is_root(pstation.parent_id)){
+      this.page.canvas.reload(pstation, function(){ pstation.update_gfx(); });
+      this.page.canvas.animate();
+    }
+
     // retrieve full entity from server / process
     var _this = this;
     Omega.Ship.get(constructed.id, this.page.node, function(entity){
+console.log(entity)
       _this.page.process_entity(entity);
       if(_this.page.canvas.is_root(entity.system_id))
         _this.page.canvas.add(entity);
     });
 
+    this.page.canvas.entity_container.refresh();
+  },
+
+  _callbacks_construction_failed : function(evnt, evnt_args){
+    var station       = evnt_args[1];
+    var failed_entity = evnt_args[2];
+
+    var pstation = $.grep(this.page.all_entities(),
+                          function(entity){ return entity.id == station.id; })[0];
+
+    pstation.construction_percent = 0;
     pstation.resources = station.resources;
     pstation._update_resources();
+
+    if(this.page.canvas.is_root(pstation.parent_id)){
+      this.page.canvas.reload(pstation, function(){ pstation.update_gfx(); });
+      this.page.canvas.animate();
+    }
+
     this.page.canvas.entity_container.refresh();
   },
 
   _callbacks_partial_construction : function(evnt, evnt_args){
-    /// TODO
+    var station           = evnt_args[1];
+    var being_constructed = evnt_args[2];
+    var percent           = evnt_args[3];
+
+    var pstation = $.grep(this.page.all_entities(),
+                          function(entity){ return entity.id == station.id; })[0];
+
+    pstation.construction_percent = percent;
+    if(this.page.canvas.is_root(pstation.parent_id)){
+      this.page.canvas.reload(pstation, function(){ pstation.update_gfx(); });
+      this.page.canvas.animate();
+    }
   },
 
   _callbacks_system_jump : function(evnt, evnt_args){
@@ -448,6 +486,9 @@ Omega.UI.CommandTracker.prototype = {
 
       }else if(mevnt == 'construction_complete'){
         this._callbacks_construction_complete(evnt, event_args);
+
+      }else if(mevnt == 'construction_failed'){
+        this._callbacks_construction_failed(evnt, event_args);
 
       }else if(mevnt == 'partial_construction'){
         this._callbacks_partial_construction(evnt, event_args);

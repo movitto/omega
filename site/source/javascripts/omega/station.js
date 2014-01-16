@@ -8,8 +8,9 @@ Omega.Station = function(parameters){
   this.components = [];
   this.shader_components = [];
   this.resources  = [];
-
   $.extend(this, parameters);
+
+  this.parent_id = this.system_id;
   this.location = Omega.convert_entity(this.location)
   this._update_resources();
 };

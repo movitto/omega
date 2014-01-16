@@ -382,6 +382,7 @@ Omega.Pages.Index.prototype = {
     /// TODO track jumps
     /// track construction
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_complete');
+    this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_failed');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'partial_construction');
   },
 
