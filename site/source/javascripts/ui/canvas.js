@@ -107,7 +107,7 @@ Omega.UI.Canvas.prototype = {
     // TODO configurable controls
     //this.cam_controls = new THREE.TrackballControls(cam);
     this.cam_controls = new THREE.OrbitControls(this.cam);
-    this.cam_controls.minDistance =  1000;
+    this.cam_controls.minDistance =   100;
     this.cam_controls.maxDistance = 14000;
     this.cam_controls.addEventListener('change', function(){ _this.render(); });
 
