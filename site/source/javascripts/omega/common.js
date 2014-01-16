@@ -155,6 +155,74 @@ Omega.create_lamp = function(size, color){
   return lamp;
 }
 
+// Create a progress bar (as represented by two lines
+// TODO add optional parameterized border around entire progress bar
+Omega.create_progress_bar = function(attrs){
+  var width  = attrs.width;
+  var len    = attrs.length;
+  var axis   = attrs.axis;
+  var color1 = attrs.color1;
+  var color2 = attrs.color2;
+  var vertices = attrs.vertices;
+
+  var mat1   = new THREE.LineBasicMaterial({color: color1, linewidth: width});
+  var mat2   = new THREE.LineBasicMaterial({color: color2, linewidth: width});
+
+  var geo1   = new THREE.Geometry();
+  var g1v0   = new THREE.Vector3(vertices[0][0][0],
+                                 vertices[0][0][1],
+                                 vertices[0][0][2]);
+  var g1v1   = new THREE.Vector3(vertices[0][1][0],
+                                 vertices[0][1][1],
+                                 vertices[0][1][2]);
+  geo1.vertices.push(g1v0);
+  geo1.vertices.push(g1v1);
+
+  var geo2   = new THREE.Geometry();
+  var g2v0   = new THREE.Vector3(vertices[1][0][0],
+                                 vertices[1][0][1],
+                                 vertices[1][0][2]);
+  var g2v1   = new THREE.Vector3(vertices[1][1][0],
+                                 vertices[1][1][1],
+                                 vertices[1][1][2]);
+  geo2.vertices.push(g2v0);
+  geo2.vertices.push(g2v1);
+
+  var line1  = new THREE.Line(geo1, mat1);
+  var line2  = new THREE.Line(geo2, mat2);
+
+  /// TODO this (and lamp, etc) should be moved out into their
+  /// own classes under the Omega.UI.Canvas namespace
+  var progress = {total      :   len,
+                  axis       :  axis,
+                  component1 : line1,
+                  component2 : line2};
+  progress.update = function(loc, percentage){
+    /// assuming progress bar coordinates is centered on location,
+    /// negative vertex values are allowed
+    this.component1.position.set(loc.x, loc.y, loc.z);
+    this.component2.position.set(loc.x, loc.y, loc.z);
+
+    var comp1len = percentage * this.total;
+    var comp2len = this.total - comp1len;
+    var border = percentage < 0.5 ?
+                 (comp2len - this.total / 2) :
+                 (this.total / 2 - comp1len);
+    this.component1.geometry.vertices[1][this.axis] = border;
+    this.component2.geometry.vertices[0][this.axis] = border;
+    this.component1.geometry.verticesNeedUpdate = true;
+    this.component2.geometry.verticesNeedUpdate = true;
+  };
+  progress.clone = function(){
+    return {total: this.total, axis: this.axis,
+            component1: this.component1.clone(),
+            component2: this.component2.clone(),
+            update : this.update, clone : this.clone};
+  };
+
+  return progress;
+}
+
 // The Math Module
 Omega.Math = {
   round_to : function(value, places){
