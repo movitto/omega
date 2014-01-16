@@ -539,7 +539,7 @@ Omega.Ship.prototype = {
       var len = this.health_bar_props.length;
       Omega.Ship.gfx[this.type].hp_bar =
         Omega.create_progress_bar({width: 3, length: len, axis : 'x',
-                                   color1: 0x0000FF, color2: 0xFF0000,
+                                   color1: 0xFF0000, color2: 0x0000FF,
                                    vertices: [[[-len/2, 100, 0],
                                                [-len/2, 100, 0]],
                                               [[-len/2, 100, 0],
