@@ -117,6 +117,10 @@ Omega.Station.prototype = {
     rot_x : 3.14, rot_y :   0, rot_z : 0
   },
 
+  construction_bar_props : {
+    length: 200
+  },
+
   async_gfx : 2,
 
   load_gfx : function(config, event_cb){
@@ -177,6 +181,16 @@ Omega.Station.prototype = {
           Omega.Station.gfx[this.type].lamps.push(slamp);
         }
       }
+
+    //// construction bar
+      var len = this.construction_bar_props.length;
+      Omega.Station.gfx[this.type].construction_bar =
+        Omega.create_progress_bar({width: 3, length: len, axis : 'x',
+                                   color1: 0x00FF00, color2: 0x0000FF,
+                                   vertices: [[[-len/2, 100, 0],
+                                               [-len/2, 100, 0]],
+                                              [[-len/2, 100, 0],
+                                               [ len/2, 100, 0]]]});
   },
 
   init_gfx : function(config, event_cb){
@@ -222,6 +236,8 @@ Omega.Station.prototype = {
       this.lamps.push(lamp);
       this.components.push(lamp);
     }
+
+    this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();
   },
 
   cp_gfx : function(from){
@@ -233,6 +249,33 @@ Omega.Station.prototype = {
     this.mesh              = from.mesh;
     this.highlight         = from.highlight;
     this.lamps             = from.lamps;
+    this.construction_bar  = from.construction_bar;
+  },
+
+  update_gfx : function(){
+    if(!this.location) return;
+
+    this._update_construction_bar();
+  },
+
+  _update_construction_bar : function(){
+    if(!this.construction_bar) return;
+
+    if(this.construction_percent > 0){
+      this.construction_bar.update(this.location, this.construction_percent);
+      if(this.components.indexOf(this.construction_bar.component1) == -1){
+        this.components.push(this.construction_bar.component1);
+        this.components.push(this.construction_bar.component2);
+      }
+    }else{
+      if(this.components.indexOf(this.construction_bar.component1) != -1){
+        var i = this.components.indexOf(this.construction_bar.component1);
+        this.components.splice(i, 1);
+
+        i = this.components.indexOf(this.construction_bar.component2);
+        this.components.splice(i, 1);
+      }
+    }
   },
 
   run_effects : function(){
