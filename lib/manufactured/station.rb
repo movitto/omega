@@ -252,6 +252,7 @@ class Station
       entity.location.y = self.location.y + dy * @construction_distance
       entity.location.z = self.location.z + dz * @construction_distance
     end
+    # TODO introduce optional random element that can be added to entity location ?
 
     entity
   end

@@ -95,6 +95,9 @@ Omega.Station.prototype = {
     var _this = this;
 
     /// TODO parameterize entity type/init!
+    /// TODO generate random location in vicity of station and/or allow user
+    /// to set a generation point around which new entities appear (within
+    /// construction distance of station of course)
     page.node.http_invoke('manufactured::construct_entity',
       this.id, 'entity_type', 'Ship', 'type', 'mining', 'id', RJR.guid(),
       function(response){
