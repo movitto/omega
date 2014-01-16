@@ -37,7 +37,7 @@ def move_entity_in_system(entity, loc)
 
   # if we are close enough to correct orientation,
   # register linear movement strategy with entity
-  if od.first.abs < (Math::PI / 8)
+  if od.first.abs < (Math::PI / 32)
     entity.location.movement_strategy = linear
 
   # if we need to adjust orientation before moving,
