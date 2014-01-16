@@ -5,6 +5,7 @@
  */
 
 /// TODO some sort of timed auto-login helper for development
+/// TODO auto-logout on session timeout
 
 //= require "ui/effects_player"
 //= require "ui/status_indicator"

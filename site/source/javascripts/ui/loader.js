@@ -138,6 +138,7 @@ Omega.UI.Loader = {
 
       Omega.SolarSystem.with_id(system_id, page.node,
         function(system){
+          /// TODO make sure this is not overwriting components (might be)
           page.entity(system_id, system);
           var jr_system = RJR.JRMessage.convert_obj_to_jr_obj(system.toJSON());
           $.localStorage.set('omega.cosmos.' + system_id, jr_system);
@@ -172,6 +173,7 @@ Omega.UI.Loader = {
 
       Omega.Galaxy.with_id(galaxy_id, page.node,
         function(galaxy){
+          /// TODO make sure this is not overwriting components (might be)
           page.entity(galaxy_id, galaxy);
           var jr_galaxy = RJR.JRMessage.convert_obj_to_jr_obj(galaxy.toJSON());
           $.localStorage.set('omega.cosmos.' + galaxy_id, jr_galaxy);

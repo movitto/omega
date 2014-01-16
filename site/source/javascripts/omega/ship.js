@@ -188,6 +188,8 @@ Omega.Ship.prototype = {
   },
 
   _move : function(page, x, y, z){
+    /// TODO temp update local ms to stopped to stop movement in run_effects ?
+    /// (or perhaps calculate new linear/rotated ms?)
     var _this = this;
     var nloc = this.location.clone();
     nloc.x = x; nloc.y = y; nloc.z = z;
