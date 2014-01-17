@@ -20,6 +20,9 @@ module MovementStrategies
 #
 # To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
+
+  include Rotatable
+
    # [String] ID of location which is being tracked
    attr_reader :tracked_location_id
 
@@ -41,6 +44,12 @@ class Follow < MovementStrategy
    # Distance the location moves per second (when moving)
    attr_accessor :speed
 
+   # Define if we should rotate to face target
+   attr_accessor :point_to_target
+
+   # Optional - Rotation speed
+   attr_accessor :rotation_speed
+
    # Motel::MovementStrategies::Follow initializer
    #
    # @param [Hash] args hash of options to initialize the follow movement strategy with
@@ -48,11 +57,13 @@ class Follow < MovementStrategy
    # @option args [Integer] :tracked_location,'tracked_location' handle to the location to track
    # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
+   # @option args [Boolean] :point_to_target, define if we should rotate to face the target
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      attr_from_args args, :distance => nil, :speed => nil,
-                          :tracked_location_id     => nil
-
+                          :tracked_location_id     => nil,
+                          :point_to_target         => false,
+                          :rotation_speed          => 1
      super(args)
    end
 
@@ -105,6 +116,24 @@ class Follow < MovementStrategy
        loc.y += distance * dy
        loc.z += distance * dz
      end
+
+     if @point_to_target
+       # Calculate orientation difference
+       od = tl.orientation_difference(*loc.coordinates)
+       if od.first.abs > (Math::PI / 32)
+         ::RJR::Logger.warn "rotating!" #DeleteMe
+         init_rotation :rot_theta =>  od[0] * @rotation_speed,
+                       :rot_x     =>  od[1],
+                       :rot_y     =>  od[2],
+                       :rot_z     =>  od[3]
+         if valid_rotation?
+           rotate loc, elapsed_seconds
+           ::RJR::Logger.warn "valid rotation: #{od}" #DeleteMe
+         else
+           ::RJR::Logger.warn "invalid location: #{od}" #DeleteMe
+         end
+       end
+     end
    end
 
    # Convert movement strategy to json representation and return it
@@ -113,7 +142,10 @@ class Follow < MovementStrategy
        'data'       => { :step_delay => step_delay,
                          :speed => speed,
                          :tracked_location_id => tracked_location_id,
-                         :distance            => distance }
+                         :distance            => distance,
+                         :point_to_target     => point_to_target,
+                         :rotation_speed      => rotation_speed
+                       }
      }.to_json(*a)
    end
 
