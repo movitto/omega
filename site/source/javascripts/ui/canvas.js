@@ -152,7 +152,7 @@ Omega.UI.Canvas.prototype = {
 
     if(intersects.length > 0){
       var entity = intersects[0].object.omega_entity;
-      if(entity)
+      if(entity){
         switch (evnt.which){
           case 1: //Left click
             this._clicked_entity(entity);
@@ -162,6 +162,7 @@ Omega.UI.Canvas.prototype = {
             break;
           case 4: //Middle click
             break;
+        }
       }
     }
   },
