@@ -51,8 +51,9 @@ Omega.UI.AudioControls.prototype = {
     return $('#' + this.current.src)[0];
   },
 
-  play : function(){
+  play : function(id){
     if(this.disabled) return;
+    if(id) this.set(id);
 
     /// TODO start & stop if specified in this.current
     this.audio().play();

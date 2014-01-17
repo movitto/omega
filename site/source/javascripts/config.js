@@ -90,8 +90,8 @@ Omega.Config = {
                                      [5, 0x0000ff, [0, -175, 0]]]}}
   },
 
-  // audio
   audio : {
-    'selection' : {'src' : 'effects_selection_wav', 'start' : 0, 'stop' : 0.5}
+    'click'        : {'src' : 'effects_click_wav'},
+    'construction' : {'src' : 'effects_construct_wav'}
   }
 };

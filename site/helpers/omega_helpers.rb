@@ -23,6 +23,7 @@ module OmegaHelpers
 
   def audio_tag(url, options={})
     options.reverse_merge!(:src => audio_path(url))
-    tag(:audio, options)
+    content_tag(:audio, "", options) # needs to be a content tag as audio
+                                     # tag needs to have a closing element
   end
 end

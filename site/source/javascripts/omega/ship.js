@@ -139,6 +139,10 @@ Omega.Ship.prototype = {
     return commands;
   },
 
+  clicked_in : function(canvas){
+    canvas.page.audio_controls.play('click');
+  },
+
   selected : function(page){
     if(this.mesh) this.mesh.material.emissive.setHex(0xff0000);
   },
