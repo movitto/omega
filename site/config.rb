@@ -55,6 +55,8 @@ set :js_dir, 'javascripts'
 
 set :images_dir, 'images'
 
+set :audio_dir, 'audio'
+
 ignore 'tests'
 ignore 'tests/'
 ignore 'source/javascripts/vendor/rjr/tests'

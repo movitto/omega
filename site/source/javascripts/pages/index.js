@@ -10,6 +10,7 @@
 //= require "ui/effects_player"
 //= require "ui/status_indicator"
 //= require "ui/canvas"
+//= require "ui/audio_controls"
 
 //= require "ui/pages/index_nav"
 //= require "ui/pages/index_dialog"
@@ -25,6 +26,7 @@ Omega.Pages.Index = function(){
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
   this.status_indicator = new Omega.UI.StatusIndicator({page : this});
+  this.audio_controls   = new Omega.UI.AudioControls({page : this});
 };
 
 Omega.Pages.Index.prototype = {
@@ -50,6 +52,8 @@ Omega.Pages.Index.prototype = {
     this.dialog.follow_node(this.node);
 
     this.canvas.wire_up();
+
+    this.audio_controls.wire_up();
 
     /// handle scene changes
     var _this = this;

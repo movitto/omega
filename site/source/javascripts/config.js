@@ -88,5 +88,10 @@ Omega.Config = {
                           'scale'    : [7, 7, 7],
                           'lamps' : [[5, 0x0000ff, [0,   25, 0]],
                                      [5, 0x0000ff, [0, -175, 0]]]}}
-    }
+  },
+
+  // audio
+  audio : {
+    'selection' : {'src' : 'effects_selection_wav', 'start' : 0, 'stop' : 0.5}
+  }
 };

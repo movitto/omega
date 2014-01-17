@@ -1,0 +1,15 @@
+- content_for :stylesheets do
+  = stylesheet_link_tag "audio"
+
+- content_for :javascripts do
+  = javascript_include_tag "ui/audio_controls"
+
+- content_for :audio_control do
+  = image_tag("mute.png", :id => "mute_audio")
+
+#audio_list
+  - audio_assets.each do |audio|
+    = audio_tag(audio, :preload  => "none",
+                       :autoplay => false,
+                       :controls => false,
+                       :id => audio.gsub(/[\/\.]/, "_"))
