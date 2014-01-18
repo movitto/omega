@@ -30,6 +30,8 @@ Omega.UI.AudioControls.prototype = {
   },
 
   toggle : function(){
+    this.disabled = !this.disabled;
+
     if(!this.page) return;
 
     var url        = this.page.config.url_prefix +
@@ -38,7 +40,6 @@ Omega.UI.AudioControls.prototype = {
     var unmute_img = url + 'audio-unmute.png';
     var mute       = $('#mute_audio');
 
-    this.disabled = !this.disabled;
     if(this.disabled)
       mute.css('background', 'url("'+unmute_img+'") no-repeat');
     else
