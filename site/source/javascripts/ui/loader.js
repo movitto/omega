@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO prioritize the status icons so user is indicated other resources are loading
+
 //= require "vendor/jquery.storageapi-1.6.0.min"
 
 Omega.UI.Loader = {

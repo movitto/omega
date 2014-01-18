@@ -178,7 +178,6 @@ Omega.Galaxy.prototype = {
       var d = Omega.Math.dist(vec.x, vec.y, vec.z);
 
       /// calculate current theta
-/// FIXME ellipse property prolly won't be cloned
       var s = vec.ellipse[0]; var rote = vec.ellipse[1];
       var o = Omega.Math.rot(vec.x,vec.y,vec.z,-rote,0,0,1);
       var t = Math.asin(o[0]/s);
