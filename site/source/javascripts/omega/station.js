@@ -52,6 +52,7 @@ Omega.Station.prototype = {
   has_details : true,
 
   retrieve_details : function(page, details_cb){
+    /// TODO also construction percentage
     var title = 'Station: ' + this.id;
     var loc   = '@ ' + this.location.to_s();
 
@@ -61,7 +62,6 @@ Omega.Station.prototype = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
-    /// TODO do not display if ship does not belong to current user:
     var _this = this;
     var construct_cmd = $('<span/>',
       {id    : 'station_construct_' + this.id,

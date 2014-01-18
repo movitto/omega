@@ -19,6 +19,15 @@ describe("Omega.Location", function(){
     });
   });
 
+  describe("#orientation", function(){
+    it("returns orientation array", function(){
+      var loc = new Omega.Location({orientation_x : 0,
+                                    orientation_y : 1,
+                                    orientation_z : 0});
+      assert(loc.orientation()).isSameAs([0,1,0]);
+    });
+  });
+
   describe("#clone", function(){
     it("returns cloned location", function(){
       var loc = new Omega.Location({x : 42});

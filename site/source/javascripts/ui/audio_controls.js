@@ -30,6 +30,8 @@ Omega.UI.AudioControls.prototype = {
   },
 
   toggle : function(){
+    if(!this.page) return;
+
     var url        = this.page.config.url_prefix +
                      this.page.config.images_path + '/icons/';
     var mute_img   = url + 'audio-mute.png';

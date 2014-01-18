@@ -140,7 +140,8 @@ Omega.Ship.prototype = {
   },
 
   clicked_in : function(canvas){
-    canvas.page.audio_controls.play('click');
+    if(canvas.page.audio_controls)
+      canvas.page.audio_controls.play('click');
   },
 
   selected : function(page){

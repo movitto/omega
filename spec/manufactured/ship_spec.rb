@@ -174,12 +174,14 @@ describe Ship do
     end
 
     it "sets type based attributes" do
-      Ship.should_receive(:base_hp).with(:corvette).and_return(50)
-      Ship.should_receive(:base_hp).with(:mining).and_return(100)
+      Ship.should_receive(:base_hp).with(:corvette).at_least(:twice).and_return(50)
+      Ship.should_receive(:base_hp).with(:mining).at_least(:twice).and_return(100)
       s1 = Ship.new :type => :corvette
       s2 = Ship.new :type => :mining
       s1.hp.should == 50
+      s1.max_hp.should == 50
       s2.hp.should == 100
+      s2.max_hp.should == 100
       # TODO test other type based attrs
     end
   end
@@ -680,7 +682,8 @@ describe Ship do
       location= Motel::Location.new :id => 20, :y => -15
       s = Manufactured::Ship.new(:id => 'ship42', :user_id => 420,
                                  :type => :frigate,
-                                 :hp   => 500, :shield_level => 20,
+                                 :hp   => 500,
+                                 :shield_level => 20,
                                  :solar_system => sys,
                                  :location => location)
 
@@ -693,7 +696,6 @@ describe Ship do
       s2 = Manufactured::Ship.new :id => 'ship52'
       s.start_attacking(s2)
 
-
       j = s.to_json
       j.should include('"json_class":"Manufactured::Ship"')
       j.should include('"id":"ship42"')
@@ -701,7 +703,9 @@ describe Ship do
       j.should include('"type":"frigate"')
       j.should include('"size":35')
       j.should include('"hp":500')
+      j.should include('"max_hp":25')
       j.should include('"shield_level":20')
+      j.should include('"max_shield_level":10')
       j.should include('"docked_at_id":"station42"')
       j.should include('"json_class":"Cosmos::Resource"')
       j.should include('"id":"res1"')

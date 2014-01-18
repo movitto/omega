@@ -3,12 +3,16 @@ describe("Omega.Station", function(){
   var station, page;
 
   before(function(){
-    station = new Omega.Station({id : 'station1', user_id : 'user1',
+    station = new Omega.Station({id : 'station1', user_id : 'user1', system_id : 'sys1',
                     location  : new Omega.Location({x:99,y:-2,z:100}),
                     resources : [{quantity : 50, material_id : 'gold'},
                                  {quantity : 25, material_id : 'ruby'}]});
     page = new Omega.Pages.Test({canvas: Omega.Test.Canvas(),
                                  session : new Omega.Session({user_id : 'user1'})});
+  });
+
+  it("sets parent_id = to system_id", function(){
+    assert(station.parent_id).equals(station.system_id);
   });
 
   it("converts location", function(){
@@ -247,6 +251,8 @@ describe("Omega.Station", function(){
         assert(lamp.geometry).isOfType(THREE.SphereGeometry);
       }
     });
+
+    // it("creates progress bar for station construction"); // NIY
   });
 
   describe("#init_gfx", function(){
@@ -269,6 +275,8 @@ describe("Omega.Station", function(){
           for(var l = 0; l < Omega.Station.gfx[type].lamps.length; l++)
             if(Omega.Station.gfx[type].lamps[l].clone.restore)
               Omega.Station.gfx[type].lamps[l].clone.restore();
+        if(Omega.Station.gfx[type].construction_bar && Omega.Station.gfx[type].construction_bar.clone.restore)
+          Omega.Station.gfx[type].construction_bar.clone.restore();
       }
       if(Omega.Station.prototype.retrieve_resource.restore)
         Omega.Station.prototype.retrieve_resource.restore();
@@ -333,6 +341,13 @@ describe("Omega.Station", function(){
         sinon.assert.called(spies[s]);
     });
 
+    it("clones station construction progress bar", function(){
+      var bar = Omega.Station.gfx[type].construction_bar.clone();
+      sinon.stub(Omega.Station.gfx[type].construction_bar, 'clone').returns(bar);
+      station.init_gfx();
+      assert(station.construction_bar).equals(bar);
+    });
+
     it("sets scene components to station highlight effects, and lamps", function(){
       station.init_gfx();
       assert(station.components).includes(station.highlight);
@@ -355,6 +370,114 @@ describe("Omega.Station", function(){
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
     });
+  });
+
+  describe("#cp_gfx", function(){
+    var orig, station;
+    before(function(){
+      orig = {components        : 'components',
+              shader_components : 'shader_components',
+              mesh              : 'mesh',
+              highlight         : 'highlight',
+              lamps             : 'lamps',
+              construction_bar  : 'construction_bar'}
+      station = new Omega.Station();
+    });
+
+    it("copies station scene components", function(){
+      station.cp_gfx(orig);
+      assert(station.components).equals(orig.components);
+    });
+
+    it("copies station shader scene components", function(){
+      station.cp_gfx(orig);
+      assert(station.shader_components).equals(orig.shader_components);
+    });
+
+    it("copies station mesh", function(){
+      station.cp_gfx(orig);
+      assert(station.mesh).equals(orig.mesh);
+    });
+
+    it("copies station highlight", function(){
+      station.cp_gfx(orig);
+      assert(station.highlight).equals(orig.highlight);
+    });
+
+    it("copies station lamps", function(){
+      station.cp_gfx(orig);
+      assert(station.lamps).equals(orig.lamps);
+    });
+
+    it("copies station construction bar", function(){
+      station.cp_gfx(orig);
+      assert(station.construction_bar).equals(orig.construction_bar);
+    });
+  });
+
+  describe("#update_gfx", function(){
+    it("updates station construction bar", function(){
+      var station = new Omega.Station({location : new Omega.Location({x:0,y:0,z:0})});
+      var update_construction_bar = sinon.spy(station, '_update_construction_bar');
+      station.update_gfx();
+      sinon.assert.called(update_construction_bar);
+    });
+  });
+
+  describe("#_update_construction_bar", function(){
+    var station;
+    before(function(){
+      station = Omega.Test.Canvas.Entities().station;
+      station.location = new Omega.Location({x:0,y:0,z:0});
+    });
+
+    describe("construction percent > 0", function(){
+      before(function(){
+        station.construction_percent = 0.50;
+      });
+
+      after(function(){
+        if(station.construction_bar.update.restore) station.construction_bar.update.restore();
+        if(station.components.indexOf(station.construction_bar.component1) != -1)
+          station.components.splice(station.components.indexOf(station.construction_bar.component1), 1);
+        if(station.components.indexOf(station.construction_bar.component2) != -1)
+          station.components.splice(station.components.indexOf(station.construction_bar.component2), 1);
+      })
+
+      it("updates construction progress bar", function(){
+        var update = sinon.stub(station.construction_bar, 'update');
+        station._update_construction_bar();
+        sinon.assert.calledWith(update, station.location, 0.50);
+      });
+
+      describe("construction progress bar not in station scene components", function(){
+        it("adds construction progress bar to station scene components", function(){
+          station._update_construction_bar();
+          assert(station.components.indexOf(station.construction_bar.component1)).isNotEqualTo(-1);
+          assert(station.components.indexOf(station.construction_bar.component2)).isNotEqualTo(-1);
+          var len = station.components.length;
+          station._update_construction_bar();
+          assert(station.components.length).equals(len);
+        });
+      })
+    })
+
+    describe("construction percent == 0 & progress bar in station scene components", function(){
+      before(function(){
+        station.construction_percent = 0;
+      });
+
+      after(function(){
+        if(station.construction_bar.update.restore)
+          station.construction_bar.update.restore();
+      });
+
+      it("removes progress bar from station scene components", function(){
+        var update = sinon.stub(station.construction_bar, 'update');
+        station._update_construction_bar();
+        sinon.assert.notCalled(update);
+      });
+    })
   });
 
   describe("#owned_by", function(){

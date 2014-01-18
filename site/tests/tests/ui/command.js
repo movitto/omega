@@ -425,7 +425,10 @@ describe("Omega.UI.CommandTracker", function(){
   before(function(){
     var node = new Omega.Node();
     page = new Omega.Pages.Test({node : node,
-                                 canvas : Omega.Test.Canvas()});
+                                 canvas : Omega.Test.Canvas(),
+                                 audio_controls : new Omega.UI.AudioControls()});
+    //page.audio_controls.page = page;
+    page.audio_controls.disabled = true;
     page.canvas.set_scene_root(new Omega.SolarSystem({id : 'system1'}))
     tracker = new Omega.UI.CommandTracker({page : page});
 
@@ -840,15 +843,18 @@ describe("Omega.UI.CommandTracker", function(){
     });
 
     describe("#construction_complete", function(){
-      var constructed, station, estation, eargs,
+      var constructed, station, estation, eargs, psys,
           get, process_entity, refresh_entity_container;
 
       before(function(){
         constructed = new Omega.Ship({id : 'constructed_ship' });
-        station     = new Omega.Station({id : 'station1'});
-        estation    = new Omega.Station({id : 'station1', resources : [{'material_id' : 'gold'}]});
+        station     = new Omega.Station({id : 'station1', system_id : 'sys1', construction_percent: 0.4});
+        estation    = new Omega.Station({id : 'station1', system_id : 'sys1', resources : [{'material_id' : 'gold'}]});
+        psys = new Omega.SolarSystem({id : 'sys1'});
 
         page.entities = [station, constructed];
+        page.canvas.set_scene_root(psys);
+
         eargs         = ['construction_complete', estation, constructed];
 
         get = sinon.stub(Omega.Ship, 'get');
@@ -860,6 +866,23 @@ describe("Omega.UI.CommandTracker", function(){
         if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
         if(Omega.Ship.get.restore) Omega.Ship.get.restore();
         page.process_entity.restore();
+      });
+
+      it("sets station construction percent to 0", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        assert(station.construction_percent).equals(0);
+      });
+
+      it("updates station resources", function(){
+        var update_resources = sinon.spy(station, '_update_resources');
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        sinon.assert.called(update_resources);
+        assert(estation.resources).isSameAs(estation.resources)
+      });
+
+      it("reloads station in scene", function(){
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, station, sinon.match.func);
       });
 
       it("retrieves constructed entity", function(){
@@ -875,19 +898,21 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(process_entity, retrieved);
       });
 
+      it("plays construction audio effect", function(){
+        var play = sinon.spy(page.audio_controls, 'play');
+        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
+        var get_cb = get.getCall(0).args[2];
+        var retrieved = new Omega.Ship({system_id : 'sys1'});
+        get_cb(retrieved);
+        sinon.assert.calledWith(play, 'construction');
+      });
+
       it("adds constructed entity to canvas scene", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
         var get_cb = get.getCall(0).args[2];
-        var retrieved = new Omega.Ship({system_id : 'system1'});
+        var retrieved = new Omega.Ship({system_id : 'sys1'});
         get_cb(retrieved);
         sinon.assert.calledWith(canvas_add, retrieved);
-      });
-
-      it("updates station resources", function(){
-        var update_resources = sinon.spy(station, '_update_resources');
-        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-        sinon.assert.called(update_resources);
-        assert(estation.resources).isSameAs(estation.resources)
       });
 
       it("refreshes the entity container", function(){
@@ -896,8 +921,79 @@ describe("Omega.UI.CommandTracker", function(){
       });
     });
 
-    //describe("#partial_construction", function(){
-    //});
+    describe("#construction_failed", function(){
+      var failed, station, estation, eargs, psys,
+          refresh_entity_container;
+
+      before(function(){
+        failed   = new Omega.Ship({id : 'failed_ship' });
+        station  = new Omega.Station({id : 'station1', system_id : 'sys1', construction_percent: 0.4});
+        estation = new Omega.Station({id : 'station1', system_id : 'sys1', resources : [{'material_id' : 'gold'}]});
+        psys = new Omega.SolarSystem({id : 'sys1'});
+
+        page.entities = [station, failed];
+        page.canvas.set_scene_root(psys);
+        eargs         = ['construction_failed', estation, failed];
+
+        refresh_entity_container = sinon.stub(page.canvas.entity_container, 'refresh');
+      });
+
+      after(function(){
+        if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+      });
+
+      it("sets station construction percentage to 0", function(){
+        tracker._callbacks_construction_failed("manufactured::event_occurred", eargs);
+        assert(station.construction_percent).equals(0);
+      });
+
+      it("updates station resources", function(){
+        var update_resources = sinon.spy(station, '_update_resources');
+        tracker._callbacks_construction_failed("manufactured::event_occurred", eargs);
+        sinon.assert.called(update_resources);
+        assert(estation.resources).isSameAs(estation.resources)
+      });
+
+      it("reloads station in scene", function(){
+        tracker._callbacks_construction_failed("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, station, sinon.match.func);
+      });
+
+      it("refreshes the entity container", function(){
+        tracker._callbacks_construction_failed("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(refresh_entity_container);
+      });
+    });
+
+    describe("#partial_construction", function(){
+      var constructing, station, estation, eargs, psys,
+          refresh_entity_container;
+
+      before(function(){
+        constructing = new Omega.Ship({id : 'constructing_ship' });
+        station      = new Omega.Station({id : 'station1', system_id : 'sys1', construction_percent: 0.4});
+        estation     = new Omega.Station({id : 'station1', system_id : 'sys1'});
+        psys = new Omega.SolarSystem({id : 'sys1'});
+
+        page.entities = [station, constructing];
+        page.canvas.set_scene_root(psys);
+        eargs         = ['partial_construction', estation, constructing, 0.6];
+      });
+
+      after(function(){
+        if(page.canvas.entity_container.refresh.restore) page.canvas.entity_container.refresh.restore();
+      });
+
+      it("sets station construction percentage", function(){
+        tracker._callbacks_partial_construction("manufactured::event_occurred", eargs);
+        assert(station.construction_percent).equals(0.6);
+      })
+
+      it("reloads station in scene", function(){
+        tracker._callbacks_partial_construction("manufactured::event_occurred", eargs);
+        sinon.assert.calledWith(canvas_reload, station, sinon.match.func);
+      });
+    });
 
     describe("#system_jump", function(){
       var jumped, system, ejumped, estation,
@@ -1044,8 +1140,23 @@ describe("Omega.UI.CommandTracker", function(){
         });
       });
 
-      //describe("partial_construction event", function(){
-      //});
+      describe("construction_failed event", function(){
+        it("invokes construction_failed callback", function(){
+          var eargs = ['construction_failed', {}];
+          var construction_failed = sinon.stub(tracker, '_callbacks_construction_failed');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(construction_failed, 'manufactured::event_occurred', eargs);
+        });
+      });
+
+      describe("partial_construction event", function(){
+        it("invokes partial_construction callback", function(){
+          var eargs = ['partial_construction', {}];
+          var partial_construction = sinon.stub(tracker, '_callbacks_partial_construction');
+          tracker._msg_received('manufactured::event_occurred', eargs);
+          sinon.assert.calledWith(partial_construction, 'manufactured::event_occurred', eargs);
+        });
+      });
 
       describe("system_jump event", function(){
         it("invokes system_jump callback", function(){

@@ -865,6 +865,11 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'construction_complete');
     });
 
+    it("invokes manufactured::subscribe_to construction_failed", function(){
+      index.track_station(station);
+      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'construction_failed');
+    });
+
     it("invokes manufactured::subscribe_to partial_construction", function(){
       index.track_station(station);
       sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'partial_construction');
@@ -1001,6 +1006,11 @@ describe("Omega.Pages.Index", function(){
     assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
   });
 
+  it("has audio controls", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.audio_controls).isOfType(Omega.UI.AudioControls);
+  });
+
   it("has an effects player", function(){
     var index = new Omega.Pages.Index();
     assert(index.effects_player).isOfType(Omega.UI.EffectsPlayer);
@@ -1052,6 +1062,7 @@ describe("Omega.Pages.Index", function(){
       wire_nav    = sinon.stub(index.nav,    'wire_up');
       wire_dialog = sinon.stub(index.dialog, 'wire_up');
       wire_canvas = sinon.stub(index.canvas, 'wire_up');
+      wire_audio  = sinon.stub(index.audio_controls, 'wire_up');
       dialog_follow = sinon.stub(index.dialog, 'follow_node');
     });
 
@@ -1073,6 +1084,11 @@ describe("Omega.Pages.Index", function(){
     it("wires up canvas", function(){
       index.wire_up();
       sinon.assert.called(wire_canvas);
+    });
+
+    it("wires up audio controls", function(){
+      index.wire_up();
+      sinon.assert.called(wire_audio);
     });
 
     it("wires up canvas scene change", function(){
