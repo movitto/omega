@@ -214,6 +214,10 @@ Omega.Pages.Index.prototype = {
     /// add skybox to scene
     if(!this.canvas.has(this.canvas.skybox.id))
       this.canvas.add(this.canvas.skybox);
+
+    /// add star dust to scene
+    if(!this.canvas.has(this.canvas.star_dust.id))
+      this.canvas.add(this.canvas.star_dust);
   },
 
   _track_system_events : function(root, old_root){

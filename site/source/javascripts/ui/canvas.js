@@ -9,6 +9,7 @@
 //= require "ui/canvas/entity_container"
 //= require "ui/canvas/skybox"
 //= require "ui/canvas/axis"
+//= require "ui/canvas/star_dust"
 
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.CanvasControls({canvas: this});
@@ -16,6 +17,7 @@ Omega.UI.Canvas = function(parameters){
   this.entity_container = new Omega.UI.CanvasEntityContainer({canvas : this});
   this.skybox           = new Omega.UI.CanvasSkybox({canvas: this});
   this.axis             = new Omega.UI.CanvasAxis();
+  this.star_dust        = new Omega.UI.CanvasStarDust();
   this.canvas           = $('#omega_canvas');
   this.root             = null;
   this.entities         = [];
@@ -137,6 +139,7 @@ Omega.UI.Canvas.prototype = {
 
     this.skybox.init_gfx();
     this.axis.init_gfx();
+    this.star_dust.init_gfx(this.page.config);
   },
 
   _canvas_clicked : function(evnt){

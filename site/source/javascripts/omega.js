@@ -23,6 +23,7 @@
 //= require "vendor/three/ShaderPass"
 //= require "vendor/three/OrbitControls"
 //= require "vendor/three/THREEx.WindowResize"
+//= require "vendor/ShaderParticles"
 
 //= require "vendor/rjr/json"
 //= require "vendor/rjr/jrw-0.17.1"
