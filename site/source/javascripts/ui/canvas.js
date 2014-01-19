@@ -73,7 +73,10 @@ Omega.UI.Canvas.prototype = {
     hpadding : 26
   },
 
-  /// TODO simplify, currently don't need shader scene & bloom pass, simplifies alot of things
+  /// Setup Canvas 3D operations
+  //
+  /// TODO simplify, currently don't need shader scene & bloom pass,
+  ///      simplifies alot of things
   setup : function(){
     var _this    = this;
 

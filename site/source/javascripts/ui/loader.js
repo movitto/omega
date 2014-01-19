@@ -1,4 +1,4 @@
-/* Omega JS Resource Loader
+/* Omega JS Loader
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
@@ -184,5 +184,23 @@ Omega.UI.Loader = {
     }
 
     return galaxy;
+  },
+
+  load_user_entities : function(user_id, node, cb){
+    Omega.Ship.owned_by(user_id, node, cb);
+    Omega.Station.owned_by(user_id, node, cb);
+  },
+
+  load_default_systems : function(page, cb){
+    // load systems w/ most ships/stations
+    Omega.Stat.get('systems_with_most', ['entities', 5], page.node,
+      function(stat_result){
+        if(stat_result){
+          for(var s = 0; s < stat_result.value.length; s++){
+            /// XXX callback invoked w/ each system individually
+            Omega.UI.Loader.load_system(stat_result.value[s], page, cb);
+          }
+        }
+      });
   }
 };

@@ -690,7 +690,6 @@ Omega.Ship.prototype = {
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];
       lamp.set_position(this.location.x, this.location.y, this.location.z);
-console.log(lamp)
       Omega.temp_translate(lamp.component, this.location, function(tlamp){
         Omega.rotate_position(tlamp, _this.location.rotation_matrix());
       });
