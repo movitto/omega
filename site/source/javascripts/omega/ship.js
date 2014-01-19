@@ -543,12 +543,14 @@ Omega.Ship.prototype = {
     /// health bar
       var len = this.health_bar_props.length;
       Omega.Ship.gfx[this.type].hp_bar =
-        Omega.create_progress_bar({width: 3, length: len, axis : 'x',
-                                   color1: 0xFF0000, color2: 0x0000FF,
-                                   vertices: [[[-len/2, 100, 0],
-                                               [-len/2, 100, 0]],
-                                              [[-len/2, 100, 0],
-                                               [ len/2, 100, 0]]]});
+        new Omega.UI.CanvasProgressBar({
+          width : 3, length: len, axis : 'x',
+          color1: 0xFF0000, color2: 0x0000FF,
+          vertices: [[[-len/2, 100, 0],
+                      [-len/2, 100, 0]],
+                     [[-len/2, 100, 0],
+                     [ len/2, 100, 0]]]});
+      //Omega.Ship.gfx[this.type].hp_bar.load_gfx(config, event_cb);
   },
 
   init_gfx : function(config, event_cb){
@@ -620,8 +622,9 @@ Omega.Ship.prototype = {
     }
 
     this.hp_bar = Omega.Ship.gfx[this.type].hp_bar.clone();
-    this.components.push(this.hp_bar.component1);
-    this.components.push(this.hp_bar.component2);
+    this.hp_bar.init_gfx(config, event_cb);
+    for(var c = 0; c < this.hp_bar.components.length; c++)
+      this.components.push(this.hp_bar.components[c]);
 
     this.update_gfx();
   },

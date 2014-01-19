@@ -189,12 +189,14 @@ Omega.Station.prototype = {
     //// construction bar
       var len = this.construction_bar_props.length;
       Omega.Station.gfx[this.type].construction_bar =
-        Omega.create_progress_bar({width: 3, length: len, axis : 'x',
-                                   color1: 0x00FF00, color2: 0x0000FF,
-                                   vertices: [[[-len/2, 100, 0],
-                                               [-len/2, 100, 0]],
-                                              [[-len/2, 100, 0],
-                                               [ len/2, 100, 0]]]});
+        new Omega.UI.CanvasProgressBar({
+          width: 3, length: len, axis : 'x',
+          color1: 0x00FF00, color2: 0x0000FF,
+          vertices: [[[-len/2, 100, 0],
+                      [-len/2, 100, 0]],
+                     [[-len/2, 100, 0],
+                      [ len/2, 100, 0]]]});
+      //Omega.Station.gfx[this.type].construction_bar.load_gfx(config, event_cb);
   },
 
   init_gfx : function(config, event_cb){
@@ -242,6 +244,7 @@ Omega.Station.prototype = {
     }
 
     this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();
+    this.construction_bar.init_gfx(config, event_cb);
   },
 
   cp_gfx : function(from){
@@ -267,17 +270,16 @@ Omega.Station.prototype = {
 
     if(this.construction_percent > 0){
       this.construction_bar.update(this.location, this.construction_percent);
-      if(this.components.indexOf(this.construction_bar.component1) == -1){
-        this.components.push(this.construction_bar.component1);
-        this.components.push(this.construction_bar.component2);
+      if(this.components.indexOf(this.construction_bar.components[0]) == -1){
+        for(var c = 0; c < this.construction_bar.components.length; c++)
+          this.components.push(this.construction_bar.components[c]);
       }
     }else{
       if(this.components.indexOf(this.construction_bar.component1) != -1){
-        var i = this.components.indexOf(this.construction_bar.component1);
-        this.components.splice(i, 1);
-
-        i = this.components.indexOf(this.construction_bar.component2);
-        this.components.splice(i, 1);
+        for(var c = 0; c < this.construction_bar.components.length; c++){
+          var i = this.components.indexOf(this.construction_bar.components[c]);
+          this.components.splice(i, 1);
+        }
       }
     }
   },

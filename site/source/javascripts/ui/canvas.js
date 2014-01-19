@@ -11,6 +11,8 @@
 //= require "ui/canvas/axis"
 //= require "ui/canvas/star_dust"
 
+//= require 'ui/canvas/progress_bar'
+
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.CanvasControls({canvas: this});
   this.dialog           = new Omega.UI.CanvasDialog({canvas: this});
