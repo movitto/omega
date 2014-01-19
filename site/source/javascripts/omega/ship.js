@@ -928,7 +928,7 @@ Omega.Ship.get = function(ship_id, node, cb){
         ship = new Omega.Ship(response.result);
       else if(response.error)
         err = response.error.message;
-      cb(ship, err);
+      if(cb) cb(ship, err);
     });
 }
 
@@ -941,7 +941,7 @@ Omega.Ship.owned_by = function(user_id, node, cb){
       if(response.result)
         for(var e = 0; e < response.result.length; e++)
           ships.push(new Omega.Ship(response.result[e]));
-      cb(ships);
+      if(cb) cb(ships);
     });
 }
 
@@ -954,7 +954,7 @@ Omega.Ship.under = function(system_id, node, cb){
       if(response.result)
         for(var s = 0; s < response.result.length; s++)
           ships.push(new Omega.Ship(response.result[s]));
-      cb(ships);
+      if(cb) cb(ships);
     });
 };
 

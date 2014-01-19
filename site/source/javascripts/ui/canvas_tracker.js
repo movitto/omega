@@ -54,7 +54,7 @@ Omega.UI.CanvasTracker = {
       var local      = this.entity(entity.id);
       var user_owned = this.session != null ?
                          entity.user_id == this.session.user_id : false;
-      var same_scene = this.canvas.root.id == entity.system_id;
+      var same_scene = this.canvas.root && this.canvas.root.id == entity.system_id;
       var in_scene   = this.canvas.has(entity.id);
       var tracking   = $.grep(entity_map.start_tracking, function(track_entity){
                          return track_entity.id == entity.id; })[0] != null;

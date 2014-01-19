@@ -256,9 +256,7 @@ describe("Omega.JumpGate", function(){
 
     it("creates lamp for JumpGate", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.JumpGate.gfx.lamp).isOfType(THREE.Mesh);
-      assert(Omega.JumpGate.gfx.lamp.material).isOfType(THREE.MeshBasicMaterial);
-      assert(Omega.JumpGate.gfx.lamp.geometry).isOfType(THREE.SphereGeometry);
+      assert(Omega.JumpGate.gfx.lamp).isOfType(Omega.UI.CanvasLamp);
     });
 
     it("creates particle system for JumpGate", function(){
@@ -330,20 +328,21 @@ describe("Omega.JumpGate", function(){
     });
 
     it("clones JumpGate lamp", function(){
-      var mesh = new THREE.Mesh();
-      sinon.stub(Omega.JumpGate.gfx.lamp, 'clone').returns(mesh);
+      var lamp = new Omega.UI.CanvasLamp();
+      sinon.stub(Omega.JumpGate.gfx.lamp, 'clone').returns(lamp);
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.lamp).equals(mesh);
+      assert(jg.lamp).equals(lamp);
     });
 
     it("sets lamp position", function(){
       var offset = Omega.JumpGate.prototype.gfx_props;
       var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      assert(jg.lamp.position.toArray()).isSameAs([100  + offset.lamp_x,
-                                                   -100 + offset.lamp_y,
-                                                   200  + offset.lamp_z])
+      assert(jg.lamp.component.position.toArray()).
+        isSameAs([ 100  + offset.lamp_x,
+                  -100  + offset.lamp_y,
+                   200  + offset.lamp_z])
     });
 
     it("clones JumpGate particles", function(){
@@ -379,7 +378,7 @@ describe("Omega.JumpGate", function(){
     it("adds lamp, and particles to jump gate scene components", function(){
       var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.components).includes(jg.lamp);
+      assert(jg.components).includes(jg.lamp.component);
       assert(jg.components).includes(jg.particles);
     });
   });

@@ -246,9 +246,7 @@ describe("Omega.Station", function(){
       assert(Omega.Station.gfx[station.type].lamps.length).equals(Omega.Config.resources.stations[station.type].lamps.length);
       for(var l = 0; l < Omega.Station.gfx[station.type].lamps.length; l++){
         var lamp = Omega.Station.gfx[station.type].lamps[l];
-        assert(lamp).isOfType(THREE.Mesh);
-        assert(lamp.material).isOfType(THREE.MeshBasicMaterial);
-        assert(lamp.geometry).isOfType(THREE.SphereGeometry);
+        assert(lamp).isOfType(Omega.UI.CanvasLamp);
       }
     });
 
@@ -352,7 +350,7 @@ describe("Omega.Station", function(){
       station.init_gfx();
       assert(station.components).includes(station.highlight);
       for(var l = 0; l < station.lamps.length; l++)
-        assert(station.components).includes(station.lamps[l]);
+        assert(station.components).includes(station.lamps[l].component);
     });
   });
 

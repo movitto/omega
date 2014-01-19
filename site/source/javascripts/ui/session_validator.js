@@ -45,7 +45,7 @@ Omega.UI.SessionValidator = {
     /// setup callback handlers
     this._handle_events();
 
-    cb();
+    if(cb) cb();
   },
 
   _session_invalid : function(cb){
@@ -65,7 +65,7 @@ Omega.UI.SessionValidator = {
         /// setup callback handlers
         _this._handle_events();
 
-        cb();
+        if(cb) cb();
       }
     });
   },

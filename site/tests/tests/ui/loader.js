@@ -223,4 +223,29 @@ describe("Omega.UI.Loader", function(){
       })
     })
   });
+
+  describe("#load_user_entities", function(){
+    var node, cb;
+    before(function(){
+      node = new Omega.Node();
+      cb = function(){};
+    });
+
+    after(function(){
+      if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
+      if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
+    });
+
+    it("retrieves ships owned by user", function(){
+      var spy = sinon.spy(Omega.Ship, 'owned_by');
+      Omega.UI.Loader.load_user_entities('foo', node, cb)
+      sinon.assert.calledWith(spy, 'foo', node, cb);
+    });
+
+    it("retrieves stations owned by user", function(){
+      var spy = sinon.spy(Omega.Station, 'owned_by');
+      Omega.UI.Loader.load_user_entities('foo', node, cb)
+      sinon.assert.calledWith(spy, 'foo', node, cb);
+    });
+  });
 });});

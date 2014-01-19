@@ -300,7 +300,7 @@ Omega.Station.owned_by = function(user_id, node, cb){
       if(response.result)
         for(var e = 0; e < response.result.length; e++)
           stations.push(new Omega.Station(response.result[e]));
-      cb(stations);
+      if(cb) cb(stations);
     });
 }
 
@@ -313,7 +313,7 @@ Omega.Station.under = function(system_id, node, cb){
       if(response.result)
         for(var s = 0; s < response.result.length; s++)
           stations.push(new Omega.Station(response.result[s]));
-      cb(stations);
+      if(cb) cb(stations);
     });
 };
 

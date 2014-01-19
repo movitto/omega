@@ -1072,9 +1072,7 @@ describe("Omega.Ship", function(){
       assert(Omega.Ship.gfx[ship.type].lamps.length).equals(Omega.Config.resources.ships[ship.type].lamps.length);
       for(var l = 0; l < Omega.Ship.gfx[ship.type].lamps.length; l++){
         var lamp = Omega.Ship.gfx[ship.type].lamps[l];
-        assert(lamp).isOfType(THREE.Mesh);
-        assert(lamp.material).isOfType(THREE.MeshBasicMaterial);
-        assert(lamp.geometry).isOfType(THREE.SphereGeometry);
+        assert(lamp).isOfType(Omega.UI.CanvasLamp);
       }
     });
 
@@ -1269,7 +1267,9 @@ describe("Omega.Ship", function(){
 
     it("sets scene components to ship mesh, highlight effects, lamps, hp-bar components", function(){
       ship.init_gfx();
-      var expected = [ship.mesh, ship.highlight].concat(ship.lamps).
+      var lamps = [];
+      for(var l = 0; l < ship.lamps.length; l++) lamps.push(ship.lamps[l].component);
+      var expected = [ship.mesh, ship.highlight].concat(lamps).
                        concat([ship.hp_bar.component1, ship.hp_bar.component2]);
       assert(ship.components).isSameAs(expected);
     });
@@ -1510,10 +1510,10 @@ describe("Omega.Ship", function(){
       for(var l = 0; l < config_lamps.length; l++){
         var config_lamp = config_lamps[l];
         var lamp = ship.lamps[l];
-        assert(lamp.position.x).equals(ship.location.x + config_lamp[2][0]);
-        assert(lamp.position.y).equals(ship.location.y + config_lamp[2][1]);
-        assert(lamp.position.z).equals(ship.location.z + config_lamp[2][2]);
-        sinon.assert.calledWith(rotate, lamp, rot_matrix);
+        assert(lamp.component.position.x).equals(ship.location.x + config_lamp[2][0]);
+        assert(lamp.component.position.y).equals(ship.location.y + config_lamp[2][1]);
+        assert(lamp.component.position.z).equals(ship.location.z + config_lamp[2][2]);
+        sinon.assert.calledWith(rotate, lamp.component, rot_matrix);
       }
     });
   });
