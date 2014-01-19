@@ -180,8 +180,9 @@ Omega.Station.prototype = {
       if(lamps){
         for(var l = 0; l < lamps.length; l++){
           var lamp  = lamps[l];
-          var slamp = Omega.create_lamp(lamp[0], lamp[1]);
-          slamp.position.set(lamp[2][0], lamp[2][1], lamp[2][2]);
+          var slamp = new Omega.UI.CanvasLamp({size : lamp[0],
+                                               color: lamp[1],
+                                      base_position : lamp[2]});
           Omega.Station.gfx[this.type].lamps.push(slamp);
         }
       }
@@ -234,13 +235,11 @@ Omega.Station.prototype = {
     this.lamps = [];
     for(var l = 0; l < Omega.Station.gfx[this.type].lamps.length; l++){
       var lamp = Omega.Station.gfx[this.type].lamps[l].clone();
-      lamp.run_effects = Omega.Station.gfx[this.type].lamps[l].run_effects; /// XXX
+      lamp.init_gfx();
       if(this.location)
-        lamp.position.add(new THREE.Vector3(this.location.x,
-                                            this.location.y,
-                                            this.location.z));
+        lamp.set_position(this.location.x, this.location.y, this.location.z);
       this.lamps.push(lamp);
-      this.components.push(lamp);
+      this.components.push(lamp.component);
     }
 
     this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();

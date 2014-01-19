@@ -152,7 +152,11 @@ Omega.JumpGate.prototype = {
       }, geometry_prefix);
 
     //// lamp
-      Omega.JumpGate.gfx.lamp = Omega.create_lamp(10, 0xff0000);
+      Omega.JumpGate.gfx.lamp = new Omega.UI.CanvasLamp({size  : 10,
+                                                         color : 0xff0000,
+                                    base_position : [this.gfx_props.lamp_x,
+                                                     this.gfx_props.lamp_y,
+                                                     this.gfx_props.lamp_z]});
 
     //// particles
       var particle_path = config.url_prefix + config.images_path + "/particle.png";
@@ -206,15 +210,12 @@ Omega.JumpGate.prototype = {
       _this.loaded_resource('mesh', _this.mesh);
     });
 
-    var lamp_offset = [this.gfx_props.lamp_x,
-                       this.gfx_props.lamp_y,
-                       this.gfx_props.lamp_z];
     this.lamp = Omega.JumpGate.gfx.lamp.clone();
-    this.lamp.run_effects = Omega.JumpGate.gfx.lamp.run_effects; /// XXX
     if(this.location)
-      this.lamp.position.set(this.location.x + lamp_offset[0],
-                             this.location.y + lamp_offset[1],
-                             this.location.z + lamp_offset[2]);
+      this.lamp.set_position(this.location.x,
+                             this.location.y,
+                             this.location.z);
+    this.lamp.init_gfx();
 
     var particles_offset = [this.gfx_props.particles_x,
                             this.gfx_props.particles_y,
@@ -233,7 +234,7 @@ Omega.JumpGate.prototype = {
                                                          this.location.y,
                                                          this.location.z)
 
-    this.components.push(this.lamp);
+    this.components.push(this.lamp.component);
     this.components.push(this.particles);
   },
 

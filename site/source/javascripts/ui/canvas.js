@@ -11,6 +11,7 @@
 //= require "ui/canvas/axis"
 //= require "ui/canvas/star_dust"
 
+//= require 'ui/canvas/lamp'
 //= require 'ui/canvas/progress_bar'
 
 Omega.UI.Canvas = function(parameters){

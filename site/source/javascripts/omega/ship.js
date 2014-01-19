@@ -461,9 +461,9 @@ Omega.Ship.prototype = {
       if(lamps){
         for(var l = 0; l < lamps.length; l++){
           var lamp  = lamps[l];
-          var slamp = Omega.create_lamp(lamp[0], lamp[1]);
-          slamp.position.set(lamp[2][0], lamp[2][1], lamp[2][2]);
-          slamp.base_position = lamp[2];
+          var slamp = new Omega.UI.CanvasLamp({size : lamp[0],
+                                               color: lamp[1],
+                                       base_position: lamp[2]});
           Omega.Ship.gfx[this.type].lamps.push(slamp);
         }
       }
@@ -591,13 +591,9 @@ Omega.Ship.prototype = {
     for(var l = 0; l < Omega.Ship.gfx[this.type].lamps.length; l++){
       var template_lamp = Omega.Ship.gfx[this.type].lamps[l];
       var lamp = template_lamp.clone();
-
-      /// XXX copy custom attrs required later
-      lamp.base_position = template_lamp.base_position;
-      lamp.run_effects = Omega.Ship.gfx[this.type].lamps[l].run_effects;
-
+      lamp.init_gfx();
       this.lamps.push(lamp);
-      this.components.push(lamp);
+      this.components.push(lamp.component);
     }
 
     this.trails = [];
@@ -693,11 +689,9 @@ Omega.Ship.prototype = {
     /// update lamps position
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];
-      lamp.position.set(this.location.x, this.location.y, this.location.z);
-      lamp.position.add(new THREE.Vector3(lamp.base_position[0],
-                                          lamp.base_position[1],
-                                          lamp.base_position[2]));
-      Omega.temp_translate(lamp, this.location, function(tlamp){
+      lamp.set_position(this.location.x, this.location.y, this.location.z);
+console.log(lamp)
+      Omega.temp_translate(lamp.component, this.location, function(tlamp){
         Omega.rotate_position(tlamp, _this.location.rotation_matrix());
       });
     }
