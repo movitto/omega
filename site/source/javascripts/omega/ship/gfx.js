@@ -10,7 +10,6 @@ Omega.load_ship_gfx = function(config, type, event_cb){
   var gfx = {};
   Omega.Ship.gfx[type] = gfx;
 
-
   gfx.mesh_material = new Omega.ShipMeshMaterial(config, type, event_cb);
 
   Omega.load_ship_template_mesh(config, type, function(mesh){
@@ -125,6 +124,8 @@ Omega.ShipMeshMaterial = function(config, type, event_cb){
 Omega.load_ship_template_mesh = function(config, type, cb){
   var geometry_path   = config.url_prefix + config.images_path +
                         config.resources.ships[type].geometry;
+  var geometry_prefix = config.url_prefix + config.images_path +
+                        config.meshes_path;
   var rotation        = config.resources.ships[type].rotation;
   var offset          = config.resources.ships[type].offset;
   var scale           = config.resources.ships[type].scale;
@@ -145,8 +146,27 @@ Omega.load_ship_template_mesh = function(config, type, cb){
       mesh.base_rotation = rotation;
     }
     cb(mesh);
-  });
+  }, geometry_prefix);
 };
+
+Omega.load_ship_mesh = function(type, cb){
+  Omega.Ship.prototype.retrieve_resource('template_mesh_' + type,
+    function(template_mesh){
+      var mesh = template_mesh.clone();
+
+      /// so mesh materials can be independently updated:
+      mesh.material = Omega.Ship.gfx[type].mesh_material.clone();
+
+      /// copy custom attrs required later
+      mesh.base_position = template_mesh.base_position;
+      mesh.base_rotation = template_mesh.base_rotation;
+      if(!mesh.base_position) mesh.base_position = [0,0,0];
+      if(!mesh.base_rotation) mesh.base_rotation = [0,0,0];
+
+      cb(mesh);
+    });
+};
+
 
 Omega.ShipHighlightEffects = function(){
   var highlight_props    = Omega.Ship.prototype.highlight_props;
@@ -267,31 +287,12 @@ Omega.ShipHpBar = function(){
   $.extend(this, bar);
 };
 
-Omega.load_ship_mesh = function(type, cb){
-  Omega.Ship.prototype.retrieve_resource('template_mesh_' + type,
-    function(template_mesh){
-      var mesh = template_mesh.clone();
-
-      /// so mesh materials can be independently updated:
-      mesh.material = Omega.Ship.gfx[type].mesh_material.clone();
-
-      /// copy custom attrs required later
-      mesh.base_position = template_mesh.base_position;
-      mesh.base_rotation = template_mesh.base_rotation;
-      if(!mesh.base_position) mesh.base_position = [0,0,0];
-      if(!mesh.base_rotation) mesh.base_rotation = [0,0,0];
-
-      cb(mesh);
-    });
-};
-
 ///////////////////////////////////////// update methods
 
 /// This module gets mixed into Ship
 Omega.ShipGfxUpdaters = {
   _update_mesh : function(){
     if(!this.mesh) return;
-    var _this = this;
 
     /// update mesh position and orientation
     this.mesh.position.set(this.location.x, this.location.y, this.location.z);
