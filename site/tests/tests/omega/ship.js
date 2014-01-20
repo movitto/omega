@@ -1055,14 +1055,14 @@ describe("Omega.Ship", function(){
     it("creates mesh for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
       assert(Omega.Ship.gfx[ship.type].mesh).isOfType(THREE.Mesh);
-      assert(Omega.Ship.gfx[ship.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Ship.gfx[ship.type].mesh.material).isOfType(Omega.ShipMeshMaterial);
       assert(Omega.Ship.gfx[ship.type].mesh.geometry).isOfType(THREE.Geometry);
       /// TODO assert material texture & geometry src path values
     });
 
     it("creates highlight effects for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      assert(Omega.Ship.gfx[ship.type].highlight).isOfType(THREE.Mesh);
+      assert(Omega.Ship.gfx[ship.type].highlight).isOfType(Omega.ShipHighlightEffects);
       assert(Omega.Ship.gfx[ship.type].highlight.material).isOfType(THREE.MeshBasicMaterial);
       assert(Omega.Ship.gfx[ship.type].highlight.geometry).isOfType(THREE.CylinderGeometry);
     });
@@ -1089,22 +1089,22 @@ describe("Omega.Ship", function(){
 
     it("creates attack vector for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      assert(Omega.Ship.gfx[ship.type].attack_vector).isOfType(THREE.ParticleSystem);
+      assert(Omega.Ship.gfx[ship.type].attack_vector).isOfType(Omega.ShipAttackVector);
       assert(Omega.Ship.gfx[ship.type].attack_vector.material).isOfType(THREE.ParticleBasicMaterial);
       assert(Omega.Ship.gfx[ship.type].attack_vector.geometry).isOfType(THREE.Geometry);
     });
 
     it("creates mining vector for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      assert(Omega.Ship.gfx[ship.type].mining_vector).isOfType(THREE.Line);
+      assert(Omega.Ship.gfx[ship.type].mining_vector).isOfType(Omega.ShipMiningVector);
       assert(Omega.Ship.gfx[ship.type].mining_vector.material).isOfType(THREE.LineBasicMaterial);
       assert(Omega.Ship.gfx[ship.type].mining_vector.geometry).isOfType(THREE.Geometry);
     });
 
     it("creates trajectory vectors for ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      assert(Omega.Ship.gfx[ship.type].trajectory1).isOfType(THREE.Line);
-      assert(Omega.Ship.gfx[ship.type].trajectory2).isOfType(THREE.Line);
+      assert(Omega.Ship.gfx[ship.type].trajectory1).isOfType(Omega.ShipTrajectory);
+      assert(Omega.Ship.gfx[ship.type].trajectory2).isOfType(Omega.ShipTrajectory);
     });
 
     //it("creates progress bar for ship hp", function(){ // NIY
