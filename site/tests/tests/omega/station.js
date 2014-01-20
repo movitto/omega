@@ -229,14 +229,14 @@ describe("Omega.Station", function(){
     it("creates mesh for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
       assert(Omega.Station.gfx[station.type].mesh).isOfType(THREE.Mesh);
-      assert(Omega.Station.gfx[station.type].mesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Station.gfx[station.type].mesh.material).isOfType(Omega.StationMeshMaterial);
       assert(Omega.Station.gfx[station.type].mesh.geometry).isOfType(THREE.Geometry);
         /// TODO assert material texture & geometry src path values
     });
 
     it("creates highlight effects for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
-      assert(Omega.Station.gfx[station.type].highlight).isOfType(THREE.Mesh);
+      assert(Omega.Station.gfx[station.type].highlight).isOfType(Omega.StationHighlightEffects);
       assert(Omega.Station.gfx[station.type].highlight.material).isOfType(THREE.MeshBasicMaterial);
       assert(Omega.Station.gfx[station.type].highlight.geometry).isOfType(THREE.CylinderGeometry);
     });
