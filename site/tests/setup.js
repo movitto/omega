@@ -16,17 +16,9 @@ Omega.Pages.Test = function(parameters){
 
 Omega.Pages.Test.prototype = {
   process_entity : function(entity){},
-  entity : function(){
-    /// XXX copied from index, need to introduce common page base and/or helpers
-    if(arguments.length > 1)
-      this.entities[arguments[0]] = arguments[1];
-    return this.entities[arguments[0]];
-  },
-
-  all_entities : function(){
-    return Omega.obj_values(this.entities);
-  },
 }
+
+$.extend(Omega.Pages.Test.prototype, new Omega.UI.Registry());
 
 Omega.Test = {
   /// return registered jquery event handlers for selector

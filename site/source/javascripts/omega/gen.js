@@ -57,6 +57,9 @@ Omega.Gen = {
   ship : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'ship' + this.next_id();
+    if(!opts.type) opts.type = 'corvette';
+    if(!opts.hp) opts.hp = 10;
+    if(!opts.max_hp) opts.max_hp = 10;
     if(!opts.location)
       opts.location = new Omega.Location();
     if(!opts.location.x) opts.location.x = 0;

@@ -145,7 +145,7 @@ Omega.UI.Canvas.prototype = {
 
     this.skybox.init_gfx();
     this.axis.init_gfx();
-    this.star_dust.init_gfx(this.page.config);
+    this.star_dust.init_gfx(this.page.config, function(){ _this._init_gfx(); });
   },
 
   _canvas_clicked : function(evnt){
@@ -204,6 +204,11 @@ Omega.UI.Canvas.prototype = {
     this.cam_controls.update();
   },
 
+  // Graphics initialization cb
+  _init_gfx : function(){
+    this.animate();
+  },
+
   // Request animation frame
   animate : function(){
     var _this = this;
@@ -252,7 +257,7 @@ Omega.UI.Canvas.prototype = {
     };
     entity.addEventListener('loaded_mesh', entity.sceneReload);
 
-    entity.init_gfx(this.page.config, function(evnt){ _this.animate(); });
+    entity.init_gfx(this.page.config, function(evnt){ _this._init_gfx(); });
     for(var cc = 0; cc < entity.components.length; cc++)
       this.scene.add(entity.components[cc]);
     for(var cc = 0; cc < entity.shader_components.length; cc++)

@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/registry"
 //= require "ui/canvas"
 //= require "ui/effects_player"
 //= require "omega/gen"
@@ -11,8 +12,11 @@
 Omega.Pages.Dev = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
+  this.entities = {};
+
   this.canvas  = new Omega.UI.Canvas({page: this});
   this.effects_player = new Omega.UI.EffectsPlayer({page: this});
+  this.command_tracker= new Omega.UI.CommandTracker({page : this})
 };
 
 Omega.Pages.Dev.prototype = {
@@ -21,12 +25,19 @@ Omega.Pages.Dev.prototype = {
     this.effects_player.wire_up();
   },
 
+  start : function(){
+    this.effects_player.start();
+  },
+
   custom_operations : function(){
   }
 };
+
+$.extend(Omega.Pages.Dev.prototype, new Omega.UI.Registry());
 
 $(document).ready(function(){
   var dev = new Omega.Pages.Dev();
   dev.wire_up();
   dev.custom_operations();
+  dev.start();
 });

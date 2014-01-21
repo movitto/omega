@@ -90,6 +90,10 @@ Omega.Pages.Index.prototype = {
   }
 };
 
+$.extend(Omega.Pages.Index.prototype, new Omega.UI.Registry());
+$.extend(Omega.Pages.Index.prototype, Omega.UI.CanvasTracker);
+$.extend(Omega.Pages.Index.prototype, Omega.UI.SessionValidator);
+
 $(document).ready(function(){
   if(Omega.Test) return;
 
@@ -106,7 +110,3 @@ $(document).ready(function(){
     index.unload();
   });
 });
-
-$.extend(Omega.Pages.Index.prototype, new Omega.UI.Registry());
-$.extend(Omega.Pages.Index.prototype, Omega.UI.CanvasTracker);
-$.extend(Omega.Pages.Index.prototype, Omega.UI.SessionValidator);

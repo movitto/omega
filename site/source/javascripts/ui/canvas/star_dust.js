@@ -19,7 +19,7 @@ Omega.UI.CanvasStarDust.prototype = {
 
     var particle_path = config.url_prefix + config.images_path + "/smokeparticle.png";
     var particleGroup = new ShaderParticleGroup({
-      texture: THREE.ImageUtils.loadTexture(particle_path),
+      texture: THREE.ImageUtils.loadTexture(particle_path, {}, event_cb),
       maxAge: 2,
       blending: THREE.AdditiveBlending
     });
