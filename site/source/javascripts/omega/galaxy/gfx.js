@@ -11,6 +11,7 @@ Omega.load_galaxy_gfx = function(config, event_cb){
   Omega.Galaxy.gfx = gfx;
 
   gfx.density_wave = new Omega.GalaxyDensityWave(config, event_cb);
+  //gfx.density_wave = new Omega.GalaxyDensityWave2(config, event_cb);
 };
 
 Omega.init_galaxy_gfx = function(config, galaxy, event_cb){
@@ -20,6 +21,10 @@ Omega.init_galaxy_gfx = function(config, galaxy, event_cb){
   galaxy.density_wave.rotation.set(1.57,0,0);
   galaxy.density_wave.omega_entity = galaxy;
   galaxy.components = [galaxy.density_wave];
+
+  //galaxy.density_wave = Omega.Galaxy.gfx.density_wave;//.clone(); // TODO
+  //galaxy.components = [galaxy.density_wave.mesh];
+  //galaxy.clock = new THREE.Clock();
 };
 
 ///////////////////////////////////////// initializers
@@ -79,7 +84,7 @@ Omega.GalaxyDensityWaveGeometry = function(){
       else if(d > 1500) pv.z /= 3;
       if(Math.floor(Math.random() * 2) == 0) pv.z *= -1;
 
-      /// create color, modifing color & brightness based on distance
+      /// create color, modifying color & brightness based on distance
       var ifa = Math.floor(Math.random() * 15 - (Math.exp(-d/4000) * 5));// 1/2 intensity distance: 4000
       var pc = 0xFFFFFF;
       if(Math.floor(Math.random() * 5) != 0){ // 1/5 particles are white
@@ -111,6 +116,41 @@ Omega.GalaxyDensityWaveGeometry = function(){
   $.extend(this, geo);
 };
 
+Omega.GalaxyDensityWave2 = function(config, event_cb){
+  var particle_path = config.url_prefix + config.images_path + "/smokeparticle.png";
+  var particleGroup = new ShaderParticleGroup({
+    texture: THREE.ImageUtils.loadTexture(particle_path),
+    maxAge: 2,
+    blending: THREE.AdditiveBlending
+  });
+
+  var particleEmitter =
+    new ShaderParticleEmitter({
+      type: 'spiral',
+      skew : 1.4,
+
+      position: new THREE.Vector3(0, 0, 0),
+      radius: 50,
+      radiusSpread: 100,
+      radiusScale: 10,
+      speed: 0.5,
+      colorStart: new THREE.Color('yellow'),
+      colorEnd: new THREE.Color('red'),
+      size: 50,
+      //sizeSpread: 1,
+      sizeEnd: 2,
+      opacityStart: 1,
+      opacityEnd: 1,
+      particlesPerSecond: 5000,
+      maxAge: 1000,
+    });
+
+  // Add the emitter to the group.
+  particleGroup.addEmitter( particleEmitter );
+
+  $.extend(this, particleGroup);
+}
+
 ///////////////////////////////////////// other
 
 /// Also gets mixed into the Galaxy Module
@@ -141,5 +181,9 @@ Omega.GalaxyEffectRunner = {
     }
 
     geo.verticesNeedUpdate = true;
+  },
+
+  nrun_effects : function(){
+    this.density_wave.tick(this.clock.getDelta());
   }
 };

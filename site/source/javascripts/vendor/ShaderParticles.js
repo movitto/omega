@@ -132,6 +132,30 @@ var shaderParticleUtils = {
         return vec ;
     },
 
+    /**
+     */
+    randomVector3OnSpiral: function( base, radius, radiusSpread, radiusScale, radiusSpreadClamp, skew ) {
+        var t = 6.2832 * Math.random();
+        var rand = this._randomFloat( radius, radiusSpread );
+
+        if( radiusSpreadClamp ) {
+            rand = Math.round( rand / radiusSpreadClamp ) * radiusSpreadClamp;
+        }
+
+        var vec = new THREE.Vector3( Math.cos(t), Math.sin(t) * skew, 0 )//.normalize();
+        var angle = 6.28*rand/(radius+radiusSpread);
+        vec.applyAxisAngle(new THREE.Vector3(0,0,1), angle);
+        vec.multiplyScalar( rand );
+
+        if ( radiusScale ) {
+            vec.multiply( radiusScale );
+        }
+
+        vec.add( base );
+
+        return vec ;
+    },
+
 
     /**
      * Create a new THREE.Vector3 instance, and given a sphere with center `base` and
@@ -157,6 +181,17 @@ var shaderParticleUtils = {
         }
 
         return direction;
+    },
+
+
+    /**
+     */
+    randomVelocityVector3OnSpiral: function( base, position, speed, speedSpread, radius, radiusSpread, radiusScale, radiusSpreadClamp ) {
+        var direction = new THREE.Vector3().subVectors( base, position );
+
+        //direction.normalize().divideScalar( Math.abs( this._randomFloat( speed, speedSpread ) ) );
+
+        return direction.normalize();
     },
 
 
@@ -268,11 +303,57 @@ var shaderParticleUtils = {
         v.add( base );
     },
 
+    /**
+     */
+    randomizeExistingVector3OnSpiral: function( v, base, radius, radiusSpread, radiusScale, radiusSpreadClamp, skew ) {
+        var rand = Math.random,
+            t = 6.2832 * rand(),
+            rand = Math.abs( this._randomFloat( radius, radiusSpread ) );
+
+        if( radiusSpreadClamp ) {
+            rand = Math.round( rand / radiusSpreadClamp ) * radiusSpreadClamp;
+        }
+
+        v.set(
+            Math.cos( t ),
+            Math.sin( t ) * skew,
+            0
+        )//.normalize();
+        var angle = 6.28*rand/(radius+radiusSpread);
+        v.applyAxisAngle(new THREE.Vector3(0,0,1), angle);
+        v.multiplyScalar( rand );
+
+        if ( radiusScale ) {
+            v.multiply( radiusScale );
+        }
+
+        v.add( base );
+    },
+
     randomizeExistingVelocityVector3OnSphere: function( v, base, position, speed, speedSpread ) {
         v.copy(position)
             .sub(base)
             .normalize()
             .multiplyScalar( Math.abs( this._randomFloat( speed, speedSpread ) ) );
+    },
+
+    randomizeExistingVelocityVector3OnSpiral: function( v, base, position, speed, speedSpread, radius, radiusSpread, radiusScale, radiusSpreadClamp ) {
+        /// speed scales according to distance
+        var t = new THREE.Vector3().copy(radiusScale).multiplyScalar(radius + radiusSpread).length();
+        if(radiusSpreadClamp) t = Math.round(t / radiusSpreadClamp) * radiusSpreadClamp;
+
+        v.copy(position).sub(base);
+
+        var d = v.length();
+        var p = d / t;
+
+        /// velocity component towards center of spiral
+        v.normalize()
+         .multiplyScalar( Math.abs( this._randomFloat( speed / p, speedSpread ) ) )
+         .negate();
+
+        /// tangential velocity component (again scale w/ distance)
+        v.add(v.cross(new THREE.Vector3(0,0,1)).multiplyScalar(p).negate());
     },
 
     generateID: function() {
@@ -460,8 +541,12 @@ ShaderParticleGroup.prototype = {
             else if( emitter.type === 'disk' ) {
                 vertices[i]         = that._randomVector3OnDisk( emitter.position, emitter.radius, emitter.radiusSpread, emitter.radiusScale, emitter.radiusSpreadClamp );
                 velocity[i]         = that._randomVelocityVector3OnSphere( vertices[i], emitter.position, emitter.speed, emitter.speedSpread );
-            }
-            else {
+            }else if(emitter.type === 'spiral'){
+                vertices[i]         = that._randomVector3OnSpiral( emitter.position, emitter.radius, emitter.radiusSpread, emitter.radiusScale, emitter.radiusSpreadClamp, emitter.skew );
+                velocity[i]         = that._randomVelocityVector3OnSpiral( vertices[i], emitter.position, emitter.speed, emitter.speedSpread,
+                                                                           emitter.radius, emitter.radiusSpread, emitter.radiusScale, emitter.radiusSpreadClamp );
+
+            }else {
                 vertices[i]         = that._randomVector3( emitter.position, emitter.positionSpread );
                 velocity[i]         = that._randomVector3( emitter.velocity, emitter.velocitySpread );
             }
@@ -689,6 +774,10 @@ ShaderParticleGroup.prototype = {
         }
 
         return that;
+    },
+
+    /// TODO
+    clone : function(){
     }
 };
 
@@ -849,12 +938,12 @@ function ShaderParticleEmitter( options ) {
 
 
     that.particlesPerSecond     = typeof options.particlesPerSecond === 'number' ? options.particlesPerSecond : 100;
-    that.type                   = (options.type === 'cube' || options.type === 'sphere' || options.type === 'disk') ? options.type : 'cube';
+    that.type                   = (options.type === 'cube' || options.type === 'sphere' || options.type === 'disk' || options.type == 'spiral') ? options.type : 'cube';
 
     that.position               = options.position instanceof THREE.Vector3 ? options.position : new THREE.Vector3();
     that.positionSpread         = options.positionSpread instanceof THREE.Vector3 ? options.positionSpread : new THREE.Vector3();
 
-    // These two properties are only used when this.type === 'sphere' or 'disk'
+    // These four properties are only used when this.type === 'sphere', 'disk', or 'spiral'
     that.radius                 = typeof options.radius === 'number' ? options.radius : 10;
     that.radiusSpread           = typeof options.radiusSpread === 'number' ? options.radiusSpread : 0;
     that.radiusScale            = options.radiusScale instanceof THREE.Vector3 ? options.radiusScale : new THREE.Vector3(1, 1, 1);
@@ -866,10 +955,12 @@ function ShaderParticleEmitter( options ) {
     that.velocity               = options.velocity instanceof THREE.Vector3 ? options.velocity : new THREE.Vector3();
     that.velocitySpread         = options.velocitySpread instanceof THREE.Vector3 ? options.velocitySpread : new THREE.Vector3();
 
-
-    // And again here; only used when this.type === 'sphere' or 'disk'
+    // And again here; only used when this.type === 'sphere', 'disk', or 'spiral'
     that.speed                  = parseFloat( typeof options.speed === 'number' ? options.speed : 0.0 );
     that.speedSpread            = parseFloat( typeof options.speedSpread === 'number' ? options.speedSpread : 0.0 );
+
+    /// These properties are only used when this.type === 'spiral'
+    that.skew                   = parseFloat( typeof options.skew === 'number' ? options.skew : 1.0 );
 
     that.sizeStart              = parseFloat( typeof options.sizeStart === 'number' ? options.sizeStart : 1.0 );
     that.sizeStartSpread        = parseFloat( typeof options.sizeStartSpread === 'number' ? options.sizeStartSpread : 0.0 );
@@ -940,7 +1031,8 @@ ShaderParticleEmitter.prototype = {
         if(
             ( type === 'cube' && spread.x === 0 && spread.y === 0 && spread.z === 0 ) ||
             ( type === 'sphere' && that.radius === 0 ) ||
-            ( type === 'disk' && that.radius === 0 )
+            ( type === 'disk' && that.radius === 0 ) ||
+            ( type === 'spiral' && that.radius === 0 )
         ) {
             particlePosition.copy( that.position );
             that._randomizeExistingVector3( particleVelocity, that.velocity, vSpread );
@@ -965,6 +1057,12 @@ ShaderParticleEmitter.prototype = {
         else if( type === 'disk') {
             that._randomizeExistingVector3OnDisk( particlePosition, that.position, that.radius, that.radiusSpread, that.radiusScale, that.radiusSpreadClamp );
             that._randomizeExistingVelocityVector3OnSphere( particleVelocity, that.position, particlePosition, that.speed, that.speedSpread );
+        }
+
+        else if( type === 'spiral') {
+            that._randomizeExistingVector3OnSpiral( particlePosition, that.position, that.radius, that.radiusSpread, that.radiusScale, that.radiusSpreadClamp, that.skew );
+            that._randomizeExistingVelocityVector3OnSpiral( particleVelocity, that.position, particlePosition, that.speed, that.speedSpread,
+                                                            that.radius, that.radiusSpread, that.radiusScale, that.radiusSpreadClamp  );
         }
 
         if( that.isDynamic ) {
