@@ -84,18 +84,18 @@ describe("Omega.Galaxy", function(){
       });
 
       it("does nothing / just returns", function(){
-        Omega.Galaxy.gfx = {particles : null};
+        Omega.Galaxy.gfx = {density_wave : null};
         new Omega.Galaxy().load_gfx();
-        assert(Omega.Galaxy.gfx.particles).isNull();
+        assert(Omega.Galaxy.gfx.density_wave).isNull();
       });
     });
 
     it("creates particle system for galaxy", function(){
       Omega.Test.Canvas.Entities();
 
-      assert(Omega.Galaxy.gfx.particles).isOfType(THREE.ParticleSystem);
-      assert(Omega.Galaxy.gfx.particles.geometry).isOfType(THREE.Geometry);
-      assert(Omega.Galaxy.gfx.particles.material).isOfType(THREE.ParticleBasicMaterial);
+      assert(Omega.Galaxy.gfx.density_wave).isOfType(Omega.GalaxyDensityWave);
+      assert(Omega.Galaxy.gfx.density_wave.geometry).isOfType(Omega.GalaxyDensityWaveGeometry);
+      assert(Omega.Galaxy.gfx.density_wave.material).isOfType(THREE.ParticleBasicMaterial);
       /// TODO verify geometry generated according to density wave theory ?
     });
   });
@@ -108,7 +108,7 @@ describe("Omega.Galaxy", function(){
 
     after(function(){
       if(Omega.Galaxy.gfx){
-        if(Omega.Galaxy.gfx.particles.clone.restore) Omega.Galaxy.gfx.particles.clone.restore();
+        if(Omega.Galaxy.gfx.density_wave.clone.restore) Omega.Galaxy.gfx.density_wave.clone.restore();
       }
     });
 
@@ -119,23 +119,23 @@ describe("Omega.Galaxy", function(){
       sinon.assert.called(load_gfx);
     });
 
-    it("clones Galaxy particles", function(){
+    it("clones Galaxy density_wave", function(){
       var galaxy = new Omega.Galaxy();
       var mesh = new THREE.Mesh();
-      sinon.stub(Omega.Galaxy.gfx.particles, 'clone').returns(mesh);
+      sinon.stub(Omega.Galaxy.gfx.density_wave, 'clone').returns(mesh);
       galaxy.init_gfx();
-      assert(galaxy.particles).equals(mesh);
+      assert(galaxy.density_wave).equals(mesh);
     });
 
     it("adds particle system to galaxy scene components", function(){
       var galaxy = new Omega.Galaxy();
       galaxy.init_gfx();
-      assert(galaxy.components).isSameAs([galaxy.particles]);
+      assert(galaxy.components).isSameAs([galaxy.density_wave]);
     });
   });
 
   describe("#run_effects", function(){
-    //it("updates particle system particles") // NIY
+    //it("updates particle system density_wave") // NIY
   });
 
   describe("#with_id", function(){
