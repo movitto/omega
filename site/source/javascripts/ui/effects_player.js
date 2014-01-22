@@ -15,7 +15,7 @@ Omega.UI.EffectsPlayer = function(parameters){
 };
 
 Omega.UI.EffectsPlayer.prototype = {
-  interval : 150,
+  interval : 50,
 
   wire_up : function(){
     /// pause effects player when document is hidden
