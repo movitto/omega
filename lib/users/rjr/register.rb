@@ -37,16 +37,15 @@ register = proc { |user|
 
   # create new email w/ users::confirm_register link
   message = <<MESSAGE_END
-  From: #{EmailHelper.smtp_from_address}
-  To: #{user.email}
-  Subject: New Omega Account
+From: #{EmailHelper.smtp_from_address}
+To: #{user.email}
+Subject: New Omega Account
 
-  This is to inform you that your new omega account has been created. You
-  will need to activate your registration code by navigating to the following
-  link:
+This is to inform you that your new omega account has been created. You
+will need to activate your registration code by navigating to the following
+link:
 
-  #{Users::RJR.omega_url}confirm.html?rc=#{user.registration_code}
-
+#{Users::RJR.omega_url}confirm.html?rc=#{user.registration_code}
 MESSAGE_END
 
   # send mail it to user
