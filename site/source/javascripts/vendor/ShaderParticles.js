@@ -907,8 +907,8 @@ ShaderParticleGroup.shaders = {
 
                 /// optional fade w/ distance
                 'if( fadeFactor != 0.0 ) {',
-                  /// FIXME should be exponential / logrithmic, not linear
-                  'vColor = mix( vColor, vec4(0.0, 0.0, 0.0, 0.0), 1.0 / length ( pos.xyz ) * fadeFactor );',
+                  /// TODO should be exponential / logrithmic, not linear ?
+                  'vColor = mix( vColor, vec4(0.0, 0.0, 0.0, 0.0), length ( pos.xyz ) / fadeFactor );',
                 '}',
 
                 'if( angleAlignVelocity == 1.0 ) {',

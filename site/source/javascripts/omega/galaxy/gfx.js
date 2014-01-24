@@ -33,7 +33,7 @@ Omega.GalaxyDensityWave = function(config, event_cb){
   var particleGroup = new ShaderParticleGroup({
     texture: ptexture,
     maxAge: 2,
-    fadeFactor :  20.0,
+    fadeFactor :  7500.0,
     blending: THREE.AdditiveBlending
   });
 
