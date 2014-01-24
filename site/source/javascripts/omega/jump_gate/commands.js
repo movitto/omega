@@ -6,8 +6,7 @@
 
 Omega.JumpGateCommands = {
   retrieve_details : function(page, details_cb){
-    var endpoint = this.endpoint ? this.endpoint.name : this.endpoint_id;
-    var title = 'Jump Gate to ' + endpoint;
+    var title = 'Jump Gate to ' + this.endpoint_title();
     var loc   = '@ ' + this.location.to_s();
     var trigger_cmd   = $('<span/>',
       {id    : 'trigger_jg_' + this.id,

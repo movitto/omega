@@ -56,7 +56,10 @@ Omega.UI.CommandDialog.prototype = {
       var entities = dests[entity_class];
       for(var e = 0; e < entities.length; e++){
         var dest = entities[e];
-        var option = $('<option/>', {text : title + ': ' + dest.id});
+        var text = title + ': ' + dest.id;
+        if(dest.json_class == 'Cosmos::Entities::JumpGate')
+          text = title + ': ' + dest.endpoint_title();
+        var option = $('<option/>', {text: text});
         option.data('id', dest.id);
         option.data('location', dest.location);
         dest_selection.append(option);

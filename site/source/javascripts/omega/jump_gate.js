@@ -31,6 +31,10 @@ Omega.JumpGate.prototype = {
             trigger_distance : this.trigger_distance};
   },
 
+  endpoint_title : function(){
+    return this.endpoint ? this.endpoint.name : this.endpoint_id;
+  },
+
   has_details : true,
 
   selected : function(page){
