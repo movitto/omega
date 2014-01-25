@@ -122,16 +122,12 @@ class Follow < MovementStrategy
        # TODO separate this logic into helper
        od = loc.orientation_difference(*tl.coordinates)
        if od.first.abs > (Math::PI / 32)
-         ::RJR::Logger.warn "rotating!" #DeleteMe
          init_rotation :rot_theta =>  od[0] * @rotation_speed,
                        :rot_x     =>  od[1],
                        :rot_y     =>  od[2],
                        :rot_z     =>  od[3]
          if valid_rotation?
            rotate loc, elapsed_seconds
-           ::RJR::Logger.warn "valid rotation: #{od}" #DeleteMe
-         else
-           ::RJR::Logger.warn "invalid location: #{od}" #DeleteMe
          end
        end
      end
