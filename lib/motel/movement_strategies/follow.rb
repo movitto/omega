@@ -119,7 +119,8 @@ class Follow < MovementStrategy
 
      if @point_to_target
        # Calculate orientation difference
-       od = tl.orientation_difference(*loc.coordinates)
+       # TODO separate this logic into helper
+       od = loc.orientation_difference(*tl.coordinates)
        if od.first.abs > (Math::PI / 32)
          ::RJR::Logger.warn "rotating!" #DeleteMe
          init_rotation :rot_theta =>  od[0] * @rotation_speed,
