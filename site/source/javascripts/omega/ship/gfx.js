@@ -525,7 +525,8 @@ Omega.ShipEffectRunner = {
         this.location.orientation_z = new_or[2];
         this.update_gfx();
       }
-      if(this.location.movement_strategy.json_class == follow){
+      if(this.location.movement_strategy.json_class == follow &&
+        !this.location.movement_strategy.adjusting_bearing    ){
         var loc = this.location;
         var tl =
           page.entity(loc.movement_strategy.tracked_location_id)
