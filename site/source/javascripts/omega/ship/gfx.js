@@ -468,7 +468,7 @@ Omega.ShipGfxUpdaters = {
 
 /// Also gets mixed into the Ship Module
 Omega.ShipEffectRunner = {
-  run_effects : function(){
+  run_effects : function(page){
     // animate lamps
     for(var l = 0; l < this.lamps.length; l++){
       var lamp = this.lamps[l];
@@ -510,7 +510,6 @@ Omega.ShipEffectRunner = {
         this.update_gfx();
 
       }else if(this.location.movement_strategy.json_class == rotate){
-        debugger;
         var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
         var new_or = Omega.Math.rot(this.location.orientation_x,
                                     this.location.orientation_y,
@@ -525,8 +524,25 @@ Omega.ShipEffectRunner = {
         this.update_gfx();
       }else if(this.location.movement_strategy.json_class == follow){
         debugger;
-        scene.getObjectByName(this.location.movement_strategy.target_id);
-        this.location.x += 10; 
+        var tl =
+          page.entity(this.location.movement_strategy.tracked_location_id)
+          .location;
+
+        var dx = tl.x - this.location.x;
+        var dy = tl.y - this.location.y;
+        var dz = tl.z - this.location.z;
+        var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        dx = dx / distance;
+        dy = dy / distance;
+        dz = dz / distance;
+
+        move_distance = this.location.movement_strategy.speed * elapsed / 1000;
+
+        this.location.x += move_distance * dx;
+        this.location.y += move_distance * dy;
+        this.location.z += move_distance * dz;
+
         this.update_gfx();
       }
     }
