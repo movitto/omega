@@ -224,7 +224,6 @@ Omega.load_ship_trails = function(config, type, event_cb){
           if(i >= plane / 4 && i <= 3 * plane / 4 &&
              j >= plane / 4 && j <= 3 * plane / 4 ){
                pv.lifespan *= 2;
-               pv.velocity *= 2;
           }
           pv.olifespan = pv.lifespan;
           geo.vertices.push(pv)

@@ -265,6 +265,8 @@ Omega.UI.CommandTracker.prototype = {
     if(entity == null) return;
     entity.mining          = null;
     entity.mining_asteroid = null;
+    entity.resources = ship.resources;
+    entity._update_resources();
 
     if(this.page.canvas.is_root(entity.parent_id)){
       this.page.canvas.reload(entity, function(){

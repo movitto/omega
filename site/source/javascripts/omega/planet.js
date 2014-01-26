@@ -228,7 +228,7 @@ Omega.Planet.prototype = {
     this.location.y = n[1] + this.cy;
     this.location.z = n[2] + this.cz;
 
-    this.spin_angle += elapsed / 350000;
+    this.spin_angle += elapsed / 500000;
     if(this.spin_angle > 2*Math.PI) this.spin_angle = 0;
 
     this.update_gfx();
