@@ -509,7 +509,9 @@ Omega.ShipEffectRunner = {
         this.location.z += this.location.movement_strategy.dz * dist;
         this.update_gfx();
 
-      }else if(this.location.movement_strategy.json_class == rotate){
+      }else if(this.location.movement_strategy.json_class == rotate ||
+               this.location.movement_strategy.json_class == follow &&
+               this.location.movement_strategy.point_to_target){
         var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
         var new_or = Omega.Math.rot(this.location.orientation_x,
                                     this.location.orientation_y,
@@ -522,7 +524,8 @@ Omega.ShipEffectRunner = {
         this.location.orientation_y = new_or[1];
         this.location.orientation_z = new_or[2];
         this.update_gfx();
-      }else if(this.location.movement_strategy.json_class == follow){
+      }
+      if(this.location.movement_strategy.json_class == follow){
         var loc = this.location;
         var tl =
           page.entity(loc.movement_strategy.tracked_location_id)
@@ -533,6 +536,8 @@ Omega.ShipEffectRunner = {
         var dz = tl.z - loc.z;
         var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
         var min_distance = 100; //TODO parametrize distance?
+
+        //Take into account client/server sync
         if (distance >= min_distance && !loc.on_target){
           dx = dx / distance;
           dy = dy / distance;

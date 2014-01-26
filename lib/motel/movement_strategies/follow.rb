@@ -23,14 +23,14 @@ class Follow < MovementStrategy
 
   include Rotatable
 
+   # [Boolean] Indicates if we are close enough to the target to stop
+   attr_reader :on_target
+
    # [String] ID of location which is being tracked
    attr_reader :tracked_location_id
 
    # [Motel::Location] location being tracked
    attr_reader :tracked_location
-
-   # [Boolean] Indicates if we are close enough to the target to stop
-   attr_reader :on_target
 
    def tracked_location_id=(val)
      @tracked_location_id = val
@@ -149,7 +149,7 @@ class Follow < MovementStrategy
                          :point_to_target     => point_to_target,
                          :rotation_speed      => rotation_speed,
                          :on_target           => on_target
-                       }
+                       }.merge(rotation_json)
      }.to_json(*a)
    end
 
