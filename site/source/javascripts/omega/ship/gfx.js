@@ -536,7 +536,7 @@ Omega.ShipEffectRunner = {
         var dy = tl.y - loc.y;
         var dz = tl.z - loc.z;
         var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        var min_distance = 100; //TODO parametrize distance?
+        var min_distance = Omega.Config.follow_distance;
 
         //Take into account client/server sync
         if (distance >= min_distance && !loc.on_target){

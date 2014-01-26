@@ -71,8 +71,8 @@ Omega.ShipInteraction = {
 
   _follow : function(page, target_entity_id){
     var _this = this;
-    // TODO parametrize distance?
-    page.node.http_invoke('manufactured::follow_entity', this.id, target_entity_id, 100,
+    var distance = Omega.Config.follow_distance;
+    page.node.http_invoke('manufactured::follow_entity', this.id, target_entity_id, distance,
       function(response){
         if(response.error){
           _this.dialog().clear_errors();
