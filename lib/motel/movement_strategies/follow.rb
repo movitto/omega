@@ -29,6 +29,9 @@ class Follow < MovementStrategy
    # [Motel::Location] location being tracked
    attr_reader :tracked_location
 
+   # [Boolean] Indicates if we are close enough to the target to stop
+   attr_reader :on_target
+
    def tracked_location_id=(val)
      @tracked_location_id = val
    end
@@ -99,7 +102,10 @@ class Follow < MovementStrategy
                   "#{speed} #{tracked_location_id } at #{distance}"
 
      distance_to_cover  = loc - tl
-     if distance_to_cover <= @distance
+
+     @on_target = distance_to_cover <= @distance
+
+     if @on_target
        #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
@@ -141,7 +147,8 @@ class Follow < MovementStrategy
                          :tracked_location_id => tracked_location_id,
                          :distance            => distance,
                          :point_to_target     => point_to_target,
-                         :rotation_speed      => rotation_speed
+                         :rotation_speed      => rotation_speed,
+                         :on_target           => on_target
                        }
      }.to_json(*a)
    end

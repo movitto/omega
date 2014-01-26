@@ -523,25 +523,30 @@ Omega.ShipEffectRunner = {
         this.location.orientation_z = new_or[2];
         this.update_gfx();
       }else if(this.location.movement_strategy.json_class == follow){
-        debugger;
+        var loc = this.location;
         var tl =
-          page.entity(this.location.movement_strategy.tracked_location_id)
+          page.entity(loc.movement_strategy.tracked_location_id)
           .location;
 
-        var dx = tl.x - this.location.x;
-        var dy = tl.y - this.location.y;
-        var dz = tl.z - this.location.z;
+        var dx = tl.x - loc.x;
+        var dy = tl.y - loc.y;
+        var dz = tl.z - loc.z;
         var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        var min_distance = 100; //TODO parametrize distance?
+        if (distance >= min_distance && !loc.on_target){
+          dx = dx / distance;
+          dy = dy / distance;
+          dz = dz / distance;
 
-        dx = dx / distance;
-        dy = dy / distance;
-        dz = dz / distance;
+          move_distance = loc.movement_strategy.speed * elapsed / 1000;
 
-        move_distance = this.location.movement_strategy.speed * elapsed / 1000;
-
-        this.location.x += move_distance * dx;
-        this.location.y += move_distance * dy;
-        this.location.z += move_distance * dz;
+          loc.x += move_distance * dx;
+          loc.y += move_distance * dy;
+          loc.z += move_distance * dz;
+        }
+        if(loc.movement_strategy.point_to_target){
+          
+        }
 
         this.update_gfx();
       }
