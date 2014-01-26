@@ -497,6 +497,7 @@ Omega.ShipEffectRunner = {
     var stopped = 'Motel::MovementStrategies::Stopped';
     var linear  = 'Motel::MovementStrategies::Linear';
     var rotate  = 'Motel::MovementStrategies::Rotate';
+    var follow  = 'Motel::MovementStrategies::Follow';
     var now     = new Date();
     if(this.last_moved != null){
       var elapsed = now - this.last_moved;
@@ -509,6 +510,7 @@ Omega.ShipEffectRunner = {
         this.update_gfx();
 
       }else if(this.location.movement_strategy.json_class == rotate){
+        debugger;
         var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
         var new_or = Omega.Math.rot(this.location.orientation_x,
                                     this.location.orientation_y,
@@ -520,6 +522,11 @@ Omega.ShipEffectRunner = {
         this.location.orientation_x = new_or[0];
         this.location.orientation_y = new_or[1];
         this.location.orientation_z = new_or[2];
+        this.update_gfx();
+      }else if(this.location.movement_strategy.json_class == follow){
+        debugger;
+        scene.getObjectByName(this.location.movement_strategy.target_id);
+        this.location.x += 10; 
         this.update_gfx();
       }
     }
