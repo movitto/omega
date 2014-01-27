@@ -9,6 +9,7 @@
 
 //= require "ui/registry"
 //= require "ui/canvas_tracker"
+//= require "ui/command_tracker"
 //= require "ui/session_validator"
 
 //= require "ui/effects_player"

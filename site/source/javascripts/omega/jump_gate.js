@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/command"
-
 //= require "omega/jump_gate/commands"
 //= require "omega/jump_gate/gfx"
 

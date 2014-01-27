@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/command_dialog"
+
 Omega.ShipInteraction = {
   //TODO register mine/dock callbacks
   context_action : function(entity, page){

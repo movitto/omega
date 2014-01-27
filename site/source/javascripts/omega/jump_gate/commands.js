@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/command_dialog"
+
 Omega.JumpGateCommands = {
   retrieve_details : function(page, details_cb){
     var title = 'Jump Gate to ' + this.endpoint_title();

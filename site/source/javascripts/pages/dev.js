@@ -7,6 +7,7 @@
 //= require "ui/registry"
 //= require "ui/canvas"
 //= require "ui/effects_player"
+//= require "ui/command_tracker"
 //= require "omega/gen"
 
 Omega.Pages.Dev = function(){
