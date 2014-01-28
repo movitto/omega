@@ -255,7 +255,7 @@ module Omega
       #   - type : event type to match
       #   - endpoint : rjr endpoint to match
       def remove_callbacks_for(registry_entities, criteria={})
-        # allow user to specified or entities list
+        # allow user to specify registry or entities list
         if registry_entities.is_a?(Motel::Registry)
           registry.safe_exec { |entities|
             remove_callbacks_for(entities, criteria)
