@@ -131,7 +131,7 @@ module Motel::RJR
         it "removes callback from location" do
           @cb.invoke @l, 10, 0, 0
           @registry.entity(&with_id(@l.id)).
-                    callbacks[:movement].size.should == 0
+                    callbacks[:movement].should be_nil
         end
 
         it "does not invoke callback rjr_event" do
@@ -159,7 +159,7 @@ module Motel::RJR
           it "removes callback from location" do
             @cb.invoke @l
             @registry.entity(&with_id(@l.id)).
-                      callbacks[:proximity].size.should == 0
+                      callbacks[:proximity].should be_nil
           end
 
           it "does not invoke callback rjr_event" do

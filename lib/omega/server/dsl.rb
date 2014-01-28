@@ -247,6 +247,76 @@ module Omega
           entity.endpoint_id == endpoint_id
         }
       end
+
+      # Remove callbacks matching the specified criteria.
+      # All criteria are optional and may include
+      #   - class : class of entities to look for
+      #   - id : id of entity to remove callbacks for
+      #   - type : event type to match
+      #   - endpoint : rjr endpoint to match
+      def remove_callbacks_for(registry_entities, criteria={})
+        # allow user to specified or entities list
+        if registry_entities.is_a?(Motel::Registry)
+          registry.safe_exec { |entities|
+            remove_callbacks_for(entities, criteria)
+          }
+      
+          return
+        else
+          entities = registry_entities
+      
+        end
+      
+        # retrieve entities
+        matched = entities.select { |e|
+          !criteria.has_key?(:class) || e.is_a?(criteria[:class])
+        }
+      
+        # if specified only operate on single entity
+        matched.reject! { |m|
+          m.id != criteria[:id]
+        } if criteria.has_key?(:id)
+      
+        matched.each { |m|
+          m.callbacks.each { |type, cbs|
+            to_remove = []
+      
+            # skip if cb event type is specified and does not match
+            if !criteria.has_key?(:type) || criteria[:type] == type
+              cbs.each { |cb|
+      
+                # skip if cb endpoint id is specified and does not match
+                if !criteria.has_key?(:endpoint_id) ||
+                   criteria[:endpoint_id] == cb.endpoint_id
+                  to_remove << cb
+                end
+              }
+            end
+      
+            # remove flagged callbacks, compress array
+            to_remove.each { |cb| m.callbacks[type].delete(cb) }
+            m.callbacks[type].compact!
+          }
+      
+          # compress callback list
+          m.callbacks.keys.each { |type|
+            m.callbacks.delete(type) if m.callbacks[type].empty?
+          }
+        }
+      end
+
+      # Helper to handle node closed event
+      def handle_node_closed(node, registry, args={})
+        # delete callback on connection events
+# FIXME skip if closed event is already registered for this node
+        node.on(:closed){ |node|
+          remove_callbacks_for registry,
+                               args.merge({
+                                 :endpoint_id =>
+                                   node.message_headers['source_node']
+                               })
+        }
+      end
     end
   end
 end
