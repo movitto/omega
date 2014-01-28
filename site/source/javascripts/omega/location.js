@@ -6,12 +6,7 @@
 
 Omega.Location = function(parameters){
   $.extend(this, parameters);
-
-  // XXX currently no js obj for movement strategy
-  if(this.movement_strategy && this.movement_strategy.data){
-    $.extend(this.movement_strategy, this.movement_strategy.data);
-    //delete this.movement_strategy['data'];
-  }
+  this.update_ms();
 };
 
 Omega.Location.prototype = {
@@ -29,6 +24,18 @@ Omega.Location.prototype = {
             orientation_z : this.orientation_z,
             parent_id : this.parent_id,
             movement_strategy : this.movement_strategy};
+  },
+
+  update_ms : function(ms){
+    if(ms != null){
+      this.movement_strategy = ms;
+    }
+
+    // XXX currently no js obj for movement strategy
+    if(this.movement_strategy && this.movement_strategy.data){
+      $.extend(this.movement_strategy, this.movement_strategy.data);
+      delete this.movement_strategy['data'];
+    }
   },
 
   orientation : function(){
