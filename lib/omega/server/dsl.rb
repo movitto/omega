@@ -261,7 +261,7 @@ module Omega
       def remove_callbacks_for(registry_entities, criteria={})
         # allow user to specify registry or entities list
         if registry_entities.kind_of?(Omega::Server::Registry)
-          registry.safe_exec { |entities|
+          registry_entities.safe_exec { |entities|
             remove_callbacks_for(entities, criteria)
           }
       
