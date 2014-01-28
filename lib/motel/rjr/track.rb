@@ -143,8 +143,11 @@ track_handler = proc { |*args|
   }
 
   # delete callback on connection events
-  handle_node_closed @rjr_node, registry,
-                     :class => Motel::Location
+  handle_node_closed(@rjr_node) { |node|
+    remove_callbacks_for registry,
+      :class       => Motel::Location,
+      :endpoint_id => node.message_headers['source_node']
+  }
 
   # delete old callback and register new
   registry.safe_exec { |entities|
@@ -152,7 +155,7 @@ track_handler = proc { |*args|
     remove_callbacks_for entities, :class       => Motel::Location,
                                    :id          => rloc.id,
                                    :type        => cb.event_type,
-                                   :endpoint_id => cb.endpoint_id
+                                   :endpoint    => cb.endpoint_id
     rloc.callbacks[cb.event_type] << cb
   }
 
@@ -188,13 +191,13 @@ remove_callbacks = proc { |*args|
   if cb_type.nil?
     remove_callbacks_for registry, :class       => Motel::Location,
                                    :id          => loc.id,
-                                   :endpoint_id => source_node
+                                   :endpoint    => source_node
 
   else
     remove_callbacks_for registry, :class       => Motel::Location,
                                    :id          => loc.id,
                                    :type        => cb_type.intern,
-                                   :endpoint_id => source_node
+                                   :endpoint    => source_node
 
   end
 

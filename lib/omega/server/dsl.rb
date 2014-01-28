@@ -254,9 +254,13 @@ module Omega
       #   - id : id of entity to remove callbacks for
       #   - type : event type to match
       #   - endpoint : rjr endpoint to match
+      #
+      # XXX Supports both cases where callbacks is a hash or array
+      # for different subsystems, these probably should be consolidated
+      # at some point
       def remove_callbacks_for(registry_entities, criteria={})
         # allow user to specify registry or entities list
-        if registry_entities.is_a?(Motel::Registry)
+        if registry_entities.kind_of?(Omega::Server::Registry)
           registry.safe_exec { |entities|
             remove_callbacks_for(entities, criteria)
           }
@@ -278,43 +282,44 @@ module Omega
         } if criteria.has_key?(:id)
       
         matched.each { |m|
-          m.callbacks.each { |type, cbs|
-            to_remove = []
+          to_remove = []
+          (m.callbacks.is_a?(Hash) ? m.callbacks.values.flatten :
+                                     m.callbacks).each     { |cb|
       
             # skip if cb event type is specified and does not match
-            if !criteria.has_key?(:type) || criteria[:type] == type
-              cbs.each { |cb|
-      
-                # skip if cb endpoint id is specified and does not match
-                if !criteria.has_key?(:endpoint_id) ||
-                   criteria[:endpoint_id] == cb.endpoint_id
-                  to_remove << cb
-                end
-              }
+              # skip if cb endpoint id is specified and does not match
+            if (!criteria.has_key?(:endpoint)           ||
+                 criteria[:endpoint] == cb.endpoint_id) &&
+               (!criteria.has_key?(:type)               ||
+                 criteria[:type] == cb.event_type)
+              to_remove << cb
             end
+          }
       
-            # remove flagged callbacks, compress array
-            to_remove.each { |cb| m.callbacks[type].delete(cb) }
-            m.callbacks[type].compact!
+          # remove flagged callbacks, compress array
+          to_remove.each { |cb|
+            m.callbacks.is_a?(Hash) ? m.callbacks[cb.event_type].delete(cb) :
+                                      m.callbacks.delete(cb)
           }
       
           # compress callback list
-          m.callbacks.keys.each { |type|
-            m.callbacks.delete(type) if m.callbacks[type].empty?
-          }
+          if m.callbacks.is_a?(Hash)
+            m.callbacks.keys.each { |type|
+              m.callbacks[type].compact!
+              m.callbacks.delete(type) if m.callbacks[type].empty?
+            }
+          else
+            m.callbacks.compact!
+          end
         }
       end
 
       # Helper to handle node closed event
-      def handle_node_closed(node, registry, args={})
+      def handle_node_closed(node, &cb)
         # delete callback on connection events
 # FIXME skip if closed event is already registered for this node
         node.on(:closed){ |node|
-          remove_callbacks_for registry,
-                               args.merge({
-                                 :endpoint_id =>
-                                   node.message_headers['source_node']
-                               })
+          cb.call(node)
         }
       end
     end

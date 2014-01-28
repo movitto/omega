@@ -128,11 +128,10 @@ def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
       err = true
 
     ensure
-      registry.safe_exec{ |entities|
-        rentity = entities.find &with_id(entity.id)
-        rentity.remove_callbacks(:event_type  => event_type,
-                                 :endpoint_id => endpoint_id)
-      } if err
+      remove_callbacks_for registry, :class    => entity.class,
+                                     :id       => entity.id,
+                                     :type     => event_type,
+                                     :endpoint => endpoint_id   if err
     end
   }
 
@@ -140,8 +139,10 @@ def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
     rentity = entities.find &with_id(entity_id)
 
     # important need to atomically delete callbacks w/ same endpoint_id:
-    rentity.remove_callbacks(:event_type  => cb.event_type,
-                             :endpoint_id => cb.endpoint_id)
+    remove_callbacks_for entities, :class    => rentity.class,
+                                   :id       => rentity.id,
+                                   :type     => cb.event_type,
+                                   :endpoint => cb.endpoint_id
     rentity.callbacks << cb
   }
 
@@ -168,9 +169,10 @@ subscribe_to = proc { |*args|
     event_type = args.shift
     subscribe_to_subsystem_event event_type, endpoint_id, *args
 
-    @rjr_node.on(:closed){ |node|
+    handle_node_closed(@rjr_node) { |node|
+      source_node = node.message_headers['source_node']
       delete_event_handler_for :event_type  => event_type,
-                               :endpoint_id => endpoint_id,
+                               :endpoint_id => source_node,
                                :registry    => registry
     }
 
@@ -182,12 +184,11 @@ subscribe_to = proc { |*args|
 
     subscribe_to_entity_event entity_id, event_type, endpoint_id
 
-    @rjr_node.on(:closed){ |node|
-      registry.safe_exec{ |entities|
-        rentity = entities.find &with_id(entity_id)
-        rentity.remove_callbacks(:event_type  => event_type,
-                                 :endpoint_id => endpoint_id)
-      }
+    handle_node_closed(@rjr_node) { |node|
+      source_node = node.message_headers['source_node']
+      remove_callbacks_for registry, :id       => entity_id,
+                                     :type     => event_type,
+                                     :endpoint => source_node
     }
   end
 
@@ -222,10 +223,9 @@ remove_callbacks = proc { |*args|
        {:privilege => 'view', :entity => 'manufactured_entities'}]
 
     # remove callbacks from registry entity
-    registry.safe_exec { |entities|
-      rentity = entities.find &with_id(entity_id)
-      rentity.remove_callbacks(:endpoint_id => source_node)
-    }
+    remove_callbacks_for registry, :id       => entity_id,
+                                   :class    => entity.class,
+                                   :endpoint => source_node
   end
 
   # return nil

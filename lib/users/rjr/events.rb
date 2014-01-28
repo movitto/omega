@@ -53,9 +53,10 @@ subscribe_to = proc { |event_type|
   end
 
   # delete callback on connection events
-  @rjr_node.on(:closed){ |node|
+  handle_node_closed(@rjr_node) { |node|
+    source_node = node.message_headers['source_node']
     delete_event_handler_for :event_type  => event_type,
-                             :endpoint_id => handler.endpoint_id,
+                             :endpoint_id => source_node,
                              :registry    => registry
   }
 
