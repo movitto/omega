@@ -145,8 +145,8 @@ track_handler = proc { |*args|
   # delete callback on connection events
   handle_node_closed(@rjr_node) { |node|
     remove_callbacks_for registry,
-      :class       => Motel::Location,
-      :endpoint_id => node.message_headers['source_node']
+      :class    => Motel::Location,
+      :endpoint => node.message_headers['source_node']
   }
 
   # delete old callback and register new
