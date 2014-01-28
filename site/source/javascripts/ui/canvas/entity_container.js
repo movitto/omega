@@ -76,6 +76,10 @@ Omega.UI.CanvasEntityContainer.prototype = {
 
   refresh : function(){
     if(this.entity){
+      /// refresh entity from page if we can
+      if(this.canvas && this.canvas.page)
+        this.entity = this.canvas.page.entity(this.entity.id);
+
       /// reshow entity
       this.show(this.entity, true);
     }
