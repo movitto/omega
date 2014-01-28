@@ -52,6 +52,7 @@ Omega.ShipCommands = {
     var loc   = '@ ' + this.location.to_s();
     var orien = '> ' + this.location.orientation_s();
     var hp    = 'HP: ' + this.hp;
+    /// TODO also ship.type
 
     var resources = ['Resources:'];
     for(var r = 0; r < this.resources.length; r++){
