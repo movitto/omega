@@ -176,6 +176,7 @@ Omega.UI.CommandTracker.prototype = {
   },
 
   _callbacks_destroyed_by : function(evnt, event_args){
+    var _this    = this;
     var defender = event_args[1];
     var attacker = event_args[2];
 
@@ -195,9 +196,14 @@ Omega.UI.CommandTracker.prototype = {
     }
 
     if(this.page.canvas.is_root(pdefender.parent_id)){
-      /// allow defender to tidy up gfx b4 removing from scene:
-      pdefender.update_gfx();
-      this.page.canvas.remove(pdefender);
+      this.page.canvas.reload(pdefender, function(){
+        /// start destruction sequence / register cb
+        pdefender.trigger_destruction(function(){
+          /// allow defender to tidy up gfx b4 removing from scene:
+          pdefender.update_gfx();
+          _this.page.canvas.remove(pdefender);
+        });
+      });
     }
   },
 

@@ -26,6 +26,7 @@ Omega.load_ship_gfx = function(config, type, event_cb){
   gfx.trajectory1   = new Omega.ShipTrajectory(0x0000FF);
   gfx.trajectory2   = new Omega.ShipTrajectory(0x00FF00);
   gfx.hp_bar        = new Omega.ShipHpBar();
+  gfx.destruction   = new Omega.ShipDestructionEffect(config, event_cb);
 };
 
 Omega.init_ship_gfx = function(config, ship, event_cb){
@@ -77,6 +78,9 @@ Omega.init_ship_gfx = function(config, ship, event_cb){
   for(var c = 0; c < ship.hp_bar.components.length; c++)
     ship.components.push(ship.hp_bar.components[c]);
 
+  /// central destruction particle emitter bound to ship instance
+  ship.destruction = Omega.Ship.gfx[ship.type].destruction.for_ship(ship);
+
   ship.update_gfx();
 }
 
@@ -92,10 +96,10 @@ Omega.cp_ship_gfx = function(from, to){
   to.trajectory1       = from.trajectory1;
   to.trajectory2       = from.trajectory2;
   to.hp_bar            = from.hp_bar;
+  to.destruction       = from.destruction;
 }
 
 Omega.update_ship_gfx = function(ship){
-  /// TODO remove components if hp == 0
   ship._update_mesh();
   ship._update_highlight_effects();
   ship._update_lamps();
@@ -109,9 +113,24 @@ Omega.update_ship_gfx = function(ship){
 
 ///////////////////////////////////////// initializers
 
-Omega.load_ship_particles = function(config, event_cb){
-  var particle_path     = config.url_prefix + config.images_path + '/particle.png';
-  return THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
+Omega.load_ship_particles = function(config, event_cb, particles_id){
+  if(!particles_id) particles_id = 'default';
+  if(typeof(Omega.Ship.particles)     === 'undefined') Omega.Ship.particles = {};
+  if(typeof(Omega.Ship.particles[particles_id]) !== 'undefined')
+    return Omega.Ship.particles[particles_id];
+
+  var particle_path = config.url_prefix + config.images_path;
+  switch(particles_id){
+    case 'destruction':
+      particle_path += '/smokeparticle.png';
+      break;
+    default:
+      particle_path += '/particle.png';
+  }
+
+  Omega.Ship.particles[particles_id] =
+    THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
+  return Omega.Ship.particles[particles_id];
 };
 
 Omega.ShipMeshMaterial = function(config, type, event_cb){
@@ -285,6 +304,54 @@ Omega.ShipHpBar = function(){
                   [ len/2, 100, 0]]]});
   $.extend(this, bar);
 };
+
+Omega.ShipDestructionEffect = function(config, event_cb){
+  var particle_texture =
+    Omega.load_ship_particles(config, event_cb, 'destruction');
+
+  var emitterSettings = {
+    type:             'sphere',
+    positionSpread:   new THREE.Vector3(10, 10, 10),
+    radius:              1,
+    speed:             100,
+    sizeStart:          30,
+    sizeStartSpread:    30,
+    sizeEnd:             0,
+    opacityStart:        1,
+    opacityEnd:          0,
+    colorStart:       new THREE.Color('yellow'),
+    colorStartSpread: new THREE.Vector3(0, 10, 0),
+    colorEnd:         new THREE.Color('red'),
+    particleCount:    1000,
+    alive:               0,
+    duration:         0.05
+  };
+
+  this.particles =
+    new ShaderParticleGroup({
+      texture:  particle_texture,
+      maxAge:   0.5,
+      blending: THREE.AdditiveBlending
+    });
+
+  /// TODO make sure to add enough emitters to pool to
+  this.particles.addPool(500, emitterSettings, false);
+
+  /// used to update particle effects
+  this.particle_clock = new THREE.Clock();
+};
+
+Omega.ShipDestructionEffect.prototype = {
+  /// Return this destruction effect instance w/ additional per-ship metadata
+  for_ship : function(ship){
+    var ndestruct   = $.extend({}, this);
+
+    /// used to track when to emit new explosions
+    ndestruct.clock = new THREE.Clock();
+
+    return ndestruct;
+  }
+}
 
 ///////////////////////////////////////// update methods
 
@@ -467,6 +534,8 @@ Omega.ShipGfxUpdaters = {
 
 /// Also gets mixed into the Ship Module
 Omega.ShipEffectRunner = {
+  /// TODO split out internal run_effect helpers,
+  /// eg _run_lamp_effects, _run_trail_effects, etc
   run_effects : function(){
     // animate lamps
     for(var l = 0; l < this.lamps.length; l++){
@@ -552,5 +621,42 @@ Omega.ShipEffectRunner = {
       }
       this.attack_vector.geometry.verticesNeedUpdate = true;
     }
+
+    /// animate destruction effects
+    if(this.being_destroyed){
+      if(this.destruction.elapsed_effect * 1000 > 750){
+        // rand distance within certain max area around ship
+        var area = 50; // TODO parameterize size
+        var px = this.location.x + (area * Math.random() - (area/2));
+        var py = this.location.y + (area * Math.random() - (area/2));
+        var pz = this.location.z + (area * Math.random() - (area/2));
+
+        var current_pos = new THREE.Vector3(px, py, pz);
+        this.destruction.particles.triggerPoolEmitter(1, current_pos);
+
+        this.destruction.elapsed_effect  = 0;
+        this.destruction.ticks -= 1;
+        if(this.destruction.ticks == 0){
+          this.being_destroyed = false;
+          /// TODO remove destruction particles from components?
+          if(this.destruction.cb)
+            this.destruction.cb();
+        }
+
+      }else{
+        this.destruction.elapsed_effect += this.destruction.clock.getDelta();
+      }
+    }
+
+    this.destruction.particles.tick(this.destruction.particle_clock.getDelta());
+  },
+
+  trigger_destruction : function(destruction_cb){
+    this.components.push(this.destruction.particles.mesh);
+
+    this.destruction.elapsed_effect = 0;
+    this.destruction.ticks = 10;
+    this.destruction.cb    = destruction_cb;
+    this.being_destroyed   = true;
   }
 }
