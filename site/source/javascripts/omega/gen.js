@@ -98,5 +98,17 @@ Omega.Gen = {
               speed : 100, dx : 1, dy : 0, dz : 0};
     $.extend(ms, opts);
     return ms;
+  },
+
+  solar_system : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'system' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+
+    return new Omega.SolarSystem(opts);
   }
 };
