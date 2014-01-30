@@ -38,6 +38,19 @@ Omega.Location.prototype = {
     }
   },
 
+  set : function(x,y,z){
+    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    return this;
+  },
+
   orientation : function(){
     return [this.orientation_x, this.orientation_y, this.orientation_z];
   },
