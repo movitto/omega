@@ -97,6 +97,7 @@ Omega.UI.CanvasTracker = {
 
     if(!this.canvas.controls.entities_list.has(entity.id)){
       var item = {id: entity.id, text: entity.id, data: entity};
+      /// TODO skip is not alive?
       this.canvas.controls.entities_list.add(item);
     }
 
