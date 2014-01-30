@@ -150,8 +150,10 @@ accessible administrative methods") do
     RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
     #RJR::Logger.highlight proc { |m| m =~ /.*text to hightlight.*/}
 
+  else
     # Keep requests around indefinetly when in debugging mode
     multi_node.dispatcher.keep_requests = true
+
   end
 
   # get logging filters from config
