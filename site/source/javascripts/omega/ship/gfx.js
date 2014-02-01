@@ -15,11 +15,9 @@
 //= require "omega/ship/hp_bar"
 //= require "omega/ship/destruction"
 
-/// TODO implement this mixin pattern in other js entities
-
 // Ship GFX Mixin
 Omega.ShipGfx = {
-  debug_gfx : true,
+  debug_gfx : false,
 
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
