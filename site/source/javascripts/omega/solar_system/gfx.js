@@ -23,6 +23,7 @@ Omega.load_solar_system_gfx = function(config, event_cb){
 Omega.init_solar_system_gfx = function(config, solar_system, event_cb){
   solar_system.mesh = Omega.SolarSystem.gfx.mesh.clone();
   solar_system.mesh.omega_entity = solar_system;
+  solar_system.mesh.omega_obj = solar_system.mesh;
   if(solar_system.location)
     solar_system.mesh.position.set(solar_system.location.x,
                                    solar_system.location.y,

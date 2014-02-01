@@ -30,6 +30,7 @@ Omega.init_station_gfx = function(config, station, event_cb){
 
   Omega.load_station_mesh(station.type, function(mesh){
     station.mesh = mesh;
+    station.mesh.omega_obj = station.mesh;
     station.mesh.omega_entity = station;
     station.components.push(station.mesh);
     station.update_gfx();
@@ -38,6 +39,7 @@ Omega.init_station_gfx = function(config, station, event_cb){
 
   station.highlight = Omega.Station.gfx[station.type].highlight.clone();
   station.highlight.omega_entity = station;
+  station.highlight.omega_obj = station.highlight;
   station.components.push(station.highlight);
 
   station.lamps = [];

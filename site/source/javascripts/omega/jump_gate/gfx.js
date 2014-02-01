@@ -35,6 +35,7 @@ Omega.init_jump_gate_gfx = function(config, jump_gate, event_cb){
                               jump_gate.location.y,
                               jump_gate.location.z));
     jump_gate.mesh.omega_entity = jump_gate;
+    jump_gate.mesh.omega_obj = jump_gate.mesh;
     jump_gate.components.push(jump_gate.mesh);
     jump_gate.loaded_resource('mesh', jump_gate.mesh);
   });

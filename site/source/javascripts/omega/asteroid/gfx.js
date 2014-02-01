@@ -21,6 +21,7 @@ Omega.init_asteroid_gfx = function(config, asteroid, event_cb){
   Omega.load_asteroid_mesh(function(mesh){
     asteroid.mesh = mesh;
     asteroid.mesh.omega_entity = asteroid;
+    asteroid.mesh.omega_obj = asteroid.mesh;
     asteroid.components = [asteroid.mesh];
     asteroid.loaded_resource('mesh',  asteroid.mesh);
     if(asteroid.location)
