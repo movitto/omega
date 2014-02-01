@@ -72,5 +72,50 @@ Omega.PlanetOrbitHelpers = {
                                          this.rot_axis.axis[2]);
 
     this.orbit = Omega.Math.elliptical_path(ms);
+  },
+
+  _current_orbit_angle : function(){
+    var n = Omega.Math.rot(this.location.x-this.cx,
+                           this.location.y-this.cy,
+                           this.location.z-this.cz,
+                             - this.rot_axis.angle,
+                             this.rot_axis.axis[0],
+                             this.rot_axis.axis[1],
+                             this.rot_axis.axis[2])
+
+        n = Omega.Math.rot(n[0], n[1], n[2],
+                        -this.rot_plane.angle,
+                            this.rot_plane.axis[0],
+                            this.rot_plane.axis[1],
+                            this.rot_plane.axis[2]);
+
+    var x = n[0] ; var y = n[1]; /// z should == 0
+
+    // calc current angle (x = a*Math.cos(i))
+    var angle = Math.acos(x/this.a)
+    if(y < 0) angle = 2 * Math.PI - angle;
+
+    return angle;
+  },
+
+  _set_orbit_angle : function(new_angle){
+    var x = this.a * Math.cos(new_angle);
+    var y = this.b * Math.sin(new_angle);
+    var n = Omega.Math.rot(x, y, 0,
+                  this.rot_plane.angle,
+                this.rot_plane.axis[0],
+                this.rot_plane.axis[1],
+                this.rot_plane.axis[2])
+
+
+        n = Omega.Math.rot(n[0], n[1], n[2],
+                        this.rot_axis.angle,
+                      this.rot_axis.axis[0],
+                      this.rot_axis.axis[1],
+                      this.rot_axis.axis[2]);
+
+    this.location.x = n[0] + this.cx;
+    this.location.y = n[1] + this.cy;
+    this.location.z = n[2] + this.cz;
   }
 };

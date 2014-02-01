@@ -32,36 +32,11 @@ Omega.Planet.prototype = {
             size       : this.size};
   },
 
-  /// TODO: centralize number of planet textures
-  _num_textures : 4,
-
   colori : function(){
     return parseInt('0x' + this.color) % this._num_textures;
   },
-
-  async_gfx : 1,
-
-  load_gfx : function(config, event_cb){
-    var colori = this.colori();
-
-    if(typeof(Omega.Planet.gfx) === 'undefined') Omega.Planet.gfx = {};
-    if(typeof(Omega.Planet.gfx[colori]) !== 'undefined') return;
-    Omega.load_planet_gfx(config, colori, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_planet_gfx(config, this, event_cb);
-  },
-
-  update_gfx : function(){
-    if(!this.location) return;
-    Omega.update_planet_gfx(this);
-  }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Planet.prototype );
-$.extend(Omega.Planet.prototype, Omega.PlanetEffectRunner);
+$.extend(Omega.Planet.prototype, Omega.PlanetGfx);
 $.extend(Omega.Planet.prototype, Omega.PlanetOrbitHelpers);
-$.extend(Omega.Planet.prototype, Omega.PlanetGfxUpdaters);

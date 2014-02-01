@@ -4,137 +4,67 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-///////////////////////////////////////// high level operations
+//= require "omega/planet/mesh"
 
-Omega.load_planet_gfx = function(config, color, event_cb){
-  var gfx = {};
-  gfx.mesh = new Omega.PlanetMesh(config, color, event_cb);
-  Omega.Planet.gfx[color] = gfx;
-};
+// Planet Gfx Mixin
 
-Omega.init_planet_gfx = function(config, planet, event_cb){
-  var color = planet.colori();
-  planet.mesh = Omega.Planet.gfx[color].mesh.clone();
-  planet.mesh.omega_entity = planet;
-  planet.mesh.material = new Omega.load_planet_material(config, color, event_cb);
-  planet.update_gfx();
+Omega.PlanetGfx = {
+  /// TODO: centralize number of planet textures / move configurable
+  _num_textures : 4,
 
-  planet._calc_orbit();
-  planet.orbit_line = new Omega.PlanetOrbitLine(planet.orbit);
+  async_gfx : 1,
 
-  planet.components = [planet.mesh, planet.orbit_line.line];
-};
+  load_gfx : function(config, event_cb){
+    var colori = this.colori();
 
-Omega.update_planet_gfx = function(planet){
-  planet._update_mesh();
-}
+    if(typeof(Omega.Planet.gfx) === 'undefined') Omega.Planet.gfx = {};
+    if(typeof(Omega.Planet.gfx[colori]) !== 'undefined') return;
+    var gfx = {};
 
-///////////////////////////////////////// initializers
+    gfx.mesh = new Omega.PlanetMesh(config, colori, event_cb);
+    Omega.Planet.gfx[colori] = gfx;
+  },
 
-Omega.load_planet_material = function(config, color, event_cb){
-  var texture = config.resources['planet' + color].material;
-  var path    = config.url_prefix + config.images_path + texture;
-  var sphere_texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
-  return new THREE.MeshLambertMaterial({map: sphere_texture});
-};
+  init_gfx : function(config, event_cb){
+    if(this.components.length > 0) return; /// return if already initialized
+    this.load_gfx(config, event_cb);
 
-Omega.PlanetMesh = function(config, color, event_cb){
-  var radius   = 75,
-      segments = 32,
-      rings    = 32;
-  var geo = new THREE.SphereGeometry(radius, segments, rings);
-  var mat = Omega.load_planet_material(config, color, event_cb);
-  $.extend(this, new THREE.Mesh(geo, mat));
-};
+    var color = this.colori();
+    this.mesh = Omega.Planet.gfx[color].mesh.clone();
+    this.mesh.omega_entity = this;
+    this.mesh.material =
+      new Omega.PlanetMaterial.load(config, color, event_cb);
+    this.update_gfx();
 
-///////////////////////////////////////// update methods
+    this._calc_orbit();
+    this.orbit_line = new Omega.PlanetOrbitLine(this.orbit);
 
-/// This module gets mixed into Planet
-Omega.PlanetGfxUpdaters = {
-  _update_mesh : function(){
-    if(!this.mesh) return;
-    this.mesh.position.set(this.location.x,
-                           this.location.y,
-                           this.location.z);
-    if(this.spin_angle){
-      var rot = new THREE.Matrix4();
+    this.components = [this.mesh.tmesh, this.orbit_line.line];
+  },
 
-      /// XXX intentionally swapping axis y/z here,
-      /// We should generate a unique orientation orthogonal to
-      /// orbital axis (or at a slight angle off that) on planet creation
-      rot.makeRotationAxis(new THREE.Vector3(this.location.orientation_x,
-                                             this.location.orientation_z,
-                                             this.location.orientation_y).normalize(),
-                           this.spin_angle);
-      //this.mesh.matrix.multiply(rot);
-      rot.multiply(this.mesh.matrix);
-      this.mesh.matrix = rot;
-      this.mesh.rotation.setFromRotationMatrix(this.mesh.matrix);
-    }
-  }
-}
+  update_gfx : function(){
+    if(!this.location) return;
+    if(this.mesh) this.mesh.update();
+  },
 
-///////////////////////////////////////// other
-
-/// Gets mixed into the Planet Module
-Omega.PlanetEffectRunner = {
   run_effects : function(){
     var ms   = this.location.movement_strategy;
     var curr = new Date();
     if(!this.last_moved){
       this.last_moved = curr;
-      this.spin_angle = 0;
       return;
     }
 
     var elapsed = curr - this.last_moved;
     var dist = ms.speed * elapsed / 1000;
 
-    var n = Omega.Math.rot(this.location.x-this.cx,
-                           this.location.y-this.cy,
-                           this.location.z-this.cz,
-                             - this.rot_axis.angle,
-                             this.rot_axis.axis[0],
-                             this.rot_axis.axis[1],
-                             this.rot_axis.axis[2])
-
-        n = Omega.Math.rot(n[0], n[1], n[2],
-                        -this.rot_plane.angle,
-                            this.rot_plane.axis[0],
-                            this.rot_plane.axis[1],
-                            this.rot_plane.axis[2]);
-
-    var x = n[0] ; var y = n[1]; /// z should == 0
-
-    // calc current angle (x = a*Math.cos(i))
-    var angle = Math.acos(x/this.a)
-    if(y < 0) angle = 2 * Math.PI - angle;
-
-    // calculate new angle
+    // get current angle, update, set
+    var angle = this._current_orbit_angle();
     var new_angle = dist + angle;
+    this._set_orbit_angle(new_angle);
 
-    // calculate new position
-    var x = this.a * Math.cos(new_angle);
-    var y = this.b * Math.sin(new_angle);
-    var n = Omega.Math.rot(x, y, 0,
-                  this.rot_plane.angle,
-                this.rot_plane.axis[0],
-                this.rot_plane.axis[1],
-                this.rot_plane.axis[2])
-
-
-        n = Omega.Math.rot(n[0], n[1], n[2], 
-                        this.rot_axis.angle,
-                      this.rot_axis.axis[0],
-                      this.rot_axis.axis[1],
-                      this.rot_axis.axis[2]);
-
-    this.location.x = n[0] + this.cx;
-    this.location.y = n[1] + this.cy;
-    this.location.z = n[2] + this.cz;
-
-    this.spin_angle += elapsed / 500000;
-    if(this.spin_angle > 2*Math.PI) this.spin_angle = 0;
+    // spin the planet
+    this.mesh.spin(elapsed / 500000);
 
     this.update_gfx();
     this.last_moved = curr;
