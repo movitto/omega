@@ -33,7 +33,7 @@ Omega.ShipLamps.prototype = {
     var slamps = new Omega.ShipLamps();
     for(var l = 0; l < this.olamps.length; l++){
       var lamp = this.olamps[l].clone();
-      slamps.olamps << lamp;
+      slamps.olamps.push(lamp);
     }
     return slamps;
   },
@@ -43,7 +43,7 @@ Omega.ShipLamps.prototype = {
     var loc    = entity.location;
 
     for(var l = 0; l < this.olamps.length; l++){
-      var lamp = this.lamps[l];
+      var lamp = this.olamps[l];
       lamp.set_position(loc.x, loc.y, loc.z);
       Omega.temp_translate(lamp.component, loc, function(tlamp){
         Omega.rotate_position(tlamp, loc.rotation_matrix());

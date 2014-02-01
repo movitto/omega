@@ -16,7 +16,7 @@ Omega.ShipTrails = function(config, type, event_cb){
 
 Omega.ShipTrails.prototype = {
   trail_props : {
-    plane : 3, lifespan : 20
+    plane : 3, lifespan : 100
   },
 
   init_trails : function(config, type, event_cb){
@@ -39,7 +39,7 @@ Omega.ShipTrails.prototype = {
         for(var i = 0; i < plane; ++i){
           for(var j = 0; j < plane; ++j){
             var pv = new THREE.Vector3(i, j, 0);
-            pv.velocity = Math.random();
+            pv.velocity = Math.random() / 3;
             pv.lifespan = Math.random() * lifespan;
             if(i >= plane / 4 && i <= 3 * plane / 4 &&
                j >= plane / 4 && j <= 3 * plane / 4 ){
@@ -65,7 +65,7 @@ Omega.ShipTrails.prototype = {
     for(var t = 0; t < this.otrails.length; t++){
       var trail = this.otrails[t].clone();
       trail.base_position = this.otrails[t].base_position;
-      strails.otrails << trail;
+      strails.otrails.push(trail);
     }
     return strails;
   },
@@ -78,13 +78,13 @@ Omega.ShipTrails.prototype = {
     for(var t = 0; t < this.otrails.length; t++){
       var trail = this.otrails[t];
 
-      var bp  = trails.base_position;
-      var bpv = new THREE.Vector3(bpv[0], bpv[1], bpv[2]);
+      var bp  = trail.base_position;
+      var bpv = new THREE.Vector3(bp[0], bp[1], bp[2]);
 
       trail.position.set(loc.x, loc.y, loc.z);
       trail.position.add(bpv);
 
-      if(entity.mesh) Omega.set_rotation(trail, this.mesh.base_rotation);
+      if(entity.mesh) Omega.set_rotation(trail, entity.mesh.base_rotation);
 
       Omega.set_rotation(trail, loc.rotation_matrix());
       Omega.temp_translate(trail, loc, function(ttrail){

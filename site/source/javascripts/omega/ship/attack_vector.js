@@ -26,7 +26,8 @@ Omega.ShipAttackVector.prototype = {
         color    : 0xFF0000,
         size     : 20,
         map      : particle_texture,
-        blending : THREE.AdditiveBlending, transparent: true
+        blending : THREE.AdditiveBlending,
+        transparent: true
       });
 
     var attack_geo = new THREE.Geometry();
@@ -79,8 +80,10 @@ Omega.ShipAttackVector.prototype = {
 
     for(var p = 0; p < this.vector.geometry.vertices.length; p++){
       var vertex = this.vector.geometry.vertices[p];
-      /// 1/20 chance to start moving vertex
-      if(Math.floor( Math.random() * 20 ) == 1)
+
+      /// 1/750 chance to start moving vertex
+      /// increase chance to generate more moving vertices per sec
+      if(Math.floor( Math.random() * 750 ) == 1)
         vertex.moving = true;
 
       if(vertex.moving) vertex.add(this.scale_vector());

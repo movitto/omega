@@ -70,7 +70,7 @@ Omega.ShipGfx = {
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
-    for(var l = 0; l < this.lamps.olamps.size; l++){
+    for(var l = 0; l < this.lamps.olamps.length; l++){
       this.lamps.olamps[l].init_gfx();
       this.components.push(this.lamps.olamps[l].component);
     }
@@ -144,7 +144,8 @@ Omega.ShipGfx = {
   },
 
   _has_trails : function(){
-    return this.components.indexOf(this.trails.otrials[0]) != -1;
+    return this.trails.otrails &&
+           this.components.indexOf(this.trails.otrails[0]) != -1;
   },
 
   _add_trails : function(){

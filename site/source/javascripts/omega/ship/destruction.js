@@ -60,7 +60,7 @@ Omega.ShipDestructionEffect.prototype = {
 
     var entity = this.omega_entity;
     var loc    = entity.location;
-    if(!entity.being_destroyed) return;
+    if(!this.being_destroyed) return;
 
     if(this.elapsed_effect * 1000 < 750){
       this.elapsed_effect += this.clock.getDelta();
@@ -78,7 +78,7 @@ Omega.ShipDestructionEffect.prototype = {
     this.elapsed_effect = 0;
     this.ticks -= 1;
     if(this.ticks == 0){
-      entity.being_destroyed = false;
+      this.being_destroyed = false;
       if(this.cb) this.cb();
     }
   },
