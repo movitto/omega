@@ -7,6 +7,8 @@
 //= require "ui/command_dialog"
 
 Omega.JumpGateCommands = {
+  has_details : true,
+
   retrieve_details : function(page, details_cb){
     var title = 'Jump Gate to ' + this.endpoint_title();
     var loc   = '@ ' + this.location.to_s();
