@@ -65,6 +65,19 @@ Omega.Location.prototype = {
                              this.orientation_z);
   },
 
+  set_orientation : function(x,y,z){
+    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    this.orientation_x = x;
+    this.orientation_y = y;
+    this.orientation_z = z;
+    return this;
+  },
+
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
