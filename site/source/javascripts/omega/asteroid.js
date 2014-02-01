@@ -27,41 +27,9 @@ Omega.Asteroid.prototype = {
             parent_id  : this.parent_id,
             color      : this.color,
             size       : this.size};
-  },
-
-  has_details : true,
-
-  _resources_retrieved : function(response, cb){
-    var resource_details = '';
-
-    if(response.error){
-      resource_details =
-        'Could not load resources: ' + response.error.message;
-    }else{
-      var result = response.result;
-      for(var r = 0; r < result.length; r++){
-        var resource = result[r];
-        var id   = 'Resource: ' + resource.id;
-        var text = resource.quantity + ' of ' + resource.material_id;
-        resource_details += id   + '<br/>' +
-                            text + '<br/>';
-      }
-    }
-
-    cb(resource_details);
-  },
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Asteroid.gfx) !== 'undefined') return;
-    Omega.load_asteroid_gfx(config, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_asteroid_gfx(config, this, event_cb);
   }
 };
 
 Omega.UI.ResourceLoader.prototype.apply(Omega.Asteroid.prototype);
 $.extend(Omega.Asteroid.prototype, Omega.AsteroidCommands);
+$.extend(Omega.Asteroid.prototype, Omega.AsteroidGfx);

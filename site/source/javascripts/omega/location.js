@@ -26,6 +26,10 @@ Omega.Location.prototype = {
             movement_strategy : this.movement_strategy};
   },
 
+  vector : function(){
+    return new THREE.Vector3(this.x, this.y, this.z);
+  },
+
   update_ms : function(ms){
     if(ms != null){
       this.movement_strategy = ms;
