@@ -78,7 +78,7 @@ Omega.ShipGfx = {
     for(var t = 0; t < this.trails.length; t++)
       this.components.push(this.trails.otrails[t])
 
-    this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.clone();
+    this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.for_ship(this);
     this.attack_vector.omega_entity = this;
 
     this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
@@ -176,15 +176,15 @@ Omega.ShipGfx = {
   },
 
   _has_attack_vector : function(){
-    return this.components.indexOf(this.attack_vector.vector) != -1;
+    return this.components.indexOf(this.attack_vector.particles.mesh) != -1;
   },
 
   _add_attack_vector : function(){
-    this.components.push(this.attack_vector.vector);
+    this.components.push(this.attack_vector.particles.mesh);
   },
 
   _rm_attack_vector : function(){
-    var i = this.components.indexOf(this.attack_vector.vector);
+    var i = this.components.indexOf(this.attack_vector.particles.mesh);
     this.components.splice(i, 1);
   },
 

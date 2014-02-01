@@ -4,104 +4,78 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO use ShaderParticleEmitter for this
+/// TODO explode particles on impact
 
 Omega.ShipAttackVector = function(config, event_cb){
-  if(config && event_cb)
-    this.vector = this.init_gfx(config, event_cb);
+  this.init_gfx(config, event_cb);
 };
 
 Omega.ShipAttackVector.prototype = {
-  clone : function(){
-    var avector = new Omega.ShipAttackVector();
-    avector.vector = this.vector.clone();
-    return avector;
+  particle_age         : 5,
+  particles_per_second : 0.5,
+  particle_size        : 30,
+
+  _particle_group : function(config, event_cb){
+    return new ShaderParticleGroup({
+      texture:    Omega.load_ship_particles(config, event_cb),
+      maxAge:     this.particle_age,
+      fadeFactor: 7500.0,
+      blending:   THREE.AdditiveBlending
+    });
+  },
+
+  _particle_emitter : function(){
+    return new ShaderParticleEmitter({
+      colorStart    : new THREE.Color(0xFF0000),
+      colorEnd      : new THREE.Color(0xFF0000),
+      sizeStart     : this.particle_size,
+      sizeEnd       : this.particle_size,
+      opacityStart  : 0.75,
+      opacityEnd    : 0.75,
+      velocity      : new THREE.Vector3(0, 0, 1),
+      particlesPerSecond : this.particles_per_second
+    });
   },
 
   init_gfx : function(config, event_cb){
-    var num_vertices     = 20;
-    var particle_texture = Omega.load_ship_particles(config, event_cb)
-    var attack_material  =
-      new THREE.ParticleBasicMaterial({
-        color    : 0xFF0000,
-        size     : 20,
-        map      : particle_texture,
-        blending : THREE.AdditiveBlending,
-        transparent: true
-      });
+    /// TODO shared emitter & group for all ships?
+    var group   = this._particle_group(config, event_cb);
+    var emitter = this._particle_emitter();
+    group.addEmitter(emitter);
+    this.particles = group;
+  },
 
-    var attack_geo = new THREE.Geometry();
-    for(var v = 0; v < num_vertices; v++)
-      attack_geo.vertices.push(new THREE.Vector3(0,0,0));
+  /// Return this destruction effect instance w/ additional per-ship metadata
+  for_ship : function(ship){
+    var nattack = $.extend({}, this);
 
-    var attack_vector =
-      new THREE.ParticleSystem(attack_geo, attack_material);
-    attack_vector.sortParticles = true;
+    /// used to track when to emit new explosions
+    nattack.clock = new THREE.Clock();
 
-    return attack_vector;
+    return nattack;
   },
 
   update : function(){
     var loc = this.omega_entity.location;
-    this.vector.position.set(loc.x, loc.y, loc.z);
-  },
-
-  set_scale : function(x,y,z){
-    this.scalex = x; this.scaley = y; this.scalez = z;
-  },
-
-  scale_vector : function(){
-    return new THREE.Vector3(this.scalex, this.scaley, this.scalez);
+    this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);
   },
 
   set_target : function(target){
     var entity = this.omega_entity;
     var loc    = entity.location;
+    var tloc   = target.location;
+    this.target_location = tloc;
 
-    /// update attack vector properties
-    var dist = loc.distance_from(target.location.x,
-                                 target.location.y,
-                                 target.location.z);
+    var dist = loc.distance_from(tloc.x, tloc.y, tloc.z);
+    var vel  = dist/this.particle_age;
+    var dx   = (loc.x - tloc.x) / dist * vel;
+    var dy   = (loc.y - tloc.y) / dist * vel;
+    var dz   = (loc.z - tloc.z) / dist * vel;
 
-    /// should be signed to preserve direction
-    var dx = target.location.x - loc.x;
-    var dy = target.location.y - loc.y;
-    var dz = target.location.z - loc.z;
-
-    /// 5 unit particle + 55 unit spacer
-    this.set_scale(60 / dist * dx,
-                   60 / dist * dy,
-                   60 / dist * dz);
+    this.particles.emitters[0].velocity.set(dx, dy, dz);
   },
 
   run_effects : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
-
-    for(var p = 0; p < this.vector.geometry.vertices.length; p++){
-      var vertex = this.vector.geometry.vertices[p];
-
-      /// 1/750 chance to start moving vertex
-      /// increase chance to generate more moving vertices per sec
-      if(Math.floor( Math.random() * 750 ) == 1)
-        vertex.moving = true;
-
-      if(vertex.moving) vertex.add(this.scale_vector());
-
-      var dx = loc.x + vertex.x;
-      var dy = loc.y + vertex.y;
-      var dz = loc.z + vertex.z;
-      var vertex_dist = entity.attacking.location.distance_from(dx, dy, dz);
-
-      /// FIXME if attack_vector.scale is large enough so that each
-      /// hop exceeds 60, this check may be missed alltogether &
-      /// particle will contiue to infinity
-      if(vertex_dist < 60){
-        vertex.set(0,0,0);
-        vertex.moving = false;
-      }
-    }
-
-    this.vector.geometry.verticesNeedUpdate = true;
+    this.particles.tick(this.clock.getDelta());
   }
 };
