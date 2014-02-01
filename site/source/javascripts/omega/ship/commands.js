@@ -5,6 +5,9 @@
  */
 
 Omega.ShipCommands = {
+  /// see omega/ship/commands.js for retrieve_details implementation
+  has_details : true,
+
   /// TODO only display cmds if entity is alive
   cmds : [
     { id      : 'ship_move_',

@@ -75,6 +75,11 @@ Omega.Location.prototype = {
                      Math.pow(this.z - z, 2));
   },
 
+  is_stopped : function(){
+    return (this.movement_strategy.json_class ==
+            'Motel::MovementStrategies::Stopped');
+  },
+
   /* Return boolean indicating if location is less than the
    * specified distance from the specified location
    */

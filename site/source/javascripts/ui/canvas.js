@@ -160,7 +160,8 @@ Omega.UI.Canvas.prototype = {
     var intersects = ray.intersectObjects(this.scene.getDescendants());
 
     if(intersects.length > 0){
-      var entity = intersects[0].object.omega_entity;
+      var obj = intersects[0].object.omega_obj;
+      var entity = obj ? obj.omega_entity : null;
       if(entity){
         switch (evnt.which){
           case 1: //Left click
