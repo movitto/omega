@@ -77,6 +77,8 @@ Omega.UI.Canvas.prototype = {
   //
   /// TODO simplify, currently don't need shader scene & bloom pass,
   ///      simplifies alot of things
+  //
+  /// TODO move into its own helper method
   setup : function(){
     var _this    = this;
 

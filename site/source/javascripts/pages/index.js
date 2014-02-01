@@ -61,7 +61,7 @@ Omega.Pages.Index.prototype = {
   /// cleanup index page operations
   unload : function(){
     this.unloading = true;
-    this.ws.close();
+    this.node.close();
   },
 
   start : function(){

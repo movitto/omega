@@ -108,7 +108,7 @@ Omega.UI.Loader = {
           }
         }
 
-        $.localStorage.set('omega.universe_id', stat_result.value);
+        $.localStorage.set('omega.universe_id', '"' + stat_result.value + '"');
         if(retrieval_cb) retrieval_cb(stat_result.value);
       });
   },

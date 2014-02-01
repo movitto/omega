@@ -47,8 +47,8 @@ Omega.UI.CanvasLamp.prototype = {
   run_effects : function(loc, percentage){
     if(!this.lamp) return;
 
-    /// 1/3 chance of skipping this update for variety
-    if(Math.floor(Math.random()*3) == 0) return;
+    /// 2/3 chance of skipping this update for variety
+    if(Math.floor(Math.random()*3) != 0) return;
     var c = this.lamp.material.color.getHex() - this.diff;
     if(c < 0x000000)
       this.lamp.material.color.setHex(this.color);
