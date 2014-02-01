@@ -76,35 +76,11 @@ Omega.SolarSystem.prototype = {
 
   clicked_in : function(canvas){
     canvas.set_scene_root(this);
-  },
-
-  text_opts : {
-    height        : 12,
-    width         : 5,
-    curveSegments : 2,
-    font          : 'helvetiker',
-    size          : 48
-  },
-
-  async_gfx : 2,
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.SolarSystem.gfx) !== 'undefined') return;
-    Omega.load_solar_system_gfx(config, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_solar_system_gfx(config, this, event_cb);
-  },
-
-  add_interconn : function(endpoint){
-    Omega.add_solar_system_interconn(this, endpoint);
   }
 };
 
-$.extend(Omega.SolarSystem.prototype, Omega.SolarSystemEffectRunner);
+$.extend(Omega.SolarSystem.prototype, Omega.SolarSystemGfx);
+$.extend(Omega.SolarSystem.prototype, Omega.SolarSystemInterconnHelpers);
 
 // return the solar system with the specified id
 Omega.SolarSystem.with_id = function(id, node, cb){
