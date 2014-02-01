@@ -23,17 +23,6 @@ Omega.Galaxy.prototype = {
   constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
-  mesh_props  : {
-    particle_size : 150,
-    eskew         : 1.2,
-    estart        : 1,
-    eend          : 2000,
-    einc          : 30,
-    itinc         : 0.15,
-    utinc         : 0.03,
-    max_z         : 150
-  },
-
   async_gfx : 1,
 
   toJSON : function(){
