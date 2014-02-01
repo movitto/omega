@@ -29,20 +29,8 @@ Omega.Star.prototype = {
             parent_id  : this.parent_id,
             color      : this.color,
             size       : this.size};
-  },
-
-  async_gfx : 2,
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Star.gfx) !== 'undefined') return;
-    Omega.load_star_gfx(config, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_star_gfx(config, this, event_cb);
   }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Star.prototype );
+$.extend(Omega.Star.prototype, Omega.StarGfx);
