@@ -59,6 +59,12 @@ Omega.Location.prototype = {
     return [this.orientation_x, this.orientation_y, this.orientation_z];
   },
 
+  orientation_vector : function(){
+    return new THREE.Vector3(this.orientation_x,
+                             this.orientation_y,
+                             this.orientation_z);
+  },
+
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
