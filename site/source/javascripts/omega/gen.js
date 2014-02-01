@@ -89,6 +89,7 @@ Omega.Gen = {
   station : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'station' + this.next_id();
+    if(!opts.type) opts.type = 'manufacturing';
     if(!opts.location)
       opts.location = new Omega.Location();
     if(!opts.location.x) opts.location.x = 0;

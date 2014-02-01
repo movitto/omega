@@ -53,56 +53,21 @@ Omega.Station.prototype = {
     }
   },
 
-  has_details : true,
-
   selected : function(page){
-    if(this.mesh) this.mesh.material.emissive.setHex(0xff0000);
+    if(this.mesh && this.mesh.tmesh)
+      this.mesh.tmesh.material.emissive.setHex(0xff0000);
   },
 
   unselected : function(page){
-    if(this.mesh) this.mesh.material.emissive.setHex(0);
-  },
-
-  highlight_props : {
-    x     :    0, y     : 200, z     : 0,
-    rot_x : 3.14, rot_y :   0, rot_z : 0
-  },
-
-  construction_bar_props : {
-    length: 200
-  },
-
-  async_gfx : 2,
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Station.gfx)            === 'undefined') Omega.Station.gfx = {};
-    if(typeof(Omega.Station.gfx[this.type]) !== 'undefined') return;
-    Omega.load_station_gfx(config, this.type, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_station_gfx(config, this, event_cb);
-  },
-
-  cp_gfx : function(from){
-    /// return if not initialized
-    if(!from.components || from.components.length == 0) return;
-    Omega.cp_station_gfx(from, this);
-  },
-
-  update_gfx : function(){
-    if(!this.location) return;
-    Omega.update_station_gfx(this);
-  },
+    if(this.mesh && this.mesh.tmesh)
+      this.mesh.tmesh.material.emissive.setHex(0);
+  }
 };
 
 Omega.UI.ResourceLoader.prototype.apply( Omega.Station.prototype );
 $.extend(Omega.Station.prototype, Omega.StationCommands);
 $.extend(Omega.Station.prototype, Omega.StationInteraction);
-$.extend(Omega.Station.prototype, Omega.StationGfxUpdaters);
-$.extend(Omega.Station.prototype, Omega.StationEffectRunner);
+$.extend(Omega.Station.prototype, Omega.StationGfx);
 ///
 
 // Return stations owned by the specified user
