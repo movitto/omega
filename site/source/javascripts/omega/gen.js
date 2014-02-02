@@ -122,5 +122,11 @@ Omega.Gen = {
     if(!opts.location.z) opts.location.z = 0;
 
     return new Omega.SolarSystem(opts);
+  },
+
+  /// emits a specified command via the cmd tracker
+  command : function(cmd_tracker, evnt, other_args){
+    var args = [evnt].concat(other_args);
+    cmd_tracker._msg_received(evnt, args)
   }
 };
