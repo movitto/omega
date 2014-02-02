@@ -108,7 +108,7 @@ Omega.UI.CommandTracker.prototype = {
     var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
-    pattacker.attacking    = pdefender;
+    pattacker.attacking = pdefender;
 
     if(this.page.canvas.is_root(pattacker.parent_id)){
       this.page.canvas.reload(pattacker, function(){
@@ -126,7 +126,7 @@ Omega.UI.CommandTracker.prototype = {
     var pdefender = $.grep(this.page.all_entities(),
                            function(entity){ return entity.id == defender.id; })[0];
     if(pattacker == null || pdefender == null) return;
-    pattacker.attacking    = null;
+    pattacker.attacking = null;
 
     if(this.page.canvas.is_root(pattacker.parent_id)){
       this.page.canvas.reload(pattacker, function(){
@@ -196,13 +196,11 @@ Omega.UI.CommandTracker.prototype = {
     }
 
     if(this.page.canvas.is_root(pdefender.parent_id)){
-      this.page.canvas.reload(pdefender, function(){
-        /// start destruction sequence / register cb
-        pdefender.trigger_destruction(function(){
-          /// allow defender to tidy up gfx b4 removing from scene:
-          pdefender.update_gfx();
-          _this.page.canvas.remove(pdefender);
-        });
+      /// start destruction sequence / register cb
+      pdefender.trigger_destruction(function(){
+        /// allow defender to tidy up gfx b4 removing from scene:
+        pdefender.update_gfx();
+        _this.page.canvas.remove(pdefender);
       });
     }
   },

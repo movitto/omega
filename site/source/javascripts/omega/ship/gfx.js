@@ -14,6 +14,7 @@
 //= require "omega/ship/trajectory"
 //= require "omega/ship/hp_bar"
 //= require "omega/ship/destruction"
+//= require "omega/ship/explosion_effect"
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
@@ -38,6 +39,7 @@ Omega.ShipGfx = {
     gfx.trajectory2      = new Omega.ShipTrajectory(0x00FF00);
     gfx.hp_bar           = new Omega.ShipHpBar();
     gfx.destruction      = new Omega.ShipDestructionEffect(config, event_cb);
+    gfx.explosions       = new Omega.ShipExplosionEffect(config, event_cb);
 
     Omega.ShipMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
@@ -78,8 +80,10 @@ Omega.ShipGfx = {
     for(var t = 0; t < this.trails.length; t++)
       this.components.push(this.trails.otrails[t])
 
-    this.attack_vector = Omega.Ship.gfx[this.type].attack_vector.for_ship(this);
+    this.attack_vector =
+      Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
     this.attack_vector.omega_entity = this;
+    this.components.push(this.attack_vector.particles.mesh);
 
     this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
     this.mining_vector.omega_entity = this;
@@ -101,9 +105,13 @@ Omega.ShipGfx = {
     for(var c = 0; c < this.hp_bar.bar.components.length; c++)
       this.components.push(this.hp_bar.bar.components[c]);
 
-    /// central destruction particle emitter bound to this instance
-    this.destruction = Omega.Ship.gfx[this.type].destruction.for_ship(this);
+    this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
+    this.components.push(this.destruction.particles.mesh);
+
+    this.explosions = Omega.Ship.gfx[this.type].explosions.for_ship(this);
+    this.explosions.omega_entity = this;
+    this.components.push(this.explosions.particles.mesh);
 
     this.update_gfx();
   },
@@ -123,6 +131,7 @@ Omega.ShipGfx = {
     to.trajectory2       = from.trajectory2;
     to.hp_bar            = from.hp_bar;
     to.destruction       = from.destruction;
+    to.explosions        = from.explosions;
   },
 
   update_gfx : function(){
@@ -136,6 +145,7 @@ Omega.ShipGfx = {
     if(this.hp_bar)        this.hp_bar.update();
     if(this.attack_vector) this.attack_vector.update();
     if(this.mining_vector) this.mining_vector.update();
+    if(this.destruction)   this.destruction.update();
 
     this._update_location_state();
     this._update_command_state();
@@ -175,19 +185,6 @@ Omega.ShipGfx = {
       this._rm_trails();
   },
 
-  _has_attack_vector : function(){
-    return this.components.indexOf(this.attack_vector.particles.mesh) != -1;
-  },
-
-  _add_attack_vector : function(){
-    this.components.push(this.attack_vector.particles.mesh);
-  },
-
-  _rm_attack_vector : function(){
-    var i = this.components.indexOf(this.attack_vector.particles.mesh);
-    this.components.splice(i, 1);
-  },
-
   _has_mining_vector : function(){
     return this.components.indexOf(this.mining_vector.vector) != -1;
   },
@@ -204,17 +201,9 @@ Omega.ShipGfx = {
   _update_command_state : function(){
     if(!this.attack_vector || !this.mining_vector) return;
 
-    /// add/remove attack vector depending on ship state
-    var has_attack_vector = this._has_attack_vector();
-    if(this.attacking){
-      this.attack_vector.set_target(this.attacking);
-
-      /// add attack vector if not in scene components
-      if(!has_attack_vector) this._add_attack_vector();
-
-    }else if(has_attack_vector){
-      this._rm_attack_vector();
-    }
+    /// update / reset attack vector (incase target is moving, etc)
+/// FIXME
+//    this.attack_vector.set_target(this.attacking);
 
     /// add/remove mining vector depending on ship state
     var has_mining_vector = this._has_mining_vector();
@@ -271,16 +260,12 @@ Omega.ShipGfx = {
     this.trails.run_effects();
     this._run_movement_effects();
 
-    if(this.attacking) this.attack_vector.run_effects();
-
+    this.attack_vector.run_effects();
+    this.explosions.run_effects();
     this.destruction.run_effects();
   },
 
-  trigger_destruction : function(destruction_cb){
-    this.destruction.trigger(function(){
-      /// TODO remove destruction particles from components?
-      if(destruction_cb) destruction_cb();
-    });
-    this.components.push(this.destruction.particles.mesh);
+  trigger_destruction : function(cb){
+    this.destruction.trigger(2000, cb);
   }
-}
+};
