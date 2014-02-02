@@ -201,10 +201,6 @@ Omega.ShipGfx = {
   _update_command_state : function(){
     if(!this.attack_vector || !this.mining_vector) return;
 
-    /// update / reset attack vector (incase target is moving, etc)
-/// FIXME
-//    this.attack_vector.set_target(this.attacking);
-
     /// add/remove mining vector depending on ship state
     var has_mining_vector = this._has_mining_vector();
     if(this.mining && this.mining_asteroid){

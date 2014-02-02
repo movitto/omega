@@ -78,7 +78,7 @@ Omega.ShipExplosionEffect.prototype = {
     var interval = Omega.ShipAttackVector.prototype.particle_age * 1000;
     if(!this.started_at) this.started_at = new Date();
     if(new Date() - this.started_at < interval) return;
-       
+
     var loc = entity.attacking.location;
 
     /// synchronize to attack vector particle emission
