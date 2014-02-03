@@ -30,6 +30,23 @@ Omega.Pages.Dev.prototype = {
     this.effects_player.start();
   },
 
+  setup : function(){
+    var _this = this;
+    this.canvas.setup();
+    this.canvas.cam.position.set(1500, 1500, 1500);
+    this.canvas.focus_on({x:0,y:0,z:0});
+
+    var light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+    this.canvas.scene.add(light);
+
+    this.canvas.skybox.set(1, this.config, function(){_this.canvas.animate();})
+    this.canvas.add(this.canvas.skybox);
+
+    custom_operations();
+
+    this.canvas.animate();
+  },
+
   custom_operations : function(){
   }
 };
@@ -39,6 +56,6 @@ $.extend(Omega.Pages.Dev.prototype, new Omega.UI.Registry());
 $(document).ready(function(){
   var dev = new Omega.Pages.Dev();
   dev.wire_up();
-  dev.custom_operations();
+  dev.setup();
   dev.start();
 });
