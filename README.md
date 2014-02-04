@@ -1,17 +1,29 @@
 ## The Omega Simulation Framework
 
-Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+The Omega Project aims to develop a Universe Simulator accessible remotely
+by registered users over the [JSON-RPC](http://en.wikipedia.org/wiki/JSON-RPC)
+protocol.
 
-Omega is made available under the GNU AFFERO GENERAL PUBLIC LICENSE
-as published by the Free Software Foundation, either version 3
-of the License, or (at your option) any later version.
+This allows the most users and developers to access the universe and control
+ships / stations / other entities in via many mechanisms.
 
-## Intro
-The Omega Project aims to develop a universe simulator accessible by registered
-users over the json-rpc protocol. This allows the most users and developers to access
-and control entities and subsystems via any programming language and transport protocol.
+You can see an instance running on the Omegaverse at
+[omegaverse.info](http://omegaverse.info)
 
-Omega consists of several subprojects:
+For a quick user tutorial see [this](http://github.com/movitto/omega/wiki/Tutorial).
+To run your own node on the Omegaverse see the
+[install](http://github.com/movitto/omega/wiki/Install) document.
+
+## Overview
+
+At the core of the simulation is
+[omega-server](https://github.com/movitto/omega/blob/master/bin/omega-server),
+the process that is responsible for registering the Omega subsystems and
+listening for requests:
+
+![overview.png](http://blog.omegaverse.info/images/overview.png)
+
+Omega consists of several subsystems:
 
 * **Motel** - Movable Objects Tracking Encompassing Locations - Tracks locations,
 eg coordinates w/ an orientation and movement strategy, in 3d cartesian space.
@@ -40,81 +52,23 @@ together, and provides simple mechanisms which to invoke functionality via a rem
 This includes a simple dsl which can be used to setup a simulation as well as an
 event based interface which to query/manipulate entities.
 
-## Running the Server
-See the [Installation](http://github.com/movitto/omega/wiki/Install) document for
-detailed instruction on setting up / running the server on your system of choice.
-
-See the [Configuration](http://github.com/movitto/omega/wiki#configuring-the-server)
-section of the wiki for more information on how to configure the server.
 
 ## Invoking
-[RJR](http://rubydoc.info/github/movitto/rjr/frames)
-allows Omega to serve JSON-RPC requests over many protocols.
-Currently the default server listens for requests via TCP, HTTP,
-Websockets, and AMQP. All a client has to do is send a string
-containing a json request to the server via any of these protocols.
 
-    # A simplified example (authentication has been disabled)
+Entities may be controlled and subsystems may be queried via any programming
+language and transport protocol. See the
+[Clients](http://github.com/movitto/omega/wiki/Clients) page on the wiki for
+more details.
 
-    $ curl -X POST http://localhost:8888 -d \
-       '{"jsonrpc":"2.0", "method":"cosmos::get_entities",
-         "params":["of_type", "Cosmos::SolarSystem"], "id":"123"}'
+The Omega Project also comes with an interactive web frontend based on
+WebGL (via [three.js](http://threejs.org/)) and
+[middleman](http://middlemanapp.com/). This is a completely optional component,
+an Omegaverse node will run just fine w/out it, but if installed provides
+a rich view to the node(s) which its configured for.
 
-    => {"jsonrpc":"2.0","id":"123","result":[{"json_class":"Cosmos::SolarSystem","data":{"name":"..."}}]}
-   
-RJR provides mechanisms to invoke client requests very simply via Ruby:
-
-    # A more complete example, involving authentication
-    login_user = Users::User.new :id => 'me', :password => 'secret'
-    node = RJR::Nodes::AMQP.new :node_id => 'client', :broker   => 'localhost'
-
-    # omega-queue is the name of the server side amqp queue
-    session = node.invoke('omega-queue', 'users::login', login_user)
-    node.headers['session_id'] = session.id
-
-    node.invoke('omega-queue', 'cosmos::get_entities', 'of_type', 'Cosmos::SolarSystem')
-    # => [#<Cosmos::SolarSystem:0x00AABB...>,...]
-
-
-Once authenticated, the client may invoke a variety of requests to create,
-retrieve, and update server side entities, depending on roles they have
-been assigned and their corresponding privileges / permissions. Some methods
-have additional restrictions to limit user access, see the api documentation
-in the [API](file:API) file and source code (see 'generating documentation' below) for more info
-
-## Running the clients
-
-Omega provides a few client helper utilities in the bin/util directory as
-well as many various sample data sets in the examples/ dir.
-
-These are meant to assist in the creation of users and the manipulation of
-entities they own, and to retrieve cosmos and other entities. 
-
-To invoke, simply run the scripts right from the command line, specifying
-'-h' or '--help' for extended usage.
-
-See the [CLIENT_HOWTO](file:examples/CLIENT_HOWTO.md) for more info
-
-## Web Frontend
-
-A static web frontend and js Omega client is provided in the site/ dir.
-This uses [Middleman](http://middlemanapp.com/) to generate static html/js
-content from templates.
-
-Two rake tasks are provided to simplify usage:
-* rake site:preview - will start a light / live / local webserver which to
-  access the site and preview changes on the fly
-* rake site:build - generates static content which to deploy to a production
-  webserver such as apache or nginx. This server should be configured to serve
-  the static content as well as proxy JSON-RPC requests to the Omega Server
-  as they arrive from the javascript client.
-
-See the omega-conf project for configuration files and utility scripts / recipes
-which can be used to assist the deployment of an omega server and js frontend.
-
-The static site requires a few files such as images and mesh data not shipped
-with the source code. Again see the omega-conf project for how to get these
-content packs.
+See the [Web UI](http://github.com/movitto/omega/wiki/Web UI) and
+[Using the Web UI](http://github.com/movitto/omega/wiki/Using the Web UI)
+wiki pages.
 
 ## Using
 
@@ -125,6 +79,14 @@ Generate documentation via
 To run test suite:
 
   rake spec
+
+## Legaleese
+
+Copyright (C) 2010-2014 Mohammed Morsi <mo@morsi.org>
+
+Omega is made available under version 3 of the
+GNU AFFERO GENERAL PUBLIC LICENSE as published by the
+Free Software Foundation
 
 ## Authors
 * Mo Morsi <mo@morsi.org>
