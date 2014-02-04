@@ -1,6 +1,6 @@
 ## The Omega Simulation Framework
 
-The Omega Project aims to develop a Universe Simulator accessible remotely
+The Omega Project is a Universe Simulator accessible remotely
 by registered users over the [JSON-RPC](http://en.wikipedia.org/wiki/JSON-RPC)
 protocol.
 
@@ -14,6 +14,10 @@ For a quick user tutorial see [this](http://github.com/movitto/omega/wiki/Tutori
 To run your own node on the Omegaverse see the
 [install](http://github.com/movitto/omega/wiki/Install) document.
 
+See the [wiki](http://github.com/movitto/omega/wiki) for many other
+helpful links as well as
+[screenshots & videos](http://github.com/movitto/omega/wiki/MultiMedia).
+
 ## Overview
 
 At the core of the simulation is
@@ -25,10 +29,10 @@ listening for requests:
 
 Omega consists of several subsystems:
 
-* **Motel** - Movable Objects Tracking Encompassing Locations - Tracks locations,
-eg coordinates w/ an orientation and movement strategy, in 3d cartesian space.
-The location's movement strategy periodically updates the location's properties.
-(eg along linear, elliptical paths, following another location, etc)
+* **Motel** - **M**ovable **O**bject **T**racking **E**ncompassing **L**ocations -
+Tracks locations, in 3d cartesian space. The location's movement strategy periodically
+updates the location's properties. (eg along linear, elliptical paths, to follow
+another location, rotate, etc)
 
 * **Users** - User registrations, sessions, permissions, groups, etc
 
@@ -52,7 +56,6 @@ together, and provides simple mechanisms which to invoke functionality via a rem
 This includes a simple dsl which can be used to setup a simulation as well as an
 event based interface which to query/manipulate entities.
 
-
 ## Invoking
 
 Entities may be controlled and subsystems may be queried via any programming
@@ -66,9 +69,9 @@ WebGL (via [three.js](http://threejs.org/)) and
 an Omegaverse node will run just fine w/out it, but if installed provides
 a rich view to the node(s) which its configured for.
 
-See the [Web UI](http://github.com/movitto/omega/wiki/Web UI) and
+See the [Web UI](http://github.com/movitto/omega/wiki/Web_UI) and
 [Using the Web UI](http://github.com/movitto/omega/wiki/Using the Web UI)
-wiki pages.
+wiki pages for more details.
 
 ## Using
 
