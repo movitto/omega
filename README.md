@@ -69,8 +69,8 @@ WebGL (via [three.js](http://threejs.org/)) and
 an Omegaverse node will run just fine w/out it, but if installed provides
 a rich view to the node(s) which its configured for.
 
-See the [Web UI](http://github.com/movitto/omega/wiki/Web_UI) and
-[Using the Web UI](http://github.com/movitto/omega/wiki/Using the Web UI)
+See the [Web UI](http://github.com/movitto/omega/wiki/Web-UI) and
+[Tutorial](http://github.com/movitto/omega/wiki/Tutorial)
 wiki pages for more details.
 
 ## Using
