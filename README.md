@@ -25,7 +25,7 @@ At the core of the simulation is
 the process that is responsible for registering the Omega subsystems and
 listening for requests:
 
-![overview.png](http://blog.omegaverse.info/images/overview.png)
+![overview.png](https://raw.github.com/wiki/movitto/omega/images/overview.png)
 
 Omega consists of several subsystems:
 
