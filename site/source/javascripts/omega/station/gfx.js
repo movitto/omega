@@ -100,7 +100,7 @@ Omega.StationGfx = {
   },
 
   _rm_construction_bar : function(){
-    for(var c = 0; c < this.construction_bar.components.length; c++){
+    for(var c = 0; c < this.construction_bar.bar.components.length; c++){
       var i = this.components.indexOf(this.construction_bar.bar.components[c]);
       this.components.splice(i, 1);
     }
