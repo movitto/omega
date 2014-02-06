@@ -94,9 +94,10 @@ describe("Omega.Galaxy", function(){
       Omega.Test.Canvas.Entities();
 
       assert(Omega.Galaxy.gfx.density_wave).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave.geometry).isOfType(Omega.GalaxyDensityWaveGeometry);
-      assert(Omega.Galaxy.gfx.density_wave.material).isOfType(THREE.ParticleBasicMaterial);
-      /// TODO verify geometry generated according to density wave theory ?
+      assert(Omega.Galaxy.gfx.density_wave.particles).isOfType(ShaderParticleGroup);
+      assert(Omega.Galaxy.gfx.density_wave.particles.emitters.length).equals(1);
+      assert(Omega.Galaxy.gfx.density_wave.particles.emitters[0]).isOfType(ShaderParticleEmitter);
+      assert(Omega.Galaxy.gfx.density_wave.particles.emitters[0].type).equals('spiral')
     });
   });
 
@@ -106,12 +107,6 @@ describe("Omega.Galaxy", function(){
       Omega.Test.Canvas.Entities();
     });
 
-    after(function(){
-      if(Omega.Galaxy.gfx){
-        if(Omega.Galaxy.gfx.density_wave.clone.restore) Omega.Galaxy.gfx.density_wave.clone.restore();
-      }
-    });
-
     it("loads galaxy gfx", function(){
       var galaxy    = new Omega.Galaxy();
       var load_gfx  = sinon.spy(galaxy, 'load_gfx');
@@ -119,18 +114,17 @@ describe("Omega.Galaxy", function(){
       sinon.assert.called(load_gfx);
     });
 
-    it("clones Galaxy density_wave", function(){
+    it("references Galaxy density_wave", function(){
       var galaxy = new Omega.Galaxy();
       var mesh = new THREE.Mesh();
-      sinon.stub(Omega.Galaxy.gfx.density_wave, 'clone').returns(mesh);
       galaxy.init_gfx();
-      assert(galaxy.density_wave).equals(mesh);
+      assert(galaxy.density_wave).equals(Omega.Galaxy.gfx.density_wave);
     });
 
     it("adds particle system to galaxy scene components", function(){
       var galaxy = new Omega.Galaxy();
       galaxy.init_gfx();
-      assert(galaxy.components).isSameAs([galaxy.density_wave]);
+      assert(galaxy.components).isSameAs([galaxy.density_wave.particles.mesh]);
     });
   });
 

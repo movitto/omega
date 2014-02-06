@@ -96,6 +96,7 @@ describe("Omega.JumpGate", function(){
 
   describe("#selected", function(){
     it("reloads jg in scene", function(){
+      jg.init_gfx();
       var reload = sinon.spy(page.canvas, 'reload');
       jg.selected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
@@ -103,19 +104,21 @@ describe("Omega.JumpGate", function(){
 
     describe("reload callback", function(){
       it("adds selection sphere to jg scene components", function(){
+        jg.init_gfx();
         var reload = sinon.stub(page.canvas, 'reload');
         jg.selected(page);
 
         var during_reload = reload.getCall(0).args[1];
-        assert(jg.components).doesNotInclude(jg.selection_sphere);
+        assert(jg.components).doesNotInclude(jg.selection.tmesh);
         during_reload();
-        assert(jg.components).includes(jg.selection_sphere);
+        assert(jg.components).includes(jg.selection.tmesh);
       });
     });
   });
 
   describe("#unselected", function(){
     it("reloads jg in scene", function(){
+      jg.init_gfx();
       var reload = sinon.spy(page.canvas, 'reload');
       jg.unselected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
@@ -123,15 +126,16 @@ describe("Omega.JumpGate", function(){
 
     describe("reload callback", function(){
       it("removes selection sphere from jg scene components", function(){
+        jg.init_gfx();
         jg.selected(page);
-        assert(jg.components).includes(jg.selection_sphere);
+        assert(jg.components).includes(jg.selection.tmesh);
 
         var reload = sinon.spy(page.canvas, 'reload');
         jg.unselected(page);
 
         var during_reload = reload.getCall(0).args[1];
         during_reload();
-        assert(jg.components).doesNotInclude(jg.selection_sphere);
+        assert(jg.components).doesNotInclude(jg.selection.tmesh);
       });
     });
   });
@@ -248,34 +252,45 @@ describe("Omega.JumpGate", function(){
 
     it("creates mesh for JumpGate", function(){
       var jg = Omega.Test.Canvas.Entities().jump_gate;
-      assert(Omega.JumpGate.gfx.mesh).isOfType(THREE.Mesh);
-      assert(Omega.JumpGate.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
-      assert(Omega.JumpGate.gfx.mesh.geometry).isOfType(THREE.Geometry);
+      assert(Omega.JumpGate.gfx.mesh).isOfType(Omega.JumpGateMesh);
+      assert(Omega.JumpGate.gfx.mesh.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.JumpGate.gfx.mesh.tmesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.JumpGate.gfx.mesh.tmesh.geometry).isOfType(THREE.Geometry);
       /// TODO assert material texture & geometry src path values ?
     });
 
     it("creates lamp for JumpGate", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.JumpGate.gfx.lamp).isOfType(Omega.UI.CanvasLamp);
+      assert(Omega.JumpGate.gfx.lamp).isOfType(Omega.JumpGateLamp);
+      assert(Omega.JumpGate.gfx.lamp.olamp).isOfType(Omega.UI.CanvasLamp);
     });
 
     it("creates particle system for JumpGate", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.JumpGate.gfx.particles).isOfType(THREE.ParticleSystem);
-      assert(Omega.JumpGate.gfx.particles.material).isOfType(THREE.ParticleBasicMaterial);
-      assert(Omega.JumpGate.gfx.particles.geometry).isOfType(THREE.Geometry);
+      assert(Omega.JumpGate.gfx.particles).isOfType(Omega.JumpGateParticles);
+      assert(Omega.JumpGate.gfx.particles.particle_system).isOfType(THREE.ParticleSystem);
+      assert(Omega.JumpGate.gfx.particles.particle_system.material).isOfType(THREE.ParticleBasicMaterial);
+      assert(Omega.JumpGate.gfx.particles.particle_system.geometry).isOfType(THREE.Geometry);
     });
 
-    it("creates selection sphere material for JumpGate", function(){
+    it("creates selection material for JumpGate", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.JumpGate.gfx.selection_sphere_material).isOfType(THREE.MeshBasicMaterial);
+      assert(Omega.JumpGate.gfx.selection_material).isOfType(Omega.JumpGateSelectionMaterial);
     });
   });
 
   describe("#init_gfx", function(){
+    var jg;
+
     before(function(){
       /// preiinit using test page
       Omega.Test.Canvas.Entities();
+
+      jg = new Omega.JumpGate({location :
+             new Omega.Location({x: 100, y: -100, z: 200,
+                                 orientation_x : 0,
+                                 orientation_y : 0,
+                                 orientation_z : 1})});
     });
 
     after(function(){
@@ -287,99 +302,91 @@ describe("Omega.JumpGate", function(){
     });
 
     it("loads jump gate gfx", function(){
-      var jg        = new Omega.JumpGate();
       var load_gfx  = sinon.spy(jg, 'load_gfx');
       jg.init_gfx();
       sinon.assert.called(load_gfx);
     });
 
     it("clones JumpGate mesh", function(){
-      var mesh = new THREE.Mesh();
+      var mesh = new Omega.JumpGateMesh(new THREE.Mesh());
       /// need to wait till template mesh is loaded b4 wiring up stub
       Omega.JumpGate.prototype.
         retrieve_resource('template_mesh', function(){
           sinon.stub(Omega.JumpGate.gfx.mesh, 'clone').returns(mesh);
         });
 
-      var jg = new Omega.JumpGate();
       jg.init_gfx();
       assert(jg.mesh).equals(mesh);
     });
 
     it("sets mesh position", function(){
       var offset = Omega.Config.resources.jump_gate.offset;
-      var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      assert(jg.mesh.position.x).equals(100  + offset[0]);
-      assert(jg.mesh.position.y).equals(-100 + offset[1]);
-      assert(jg.mesh.position.z).equals(200  + offset[2]);
+      assert(jg.mesh.tmesh.position.x).equals(100  + offset[0]);
+      assert(jg.mesh.tmesh.position.y).equals(-100 + offset[1]);
+      assert(jg.mesh.tmesh.position.z).equals(200  + offset[2]);
     });
 
     it("sets mesh.omega_entity", function(){
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
       assert(jg.mesh.omega_entity).equals(jg);
     });
 
     it("adds mesh to components", function(){
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.components).includes(jg.mesh);
+      assert(jg.components).includes(jg.mesh.tmesh);
     });
 
     it("clones JumpGate lamp", function(){
-      var lamp = new Omega.UI.CanvasLamp();
+      var lamp = new Omega.JumpGateLamp();
       sinon.stub(Omega.JumpGate.gfx.lamp, 'clone').returns(lamp);
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
       assert(jg.lamp).equals(lamp);
     });
 
     it("sets lamp position", function(){
-      var offset = Omega.JumpGate.prototype.gfx_props;
-      var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
+      var offset = Omega.JumpGateGfx.gfx_props;
       jg.init_gfx();
-      assert(jg.lamp.component.position.toArray()).
+      assert(jg.lamp.olamp.component.position.toArray()).
         isSameAs([ 100  + offset.lamp_x,
                   -100  + offset.lamp_y,
                    200  + offset.lamp_z])
     });
 
     it("clones JumpGate particles", function(){
-      var mesh = new THREE.Mesh();
+      var mesh = new Omega.JumpGateParticles();
       sinon.stub(Omega.JumpGate.gfx.particles, 'clone').returns(mesh);
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
       assert(jg.particles).equals(mesh);
     });
 
     it("sets particles position", function(){
-      var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      assert(jg.particles.position.toArray()).isSameAs([90, -125, 275]);
+      assert(jg.particles.particle_system.position.toArray()).
+        isSameAs([90, -125, 275]);
     });
 
     it("creates a selection sphere for jg", function(){
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.selection_sphere).isOfType(THREE.Mesh);
-      assert(jg.selection_sphere.geometry).isOfType(THREE.SphereGeometry);
-      assert(jg.selection_sphere.material).equals(Omega.JumpGate.gfx.selection_sphere_material);
+      assert(jg.selection).isOfType(Omega.JumpGateSelection);
+      assert(jg.selection.tmesh).isOfType(THREE.Mesh);
+      assert(jg.selection.tmesh.geometry).isOfType(THREE.SphereGeometry);
+      assert(jg.selection.tmesh.material).
+        equals(Omega.JumpGate.gfx.selection_material.material);
     });
 
     it("sets selection sphere position", function(){
-      var jg = new Omega.JumpGate({location : new Omega.Location({x: 100, y: -100, z: 200})});
       jg.init_gfx();
-      assert(jg.selection_sphere.position.toArray()).isSameAs([80, -100, 200]);
+      assert(jg.selection.tmesh.position.toArray()).
+        isSameAs([80, -100, 200]);
     });
 
     /// it("sets selection sphere radius") NIY
 
     it("adds lamp, and particles to jump gate scene components", function(){
-      var jg = new Omega.JumpGate({});
       jg.init_gfx();
-      assert(jg.components).includes(jg.lamp.component);
-      assert(jg.components).includes(jg.particles);
+      assert(jg.components).includes(jg.lamp.olamp.component);
+      assert(jg.components).includes(jg.particles.particle_system);
     });
   });
 

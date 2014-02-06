@@ -19,6 +19,8 @@ Omega.JumpGateParticles.prototype = {
   },
 
   update : function(){
+    if(!this.particle_system) return;
+
     var entity = this.omega_entity;
     var loc    = entity.location;
 
