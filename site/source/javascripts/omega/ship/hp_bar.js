@@ -5,7 +5,7 @@
  */
 
 Omega.ShipHpBar = function(bar){
-  this.bar = bar ? bar : this.init_gfx();
+  this.bar = bar ? bar : this.load_bar();
 };
 
 Omega.ShipHpBar.prototype = {
@@ -17,7 +17,7 @@ Omega.ShipHpBar.prototype = {
     length : 200
   },
 
-  init_gfx : function(){
+  load_bar : function(){
     var len = this.health_bar_props.length;
     var bar =
       new Omega.UI.CanvasProgressBar({
@@ -28,6 +28,10 @@ Omega.ShipHpBar.prototype = {
                    [[-len/2, 100, 0],
                     [ len/2, 100, 0]]]});
     return bar;
+  },
+
+  init_gfx : function(){
+    this.bar.init_gfx();
   },
 
   update : function(){

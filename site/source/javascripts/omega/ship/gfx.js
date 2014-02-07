@@ -119,19 +119,19 @@ Omega.ShipGfx = {
   cp_gfx : function(from){
     /// return if not initialized
     if(!from.components || from.components.length == 0) return;
-    to.components        = from.components;
-    to.shader_components = from.shader_components;
-    to.mesh              = from.mesh;
-    to.highlight         = from.highlight;
-    to.lamps             = from.lamps;
-    to.trails            = from.trails;
-    to.attack_vector     = from.attack_vector;
-    to.mining_vector     = from.mining_vector;
-    to.trajectory1       = from.trajectory1;
-    to.trajectory2       = from.trajectory2;
-    to.hp_bar            = from.hp_bar;
-    to.destruction       = from.destruction;
-    to.explosions        = from.explosions;
+    this.components        = from.components;
+    this.shader_components = from.shader_components;
+    this.mesh              = from.mesh;
+    this.highlight         = from.highlight;
+    this.lamps             = from.lamps;
+    this.trails            = from.trails;
+    this.attack_vector     = from.attack_vector;
+    this.mining_vector     = from.mining_vector;
+    this.trajectory1       = from.trajectory1;
+    this.trajectory2       = from.trajectory2;
+    this.hp_bar            = from.hp_bar;
+    this.destruction       = from.destruction;
+    this.explosions        = from.explosions;
   },
 
   update_gfx : function(){
@@ -262,6 +262,6 @@ Omega.ShipGfx = {
   },
 
   trigger_destruction : function(cb){
-    this.destruction.trigger(2000, cb);
+    if(this.destruction) this.destruction.trigger(2000, cb);
   }
 };

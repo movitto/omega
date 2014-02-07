@@ -69,12 +69,12 @@ Omega.StationGfx = {
   cp_gfx : function(from){
     /// return if not initialized
     if(!from.components || from.components.length == 0) return;
-    to.components        = from.components;
-    to.shader_components = from.shader_components;
-    to.mesh              = from.mesh;
-    to.highlight         = from.highlight;
-    to.lamps             = from.lamps;
-    to.construction_bar  = from.construction_bar;
+    this.components        = from.components;
+    this.shader_components = from.shader_components;
+    this.mesh              = from.mesh;
+    this.highlight         = from.highlight;
+    this.lamps             = from.lamps;
+    this.construction_bar  = from.construction_bar;
   },
 
   update_gfx : function(){

@@ -29,6 +29,11 @@ Omega.ShipLamps.prototype = {
     return olamps;
   },
 
+  init_gfx : function(){
+    for(var l = 0; l < this.olamps.length; l++)
+      this.olamps[l].init_gfx();
+  },
+
   clone : function(){
     var slamps = new Omega.ShipLamps();
     for(var l = 0; l < this.olamps.length; l++){

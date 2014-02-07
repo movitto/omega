@@ -828,18 +828,34 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.called(update_gfx);
       });
 
-
-      it("updates defender gfx", function(){
-        var update_gfx = sinon.stub(tgt, 'update_gfx');
+      it("triggers defender destruction", function(){
+        var trigger = sinon.spy(tgt, 'trigger_destruction');
         tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        sinon.assert.called(update_gfx);
+        sinon.assert.calledWith(trigger, sinon.match.func);
       });
 
-      it("removes defender from scene", function(){
-        var canvas_remove = sinon.stub(page.canvas, 'remove');
-        tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
-        sinon.assert.calledWith(canvas_remove, tgt);
+      describe("on defender destruction", function(){
+        it("updates defender gfx", function(){
+          var trigger = sinon.spy(tgt, 'trigger_destruction');
+          tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+          var trigger_cb = trigger.getCall(0).args[0]
+
+          var update_gfx = sinon.stub(tgt, 'update_gfx');
+          trigger_cb();
+          sinon.assert.called(update_gfx);
+        });
+
+        it("removes defender from scene", function(){
+          var trigger = sinon.spy(tgt, 'trigger_destruction');
+          tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
+          var trigger_cb = trigger.getCall(0).args[0]
+
+          var canvas_remove = sinon.stub(page.canvas, 'remove');
+          trigger_cb();
+          sinon.assert.calledWith(canvas_remove, tgt);
+        });
       });
+
     });
 
     describe("#construction_complete", function(){

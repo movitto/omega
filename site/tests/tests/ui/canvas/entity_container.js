@@ -153,11 +153,25 @@ describe("Omega.UI.CanvasEntityContainer", function(){
   });
 
   describe("#refresh", function(){
+    var entity;
+    before(function(){
+      entity = {id : 'e1'};
+      canvas.page.entity(entity.id, entity);
+    });
+
     after(function(){
+      canvas.page.entity(entity.id, null);
+    });
+
+    it("refreshes entity from page", function(){
+      container.show(entity);
+      var entity2 = {}
+      canvas.page.entity(entity.id, entity2);
+      container.refresh();
+      assert(container.entity).equals(entity2);
     });
 
     it("reshows scene with current entity", function(){
-      var entity = {};
       container.show(entity);
 
       var show = sinon.spy(container, 'show');

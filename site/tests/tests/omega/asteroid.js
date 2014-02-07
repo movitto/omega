@@ -127,9 +127,10 @@ describe("Omega.Asteroid", function(){
 
     it("creates mesh for Asteroid", function(){
       var asteroid = Omega.Test.Canvas.Entities().asteroid;
-      assert(Omega.Asteroid.gfx.mesh).isOfType(THREE.Mesh);
-      assert(Omega.Asteroid.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
-      assert(Omega.Asteroid.gfx.mesh.geometry).isOfType(THREE.Geometry);
+      assert(Omega.Asteroid.gfx.mesh).isOfType(Omega.AsteroidMesh);
+      assert(Omega.Asteroid.gfx.mesh.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.Asteroid.gfx.mesh.tmesh.material).isOfType(THREE.MeshLambertMaterial);
+      assert(Omega.Asteroid.gfx.mesh.tmesh.geometry).isOfType(THREE.Geometry);
       /// TODO assert material texture & geometry src path values ?
     });
   });
@@ -169,9 +170,9 @@ describe("Omega.Asteroid", function(){
     it("sets mesh position", function(){
       var ast = new Omega.Asteroid({location : new Omega.Location({x: 100, y: -100, z: 200})});
       ast.init_gfx();
-      assert(ast.mesh.position.x).equals(100);
-      assert(ast.mesh.position.y).equals(-100);
-      assert(ast.mesh.position.z).equals(200);
+      assert(ast.mesh.tmesh.position.x).equals(100);
+      assert(ast.mesh.tmesh.position.y).equals(-100);
+      assert(ast.mesh.tmesh.position.z).equals(200);
     });
 
     it("sets mesh.omega_entity", function(){
@@ -183,7 +184,7 @@ describe("Omega.Asteroid", function(){
     it("adds mesh to asteroid scene components", function(){
       var ast = new Omega.Asteroid();
       ast.init_gfx();
-      assert(ast.components).isSameAs([ast.mesh]);
+      assert(ast.components).isSameAs([ast.mesh.tmesh]);
     });
   });
 

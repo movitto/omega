@@ -8,7 +8,7 @@
 
 Omega.ShipTrails = function(config, type, event_cb){
   /// omega trails
-  if(config && type && event_cb)
+  if(config && type)
     this.otrails = this.init_trails(config, type, event_cb);
   else
     this.otrails = [];
@@ -93,6 +93,7 @@ Omega.ShipTrails.prototype = {
     }
   },
 
+  /// XXX needs optimization badly
   run_effects : function(){
     var trail_props      = this.trail_props;
 
