@@ -16,6 +16,7 @@ Omega.SolarSystemTextMaterial.prototype = {
 
 Omega.SolarSystemText = function(text){
   this.text = this.init_gfx(text);
+  this.text.omega_obj = this;
 };
 
 Omega.SolarSystemText.prototype = {
