@@ -6,8 +6,7 @@
 
 Omega.load_galaxy_particles = function(config, event_cb){
   var particle_path =
-    config.url_prefix + config.images_path +
-    "/smokeparticle.png";
+    config.url_prefix + config.images_path + "/star-particle.png";
 
   var texture = 
     THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
