@@ -37,6 +37,11 @@ Omega.SolarSystem.prototype = {
             children   : children_json};
   },
 
+  /// Human friendly name if set, else id
+  title : function(){
+    return this.name ? this.name : this.id;
+  },
+
   asteroids : function(){
     return $.grep(this.children, function(c){
       return c.json_class &&
