@@ -135,25 +135,27 @@ track_handler = proc { |*args|
       err = true
 
     ensure
-      if err
-        registry.safe_exec { |entities|
-          rloc.callbacks[cb.event_type].delete cb
-          rloc.callbacks[cb.event_type].compact!
-        }
-      end
+      remove_callbacks_for registry, :class    => Motel::Location,
+                                     :id       => rloc.id,
+                                     :type     => cb.event_type,
+                                     :endpoint => cb.endpoint_id  if err
     end
   }
 
   # delete callback on connection events
-  @rjr_node.on(:closed){ |node|
-    registry.safe_exec { |entities| rloc.callbacks[cb.event_type].delete(cb) }
+  handle_node_closed(@rjr_node) { |node|
+    remove_callbacks_for registry,
+      :class    => Motel::Location,
+      :endpoint => node.message_headers['source_node']
   }
 
   # delete old callback and register new
   registry.safe_exec { |entities|
     rloc.callbacks[cb.event_type] ||= []
-    old = rloc.callbacks[cb.event_type].find { |m| m.endpoint_id == cb.endpoint_id }
-    rloc.callbacks[cb.event_type].delete(old) unless old.nil?
+    remove_callbacks_for entities, :class       => Motel::Location,
+                                   :id          => rloc.id,
+                                   :type        => cb.event_type,
+                                   :endpoint    => cb.endpoint_id
     rloc.callbacks[cb.event_type] << cb
   }
 
@@ -186,25 +188,18 @@ remove_callbacks = proc { |*args|
   validate_session_source! :registry => user_registry
   source_node = @rjr_headers['source_node']
 
-  # remove callback of the specified type or of all types
-  registry.safe_exec { |entities|
-    rloc = entities.find { |l| l.id == loc.id }
-    if cb_type.nil?
-      rloc.callbacks.each_key { |k|
-        rloc.callbacks[k].reject! { |cb|
-          cb.endpoint_id == source_node
-        }
-        rloc.callbacks.delete(k) if rloc.callbacks[k].empty?
-      }
+  if cb_type.nil?
+    remove_callbacks_for registry, :class       => Motel::Location,
+                                   :id          => loc.id,
+                                   :endpoint    => source_node
 
-    else
-      rloc.callbacks[cb_type.intern].reject!{ |cb|
-        cb.endpoint_id == source_node
-      }
-      rloc.callbacks[cb_type.intern].compact!
-    end
-  }
+  else
+    remove_callbacks_for registry, :class       => Motel::Location,
+                                   :id          => loc.id,
+                                   :type        => cb_type.intern,
+                                   :endpoint    => source_node
 
+  end
 
   # return location
   loc

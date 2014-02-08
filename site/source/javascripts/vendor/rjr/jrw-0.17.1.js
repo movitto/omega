@@ -318,7 +318,7 @@ RJR.WsNode.prototype = {
 
   // Close socket connection
   close : function(){
-    this.socket.close();
+    if(this.socket) this.socket.close();
   },
 
   // Invoke request on socket, may be invoked before or after socket is opened.

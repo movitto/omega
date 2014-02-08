@@ -9,6 +9,7 @@
 
 //= require "ui/registry"
 //= require "ui/canvas_tracker"
+//= require "ui/command_tracker"
 //= require "ui/session_validator"
 
 //= require "ui/effects_player"
@@ -60,7 +61,7 @@ Omega.Pages.Index.prototype = {
   /// cleanup index page operations
   unload : function(){
     this.unloading = true;
-    this.ws.close();
+    this.node.close();
   },
 
   start : function(){

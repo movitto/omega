@@ -64,6 +64,7 @@ Omega.UI.SessionValidator = {
       }else{
         /// setup callback handlers
         _this._handle_events();
+        /// TODO if current scene is set, refresh scene entity tracking
 
         if(cb) cb();
       }

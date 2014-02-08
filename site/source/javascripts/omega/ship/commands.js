@@ -5,6 +5,9 @@
  */
 
 Omega.ShipCommands = {
+  /// see omega/ship/commands.js for retrieve_details implementation
+  has_details : true,
+
   /// TODO only display cmds if entity is alive
   cmds : [
     { id      : 'ship_move_',
@@ -52,6 +55,7 @@ Omega.ShipCommands = {
     var loc   = '@ ' + this.location.to_s();
     var orien = '> ' + this.location.orientation_s();
     var hp    = 'HP: ' + this.hp;
+    /// TODO also ship.type
 
     var resources = ['Resources:'];
     for(var r = 0; r < this.resources.length; r++){

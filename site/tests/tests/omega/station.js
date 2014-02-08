@@ -137,7 +137,7 @@ describe("Omega.Station", function(){
     it("sets mesh material emissive", function(){
       var station = Omega.Test.Canvas.Entities().station;
       station.selected(Omega.Test.Page());
-      assert(station.mesh.material.emissive.getHex()).equals(0xff0000);
+      assert(station.mesh.tmesh.material.emissive.getHex()).equals(0xff0000);
     });
   });
 
@@ -145,7 +145,7 @@ describe("Omega.Station", function(){
     it("resets mesh material emissive", function(){
       var station = Omega.Test.Canvas.Entities().station;
       station.unselected(Omega.Test.Page());
-      assert(station.mesh.material.emissive.getHex()).equals(0);
+      assert(station.mesh.tmesh.material.emissive.getHex()).equals(0);
     })
   });
 
@@ -228,22 +228,24 @@ describe("Omega.Station", function(){
 
     it("creates mesh for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
-      assert(Omega.Station.gfx[station.type].mesh).isOfType(THREE.Mesh);
-      assert(Omega.Station.gfx[station.type].mesh.material).isOfType(Omega.StationMeshMaterial);
-      assert(Omega.Station.gfx[station.type].mesh.geometry).isOfType(THREE.Geometry);
+      assert(Omega.Station.gfx[station.type].mesh).isOfType(Omega.StationMesh);
+      assert(Omega.Station.gfx[station.type].mesh.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.Station.gfx[station.type].mesh.tmesh.material).isOfType(Omega.StationMeshMaterial);
+      assert(Omega.Station.gfx[station.type].mesh.tmesh.geometry).isOfType(THREE.Geometry);
         /// TODO assert material texture & geometry src path values
     });
 
     it("creates highlight effects for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
       assert(Omega.Station.gfx[station.type].highlight).isOfType(Omega.StationHighlightEffects);
-      assert(Omega.Station.gfx[station.type].highlight.material).isOfType(THREE.MeshBasicMaterial);
-      assert(Omega.Station.gfx[station.type].highlight.geometry).isOfType(THREE.CylinderGeometry);
+      assert(Omega.Station.gfx[station.type].highlight.mesh.material).isOfType(THREE.MeshBasicMaterial);
+      assert(Omega.Station.gfx[station.type].highlight.mesh.geometry).isOfType(THREE.CylinderGeometry);
     });
 
     it("creates lamps for Station", function(){
       var station = Omega.Test.Canvas.Entities().station;
-      assert(Omega.Station.gfx[station.type].lamps.length).equals(Omega.Config.resources.stations[station.type].lamps.length);
+      assert(Omega.Station.gfx[station.type].lamps.olamps.length).
+        equals(Omega.Config.resources.stations[station.type].lamps.length);
       for(var l = 0; l < Omega.Station.gfx[station.type].lamps.length; l++){
         var lamp = Omega.Station.gfx[station.type].lamps[l];
         assert(lamp).isOfType(Omega.UI.CanvasLamp);
@@ -288,8 +290,8 @@ describe("Omega.Station", function(){
     });
 
     it("clones template mesh", function(){
-      var mesh = new THREE.Mesh();
-      var cloned = new THREE.Mesh();
+      var mesh = new Omega.StationMesh(new THREE.Mesh());
+      var cloned = new Omega.StationMesh(new THREE.Mesh());
 
       var retrieve_resource = sinon.stub(Omega.Station.prototype, 'retrieve_resource');
       station.init_gfx();
@@ -303,9 +305,9 @@ describe("Omega.Station", function(){
 
     it("sets mesh position", function(){
       station.init_gfx();
-      assert(station.mesh.position.x).equals(100);
-      assert(station.mesh.position.y).equals(-100);
-      assert(station.mesh.position.z).equals(200);
+      assert(station.mesh.tmesh.position.x).equals(100);
+      assert(station.mesh.tmesh.position.y).equals(-100);
+      assert(station.mesh.tmesh.position.z).equals(200);
     });
 
     it("sets mesh omega_entity", function(){
@@ -315,11 +317,11 @@ describe("Omega.Station", function(){
 
     it("adds mesh to components", function(){
       station.init_gfx();
-      assert(station.components).includes(station.mesh);
+      assert(station.components).includes(station.mesh.tmesh);
     });
 
     it("clones Station highlight effects", function(){
-      var mesh = new THREE.Mesh();
+      var mesh = new Omega.StationHighlightEffects();
       sinon.stub(Omega.Station.gfx[type].highlight, 'clone').returns(mesh);
       station.init_gfx();
       assert(station.highlight).equals(mesh);
@@ -332,8 +334,9 @@ describe("Omega.Station", function(){
 
     it("clones Station lamps", function(){
       var spies = [];
-      for(var l = 0; l < Omega.Station.gfx[type].lamps.length; l++)
-        spies.push(sinon.spy(Omega.Station.gfx[type].lamps[l], 'clone'));
+      var lamps = Omega.Station.gfx[type].lamps.olamps;
+      for(var l = 0; l < lamps.length; l++)
+        spies.push(sinon.spy(lamps[l], 'clone'));
       station.init_gfx();
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
@@ -348,9 +351,9 @@ describe("Omega.Station", function(){
 
     it("sets scene components to station highlight effects, and lamps", function(){
       station.init_gfx();
-      assert(station.components).includes(station.highlight);
-      for(var l = 0; l < station.lamps.length; l++)
-        assert(station.components).includes(station.lamps[l].component);
+      assert(station.components).includes(station.highlight.mesh);
+      for(var l = 0; l < station.lamps.olamps.length; l++)
+        assert(station.components).includes(station.lamps.olamps[l].component);
     });
   });
 
@@ -360,8 +363,8 @@ describe("Omega.Station", function(){
       station.init_gfx();
 
       var spies = [];
-      for(var l = 0; l < station.lamps.length; l++)
-        spies.push(sinon.spy(station.lamps[l], 'run_effects'))
+      for(var l = 0; l < station.lamps.olamps.length; l++)
+        spies.push(sinon.spy(station.lamps.olamps[l], 'run_effects'))
 
       station.run_effects();
 
@@ -415,67 +418,13 @@ describe("Omega.Station", function(){
 
   describe("#update_gfx", function(){
     it("updates station construction bar", function(){
-      var station = new Omega.Station({location : new Omega.Location({x:0,y:0,z:0})});
-      var update_construction_bar = sinon.spy(station, '_update_construction_bar');
+      var station = new Omega.Station({type: 'manufacturing',
+                      location : new Omega.Location({x:0,y:0,z:0})});
+      station.init_gfx(Omega.Config);
+      var update = sinon.spy(station.construction_bar, 'update');
       station.update_gfx();
-      sinon.assert.called(update_construction_bar);
+      sinon.assert.called(update);
     });
-  });
-
-  describe("#_update_construction_bar", function(){
-    var station;
-    before(function(){
-      station = Omega.Test.Canvas.Entities().station;
-      station.location = new Omega.Location({x:0,y:0,z:0});
-    });
-
-    describe("construction percent > 0", function(){
-      before(function(){
-        station.construction_percent = 0.50;
-      });
-
-      after(function(){
-        if(station.construction_bar.update.restore) station.construction_bar.update.restore();
-        if(station.components.indexOf(station.construction_bar.component1) != -1)
-          station.components.splice(station.components.indexOf(station.construction_bar.component1), 1);
-        if(station.components.indexOf(station.construction_bar.component2) != -1)
-          station.components.splice(station.components.indexOf(station.construction_bar.component2), 1);
-      })
-
-      it("updates construction progress bar", function(){
-        var update = sinon.stub(station.construction_bar, 'update');
-        station._update_construction_bar();
-        sinon.assert.calledWith(update, station.location, 0.50);
-      });
-
-      describe("construction progress bar not in station scene components", function(){
-        it("adds construction progress bar to station scene components", function(){
-          station._update_construction_bar();
-          assert(station.components.indexOf(station.construction_bar.component1)).isNotEqualTo(-1);
-          assert(station.components.indexOf(station.construction_bar.component2)).isNotEqualTo(-1);
-          var len = station.components.length;
-          station._update_construction_bar();
-          assert(station.components.length).equals(len);
-        });
-      })
-    })
-
-    describe("construction percent == 0 & progress bar in station scene components", function(){
-      before(function(){
-        station.construction_percent = 0;
-      });
-
-      after(function(){
-        if(station.construction_bar.update.restore)
-          station.construction_bar.update.restore();
-      });
-
-      it("removes progress bar from station scene components", function(){
-        var update = sinon.stub(station.construction_bar, 'update');
-        station._update_construction_bar();
-        sinon.assert.notCalled(update);
-      });
-    })
   });
 
   describe("#owned_by", function(){
@@ -545,4 +494,57 @@ describe("Omega.Station", function(){
       });
     });
   });
-});}); // Omega.Galaxy
+});}); // Omega.Station
+
+pavlov.specify("Omega.StationConstructionBar", function(){
+describe("Omega.StationConstructionBar", function(){
+  describe("#update", function(){
+    var construction_bar, station;
+    before(function(){
+      station = new Omega.Station({type : 'manufacturing',
+                                   location : new Omega.Location()});
+      station.init_gfx();
+
+      construction_bar = station.construction_bar;
+    });
+
+    describe("construction percent > 0", function(){
+      before(function(){
+        station.construction_percent = 0.50;
+      });
+
+      it("updates construction progress bar", function(){
+        var update = sinon.stub(construction_bar.bar, 'update');
+        construction_bar.update();
+        sinon.assert.calledWith(update, station.location, 0.50);
+      });
+
+      describe("construction progress bar not in station scene components", function(){
+        it("adds construction progress bar to station scene components", function(){
+          assert(station._has_construction_bar()).isFalse();
+          construction_bar.update();
+          assert(station._has_construction_bar()).isTrue();
+        });
+      })
+    })
+
+    describe("construction percent == 0 & progress bar in station scene components", function(){
+      before(function(){
+        station.construction_percent = 0;
+      });
+
+      it("does not update construction bar", function(){
+        var update = sinon.stub(construction_bar.bar, 'update');
+        construction_bar.update();
+        sinon.assert.notCalled(update);
+      });
+
+      it("removes progress bar from station scene components", function(){
+        station._add_construction_bar();
+        assert(station._has_construction_bar()).isTrue();
+        construction_bar.update();
+        assert(station._has_construction_bar()).isFalse();
+      });
+    })
+  });
+});}); // Omega.Station

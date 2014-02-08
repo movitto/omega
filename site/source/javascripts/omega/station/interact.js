@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/command_dialog"
+
 Omega.StationInteraction = {
   // XXX not a big fan of having this here, should eventually be moved elsewhere
   dialog : function(){

@@ -6,12 +6,7 @@
 
 Omega.Location = function(parameters){
   $.extend(this, parameters);
-
-  // XXX currently no js obj for movement strategy
-  if(this.movement_strategy && this.movement_strategy.data){
-    $.extend(this.movement_strategy, this.movement_strategy.data);
-    //delete this.movement_strategy['data'];
-  }
+  this.update_ms();
 };
 
 Omega.Location.prototype = {
@@ -31,8 +26,56 @@ Omega.Location.prototype = {
             movement_strategy : this.movement_strategy};
   },
 
+  vector : function(){
+    return new THREE.Vector3(this.x, this.y, this.z);
+  },
+
+  update_ms : function(ms){
+    if(ms != null){
+      this.movement_strategy = ms;
+    }
+
+    // XXX currently no js obj for movement strategy
+    if(this.movement_strategy && this.movement_strategy.data){
+      $.extend(this.movement_strategy, this.movement_strategy.data);
+      delete this.movement_strategy['data'];
+    }
+  },
+
+  set : function(x,y,z){
+    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    return this;
+  },
+
   orientation : function(){
     return [this.orientation_x, this.orientation_y, this.orientation_z];
+  },
+
+  orientation_vector : function(){
+    return new THREE.Vector3(this.orientation_x,
+                             this.orientation_y,
+                             this.orientation_z);
+  },
+
+  set_orientation : function(x,y,z){
+    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
+    this.orientation_x = x;
+    this.orientation_y = y;
+    this.orientation_z = z;
+    return this;
   },
 
   clone : function(){
@@ -53,6 +96,11 @@ Omega.Location.prototype = {
     return Math.sqrt(Math.pow(this.x - x, 2) +
                      Math.pow(this.y - y, 2) +
                      Math.pow(this.z - z, 2));
+  },
+
+  is_stopped : function(){
+    return (this.movement_strategy.json_class ==
+            'Motel::MovementStrategies::Stopped');
   },
 
   /* Return boolean indicating if location is less than the

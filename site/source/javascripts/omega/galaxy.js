@@ -23,17 +23,6 @@ Omega.Galaxy.prototype = {
   constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
-  mesh_props  : {
-    particle_size : 150,
-    eskew         : 1.2,
-    estart        : 1,
-    eend          : 2000,
-    einc          : 30,
-    itinc         : 0.15,
-    utinc         : 0.03,
-    max_z         : 150
-  },
-
   async_gfx : 1,
 
   toJSON : function(){
@@ -68,20 +57,9 @@ Omega.Galaxy.prototype = {
       }
     }
   },
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Galaxy.gfx) !== 'undefined') return;
-    Omega.load_galaxy_gfx(config, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_galaxy_gfx(config, this, event_cb);
-  }
 };
 
-$.extend(Omega.Galaxy.prototype, Omega.GalaxyEffectRunner);
+$.extend(Omega.Galaxy.prototype, Omega.GalaxyGfx);
 
 // return the galaxy with the specified id
 Omega.Galaxy.with_id = function(id, node, cb){

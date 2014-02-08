@@ -54,6 +54,17 @@ Omega.Gen = {
     return asteroids;
   },
 
+  asteroid : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'ast' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    return new Omega.Asteroid(opts);
+  },
+
   ship : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'ship' + this.next_id();
@@ -78,6 +89,7 @@ Omega.Gen = {
   station : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'station' + this.next_id();
+    if(!opts.type) opts.type = 'manufacturing';
     if(!opts.location)
       opts.location = new Omega.Location();
     if(!opts.location.x) opts.location.x = 0;
@@ -95,8 +107,26 @@ Omega.Gen = {
 
   linear_ms : function(opts){
     var ms = {json_class : 'Motel::MovementStrategies::Linear',
-              speed : 100, dx : 1, dy : 0, dz : 0};
+              speed : 1, dx : 0, dy : 0, dz : 1};
     $.extend(ms, opts);
     return ms;
+  },
+
+  solar_system : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'system' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+
+    return new Omega.SolarSystem(opts);
+  },
+
+  /// emits a specified command via the cmd tracker
+  command : function(cmd_tracker, evnt, other_args){
+    var args = [evnt].concat(other_args);
+    cmd_tracker._msg_received(evnt, args)
   }
 };

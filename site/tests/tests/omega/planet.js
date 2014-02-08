@@ -33,46 +33,31 @@ describe("Omega.Planet", function(){
 
       before(function(){
         orig = {gfx: Omega.Planet.gfx,
-                mesh: Omega.Planet.gfx ? Omega.Planet.gfx.mesh : null};
+                cgfx: Omega.Planet.gfx ? Omega.Planet.gfx[0]   : null,
+                mesh: Omega.Planet.gfx && Omega.Planet.gfx[0] ?
+                      Omega.Planet.gfx[0].mesh : null};
       })
 
       after(function(){
         Omega.Planet.gfx = orig.gfx;
-        if(Omega.Planet.gfx) Omega.Planet.gfx.mesh = orig.mesh;
+        if(Omega.Planet.gfx) Omega.Planet.gfx[0] = orig.cgfx;
+        if(Omega.Planet.gfx && Omega.Planet.gfx[0])
+          Omega.Planet.gfx[0].mesh = orig.mesh;
       });
 
       it("does nothing / just returns", function(){
-        Omega.Planet.gfx = {};
-        Omega.Planet.mesh = null;
+        Omega.Planet.gfx = {0 : {mesh : null}};
         new Omega.Planet().load_gfx(Omega.Config);
-        assert(Omega.Planet.mesh).isNull();
+        assert(Omega.Planet.gfx[0].mesh).isNull();
       });
     });
 
     it("creates mesh for Planet", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.Planet.gfx.mesh).isOfType(THREE.Mesh);
-      assert(Omega.Planet.gfx.mesh.geometry).isOfType(THREE.SphereGeometry);
-      assert(Omega.Planet.gfx.mesh.material).isOfType(THREE.MeshLambertMaterial);
-    });
-
-    it("creates orbit material for Planet", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Planet.gfx.orbit_material).isOfType(THREE.LineBasicMaterial);
-    });
-  });
-
-  describe("#_load_material", function(){
-    it("loads texture corresponding to color", function(){
-      var page   = Omega.Test.Page();
-      var basepath = 'http://' + page.config.http_host + page.config.url_prefix + page.config.images_path + '/textures/planet';
-      var planet = Omega.Test.Canvas.Entities().planet;
-      planet.color = '000000';
-      var mat = planet._load_material(page.config, function(){});
-      assert(mat.map.image.src).equals(basepath + '0.png');
-      planet.color = '000001';
-      mat = planet._load_material(page.config, function(){});
-      assert(mat.map.image.src).equals(basepath + '1.png');
+      assert(Omega.Planet.gfx[0].mesh).isOfType(Omega.PlanetMesh);
+      assert(Omega.Planet.gfx[0].mesh.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.Planet.gfx[0].mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
+      assert(Omega.Planet.gfx[0].mesh.tmesh.material).isOfType(THREE.MeshLambertMaterial);
     });
   });
 
@@ -103,91 +88,80 @@ describe("Omega.Planet", function(){
     });
   });
 
-  describe("#_init_orbit_gfx", function(){
-    it("calculates orbit", function(){
-      var pl  = new Omega.Planet({});
-      var calc_orbit = sinon.spy(pl, '_calc_orbit')
-      pl._init_orbit_gfx();
-      sinon.assert.called(calc_orbit);
-    });
-
-    it("creates orbit mesh", function(){
-      var ms  = {e : 0, p : 10, speed: 1.57,
-                 dmajx: 0, dmajy : 1, dmajz : 0,
-                 dminx: 0, dminy : 0, dminz : 1};
-      var loc = new Omega.Location({id : 42, movement_strategy : ms});
-      var pl  = new Omega.Planet({location : loc});
-      pl._init_orbit_gfx();
-      assert(pl.orbit_mesh).isOfType(THREE.Line);
-      // TODO verify actual line vertices
-    });
-  });
-
   describe("#init_gfx", function(){
-    var config, event_cb;
+    var config, event_cb, planet;
 
     before(function(){
       config   = Omega.Config;
       event_cb = function(){};
+
+      var ms  = {e : 0, p : 10, speed: 1.57,
+                 dmajx: 0, dmajy : 1, dmajz : 0,
+                 dminx: 0, dminy : 0, dminz : 1};
+      var loc = new Omega.Location({id : 42, movement_strategy : ms});
+      planet  = new Omega.Planet({location : loc, color: '000000'});
     });
 
     after(function(){
-      if(Omega.Planet.gfx){
-        if(Omega.Planet.gfx.mesh.clone.restore) Omega.Planet.gfx.mesh.clone.restore();
+      if(Omega.Planet.gfx && Omega.Planet.gfx[0]){
+        if(Omega.Planet.gfx[0].mesh.clone.restore)
+          Omega.Planet.gfx[0].mesh.clone.restore();
       }
+
+      if(Omega.PlanetMaterial.load.restore)
+        Omega.PlanetMaterial.load.restore();
     });
 
     it("loads planet gfx", function(){
-      var planet = new Omega.Planet();
-      var load_gfx  = sinon.spy(planet, 'load_gfx');
+      var load_gfx = sinon.spy(planet, 'load_gfx');
       planet.init_gfx(config, event_cb);
       sinon.assert.called(load_gfx);
     });
 
     it("clones Planet mesh", function(){
       Omega.Test.Canvas.Entities();
-      var planet = new Omega.Planet();
-      var mesh   = new THREE.Mesh();
-      sinon.stub(Omega.Planet.gfx.mesh, 'clone').returns(mesh);
+      var mesh = new Omega.PlanetMesh();
+      sinon.stub(Omega.Planet.gfx[0].mesh, 'clone').returns(mesh);
       planet.init_gfx(config, event_cb);
       assert(planet.mesh).equals(mesh);
     });
 
     it("sets mesh omega_entity", function(){
-      var planet = new Omega.Planet();
       planet.init_gfx(config, event_cb);
       assert(planet.mesh.omega_entity).equals(planet);
     });
 
     it("loads/sets planet mesh material", function(){
-      var planet = new Omega.Planet({color: 'ABABAB'});
-      var material = new THREE.Material();
-      var load_material = sinon.stub(planet, '_load_material');
+      var material      = new THREE.Material();
+      var load_material = sinon.stub(Omega.PlanetMaterial, 'load');
       load_material.returns(material);
 
       planet.init_gfx(config, event_cb);
-      sinon.assert.calledWith(load_material, config, event_cb, '0xABABAB');
+      sinon.assert.calledWith(load_material, config, 0, event_cb);
     });
 
     it("refreshes graphics", function(){
-      var planet = new Omega.Planet({});
       var update_gfx = sinon.spy(planet, 'update_gfx');
       planet.init_gfx(config, event_cb);
       sinon.assert.called(update_gfx);
     });
 
-    it("loads planet orbit gfx", function(){
-      var planet = new Omega.Planet({});
-      var init_orbit_gfx = sinon.spy(planet, '_init_orbit_gfx');
+    it("loads planet orbit", function(){
+      var calc_orbit = sinon.spy(planet, '_calc_orbit');
       planet.init_gfx(config, event_cb);
-      sinon.assert.called(init_orbit_gfx);
+      sinon.assert.called(calc_orbit);
+    });
+
+    it("creates orbit line", function(){
+      planet.init_gfx(config, event_cb);
+      assert(planet.orbit_line).isOfType(Omega.PlanetOrbitLine);
+      // TODO verify actual line vertices
     });
 
     it("adds mesh and orbit mesh to planet scene components", function(){
-      var planet = new Omega.Planet();
       planet.init_gfx(config, event_cb);
-      assert(planet.components[0]).equals(planet.mesh);
-      assert(planet.components[1]).equals(planet.orbit_mesh);
+      assert(planet.components[0]).equals(planet.mesh.tmesh);
+      assert(planet.components[1]).equals(planet.orbit_line.line);
     });
   });
 
@@ -196,9 +170,9 @@ describe("Omega.Planet", function(){
       var planet = Omega.Test.Canvas.Entities().planet;
       planet.location = new Omega.Location({x : 20, y : 30, z : -20});
       planet.update_gfx();
-      assert(planet.mesh.position.x).equals( 20);
-      assert(planet.mesh.position.y).equals( 30);
-      assert(planet.mesh.position.z).equals(-20);
+      assert(planet.mesh.tmesh.position.x).equals( 20);
+      assert(planet.mesh.tmesh.position.y).equals( 30);
+      assert(planet.mesh.tmesh.position.z).equals(-20);
     });
   });
 
@@ -247,3 +221,22 @@ describe("Omega.Planet", function(){
     });
   });
 });}); // Omega.Planet
+
+pavlov.specify("Omega.PlanetMaterial", function(){
+describe("Omega.PlanetMaterial", function(){
+describe("#load", function(){
+  it("loads texture corresponding to color", function(){
+    var config   = Omega.Config;
+    var basepath = 'http://' + config.http_host   +
+                               config.url_prefix  +
+                               config.images_path +
+                               '/textures/planet';
+
+    var mat = Omega.PlanetMaterial.load(config, 0, function(){});
+    assert(mat.map.image.src).equals(basepath + '0.png');
+
+    mat = Omega.PlanetMaterial.load(config, 1, function(){});
+    assert(mat.map.image.src).equals(basepath + '1.png');
+  });
+});
+});}); // Omega.PlanetMaterial

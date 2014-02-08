@@ -5,6 +5,8 @@
  */
 
 Omega.StationCommands = {
+  has_details : true,
+
   retrieve_details : function(page, details_cb){
     /// TODO also construction percentage
     var title = 'Station: ' + this.id;

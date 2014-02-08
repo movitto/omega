@@ -101,6 +101,10 @@ Omega.UI.IndexDialog.prototype = {
     var password = $('#login_password').val();
     var user = new Omega.User({id: user_id, password: password});
 
+    /// clear inputs
+    $('#login_username').val('');
+    $('#login_password').val('');
+
     var _this = this;
     Omega.Session.login(user, this.page.node, function(result){
       if(result.error){

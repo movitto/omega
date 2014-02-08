@@ -119,16 +119,18 @@ describe("Omega.SolarSystem", function(){
 
     it("creates mesh for solar system", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.SolarSystem.gfx.mesh).isOfType(THREE.Mesh);
-      assert(Omega.SolarSystem.gfx.mesh.geometry).isOfType(THREE.SphereGeometry);
-      assert(Omega.SolarSystem.gfx.mesh.material).isOfType(THREE.MeshBasicMaterial);
+      assert(Omega.SolarSystem.gfx.mesh).isOfType(Omega.SolarSystemMesh);
+      assert(Omega.SolarSystem.gfx.mesh.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.SolarSystem.gfx.mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
+      assert(Omega.SolarSystem.gfx.mesh.tmesh.material).isOfType(THREE.MeshBasicMaterial);
     });
 
     it("creates plane for solar system", function(){
       Omega.Test.Canvas.Entities();
-      assert(Omega.SolarSystem.gfx.plane).isOfType(THREE.Mesh);
-      assert(Omega.SolarSystem.gfx.plane.geometry).isOfType(THREE.PlaneGeometry);
-      assert(Omega.SolarSystem.gfx.plane.material).isOfType(THREE.MeshBasicMaterial);
+      assert(Omega.SolarSystem.gfx.plane).isOfType(Omega.SolarSystemPlane);
+      assert(Omega.SolarSystem.gfx.plane.tmesh).isOfType(THREE.Mesh);
+      assert(Omega.SolarSystem.gfx.plane.tmesh.geometry).isOfType(THREE.PlaneGeometry);
+      assert(Omega.SolarSystem.gfx.plane.tmesh.material).isOfType(THREE.MeshBasicMaterial);
     });
   });
 
@@ -169,7 +171,7 @@ describe("Omega.SolarSystem", function(){
     it("sets mesh position", function(){
       var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
-      assert(solar_system.mesh.position.toArray()).isSameAs([50, 60, -75]);
+      assert(solar_system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("clones SolarSystem plane", function(){
@@ -183,27 +185,30 @@ describe("Omega.SolarSystem", function(){
     it("sets plane position", function(){
       var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
-      assert(solar_system.plane.position.toArray()).isSameAs([50, 60, -75]);
+      assert(solar_system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("creates text for solar system", function(){
       var solar_system = new Omega.SolarSystem();
       solar_system.init_gfx();
-      assert(solar_system.text).isOfType(THREE.Mesh);
-      assert(solar_system.text.geometry).isOfType(THREE.TextGeometry);
-      assert(solar_system.text.material).isOfType(THREE.MeshBasicMaterial);
+      assert(solar_system.text).isOfType(Omega.SolarSystemText);
+      assert(solar_system.text.text).isOfType(THREE.Mesh);
+      assert(solar_system.text.text.geometry).isOfType(THREE.TextGeometry);
+      assert(solar_system.text.text.material).isOfType(THREE.MeshBasicMaterial);
     });
 
     it("sets text position", function(){
       var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
       solar_system.init_gfx();
-      assert(solar_system.text.position.toArray()).isSameAs([50, 60, -25]);
+      assert(solar_system.text.text.position.toArray()).isSameAs([50, 110, -75]);
     });
     
     it("adds mesh, plane, text to solar system scene components", function(){
       var solar_system = new Omega.SolarSystem();
       solar_system.init_gfx();
-      assert(solar_system.components).isSameAs([solar_system.mesh, solar_system.plane, solar_system.text]);
+      assert(solar_system.components).isSameAs([solar_system.mesh.tmesh,
+                                                solar_system.plane.tmesh,
+                                                solar_system.text.text]);
     });
 
     it("invokes add_interconnect with queued interconnections", function(){

@@ -76,7 +76,7 @@ class Ship
   # @param [SHIP_TYPE] type type of ship which to return construction cost
   # @return [Integer] base movement speed of the ship type
   def self.base_movement_speed(type)
-    5
+    50
   end
 
 

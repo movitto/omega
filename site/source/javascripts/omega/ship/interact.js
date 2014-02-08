@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/command_dialog"
+
 Omega.ShipInteraction = {
   //TODO register mine/dock callbacks
   context_action : function(entity, page){
@@ -61,7 +63,7 @@ Omega.ShipInteraction = {
 
         }else{
           _this.dialog().hide();
-          _this.location.movement_strategy = response.result.location.movement_strategy;
+          _this.location.update_ms(response.result.location.movement_strategy);
           page.canvas.reload(_this, function(){
             _this.update_gfx();
           });

@@ -1,6 +1,6 @@
 /* Omega Ship JS Representation
  *
- * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+ * Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
@@ -8,6 +8,7 @@
 //= require "omega/ship/interact"
 //= require "omega/ship/gfx"
 
+///
 Omega.Ship = function(parameters){
   this.components = [];
   this.shader_components = [];
@@ -23,27 +24,6 @@ Omega.Ship.prototype = {
   constructor: Omega.Ship,
 
   json_class : 'Manufactured::Ship',
-
-  /// see omega/ship/commands.js for retrieve_details implementation
-  has_details : true,
-
-  highlight_props : {
-    x     :    0, y     : 200, z     : 0,
-    rot_x : 3.14, rot_y :   0, rot_z : 0
-  },
-
-  trail_props : {
-    plane : 3, lifespan : 20
-  },
-
-  health_bar_props : {
-    length : 200
-  },
-
-  debug_gfx : false,
-
-  /// template mesh, mesh, and particle texture
-  async_gfx : 3,
 
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
@@ -80,42 +60,20 @@ Omega.Ship.prototype = {
   },
 
   selected : function(page){
-    if(this.mesh) this.mesh.material.emissive.setHex(0xff0000);
+    if(this.mesh && this.mesh.tmesh)
+      this.mesh.tmesh.material.emissive.setHex(0xff0000);
   },
 
   unselected : function(page){
-    if(this.mesh) this.mesh.material.emissive.setHex(0);
-  },
-
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Ship.gfx)            === 'undefined') Omega.Ship.gfx = {};
-    if(typeof(Omega.Ship.gfx[this.type]) !== 'undefined') return;
-    Omega.load_ship_gfx(config, this.type, event_cb);
-  },
-
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
-    Omega.init_ship_gfx(config, this, event_cb);
-  },
-
-  cp_gfx : function(from){
-    /// return if not initialized
-    if(!from.components || from.components.length == 0) return;
-    Omega.cp_ship_gfx(from, this);
-  },
-
-  update_gfx : function(){
-    if(!this.location) return;
-    Omega.update_ship_gfx(this);
-  },
+    if(this.mesh && this.mesh.tmesh)
+      this.mesh.tmesh.material.emissive.setHex(0);
+  }
 };
 
 Omega.UI.ResourceLoader.prototype.apply( Omega.Ship.prototype );
 $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
-$.extend(Omega.Ship.prototype, Omega.ShipGfxUpdaters);
-$.extend(Omega.Ship.prototype, Omega.ShipEffectRunner);
+$.extend(Omega.Ship.prototype, Omega.ShipGfx);
 ///
 
 // Return ship with the specified id

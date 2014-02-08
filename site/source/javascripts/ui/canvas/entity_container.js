@@ -53,7 +53,7 @@ Omega.UI.CanvasEntityContainer.prototype = {
     $(this.div_id).hide();
   },
 
-  show : function(entity){
+  show : function(entity, refreshing){
     this.hide(); // clears / unselects previous entity if any
     this.entity = entity;
 
@@ -66,8 +66,8 @@ Omega.UI.CanvasEntityContainer.prototype = {
     if(entity.selected) entity.selected(this.canvas.page);
     $(this.div_id).show();
 
-    /// TODO should only occur when showing for first time but not refreshing
-    $(this.div_id).focus();
+    if(!refreshing)
+      $(this.div_id).focus();
   },
 
   append : function(text){
@@ -75,6 +75,13 @@ Omega.UI.CanvasEntityContainer.prototype = {
   },
 
   refresh : function(){
-    if(this.entity) this.show(this.entity);
+    if(this.entity){
+      /// refresh entity from page if we can
+      if(this.canvas && this.canvas.page)
+        this.entity = this.canvas.page.entity(this.entity.id);
+
+      /// reshow entity
+      this.show(this.entity, true);
+    }
   }
 };
