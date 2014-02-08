@@ -36,18 +36,26 @@ Omega.Pages.Dev.prototype = {
     this.canvas.cam.position.set(1500, 1500, 1500);
     this.canvas.focus_on({x:0,y:0,z:0});
 
+    this.custom_operations();
+
     var light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
     this.canvas.scene.add(light);
 
     this.canvas.skybox.set(1, this.config, function(){_this.canvas.animate();})
     this.canvas.add(this.canvas.skybox);
 
-    custom_operations();
-
     this.canvas.animate();
   },
 
   custom_operations : function(){
+    var system1 = Omega.Gen.solar_system();
+    system1.location.set(1000, 0, 1000);
+    var system2 = Omega.Gen.solar_system();
+    system2.location.set(-1000, 0, -1000);
+    system1.add_interconn(system2);
+    var galaxy = Omega.Gen.galaxy({children: [system1, system2]});
+    this.canvas.set_scene_root(galaxy);
+    this.canvas.add(galaxy);
   }
 };
 

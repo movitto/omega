@@ -1,0 +1,325 @@
+bin/omega-server:# Copyright (C) 2011-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-cosmos-retrieve:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-users-create:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-manufactured-retrieve:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/mission-runner.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-status:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-cosmos-create:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-console:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-monitor:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-users-retrieve:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-missions-assign:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-missions-retrieve:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+bin/util/omega-cosmos-map.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/omega-backup:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+bin/omega-restore:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/stats/stat.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/stats/registry.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/stats/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/stats/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/stats/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/commands/shield_refresh.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/commands/construction.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/commands/mining.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/commands/attack.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/registry.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/station.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/loot.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/resources.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/dock.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/admin.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/loot.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/mining.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/create.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/movement.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/events.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/state.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/rjr/attack.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/entity.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/ship.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/event_handler.rb:# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/events/system_jump.rb:# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+lib/manufactured/events.rb:# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+lib/omega.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/resources.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/node.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/entities/cosmos.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/entities/station.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/entities/user.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/entities/ship.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/entities/location.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/dsl.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/client/mixins.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/common.rb:# Copyright (C) 2011-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/registry.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/proxy.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/config.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/callback.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/command.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/event.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/server/dsl.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/names.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/roles.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/omega/exceptions.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/resource.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/registry.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/planet.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/star.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/moon.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/asteroid.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/jump_gate.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/galaxy.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entities/solar_system.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/resources.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/create.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/rjr/state.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/cosmos/entity.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/registry.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/hooks.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/assign.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/create.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/rjr/state.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/mission.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/dsl.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/event_handler.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/events/resources.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/events/users.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/missions/events/manufactured.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/errors.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/callbacks/proximity.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/callbacks/changed_strategy.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/callbacks/rotation.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/callbacks/movement.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/callbacks/stopped.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/common.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/registry.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/update.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/delete.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/create.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/track.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/rjr/state.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategy.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategies/linear.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategies/rotate.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategies/follow.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategies/elliptical.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/movement_strategies/stopped.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/motel/location.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/registry.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/email_helper.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/role.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/attributes/own.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/attributes/stats.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/attributes/interact.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/attributes/other.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/privilege.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/inspect.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/get.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/register.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/init.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/session.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/update.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/attribute.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/create.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/permissions.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/events.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/rjr/state.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/user.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/session.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+lib/users/attribute.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+lib/users/events/registered_user.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/config.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/pages/dev.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/pages/stats.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/pages/account.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/pages/index.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/pages/confirm.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/star/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/resource.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/solar_system.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/ship.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/star.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/planet/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/planet/orbit.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/gen.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/common.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/galaxy.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/stat.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/jump_gate/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/jump_gate/commands.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/mission.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/ship/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/ship/commands.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/ship/interact.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/node.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/station/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/station/commands.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/station/interact.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/asteroid.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/jump_gate.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/station.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/location.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/galaxy/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/solar_system/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/version.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/user.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/asteroid/gfx.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/asteroid/commands.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/session.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega/planet.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/omega.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/vendor/rjr/jrw-0.17.1.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/effects_player.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas_tracker.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/status_indicator.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/tracker.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/pages/account_dialog.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/pages/account_details.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/pages/index_dialog.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/pages/index_nav.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/loader.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/session_validator.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/registry.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/progress_bar.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/skybox.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/star_dust.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/entity_container.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/lamp.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/controls_list.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/controls.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/dialog.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/canvas/axis.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/command_tracker.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/command_dialog.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/dialog.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/audio_controls.js: * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+site/source/javascripts/ui/resource_loader.js: * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/stats/stat_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/stats/registry_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/stats/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/stats/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/sproc.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/registry_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/commands/attack_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/commands/construction_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/commands/mining_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/commands/shield_refresh_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/event_handler_spec.rb:# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/ship_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/loot_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/attack_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/state_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/dock_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/create_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/admin_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/loot_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/events_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/resources_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/inspect_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/mining_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/rjr/movement_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/station_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/entity_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/manufactured/events/system_jump_spec.rb:# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
+spec/spec_helper.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/sproc_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/dsl_spec.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/node_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/entities/ship_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/entities/user_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/entities/location_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/entities/cosmos_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/entities/station_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/client/mixins_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/dsl_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/registry_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/proxy_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/command_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/callback_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/config_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/omega/server/event_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/registry_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/resource_spec.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/star_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/solar_system_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/planet_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/asteroid_spec.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/jump_gate_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/galaxy_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entities/moon_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/rjr/state_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/rjr/create_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/rjr/resources_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/cosmos/entity_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/dsl_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/registry_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/event_handler_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/mission_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/state_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/create_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/hooks_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/assign_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/inspect_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/events/users_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/events/manufactured_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/missions/events/resources_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/registry_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/callbacks/proximity_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/callbacks/changed_strategy_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/callbacks/rotation_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/callbacks/stopped_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/callbacks/movement_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategy_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/common_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/delete_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/state_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/create_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/inspect_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/update_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/rjr/track_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/location_spec.rb:# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategies/rotate_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategies/elliptical_spec.rb:# Copyright (C) 2009-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategies/linear_spec.rb:# Copyright (C) 2009-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategies/stopped_spec.rb:# Copyright (C) 2009-2013 Mohammed Morsi <mo@morsi.org>
+spec/motel/movement_strategies/follow_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/users/registry_spec.rb:# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+spec/users/user_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/users/session_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/users/attribute_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/permissions_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/state_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/create_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/session_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/register_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/attribute_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/events_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/get_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/inspect_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/update_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/rjr/init_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/email_helper_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/events/registered_user_spec.rb:# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+spec/users/privilege_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+spec/users/role_spec.rb:# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>

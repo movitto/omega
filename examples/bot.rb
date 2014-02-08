@@ -57,7 +57,7 @@ def start_corvette(corvette)
   corvette.handle(:attacked) { |c,event, attacker, defender|
     sputs "#{c.id.bold.yellow} attacked #{defender.id.bold.yellow}"
   }
-  corvette.handle(:defended) { |c,event, attacker, defender|
+  corvette.handle(:defended) { |c,event, defender, attacker|
     sputs "#{c.id.bold.yellow} attacked by #{attacker.id.bold.yellow}"
   }
   corvette.start_bot
