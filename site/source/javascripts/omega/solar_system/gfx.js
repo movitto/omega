@@ -36,7 +36,7 @@ Omega.SolarSystemGfx = {
     this.plane.omega_entity = this;
 
     /// text geometry needs to be created on system by system basis
-    this.text = new Omega.SolarSystemText(this.name)
+    this.text = new Omega.SolarSystemText(this.title())
     this.text.omega_entity = this;
   
     /// TODO only display sphere on mouse over
