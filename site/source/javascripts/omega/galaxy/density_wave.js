@@ -15,7 +15,7 @@ Omega.GalaxyDensityWave.prototype = {
     return new ShaderParticleGroup({
       texture: Omega.load_galaxy_particles(config, event_cb),
       maxAge: 2,
-      fadeFactor :  7500.0,
+      //fadeFactor :  7500.0,
       blending: THREE.AdditiveBlending
     });
   },
@@ -37,7 +37,7 @@ Omega.GalaxyDensityWave.prototype = {
       sizeEnd      : 100,
       opacityStart : 1,
       opacityEnd   : 0,
-      particlesPerSecond: 5000
+      particlesPerSecond: 2500
     });
   },
 
