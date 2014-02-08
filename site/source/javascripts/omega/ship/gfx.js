@@ -216,7 +216,7 @@ Omega.ShipGfx = {
 
   ///////////////////////////////////////////////// effects
 
-  _run_movement_effects : function(){
+  _run_movement_effects : function(page){
     /// move ship according to movement strategy to smoothen out movement animation
     var stopped = 'Motel::MovementStrategies::Stopped';
     var linear  = 'Motel::MovementStrategies::Linear';
@@ -274,10 +274,6 @@ Omega.ShipGfx = {
           loc.y += move_distance * dy;
           loc.z += move_distance * dz;
         }
-        if(loc.movement_strategy.point_to_target){
-          
-        }
-
         this.update_gfx();
       }
     }
@@ -285,10 +281,10 @@ Omega.ShipGfx = {
     if(!this.location.is_stopped()) this.last_moved = now;
   },
 
-  run_effects : function(){
+  run_effects : function(page){
     this.lamps.run_effects();
     this.trails.run_effects();
-    this._run_movement_effects();
+    this._run_movement_effects(page);
 
     this.attack_vector.run_effects();
     this.explosions.run_effects();
