@@ -39,8 +39,7 @@ Omega.SolarSystemGfx = {
     this.text = new Omega.SolarSystemText(this.title())
     this.text.omega_entity = this;
   
-    /// TODO only display sphere on mouse over
-    this.components = [this.mesh.tmesh, this.plane.tmesh, this.text.text];
+    this.components = [this.plane.tmesh, this.text.text];
   
     this.unqueue_interconns();
 

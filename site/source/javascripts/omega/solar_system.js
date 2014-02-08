@@ -81,6 +81,35 @@ Omega.SolarSystem.prototype = {
 
   clicked_in : function(canvas){
     canvas.set_scene_root(this);
+  },
+
+  _has_hover_sphere : function(){
+    return $.inArray(this.mesh.tmesh, this.components) != -1;
+  },
+
+  _add_hover_sphere : function(){
+    this.components.push(this.mesh.tmesh);
+  },
+
+  _rm_hover_sphere : function(){
+    var index = $.inArray(this.mesh.tmesh, this.components);
+    this.components.splice(index, 1);
+  },
+
+  on_hover : function(canvas){
+    var _this = this;
+    canvas.reload(this, function(){
+      if(!_this._has_hover_sphere())
+        _this._add_hover_sphere();
+    });
+  },
+
+  on_unhover : function(canvas){
+    var _this = this;
+    canvas.reload(this, function(){
+      if(_this._has_hover_sphere())
+        _this._rm_hover_sphere();
+    });
   }
 };
 

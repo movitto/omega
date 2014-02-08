@@ -26,7 +26,7 @@ Omega.SolarSystemMesh.prototype = {
   },
 
   _geometry : function(){
-    var radius = 50, segments = 32, rings = 32;
+    var radius = 150, segments = 32, rings = 32;
     return new THREE.SphereGeometry(radius, segments, rings);
   },
 

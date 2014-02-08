@@ -6,12 +6,14 @@
 
 Omega.SolarSystemPlane = function(config, event_cb){
   if(config && event_cb) this.tmesh = this.init_gfx(config, event_cb);
+  if(this.tmesh) this.tmesh.omega_obj = this;
 };
 
 Omega.SolarSystemPlane.prototype = {
   clone : function(){
     var plane   = new Omega.SolarSystemPlane();
     plane.tmesh = this.tmesh.clone();
+    plane.tmesh.omega_obj = plane;
     return plane;
   },
 
