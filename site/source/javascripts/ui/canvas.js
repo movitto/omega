@@ -36,11 +36,12 @@ Omega.UI.Canvas = function(parameters){
 Omega.UI.Canvas.prototype = {
   wire_up : function(){
     var _this = this;
-    this.canvas.off('mousedown mouseup mouseleave mouseout'); /// <- needed ?
+    this.canvas.off('mousedown mouseup mouseleave mouseout mousemove'); /// <- needed ?
 
+    /// detect clicks dispatch to _canvas_clicked.
     /// mouseup / down must occur within 1/2 second
     /// to be registered as a click
-    /// TODO selection box
+    /// TODO drag-n-drop selection box
     var click_duration = 500, timestamp = null;
     this.canvas.mousedown(function(evnt){ timestamp = new Date();});
     this.canvas.mouseup(function(evnt) {
@@ -50,11 +51,17 @@ Omega.UI.Canvas.prototype = {
       }
     })
 
+    /// when mouse leaves canvas, trigger up event
     this.canvas.on('mouseleave', function(){ /// XXX resulting in a mouseout event
       //_this.canvas.trigger('mouseup');
       var evnt = document.createEvent('MouseEvents');
       evnt.initMouseEvent('mouseup', 1, 1, window, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, null);
       _this.cam_controls.domElement.dispatchEvent(evnt);
+    });
+
+    this.canvas.on('mousemove', function(evnt){
+      _this.mouse_x = evnt.clientX;
+      _this.mouse_y = evnt.clientY;
     });
 
     this.controls.wire_up();
@@ -150,15 +157,27 @@ Omega.UI.Canvas.prototype = {
     this.star_dust.init_gfx(this.page.config, function(){ _this._init_gfx(); });
   },
 
-  _canvas_clicked : function(evnt){
+  _screen_coords_to_canvas : function(x, y){
     // map page coords to canvas scene coords
-    var x = Math.floor(evnt.pageX - this.canvas.offset().left);
-    var y = Math.floor(evnt.pageY - this.canvas.offset().top);
-        x =   x / this.canvas.width() * 2 - 1;
-        y = - y / this.canvas.height() * 2 + 1;
+    var nx = Math.floor(x - this.canvas.offset().left);
+    var ny = Math.floor(y - this.canvas.offset().top);
+        nx =   nx / this.canvas.width()  * 2 - 1;
+        ny = - ny / this.canvas.height() * 2 + 1;
+
+    return [nx, ny];
+  },
+
+  _picking_ray : function(x, y){
+    var xy = this._screen_coords_to_canvas(x, y);
+    var cx = xy[0];
+    var cy = xy[1];
 
     var projector = new THREE.Projector();
-    var ray = projector.pickingRay(new THREE.Vector3(x, y, 0.5), this.cam);
+    return projector.pickingRay(new THREE.Vector3(cx, cy, 0.5), this.cam);
+  },
+
+  _canvas_clicked : function(evnt){
+    var        ray = this._picking_ray(evnt.pageX, evnt.pageY);
     var intersects = ray.intersectObjects(this.scene.getDescendants());
 
     if(intersects.length > 0){
@@ -179,6 +198,25 @@ Omega.UI.Canvas.prototype = {
     }
   },
 
+  /// TODO also need to detect unhovered
+  _detect_hover : function(){
+    if(!this.mouse_x || !this.mouse_y) return;
+
+    var        ray = this._picking_ray(this.mouse_x, this.mouse_y);
+    var intersects = ray.intersectObjects(this.scene.getDescendants());
+    if(intersects.length > 0){
+      var obj = intersects[0].object.omega_obj;
+      var entity = obj ? obj.omega_entity : null;
+      if(entity){
+        this._hovered_entity = entity;
+        this._hovered_over(entity);
+      }else if(this._hovered_entity){
+        this._unhovered_over(this._hovered_entity);
+        this._hovered_entity = null;
+      }
+    }
+  },
+
   _clicked_entity : function(entity){
     if(entity.has_details) this.entity_container.show(entity);
     if(entity.clicked_in) entity.clicked_in(this);
@@ -191,6 +229,16 @@ Omega.UI.Canvas.prototype = {
       if(selected.context_action) selected.context_action(entity, this.page);
       entity.dispatchEvent({type: 'rclick'});
     }
+  },
+
+  _hovered_over : function(entity){
+    if(entity.on_hover) entity.on_hover(this);
+    entity.dispatchEvent({type: 'hover'});
+  },
+
+  _unhovered_over : function(entity){
+    if(entity.on_unhover) entity.on_unhover(this);
+    entity.dispatchEvent({type: 'unhover'});
   },
 
   // Reset camera to original position
@@ -216,6 +264,7 @@ Omega.UI.Canvas.prototype = {
   animate : function(){
     var _this = this;
     requestAnimationFrame(function() { _this.render(); });
+    this._detect_hover();
   },
 
   // Render scene
