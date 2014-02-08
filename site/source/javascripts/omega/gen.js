@@ -112,6 +112,19 @@ Omega.Gen = {
     return ms;
   },
 
+  galaxy : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'galaxy' + this.next_id();
+
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+
+    return new Omega.Galaxy(opts);
+  },
+
   solar_system : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'system' + this.next_id();
