@@ -20,6 +20,15 @@ module MovementStrategies
 #
 # To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
+
+  include Rotatable
+
+   # [Boolean] Indicates if we are close enough to the target to stop
+   attr_reader :on_target
+
+   # [Boolean] Indicates if we have stopped to face the target
+   attr_reader :adjusting_bearing
+
    # [String] ID of location which is being tracked
    attr_reader :tracked_location_id
 
@@ -41,6 +50,12 @@ class Follow < MovementStrategy
    # Distance the location moves per second (when moving)
    attr_accessor :speed
 
+   # Define if we should rotate to face target
+   attr_accessor :point_to_target
+
+   # Optional - Rotation speed
+   attr_accessor :rotation_speed
+
    # Motel::MovementStrategies::Follow initializer
    #
    # @param [Hash] args hash of options to initialize the follow movement strategy with
@@ -48,11 +63,17 @@ class Follow < MovementStrategy
    # @option args [Integer] :tracked_location,'tracked_location' handle to the location to track
    # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
+   # @option args [Boolean] :point_to_target, define if we should rotate to face the target
    # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      attr_from_args args, :distance => nil, :speed => nil,
-                          :tracked_location_id     => nil
-
+                          :tracked_location_id     => nil,
+                          :point_to_target         => false,
+                          :rotation_speed          => 1
+     # If we have to point to the target, do so before moving
+     @adjusting_bearing = @point_to_target
+     @on_target = false # Asume we haven't arrived at the target at first
+     init_rotation
      super(args)
    end
 
@@ -88,7 +109,31 @@ class Follow < MovementStrategy
                   "#{speed} #{tracked_location_id } at #{distance}"
 
      distance_to_cover  = loc - tl
-     if distance_to_cover <= @distance
+
+     @on_target = distance_to_cover <= @distance
+
+     if @point_to_target
+       # Calculate orientation difference
+       # TODO separate this logic into helper
+       od = loc.orientation_difference(*tl.coordinates)
+       if od.first.abs > (Math::PI / 32)
+         # TODO right now this makes sure we can move and change rotation
+         # at the same time. In the future, we should probably do some math 
+         # to figure out intercept trajectories
+         @adjusting_bearing = true if @on_target
+         init_rotation :rot_theta =>  od[0] * @rotation_speed,
+                       :rot_x     =>  od[1],
+                       :rot_y     =>  od[2],
+                       :rot_z     =>  od[3]
+         if valid_rotation?
+           rotate loc, elapsed_seconds
+         end
+       else
+         @adjusting_bearing = false
+       end
+     end
+
+     if @on_target || @adjusting_bearing
        #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
        # TODO orbit the location or similar?
 
@@ -113,7 +158,12 @@ class Follow < MovementStrategy
        'data'       => { :step_delay => step_delay,
                          :speed => speed,
                          :tracked_location_id => tracked_location_id,
-                         :distance            => distance }
+                         :distance            => distance,
+                         :point_to_target     => point_to_target,
+                         :rotation_speed      => rotation_speed,
+                         :on_target           => on_target,
+                         :adjusting_bearing   => adjusting_bearing
+                       }.merge(rotation_json)
      }.to_json(*a)
    end
 

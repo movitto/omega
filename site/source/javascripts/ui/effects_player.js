@@ -68,7 +68,7 @@ Omega.UI.EffectsPlayer.prototype = {
   _run_effects : function(){
     for(var e = 0; e < this.entities.length; e++){
       var entity = this.entities[e];
-      if(entity.run_effects) entity.run_effects();
+      if(entity.run_effects) entity.run_effects(this.page);
     }
     this.page.canvas.animate();
   }
