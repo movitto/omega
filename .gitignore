@@ -15,3 +15,6 @@ contrib
 wiki
 doc
 tmp
+.kateproject
+.kateproject.d
+omega-conf
