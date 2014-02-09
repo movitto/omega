@@ -19,7 +19,7 @@ Omega.ShipInteraction = {
       //TODO change move strat to follow
       if (entity.json_class == "Manufactured::Ship"      ||
           entity.json_class == "Cosmos::Entities::Planet" )
-        this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
+        this._follow(page, entity.id);
     }
   },
 
@@ -54,6 +54,27 @@ Omega.ShipInteraction = {
     var nloc = this.location.clone();
     nloc.x = x; nloc.y = y; nloc.z = z;
     page.node.http_invoke('manufactured::move_entity', this.id, nloc,
+      function(response){
+        if(response.error){
+          _this.dialog().clear_errors();
+          _this.dialog().title = 'Movement Error';
+          _this.dialog().show_error_dialog();
+          _this.dialog().append_error(response.error.message);
+
+        }else{
+          _this.dialog().hide();
+          _this.location.update_ms(response.result.location.movement_strategy);
+          page.canvas.reload(_this, function(){
+            _this.update_gfx();
+          });
+        }
+      });
+  },
+
+  _follow : function(page, target_entity_id){
+    var _this = this;
+    var distance = Omega.Config.follow_distance;
+    page.node.http_invoke('manufactured::follow_entity', this.id, target_entity_id, distance,
       function(response){
         if(response.error){
           _this.dialog().clear_errors();
