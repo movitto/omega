@@ -216,11 +216,12 @@ Omega.ShipGfx = {
 
   ///////////////////////////////////////////////// effects
 
-  _run_movement_effects : function(){
+  _run_movement_effects : function(page){
     /// move ship according to movement strategy to smoothen out movement animation
     var stopped = 'Motel::MovementStrategies::Stopped';
     var linear  = 'Motel::MovementStrategies::Linear';
     var rotate  = 'Motel::MovementStrategies::Rotate';
+    var follow  = 'Motel::MovementStrategies::Follow';
     var now     = new Date();
     if(this.last_moved != null){
       var elapsed = now - this.last_moved;
@@ -232,7 +233,9 @@ Omega.ShipGfx = {
         this.location.z += this.location.movement_strategy.dz * dist;
         this.update_gfx();
 
-      }else if(this.location.movement_strategy.json_class == rotate){
+      }else if(this.location.movement_strategy.json_class == rotate ||
+              (this.location.movement_strategy.json_class == follow &&
+               this.location.movement_strategy.point_to_target      )){
         var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
         var new_or = Omega.Math.rot(this.location.orientation_x,
                                     this.location.orientation_y,
@@ -246,15 +249,42 @@ Omega.ShipGfx = {
         this.location.orientation_z = new_or[2];
         this.update_gfx();
       }
+      if(this.location.movement_strategy.json_class == follow &&
+        !this.location.movement_strategy.adjusting_bearing    ){
+        var loc = this.location;
+        var tl =
+          page.entity(loc.movement_strategy.tracked_location_id)
+          .location;
+
+        var dx = tl.x - loc.x;
+        var dy = tl.y - loc.y;
+        var dz = tl.z - loc.z;
+        var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        var min_distance = Omega.Config.follow_distance;
+
+        //Take into account client/server sync
+        if (distance >= min_distance && !loc.on_target){
+          dx = dx / distance;
+          dy = dy / distance;
+          dz = dz / distance;
+
+          move_distance = loc.movement_strategy.speed * elapsed / 1000;
+
+          loc.x += move_distance * dx;
+          loc.y += move_distance * dy;
+          loc.z += move_distance * dz;
+        }
+        this.update_gfx();
+      }
     }
 
     if(!this.location.is_stopped()) this.last_moved = now;
   },
 
-  run_effects : function(){
+  run_effects : function(page){
     this.lamps.run_effects();
     this.trails.run_effects();
-    this._run_movement_effects();
+    this._run_movement_effects(page);
 
     this.attack_vector.run_effects();
     this.explosions.run_effects();

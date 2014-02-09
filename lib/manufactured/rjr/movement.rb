@@ -173,7 +173,7 @@ move_entity = proc { |id, loc|
   entity
 }
 
-# follow entity, keeping specified distance away
+# follow entity, keeping specified distance away, and also pointing to it
 follow_entity = proc { |id, target_id, distance|
   # ensure different entity id's specified
   raise ArgumentError, "#{id} == #{target_id}" if id == target_id
@@ -219,7 +219,10 @@ follow_entity = proc { |id, target_id, distance|
   entity.location.movement_strategy =
     Motel::MovementStrategies::Follow.new :distance => distance,
                                 :speed => entity.movement_speed,
-                     :tracked_location_id => target.location.id
+                     :tracked_location_id => target.location.id,
+                                       :point_to_target => true,
+                       :rotation_speed => entity.rotation_speed
+
   node.invoke('motel::update_location', entity.location)
 
   # return the entity
