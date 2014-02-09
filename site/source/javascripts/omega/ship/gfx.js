@@ -234,8 +234,8 @@ Omega.ShipGfx = {
         this.update_gfx();
 
       }else if(this.location.movement_strategy.json_class == rotate ||
-               this.location.movement_strategy.json_class == follow &&
-               this.location.movement_strategy.point_to_target){
+              (this.location.movement_strategy.json_class == follow &&
+               this.location.movement_strategy.point_to_target      )){
         var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
         var new_or = Omega.Math.rot(this.location.orientation_x,
                                     this.location.orientation_y,

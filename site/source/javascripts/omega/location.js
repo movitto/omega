@@ -99,8 +99,9 @@ Omega.Location.prototype = {
   },
 
   is_stopped : function(){
-    return (this.movement_strategy.json_class ==
-            'Motel::MovementStrategies::Stopped');
+    return (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped'   ||
+           (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'    &&
+           !this.movement_strategy.adjusting_bearing && this.movement_strategy.on_target));
   },
 
   /* Return boolean indicating if location is less than the

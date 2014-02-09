@@ -84,7 +84,7 @@ Omega.ShipInteraction = {
 
         }else{
           _this.dialog().hide();
-          _this.location.movement_strategy = response.result.location.movement_strategy;
+          _this.location.update_ms(response.result.location.movement_strategy);
           page.canvas.reload(_this, function(){
             _this.update_gfx();
           });
