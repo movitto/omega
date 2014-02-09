@@ -72,6 +72,8 @@ class Follow < MovementStrategy
                           :rotation_speed          => 1
      # If we have to point to the target, do so before moving
      @adjusting_bearing = @point_to_target
+     @on_target = false # Asume we haven't arrived at the target at first
+     init_rotation
      super(args)
    end
 
