@@ -8,8 +8,7 @@ Omega.UI.StatusIndicator = function(parameters){
   /// stack of states which are currently set
   this.states =  [];
 
-  /// need handle to page the canvas is on to
-  /// - lookup missions
+  /// need handle to page the indicator is on to
   /// - access entity config
   this.page = null;
 
