@@ -167,13 +167,21 @@ systems_with_most_proc = proc { |entity_type, num_to_return|
   case entity_type
   # sort cosmos systems by # of entities in them
   when "entities" then
+    all_systems =
+      Stats::RJR.node.invoke('cosmos::get_entities',
+                             'of_type', 'Cosmos::Entities::SolarSystem').
+      collect { |s| s.id }
+
     system_ids =
       Stats::RJR.node.invoke('manufactured::get_entities').
               inject(Hash.new(0)) { |h,e|
                  h[e.system_id] += 1; h
               }.sort_by { |k,v| v }.reverse.
               collect { |e| e.first }
-    # FIXME append the systems w/ 0 entities
+
+    # append the systems w/ 0 entities
+    all_systems -= system_ids
+    system_ids  += all_systems
 
   end
 
