@@ -206,8 +206,7 @@ describe("Omega.SolarSystem", function(){
     it("adds mesh, plane, text to solar system scene components", function(){
       var solar_system = new Omega.SolarSystem();
       solar_system.init_gfx();
-      assert(solar_system.components).isSameAs([solar_system.mesh.tmesh,
-                                                solar_system.plane.tmesh,
+      assert(solar_system.components).isSameAs([solar_system.plane.tmesh,
                                                 solar_system.text.text]);
     });
 

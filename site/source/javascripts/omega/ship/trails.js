@@ -58,6 +58,10 @@ Omega.ShipTrails.prototype = {
     this.clock     = new THREE.Clock();
   },
 
+  clone : function(config, type, event_cb){
+    return new Omega.ShipTrails(config, type, event_cb);
+  },
+
   update : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;

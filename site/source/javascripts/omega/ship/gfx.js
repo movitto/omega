@@ -75,7 +75,7 @@ Omega.ShipGfx = {
       this.components.push(this.lamps.olamps[l].component);
     }
 
-    this.trails = new Omega.ShipTrails(config, this.type, event_cb);
+    this.trails = Omega.Ship.gfx[this.type].trails.clone(config, this.type, event_cb);
     this.trails.omega_entity = this;
     if(this.trails.particles) this.components.push(this.trails.particles.mesh);
 

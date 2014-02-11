@@ -1080,14 +1080,10 @@ describe("Omega.Ship", function(){
 
     it("creates trails for Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
-      assert(Omega.Ship.gfx[ship.type].trails.otrails.length).
-        equals(Omega.Config.resources.ships[ship.type].trails.length);
-      for(var t = 0; t < Omega.Ship.gfx[ship.type].trails.length; t++){
-        var trail = Omega.Ship.gfx[ship.type].trails[t];
-        assert(trail).isOfType(THREE.ParticleSystem);
-        assert(trail.material).isOfType(THREE.ParticleBasicMaterial);
-        assert(trail.geometry).isOfType(THREE.Geometry);
-      }
+      var conf = Omega.Config.resources.ships[ship.type].trails;
+      assert(Omega.Ship.gfx[ship.type].trails).isOfType(Omega.ShipTrails);
+      assert(Omega.Ship.gfx[ship.type].trails.particles).isOfType(ShaderParticleGroup);
+      assert(Omega.Ship.gfx[ship.type].trails.particles.emitters.length).equals(conf.length);
     });
 
     it("creates attack vector for Ship", function(){
@@ -1125,6 +1121,7 @@ describe("Omega.Ship", function(){
 
   describe("#init_gfx", function(){
     var type = 'corvette';
+    var config = Omega.Config;
     var ship;
 
     before(function(){
@@ -1143,10 +1140,8 @@ describe("Omega.Ship", function(){
           for(var l = 0; l < Omega.Ship.gfx[type].lamps.length; l++)
             if(Omega.Ship.gfx[type].lamps[l].clone.restore)
               Omega.Ship.gfx[type].lamps[l].clone.restore();
-        if(Omega.Ship.gfx[type].trails)
-          for(var t = 0; t < Omega.Ship.gfx[type].trails.length; t++)
-            if(Omega.Ship.gfx[type].trails[t].clone.restore)
-              Omega.Ship.gfx[type].trails[t].clone.restore();
+        if(Omega.Ship.gfx[type].trails && Omega.Ship.gfx[type].trails.clone.restore)
+          Omega.Ship.gfx[type].trails.clone.restore();
         if(Omega.Ship.gfx[type].attack_vector && Omega.Ship.gfx[type].attack_vector.clone.restore) Omega.Ship.gfx[type].attack_vector.clone.restore();
         if(Omega.Ship.gfx[type].mining_vector && Omega.Ship.gfx[type].mining_vector.clone.restore) Omega.Ship.gfx[type].mining_vector.clone.restore();
         if(Omega.Ship.gfx[type].trajectory1 && Omega.Ship.gfx[type].trajectory1.clone.restore) Omega.Ship.gfx[type].trajectory1.clone.restore();
@@ -1160,7 +1155,7 @@ describe("Omega.Ship", function(){
     it("loads ship gfx", function(){
       var ship   = new Omega.Ship({type: type});
       var load_gfx  = sinon.spy(ship, 'load_gfx');
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       sinon.assert.called(load_gfx);
     });
 
@@ -1169,7 +1164,7 @@ describe("Omega.Ship", function(){
       var cloned = new Omega.ShipMesh(new THREE.Mesh());
 
       var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       sinon.assert.calledWith(retrieve_resource, 'template_mesh_' + ship.type, sinon.match.func);
       var retrieve_resource_cb = retrieve_resource.getCall(0).args[1];
 
@@ -1179,20 +1174,20 @@ describe("Omega.Ship", function(){
     });
 
     it("sets mesh base position/rotation", function(){
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       var template_mesh = Omega.Ship.gfx[ship.type].mesh;
       assert(ship.mesh.base_position).equals(template_mesh.base_position);
       assert(ship.mesh.base_rotation).equals(template_mesh.base_rotation);
     });
 
     it("sets mesh omega_entity", function(){
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.mesh.omega_entity).equals(ship);
     });
 
     it("updates_gfx in mesh cb", function(){
       var retrieve_resource = sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       var retrieve_resource_cb = retrieve_resource.getCall(0).args[1];
 
       var update_gfx = sinon.spy(ship, 'update_gfx');
@@ -1201,19 +1196,19 @@ describe("Omega.Ship", function(){
     });
 
     it("adds mesh to components", function(){
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.components).includes(ship.mesh.tmesh);
     });
 
     it("clones Ship highlight effects", function(){
       var mesh = new Omega.ShipHighlightEffects();
       sinon.stub(Omega.Ship.gfx[type].highlight, 'clone').returns(mesh);
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.highlight).equals(mesh);
     });
 
     it("sets omega_entity on highlight effects", function(){
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.highlight.omega_entity).equals(ship);
     });
 
@@ -1222,32 +1217,29 @@ describe("Omega.Ship", function(){
       var lamps = Omega.Ship.gfx[type].lamps.olamps;
       for(var l = 0; l < lamps.length; l++)
         spies.push(sinon.spy(lamps[l], 'clone'));
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
     });
 
     it("clones Ship trails", function(){
-      var spies  = [];
-      var trails = Omega.Ship.gfx[type].trails.otrails;
-      for(var t = 0; t < trails.length; t++)
-        spies.push(sinon.spy(trails[t], 'clone'));
-      ship.init_gfx();
-      for(var s = 0; s < spies.length; s++)
-        sinon.assert.called(spies[s]);
+      var trails = new Omega.ShipTrails();
+      sinon.stub(Omega.Ship.gfx.[ship.type].trails, 'clone').returns(trails);
+      ship.init_gfx(config, type);
+      assert(ship.trails).equals(trails);
     });
 
     it("clones Ship attack vector", function(){
       var mesh = new Omega.ShipAttackVector();
       sinon.stub(Omega.Ship.gfx[type].attack_vector, 'clone').returns(mesh);
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.attack_vector).equals(mesh);
     });
 
     it("clones Ship mining vector", function(){
       var mesh = new Omega.ShipMiningVector();
       sinon.stub(Omega.Ship.gfx[type].mining_vector, 'clone').returns(mesh);
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.mining_vector).equals(mesh);
     });
 
@@ -1256,7 +1248,7 @@ describe("Omega.Ship", function(){
       var line2 = Omega.Ship.gfx[type].trajectory1.clone();
       sinon.stub(Omega.Ship.gfx[type].trajectory1, 'clone').returns(line1);
       sinon.stub(Omega.Ship.gfx[type].trajectory2, 'clone').returns(line2);
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.trajectory1).equals(line1);
       assert(ship.trajectory2).equals(line2);
     });
@@ -1264,7 +1256,7 @@ describe("Omega.Ship", function(){
     describe("debug graphics are enabled", function(){
       it("adds trajectory graphics to components", function(){
         ship.debug_gfx = true;
-        ship.init_gfx();
+        ship.init_gfx(config, type);
         assert(ship.components).includes(ship.trajectory1.mesh);
         assert(ship.components).includes(ship.trajectory2.mesh);
       });
@@ -1273,14 +1265,15 @@ describe("Omega.Ship", function(){
     it("clones Ship hp progress bar", function(){
       var hp_bar = Omega.Ship.gfx[type].hp_bar.clone(); 
       sinon.stub(Omega.Ship.gfx[type].hp_bar, 'clone').returns(hp_bar);
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       assert(ship.hp_bar).equals(hp_bar);
     });
 
-    it("sets scene components to ship mesh, highlight effects, lamps, hp-bar components", function(){
-      ship.init_gfx();
+    it("sets scene components to ship mesh, highlight effects, lamps, trails, hp-bar components", function(){
+      ship.init_gfx(config, type);
       assert(ship.components).includes(ship.mesh.tmesh);
       assert(ship.components).includes(ship.highlight.mesh);
+      assert(ship.components).includes(ship.trails.particles.mesh);
       assert(ship.components).includes(ship.hp_bar.bar.component1);
       assert(ship.components).includes(ship.hp_bar.bar.component2);
       for(var l = 0; l < ship.lamps.olamps.length; l++)
@@ -1289,7 +1282,7 @@ describe("Omega.Ship", function(){
 
     it("updates_gfx", function(){
       var update_gfx = sinon.spy(ship, 'update_gfx');
-      ship.init_gfx();
+      ship.init_gfx(config, type);
       sinon.assert.called(update_gfx);
     });
   });
