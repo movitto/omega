@@ -56,6 +56,8 @@ Omega.Config = {
                        'geometry' : '/meshes/asteroids1.json',
                        'scale'    : [90, 90, 40],
                        'rotation' : [1.57,3.14,0]},
+
+    /// TODO remove ship rotation, not currently needed
     'ships'        : {
       'mining'       : { 'material' : '/textures/hull.png',
                          'geometry' : '/meshes/Agasicles/agasicles.json',
@@ -69,7 +71,7 @@ Omega.Config = {
                          'geometry' : '/meshes/Sickle/sickle.json',
                          'scale'    : [5, 5, 5],
                          'rotation' : [0, 0, 0],
-                         'trails'   : [[10,0,-7], [-10,0,-7]],
+                         'trails'   : [[7,0,-8], [-7,0,-8]],
                          'lamps'    : [[1, 0x0000ff, [0,  2, 41]],
                                        [2, 0x0000ff, [0,  4, 14]],
                                        [2, 0x0000ff, [0, -2, -9]]]},
