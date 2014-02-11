@@ -75,10 +75,9 @@ Omega.ShipGfx = {
       this.components.push(this.lamps.olamps[l].component);
     }
 
-    this.trails = Omega.Ship.gfx[this.type].trails.clone();
+    this.trails = new Omega.ShipTrails(config, this.type, event_cb);
     this.trails.omega_entity = this;
-    for(var t = 0; t < this.trails.length; t++)
-      this.components.push(this.trails.otrails[t])
+    if(this.trails.particles) this.components.push(this.trails.particles.mesh);
 
     this.attack_vector =
       Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
@@ -147,42 +146,7 @@ Omega.ShipGfx = {
     if(this.mining_vector) this.mining_vector.update();
     if(this.destruction)   this.destruction.update();
 
-    this._update_location_state();
     this._update_command_state();
-  },
-
-  _has_trails : function(){
-    return this.trails.otrails &&
-           this.components.indexOf(this.trails.otrails[0]) != -1;
-  },
-
-  _add_trails : function(){
-    for(var t = 0; t < this.trails.otrails.length; t++){
-      var trail = this.trails.otrails[t];
-      this.components.push(trail);
-    }
-  },
-
-  _rm_trails : function(){
-    for(var t = 0; t < this.trails.otrails.length; t++){
-      var i = this.components.indexOf(this.trails.otrails[t]);
-      this.components.splice(i, 1);
-    }
-  },
-
-  _update_location_state : function(){
-    /// add/remove trails based on movement strategy
-    if(!this.location || !this.location.movement_strategy ||
-       !this.trails   ||  this.trails.otrails.length == 0) return;
-    var stopped = "Motel::MovementStrategies::Stopped";
-    var is_stopped = this.location.is_stopped();
-    var has_trails = this._has_trails();
-
-    if(!is_stopped && !has_trails)
-      this._add_trails();
-
-    else if(is_stopped && has_trails)
-      this._rm_trails();
   },
 
   _has_mining_vector : function(){

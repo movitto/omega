@@ -100,6 +100,20 @@ Omega.set_rotation = function(component, rotation){
   return component;
 };
 
+// Update particle emitter velocity with specified rotation axis/matrix
+Omega.set_emitter_velocity = function(emitter, rotation){
+  if(rotation.constructor == THREE.Matrix4){
+    var nrot = rotation.clone();
+    emitter.velocity.applyMatrix4(nrot);
+
+  }else{
+    var euler = new THREE.Euler(rotation[0], rotation[1], rotation[2]);
+    emitter.velocity.applyEuler(euler);
+
+  }
+  return emitter;
+};
+
 // Rotate position by specified rotation
 Omega.rotate_position = function(component, rotation){
   var position = component.position ? component.position : component;

@@ -4,115 +4,105 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO use particle emitter for this
-
 Omega.ShipTrails = function(config, type, event_cb){
-  /// omega trails
   if(config && type)
-    this.otrails = this.init_trails(config, type, event_cb);
-  else
-    this.otrails = [];
+    this.init_particles(config, type, event_cb);
 };
 
 Omega.ShipTrails.prototype = {
-  trail_props : {
-    plane : 3, lifespan : 100
+  particles_per_second :   3,
+  plane                :   3,
+  lifespan             :   5,
+  particle_speed       :   3,
+
+  _particle_velocity : function(){
+    return new THREE.Vector3(0, 0, -this.particle_speed);
   },
 
-  init_trails : function(config, type, event_cb){
-    var trails = config.resources.ships[type].trails;
-    var otrails = [];
-    if(trails){
-      var trail_props      = this.trail_props;
-      var particle_texture = Omega.load_ship_particles(config, event_cb)
-  
-      var trail_material = new THREE.ParticleBasicMaterial({
-        color: 0xFFFFFF, size: 20, map: particle_texture,
-        blending: THREE.AdditiveBlending, transparent: true });
-  
-      for(var l = 0; l < trails.length; l++){
-        var trail = trails[l];
-        var geo   = new THREE.Geometry();
-  
-        var plane    = trail_props.plane;
-        var lifespan = trail_props.lifespan;
-        for(var i = 0; i < plane; ++i){
-          for(var j = 0; j < plane; ++j){
-            var pv = new THREE.Vector3(i, j, 0);
-            pv.velocity = Math.random() / 3;
-            pv.lifespan = Math.random() * lifespan;
-            if(i >= plane / 4 && i <= 3 * plane / 4 &&
-               j >= plane / 4 && j <= 3 * plane / 4 ){
-                 pv.lifespan *= 2;
-            }
-            pv.olifespan = pv.lifespan;
-            geo.vertices.push(pv)
-          }
-        }
-  
-        var otrail = new THREE.ParticleSystem(geo, trail_material);
-        otrail.position.set(trail[0], trail[1], trail[2]);
-        otrail.base_position = trail;
-        otrail.sortParticles = true;
-        otrails.push(otrail);
-      }
-    }
-    return otrails;
+  _particle_group : function(config, event_cb){
+    return new ShaderParticleGroup({
+      texture:    Omega.load_ship_particles(config, event_cb),
+      maxAge:     this.particle_age,
+      blending:   THREE.AdditiveBlending
+    });
   },
 
-  clone : function(){
-    var strails = new Omega.ShipTrails();
-    for(var t = 0; t < this.otrails.length; t++){
-      var trail = this.otrails[t].clone();
-      trail.base_position = this.otrails[t].base_position;
-      strails.otrails.push(trail);
+  _particle_emitter : function(){
+    return new ShaderParticleEmitter({
+      positionSpread     : new THREE.Vector3(this.plane, this.plane, 0),
+      colorStart         : new THREE.Color(0xFFFFFF),
+      colorEnd           : new THREE.Color(0xFFFFFF),
+      sizeStart          :   20,
+      sizeEnd            :   20,
+      opacityStart       : 0.75,
+      opacityEnd         : 0.75,
+      velocity           : this._particle_velocity(),
+      particlesPerSecond : this.particles_per_second,
+      alive              :    0,
+      age                : this.lifespan
+    });
+  },
+
+  init_particles : function(config, type, event_cb){
+    this.config_trails = config.resources.ships[type].trails;
+    if(!this.config_trails) return null;
+
+    var group = this._particle_group(config, event_cb);
+
+    for(var t = 0; t < this.config_trails.length; t++){
+      var emitter = this._particle_emitter();
+      group.addEmitter(emitter);
     }
-    return strails;
+
+    this.particles = group;
+    this.clock     = new THREE.Clock();
   },
 
   update : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;
 
-    /// update trails position and orientation
-    for(var t = 0; t < this.otrails.length; t++){
-      var trail = this.otrails[t];
+    for(var t = 0; t < this.config_trails.length; t++){
+      var config_trail  = this.config_trails[t];
+      var config_trailv = new THREE.Vector3(config_trail[0],
+                                            config_trail[1],
+                                            config_trail[2]);
 
-      var bp  = trail.base_position;
-      var bpv = new THREE.Vector3(bp[0], bp[1], bp[2]);
+      var emitter       = this.particles.emitters[t];
+      emitter.position.set(loc.x, loc.y, loc.z);
+      emitter.position.add(config_trailv);
 
-      trail.position.set(loc.x, loc.y, loc.z);
-      trail.position.add(bpv);
+      emitter.velocity = this._particle_velocity();
+      if(entity.mesh)
+        Omega.set_emitter_velocity(emitter, entity.mesh.base_rotation);
+      Omega.set_emitter_velocity(emitter, loc.rotation_matrix());
+      emitter.velocity.multiplyScalar(this.particle_speed);
 
-      if(entity.mesh) Omega.set_rotation(trail, entity.mesh.base_rotation);
-
-      Omega.set_rotation(trail, loc.rotation_matrix());
-      Omega.temp_translate(trail, loc, function(ttrail){
-        Omega.rotate_position(ttrail, loc.rotation_matrix());
+      Omega.temp_translate(emitter, loc, function(temitter){
+        Omega.rotate_position(temitter, loc.rotation_matrix());
       });
     }
   },
 
-  /// XXX needs optimization badly
-  run_effects : function(){
-    var trail_props      = this.trail_props;
+  enable : function(){
+    for(var e = 0; e < this.particles.emitters.length; e++)
+      this.particles.emitters[e].alive = true;
+  },
 
-    // animate trails
-    var plane    = trail_props.plane,
-        lifespan = trail_props.lifespan;
-    for(var t = 0; t < this.otrails.length; t++){
-      var trail = this.otrails[t];
-      var p = plane*plane;
-      while(p--){
-        var pv = trail.geometry.vertices[p]
-        pv.z -= pv.velocity;
-        pv.lifespan -= 1;
-        if(pv.lifespan < 0){
-          pv.z = 0;
-          pv.lifespan = pv.olifespan;
-        }
-      }
-      trail.geometry.verticesNeedUpdate = true;
+  disable : function(){
+    for(var e = 0; e < this.particles.emitters.length; e++){
+      this.particles.emitters[e].alive = false;
+      this.particles.emitters[e].reset();
     }
+  },
+
+  run_effects : function(){
+    this.particles.tick(this.clock.getDelta());
+
+    /// update 'alive' depending on movement state
+    if(this.omega_entity.location.is_stopped())
+      this.disable();
+    else
+      this.enable();
   }
 };
