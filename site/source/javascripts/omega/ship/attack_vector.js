@@ -17,7 +17,6 @@ Omega.ShipAttackVector.prototype = {
     return new ShaderParticleGroup({
       texture:    Omega.load_ship_particles(config, event_cb),
       maxAge:     this.particle_age,
-      fadeFactor: 7500.0,
       blending:   THREE.AdditiveBlending
     });
   },
