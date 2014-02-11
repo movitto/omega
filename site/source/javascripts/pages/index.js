@@ -53,7 +53,6 @@ Omega.Pages.Index.prototype = {
 
     /// wire up status_indicator
     this.status_indicator.follow_node(this.node, 'loading');
-    Omega.UI.Loader.status_indicator = this.status_indicator;
 
     this.effects_player.wire_up();
   },
@@ -98,11 +97,14 @@ $.extend(Omega.Pages.Index.prototype, Omega.UI.SessionValidator);
 $(document).ready(function(){
   if(Omega.Test) return;
 
-  // immediately start preloading missing resources
+  /// create index page w/ components
+  var index = new Omega.Pages.Index();
+
+  /// immediately start preloading missing resources
+  Omega.UI.Loader.status_indicator = index.status_indicator;
   Omega.UI.Loader.preload();
 
-  // wire up / startup ui
-  var index = new Omega.Pages.Index();
+  /// wire up / startup ui
   index.wire_up();
   index.canvas.setup();
   index.start();

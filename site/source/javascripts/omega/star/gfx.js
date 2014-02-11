@@ -11,7 +11,7 @@
 // Star Gfx Mixin
 
 Omega.StarGfx = {
-  async_gfx : 2,
+  async_gfx : 1,
 
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Star.gfx) !== 'undefined') return;
