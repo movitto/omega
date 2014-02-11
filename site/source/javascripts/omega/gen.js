@@ -112,6 +112,12 @@ Omega.Gen = {
     return ms;
   },
 
+  stopped_ms : function(opts){
+    var ms = {json_class : 'Motel::MovementStrategies::Stopped'};
+    $.extend(ms, opts);
+    return ms;
+  },
+
   galaxy : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'galaxy' + this.next_id();
