@@ -10,13 +10,23 @@ Omega.UI.CanvasControlsList = function(parameters){
 };
 
 Omega.UI.CanvasControlsList.prototype = {
+  /// run all list effects until the first list hover event
+  _run_effects : true,
+
   wire_up : function(){
     /// FIXME if div_id not set on init,
     /// these will be invalid (also in other components)
     /// (implement setter for div_id?)
     var _this = this;
-    this.component().on('mouseenter', function(evnt){ _this.show(); });
-    this.component().on('mouseleave', function(evnt){ _this.hide(); });
+    this.component().on('mouseenter',
+      function(evnt){
+        _this.stop();
+        _this.show();
+      });
+    this.component().on('mouseleave',
+      function(evnt){
+        _this.hide();
+      });
   },
 
   component : function(){
@@ -56,9 +66,8 @@ Omega.UI.CanvasControlsList.prototype = {
     element.data('item', item['data']);
     this.list().append(element);
 
-    /// animate list title when adding first element
-    if(this.children().length == 1 && this.title())
-      $(this.title()).effect("pulsate", {times : 3}, 2000);
+    /// start effect when adding first element
+    if(this.children().length == 1 && this.title()) this.start();
   },
 
   show : function(){
@@ -67,5 +76,24 @@ Omega.UI.CanvasControlsList.prototype = {
 
   hide : function(){
     this.list().hide();
+  },
+
+  _repeat : function(){
+    var _this = this;
+    $(this.title()).delay(200).fadeOut('slow').
+                    delay(50).fadeIn('slow',
+      function(){
+        if(_this._run_effects)
+          _this._repeat();
+      });
+  },
+
+  start : function(){
+    this._repeat();
+  },
+
+  stop : function(){
+    $(this.title()).stop();
+    Omega.UI.CanvasControlsList.prototype._run_effects = false;
   }
 };
