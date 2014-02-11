@@ -19,6 +19,8 @@
 
 //= require "ui/pages/index_nav"
 //= require "ui/pages/index_dialog"
+//
+//= require "ui/splash"
 
 Omega.Pages.Index = function(){
   this.config  = Omega.Config;
@@ -31,6 +33,7 @@ Omega.Pages.Index = function(){
   this.canvas           = new       Omega.UI.Canvas({page: this});
   this.status_indicator = new Omega.UI.StatusIndicator({page : this});
   this.audio_controls   = new Omega.UI.AudioControls({page : this});
+  this.splash           = new Omega.UI.SplashScreen({page : this});
 };
 
 Omega.Pages.Index.prototype = {
@@ -65,6 +68,7 @@ Omega.Pages.Index.prototype = {
 
   start : function(){
     this.effects_player.start();
+    //this.splash.start();
 
     var _this = this;
     this.validate_session(
