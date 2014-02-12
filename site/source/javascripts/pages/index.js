@@ -19,7 +19,7 @@
 
 //= require "ui/pages/index_nav"
 //= require "ui/pages/index_dialog"
-//
+
 //= require "ui/splash"
 
 Omega.Pages.Index = function(){
@@ -39,13 +39,10 @@ Omega.Pages.Index = function(){
 Omega.Pages.Index.prototype = {
   wire_up : function(){
     this.nav.wire_up();
-
-    /// wire up dialog
     this.dialog.wire_up();
     this.dialog.follow_node(this.node);
-
+    this.splash.wire_up();
     this.canvas.wire_up();
-
     this.audio_controls.wire_up();
 
     /// handle scene changes
@@ -68,7 +65,7 @@ Omega.Pages.Index.prototype = {
 
   start : function(){
     this.effects_player.start();
-    //this.splash.start();
+    this.splash.start();
 
     var _this = this;
     this.validate_session(
