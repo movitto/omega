@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO prioritize the status icons so user is indicated other resources are loading
-
 //= require "vendor/jquery.storageapi-1.6.0.min"
 
 Omega.UI.Loader = {
@@ -109,9 +107,13 @@ Omega.UI.Loader = {
     return Omega.UI.Loader.json_loader;
   },
 
-  clear_storage : function(){
-    /// FIXME only remove entries under the omega.* namespace
-    $.localStorage.removeAll();
+  clear_universe : function(){
+    var skeys = $.localStorage.keys();
+    for(var key in skeys)
+      if(key.substr(0, 14) == 'omega.cosmos.')
+        $.localStorage.remove(key);
+
+    $.localStorage.remove('omega.universe_id');
   },
 
   _same_universe : function(retrieved){
@@ -130,7 +132,7 @@ Omega.UI.Loader = {
     Omega.Stat.get('universe_id', null, page.node,
       function(stat_result){
         var id = stat_result.value;
-        if(!_this._same_universe(id)) _this.clear_storage();
+        if(!_this._same_universe(id)) _this.clear_universe();
         _this._set_universe(id);
         if(retrieval_cb) retrieval_cb(id);
       });
@@ -235,6 +237,7 @@ Omega.UI.Loader = {
   load_galaxy : function(galaxy_id, page, retrieval_cb){
     /// first try to load from page cache
     var galaxy = this._load_page_galaxy(galaxy_id, page, retrieval_cb);
+    if(galaxy) return galaxy;
 
     /// then from browser storage
     galaxy = this._load_storage_galaxy(galaxy_id, page, retrieval_cb);
