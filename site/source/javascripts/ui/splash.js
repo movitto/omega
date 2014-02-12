@@ -147,7 +147,7 @@ Omega.UI.SplashScreen.prototype = {
   },
 
   stop : function(){
-    this.cycle.stop();
+    if(this.cycle) this.cycle.stop();
     if(!this.showing_notices) this.hide();
   }
 };
