@@ -15,7 +15,7 @@ Omega.UI.SplashScreen = function(parameters){
 };
 
 Omega.UI.SplashScreen.prototype = {
-  enabled : true,
+  enabled : false,
 
   cycle_interval : 10, /// seconds
 
