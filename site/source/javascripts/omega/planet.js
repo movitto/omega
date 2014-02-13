@@ -35,6 +35,11 @@ Omega.Planet.prototype = {
   colori : function(){
     return parseInt('0x' + this.color) % this._num_textures;
   },
+
+  clicked_in : function(canvas){
+    canvas.focus_on(this.location);
+    canvas.follow(this.location);
+  }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Planet.prototype );

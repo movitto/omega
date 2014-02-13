@@ -7,7 +7,7 @@
 Omega.PlanetMesh = function(config, color, event_cb){
   if(config && event_cb && (typeof(color) != "undefined"))
     this.tmesh = this.init_gfx(config, color, event_cb);
-  //mesh.omega_obj = this;
+  if(this.tmesh) this.tmesh.omega_obj = this;
 
   this.spin_angle = 0;
 };
@@ -16,6 +16,7 @@ Omega.PlanetMesh.prototype = {
   clone : function(){
     var pmesh   = new Omega.PlanetMesh();
     if(this.tmesh) pmesh.tmesh = this.tmesh.clone();
+    if(pmesh.tmesh) pmesh.tmesh.omega_obj = pmesh;
     return pmesh;
   },
 
