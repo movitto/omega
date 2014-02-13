@@ -243,6 +243,7 @@ Omega.UI.Canvas.prototype = {
 
   // Reset camera to original position
   reset_cam : function(){
+    this.stop_following();
     var default_position = this.page.config.cam.position;
     var default_target   = this.page.config.cam.target;
 
@@ -265,6 +266,7 @@ Omega.UI.Canvas.prototype = {
     var _this = this;
     requestAnimationFrame(function() { _this.render(); });
     this._detect_hover();
+    this._cam_follow();
   },
 
   // Render scene
@@ -362,6 +364,28 @@ Omega.UI.Canvas.prototype = {
   /// return bool indicating if canvas has entity
   has : function(entity_id){
     return this.entities.indexOf(entity_id) != -1;
+  },
+
+  /// instruct canvas cam to follow location
+  follow : function(loc){
+    this.following_loc = loc;
+  },
+
+  /// instruct canvas cam to stop following location
+  stop_following : function(){
+    this.following_loc = null
+  },
+
+  /// TODO allow cam movement within vicinity of entity
+  _cam_follow : function(){
+    if(!this.following_loc) return;
+
+    this.cam_controls.object.position.set(this.following_loc.x + 100,
+                                          this.following_loc.y + 100,
+                                          this.following_loc.z + 100);
+    this.cam_controls.target.set(this.following_loc.x,
+                                 this.following_loc.y,
+                                 this.following_loc.z);
   }
 };
 
