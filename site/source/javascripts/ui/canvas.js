@@ -376,16 +376,39 @@ Omega.UI.Canvas.prototype = {
     this.following_loc = null
   },
 
-  /// TODO allow cam movement within vicinity of entity
   _cam_follow : function(){
     if(!this.following_loc) return;
 
-    this.cam_controls.object.position.set(this.following_loc.x + 100,
-                                          this.following_loc.y + 100,
-                                          this.following_loc.z + 100);
     this.cam_controls.target.set(this.following_loc.x,
                                  this.following_loc.y,
                                  this.following_loc.z);
+
+    var pos   = this.cam_controls.object.position;
+    var cdist = this.following_loc.distance_from(pos.x, pos.y, pos.z);
+
+    if(cdist > 500){
+      var dx = (pos.x - this.following_loc.x) / cdist;
+      var dy = (pos.y - this.following_loc.y) / cdist;
+      var dz = (pos.z - this.following_loc.z) / cdist;
+
+      /// TODO right now always enforces max dist,
+      /// should this only apply first time?
+      pos.set(this.following_loc.x + dx * 450,
+              this.following_loc.y + dy * 450,
+              this.following_loc.z + dz * 450);
+    }
+
+    if(this.following_oloc){
+      var dx = (this.following_loc.x - this.following_oloc.x);
+      var dy = (this.following_loc.y - this.following_oloc.y);
+      var dz = (this.following_loc.z - this.following_oloc.z);
+      pos.add(new THREE.Vector3(dx, dy, dz));
+    }
+
+    this.following_oloc = this.following_loc.clone();
+
+    this.cam_controls.update();
+    return;
   }
 };
 
