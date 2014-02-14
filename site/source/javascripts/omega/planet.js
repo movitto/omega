@@ -37,7 +37,6 @@ Omega.Planet.prototype = {
   },
 
   clicked_in : function(canvas){
-    canvas.focus_on(this.location);
     canvas.follow(this.location);
   }
 };
