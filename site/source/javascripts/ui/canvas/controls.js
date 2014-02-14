@@ -24,6 +24,8 @@ Omega.UI.CanvasControls = function(parameters){
   $.extend(this, parameters);
 
   /// TODO sort locations list
+  /// TODO config option to store scene root in local
+  ///      storage / automatically load on page refresh
 };
 
 Omega.UI.CanvasControls.prototype = {

@@ -140,4 +140,3 @@ Omega.UI.IndexDialog.prototype = {
 
 $.extend(Omega.UI.IndexDialog.prototype,
          new Omega.UI.Dialog());
-
