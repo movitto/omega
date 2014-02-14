@@ -29,6 +29,20 @@ Omega.PlanetMesh.prototype = {
     return new THREE.Mesh(geo, mat);
   },
 
+  _spin_axis : function(){
+    if(this.__spin_axis) return this.__spin_axis;
+
+    /// XXX intentionally swapping axis y/z here,
+    /// We should generate a unique orientation orthogonal to
+    /// orbital axis (or at a slight angle off that) on planet creation
+    var loc  = this.omega_entity.location;
+    var axis = new THREE.Vector3(loc.orientation_x,
+                                 loc.orientation_z,
+                                 loc.orientation_y).normalize()
+    this.__spin_axis = axis;
+    return axis;
+  },
+
   update : function(){
     if(!this.tmesh) return;
     var entity = this.omega_entity;
@@ -36,22 +50,10 @@ Omega.PlanetMesh.prototype = {
 
     this.tmesh.position.set(loc.x, loc.y, loc.z);
                             
-    if(this.spin_angle){
-      var rot = new THREE.Matrix4();
-
-      /// XXX intentionally swapping axis y/z here,
-      /// We should generate a unique orientation orthogonal to
-      /// orbital axis (or at a slight angle off that) on planet creation
-      var axis = new THREE.Vector3(loc.orientation_x,
-                                   loc.orientation_z,
-                                   loc.orientation_y).normalize()
-      rot.makeRotationAxis(axis, this.spin_angle);
-                           
-      //this.mesh.matrix.multiply(rot);
-      rot.multiply(this.tmesh.matrix);
-      this.tmesh.matrix = rot;
-      this.tmesh.rotation.setFromRotationMatrix(this.tmesh.matrix);
-    }
+    var rot = new THREE.Matrix4();
+    var axis = this._spin_axis();
+    rot.makeRotationAxis(axis, this.spin_angle);
+    this.tmesh.rotation.setFromRotationMatrix(rot);
   },
 
   spin : function(angle){
