@@ -94,6 +94,7 @@ Omega.UI.CanvasControlsList.prototype = {
 
   stop : function(){
     $(this.title()).stop();
+    $(this.title()).css('opacity', 1);
     Omega.UI.CanvasControlsList.prototype._run_effects = false;
   }
 };
