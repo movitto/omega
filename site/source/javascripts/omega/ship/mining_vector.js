@@ -4,41 +4,119 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipMiningVector = function(vector){
-  this.vector = this.init_gfx();
+Omega.ShipMiningVector = function(config, event_cb){
+  this.init_gfx(config, event_cb);
 };
 
 Omega.ShipMiningVector.prototype = {
-  clone : function(){
-    var mvector = new Omega.ShipMiningVector();
-    mvector.vector = this.vector.clone();
-    return mvector;
+  num_emitters         :   4,
+  particle_age         :   2,
+  particles_per_second :   1,
+  particle_size        :  50,
+
+  _particle_group : function(config, event_cb){
+    /// TODO mining-specific particle
+    return new ShaderParticleGroup({
+      texture:    Omega.load_ship_particles(config, event_cb),
+      maxAge:     this.particle_age,
+      blending:   THREE.AdditiveBlending
+    });
   },
 
-  init_gfx : function(){
-    var mining_material = new THREE.LineBasicMaterial({color: 0x0000FF});
-    var mining_geo      = new THREE.Geometry();
-    mining_geo.vertices.push(new THREE.Vector3(0,0,0));
-    mining_geo.vertices.push(new THREE.Vector3(0,0,0));
-    return new THREE.Line(mining_geo, mining_material);
+  _particle_emitter : function(){
+    return new ShaderParticleEmitter({
+      colorStart    : new THREE.Color(0x5a555a),
+      colorEnd      : new THREE.Color(0x5a555a),
+      sizeStart     : this.particle_size,
+      sizeEnd       : this.particle_size,
+      opacityStart  : 1,
+      opacityEnd    : 1,
+      velocity      : new THREE.Vector3(0, 0, 1),
+      particlesPerSecond : this.particles_per_second,
+      alive         : 0
+    });
+  },
+
+  init_gfx : function(config, event_cb){
+    var group    = this._particle_group(config, event_cb);
+    var emitters = [];
+    for(var e = 0; e < this.num_emitters; e++)
+      group.addEmitter(this._particle_emitter());
+    this.particles = group;
+    this.clock = new THREE.Clock();
+  },
+
+  clone : function(config, event_cb){
+    return new Omega.ShipMiningVector(config, event_cb);
   },
 
   update : function(){
     var loc = this.omega_entity.location;
-    this.vector.position.set(loc.x, loc.y, loc.z);
+    for(var e = 0; e < this.num_emitters; e++){
+      var emitter = this.particles.emitters[e];
+      var epos    = emitter.position;
+      var edist   = loc.distance_from(epos.x, epos.y, epos.z);
+
+      if(edist > 0){
+        var rand = Math.random() * 10;
+        var vel = edist / this.particle_age + rand;
+        var dx  = (loc.x - epos.x) / edist * vel;
+        var dy  = (loc.y - epos.y) / edist * vel;
+        var dz  = (loc.z - epos.z) / edist * vel;
+
+        emitter.velocity.set(dx, dy, dz);
+      }
+    }
   },
 
-  set_target : function(target_entity){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
+  target : function(){
+    return this.omega_entity.mining_asteroid;
+  },
 
-    /// should be signed to preserve direction
-    var dx = target_entity.location.x - loc.x;
-    var dy = target_entity.location.y - loc.y;
-    var dz = target_entity.location.z - loc.z;
+  target_mesh : function(){
+    return this.target().mesh.tmesh;
+  },
 
-    // update mining vector vertices
-    this.vector.geometry.vertices[0].set(0,0,0);
-    this.vector.geometry.vertices[1].set(dx,dy,dz);
+  has_target : function(){
+    return !!(this.target()) && !!(this.target().mesh);
+  },
+
+  random_target_vertex : function(){
+    var vertices = this.target_mesh().geometry.vertices;
+    var index = Math.floor(Math.random()*vertices.length);
+    return vertices[index];
+  },
+
+  alive : function(){
+    return !!(this.particles.emitters[0].alive);
+  },
+
+  enable : function(){
+    for(var e = 0; e < this.num_emitters; e++){
+      var emitter = this.particles.emitters[e];
+      emitter.alive = true;
+
+      var vertex = this.random_target_vertex().clone();
+      vertex.applyMatrix4(this.target_mesh().matrixWorld);
+      emitter.position.set(vertex.x, vertex.y, vertex.z);
+    }
+  },
+
+  disable : function(){
+    for(var e = 0; e < this.num_emitters; e++){
+      this.particles.emitters[e].alive = false;
+      this.particles.emitters[e].reset();
+    }
+  },
+
+  run_effects : function(){
+    this.particles.tick(this.clock.getDelta());
+
+    if(this.has_target()){
+      if(!this.alive()) this.enable();
+
+    }else if(this.alive()){
+      this.disable();
+    }
   }
 };

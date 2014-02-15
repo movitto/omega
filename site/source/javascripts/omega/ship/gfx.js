@@ -34,7 +34,7 @@ Omega.ShipGfx = {
     gfx.lamps            = new Omega.ShipLamps(config, this.type);
     gfx.trails           = new Omega.ShipTrails(config, this.type, event_cb);
     gfx.attack_vector    = new Omega.ShipAttackVector(config, event_cb);
-    gfx.mining_vector    = new Omega.ShipMiningVector();
+    gfx.mining_vector    = new Omega.ShipMiningVector(config, event_cb);
     gfx.trajectory1      = new Omega.ShipTrajectory(0x0000FF);
     gfx.trajectory2      = new Omega.ShipTrajectory(0x00FF00);
     gfx.hp_bar           = new Omega.ShipHpBar();
@@ -84,8 +84,10 @@ Omega.ShipGfx = {
     this.attack_vector.omega_entity = this;
     this.components.push(this.attack_vector.particles.mesh);
 
-    this.mining_vector = Omega.Ship.gfx[this.type].mining_vector.clone();
+    this.mining_vector =
+      Omega.Ship.gfx[this.type].mining_vector.clone(config, event_cb);
     this.mining_vector.omega_entity = this;
+    this.components.push(this.mining_vector.particles.mesh);
 
     this.trajectory1   = Omega.Ship.gfx[this.type].trajectory1.clone();
     this.trajectory1.omega_entity = this;
@@ -145,37 +147,6 @@ Omega.ShipGfx = {
     if(this.attack_vector) this.attack_vector.update();
     if(this.mining_vector) this.mining_vector.update();
     if(this.destruction)   this.destruction.update();
-
-    this._update_command_state();
-  },
-
-  _has_mining_vector : function(){
-    return this.components.indexOf(this.mining_vector.vector) != -1;
-  },
-
-  _add_mining_vector : function(){
-   this.components.push(this.mining_vector.vector);
-  },
-
-  _rm_mining_vector : function(){
-    var i = this.components.indexOf(this.mining_vector.vector);
-    this.components.splice(i, 1);
-  },
-
-  _update_command_state : function(){
-    if(!this.attack_vector || !this.mining_vector) return;
-
-    /// add/remove mining vector depending on ship state
-    var has_mining_vector = this._has_mining_vector();
-    if(this.mining && this.mining_asteroid){
-      this.mining_vector.set_target(this.mining_asteroid);
-
-      /// add mining vector if not in scene components
-      if(!has_mining_vector) this._add_mining_vector();
-        
-    }else if(has_mining_vector){
-      this._rm_mining_vector();
-    }
   },
 
   ///////////////////////////////////////////////// effects
@@ -251,6 +222,7 @@ Omega.ShipGfx = {
     this._run_movement_effects(page);
 
     this.attack_vector.run_effects();
+    this.mining_vector.run_effects();
     this.explosions.run_effects();
     this.destruction.run_effects();
   },
