@@ -63,6 +63,8 @@ Omega.ShipTrails.prototype = {
   },
 
   update : function(){
+    if(!this.config_trails) return;
+
     var entity = this.omega_entity;
     var loc    = entity.location;
 
@@ -101,6 +103,8 @@ Omega.ShipTrails.prototype = {
   },
 
   run_effects : function(){
+    if(!this.particles) return;
+
     this.particles.tick(this.clock.getDelta());
 
     /// update 'alive' depending on movement state

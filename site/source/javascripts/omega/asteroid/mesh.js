@@ -26,7 +26,7 @@ Omega.AsteroidMesh.load_template = function(config, cb){
   var rotation        = config.resources.asteroid.rotation;
   var scale           = config.resources.asteroid.scale;
 
-  var texture         = THREE.ImageUtils.loadTexture(texture_path, {}, cb);
+  var texture         = THREE.ImageUtils.loadTexture(texture_path, {});
   var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });
 
   Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){

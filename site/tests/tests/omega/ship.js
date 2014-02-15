@@ -295,24 +295,24 @@ describe("Omega.Ship", function(){
                            children : move_objects});
     });
 
-    it("invokes move command on ships/stations/asteroids/planets/jump_gates", function(){
-      var offset = Omega.Config.movement_offset;
-      var move   = sinon.spy(ship, '_move');
+    //it("invokes move command on ships/stations/asteroids/planets/jump_gates", function(){ /// NIY
+    //  var offset = Omega.Config.movement_offset;
+    //  var move   = sinon.spy(ship, '_move');
 
-      move_objects.forEach(function(entity){
-        ship.context_action(entity, page);
-        sinon.assert.calledWith(move, page);
+    //  move_objects.forEach(function(entity){
+    //    ship.context_action(entity, page);
+    //    sinon.assert.calledWith(move, page);
 
-        var move_args = move.lastCall.args;
-        var validate = [move_args[1] - entity.location.x,
-                        move_args[2] - entity.location.y,
-                        move_args[3] - entity.location.z];
-        validate.forEach(function(dist){
-          assert(dist).isLessThan(offset.max);
-          assert(dist).isGreaterThan(offset.min);
-        });
-      });
-    });
+    //    var move_args = move.lastCall.args;
+    //    var validate = [move_args[1] - entity.location.x,
+    //                    move_args[2] - entity.location.y,
+    //                    move_args[3] - entity.location.z];
+    //    validate.forEach(function(dist){
+    //      assert(dist).isLessThan(offset.max);
+    //      assert(dist).isGreaterThan(offset.min);
+    //    });
+    //  });
+    //});
 
     describe("ship does not belong to user", function(){
       it("does not invoke move command", function(){
@@ -1099,12 +1099,10 @@ describe("Omega.Ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
       assert(Omega.Ship.gfx[ship.type].mining_vector).
         isOfType(Omega.ShipMiningVector);
-      assert(Omega.Ship.gfx[ship.type].mining_vector.vector).
-        isOfType(THREE.Line);
-      assert(Omega.Ship.gfx[ship.type].mining_vector.vector.material).
-        isOfType(THREE.LineBasicMaterial);
-      assert(Omega.Ship.gfx[ship.type].mining_vector.vector.geometry).
-        isOfType(THREE.Geometry);
+      assert(Omega.Ship.gfx[ship.type].mining_vector.particles).
+        isOfType(ShaderParticleGroup);
+      assert(Omega.Ship.gfx[ship.type].mining_vector.particles.emitters.length).
+        equals(Omega.ShipMiningVector.prototype.num_emitters);
     });
 
     it("creates trajectory vectors for ship", function(){
@@ -1224,7 +1222,7 @@ describe("Omega.Ship", function(){
 
     it("clones Ship trails", function(){
       var trails = new Omega.ShipTrails();
-      sinon.stub(Omega.Ship.gfx.[ship.type].trails, 'clone').returns(trails);
+      sinon.stub(Omega.Ship.gfx[ship.type].trails, 'clone').returns(trails);
       ship.init_gfx(config, type);
       assert(ship.trails).equals(trails);
     });
@@ -1375,6 +1373,7 @@ describe("Omega.Ship", function(){
     /// it("runs trail effects"); // NIY
     /// it("moves ship according to movement strategy"); // NIY
     /// it("runs attack effects"); // NIY
+    /// it("runs mining effects"); // NIY
   });
 
   describe("#update_gfx", function(){
@@ -1429,99 +1428,6 @@ describe("Omega.Ship", function(){
       ship.update_gfx();
       sinon.assert.called(update_attack);
       sinon.assert.called(update_mining);
-    });
-
-    it("updates location state", function(){
-      var update_location_state = sinon.spy(ship, '_update_location_state');
-      ship.update_gfx();
-      sinon.assert.called(update_location_state);
-    });
-
-    it("updates command state", function(){
-      var update_command_state = sinon.spy(ship, '_update_command_state');
-      ship.update_gfx();
-      sinon.assert.called(update_command_state);
-    });
-  });
-
-  describe("#_update_location_state", function(){
-    var ship;
-
-    before(function(){
-      ship = Omega.Test.Canvas.Entities().ship;
-      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
-    });
-
-    describe("location not stopped", function(){
-      before(function(){
-        ship.location.movement_strategy =
-          {json_class : 'Motel::MovementStrategies::Linear'};
-
-        if(ship.components.indexOf(ship.trails[0]) != -1)
-          for(var t = 0; t < ship.trails.length; t++)
-            ship.components.splice(ship.components.indexOf(ship.trails[t]), 1);
-      });
-
-      it("adds trails to ship scene components", function(){
-        ship._update_location_state();
-        for(var t = 0; t < ship.trails.otrails.length; t++)
-          assert(ship.components).includes(ship.trails.otrails[t]);
-      });
-    });
-
-    describe("location stopped", function(){
-      before(function(){
-        ship.location.movement_strategy =
-          {json_class : 'Motel::MovementStrategies::Stopped'};
-
-        if(ship.components.indexOf(ship.trails[0]) == -1)
-          for(var t = 0; t < ship.trails.length; t++)
-            ship.components.push(ship.trails[t]);
-      });
-
-      it("removes trails from ship scene components", function(){
-        ship._update_location_state();
-        for(var t = 0; t < ship.trails.otrails.length; t++)
-          assert(ship.components).doesNotInclude(ship.trails.otrails[t]);
-      });
-    });
-  });
-
-  describe("#_update_command_state", function(){
-    var ship;
-
-    before(function(){
-      ship = Omega.Test.Canvas.Entities().ship;
-      ship.location = new Omega.Location({x : 200, y : -200, z: 50});
-    });
-
-    describe("ship is mining", function(){
-      before(function(){
-        ship.mining = {json_class : 'Cosmos::Resource'};
-        ship.mining_asteroid = new Omega.Asteroid({location : new Omega.Location({x:0,y:0,z:0})});
-        if(ship.components.indexOf(ship.mining_vector.vector) != -1)
-          ship.components.splice(ship.components.indexOf(ship.mining_vector.vector), 1);
-      });
-
-      //it("sets mining vector properties based on mining target"); // NIY
-
-      it("adds mining vector to ship scene components", function(){
-        ship._update_command_state();
-        assert(ship.components).includes(ship.mining_vector.vector);
-      });
-    });
-
-    describe("ship is not mining", function(){
-      before(function(){
-        ship.mining = null;
-        if(ship.components.indexOf(ship.mining_vector.vector) == -1)
-          ship.components.push(ship.mining_vector.vector);
-      });
-
-      it("removes mining vector from ship scene components", function(){
-        ship._update_command_state();
-        assert(ship.components).doesNotInclude(ship.mining_vector.vector);
-      })
     });
   });
 
@@ -1753,24 +1659,12 @@ describe("Omega.ShipTrails", function(){
       if(Omega.rotate_position.restore) Omega.rotate_position.restore();
     });
 
-    it("sets & rotates trail positions, rotates trail orientation", function(){
-      var set_rotation = sinon.spy(Omega, 'set_rotation');
-      var rotate_position = sinon.spy(Omega, 'rotate_position');
-      var rot_matrix = loc.rotation_matrix();
-      trails.update();
-
-      var config_trails = Omega.Config.resources.ships['corvette'].trails;
-      for(var t = 0; t < config_trails.length; t++){
-        var config_trail = config_trails[t];
-        var trail = trails.otrails[t];
-        assert(trail.position.x).equals(loc.x + config_trail[0]);
-        assert(trail.position.y).equals(loc.y + config_trail[1]);
-        assert(trail.position.z).equals(loc.z + config_trail[2]);
-        sinon.assert.calledWith(set_rotation, trail, rot_matrix);
-        sinon.assert.calledWith(rotate_position, trail, rot_matrix);
-        /// TODO also test set_rotation(mesh.base_rotation)
-      }
-    });
+    //it("sets trail positions, orientation, and velocity", function(){ /// NIY
+    //  var set_rotation = sinon.spy(Omega, 'set_rotation');
+    //  var rotate_position = sinon.spy(Omega, 'rotate_position');
+    //  var rot_matrix = loc.rotation_matrix();
+    //  trails.update();
+    //});
   });
 });}); // Omega.ShipTrails
 
@@ -1873,11 +1767,7 @@ describe("Omega.ShipMiningVector", function(){
       vector.omega_entity = {location : loc};
     });
 
-    it("sets mining vector position", function(){
-      vector.update();
-      assert(vector.vector.position.x).equals(loc.x);
-      assert(vector.vector.position.y).equals(loc.y);
-      assert(vector.vector.position.z).equals(loc.z);
-    });
+    //it("sets mining vector velocity", function(){ /// NIY
+    //});
   });
 });}); /// Omega.ShipMiningVector

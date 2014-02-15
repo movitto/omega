@@ -109,9 +109,9 @@ Omega.UI.Loader = {
 
   clear_universe : function(){
     var skeys = $.localStorage.keys();
-    for(var key in skeys)
-      if(key.substr(0, 14) == 'omega.cosmos.')
-        $.localStorage.remove(key);
+    for(var k = 0; k < skeys.length; k++)
+      if(skeys[k].substr(0, 13) == 'omega.cosmos.')
+        $.localStorage.remove(skeys[k]);
 
     $.localStorage.remove('omega.universe_id');
   },
@@ -121,7 +121,7 @@ Omega.UI.Loader = {
   },
 
   _set_universe : function(val){
-    $.localStorage.set('omega.universe_id', '"' + val + '"');
+    $.localStorage.set('omega.universe_id', JSON.stringify(val));
   },
 
   /// Retrieve & store universe_id stat

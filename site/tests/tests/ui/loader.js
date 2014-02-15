@@ -34,8 +34,8 @@ describe("Omega.UI.Loader", function(){
 
     describe("universe id is not same as local id", function(){
       it("removes local cosmos data", function(){
-        $.localStorage.set('omega.cosmos.anything', 'anything');
-        $.localStorage.set('omega.universe_id', 'foobar');
+        $.localStorage.set('omega.cosmos.anything', JSON.stringify('anything'));
+        $.localStorage.set('omega.universe_id', JSON.stringify('foobar'));
 
         Omega.UI.Loader.load_universe(page);
         get_stat.getCall(0).args[3](result);
@@ -122,7 +122,7 @@ describe("Omega.UI.Loader", function(){
         Omega.UI.Loader.load_system('system1', page)
 
         var with_id_cb = with_id.getCall(0).args[2];
-        var system = new Omega.SolarSystem();
+        var system = new Omega.SolarSystem({id : 'system1'});
         var set = sinon.spy(page, 'entity')
         with_id_cb(system)
         sinon.assert.calledWith(set, 'system1', system);
@@ -206,7 +206,7 @@ describe("Omega.UI.Loader", function(){
         Omega.UI.Loader.load_galaxy('galaxy1', page)
 
         var with_id_cb = with_id.getCall(0).args[2];
-        var galaxy = new Omega.Galaxy();
+        var galaxy = new Omega.Galaxy({id : 'galaxy1'});
         var set = sinon.spy(page, 'entity')
         with_id_cb(galaxy)
         sinon.assert.calledWith(set, 'galaxy1', galaxy);

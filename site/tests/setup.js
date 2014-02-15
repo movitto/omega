@@ -99,7 +99,7 @@ function before_all(details){
 }
 
 function before_each(details){
-  Omega.UI.Loader.clear_storage();
+  Omega.UI.Loader.clear_universe();
 }
 
 //function after_each(details){
