@@ -35,6 +35,9 @@ def move_entity_in_system(entity, loc)
   # calculate the orientation difference
   od = entity.location.orientation_difference(*loc.coordinates)
 
+  # TODO introduce point_to_target flag in Linear movement strategy
+  # (similar to Follow) & use here, removing the need for the follow distinction
+
   # if we are close enough to correct orientation,
   # register linear movement strategy with entity
   if od.first.abs < (Math::PI / 32)
