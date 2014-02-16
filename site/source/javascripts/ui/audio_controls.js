@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require_tree './audio'
+
 Omega.UI.AudioControls = function(parameters){
   this.current = null;
   this.disabled = false;
@@ -13,6 +15,9 @@ Omega.UI.AudioControls = function(parameters){
   this.page = null;
 
   $.extend(this, parameters);
+
+  /// central / shared audio effects
+  this.effects = {click : new Omega.ClickAudioEffect(this.page.config)};
 
   /// disable controls by default
   this.toggle();
@@ -46,24 +51,15 @@ Omega.UI.AudioControls.prototype = {
       mute.css('background', 'url("'+mute_img+'") no-repeat');
   },
 
-  set : function(id){
-    this.current = this.page.config.audio[id];
-  },
-
-  audio : function(){
-    return $('#' + this.current.src)[0];
-  },
-
-  play : function(id){
+  play : function(target){
     if(this.disabled) return;
-    if(id) this.set(id);
+    if(target) this.current = target;
 
-    /// TODO start & stop if specified in this.current
-    this.audio().play();
+    this.current.play();
   },
 
   stop : function(){
     /// TODO option to stop d/l of media
-    this.audio().pause();
+    this.current.pause();
   }
 };

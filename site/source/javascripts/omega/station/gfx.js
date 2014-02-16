@@ -12,6 +12,7 @@
 //= require 'omega/station/highlight'
 //= require 'omega/station/lamps'
 //= require 'omega/station/construction_bar'
+//= require 'omega/station/construction_audio'
 
 // Station GFX Mixin
 Omega.StationGfx = {
@@ -27,6 +28,7 @@ Omega.StationGfx = {
     gfx.highlight        = new Omega.StationHighlightEffects();
     gfx.lamps            = new Omega.StationLamps(config, this.type);
     gfx.construction_bar = new Omega.StationConstructionBar();
+    gfx.construction_audio = new Omega.StationConstructionAudioEffect(config);
 
     Omega.StationMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
@@ -63,6 +65,9 @@ Omega.StationGfx = {
     this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();
     this.construction_bar.omega_entity = this;
     this.construction_bar.bar.init_gfx(config, event_cb);
+
+    this.construction_audio = Omega.Station.gfx[this.type].construction_audio;
+
     this.update_gfx();
   },
 
@@ -75,6 +80,7 @@ Omega.StationGfx = {
     this.highlight         = from.highlight;
     this.lamps             = from.lamps;
     this.construction_bar  = from.construction_bar;
+    this.construction_audio = from.construction_audio;
   },
 
   update_gfx : function(){

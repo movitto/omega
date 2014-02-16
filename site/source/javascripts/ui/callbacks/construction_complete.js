@@ -27,8 +27,7 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
   Omega.Ship.get(constructed.id, this.page.node, function(entity){
     _this.page.process_entity(entity);
     if(_this.page.canvas.is_root(entity.system_id)){
-      /// TODO better place to put audi effect?
-      _this.page.audio_controls.play('construction');
+      _this.page.audio_controls.play(pstation.construction_audio);
       _this.page.canvas.add(entity);
     }
   });

@@ -55,8 +55,8 @@ Omega.Ship.prototype = {
   },
 
   clicked_in : function(canvas){
-    if(canvas.page.audio_controls)
-      canvas.page.audio_controls.play('click');
+    var ac = canvas.page.audio_controls;
+    if(ac) ac.play(ac.effects.click);
   },
 
   selected : function(page){
