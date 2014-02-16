@@ -11,8 +11,6 @@ Omega.StationConstructionAudioEffect = function(config){
 };
 
 Omega.StationConstructionAudioEffect.prototype = {
-  num : 3,
-
   dom : function(){
     return $('#' + this.audio.src)[0];
   },

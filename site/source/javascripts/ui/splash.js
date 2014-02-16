@@ -27,6 +27,7 @@ Omega.UI.SplashScreen.prototype = {
       });
   },
 
+  /// TODO button on account page to clear_notices
   clear_notices : function(){
     var notices = this.read_notices();
     for(var notice in notices)

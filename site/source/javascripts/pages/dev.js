@@ -11,8 +11,6 @@
 //= require "ui/audio_controls"
 //= require "omega/gen"
 
-//= require "omega/ship/destruction_audio"
-
 Omega.Pages.Dev = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);

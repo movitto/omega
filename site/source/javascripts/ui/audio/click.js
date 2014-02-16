@@ -9,8 +9,6 @@ Omega.ClickAudioEffect = function(config){
 };
 
 Omega.ClickAudioEffect.prototype = {
-  num : 3,
-
   dom : function(){
     return $('#' + this.audio.src)[0];
   },
