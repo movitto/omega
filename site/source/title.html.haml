@@ -1,0 +1,11 @@
+- content_for :javascripts do
+  = javascript_include_tag "pages/title"
+
+- content_for :stylesheets do
+  = stylesheet_link_tag "title"
+
+= partial :audio
+= partial :effects_player
+= partial :canvas
+= partial :status_indicator
+= partial :dialog

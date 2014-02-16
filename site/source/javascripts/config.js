@@ -97,6 +97,10 @@ Omega.Config = {
     'click'        : {'src' : 'effects_click_wav'},
     'construction' : {'src' : 'effects_construct_wav'},
     'destruction'  : {'src' : 'effects_destruction_wav'},
-    'mining'       : {'src' : 'effects_mining2_wav'}
+    'mining'       : {'src' : 'effects_mining2_wav'},
+
+    'scenes' :
+      {'intro' : { 'bg'     : {'src' : 'scenes_intro_bg_wav'},
+                   'thud'   : {'src' : 'scenes_intro_thud2_wav'}}}
   }
 };

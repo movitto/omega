@@ -7,4 +7,5 @@
 var Omega = { REVISION: '1',
               UI      :  {},
               Pages   :  {},
+              Scenes  :  {},
               Callbacks : {}};
