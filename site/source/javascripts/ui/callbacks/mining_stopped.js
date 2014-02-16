@@ -20,6 +20,7 @@ Omega.Callbacks.mining_stopped = function(event, event_args){
   entity._update_resources();
 
   if(this.page.canvas.is_root(entity.parent_id)){
+    this.page.audio_controls.play(entity.mining_audio);
     this.page.canvas.reload(entity, function(){
       if(entity.update_gfx) entity.update_gfx();
     });

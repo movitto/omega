@@ -96,6 +96,7 @@ Omega.Config = {
   audio : {
     'click'        : {'src' : 'effects_click_wav'},
     'construction' : {'src' : 'effects_construct_wav'},
-    'destruction'  : {'src' : 'effects_destruction_wav'}
+    'destruction'  : {'src' : 'effects_destruction_wav'},
+    'mining'       : {'src' : 'effects_mining2_wav'}
   }
 };

@@ -16,6 +16,7 @@
 //= require "omega/ship/destruction"
 //= require "omega/ship/destruction_audio"
 //= require "omega/ship/explosion_effect"
+//= require "omega/ship/mining_audio"
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
@@ -42,6 +43,7 @@ Omega.ShipGfx = {
     gfx.destruction      = new Omega.ShipDestructionEffect(config, event_cb);
     gfx.destruction_audio = new Omega.ShipDestructionAudioEffect(config);
     gfx.explosions       = new Omega.ShipExplosionEffect(config, event_cb);
+    gfx.mining_audio     = new Omega.ShipMiningAudioEffect(config);
 
     Omega.ShipMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
@@ -118,6 +120,8 @@ Omega.ShipGfx = {
     this.explosions.omega_entity = this;
     this.components.push(this.explosions.particles.mesh);
 
+    this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
+
     this.update_gfx();
   },
 
@@ -138,6 +142,7 @@ Omega.ShipGfx = {
     this.destruction       = from.destruction;
     this.destruction_audio = from.destruction_audio;
     this.explosions        = from.explosions;
+    this.mining_audio      = from.mining_audio;
   },
 
   update_gfx : function(){
