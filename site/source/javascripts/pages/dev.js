@@ -8,7 +8,10 @@
 //= require "ui/canvas"
 //= require "ui/effects_player"
 //= require "ui/command_tracker"
+//= require "ui/audio_controls"
 //= require "omega/gen"
+
+//= require "omega/ship/destruction_audio"
 
 Omega.Pages.Dev = function(){
   this.config  = Omega.Config;
@@ -18,12 +21,14 @@ Omega.Pages.Dev = function(){
   this.canvas  = new Omega.UI.Canvas({page: this});
   this.effects_player = new Omega.UI.EffectsPlayer({page: this});
   this.command_tracker= new Omega.UI.CommandTracker({page : this})
+  this.audio_controls = new Omega.UI.AudioControls({page : this});
 };
 
 Omega.Pages.Dev.prototype = {
   wire_up : function(){
     this.canvas.wire_up();
     this.effects_player.wire_up();
+    this.audio_controls.wire_up();
   },
 
   start : function(){
