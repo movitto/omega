@@ -6,4 +6,5 @@
 
 var Omega = { REVISION: '1',
               UI      :  {},
-              Pages   :  {}};
+              Pages   :  {},
+              Callbacks : {}};
