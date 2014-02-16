@@ -24,10 +24,12 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
     this.page.canvas.reload(pattacker, function(){
       if(pattacker.update_gfx) pattacker.update_gfx();
     });
-
   }
 
   if(this.page.canvas.is_root(pdefender.parent_id)){
+    /// play destruction audio effect
+    _this.page.audio_controls.play(pdefender.destruction_audio);
+
     /// start destruction sequence / register cb
     pdefender.trigger_destruction(function(){
       /// allow defender to tidy up gfx b4 removing from scene:
