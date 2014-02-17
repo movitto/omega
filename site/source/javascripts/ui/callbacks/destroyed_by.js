@@ -34,6 +34,8 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
     pdefender.trigger_destruction(function(){
       /// allow defender to tidy up gfx b4 removing from scene:
       pdefender.update_gfx();
+      /// TODO instead of removing swap out mesh for a 'debris' mesh w/ loot
+      /// remove after loot is collected and a certain amount of time passed
       _this.page.canvas.remove(pdefender);
     });
   }

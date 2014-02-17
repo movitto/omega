@@ -4,6 +4,10 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO render a few smaller / localized explosions on various
+/// areas on ship before final explosion as implemented below
+/// (though a bit shorted & with more effects such as debris + smoke)
+
 Omega.ShipDestructionEffect = function(config, event_cb){
   this.init_gfx(config, event_cb);
 };
@@ -12,10 +16,22 @@ Omega.ShipDestructionEffect.prototype = {
   update : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;
-    this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);
+
+    /// XXX since mesh is rotated by 1.57 around x below,
+    /// need to reverse rotation in emitter position to
+    /// compensate for the world rotation
+    var euler  = new THREE.Euler(-1.57, 0, 0);
+    var matrix = new THREE.Matrix4();
+    matrix.makeRotationFromEuler(euler);
+
+    var emitters = this.particles.emitters;
+    for(var e = 0; e < emitters.length; e++){
+      emitters[e].position.set(loc.x, loc.y, loc.z);
+      Omega.rotate_position(emitters[e], matrix)
+    }
   },
 
-  _particle_emitter : function(){
+  _explosion_emitter : function(){
     return new ShaderParticleEmitter({
       type:             'sphere',
       positionSpread:   new THREE.Vector3(10, 10, 10),
@@ -26,12 +42,31 @@ Omega.ShipDestructionEffect.prototype = {
       sizeEnd:             0,
       opacityStart:        1,
       opacityEnd:          0,
-      colorStart:       new THREE.Color('yellow'),
-      colorStartSpread: new THREE.Vector3(0, 10, 0),
-      colorEnd:         new THREE.Color('red'),
-      particleCount:    1000,
+      colorStart:       new THREE.Color(0xCC6600),
+      colorStartSpread: new THREE.Vector3(0, 0.33, 0),
+      colorEnd:         new THREE.Color(0x996633),
+      particleCount:     150,
       duration:         0.05,
-      alive:               0
+      alive:               0,
+    });
+  },
+
+  _shockwave_emitter : function(){
+    return new ShaderParticleEmitter({
+      type :           'disk',
+      position: new THREE.Vector3(0, 0, 0),
+      radius:               5,
+      //radiusSpread:       5,
+      radiusScale:         10,
+      speed:               65,
+      colorStart: new THREE.Color(0xFFCC33),
+      colorEnd:   new THREE.Color(0xFFFF99),
+      size:               100,
+      sizeEnd:             50,
+      opacityStart:         1,
+      opacityEnd:           0,
+      particlesPerSecond: 150,
+      alive:                0
     });
   },
 
@@ -41,14 +76,17 @@ Omega.ShipDestructionEffect.prototype = {
 
     return new ShaderParticleGroup({
         texture:  particle_texture,
-        maxAge:   2,
+        maxAge:   5,
         blending: THREE.AdditiveBlending
       });
   },
 
+
   init_gfx : function(config, event_cb){
     this.particles = this._particle_group(config, event_cb);
-    this.particles.addEmitter(this._particle_emitter());
+    this.particles.addEmitter(this._explosion_emitter());
+    this.particles.addEmitter(this._shockwave_emitter());
+    this.particles.mesh.rotation.x = 1.57;
 
     /// used to update particle effects
     this.particle_clock = new THREE.Clock();
@@ -63,12 +101,17 @@ Omega.ShipDestructionEffect.prototype = {
   },
 
   trigger : function(seconds, cb){
-    this.particles.emitters[0].alive = true;
+    var emitters = this.particles.emitters;
+    for(var e = 0; e < emitters.length; e++)
+      emitters[e].alive = true;
 
     var _this = this;
     $.timer(function(){
-      _this.particles.emitters[0].alive = false;
-      _this.particles.emitters[0].reset();
+      for(var e = 0; e < emitters.length; e++){
+        emitters[e].alive = false;
+        emitters[e].reset();
+      }
+
       this.stop();
       if(cb) cb();
     }, seconds, true);
