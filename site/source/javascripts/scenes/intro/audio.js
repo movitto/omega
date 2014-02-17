@@ -10,10 +10,6 @@ Omega.Scenes.IntroAudio = function(config){
 };
 
 Omega.Scenes.IntroAudio.prototype = {
-  /// make sure to keep in sync w/ intro audio track length
-  /// TODO autodetect?
-  length : 18,
-
   dom1 : function(){
     return $('#' + this.audio1.src)[0];
   },
