@@ -65,6 +65,21 @@ Omega.Gen = {
     return new Omega.Asteroid(opts);
   },
 
+  jump_gate : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'jg' + this.next_id();
+    if(!opts.trigger_distance) opts.trigger_distance = 300;
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
+    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
+    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
+    return new Omega.JumpGate(opts);
+  },
+
   ship : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'ship' + this.next_id();
