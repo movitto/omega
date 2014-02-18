@@ -10,7 +10,7 @@ Omega.JumpGateLamp = function(){
 };
 
 Omega.JumpGateLamp.prototype = {
-  offset : [-2, -17, 175],
+  offset : [0, 0, 105],
 
   init_lamp : function(){
     return new Omega.UI.CanvasLamp({

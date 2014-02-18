@@ -12,7 +12,7 @@ Omega.JumpGateParticles.prototype = {
   plane    :            10,
   lifespan :            20,
   velocity :           -15,
-  offset   : [0, -15, 85],
+  offset   : [0, 0, 50],
 
   _particle_group : function(config, event_cb){
     var particle_path = config.url_prefix + config.images_path + "/particle.png";
@@ -33,7 +33,7 @@ Omega.JumpGateParticles.prototype = {
       sizeStart          : 50,
       sizeEnd            : 50,
       opacityStart       : 1,
-      opacityEnd         : 1,
+      opacityEnd         : 0,
       velocity           : new THREE.Vector3(0, 0, this.velocity),
       particlesPerSecond : 3,
       alive              : 1
