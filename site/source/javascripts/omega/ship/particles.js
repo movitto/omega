@@ -16,6 +16,9 @@ Omega.load_ship_particles = function(config, event_cb, particles_id){
     case 'destruction':
       particle_path += '/smokeparticle.png';
       break;
+    case 'smoke':
+      particle_path += '/cloudparticle.png';
+      break;
     default:
       particle_path += '/particle.png';
   }

@@ -33,6 +33,11 @@ Omega.Ship.prototype = {
     return this.hp > 0;
   },
 
+  /// hp percentage
+  hpp : function(){
+    return this.hp / this.max_hp;
+  },
+
   update_system : function(new_system){
     this.solar_system   = new_system;
     if(new_system){
