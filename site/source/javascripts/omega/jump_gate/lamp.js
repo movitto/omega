@@ -10,13 +10,13 @@ Omega.JumpGateLamp = function(){
 };
 
 Omega.JumpGateLamp.prototype = {
+  offset : [-2, -17, 175],
+
   init_lamp : function(){
-    var gfx_props = Omega.JumpGateGfx.gfx_props;
     return new Omega.UI.CanvasLamp({
       size          : 10, color : 0xff0000,
-      base_position : [gfx_props.lamp_x,
-                       gfx_props.lamp_y,
-                       gfx_props.lamp_z]});
+      base_position : this.offset
+    });
   },
 
   clone : function(){

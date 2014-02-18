@@ -39,6 +39,10 @@ Omega.JumpGateMesh.prototype = {
       set(loc.x + this.base_position[0],
           loc.y + this.base_position[1],
           loc.z + this.base_position[2]);
+  },
+
+  run_effects : function(){
+    /// TODO slowly rotate mesh
   }
 };
 

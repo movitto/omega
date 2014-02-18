@@ -11,17 +11,6 @@
 
 // JumpGate GFX Mixin
 Omega.JumpGateGfx = {
-  gfx_props : {
-    particle_plane :  20,
-    particle_life  : 200,
-    lamp_x         : -02,
-    lamp_y         : -17,
-    lamp_z         : 175,
-    particles_x    : -10,
-    particles_y    : -25,
-    particles_z    :  75
-  },
-
   async_gfx : 3,
 
   load_gfx : function(config, event_cb){
@@ -59,9 +48,9 @@ Omega.JumpGateGfx = {
     this.lamp.olamp.init_gfx();
     this.components.push(this.lamp.olamp.component);
 
-    this.particles = Omega.JumpGate.gfx.particles.clone();
+    this.particles = Omega.JumpGate.gfx.particles.clone(config, event_cb);
     this.particles.omega_entity = this;
-    this.components.push(this.particles.particle_system);
+    this.components.push(this.particles.particles.mesh);
 
     this.selection = Omega.JumpGateSelection.for_jg(this);
     this.selection.omega_entity = this;
@@ -72,6 +61,7 @@ Omega.JumpGateGfx = {
   run_effects : function(){
     this.lamp.run_effects();
     this.particles.run_effects();
+    if(this.mesh) this.mesh.run_effects();
   },
 
   update_gfx : function(){
