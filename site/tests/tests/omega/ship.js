@@ -1276,6 +1276,7 @@ describe("Omega.Ship", function(){
       assert(ship.components).includes(ship.hp_bar.bar.component2);
       for(var l = 0; l < ship.lamps.olamps.length; l++)
         assert(ship.components).includes(ship.lamps.olamps[l].component);
+      /// TODO particle components
     });
 
     it("updates_gfx", function(){
