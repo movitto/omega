@@ -4,124 +4,102 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO use particle engine for particles
-
-Omega.SolarSystemInterconnMaterial = function(){
-  this.material = this.init_gfx();
+Omega.SolarSystemInterconns = function(){
+  this.endpoints = [];
 };
 
-Omega.SolarSystemInterconnMaterial.prototype = {
-  init_gfx : function(){
-    return new THREE.LineBasicMaterial({ color: 0xF80000 });
-  }
-}
+Omega.SolarSystemInterconns.prototype = {
+  age : 3,
 
-Omega.SolarSystemInterconnParticleMaterial = function(config, event_cb){
-  this.material = this.init_gfx(config, event_cb);
-};
+  _line_material : function(){
+    if(this.__line_material) return this.__line_material;
+    this.__line_material = new THREE.LineBasicMaterial({ color: 0xF80000 });
+    return this.__line_material;
+  },
 
-Omega.SolarSystemInterconnParticleMaterial.prototype = {
-  init_gfx : function(config, event_cb){
-    var texture_path =
-      config.url_prefix + config.images_path + '/particle.png';
+  _line_geo : function(endpoint){
+    var entity = this.omega_entity;
+    var loc    = entity.location;
 
-    var texture =
-      THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
-
-    var mat = new THREE.ParticleBasicMaterial({
-      color:       0xFF0000,
-      size:        50,
-      transparent: true,
-      depthWrite:  false,
-      map:         texture,
-      blending:    THREE.AdditiveBlending
-    });
-
-    return mat;
-  }
-};
-
-Omega.SolarSystemInterconnHelpers = {
-  _interconn_geo : function(endpoint){
     var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(this.location.x,
-                                             this.location.y,
-                                             this.location.z));
-    geometry.vertices.push(new THREE.Vector3(endpoint.location.x,
-                                             endpoint.location.y,
-                                             endpoint.location.z));
+    geometry.vertices.push(loc.vector());
+    geometry.vertices.push(endpoint.location.vector());
     return geometry;
   },
 
-  _interconn_particle_geo : function(){
-    var particle_geo = new THREE.Geometry();
-    particle_geo.vertices.push(new THREE.Vector3(0,0,0));
-    return particle_geo;
+  _line : function(endpoint){
+    return new THREE.Line(this._line_geo(endpoint), this._line_material());
   },
 
-  _queue_interconn : function(endpoint){
-    if(!this._queued_interconns)
-      this._queued_interconns = [];
-    this._queued_interconns.push(endpoint);
+  _particle_group : function(config, event_cb){
+    var path    = config.url_prefix + config.images_path + '/particle.png';
+    var texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
+
+    return new ShaderParticleGroup({
+      texture:    texture,
+      blending:   THREE.AdditiveBlending,
+      maxAge:     this.age
+    });
   },
 
-  unqueue_interconns : function(){
-    if(!this._queued_interconns) return;
+  _particle_emitter : function(endpoint){
+    var entity = this.omega_entity;
+    var loc    = entity.location;
 
-    for(var i = 0; i < this._queued_interconns.length; i++)
-      this.add_interconn(this._queued_interconns[i]);
-    this._queued_interconns = null;
+    /// set emitter velocity / particle properties
+    var eloc = endpoint.location;
+    var dx = (eloc.x - loc.x) / this.age;
+    var dy = (eloc.y - loc.y) / this.age;
+    var dz = (eloc.z - loc.z) / this.age;
+    var velocity = new THREE.Vector3(dx, dy, dz);
+
+    var emitter = new ShaderParticleEmitter({
+      position           : loc.vector(),
+      velocity           : velocity,
+      colorStart         : new THREE.Color(0xFF0000),
+      colorEnd           : new THREE.Color(0xFF0000),
+      sizeStart          :   50,
+      sizeEnd            :   50,
+      opacityStart       :    1,
+      opacityEnd         :    1,
+      particlesPerSecond :  0.5,
+    });
+
+    return emitter;
   },
 
-  add_interconn: function(endpoint){
-    if(this.components.length == 0){
-      this._queue_interconn(endpoint);
+  init_gfx : function(config, event_cb){
+    this.particles = this._particle_group(config, event_cb);
+    this.clock = new THREE.Clock();
+  },
+
+  _queue : function(endpoint){
+    if(!this._queued) this._queued= [];
+    this._queued.push(endpoint);
+  },
+
+  unqueue : function(){
+    if(!this._queued) return;
+
+    for(var i = 0; i < this._queued.length; i++)
+      this.add(this._queued[i]);
+    this._queued = null;
+  },
+
+  add : function(endpoint){
+    var entity = this.omega_entity;
+
+    if(entity.components.length == 0){
+      this._queue(endpoint);
       return;
     }
 
-    var material = Omega.SolarSystem.gfx.interconn_material.material;
-    var geometry = this._interconn_geo(endpoint);
-    var line     = new THREE.Line(geometry, material);
-    this.components.push(line);
-
-    var particle_geo = this._interconn_particle_geo();
-    var particle_mat =
-      Omega.SolarSystem.gfx.interconn_particle_material.material;
-    var particle_system = new THREE.ParticleSystem(particle_geo, particle_mat);
-              
-    var loc = this.location;
-    particle_system.position.set(loc.x, loc.y, loc.z);
-
-    var eloc = endpoint.location;
-    var d  = loc.distance_from(eloc);
-    var dx = (eloc.x - loc.x) / d;
-    var dy = (eloc.y - loc.y) / d;
-    var dz = (eloc.z - loc.z) / d;
-
-    particle_system.sortParticles = true;
-    particle_system.ticker        = 0;
-    particle_system.ticks         = d / 50;
-    particle_system.dx            = dx;
-    particle_system.dy            = dy;
-    particle_system.dz            = dz;
-
-    this.components.push(particle_system);
-    this.interconnections.push(particle_system);
+    this.endpoints.push(endpoint);
+    this.particles.addEmitter(this._particle_emitter(endpoint));
+    entity.components.push(this._line(endpoint));
   },
 
-  _interconn_effects : function(){
-    for(var i = 0; i < this.interconnections.length; i++){
-      var interconn = this.interconnections[i];
-      var v         = interconn.geometry.vertices[0];
-
-      v.set(interconn.ticker * interconn.dx * 50,
-            interconn.ticker * interconn.dy * 50,
-            interconn.ticker * interconn.dz * 50)
-
-      interconn.ticker += 1;
-      if(interconn.ticker >= interconn.ticks)
-        interconn.ticker = 0;
-      interconn.geometry.verticesNeedUpdate = true;
-    }
+  run_effects : function(){
+    this.particles.tick(this.clock.getDelta());
   }
 };

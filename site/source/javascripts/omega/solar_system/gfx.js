@@ -19,9 +19,6 @@ Omega.SolarSystemGfx = {
     gfx.mesh               = new Omega.SolarSystemMesh();
     gfx.plane              = new Omega.SolarSystemPlane(config, event_cb);
     gfx.text_material      = new Omega.SolarSystemTextMaterial();
-    gfx.interconn_material = new Omega.SolarSystemInterconnMaterial(); 
-    gfx.interconn_particle_material =
-      new Omega.SolarSystemInterconnParticleMaterial(config, event_cb);
     Omega.SolarSystem.gfx = gfx;
   },
 
@@ -38,11 +35,13 @@ Omega.SolarSystemGfx = {
     /// text geometry needs to be created on system by system basis
     this.text = new Omega.SolarSystemText(this.title())
     this.text.omega_entity = this;
-  
-    this.components = [this.plane.tmesh, this.text.text];
-  
-    this.unqueue_interconns();
 
+    /// interconnects pre-created on system by system basis, init gfx here
+    this.interconns.init_gfx(config, event_cb);
+  
+    this.components = [this.plane.tmesh, this.text.text, this.interconns.particles.mesh];
+  
+    this.interconns.unqueue();
     this.update_gfx();
   },
 
@@ -54,6 +53,6 @@ Omega.SolarSystemGfx = {
   },
 
   run_effects : function(){
-    this._interconn_effects();
+    this.interconns.run_effects();
   }
 };

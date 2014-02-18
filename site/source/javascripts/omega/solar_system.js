@@ -10,8 +10,6 @@ Omega.SolarSystem = function(parameters){
   this.components = [];
   this.shader_components = [];
 
-  this.interconnections = [];
-
   this.children   = [];
   $.extend(this, parameters);
 
@@ -19,6 +17,9 @@ Omega.SolarSystem = function(parameters){
 
   this.children = Omega.convert_entities(this.children);
   this.location = Omega.convert_entity(this.location)
+
+  this.interconns = new Omega.SolarSystemInterconns();
+  this.interconns.omega_entity = this;
 };
 
 Omega.SolarSystem.prototype = {
@@ -74,7 +75,7 @@ Omega.SolarSystem.prototype = {
 
       if(system != null){
         gate.endpoint = system;
-        this.add_interconn(system);
+        this.interconns.add(system);
       }
     }
   },
@@ -114,7 +115,6 @@ Omega.SolarSystem.prototype = {
 };
 
 $.extend(Omega.SolarSystem.prototype, Omega.SolarSystemGfx);
-$.extend(Omega.SolarSystem.prototype, Omega.SolarSystemInterconnHelpers);
 
 // return the solar system with the specified id
 Omega.SolarSystem.with_id = function(id, node, cb){
