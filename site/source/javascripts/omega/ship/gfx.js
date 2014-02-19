@@ -21,7 +21,7 @@
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
-  debug_gfx : false,
+  debug_gfx : true,
 
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
@@ -38,8 +38,8 @@ Omega.ShipGfx = {
     gfx.trails           = new Omega.ShipTrails(config, this.type, event_cb);
     gfx.attack_vector    = new Omega.ShipAttackVector(config, event_cb);
     gfx.mining_vector    = new Omega.ShipMiningVector(config, event_cb);
-    gfx.trajectory1      = new Omega.ShipTrajectory(0x0000FF);
-    gfx.trajectory2      = new Omega.ShipTrajectory(0x00FF00);
+    gfx.trajectory1      = new Omega.ShipTrajectory(0x0000FF, 'primary');
+    gfx.trajectory2      = new Omega.ShipTrajectory(0x00FF00, 'secondary');
     gfx.hp_bar           = new Omega.ShipHpBar();
     gfx.destruction      = new Omega.ShipDestructionEffect(config, event_cb);
     gfx.destruction_audio = new Omega.ShipDestructionAudioEffect(config);
@@ -158,8 +158,8 @@ Omega.ShipGfx = {
     if(this.highlight)     this.highlight.update();
     if(this.lamps)         this.lamps.update();
     if(this.trails)        this.trails.update();
-    if(this.trajectory1)   this.trajectory1.update('primary');
-    if(this.trajectory2)   this.trajectory2.update('secondary');
+    if(this.trajectory1)   this.trajectory1.update();
+    if(this.trajectory2)   this.trajectory2.update();
     if(this.hp_bar)        this.hp_bar.update();
     if(this.attack_vector) this.attack_vector.update();
     if(this.mining_vector) this.mining_vector.update();

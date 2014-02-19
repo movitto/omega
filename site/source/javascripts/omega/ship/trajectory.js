@@ -4,14 +4,15 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipTrajectory = function(color){
+Omega.ShipTrajectory = function(color, direction){
   this.color = color;
   this.mesh  = this.init_gfx(color);
+  if(direction) this.set_direction(direction)
 };
 
 Omega.ShipTrajectory.prototype = {
   clone : function(){
-    return new Omega.ShipTrajectory(this.color);
+    return new Omega.ShipTrajectory(this.color, this.direction);
   },
 
   init_gfx : function(color){
@@ -22,28 +23,39 @@ Omega.ShipTrajectory.prototype = {
     return new THREE.Line(trajectory_geo, trajectory_mat);
   },
 
-  update : function(direction){
-    var entity      = this.omega_entity;
-    var loc         = entity.location;
-    var orientation = loc.orientation();
+  set_direction : function(direction){
+    this.direction = direction;
+    if(direction == 'primary')
+      this._update_orientation = this._update_primary_orientation;
+    else // if direction == 'secondary
+      this._update_orientation = this._update_secondary_orientation;
+  },
 
-    this.mesh.position.set(loc.x, loc.y, loc.z);
-
+  _update_primary_orientation : function(){
+    var orientation = this.omega_entity.location.orientation();
     var v0 = this.mesh.geometry.vertices[0];
     var v1 = this.mesh.geometry.vertices[1];
 
-    if(direction == 'primary'){
-      v0.set(0, 0, 0);
-      v1.set(orientation[0] * 100,
-             orientation[1] * 100,
-             orientation[2] * 100);
+    v0.set(0, 0, 0);
+    v1.set(orientation[0] * 100,
+           orientation[1] * 100,
+           orientation[2] * 100);
+  },
 
-    }else{ // if direction == 'secondary'
-      v0.set(0, 0, 0);
-      v1.set(0, 50, 0);
-      Omega.rotate_position(v1, loc.rotation_matrix());
-    }
+  _update_secondary_orientation : function(){
+    var loc = this.omega_entity.location;
+    var v0  = this.mesh.geometry.vertices[0];
+    var v1  = this.mesh.geometry.vertices[1];
 
+    v0.set(0, 0, 0);
+    v1.set(0, 50, 0);
+    Omega.rotate_position(v1, loc.rotation_matrix());
+  },
+
+  update : function(){
+    var loc = this.omega_entity.location;
+    this.mesh.position.set(loc.x, loc.y, loc.z);
+    this._update_orientation();
     this.mesh.geometry.verticesNeedUpdate = true;
   }
 };
