@@ -67,6 +67,13 @@ Omega.ShipMiningVector.prototype = {
         emitter.velocity.set(dx, dy, dz);
       }
     }
+
+    if(this.has_target()){
+      if(!this.alive()) this.enable();
+
+    }else if(this.alive()){
+      this.disable();
+    }
   },
 
   target : function(){
@@ -110,15 +117,6 @@ Omega.ShipMiningVector.prototype = {
   },
 
   run_effects : function(){
-    if(!this.particles) return;
-
     this.particles.tick(this.clock.getDelta());
-
-    if(this.has_target()){
-      if(!this.alive()) this.enable();
-
-    }else if(this.alive()){
-      this.disable();
-    }
   }
 };

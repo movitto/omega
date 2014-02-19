@@ -24,6 +24,11 @@ Omega.ShipSmokeEffect.prototype = {
 
     var rand = Math.random() * 25;
     this._emitter().position.set(loc.x + rand, loc.y + 10, loc.z + rand);
+
+    if(entity.hpp() < 0.5)
+      this.enable();
+    else
+      this.disable();
   },
 
   _particle_emitter : function(){
@@ -72,10 +77,5 @@ Omega.ShipSmokeEffect.prototype = {
 
   run_effects : function(){
     this.particles.tick(this.clock.getDelta());
-
-    if(this.omega_entity.hpp() < 0.5)
-      this.enable();
-    else
-      this.disable();
   }
 }

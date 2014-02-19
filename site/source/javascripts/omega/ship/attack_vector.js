@@ -50,6 +50,14 @@ Omega.ShipAttackVector.prototype = {
   update : function(){
     var loc = this.omega_entity.location;
     this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);
+
+    if(this.has_target()){
+      this.enable();
+      if(this.target_loc_needs_update())
+        this.update_target_loc();
+    }else{
+      this.disable();
+    }
   },
 
   target : function(){
@@ -114,16 +122,6 @@ Omega.ShipAttackVector.prototype = {
   },
 
   run_effects : function(){
-    if(!this.particles) return;
-
     this.particles.tick(this.clock.getDelta());
-
-    if(this.has_target()){
-      this.enable();
-      if(this.target_loc_needs_update())
-        this.update_target_loc();
-    }else{
-      this.disable();
-    }
   }
 };

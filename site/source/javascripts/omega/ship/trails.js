@@ -88,6 +88,12 @@ Omega.ShipTrails.prototype = {
         Omega.rotate_position(temitter, loc.rotation_matrix());
       });
     }
+
+    /// update 'alive' depending on movement state
+    if(this.omega_entity.location.is_stopped())
+      this.disable();
+    else
+      this.enable();
   },
 
   enable : function(){
@@ -103,14 +109,6 @@ Omega.ShipTrails.prototype = {
   },
 
   run_effects : function(){
-    if(!this.particles) return;
-
     this.particles.tick(this.clock.getDelta());
-
-    /// update 'alive' depending on movement state
-    if(this.omega_entity.location.is_stopped())
-      this.disable();
-    else
-      this.enable();
   }
 };
