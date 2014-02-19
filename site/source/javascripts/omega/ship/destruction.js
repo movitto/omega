@@ -4,30 +4,33 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO render a few smaller / localized explosions on various
-/// areas on ship before final explosion as implemented below
-/// (though a bit shorted & with more effects such as debris + smoke)
+/// TODO add debris
 
 Omega.ShipDestructionEffect = function(config, event_cb){
   this.init_gfx(config, event_cb);
 };
 
 Omega.ShipDestructionEffect.prototype = {
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
-
-    /// XXX since mesh is rotated by 1.57 around x below,
-    /// need to reverse rotation in emitter position to
-    /// compensate for the world rotation
+  /// XXX since mesh is rotated by 1.57 around x below,
+  /// need to reverse rotation in emitter position to
+  /// compensate for the world rotation
+  _rotation : function(){
+    if(this.__rotation) return this.__rotation;
     var euler  = new THREE.Euler(-1.57, 0, 0);
-    var matrix = new THREE.Matrix4();
-    matrix.makeRotationFromEuler(euler);
+    this.__rotation = new THREE.Matrix4();
+    this.__rotation.makeRotationFromEuler(euler);
+    return this.__rotation;
+  },
+
+  update : function(){
+    var entity   = this.omega_entity;
+    var loc      = entity.location;
+    var rotation = this._rotation();
 
     var emitters = this.particles.emitters;
     for(var e = 0; e < emitters.length; e++){
       emitters[e].position.set(loc.x, loc.y, loc.z);
-      Omega.rotate_position(emitters[e], matrix)
+      Omega.rotate_position(emitters[e], rotation)
     }
   },
 

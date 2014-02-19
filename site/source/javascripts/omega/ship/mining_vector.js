@@ -51,28 +51,30 @@ Omega.ShipMiningVector.prototype = {
   },
 
   update : function(){
+    if(this.has_target()){
+      if(!this.alive()) this.enable();
+      this._update_emitter_velocity();
+
+    }else if(this.alive()){
+      this.disable();
+    }
+  },
+
+  _update_emitter_velocity : function(){
     var loc = this.omega_entity.location;
+
     for(var e = 0; e < this.num_emitters; e++){
       var emitter = this.particles.emitters[e];
       var epos    = emitter.position;
       var edist   = loc.distance_from(epos.x, epos.y, epos.z);
 
-      if(edist > 0){
-        var rand = Math.random() * 10;
-        var vel = edist / this.particle_age + rand;
-        var dx  = (loc.x - epos.x) / edist * vel;
-        var dy  = (loc.y - epos.y) / edist * vel;
-        var dz  = (loc.z - epos.z) / edist * vel;
+      var rand    = Math.random() * 10;
+      var vel     = edist / this.particle_age + rand;
+      var dx      = (loc.x - epos.x) / edist * vel;
+      var dy      = (loc.y - epos.y) / edist * vel;
+      var dz      = (loc.z - epos.z) / edist * vel;
 
-        emitter.velocity.set(dx, dy, dz);
-      }
-    }
-
-    if(this.has_target()){
-      if(!this.alive()) this.enable();
-
-    }else if(this.alive()){
-      this.disable();
+      emitter.velocity.set(dx, dy, dz);
     }
   },
 
