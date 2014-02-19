@@ -9,7 +9,7 @@
 
 Omega.Scenes.Intro = function(config){
   this.audio = new Omega.Scenes.IntroAudio(config);
-  this.title = new Omega.Scenes.IntroTitle("the omegaverse");
+  this.title = new Omega.Scenes.IntroTitle("THE OMEGAVERSE");
 };
 
 Omega.Scenes.Intro.prototype = {
@@ -18,7 +18,7 @@ Omega.Scenes.Intro.prototype = {
   run : function(page){
     var _this = this;
 
-    page.canvas.cam.position.set(0, 0, 500);
+    page.canvas.cam.position.set(0, 0, 1500);
     page.canvas.focus_on({x:0,y:0,z:0});
     page.canvas.scene.add(new THREE.DirectionalLight(0xFFFFFF, 1.0));
 

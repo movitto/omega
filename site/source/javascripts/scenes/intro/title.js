@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/subzer0_regular.typeface"
+
 Omega.Scenes.IntroTitle = function(text){
   this.init_gfx(text);
 };
@@ -11,9 +13,9 @@ Omega.Scenes.IntroTitle = function(text){
 Omega.Scenes.IntroTitle.prototype = {
   text_opts : {
     height        : 12,
-    width         : 5,
+    width         : 7,
     curveSegments : 2,
-    font          : 'helvetiker',
+    font          : 'subzer0',
     size          : 48
   },
 

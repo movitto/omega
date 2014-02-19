@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/reality_hyper_regular.typeface"
+
 Omega.SolarSystemTextMaterial = function(){
   this.material = this.init_gfx();
 };
@@ -24,7 +26,7 @@ Omega.SolarSystemText.prototype = {
     height        : 12,
     width         : 5,
     curveSegments : 2,
-    font          : 'helvetiker',
+    font          : 'reality hyper',
     size          : 48
   },
 
