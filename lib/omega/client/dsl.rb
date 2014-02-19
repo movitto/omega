@@ -3,23 +3,7 @@
 # Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'users/user'
-require 'users/role'
-
-require 'cosmos/resource'
-require 'cosmos/entities/galaxy'
-require 'cosmos/entities/solar_system'
-require 'cosmos/entities/star'
-require 'cosmos/entities/asteroid'
-require 'cosmos/entities/jump_gate'
-require 'cosmos/entities/planet'
-require 'cosmos/entities/moon'
-
-require 'manufactured/ship'
-require 'manufactured/station'
-
-require 'missions/event_handler'
-
+require 'omega'
 require 'omega/client/node'
 require 'omega/resources'
 
