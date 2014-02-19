@@ -165,6 +165,7 @@ Omega.ShipGfx = {
     if(this.mining_vector) this.mining_vector.update();
     if(this.destruction)   this.destruction.update();
     if(this.smoke)         this.smoke.update();
+    if(this.explosions)    this.explosions.update();
   },
 
   ///////////////////////////////////////////////// effects

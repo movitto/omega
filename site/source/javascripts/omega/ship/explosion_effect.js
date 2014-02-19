@@ -36,6 +36,16 @@ Omega.ShipExplosionEffect.prototype = {
     };
   },
 
+  update : function(){
+    var entity = this.omega_entity;
+    var loc    = entity.location;
+
+    if(entity.attacking)
+      this._run_effects = this._trigger_effect;
+    else
+      this._run_effects = this._no_trigger_effect;
+  },
+
   _particle_group : function(config, event_cb){
     var particle_texture =
       Omega.load_ship_particles(config, event_cb, 'explosion');
@@ -65,36 +75,41 @@ Omega.ShipExplosionEffect.prototype = {
     return nexplosion;
   },
 
-  run_effects : function(){
-    this.particles.tick(this.particle_clock.getDelta());
+  interval : function(){
+    if(this._interval) return this._interval;
+    this._interval = Omega.ShipAttackVector.prototype.particle_age;
+    return this._interval;
+  },
 
-    var entity = this.omega_entity;
-    if(!entity.attacking){
-      this.started_at = null;
-      return;
-    }
-
-    /// we delay until first particle arrives
-    var interval = Omega.ShipAttackVector.prototype.particle_age * 1000;
-    if(!this.started_at) this.started_at = new Date();
-    if(new Date() - this.started_at < interval) return;
-
-    var loc = entity.attacking.location;
-
-    /// synchronize to attack vector particle emission
-    if(this.elapsed_effect * 1000 < interval){
-      this.elapsed_effect += this.clock.getDelta();
-      return;
-    }
+  _trigger_position : function(){
+    var loc = this.omega_entity.attacking.location;
 
     // rand distance within certain max area around ship
     var area = 50; // TODO parameterize size
     var px = loc.x + (area * Math.random() - (area/2));
     var py = loc.y + (area * Math.random() - (area/2));
     var pz = loc.z + (area * Math.random() - (area/2));
-    var current_pos = new THREE.Vector3(px, py, pz);
-    this.particles.triggerPoolEmitter(1, current_pos);
+    return new THREE.Vector3(px, py, pz);
+  },
 
-    this.elapsed_effect = 0;
+  _trigger_effect : function(){
+   /// TODO could be potentially furthur optimized by scheduling
+   /// tigger_effect to be run at specified interval async instead
+   /// of relying on this conditional here
+   if(this.clock.getElapsedTime() < this.interval()) return;
+
+    /// reset clock
+    this.clock = new THREE.Clock();
+
+    this.particles.triggerPoolEmitter(1, this._trigger_position());
+  },
+
+  _no_trigger_effect : function(){
+    /// intentionally empty (see update above)
+  },
+
+  run_effects : function(){
+    this.particles.tick(this.particle_clock.getDelta());
+    this._run_effects();
   }
 }
