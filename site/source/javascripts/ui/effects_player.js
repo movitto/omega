@@ -6,6 +6,8 @@
 
 Omega.UI.EffectsPlayer = function(parameters){
   this.entities = [];
+  this.skipped_interval = null;
+  this.skipped = 0;
 
   /// need handle to page to
   /// - get canvas scene entities
@@ -15,7 +17,8 @@ Omega.UI.EffectsPlayer = function(parameters){
 };
 
 Omega.UI.EffectsPlayer.prototype = {
-  interval : 50,
+  interval  : 20, /// frame interval in ms, = 50fps
+  max_skips :  5,
 
   wire_up : function(){
     /// pause effects player when document is hidden
@@ -62,14 +65,45 @@ Omega.UI.EffectsPlayer.prototype = {
     this.effects_timer =
       $.timer(function(){
         _this._run_effects();
-      }, Omega.UI.EffectsPlayer.prototype.interval, false);
+      }, this.interval, false);
   },
 
-  _run_effects : function(){
+  _run_entity_effects : function(){
     for(var e = 0; e < this.entities.length; e++){
       var entity = this.entities[e];
       if(entity.run_effects) entity.run_effects(this.page);
     }
+  },
+
+  /// replace _run_effects call above with _run_lax_effects
+  /// to disable constant frame rate enforcement
+  _run_lax_effects : function(){
+    this._run_entity_effects();
     this.page.canvas.animate();
+  },
+
+  _run_effects : function(){
+    var pre_effects = new Date();
+
+    this._run_entity_effects();
+    if(!this.skip_interval) this.page.canvas.animate();
+
+    var post_effects   = new Date();
+    var diff           = post_effects - pre_effects;
+    var skip_time      = this.interval - diff;
+
+    if(this.skip_interval < 0 && this.skipped < this.max_skips){
+      this.skip_interval += this.interval;
+      this.skipped       += 1;
+
+    }else{
+      this.skip_interval = null;
+      this.skipped       =    0;
+    }
+
+    if(skip_time < 0 && !this.skip_interval){
+      this.skip_interval = skip_time;
+      this.skipped       = 0;
+    }
   }
 };
