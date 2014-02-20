@@ -21,7 +21,7 @@ Omega.Callbacks.motel = function(event, event_args){
   else
     entity.last_moved = new Date();
 
-  entity.location = new_loc; // TODO should this just be an update?
+  entity.location.update(new_loc);
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){
