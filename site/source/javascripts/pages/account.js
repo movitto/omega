@@ -7,6 +7,8 @@
 //= require "ui/pages/account_details"
 //= require "ui/pages/account_dialog"
 
+//= require "ui/splash"
+
 /// TODO account option where user can setup
 ///      uri's to stream background audio from
 
@@ -47,6 +49,10 @@ Omega.Pages.Account = function(){
 Omega.Pages.Account.prototype = {
   wire_up : function(){
     this.details.wire_up();
+
+    $('#account_info_clear_notices').on('click', function(){
+      new Omega.UI.SplashScreen().clear_notices();
+    });
   },
 
   process_entities : function(entities){

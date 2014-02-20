@@ -27,11 +27,10 @@ Omega.UI.SplashScreen.prototype = {
       });
   },
 
-  /// TODO button on account page to clear_notices
   clear_notices : function(){
     var notices = this.read_notices();
-    for(var notice in notices)
-      $.localStorage.remove(notice);
+    for(var n = 0; n < notices.length; n++)
+      $.localStorage.remove('omega.notices.' + notices[n]);
   },
 
   read_notices : function(){
