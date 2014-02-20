@@ -8,7 +8,6 @@ Omega.ShipCommands = {
   /// see omega/ship/commands.js for retrieve_details implementation
   has_details : true,
 
-  /// TODO only display cmds if entity is alive
   cmds : [
     { id      : 'ship_move_',
       class   : 'ship_move details_command',
@@ -55,7 +54,8 @@ Omega.ShipCommands = {
     var loc   = '@ ' + this.location.to_s();
     var orien = '> ' + this.location.orientation_s();
     var hp    = 'HP: ' + this.hp;
-    /// TODO also ship.type
+    var type  = 'Type: ' + this.type;
+    var follow = this._follow_cmd(page);
 
     var resources = ['Resources:'];
     for(var r = 0; r < this.resources.length; r++){
@@ -63,8 +63,9 @@ Omega.ShipCommands = {
       resources.push(resource.quantity + ' of ' + resource.material_id);
     }
 
-    var details = [title, loc, orien, hp].concat(resources);
+    var details = [title, loc, orien, hp, type].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
+    details.push(follow);
 
     if(page.session && this.belongs_to_user(page.session.user_id)){
       var cmds = this._create_commands(page);
@@ -72,6 +73,32 @@ Omega.ShipCommands = {
     }
 
     details_cb(details);
+  },
+
+  _follow_cmd : function(page){
+    var _this = this;
+    var start = 'follow';
+    var stop  = 'stop following';
+
+    var following = (page.canvas.following_loc == this.location);
+    var cmd = $('<a>', {href : '#',
+                                  text : following ? stop : start});
+
+    cmd.click(function(evnt){
+      var following = (page.canvas.following_loc == _this.location);
+
+      if(following){
+        page.canvas.stop_following();
+        cmd.text(start);
+
+      }else{
+        page.canvas.follow(_this.location);
+        cmd.text(stop);
+
+      };
+    });
+
+    return cmd;
   },
 
   _create_commands : function(page){
