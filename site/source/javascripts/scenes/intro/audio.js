@@ -19,7 +19,7 @@ Omega.Scenes.IntroAudio.prototype = {
   },
 
   _played1 : function(){
-    if(typeof(this.first) === "undefined"){
+    if(!this.first){
       this.first = true;
       return false;
     }
@@ -27,8 +27,19 @@ Omega.Scenes.IntroAudio.prototype = {
     return true;
   },
 
+  reset : function(){
+    this.first = false;
+  },
+
   play : function(){
     this._played1() ? this.dom2().play() :
                       this.dom1().play();
   },
+
+  pause : function(){
+    this.dom1().pause()
+    this.dom1().currentTime = 0;
+    this.dom2().pause();
+    this.dom2().currentTime = 0;
+  }
 };
