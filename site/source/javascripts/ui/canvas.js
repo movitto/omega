@@ -350,6 +350,7 @@ Omega.UI.Canvas.prototype = {
   clear : function(){
     this.root = null;
     this.entities = [];
+    this.following_loc = null;
     var scene_components =
       this.scene ? this.scene.getDescendants() : [];
     var shader_scene_components =
