@@ -377,6 +377,7 @@ Omega.UI.Canvas.prototype = {
     this.following_loc = null
   },
 
+  /// TODO optimize
   _cam_follow : function(){
     if(!this.following_loc) return;
 

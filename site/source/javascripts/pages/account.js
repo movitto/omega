@@ -7,6 +7,9 @@
 //= require "ui/pages/account_details"
 //= require "ui/pages/account_dialog"
 
+/// TODO account option where user can setup
+///      uri's to stream background audio from
+
 Omega.Pages.Account = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);

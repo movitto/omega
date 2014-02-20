@@ -10,7 +10,7 @@ Omega.ShipTrails = function(config, type, event_cb){
 };
 
 Omega.ShipTrails.prototype = {
-  particles_per_second :  30,
+  particles_per_second :  50,
   plane                :   5,
   lifespan             :   1,
   particle_speed       :   1,

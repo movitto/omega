@@ -6,6 +6,8 @@
 
 //= require "ui/command_dialog"
 
+/// TODO audio effect on jg trigger
+
 Omega.JumpGateCommands = {
   has_details : true,
 
