@@ -4,10 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO alot of the components used by station are duplicates
-/// of those used by ship, should be consolidates into
-/// common helpers
-
 //= require 'omega/station/mesh'
 //= require 'omega/station/highlight'
 //= require 'omega/station/lamps'

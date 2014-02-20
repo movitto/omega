@@ -47,6 +47,7 @@ Omega.PlanetGfx = {
     if(this.mesh) this.mesh.update();
   },
 
+  /// TODO optimize
   run_effects : function(){
     var ms   = this.location.movement_strategy;
     var curr = new Date();

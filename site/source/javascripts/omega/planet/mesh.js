@@ -43,6 +43,7 @@ Omega.PlanetMesh.prototype = {
     return axis;
   },
 
+  /// TODO optimize
   update : function(){
     if(!this.tmesh) return;
     var entity = this.omega_entity;
