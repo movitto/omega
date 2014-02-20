@@ -30,6 +30,17 @@ Omega.Location.prototype = {
     return new THREE.Vector3(this.x, this.y, this.z);
   },
 
+  update : function(loc){
+    this.x = loc.x;
+    this.y = loc.y;
+    this.z = loc.z;
+    this.orientation_x = loc.orientation_x;
+    this.orientation_y = loc.orientation_y;
+    this.orientation_z = loc.orientation_z;
+    this.parent_id = loc.parent_id;
+    this.update_ms(loc.movement_strategy);
+  },
+
   update_ms : function(ms){
     if(ms != null){
       this.movement_strategy = ms;
