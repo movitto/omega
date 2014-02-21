@@ -48,5 +48,7 @@ Omega.StarGfx = {
 
     this.mesh.tmesh.position.
         set(this.location.x, this.location.y, this.location.z);
-  }
+  },
+
+  run_effects : function(){}
 };

@@ -8,17 +8,32 @@ Omega.UI.EffectsPlayer = function(parameters){
   this.entities = [];
   this.skipped_interval = null;
   this.skipped = 0;
+  this._effects_counter = 0;
 
   /// need handle to page to
   /// - get canvas scene entities
   this.page = null;
 
   $.extend(this, parameters);
+
+  if(this.entities_per_cycle)
+    this._run_entity_effects = this._run_partial_entity_effects;
+  else
+    this._run_entity_effects = this._run_all_entity_effects;
+
+  this._run_effects = this._run_strict_effects;
+
+  /// replace above with the following to
+  /// disable constant frame rate enforcement
+  //this._run_effects = this._run_strict_effects;
 };
 
 Omega.UI.EffectsPlayer.prototype = {
-  interval  : 20, /// frame interval in ms, = 50fps
+  interval  : 10, /// frame interval in ms, = 50fps
   max_skips :  5,
+
+  /// set to null to update all entities on every cycle
+  entities_per_cycle : 20,
 
   wire_up : function(){
     /// pause effects player when document is hidden
@@ -68,21 +83,29 @@ Omega.UI.EffectsPlayer.prototype = {
       }, this.interval, false);
   },
 
-  _run_entity_effects : function(){
-    for(var e = 0; e < this.entities.length; e++){
-      var entity = this.entities[e];
-      if(entity.run_effects) entity.run_effects(this.page);
-    }
+  _run_all_entity_effects : function(){
+    for(var e = 0; e < this.entities.length; e++)
+      this.entities[e].run_effects(this.page);
   },
 
-  /// replace _run_effects call above with _run_lax_effects
-  /// to disable constant frame rate enforcement
+  _run_partial_entity_effects : function(){
+    if(this._effects_counter >= this.entities.length) this._effects_counter = 0;
+
+    var stop = this._effects_counter + this.entities_per_cycle;
+    if(stop > this.entities.length) stop = this.entities.length;
+
+    for(var e = this._effects_counter; e < stop; e++)
+      this.entities[e].run_effects(this.page);
+
+    this._effects_counter = stop;
+  },
+
   _run_lax_effects : function(){
     this._run_entity_effects();
     this.page.canvas.animate();
   },
 
-  _run_effects : function(){
+  _run_strict_effects : function(){
     var pre_effects = new Date();
 
     this._run_entity_effects();
@@ -92,18 +115,17 @@ Omega.UI.EffectsPlayer.prototype = {
     var diff           = post_effects - pre_effects;
     var skip_time      = this.interval - diff;
 
-    if(this.skip_interval < 0 && this.skipped < this.max_skips){
+    if(skip_time < 0 && !this.skip_interval){
+      this.skip_interval = skip_time;
+      this.skipped       = 1;
+
+    }else if(this.skip_interval < 0 && this.skipped < this.max_skips){
       this.skip_interval += this.interval;
       this.skipped       += 1;
 
     }else{
       this.skip_interval = null;
       this.skipped       =    0;
-    }
-
-    if(skip_time < 0 && !this.skip_interval){
-      this.skip_interval = skip_time;
-      this.skipped       = 0;
     }
   }
 };

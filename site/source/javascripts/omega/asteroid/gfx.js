@@ -36,5 +36,7 @@ Omega.AsteroidGfx = {
   update_gfx : function(){
     if(this.location)
       this.mesh.tmesh.position.add(this.location.vector());
-  }
+  },
+
+  run_effects : function(){}
 };
