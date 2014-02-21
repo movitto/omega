@@ -43,12 +43,18 @@ Omega.UI.Canvas.prototype = {
     /// to be registered as a click
     /// TODO drag-n-drop selection box
     var click_duration = 500, timestamp = null;
-    this.canvas.mousedown(function(evnt){ timestamp = new Date();});
+    this.canvas.mousedown(function(evnt){
+      timestamp = new Date();
+      _this.disable_following();
+    });
+
     this.canvas.mouseup(function(evnt) {
       if(new Date() - timestamp < click_duration){
         timestamp = null;
         _this._canvas_clicked(evnt);
       }
+
+      _this.enable_following();
     })
 
     /// when mouse leaves canvas, trigger up event
@@ -367,6 +373,14 @@ Omega.UI.Canvas.prototype = {
     return this.entities.indexOf(entity_id) != -1;
   },
 
+  _update_following_dir : function(){
+    if(!this.following_loc) return;
+    var pos = this.cam_controls.object.position;
+    this.following_dir  = this.following_loc.direction_to(pos.x, pos.y, pos.z);
+    this.following_dist = this.following_loc.distance_from(pos.x, pos.y, pos.z);
+    if(this.following_dist > 500) this.following_dist = 450;
+  },
+
   /// instruct canvas cam to follow location
   follow : function(loc){
     this.following_loc = loc;
@@ -377,37 +391,33 @@ Omega.UI.Canvas.prototype = {
     this.following_loc = null
   },
 
-  /// TODO optimize
+  /// temp disable following
+  disable_following : function(){
+    if(!this.tfollowing_loc)
+      this.tfollowing_loc = this.following_loc;
+    this.following_loc    = null;
+    this.following_dir    = null;
+  },
+
+  enable_following : function(){
+    if(this.tfollowing_loc)
+      this.following_loc = this.tfollowing_loc;
+    this.tfollowing_loc  = null;
+    this._update_following_dir();
+  },
+
   _cam_follow : function(){
     if(!this.following_loc) return;
+    if(!this.following_dir) this._update_following_dir();
 
     this.cam_controls.target.set(this.following_loc.x,
                                  this.following_loc.y,
                                  this.following_loc.z);
 
-    var pos   = this.cam_controls.object.position;
-    var cdist = this.following_loc.distance_from(pos.x, pos.y, pos.z);
-
-    if(cdist > 500){
-      var dx = (pos.x - this.following_loc.x) / cdist;
-      var dy = (pos.y - this.following_loc.y) / cdist;
-      var dz = (pos.z - this.following_loc.z) / cdist;
-
-      /// TODO right now always enforces max dist,
-      /// should this only apply first time?
-      pos.set(this.following_loc.x + dx * 450,
-              this.following_loc.y + dy * 450,
-              this.following_loc.z + dz * 450);
-    }
-
-    if(this.following_oloc){
-      var dx = (this.following_loc.x - this.following_oloc.x);
-      var dy = (this.following_loc.y - this.following_oloc.y);
-      var dz = (this.following_loc.z - this.following_oloc.z);
-      pos.add(new THREE.Vector3(dx, dy, dz));
-    }
-
-    this.following_oloc = this.following_loc.clone();
+    var pos  = this.cam_controls.object.position;
+    pos.set(this.following_loc.x - this.following_dir[0] * this.following_dist,
+            this.following_loc.y - this.following_dir[1] * this.following_dist,
+            this.following_loc.z - this.following_dir[2] * this.following_dist);
 
     this.cam_controls.update();
     return;

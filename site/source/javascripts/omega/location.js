@@ -89,6 +89,19 @@ Omega.Location.prototype = {
     return this;
   },
 
+  sub : function(x, y, z){
+    /// TODO also support vector & loc params, return corresponding obj
+    return [this.x - x, this.y - y, this.z - z];
+  },
+
+  /// returns the unit direction vector from this location's
+  /// coords to the specified coords
+  direction_to : function(x, y, z){
+    var d    = this.distance_from(x, y, z);
+    var diff = this.sub(x, y, z);
+    return [diff[0] / d, diff[1] / d, diff[2] / d];
+  },
+
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
