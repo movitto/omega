@@ -164,7 +164,11 @@ Omega.UI.SplashContent = {
        text  : "Omega comes with <b>~30MB</b> of content which " +
                "your web browser is currently downloading.<br/><br/>" +
                "The '<b>Loading Resources</b>' icon in the lower left " +
-               "will dissapear when all content is loaded"}
+               "will dissapear when all content is loaded"},
+    welcome :
+      {title : "Welcome to the Omegaverse",
+       text  : "<h3>New User? Need Help? See the <a style='color: blue;'"+
+               " href='https://github.com/movitto/omega/wiki/Using-the-Web-UI'>Tutorial</a>!</h3>"}
   },
 
   tips : [

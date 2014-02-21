@@ -21,7 +21,7 @@
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
-  debug_gfx : true,
+  debug_gfx : false,
 
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
