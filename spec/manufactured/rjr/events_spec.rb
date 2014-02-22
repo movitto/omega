@@ -180,7 +180,7 @@ module Manufactured::RJR
       context "insufficient permissions (view-entity)" do
         it "removes callback from entity" do
           lambda{
-            @cb.invoke @sh
+            @cb.invoke @rsh
           }.should change{@rsh.callbacks.size}.by(-1)
         end
       end
@@ -196,7 +196,7 @@ module Manufactured::RJR
           add_privilege @login_role, 'view', 'manufactured_entities'
           @n.should_receive(:notify).and_raise(::RJR::Errors::ConnectionError)
           lambda{
-            @cb.invoke @sh
+            @cb.invoke @rsh
           }.should change{@rsh.callbacks.size}.by(-1)
         end
       end
@@ -206,7 +206,7 @@ module Manufactured::RJR
           add_privilege @login_role, 'view', 'manufactured_entities'
           @n.should_receive(:notify).and_raise(Exception)
           lambda{
-            @cb.invoke @sh
+            @cb.invoke @rsh
           }.should change{@rsh.callbacks.size}.by(-1)
         end
       end

@@ -135,10 +135,8 @@ track_handler = proc { |*args|
       err = true
 
     ensure
-      remove_callbacks_for registry, :class    => Motel::Location,
-                                     :id       => rloc.id,
-                                     :type     => cb.event_type,
-                                     :endpoint => cb.endpoint_id  if err
+      remove_callbacks_for rloc, :type     => cb.event_type,
+                                 :endpoint => cb.endpoint_id  if err
     end
   }
 

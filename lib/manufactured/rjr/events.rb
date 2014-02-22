@@ -128,10 +128,8 @@ def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
       err = true
 
     ensure
-      remove_callbacks_for registry, :class    => entity.class,
-                                     :id       => entity.id,
-                                     :type     => event_type,
-                                     :endpoint => endpoint_id   if err
+      remove_callbacks_for entity, :type     => event_type,
+                                   :endpoint => endpoint_id   if err
     end
   }
 

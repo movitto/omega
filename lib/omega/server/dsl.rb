@@ -268,6 +268,7 @@ module Omega
           return
         else
           entities = registry_entities
+          entities = [entities] unless entities.is_a?(Array)
       
         end
       
@@ -280,6 +281,7 @@ module Omega
         matched.reject! { |m|
           m.id != criteria[:id]
         } if criteria.has_key?(:id)
+
       
         matched.each { |m|
           to_remove = []
