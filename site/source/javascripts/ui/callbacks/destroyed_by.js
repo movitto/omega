@@ -22,7 +22,7 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
 
   if(this.page.canvas.is_root(pattacker.parent_id)){
     this.page.canvas.reload(pattacker, function(){
-      if(pattacker.update_gfx) pattacker.update_gfx();
+      pattacker.update_gfx();
     });
   }
 
