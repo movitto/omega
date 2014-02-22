@@ -68,10 +68,15 @@ Omega.Pages.Index.prototype = {
     this.splash.start();
 
     var _this = this;
-    this.validate_session(
-      function(){ _this._valid_session();   }, // validated
-      function(){ _this._invalid_session(); }  // invalid
-    );
+    if(this._should_autologin()){
+      this.autologin(function() { _this._valid_session(); });
+
+    }else{
+      this.validate_session(
+        function(){ _this._valid_session();   }, // validated
+        function(){ _this._invalid_session(); }  // invalid
+      );
+    }
   },
 
   _valid_session : function(){

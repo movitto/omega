@@ -76,5 +76,23 @@ Omega.UI.SessionValidator = {
                  Omega.UI.CommandTracker.prototype.manufactured_events);
     for(var e = 0; e < events.length; e++)
       this.command_tracker.track(events[e]);
+  },
+
+  _should_autologin : function(){
+    return !!(this.config.autologin);
+  },
+
+  autologin : function(cb){
+    var _this = this;
+    var un    = this.config.autologin[0];
+    var pass  = this.config.autologin[1];
+    var user  = new Omega.User({id : un, password: pass});
+    Omega.Session.login(user, this.node, function(result){
+      /// assuming autologin will always success or err is handled elsewhere
+      if(!result.error){
+        _this.session = result;
+        _this._session_validated(cb);
+      }
+    });
   }
 };

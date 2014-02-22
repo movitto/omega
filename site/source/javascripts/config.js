@@ -21,6 +21,8 @@ Omega.Config = {
   recaptcha_enabled :        true,
   recaptcha_pub     : 'change me',
 
+  //autologin : ['user', 'pass'],
+
   // ui
   //canvas_width      :         900,
   //canvas_height     :         400,
