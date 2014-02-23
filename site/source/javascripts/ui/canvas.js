@@ -14,6 +14,8 @@
 //= require 'ui/canvas/lamp'
 //= require 'ui/canvas/progress_bar'
 
+//= require 'vendor/stats.min'
+
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.CanvasControls({canvas: this});
   this.dialog           = new Omega.UI.CanvasDialog({canvas: this});
@@ -86,6 +88,8 @@ Omega.UI.Canvas.prototype = {
     hpadding : 26
   },
 
+  render_stats : true,
+
   /// Setup Canvas 3D operations
   //
   /// TODO simplify, currently don't need shader scene & bloom pass,
@@ -94,6 +98,15 @@ Omega.UI.Canvas.prototype = {
   /// TODO move into its own helper method
   setup : function(){
     var _this    = this;
+
+    if(this.render_stats){
+      this.stats = new Stats();
+      this.stats.setMode(0);
+      $('#render_stats').append(this.stats.domElement);
+
+    }else{
+      this.stats = {update : function(){}};
+    }
 
     this.scene = new THREE.Scene();
     this.shader_scene = new THREE.Scene();
@@ -280,6 +293,7 @@ Omega.UI.Canvas.prototype = {
     this.renderer.clear();
     this.shader_composer.render();
     this.composer.render();
+    this.stats.update();
     //this.renderer.render(this.scene, this.cam);
   },
 
