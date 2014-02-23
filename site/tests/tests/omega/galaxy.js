@@ -94,16 +94,28 @@ describe("Omega.Galaxy", function(){
       Omega.Test.Canvas.Entities();
 
       assert(Omega.Galaxy.gfx.density_wave1).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave1.particles).isOfType(ShaderParticleGroup);
-      assert(Omega.Galaxy.gfx.density_wave1.particles.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave1.particles.emitters[0]).isOfType(ShaderParticleEmitter);
-      assert(Omega.Galaxy.gfx.density_wave1.particles.emitters[0].type).equals('spiral')
+      assert(Omega.Galaxy.gfx.density_wave1.stars).isOfType(ShaderParticleGroup);
+      assert(Omega.Galaxy.gfx.density_wave1.stars.emitters.length).equals(1);
+      assert(Omega.Galaxy.gfx.density_wave1.stars.emitters[0]).isOfType(ShaderParticleEmitter);
+      assert(Omega.Galaxy.gfx.density_wave1.stars.emitters[0].type).equals('spiral')
 
       assert(Omega.Galaxy.gfx.density_wave2).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave2.particles).isOfType(ShaderParticleGroup);
-      assert(Omega.Galaxy.gfx.density_wave2.particles.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave2.particles.emitters[0]).isOfType(ShaderParticleEmitter);
-      assert(Omega.Galaxy.gfx.density_wave2.particles.emitters[0].type).equals('spiral')
+      assert(Omega.Galaxy.gfx.density_wave2.stars).isOfType(ShaderParticleGroup);
+      assert(Omega.Galaxy.gfx.density_wave2.stars.emitters.length).equals(1);
+      assert(Omega.Galaxy.gfx.density_wave2.stars.emitters[0]).isOfType(ShaderParticleEmitter);
+      assert(Omega.Galaxy.gfx.density_wave2.stars.emitters[0].type).equals('spiral')
+
+      assert(Omega.Galaxy.gfx.density_wave1).isOfType(Omega.GalaxyDensityWave);
+      assert(Omega.Galaxy.gfx.density_wave1.clouds).isOfType(ShaderParticleGroup);
+      assert(Omega.Galaxy.gfx.density_wave1.clouds.emitters.length).equals(1);
+      assert(Omega.Galaxy.gfx.density_wave1.clouds.emitters[0]).isOfType(ShaderParticleEmitter);
+      assert(Omega.Galaxy.gfx.density_wave1.clouds.emitters[0].type).equals('spiral')
+
+      assert(Omega.Galaxy.gfx.density_wave2).isOfType(Omega.GalaxyDensityWave);
+      assert(Omega.Galaxy.gfx.density_wave2.clouds).isOfType(ShaderParticleGroup);
+      assert(Omega.Galaxy.gfx.density_wave2.clouds.emitters.length).equals(1);
+      assert(Omega.Galaxy.gfx.density_wave2.clouds.emitters[0]).isOfType(ShaderParticleEmitter);
+      assert(Omega.Galaxy.gfx.density_wave2.clouds.emitters[0].type).equals('spiral')
     });
   });
 
@@ -131,7 +143,8 @@ describe("Omega.Galaxy", function(){
     it("adds particle system to galaxy scene components", function(){
       var galaxy = new Omega.Galaxy();
       galaxy.init_gfx();
-      assert(galaxy.components).isSameAs([galaxy.density_wave1.particles.mesh, galaxy.density_wave2.particles.mesh]);
+      assert(galaxy.components).isSameAs([galaxy.density_wave1.stars.mesh,  galaxy.density_wave2.stars.mesh,
+                                          galaxy.density_wave1.clouds.mesh, galaxy.density_wave2.clouds.mesh]);
     });
   });
 

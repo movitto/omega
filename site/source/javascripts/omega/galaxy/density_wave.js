@@ -7,20 +7,27 @@
 //= require "omega/galaxy/particles"
 
 Omega.GalaxyDensityWave = function(config, event_cb){
-  this.particles = this.init_gfx(config, event_cb);
+  this.init_gfx(config, event_cb);
 };
 
 Omega.GalaxyDensityWave.prototype = {
-  _particle_group : function(config, event_cb){
+  _star_group : function(config, event_cb){
     return new ShaderParticleGroup({
-      texture: Omega.load_galaxy_particles(config, event_cb),
+      texture: Omega.load_galaxy_particles(config, event_cb, 'stars'),
       maxAge: 2,
-      //fadeFactor :  7500.0,
       blending: THREE.AdditiveBlending
     });
   },
 
-  _particle_emitter : function(){
+  _cloud_group : function(config, event_cb){
+    return new ShaderParticleGroup({
+      texture: Omega.load_galaxy_particles(config, event_cb, 'clouds'),
+      maxAge: 10,
+      blending: THREE.AdditiveBlending
+    });
+  },
+
+  _star_emitter : function(){
     return new ShaderParticleEmitter({
       type           : 'spiral',
       spiralSkew     : 1.4,
@@ -29,22 +36,50 @@ Omega.GalaxyDensityWave.prototype = {
       radius       : 1000,
       radiusSpread : 2000,
       radiusScale  :  150,
-      speed        :  50,
+      speed        :  25,
       colorStart   : new THREE.Color('yellow'),
       colorEnd     : new THREE.Color('white'),
-      size         : 1000,
-      //sizeSpread : 1,
-      sizeEnd      : 100,
-      opacityStart : 1,
-      opacityEnd   : 0,
+      sizeStart    : 75.0,
+      //sizeStartSpread : 1,
+      //sizeEnd      : 800,
+      opacityStart  : 0,
+      opacityMiddle : 1,
+      opacityEnd    : 0,
       particlesPerSecond: 2500
     });
   },
 
+  _cloud_emitter : function(){
+    return new ShaderParticleEmitter({
+      type           : 'spiral',
+      spiralSkew     :  1.4,
+      spiralRotation :  1.4,
+      radius         : 1000,
+      radiusSpread   : 2000,
+      radiusScale    :  150,
+      speed          :    5,
+      position       : new THREE.Vector3(0, 0, 0),
+      positionSpread : new THREE.Vector3(5000, 0, 5000),
+      colorStart     : new THREE.Color('blue'),
+      colorEnd       : new THREE.Color('white'),
+      sizeStart      : 1250,
+      sizeSpread     :  100,
+      opacityStart   :    0,
+      opacityMiddle  : 0.05,
+      opacityEnd     :    0,
+      particlesPerSecond : 200
+    });
+  },
+
   init_gfx : function(config, event_cb){
-    var group   = this._particle_group(config, event_cb);
-    var emitter = this._particle_emitter();
-    group.addEmitter(emitter);
-    return group;
+    var sgroup   = this._star_group(config, event_cb);
+    var semitter = this._star_emitter();
+    sgroup.addEmitter(semitter);
+    this.stars = sgroup;
+
+    var cgroup   = this._cloud_group(config, event_cb);
+    var cemitter = this._cloud_emitter();
+    cgroup.addEmitter(cemitter);
+    this.clouds = cgroup;
   }
 };

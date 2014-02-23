@@ -21,18 +21,27 @@ Omega.GalaxyGfx = {
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
 
-    this.density_wave1 = Omega.Galaxy.gfx.density_wave1;//.clone(); // TODO
-    this.density_wave2 = Omega.Galaxy.gfx.density_wave2;//.clone(); // TODO
-    this.density_wave1.particles.mesh.rotation.set(1.57,0,0);
-    this.density_wave2.particles.mesh.rotation.set(1.57,0,1.57);
-    this.components = [this.density_wave1.particles.mesh,
-                       this.density_wave2.particles.mesh];
-    this.clock1 = new THREE.Clock();
-    this.clock2 = new THREE.Clock();
+    this.density_wave1 = Omega.Galaxy.gfx.density_wave1;
+    this.density_wave2 = Omega.Galaxy.gfx.density_wave2;
+
+    this.density_wave1.stars.mesh.rotation.set(1.57,0,0);
+    this.density_wave2.stars.mesh.rotation.set(1.57,0,1.57);
+    this.density_wave1.clouds.mesh.rotation.set(1.57,0,0);
+    this.density_wave2.clouds.mesh.rotation.set(1.57,0,1.57);
+
+    this.components = [this.density_wave1.stars.mesh,
+                       this.density_wave2.stars.mesh,
+                       this.density_wave1.clouds.mesh,
+                       this.density_wave2.clouds.mesh];
+
+    this.clock = new THREE.Clock();
   },
 
   run_effects : function(){
-    this.density_wave1.particles.tick(this.clock1.getDelta());
-    this.density_wave2.particles.tick(this.clock2.getDelta());
+    var delta = this.clock.getDelta();
+    this.density_wave1.stars.tick(delta);
+    this.density_wave2.stars.tick(delta);
+    this.density_wave1.clouds.tick(delta);
+    this.density_wave2.clouds.tick(delta);
   }
 };
