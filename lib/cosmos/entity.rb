@@ -64,6 +64,8 @@ module Entity
                          :parent        => nil,
                          :children      =>  [],
                          :metadata      =>  {}
+
+    @location = args[:loc] if args.has_key?(:loc)
     @location = Motel::Location.new :coordinates => [0,0,0],
                                     :orientation => [0,0,1] if @location.nil?
 
@@ -71,6 +73,7 @@ module Entity
 
     @location.movement_strategy =
       args[:movement_strategy] if args.has_key?(:movement_strategy)
+    @location.movement_strategy = args[:ms] if args.has_key?(:ms)
   end
 
   # Return boolean indicating if entity is valid
