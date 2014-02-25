@@ -57,11 +57,13 @@ module Omega
       def rand_location(args={})
         Motel::Location.random args
       end
+      alias :rand_loc :rand_location
 
       # Wrapper around Motel.random_axis
       def random_axis(*args)
         Motel.random_axis *args
       end
+      alias :rand_axis :random_axis
 
       # Utility wrapper to simply return a new location
       def loc(x,y,z)
@@ -252,6 +254,9 @@ module Omega
 
       # Create a field of asteroids at the specified locations
       #
+      # TODO option to set num of locations to randomly generate w/
+      # parameterized bounds/location-args
+      #
       # @param [Hash] args hash of options to pass to asteroid initializers
       # @option args [Array<Motel::Location>] :locations locations to assign to asteroids
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroids
@@ -304,12 +309,13 @@ module Omega
       # @param [Hash] args hash of options to pass directly to resource initializer
       # @return [Cosmos::Resource] resource created
       def resource(args = {})
-        raise ArgumentError, "asteroid is nil" if @asteroid.nil?
+        asteroid = @asteroid || args[:asteroid]
+        raise ArgumentError, "asteroid is nil" if asteroid.nil?
         rs = args[:resource] || Cosmos::Resource.new(args)
         rs.id       = gen_uuid
-        rs.entity   = @asteroid
+        rs.entity   = asteroid
         rs.quantity = args[:quantity] if args.has_key?(:quantity)
-        RJR::Logger.info "Creating resource #{rs} at #{@asteroid}"
+        RJR::Logger.info "Creating resource #{rs} at #{asteroid}"
         notify 'cosmos::set_resource', rs
         rs
       end
@@ -369,6 +375,20 @@ module Omega
         RJR::Logger.info "Creating moon #{moon} under #{@planet}"
         notify 'cosmos::create_entity', moon
         moon
+      end
+
+      # Create a few child moons under planet
+      #
+      # \@planet _must_ be set to the Cosmos::Entities::Planet to create the
+      # moon under
+      #
+      # @param [Array] names array of string names of the moons to create
+      # @param [Hash] args hash of metadata options to use to create moons
+      # @option args [Hash] :locations args to pass onto moon location initializers
+      def moons(names, args={})
+        names.collect { |name|
+          moon name, :location => rand_location(args[:locations])
+        }
       end
 
       # Create new jump gate between two systems and return it
