@@ -25,11 +25,40 @@ Omega.SolarSystem = function(parameters){
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem',
 
-  toJSON : function(){
+  /// refresh solarsystem from server
+  refresh : function(node, cb){
+    var _this = this;
+    Omega.SolarSystem.with_id(this.id, node, {children : true},
+      function(system){
+        _this.update(system);
+        if(cb) cb(_this);
+      });
+  },
+
+  update : function(system){
+    /// XXX currently cosmos-level system children are not added/rm'd 
+    /// on the fly, so assuming children in lists will map 1-1.
+    /// When this is not the case, process children accordingly (same in Galaxy#update)
+    for(var c = 0; c < this.children.length; c++){
+      var child  = this.children[c];
+      var nchild = system.children[c];
+      if(typeof(child) === "string")
+        this.children[c] = nchild;
+      else if(child.update)
+        child.update(nchild);
+    }
+  },
+
+  childrenJSON : function(){
     var children_json = [];
     for(var c = 0; c < this.children.length; c++)
-      children_json.push(this.children[c].toJSON())
+      children_json.push(typeof(this.children[c]) === "string" ?
+                         this.children[c] : this.children[c].toJSON());
+    return children_json;
+  },
 
+  toJSON : function(){
+    var children_json = this.childrenJSON();
     return {json_class : this.json_class,
             id         : this.id,
             name       : this.name,
@@ -117,9 +146,14 @@ Omega.SolarSystem.prototype = {
 $.extend(Omega.SolarSystem.prototype, Omega.SolarSystemGfx);
 
 // return the solar system with the specified id
-Omega.SolarSystem.with_id = function(id, node, cb){
+Omega.SolarSystem.with_id = function(id, node, opts, cb){
+  if(!cb && typeof(opts) === "function"){
+    cb = opts; opts = {};
+  }
+  var children = !!(opts['children']);
+
   node.http_invoke('cosmos::get_entity',
-    'with_id', id,
+    'with_id', id, 'children', children,
     function(response){
       var sys = null;
       if(response.result) sys = new Omega.SolarSystem(response.result);

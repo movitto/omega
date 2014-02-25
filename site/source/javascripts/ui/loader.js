@@ -161,7 +161,6 @@ Omega.UI.Loader = {
   },
 
   _loaded_remote_system : function(system, page, retrieval_cb){
-    /// TODO make sure this is not overwriting components
     page.entity(system.id, system);
     var jr_system = RJR.JRMessage.convert_obj_to_jr_obj(system.toJSON());
     $.localStorage.set('omega.cosmos.' + system.id, jr_system);
@@ -173,7 +172,7 @@ Omega.UI.Loader = {
     page.entity(system_id, system);
 
     var _this = this;
-    Omega.SolarSystem.with_id(system_id, page.node,
+    Omega.SolarSystem.with_id(system_id, page.node, {children: false},
       function(system){
         _this._loaded_remote_system(system, page, retrieval_cb);
       });
@@ -214,7 +213,6 @@ Omega.UI.Loader = {
   },
 
   _loaded_remote_galaxy : function(galaxy, page, retrieval_cb){
-    /// TODO make sure this is not overwriting components
     page.entity(galaxy.id, galaxy);
     var jr_galaxy = RJR.JRMessage.convert_obj_to_jr_obj(galaxy.toJSON());
     $.localStorage.set('omega.cosmos.' + galaxy.id, jr_galaxy);
@@ -226,7 +224,9 @@ Omega.UI.Loader = {
     var galaxy = Omega.UI.Loader.placeholder;
     page.entity(galaxy_id, galaxy);
 
-    Omega.Galaxy.with_id(galaxy_id, page.node,
+    /// TODO use children: true, recursive: false ?
+    /// (should work so long as galaxy children cannot be added/rm'd)
+    Omega.Galaxy.with_id(galaxy_id, page.node, {children: false},
       function(galaxy){
         _this._loaded_remote_galaxy(galaxy, page, retrieval_cb);
       });

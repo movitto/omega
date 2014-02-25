@@ -25,11 +25,38 @@ Omega.Galaxy.prototype = {
 
   async_gfx : 1,
 
-  toJSON : function(){
+  /// refresh galaxy from server
+  refresh : function(node, cb){
+    var _this = this;
+    Omega.Galaxy.with_id(this.id, node, {children : true, recursive : false},
+      function(galaxy){
+        _this.update(galaxy);
+        if(cb) cb(_this);
+      });
+  },
+
+  update : function(galaxy){
+    /// XXX see comment in SolarSystem#update
+    for(var c = 0; c < this.children.length; c++){
+      var child  = this.children[c];
+      var nchild = galaxy.children[c];
+      if(typeof(child) === "string")
+        this.children[c] = nchild;
+      else if(child.update)
+        child.update(nchild);
+    }
+  },
+
+  childrenJSON : function(){
     var children_json = [];
     for(var c = 0; c < this.children.length; c++)
-      children_json.push(this.children[c].toJSON())
+      children_json.push(typeof(this.children[c]) === "string" ?
+                         this.children[c] : this.children[c].toJSON())
+    return children_json;
+  },
 
+  toJSON : function(){
+    var children_json = this.childrenJSON();
     return {json_class : this.json_class,
             id         : this.id,
             name       : this.name,
@@ -62,9 +89,15 @@ Omega.Galaxy.prototype = {
 $.extend(Omega.Galaxy.prototype, Omega.GalaxyGfx);
 
 // return the galaxy with the specified id
-Omega.Galaxy.with_id = function(id, node, cb){
+Omega.Galaxy.with_id = function(id, node, opts, cb){
+  if(!cb && typeof(opts) === "function"){
+    cb = opts; opts = {};
+  }
+  var children  = !!(opts['children']);
+  var recursive = !!(opts['recursive']);
+
   node.http_invoke('cosmos::get_entity',
-    'with_id', id,
+    'with_id', id, 'children', children, 'recursive', recursive,
     function(response){
       var galaxy = null;
       if(response.result) galaxy = new Omega.Galaxy(response.result);

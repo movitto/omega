@@ -22,6 +22,10 @@ Omega.Planet.prototype = {
   constructor: Omega.Planet,
   json_class : 'Cosmos::Entities::Planet',
 
+  update : function(planet){
+    this.location.update(planet.location);
+  },
+
   toJSON : function(){
     return {json_class : this.json_class,
             id         : this.id,

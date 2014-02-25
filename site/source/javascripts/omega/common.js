@@ -28,6 +28,7 @@ Omega.convert_entities = function(entities){
 // Convert a single entity from server side representation
 Omega.convert_entity = function(entity){
   if(entity == null) return null;
+  if(typeof(entity) === "string") return entity;
 
   var converted = null
   var entities = Omega.EntityClasses();

@@ -19,6 +19,7 @@ Omega.UI.CanvasControls = function(parameters){
   /// - set camera target
   /// - reset camera
   /// - add/remove axis from canvas
+  /// - access the page node
   this.canvas = null;
 
   $.extend(this, parameters);
@@ -35,18 +36,24 @@ Omega.UI.CanvasControls.prototype = {
     this.locations_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
-        _this.canvas.set_scene_root(item);
+        /// TODO XXX need to run process_system callbacks & below
+        item.refresh(_this.canvas.page.node, function(){
+          _this.canvas.set_scene_root(item);
+        });
       })
 
     this.entities_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
-        _this.canvas.set_scene_root(item.solar_system); /// TODO only if scene is different than one we're setting
-        _this.canvas.cam.position.set(item.location.x + (item.location.x > 0 ? 500 : -500),
-                                      item.location.y + (item.location.y > 0 ? 500 : -500),
-                                      item.location.z + (item.location.z > 0 ? 500 : -500));
-        _this.canvas.focus_on(item.location);
-        _this.canvas._clicked_entity(item);
+        item.refresh(this.canvas.page.node, function(){
+          if(_this.canvas.root.id != item.solar_system.id)
+            _this.canvas.set_scene_root(item.solar_system);
+          _this.canvas.cam.position.set(item.location.x + (item.location.x > 0 ? 500 : -500),
+                                        item.location.y + (item.location.y > 0 ? 500 : -500),
+                                        item.location.z + (item.location.z > 0 ? 500 : -500));
+          _this.canvas.focus_on(item.location);
+          _this.canvas._clicked_entity(item);
+        });
       })
 
     this.missions_button.on('click',
