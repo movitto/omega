@@ -15,28 +15,41 @@ get_entities = proc { |*args|
     :with_name     => proc { |e, name| e.name == name       },
     :of_type       => proc { |e, type| e.class.to_s == type },
     :with_location => proc { |e, l|    e.location.id == (l.is_a?(Motel::Location) ? l.id : l) },
-    :recursive     => proc { |e, v|    true } # XXX
+    :children      => proc { |e, v|    true }, # TODO rename to with_children ?
+    :recursive     => proc { |e, v|    true }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
+
+  # filters which apply to children/descendents of
+  # entities retrieved, by default return all children
+  include_children   = !args.include?('children')  || args[args.index('children')  + 1]
+  recursive_children = !args.include?('recursive') || args[args.index('recursive') + 1]
 
   # update entities' locations & children's
   entities.each { |entity|
-    entity.location = node.invoke('motel::get_location', 'with_id', entity.location.id)
+    entity.location = node.invoke('motel::get_location',
+                                  'with_id',   entity.location.id,
+                                  'children',  include_children,
+                                  'recursive', recursive_children)
     entity.location.parent = entity.parent.location if entity.parent
 
-    # by default return all children
-    if !args.include?('recursive') || args[args.index('recursive') + 1]
+    # allow user to disable child retrieval for performance
+    if include_children
       entity.each_child { |e, c|
         c.location = node.invoke('motel::get_location', 'with_id', c.location.id)
         c.location.parent = e.location
       }
 
-    # allow user to disable recursive retrieval for performance
+      # only return direct descendants
+      if recursive_children
+        entity.children.each { |c|
+          c.children = []
+        }
+      end
+
+    # allow user to disable child retrieval for performance
     else
       entity.children.each_index { |i|
         entity.children[i] = entity.children[i].id
-      }
-      entity.location.children.each_index { |i|
-        entity.location.children[i] = entity.location.children[i].id
       }
     end
   }

@@ -169,7 +169,8 @@ systems_with_most_proc = proc { |entity_type, num_to_return|
   when "entities" then
     all_systems =
       Stats::RJR.node.invoke('cosmos::get_entities',
-                             'of_type', 'Cosmos::Entities::SolarSystem').
+                             'of_type', 'Cosmos::Entities::SolarSystem',
+                             'children', false).
       collect { |s| s.id }
 
     system_ids =

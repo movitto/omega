@@ -24,11 +24,33 @@ get_location = proc { |*args|
       end
 
       l.parent_id == loc.parent_id && l - loc <= d
-    }
+    },
+    :children  => proc { |l, v| true },
+    :recursive => proc { |l, v| true }
   locs = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
+  return_first       =  args.include?('with_id')
+  include_children   = !args.include?('children')  || args[args.index('children')  + 1]
+  recursive_children = !args.include?('recursive') || args[args.index('recursive') + 1]
+
+  if include_children
+    # only include first level descendents if recursive is false
+    unless recursive_children
+      locs.each { |loc|
+        loc.children.each { |child| child.children = [] }
+      }
+    end
+
+  # swap children w/ their id's if include_children is false
+  else
+    locs.each { |loc|
+      loc.children.each_index { |i|
+        loc.children[i] = loc.children[i].id
+      }
+    }
+  end
+
   # if id of location to retrieve is specified, only return a single location
-  return_first = args.include?('with_id')
   if return_first
     locs = locs.first
 
