@@ -36,8 +36,8 @@ Omega.UI.CanvasControls.prototype = {
     this.locations_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
-        /// TODO XXX need to run process_system callbacks & below
         item.refresh(_this.canvas.page.node, function(){
+          _this.canvas.page.process_cosmos_entity(item);
           _this.canvas.set_scene_root(item);
         });
       })
@@ -45,9 +45,11 @@ Omega.UI.CanvasControls.prototype = {
     this.entities_list.component().on('click', 'li',
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
-        item.refresh(this.canvas.page.node, function(){
-          if(_this.canvas.root.id != item.solar_system.id)
+        item.solar_system.refresh(_this.canvas.page.node, function(){
+          _this.canvas.page.process_system(item.solar_system);
+          if(!_this.canvas.root || _this.canvas.root.id != item.solar_system.id)
             _this.canvas.set_scene_root(item.solar_system);
+
           _this.canvas.cam.position.set(item.location.x + (item.location.x > 0 ? 500 : -500),
                                         item.location.y + (item.location.y > 0 ? 500 : -500),
                                         item.location.z + (item.location.z > 0 ? 500 : -500));

@@ -95,11 +95,10 @@ Omega.UI.CanvasTracker = {
     if(local) entity.cp_gfx(local);
     this.entity(entity.id, entity);
 
-    if(!this.canvas.controls.entities_list.has(entity.id)){
-      var item = {id: entity.id, text: entity.id, data: entity};
-      /// TODO skip is not alive?
+    /// TODO skip if not alive?
+    var item = {id: entity.id, text: entity.id, data: entity};
+    if(!this.canvas.controls.entities_list.has(item.id))
       this.canvas.controls.entities_list.add(item);
-    }
 
     var system = Omega.UI.Loader.load_system(entity.system_id, this,
       function(solar_system) { _this.process_system(solar_system); });
@@ -113,7 +112,8 @@ Omega.UI.CanvasTracker = {
     if(system == null) return;
     var _this = this;
     var sitem  = {id: system.id, text: system.name, data: system};
-    this.canvas.controls.locations_list.add(sitem);
+    if(!this.canvas.controls.locations_list.has(sitem.id))
+      this.canvas.controls.locations_list.add(sitem);
 
     for(var e in this.entities){
       if(this.entities[e].system_id == system.id)
@@ -142,9 +142,21 @@ Omega.UI.CanvasTracker = {
   process_galaxy : function(galaxy){
     if(galaxy == null) return;
     var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
-    this.canvas.controls.locations_list.add(gitem);
+    if(!this.canvas.controls.locations_list.has(gitem.id))
+      this.canvas.controls.locations_list.add(gitem);
+
+    /// TODO load galaxy system interconnects (if not already loaded)
+    /// implement cosmos::interconnections rjr method
+    /// return hash of system id's to multi-dimentional array of connected system ids & locations
 
     galaxy.set_children_from(this.all_entities());
+  },
+
+  process_cosmos_entity : function(entity){
+    if(entity.json_class == "Cosmos::Entities::SolarSystem")
+      this.process_system(entity);
+    else //if(entity.json_class == "Cosmos::Entities::Galaxy")
+      this.process_galaxy(entity);
   }
 };
 
