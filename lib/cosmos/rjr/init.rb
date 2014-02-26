@@ -92,6 +92,7 @@ def dispatch_cosmos_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('cosmos/rjr/get')
   rjr.node.dispatcher.add_module('cosmos/rjr/resources')
   rjr.node.dispatcher.add_module('cosmos/rjr/state')
+  rjr.node.dispatcher.add_module('cosmos/rjr/interconnects')
   rjr.node.message_headers['source_node'] = 'cosmos'
 
   # create cosmos user
