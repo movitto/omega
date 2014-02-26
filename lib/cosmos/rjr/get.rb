@@ -40,8 +40,9 @@ get_entities = proc { |*args|
       }
 
       # only return direct descendants
-      if recursive_children
+      unless recursive_children
         entity.children.each { |c|
+          # TODO swap w/ id instead of blanking? (and in motel)
           c.children = []
         }
       end
