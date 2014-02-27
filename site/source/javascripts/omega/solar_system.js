@@ -39,6 +39,7 @@ Omega.SolarSystem.prototype = {
       function(system){
         _this.update(system);
         if(cb) cb(_this);
+        _this.dispatchEvent({type: 'refreshed', data: _this});
       });
   },
 
@@ -131,8 +132,10 @@ Omega.SolarSystem.prototype = {
   },
 
   clicked_in : function(canvas){
-    /// TODO refresh & process system
-    canvas.set_scene_root(this);
+    var _this = this;
+    this.refresh(canvas.page.node, function(){
+      canvas.set_scene_root(_this);
+    });
   },
 
   _has_hover_sphere : function(){

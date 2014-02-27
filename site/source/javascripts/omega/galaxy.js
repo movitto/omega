@@ -39,6 +39,7 @@ Omega.Galaxy.prototype = {
       function(galaxy){
         _this.update(galaxy);
         if(cb) cb(_this);
+        _this.dispatchEvent({type: 'refreshed', data: _this});
       });
   },
 

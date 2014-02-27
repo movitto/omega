@@ -37,8 +37,8 @@ Omega.UI.CanvasControls.prototype = {
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         item.refresh(_this.canvas.page.node, function(){
-          _this.canvas.page.process_cosmos_entity(item);
-
+          /// XXX not ideal place for interconnect loading but it works for now
+          /// (need to be loaded after galaxy systems but before init_gfx)
           if(item.json_class == "Cosmos::Entities::Galaxy")
             Omega.UI.Loader.load_interconnects(item, _this.canvas.page,
               function(){
@@ -53,7 +53,6 @@ Omega.UI.CanvasControls.prototype = {
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         item.solar_system.refresh(_this.canvas.page.node, function(){
-          _this.canvas.page.process_system(item.solar_system);
           if(!_this.canvas.root || _this.canvas.root.id != item.solar_system.id)
             _this.canvas.set_scene_root(item.solar_system);
 

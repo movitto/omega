@@ -137,15 +137,26 @@ Omega.UI.CanvasTracker = {
         });
     }
     system.update_children_from(this.all_entities());
+
+    if(!system._process_on_refresh)
+      system._process_on_refresh = function(){ _this.process_system(system); }
+    system.removeEventListener('refreshed', system._process_on_refresh);
+    system.addEventListener('refreshed', system._process_on_refresh);
   },
 
   process_galaxy : function(galaxy){
+    var _this = this;
     if(galaxy == null) return;
     var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
     if(!this.canvas.controls.locations_list.has(gitem.id))
       this.canvas.controls.locations_list.add(gitem);
 
     galaxy.set_children_from(this.all_entities());
+
+    if(!galaxy._process_on_refresh)
+      galaxy._process_on_refresh = function(){ _this.process_galaxy(galaxy); }
+    galaxy.removeEventListener('refreshed', galaxy._process_on_refresh);
+    galaxy.addEventListener('refreshed', galaxy._process_on_refresh);
   },
 
   process_cosmos_entity : function(entity){

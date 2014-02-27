@@ -224,8 +224,6 @@ Omega.UI.Loader = {
     var galaxy = Omega.UI.Loader.placeholder;
     page.entity(galaxy_id, galaxy);
 
-    /// TODO use children: true, recursive: false ?
-    /// (should work so long as galaxy children cannot be added/rm'd)
     Omega.Galaxy.with_id(galaxy_id, page.node, {children: false},
       function(galaxy){
         _this._loaded_remote_galaxy(galaxy, page, retrieval_cb);
