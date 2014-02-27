@@ -12,6 +12,11 @@ require 'rgl/dot'
 
 UNIVERSE = ARGV.shift || "examples/universes/complete.rb"
 
+unless File.exists?(UNIVERSE) && File.directory?('doc/graphs/')
+  puts "#{UNIVERSE} must be a valid omega universe seeder and doc/graphs/ should exist"
+  exit 1
+end
+
 $current_graph = current_galaxy = current_system =
 current_star = current_planet = current_moon = nil
 
@@ -44,7 +49,7 @@ inf.each_line { |l|
     graphs[current_galaxy] = $current_graph
 
   elsif l =~ /\s*system '(.*)', '(.*)'.*/
-    current_system = $1
+    current_system = $1.downcase
     current_star = $2
     $galaxy_systems << current_system
 
@@ -54,8 +59,15 @@ inf.each_line { |l|
   elsif l =~ /\s*moon '(.*)'.*/
     current_moon = $1
 
+  elsif l =~ /\s*jump_gate\s*([^\s]*),\s*([^\s]*),.*/
+    src = $1.downcase
+    dst = $2.downcase
+    $galaxy_gates << [src, dst]
+
   elsif l =~ /\s*jump_gate\s*system\('(.*)'\),\s*system\('(.*)'\).*/
-    $galaxy_gates << [$1, $2]
+    src = $1.downcase
+    dst = $2.downcase
+    $galaxy_gates << [src, dst]
   end
 }
 
