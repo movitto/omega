@@ -353,24 +353,15 @@ class Elliptical < MovementStrategy
      speed             = min_s + (max_s.nil? ? rand : rand((max_s - min_s)*10000)/10000)
      semi_latus_rectum = min_p + (max_p.nil? ? rand : rand((max_p - min_p)))
 
-     axis = Motel::random_axis :dimensions => dimensions
-     dmajx, dmajy, dmajz = *axis[0]
-     dminx, dminy, dminz = *axis[1]
+     direction = args[:direction] || Motel::random_axis(:dimensions => dimensions)
+     dmajx, dmajy, dmajz = *direction[0]
+     dminx, dminy, dminz = *direction[1]
 
-     strategy = Elliptical.new :relative_to => relative_to,
-                               :e => eccentricity,
-                               :p => semi_latus_rectum,
-                               :speed => speed,
-                               :dmajx => dmajx,
-                               :dmajy => dmajy,
-                               :dmajz => dmajz,
-                               :dminx => dminx,
-                               :dminy => dminy,
-                               :dminz => dminz
-
-     return strategy
+     Elliptical.new :relative_to => relative_to, :speed => speed,
+                    :e => eccentricity, :p => semi_latus_rectum,
+                    :dmajx => dmajx, :dmajy => dmajy, :dmajz => dmajz,
+                    :dminx => dminx, :dminy => dminy, :dminz => dminz
    end
-
 end
 
 end # module MovementStrategies

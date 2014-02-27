@@ -23,9 +23,8 @@ module Omega
     #     system 'Athena', 'HR1925', :location =>
     #       Location.new(:x => 240, :y => -360, :z => 110) do |sys|
     #         planet 'Aphrodite', :movement_strategy =>
-    #           Elliptical.new(:relative_to => Elliptical::RELATIVE_TO_FOCI, :speed => 0.1,
-    #                          :eccentricity => 0.16, :semi_latus_rectum => 140,
-    #                          :direction => Motel.random_axis)
+    #           orbit(:speed => 0.1, :e => 0.16, :p => 140,
+    #                 :direction => random_axis(:orthogonal_to => [0,1,0]))
     #     end
     #   end
     module DSL
@@ -355,6 +354,13 @@ module Omega
         args[:relative_to] ||= Motel::MovementStrategies::Elliptical::FOCI
         Motel::MovementStrategies::Elliptical.new args
       end
+
+      # Helper to create a randomized orbit movement strategy
+      def random_orbit(args={})
+        args[:relative_to] ||= Motel::MovementStrategies::Elliptical::FOCI
+        Motel::MovementStrategies::Elliptical.random args
+      end
+      alias :rand_orbit :random_orbit
 
       # Create new moon and return it.
       #
