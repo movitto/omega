@@ -25,6 +25,13 @@ Omega.Galaxy.prototype = {
 
   async_gfx : 1,
 
+  /// Return child specified by id
+  child : function(id){
+    return $.grep(this.children, function(c) {
+             return c.id == id || c == id;
+           })[0];
+  },
+
   /// refresh galaxy from server
   refresh : function(node, cb){
     var _this = this;
@@ -36,11 +43,12 @@ Omega.Galaxy.prototype = {
   },
 
   update : function(galaxy){
-    /// XXX see comment in SolarSystem#update
-    for(var c = 0; c < this.children.length; c++){
-      var child  = this.children[c];
+    for(var c = 0; c < galaxy.children.length; c++){
       var nchild = galaxy.children[c];
-      if(typeof(child) === "string")
+      var child  = this.child(nchild.id);
+      if(!child)
+        this.children.push(nchild);
+      else if(typeof(child) === "string")
         this.children[c] = nchild;
       else if(child.update)
         child.update(nchild);
@@ -84,6 +92,28 @@ Omega.Galaxy.prototype = {
       }
     }
   },
+
+  interconnects : function(node, cb){
+    if(!cb && typeof(node) === "function"){
+      cb = node;
+      node = null;
+    }
+
+    // XXX assuming that interconnects are not changing for performance,
+    // when this is not the case, eg jump gates are being added/removed
+    // to systems on the fly, the cosmos::interconnects query needs
+    // tbd each time
+    if(this._interconnects) cb(this._interconnects);
+
+    var _this = this;
+    node.http_invoke("cosmos::interconnects", this.id,
+      function(response){
+        if(response.result) _this._interconnects = response.result;
+        cb(_this._interconnects);
+      });
+
+    return this._interconnects;
+  }
 };
 
 $.extend(Omega.Galaxy.prototype, Omega.GalaxyGfx);

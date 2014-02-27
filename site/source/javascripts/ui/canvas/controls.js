@@ -38,7 +38,14 @@ Omega.UI.CanvasControls.prototype = {
         var item = $(evnt.currentTarget).data('item');
         item.refresh(_this.canvas.page.node, function(){
           _this.canvas.page.process_cosmos_entity(item);
-          _this.canvas.set_scene_root(item);
+
+          if(item.json_class == "Cosmos::Entities::Galaxy")
+            Omega.UI.Loader.load_interconnects(item, _this.canvas.page,
+              function(){
+                _this.canvas.set_scene_root(item);
+              });
+          else
+            _this.canvas.set_scene_root(item);
         });
       })
 

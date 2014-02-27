@@ -267,5 +267,27 @@ Omega.UI.Loader = {
         if(stat_result)
           _this._loaded_default_systems(stat_result.value, page, cb);
       });
+  },
+
+  load_interconnects : function(galaxy, page, cb){
+    /// load galaxy system interconnects (if not already loaded)
+    galaxy.interconnects(page.node, function(sys_interconnects){
+      for(var sys_id in sys_interconnects){
+        var system = $.grep(galaxy.children,
+                            function(c){ return c.id == sys_id; })[0];
+
+        for(var i = 0; i < sys_interconnects[sys_id].length; i++){
+          var endpoint_id = sys_interconnects[sys_id][i];
+          var endpoint = $.grep(galaxy.children,
+                                function(c){ return c.id == endpoint_id; })[0];
+
+          if(!system.has_gate_to(endpoint_id)){
+              system.add_gate_to(endpoint);
+          }
+        }
+      };
+
+      cb(galaxy);
+    });
   }
 };

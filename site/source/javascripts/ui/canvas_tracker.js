@@ -145,10 +145,6 @@ Omega.UI.CanvasTracker = {
     if(!this.canvas.controls.locations_list.has(gitem.id))
       this.canvas.controls.locations_list.add(gitem);
 
-    /// TODO load galaxy system interconnects (if not already loaded)
-    /// implement cosmos::interconnections rjr method
-    /// return hash of system id's to multi-dimentional array of connected system ids & locations
-
     galaxy.set_children_from(this.all_entities());
   },
 

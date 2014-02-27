@@ -19,17 +19,13 @@ interconnects = proc { |galaxy_id|
     [{:privilege => 'view', :entity => "cosmos_entity-#{galaxy.id}"},
      {:privilege => 'view', :entity => 'cosmos_entities'}]
 
-  # return hash of system id's to multi-dimensional
-  # array of connected system ids & locations
+  # TODO support a 'reverse' flag / method at some point
+  # (systems mapped to others which have gates to them)
+
+  # return hash of system id's to array of connected system id's
   galaxy_map =
     galaxy.children.map { |sys|
-      interconnections = sys.jump_gates.collect { |jg|
-        endpoint = galaxy.children.find { |child| child.id == jg.endpoint_id }
-        endpoint.nil? ?
-          [jg.endpoint_id, nil] :
-          [endpoint.id, endpoint.location.coordinates()]
-      }
-      [sys.id, interconnections]
+      [sys.id,  sys.jump_gates.collect { |jg| jg.endpoint_id }]
     }
 
   Hash[galaxy_map]

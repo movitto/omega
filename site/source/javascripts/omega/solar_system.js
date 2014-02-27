@@ -25,6 +25,13 @@ Omega.SolarSystem = function(parameters){
 Omega.SolarSystem.prototype = {
   json_class : 'Cosmos::Entities::SolarSystem',
 
+  /// Return child specified by id
+  child : function(id){
+    return $.grep(this.children, function(c) {
+             return c.id == id || c == id;
+           })[0];
+  },
+
   /// refresh solarsystem from server
   refresh : function(node, cb){
     var _this = this;
@@ -36,13 +43,12 @@ Omega.SolarSystem.prototype = {
   },
 
   update : function(system){
-    /// XXX currently cosmos-level system children are not added/rm'd 
-    /// on the fly, so assuming children in lists will map 1-1.
-    /// When this is not the case, process children accordingly (same in Galaxy#update)
-    for(var c = 0; c < this.children.length; c++){
-      var child  = this.children[c];
+    for(var c = 0; c < system.children.length; c++){
       var nchild = system.children[c];
-      if(typeof(child) === "string")
+      var child  = this.child(nchild.id);
+      if(!child)
+        this.children.push(nchild);
+      else if(typeof(child) === "string")
         this.children[c] = nchild;
       else if(child.update)
         child.update(nchild);
@@ -93,6 +99,21 @@ Omega.SolarSystem.prototype = {
     });
   },
 
+  /// Return bool indiciating if system has a jg to the specified endpoint
+  has_gate_to : function(endpoint_id){
+    return $.grep(this.jump_gates(), function(jg){
+             return jg.endpoint_id == endpoint_id;
+           }).length > 0;
+  },
+
+  /// Add placeholder jump gate until system children is loaded
+  add_gate_to : function(endpoint){
+    var gate = new Omega.JumpGate({endpoint_id : endpoint.id,
+                                   endpoint    : endpoint});
+    this.children.push(gate);
+    this.interconns.add(endpoint);
+  },
+
   update_children_from : function(entities){
     /// update jg endpoints from entities / add interconnections
     var gates = this.jump_gates();
@@ -110,6 +131,7 @@ Omega.SolarSystem.prototype = {
   },
 
   clicked_in : function(canvas){
+    /// TODO refresh & process system
     canvas.set_scene_root(this);
   },
 
