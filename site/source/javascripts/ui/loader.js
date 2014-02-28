@@ -224,7 +224,8 @@ Omega.UI.Loader = {
     var galaxy = Omega.UI.Loader.placeholder;
     page.entity(galaxy_id, galaxy);
 
-    Omega.Galaxy.with_id(galaxy_id, page.node, {children: false},
+    Omega.Galaxy.with_id(galaxy_id, page.node,
+                         {children: true, recursive: false},
       function(galaxy){
         _this._loaded_remote_galaxy(galaxy, page, retrieval_cb);
       });

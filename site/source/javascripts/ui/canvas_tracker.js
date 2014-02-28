@@ -9,7 +9,7 @@
 /// Canvas Tracker Mixin, extends Omega.UI.Tracker to couple tracking
 /// results to manipulate canvas & controls
 Omega.UI.CanvasTracker = {
-  /// Handle Omega.UI.Canvas scene_change event
+  /// Invoked on Omega.UI.Canvas scene_change event
   scene_change : function(change){
     var _this    = this;
     var root     = change.root,
@@ -71,16 +71,42 @@ Omega.UI.CanvasTracker = {
           if(!tracking)
             this.track_entity(entity);
 
-          /// also add entity to entity_list if not present
-          if(!this.canvas.controls.entities_list.has(entity.id)){
-            var item = {id: entity.id, text: entity.id, data: entity};
-            this.canvas.controls.entities_list.add(item);
-          }
+          this._add_nav_entity(entity);
         }
       }
     }
   },
 
+  _add_nav_entity : function(entity){
+    /// TODO skip if not alive?
+    if(!this.canvas.controls.entities_list.has(entity.id)){
+      var item = {id: entity.id, text: entity.id, data: entity};
+      this.canvas.controls.entities_list.add(item);
+    }
+  },
+
+  _add_nav_system : function(system){
+    if(!this.canvas.controls.locations_list.has(system.id)){
+      var sitem = {id: system.id, text: system.name, data: system};
+      this.canvas.controls.locations_list.add(sitem);
+    }
+  },
+
+  _add_nav_galaxy : function(galaxy){
+    if(!this.canvas.controls.locations_list.has(galaxy.id)){
+      var gitem = {id: galaxy.id, text: galaxy.name, data: galaxy};
+      this.canvas.controls.locations_list.add(gitem);
+    }
+  },
+
+  _store_entity : function(entity){
+    var local = this.entity(entity.id);
+    if(local) entity.cp_gfx(local);
+    this.entity(entity.id, entity);
+
+  },
+
+  /// Process entities retrieved from server
   process_entities : function(entities){
     for(var e = 0; e < entities.length; e++){
       var entity = entities[e];
@@ -88,46 +114,50 @@ Omega.UI.CanvasTracker = {
     }
   },
 
-  process_entity : function(entity){
-    var _this = this;
-
-    var local = this.entity(entity.id);
-    if(local) entity.cp_gfx(local);
-    this.entity(entity.id, entity);
-
-    /// TODO skip if not alive?
-    var item = {id: entity.id, text: entity.id, data: entity};
-    if(!this.canvas.controls.entities_list.has(item.id))
-      this.canvas.controls.entities_list.add(item);
-
+  _load_entity_system : function(entity){
     var system = Omega.UI.Loader.load_system(entity.system_id, this,
       function(solar_system) { _this.process_system(solar_system); });
     if(system && system != Omega.UI.Loader.placeholder)
       entity.update_system(system);
+  },
 
+  /// Process entity retrieved from server
+  process_entity : function(entity){
+    var _this = this;
+
+    /// store entity locally
+    this._store_entity(entity);
+
+    /// add to navigation
+    this._add_nav_entity(entity);
+
+    /// load system entity is in
+    this._load_entity_system(entity);
+
+    /// start tracking entity
     this.track_entity(entity);
   },
 
-  process_system : function(system){
-    if(system == null) return;
-    var _this = this;
-    var sitem  = {id: system.id, text: system.name, data: system};
-    if(!this.canvas.controls.locations_list.has(sitem.id))
-      this.canvas.controls.locations_list.add(sitem);
-
+  _update_system_children : function(system){
     for(var e in this.entities){
       if(this.entities[e].system_id == system.id)
         this.entities[e].update_system(system);
       else if(this.entities[e].json_class == 'Cosmos::Entities::SolarSystem')
         this.entities[e].update_children_from(this.all_entities());
     }
+  },
 
+  _load_system_galaxy : function(system){
+    var _this = this;
     var galaxy = Omega.UI.Loader.load_galaxy(system.parent_id, this,
       function(galaxy) { _this.process_galaxy(galaxy) });
     if(galaxy && galaxy != Omega.UI.Loader.placeholder)
       galaxy.set_children_from(this.all_entities());
 
-    // load missing jump gate endpoints
+  },
+
+  _load_system_interconns : function(system){
+    var _this = this;
     var gates = system.jump_gates();
     for(var j = 0; j < gates.length; j++){
       var gate = gates[j];
@@ -136,34 +166,62 @@ Omega.UI.CanvasTracker = {
           _this.process_system(system);
         });
     }
+  },
+
+  _process_system_on_refresh : function(system){
+    if(system._process_on_refresh) return;
+
+    var _this = this;
+    system._process_on_refresh = function(){ _this.process_system(system); }
+    system.removeEventListener('refreshed', system._process_on_refresh);
+    system.addEventListener('refreshed',    system._process_on_refresh);
+  },
+
+  /// Process system retrieved from server
+  process_system : function(system){
+    if(system == null) return;
+
+    /// add system to navigation & update references
+    this._add_nav_system(system);
+    this._update_system_children(system);
+    this._load_system_galaxy(system);
+
+    /// load missing jump gate endpoints, update children
+    this._load_system_interconns(system);
     system.update_children_from(this.all_entities());
 
-    if(!system._process_on_refresh)
-      system._process_on_refresh = function(){ _this.process_system(system); }
-    system.removeEventListener('refreshed', system._process_on_refresh);
-    system.addEventListener('refreshed', system._process_on_refresh);
+    /// process system whenever refreshed from server
+    this._process_system_on_refresh(system);
   },
 
-  process_galaxy : function(galaxy){
-    var _this = this;
-    if(galaxy == null) return;
-    var gitem  = {id: galaxy.id, text: galaxy.name, data: galaxy};
-    if(!this.canvas.controls.locations_list.has(gitem.id))
-      this.canvas.controls.locations_list.add(gitem);
+  _process_galaxy_on_refresh : function(galaxy){
+    if(galaxy._process_on_refresh) return;
 
+    var _this = this;
+    galaxy._process_on_refresh = function(){ _this.process_galaxy(galaxy); }
+    galaxy.removeEventListener('refreshed', galaxy._process_on_refresh);
+    galaxy.addEventListener('refreshed',    galaxy._process_on_refresh);
+  },
+
+  _load_galaxy_interconns : function(galaxy){
+    Omega.UI.Loader.load_interconnects(galaxy, this, function(){});
+  },
+
+  /// Process galaxy retrieved from server
+  process_galaxy : function(galaxy){
+    if(galaxy == null) return;
+
+    /// add galaxy to navigation
+    this._add_nav_galaxy(galaxy);
+
+    /// update galaxy children
     galaxy.set_children_from(this.all_entities());
 
-    if(!galaxy._process_on_refresh)
-      galaxy._process_on_refresh = function(){ _this.process_galaxy(galaxy); }
-    galaxy.removeEventListener('refreshed', galaxy._process_on_refresh);
-    galaxy.addEventListener('refreshed', galaxy._process_on_refresh);
-  },
+    /// load interconnections
+    this._load_galaxy_interconns(galaxy);
 
-  process_cosmos_entity : function(entity){
-    if(entity.json_class == "Cosmos::Entities::SolarSystem")
-      this.process_system(entity);
-    else //if(entity.json_class == "Cosmos::Entities::Galaxy")
-      this.process_galaxy(entity);
+    /// this process galaxy whenever refreshed from server
+    this._process_galaxy_on_refresh(galaxy);
   }
 };
 

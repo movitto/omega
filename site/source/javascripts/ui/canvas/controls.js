@@ -37,17 +37,9 @@ Omega.UI.CanvasControls.prototype = {
       function(evnt){
         var item = $(evnt.currentTarget).data('item');
         item.refresh(_this.canvas.page.node, function(){
-          /// XXX not ideal place for interconnect loading but it works for now
-          /// (need to be loaded after galaxy systems but before init_gfx)
-          if(item.json_class == "Cosmos::Entities::Galaxy")
-            Omega.UI.Loader.load_interconnects(item, _this.canvas.page,
-              function(){
-                _this.canvas.set_scene_root(item);
-              });
-          else
-            _this.canvas.set_scene_root(item);
+          _this.canvas.set_scene_root(item);
         });
-      })
+      });
 
     this.entities_list.component().on('click', 'li',
       function(evnt){
