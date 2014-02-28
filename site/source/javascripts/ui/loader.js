@@ -260,7 +260,7 @@ Omega.UI.Loader = {
   load_default_systems : function(page, cb){
     // load systems w/ most ships/stations
     var _this = this;
-    Omega.Stat.get('systems_with_most', ['entities', 5], page.node,
+    Omega.Stat.get('systems_with_most', ['entities', 15], page.node,
       function(stat_result){
         if(stat_result)
           _this._loaded_default_systems(stat_result.value, page, cb);
