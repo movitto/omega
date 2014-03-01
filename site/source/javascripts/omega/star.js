@@ -21,6 +21,7 @@ Omega.Star.prototype = {
   constructor: Omega.Star,
   json_class : 'Cosmos::Entities::Star',
 
+  /// Return star in JSON format
   toJSON : function(){
     return {json_class : this.json_class,
             id         : this.id,

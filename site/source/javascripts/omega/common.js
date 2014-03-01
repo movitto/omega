@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// Omega JS Entity Class Registry
 Omega.EntityClasses = function(){
   // initialized on demand
   if(typeof(Omega._EntityClasses) === "undefined"){

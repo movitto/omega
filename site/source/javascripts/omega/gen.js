@@ -1,4 +1,11 @@
-/* Omega JS Component Generator
+/* Omega JS Entity Generator
+ *
+ * Provides helpers to easily generate new Omega JS Entities
+ * with default parameters.
+ *
+ * Developer may override any entity initialization parameter
+ * via an arg to the method call and a new instance of the
+ * JS entity will be returned.
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  * Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt

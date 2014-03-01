@@ -10,6 +10,7 @@ Omega.UI.Loader = {
   placeholder : 'PLACEHOLDER',
   status_indicator : null,
 
+  /// Preloader: loads all static content from server
   preload : function(){
     if(Omega.UI.Loader.preloaded) return;
     Omega.UI.Loader.preloaded = true;
@@ -23,7 +24,7 @@ Omega.UI.Loader = {
     this.preload_skybox(config, event_cb);
   },
 
-  /// pop state when all resources finish loading
+  /// Pop state when all resources finish loading
   _async_state_tracker : function(){
     var _this = this;
     this.async_events  = 0;
@@ -41,6 +42,7 @@ Omega.UI.Loader = {
       concat(this._manu_entities_to_preload(config));
   },
 
+  /// Preload cosmos resources
   _cosmos_entities_to_preload : function(config){
     var entities = [
       new Omega.SolarSystem(),
@@ -53,6 +55,7 @@ Omega.UI.Loader = {
     return entities;
   },
 
+  /// Preload planet resources
   _planets_to_preload : function(config){
     var planets   = [];
     var processed = [];
@@ -69,6 +72,7 @@ Omega.UI.Loader = {
     return planets;
   },
 
+  /// Preload manufactured resources
   _manu_entities_to_preload : function(config){
     var entities = [];
     for(var s in config.resources.ships)
@@ -78,19 +82,20 @@ Omega.UI.Loader = {
     return entities;
   },
 
-  /// preload entity meshes and gfx to be cloned later
+  /// Preload all resources
   preload_resources : function(config, event_cb){
     var entities = this._entities_to_preload(config);
     for(var e = 0; e < entities.length; e++)
       this.preload_entity_resources(entities[e], config, event_cb);
   },
 
+  /// Preload entity meshes and gfx to be cloned later
   preload_entity_resources : function(entity, config, event_cb){
     if(entity.async_gfx) this.async_events += entity.async_gfx;
     entity.load_gfx(config, event_cb);
   },
 
-  /// preload skybox backgrounds
+  /// Preload skybox backgrounds
   preload_skybox : function(config, event_cb){
     var skybox = new Omega.UI.CanvasSkybox();
     skybox.init_gfx();
@@ -101,12 +106,14 @@ Omega.UI.Loader = {
     }
   },
 
+  /// Return shaded json loader instance
   json : function(){
     if(!Omega.UI.Loader.json_loader)
       Omega.UI.Loader.json_loader = new THREE.JSONLoader();
     return Omega.UI.Loader.json_loader;
   },
 
+  /// Clear the cached universe data stored in the local storage
   clear_universe : function(){
     var skeys = $.localStorage.keys();
     for(var k = 0; k < skeys.length; k++)
@@ -180,6 +187,7 @@ Omega.UI.Loader = {
     return system;
   },
 
+  /// Load specified system, from page cache / storage / server
   load_system : function(system_id, page, retrieval_cb){
     /// first try to load from page cache
     var system = this._load_page_system(system_id, page, retrieval_cb);
@@ -233,6 +241,7 @@ Omega.UI.Loader = {
     return galaxy;
   },
 
+  /// Load specified galaxy, from page cache / storage / server
   load_galaxy : function(galaxy_id, page, retrieval_cb){
     /// first try to load from page cache
     var galaxy = this._load_page_galaxy(galaxy_id, page, retrieval_cb);
@@ -246,6 +255,7 @@ Omega.UI.Loader = {
     return this._load_remote_galaxy(galaxy_id, page, retrieval_cb);
   },
 
+  /// Retrieve entities owned by the specified user
   load_user_entities : function(user_id, node, cb){
     Omega.Ship.owned_by(user_id, node, cb);
     Omega.Station.owned_by(user_id, node, cb);
@@ -257,6 +267,8 @@ Omega.UI.Loader = {
     }
   },
 
+  /// Retrieve the default systems, currently those with the most user entities
+  //
   /// XXX note callback will be invoked w/ each system individually
   load_default_systems : function(page, cb){
     // load systems w/ most ships/stations
@@ -268,8 +280,8 @@ Omega.UI.Loader = {
       });
   },
 
+  /// Load galaxy system interconnects (if not already loaded)
   load_interconnects : function(galaxy, page, cb){
-    /// load galaxy system interconnects (if not already loaded)
     galaxy.interconnects(page.node, function(sys_interconnects){
       for(var sys_id in sys_interconnects){
         var system = $.grep(galaxy.children,

@@ -19,6 +19,7 @@ Omega.JumpGate.prototype = {
   constructor : Omega.JumpGate,
   json_class : 'Cosmos::Entities::JumpGate',
 
+  /// Return jump gate in JSON format
   toJSON : function(){
     return {json_class  : this.json_class,
             id          : this.id,
@@ -29,6 +30,9 @@ Omega.JumpGate.prototype = {
             trigger_distance : this.trigger_distance};
   },
 
+  /// The human friendly name of the endpoint,
+  /// - the endpoint system name if the endpoint system is loaded
+  /// - the endpoint_id otherwise
   endpoint_title : function(){
     return this.endpoint ? this.endpoint.name : this.endpoint_id;
   },

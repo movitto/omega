@@ -22,10 +22,12 @@ Omega.Planet.prototype = {
   constructor: Omega.Planet,
   json_class : 'Cosmos::Entities::Planet',
 
+  /// Update this planet's mutable properties from specified planet
   update : function(planet){
     this.location.update(planet.location);
   },
 
+  /// Return planet in JSON format
   toJSON : function(){
     return {json_class : this.json_class,
             id         : this.id,
@@ -36,10 +38,16 @@ Omega.Planet.prototype = {
             size       : this.size};
   },
 
+  /// Return the color as an integer.
+  ///
+  /// Since planets are represented graphically via a specified number of
+  /// textures, we only need to support that many planet "colors" and thus
+  /// we mod (%) the Omega Planet color via that value here
   colori : function(){
     return parseInt('0x' + this.color) % this._num_textures;
   },
 
+  /// Follow planets with camera on click
   clicked_in : function(canvas){
     canvas.follow(this.location);
   }

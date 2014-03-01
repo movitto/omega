@@ -32,7 +32,7 @@ Omega.Galaxy.prototype = {
            })[0];
   },
 
-  /// refresh galaxy from server
+  /// Refresh galaxy from server
   refresh : function(node, cb){
     var _this = this;
     Omega.Galaxy.with_id(this.id, node, {children : true, recursive : false},
@@ -43,6 +43,7 @@ Omega.Galaxy.prototype = {
       });
   },
 
+  /// Update this galaxy's mutable properties from specified galaxy
   update : function(galaxy){
     for(var c = 0; c < galaxy.children.length; c++){
       var nchild = galaxy.children[c];
@@ -56,6 +57,7 @@ Omega.Galaxy.prototype = {
     }
   },
 
+  /// Return children in json format
   childrenJSON : function(){
     var children_json = [];
     for(var c = 0; c < this.children.length; c++)
@@ -64,6 +66,7 @@ Omega.Galaxy.prototype = {
     return children_json;
   },
 
+  /// Return galaxy in JSON format
   toJSON : function(){
     var children_json = this.childrenJSON();
     return {json_class : this.json_class,
@@ -73,6 +76,7 @@ Omega.Galaxy.prototype = {
             children   : children_json};
   },
 
+  /// Return system in JSON format
   systems : function(){
     return $.grep(this.children, function(c){
       return c.json_class &&
@@ -80,6 +84,7 @@ Omega.Galaxy.prototype = {
     });
   },
 
+  /// Set galaxy children from entities list
   set_children_from : function(entities){
     var systems = this.children;
     for(var s = 0; s < systems.length; s++){
@@ -94,6 +99,8 @@ Omega.Galaxy.prototype = {
     }
   },
 
+  /// Invoke callback with interconnects,
+  /// loading from server if not already loaded
   interconnects : function(node, cb){
     if(!cb && typeof(node) === "function"){
       cb = node;

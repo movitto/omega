@@ -18,12 +18,12 @@ Omega.UI.StatusIndicator = function(parameters){
 Omega.UI.StatusIndicator.prototype = {
   div_id    : '#status_icon',
 
-  /// return dom component
+  /// Return DOM component
   component : function(){
     return $(this.div_id);
   },
 
-  /// set the status indicator background
+  /// Set the status indicator background
   background : function(new_bg){
     if(new_bg == null){
       this.component().css('background', '');
@@ -35,7 +35,7 @@ Omega.UI.StatusIndicator.prototype = {
     this.component().css('background', 'url("' + url + '") no-repeat');
   },
 
-  /// return bool indicating if state is on stack
+  /// Return bool indicating if state is on stack
   has_state : function(state){
     for(var s = 0; s < this.states.length; s++)
       if(this.states[s] == state)

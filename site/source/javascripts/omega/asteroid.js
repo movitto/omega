@@ -19,6 +19,7 @@ Omega.Asteroid.prototype = {
   constructor: Omega.Asteroid,
   json_class : 'Cosmos::Entities::Asteroid',
 
+  /// Return Asteroid in JSON format
   toJSON : function(){
     return {json_class : this.json_class,
             id         : this.id,

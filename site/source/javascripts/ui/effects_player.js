@@ -1,5 +1,7 @@
 /* Omega JS Effects Player UI Component
  *
+ * Implements the traditional 'game loop' for the Omega JS UI
+ *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
@@ -16,26 +18,36 @@ Omega.UI.EffectsPlayer = function(parameters){
 
   $.extend(this, parameters);
 
+  /// Number of entities we process per cycle can be limited
+  /// by setting 'entities_per_cycle' below.
+  /// If null, all entities will be processed
   if(this.entities_per_cycle)
     this._run_entity_effects = this._run_partial_entity_effects;
   else
     this._run_entity_effects = this._run_all_entity_effects;
 
+  /// By default we enforce a constant frame rate
   this._run_effects = this._run_strict_effects;
 
-  /// replace above with the following to
+  /// Replace above with the following to
   /// disable constant frame rate enforcement
   //this._run_effects = this._run_strict_effects;
 };
 
 Omega.UI.EffectsPlayer.prototype = {
-  /// frame interval in ms: 50 = 20fps / 20 = 50fps / 10 = 100fps
+  /// Frame interval in ms:
+  ///   50 = 20fps
+  ///   20 = 50fps
+  ///   10 = 100fps
   interval  : 50,
   max_skips :  5,
 
-  /// set to null to update all entities on every cycle
-  entities_per_cycle : 20,
+  /// Set to null to update all entities on every cycle
+  entities_per_cycle : 30,
 
+  /// Wire up effects player to page DOM
+  ///
+  /// Toggle effects loop on page visibilty changes
   wire_up : function(){
     /// pause effects player when document is hidden
     var _this = this;
@@ -49,10 +61,12 @@ Omega.UI.EffectsPlayer.prototype = {
     });
   },
 
+  /// Add entity to effects player
   add : function(entity){
     this.entities.push(entity);
   },
 
+  /// Remove entity specified by id from effects player
   remove : function(entity_id){
     var entity = $.grep(this.entities, function(e){
       return e.id == entity_id;
@@ -60,14 +74,17 @@ Omega.UI.EffectsPlayer.prototype = {
     this.entities.splice(this.entities.indexOf(entity), 1);
   },
 
+  /// Clear all entities from effects player
   clear : function(){
     this.entities = [];
   },
 
+  /// Return bool indicating if effects player has specified entity
   has : function(entity_id){
     return $.grep(this.entities, function(e){ return e.id == entity_id }).length > 0;
   },
 
+  /// Start running the effects player / game loop
   start : function(){
     this._create_timer();
     this.effects_timer.play();

@@ -25,19 +25,22 @@ Omega.Ship.prototype = {
 
   json_class : 'Manufactured::Ship',
 
+  /// Return bool indicating if ship belongs to the specified user
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
   },
 
+  /// Return bool indicating if ship is alive
   alive : function(){
     return this.hp > 0;
   },
 
-  /// hp percentage
+  /// HP percentage
   hpp : function(){
     return this.hp / this.max_hp;
   },
 
+  /// Update this ship's system
   update_system : function(new_system){
     this.solar_system   = new_system;
     if(new_system){
@@ -46,6 +49,7 @@ Omega.Ship.prototype = {
     }
   },
 
+  /// Return bool indicating if ship is in the specified system
   in_system : function(system_id){
     return this.system_id == system_id;
   },

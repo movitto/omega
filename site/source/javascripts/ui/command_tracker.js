@@ -21,12 +21,14 @@ Omega.UI.CommandTracker = function(parameters){
 };
 
 Omega.UI.CommandTracker.prototype = {
+  /// Supported server side events
   motel_events        : ['motel::on_movement',
                          'motel::on_rotation',
                          'motel::changed_strategy',
                          'motel::location_stopped'],
   manufactured_events : ['manufactured::event_occurred'],
 
+  /// See 'callbacks' dir for specific event handling
   _callbacks_motel_event           : Omega.Callbacks.motel,
   _callbacks_resource_collected    : Omega.Callbacks.resource_collected,
   _callbacks_mining_stopped        : Omega.Callbacks.mining_stopped,
@@ -40,6 +42,7 @@ Omega.UI.CommandTracker.prototype = {
   _callbacks_partial_construction  : Omega.Callbacks.partial_construction,
   _callbacks_system_jump           : Omega.Callbacks.system_jump,
 
+  /// Maps server side event notifications to local callback invokations
   _msg_received : function(evnt, event_args){
     if(Omega.UI.CommandTracker.prototype.motel_events.indexOf(evnt) != -1){
       this._callbacks_motel_event(evnt, event_args);
@@ -82,6 +85,8 @@ Omega.UI.CommandTracker.prototype = {
     }
   },
 
+  /// Track specified server event,
+  /// invoking callback configured above on receiving
   track : function(evnt){
     if(this.handling.indexOf(evnt) != -1) return;
     this.handling.push(evnt);

@@ -50,12 +50,14 @@ Omega.UI.Tracker = {
     return entities;
   },
 
+  /// Track cosmos-level system-wide events
   track_system_events : function(root){
     this.node.ws_invoke('manufactured::unsubscribe',  'system_jump');
     if(root.json_class != "Cosmos::Entities::SolarSystem") return;
     this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'to', root.id);
   },
 
+  /// Stop tracking manu entities in scene
   stop_tracking_scene_entities : function(entities){
     for(var e = 0; e < entities.stop_tracking.length; e++){
       var entity = entities.stop_tracking[e];
@@ -63,6 +65,7 @@ Omega.UI.Tracker = {
     }
   },
 
+  /// Start tracking manu entities in scene
   track_scene_entities : function(root, entities){
     this.stop_tracking_scene_entities(entities);
     if(root.json_class != "Cosmos::Entities::SolarSystem") return;
@@ -96,6 +99,7 @@ Omega.UI.Tracker = {
     }
   },
 
+  /// Synchronize entities in system from server
   sync_scene_entities : function(root, entities, cb){
     if(root.json_class != "Cosmos::Entities::SolarSystem") return;
 
@@ -110,6 +114,7 @@ Omega.UI.Tracker = {
     Omega.Station.under(root.id, this.node, cb);
   },
 
+  /// Track specified manu entity
   track_entity : function(entity){
     if(entity.json_class == 'Manufactured::Ship')
       this.track_ship(entity);
@@ -117,6 +122,7 @@ Omega.UI.Tracker = {
       this.track_station(entity);
   },
 
+  /// Stop tracking specified manu entity
   stop_tracking_entity : function(entity){
     if(entity.json_class == 'Manufactured::Ship')
       this.stop_tracking_ship(entity);
@@ -124,6 +130,7 @@ Omega.UI.Tracker = {
       this.stop_tracking_station(entity);
   },
 
+  /// Track all ship motel and manu callbacks
   track_ship : function(entity){
     var distance = this.config.ship_movement;
     var rotation = this.config.ship_rotation;
@@ -144,11 +151,13 @@ Omega.UI.Tracker = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'destroyed_by');
   },
 
+  /// Stop tracking all ship motel and manu callbacks
   stop_tracking_ship : function(entity){
     this.node.ws_invoke('motel::remove_callbacks', entity.location.id);
     this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
   },
 
+  /// Track all station motel and manu callbacks
   track_station : function(entity){
     /// track construction
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_complete');
@@ -156,6 +165,7 @@ Omega.UI.Tracker = {
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'partial_construction');
   },
 
+  /// Stop tracking all station motel and manu callbacks
   stop_tracking_station : function(entity){
     this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
   }

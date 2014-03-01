@@ -4,7 +4,6 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO some sort of timed auto-login helper for development
 /// TODO auto-logout on session timeout
 
 //= require "ui/registry"

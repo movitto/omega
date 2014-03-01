@@ -27,6 +27,7 @@ Omega.Node = function(parameters){
 Omega.Node.prototype = {
   constructor : Omega.Node,
 
+  /// Close open connections
   close : function(){
     this.ws.close();
   },

@@ -16,6 +16,9 @@
 ///   - has a nav property
 ///   - optionally has a session property (Omega.Session instance)
 Omega.UI.SessionValidator = {
+
+  /// Restore session and validate invoking the callback corresponding to the
+  /// post-validation state
   validate_session : function(validated_cb, invalid_cb){
     var _this = this;
     this.session = Omega.Session.restore_from_cookie();
@@ -71,6 +74,7 @@ Omega.UI.SessionValidator = {
     });
   },
 
+  /// Helper to register handlers for all supported events
   _handle_events : function(){
     var events = Omega.UI.CommandTracker.prototype.motel_events.concat(
                  Omega.UI.CommandTracker.prototype.manufactured_events);
@@ -78,10 +82,12 @@ Omega.UI.SessionValidator = {
       this.command_tracker.track(events[e]);
   },
 
+  /// Return bool indicating if an autologin user is configured
   _should_autologin : function(){
     return !!(this.config.autologin);
   },
 
+  /// Autologin configured user
   autologin : function(cb){
     var _this = this;
     var un    = this.config.autologin[0];

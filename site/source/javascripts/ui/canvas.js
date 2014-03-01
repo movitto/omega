@@ -36,6 +36,7 @@ Omega.UI.Canvas = function(parameters){
 };
 
 Omega.UI.Canvas.prototype = {
+  /// Wire up canvas DOM component
   wire_up : function(){
     var _this = this;
     this.canvas.off('mousedown mouseup mouseleave mouseout mousemove'); /// <- needed ?
@@ -95,7 +96,7 @@ Omega.UI.Canvas.prototype = {
   /// TODO simplify, currently don't need shader scene & bloom pass,
   ///      simplifies alot of things
   //
-  /// TODO move into its own helper method
+  /// TODO move into its own helper module
   setup : function(){
     var _this    = this;
 
@@ -176,6 +177,7 @@ Omega.UI.Canvas.prototype = {
     this.star_dust.init_gfx(this.page.config, function(){ _this._init_gfx(); });
   },
 
+  // Return the 2D screen coords mapped to 2D canvas coords
   _screen_coords_to_canvas : function(x, y){
     // map page coords to canvas scene coords
     var nx = Math.floor(x - this.canvas.offset().left);
@@ -186,6 +188,7 @@ Omega.UI.Canvas.prototype = {
     return [nx, ny];
   },
 
+  // Return canvas picking ray from 2D screen coords
   _picking_ray : function(x, y){
     var xy = this._screen_coords_to_canvas(x, y);
     var cx = xy[0];
@@ -275,7 +278,6 @@ Omega.UI.Canvas.prototype = {
     this.cam_controls.update();
   },
 
-  // Graphics initialization cb
   _init_gfx : function(){
     this.animate();
   },
@@ -288,7 +290,7 @@ Omega.UI.Canvas.prototype = {
     this._cam_follow();
   },
 
-  // Render scene
+  // Render scene (used internally, no need to invoke manually)
   render : function(){
     this.renderer.clear();
     this.shader_composer.render();
@@ -405,7 +407,7 @@ Omega.UI.Canvas.prototype = {
     this.following_loc = null
   },
 
-  /// temp disable following
+  /// Disable canvas cam following
   disable_following : function(){
     if(!this.tfollowing_loc)
       this.tfollowing_loc = this.following_loc;
@@ -413,6 +415,7 @@ Omega.UI.Canvas.prototype = {
     this.following_dir    = null;
   },
 
+  /// Enable canvas cam following
   enable_following : function(){
     if(this.tfollowing_loc)
       this.following_loc = this.tfollowing_loc;

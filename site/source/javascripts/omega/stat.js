@@ -14,6 +14,8 @@ Omega.Stat.prototype = {
   json_class : 'Stats::StatResult'
 }
 
+/// Retrieve specified stat from server,
+/// invoking callback with result
 Omega.Stat.get = function(id, args, node, cb){
   node.http_invoke('stats::get', id, args,
     function(response){

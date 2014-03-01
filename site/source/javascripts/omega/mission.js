@@ -11,29 +11,29 @@ Omega.Mission = function(parameters){
 Omega.Mission.prototype = {
   json_class : 'Missions::Mission',
 
-  /// return time which this mission expires
+  /// Return time which this mission expires
   expires : function(){
     var d = new Date(Date.parse(this.assigned_time.replace(/-/g, '/').slice(0, 19)));
     d.setSeconds(d.getSeconds() + this.timeout);
     return d;
   },
 
-  /// return bool indicating if this mission expired
+  /// Return bool indicating if this mission expired
   expired : function(){
     return (this.assigned_time != null) && (this.expires() < new Date());
   },
 
-  /// return bool indicating if this mission is unassigned
+  /// Return bool indicating if this mission is unassigned
   unassigned : function(){
     return !this.assigned_to_id && !this.expired();
   },
 
-  /// return bool indicating if mission is assigned to the specified user
+  /// Return bool indicating if mission is assigned to the specified user
   assigned_to : function(user_id){
     return this.assigned_to_id == user_id;
   },
 
-  /// assign mission to specified user
+  /// Assign mission to specified user
   assign_to : function(user_id, node, cb){
     node.http_invoke('missions::assign_mission', this.id, user_id, cb);
   }

@@ -13,6 +13,7 @@ Omega.Location.prototype = {
   constructor: Omega.Location,
   json_class : 'Motel::Location',
 
+  /// Return location in JSON format
   toJSON : function(){
     return {json_class : this.json_class,
             id : this.id,
@@ -26,10 +27,12 @@ Omega.Location.prototype = {
             movement_strategy : this.movement_strategy};
   },
 
+  /// Return THREE.Vector3 instance w/ location's coordinates
   vector : function(){
     return new THREE.Vector3(this.x, this.y, this.z);
   },
 
+  /// Update this locations attributes from another
   update : function(loc){
     this.x = loc.x;
     this.y = loc.y;
@@ -41,6 +44,8 @@ Omega.Location.prototype = {
     this.update_ms(loc.movement_strategy);
   },
 
+  /// Special case to update movement strategy since ms doesn't
+  /// currently have it's own JS class heirarchy
   update_ms : function(ms){
     if(ms != null){
       this.movement_strategy = ms;
@@ -53,6 +58,9 @@ Omega.Location.prototype = {
     }
   },
 
+  /// Set coordinates,
+  /// - accepts each coordinate as an individual param: loc.set(1,2,3)
+  /// - or a single param w/ array of coordinates: loc.set([1,2,3])
   set : function(x,y,z){
     if(typeof(x) === "array" && x.length == 3 && !y && !z){
       y = x[1];
@@ -66,16 +74,21 @@ Omega.Location.prototype = {
     return this;
   },
 
+  /// Return location orientation in an array
   orientation : function(){
     return [this.orientation_x, this.orientation_y, this.orientation_z];
   },
 
+  /// Return location orientation in a THREE.Vector3
   orientation_vector : function(){
     return new THREE.Vector3(this.orientation_x,
                              this.orientation_y,
                              this.orientation_z);
   },
 
+  /// Set orientation,
+  /// - accepts each component as an indivisual param: loc.set_orientation(0,0,1);
+  /// - or a single param w/ an array: loc.set_orientation([0,0,1]);
   set_orientation : function(x,y,z){
     if(typeof(x) === "array" && x.length == 3 && !y && !z){
       y = x[1];
@@ -89,12 +102,14 @@ Omega.Location.prototype = {
     return this;
   },
 
+  /// Return array containing the difference between location's coordinates
+  /// and the specified coordiantes
   sub : function(x, y, z){
     /// TODO also support vector & loc params, return corresponding obj
     return [this.x - x, this.y - y, this.z - z];
   },
 
-  /// returns the unit direction vector from this location's
+  /// Returns the unit direction vector from this location's
   /// coords to the specified coords
   direction_to : function(x, y, z){
     var d    = this.distance_from(x, y, z);
@@ -102,6 +117,7 @@ Omega.Location.prototype = {
     return [diff[0] / d, diff[1] / d, diff[2] / d];
   },
 
+  /// Return clone of this location
   clone : function(){
      var cloned = new Omega.Location();
      return $.extend(true, cloned, this); /// deep copy
@@ -122,6 +138,7 @@ Omega.Location.prototype = {
                      Math.pow(this.z - z, 2));
   },
 
+  /// Boolean indicating if location is not moving
   is_stopped : function(){
     return (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped'   ||
            (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'    &&
@@ -153,7 +170,7 @@ Omega.Location.prototype = {
            Omega.Math.round_to(this.orientation_z, 2);
   },
 
-  /// return rotation matrix generated from axis angle
+  /// Return rotation matrix generated from axis angle
   /// between location's orientation and base cartesion
   /// orientation we're using
   rotation_matrix : function(){

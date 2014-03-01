@@ -32,7 +32,7 @@ Omega.SolarSystem.prototype = {
            })[0];
   },
 
-  /// refresh solarsystem from server
+  /// Refresh solar system from server
   refresh : function(node, cb){
     var _this = this;
     Omega.SolarSystem.with_id(this.id, node, {children : true},
@@ -43,6 +43,7 @@ Omega.SolarSystem.prototype = {
       });
   },
 
+  /// Update system's mutable attributes from other system
   update : function(system){
     for(var c = 0; c < system.children.length; c++){
       var nchild = system.children[c];
@@ -56,6 +57,7 @@ Omega.SolarSystem.prototype = {
     }
   },
 
+  /// Return system children in json format
   childrenJSON : function(){
     var children_json = [];
     for(var c = 0; c < this.children.length; c++)
@@ -64,6 +66,7 @@ Omega.SolarSystem.prototype = {
     return children_json;
   },
 
+  /// Return system in JSON format
   toJSON : function(){
     var children_json = this.childrenJSON();
     return {json_class : this.json_class,
@@ -115,6 +118,7 @@ Omega.SolarSystem.prototype = {
     this.interconns.add(endpoint);
   },
 
+  /// Update system children with entities in list
   update_children_from : function(entities){
     /// update jg endpoints from entities / add interconnections
     var gates = this.jump_gates();
@@ -131,12 +135,15 @@ Omega.SolarSystem.prototype = {
     }
   },
 
+  /// Set scene root to system whenever clicked in scene
   clicked_in : function(canvas){
     var _this = this;
     this.refresh(canvas.page.node, function(){
       canvas.set_scene_root(_this);
     });
   },
+
+  /// TODO move these methods to omega/solar_system/mesh
 
   _has_hover_sphere : function(){
     return $.inArray(this.mesh.tmesh, this.components) != -1;

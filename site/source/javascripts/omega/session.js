@@ -10,7 +10,7 @@ Omega.Session = function(parameters){
   $.extend(this, parameters);
 };
 
-/// toggle cookies globally
+/// Flag toggling cookies globally
 Omega.Session.cookies_enabled = true;
 
 Omega.Session.prototype = {
@@ -57,6 +57,9 @@ Omega.Session.prototype = {
     node.http_invoke('users::get_entity', 'with_id', this.user_id, cb);
   },
 
+  /// Logout from existing session
+  ///
+  /// Callback will be invoked on logout
   logout : function(node, cb){
     var _this = this;
     node.http_invoke('users::logout', this.id, function(response){
@@ -68,6 +71,10 @@ Omega.Session.prototype = {
   }
 };
 
+/// Instantiate / return a session object from the local browser cookie
+///
+/// If cookies are disabled or session cookies are not present
+/// null will be returned.
 Omega.Session.restore_from_cookie = function(){
   var user_id = null, session_id = null;
   if(Omega.Session.cookies_enabled){
@@ -82,6 +89,11 @@ Omega.Session.restore_from_cookie = function(){
   return session;
 };
 
+/// Create a new Session instance and log the specified user in
+///
+/// On response from the server, the callback will be invoked
+/// with the newly established session or error if there was
+/// one.
 Omega.Session.login = function(user, node, cb){
   /// upon session creation, server will store the source node / endpoint
   /// which the session is established on, need to set that now

@@ -24,6 +24,7 @@ Omega.UI.AudioControls = function(parameters){
 };
 
 Omega.UI.AudioControls.prototype = {
+  /// Wire up AudioControls DOM components
   wire_up : function(){
     var _this = this;
 
@@ -34,6 +35,7 @@ Omega.UI.AudioControls.prototype = {
     });
   },
 
+  /// Enable/Disable Audio Controls
   toggle : function(){
     this.disabled = !this.disabled;
 
@@ -51,6 +53,7 @@ Omega.UI.AudioControls.prototype = {
       mute.css('background', 'url("'+mute_img+'") no-repeat');
   },
 
+  /// Play specified audio target w/ controls
   play : function(target){
     if(this.disabled) return;
     if(target) this.current = target;
@@ -58,6 +61,7 @@ Omega.UI.AudioControls.prototype = {
     this.current.play();
   },
 
+  /// Stop playing audio
   stop : function(){
     /// TODO option to stop d/l of media
     this.current.pause();

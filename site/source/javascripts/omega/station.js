@@ -23,15 +23,18 @@ Omega.Station.prototype = {
   constructor: Omega.Station,
   json_class : 'Manufactured::Station',
 
+  /// Return bool indicating if station belongs to the specified user
   belongs_to_user : function(user_id){
     return this.user_id == user_id;
   },
 
+  /// Return bool indicating if station is alive
   alive : function(){
     /// XXX interim compatability hack
     return true;
   },
 
+  /// Update this station's system
   update_system : function(new_system){
     this.solar_system = new_system;
     if(new_system){
@@ -40,6 +43,7 @@ Omega.Station.prototype = {
     }
   },
 
+  /// Return bool indicating if station is in the specified system
   in_system : function(system_id){
     return this.system_id == system_id;
   },

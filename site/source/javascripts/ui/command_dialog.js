@@ -6,6 +6,9 @@
 
 //= require "ui/dialog"
 
+/// TODO split dialogs into modules in its own subdir,
+/// extract dialogs from omega entities
+
 Omega.UI.CommandDialog = function(parameters){
   $.extend(this, parameters);
 };

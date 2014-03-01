@@ -1,4 +1,4 @@
-/* Omega Solar System Title Text
+/* Omega Intro Scene Title Text
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
