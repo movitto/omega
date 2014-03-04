@@ -228,12 +228,20 @@ class Location
    def coordinates
      [@x, @y, @z]
    end
+   alias :coords :coordinates
 
    # Set this location's coordiatnes
    def coordinates=(*c)
      c.flatten! if c.first.is_a?(Array)
      @x, @y, @z = *c
    end
+   alias :coords= :coordinates=
+
+   # Return abs scalar value of location's coordinates
+   def scalar
+     Math.sqrt(@x**2 + @y**2 + @z**2)
+   end
+   alias :abs :scalar
 
    # Return this location's orientation in an array
    def orientation
@@ -394,6 +402,11 @@ class Location
    def self.json_create(o)
      loc = new(o['data'])
      return loc
+   end
+
+   # Return clone of location
+   def clone
+     RJR.parse_json self.to_json
    end
 
    # Create a minimal valid location with id

@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require 'ui/canvas/orbit'
 //= require "omega/station/commands"
 //= require "omega/station/interact"
 //= require "omega/station/gfx"
@@ -72,6 +73,7 @@ Omega.UI.ResourceLoader.prototype.apply( Omega.Station.prototype );
 $.extend(Omega.Station.prototype, Omega.StationCommands);
 $.extend(Omega.Station.prototype, Omega.StationInteraction);
 $.extend(Omega.Station.prototype, Omega.StationGfx);
+$.extend(Omega.Station.prototype, Omega.OrbitHelpers);
 ///
 
 // Return stations owned by the specified user

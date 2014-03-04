@@ -10,11 +10,11 @@ require 'manufactured/events/system_jump'
 
 module Manufactured::RJR
 
-# Internal helper, move an entity in a single system
-def move_entity_in_system(entity, loc)
+# Move a ship in a single system
+def move_ship_in_system(entity, loc)
   # TODO may want to incorporate fuel into this at some point
 
-  # only ships can moving in a system for now, also ensure not docked
+  # verify we are processing ships here, also ensure not docked
   raise OperationError, "#{entity} not ship" unless entity.is_a?(Ship)
   raise OperationError, "#{entity} docked"   unless !entity.docked?
 
@@ -68,7 +68,34 @@ def move_entity_in_system(entity, loc)
   nil
 end
 
-# Internal helper, move an entity between systems
+# Move station in single system
+def move_station_in_system(station, loc)
+  # Verify we are processing stations here
+  raise OperationError, "#{station} not a station" unless station.is_a?(Station)
+
+  # When moving station, we only permit orbiting around system's star
+  is_orbiting = loc.ms.is_a?(Motel::MovementStrategies::Elliptical)
+  on_orbit    = is_orbiting ? loc.ms.intersects?(loc) : false
+  raise OperationError, "#{station} must orbit star" unless is_orbiting
+  raise OperationError,
+    "station location #{station.location.coords} not on orbit" unless on_orbit
+
+  # update movement strategy
+  station.location.movement_strategy = loc.ms
+  node.invoke('motel::update_location', station.location)
+
+  # TODO update dock'd ship movement strategies?
+
+  nil
+end
+
+# Move entity in single system
+def move_entity_in_system(entity, loc)
+  entity.is_a?(Ship) ?    move_ship_in_system(entity, loc) :
+                       move_station_in_system(entity, loc)
+end
+
+# Move an entity between systems
 def move_entity_between_systems(entity, sys)
 
   # if moving ship ensure
@@ -148,6 +175,7 @@ move_entity = proc { |id, loc|
      {:privilege => 'modify', :entity => 'manufactured_entities'}]
 
   # verify location
+  # TODO only for ship? (if entity is a station, set to loc if nil?)
   raise ValidationError, loc unless loc.is_a?(Motel::Location)
 
   # update the entity's location & solar system

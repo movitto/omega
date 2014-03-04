@@ -324,7 +324,10 @@ class Elliptical < MovementStrategy
       return coordinates_from_theta(t)
    end
 
-   # return boolean indicating if the given location is on the ellipse or not
+   public
+
+   # Return boolean indicating if the given location is on the ellipse or not
+   # TODO replace w/ intersects (below) ?
    def location_valid?(location)
       x,y,z = closest_coordinates(location)
 
@@ -333,6 +336,16 @@ class Elliptical < MovementStrategy
              (y - location.y).round_to(4) == 0 &&
              (z - location.z).round_to(4) == 0
    end
+
+
+   def random_coordinates
+     coordinates_from_theta(Math.random * 2 * Math::PI)
+   end
+
+   #def intersects?(loc)
+   #  coordinates_from_theta(theta(loc)) == [loc.x, loc.y, loc.z]
+   #end
+   alias :intersects? :location_valid?
 
    # Generate and return a random elliptical movement strategy
    def self.random(args = {})

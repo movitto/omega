@@ -32,6 +32,7 @@ Omega.Config = {
   // event tracking
   ship_movement     :          10,
   ship_rotation     :        0.01,
+  station_movement  :          50,
 
   //movement
   movement_offset   : {min : 50, max: 100},

@@ -92,6 +92,7 @@ create_entity = proc { |entity|
                          :quantity => 100) if entity.is_a?(Station)
 
   # create location in motel, swap it in locally
+  # TODO ensure ms is stopped or validate ms
   entity.location.id = entity.id
   entity.location =
     begin node.invoke('motel::create_location', entity.location)

@@ -37,7 +37,7 @@ Omega.PlanetGfx = {
     this.update_gfx();
 
     this._calc_orbit();
-    this.orbit_line = new Omega.PlanetOrbitLine(this.orbit);
+    this.orbit_line = new Omega.OrbitLine(this.orbit);
 
     this.components = [this.mesh.tmesh, this.orbit_line.line];
   },

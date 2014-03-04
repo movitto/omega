@@ -85,10 +85,36 @@ Omega.StationGfx = {
     if(this.highlight)        this.highlight.update();
     if(this.lamps)            this.lamps.update();
     if(this.construction_bar) this.construction_bar.update();
+
+    if(this.location.is_stopped()){
+      if(this._has_orbit_line())
+        this._rm_orbit_line();
+    }else if(!this._has_orbit_line()){
+      this._calc_orbit();
+      this._add_orbit_line(0x99CCEE);
+    }
+  },
+
+  _run_movement_effects : function(){
+    var now = new Date();
+    if(!this.last_moved || this.location.is_stopped()){
+      this.last_moved = now;
+      return;
+    }
+
+    var elapsed = now - this.last_moved;
+    var dist = this.location.movement_strategy.speed * elapsed / 1000;
+
+    var angle = this._current_orbit_angle();
+    var new_angle = dist + angle;
+    this._set_orbit_angle(new_angle);
+    this.last_moved = now;
+    this.update_gfx();
   },
 
   run_effects : function(){
     this.lamps.run_effects();
+    this._run_movement_effects();
   },
 
   /// TODO move these to omega/station/construction_bar.js (helper module ?)

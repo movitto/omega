@@ -343,7 +343,7 @@ module Omega
         planet
       end
 
-      # Helper to create a new movement strategy specifying a planet's orbit
+      # Helper to create a new movement strategy specifying an entity's orbit
       #
       # Simply wraps Elliptical movement strategy constructor with some
       # defaults for now
@@ -438,6 +438,27 @@ module Omega
 
         RJR::Logger.info "Creating station #{st}"
         invoke 'manufactured::create_entity', st
+      end
+
+      # Return movement strategy that will orbit station around its system's star
+      #
+      # Currently this only supports circular orbits based on the station's
+      # starting position
+      def station_orbit(args={})
+        raise ArgumentError, "station is nil" if @station.nil?
+
+        speed = args[:speed] || args[:s]
+
+        # dmaj from current station loc, dmin rand or from args
+        dmaj = Motel.normalize(*@station.location.coordinates)
+        dmin = Motel.normalize(*Motel.cross_product(*dmaj,
+                               *Motel.normalize(rand, rand, rand)))
+
+        Motel::MovementStrategies::Elliptical.new :e     => 0,
+                                                  :p     => @station.loc.scalar,
+                                                  :speed => speed,
+                                                  :dmaj  => dmaj,
+                                                  :dmin  => dmin
       end
 
       # Retrieve ship with the specified id if it exists,

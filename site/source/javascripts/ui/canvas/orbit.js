@@ -1,10 +1,13 @@
-/* Omega Planet Orbit Helpers & Gfx
+/* Omega Orbit Helpers & Gfx
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.PlanetOrbitLine = function(orbit){
+/// Line used to render and entity's orbit
+Omega.OrbitLine = function(orbit, color){
+  if(!color) color = 0xAAAAAA;
+
   var orbit_geo = new THREE.Geometry();
   var first = null, last = null;
   for(var o = 1; o < orbit.length; o++){
@@ -24,14 +27,14 @@ Omega.PlanetOrbitLine = function(orbit){
   orbit_geo.vertices.push(last);
 
   var orbit_material =
-    new THREE.LineBasicMaterial({color: 0xAAAAAA})
+    new THREE.LineBasicMaterial({color: color})
   var line = new THREE.Line(orbit_geo, orbit_material);
   this.line = line;
 }
 
-/// this module gets mixed into Planet
-Omega.PlanetOrbitHelpers = {
-  // orbit calculated on the fly on a per-planet basis
+/// Mixin adding helper methods to assist w/ orbits
+Omega.OrbitHelpers = {
+  // orbit calculated on the fly on a per-entity basis
   _calc_orbit : function(){
     if(!this.location || !this.location.movement_strategy){
       this.orbit = [];
@@ -117,5 +120,19 @@ Omega.PlanetOrbitHelpers = {
     this.location.x = n[0] + this.cx;
     this.location.y = n[1] + this.cy;
     this.location.z = n[2] + this.cz;
+  },
+
+  _has_orbit_line : function(){
+    return this.orbit_line && this.components.indexOf(this.orbit_line.line) == -1;
+  },
+
+  _add_orbit_line : function(color){
+    this.orbit_line = new Omega.OrbitLine(this.orbit, color);
+    this.components.push(this.orbit_line.line);
+  },
+
+  _rm_orbit_line : function(){
+    var i = this.components.indexOf(this.orbit_line.line);
+    this.components.splice(i, 1);
   }
 };

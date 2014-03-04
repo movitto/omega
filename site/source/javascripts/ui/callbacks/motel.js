@@ -25,7 +25,7 @@ Omega.Callbacks.motel = function(event, event_args){
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){
-      if(entity.update_gfx) entity.update_gfx();
+      entity.update_gfx();
     });
   }
 

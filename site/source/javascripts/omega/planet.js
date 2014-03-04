@@ -6,7 +6,7 @@
 
 // TODO also load planet moons
 
-//= require 'omega/planet/orbit'
+//= require 'ui/canvas/orbit'
 //= require 'omega/planet/gfx'
 
 Omega.Planet = function(parameters){
@@ -55,4 +55,4 @@ Omega.Planet.prototype = {
 
 THREE.EventDispatcher.prototype.apply( Omega.Planet.prototype );
 $.extend(Omega.Planet.prototype, Omega.PlanetGfx);
-$.extend(Omega.Planet.prototype, Omega.PlanetOrbitHelpers);
+$.extend(Omega.Planet.prototype, Omega.OrbitHelpers);

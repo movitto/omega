@@ -159,6 +159,12 @@ Omega.UI.Tracker = {
 
   /// Track all station motel and manu callbacks
   track_station : function(entity){
+    var distance = this.config.ship_movement;
+
+    /// track strategy,movement
+    this.node.ws_invoke('motel::track_strategy', entity.location.id);
+    this.node.ws_invoke('motel::track_movement', entity.location.id, distance);
+
     /// track construction
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_complete');
     this.node.ws_invoke('manufactured::subscribe_to', entity.id, 'construction_failed');

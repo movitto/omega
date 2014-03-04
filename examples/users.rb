@@ -2,7 +2,7 @@
 # Creates an example user and a few ships/stations belonging
 # to them based on command line args
 #
-# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'rubygems'
@@ -31,30 +31,26 @@ u = user USER_NAME, PASSWORD do |u|
 end
 
 starting_system = system(STARTING_SYSTEM)
+starting_loc    = rand_loc(:max => 2000, :min => 1000)
 
 station(USER_NAME + "-manufacturing-station1") do |station|
-  station.type     = :manufacturing
-  station.user_id  = USER_NAME
+  station.type         = :manufacturing
+  station.user_id      = USER_NAME
   station.solar_system = starting_system
-  station.location = Location.new(:x   => -1000, :y   => 1500, :z   => -1000,
-                                  :orx =>  0,  :ory =>  0,  :orz =>  1)
-  #station.location = Location.new(:x => -100, :y=> -100, :z => -100)
+  station.location     = starting_loc.clone
+  #station.location.ms  = station_orbit :speed => 0.004
 end
 
-mining   = ship(USER_NAME + "-mining-ship1") do |ship|
-             ship.type     = :mining
-             ship.user_id  = USER_NAME
-             ship.solar_system = starting_system
-             ship.location = Location.new(:x => -1200, :y=> 1800, :z => -700,
-             #ship.location = Location.new(:x   => 520, :y   => 940, :z   => 940,
-                                          :orx =>  0,  :ory =>  0,  :orz =>  1)
-           end
+ship(USER_NAME + "-mining-ship1") do |ship|
+  ship.type         = :mining
+  ship.user_id      = USER_NAME
+  ship.solar_system = starting_system
+  ship.location     = starting_loc + [100, 100, 100]
+end
 
-corvette = ship(USER_NAME + "-corvette-ship1") do |ship|
-             ship.type     = :corvette
-             ship.user_id  = USER_NAME
-             ship.solar_system = starting_system
-             #ship.location = Location.new(:x => 1000, :y=> 700, :z => 600,
-             ship.location = Location.new(:x   => 1150, :y   => 700, :z => 600,
-                                          :orx =>  0,    :ory =>  0,  :orz =>  1)
-           end
+ship(USER_NAME + "-corvette-ship1") do |ship|
+  ship.type         = :corvette
+  ship.user_id      = USER_NAME
+  ship.solar_system = starting_system
+  ship.location     = starting_loc + [-100, -100, -100]
+end
