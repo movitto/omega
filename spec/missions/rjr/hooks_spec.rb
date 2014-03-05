@@ -21,12 +21,12 @@ module Missions::RJR
     context "insufficient permissions (create-missions_hooks)" do
       it "raises PermissionError" do
         lambda {
-          @s.add_hook Missions::EventHandler.new
+          @s.add_hook Missions::EventHandlers::DSL.new
         }.should raise_error(PermissionError)
       end
     end
 
-    context "handler is not instance of Missions::EventHandler" do
+    context "handler is not instance of Missions::EventHandlers::DSL" do
       it "raises Validation Error" do
         add_privilege @login_role, 'create', 'missions_hooks'
         lambda {
@@ -37,7 +37,7 @@ module Missions::RJR
 
     it "resolves dsl references in handler" do
       add_privilege @login_role, 'create', 'missions_hooks'
-      handler = Missions::EventHandler.new
+      handler = Missions::EventHandlers::DSL.new
       Missions::DSL::Client::Proxy.should_receive(:resolve).with(:event_handler => handler)
       @s.add_hook(handler)
     end
@@ -45,14 +45,14 @@ module Missions::RJR
     it "adds handler to registry" do
       add_privilege @login_role, 'create', 'missions_hooks'
       lambda {
-        @s.add_hook(Missions::EventHandler.new(:event_id => 'event1')).should be_nil
+        @s.add_hook(Missions::EventHandlers::DSL.new(:event_id => 'event1')).should be_nil
       }.should change{@registry.entities.size}.by(1)
       @registry.entities.last.event_id.should == 'event1'
     end
 
     it "returns nil" do
       add_privilege @login_role, 'create', 'missions_hooks'
-      @s.add_hook(Missions::EventHandler.new).should be_nil
+      @s.add_hook(Missions::EventHandlers::DSL.new).should be_nil
     end
   end
 

@@ -53,7 +53,5 @@ require 'manufactured/commands/mining'
 require 'manufactured/commands/shield_refresh'
 
 require 'missions/mission'
-require 'missions/events/manufactured'
-require 'missions/events/resources'
-require 'missions/events/users'
+require 'missions/events'
 require 'missions/event_handler'

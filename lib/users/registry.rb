@@ -148,6 +148,7 @@ class Registry
       session = nil
     end
 
+    # FIXME update endpoint_id if session not nil
     return session unless session.nil?
 
     user.last_login_at = Time.now

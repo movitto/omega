@@ -243,15 +243,13 @@ module Assignment
   # Add an event to the registry for mission timeout/expiration
   def self.schedule_expiration_event
     proc { |mission|
-      id = "mission-#{mission.id}-expired"
-      expired = Omega::Server::Event.new :id => id,
-                  :timestamp => mission.assigned_time + mission.timeout,
-                  :handlers => [proc{ |e|
-                     mission.failed! # if mission.expired? TODO?
-                     Missions::DSL.update_mission mission
-                   }]
-
+      registry  = Missions::RJR.registry
+      timestamp = mission.assigned_time + mission.timeout
+      expired   = Missions::Events::Expired.new :mission   => mission,
+                                                :timestamp => timestamp,
+                                                :registry  => registry
       Missions::RJR.registry << expired
+      # TODO also emit a 'failed' event
     }
   end
 end
@@ -316,12 +314,10 @@ module Event
 
   def self.create_victory_event
     proc { |mission, evnt|
-      # TODO ensure not failed, check victory conditions, lock registry
-      mission.victory! # if mission.completed?
-      Missions::DSL.update_mission mission
-
-      id = "mission-#{mission.id}-succeeded"
-      victory = Omega::Server::Event.new :id => id, :timestamp => Time.now
+      # TODO ensure not failed, check victory conditions ?
+      registry = Missions::RJR.registry
+      victory  = Missions::Events::Victory.new :mission  => mission,
+                                               :registry => registry
       Missions::RJR.registry << victory
     }
   end

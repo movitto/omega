@@ -361,7 +361,7 @@ module Registry
     # won't work w/ it, thus handlers that require it should
     # implement it on their own
     handlers.each { |h|
-      RJR::Logger.info "running event #{event}"
+      RJR::Logger.info "running event #{event} handler #{h}"
       begin
         h.call event
       rescue Exception => err

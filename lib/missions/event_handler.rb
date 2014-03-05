@@ -6,10 +6,11 @@
 require 'omega/server/event'
 
 module Missions
+module EventHandlers
 
 # Subclasses Omega::Server::EventHandler to define a custom
 # event handler which accepts / runs missions dsl methods
-class EventHandler < Omega::Server::EventHandler
+class DSL < Omega::Server::EventHandler
   # Missions DSL callbacks registered with the event handler
   attr_accessor :missions_callbacks
 
@@ -39,5 +40,42 @@ class EventHandler < Omega::Server::EventHandler
       cb.call *args
     }
   end
-end # class EventHandler
+end # class DSL
+
+# Missions Event Handler, allows clients to match MissionEvents
+# via custom filters
+class MissionEventHandler < Omega::Server::EventHandler
+  # Filters which user may limit processed missions by
+  FILTERS = ['mission_id', 'user_id']
+
+  # Return bool inidicating if specified filters are valid
+  def self.valid_filters?(filters)
+    filters.all? { |f| FILTERS.include?(f) }
+  end
+
+  # Mission id to match
+  attr_accessor :mission_id
+
+  # Mission assigned to user to match
+  attr_accessor :user_id
+
+  def initialize(args = {})
+    attr_from_args args, :mission_id => nil,
+                         :user_id    => nil
+    super(args)
+  end
+
+  def matches?(mission_event)
+    (mission_id.nil? || mission_event.mission.id == mission_id ) &&
+    (user_id.nil?    || mission_event.mission.assigned_to_id == user_id ) &&
+    super(mission_event)
+  end
+
+  def json_data
+    super.merge({ :mission_id => mission_id,
+                  :user_id    => user_id })
+  end
+end
+
+end # module EventHandlers
 end # module Missions

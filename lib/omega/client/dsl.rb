@@ -175,16 +175,17 @@ module Omega
 
         if sys.nil?
           # require galaxy
-          raise ArgumentError, "galaxy nil" if @galaxy.nil?
+          galaxy = @galaxy || args[:galaxy]
+          raise ArgumentError, "galaxy nil" if galaxy.nil?
 
           # initialize system
-          sargs = args.merge({:id => args[:id] || gen_uuid,
-                              :name => name,
-                              :galaxy => @galaxy})
+          sargs = args.merge({:id     => args[:id] || gen_uuid,
+                              :name   => name,
+                              :galaxy => galaxy})
           sys  = Cosmos::Entities::SolarSystem.new(sargs)
 
           # create system
-          RJR::Logger.info "Creating solar system #{sys} under #{@galaxy}"
+          RJR::Logger.info "Creating solar system #{sys} under #{galaxy}"
           invoke 'cosmos::create_entity', sys
 
           # optionally create star
@@ -518,8 +519,8 @@ module Omega
       def missions_event_handler(event, handler_method, args={})
         dsl_handler = Missions::DSL::Client::EventHandler.send(handler_method,
                                                  args.merge({:event => event}))
-        handler = Missions::EventHandler.new :event_id => event,
-                                             :persist  => true
+        handler = Missions::EventHandlers::DSL.new :event_id => event,
+                                                   :persist  => true
         handler.exec dsl_handler
         handler
       end

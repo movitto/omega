@@ -611,7 +611,7 @@ module DSL
         Event.create_victory_event.call(@m, 42)
         evnt = Missions::RJR.registry.entities.first
         evnt.should be_an_instance_of(Omega::Server::Event)
-        evnt.id.should == "mission-#{@m.id}-succeeded"
+        evnt.id.should == "mission-#{@m.id}-victory"
       end
     end
   end # describe Event

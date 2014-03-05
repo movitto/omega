@@ -18,7 +18,7 @@ add_hook = proc { |handler|
                     :entity    => 'missions_hooks'
 
   # ensure valid event handler
-  raise ValidationError, handler unless handler.is_a?(Missions::EventHandler)
+  raise ValidationError, handler unless handler.is_a?(Missions::EventHandlers::DSL)
 
   # resolve missions dsl references
   Missions::DSL::Client::Proxy.resolve(:event_handler => handler)

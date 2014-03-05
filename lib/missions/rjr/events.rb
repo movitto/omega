@@ -1,21 +1,26 @@
-# users::subscribe_to, users::unsubscribe rjr definitions
+# missions::subscribe_to, missions::unsubscribe rjr definitions
 #
-# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'users/rjr/init'
+require 'missions/rjr/init'
 
-module Users::RJR
+module Missions::RJR
 
-# subscribe client to users event
-subscribe_to = proc { |event_type|
+# subscribe client to missions event
+subscribe_to = proc { |event_type, *args|
   # validate persistent transport, source node, & source/session match
   require_persistent_transport!
   require_valid_source!
-  validate_session_source! :registry => registry
+  validate_session_source! :registry => user_registry
+
+  args = args.empty? ? {} : Hash[*args]
+  valid_filters =
+    Missions::EventHandlers::MissionEventHandler.valid_filters?(args.keys)
+  raise ArgumentError, args unless valid_filters
 
   # create a new persistent event handler to send notifications back to client
-  handler = Omega::Server::EventHandler.new
+  handler = Missions::EventHandlers::MissionEventHandler.new args
   handler.endpoint_id = @rjr_headers['source_node']
   handler.persist = true
   handler.event_type  = event_type
@@ -23,25 +28,25 @@ subscribe_to = proc { |event_type|
     err = false
 
     begin
-      # require view on users_events
-      require_privilege :registry  => registry,
+      # require view on missions_events
+      require_privilege :registry  => user_registry,
                         :privilege => 'view',
-                        :entity    => 'users_events'
+                        :entity    => 'missions_events'
 
       # invoke method via rjr callback notification
-      @rjr_callback.notify 'users::event_occurred', event_type, *omega_event.event_args
+      @rjr_callback.notify 'missions::event_occurred', event_type, *omega_event.event_args
 
     rescue Omega::PermissionError => e
-      ::RJR::Logger.warn "users event #{event_type} handler permission error #{e}"
+      ::RJR::Logger.warn "missions event #{event_type} handler permission error #{e}"
       err = true
 
     rescue ::RJR::Errors::ConnectionError => e
-      ::RJR::Logger.warn "users event #{event_type} client disconnected #{e}"
+      ::RJR::Logger.warn "missions event #{event_type} client disconnected #{e}"
       err = true
       # also entity.callbacks associated w/ @rjr_headers['session_id'] ?
 
     rescue Exception => e
-      ::RJR::Logger.warn "exception during users #{event_type} callback #{e} #{e.backtrace}"
+      ::RJR::Logger.warn "exception during missions #{event_type} callback #{e} #{e.backtrace}"
       err = true
 
     ensure
@@ -70,13 +75,13 @@ subscribe_to = proc { |event_type|
 unsubscribe = proc { |event_type|
   # verify source node / session endpoint match
   require_valid_source!
-  validate_session_source! :registry => registry
+  validate_session_source! :registry => user_registry
   source_node = @rjr_headers['source_node']
 
-  # require view on users events
-  require_privilege :registry  => registry,
+  # require view on missions events
+  require_privilege :registry  => user_registry,
                     :privilege => 'view',
-                    :entity    => 'users_events'
+                    :entity    => 'missions_events'
 
   # remove registered handler
   delete_event_handler_for :event_type  => event_type,
@@ -91,8 +96,8 @@ EVENTS_METHODS = { :subscribe_to     => subscribe_to,
                    :unsubscribe      => unsubscribe }
 end
 
-def dispatch_users_rjr_events(dispatcher)
-  m = Users::RJR::EVENTS_METHODS
-  dispatcher.handle 'users::subscribe_to',     &m[:subscribe_to]
-  dispatcher.handle 'users::unsubscribe',       &m[:unsubscribe]
+def dispatch_missions_rjr_events(dispatcher)
+  m = Missions::RJR::EVENTS_METHODS
+  dispatcher.handle 'missions::subscribe_to',     &m[:subscribe_to]
+  dispatcher.handle 'missions::unsubscribe',       &m[:unsubscribe]
 end

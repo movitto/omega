@@ -1,6 +1,6 @@
 # Initialize the missions subsystem
 #
-# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'missions/registry'
@@ -9,9 +9,7 @@ require 'omega/server/dsl'
 require 'users/rjr/init'
 
 # require mission event types
-require 'missions/events/resources'
-require 'missions/events/manufactured'
-require 'missions/events/users'
+require 'missions/events'
 
 module Missions::RJR
   include Omega#::Exceptions
@@ -129,6 +127,7 @@ def dispatch_missions_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('missions/rjr/get')
   rjr.node.dispatcher.add_module('missions/rjr/assign')
   rjr.node.dispatcher.add_module('missions/rjr/hooks')
+  rjr.node.dispatcher.add_module('missions/rjr/events')
   rjr.node.dispatcher.add_module('missions/rjr/state')
   rjr.node.message_headers['source_node'] = 'missions'
 

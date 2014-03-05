@@ -1,9 +1,11 @@
 # Missions registry
 #
-# Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/server/registry'
+require 'omega/server/event'
+
 require 'missions/rjr/init'
 require 'missions/mission'
 
@@ -48,6 +50,9 @@ class Registry
 
     # perform a few sanity checks on mission / update missing attributes
     on(:added)   { |m|    check_mission(m)    if m.is_a?(Mission) }
+
+    # uniqueness checks on event handlers
+    on(:added)   { |e| sanitize_event_handlers(e) if e.kind_of?(Omega::Server::EventHandler) }
 
     # run local events
     run { run_events }

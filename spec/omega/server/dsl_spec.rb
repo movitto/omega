@@ -495,7 +495,7 @@ describe DSL do
   describe "#in_subsystem" do
     it "matches objects _not_ descending from the Omega::Server namespace" do
       n1 = Omega::Server::EventHandler.new
-      n2 = Missions::EventHandler.new
+      n2 = Missions::EventHandlers::DSL.new
       y = Users::User.new
       a = [n1,n2,y]
       a.select(&in_subsystem).should == [y]

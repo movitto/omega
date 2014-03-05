@@ -450,7 +450,7 @@ describe DSL, :rjr => true do
   describe "#missions_event_handler" do
     it "returns persistent missions event handler" do
       h = missions_event_handler 'registered_user', :on_event_create_entity
-      h.should be_an_instance_of(Missions::EventHandler)
+      h.should be_an_instance_of(Missions::EventHandlers::DSL)
       h.event_id.should == 'registered_user'
       h.persist.should be_true
     end

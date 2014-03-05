@@ -64,18 +64,24 @@ class Event
     @invoked = true
   end
 
+  # Include handlers in json data
+  def handlers_json
+    {:handlers => handlers}
+  end
+
   # Return event json data
   def json_data
     {:id        => id,
      :type      => type,
-     :timestamp => timestamp}
+     :timestamp => timestamp}.merge(handlers_json)
   end
+
 
   # Convert event to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => json_data.merge({:handlers => handlers})
+      'data'       => json_data
     }.to_json(*a)
   end
 
@@ -91,9 +97,31 @@ class Event
   end
 end # class Event
 
+# Event with built in handler
+class HandledEvent < Event
+  def initialize(args = {})
+    super(args)
+
+    @handlers.unshift proc { |e| handle_event }
+  end
+
+  private
+
+  # Handle event, override to define custom event handler
+  def handle_event
+  end
+
+  public
+
+  # Omit locally managed handler from handlers
+  def handlers_json
+    {:handlers => handlers[1..-1]}
+  end
+end
+
 # Periodic event, which automatically schedules another to be
 # run at a specified interval on execution
-class PeriodicEvent < Event
+class PeriodicEvent < HandledEvent
   # Default interval which will be set if not specified
   DEFAULT_INTERVAL = 60
 
@@ -139,21 +167,21 @@ class PeriodicEvent < Event
     attr_from_args args, :interval => DEFAULT_INTERVAL,
                          :template_event => nil
     super(args)
+  end
 
-    @handlers.unshift proc { |e| handle_event }
+  # Return periodic event json data
+  def periodic_json_data
+    {:interval       => interval,
+     :template_event => template_event}
   end
 
   # Convert event to json representation and return it
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       =>
-        json_data.merge({:interval => interval,
-                         :handlers => handlers[1..-1],
-                         :template_event => template_event})
+      'data'       => json_data.merge(periodic_json_data)
     }.to_json(*a)
   end
-
 end # class PeriodicEvent
 
 # Encapsulates a handler which to be invoked on a future event,
@@ -199,13 +227,19 @@ class EventHandler
     }
   end
 
+  # Include handlers in json data
+  def handlers_json
+    {:handlers => handlers}
+  end
+
   # Return event handler json data
   def json_data
     {:event_id    => event_id,
      :event_type  => event_type,
      :persist     => persist,
-     :endpoint_id => endpoint_id}
+     :endpoint_id => endpoint_id}.merge(handlers_json)
   end
+
 
   # Convert handler to json representation and return it
   #
@@ -222,7 +256,7 @@ class EventHandler
   def to_json(*a)
     {
       'json_class' => self.class.name,
-      'data'       => json_data.merge({:handlers => handlers})
+      'data'       => json_data
     }.to_json(*a)
   end
 
