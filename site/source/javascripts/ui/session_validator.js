@@ -48,6 +48,9 @@ Omega.UI.SessionValidator = {
     /// setup callback handlers
     this._handle_events();
 
+    /// track user events
+    this.track_user_events(this.session.user_id);
+
     if(cb) cb();
   },
 
@@ -76,8 +79,10 @@ Omega.UI.SessionValidator = {
 
   /// Helper to register handlers for all supported events
   _handle_events : function(){
-    var events = Omega.UI.CommandTracker.prototype.motel_events.concat(
-                 Omega.UI.CommandTracker.prototype.manufactured_events);
+    var events =
+      Omega.UI.CommandTracker.prototype.motel_events.
+        concat(Omega.UI.CommandTracker.prototype.manufactured_events).
+        concat(Omega.UI.CommandTracker.prototype.missions_events);
     for(var e = 0; e < events.length; e++)
       this.command_tracker.track(events[e]);
   },

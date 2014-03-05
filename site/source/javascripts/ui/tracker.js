@@ -174,5 +174,11 @@ Omega.UI.Tracker = {
   /// Stop tracking all station motel and manu callbacks
   stop_tracking_station : function(entity){
     this.node.ws_invoke('manufactured::remove_callbacks', entity.id);
+  },
+
+  /// Track user events
+  track_user_events : function(user_id){
+    this.node.ws_invoke('missions::subscribe_to', 'victory', 'user_id', user_id);
+    this.node.ws_invoke('missions::subscribe_to', 'expired', 'user_id', user_id);
   }
 };

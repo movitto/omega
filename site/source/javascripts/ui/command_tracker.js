@@ -27,6 +27,7 @@ Omega.UI.CommandTracker.prototype = {
                          'motel::changed_strategy',
                          'motel::location_stopped'],
   manufactured_events : ['manufactured::event_occurred'],
+  missions_events : ['missions::event_occurred'],
 
   /// See 'callbacks' dir for specific event handling
   _callbacks_motel_event           : Omega.Callbacks.motel,
@@ -41,13 +42,19 @@ Omega.UI.CommandTracker.prototype = {
   _callbacks_construction_failed   : Omega.Callbacks.construction_failed,
   _callbacks_partial_construction  : Omega.Callbacks.partial_construction,
   _callbacks_system_jump           : Omega.Callbacks.system_jump,
+  _callbacks_mission_victory       : Omega.Callbacks.mission_victory,
+  _callbacks_mission_expired       : Omega.Callbacks.mission_expired,
 
   /// Maps server side event notifications to local callback invokations
   _msg_received : function(evnt, event_args){
-    if(Omega.UI.CommandTracker.prototype.motel_events.indexOf(evnt) != -1){
+    var is_motel_event    = (this.motel_events.indexOf(evnt)        != -1);
+    var is_manu_event     = (this.manufactured_events.indexOf(evnt) != -1);
+    var is_missions_event = (this.missions_events.indexOf(evnt)     != -1);
+
+    if(is_motel_event){
       this._callbacks_motel_event(evnt, event_args);
 
-    }else{
+    }else if(is_manu_event){
       var mevnt = event_args[0];
       if(mevnt == 'resource_collected'){
         this._callbacks_resource_collected(evnt, event_args);
@@ -81,6 +88,15 @@ Omega.UI.CommandTracker.prototype = {
 
       }else if(mevnt == 'system_jump'){
         this._callbacks_system_jump(evnt, event_args);
+      }
+
+    }else if(is_missions_event){
+      var mevnt = event_args[0];
+      if(mevnt == 'victory'){
+        this._callbacks_mission_victory(evnt, event_args);
+
+      }else if(mevnt == 'expired'){
+        this._callbacks_mission_expired(evnt, event_args);
       }
     }
   },
