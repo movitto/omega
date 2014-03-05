@@ -32,6 +32,7 @@ subscribe_to = proc { |event_type, *args|
       require_privilege :registry  => user_registry,
                         :privilege => 'view',
                         :entity    => 'missions_events'
+      # FIXME also require view privilege on mission itself
 
       # invoke method via rjr callback notification
       @rjr_callback.notify 'missions::event_occurred', event_type, *omega_event.event_args

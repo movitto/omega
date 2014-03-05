@@ -65,7 +65,8 @@ ROLES =
                         [PRIVILEGE_VIEW, ENTITIES_UNASSIGNED_MISSIONS],
                         [PRIVILEGE_VIEW, ENTITIES_STATS],
                         [PRIVILEGE_VIEW, ENTITIES_MANUFACTURED],
-                        [PRIVILEGE_VIEW, ENTITIES_LOCATIONS]],
+                        [PRIVILEGE_VIEW, ENTITIES_LOCATIONS],
+                        [PRIVILEGE_VIEW, ENTITIES_MISSIONS_EVENTS]],
 
     # TODO pretty lax anonymous user
     :anonymous_user => [[PRIVILEGE_VIEW, ENTITIES_COSMOS],
