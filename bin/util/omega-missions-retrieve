@@ -9,10 +9,9 @@ require 'rubygems'
 require 'optparse'
 
 require 'omega'
+require 'rjr/nodes/amqp'
 
-#events        = false
-id            = nil
-
+id = nil
 optparse = OptionParser.new do |opts|
   opts.on('-h', '--help', 'Display this help screen') do
     puts opts
@@ -22,25 +21,21 @@ optparse = OptionParser.new do |opts|
   opts.on('-i', '--id ID', 'id of mission to retrieve') do |i|
     id = i
   end
-
-  #opts.on('-e', '--events', 'also retrieve mission events') do
-  #  events = true
-  #end
 end
-
 optparse.parse!
 
 RJR::Logger.log_level= ::Logger::INFO
+node    = RJR::Nodes::AMQP.new :node_id => 'omega-missions-retrieve',
+                               :broker  => 'localhost'
+user    = Users::User.new(:id => 'admin', :password => 'nimda')
+session = node.invoke('omega-queue', 'users::login', user)
+node.message_headers['session_id'] = session.id
 
-$rjr_node   = RJR::AMQPNode.new :node_id => 'omega-cosmos-retrieve', :broker => 'localhost', :keep_alive => true
-login_user = Users::User.new(:id => 'admin', :password => 'nimda')
-session    = $rjr_node.invoke_request('omega-queue', 'users::login', login_user)
-$rjr_node.message_headers['session_id'] = session.id
+missions = id.nil? ?
+           node.invoke('omega-queue', 'missions::get_missions') :
+           node.invoke('omega-queue', 'missions::get_mission', 'with_id', id)
 
-missions = id.nil? ? $rjr_node.invoke_request('omega-queue', 'missions::get_missions') :
-                     $rjr_node.invoke_request('omega-queue', 'missions::get_mission', 'with_id', id.to_s)
-
-if missions.nil?
+if missions.nil? && !id.nil?
   puts "Mission #{id} could not be found"
   exit 1
 end
@@ -48,19 +43,14 @@ end
 missions = [missions] unless missions.is_a?(Array)
 
 missions.each { |mission|
-  puts "Mission: " + mission.to_s
-  formatted = JSON.parse(mission.to_json, :create_additions => false)
+  puts "Mission: "
+  pp mission
 
   # XXX trunate long callback text
-  ['requirements', 'assignment_callbacks', 'victory_conditions',
-   'victory_callbacks', 'failure_callbacks'].each { |cb_q|
-    formatted['data'][cb_q].each { |cb|
-      cb['data']['sblock'] = cb['data']['sblock'].slice!(0, 50) + "..."
-    }
-  }
-
-  pp formatted
+  #['requirements', 'assignment_callbacks', 'victory_conditions',
+  # 'victory_callbacks', 'failure_callbacks'].each { |cb_q|
+  #  formatted['data'][cb_q].each { |cb|
+  #    cb['data']['sblock'] = cb['data']['sblock'].slice!(0, 50) + "..."
+  #  }
+  #}
 }
-
-#if events
-#end
