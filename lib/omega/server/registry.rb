@@ -378,6 +378,11 @@ module Registry
   # Skip event handlers marked as persistant
   def cleanup_event(event)
     self.safe_exec { |entities|
+      # Lookup event if user specified event id
+      event = entities.find { |e| e.is_a?(Event) &&
+                                  e.id == event     } if event.is_a?(String)
+      return if event.nil?
+
       to_remove =
         entities.select { |e|
           (e.is_a?(Event) && e.id == event.id) ||

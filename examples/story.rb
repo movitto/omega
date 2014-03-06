@@ -175,12 +175,14 @@ mission gen_uuid, :title => msn[:title],
     [Resolution.add_reward(Cosmos::Resource.new(:material_id => msn[:reward],
                                                 :quantity => 50)),
      Resolution.update_user_attributes,
-     Resolution.cleanup_events(es, 'destroyed'),
+     Resolution.cleanup_entity_events(es, 'destroyed'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(es, 'destroyed'),
+     Resolution.cleanup_entity_events(es, 'destroyed'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission]
 }
 
@@ -222,12 +224,14 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
 
   :victory_callbacks => 
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.cleanup_entity_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.cleanup_entity_events(mid + '-mining-ships', 'resource_collected'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission]
 
 # transport
@@ -253,12 +257,14 @@ mission gen_uuid, :title => "Move #{q2} of #{type}-#{name} from #{src.id} #{dst.
 
   :victory_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-ship', 'transfer'),
+     Resolution.cleanup_entity_events(mid + '-ship', 'transfer'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-ship', 'transfer'),
+     Resolution.cleanup_entity_events(mid + '-ship', 'transfer'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission]
 
 # loot
@@ -290,12 +296,14 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
 
   :victory_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-ships', 'collected_loot'),
+     Resolution.cleanup_entity_events(mid + '-ships', 'collected_loot'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission],
 
   :failure_callbacks =>
     [Resolution.update_user_attributes,
-     Resolution.cleanup_events(mid + '-ships', 'collected_loot'),
+     Resolution.cleanup_entity_events(mid + '-ships', 'collected_loot'),
+     Resolution.cleanup_expiration_event,
      Resolution.recycle_mission]
 }
 

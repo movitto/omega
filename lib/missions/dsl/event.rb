@@ -70,6 +70,7 @@ module Event
 
   def self.create_victory_event
     proc { |mission, evnt|
+      # TODO unless mission.failed?
       victory  = Missions::Events::Victory.new :mission  => mission,
                                                :registry => registry
       registry << victory

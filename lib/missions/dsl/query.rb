@@ -75,10 +75,10 @@ module Query
   end
 
   # Return bool indicating if all user entities have been destroyed
-  def self.all_user_entities_destroyed(user_id)
+  def self.entities_destroyed(filter={})
     proc { |mission|
-      entities = node.invoke('manufactured::get_entity', 'owned_by', user_id)
-      entities.none? { |e| e.alive? }
+      node.invoke('manufactured::get_entity', *filter.to_a.flatten)
+          .none? { |e| e.alive? }
     }
   end
 

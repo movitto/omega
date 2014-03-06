@@ -39,8 +39,8 @@ module Resolution
     }
   end
 
-  # Cleanup all events related to the mission
-  def self.cleanup_events(id, *evnts)
+  # Cleanup all entity events related to the mission
+  def self.cleanup_entity_events(id, *evnts)
     proc { |mission|
       entities = mission.mission_data[id]
       entities = [entities] unless entities.is_a?(Array)
@@ -54,11 +54,16 @@ module Resolution
           eid = Missions::Events::Manufactured.gen_id(entity.id, evnt)
           registry.cleanup_event(eid)
         }
-
-        # remove expiration event
-        eid = "mission-#{mission.id}-expired"
-        registry.cleanup_event(eid)
       }
+    }
+  end
+
+  # Cleanup mission expiration event
+  def self.cleanup_expiration_event
+    proc { |mission|
+      # remove expiration event
+      eid = "mission-#{mission.id}-expired"
+      registry.cleanup_event(eid)
     }
   end
 
