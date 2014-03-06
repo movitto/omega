@@ -78,6 +78,15 @@ module Resolution
     }
   end
 
+  # Mark another mission as failed
+  def self.fail_mission(mission_id)
+    proc { |mission|
+      target = registry.entity { |e| e.is_a?(Mission) && e.id == mission_id }
+      failed = Missions::Events::Failed.new :mission => target
+      registry << failed
+    }
+  end
+
 end # module Resolution
 end # Module DSL
 end # Module Missions
