@@ -6,6 +6,8 @@
 require 'rjr/common'
 require 'omega/server/command'
 
+require 'manufactured/events/entity_destroyed'
+
 module Manufactured
 module Commands
 
@@ -121,6 +123,10 @@ class Attack < Omega::Server::Command
 
       # invoke defender's 'destroyed' callbacks
       run_callbacks(@defender, 'destroyed_by', @attacker)
+
+      # Dispatch new entity_destroyed event to registry
+      event = Manufactured::Events::EntityDestroyed.new(:entity => @defender)
+      registry << event
     end
 
     # invoke attackers's 'attacked_stop' callbacks
@@ -166,7 +172,7 @@ class Attack < Omega::Server::Command
   end
 
   def remove?
-    # remove if defender is destoryed
+    # remove if defender is destroyed
     @defender.hp == 0 || !@attacker.can_attack?(@defender)
   end
 

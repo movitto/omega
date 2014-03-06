@@ -4,3 +4,4 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'manufactured/events/system_jump'
+require 'manufactured/events/entity_destroyed'

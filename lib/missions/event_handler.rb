@@ -66,6 +66,7 @@ class MissionEventHandler < Omega::Server::EventHandler
   end
 
   def matches?(mission_event)
+     mission_event.kind_of?(Missions::Events::MissionEvent) &&
     (mission_id.nil? || mission_event.mission.id == mission_id ) &&
     (user_id.nil?    || mission_event.mission.assigned_to_id == user_id ) &&
     super(mission_event)
@@ -74,6 +75,28 @@ class MissionEventHandler < Omega::Server::EventHandler
   def json_data
     super.merge({ :mission_id => mission_id,
                   :user_id    => user_id })
+  end
+end
+
+# Manufactured Event Handler, allows clients to match Manufactured Events
+# via custom filters
+class ManufacturedEventHandler < Omega::Server::EventHandler
+  # Manufactured event type to match
+  attr_accessor :manu_event_type
+
+  def initialize(args = {})
+    attr_from_args args, :manu_event_type => nil
+    super(args)
+  end
+
+  def matches?(manu_event)
+     manu_event.kind_of?(Missions::Events::Manufactured) &&
+    (manu_event_type.nil? || manu_event_type == manu_event.manu_event_type) &&
+    super(manu_event)
+  end
+
+  def json_data
+    super.merge({ :manu_event_type => manu_event_type })
   end
 end
 
