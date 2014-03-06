@@ -59,7 +59,7 @@ module Resolution
   end
 
   # Cleanup mission expiration event
-  def self.cleanup_expiration_event
+  def self.cleanup_expiration_events
     proc { |mission|
       # remove expiration event
       eid = "mission-#{mission.id}-expired"

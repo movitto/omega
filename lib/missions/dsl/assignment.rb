@@ -124,15 +124,15 @@ module Assignment
   end
 
   # Add an event to the registry for mission timeout/expiration
-  def self.schedule_expiration_event
+  def self.schedule_expiration_events
     proc { |mission|
-      registry  = Missions::RJR.registry
       timestamp = mission.assigned_time + mission.timeout
       expired   = Missions::Events::Expired.new :mission   => mission,
-                                                :timestamp => timestamp,
-                                                :registry  => registry
+                                                :timestamp => timestamp
+      failed    = Missions::Events::Failed.new  :mission   => mission,
+                                                :timestamp => timestamp
       registry << expired
-      # TODO also emit a 'failed' event
+      registry << failed
     }
   end
 
