@@ -23,7 +23,7 @@ end
 
 # Number of times a user ship was destroyed
 class UserShipsDestroyed < Users::AttributeClass
-  id           :user_ships_destoryed
+  id           :user_ships_destroyed
   description  "Number of the user's ships that were destroyed"
   callbacks    :level_up  =>
     lambda { |attr|

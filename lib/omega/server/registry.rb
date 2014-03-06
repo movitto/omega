@@ -421,6 +421,9 @@ module Registry
             # TODO introduce optional command 'graveyard' at some point
             # to store history of previously executed commands
 
+            # FIXME if command should be removed but was never run this
+            # won't catch, need to handle this case?
+
             delete { |e| e.kind_of?(Command) && # find registry cmd and
                          e.id == cmd.id      && # ensure it hasn't been
                          e.last_ran_at }        # swapped out / already deleted
