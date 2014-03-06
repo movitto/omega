@@ -51,9 +51,6 @@ class Registry
     # perform a few sanity checks on mission / update missing attributes
     on(:added)   { |m|    check_mission(m)    if m.is_a?(Mission) }
 
-    # uniqueness checks on event handlers
-    on(:added)   { |e| sanitize_event_handlers(e) if e.kind_of?(Omega::Server::EventHandler) }
-
     # run local events
     run { run_events }
   end
