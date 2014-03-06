@@ -43,7 +43,7 @@ Omega.UI.CommandTracker.prototype = {
   _callbacks_partial_construction  : Omega.Callbacks.partial_construction,
   _callbacks_system_jump           : Omega.Callbacks.system_jump,
   _callbacks_mission_victory       : Omega.Callbacks.mission_victory,
-  _callbacks_mission_expired       : Omega.Callbacks.mission_expired,
+  _callbacks_mission_failed        : Omega.Callbacks.mission_failed,
 
   /// Maps server side event notifications to local callback invokations
   _msg_received : function(evnt, event_args){
@@ -95,8 +95,8 @@ Omega.UI.CommandTracker.prototype = {
       if(mevnt == 'victory'){
         this._callbacks_mission_victory(evnt, event_args);
 
-      }else if(mevnt == 'expired'){
-        this._callbacks_mission_expired(evnt, event_args);
+      }else if(mevnt == 'failed'){
+        this._callbacks_mission_failed(evnt, event_args);
       }
     }
   },

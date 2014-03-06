@@ -179,6 +179,6 @@ Omega.UI.Tracker = {
   /// Track user events
   track_user_events : function(user_id){
     this.node.ws_invoke('missions::subscribe_to', 'victory', 'user_id', user_id);
-    this.node.ws_invoke('missions::subscribe_to', 'expired', 'user_id', user_id);
+    this.node.ws_invoke('missions::subscribe_to', 'failed',  'user_id', user_id);
   }
 };
