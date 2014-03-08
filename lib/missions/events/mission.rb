@@ -35,12 +35,8 @@ class MissionEvent < Omega::Server::HandledEvent
     [mission]
   end
 
-  # Convert event to json representation and return it
-  def to_json(*a)
-    {
-      'json_class' => self.class.name,
-      'data'       => {:mission => @mission}
-    }.to_json(*a)
+  def json_data
+    super.merge({:mission => @mission})
   end
 
   protected

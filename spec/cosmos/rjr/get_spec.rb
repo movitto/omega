@@ -38,12 +38,12 @@ module Cosmos::RJR
       s = create(:solar_system, :parent => g)
       p = create(:planet, :parent => s)
 
-      @s.node.should_receive(:invoke).
-         with('motel::get_location', 'with_id', g.id).and_call_original
-      @s.node.should_receive(:invoke).
-         with('motel::get_location', 'with_id', s.id).and_call_original
-      @s.node.should_receive(:invoke).
-         with('motel::get_location', 'with_id', p.id).and_call_original
+      [g.id, s.id, p.id].each { |id|
+        @s.node.should_receive(:invoke).
+          with('motel::get_location', 'with_id', id,
+               'children', true, 'recursive', true).and_call_original
+      }
+
       @s.node.should_receive(:invoke).at_least(:once).and_call_original
       s = @s.get_entities
     end
@@ -118,13 +118,13 @@ module Cosmos::RJR
       end
     end
 
-    context "recursive set to false" do
+    context "children set to false" do
       it "only return ids of children and child locations" do
         add_privilege @login_role, 'view', 'cosmos_entities'
         g1  = create(:galaxy)
         s1  = create(:solar_system, :galaxy => g1)
         p1  = create(:planet, :solar_system => s1)
-        r = @s.get_entities 'with_id', g1.id, 'recursive', false
+        r = @s.get_entities 'with_id', g1.id, 'children', false
         r.id.should == g1.id
         r.children.size.should == 1
         r.children.first.should == s1.id

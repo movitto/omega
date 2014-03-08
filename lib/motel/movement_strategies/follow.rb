@@ -5,6 +5,8 @@
 
 require 'motel/common'
 require 'motel/movement_strategy'
+require 'motel/movement_strategies/rotate'
+
 require 'rjr/common'
 
 module Motel

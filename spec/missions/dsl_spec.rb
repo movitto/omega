@@ -436,28 +436,29 @@ module DSL
       end
     end
 
-    describe "#schedule_expiration_event" do
+    describe "#schedule_expiration_events" do
       before(:each) do
         @m.assigned_time = 1000
         @m.timeout = 500
       end
 
       it "generates a proc" do
-        Assignment.schedule_expiration_event.should be_an_instance_of(Proc)
+        Assignment.schedule_expiration_events.should be_an_instance_of(Proc)
       end
 
       it "creates new event in local registry" do
-        Assignment.schedule_expiration_event.call(@m)
+        Assignment.schedule_expiration_events.call(@m)
         evnt = Missions::RJR.registry.entity{ |e| e.id = "mission-#{@m.id}-expired" }
         evnt.should_not be_nil
-        evnt.should be_an_instance_of(Omega::Server::Event)
+        evnt.should be_an_instance_of(Missions::Events::Expired)
         evnt.timestamp.should == @m.assigned_time + @m.timeout
       end
 
       context "event execution" do
         it "invokes mission.failed!" do
-          Assignment.schedule_expiration_event.call(@m)
+          Assignment.schedule_expiration_events.call(@m)
           evnt = Missions::RJR.registry.safe_exec{ |entities| entities.last }
+          evnt.registry = Missions::RJR.registry
           @m.should_receive(:failed!)
           evnt.handlers.first.call
         end
@@ -602,16 +603,12 @@ module DSL
         Event.create_victory_event.should be_an_instance_of(Proc)
       end
 
-      it "invokes mission.victory!" do
-        @m.should_receive(:victory!)
-        Event.create_victory_event.call(@m, 42)
-      end
-
       it "create new event in local registry" do
         Event.create_victory_event.call(@m, 42)
         evnt = Missions::RJR.registry.entities.first
-        evnt.should be_an_instance_of(Omega::Server::Event)
+        evnt.should be_an_instance_of(Missions::Events::Victory)
         evnt.id.should == "mission-#{@m.id}-victory"
+        evnt.mission.id.should == @m.id
       end
     end
   end # describe Event
@@ -929,49 +926,46 @@ module DSL
       end
     end
 
-    describe "#cleanup_events" do
+    describe "#cleanup_entity_events" do
       before(:each) do
         @sh = build(:ship)
         @m.mission_data[@sh.id] = @sh
 
         Missions::RJR.registry <<
-          Omega::Server::EventHandler.new(:event_id => "#{@sh.id}_destroyed")
+          Omega::Server::Event.new(:id => "#{@sh.id}_destroyed")
 
-        @eid = "mission-#{@m.id}-expired"
-        Missions::RJR.registry << Omega::Server::Event.new(:id => @eid)
+        Missions::RJR.registry <<
+          Omega::Server::EventHandler.new(:event_id => "#{@sh.id}_destroyed")
       end
 
       it "generates a proc" do
-        Resolution.cleanup_events(@sh.id, 'destroyed').should be_an_instance_of(Proc)
+        Resolution.cleanup_entity_events(@sh.id, 'destroyed').should be_an_instance_of(Proc)
       end
 
       it "invokes manufactured::remove_callbacks on each entity" do
         @node.should_receive(:invoke).
               with('manufactured::remove_callbacks', @sh.id)
-        Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
+        Resolution.cleanup_entity_events(@sh.id, 'destroyed').call(@m)
       end
 
       it "removes each entity/event handler" do
         @node.should_receive(:invoke)
-        Missions::RJR.registry.should_receive(:cleanup_event).
-                               with("#{@sh.id}_destroyed").
-                               and_call_original
-        Missions::RJR.registry.should_receive(:cleanup_event).
-                               once.and_call_original
         lambda{
-          Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
+          Resolution.cleanup_entity_events(@sh.id, 'destroyed').call(@m)
         }.should change{Missions::RJR.registry.entities.size}.by(-2)
+      end
+    end
+
+    describe "#cleanup_expiration_events" do
+      before(:each) do
+        @eid = "mission-#{@m.id}-expired"
+        Missions::RJR.registry << Omega::Server::Event.new(:id => @eid)
       end
 
       it "removes mission expired event" do
-        @node.should_receive(:invoke)
-        Missions::RJR.registry.should_receive(:cleanup_event).
-                               with(@eid).and_call_original
-        Missions::RJR.registry.should_receive(:cleanup_event).
-                               once.and_call_original
         lambda{
-          Resolution.cleanup_events(@sh.id, 'destroyed').call(@m)
-        }.should change{Missions::RJR.registry.entities.size}.by(-2)
+          Resolution.cleanup_expiration_events.call(@m)
+        }.should change{Missions::RJR.registry.entities.size}.by(-1)
       end
     end
 

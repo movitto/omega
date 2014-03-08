@@ -76,7 +76,6 @@ class Event
      :timestamp => timestamp}.merge(handlers_json)
   end
 
-
   # Convert event to json representation and return it
   def to_json(*a)
     {

@@ -88,6 +88,7 @@ module Cosmos::RJR
       @d.should_receive(:add_module).with('cosmos/rjr/get')
       @d.should_receive(:add_module).with('cosmos/rjr/resources')
       @d.should_receive(:add_module).with('cosmos/rjr/state')
+      @d.should_receive(:add_module).with('cosmos/rjr/interconnects')
       dispatch_cosmos_rjr_init(@d)
     end
 
