@@ -12,7 +12,10 @@ Omega.JumpGateSelectionMaterial = function(){
                                  opacity     :      0.1});
 };
 
-Omega.JumpGateSelection = function(size){
+Omega.JumpGateSelection = function(args){
+  if(!args) args = {};
+  var size = args['size'];
+
   this.tmesh = this.init_gfx(size);
 };
 
@@ -32,5 +35,5 @@ Omega.JumpGateSelection.prototype = {
 };
 
 Omega.JumpGateSelection.for_jg = function(gate){
-  return new Omega.JumpGateSelection(gate.trigger_distance/2);
+  return new Omega.JumpGateSelection({size: gate.trigger_distance/2});
 };

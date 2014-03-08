@@ -13,14 +13,22 @@
 Omega.JumpGateGfx = {
   async_gfx : 3,
 
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.JumpGate.gfx) !== 'undefined') return;
-    var gfx = {};
-    Omega.JumpGate.gfx = gfx;
+  // True/False if shared gfx are loaded
+  gfx_loaded : function(){
+    return typeof(Omega.JumpGate.gfx) !== 'undefined';
+  },
 
-    gfx.mesh_material      = new Omega.JumpGateMeshMaterial(config, event_cb);
-    gfx.lamp               = new Omega.JumpGateLamp();
-    gfx.particles          = new Omega.JumpGateParticles(config, event_cb);
+  /// Load shared graphics resources
+  load_gfx : function(config, event_cb){
+    if(this.gfx_loaded()) return;
+
+    var gfx            = {};
+    Omega.JumpGate.gfx = gfx;
+    gfx.mesh_material  = new Omega.JumpGateMeshMaterial({config: config,
+                                                         event_cb: event_cb});
+    gfx.lamp           = new Omega.JumpGateLamp();
+    gfx.particles      = new Omega.JumpGateParticles({config: config,
+                                                      event_cb: event_cb});
     gfx.selection_material = new Omega.JumpGateSelectionMaterial();
 
     Omega.JumpGateMesh.load_template(config, function(mesh){
@@ -29,8 +37,14 @@ Omega.JumpGateGfx = {
     });
   },
 
+  // True / false if local system gfx have been initialized
+  gfx_initialized : function(){
+    return this.components.length > 0;
+  },
+
+  // Intiialize local jump gate graphics
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
     this.components = [];
 
@@ -48,7 +62,8 @@ Omega.JumpGateGfx = {
     this.lamp.olamp.init_gfx();
     this.components.push(this.lamp.olamp.component);
 
-    this.particles = Omega.JumpGate.gfx.particles.clone(config, event_cb);
+    this.particles = Omega.JumpGate.gfx.particles.clone({config: config,
+                                                         event_cb: event_cb});
     this.particles.omega_entity = this;
     this.components.push(this.particles.particles.mesh);
 
@@ -58,12 +73,14 @@ Omega.JumpGateGfx = {
     this.update_gfx();
   },
 
+  // Run local jump gate graphics effects
   run_effects : function(){
     this.lamp.run_effects();
     this.particles.run_effects();
     if(this.mesh) this.mesh.run_effects();
   },
 
+  // Update local jump gate graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
 

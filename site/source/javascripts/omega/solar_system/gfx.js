@@ -35,7 +35,7 @@ Omega.SolarSystemGfx = {
     return this.components.length > 0;
   },
 
-  // Intiialize local system graphc
+  // Initialize local system graphics
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);

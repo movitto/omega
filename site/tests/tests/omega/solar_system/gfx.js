@@ -5,6 +5,7 @@ describe("Omega.SolarSystemGfx", function(){
 
   before(function(){
     system = new Omega.SolarSystem();
+    system.location = new Omega.Location({x: 50, y:60, z:-75});
   });
 
   describe("#load_gfx", function(){
@@ -28,27 +29,15 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("creates mesh for solar system", function(){
-      Omega.Test.Canvas.Entities();
       assert(Omega.SolarSystem.gfx.mesh).isOfType(Omega.SolarSystemMesh);
     });
 
     it("creates plane for solar system", function(){
-      Omega.Test.Canvas.Entities();
       assert(Omega.SolarSystem.gfx.plane).isOfType(Omega.SolarSystemPlane);
     });
   });
 
   describe("#init_gfx", function(){
-    var config;
-
-    before(function(){
-      /// preiinit using test page
-      Omega.Test.Canvas.Entities();
-
-      system.location = new Omega.Location({x: 50, y:60, z:-75});
-      config          = Omega.Config;
-    });
-
     after(function(){
       if(Omega.SolarSystem.gfx.mesh.clone.restore)
         Omega.SolarSystem.gfx.mesh.clone.restore();
@@ -59,51 +48,51 @@ describe("Omega.SolarSystemGfx", function(){
 
     it("loads system gfx", function(){
       sinon.spy(system, 'load_gfx');
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       sinon.assert.called(system.load_gfx);
     });
 
     it("clones SolarSystem mesh", function(){
       var mesh = new Omega.SolarSystemMesh();
       sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.mesh).equals(mesh);
     });
     
     it("sets omege_entity on mesh", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.mesh.omega_entity).equals(system);
     });
 
     it("sets mesh position", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("clones SolarSystem plane", function(){
-      var plane = new Omega.SolarSystemPlane({config: config});
+      var plane = new Omega.SolarSystemPlane({config: Omega.Config});
       sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(plane);
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.plane).equals(plane);
     });
 
     it("sets plane position", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("creates text for solar system", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.text).isOfType(Omega.SolarSystemText);
     });
 
     it("sets text position", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.text.text.position.toArray()).isSameAs([50, 110, -75]);
     });
     
     it("adds plane, text, particles to solar system scene components", function(){
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       assert(system.components).isSameAs([system.plane.tmesh,
                                           system.text.text,
                                           system.interconns.particles.mesh]);
@@ -111,7 +100,7 @@ describe("Omega.SolarSystemGfx", function(){
 
     it("unqueues interconnections", function(){
       sinon.stub(system.interconns, 'unqueue');
-      system.init_gfx(config);
+      system.init_gfx(Omega.Config);
       sinon.assert.calledWith(system.interconns.unqueue);
     })
   });
