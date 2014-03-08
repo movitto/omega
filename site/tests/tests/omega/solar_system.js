@@ -24,6 +24,24 @@ describe("Omega.SolarSystem", function(){
     assert(system.location.z).equals(30);
   });
 
+  describe("#child", function(){
+    it("returns solar system child w/ the specified id", function(){
+      var system = new Omega.SolarSystem();
+      var planet1 = Omega.Gen.planet();
+      var planet2 = Omega.Gen.planet();
+      system.children = [planet1, planet2];
+      assert(system.child(planet1.id)).equals(planet1);
+    });
+  });
+
+  describe("#refresh", function(){
+    //it("refreshes system from server") /// NIY
+  });
+
+  describe("#update", function(){
+    //it("updates system attributes from other"); /// NIY
+  });
+
   describe("#toJSON", function(){
     it("returns system json data", function(){
       var sys  = {id        : 'sys1',
@@ -40,6 +58,22 @@ describe("Omega.SolarSystem", function(){
       sys.location    = sys.location.toJSON();
       sys.children[0] = sys.children[0].toJSON();
       assert(json).isSameAs(sys);
+    });
+  });
+
+  describe("#title", function(){
+    describe("name is set", function(){
+      it("returns name", function(){
+        var system = new Omega.SolarSystem({name : 'system1'});
+        assert(system.title()).equals('system1');
+      });
+    });
+
+    describe("name is not set", function(){
+      it("returns id", function(){
+        var system = new Omega.SolarSystem({id : 'system1'});
+        assert(system.title()).equals('system1');
+      });
     });
   });
 
@@ -71,6 +105,21 @@ describe("Omega.SolarSystem", function(){
       var system = new Omega.SolarSystem({children : [star1, jg1, jg2]})
       assert(system.jump_gates()).isSameAs([jg1, jg2]);
     });
+  });
+
+  describe("#has_gate_to", function(){
+    describe("system has gate to specified endpoint", function(){
+      //it("returns true");  NIY
+    });
+
+    describe("system does not have gate to specified endpoint", function(){
+      //it("returns false");  NIY
+    });
+  });
+
+  describe("#add_gate_to", function(){
+    //it("adds child jump gate to specified endpoint")  NIY
+    //it("adds interconnection to endpoint")  NIY
   });
 
   describe("#update_children_from", function(){
@@ -112,119 +161,14 @@ describe("Omega.SolarSystem", function(){
     });
   });
 
-  describe("#load_gfx", function(){
-    describe("graphics are initialized", function(){
-      var orig;
-
-      before(function(){
-        orig = Omega.SolarSystem.gfx;
-      })
-
-      after(function(){
-        Omega.SolarSystem.gfx = orig;
-      });
-
-      it("does nothing / just returns", function(){
-        Omega.SolarSystem.gfx = {mesh : null};
-        new Omega.SolarSystem().load_gfx();
-        assert(Omega.SolarSystem.gfx.mesh).isNull();
-      });
-    });
-
-    it("creates mesh for solar system", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.SolarSystem.gfx.mesh).isOfType(Omega.SolarSystemMesh);
-    });
-
-    it("creates plane for solar system", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.SolarSystem.gfx.plane).isOfType(Omega.SolarSystemPlane);
-    });
+  describe("on_hover", function(){
+    //it("reloads system in scene"); NIY
+    //it("adds hover sphere to system scene compoents"); NIY
   });
 
-  describe("#init_gfx", function(){
-    var system, config;
-
-    before(function(){
-      /// preiinit using test page
-      Omega.Test.Canvas.Entities();
-
-      system          = new Omega.SolarSystem();
-      system.location = new Omega.Location({x: 50, y:60, z:-75});
-      config          = Omega.Config;
-    });
-
-    after(function(){
-      if(Omega.SolarSystem.gfx){
-        if(Omega.SolarSystem.gfx.mesh.clone.restore)
-          Omega.SolarSystem.gfx.mesh.clone.restore();
-
-        if(Omega.SolarSystem.gfx.plane.clone.restore)
-          Omega.SolarSystem.gfx.plane.clone.restore();
-      }
-    });
-
-    it("loads system gfx", function(){
-      sinon.spy(system, 'load_gfx');
-      system.init_gfx(config);
-      sinon.assert.called(system.load_gfx);
-    });
-
-    it("clones SolarSystem mesh", function(){
-      var mesh = new Omega.SolarSystemMesh();
-      sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
-      system.init_gfx(config);
-      assert(system.mesh).equals(mesh);
-    });
-    
-    it("sets omege_entity on mesh", function(){
-      system.init_gfx(config);
-      assert(system.mesh.omega_entity).equals(system);
-    });
-
-    it("sets mesh position", function(){
-      system.init_gfx(config);
-      assert(system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
-    });
-
-    it("clones SolarSystem plane", function(){
-      var plane = new Omega.SolarSystemPlane({config: config});
-      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(plane);
-      system.init_gfx(config);
-      assert(system.plane).equals(plane);
-    });
-
-    it("sets plane position", function(){
-      system.init_gfx(config);
-      assert(system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
-    });
-
-    it("creates text for solar system", function(){
-      system.init_gfx(config);
-      assert(system.text).isOfType(Omega.SolarSystemText);
-    });
-
-    it("sets text position", function(){
-      system.init_gfx(config);
-      assert(system.text.text.position.toArray()).isSameAs([50, 110, -75]);
-    });
-    
-    it("adds plane, text, particles to solar system scene components", function(){
-      system.init_gfx(config);
-      assert(system.components).isSameAs([system.plane.tmesh,
-                                          system.text.text,
-                                          system.interconns.particles.mesh]);
-    });
-
-    it("unqueues interconnections", function(){
-      sinon.stub(system.interconns, 'unqueue');
-      system.init_gfx(config);
-      sinon.assert.calledWith(system.interconns.unqueue);
-    })
-  });
-
-  describe("#run_effects", function(){
-    //it("updates interconnect particles") // NIY
+  describe("on_unhover", function(){
+    //it("reloads system in scene"); NIY
+    //it("removes hover sphere from system scene compoents"); NIY
   });
 
   describe("#with_id", function(){

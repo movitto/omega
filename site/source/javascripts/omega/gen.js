@@ -165,6 +165,26 @@ Omega.Gen = {
     return new Omega.SolarSystem(opts);
   },
 
+  planet_ms : function(){
+    return {e : 0, p : 10, speed: 1.57,
+            dmajx: 0, dmajy : 1, dmajz : 0,
+            dminx: 0, dminy : 0, dminz : 1};
+  },
+
+  planet : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'planet' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.movement_strategy)
+      opts.location.movement_strategy = this.planet_ms();
+
+    return new Omega.Planet(opts);
+  },
+
   /// emits a specified command via the cmd tracker
   command : function(cmd_tracker, evnt, other_args){
     var args = [evnt].concat(other_args);

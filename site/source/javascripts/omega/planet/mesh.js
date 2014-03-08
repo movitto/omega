@@ -4,29 +4,50 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.PlanetMesh = function(config, color, event_cb){
-  if(config && event_cb && (typeof(color) != "undefined"))
+Omega.PlanetMesh = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var color    = args['color'];
+  var event_cb = args['event_cb'];
+  var tmesh    = args['tmesh'];
+
+  if(config && typeof(color) !== "undefined")
     this.tmesh = this.init_gfx(config, color, event_cb);
-  if(this.tmesh) this.tmesh.omega_obj = this;
+  else if(tmesh)
+    this.tmesh = tmesh;
+
+  if(this.tmesh)
+    this.tmesh.omega_obj = this;
 
   this.spin_angle = 0;
 };
 
 Omega.PlanetMesh.prototype = {
+  props : {
+    radius : 75, segments : 32, rings : 32
+  },
+
+  valid : function(){
+    return this.tmesh != null;
+  },
+
   clone : function(){
-    var pmesh   = new Omega.PlanetMesh();
-    if(this.tmesh) pmesh.tmesh = this.tmesh.clone();
-    if(pmesh.tmesh) pmesh.tmesh.omega_obj = pmesh;
-    return pmesh;
+    return new Omega.PlanetMesh({tmesh : this.tmesh.clone()});
+  },
+
+  _geometry : function(){
+    return new THREE.SphereGeometry(this.props.radius,
+                                    this.props.segments,
+                                    this.props.rings);
+  },
+
+  _material : function(config, color, event_cb){
+    return Omega.PlanetMaterial.load(config, color, event_cb);
   },
 
   init_gfx : function(config, color, event_cb){
-    var radius   = 75,
-        segments = 32,
-        rings    = 32;
-    var geo = new THREE.SphereGeometry(radius, segments, rings);
-    var mat = Omega.PlanetMaterial.load(config, color, event_cb);
-    return new THREE.Mesh(geo, mat);
+    return new THREE.Mesh(this._geometry(),
+                          this._material(config, color, event_cb));
   },
 
   _spin_axis : function(){

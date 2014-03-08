@@ -13,8 +13,15 @@
 Omega.SolarSystemGfx = {
   async_gfx : 2,
 
+  // True/False if shared gfx are loaded
+  gfx_loaded : function(){
+    return typeof(Omega.SolarSystem.gfx) !== 'undefined';
+  },
+
+  /// Load shared graphics resources
   load_gfx : function(config, event_cb){
-    if(typeof(Omega.SolarSystem.gfx) !== 'undefined') return;
+    if(this.gfx_loaded()) return;
+
     var gfx = {};
     gfx.mesh              = new Omega.SolarSystemMesh();
     gfx.plane             = new Omega.SolarSystemPlane({config:   config,
@@ -23,10 +30,12 @@ Omega.SolarSystemGfx = {
     Omega.SolarSystem.gfx = gfx;
   },
 
+  // True / false if local system gfx have been initialized
   gfx_initialized : function(){
     return this.components.length > 0;
   },
 
+  // Intiialize local system graphc
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
@@ -50,6 +59,7 @@ Omega.SolarSystemGfx = {
     this.update_gfx();
   },
 
+  // Update local system graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
     if(this.mesh)  this.mesh.update();
@@ -57,6 +67,7 @@ Omega.SolarSystemGfx = {
     if(this.text)  this.text.update();
   },
 
+  // Run local system graphics effects
   run_effects : function(){
     this.interconns.run_effects();
   }

@@ -5,32 +5,45 @@
  */
 
 /// Line used to render and entity's orbit
-Omega.OrbitLine = function(orbit, color){
-  if(!color) color = 0xAAAAAA;
+Omega.OrbitLine = function(args){
+  if(!args) args = {};
+  var orbit = args['orbit'];
+  var color = args['color'] || this.default_color;
+  this.init_gfx(orbit, color)
+};
 
-  var orbit_geo = new THREE.Geometry();
-  var first = null, last = null;
-  for(var o = 1; o < orbit.length; o++){
-    var corbit  = orbit[o];
-    var corbitv = new THREE.Vector3(corbit[0], corbit[1], corbit[2]);
-    last = corbitv;
+Omega.OrbitLine.prototype = {
+  default_color : 0xAAAAAA,
 
-    var porbit  = orbit[o-1];
-    var porbitv = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
-    if(first == null) first = porbitv;
-      
-    orbit_geo.vertices.push(corbitv);
-    orbit_geo.vertices.push(porbitv);
+  _geometry : function(orbit){
+    var orbit_geo = new THREE.Geometry();
+    var first = null, last = null;
+    for(var o = 1; o < orbit.length; o++){
+      var corbit  = orbit[o];
+      var corbitv = new THREE.Vector3(corbit[0], corbit[1], corbit[2]);
+      last = corbitv;
+
+      var porbit  = orbit[o-1];
+      var porbitv = new THREE.Vector3(porbit[0], porbit[1], porbit[2]);
+      if(first == null) first = porbitv;
+
+      orbit_geo.vertices.push(corbitv);
+      orbit_geo.vertices.push(porbitv);
+    }
+
+    orbit_geo.vertices.push(first);
+    orbit_geo.vertices.push(last);
+    return orbit_geo;
+  },
+
+  _material : function(color){
+    return new THREE.LineBasicMaterial({color: color})
+  },
+
+  init_gfx : function(orbit, color){
+    this.line = new THREE.Line(this._geometry(orbit), this._material(color));
   }
-
-  orbit_geo.vertices.push(first);
-  orbit_geo.vertices.push(last);
-
-  var orbit_material =
-    new THREE.LineBasicMaterial({color: color})
-  var line = new THREE.Line(orbit_geo, orbit_material);
-  this.line = line;
-}
+};
 
 /// Mixin adding helper methods to assist w/ orbits
 Omega.OrbitHelpers = {
@@ -123,7 +136,7 @@ Omega.OrbitHelpers = {
   },
 
   _has_orbit_line : function(){
-    return this.orbit_line && this.components.indexOf(this.orbit_line.line) == -1;
+    return this.orbit_line && (this.components.indexOf(this.orbit_line.line) != -1);
   },
 
   _add_orbit_line : function(color){

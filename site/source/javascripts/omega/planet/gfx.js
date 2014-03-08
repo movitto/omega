@@ -9,24 +9,39 @@
 // Planet Gfx Mixin
 
 Omega.PlanetGfx = {
-  /// TODO: centralize number of planet textures / move configurable
+  /// TODO: centralize number of planet textures / make configurable
   _num_textures : 4,
 
   async_gfx : 1,
 
-  load_gfx : function(config, event_cb){
+  /// True/False if shared gfx are loaded
+  gfx_loaded : function(){
     var colori = this.colori();
+    return typeof(Omega.Planet.gfx)         !== 'undefined' &&
+           typeof(Omega.Planet.gfx[colori]) !== 'undefined';
+  },
 
-    if(typeof(Omega.Planet.gfx) === 'undefined') Omega.Planet.gfx = {};
-    if(typeof(Omega.Planet.gfx[colori]) !== 'undefined') return;
-    var gfx = {};
+  /// Load shared graphics resources
+  load_gfx : function(config, event_cb){
+    if(this.gfx_loaded()) return;
+    Omega.Planet.gfx         = Omega.Planet.gfx || {};
+    var colori               = this.colori();
 
-    gfx.mesh = new Omega.PlanetMesh(config, colori, event_cb);
+    var gfx                  = {};
+    gfx.mesh                 = new Omega.PlanetMesh({config: config,
+                                                     color: colori,
+                                                     event_cb: event_cb});
     Omega.Planet.gfx[colori] = gfx;
   },
 
+  /// True / false if local system gfx have been initialized
+  gfx_initialized : function(){
+    return this.components.length > 0;
+  },
+
+  /// Intiialize local system graphc
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
     var color = this.colori();
@@ -37,16 +52,18 @@ Omega.PlanetGfx = {
     this.update_gfx();
 
     this._calc_orbit();
-    this.orbit_line = new Omega.OrbitLine(this.orbit);
+    this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.components = [this.mesh.tmesh, this.orbit_line.line];
   },
 
+  /// Update local system graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
     if(this.mesh) this.mesh.update();
   },
 
+  /// Run local system graphics effects
   /// TODO optimize
   run_effects : function(){
     var ms   = this.location.movement_strategy;

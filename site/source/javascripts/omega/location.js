@@ -58,6 +58,9 @@ Omega.Location.prototype = {
     }
   },
 
+  /// Alias for movement_strategy
+  ms : function(){ return this.movement_strategy; },
+
   /// Set coordinates,
   /// - accepts each coordinate as an individual param: loc.set(1,2,3)
   /// - or a single param w/ array of coordinates: loc.set([1,2,3])
