@@ -5,7 +5,7 @@
   <link rel="stylesheet" href="http://localhost/omega-test/stylesheets/vendor/qunit-git.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="http://localhost/omega-test/stylesheets/test.css" type="text/css" media="screen" />
 
-  <!-- qunit/pavlov/sinon -->
+  <!-- qunit/pavlov/sinon/rosie -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/qunit-git.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/pavlov.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/vendor/sinon-1.7.3.js"></script>
@@ -51,11 +51,34 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/session_validator.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/common.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/config.js"></script>
+
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/node.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/location.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/resource.js"></script>
+
+  <!-- omega ui -->
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_tracker.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/status_indicator.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls_list.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/entity_container.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/skybox.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/axis.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/star_dust.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/lamp.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/progress_bar.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/orbit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/effects_player.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio/click.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio_controls.js"></script>
+
+  <!-- omega entities -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/particles.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/density_wave.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/gfx.js"></script>
@@ -129,26 +152,6 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/resource_collected.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/system_jump.js"></script>
 
-  <!-- omega ui -->
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_tracker.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/status_indicator.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls_list.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/entity_container.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/skybox.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/axis.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/star_dust.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/lamp.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/progress_bar.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/orbit.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/effects_player.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio/click.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio_controls.js"></script>
-
   <!-- omega pages -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/splash.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/pages/index_nav.js"></script>
@@ -171,6 +174,10 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/location.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/mission.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/galaxy.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/solar_system/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/solar_system/plane.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/solar_system/text.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/solar_system/interconn.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/solar_system.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/planet.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/jump_gate.js"></script>

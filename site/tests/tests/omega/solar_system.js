@@ -88,13 +88,27 @@ describe("Omega.SolarSystem", function(){
   });
 
   describe("#clicked_in", function(){
-    it("sets canvas scene root", function(){
-      var canvas = new Omega.UI.Canvas();
-      var set_scene_root = sinon.stub(canvas, 'set_scene_root');
+    var system, canvas;
 
-      var system = new Omega.SolarSystem();
+    before(function(){
+      system = new Omega.SolarSystem();
+      canvas = new Omega.UI.Canvas();
+      canvas.page = Omega.Test.Page();
+    });
+
+    it("refreshes the system", function(){
+      sinon.stub(system, 'refresh');
       system.clicked_in(canvas);
-      sinon.assert.calledWith(set_scene_root, system);
+      sinon.assert.calledWith(system.refresh,
+          canvas.page.node, sinon.match.func);
+    });
+
+    it("sets canvas scene root", function(){
+      sinon.stub(system, 'refresh');
+      sinon.stub(canvas, 'set_scene_root');
+      system.clicked_in(canvas);
+      system.refresh.omega_callback()();
+      sinon.assert.calledWith(canvas.set_scene_root, system);
     });
   });
 
@@ -120,103 +134,92 @@ describe("Omega.SolarSystem", function(){
     it("creates mesh for solar system", function(){
       Omega.Test.Canvas.Entities();
       assert(Omega.SolarSystem.gfx.mesh).isOfType(Omega.SolarSystemMesh);
-      assert(Omega.SolarSystem.gfx.mesh.tmesh).isOfType(THREE.Mesh);
-      assert(Omega.SolarSystem.gfx.mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
-      assert(Omega.SolarSystem.gfx.mesh.tmesh.material).isOfType(THREE.MeshBasicMaterial);
     });
 
     it("creates plane for solar system", function(){
       Omega.Test.Canvas.Entities();
       assert(Omega.SolarSystem.gfx.plane).isOfType(Omega.SolarSystemPlane);
-      assert(Omega.SolarSystem.gfx.plane.tmesh).isOfType(THREE.Mesh);
-      assert(Omega.SolarSystem.gfx.plane.tmesh.geometry).isOfType(THREE.PlaneGeometry);
-      assert(Omega.SolarSystem.gfx.plane.tmesh.material).isOfType(THREE.MeshBasicMaterial);
     });
   });
 
   describe("#init_gfx", function(){
+    var system, config;
+
     before(function(){
       /// preiinit using test page
       Omega.Test.Canvas.Entities();
+
+      system          = new Omega.SolarSystem();
+      system.location = new Omega.Location({x: 50, y:60, z:-75});
+      config          = Omega.Config;
     });
 
     after(function(){
       if(Omega.SolarSystem.gfx){
-        if(Omega.SolarSystem.gfx.mesh.clone.restore) Omega.SolarSystem.gfx.mesh.clone.restore();
-        if(Omega.SolarSystem.gfx.plane.clone.restore) Omega.SolarSystem.gfx.plane.clone.restore();
+        if(Omega.SolarSystem.gfx.mesh.clone.restore)
+          Omega.SolarSystem.gfx.mesh.clone.restore();
+
+        if(Omega.SolarSystem.gfx.plane.clone.restore)
+          Omega.SolarSystem.gfx.plane.clone.restore();
       }
     });
 
-    it("loads galaxy gfx", function(){
-      var solar_system = new Omega.SolarSystem();
-      var load_gfx  = sinon.spy(solar_system, 'load_gfx');
-      solar_system.init_gfx();
-      sinon.assert.called(load_gfx);
+    it("loads system gfx", function(){
+      sinon.spy(system, 'load_gfx');
+      system.init_gfx(config);
+      sinon.assert.called(system.load_gfx);
     });
 
     it("clones SolarSystem mesh", function(){
-      var solar_system = new Omega.SolarSystem();
-      var mesh = new THREE.Mesh();
+      var mesh = new Omega.SolarSystemMesh();
       sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
-      solar_system.init_gfx();
-      assert(solar_system.mesh).equals(mesh);
+      system.init_gfx(config);
+      assert(system.mesh).equals(mesh);
     });
     
     it("sets omege_entity on mesh", function(){
-      var solar_system = new Omega.SolarSystem();
-      solar_system.init_gfx();
-      assert(solar_system.mesh.omega_entity).equals(solar_system);
+      system.init_gfx(config);
+      assert(system.mesh.omega_entity).equals(system);
     });
 
     it("sets mesh position", function(){
-      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
-      solar_system.init_gfx();
-      assert(solar_system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
+      system.init_gfx(config);
+      assert(system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("clones SolarSystem plane", function(){
-      var solar_system = new Omega.SolarSystem();
-      var mesh = new THREE.Mesh();
-      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(mesh);
-      solar_system.init_gfx();
-      assert(solar_system.plane).equals(mesh);
+      var plane = new Omega.SolarSystemPlane({config: config});
+      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(plane);
+      system.init_gfx(config);
+      assert(system.plane).equals(plane);
     });
 
     it("sets plane position", function(){
-      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
-      solar_system.init_gfx();
-      assert(solar_system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
+      system.init_gfx(config);
+      assert(system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("creates text for solar system", function(){
-      var solar_system = new Omega.SolarSystem();
-      solar_system.init_gfx();
-      assert(solar_system.text).isOfType(Omega.SolarSystemText);
-      assert(solar_system.text.text).isOfType(THREE.Mesh);
-      assert(solar_system.text.text.geometry).isOfType(THREE.TextGeometry);
-      assert(solar_system.text.text.material).isOfType(THREE.MeshBasicMaterial);
+      system.init_gfx(config);
+      assert(system.text).isOfType(Omega.SolarSystemText);
     });
 
     it("sets text position", function(){
-      var solar_system = new Omega.SolarSystem({location : new Omega.Location({x: 50, y: 60, z: -75})});
-      solar_system.init_gfx();
-      assert(solar_system.text.text.position.toArray()).isSameAs([50, 110, -75]);
+      system.init_gfx(config);
+      assert(system.text.text.position.toArray()).isSameAs([50, 110, -75]);
     });
     
-    it("adds mesh, plane, text to solar system scene components", function(){
-      var solar_system = new Omega.SolarSystem();
-      solar_system.init_gfx();
-      assert(solar_system.components).isSameAs([solar_system.plane.tmesh,
-                                                solar_system.text.text]);
+    it("adds plane, text, particles to solar system scene components", function(){
+      system.init_gfx(config);
+      assert(system.components).isSameAs([system.plane.tmesh,
+                                          system.text.text,
+                                          system.interconns.particles.mesh]);
     });
 
-    it("invokes add_interconnect with queued interconnections", function(){
-      var solar_system = new Omega.SolarSystem({location : new Omega.Location()});
-      var endpoint = new Omega.SolarSystem({location : new Omega.Location()});
-      solar_system._queued_interconns = [endpoint]
-      var add_interconn = sinon.spy(solar_system, 'add_interconn');
-      solar_system.init_gfx();
-      sinon.assert.calledWith(add_interconn, endpoint);
+    it("unqueues interconnections", function(){
+      sinon.stub(system.interconns, 'unqueue');
+      system.init_gfx(config);
+      sinon.assert.calledWith(system.interconns.unqueue);
     })
   });
 
@@ -224,83 +227,39 @@ describe("Omega.SolarSystem", function(){
     //it("updates interconnect particles") // NIY
   });
 
-  describe("#add_interconn", function(){
-    var system, endpoint;
-    
-    before(function(){
-      Omega.Test.Canvas.Entities();
-      system   = new Omega.SolarSystem({location : new Omega.Location({x:100,y:200,z:300}),
-                                        components : [new THREE.Mesh()]});
-      endpoint = new Omega.SolarSystem({location : new Omega.Location({x:-300,y:-200,z:-100})});
-    });
-
-    describe("system gfx components not initialized", function(){
-      it("adds line to queued interconns", function(){
-        system.components = [];
-        system.add_interconn(endpoint);
-        assert(system._queued_interconns).isSameAs([endpoint]);
-        assert(system.components.length).equals(0);
-      });
-    });
-
-    it("adds line to solar system scene components", function(){
-      system.add_interconn(endpoint);
-      var line = system.components[1];
-      assert(line).isOfType(THREE.Line);
-      assert(line.geometry.vertices[0].toArray()).isSameAs([100,200,300]);
-      assert(line.geometry.vertices[1].toArray()).isSameAs([-300,-200,-100]);
-      assert(line.material).isOfType(THREE.LineBasicMaterial);
-    });
-
-    it("adds particle system to solar system scene components and interconnects", function(){
-      system.add_interconn(endpoint);
-      var particles = system.components[2];
-      assert(particles).isOfType(THREE.ParticleSystem);
-      assert(particles.material).isOfType(THREE.ParticleBasicMaterial);
-      assert(particles.geometry.vertices.length).equals(1);
-      assert(particles.ticker).equals(0);
-      assert(system.interconnections).isSameAs([particles]);
-    });
-
-    it("sets dx/dy/dz/ticks on particle system", function(){
-      system.add_interconn(endpoint);
-      var particles = system.components[2];
-      var d = system.location.distance_from(endpoint.location);
-      var dx = (endpoint.location.x - system.location.x) / d;
-      var dy = (endpoint.location.y - system.location.y) / d;
-      var dz = (endpoint.location.z - system.location.z) / d;
-
-      assert(particles.dx).equals(dx);
-      assert(particles.dy).equals(dy);
-      assert(particles.dz).equals(dz);
-      assert(particles.ticks).equals(d/50);
-    });
-  });
-
   describe("#with_id", function(){
-    var node, retrieval_cb, invoke_spy;
+    var node, retrieval_cb;
 
     before(function(){
       node = new Omega.Node();
       retrieval_cb = sinon.spy();
-      invoke_spy = sinon.stub(node, 'http_invoke');
+      sinon.stub(node, 'http_invoke');
     });
 
     it("invokes cosmos::get_entity request", function(){
       Omega.SolarSystem.with_id('system1', node, retrieval_cb);
-      sinon.assert.calledWith(invoke_spy, 'cosmos::get_entity', 'with_id', 'system1');
+      sinon.assert.calledWith(node.http_invoke,
+        'cosmos::get_entity', 'with_id', 'system1', 'children', false);
+    });
+
+    it("passes children arg onto cosmos::get_entity", function(){
+      Omega.SolarSystem.with_id('system1', node, {children : true},
+                                retrieval_cb);
+      sinon.assert.calledWith(node.http_invoke,
+        'cosmos::get_entity', 'with_id', 'system1',
+        'children', true, sinon.match.func);
     });
 
     describe("cosmos::get_entity callback", function(){
       it("invokes callback", function(){
         Omega.SolarSystem.with_id('system1', node, retrieval_cb);
-        invoke_spy.getCall(0).args[3]({});
+        node.http_invoke.omega_callback()({});
         sinon.assert.called(retrieval_cb);
       });
 
       it("creates new system instance", function(){
         Omega.SolarSystem.with_id('system1', node, retrieval_cb);
-        invoke_spy.getCall(0).args[3]({result : {id:'sys1'}});
+        node.http_invoke.omega_callback()({result : {id:'sys1'}});
         var system = retrieval_cb.getCall(0).args[0];
         assert(system).isOfType(Omega.SolarSystem);
         assert(system.id).equals('sys1');

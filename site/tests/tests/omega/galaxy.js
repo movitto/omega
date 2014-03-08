@@ -153,29 +153,42 @@ describe("Omega.Galaxy", function(){
   });
 
   describe("#with_id", function(){
-    var node, retrieval_cb, invoke_spy;
+    var node, retrieval_cb;
 
     before(function(){
       node = new Omega.Node();
       retrieval_cb = sinon.spy();
-      invoke_spy = sinon.stub(node, 'http_invoke');
+      sinon.stub(node, 'http_invoke');
     });
 
     it("invokes cosmos::get_entity request", function(){
       Omega.Galaxy.with_id('galaxy1', node, retrieval_cb);
-      sinon.assert.calledWith(invoke_spy, 'cosmos::get_entity', 'with_id', 'galaxy1');
+      sinon.assert.calledWith(node.http_invoke,
+        'cosmos::get_entity', 'with_id', 'galaxy1',
+        'children', false, 'recursive', false,
+        sinon.match.func);
+    });
+
+    it("passes children and recursive arguments onto cosmos::get_entity", function(){
+      Omega.Galaxy.with_id('galaxy1', node,
+                           {children : true, recursive : true},
+                           retrieval_cb);
+      sinon.assert.calledWith(node.http_invoke,
+        'cosmos::get_entity', 'with_id', 'galaxy1',
+        'children', true, 'recursive', true,
+        sinon.match.func);
     });
 
     describe("cosmos::get_entity callback", function(){
       it("invokes callback", function(){
         Omega.Galaxy.with_id('galaxy1', node, retrieval_cb);
-        invoke_spy.getCall(0).args[3]({});
+        node.http_invoke.omega_callback()({});
         sinon.assert.called(retrieval_cb);
       });
 
       it("creates new galaxy instance", function(){
         Omega.Galaxy.with_id('galaxy1', node, retrieval_cb);
-        invoke_spy.getCall(0).args[3]({result : {id:'gal1'}});
+        node.http_invoke.omega_callback()({result : {id:'gal1'}});
         var galaxy = retrieval_cb.getCall(0).args[0];
         assert(galaxy).isOfType(Omega.Galaxy);
         assert(galaxy.id).equals('gal1');

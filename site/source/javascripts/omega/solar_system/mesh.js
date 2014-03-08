@@ -4,14 +4,19 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.SolarSystemMesh = function(mesh){
-  this.tmesh = mesh ? mesh : this.init_gfx();
+Omega.SolarSystemMesh = function(args){
+  if(!args) args = {};
+  this.tmesh = args['tmesh'] || this.init_gfx();
   this.tmesh.omega_obj = this;
 };
 
 Omega.SolarSystemMesh.prototype = {
+  valid : function(){
+    return this.tmesh != null;
+  },
+
   clone : function(){
-    return new Omega.SolarSystemMesh(this.tmesh.clone());
+    return new Omega.SolarSystemMesh({tmesh : this.tmesh.clone()});
   },
 
   update : function(){

@@ -16,14 +16,19 @@ Omega.SolarSystemGfx = {
   load_gfx : function(config, event_cb){
     if(typeof(Omega.SolarSystem.gfx) !== 'undefined') return;
     var gfx = {};
-    gfx.mesh               = new Omega.SolarSystemMesh();
-    gfx.plane              = new Omega.SolarSystemPlane(config, event_cb);
-    gfx.text_material      = new Omega.SolarSystemTextMaterial();
+    gfx.mesh              = new Omega.SolarSystemMesh();
+    gfx.plane             = new Omega.SolarSystemPlane({config:   config,
+                                                        event_cb: event_cb});
+    gfx.text_material     = new Omega.SolarSystemTextMaterial();
     Omega.SolarSystem.gfx = gfx;
   },
 
+  gfx_initialized : function(){
+    return this.components.length > 0;
+  },
+
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
     this.mesh = Omega.SolarSystem.gfx.mesh.clone();

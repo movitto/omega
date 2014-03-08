@@ -9,8 +9,8 @@
 //////////////////////////////// helper methods/data
 
 Omega.Pages.Test = function(parameters){
-  this.entities = {};
   this.config  = Omega.Config;
+  this.node    = new Omega.Node(this.config);
   $.extend(this, parameters);
 }
 
@@ -256,6 +256,18 @@ pavlov.specify.extendAssertions({
     ok(check, message);
   }
 })
+
+//////////////////////////////// sinon.spy helper
+
+/// Custom extension to sinon.spy returning the omega callback passed to it.
+/// Assumes the callback is the last function argument passed in
+sinon.spy.omega_callback = function(){
+  var args = this.getCall(0).args;
+  for(var a = args.length - 1; a >= 0; a--)
+    if(typeof(args[a]) === "function")
+      return args[a];
+  return null;
+};
 
 //////////////////////////////// custom matchers
 

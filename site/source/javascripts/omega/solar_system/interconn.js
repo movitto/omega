@@ -89,7 +89,7 @@ Omega.SolarSystemInterconns.prototype = {
   add : function(endpoint){
     var entity = this.omega_entity;
 
-    if(entity.components.length == 0){
+    if(!entity.gfx_initialized()){
       this._queue(endpoint);
       return;
     }
