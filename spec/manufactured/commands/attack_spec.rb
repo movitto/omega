@@ -183,6 +183,8 @@ describe Attack, :rjr => true do
         @a.last_hook
       end
 
+      it "adds new entity destroyed event to registry"
+
       context "defender has cargo" do
         before(:each) do
           @r1 = build(:resource, :quantity => 50)
@@ -192,29 +194,28 @@ describe Attack, :rjr => true do
         end
 
         it "creates loot" do
-          lid = nil
-          @registry.should_receive(:<<).
-                    with{ |l|
-                      l.should be_an_instance_of(Manufactured::Loot)
-                      l.id.should == "#{@e2.id}-loot"
-                      (l.location - @e2.location).should == 0
-                      l.system_id.should == @e2.system_id
-                      l.location.movement_strategy.should ==
-                        Motel::MovementStrategies::Stopped.instance
-                      l.cargo_capacity.should == @e2.cargo_capacity
-                      l.resources.size.should == 2
-                      l.resources[0].id.should == @r1.id
-                      l.resources[0].material_id.should == @r1.material_id
-                      l.resources[0].quantity.should == 50
-                      l.resources[0].entity_id.should == l.id
-                      l.resources[1].id.should == @r2.id
-                      l.resources[1].material_id.should == @r2.material_id
-                      l.resources[1].quantity.should == 50
-                      l.resources[1].entity_id.should == l.id
-                      lid = l.id
-                    }.and_call_original
-          @a.last_hook
-          @registry.entity{ |e| e.id == lid}.should_not be_nil
+          lambda{
+            @a.last_hook
+          }.should change{@registry.entities.size}.by(2)
+
+          l = @registry.entities[-2]
+          l.should be_an_instance_of(Manufactured::Loot)
+          l.id.should == "#{@e2.id}-loot"
+          (l.location - @e2.location).should == 0
+          l.system_id.should == @e2.system_id
+          l.location.movement_strategy.should ==
+            Motel::MovementStrategies::Stopped.instance
+          l.cargo_capacity.should == @e2.cargo_capacity
+          l.resources.size.should == 2
+          l.resources[0].id.should == @r1.id
+          l.resources[0].material_id.should == @r1.material_id
+          l.resources[0].quantity.should == 50
+          l.resources[0].entity_id.should == l.id
+          l.resources[1].id.should == @r2.id
+          l.resources[1].material_id.should == @r2.material_id
+          l.resources[1].quantity.should == 50
+          l.resources[1].entity_id.should == l.id
+          lid = l.id
         end
       end
     end

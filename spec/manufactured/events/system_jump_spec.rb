@@ -33,7 +33,7 @@ describe SystemJump do
 
     it "sets event type" do
       event = SystemJump.new :entity => @ship
-      event.type.should == SystemJump::TYPE
+      event.type.should == SystemJump::TYPE.to_s
     end
   end
 

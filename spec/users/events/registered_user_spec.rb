@@ -21,12 +21,12 @@ describe RegisteredUser do
 
     it "sets event id" do
       ru = RegisteredUser.new :user => @u
-      ru.id.should == RegisteredUser::TYPE + '-' + @u.id
+      ru.id.should == RegisteredUser::TYPE.to_s + '-' + @u.id
     end
 
     it "sets event type" do
       ru = RegisteredUser.new :user => @u
-      ru.type.should == RegisteredUser::TYPE
+      ru.type.should == RegisteredUser::TYPE.to_s
     end
   end
 
