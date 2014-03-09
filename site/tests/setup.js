@@ -15,6 +15,30 @@ Omega.Pages.Test = function(parameters){
 
 Omega.Pages.Test.prototype = {
   process_entity : function(entity){},
+
+  restore_entities : function(){
+    this.entities = [];
+  },
+
+  set_session : function(session){
+    this.current_session = this.session;
+    this.session = session;
+  },
+
+  restore_session : function(){
+    this.session = this.current_session;
+    this.current_session = null;
+  },
+
+  set_canvas_root : function(root){
+    this.current_root = this.canvas.root;
+    this.canvas.root = root;
+  },
+
+  restore_canvas_root : function(){
+    this.canvas.root = this.current_root;
+    this.current_root = null;
+  }
 }
 
 $.extend(Omega.Pages.Test.prototype, new Omega.UI.Registry());
@@ -284,6 +308,14 @@ sinon.match.ofType = function(expected){
   return sinon.match(function(value){
            return value.__proto__ == expected.prototype;
          }, 'type');
+};
+
+// matches location by coordinates
+sinon.match.loc = function(x,y,z){
+  return sinon.match(function(value){
+           return value.json_class == 'Motel::Location' &&
+                  value.x == x && value.y == y && value.z == z;
+         }, 'loc');
 };
 
 //////////////////////////////// config/init
