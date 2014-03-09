@@ -140,7 +140,7 @@ Omega.OrbitHelpers = {
   },
 
   _add_orbit_line : function(color){
-    this.orbit_line = new Omega.OrbitLine(this.orbit, color);
+    this.orbit_line = new Omega.OrbitLine({orbit: this.orbit, color: color});
     this.components.push(this.orbit_line.line);
   },
 

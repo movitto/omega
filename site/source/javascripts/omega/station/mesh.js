@@ -4,7 +4,12 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StationMeshMaterial = function(config, type, event_cb){
+Omega.StationMeshMaterial = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var type     = args['type'];
+  var event_cb = args['event_cb'];
+
   var texture_path =
     config.url_prefix + config.images_path +
     config.resources.stations[type].material;
@@ -15,8 +20,10 @@ Omega.StationMeshMaterial = function(config, type, event_cb){
   $.extend(this, new THREE.MeshLambertMaterial({map: texture, overdraw: true}));
 };
 
-Omega.StationMesh = function(mesh){
-  /// three.js mesh
+Omega.StationMesh = function(args){
+  if(!args) args = {};
+  var mesh = args['mesh'];
+
   this.tmesh         =   mesh;
   mesh.omega_obj = this;
 
@@ -26,7 +33,7 @@ Omega.StationMesh = function(mesh){
 
 Omega.StationMesh.prototype = {
   clone : function(){
-    return new Omega.StationMesh(this.tmesh.clone());
+    return new Omega.StationMesh({mesh: this.tmesh.clone()});
   },
 
   base_position_vector : function(){
@@ -58,7 +65,7 @@ Omega.StationMesh.load_template = function(config, type, cb){
     var material = Omega.Station.gfx[type].mesh_material;
     var mesh = new THREE.Mesh(mesh_geometry, material);
 
-    var smesh = new Omega.StationMesh(mesh);
+    var smesh = new Omega.StationMesh({mesh: mesh});
 
     if(offset){
       mesh.position.set(offset[0], offset[1], offset[2]);

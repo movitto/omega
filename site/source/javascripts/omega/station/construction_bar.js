@@ -4,13 +4,14 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StationConstructionBar = function(bar){
-  this.bar = bar ? bar : this.init_gfx();
+Omega.StationConstructionBar = function(args){
+  if(!args) args = {};
+  this.bar = args['bar'] || this.init_gfx();
 };
 
 Omega.StationConstructionBar.prototype = {
   clone : function(){
-    return new Omega.StationConstructionBar(this.bar.clone());
+    return new Omega.StationConstructionBar({bar : this.bar.clone()});
   },
 
   construction_bar_props : {

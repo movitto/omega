@@ -14,17 +14,27 @@
 Omega.StationGfx = {
   async_gfx : 2,
 
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Station.gfx)            === 'undefined') Omega.Station.gfx = {};
-    if(typeof(Omega.Station.gfx[this.type]) !== 'undefined') return;
+  /// True/False if shared gfx are loaded
+  gfx_loaded : function(){
+    return typeof(Omega.Station.gfx) !== 'undefined' &&
+           typeof(Omega.Station.gfx[this.type]) !== 'undefined';
+  },
 
-    var gfx = {};
-    Omega.Station.gfx[this.type] = gfx;
-    gfx.mesh_material    = new Omega.StationMeshMaterial(config, this.type, event_cb);
+  /// Load shared graphics resources
+  load_gfx : function(config, event_cb){
+    if(this.gfx_loaded()) return;
+    Omega.Station.gfx    = Omega.Station.gfx || {};
+
+    var gfx              = {};
     gfx.highlight        = new Omega.StationHighlightEffects();
-    gfx.lamps            = new Omega.StationLamps(config, this.type);
     gfx.construction_bar = new Omega.StationConstructionBar();
-    gfx.construction_audio = new Omega.StationConstructionAudioEffect(config);
+    gfx.mesh_material    = new Omega.StationMeshMaterial({config   : config,
+                                                          type     : this.type,
+                                                          event_cb : event_cb});
+    gfx.lamps            =          new Omega.StationLamps({config : config,
+                                                              type : this.type});
+    gfx.construction_audio = new Omega.StationConstructionAudioEffect({config: config});
+    Omega.Station.gfx[this.type] = gfx;
 
     Omega.StationMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
@@ -32,8 +42,13 @@ Omega.StationGfx = {
     });
   },
 
+  /// True / false if ship gfx have been initialized
+  gfx_initialized : function(){
+    return this.components.length > 0;
+  },
+
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
     this.components = [];
@@ -64,6 +79,7 @@ Omega.StationGfx = {
 
     this.construction_audio = Omega.Station.gfx[this.type].construction_audio;
 
+    this.last_moved = new Date();
     this.update_gfx();
   },
 
@@ -96,12 +112,8 @@ Omega.StationGfx = {
   },
 
   _run_movement_effects : function(){
+    if(this.location.is_stopped()) return;
     var now = new Date();
-    if(!this.last_moved || this.location.is_stopped()){
-      this.last_moved = now;
-      return;
-    }
-
     var elapsed = now - this.last_moved;
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
 

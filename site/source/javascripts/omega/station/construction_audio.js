@@ -6,7 +6,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StationConstructionAudioEffect = function(config){
+Omega.StationConstructionAudioEffect = function(args){
+  if(!args) args = {};
+  var config = args['config'];
   this.audio = config.audio['construction'];
 };
 

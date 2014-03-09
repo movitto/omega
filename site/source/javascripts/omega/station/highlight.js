@@ -4,14 +4,16 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StationHighlightEffects = function(mesh){
-  this.mesh = mesh ? mesh : this.init_gfx();
+Omega.StationHighlightEffects = function(args){
+  if(!args) args = {};
+
+  this.mesh = args['mesh'] || this.init_gfx();
   this.mesh.omega_obj = this;
 };
 
 Omega.StationHighlightEffects.prototype = {
   clone : function(){
-    return new Omega.StationHighlightEffects(this.mesh.clone());
+    return new Omega.StationHighlightEffects({mesh: this.mesh.clone()});
   },
 
   highlight_props : {

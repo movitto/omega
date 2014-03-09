@@ -4,8 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StationLamps = function(config, type){
-  /// omega lamps
+Omega.StationLamps = function(args){
+  if(!args) args = {};
+  var config = args['config'];
+  var type   = args['type'];
+
   if(config && type)
     this.olamps = this.init_lamps(config, type);
   else
@@ -27,6 +30,11 @@ Omega.StationLamps.prototype = {
     }
 
     return olamps;
+  },
+
+  init_gfx : function(){
+    for(var l = 0; l < this.olamps.length; l++)
+      this.olamps[l].init_gfx();
   },
 
   clone : function(){
