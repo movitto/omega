@@ -42,51 +42,43 @@ describe("Omega.UI.AudioControls", function(){
     //});
   });
 
-  //describe("#audio", function(){
-    //it("returns the page element of the current track") // NIY
-  //})
-
-  describe("#set", function(){
-    it("sets current track", function(){
-      var page = {config : { audio : {'foo' : 'bar'}}}
-      var ac = new Omega.UI.AudioControls({page : page});
-      ac.set('foo');
-      assert(ac.current).equals('bar');
-    });
-  });
-
   describe("#play", function(){
     var ac, audio;
+
     before(function(){
       ac = new Omega.UI.AudioControls();
-      audio = {play : sinon.spy()};
-      sinon.stub(ac, 'audio').returns(audio);
+      audio = {play : sinon.stub()};
     });
 
     describe("player is disabled", function(){
-
       it("does not play audio", function(){
         ac.disabled = true;
-        ac.play();
+        ac.play(audio);
         sinon.assert.notCalled(audio.play);
       });
     });
 
-    describe("track id specified", function(){
+    describe("track specified", function(){
       it("sets current track", function(){
-        var set = sinon.stub(ac, 'set');
         ac.disabled = false;
-        ac.play('foo');
-        sinon.assert.calledWith(set, 'foo');
+        ac.play(audio);
+        assert(ac.current).equals(audio);
       })
-    });
 
-    describe("player is not disabled", function(){
-      it("plays audio", function(){
+      it("plays track", function(){
         ac.disabled = false;
-        ac.play();
+        ac.play(audio);
         sinon.assert.called(audio.play);
       });
+    });
+
+    it("plays current track", function(){
+      ac.disabled = false;
+      ac.play(audio);
+      sinon.assert.called(audio.play);
+      audio.play.reset();
+      ac.play();
+      sinon.assert.called(audio.play);
     });
   });
 
@@ -94,7 +86,7 @@ describe("Omega.UI.AudioControls", function(){
     it("stops current track", function(){
       var audio = {pause : sinon.stub()};
       ac = new Omega.UI.AudioControls();
-      sinon.stub(ac, 'audio').returns(audio);
+      ac.current = audio;
       ac.stop();
       sinon.assert.called(audio.pause);
     });

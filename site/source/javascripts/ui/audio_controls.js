@@ -17,7 +17,10 @@ Omega.UI.AudioControls = function(parameters){
   $.extend(this, parameters);
 
   /// central / shared audio effects
-  this.effects = {click : new Omega.ClickAudioEffect(this.page.config)};
+  if(this.page)
+    this.effects = {click : new Omega.ClickAudioEffect(this.page.config)};
+  else
+    this.effects = {};
 
   /// disable controls by default
   this.toggle();

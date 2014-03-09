@@ -425,9 +425,8 @@ describe("Omega.UI.CommandTracker", function(){
   before(function(){
     var node = new Omega.Node();
     page = new Omega.Pages.Test({node : node,
-                                 canvas : Omega.Test.Canvas(),
-                                 audio_controls : new Omega.UI.AudioControls()});
-    //page.audio_controls.page = page;
+                                 canvas : Omega.Test.Canvas()});
+    page.audio_controls = new Omega.UI.AudioControls({page: page});
     page.audio_controls.disabled = true;
     page.canvas.set_scene_root(new Omega.SolarSystem({id : 'system1'}))
     tracker = new Omega.UI.CommandTracker({page : page});
@@ -460,7 +459,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       it("updates entity location", function(){
         tracker._callbacks_motel_event('motel::on_movement', eargs);
-        assert(ship.location).isSameAs(eship.location);
+        assert(ship.location.coordinates()).isSameAs(eship.location.coordinates());
       });
 
       describe("changing movement strategy", function(){
@@ -915,12 +914,13 @@ describe("Omega.UI.CommandTracker", function(){
       });
 
       it("plays construction audio effect", function(){
-        var play = sinon.spy(page.audio_controls, 'play');
+        var play = sinon.stub(page.audio_controls, 'play');
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
         var get_cb = get.getCall(0).args[2];
         var retrieved = new Omega.Ship({system_id : 'sys1'});
+        station.construction_audio = 'audio';
         get_cb(retrieved);
-        sinon.assert.calledWith(play, 'construction');
+        sinon.assert.calledWith(play, station.construction_audio);
       });
 
       it("adds constructed entity to canvas scene", function(){

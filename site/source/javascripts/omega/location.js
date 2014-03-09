@@ -77,6 +77,11 @@ Omega.Location.prototype = {
     return this;
   },
 
+  /// Return coordinates as an array
+  coordinates : function(){
+    return [this.x, this.y, this.z];
+  },
+
   /// Return location orientation in an array
   orientation : function(){
     return [this.orientation_x, this.orientation_y, this.orientation_z];
