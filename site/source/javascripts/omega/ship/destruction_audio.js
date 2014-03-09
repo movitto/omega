@@ -4,7 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipDestructionAudioEffect = function(config){
+Omega.ShipDestructionAudioEffect = function(args){
+  if(!args) args = {};
+  var config = args['config'];
   this.audio = config.audio['destruction'];
 };
 

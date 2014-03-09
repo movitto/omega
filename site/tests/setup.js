@@ -4,13 +4,12 @@
 // Specs will fails if stubbed out but not implemented, so
 // tests commented out but marked w/ 'NIY' should be implemented later
 
-// TODO incorporate a factory framework to generate test data
-
-//////////////////////////////// helper methods/data
+//////////////////////////////// test page entity tests can use
 
 Omega.Pages.Test = function(parameters){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);
+  this.canvas  = new Omega.UI.Canvas({page: this});
   $.extend(this, parameters);
 }
 
@@ -19,6 +18,8 @@ Omega.Pages.Test.prototype = {
 }
 
 $.extend(Omega.Pages.Test.prototype, new Omega.UI.Registry());
+
+//////////////////////////////// helper methods / shared test data
 
 Omega.Test = {
   /// return registered jquery event handlers for selector
@@ -51,21 +52,14 @@ Omega.Test = {
 Omega.Test.Page = function(){
   if(typeof($omega_test_page) === "undefined"){
     $omega_test_page = new Omega.Pages.Test();
+    $omega_test_page.canvas.setup();
   }
   return $omega_test_page;
 };
 
-// Initializes and returns a singleton canvas
-// instance for use in the test suite
-// (so that THREE can be loaded on demand the
-//  first time it is needed and only once)
+// Return singleton canvas instance for use in the test suite
 Omega.Test.Canvas = function(){
-  if(typeof($omega_test_canvas) === "undefined"){
-    var page = Omega.Test.Page();
-    $omega_test_canvas = new Omega.UI.Canvas({page : page});
-    $omega_test_canvas.setup();
-  }
-  return $omega_test_canvas;
+  return Omega.Test.Page().canvas;
 };
 
 // Same as Test.Canvas above but for various entities

@@ -4,14 +4,16 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipHighlightEffects = function(mesh){
-  this.mesh = mesh ? mesh : this.init_gfx();
+Omega.ShipHighlightEffects = function(args){
+  if(!args) args = {};
+
+  this.mesh = args['mesh'] || this.init_gfx(); 
   this.mesh.omega_obj = this;
 };
 
 Omega.ShipHighlightEffects.prototype = {
   clone : function(){
-    return new Omega.ShipHighlightEffects(this.mesh.clone());
+    return new Omega.ShipHighlightEffects({mesh: this.mesh.clone()});
   },
 
   highlight_props : {

@@ -4,7 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipMiningAudioEffect = function(config){
+Omega.ShipMiningAudioEffect = function(args){
+  if(!args) args = {};
+  var config = args['config'];
   this.audio = config.audio['mining'];
 };
 

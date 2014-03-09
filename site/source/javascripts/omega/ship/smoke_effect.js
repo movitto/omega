@@ -4,7 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipSmokeEffect = function(config, event_cb){
+Omega.ShipSmokeEffect = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var event_cb = args['event_cb'];
+
   this.init_gfx(config, event_cb);
 };
 
@@ -63,7 +67,7 @@ Omega.ShipSmokeEffect.prototype = {
   },
 
   clone : function(config, event_cb){
-    return new Omega.ShipSmokeEffect(config, event_cb);
+    return new Omega.ShipSmokeEffect({config: config, event_cb: event_cb});
   },
 
   enable : function(){

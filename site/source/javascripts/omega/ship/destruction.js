@@ -6,7 +6,11 @@
 
 /// TODO add debris
 
-Omega.ShipDestructionEffect = function(config, event_cb){
+Omega.ShipDestructionEffect = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var event_cb = args['event_cb'];
+
   this.init_gfx(config, event_cb);
 };
 
@@ -96,7 +100,7 @@ Omega.ShipDestructionEffect.prototype = {
   },
 
   clone : function(config, event_cb){
-    return new Omega.ShipDestructionEffect(config, event_cb);
+    return new Omega.ShipDestructionEffect({config: config, event_cb: event_cb});
   },
 
   run_effects : function(){

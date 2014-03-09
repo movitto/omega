@@ -148,6 +148,12 @@ Omega.Location.prototype = {
            !this.movement_strategy.adjusting_bearing && this.movement_strategy.on_target));
   },
 
+  /// Boolean indicating if location if moving using specified ms type
+  is_moving : function(ms_type){
+    return this.movement_strategy.json_class ==
+      Omega.MovementStrategies.json_classes[ms_type];
+  },
+
   /* Return boolean indicating if location is less than the
    * specified distance from the specified location
    */
@@ -191,5 +197,14 @@ Omega.Location.prototype = {
                                        y: axis[1],
                                        z: axis[2]}, angle);
     return matrix;
+  }
+};
+
+Omega.MovementStrategies = {
+  json_classes : {
+    stopped : 'Motel::MovementStrategies::Stopped',
+    linear  : 'Motel::MovementStrategies::Linear',
+    rotate  : 'Motel::MovementStrategies::Rotate',
+    follow  : 'Motel::MovementStrategies::Follow'
   }
 };

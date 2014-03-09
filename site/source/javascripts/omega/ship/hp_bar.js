@@ -6,13 +6,14 @@
 
 /// TODO should be rendered perpendicular to camera view at all times
 
-Omega.ShipHpBar = function(bar){
-  this.bar = bar ? bar : this.load_bar();
+Omega.ShipHpBar = function(args){
+  if(!args) args = {};
+  this.bar = args['bar'] || this.load_bar();
 };
 
 Omega.ShipHpBar.prototype = {
   clone : function(){
-    return new Omega.ShipHpBar(this.bar.clone());
+    return new Omega.ShipHpBar({bar : this.bar.clone()});
   },
 
   health_bar_props : {

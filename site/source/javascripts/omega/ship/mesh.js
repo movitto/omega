@@ -4,7 +4,12 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipMeshMaterial = function(config, type, event_cb){
+Omega.ShipMeshMaterial = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var type     = args['type'];
+  var event_cb = args['event_cb'];
+
   var texture_path =
     config.url_prefix + config.images_path +
     config.resources.ships[type].material;
@@ -15,10 +20,12 @@ Omega.ShipMeshMaterial = function(config, type, event_cb){
   $.extend(this, new THREE.MeshLambertMaterial({map: texture, overdraw: true}));
 };
 
-Omega.ShipMesh = function(mesh){
-  /// three.js mesh
-  this.tmesh         =   mesh;
-  mesh.omega_obj = this;
+Omega.ShipMesh = function(args){
+  if(!args) args = {};
+  var mesh = args['mesh'];
+
+  this.tmesh = mesh;
+  this.tmesh.omega_obj = this;
 
   this.base_position = [0,0,0];
   this.base_rotation = [0,0,0];
@@ -26,7 +33,7 @@ Omega.ShipMesh = function(mesh){
 
 Omega.ShipMesh.prototype = {
   clone : function(){
-    return new Omega.ShipMesh(this.tmesh.clone());
+    return new Omega.ShipMesh({mesh : this.tmesh.clone()});
   },
 
   base_position_vector : function(){
@@ -63,7 +70,7 @@ Omega.ShipMesh.load_template = function(config, type, cb){
     var material = Omega.Ship.gfx[type].mesh_material;
     var mesh = new THREE.Mesh(mesh_geometry, material);
 
-    var smesh = new Omega.ShipMesh(mesh);
+    var smesh = new Omega.ShipMesh({mesh : mesh});
 
     if(offset){
       mesh.position.set(offset[0], offset[1], offset[2]);

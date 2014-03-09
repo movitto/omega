@@ -26,26 +26,45 @@ Omega.ShipGfx = {
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
 
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Ship.gfx)            === 'undefined') Omega.Ship.gfx = {};
-    if(typeof(Omega.Ship.gfx[this.type]) !== 'undefined') return;
+  /// True/False if shared gfx are loaded
+  gfx_loaded : function(){
+    return typeof(Omega.Ship.gfx) !== 'undefined' &&
+           typeof(Omega.Ship.gfx[this.type]) !== 'undefined';
+  },
 
-    var gfx              = {};
+  /// Load shared graphics resources
+  load_gfx : function(config, event_cb){
+    if(this.gfx_loaded()) return;
+    Omega.Ship.gfx    = Omega.Ship.gfx || {};
+
+    var gfx           =      {};
+    gfx.hp_bar        =      new Omega.ShipHpBar();
+    gfx.highlight     =      new Omega.ShipHighlightEffects();
+    gfx.mesh_material =      new Omega.ShipMeshMaterial({config: config,
+                                                           type: this.type,
+                                                       event_cb: event_cb});
+    gfx.lamps         =             new Omega.ShipLamps({config: config,
+                                                           type: this.type});
+    gfx.trails        =            new Omega.ShipTrails({config: config,
+                                                           type: this.type,
+                                                       event_cb: event_cb});
+    gfx.attack_vector =      new Omega.ShipAttackVector({config: config,
+                                                       event_cb: event_cb});
+    gfx.mining_vector =      new Omega.ShipMiningVector({config: config,
+                                                       event_cb: event_cb});
+    gfx.trajectory1   =         new Omega.ShipTrajectory({color: 0x0000FF,
+                                                      direction: 'primary'});
+    gfx.trajectory2   =         new Omega.ShipTrajectory({color: 0x00FF00,
+                                                      direction: 'secondary'});
+    gfx.destruction   = new Omega.ShipDestructionEffect({config: config,
+                                                       event_cb: event_cb});
+    gfx.explosions    =   new Omega.ShipExplosionEffect({config: config,
+                                                       event_cb: event_cb});
+    gfx.smoke         =       new Omega.ShipSmokeEffect({config: config,
+                                                       event_cb: event_cb});
+    gfx.mining_audio      = new Omega.ShipMiningAudioEffect({config: config});
+    gfx.destruction_audio = new Omega.ShipDestructionAudioEffect({config: config});
     Omega.Ship.gfx[this.type] = gfx;
-    gfx.mesh_material    = new Omega.ShipMeshMaterial(config, this.type, event_cb);
-    gfx.highlight        = new Omega.ShipHighlightEffects();
-    gfx.lamps            = new Omega.ShipLamps(config, this.type);
-    gfx.trails           = new Omega.ShipTrails(config, this.type, event_cb);
-    gfx.attack_vector    = new Omega.ShipAttackVector(config, event_cb);
-    gfx.mining_vector    = new Omega.ShipMiningVector(config, event_cb);
-    gfx.trajectory1      = new Omega.ShipTrajectory(0x0000FF, 'primary');
-    gfx.trajectory2      = new Omega.ShipTrajectory(0x00FF00, 'secondary');
-    gfx.hp_bar           = new Omega.ShipHpBar();
-    gfx.destruction      = new Omega.ShipDestructionEffect(config, event_cb);
-    gfx.destruction_audio = new Omega.ShipDestructionAudioEffect(config);
-    gfx.explosions       = new Omega.ShipExplosionEffect(config, event_cb);
-    gfx.mining_audio     = new Omega.ShipMiningAudioEffect(config);
-    gfx.smoke            = new Omega.ShipSmokeEffect(config, event_cb);
 
     Omega.ShipMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
@@ -53,15 +72,20 @@ Omega.ShipGfx = {
     });
   },
 
+  /// True / false if ship gfx have been initialized
+  gfx_initialized : function(){
+    return this.components.length > 0;
+  },
+
+  /// Intiialize ship graphics
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
     this.components = [];
 
     var _this = this;
     Omega.ShipMesh.load(this.type, function(mesh){
-      /// FIXME set emissive if ship is selected upon init_gfx
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
       _this.components.push(_this.mesh.tmesh);
@@ -128,6 +152,7 @@ Omega.ShipGfx = {
 
     this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
 
+    this.last_moved = new Date();
     this.update_gfx();
   },
 
@@ -152,6 +177,7 @@ Omega.ShipGfx = {
     this.mining_audio      = from.mining_audio;
   },
 
+  /// Update ship graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
     if(this.mesh)          this.mesh.update();
@@ -170,75 +196,84 @@ Omega.ShipGfx = {
 
   ///////////////////////////////////////////////// effects
 
-  _run_movement_effects : function(page){
-    /// move ship according to movement strategy to smoothen out movement animation
-    var stopped = 'Motel::MovementStrategies::Stopped';
-    var linear  = 'Motel::MovementStrategies::Linear';
-    var rotate  = 'Motel::MovementStrategies::Rotate';
-    var follow  = 'Motel::MovementStrategies::Follow';
-    var now     = new Date();
-    if(this.last_moved != null){
-      var elapsed = now - this.last_moved;
-
-      if(this.location.movement_strategy.json_class == linear){
-        var dist = this.location.movement_strategy.speed * elapsed / 1000;
-        this.location.x += this.location.movement_strategy.dx * dist;
-        this.location.y += this.location.movement_strategy.dy * dist;
-        this.location.z += this.location.movement_strategy.dz * dist;
-        this.update_gfx();
-
-      }else if(this.location.movement_strategy.json_class == rotate ||
-              (this.location.movement_strategy.json_class == follow &&
-               this.location.movement_strategy.point_to_target      )){
-        var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
-        var new_or = Omega.Math.rot(this.location.orientation_x,
-                                    this.location.orientation_y,
-                                    this.location.orientation_z,
-                                    dist,
-                                    this.location.movement_strategy.rot_x,
-                                    this.location.movement_strategy.rot_y,
-                                    this.location.movement_strategy.rot_z);
-        this.location.orientation_x = new_or[0];
-        this.location.orientation_y = new_or[1];
-        this.location.orientation_z = new_or[2];
-        this.update_gfx();
-      }
-      if(this.location.movement_strategy.json_class == follow &&
-        !this.location.movement_strategy.adjusting_bearing    ){
-        var loc = this.location;
-        var tl =
-          page.entity(loc.movement_strategy.tracked_location_id)
-          .location;
-
-        var dx = tl.x - loc.x;
-        var dy = tl.y - loc.y;
-        var dz = tl.z - loc.z;
-        var distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        var min_distance = Omega.Config.follow_distance;
-
-        //Take into account client/server sync
-        if (distance >= min_distance && !loc.on_target){
-          dx = dx / distance;
-          dy = dy / distance;
-          dz = dz / distance;
-
-          move_distance = loc.movement_strategy.speed * elapsed / 1000;
-
-          loc.x += move_distance * dx;
-          loc.y += move_distance * dy;
-          loc.z += move_distance * dz;
-        }
-        this.update_gfx();
-      }
-    }
-
-    if(!this.location.is_stopped()) this.last_moved = now;
+  _run_linear_movement : function(elapsed){
+    var dist = this.location.movement_strategy.speed * elapsed / 1000;
+    this.location.x += this.location.movement_strategy.dx * dist;
+    this.location.y += this.location.movement_strategy.dy * dist;
+    this.location.z += this.location.movement_strategy.dz * dist;
   },
 
+  _run_rotation_movement : function(elapsed){
+    var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
+    var new_or = Omega.Math.rot(this.location.orientation_x,
+                                this.location.orientation_y,
+                                this.location.orientation_z,
+                                dist,
+                                this.location.movement_strategy.rot_x,
+                                this.location.movement_strategy.rot_y,
+                                this.location.movement_strategy.rot_z);
+    this.location.orientation_x = new_or[0];
+    this.location.orientation_y = new_or[1];
+    this.location.orientation_z = new_or[2];
+  },
+
+  _run_follow_movement : function(elapsed, page){
+    if(this.location.movement_strategy.point_to_target)
+      this._run_rotation_movement();
+
+    if(this.location.movement_strategy.adjusting_bearing)
+      return;
+
+    var loc = this.location;
+    var tracked = page.entity(loc.movement_strategy.tracked_location_id);
+    var tracked_loc = tracked.location;
+
+    var dx = tracked_loc.x - loc.x;
+    var dy = tracked_loc.y - loc.y;
+    var dz = tracked_loc.z - loc.z;
+    var distance = loc.distance_from(tracked_loc);
+    var min_distance = Omega.Config.follow_distance;
+
+    //Take into account client/server sync
+    if (distance >= min_distance && !loc.on_target){
+      dx = dx / distance;
+      dy = dy / distance;
+      dz = dz / distance;
+
+      var move_distance = loc.movement_strategy.speed * elapsed / 1000;
+
+      loc.x += move_distance * dx;
+      loc.y += move_distance * dy;
+      loc.z += move_distance * dz;
+    }
+  },
+
+  /// move ship according to movement strategy to smoothen out movement animation
+  _run_movement : function(page){
+    var now     = new Date();
+    var elapsed = now - this.last_moved;
+
+    if(this.location.is_moving('linear')){
+      this._run_linear_movement(elapsed);
+      this.update_gfx();
+
+    }else if(this.location.is_moving('follow')){
+      this._run_follow_movement(elapsed);
+      this.update_gfx();
+
+    }else if(this.location.is_moving('rotate')){
+      this._run_rotation_movement(elapsed, page);
+      this.update_gfx();
+    }
+
+    this.last_moved = now;
+  },
+
+  /// Run ship graphics effects
   run_effects : function(page){
     this.lamps.run_effects();
     this.trails.run_effects();
-    this._run_movement_effects(page);
+    this._run_movement(page);
 
     this.attack_vector.run_effects();
     this.mining_vector.run_effects();
@@ -247,6 +282,7 @@ Omega.ShipGfx = {
     this.smoke.run_effects();
   },
 
+  /// Trigger ship destruction sequence
   trigger_destruction : function(cb){
     if(this.destruction) this.destruction.trigger(2000, cb);
   }

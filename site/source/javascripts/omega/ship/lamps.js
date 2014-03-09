@@ -4,8 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipLamps = function(config, type){
-  /// omega lamps
+Omega.ShipLamps = function(args){
+  if(!args) args = {};
+  var config = args['config'];
+  var type   = args['type'];
+
   if(config && type)
     this.olamps = this.init_lamps(config, type);
   else

@@ -4,7 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipTrajectory = function(color, direction){
+Omega.ShipTrajectory = function(args){
+  if(!args) args = {};
+  var color      = args['color'];
+  var direction  = args['direction'];
+
   this.color = color;
   this.mesh  = this.init_gfx(color);
   if(direction) this.set_direction(direction)

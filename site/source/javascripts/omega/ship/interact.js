@@ -16,7 +16,7 @@ Omega.ShipInteraction = {
           entity.json_class == "Manufactured::Station"      ||
           entity.json_class == "Cosmos::Entities::JumpGate"  )
         this._move(page, entity.location.x + offset, entity.location.y + offset, entity.location.z + offset);
-      //TODO change move strat to follow
+
       if (entity.json_class == "Manufactured::Ship"      ||
           entity.json_class == "Cosmos::Entities::Planet" )
         this._follow(page, entity.id);

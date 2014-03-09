@@ -4,7 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipAttackVector = function(config, event_cb){
+Omega.ShipAttackVector = function(args){
+  if(!args) args = {};
+  var config = args['config'];
+  var event_cb = args['event_cb'];
+
   this.init_gfx(config, event_cb);
 };
 
@@ -44,7 +48,7 @@ Omega.ShipAttackVector.prototype = {
   },
 
   clone : function(config, event_cb){
-    return new Omega.ShipAttackVector(config, event_cb);
+    return new Omega.ShipAttackVector({config: config, event_cb: event_cb});
   },
 
   update : function(){

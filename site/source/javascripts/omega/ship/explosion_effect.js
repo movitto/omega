@@ -8,7 +8,11 @@
 /// perhaps hook registered w/ attack particle emitter which is
 /// invoked upon particle retirement
 
-Omega.ShipExplosionEffect = function(config, event_cb){
+Omega.ShipExplosionEffect = function(args){
+  if(!args) args = {};
+  var config = args['config'];
+  var event_cb = args['event_cb'];
+
   this.init_gfx(config, event_cb);
 };
 
