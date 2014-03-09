@@ -12,6 +12,7 @@ Omega.ShipTrajectory = function(args){
   this.color = color;
   this.mesh  = this.init_gfx(color);
   if(direction) this.set_direction(direction)
+  else this._update_orientation = function(){}
 };
 
 Omega.ShipTrajectory.prototype = {

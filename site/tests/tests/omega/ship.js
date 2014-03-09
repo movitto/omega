@@ -21,6 +21,7 @@ describe("Omega.Ship", function(){
 
   describe("#belongs_to_user", function(){
     it("returns bool indicating if ship belongs to user", function(){
+      ship.user_id = 'user1';
       assert(ship.belongs_to_user('user1')).isTrue();
       assert(ship.belongs_to_user('user2')).isFalse();
     });
@@ -99,7 +100,9 @@ describe("Omega.Ship", function(){
   describe("#clicked_in", function(){
     it("plays clicked audio effect", function(){
       var ship = new Omega.Ship();
-      var canvas = {page : {audio_controls : {play : sinon.stub()}}};
+      var canvas = {page : {audio_controls :
+                             {play : sinon.stub(),
+                              effects : {click : 'click'}}}};
       ship.clicked_in(canvas);
       sinon.assert.calledWith(canvas.page.audio_controls.play, 'click');
     });

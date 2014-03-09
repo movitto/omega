@@ -127,7 +127,7 @@ describe("Omega.ShipGfx", function(){
 
       sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
       ship.init_gfx(Omega.Config);
-      sinon.assert.calledWith(Omega.prototype.retrieve_resource,
+      sinon.assert.calledWith(Omega.Ship.prototype.retrieve_resource,
                               'template_mesh_' + ship.type,
                               sinon.match.func);
 
@@ -150,7 +150,7 @@ describe("Omega.ShipGfx", function(){
 
     it("updates_gfx in mesh cb", function(){
       sinon.stub(Omega.Ship.prototype, 'retrieve_resource');
-      ship.init_gfx(config, type);
+      ship.init_gfx(Omega.Config, type);
       var mesh_cb = Omega.Ship.prototype.retrieve_resource.omega_callback();
 
       sinon.spy(ship, 'update_gfx');
@@ -323,7 +323,7 @@ describe("Omega.ShipGfx", function(){
     it("runs lamp effects", function(){
       var ship = new Omega.Ship({type : 'corvette', location :
                    new Omega.Location({movement_strategy : {}})});
-      ship.init_gfx();
+      ship.init_gfx(Omega.Config);
 
       var spies = [];
       for(var l = 0; l < ship.lamps.olamps.length; l++)
@@ -377,8 +377,8 @@ describe("Omega.ShipGfx", function(){
       var update1 = sinon.spy(ship.trajectory1, 'update');
       var update2 = sinon.spy(ship.trajectory2, 'update');
       ship.update_gfx();
-      sinon.assert.calledWith(update1, 'primary');
-      sinon.assert.calledWith(update2, 'secondary');
+      sinon.assert.calledWith(update1);
+      sinon.assert.calledWith(update2);
     });
 
     it("updates hp bar", function(){

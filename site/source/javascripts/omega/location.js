@@ -143,15 +143,17 @@ Omega.Location.prototype = {
 
   /// Boolean indicating if location is not moving
   is_stopped : function(){
-    return (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped'   ||
+    return !!(this.movement_strategy) &&
+           (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped'   ||
            (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'    &&
            !this.movement_strategy.adjusting_bearing && this.movement_strategy.on_target));
   },
 
   /// Boolean indicating if location if moving using specified ms type
   is_moving : function(ms_type){
-    return this.movement_strategy.json_class ==
-      Omega.MovementStrategies.json_classes[ms_type];
+    return !!(this.movement_strategy) &&
+      this.movement_strategy.json_class ==
+        Omega.MovementStrategies.json_classes[ms_type];
   },
 
   /* Return boolean indicating if location is less than the
