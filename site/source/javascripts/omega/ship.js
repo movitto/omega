@@ -25,6 +25,12 @@ Omega.Ship.prototype = {
 
   json_class : 'Manufactured::Ship',
 
+  /// Return clone of this ship
+  clone : function(){
+     var cloned = new Omega.Location();
+     return $.extend(true, cloned, this); /// deep copy
+  },
+
   /// Return bool indicating if ship belongs to the specified user
   belongs_to_user : function(user_id){
     return this.user_id == user_id;

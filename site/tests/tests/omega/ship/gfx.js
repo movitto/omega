@@ -32,7 +32,8 @@ describe("Omega.ShipGfx", function(){
     });
 
     it("creates highlight effects for Ship", function(){
-      assert(Omega.Ship.gfx[ship.type].highlight).isOfType(Omega.ShipHighlightEffects);
+      assert(Omega.Ship.gfx[ship.type].highlight).
+        isOfType(Omega.ShipHighlightEffects);
     });
 
     it("creates lamps for Ship", function(){

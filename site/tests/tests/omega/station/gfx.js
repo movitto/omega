@@ -1,49 +1,45 @@
 // Test mixin usage through ship
 pavlov.specify("Omega.StationGfx", function(){
 describe("Omega.StationGfx", function(){
+  var station;
+
+  before(function(){
+    station = Omega.Gen.station({type: 'manufacturing'});
+    station.location = new Omega.Location({x: 100, y: -100, z: 200});
+    station.location.movement_strategy = {};
+  });
+
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
-      var orig;
+      var orig_gfx;
 
       before(function(){
-        orig = Omega.Station.gfx;
+        orig_gfx = Omega.Station.gfx;
+        Omega.Station.gfx = null;
+        sinon.stub(station, 'gfx_loaded').returns(true);
       });
 
       after(function(){
-        Omega.Station.gfx = orig;
+        Omega.Station.gfx = orig_gfx;
       });
 
       it("does nothing / just returns", function(){
-        Omega.Station.gfx = {'manufacturing' : {lamps:null}};
-        new Omega.Station({type:'manufacturing'}).load_gfx();
-        assert(Omega.Station.gfx['manufacturing'].lamps).isNull();
+        station.load_gfx();
+        assert(Omega.Station.gfx).isNull();
       });
     });
 
     it("creates mesh for Station", function(){
-      var station = Omega.Test.Canvas.Entities().station;
       assert(Omega.Station.gfx[station.type].mesh).isOfType(Omega.StationMesh);
-      assert(Omega.Station.gfx[station.type].mesh.tmesh).isOfType(THREE.Mesh);
-      assert(Omega.Station.gfx[station.type].mesh.tmesh.material).isOfType(Omega.StationMeshMaterial);
-      assert(Omega.Station.gfx[station.type].mesh.tmesh.geometry).isOfType(THREE.Geometry);
-        /// TODO assert material texture & geometry src path values
     });
 
     it("creates highlight effects for Station", function(){
-      var station = Omega.Test.Canvas.Entities().station;
-      assert(Omega.Station.gfx[station.type].highlight).isOfType(Omega.StationHighlightEffects);
-      assert(Omega.Station.gfx[station.type].highlight.mesh.material).isOfType(THREE.MeshBasicMaterial);
-      assert(Omega.Station.gfx[station.type].highlight.mesh.geometry).isOfType(THREE.CylinderGeometry);
+      assert(Omega.Station.gfx[station.type].highlight).
+        isOfType(Omega.StationHighlightEffects);
     });
 
     it("creates lamps for Station", function(){
-      var station = Omega.Test.Canvas.Entities().station;
-      assert(Omega.Station.gfx[station.type].lamps.olamps.length).
-        equals(Omega.Config.resources.stations[station.type].lamps.length);
-      for(var l = 0; l < Omega.Station.gfx[station.type].lamps.length; l++){
-        var lamp = Omega.Station.gfx[station.type].lamps[l];
-        assert(lamp).isOfType(Omega.UI.CanvasLamp);
-      }
+      assert(Omega.Station.gfx[station.type].lamps).isOfType(Omega.StationLamps);
     });
 
     // it("creates progress bar for station construction"); // NIY
@@ -51,27 +47,26 @@ describe("Omega.StationGfx", function(){
 
   describe("#init_gfx", function(){
     var type = 'manufacturing';
-    var station;
 
     before(function(){
       /// preiinit using test page
       Omega.Test.Canvas.Entities();
-
-      station = new Omega.Station({type: type,
-        location : new Omega.Location({x: 100, y: -100, z: 200})});
     });
 
     after(function(){
-      if(Omega.Station.gfx){
-        if(Omega.Station.gfx[type].mesh && Omega.Station.gfx[type].mesh.clone.restore) Omega.Station.gfx[type].mesh.clone.restore();
-        if(Omega.Station.gfx[type].highlight && Omega.Station.gfx[type].highlight.clone.restore) Omega.Station.gfx[type].highlight.clone.restore();
-        if(Omega.Station.gfx[type].lamps)
-          for(var l = 0; l < Omega.Station.gfx[type].lamps.length; l++)
-            if(Omega.Station.gfx[type].lamps[l].clone.restore)
-              Omega.Station.gfx[type].lamps[l].clone.restore();
-        if(Omega.Station.gfx[type].construction_bar && Omega.Station.gfx[type].construction_bar.clone.restore)
-          Omega.Station.gfx[type].construction_bar.clone.restore();
-      }
+      if(Omega.Station.gfx[type].mesh.clone.restore)
+        Omega.Station.gfx[type].mesh.clone.restore();
+
+      if(Omega.Station.gfx[type].highlight.clone.restore)
+        Omega.Station.gfx[type].highlight.clone.restore();
+
+      for(var l = 0; l < Omega.Station.gfx[type].lamps.length; l++)
+        if(Omega.Station.gfx[type].lamps[l].clone.restore)
+          Omega.Station.gfx[type].lamps[l].clone.restore();
+
+      if(Omega.Station.gfx[type].construction_bar.clone.restore)
+        Omega.Station.gfx[type].construction_bar.clone.restore();
+
       if(Omega.Station.prototype.retrieve_resource.restore)
         Omega.Station.prototype.retrieve_resource.restore();
     });
@@ -84,13 +79,16 @@ describe("Omega.StationGfx", function(){
     });
 
     it("clones template mesh", function(){
-      var mesh = new Omega.StationMesh({mesh: new THREE.Mesh()});
+      var mesh   = new Omega.StationMesh({mesh: new THREE.Mesh()});
       var cloned = new Omega.StationMesh({mesh: new THREE.Mesh()});
 
-      var retrieve_resource = sinon.stub(Omega.Station.prototype, 'retrieve_resource');
+      sinon.stub(Omega.Station.prototype, 'retrieve_resource');
       station.init_gfx();
-      sinon.assert.calledWith(retrieve_resource, 'template_mesh_' + station.type, sinon.match.func);
-      var retrieve_resource_cb = retrieve_resource.getCall(0).args[1];
+      sinon.assert.calledWith(Omega.Station.prototype.retrieve_resource,
+                              'template_mesh_' + station.type,
+                              sinon.match.func);
+      var retrieve_resource_cb =
+        Omega.Station.prototype.retrieve_resource.getCall(0).args[1];
 
       var clone = sinon.stub(mesh, 'clone').returns(cloned);
       retrieve_resource_cb(mesh);
@@ -153,7 +151,6 @@ describe("Omega.StationGfx", function(){
 
   describe("#run_effects", function(){
     it("runs lamp effects", function(){
-      var station = Omega.Gen.station({type : 'manufacturing'});
       station.init_gfx();
 
       var spies = [];
@@ -168,7 +165,7 @@ describe("Omega.StationGfx", function(){
   });
 
   describe("#cp_gfx", function(){
-    var orig, station;
+    var orig;
     before(function(){
       orig = {components        : 'components',
               shader_components : 'shader_components',
@@ -176,7 +173,6 @@ describe("Omega.StationGfx", function(){
               highlight         : 'highlight',
               lamps             : 'lamps',
               construction_bar  : 'construction_bar'}
-      station = new Omega.Station();
     });
 
     it("copies station scene components", function(){
@@ -212,8 +208,6 @@ describe("Omega.StationGfx", function(){
 
   describe("#update_gfx", function(){
     it("updates station construction bar", function(){
-      var station = new Omega.Station({type: 'manufacturing',
-                      location : new Omega.Location({x:0,y:0,z:0})});
       station.init_gfx(Omega.Config);
       var update = sinon.spy(station.construction_bar, 'update');
       station.update_gfx();
