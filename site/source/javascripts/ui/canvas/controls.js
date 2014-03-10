@@ -83,6 +83,8 @@ Omega.UI.CanvasControls.prototype = {
   _missions_button_click : function(){
     var _this = this;
     var node  = this.canvas.page.node;
-    Omega.Mission.all(node, function(missions){ _this.canvas.dialog.show_missions_dialog(missions); });
+    Omega.Mission.all(node, function(missions){
+      _this.canvas.dialog.show_missions_dialog(missions);
+    });
   }
 }

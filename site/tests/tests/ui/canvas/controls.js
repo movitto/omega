@@ -3,9 +3,9 @@ describe("Omega.UI.CanvasControls", function(){
   var node, page, canvas, controls;
   
   before(function(){
-    node = new Omega.Node();
-    page = new Omega.Pages.Test({node: node});
-    canvas = new Omega.UI.Canvas({page: page});
+    node     = new Omega.Node();
+    page     = new Omega.Pages.Test({node: node});
+    canvas   = new Omega.UI.Canvas({page: page});
     controls = new Omega.UI.CanvasControls({canvas: canvas});
   });
 
@@ -82,16 +82,16 @@ describe("Omega.UI.CanvasControls", function(){
 
     it("wires up locations list", function(){
       var controls = new Omega.UI.CanvasControls();
-      var spy = sinon.spy(controls.locations_list, 'wire_up');
+      sinon.spy(controls.locations_list, 'wire_up');
       controls.wire_up();
-      sinon.assert.called(spy);
+      sinon.assert.called(controls.locations_list.wire_up);
     });
 
     it("wires up entities list", function(){
       var controls = new Omega.UI.CanvasControls();
-      var spy = sinon.spy(controls.entities_list, 'wire_up');
+      sinon.spy(controls.entities_list, 'wire_up');
       controls.wire_up();
-      sinon.assert.called(spy);
+      sinon.assert.called(controls.entities_list.wire_up);
     });
   });
 
@@ -101,24 +101,26 @@ describe("Omega.UI.CanvasControls", function(){
     });
 
     after(function(){
-      if(Omega.Mission.all.restore) Omega.Mission.all.restore();
+      if(Omega.Mission.all.restore)
+        Omega.Mission.all.restore();
+
       Omega.Test.clear_events();
     });
 
     it("retrieves all missions", function(){
-      var spy = sinon.spy(Omega.Mission, 'all');
+      sinon.spy(Omega.Mission, 'all');
       controls.missions_button.click();
-      sinon.assert.calledWith(spy, node, sinon.match.func)
+      sinon.assert.calledWith(Omega.Mission.all, node, sinon.match.func);
     });
 
     it("shows missions dialog", function(){
-      var spy1 = sinon.spy(Omega.Mission, 'all');
-      var spy2 = sinon.spy(canvas.dialog, 'show_missions_dialog');
+      sinon.spy(Omega.Mission, 'all');
+      sinon.spy(canvas.dialog, 'show_missions_dialog');
       controls.missions_button.click();
 
       var response = {};
-      spy1.getCall(0).args[1](response)
-      sinon.assert.calledWith(spy2, response);
+      Omega.Mission.all.omega_callback()(response)
+      sinon.assert.calledWith(canvas.dialog.show_missions_dialog, response);
     });
   });
   
@@ -135,9 +137,9 @@ describe("Omega.UI.CanvasControls", function(){
     });
 
     it("invokes canvas.reset_cam()", function(){
-      var reset_cam = sinon.spy(canvas, 'reset_cam');
+      sinon.spy(canvas, 'reset_cam');
       controls.cam_reset.click();
-      sinon.assert.called(reset_cam);
+      sinon.assert.called(canvas.reset_cam);
     });
   })
 
@@ -194,10 +196,18 @@ describe("Omega.UI.CanvasControls", function(){
       Omega.Test.clear_events();
     });
 
-    it("sets canvas scene root", function(){
-      var spy = sinon.spy(canvas, 'set_scene_root');
+    it("refreshes clicked item", function(){
+      sinon.stub(system, 'refresh');
       $(controls.locations_list.children()[0]).click();
-      sinon.assert.calledWith(spy, system);
+      sinon.assert.calledWith(system.refresh, node, sinon.match.func)
+    });
+
+    it("sets canvas scene root", function(){
+      sinon.stub(system, 'refresh');
+      sinon.stub(canvas, 'set_scene_root');
+      $(controls.locations_list.children()[0]).click();
+      system.refresh.omega_callback()();
+      sinon.assert.calledWith(canvas.set_scene_root, system);
     });
   });
 
@@ -230,26 +240,42 @@ describe("Omega.UI.CanvasControls", function(){
       Omega.Test.clear_events();
     });
 
-    it("sets canvas scene root", function(){
-      var spy = sinon.spy(canvas, 'set_scene_root');
+    it("refreshes clicked item system", function(){
+      sinon.stub(system, 'refresh');
       $(controls.entities_list.children()[0]).click();
-      sinon.assert.calledWith(spy, ship.solar_system);
+      sinon.assert.calledWith(system.refresh, node, sinon.match.func)
     });
 
-    it("sets camera position to proximity of entity", function(){
-      $(controls.entities_list.children()[0]).click();
-      assert(canvas.cam.position.toArray()).isSameAs([600, 700, -600]);
-    });
+    describe("on system refresh", function(){
+      var refresh_cb;
 
-    it("focuses canvas scene camera on clicked entity's location", function(){
-      $(controls.entities_list.children()[0]).click();
-      sinon.assert.calledWith(focus_stub, ship.location);
-    });
+      before(function(){
+        sinon.stub(system, 'refresh');
+        $(controls.entities_list.children()[0]).click();
+        refresh_cb = system.refresh.omega_callback();
+      });
 
-    it("invokes canvas._clicked_entity with entity", function(){
-      var clicked = sinon.spy(canvas, '_clicked_entity');
-      $(controls.entities_list.children()[0]).click();
-      sinon.assert.calledWith(clicked, ship);
+      it("sets canvas scene root", function(){
+        sinon.spy(canvas, 'set_scene_root');
+        refresh_cb();
+        sinon.assert.calledWith(canvas.set_scene_root, ship.solar_system);
+      });
+
+      it("sets camera position to proximity of entity", function(){
+        refresh_cb();
+        assert(canvas.cam.position.toArray()).isSameAs([600, 700, -600]);
+      });
+
+      it("focuses canvas scene camera on clicked entity's location", function(){
+        refresh_cb();
+        sinon.assert.calledWith(focus_stub, ship.location);
+      });
+
+      it("invokes canvas._clicked_entity with entity", function(){
+        sinon.spy(canvas, '_clicked_entity');
+        refresh_cb();
+        sinon.assert.calledWith(canvas._clicked_entity, ship);
+      });
     });
   });
 });});

@@ -115,6 +115,7 @@ Omega.UI.CanvasTracker = {
   },
 
   _load_entity_system : function(entity){
+    var _this = this;
     var system = Omega.UI.Loader.load_system(entity.system_id, this,
       function(solar_system) { _this.process_system(solar_system); });
     if(system && system != Omega.UI.Loader.placeholder)
@@ -123,8 +124,6 @@ Omega.UI.CanvasTracker = {
 
   /// Process entity retrieved from server
   process_entity : function(entity){
-    var _this = this;
-
     /// store entity locally
     this._store_entity(entity);
 

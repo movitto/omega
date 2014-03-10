@@ -139,9 +139,13 @@ Omega.UI.Loader = {
     Omega.Stat.get('universe_id', null, page.node,
       function(stat_result){
         var id = stat_result.value;
-        if(!_this._same_universe(id)) _this.clear_universe();
+        if(!_this._same_universe(id))
+          _this.clear_universe();
+
         _this._set_universe(id);
-        if(retrieval_cb) retrieval_cb(id);
+
+        if(retrieval_cb)
+          retrieval_cb(id);
       });
   },
 
@@ -175,10 +179,10 @@ Omega.UI.Loader = {
   },
 
   _load_remote_system : function(system_id, page, retrieval_cb){
+    var _this  = this;
     var system = Omega.UI.Loader.placeholder;
     page.entity(system_id, system);
 
-    var _this = this;
     Omega.SolarSystem.with_id(system_id, page.node, {children: false},
       function(system){
         _this._loaded_remote_system(system, page, retrieval_cb);

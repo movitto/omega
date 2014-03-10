@@ -103,6 +103,7 @@ describe("Omega.Pages.Index", function(){
     var index;
     before(function(){
       index = new Omega.Pages.Index();
+      index.session = new Omega.Session();
     });
 
     it("shows logout controls", function(){
