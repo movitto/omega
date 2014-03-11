@@ -65,8 +65,17 @@ describe("Omega.ShipTransferInteractions", function(){
   describe("#_transfer_failed", function(){
     var response = {error : {message : 'transfer error'}};
 
-    it("shows error dialog", function(){
+    before(function(){
       sinon.spy(ship.dialog(), 'show_error_dialog');
+      sinon.spy(ship.dialog(), 'append_error');
+    });
+
+    after(function(){
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+    });
+
+    it("shows error dialog", function(){
       ship._transfer_failed(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -77,7 +86,6 @@ describe("Omega.ShipTransferInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      sinon.spy(ship.dialog(), 'append_error');
       ship._transfer_failed(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'transfer error');
     });

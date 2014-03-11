@@ -113,22 +113,30 @@ describe("Omega.JumpGateCommands", function(){
       });
 
       describe("error during commend", function(){
+        before(function(){
+          sinon.stub(jg.dialog(), 'show_error_dialog');
+          sinon.spy(jg.dialog(), 'append_error');
+        });
+
+        after(function(){
+          jg.dialog().show_error_dialog.restore();
+          jg.dialog().append_error.restore();
+        });
+
         it("sets command dialog title", function(){
           handler(error_response);
           assert(jg.dialog().title).equals('Jump Gate Trigger Error');
         });
 
         it("shows command dialog", function(){
-          var show = sinon.spy(jg.dialog(), 'show_error_dialog');
           handler(error_response);
-          sinon.assert.called(show);
+          sinon.assert.called(jg.dialog().show_error_dialog);
           assert(jg.dialog().component()).isVisible();
         });
 
         it("appends error to command dialog", function(){
-          var append_error = sinon.spy(jg.dialog(), 'append_error');
           handler(error_response);
-          sinon.assert.calledWith(append_error, 'jg_error');
+          sinon.assert.calledWith(jg.dialog().append_error, 'jg_error');
           assert($('#command_error').html()).equals('jg_error');
         });
       })

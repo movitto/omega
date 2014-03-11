@@ -27,11 +27,8 @@ Omega.ShipInteraction = {
     } /// TODO else if(should_mine, should_dock)
   },
 
-  /// TODO centralize command dialog
   dialog : function(){
-    if(typeof(this._dialog) === "undefined")
-      this._dialog = new Omega.UI.CommandDialog();
-    return this._dialog;
+    return Omega.UI.CommandDialog.instance();
   }
 }
 

@@ -110,8 +110,17 @@ describe("Omega.ShipDockInteractions", function(){
   describe("#_dock_failure", function(){
     var response = {error : {message : 'dock error'}};
 
-    it("shows error dialog", function(){
+    before(function(){
       sinon.spy(ship.dialog(), 'show_error_dialog');
+      sinon.spy(ship.dialog(), 'append_error');
+    });
+
+    after(function(){
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+    });
+
+    it("shows error dialog", function(){
       ship._dock_failure(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -122,7 +131,6 @@ describe("Omega.ShipDockInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      sinon.spy(ship.dialog(), 'append_error');
       ship._dock_failure(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'dock error');
     });
@@ -137,15 +145,16 @@ describe("Omega.ShipDockInteractions", function(){
 
       sinon.stub(page.canvas, 'reload');
       sinon.spy(page.canvas.entity_container, 'refresh');
+      sinon.stub(ship.dialog(), 'hide');
     });
 
     after(function(){
       page.canvas.reload.restore();
       page.canvas.entity_container.refresh.restore();
+      ship.dialog().hide.restore();
     });
 
     it("hides the dialog", function(){
-      sinon.spy(ship.dialog(), 'hide');
       ship._dock_success(response, page, station);
       sinon.assert.called(ship.dialog().hide);
     });
@@ -224,8 +233,17 @@ describe("Omega.ShipDockInteractions", function(){
   describe("#_undock_failure", function(){
     var response = {error : {message : 'undock error'}};
 
-    it("shows error dialog", function(){
+    before(function(){
       sinon.spy(ship.dialog(), 'show_error_dialog');
+      sinon.spy(ship.dialog(), 'append_error');
+    });
+
+    after(function(){
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+    });
+
+    it("shows error dialog", function(){
       ship._undock_failure(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -236,7 +254,6 @@ describe("Omega.ShipDockInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      var append = sinon.spy(ship.dialog(), 'append_error');
       ship._undock_failure(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'undock error');
     });

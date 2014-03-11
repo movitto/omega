@@ -29,11 +29,8 @@ Omega.JumpGateCommands = {
     details_cb(details);
   },
 
-  // XXX not a big fan of having this here, should eventually be moved elsewhere
   dialog : function(){
-    if(typeof(this._dialog) === "undefined")
-      this._dialog = new Omega.UI.CommandDialog(); 
-    return this._dialog;
+    return Omega.UI.CommandDialog.instance();
   },
 
   _trigger : function(page){

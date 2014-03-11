@@ -104,8 +104,17 @@ describe("Omega.ShipAttackInteractions", function(){
   describe("#_attack_failed", function(){
     var response = {error  : {message : 'attack err'}};
 
-    it("shows error dialog", function(){
+    before(function(){
       sinon.stub(ship.dialog(), 'show_error_dialog');
+      sinon.spy(ship.dialog(), 'append_error');
+    });
+
+    after(function(){
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+    });
+
+    it("shows error dialog", function(){
       ship._attack_failed(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -116,7 +125,6 @@ describe("Omega.ShipAttackInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      sinon.stub(ship.dialog(), 'append_error');
       ship._attack_failed(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'attack err');
     });
@@ -126,19 +134,20 @@ describe("Omega.ShipAttackInteractions", function(){
     var nship, tgt, response;
 
     before(function(){
+     sinon.stub(ship.dialog(), 'hide');
      sinon.stub(page.canvas, 'reload');
 
      tgt      = Omega.Gen.ship();
      nship    = Omega.Gen.ship();
      response = {result : nship};
-    })
+    });
 
     after(function(){
+      ship.dialog().hide.restore();
       page.canvas.reload.restore();
     });
 
     it("hides the dialog", function(){
-      sinon.stub(ship.dialog(), 'hide');
       ship._attack_success(response, page, tgt);
       sinon.assert.called(ship.dialog().hide);
     });

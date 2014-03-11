@@ -96,26 +96,27 @@ describe("Omega.ShipMovementInteractions", function(){
       page.set_canvas_root(Omega.Gen.solar_system());
       sinon.stub(ship, '_stations_in_same_system').returns([station1])
       sinon.stub(ship, '_ships_in_same_system').returns([ship1])
+      sinon.stub(ship.dialog(), 'show_destination_selection_dialog');
       sinon.stub(page.canvas.root, 'asteroids').returns([asteroid1]);
       sinon.stub(page.canvas.root, 'jump_gates').returns([jg1]);
     });
 
     after(function(){
       page.restore_canvas_root();
+      ship.dialog().show_destination_selection_dialog.restore();
     });
 
     it("shows select destination dialog", function(){
-      sinon.stub(ship.dialog(), 'show_destination_selection_dialog');
       ship._select_destination(page);
       sinon.assert.calledWith(ship.dialog().show_destination_selection_dialog,
                               page, ship, sinon.match.object);
     });
 
     it("retrieves entities to render in destination select box", function(){
-      var show_dialog = sinon.stub(ship.dialog(), 'show_destination_selection_dialog');
       ship._select_destination(page);
 
-      var entities = show_dialog.getCall(0).args[2];
+      var entities =
+        ship.dialog().show_destination_selection_dialog.getCall(0).args[2];
       assert(entities['stations']).isSameAs([station1]);
       assert(entities['ships']).isSameAs([ship1]);
       assert(entities['asteroids']).isSameAs([asteroid1]);
@@ -171,14 +172,24 @@ describe("Omega.ShipMovementInteractions", function(){
   describe("#_move_failed", function(){
     var response = {error  : {message : 'move err'}};
 
+    before(function(){
+      sinon.spy(ship.dialog(), 'show_error_dialog');
+      sinon.spy(ship.dialog(), 'append_error');
+      sinon.spy(ship.dialog(), 'clear_errors');
+    });
+
+    after(function(){
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+      ship.dialog().clear_errors.restore();
+    });
+
     it("clears error dialog", function(){
-      sinon.stub(ship.dialog(), 'clear_errors');
       ship._move_failed(response);
       sinon.assert.called(ship.dialog().clear_errors);
     });
 
     it("shows error dialog", function(){
-      sinon.stub(ship.dialog(), 'show_error_dialog');
       ship._move_failed(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -189,7 +200,6 @@ describe("Omega.ShipMovementInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      sinon.stub(ship.dialog(), 'append_error');
       ship._move_failed(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'move err');
     });
@@ -201,15 +211,16 @@ describe("Omega.ShipMovementInteractions", function(){
     before(function(){
       nship = Omega.Gen.ship();
       response = {result : nship};
+      sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');
     })
 
     after(function(){
+      ship.dialog().hide.restore();
       page.canvas.reload.restore();
     });
 
     it("hides the dialog", function(){
-      sinon.stub(ship.dialog(), 'hide');
       ship._move_success(response, page);
       sinon.assert.called(ship.dialog().hide);
     });
@@ -279,14 +290,24 @@ describe("Omega.ShipMovementInteractions", function(){
   describe("#_follow_failed", function(){
     var response = {error  : {message : 'follow err'}};
 
-    it("clears error dialog", function(){
+    before(function(){
       sinon.stub(ship.dialog(), 'clear_errors');
+      sinon.stub(ship.dialog(), 'show_error_dialog');
+      sinon.stub(ship.dialog(), 'append_error');
+    });
+
+    after(function(){
+      ship.dialog().clear_errors.restore();
+      ship.dialog().show_error_dialog.restore();
+      ship.dialog().append_error.restore();
+    });
+
+    it("clears error dialog", function(){
       ship._follow_failed(response);
       sinon.assert.called(ship.dialog().clear_errors);
     });
 
     it("shows error dialog", function(){
-      sinon.stub(ship.dialog(), 'show_error_dialog');
       ship._follow_failed(response);
       sinon.assert.called(ship.dialog().show_error_dialog);
     });
@@ -297,7 +318,6 @@ describe("Omega.ShipMovementInteractions", function(){
     });
 
     it("appends error to dialog", function(){
-      sinon.stub(ship.dialog(), 'append_error');
       ship._follow_failed(response);
       sinon.assert.calledWith(ship.dialog().append_error, 'follow err');
     });
@@ -309,15 +329,16 @@ describe("Omega.ShipMovementInteractions", function(){
     before(function(){
       nship = Omega.Gen.ship();
       response = {result : nship};
+      sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');
     })
 
     after(function(){
+      ship.dialog().hide.restore();
       page.canvas.reload.restore();
     });
 
     it("hides the dialog", function(){
-      sinon.stub(ship.dialog(), 'hide');
       ship._follow_success(response, page);
       sinon.assert.called(ship.dialog().hide);
     });

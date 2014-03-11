@@ -44,22 +44,30 @@ describe("Omega.StationInteraction", function(){
       });
 
       describe("error during command", function(){
+        before(function(){
+          sinon.stub(station.dialog(), 'show_error_dialog');
+          sinon.spy(station.dialog(), 'append_error');
+        });
+
+        after(function(){
+          station.dialog().show_error_dialog.restore();
+          station.dialog().append_error.restore();
+        });
+
         it("sets command dialog title", function(){
           handler(error_response);
           assert(station.dialog().title).equals('Construction Error');
         });
 
         it("shows command dialog", function(){
-          var show = sinon.spy(station.dialog(), 'show_error_dialog');
           handler(error_response);
-          sinon.assert.called(show);
+          sinon.assert.called(station.dialog().show_error_dialog);
           assert(station.dialog().component()).isVisible();
         });
 
         it("appends error to command dialog", function(){
-          var append_error = sinon.spy(station.dialog(), 'append_error');
           handler(error_response);
-          sinon.assert.calledWith(append_error, 'construct_error');
+          sinon.assert.calledWith(station.dialog().append_error, 'construct_error');
           assert($('#command_error').html()).equals('construct_error');
         });
       });
