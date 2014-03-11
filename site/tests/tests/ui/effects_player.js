@@ -57,28 +57,43 @@ describe("Omega.UI.EffectsPlayer", function(){
   });
 
   describe('#wire_up', function(){
-    //it('wires up document blur/focus/visibility change events'); // NIY
-
-    //describe("on window blur", function(){
-      //it("stops effects times") /// NIY
-    //});
-
-    //describe("om window focus", function(){
-      //it("starts effects timer"); /// NIY
-    //});
-
-    describe("on document hidden", function(){
-      //it("stops effects timer"); /// NIY
+    before(function(){
     });
 
-    //describe("on document shown", function(){
-    //  describe("effects timer previously playing", function(){
-    //    it("starts effects timer"); /// NIY
-    //  });
-    //  describe("effects timer not previously playing", function(){
-    //    it("does nothing / just returns"); /// NIY
-    //  });
-    //});
+    after(function(){
+      $(document).off('visibilitychange');
+    });
+
+    it('wires up document visibility change events', function(){
+      assert($(document)).doesNotHandle('visibilitychange');
+      player.wire_up();
+      assert($(document)).handles('visibilitychange');
+    });
+
+    describe("document hidden", function(){
+      it("stops effects timer", function(){
+        sinon.stub(player, '_document_hidden').returns(true);
+        player._create_timer();
+        player.wire_up();
+
+        sinon.stub(player.effects_timer, 'stop');
+        $(document).trigger('visibilitychange');
+        sinon.assert.called(player.effects_timer.stop);
+      });
+    });
+
+    describe("document visible & player playing", function(){
+      it("starts effects timer", function(){
+        sinon.stub(player, '_document_hidden').returns(false);
+        player.playing = true;
+        player._create_timer();
+        player.wire_up();
+
+        sinon.stub(player.effects_timer, 'play');
+        $(document).trigger('visibilitychange');
+        sinon.assert.called(player.effects_timer.play);
+      });
+    });
   });
 
   describe("#start", function(){

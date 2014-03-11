@@ -41,7 +41,7 @@ Omega.OrbitLine.prototype = {
   },
 
   init_gfx : function(orbit, color){
-    this.line = new THREE.Line(this._geometry(orbit), this._material(color));
+    this.line  = new THREE.Line(this._geometry(orbit), this._material(color));
   }
 };
 
@@ -136,7 +136,7 @@ Omega.OrbitHelpers = {
   },
 
   _has_orbit_line : function(){
-    return this.orbit_line && (this.components.indexOf(this.orbit_line.line) != -1);
+    return !!(this.orbit_line) && (this.components.indexOf(this.orbit_line.line) != -1);
   },
 
   _add_orbit_line : function(color){

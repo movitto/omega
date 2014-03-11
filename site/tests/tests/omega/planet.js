@@ -10,7 +10,13 @@ describe("Omega.Planet", function(){
   });
 
   describe("#update", function(){
-    //it("updates planet attributes from other planet") NIY
+    it("updates planet location", function(){
+      var  planet = Omega.Gen.planet();
+      var nplanet = Omega.Gen.planet();
+      sinon.spy(planet.location, 'update');
+      planet.update(nplanet);
+      sinon.assert.calledWith(planet.location.update, nplanet.location);
+    });
   });
 
   describe("#toJSON", function(){
@@ -32,10 +38,37 @@ describe("Omega.Planet", function(){
   });
 
   describe("#colori", function(){
-    //it("returns modulated integer color") NIY
+    it("returns modulated integer color", function(){
+      var planet = Omega.Gen.planet();
+      planet.color = '000000';
+      assert(planet.colori()).equals(0);
+
+      planet.color = '000001';
+      assert(planet.colori()).equals(1);
+
+      planet.color = planet._num_textures;
+      assert(planet.colori()).equals(0);
+
+      planet.color = planet._num_textures + 1;
+      assert(planet.colori()).equals(1);
+    });
   });
 
   describe("#clicked_in", function(){
-    //it("folows planet w/ canvas camera") NIY
+    var page;
+    before(function(){
+      page = Omega.Test.Page();
+      sinon.stub(page.canvas, 'follow');
+    });
+
+    after(function(){
+      page.canvas.follow.restore();
+    });
+
+    it("follows planet w/ canvas camera", function(){
+      var planet = Omega.Gen.planet();
+      planet.clicked_in(page.canvas);
+      sinon.assert.calledWith(page.canvas.follow, planet.location);
+    });
   });
 });}); // Omega.Planet

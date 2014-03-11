@@ -45,6 +45,11 @@ Omega.UI.EffectsPlayer.prototype = {
   /// Set to null to update all entities on every cycle
   entities_per_cycle : 30,
 
+  /// Internal (stubbable) helper returning document.hidden
+  _document_hidden : function(){
+    return document.hidden;
+  },
+
   /// Wire up effects player to page DOM
   ///
   /// Toggle effects loop on page visibilty changes
@@ -53,7 +58,7 @@ Omega.UI.EffectsPlayer.prototype = {
     var _this = this;
     $(document).on('visibilitychange', function(evnt){
       if(_this.effects_timer){
-        if(document.hidden)
+        if(_this._document_hidden())
           _this.effects_timer.stop();
         else if(_this.playing)
           _this.effects_timer.play();

@@ -53,21 +53,55 @@ describe("Omega.OrbitHelpers", function(){
   });
 
   describe("#_has_orbit_line", function(){
+    var entity, line;
+    before(function(){
+      line = new Omega.OrbitLine({orbit : []});
+      entity  = $.extend({orbit_line : line, components : []},
+                         Omega.OrbitHelpers);
+    });
+
     describe("#orbit line part of entity gfx components", function(){
-      //it("returns true") NIY
+      it("returns true", function(){
+        entity.components.push(line.line);
+        assert(entity._has_orbit_line()).isTrue();
+      });
     });
 
     describe("#orbit line not part of entity gfx components", function(){
-      //it("returns false") NIY
+      it("returns false", function(){
+        assert(entity._has_orbit_line()).isFalse();
+      });
     });
   });
 
   describe("#add_orbit_line", function(){
-    //it("creates new orbit line"); NIY
-    //it("adds orbit line to entity gfx components") NIY
+    var entity;
+    before(function(){
+      entity  = $.extend({orbit: [], components : []}, Omega.OrbitHelpers);
+    });
+
+    it("creates new orbit line", function(){
+      entity._add_orbit_line();
+      assert(entity.orbit_line).isOfType(Omega.OrbitLine);
+    });
+
+    it("adds orbit line to entity gfx components", function(){
+      entity._add_orbit_line();
+      assert(entity._has_orbit_line()).isTrue();
+    });
   });
 
   describe("#_rm_orbit_line", function(){
-    //it("removes orbit line from entity gfx components") NIY
+    var entity;
+    before(function(){
+      entity  = $.extend({orbit: [], components : []}, Omega.OrbitHelpers);
+    });
+
+
+    it("removes orbit line from entity gfx components", function(){
+      entity._add_orbit_line();
+      entity._rm_orbit_line();
+      assert(entity._has_orbit_line()).isFalse();
+    });
   });
 });});

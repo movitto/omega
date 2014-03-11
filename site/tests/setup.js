@@ -243,7 +243,8 @@ pavlov.specify.extendAssertions({
 
   doesNotHandle: function(actual, evnt, message){
     var handlers = Omega.Test.events_for(actual);
-    ok(handlers == null || handlers[evnt].length == 0, message);
+    ok(handlers == null || handlers[evnt] == null || handlers[evnt].length == 0,
+       message);
   },
 
   handlesChild: function(actual, evnt, selector, message){

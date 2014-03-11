@@ -546,6 +546,36 @@ describe("Omega.UI.Loader", function(){
     });
   });
 
-  //describe("#load_default_systems") NIY
-  //describe("#load_interconnects") NIY
+  describe("#load_default_systems", function(){
+    var page;
+
+    before(function(){
+      page = new Omega.Pages.Test();
+      sinon.stub(Omega.Stat, 'get');
+      sinon.stub(Omega.UI.Loader, '_loaded_default_systems');
+    });
+
+    after(function(){
+      Omega.Stat.get.restore();
+      Omega.UI.Loader._loaded_default_systems.restore();
+    });
+
+    it("loads systems with most entities", function(){
+      Omega.UI.Loader.load_default_systems(page)
+      sinon.assert.calledWith(Omega.Stat.get,
+        'systems_with_most', ['entities', 15],
+         page.node, sinon.match.func);
+    });
+
+    it("invokes loaded_default_systems w/ entities retrieved", function(){
+      var cb = sinon.spy();
+      var result = {value: 'value'};
+      Omega.UI.Loader.load_default_systems(page, cb)
+      Omega.Stat.get.omega_callback()(result);
+      sinon.assert.calledWith(Omega.UI.Loader._loaded_default_systems,
+        'value', page, cb);
+    });
+  });
+
+  //describe("#load_interconnects"); // NIY
 });});
