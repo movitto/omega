@@ -17,7 +17,8 @@ describe("Omega.SolarSystem", function(){
   });
 
   it("converts location", function(){
-    var system = new Omega.SolarSystem({location : {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}}});
+    var loc = {json_class : 'Motel::Location', data : {x: 10, y: 20, z:30}};
+    var system = new Omega.SolarSystem({location : loc});
     assert(system.location).isOfType(Omega.Location);
     assert(system.location.x).equals(10);
     assert(system.location.y).equals(20);
@@ -35,11 +36,82 @@ describe("Omega.SolarSystem", function(){
   });
 
   describe("#refresh", function(){
-    //it("refreshes system from server") /// NIY
+    var node, system, retrieved;
+    before(function(){
+      node = new Omega.Node();
+      system = Omega.Gen.solar_system();
+      retrieved = Omega.Gen.solar_system();
+
+      sinon.stub(Omega.SolarSystem, 'with_id');
+    });
+
+    after(function(){
+      Omega.SolarSystem.with_id.restore();
+    });
+
+    it("retrieves system from server", function(){
+      system.refresh(node);
+      sinon.assert.calledWith(Omega.SolarSystem.with_id,
+        system.id, node, {children: true}, sinon.match.func);
+    });
+
+    it("updates system with result", function(){
+      sinon.stub(system, 'update')
+      system.refresh(node);
+      Omega.SolarSystem.with_id.omega_callback()(retrieved);
+      sinon.assert.calledWith(system.update, retrieved);
+    });
+
+    it("invokes callback with system", function(){
+      var cb = sinon.spy();
+      system.refresh(node, cb);
+      Omega.SolarSystem.with_id.omega_callback()(retrieved);
+      sinon.assert.called(cb);
+    });
+
+    it("dispatches refreshed event", function(){
+      var cb = sinon.spy();
+      system.addEventListener('refreshed', cb);
+      system.refresh(node);
+      Omega.SolarSystem.with_id.omega_callback()(retrieved, cb);
+      sinon.assert.called(cb);
+    });
   });
 
   describe("#update", function(){
-    //it("updates system attributes from other"); /// NIY
+    var system,  star,  planet,
+        nsystem, nstar, nast;
+
+    before(function(){
+      system  = Omega.Gen.solar_system();
+      star    = Omega.Gen.star();
+      planet  = Omega.Gen.planet();
+      system.children = [star, planet, 'ast1'];
+
+      nsystem = Omega.Gen.solar_system();
+      nstar   = Omega.Gen.star();
+      nplanet = Omega.Gen.planet({id : planet.id});
+      nast    = Omega.Gen.asteroid({id : 'ast1'});
+
+      nsystem.children = [nstar, nplanet, nast];
+    });
+
+    it("adds missing children to system", function(){
+      system.update(nsystem);
+      assert(system.children).includes(nstar);
+    });
+
+    it("updates system children ids", function(){
+      system.update(nsystem);
+      assert(system.children).includes(nast);
+      assert(system.children).doesNotInclude('ast1');
+    });
+
+    it("updates existing children", function(){
+      sinon.spy(planet, 'update');
+      system.update(nsystem);
+      sinon.assert.calledWith(planet.update, nplanet);
+    });
   });
 
   describe("#toJSON", function(){
@@ -109,17 +181,45 @@ describe("Omega.SolarSystem", function(){
 
   describe("#has_gate_to", function(){
     describe("system has gate to specified endpoint", function(){
-      //it("returns true");  NIY
+      it("returns true", function(){
+        var system = Omega.Gen.solar_system();
+        var gate   = Omega.Gen.jump_gate({endpoint_id : 'endpoint'});
+        system.children = [gate];
+        assert(system.has_gate_to('endpoint')).isTrue();
+      });
     });
 
     describe("system does not have gate to specified endpoint", function(){
-      //it("returns false");  NIY
+      it("returns false", function(){
+        var system = Omega.Gen.solar_system();
+        assert(system.has_gate_to('endpoint')).isFalse();
+      });
     });
   });
 
   describe("#add_gate_to", function(){
-    //it("adds child jump gate to specified endpoint")  NIY
-    //it("adds interconnection to endpoint")  NIY
+    it("adds child jump gate to specified endpoint", function(){
+      var system   = Omega.Gen.solar_system();
+      var endpoint = Omega.Gen.solar_system();
+
+      assert(system.children.length).equals(0);
+      system.add_gate_to(endpoint);
+      assert(system.children.length).equals(1);
+
+      var gate = system.children[0];
+      assert(gate).isOfType(Omega.JumpGate);
+      assert(gate.endpoint_id).equals(endpoint.id);
+      assert(gate.endpoint).equals(endpoint);
+    });
+
+    it("adds interconnection to endpoint", function(){
+      var system   = Omega.Gen.solar_system();
+      var endpoint = Omega.Gen.solar_system();
+
+      sinon.stub(system.interconns, 'add');
+      system.add_gate_to(endpoint);
+      sinon.assert.calledWith(system.interconns.add, endpoint);
+    });
   });
 
   describe("#update_children_from", function(){
@@ -162,13 +262,58 @@ describe("Omega.SolarSystem", function(){
   });
 
   describe("on_hover", function(){
-    //it("reloads system in scene"); NIY
-    //it("adds hover sphere to system scene compoents"); NIY
+    var canvas, system;
+
+    before(function(){
+      system = Omega.Gen.solar_system();
+      system.init_gfx(Omega.Config);
+
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas, 'reload');
+    });
+
+    after(function(){
+      canvas.reload.restore();
+    });
+
+    it("reloads system in scene", function(){
+      system.on_hover(canvas);
+      sinon.assert.calledWith(canvas.reload);
+    });
+
+    it("adds hover sphere to system scene components", function(){
+      system.on_hover(canvas);
+      canvas.reload.omega_callback()();
+      assert(system._has_hover_sphere()).isTrue();
+    });
   });
 
   describe("on_unhover", function(){
-    //it("reloads system in scene"); NIY
-    //it("removes hover sphere from system scene compoents"); NIY
+    var canvas, system;
+
+    before(function(){
+      system = Omega.Gen.solar_system();
+      system.init_gfx(Omega.Config);
+      system._add_hover_sphere();
+
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas, 'reload');
+    });
+
+    after(function(){
+      canvas.reload.restore();
+    });
+
+    it("reloads system in scene", function(){
+      system.on_unhover(canvas);
+      sinon.assert.calledWith(canvas.reload);
+    });
+
+    it("removes hover sphere from system scene compoents", function(){
+      system.on_unhover(canvas);
+      canvas.reload.omega_callback()();
+      assert(system._has_hover_sphere()).isFalse();
+    });
   });
 
   describe("#with_id", function(){

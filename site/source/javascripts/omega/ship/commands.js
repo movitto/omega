@@ -66,7 +66,7 @@ Omega.ShipCommands = {
     var details = [title, loc, orien, hp, type].concat(resources);
     for(var d = 0; d < details.length; d++) details[d] += '<br/>';
     details.push(follow);
-    /// details.length == 7 + resources.length here
+    /// details.length == 7 + ship.resources.length here
 
     if(page.session && this.belongs_to_user(page.session.user_id)){
       var cmds = this._create_commands(page);

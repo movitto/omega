@@ -5,6 +5,96 @@ describe("Omega.Galaxy", function(){
     assert(galaxy.bg).equals(1);
   });
 
+
+  describe("#child", function(){
+    it("returns solar system child w/ the specified id", function(){
+      var system = new Omega.SolarSystem();
+      var planet1 = Omega.Gen.planet();
+      var planet2 = Omega.Gen.planet();
+      system.children = [planet1, planet2];
+      assert(system.child(planet1.id)).equals(planet1);
+    });
+  });
+
+  describe("#refresh", function(){
+    var node, galaxy, retrieved;
+    before(function(){
+      node = new Omega.Node();
+      galaxy = Omega.Gen.galaxy();
+      retrieved = Omega.Gen.galaxy();
+
+      sinon.stub(Omega.Galaxy, 'with_id');
+    });
+
+    after(function(){
+      Omega.Galaxy.with_id.restore();
+    });
+
+    it("retrieves galaxy from server", function(){
+      galaxy.refresh(node);
+      sinon.assert.calledWith(Omega.Galaxy.with_id,
+        galaxy.id, node, {children: true, recursive: false},
+        sinon.match.func);
+    });
+
+    it("updates galaxy with result", function(){
+      sinon.stub(galaxy, 'update')
+      galaxy.refresh(node);
+      Omega.Galaxy.with_id.omega_callback()(retrieved);
+      sinon.assert.calledWith(galaxy.update, retrieved);
+    });
+
+    it("invokes callback with galaxy", function(){
+      var cb = sinon.spy();
+      galaxy.refresh(node, cb);
+      Omega.Galaxy.with_id.omega_callback()(retrieved);
+      sinon.assert.called(cb);
+    });
+
+    it("dispatches refreshed event", function(){
+      var cb = sinon.spy();
+      galaxy.addEventListener('refreshed', cb);
+      galaxy.refresh(node);
+      Omega.Galaxy.with_id.omega_callback()(retrieved, cb);
+      sinon.assert.called(cb);
+    });
+  });
+
+  describe("#update", function(){
+    var galaxy,  system1,   system2,
+        ngalaxy, nsystem1, nsystem2, nsystem3;
+
+    before(function(){
+      galaxy  = Omega.Gen.galaxy();
+      system1 = Omega.Gen.solar_system();
+      system2 = Omega.Gen.solar_system();
+      galaxy.children = [system1, system2, 'systemA'];
+
+      ngalaxy  = Omega.Gen.galaxy();
+      nsystem1 = Omega.Gen.solar_system();
+      nsystem2 = Omega.Gen.solar_system({id : system2.id});
+      nsystem3 = Omega.Gen.solar_system({id : 'systemA'});
+      ngalaxy.children = [nsystem1, nsystem2, nsystem3];
+    });
+
+    it("adds missing children to galaxy", function(){
+      galaxy.update(ngalaxy);
+      assert(galaxy.children).includes(nsystem1);
+    });
+
+    it("updates galaxy children ids", function(){
+      galaxy.update(ngalaxy);
+      assert(galaxy.children).includes(nsystem3);
+      assert(galaxy.children).doesNotInclude('system3');
+    });
+
+    it("updates existing children", function(){
+      sinon.spy(system2, 'update');
+      galaxy.update(ngalaxy);
+      sinon.assert.calledWith(system2.update, nsystem2);
+    });
+  });
+
   describe("#toJSON", function(){
     it("returns galaxy json data", function(){
       var gal  = {id        : 'gal1',

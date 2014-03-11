@@ -62,6 +62,22 @@ describe("Omega.ShipCommands", function(){
       }
     });
 
+    describe("canvas camera following ship", function(){
+      before(function(){
+        page.canvas.follow(ship.location);
+      });
+
+      after(function(){
+        page.canvas.stop_following();
+      });
+
+      it("displays 'stop following' text", function(){
+        ship.retrieve_details(page, details_cb);
+        var details = details_cb.getCall(0).args[0];
+        assert(details[8].html()).equals('stop following');
+      });
+    });
+
     describe("ship does not belong to user", function(){
       it("does not invoke details with commands", function(){
         ship.user_id = 'user2';
@@ -161,16 +177,66 @@ describe("Omega.ShipCommands", function(){
       });
     });
 
-    //it("wires up follow command click event"); NIY
+    it("wires up follow command click event", function(){
+      ship.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      var follow  = details[8];
 
-    //describe("on follow command click", function(){
-      //it("starts following entity location with canvas camera") NIY
-      //it("sets command text to 'unfollow'"); // NIY
-    //});
+      assert(follow).handles('click');
+    });
 
-    //describe("on unfollow", function(){
-      //it("stops canvas camera following"); NIY
-      //it("sets command text to 'follow'); NIY
-    //});
+    describe("on follow command click", function(){
+      var follow;
+
+      before(function(){
+        sinon.stub(page.canvas, 'follow');
+
+        ship.retrieve_details(page, details_cb);
+        var details = details_cb.getCall(0).args[0];
+        follow  = details[8];
+      });
+
+      after(function(){
+        page.canvas.follow.restore();
+      });
+
+      it("starts following entity location with canvas camera", function(){
+        follow.click();
+        sinon.assert.calledWith(page.canvas.follow);
+      });
+
+      it("sets command text to 'unfollow'", function(){
+        follow.click();
+        assert(follow.text()).equals('stop following');
+      });
+    });
+
+    describe("on unfollow", function(){
+      var follow;
+
+      before(function(){
+        page.canvas.follow(ship.location);
+        sinon.stub(page.canvas, 'stop_following');
+
+        ship.retrieve_details(page, details_cb);
+        var details = details_cb.getCall(0).args[0];
+        follow  = details[8];
+      });
+
+      after(function(){
+        page.canvas.stop_following.restore();
+        page.canvas.stop_following();
+      });
+
+      it("stops canvas camera following", function(){
+        follow.click();
+        sinon.assert.calledWith(page.canvas.stop_following);
+      });
+
+      it("sets command text to 'follow", function(){
+        follow.click();
+        assert(follow.text()).equals('follow');
+      });
+    });
   });
 });});

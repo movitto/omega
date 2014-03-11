@@ -185,6 +185,20 @@ Omega.Gen = {
     return new Omega.Planet(opts);
   },
 
+  star : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'star' + this.next_id();
+    if(!opts.location)
+      opts.location = new Omega.Location();
+    if(!opts.location.x) opts.location.x = 0;
+    if(!opts.location.y) opts.location.y = 0;
+    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.movement_strategy)
+      {json_class : 'Motel::MovementStrategies::Stopped'};
+
+    return new Omega.Star(opts);
+  },
+
   /// emits a specified command via the cmd tracker
   command : function(cmd_tracker, evnt, other_args){
     var args = [evnt].concat(other_args);
