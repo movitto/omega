@@ -4,14 +4,15 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StarGlow = function(tglow){
-  this.tglow = tglow ? tglow : this.init_gfx();
+Omega.StarGlow = function(args){
+  if(!args) args = {}
+  this.tglow = args['glow'] || this.init_gfx();
   //tglow.omega_obj = this;
 };
 
 Omega.StarGlow.prototype = {
   clone : function(){
-    return new Omega.StarGlow(this.tglow.clone());
+    return new Omega.StarGlow({glow: this.tglow.clone()});
   },
 
   _shader : function(){

@@ -13,8 +13,10 @@ Omega.GalaxyGfx = {
     var gfx = {};
     Omega.Galaxy.gfx = gfx;
 
-    gfx.density_wave1 = new Omega.GalaxyDensityWave(config, event_cb);
-    gfx.density_wave2 = new Omega.GalaxyDensityWave(config, event_cb);
+    gfx.density_wave1 = new Omega.GalaxyDensityWave({config: config,
+                                                     event_cb: event_cb});
+    gfx.density_wave2 = new Omega.GalaxyDensityWave({config: config,
+                                                     event_cb: event_cb});
   },
 
   init_gfx : function(config, event_cb){

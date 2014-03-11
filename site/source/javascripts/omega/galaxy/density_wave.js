@@ -6,7 +6,11 @@
 
 //= require "omega/galaxy/particles"
 
-Omega.GalaxyDensityWave = function(config, event_cb){
+Omega.GalaxyDensityWave = function(args){
+  if(!args) args = {};
+  config   = args['config'];
+  event_cb = args['event_cb'];
+
   this.init_gfx(config, event_cb);
 };
 

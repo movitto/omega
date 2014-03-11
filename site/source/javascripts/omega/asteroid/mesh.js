@@ -4,14 +4,17 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.AsteroidMesh = function(mesh){
+Omega.AsteroidMesh = function(args){
+  if(!args) args = {};
+  var mesh = args['mesh'];
+
   this.tmesh = mesh;
   mesh.omega_obj = this;
 };
 
 Omega.AsteroidMesh.prototype = {
   clone : function(){
-    return new Omega.AsteroidMesh(this.tmesh.clone());
+    return new Omega.AsteroidMesh({mesh: this.tmesh.clone()});
   }
 };
 
@@ -31,7 +34,7 @@ Omega.AsteroidMesh.load_template = function(config, cb){
 
   Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
     var mesh  = new THREE.Mesh(mesh_geometry, mesh_material);
-    var amesh = new Omega.AsteroidMesh(mesh);
+    var amesh = new Omega.AsteroidMesh({mesh: mesh});
 
     if(scale) mesh.scale.set(scale[0], scale[1], scale[2]);
       

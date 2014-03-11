@@ -17,7 +17,7 @@ Omega.StarGfx = {
     if(typeof(Omega.Star.gfx) !== 'undefined') return;
     var gfx = {};
 
-    gfx.mesh  = new Omega.StarMesh(config, event_cb);
+    gfx.mesh  = new Omega.StarMesh({config: config, event_cb: event_cb});
     gfx.glow  = new Omega.StarGlow();
     gfx.light = new Omega.StarLight();
 

@@ -4,7 +4,11 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.StarMesh = function(config, event_cb){
+Omega.StarMesh = function(args){
+  if(!args) args = {};
+  var config   = args['config'];
+  var event_cb = args['event_cb'];
+
   if(config && event_cb)
     this.tmesh = this.init_gfx(config, event_cb);
   //this.tmesh.omega_obj = this;
