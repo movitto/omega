@@ -67,6 +67,28 @@ Omega.Test = {
       canvas.old_render();
       cb(canvas);
     };
+  },
+
+  /// disable jquery dialog
+  disable_dialogs : function(){
+    this._dialogs_disabled = !!($.fn.dialog.restore);
+    if(!this._dialogs_disabled)
+      sinon.stub($.fn, 'dialog');
+  },
+
+  /// enable jquery dialogs
+  enable_dialogs : function(){
+    this._dialogs_disabled = !!($.fn.dialog.restore);
+    if(this._dialogs_disabled)
+      $.fn.dialog.restore();
+  },
+
+  /// restores dialog to it's old state/resets state
+  reset_dialogs : function(){
+    if(this._dialogs_disabled)
+      this.disable_dialogs();
+    else
+      this.enable_dialogs();
   }
 };
 
@@ -114,6 +136,8 @@ Omega.Test.Canvas.Entities = function(event_cb){
 function before_all(details){
   /// clear cookies
   Omega.Session.prototype.clear_cookies();
+
+  Omega.Test.disable_dialogs();
 }
 
 function before_each(details){

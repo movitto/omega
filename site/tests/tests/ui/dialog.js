@@ -12,6 +12,14 @@ describe("Omega.UI.Dialog", function(){
   });
 
   describe("#show", function(){
+    before(function(){
+      Omega.Test.enable_dialogs();
+    });
+
+    after(function(){
+      Omega.Test.reset_dialogs();
+    });
+
     it("sets dialog title", function(){
       var dialog = new Omega.UI.Dialog({title : 'dialog1'});
       dialog.show();
@@ -22,9 +30,9 @@ describe("Omega.UI.Dialog", function(){
       var dialog = new Omega.UI.Dialog();
       var dom = dialog.dialog();
       var stub = sinon.stub(dialog, 'dialog').returns(dom); // always return same element
-      var spy = sinon.spy(dom, 'dialog');
+      sinon.spy(dom, 'dialog');
       dialog.show();
-      sinon.assert.calledWith(spy, 'open');
+      sinon.assert.calledWith(dom.dialog, 'open');
     });
 
     it("opens dialog", function(){
@@ -35,6 +43,14 @@ describe("Omega.UI.Dialog", function(){
   });
 
   describe("#hide", function(){
+    before(function(){
+      Omega.Test.enable_dialogs();
+    });
+
+    after(function(){
+      Omega.Test.reset_dialogs();
+    });
+
     it("closes the dialog", function(){
       var dialog = new Omega.UI.Dialog();
       dialog.show();
@@ -53,6 +69,14 @@ describe("Omega.UI.Dialog", function(){
   });
 
   describe("#keep_open", function(){
+    before(function(){
+      Omega.Test.enable_dialogs();
+    });
+
+    after(function(){
+      Omega.Test.reset_dialogs();
+    });
+
     it("disables dialog escape key", function(){
       var dialog = new Omega.UI.Dialog();
       dialog.keep_open();

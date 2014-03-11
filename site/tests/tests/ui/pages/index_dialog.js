@@ -300,8 +300,9 @@ describe("Omega.UI.IndexDialog", function(){
 
       it("hides login dialog", function(){
         dialog.show_login_dialog();
+        sinon.stub(dialog, 'hide');
         login_callback.apply(null, [session]);
-        assert(dialog.dialog()).isHidden();
+        sinon.assert.called(dialog.hide);
       });
 
       it("sets page session", function(){
