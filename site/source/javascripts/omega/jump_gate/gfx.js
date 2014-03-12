@@ -62,8 +62,7 @@ Omega.JumpGateGfx = {
     this.lamp.olamp.init_gfx();
     this.components.push(this.lamp.olamp.component);
 
-    this.particles = Omega.JumpGate.gfx.particles.clone({config: config,
-                                                         event_cb: event_cb});
+    this.particles = Omega.JumpGate.gfx.particles.clone(config, event_cb);
     this.particles.omega_entity = this;
     this.components.push(this.particles.particles.mesh);
 
