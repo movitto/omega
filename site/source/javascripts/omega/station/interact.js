@@ -31,7 +31,7 @@ Omega.StationInteraction = {
              };
     construct_args.push(cb)
 
-    page.node.http_invoke.apply(null, construct_args);
+    page.node.http_invoke.apply(page.node, construct_args);
   },
 
   _construct_failed : function(response){
