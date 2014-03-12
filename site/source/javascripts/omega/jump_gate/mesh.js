@@ -41,13 +41,12 @@ Omega.JumpGateMesh.prototype = {
   update : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;
-    this.tmesh.position.
-      set(loc.x, loc.y, loc.z);
+    this.tmesh.position.set(loc.x, loc.y, loc.z);
   },
 
   run_effects : function(){
     var elapsed = this.clock.getDelta();
-    this.tmesh.rotation.y += Math.PI / 30 * elapsed;
+    this.tmesh.rotation.z += Math.PI / 30 * elapsed;
     this.tmesh.matrix.makeRotationFromEuler(this.tmesh.rotation);
   }
 };
@@ -58,21 +57,12 @@ Omega.JumpGateMesh.load_template = function(config, cb){
                         config.resources.jump_gate.geometry;
   var geometry_prefix = config.url_prefix + config.images_path +
                         config.meshes_path;
-  var rotation        = config.resources.jump_gate.rotation;
-  var scale           = config.resources.jump_gate.scale;
 
 
   Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
     var material = Omega.JumpGate.gfx.mesh_material.material;
     var mesh     = new THREE.Mesh(mesh_geometry, material);
     var jmesh    = new Omega.JumpGateMesh({mesh : mesh});
-
-    if(scale)  mesh.scale.set(scale[0], scale[1], scale[2]);
-
-    if(rotation){
-      mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
-      mesh.matrix.makeRotationFromEuler(mesh.rotation);
-    }
 
     cb(jmesh);
     Omega.JumpGate.prototype.loaded_resource('template_mesh', jmesh);

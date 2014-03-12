@@ -25,12 +25,6 @@ Omega.JumpGateSelection.prototype = {
         material = Omega.JumpGate.gfx.selection_material.material;
     var geometry = new THREE.SphereGeometry(size, segments, rings);
     return new THREE.Mesh(geometry, material);
-  },
-
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
-    this.tmesh.position.set(loc.x - 20, loc.y, loc.z)
   }
 };
 

@@ -48,19 +48,9 @@ Omega.JumpGateGfx = {
     this.load_gfx(config, event_cb);
     this.components = [];
 
-    var _this = this;
-    Omega.JumpGateMesh.load(config, function(mesh){
-      _this.mesh = mesh;
-      _this.mesh.omega_entity = _this;
-      _this.components.push(_this.mesh.tmesh);
-      _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
-    });
-
     this.lamp = Omega.JumpGate.gfx.lamp.clone();
     this.lamp.omega_entity = this;
     this.lamp.olamp.init_gfx();
-    this.components.push(this.lamp.olamp.component);
 
     this.particles = Omega.JumpGate.gfx.particles.clone(config, event_cb);
     this.particles.omega_entity = this;
@@ -68,6 +58,16 @@ Omega.JumpGateGfx = {
 
     this.selection = Omega.JumpGateSelection.for_jg(this);
     this.selection.omega_entity = this;
+
+    var _this = this;
+    Omega.JumpGateMesh.load(config, function(mesh){
+      _this.mesh = mesh;
+      _this.mesh.omega_entity = _this;
+      _this.mesh.tmesh.add(_this.lamp.olamp.component);
+      _this.components.push(_this.mesh.tmesh);
+      _this.update_gfx();
+      _this.loaded_resource('mesh', _this.mesh);
+    });
 
     this.update_gfx();
   },
@@ -79,13 +79,10 @@ Omega.JumpGateGfx = {
     if(this.mesh) this.mesh.run_effects();
   },
 
-  // Update local jump gate graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
 
     if(this.mesh)      this.mesh.update();
-    if(this.lamp)      this.lamp.update();
     if(this.particles) this.particles.update();
-    if(this.selection) this.selection.update();
   }
 }

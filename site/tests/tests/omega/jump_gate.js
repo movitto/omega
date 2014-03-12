@@ -52,29 +52,31 @@ describe("Omega.JumpGate", function(){
 
   describe("#selected", function(){
     it("reloads jg in scene", function(){
-      jg.init_gfx();
+      jg.init_gfx(Omega.Config);
       var reload = sinon.spy(page.canvas, 'reload');
       jg.selected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
     });
 
     describe("reload callback", function(){
-      it("adds selection sphere to jg scene components", function(){
-        jg.init_gfx();
+      it("adds selection sphere to jg mesh", function(){
+        jg.init_gfx(Omega.Config);
         var reload = sinon.stub(page.canvas, 'reload');
         jg.selected(page);
 
         var during_reload = reload.getCall(0).args[1];
-        assert(jg.components).doesNotInclude(jg.selection.tmesh);
+        assert(jg.mesh.tmesh.getDescendants()).
+          doesNotInclude(jg.selection.tmesh);
         during_reload();
-        assert(jg.components).includes(jg.selection.tmesh);
+        assert(jg.mesh.tmesh.getDescendants()).
+          includes(jg.selection.tmesh);
       });
     });
   });
 
   describe("#unselected", function(){
     it("reloads jg in scene", function(){
-      jg.init_gfx();
+      jg.init_gfx(Omega.Config);
       var reload = sinon.spy(page.canvas, 'reload');
       jg.unselected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
@@ -82,16 +84,18 @@ describe("Omega.JumpGate", function(){
 
     describe("reload callback", function(){
       it("removes selection sphere from jg scene components", function(){
-        jg.init_gfx();
+        jg.init_gfx(Omega.Config);
         jg.selected(page);
-        assert(jg.components).includes(jg.selection.tmesh);
+        assert(jg.mesh.tmesh.getDescendants()).
+          includes(jg.selection.tmesh);
 
         var reload = sinon.spy(page.canvas, 'reload');
         jg.unselected(page);
 
         var during_reload = reload.getCall(0).args[1];
         during_reload();
-        assert(jg.components).doesNotInclude(jg.selection.tmesh);
+        assert(jg.mesh.tmesh.getDescendants()).
+          doesNotInclude(jg.selection.tmesh);
       });
     });
   });

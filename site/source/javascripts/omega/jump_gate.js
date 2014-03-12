@@ -40,16 +40,15 @@ Omega.JumpGate.prototype = {
   /// TODO move these methods to omega/jump_gate/selection
 
   _has_selection_sphere : function(){
-    return $.inArray(this.selection.tmesh, this.components) != -1;
+    return $.inArray(this.selection.tmesh, this.mesh.tmesh.getDescendants()) != -1;
   },
 
   _add_selection_sphere : function(){
-    this.components.push(this.selection.tmesh);
+    this.mesh.tmesh.add(this.selection.tmesh);
   },
 
   _rm_selection_sphere : function(){
-    var index = $.inArray(this.selection.tmesh, this.components);
-    this.components.splice(index, 1);
+    this.mesh.tmesh.remove(this.selection.tmesh);
   },
 
   selected : function(page){

@@ -88,6 +88,12 @@ describe("Omega.JumpGateGfx", function(){
       assert(jg.components).includes(jg.mesh.tmesh);
     });
 
+    it("adds lamp to mesh", function(){
+      jg.init_gfx(Omega.Config);
+      assert(jg.mesh.tmesh.getDescendants()).
+        includes(jg.lamp.olamp.component);
+    });
+
     it("clones JumpGate lamp", function(){
       var lamp = new Omega.JumpGateLamp();
       sinon.stub(Omega.JumpGate.gfx.lamp, 'clone').returns(lamp);
@@ -99,9 +105,9 @@ describe("Omega.JumpGateGfx", function(){
       var offset = Omega.JumpGateLamp.prototype.offset;
       jg.init_gfx(Omega.Config);
       assert(jg.lamp.olamp.component.position.toArray()).
-        isSameAs([ 100  + offset[0],
-                  -100  + offset[1],
-                   200  + offset[2]])
+        isSameAs([offset[0],
+                  offset[1],
+                  offset[2]])
     });
 
     it("clones JumpGate particles", function(){
@@ -114,7 +120,7 @@ describe("Omega.JumpGateGfx", function(){
     it("sets particles position", function(){
       jg.init_gfx(Omega.Config);
       assert(jg.particles.particles.emitters[0].position.toArray()).
-        isSameAs([100, -100, 250]);
+        isSameAs([100, -100, 275]);
     });
 
     it("creates a selection sphere for jg", function(){
@@ -125,14 +131,13 @@ describe("Omega.JumpGateGfx", function(){
     it("sets selection sphere position", function(){
       jg.init_gfx(Omega.Config);
       assert(jg.selection.tmesh.position.toArray()).
-        isSameAs([80, -100, 200]);
+        isSameAs([0,0,0]);
     });
 
     /// it("sets selection sphere radius") NIY
 
-    it("adds lamp and particles to jump gate scene components", function(){
+    it("adds particles to jump gate scene components", function(){
       jg.init_gfx(Omega.Config);
-      assert(jg.components).includes(jg.lamp.olamp.component);
       assert(jg.components).includes(jg.particles.particles.mesh);
     });
   });

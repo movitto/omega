@@ -16,7 +16,7 @@ Omega.JumpGateParticles.prototype = {
   plane    :            10,
   lifespan :            20,
   velocity :           -15,
-  offset   : [0, 0, 50],
+  offset   : [0, 0, 75],
 
   _particle_group : function(config, event_cb){
     var particle_path = config.url_prefix + config.images_path + "/particle.png";
