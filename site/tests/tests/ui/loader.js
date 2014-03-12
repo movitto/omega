@@ -141,20 +141,6 @@ describe("Omega.UI.Loader", function(){
       });
     });
 
-    describe("local storage system is the placeholder system", function(){
-      it("returns null", function(){
-        $.localStorage.set('omega.cosmos.system1', Omega.UI.Loader.placeholder);
-        assert(Omega.UI.Loader._load_storage_system('system1', page)).isNull();
-      });
-
-      it("does not invoke callback", function(){
-        var cb = sinon.spy();
-        $.localStorage.set('omega.cosmos.system1', Omega.UI.Loader.placeholder);
-        Omega.UI.Loader._load_storage_system('system1', page);
-        sinon.assert.notCalled(cb);
-      });
-    });
-
     it("stores system in page registry", function(){
       var json = RJR.JRMessage.convert_obj_to_jr_obj(system.toJSON())
       $.localStorage.set('omega.cosmos.system1', json);
@@ -344,20 +330,6 @@ describe("Omega.UI.Loader", function(){
       it("does not invoke callback", function(){
         var cb = sinon.spy();
         $.localStorage.set('omega.cosmos.galaxy1', null);
-        Omega.UI.Loader._load_storage_galaxy('galaxy1', page);
-        sinon.assert.notCalled(cb);
-      });
-    });
-
-    describe("local storage galaxy is the placeholder galaxy", function(){
-      it("returns null", function(){
-        $.localStorage.set('omega.cosmos.galaxy1', Omega.UI.Loader.placeholder);
-        assert(Omega.UI.Loader._load_storage_galaxy('galaxy1', page)).isNull();
-      });
-
-      it("does not invoke callback", function(){
-        var cb = sinon.spy();
-        $.localStorage.set('omega.cosmos.galaxy1', Omega.UI.Loader.placeholder);
         Omega.UI.Loader._load_storage_galaxy('galaxy1', page);
         sinon.assert.notCalled(cb);
       });

@@ -162,7 +162,7 @@ Omega.UI.Loader = {
 
   _load_storage_system : function(system_id, page, retrieval_cb){
     var system = $.localStorage.get('omega.cosmos.' + system_id);
-    if(!system || system == Omega.UI.Loader.placeholder) return null;
+    if(!system) return null;
 
     system = RJR.JRMessage.convert_obj_from_jr_obj(system);
     system = new Omega.SolarSystem(system);
@@ -215,7 +215,7 @@ Omega.UI.Loader = {
 
   _load_storage_galaxy : function(galaxy_id, page, retrieval_cb){
     var galaxy = $.localStorage.get('omega.cosmos.' + galaxy_id);
-    if(!galaxy || galaxy == Omega.UI.Loader.placeholder) return null;
+    if(!galaxy) return null;
 
     galaxy = RJR.JRMessage.convert_obj_from_jr_obj(galaxy);
     galaxy = new Omega.Galaxy(galaxy);
