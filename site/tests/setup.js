@@ -125,8 +125,18 @@ Omega.Test.Canvas.Entities = function(event_cb){
     var page     = Omega.Test.Page();
     var config   = page.config;
     if(!event_cb) event_cb = function(){};
-    for(var e in $omega_test_canvas_entities)
+    for(var e in $omega_test_canvas_entities){
+      $omega_test_canvas_entities[e].location = new Omega.Location();
+      $omega_test_canvas_entities[e].location.set(0,0,0);
+      $omega_test_canvas_entities[e].location.set_orientation(0,1,0);
+      if(e == 'planet')
+        $omega_test_canvas_entities[e].location.movement_strategy =
+          Omega.Gen.planet_ms();
+      else
+        $omega_test_canvas_entities[e].location.movement_strategy =
+          {json_class : 'Motel::MovementStrategies::Stopped'};
       $omega_test_canvas_entities[e].init_gfx(config, event_cb);
+    }
   }
   return $omega_test_canvas_entities;
 };

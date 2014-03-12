@@ -11,11 +11,12 @@ describe("Omega.UI.CanvasTracker", function(){
       index.canvas = Omega.Test.Canvas();
       session = new Omega.Session({user_id : 'user42'});
 
-      planet1 = new Omega.Planet({location : new Omega.Location({})}); 
-      planet2 = new Omega.Planet({location : new Omega.Location({})}); 
+      planet1 = Omega.Gen.planet();
+      planet2 = Omega.Gen.planet();
       system  = new Omega.SolarSystem({id  : 'system42', children : [planet1]});
       old_system  = new Omega.SolarSystem({id  : 'system43', children : [planet2]});
 
+      /// TODO tidy up
       ship1   = new Omega.Ship({user_id : 'user42', system_id : 'system42',
                                 location : new Omega.Location({id : 'l494'})});
       ship2   = new Omega.Ship({user_id : 'user42', system_id : 'system43',
@@ -25,11 +26,14 @@ describe("Omega.UI.CanvasTracker", function(){
       ship4   = new Omega.Ship({user_id : 'user43', system_id : 'system43',
                                 location : new Omega.Location({id : 'l497'})});
       station1 = new Omega.Station({user_id : 'user42', system_id : 'system43', type : 'manufacturing',
-                                    location : new Omega.Location({id : 'l498'})});
+                                    location : new Omega.Location({id : 'l498',
+                           movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped'}})});
       station2 = new Omega.Station({user_id : 'user43', system_id : 'system43', type : 'manufacturing',
-                                    location : new Omega.Location({id : 'l499'})});
+                                    location : new Omega.Location({id : 'l499',
+                            movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped'}})});
       station3 = new Omega.Station({user_id : 'user43', system_id : 'system42', type : 'manufacturing',
-                                    location : new Omega.Location({id : 'l500'})});
+                                    location : new Omega.Location({id : 'l500',
+                            movement_strategy : {json_class : 'Motel::MovementStrategies::Stopped'}})});
 
       index.session = session;
       index.root = system;
