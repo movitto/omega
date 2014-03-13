@@ -17,9 +17,9 @@ Omega.UI.CanvasLamp = function(parameters){
   $.extend(this, parameters);
 
   /// reduce color components seperately
-  this.diff  = ((this.color & 0xff0000) != 0) ? 0x100000 : 0;
-  this.diff += ((this.color & 0x00ff00) != 0) ? 0x001000 : 0;
-  this.diff += ((this.color & 0x0000ff) != 0) ? 0x000010 : 0;
+  this.diff  = ((this.color & 0xff0000) != 0) ? 0x050000 : 0;
+  this.diff += ((this.color & 0x00ff00) != 0) ? 0x000500 : 0;
+  this.diff += ((this.color & 0x0000ff) != 0) ? 0x000005 : 0;
 };
 
 Omega.UI.CanvasLamp.prototype = {
@@ -44,14 +44,10 @@ Omega.UI.CanvasLamp.prototype = {
     this.components = [this.lamp];
   },
 
-  /// TODO use shader for lamp material so these conditionals
-  ///      can be removed from effects loop
   run_effects : function(loc, percentage){
-    /// 2/3 chance of skipping this update for variety
-    if(Math.floor(Math.random()*3) != 0) return;
     var ccolor = this.lamp.material.color.getHex();
     var ncolor = ccolor - this.diff;
-    this.lamp.material.color.setHex(ncolor < 0x000000 ? this.color : ncolor);
+    this.lamp.material.color.setHex(ncolor < 0x000500 ? this.color : ncolor);
   },
 
   clone : function(){
