@@ -6,6 +6,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO disable scene entity effects if not in camera view
+
 Omega.UI.EffectsPlayer = function(parameters){
   this.entities = [];
   this.skipped_interval = null;
