@@ -52,7 +52,9 @@ Omega.UI.CanvasAxis.prototype = {
     var mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = 1.57;
     return mesh;
-  }
+  },
+
+  run_effects : function(){}
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasAxis.prototype );
