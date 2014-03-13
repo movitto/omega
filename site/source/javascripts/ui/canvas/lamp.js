@@ -47,7 +47,7 @@ Omega.UI.CanvasLamp.prototype = {
   run_effects : function(loc, percentage){
     var ccolor = this.lamp.material.color.getHex();
     var ncolor = ccolor - this.diff;
-    this.lamp.material.color.setHex(ncolor < 0x000500 ? this.color : ncolor);
+    this.lamp.material.color.setHex(ncolor < 0x000050 ? this.color : ncolor);
   },
 
   clone : function(){
