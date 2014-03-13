@@ -165,10 +165,13 @@ Omega.Gen = {
     return new Omega.SolarSystem(opts);
   },
 
-  planet_ms : function(){
-    return {e : 0, p : 10, speed: 1.57,
-            dmajx: 0, dmajy : 1, dmajz : 0,
-            dminx: 0, dminy : 0, dminz : 1};
+  orbit_ms : function(opts){
+    if(!opts) opts = {};
+    var ms = {e : 0, p : 10, speed: 1.57,
+              dmajx: 0, dmajy : 1, dmajz : 0,
+              dminx: 0, dminy : 0, dminz : 1};
+    $.extend(ms, opts);
+    return ms;
   },
 
   planet : function(opts){
@@ -183,7 +186,7 @@ Omega.Gen = {
     if(!opts.location.orientation_y) opts.location.orientation_y = 0;
     if(!opts.location.orientation_z) opts.location.orientation_z = 1;
     if(!opts.location.movement_strategy)
-      opts.location.movement_strategy = this.planet_ms();
+      opts.location.movement_strategy = this.orbit_ms();
 
     return new Omega.Planet(opts);
   },
