@@ -179,6 +179,9 @@ Omega.Gen = {
     if(!opts.location.x) opts.location.x = 0;
     if(!opts.location.y) opts.location.y = 0;
     if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
+    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
+    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
     if(!opts.location.movement_strategy)
       opts.location.movement_strategy = this.planet_ms();
 
