@@ -47,7 +47,7 @@ Omega.OrbitLine.prototype = {
 
 /// Mixin adding helper methods to assist w/ orbits
 Omega.OrbitHelpers = {
-  // orbit calculated on the fly on a per-entity basis
+  // orbit calculated on a per-entity basis
   _calc_orbit : function(){
     if(!this.location || !this.location.movement_strategy){
       this.orbit = [];
@@ -55,15 +55,19 @@ Omega.OrbitHelpers = {
     }
     var ms = this.location.movement_strategy;
 
+    /// base elliptical path properties
     var intercepts = Omega.Math.intercepts(ms.e, ms.p)
     this.a  = intercepts[0]; this.b = intercepts[1];
     this.le = Omega.Math.le(this.a, this.b);
     var center = Omega.Math.center(ms.dmajx, ms.dmajy, ms.dmajz, this.le);
     this.cx = center[0]; this.cy = center[1]; this.cz = center[2];
 
+    /// normal vector of orbit axis'
     var nv = Omega.Math.cp(ms.dmajx, ms.dmajy, ms.dmajz,
                            ms.dminx, ms.dminy, ms.dminz);
 
+    /// the axis-angle which the standard cartesian plane has been
+    /// rotates to form orbit plane
     this.rot_plane = {};
     this.rot_plane.angle = Omega.Math.abwn(0, 0, 1, nv[0], nv[1], nv[2]);
     if(this.rot_plane.angle == 0) this.rot_plane.axis = [1,0,0];
@@ -72,12 +76,15 @@ Omega.OrbitHelpers = {
                                            this.rot_plane.axis[1],
                                            this.rot_plane.axis[2]);
 
+    /// new standard cartesian major axis on rotated orbit plane
     var nmaj = Omega.Math.rot(1, 0, 0,
                               this.rot_plane.angle,
                               this.rot_plane.axis[0],
                               this.rot_plane.axis[1],
                               this.rot_plane.axis[2]);
 
+    /// the axis angle which the major axis was rotated on orbit plane
+    /// to form orbit major axis
     this.rot_axis = {};
     this.rot_axis.angle = Omega.Math.abwn(nmaj[0],  nmaj[1],  nmaj[2],
                                           ms.dmajx, ms.dmajy, ms.dmajz);
@@ -87,9 +94,15 @@ Omega.OrbitHelpers = {
                                          this.rot_axis.axis[1],
                                          this.rot_axis.axis[2]);
 
+    /// TODO optimize, combine rot_plane & rot_axis to form single rotational
+    /// matrix which can be applied to coords to transform
+    /// (from 2D ellipse to 3D pos & back)
+
+    /// calculate a fixed set of orbit points to render w/ line
     this.orbit = Omega.Math.elliptical_path(ms);
   },
 
+  /// Return current angle on orbit which location resides
   _current_orbit_angle : function(){
     var n = Omega.Math.rot(this.location.x-this.cx,
                            this.location.y-this.cy,
@@ -114,15 +127,15 @@ Omega.OrbitHelpers = {
     return angle;
   },
 
+  /// Set the location from the specified angle on the orbit path
   _set_orbit_angle : function(new_angle){
     var x = this.a * Math.cos(new_angle);
     var y = this.b * Math.sin(new_angle);
     var n = Omega.Math.rot(x, y, 0,
-                  this.rot_plane.angle,
+                this.rot_plane.angle,
                 this.rot_plane.axis[0],
                 this.rot_plane.axis[1],
                 this.rot_plane.axis[2])
-
 
         n = Omega.Math.rot(n[0], n[1], n[2],
                         this.rot_axis.angle,

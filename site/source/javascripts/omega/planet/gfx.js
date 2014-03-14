@@ -52,6 +52,7 @@ Omega.PlanetGfx = {
     this.update_gfx();
 
     this._calc_orbit();
+    this._orbit_angle = this._current_orbit_angle();
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.components = [this.mesh.tmesh, this.orbit_line.line];
@@ -77,9 +78,8 @@ Omega.PlanetGfx = {
     var dist = ms.speed * elapsed / 1000;
 
     // get current angle, update, set
-    var angle = this._current_orbit_angle();
-    var new_angle = dist + angle;
-    this._set_orbit_angle(new_angle);
+    this._orbit_angle += dist;
+    this._set_orbit_angle(this._orbit_angle);
 
     // spin the planet
     if(this.mesh) this.mesh.spin(elapsed / 1000);
