@@ -52,37 +52,31 @@ Omega.PlanetGfx = {
     this.update_gfx();
 
     this._calc_orbit();
+    if(!this._loc_on_orbit())
+      this._adjust_loc_to_orbit();
+
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.components = [this.mesh.tmesh, this.orbit_line.line];
+    this.last_moved = new Date();
   },
 
   /// Update local system graphics on core entity changes
   update_gfx : function(){
-    if(!this.location) return;
-    if(this.mesh) this.mesh.update();
+    this.mesh.update();
   },
 
   /// Run local system graphics effects
-  /// TODO optimize
   run_effects : function(){
-    var ms   = this.location.movement_strategy;
     var curr = new Date();
-    if(!this.last_moved){
-      this.last_moved = curr;
-      return;
-    }
+    var elapsed = (curr - this.last_moved) / 1000;
 
-    var elapsed = curr - this.last_moved;
-    var dist = ms.speed * elapsed / 1000;
+    /// orbit planet around star
+    var dist = this.location.movement_strategy.speed * elapsed;
+    this._orbit_loc(dist);
 
-    // get current angle, update, set
-    var angle = this._current_orbit_angle();
-    var new_angle = dist + angle;
-    this._set_orbit_angle(new_angle);
-
-    // spin the planet
-    if(this.mesh) this.mesh.spin(elapsed / 1000);
+    /// spin the planet
+    this.mesh.spin(elapsed / 3);
 
     this.update_gfx();
     this.last_moved = curr;
