@@ -107,8 +107,6 @@ Omega.StationGfx = {
         this._rm_orbit_line();
     }else if(!this._has_orbit_line()){
       this._calc_orbit();
-      if(!this._loc_on_orbit())
-        this._adjust_loc_to_orbit();
       this._add_orbit_line(0x99CCEE);
     }
   },
@@ -119,7 +117,9 @@ Omega.StationGfx = {
     var elapsed = now - this.last_moved;
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
 
-    this._orbit_loc(dist);
+    var angle = this._current_orbit_angle();
+    var new_angle = dist + angle;
+    this._set_orbit_angle(new_angle);
     this.last_moved = now;
     this.update_gfx();
   },

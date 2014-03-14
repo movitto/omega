@@ -117,17 +117,20 @@ describe("Omega.PlanetGfx", function(){
     var pl;
 
     before(function(){
+      // XXX should specify full movement strategy & invoke
+      // 'pl._calc_orbit' instead of specifying calculated
       // orbit properties manually
-      pl  = Omega.Gen.planet();
-      pl.location.set(10,0,0);
-      pl.location.movement_strategy.dmajx = 0;
-      pl.location.movement_strategy.dmajy = 1;
-      pl.location.movement_strategy.dmajz = 0;
-      pl.location.movement_strategy.dminx = 0;
-      pl.location.movement_strategy.dminy = 0;
-      pl.location.movement_strategy.dminz = 1;
-
-      pl.init_gfx(Omega.Config);
+      var loc = new Omega.Location({id : 42, x : 0, y : 0, z : 10,
+                 movement_strategy : {speed: -1.57}});
+      pl  = new Omega.Planet({
+                  location : loc,
+                  last_moved : new Date() - 1000,
+                  a  : 10,  b : 10,
+                  cx :  0, cy :  0, cz : 0,
+                  rot_axis  : {angle : 0,
+                               axis  : [1, 0, 0]},
+                  rot_plane : {angle : 1.57,
+                               axis  : [1, 0, 0]}});
     });
 
     it("moves planet", function(){
@@ -135,8 +138,8 @@ describe("Omega.PlanetGfx", function(){
       this.clock.restore();
 
       pl.run_effects();
-      assert(pl.location.x).close( 0,2);
-      assert(pl.location.y).close(10,2);
+      assert(pl.location.x).close(10,2);
+      assert(pl.location.y).close( 0,2);
       assert(pl.location.z).close( 0,2);
     });
 

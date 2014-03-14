@@ -11,12 +11,12 @@ describe("Omega.OrbitLine", function(){
 
 pavlov.specify("Omega.OrbitHelpers", function(){
 describe("Omega.OrbitHelpers", function(){
-  var ms, entity;
+  var entity;
 
   before(function(){
-    ms  = {e : 0, p : 10, speed: 1.57,
-           dmajx: 0, dmajy : 1, dmajz : 0,
-           dminx: 0, dminy : 0, dminz : 1};
+    var ms  = {e : 0, p : 10, speed: 1.57,
+               dmajx: 0, dmajy : 1, dmajz : 0,
+               dminx: 0, dminy : 0, dminz : 1};
     var loc = new Omega.Location({id : 42, movement_strategy : ms});
 
     entity  = $.extend({location : loc}, Omega.OrbitHelpers);
@@ -26,37 +26,30 @@ describe("Omega.OrbitHelpers", function(){
     it("sets entity orbit properties", function(){
       entity._calc_orbit();
 
-      var orbit_axis = Omega.Math.cp(ms.dmajx, ms.dmajy, ms.dmajz,
-                                     ms.dminx, ms.dminy, ms.dminz);
-      orbit_axis = Omega.Math.nrml(orbit_axis[0], orbit_axis[1], orbit_axis[2]);
+      assert(entity.a).equals(10);
+      assert(entity.b).equals(10);
+      assert(entity.le).equals(0);
+      assert(entity.cx).equals(0);
+      assert(entity.cy).equals(0);
+      assert(entity.cz).equals(0);
+      assert(entity.rot_plane.angle).close(1.57,2);
+      assert(entity.rot_axis.angle).close(1.57,2);
 
-      assert(entity.orbit_axis[0]).equals(orbit_axis[0]);
-      assert(entity.orbit_axis[1]).equals(orbit_axis[1]);
-      assert(entity.orbit_axis[2]).equals(orbit_axis[2]);
-      assert(entity.orbit.length).equals(361);
+      assert(entity.rot_plane.axis[0]).equals(0)
+      assert(entity.rot_plane.axis[1]).equals(1)
+      assert(entity.rot_plane.axis[2]).equals(0)
+      assert(entity.rot_axis.axis[0]).equals(1)
+      assert(entity.rot_axis.axis[1]).equals(0)
+      assert(entity.rot_axis.axis[2]).close(0, 0.00001)
     });
   });
 
-  describe("#_closest_orbit_point", function(){
-    //it("returns point on orbit closest to entity location") // NIY
+  describe("#_current_orbit_angle", function(){
+    //it("returns current orbit angle from location and ms"); NIY
   });
 
-  describe("#_loc_on_orbit", function(){
-    describe("location is same as _closest_orbit_point", function(){
-      //it("returns true"); // NIY
-    });
-
-    describe("location is not same as _closest_orbit_point", function(){
-      //it("returns false"); // NIY
-    });
-  });
-
-  describe("#_adjust_loc_to_orbit", function(){
-    //it("sets entity location from closet orbit point"); // NIY
-  });
-
-  describe("_orbit_loc", function(){
-    //it("rotates location by specified angle around orbit axis"); // NIY
+  describe("#_set_orbit_angle", function(){
+    //it("set location coords from orbit angle and location's ms"); NIY
   });
 
   describe("#_has_orbit_line", function(){

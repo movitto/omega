@@ -6,7 +6,7 @@ describe("Omega.StationGfx", function(){
   before(function(){
     station = Omega.Gen.station({type: 'manufacturing'});
     station.location = new Omega.Location({x: 100, y: -100, z: 200});
-    station.location.movement_strategy = {json_class : 'Motel::MovementStrategies::Stopped'};
+    station.location.movement_strategy = {};
   });
 
   describe("#load_gfx", function(){
@@ -74,7 +74,7 @@ describe("Omega.StationGfx", function(){
     it("loads station gfx", function(){
       var station   = new Omega.Station({type: type});
       var load_gfx  = sinon.spy(station, 'load_gfx');
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       sinon.assert.called(load_gfx);
     });
 
@@ -83,7 +83,7 @@ describe("Omega.StationGfx", function(){
       var cloned = new Omega.StationMesh({mesh: new THREE.Mesh()});
 
       sinon.stub(Omega.Station.prototype, 'retrieve_resource');
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       sinon.assert.calledWith(Omega.Station.prototype.retrieve_resource,
                               'template_mesh_' + station.type,
                               sinon.match.func);
@@ -96,31 +96,31 @@ describe("Omega.StationGfx", function(){
     });
 
     it("sets mesh position", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.mesh.tmesh.position.x).equals(100);
       assert(station.mesh.tmesh.position.y).equals(-100);
       assert(station.mesh.tmesh.position.z).equals(200);
     });
 
     it("sets mesh omega_entity", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.mesh.omega_entity).equals(station);
     });
 
     it("adds mesh to components", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.components).includes(station.mesh.tmesh);
     });
 
     it("clones Station highlight effects", function(){
       var mesh = new Omega.StationHighlightEffects();
       sinon.stub(Omega.Station.gfx[type].highlight, 'clone').returns(mesh);
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.highlight).equals(mesh);
     });
 
     it("sets omega_entity on highlight effects", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.highlight.omega_entity).equals(station);
     });
 
@@ -129,7 +129,7 @@ describe("Omega.StationGfx", function(){
       var lamps = Omega.Station.gfx[type].lamps.olamps;
       for(var l = 0; l < lamps.length; l++)
         spies.push(sinon.spy(lamps[l], 'clone'));
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
     });
@@ -137,12 +137,12 @@ describe("Omega.StationGfx", function(){
     it("clones station construction progress bar", function(){
       var bar = Omega.Station.gfx[type].construction_bar.clone();
       sinon.stub(Omega.Station.gfx[type].construction_bar, 'clone').returns(bar);
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.construction_bar).equals(bar);
     });
 
     it("sets scene components to station highlight effects, and lamps", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
       assert(station.components).includes(station.highlight.mesh);
       for(var l = 0; l < station.lamps.olamps.length; l++)
         assert(station.components).includes(station.lamps.olamps[l].component);
@@ -151,7 +151,7 @@ describe("Omega.StationGfx", function(){
 
   describe("#run_effects", function(){
     it("runs lamp effects", function(){
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
 
       var spies = [];
       for(var l = 0; l < station.lamps.olamps.length; l++)

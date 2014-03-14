@@ -131,7 +131,7 @@ Omega.Test.Canvas.Entities = function(event_cb){
       $omega_test_canvas_entities[e].location.set_orientation(0,1,0);
       if(e == 'planet')
         $omega_test_canvas_entities[e].location.movement_strategy =
-          Omega.Gen.orbit_ms();
+          Omega.Gen.planet_ms();
       else
         $omega_test_canvas_entities[e].location.movement_strategy =
           {json_class : 'Motel::MovementStrategies::Stopped'};
