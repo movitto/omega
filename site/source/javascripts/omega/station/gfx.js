@@ -53,31 +53,30 @@ Omega.StationGfx = {
 
     this.components = [];
 
-    var _this = this;
-    Omega.StationMesh.load(this.type, function(mesh){
-      _this.mesh = mesh;
-      _this.mesh.omega_entity = _this;
-      _this.components.push(_this.mesh.tmesh);
-      _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
-    });
-
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
-    this.components.push(this.highlight.mesh);
 
     this.lamps = Omega.Station.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
-    for(var l = 0; l < this.lamps.olamps.length; l++){
-      this.lamps.olamps[l].init_gfx();
-      this.components.push(this.lamps.olamps[l].component);
-    }
+    this.lamps.init_gfx();
 
     this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();
     this.construction_bar.omega_entity = this;
     this.construction_bar.bar.init_gfx(config, event_cb);
 
     this.construction_audio = Omega.Station.gfx[this.type].construction_audio;
+
+    var _this = this;
+    Omega.StationMesh.load(this.type, function(mesh){
+      _this.mesh = mesh;
+      _this.mesh.omega_entity = _this;
+      _this.mesh.tmesh.add(_this.highlight.mesh);
+      for(var l = 0; l < _this.lamps.olamps.length; l++)
+        _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
+      _this.components.push(_this.mesh.tmesh);
+      _this.update_gfx();
+      _this.loaded_resource('mesh', _this.mesh);
+    });
 
     this.last_moved = new Date();
     this.update_gfx();
@@ -95,12 +94,10 @@ Omega.StationGfx = {
     this.construction_audio = from.construction_audio;
   },
 
+/// TODO optimize (wire up callbacks depending on location state)
   update_gfx : function(){
-    if(!this.location)        return;
-    if(this.mesh)             this.mesh.update();
-    if(this.highlight)        this.highlight.update();
-    if(this.lamps)            this.lamps.update();
-    if(this.construction_bar) this.construction_bar.update();
+    if(this.mesh) this.mesh.update();
+    this.construction_bar.update();
 
     if(this.location.is_stopped()){
       if(this._has_orbit_line())
@@ -129,7 +126,6 @@ Omega.StationGfx = {
     this._run_movement_effects();
   },
 
-  /// TODO move these to omega/station/construction_bar.js (helper module ?)
   _has_construction_bar : function(){
     return this.components.indexOf(this.construction_bar.bar.components[0]) != -1;
   },

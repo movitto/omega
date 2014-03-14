@@ -33,8 +33,10 @@ Omega.StationLamps.prototype = {
   },
 
   init_gfx : function(){
-    for(var l = 0; l < this.olamps.length; l++)
+    for(var l = 0; l < this.olamps.length; l++){
       this.olamps[l].init_gfx();
+      this.olamps[l].set_position(0,0,0);
+    }
   },
 
   clone : function(){
@@ -44,19 +46,6 @@ Omega.StationLamps.prototype = {
       slamps.olamps.push(lamp);
     }
     return slamps;
-  },
-
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
-
-    for(var l = 0; l < this.olamps.length; l++){
-      var lamp = this.olamps[l];
-      lamp.set_position(loc.x, loc.y, loc.z);
-      Omega.temp_translate(lamp.component, loc, function(tlamp){
-        Omega.rotate_position(tlamp, loc.rotation_matrix());
-      });
-    }
   },
 
   run_effects : function(){

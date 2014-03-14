@@ -59,7 +59,6 @@ Omega.StationMesh.load_template = function(config, type, cb){
                         config.meshes_path;
   var rotation        = config.resources.stations[type].rotation;
   var offset          = config.resources.stations[type].offset;
-  var scale           = config.resources.stations[type].scale;
   
   Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
     var material = Omega.Station.gfx[type].mesh_material;
@@ -71,8 +70,6 @@ Omega.StationMesh.load_template = function(config, type, cb){
       mesh.position.set(offset[0], offset[1], offset[2]);
       smesh.base_position = offset;
     }
-
-    if(scale) mesh.scale.set(scale[0], scale[1], scale[2]);
 
     if(rotation){
       mesh.rotation.set(rotation[0], rotation[1], rotation[2]);

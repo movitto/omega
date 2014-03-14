@@ -31,8 +31,8 @@ Omega.StationConstructionBar.prototype = {
     return bar;
   },
 
+/// TODO optimize
   update : function(){
-    if(!this.bar) return;
     var entity = this.omega_entity;
     var loc    = entity.location;
 

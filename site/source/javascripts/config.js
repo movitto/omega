@@ -88,9 +88,8 @@ Omega.Config = {
     'stations'      : {
       'manufacturing' : { 'material' : '/meshes/research1.png',
                           'geometry' : '/meshes/research.json',
-                          'scale'    : [7, 7, 7],
-                          'lamps' : [[5, 0x0000ff, [0,   25, 0]],
-                                     [5, 0x0000ff, [0, -175, 0]]]}}
+                          'lamps' : [[15, 0x0000ff, [0,   40, 0]],
+                                     [15, 0x0000ff, [0, -300, 0]]]}}
   },
 
   audio : {
