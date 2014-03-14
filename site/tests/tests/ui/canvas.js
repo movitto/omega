@@ -253,7 +253,7 @@ describe("Omega.UI.Canvas", function(){
       var planet = new Omega.Planet({id : 2, location : new Omega.Location()});
       var system = new Omega.SolarSystem({children : [star, planet], location : new Omega.Location()});
 
-      var spy = sinon.spy(canvas, 'add');
+      var spy = sinon.stub(canvas, 'add');
       canvas.set_scene_root(system);
       sinon.assert.calledWith(spy, sinon.match.instanceOf(Omega.Star));
       sinon.assert.calledWith(spy, sinon.match.instanceOf(Omega.Planet));
