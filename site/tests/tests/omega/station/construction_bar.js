@@ -3,9 +3,8 @@ describe("Omega.StationConstructionBar", function(){
   describe("#update", function(){
     var construction_bar, station;
     before(function(){
-      station = new Omega.Station({type : 'manufacturing',
-                                   location : new Omega.Location()});
-      station.init_gfx();
+      station = Omega.Gen.station();
+      station.init_gfx(Omega.Config);
 
       construction_bar = station.construction_bar;
     });
