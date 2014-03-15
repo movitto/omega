@@ -190,7 +190,6 @@ Omega.ShipGfx = {
 
   /// Update ship graphics on movement events
   update_gfx : function(){
-    if(!this.location) return; /// TODO remove if
     this.mesh.update();
     this.highlight.update();
     this.hp_bar.update();
@@ -222,8 +221,6 @@ Omega.ShipGfx = {
 
   /// Update Movement Effects
   update_movement_effects : function(){
-    if(this.trails) this.trails.update_state();
-
     if(this.location.is_moving('linear'))
       this._run_movement = this._run_linear_movement;
     else if(this.location.is_moving('follow'))
@@ -232,6 +229,8 @@ Omega.ShipGfx = {
       this._run_movement = this._run_rotation_movement
     else if(this.location.is_stopped())
       this._run_movement = this._no_movement;
+
+    if(this.trails) this.trails.update_state();
   },
 
   ///////////////////////////////////////////////// effects
@@ -289,7 +288,7 @@ Omega.ShipGfx = {
     var min_distance = Omega.Config.follow_distance;
 
     //Take into account client/server sync
-    if (distance >= min_distance && !loc.on_target){
+    if (distance >= min_distance && !loc.movement_strategy.on_target){
       dx = dx / distance;
       dy = dy / distance;
       dz = dz / distance;

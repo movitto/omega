@@ -175,8 +175,10 @@ describe("Omega.ShipMiningInteractions", function(){
     before(function(){
       resource = new Omega.Resource({id : 'res1'});
       asteroid = new Omega.Asteroid({});
-      ship     = new Omega.Ship({mining: resource});
+      ship     = Omega.Gen.ship({type: 'mining', mining: resource});
       response = {result : ship};
+
+      ship.init_gfx(Omega.Config);
 
       sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');

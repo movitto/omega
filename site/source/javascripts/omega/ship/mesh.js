@@ -27,6 +27,7 @@ Omega.ShipMesh = function(args){
   this.tmesh = mesh;
   this.tmesh.omega_obj = this;
 
+  /// TODO remove:
   this.base_position = [0,0,0];
   this.base_rotation = [0,0,0];
 };

@@ -80,7 +80,6 @@ Omega.ShipTrails.prototype = {
                                  event_cb: event_cb});
   },
 
-   /// TODO furthur optimize (tie emitter position to entity mesh position & rotation?)
   _update_emitter : function(e){
     var entity        = this.omega_entity;
     var loc           = entity.location;
@@ -102,36 +101,44 @@ Omega.ShipTrails.prototype = {
     emitter.velocity.multiplyScalar(this.particle_speed);
   },
 
-  _no_update : function(){},
-
   disable_updates : function(){
-    this._old_update = this.update;
-    this.update = this._no_update;
+    this.update = this._disabled_update;
   },
 
   enable_updates : function(){
-    this.update = this._old_update;
+    this.update = this._enabled_update;
   },
 
-  update : function(){
+  _disabled_update : function(){},
+
+  _enabled_update : function(){
     for(var t = 0; t < this.config_trails.length; t++)
       this._update_emitter(t);
   },
 
   update_state : function(){
-    if(this.omega_entity.location.is_stopped())
+    var loc = this.omega_entity.location;
+    var stopped   = loc.is_stopped();
+    var follow    = loc.is_moving('follow');
+    var on_target = !!(loc.movement_strategy) &&
+                    loc.movement_strategy.on_target;
+    var adjusting = !!(loc.movement_strategy) &&
+                    loc.movement_strategy.adjusting_bearing;
+
+    if(stopped || (follow && (on_target || adjusting)))
       this.disable();
-    else{
+    else
       this.enable();
-    }
   },
 
   enable : function(){
+    this.enable_updates();
     for(var e = 0; e < this.particles.emitters.length; e++)
       this.particles.emitters[e].alive = true;
   },
 
   disable : function(){
+    this.disable_updates();
     for(var e = 0; e < this.particles.emitters.length; e++){
       this.particles.emitters[e].alive = false;
       this.particles.emitters[e].reset();
@@ -142,3 +149,5 @@ Omega.ShipTrails.prototype = {
     this.particles.tick(this.clock.getDelta());
   }
 };
+
+Omega.ShipTrails.prototype.update = Omega.ShipTrails.prototype._disabled_update;
