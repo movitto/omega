@@ -34,10 +34,9 @@ Omega.StationConstructionBar.prototype = {
 /// TODO optimize
   update : function(){
     var entity = this.omega_entity;
-    var loc    = entity.location;
 
     if(entity.construction_percent > 0){
-      this.bar.update(loc, entity.construction_percent);
+      this.bar.update(entity.construction_percent);
 
       if(!entity._has_construction_bar())
         entity._add_construction_bar();
@@ -45,5 +44,27 @@ Omega.StationConstructionBar.prototype = {
     }else if(entity._has_construction_bar()){
       entity._rm_construction_bar();
     }
+  }
+};
+
+/// Gets mixed into Omega.StationGfx
+Omega.StationConstructionGfxHelpers = {
+  _has_construction_bar : function(){
+    if(!this.mesh) return false;
+    var component   = this.construction_bar.bar.components[0];
+    var descendants = this.mesh.tmesh.getDescendants();
+    return descendants.indexOf(component) != -1;
+  },
+
+  _add_construction_bar : function(){
+    if(!this.mesh) return;
+    for(var c = 0; c < this.construction_bar.bar.components.length; c++)
+      this.mesh.tmesh.add(this.construction_bar.bar.components[c]);
+  },
+
+  _rm_construction_bar : function(){
+    if(!this.mesh) return;
+    for(var c = 0; c < this.construction_bar.bar.components.length; c++)
+      this.mesh.tmesh.remove(this.construction_bar.bar.components[c]);
   }
 };

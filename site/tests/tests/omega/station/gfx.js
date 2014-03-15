@@ -72,7 +72,7 @@ describe("Omega.StationGfx", function(){
     });
 
     it("loads station gfx", function(){
-      var station   = new Omega.Station({type: type});
+      var station   = Omega.Gen.station({type: type});
       var load_gfx  = sinon.spy(station, 'load_gfx');
       station.init_gfx(Omega.Config);
       sinon.assert.called(load_gfx);
@@ -141,12 +141,18 @@ describe("Omega.StationGfx", function(){
       assert(station.construction_bar).equals(bar);
     });
 
-    it("sets scene components to station highlight effects, and lamps", function(){
+    it("sets scene components to station mesh", function(){
       station.init_gfx(Omega.Config);
-      assert(station.components).includes(station.highlight.mesh);
-      for(var l = 0; l < station.lamps.olamps.length; l++)
-        assert(station.components).includes(station.lamps.olamps[l].component);
+      assert(station.components).includes(station.mesh.tmesh);
     });
+
+    it("adds hightlight / lamps to mesh", function(){
+      station.init_gfx(Omega.Config);
+      var descendents = station.mesh.tmesh.getDescendants();
+      assert(descendents).includes(station.highlight.mesh);
+      for(var l = 0; l < station.lamps.olamps.length; l++)
+        assert(descendents).includes(station.lamps.olamps[l].component);
+    })
   });
 
   describe("#run_effects", function(){
@@ -206,11 +212,11 @@ describe("Omega.StationGfx", function(){
     });
   });
 
-  describe("#update_gfx", function(){
+  describe("#update_construction_gfx", function(){
     it("updates station construction bar", function(){
       station.init_gfx(Omega.Config);
       var update = sinon.spy(station.construction_bar, 'update');
-      station.update_gfx();
+      station.update_construction_gfx();
       sinon.assert.called(update);
     });
   });

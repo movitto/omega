@@ -18,7 +18,9 @@ Omega.Callbacks.construction_failed = function(event, evnt_args){
   pstation._update_resources();
 
   if(this.page.canvas.is_root(pstation.parent_id)){
-    this.page.canvas.reload(pstation, function(){ pstation.update_gfx(); });
+    this.page.canvas.reload(pstation, function(){
+      pstation.update_construction_gfx();
+    });
     this.page.canvas.animate();
   }
 

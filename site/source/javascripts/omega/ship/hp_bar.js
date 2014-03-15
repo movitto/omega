@@ -40,6 +40,7 @@ Omega.ShipHpBar.prototype = {
   update : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;
-    this.bar.update(loc, entity.hp/entity.max_hp);
+    this.bar.update(loc);
+    this.bar.update(entity.hp/entity.max_hp);
   }
 };

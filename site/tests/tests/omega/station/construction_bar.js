@@ -17,7 +17,7 @@ describe("Omega.StationConstructionBar", function(){
       it("updates construction progress bar", function(){
         var update = sinon.stub(construction_bar.bar, 'update');
         construction_bar.update();
-        sinon.assert.calledWith(update, station.location, 0.50);
+        sinon.assert.calledWith(update, 0.50);
       });
 
       describe("construction progress bar not in station scene components", function(){

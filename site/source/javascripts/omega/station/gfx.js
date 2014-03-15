@@ -94,23 +94,34 @@ Omega.StationGfx = {
     this.construction_audio = from.construction_audio;
   },
 
-/// TODO optimize (wire up callbacks depending on location state)
   update_gfx : function(){
     if(this.mesh) this.mesh.update();
-    this.construction_bar.update();
 
     if(this.location.is_stopped()){
       if(this._has_orbit_line())
         this._rm_orbit_line();
-    }else if(!this._has_orbit_line()){
-      this._calc_orbit();
-      this._orbit_angle = this._current_orbit_angle();
-      this._add_orbit_line(0x99CCEE);
+      this._run_movement_effects = this._run_movement;
+
+    }else{
+      if(!this._has_orbit_line()){
+        this._calc_orbit();
+        this._orbit_angle = this._current_orbit_angle();
+        this._add_orbit_line(0x99CCEE);
+      }
+
+      if(this.mesh)
+        this._run_movement_effects = this._run_orbit_movement;
     }
   },
 
-  _run_movement_effects : function(){
-    if(this.location.is_stopped()) return;
+  update_construction_gfx : function(){
+    this.construction_bar.update();
+  },
+
+  _run_movement : function(){
+  },
+
+  _run_orbit_movement : function(){
     var now = new Date();
     var elapsed = now - this.last_moved;
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
@@ -118,28 +129,16 @@ Omega.StationGfx = {
     this._orbit_angle += dist;
     this._set_orbit_angle(this._orbit_angle);
     this.last_moved = now;
-    this.update_gfx();
+    this.mesh.update();
   },
 
   run_effects : function(){
     this.lamps.run_effects();
     this._run_movement_effects();
-  },
-
-  _has_construction_bar : function(){
-    return this.components.indexOf(this.construction_bar.bar.components[0]) != -1;
-  },
-
-  _add_construction_bar : function(){
-    for(var c = 0; c < this.construction_bar.bar.components.length; c++)
-      this.components.push(this.construction_bar.bar.components[c]);
-  },
-
-  _rm_construction_bar : function(){
-    for(var c = 0; c < this.construction_bar.bar.components.length; c++){
-      var i = this.components.indexOf(this.construction_bar.bar.components[c]);
-      this.components.splice(i, 1);
-    }
   }
 };
 
+Omega.StationGfx._run_movement_effects = Omega.StationGfx._run_movement;
+
+Omega.StationGfx =
+  $.extend(Omega.StationGfx, Omega.StationConstructionGfxHelpers);

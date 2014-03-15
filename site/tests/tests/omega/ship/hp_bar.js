@@ -17,7 +17,7 @@ describe("Omega.ShipHpBar", function(){
     it("updates hp progress bar", function(){
       var update = sinon.spy(hp_bar.bar, 'update');
       hp_bar.update();
-      sinon.assert.calledWith(update, loc, 0.1);
+      sinon.assert.calledWith(update, 0.1);
     });
   });
 });}); // Omega.ShipTrajectory
