@@ -87,6 +87,7 @@ Omega.ShipGfx = {
     /// TODO change highlight mesh material if ship doesn't belong to user
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
+    this.components.push(this.highlight.mesh);
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
@@ -117,6 +118,8 @@ Omega.ShipGfx = {
     this.hp_bar = Omega.Ship.gfx[this.type].hp_bar.clone();
     this.hp_bar.omega_entity = this;
     this.hp_bar.bar.init_gfx(config, event_cb);
+    for(var c = 0; c < this.hp_bar.bar.components.length; c++)
+      this.components.push(this.hp_bar.bar.components[c]);
 
     this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
@@ -143,8 +146,6 @@ Omega.ShipGfx = {
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
 
-      _this.mesh.tmesh.add(_this.highlight.mesh);
-
       for(var l = 0; l < _this.lamps.olamps.length; l++)
         _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
 
@@ -152,9 +153,6 @@ Omega.ShipGfx = {
         _this.mesh.tmesh.add(_this.trajectory1.mesh);
         _this.mesh.tmesh.add(_this.trajectory2.mesh);
       }
-
-      for(var c = 0; c < _this.hp_bar.bar.components.length; c++)
-        _this.mesh.tmesh.add(_this.hp_bar.bar.components[c]);
 
       _this.attack_vector.set_position(_this.mesh.tmesh.position);
       _this.destruction.set_position(_this.mesh.tmesh.position)
@@ -194,6 +192,8 @@ Omega.ShipGfx = {
   update_gfx : function(){
     if(!this.location) return; /// TODO remove if
     this.mesh.update();
+    this.highlight.update();
+    this.hp_bar.update();
     this.trails.update();
     this.attack_vector.update();
     this.mining_vector.update();
