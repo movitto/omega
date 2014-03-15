@@ -19,6 +19,8 @@ describe("Omega.UI.CommandTracker", function(){
         ship   = Omega.Gen.ship({id: 'ship1', system_id : 'system1'});
         eship  = Omega.Gen.ship({id: 'ship1', attacking : etgt});
 
+        ship.init_gfx(Omega.Config);
+
         page.entities = [ship, tgt];
         eargs         = ['attacked_stop', eship, etgt];
       });
@@ -45,11 +47,11 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
       });
 
-      it("updates entity gfx", function(){
-        sinon.stub(ship, 'update_gfx');
+      it("updates entity attack gfx", function(){
+        sinon.stub(ship, 'update_attack_gfx');
         tracker._callbacks_attacked_stop("manufactured::event_occurred", eargs);
         page.canvas.reload.omega_callback()();
-        sinon.assert.called(ship.update_gfx);
+        sinon.assert.called(ship.update_attack_gfx);
       });
     });
   });

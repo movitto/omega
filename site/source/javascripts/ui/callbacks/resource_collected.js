@@ -22,7 +22,7 @@ Omega.Callbacks.resource_collected = function(event, event_args){
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){
-      if(entity.update_gfx) entity.update_gfx();
+      entity.update_mining_gfx();
     });
   }
 

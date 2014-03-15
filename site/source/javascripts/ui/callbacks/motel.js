@@ -6,7 +6,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.Callbacks.motel = function(event, event_args){
+Omega.Callbacks.motel = function(evnt, event_args){
   var entity = $.grep(this.page.all_entities(), function(entity){
                  return entity.location &&
                         entity.location.id == event_args[0].id;
@@ -18,6 +18,8 @@ Omega.Callbacks.motel = function(event, event_args){
   entity.last_moved = new Date();
 
   entity.location.update(new_loc);
+
+  if(entity.update_movement_effects) entity.update_movement_effects();
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){

@@ -76,8 +76,7 @@ describe("Omega.ShipGfx", function(){
       /// preiinit using test page
       Omega.Test.Canvas.Entities();
 
-      ship = new Omega.Ship({type: type,
-        location : new Omega.Location({x: 100, y: -100, z: 200})});
+      ship = Omega.Gen.ship({type: type});
     });
 
     after(function(){
@@ -186,7 +185,7 @@ describe("Omega.ShipGfx", function(){
     /// it("initializes lamp graphics"); NIY
 
     it("clones Ship trails", function(){
-      var trails = new Omega.ShipTrails();
+      var trails = new Omega.ShipTrails({config: Omega.Config, type : type});
       sinon.stub(Omega.Ship.gfx[ship.type].trails, 'clone').returns(trails);
       ship.init_gfx(Omega.Config);
       assert(ship.trails).equals(trails);
@@ -355,17 +354,11 @@ describe("Omega.ShipGfx", function(){
 
     before(function(){
       ship = new Omega.Ship({type : 'corvette', location : new Omega.Location()});
-      ship.init_gfx();
+      ship.init_gfx(Omega.Config);
     });
 
     it("updates mesh", function(){
       var update = sinon.spy(ship.mesh, 'update');
-      ship.update_gfx();
-      sinon.assert.called(update);
-    });
-
-    it("updates hp bar", function(){
-      var update = sinon.spy(ship.hp_bar, 'update');
       ship.update_gfx();
       sinon.assert.called(update);
     });

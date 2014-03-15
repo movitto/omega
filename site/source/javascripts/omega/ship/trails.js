@@ -12,6 +12,8 @@ Omega.ShipTrails = function(args){
 
   if(config && type)
     this.init_particles(config, type, event_cb);
+  else
+    this.disable_updates();
 };
 
 Omega.ShipTrails.prototype = {
@@ -51,7 +53,10 @@ Omega.ShipTrails.prototype = {
 
   init_particles : function(config, type, event_cb){
     this.config_trails = config.resources.ships[type].trails;
-    if(!this.config_trails) return null;
+    if(!this.config_trails){
+      this.disable_updates();
+      return;
+    }
 
     this.clock     = new THREE.Clock();
     this.particles = this._particle_group(config, event_cb);
@@ -75,7 +80,7 @@ Omega.ShipTrails.prototype = {
                                  event_cb: event_cb});
   },
 
-   /// TODO optimize & 'update' below
+   /// TODO furthur optimize (tie emitter position to entity mesh position & rotation?)
   _update_emitter : function(e){
     var entity        = this.omega_entity;
     var loc           = entity.location;
@@ -97,15 +102,27 @@ Omega.ShipTrails.prototype = {
     emitter.velocity.multiplyScalar(this.particle_speed);
   },
 
-  update : function(){
-    if(!this.config_trails) return;
+  _no_update : function(){},
 
+  disable_updates : function(){
+    this._old_update = this.update;
+    this.update = this._no_update;
+  },
+
+  enable_updates : function(){
+    this.update = this._old_update;
+  },
+
+  update : function(){
+    for(var t = 0; t < this.config_trails.length; t++)
+      this._update_emitter(t);
+  },
+
+  update_state : function(){
     if(this.omega_entity.location.is_stopped())
       this.disable();
     else{
       this.enable();
-      for(var t = 0; t < this.config_trails.length; t++)
-        this._update_emitter(t);
     }
   },
 

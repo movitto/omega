@@ -52,11 +52,11 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
       });
 
-      it("updates attacker gfx", function(){
-        sinon.stub(ship, 'update_gfx');
+      it("updates attacker attack gfx", function(){
+        sinon.stub(ship, 'update_attack_gfx');
         tracker._callbacks_destroyed_by("manufactured::event_occurred", eargs);
         page.canvas.reload.omega_callback()();
-        sinon.assert.called(ship.update_gfx);
+        sinon.assert.called(ship.update_attack_gfx);
       });
 
       it("triggers defender destruction", function(){
@@ -74,10 +74,10 @@ describe("Omega.UI.CommandTracker", function(){
           trigger_cb = tgt.trigger_destruction.omega_callback();
         });
 
-        it("updates defender gfx", function(){
-          sinon.stub(tgt, 'update_gfx');
+        it("updates defender defense gfx", function(){
+          sinon.stub(tgt, 'update_defense_gfx');
           trigger_cb();
-          sinon.assert.called(tgt.update_gfx);
+          sinon.assert.called(tgt.update_defense_gfx);
         });
 
         it("removes defender from scene", function(){

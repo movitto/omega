@@ -21,7 +21,7 @@ Omega.Callbacks.defended = function(event, event_args){
   if(this.page.canvas.is_root(pdefender.parent_id) &&
      this.page.canvas.has(pdefender.id)){
     this.page.canvas.reload(pdefender, function(){
-      if(pdefender.update_gfx) pdefender.update_gfx();
+      pdefender.update_defense_gfx();
     });
   }
 }

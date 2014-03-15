@@ -206,8 +206,52 @@ Omega.Gen = {
   },
 
   /// emits a specified command via the cmd tracker
-  command : function(cmd_tracker, evnt, other_args){
-    var args = [evnt].concat(other_args);
+  command : function(){
+    var args = Array.prototype.slice.call(arguments);
+    var cmd_tracker = args.shift();
+    var evnt = args.shift();
+
     cmd_tracker._msg_received(evnt, args)
+  },
+
+  Commands : {
+    changed_strategy : function(cmd_tracker, loc){
+      Omega.Gen.command(cmd_tracker, 'motel::changed_strategy', loc);
+    },
+
+    attacked : function(cmd_tracker, attacker, defender){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'attacked', attacker, defender);
+    },
+
+    attacked_stop : function(cmd_tracker, attacker, defender){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'attacked_stop', attacker, defender);
+    },
+
+    defended : function(cmd_tracker, defender, attacker){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'defended', defender, attacker);
+    },
+
+    defended_stop : function(cmd_tracker, defender, attacker){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'defended_stop', defender, attacker);
+    },
+
+    destroyed_by : function(cmd_tracker, defender, attacker){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'destroyed_by', defender, attacker);
+    },
+
+    resource_collected : function(cmd_tracker, ship, resource, quantity){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'resource_collected', ship, resource, quantity);
+    },
+
+    mining_stopped : function(cmd_tracker, ship, resource, reason){
+      Omega.Gen.command(cmd_tracker, 'manufactured::event_occurred',
+                        'mining_stopped', ship, resource, reason);
+    }
   }
 };

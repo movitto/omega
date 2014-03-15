@@ -144,14 +144,20 @@ Omega.ShipGfx = {
       _this.mesh.omega_entity = _this;
 
       _this.mesh.tmesh.add(_this.highlight.mesh);
+
       for(var l = 0; l < _this.lamps.olamps.length; l++)
         _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
+
       if(_this.debug_gfx){
         _this.mesh.tmesh.add(_this.trajectory1.mesh);
         _this.mesh.tmesh.add(_this.trajectory2.mesh);
       }
+
       for(var c = 0; c < _this.hp_bar.bar.components.length; c++)
         _this.mesh.tmesh.add(_this.hp_bar.bar.components[c]);
+
+      _this.attack_vector.set_position(_this.mesh.tmesh.position);
+      _this.destruction.set_position(_this.mesh.tmesh.position)
 
       _this.components.push(_this.mesh.tmesh);
       _this.update_gfx();
@@ -160,6 +166,7 @@ Omega.ShipGfx = {
 
     this.last_moved = new Date();
     this.update_gfx();
+    this.update_movement_effects();
   },
 
   cp_gfx : function(from){
@@ -183,29 +190,68 @@ Omega.ShipGfx = {
     this.mining_audio      = from.mining_audio;
   },
 
-  /// Update ship graphics on core entity changes
+  /// Update ship graphics on movement events
   update_gfx : function(){
-    if(!this.location) return;
+    if(!this.location) return; /// TODO remove if
     this.mesh.update();
     this.trails.update();
-    this.hp_bar.update();
     this.attack_vector.update();
     this.mining_vector.update();
-    this.destruction.update();
     this.smoke.update();
-    this.explosions.update();
+  },
+
+  /// Update graphics on attack events
+  update_attack_gfx : function(){
+    this.attack_vector.update_state();
+    this.attack_vector.update();
+    this.explosions.update_state();
+  },
+
+  /// Update graphics on defense events
+  update_defense_gfx : function(){
+    this.hp_bar.update();
+    this.smoke.update();
+    this.smoke.update_state();
+  },
+
+  /// Update graphics on mining events
+  update_mining_gfx : function(){
+    this.mining_vector.update();
+    this.mining_vector.update_state();
+  },
+
+  /// Update Movement Effects
+  update_movement_effects : function(){
+    if(this.trails) this.trails.update_state();
+
+    if(this.location.is_moving('linear'))
+      this._run_movement = this._run_linear_movement;
+    else if(this.location.is_moving('follow'))
+      this._run_movement = this._run_follow_movement;
+    else if(this.location.is_moving('rotate'))
+      this._run_movement = this._run_rotation_movement
+    else if(this.location.is_stopped())
+      this._run_movement = this._no_movement;
   },
 
   ///////////////////////////////////////////////// effects
 
-  _run_linear_movement : function(elapsed){
+  _run_linear_movement : function(){
+    var now     = new Date();
+    var elapsed = now - this.last_moved;
+
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
     this.location.x += this.location.movement_strategy.dx * dist;
     this.location.y += this.location.movement_strategy.dy * dist;
     this.location.z += this.location.movement_strategy.dz * dist;
+
+    this.update_gfx();
+    this.last_moved = now;
   },
 
-  _run_rotation_movement : function(elapsed){
+  _run_rotation_movement : function(page, elapsed){
+    var now     = new Date();
+        elapsed = elapsed || (now - this.last_moved);
     var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
     var new_or = Omega.Math.rot(this.location.orientation_x,
                                 this.location.orientation_y,
@@ -217,11 +263,17 @@ Omega.ShipGfx = {
     this.location.orientation_x = new_or[0];
     this.location.orientation_y = new_or[1];
     this.location.orientation_z = new_or[2];
+
+    this.update_gfx();
+    this.last_moved = now;
   },
 
-  _run_follow_movement : function(elapsed, page){
+  _run_follow_movement : function(page){
+    var now     = new Date();
+    var elapsed = now - this.last_moved;
+
     if(this.location.movement_strategy.point_to_target)
-      this._run_rotation_movement();
+      this._run_rotation_movement(page, elapsed);
 
     if(this.location.movement_strategy.adjusting_bearing)
       return;
@@ -248,30 +300,12 @@ Omega.ShipGfx = {
       loc.y += move_distance * dy;
       loc.z += move_distance * dz;
     }
-  },
 
-  /// move ship according to movement strategy to smoothen out movement animation
-  /// TODO replace conditionals here by mapping _run_movement directly to movement
-  /// method on ms changes
-  _run_movement : function(page){
-    var now     = new Date();
-    var elapsed = now - this.last_moved;
-
-    if(this.location.is_moving('linear')){
-      this._run_linear_movement(elapsed);
-      this.update_gfx();
-
-    }else if(this.location.is_moving('follow')){
-      this._run_follow_movement(elapsed);
-      this.update_gfx();
-
-    }else if(this.location.is_moving('rotate')){
-      this._run_rotation_movement(elapsed, page);
-      this.update_gfx();
-    }
-
+    this.update_gfx();
     this.last_moved = now;
   },
+
+  _no_movement : function(){},
 
   /// Run ship graphics effects
   run_effects : function(page){
@@ -291,3 +325,5 @@ Omega.ShipGfx = {
     if(this.destruction) this.destruction.trigger(2000, cb);
   }
 };
+
+Omega.ShipGfx._run_movement = Omega.ShipGfx._no_movement;

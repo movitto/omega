@@ -22,7 +22,7 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
 
   if(this.page.canvas.is_root(pattacker.parent_id)){
     this.page.canvas.reload(pattacker, function(){
-      pattacker.update_gfx();
+      pattacker.update_attack_gfx();
     });
   }
 
@@ -33,7 +33,7 @@ Omega.Callbacks.destroyed_by = function(event, event_args){
     /// start destruction sequence / register cb
     pdefender.trigger_destruction(function(){
       /// allow defender to tidy up gfx b4 removing from scene:
-      pdefender.update_gfx();
+      pdefender.update_defense_gfx();
       /// TODO instead of removing swap out mesh for a 'debris' mesh w/ loot
       /// remove after loot is collected and a certain amount of time passed
       _this.page.canvas.remove(pdefender);

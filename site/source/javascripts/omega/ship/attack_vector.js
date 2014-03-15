@@ -10,6 +10,7 @@ Omega.ShipAttackVector = function(args){
   var event_cb = args['event_cb'];
 
   this.init_gfx(config, event_cb);
+  this._update_target_loc = function(){}
 };
 
 Omega.ShipAttackVector.prototype = {
@@ -51,17 +52,27 @@ Omega.ShipAttackVector.prototype = {
     return new Omega.ShipAttackVector({config: config, event_cb: event_cb});
   },
 
-  /// TODO optimize (split conditional out)
-  update : function(){
-    var loc = this.omega_entity.location;
-    this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);
+  set_position : function(position){
+    this.particles.mesh.position = position;
+  },
 
+  update : function(){
+    /// TODO track 'attacked_by' (array on entities in ship) in attack events,
+    /// update target_loc upon defender movement / remove here
+    this._update_target_loc();
+  },
+
+  update_state : function(){
     if(this.has_target()){
       this.enable();
-      if(this.target_loc_needs_update())
-        this.update_target_loc();
+      this._update_target_loc = function(){
+        if(this.target_loc_needs_update())
+          this.update_target_loc();
+      };
+
     }else{
       this.disable();
+      this._update_target_loc = function(){};
     }
   },
 

@@ -4,16 +4,13 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO look into better way to synchronize w/ attack particles
-/// perhaps hook registered w/ attack particle emitter which is
-/// invoked upon particle retirement
-
 Omega.ShipExplosionEffect = function(args){
   if(!args) args = {};
   var config = args['config'];
   var event_cb = args['event_cb'];
 
   this.init_gfx(config, event_cb);
+  this._run_effects = this._no_trigger_effect;
 };
 
 Omega.ShipExplosionEffect.prototype = {
@@ -40,9 +37,8 @@ Omega.ShipExplosionEffect.prototype = {
     };
   },
 
-  update : function(){
+  update_state : function(){
     var entity = this.omega_entity;
-    var loc    = entity.location;
 
     if(entity.attacking)
       this._run_effects = this._trigger_effect;

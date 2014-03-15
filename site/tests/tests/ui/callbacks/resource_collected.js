@@ -22,6 +22,7 @@ describe("Omega.UI.CommandTracker", function(){
         ship  = Omega.Gen.ship({id        : 'ship1',
                                 system_id : 'system1',
                                 resources : [res]});
+        ship.init_gfx(Omega.Config);
 
         eship = Omega.Gen.ship({id        : 'ship1',
                                 resources : [eres],
@@ -60,11 +61,11 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(page.canvas.reload, ship, sinon.match.func);
       });
 
-      it("updates entity gfx", function(){
-        sinon.stub(ship, 'update_gfx');
+      it("updates entity mining gfx", function(){
+        sinon.stub(ship, 'update_mining_gfx');
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
         page.canvas.reload.omega_callback()();
-        sinon.assert.called(ship.update_gfx);
+        sinon.assert.called(ship.update_mining_gfx);
       });
 
       it("refreshes entity container", function(){

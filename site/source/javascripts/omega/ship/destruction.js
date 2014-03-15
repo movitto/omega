@@ -15,27 +15,8 @@ Omega.ShipDestructionEffect = function(args){
 };
 
 Omega.ShipDestructionEffect.prototype = {
-  /// XXX since mesh is rotated by 1.57 around x below,
-  /// need to reverse rotation in emitter position to
-  /// compensate for the world rotation
-  _rotation : function(){
-    if(this.__rotation) return this.__rotation;
-    var euler  = new THREE.Euler(-1.57, 0, 0);
-    this.__rotation = new THREE.Matrix4();
-    this.__rotation.makeRotationFromEuler(euler);
-    return this.__rotation;
-  },
-
-  update : function(){
-    var entity   = this.omega_entity;
-    var loc      = entity.location;
-    var rotation = this._rotation();
-
-    var emitters = this.particles.emitters;
-    for(var e = 0; e < emitters.length; e++){
-      emitters[e].position.set(loc.x, loc.y, loc.z);
-      Omega.rotate_position(emitters[e], rotation)
-    }
+  set_position : function(position){
+    this.particles.mesh.position = position;
   },
 
   _explosion_emitter : function(){

@@ -10,6 +10,7 @@ Omega.ShipMiningVector = function(args){
   var event_cb = args['event_cb'];
 
   this.init_gfx(config, event_cb);
+  this._update_velocity = this._no_velocity_update;
 };
 
 Omega.ShipMiningVector.prototype = {
@@ -54,16 +55,23 @@ Omega.ShipMiningVector.prototype = {
     return new Omega.ShipMiningVector({config: config, event_cb: event_cb});
   },
 
-  /// TODO optimize (split apart conditionals for different update cases)
   update : function(){
+    this._update_velocity();
+  },
+
+  update_state : function(){
     if(this.has_target()){
       if(!this.alive()) this.enable();
-      this._update_emitter_velocity();
+      this._update_velocity = this._update_emitter_velocity;
 
     }else if(this.alive()){
       this.disable();
+      this._update_velocity = this._no_velocity_update;
     }
   },
+
+  /// intentionally blank, see above
+  _no_velocity_update : function(){},
 
   _update_emitter_velocity : function(){
     var loc = this.omega_entity.location;

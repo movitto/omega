@@ -10,6 +10,7 @@ Omega.ShipSmokeEffect = function(args){
   var event_cb = args['event_cb'];
 
   this.init_gfx(config, event_cb);
+  this._update = this._no_update;
 };
 
 Omega.ShipSmokeEffect.prototype = {
@@ -23,16 +24,31 @@ Omega.ShipSmokeEffect.prototype = {
   },
 
   update : function(){
+    this._update();
+  },
+
+  update_state : function(){
+    var entity = this.omega_entity;
+
+    if(entity.hpp() < 0.5){
+      this._update = this._update_emitter;
+      this._update();
+      this.enable();
+    }else{
+      this._update = this._no_update;
+      this.disable();
+    }
+  },
+
+  _no_update : function(){
+  },
+
+  _update_emitter : function(){
     var entity = this.omega_entity;
     var loc    = entity.location;
 
     var rand = Math.random() * 25;
     this._emitter().position.set(loc.x + rand, loc.y + 10, loc.z + rand);
-
-    if(entity.hpp() < 0.5)
-      this.enable();
-    else
-      this.disable();
   },
 
   _particle_emitter : function(){
