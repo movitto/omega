@@ -59,6 +59,9 @@ Omega.JumpGateGfx = {
     this.selection = Omega.JumpGateSelection.for_jg(this);
     this.selection.omega_entity = this;
 
+    this.mesh = {update: function(){},
+                 run_effects : function(){}}
+
     var _this = this;
     Omega.JumpGateMesh.load(config, function(mesh){
       _this.mesh = mesh;
@@ -76,7 +79,7 @@ Omega.JumpGateGfx = {
   run_effects : function(){
     this.lamp.run_effects();
     this.particles.run_effects();
-    if(this.mesh) this.mesh.run_effects();
+    this.mesh.run_effects();
   },
 
   update_gfx : function(){

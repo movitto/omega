@@ -21,7 +21,7 @@
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
-  debug_gfx : false,
+  debug_gfx : true,
 
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
@@ -84,26 +84,13 @@ Omega.ShipGfx = {
 
     this.components = [];
 
-    var _this = this;
-    Omega.ShipMesh.load(this.type, function(mesh){
-      _this.mesh = mesh;
-      _this.mesh.omega_entity = _this;
-      _this.components.push(_this.mesh.tmesh);
-      _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
-    });
-
     /// TODO change highlight mesh material if ship doesn't belong to user
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
-    this.components.push(this.highlight.mesh);
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
-    for(var l = 0; l < this.lamps.olamps.length; l++){
-      this.lamps.olamps[l].init_gfx();
-      this.components.push(this.lamps.olamps[l].component);
-    }
+    this.lamps.init_gfx();
 
     this.trails = Omega.Ship.gfx[this.type].trails.clone(config, this.type, event_cb);
     this.trails.omega_entity = this;
@@ -121,20 +108,15 @@ Omega.ShipGfx = {
 
     this.trajectory1   = Omega.Ship.gfx[this.type].trajectory1.clone();
     this.trajectory1.omega_entity = this;
+    this.trajectory1.update();
 
     this.trajectory2   = Omega.Ship.gfx[this.type].trajectory2.clone();
     this.trajectory2.omega_entity = this;
-
-    if(this.debug_gfx){
-      this.components.push(this.trajectory1.mesh);
-      this.components.push(this.trajectory2.mesh);
-    }
+    this.trajectory2.update();
 
     this.hp_bar = Omega.Ship.gfx[this.type].hp_bar.clone();
     this.hp_bar.omega_entity = this;
     this.hp_bar.bar.init_gfx(config, event_cb);
-    for(var c = 0; c < this.hp_bar.bar.components.length; c++)
-      this.components.push(this.hp_bar.bar.components[c]);
 
     this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
@@ -151,6 +133,30 @@ Omega.ShipGfx = {
     this.components.push(this.smoke.particles.mesh);
 
     this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
+
+    this.mesh = {update : function(){},
+                 run_effects : function(){},
+                 base_rotation : [0,0,0]};
+
+    var _this = this;
+    Omega.ShipMesh.load(this.type, function(mesh){
+      _this.mesh = mesh;
+      _this.mesh.omega_entity = _this;
+
+      _this.mesh.tmesh.add(_this.highlight.mesh);
+      for(var l = 0; l < _this.lamps.olamps.length; l++)
+        _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
+      if(_this.debug_gfx){
+        _this.mesh.tmesh.add(_this.trajectory1.mesh);
+        _this.mesh.tmesh.add(_this.trajectory2.mesh);
+      }
+      for(var c = 0; c < _this.hp_bar.bar.components.length; c++)
+        _this.mesh.tmesh.add(_this.hp_bar.bar.components[c]);
+
+      _this.components.push(_this.mesh.tmesh);
+      _this.update_gfx();
+      _this.loaded_resource('mesh', _this.mesh);
+    });
 
     this.last_moved = new Date();
     this.update_gfx();
@@ -180,18 +186,14 @@ Omega.ShipGfx = {
   /// Update ship graphics on core entity changes
   update_gfx : function(){
     if(!this.location) return;
-    if(this.mesh)          this.mesh.update();
-    if(this.highlight)     this.highlight.update();
-    if(this.lamps)         this.lamps.update();
-    if(this.trails)        this.trails.update();
-    if(this.trajectory1)   this.trajectory1.update();
-    if(this.trajectory2)   this.trajectory2.update();
-    if(this.hp_bar)        this.hp_bar.update();
-    if(this.attack_vector) this.attack_vector.update();
-    if(this.mining_vector) this.mining_vector.update();
-    if(this.destruction)   this.destruction.update();
-    if(this.smoke)         this.smoke.update();
-    if(this.explosions)    this.explosions.update();
+    this.mesh.update();
+    this.trails.update();
+    this.hp_bar.update();
+    this.attack_vector.update();
+    this.mining_vector.update();
+    this.destruction.update();
+    this.smoke.update();
+    this.explosions.update();
   },
 
   ///////////////////////////////////////////////// effects
@@ -249,6 +251,8 @@ Omega.ShipGfx = {
   },
 
   /// move ship according to movement strategy to smoothen out movement animation
+  /// TODO replace conditionals here by mapping _run_movement directly to movement
+  /// method on ms changes
   _run_movement : function(page){
     var now     = new Date();
     var elapsed = now - this.last_moved;
@@ -271,9 +275,9 @@ Omega.ShipGfx = {
 
   /// Run ship graphics effects
   run_effects : function(page){
+    this._run_movement(page);
     this.lamps.run_effects();
     this.trails.run_effects();
-    this._run_movement(page);
 
     this.attack_vector.run_effects();
     this.mining_vector.run_effects();

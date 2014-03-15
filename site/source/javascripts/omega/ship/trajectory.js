@@ -17,7 +17,8 @@ Omega.ShipTrajectory = function(args){
 
 Omega.ShipTrajectory.prototype = {
   clone : function(){
-    return new Omega.ShipTrajectory(this.color, this.direction);
+    return new Omega.ShipTrajectory({color: this.color,
+                                     direction: this.direction});
   },
 
   init_gfx : function(color){
@@ -37,29 +38,22 @@ Omega.ShipTrajectory.prototype = {
   },
 
   _update_primary_orientation : function(){
-    var orientation = this.omega_entity.location.orientation();
     var v0 = this.mesh.geometry.vertices[0];
     var v1 = this.mesh.geometry.vertices[1];
 
     v0.set(0, 0, 0);
-    v1.set(orientation[0] * 100,
-           orientation[1] * 100,
-           orientation[2] * 100);
+    v1.set(0, 0, 100);
   },
 
   _update_secondary_orientation : function(){
-    var loc = this.omega_entity.location;
     var v0  = this.mesh.geometry.vertices[0];
     var v1  = this.mesh.geometry.vertices[1];
 
     v0.set(0, 0, 0);
     v1.set(0, 50, 0);
-    Omega.rotate_position(v1, loc.rotation_matrix());
   },
 
   update : function(){
-    var loc = this.omega_entity.location;
-    this.mesh.position.set(loc.x, loc.y, loc.z);
     this._update_orientation();
     this.mesh.geometry.verticesNeedUpdate = true;
   }

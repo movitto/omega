@@ -75,6 +75,7 @@ Omega.ShipTrails.prototype = {
                                  event_cb: event_cb});
   },
 
+   /// TODO optimize & 'update' below
   _update_emitter : function(e){
     var entity        = this.omega_entity;
     var loc           = entity.location;

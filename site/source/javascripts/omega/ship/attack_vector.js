@@ -51,6 +51,7 @@ Omega.ShipAttackVector.prototype = {
     return new Omega.ShipAttackVector({config: config, event_cb: event_cb});
   },
 
+  /// TODO optimize (split conditional out)
   update : function(){
     var loc = this.omega_entity.location;
     this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);

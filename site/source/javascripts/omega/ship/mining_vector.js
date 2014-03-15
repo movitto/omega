@@ -54,6 +54,7 @@ Omega.ShipMiningVector.prototype = {
     return new Omega.ShipMiningVector({config: config, event_cb: event_cb});
   },
 
+  /// TODO optimize (split apart conditionals for different update cases)
   update : function(){
     if(this.has_target()){
       if(!this.alive()) this.enable();

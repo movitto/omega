@@ -64,7 +64,6 @@ Omega.ShipMesh.load_template = function(config, type, cb){
                         config.meshes_path;
   var rotation        = config.resources.ships[type].rotation;
   var offset          = config.resources.ships[type].offset;
-  var scale           = config.resources.ships[type].scale;
   
   Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
     var material = Omega.Ship.gfx[type].mesh_material;
@@ -76,8 +75,6 @@ Omega.ShipMesh.load_template = function(config, type, cb){
       mesh.position.set(offset[0], offset[1], offset[2]);
       smesh.base_position = offset;
     }
-
-    if(scale) mesh.scale.set(scale[0], scale[1], scale[2]);
 
     if(rotation){
       mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
