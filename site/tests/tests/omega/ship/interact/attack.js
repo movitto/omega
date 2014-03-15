@@ -6,6 +6,7 @@ describe("Omega.ShipAttackInteractions", function(){
   before(function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
+    ship.init_gfx(Omega.Config)
     page = Omega.Test.Page();
   });
 

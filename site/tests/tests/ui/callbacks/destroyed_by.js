@@ -23,6 +23,9 @@ describe("Omega.UI.CommandTracker", function(){
         ship   = new Omega.Gen.ship({id : 'ship1', system_id : 'system1' });
         eship  = new Omega.Gen.ship({id : 'ship1', attacking : etgt});
 
+        tgt.init_gfx(Omega.Config)
+        ship.init_gfx(Omega.Config)
+
         page.entities = [ship, tgt];
         page.canvas.entities = [ship.id, tgt.id];
         eargs         = ['destroyed_by', etgt, eship];

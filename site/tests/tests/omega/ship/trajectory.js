@@ -13,20 +13,26 @@ describe("Omega.ShipTrajectory", function(){
       trajectory.omega_entity = {location: loc};
     });
 
-    it("sets position of primary trajectory", function(){
+    it("sets orientation of primary trajectory", function(){
       trajectory.set_direction('primary');
       trajectory.update();
-      assert(trajectory.mesh.position.x).equals(loc.x);
-      assert(trajectory.mesh.position.y).equals(loc.y);
-      assert(trajectory.mesh.position.z).equals(loc.z);
+      assert(trajectory.mesh.geometry.vertices[0].x).equals(0);
+      assert(trajectory.mesh.geometry.vertices[0].y).equals(0);
+      assert(trajectory.mesh.geometry.vertices[0].z).equals(0);
+      assert(trajectory.mesh.geometry.vertices[1].x).equals(0);
+      assert(trajectory.mesh.geometry.vertices[1].y).equals(0);
+      assert(trajectory.mesh.geometry.vertices[1].z).equals(100);
     });
 
     it("sets position of secondary trajectory", function(){
       trajectory.set_direction('secondary');
       trajectory.update();
-      assert(trajectory.mesh.position.x).equals(loc.x);
-      assert(trajectory.mesh.position.y).equals(loc.y);
-      assert(trajectory.mesh.position.z).equals(loc.z);
+      assert(trajectory.mesh.geometry.vertices[0].x).equals(0);
+      assert(trajectory.mesh.geometry.vertices[0].y).equals(0);
+      assert(trajectory.mesh.geometry.vertices[0].z).equals(0);
+      assert(trajectory.mesh.geometry.vertices[1].x).equals(0);
+      assert(trajectory.mesh.geometry.vertices[1].y).equals(50);
+      assert(trajectory.mesh.geometry.vertices[1].z).equals(0);
     });
 
     //it("sets trajectory vertices to be aligned w/ orientation"); /// NIY

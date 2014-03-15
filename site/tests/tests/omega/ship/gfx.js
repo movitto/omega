@@ -217,11 +217,11 @@ describe("Omega.ShipGfx", function(){
     });
 
     describe("debug graphics are enabled", function(){
-      it("adds trajectory graphics to components", function(){
+      it("adds trajectory graphics to mesh", function(){
         ship.debug_gfx = true;
         ship.init_gfx(Omega.Config);
-        assert(ship.components).includes(ship.trajectory1.mesh);
-        assert(ship.components).includes(ship.trajectory2.mesh);
+        assert(ship.mesh.tmesh.getDescendants()).includes(ship.trajectory1.mesh);
+        assert(ship.mesh.tmesh.getDescendants()).includes(ship.trajectory2.mesh);
       });
     });
 
@@ -232,16 +232,24 @@ describe("Omega.ShipGfx", function(){
       assert(ship.hp_bar).equals(hp_bar);
     });
 
-    it("sets scene components to ship mesh, highlight effects, lamps, trails, hp-bar components", function(){
+    it("sets scene components to ship mesh, attack_vector, mining_vector, destruction, explosions, smoke", function(){
       ship.init_gfx(Omega.Config);
       assert(ship.components).includes(ship.mesh.tmesh);
-      assert(ship.components).includes(ship.highlight.mesh);
-      assert(ship.components).includes(ship.trails.particles.mesh);
-      assert(ship.components).includes(ship.hp_bar.bar.component1);
-      assert(ship.components).includes(ship.hp_bar.bar.component2);
+      assert(ship.components).includes(ship.attack_vector.particles.mesh);
+      assert(ship.components).includes(ship.mining_vector.particles.mesh);
+      assert(ship.components).includes(ship.destruction.particles.mesh);
+      assert(ship.components).includes(ship.explosions.particles.mesh);
+      assert(ship.components).includes(ship.smoke.particles.mesh);
+    });
+
+    it("adds highlight, hp bar, lamps to mesh", function(){
+      ship.init_gfx(Omega.Config);
+      var descendants = ship.mesh.tmesh.getDescendants();
+      assert(descendants).includes(ship.highlight.mesh);
+      assert(descendants).includes(ship.hp_bar.bar.component1);
+      assert(descendants).includes(ship.hp_bar.bar.component2);
       for(var l = 0; l < ship.lamps.olamps.length; l++)
-        assert(ship.components).includes(ship.lamps.olamps[l].component);
-      /// TODO particle components
+        assert(descendants).includes(ship.lamps.olamps[l].component);
     });
 
     it("updates_gfx", function(){
@@ -354,32 +362,6 @@ describe("Omega.ShipGfx", function(){
       var update = sinon.spy(ship.mesh, 'update');
       ship.update_gfx();
       sinon.assert.called(update);
-    });
-
-    it("updates highlight effects", function(){
-      var update = sinon.spy(ship.highlight, 'update');
-      ship.update_gfx();
-      sinon.assert.called(update);
-    });
-
-    it("updates lamps", function(){
-      var update = sinon.spy(ship.lamps, 'update');
-      ship.update_gfx();
-      sinon.assert.called(update);
-    });
-
-    it("updates trails", function(){
-      var update = sinon.spy(ship.trails, 'update');
-      ship.update_gfx();
-      sinon.assert.called(update);
-    });
-
-    it("updates trajectories", function(){
-      var update1 = sinon.spy(ship.trajectory1, 'update');
-      var update2 = sinon.spy(ship.trajectory2, 'update');
-      ship.update_gfx();
-      sinon.assert.calledWith(update1);
-      sinon.assert.calledWith(update2);
     });
 
     it("updates hp bar", function(){
