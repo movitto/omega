@@ -7,7 +7,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "three"
+//= require "omega_three"
 //= require "vendor/rjr/json"
 //= require "vendor/rjr/jrw-0.17.1"
 //= require "vendor/jquery.timer"
