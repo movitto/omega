@@ -105,6 +105,8 @@ Omega.Pages.Title.prototype = {
 $.extend(Omega.Pages.Title.prototype, new Omega.UI.Registry());
 
 $(document).ready(function(){
+  if(Omega.Test) return;
+
   var dev = new Omega.Pages.Title();
   dev.wire_up();
   dev.setup();

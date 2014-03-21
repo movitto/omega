@@ -67,6 +67,6 @@ Omega.UI.AudioControls.prototype = {
   /// Stop playing audio
   stop : function(){
     /// TODO option to stop d/l of media
-    this.current.pause();
+    if(this.current) this.current.pause();
   }
 };
