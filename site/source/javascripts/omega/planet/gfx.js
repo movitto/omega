@@ -75,7 +75,7 @@ Omega.PlanetGfx = {
     this._set_orbit_angle(this._orbit_angle);
 
     // spin the planet
-    this.mesh.spin(elapsed);
+    this.mesh.spin(elapsed / 2);
 
     this.update_gfx();
     this.last_moved = curr;
