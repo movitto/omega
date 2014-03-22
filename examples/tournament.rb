@@ -17,6 +17,8 @@ require 'rjr/nodes/tcp'
 include Omega::Client::DSL
 include Missions::DSL::Client
 
+RJR::Logger.log_level= ::Logger::INFO
+
 def mission_timeout
   1200 # = 20 min
 end
@@ -26,7 +28,23 @@ def entity_loc
 end
 
 def system_loc
-  rand_loc :min => 750, :max => 2000
+  rand_loc :min => 1000, :max => 2250, :min_y => 0, :max_y => 50
+end
+
+def jg_loc
+  rand_loc(:min => 2000, :max => 3000)
+end
+
+def ast_loc
+  rand_loc(:max => 5000, :min => 2500, :min_y => 0, :max_y => 50)
+end
+
+def gen_asts
+  0.upto(5){
+    asteroid gen_uuid, :location => ast_loc do |ast|
+      resource :resource => rand_resource, :quantity => 500
+    end
+  }
 end
 
 ################################# establish connection / login
@@ -37,21 +55,32 @@ dsl.rjr_node = node
 login 'admin', 'nimda'
 
 ################################# cosmos data
+
 ninigi  = galaxy 'Ninigi'
 
 hoderi  = system 'Hoderi', 'ZY20',
                  :galaxy   => ninigi,
-                 :location => system_loc
+                 :location => system_loc do
+  gen_asts
+end
 
 hosueri = system 'Hosueri', 'JG54',
                  :galaxy   => ninigi,
-                 :location => system_loc
+                 :location => system_loc do
+  gen_asts
+end
 
 hoori   = system 'Hoori', 'AR99',
                  :galaxy   => ninigi,
-                 :location => system_loc
+                 :location => system_loc do
+  gen_asts
+end
 
 @available = [hoderi, hosueri, hoori].shuffle
+
+jump_gate @available[0], @available[1], :location => jg_loc
+jump_gate @available[1], @available[2], :location => jg_loc
+jump_gate @available[2], @available[0], :location => jg_loc
 
 def next_system
   @available.shift
@@ -69,17 +98,23 @@ users.each { |uid|
     role :regular_user
   end
 
-  lstation = station("#{uid}-station",
-                     :user_id      => uid,
-                     :type         => :manufacturing,
-                     :solar_system => user_system,
-                     :location     => entity_loc)
+  station("#{uid}-factory1",
+          :user_id      => uid,
+          :type         => :manufacturing,
+          :solar_system => user_system,
+          :location     => entity_loc)
 
-  lship = ship("#{uid}-ship",
-               :user_id            => uid,
-               :type               => :corvette,
-               :solar_system       => user_system,
-               :location           => entity_loc)
+  ship("#{uid}-corvette1",
+       :user_id            => uid,
+       :type               => :corvette,
+       :solar_system       => user_system,
+       :location           => entity_loc)
+
+  ship("#{uid}-miner1",
+       :user_id            => uid,
+       :type               => :mining,
+       :solar_system       => user_system,
+       :location           => entity_loc)
 
 ################################# mission data
   mission "mission-#{uid}",
