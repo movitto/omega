@@ -6,6 +6,8 @@
 
 //= require "vendor/jquery.storageapi-1.6.0.min"
 
+//= require "omega/stat"
+
 Omega.UI.Loader = {
   placeholder : 'PLACEHOLDER',
   status_indicator : null,

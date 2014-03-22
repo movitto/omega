@@ -33,6 +33,7 @@ Omega.ShipMovementInteractions = {
   },
 
   /// Return a list of ships in the same system w/ the local ship.
+  /// FIXME exclude entities no longer alive
   /// Note this excludes the current ship
   _ships_in_same_system : function(page){
     var _this = this;

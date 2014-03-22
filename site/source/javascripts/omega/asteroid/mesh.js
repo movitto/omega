@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/loader"
+
 Omega.AsteroidMesh = function(args){
   if(!args) args = {};
   var mesh = args['mesh'];

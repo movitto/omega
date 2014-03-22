@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "vendor/jquery.cookie"
+
 Omega.Session = function(parameters){
   this.id = null;
   this.user_id = null;

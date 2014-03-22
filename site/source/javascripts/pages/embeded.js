@@ -14,6 +14,7 @@
 
 //= require "omega/version"
 //= require "omega/node"
+//= require "omega/common"
 //= require "config"
 
 //= require "ui/registry"
