@@ -65,6 +65,16 @@ module Omega
         @handlers[rjr_method] << bl
       end
 
+      # Log specified user into the server
+      # XXX duplicate of client dsl login,
+      # should consolidate into a common client module
+      def login(user_id, password)
+        user = Users::User.new(:id => user_id,
+                               :password => password)
+        session = invoke('users::login', user)
+        @rjr_node.message_headers['session_id'] = session.id
+        nil
+      end
     end
   end
 end
