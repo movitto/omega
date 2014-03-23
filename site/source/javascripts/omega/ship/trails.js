@@ -132,12 +132,14 @@ Omega.ShipTrails.prototype = {
   },
 
   enable : function(){
+    if(!this.particles) return;
     this.enable_updates();
     for(var e = 0; e < this.particles.emitters.length; e++)
       this.particles.emitters[e].alive = true;
   },
 
   disable : function(){
+    if(!this.particles) return;
     this.disable_updates();
     for(var e = 0; e < this.particles.emitters.length; e++){
       this.particles.emitters[e].alive = false;
@@ -146,7 +148,9 @@ Omega.ShipTrails.prototype = {
   },
 
   run_effects : function(){
-    this.particles.tick(this.clock.getDelta());
+    /// FIXME should implement enable/disable effects similar to updates above
+    if(this.particles)
+      this.particles.tick(this.clock.getDelta());
   }
 };
 

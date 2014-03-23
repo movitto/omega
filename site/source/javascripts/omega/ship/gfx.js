@@ -21,7 +21,9 @@
 
 // Ship GFX Mixin
 Omega.ShipGfx = {
-  debug_gfx : true,
+  debug_gfx : false,
+  include_highlight : true,
+  include_hp_bar    : true,
 
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
@@ -87,7 +89,8 @@ Omega.ShipGfx = {
     /// TODO change highlight mesh material if ship doesn't belong to user
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
-    this.components.push(this.highlight.mesh);
+    if(this.include_highlight)
+      this.components.push(this.highlight.mesh);
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
@@ -118,8 +121,9 @@ Omega.ShipGfx = {
     this.hp_bar = Omega.Ship.gfx[this.type].hp_bar.clone();
     this.hp_bar.omega_entity = this;
     this.hp_bar.bar.init_gfx(config, event_cb);
-    for(var c = 0; c < this.hp_bar.bar.components.length; c++)
-      this.components.push(this.hp_bar.bar.components[c]);
+    if(this.include_hp_bar)
+      for(var c = 0; c < this.hp_bar.bar.components.length; c++)
+        this.components.push(this.hp_bar.bar.components[c]);
 
     this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
