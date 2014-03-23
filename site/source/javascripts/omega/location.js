@@ -65,7 +65,8 @@ Omega.Location.prototype = {
   /// - accepts each coordinate as an individual param: loc.set(1,2,3)
   /// - or a single param w/ array of coordinates: loc.set([1,2,3])
   set : function(x,y,z){
-    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
       y = x[1];
       z = x[2];
       x = x[0];
@@ -98,7 +99,8 @@ Omega.Location.prototype = {
   /// - accepts each component as an indivisual param: loc.set_orientation(0,0,1);
   /// - or a single param w/ an array: loc.set_orientation([0,0,1]);
   set_orientation : function(x,y,z){
-    if(typeof(x) === "array" && x.length == 3 && !y && !z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
       y = x[1];
       z = x[2];
       x = x[0];
@@ -108,6 +110,11 @@ Omega.Location.prototype = {
     this.orientation_y = y;
     this.orientation_z = z;
     return this;
+  },
+
+  /// Return array containing this location's coordinates plus specified values
+  add : function(x, y ,z){
+    return [this.x + x, this.y + y, this.z + z];
   },
 
   /// Return array containing the difference between location's coordinates
@@ -122,7 +129,7 @@ Omega.Location.prototype = {
   direction_to : function(x, y, z){
     var d    = this.distance_from(x, y, z);
     var diff = this.sub(x, y, z);
-    return [diff[0] / d, diff[1] / d, diff[2] / d];
+    return [-diff[0] / d, -diff[1] / d, -diff[2] / d];
   },
 
   /// Return clone of this location

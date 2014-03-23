@@ -432,13 +432,18 @@ Omega.UI.Canvas.prototype = {
                                  this.following_loc.z);
 
     var pos  = this.cam_controls.object.position;
-    pos.set(this.following_loc.x - this.following_dir[0] * this.following_dist,
-            this.following_loc.y - this.following_dir[1] * this.following_dist,
-            this.following_loc.z - this.following_dir[2] * this.following_dist);
+    pos.set(this.following_loc.x + this.following_dir[0] * this.following_dist,
+            this.following_loc.y + this.following_dir[1] * this.following_dist,
+            this.following_loc.z + this.following_dir[2] * this.following_dist);
 
     this.cam_controls.update();
     return;
   }
+};
+
+/// Event callback which may be registered to trigger animation
+Omega.UI.Canvas.trigger_animation = function(canvas){
+  canvas.animate();
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.Canvas.prototype );
