@@ -72,7 +72,8 @@ Omega.Config = {
                                        [2, 0x0000ff, [0,  4, 14]],
                                        [2, 0x0000ff, [0, -2, -9]]]},
       'transport'    : { 'material' : '/textures/AeraHull.png',
-                         'geometry' : '/meshes/Agesipolis/agesipolis.json'},
+                         'geometry' : '/meshes/Agesipolis/agesipolis.json',
+                         'trails'   : [[0, 0, -125]]},
       'destroyer'    : { 'material' : '/textures/AeraHull.png',
                          'geometry' : '/meshes/Leonidas/yavok.json'}
 
