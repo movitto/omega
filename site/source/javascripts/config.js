@@ -94,6 +94,7 @@ Omega.Config = {
 
     'scenes' :
       {'intro' : { 'bg'     : {'src' : 'scenes_intro_bg_wav'},
-                   'thud'   : {'src' : 'scenes_intro_thud2_wav'}}}
+                   'thud'   : {'src' : 'scenes_intro_thud2_wav'}},
+       'tech1' : { 'bg'     : {'src' : 'scenes_tech1_bg_wav'}}}
   }
 };

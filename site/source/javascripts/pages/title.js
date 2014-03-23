@@ -28,7 +28,10 @@ Omega.Pages.Title = function(){
   var intro = {id    : 'intro',
                text  : 'Intro',
                scene : new Omega.Scenes.Intro(this.config)};
-  this.cutscenes = [intro];
+  var tech1 = {id    : 'tech1',
+               text  : 'tech demo1',
+               scene : new Omega.Scenes.Tech1(this.config)};
+  this.cutscenes = [intro, tech1];
 };
 
 Omega.Pages.Title.prototype = {
