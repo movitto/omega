@@ -18,6 +18,22 @@ Omega.Gen = {
     return Omega.Gen._next_id;
   },
 
+  random_loc : function(opts){
+    if(!opts) opts = {};
+    var minx = opts['min_x'] || opts['min'] || 0;
+    var miny = opts['min_y'] || opts['min'] || 0;
+    var minz = opts['min_z'] || opts['min'] || 0;
+    var maxx = opts['max_x'] || opts['max'] || 1;
+    var maxy = opts['max_y'] || opts['max'] || 1;
+    var maxz = opts['max_z'] || opts['max'] || 1;
+
+    var x = Math.random() * (maxx - minx) - maxx;
+    var y = Math.random() * (maxy - miny) - maxy;
+    var z = Math.random() * (maxz - minz) - maxz;
+
+    return new Omega.Location({x: x, y: y, z: z});
+  },
+
   elliptical_ms : function(enrml, opts){
     /// generate major axis such that maj . enrml = 0
     var tx   = Math.random();
