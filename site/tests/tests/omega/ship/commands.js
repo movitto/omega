@@ -8,6 +8,7 @@ describe("Omega.ShipCommands", function(){
     ship.location.set(99, -2, 100);
     ship.resources = [{material_id : 'gold', quantity : 50},
                       {material_id : 'ruby', quantity : 25}];
+    ship.init_gfx(Omega.Config);
 
     page = Omega.Test.Page();
     orig_session = page.session;
@@ -64,7 +65,7 @@ describe("Omega.ShipCommands", function(){
 
     describe("canvas camera following ship", function(){
       before(function(){
-        page.canvas.follow(ship.location);
+        page.canvas.follow(ship.tracker_obj);
       });
 
       after(function(){
@@ -215,7 +216,7 @@ describe("Omega.ShipCommands", function(){
       var follow;
 
       before(function(){
-        page.canvas.follow(ship.location);
+        page.canvas.follow(ship.tracker_obj);
         sinon.stub(page.canvas, 'stop_following');
 
         ship.retrieve_details(page, details_cb);

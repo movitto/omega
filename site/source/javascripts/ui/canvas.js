@@ -262,6 +262,8 @@ Omega.UI.Canvas.prototype = {
 
   // Reset camera to original position
   reset_cam : function(){
+    if(!this.cam || !this.cam_controls) return;
+
     this.stop_following();
     var default_position = this.page.config.cam.position;
     var default_target   = this.page.config.cam.target;

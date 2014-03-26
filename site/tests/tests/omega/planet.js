@@ -68,7 +68,7 @@ describe("Omega.Planet", function(){
     it("follows planet w/ canvas camera", function(){
       var planet = Omega.Gen.planet();
       planet.clicked_in(page.canvas);
-      sinon.assert.calledWith(page.canvas.follow, planet.location);
+      sinon.assert.calledWith(page.canvas.follow, planet.tracker_obj);
     });
   });
 });}); // Omega.Planet
