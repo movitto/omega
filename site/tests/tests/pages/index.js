@@ -53,42 +53,58 @@ describe("Omega.Pages.Index", function(){
     assert(index.canvas).isOfType(Omega.UI.Canvas);
   });
 
+  it("has a splash screen", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.splash).isOfType(Omega.UI.SplashScreen);
+  });
+
   describe("#wire_up", function(){
-    var index,
-        wire_nav, wire_dialog, wire_canvas, dialog_follow;
+    var index;
 
     before(function(){
       index = new Omega.Pages.Index();
-      wire_nav    = sinon.stub(index.nav,    'wire_up');
-      wire_dialog = sinon.stub(index.dialog, 'wire_up');
-      wire_canvas = sinon.stub(index.canvas, 'wire_up');
-      wire_audio  = sinon.stub(index.audio_controls, 'wire_up');
-      dialog_follow = sinon.stub(index.dialog, 'follow_node');
+      sinon.stub(index.nav,    'wire_up');
+      sinon.stub(index.dialog, 'wire_up');
+      sinon.stub(index.canvas, 'wire_up');
+      sinon.stub(index.audio_controls, 'wire_up');
+      sinon.stub(index.splash, 'wire_up');
+      sinon.stub(index.effects_player, 'wire_up');
+      sinon.stub(index.dialog, 'follow_node');
     });
 
     it("wires up navigation", function(){
       index.wire_up();
-      sinon.assert.called(wire_nav);
+      sinon.assert.called(index.nav.wire_up);
     });
 
     it("wires up dialog", function(){
       index.wire_up();
-      sinon.assert.called(wire_dialog);
+      sinon.assert.called(index.dialog.wire_up);
     });
 
     it("instructs dialog to follow node", function(){
       index.wire_up();
-      sinon.assert.calledWith(dialog_follow, index.node);
+      sinon.assert.calledWith(index.dialog.follow_node, index.node);
     });
 
     it("wires up canvas", function(){
       index.wire_up();
-      sinon.assert.called(wire_canvas);
+      sinon.assert.called(index.canvas.wire_up);
+    });
+
+    it("wires up splash", function(){
+      index.wire_up();
+      sinon.assert.called(index.splash.wire_up);
+    });
+
+    it("wires up effects_player", function(){
+      index.wire_up();
+      sinon.assert.called(index.effects_player.wire_up);
     });
 
     it("wires up audio controls", function(){
       index.wire_up();
-      sinon.assert.called(wire_audio);
+      sinon.assert.called(index.audio_controls.wire_up);
     });
 
     it("wires up canvas scene change", function(){
@@ -113,6 +129,84 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(spy, index.node);
     });
   });
+
+  describe("#unload", function(){
+    it("sets unloading true", function(){
+      var index = new Omega.Pages.Index();
+      assert(index.unloading).isUndefined();
+      index.unload();
+      assert(index.unloading).isTrue();
+    });
+
+    it("closes node", function(){
+      var index = new Omega.Pages.Index();
+      sinon.stub(index.node, 'close');
+      index.unload();
+      sinon.assert.called(index.node.close);
+    })
+  });
+
+  describe("#start", function(){
+    var index;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      sinon.stub(index.effects_player, 'start');
+      sinon.stub(index.splash, 'start');
+      sinon.stub(index, 'autologin');
+      sinon.stub(index, 'validate_session');
+    });
+
+    it("starts effects player", function(){
+      index.start();
+      sinon.assert.called(index.effects_player.start);
+    });
+
+    it("starts splash dialog", function(){
+      index.start();
+      sinon.assert.called(index.splash.start);
+    });
+
+    describe("client should autologin", function(){
+      it("autologs in client", function(){
+        sinon.stub(index, '_should_autologin').returns(true);
+        index.start();
+        sinon.assert.called(index.autologin);
+      })
+    });
+
+    describe("client should not autologin", function(){
+      before(function(){
+        sinon.stub(index, '_should_autologin').returns(false);
+      });
+
+      it("validates session", function(){
+        index.start();
+        sinon.assert.called(index.validate_session);
+      })
+
+      describe("session valid", function(){
+        it("invokes session valid callback", function(){
+          index.start();
+          var validated_cb = index.validate_session.getCall(0).args[0];
+          sinon.stub(index, '_valid_session');
+          validated_cb();
+          sinon.assert.called(index._valid_session);
+        });
+      });
+
+      describe("session invalid", function(){
+        it("invokes session invalid callback", function(){
+          index.start();
+          var invalid_cb = index.validate_session.getCall(0).args[1];
+          sinon.stub(index, '_invalid_session');
+          invalid_cb();
+          sinon.assert.called(index._invalid_session);
+        });
+      });
+    });
+  });
+
 
   describe("#_valid_session", function(){
     var index, load_universe, load_user_entities;
@@ -158,6 +252,19 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(spy, 'ships');
       sinon.assert.calledWith(spy, 'stations');
     });
+
+    describe("autoload root is set", function(){
+      it("autoloads root", function(){
+        index._valid_session();
+        load_universe.omega_callback()();
+
+        sinon.stub(index, 'process_entities');
+        sinon.stub(index, '_should_autoload_root').returns(true);
+        sinon.stub(index, 'autoload_root');
+        load_user_entities.omega_callback()();
+        sinon.assert.called(index.autoload_root);
+      });
+    });
   });
 
   describe("#_invalid_session", function(){
@@ -188,6 +295,29 @@ describe("Omega.Pages.Index", function(){
       var load_cb = load_universe.getCall(0).args[1];
       load_cb();
       sinon.assert.called(load_default_systems);
+    });
+
+    it("processes default systems", function(){
+      var sys = Omega.Gen.solar_system();
+      index._invalid_session();
+      load_universe.omega_callback()();
+
+      sinon.stub(index, 'process_system');
+      load_default_systems.omega_callback()(sys);
+      sinon.assert.calledWith(index.process_system, sys);
+    });
+
+    describe("autoload root is set", function(){
+      it("autoloads root", function(){
+        index._invalid_session();
+        load_universe.omega_callback()();
+
+        sinon.stub(index, 'process_system');
+        sinon.stub(index, '_should_autoload_root').returns(true);
+        sinon.stub(index, 'autoload_root');
+        load_default_systems.omega_callback()();
+        sinon.assert.called(index.autoload_root);
+      });
     });
   });
 });});
