@@ -82,7 +82,11 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     Omega.UI.Loader.load_universe(this, function(){
       Omega.UI.Loader.load_user_entities(_this.session.user_id, _this.node,
-        function(entities) { _this.process_entities(entities); });
+        function(entities) {
+          _this.process_entities(entities);
+          if(_this._should_autoload_root())
+            _this.autoload_root();
+        });
     });
   },
 
@@ -90,7 +94,12 @@ Omega.Pages.Index.prototype = {
     var _this = this;
     Omega.UI.Loader.load_universe(this, function(){
       Omega.UI.Loader.load_default_systems(_this,
-        function(solar_system) { _this.process_system(solar_system); });
+        function(solar_system) {
+          _this.process_system(solar_system);
+          /// FIXME should be invoked after we get all default systems
+          if(_this._should_autoload_root())
+            _this.autoload_root();
+        });
     });
   }
 };

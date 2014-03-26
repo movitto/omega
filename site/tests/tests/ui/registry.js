@@ -18,4 +18,26 @@ describe("Omega.UI.Registry", function(){
       assert(registry.all_entities()).isSameAs([ship1, ship2]);
     });
   });
+
+  describe("#systems", function(){
+    it("returns all systems in the entities list", function(){
+      var ship = Omega.Gen.ship();
+      var sys1 = Omega.Gen.solar_system();
+      var sys2 = Omega.Gen.solar_system();
+      var gal1 = Omega.Gen.galaxy();
+      var registry = new Omega.UI.Registry({entities : [ship, sys1, sys2, gal1]});
+      assert(registry.systems()).isSameAs([sys1, sys2]);
+    });
+  });
+
+  describe("#galaxies", function(){
+    it("returns all galaxies in the entities list", function(){
+      var ship = Omega.Gen.ship();
+      var sys1 = Omega.Gen.solar_system();
+      var gal1 = Omega.Gen.galaxy();
+      var gal2 = Omega.Gen.galaxy();
+      var registry = new Omega.UI.Registry({entities : [ship, sys1, gal1, gal2]});
+      assert(registry.galaxies()).isSameAs([gal1, gal2]);
+    });
+  });
 });});

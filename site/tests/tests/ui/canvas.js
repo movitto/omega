@@ -401,6 +401,7 @@ describe("Omega.UI.Canvas", function(){
 
     before(function(){
       canvas = Omega.Test.Canvas();
+      canvas.page.effects_player = new Omega.UI.EffectsPlayer();
     });
 
     after(function(){

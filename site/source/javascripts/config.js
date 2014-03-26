@@ -29,6 +29,8 @@ Omega.Config = {
   cam : {position : [2000, 3000, 3000],
          target   : [0,    0,    0]},
 
+  //default_root      : 'random',
+
   // event tracking
   ship_movement     :          10,
   ship_rotation     :        0.01,

@@ -1,280 +1,502 @@
 // TODO test independently (currently testing through index page mixin)
 pavlov.specify("Omega.UI.Tracker", function(){
 describe("Omega.UI.Tracker", function(){
-  describe("#track_system_events", function(){
-    var index, http_invoke, system;
-    before(function(){
-      index  = new Omega.Pages.Index();
-      system = new Omega.SolarSystem({id : 'system1'});
+  describe("#entity_map", function(){
+    var page, system, other_system;
+    var ship1, ship2, ship3, ship4;
+    var station1, station2, station3;
 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+    before(function(){
+      system = Omega.Gen.solar_system();
+      other_system = Omega.Gen.solar_system();
+
+      page = $.extend({canvas : new Omega.UI.Canvas()},
+                      Omega.UI.Tracker, new Omega.UI.Registry());
+      page.canvas.root = Omega.Gen.solar_system({id : system.id})
+      page.session = new Omega.Session({user_id : 'user42'});
+
+      ship1 = Omega.Gen.ship({user_id   : 'user42',
+                              system_id : system.id});
+      ship2 = Omega.Gen.ship({user_id   : 'user42',
+                              system_id : other_system.id});
+      ship3 = Omega.Gen.ship({user_id   : 'user43',
+                              system_id : system.id});
+      ship4 = Omega.Gen.ship({user_id   : 'user43',
+                              system_id : other_system.id});
+
+      station1 = Omega.Gen.station({user_id   : 'user42',
+                                    system_id : other_system.id});
+      station2 = Omega.Gen.station({user_id   : 'user43',
+                                    system_id : other_system.id});
+      station3 = Omega.Gen.station({user_id   : 'user43',
+                                    system_id : system.id});
+
+      var entities = [ship1, ship2, ship3, ship4, station1, station2, station3];
+      for(var e = 0; e < entities.length; e++)
+        page.entity(entities[e].id, entities[e]);
+    });
+
+    it("returns all manu registry entities", function(){
+      assert(page.entity_map(system).manu).isSameAs(page.all_entities());
+    });
+
+    it("returns registry entities owned by current user", function(){
+      assert(page.entity_map(system).user_owned).
+        isSameAs([ship1, ship2, station1]);
+    });
+
+    it("returns registry entities not owned by current user", function(){
+      assert(page.entity_map(system).not_user_owned).
+        isSameAs([ship3, ship4, station2, station3]);
+    });
+
+    it("returns registry entities in current root", function(){
+      assert(page.entity_map(system).in_root).
+        isSameAs([ship1, ship3, station3]);
+    });
+
+    it("returns registry entities not in current root", function(){
+      assert(page.entity_map(system).not_in_root).
+        isSameAs([ship2, ship4, station1, station2]);
+    });
+
+    it("returns registry entities to start tracking (not user owned)", function(){
+      assert(page.entity_map(system).stop_tracking).
+        isSameAs([ship4, station2]);
+    });
+
+    it("returns registry entities to stop tracking (not user owned)", function(){
+      assert(page.entity_map(system).start_tracking).
+        isSameAs([ship3, station3]);
+    });
+  });
+
+  describe("#track_system_events", function(){
+    var page, system;
+    before(function(){
+      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      system = Omega.Gen.solar_system();
+      sinon.stub(page.node, 'ws_invoke');
     });
 
     it("unsubscribes to system_jump events", function(){
-      index.track_system_events(system, system);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::unsubscribe', 'system_jump');
+      page.track_system_events(system);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'manufactured::unsubscribe', 'system_jump');
     });
 
     it("subscribes to system_jump events to new scene root", function(){
-      index.track_system_events(system, system);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', 'system_jump', 'to', system.id);
+      page.track_system_events(system);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'manufactured::subscribe_to',
+                              'system_jump', 'to', system.id);
+    });
+  });
+
+  describe("#stop_tracking_scene_entities", function(){
+    var ship, station, entities;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+      station = Omega.Gen.ship();
+      entities = {stop_tracking : [ship, station]};
+
+      sinon.stub(Omega.UI.Tracker, 'stop_tracking_entity');
+    });
+
+    after(function(){
+      Omega.UI.Tracker.stop_tracking_entity.restore();
+    });
+
+    it("stops tracking specified entities", function(){
+      Omega.UI.Tracker.stop_tracking_scene_entities(entities);
+      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_entity, ship);
+      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_entity, station);
     });
   });
 
   describe("#track_scene_entities", function(){
-    var index, ship, station, system;
+    var system, ship, station, entities;
     before(function(){
-      index = new Omega.Pages.Index();
-      ship  = new Omega.Ship({location : new Omega.Location()});
-      station = new Omega.Station({location : new Omega.Location()});
-      system = new Omega.SolarSystem();
+      system   = Omega.Gen.solar_system();
+      ship     = Omega.Gen.ship();
+      station  = Omega.Gen.station();
+      entities = {start_tracking : [ship, station]};
+
+      sinon.stub(Omega.UI.Tracker, 'stop_tracking_scene_entities');
+      sinon.stub(Omega.UI.Tracker, 'track_entity');
+    });
+
+    after(function(){
+      Omega.UI.Tracker.stop_tracking_scene_entities.restore();
+      Omega.UI.Tracker.track_entity.restore();
     });
 
     it("stops tracking specified entities", function(){
-      var entities = {stop_tracking : [ship, station], start_tracking : []};
-      var stop_tracking_ship = sinon.spy(index, 'stop_tracking_ship');
-      var stop_tracking_station = sinon.spy(index, 'stop_tracking_station');
-      index.track_scene_entities(system, entities);
-      sinon.assert.calledWith(stop_tracking_ship, ship);
-      sinon.assert.calledWith(stop_tracking_station, station);
+      Omega.UI.Tracker.track_scene_entities(system, entities);
+      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_scene_entities,
+                              entities);
     });
 
     it("starts tracking specified entities", function(){
-      var entities = {start_tracking : [ship, station], stop_tracking : []};
-      var track_ship = sinon.spy(index, 'track_ship');
-      var track_station = sinon.spy(index, 'track_station');
-      index.track_scene_entities(system, entities);
-      sinon.assert.called(track_ship, ship);
-      sinon.assert.called(track_station, station);
+      Omega.UI.Tracker.track_scene_entities(system, entities);
+      sinon.assert.called(Omega.UI.Tracker.track_entity, ship);
+      sinon.assert.called(Omega.UI.Tracker.track_entity, station);
+    });
+
+    describe("root entity is not a solar system", function(){
+      it("does not track any entities", function(){
+        Omega.UI.Tracker.track_scene_entities(Omega.Gen.galaxy(), entities);
+        sinon.assert.notCalled(Omega.UI.Tracker.track_entity);
+      });
     });
   });
 
   describe("#sync_scene_planets", function(){
-    var index, http_invoke, canvas_reload,
-        system, old_system, planet, old_planet, loc;
+    var page, system;
+    var response;
 
     before(function(){
-      index = new Omega.Pages.Index();
+      planet1 = Omega.Gen.planet();
+      planet2 = Omega.Gen.planet();
+      system  = Omega.Gen.solar_system({children : [planet1, planet2]});
 
-      /// stub out call to server and reload
-      http_invoke = sinon.stub(index.node, 'http_invoke');
-      canvas_reload = sinon.stub(index.canvas, 'reload');
+      page = $.extend({node : new Omega.Node(),
+                       canvas : new Omega.UI.Canvas()}, Omega.UI.Tracker);
+      page.canvas.root = system;
 
-      planet = new Omega.Planet({location : new Omega.Location()});
-      old_planet = new Omega.Planet({location : new Omega.Location()});
+      sinon.stub(page.canvas, 'reload');
+      sinon.stub(page.node, 'http_invoke');
 
-      system = new Omega.SolarSystem({children : [planet]});
-      old_system = new Omega.SolarSystem({children: [old_planet]});
-
-      index.canvas.root = system;
-      loc = new Omega.Location();
+      response = {result : Omega.Gen.planet().location};
     });
 
-    describe("changing to system", function(){
-      it("updates planet locations", function(){
-        index.sync_scene_planets(system);
-        sinon.assert.calledWith(http_invoke, 'motel::get_location',
-                                'with_id', planet.location.id, sinon.match.func)
-        var cb = http_invoke.getCall(0).args[3];
-
-        cb({result : loc})
-        assert(planet.location).isSameAs(loc);
+    describe("root entity is not a solar system", function(){
+      it("does not update planets", function(){
+        page.sync_scene_planets(Omega.Gen.galaxy());
+        sinon.assert.notCalled(page.node.http_invoke);
       });
+    });
 
-      it("reloads canvas in scene", function(){
-        index.sync_scene_planets(system);
-        var cb = http_invoke.getCall(0).args[3];
-        cb({result : loc})
-        sinon.assert.calledWith(canvas_reload, planet, sinon.match.func)
-      })
+    it("updates planet locations", function(){
+      page.sync_scene_planets(system);
+      sinon.assert.calledWith(page.node.http_invoke, 'motel::get_location',
+                              'with_id', planet1.location.id, sinon.match.func);
+      sinon.assert.calledWith(page.node.http_invoke, 'motel::get_location',
+                              'with_id', planet2.location.id, sinon.match.func);
+    });
 
-      it("updates planet gfx", function(){
-        index.sync_scene_planets(system);
-        var cb = http_invoke.getCall(0).args[3];
-        cb({result : loc})
+    it("sets planet location", function(){
+      page.sync_scene_planets(system);
+      page.node.http_invoke.omega_callback()(response);
+      assert(planet1.location).isSameAs(response.result);
+    });
 
-        var update_gfx = sinon.stub(planet, 'update_gfx');
-        cb = canvas_reload.getCall(0).args[1];
-        cb();
-        sinon.assert.called(update_gfx)
+    describe("root entity is not canvas root", function(){
+      it("does not reload planet", function(){
+        page.canvas.root = Omega.Gen.galaxy();
+        page.sync_scene_planets(system);
+        page.node.http_invoke.omega_callback()(response);
+        page.node.http_invoke.omega_callback(1)(response);
+        sinon.assert.notCalled(page.canvas.reload);
       });
+    });
+
+    it("reloads planet in scene", function(){
+      page.sync_scene_planets(system);
+      page.node.http_invoke.omega_callback()(response);
+      sinon.assert.calledWith(page.canvas.reload, planet1, sinon.match.func);
+    });
+
+    it("updates planet gfx", function(){
+      sinon.stub(planet1, 'update_gfx');
+      page.sync_scene_planets(system);
+      page.node.http_invoke.omega_callback()(response);
+      page.canvas.reload.omega_callback()();
+      sinon.assert.called(planet1.update_gfx);
     });
   });
 
   describe("sync_scene_entities", function(){
-    var index, system, old_system, ship1, ship2, station1;
+    var page, system;
+    var ship, station, entities;
 
     before(function(){
-      index = new Omega.Pages.Index();
-      index.canvas = Omega.Test.Canvas();
-      index.session = new Omega.Session({user_id : 'user42'});
-      system = new Omega.SolarSystem({ id : 'sys42'});
-      old_system = new Omega.SolarSystem();
-      ship1 = new Omega.Ship({hp : 50, location : new Omega.Location()});
-      ship2 = new Omega.Ship({hp : 0, location : new Omega.Location()});
-      station1 = new Omega.Station({location : new Omega.Location()});
+      page = $.extend({node : new Omega.Node(),
+                       canvas : new Omega.UI.Canvas()}, Omega.UI.Tracker);
 
-      index.canvas.root = system;
-      canvas_add = sinon.stub(index.canvas, 'add');
+      system   = Omega.Gen.solar_system();
+      ship     = Omega.Gen.ship();
+      station  = Omega.Gen.station();
+      entities = {in_root : [ship, station]};
+
+      sinon.stub(page.canvas, 'add');
+      sinon.stub(Omega.Ship, 'under');
+      sinon.stub(Omega.Station, 'under');
     });
 
     after(function(){
-      index.canvas.clear();
-      index.canvas.add.restore();
-      if(Omega.Ship.under.restore) Omega.Ship.under.restore();
-      if(Omega.Station.under.restore) Omega.Station.under.restore();
+      Omega.Ship.under.restore();
+      Omega.Station.under.restore();
     });
 
     describe("not changing scene to system", function(){
       it("does nothing / just returns", function(){
-        index.sync_scene_entities(new Omega.Galaxy(), {in_root : [ship1]});
-        sinon.assert.notCalled(canvas_add);
+        page.sync_scene_entities(Omega.Gen.galaxy(), entities);
+        sinon.assert.notCalled(page.canvas.add);
       });
     });
 
-    it("adds entities in root w/ hp>0 to canvas scene", function(){
-      index.sync_scene_entities(system, {in_root : [ship1, ship2]});
-      sinon.assert.calledWith(canvas_add, ship1);
+    it("adds alive entities not in root to canvas scene", function(){
+      page.sync_scene_entities(system, entities);
+      sinon.assert.calledWith(page.canvas.add, ship);
+      sinon.assert.calledWith(page.canvas.add, station);
+    });
+
+    it("does not add entities not alive to canvas scene", function(){
+      sinon.stub(ship, 'alive').returns(false);
+      sinon.stub(station, 'alive').returns(false);
+      page.sync_scene_entities(system, entities);
+      sinon.assert.notCalled(page.canvas.add);
+    });
+
+    it("does not add entities in root to canvas scene", function(){
+      sinon.stub(page.canvas, 'has').returns(true);
+      page.sync_scene_entities(system, entities);
+      sinon.assert.notCalled(page.canvas.add);
     });
 
     it("retrieves all ships under root", function(){
-      var cb = function(){};
-      var under = sinon.spy(Omega.Ship, 'under');
-      index.sync_scene_entities(system, {in_root : []}, cb);
-      sinon.assert.calledWith(under, system.id, index.node, cb);
+      var cb = sinon.spy();
+      page.sync_scene_entities(system, entities, cb);
+      sinon.assert.calledWith(Omega.Ship.under, system.id, page.node, cb);
     });
 
     it("retrieves all stations under root", function(){
-      var cb = function(){};
-      var under = sinon.spy(Omega.Station, 'under');
-      index.sync_scene_entities(system, {in_root : []}, cb);
-      sinon.assert.calledWith(under, system.id, index.node, cb);
+      var cb = sinon.spy();
+      page.sync_scene_entities(system, entities, cb);
+      sinon.assert.calledWith(Omega.Station.under, system.id, page.node, cb);
     });
   });
 
-  describe("#track_ship", function(){
-    var index, ship, ws_invoke;
+  describe("#track_entity", function(){
     before(function(){
-      index = new Omega.Pages.Index();
-      ship = new Omega.Ship({id : 'ship42',
-                             location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+      sinon.stub(Omega.UI.Tracker, 'track_ship');
+      sinon.stub(Omega.UI.Tracker, 'track_station');
+    });
+
+    after(function(){
+      Omega.UI.Tracker.track_ship.restore();
+      Omega.UI.Tracker.track_station.restore();
+    });
+
+    it("tracks specified ship/station", function(){
+      var ship = Omega.Gen.ship();
+      var station = Omega.Gen.station();
+      Omega.UI.Tracker.track_entity(ship);
+      Omega.UI.Tracker.track_entity(station);
+      sinon.assert.calledWith(Omega.UI.Tracker.track_ship, ship);
+      sinon.assert.calledWith(Omega.UI.Tracker.track_station, station);
+    });
+  });
+
+  describe("#stop_tracking_entity", function(){
+    before(function(){
+      sinon.stub(Omega.UI.Tracker, 'stop_tracking_ship');
+      sinon.stub(Omega.UI.Tracker, 'stop_tracking_station');
+    });
+
+    after(function(){
+      Omega.UI.Tracker.stop_tracking_ship.restore();
+      Omega.UI.Tracker.stop_tracking_station.restore();
+    });
+
+    it("stops tracking specified ship/station", function(){
+      var ship = Omega.Gen.ship();
+      var station = Omega.Gen.station();
+      Omega.UI.Tracker.stop_tracking_entity(ship);
+      Omega.UI.Tracker.stop_tracking_entity(station);
+      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_ship, ship);
+      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_station, station);
+    });
+  })
+
+  describe("#track_ship", function(){
+    var page, ship;
+
+    before(function(){
+      page = $.extend({config: Omega.Config,
+                       node : new Omega.Node()}, Omega.UI.Tracker);
+      ship = Omega.Gen.ship();
+      sinon.stub(page.node, 'ws_invoke');
     });
 
     it("invokes motel::track_strategy", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'motel::track_strategy', ship.location.id);
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'motel::track_strategy', ship.location.id);
     });
 
     it("invokes motel::track_stops", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'motel::track_stops', ship.location.id);
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'motel::track_stops', ship.location.id);
     });
 
     it("invokes motel::track_movement", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'motel::track_movement', ship.location.id, index.config.ship_movement);
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'motel::track_movement',
+                              ship.location.id, page.config.ship_movement);
     });
 
     it("invokes motel::track_rotation", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'motel::track_rotation', ship.location.id, index.config.ship_rotation);
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'motel::track_rotation',
+                              ship.location.id, page.config.ship_rotation);
     });
 
     it("invokes motel::subscribe_to resource_collected", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'resource_collected');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'manufactured::subscribe_to',
+                              ship.id, 'resource_collected');
     });
 
     it("invokes motel::subscribe_to mining_stopped", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'mining_stopped');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'manufactured::subscribe_to',
+                              ship.id, 'mining_stopped');
     });
 
     it("invokes motel::subscribe_to attacked", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'attacked');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              ship.id, 'attacked');
     });
 
     it("invokes motel::subscribe_to attacked_stop", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'attacked_stop');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              ship.id, 'attacked_stop');
     });
 
     it("invokes motel::subscribe_to defended", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'defended');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              ship.id, 'defended');
     });
 
     it("invokes motel::subscribe_to defended_stop", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'defended_stop');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              ship.id, 'defended_stop');
     });
 
     it("invokes motel::subscribe_to destroyed_by", function(){
-      index.track_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', ship.id, 'destroyed_by');
+      page.track_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              ship.id, 'destroyed_by');
     });
   });
 
   describe("#stop_tracking_ship", function(){
-    var index, ship, ws_invoke;
+    var page, ship;
 
     before(function(){
-      index = new Omega.Pages.Index();
-      ship = new Omega.Ship({id : 'ship42',
-                             location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      ship = Omega.Gen.ship();
+      sinon.stub(page.node, 'ws_invoke');
     });
 
     it("invokes motel::remove_callbacks", function(){
-      index.stop_tracking_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'motel::remove_callbacks', ship.location.id);
+      page.stop_tracking_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'motel::remove_callbacks', ship.location.id);
     });
 
     it("invokes manufactured::remove_callbacks", function(){
-      index.stop_tracking_ship(ship);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::remove_callbacks', ship.id);
+      page.stop_tracking_ship(ship);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::remove_callbacks', ship.id);
     });
   });
 
   describe("#track_station", function(){
-    var index, station, ws_invoke;
+    var page, station;
+
     before(function(){
-      index   = new Omega.Pages.Index();
-      station = new Omega.Station({id : 'station42',
-                                   location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+      page = $.extend({node : new Omega.Node(),
+                       config : Omega.Config}, Omega.UI.Tracker);
+      station = Omega.Gen.station();
+      sinon.stub(page.node, 'ws_invoke');
     });
 
     it("invokes manufactured::subscribe_to construction_complete", function(){
-      index.track_station(station);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'construction_complete');
+      page.track_station(station);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              station.id, 'construction_complete');
     });
 
     it("invokes manufactured::subscribe_to construction_failed", function(){
-      index.track_station(station);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'construction_failed');
+      page.track_station(station);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              station.id, 'construction_failed');
     });
 
     it("invokes manufactured::subscribe_to partial_construction", function(){
-      index.track_station(station);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::subscribe_to', station.id, 'partial_construction');
+      page.track_station(station);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::subscribe_to',
+                              station.id, 'partial_construction');
     });
   });
 
   describe("#stop_tracking_station", function(){
-    var index, station, ws_invoke;
+    var page, station;
+
     before(function(){
-      index   = new Omega.Pages.Index();
-      station = new Omega.Station({id : 'station42',
-                                   location : new Omega.Location({id:'loc42'})}); 
-      ws_invoke = sinon.stub(index.node, 'ws_invoke');
+      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      station = Omega.Gen.station();
+      sinon.stub(page.node, 'ws_invoke');
     });
 
     it("invokes manufactured::remove_callbacks", function(){
-      index.stop_tracking_station(station);
-      sinon.assert.calledWith(ws_invoke, 'manufactured::remove_callbacks', station.id);
+      page.stop_tracking_station(station);
+      sinon.assert.calledWith(page.node.ws_invoke, 
+                              'manufactured::remove_callbacks', station.id);
+    });
+  });
+
+  describe("#track_user_events", function(){
+    var page, station;
+
+    before(function(){
+      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      sinon.stub(page.node, 'ws_invoke');
+    });
+
+    it("invokes missions::subscribe to user victory", function(){
+      page.track_user_events('user1');
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'missions::subscribe_to',
+                              'victory', 'user_id', 'user1');
+    });
+
+    it("invokes missions::subscribe to user failure", function(){
+      page.track_user_events('user1');
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'missions::subscribe_to',
+                              'failed', 'user_id', 'user1');
     });
   });
 });});

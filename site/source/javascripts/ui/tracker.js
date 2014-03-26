@@ -78,25 +78,29 @@ Omega.UI.Tracker = {
 
   /// Refresh latest scene planet location from server
   sync_scene_planets : function(root){
-    var _this = this;
     if(root.json_class != "Cosmos::Entities::SolarSystem") return;
 
     var planets = root.planets();
     for(var p = 0; p < planets.length; p++){
-      var planet = planets[p];
-      this.node.http_invoke('motel::get_location',
-        'with_id', planet.location.id,
-        function(response){
-          if(response.result){
-            planet.location = new Omega.Location(response.result);
-            if(_this.canvas.is_root(root.id)){
-              _this.canvas.reload(planet, function(){
-                planet.update_gfx();
-              });
-            }
-          }
-        });
+      this._sync_scene_planet(root, planets[p]);
     }
+  },
+
+  /// Sync individual planet from server
+  _sync_scene_planet : function(root, planet){
+    var _this = this;
+    this.node.http_invoke('motel::get_location',
+      'with_id', planet.location.id,
+      function(response){
+        if(response.result){
+          planet.location = new Omega.Location(response.result);
+          if(_this.canvas.is_root(root.id)){
+            _this.canvas.reload(planet, function(){
+              planet.update_gfx();
+            });
+          }
+        }
+      });
   },
 
   /// Synchronize entities in system from server

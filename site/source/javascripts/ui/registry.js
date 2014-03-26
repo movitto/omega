@@ -25,5 +25,21 @@ Omega.UI.Registry.prototype = {
   all_entities : function(){
     // TODO exclude placeholder entities?
     return Omega.obj_values(this.entities);
+  },
+
+  //// return array of all systems in registry
+  systems : function(){
+    return $.grep(this.all_entities(), function(c){
+      return c.json_class &&
+             c.json_class == 'Cosmos::Entities::SolarSystem';
+    });
+  },
+
+  //// return array of all galaxies in registry
+  galaxies : function(){
+    return $.grep(this.all_entities(), function(c){
+      return c.json_class &&
+             c.json_class == 'Cosmos::Entities::Galaxy';
+    });
   }
 };
