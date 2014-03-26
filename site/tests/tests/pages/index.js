@@ -237,8 +237,6 @@ describe("Omega.Pages.Index", function(){
     });
 
     it("processes entities retrieved", function(){
-      var shspy = sinon.spy(Omega.Ship, 'owned_by');
-      var stspy = sinon.spy(Omega.Station, 'owned_by');
       index._valid_session();
       var load_cb = load_universe.getCall(0).args[1];
       load_cb();

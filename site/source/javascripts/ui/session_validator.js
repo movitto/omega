@@ -25,10 +25,11 @@ Omega.UI.SessionValidator = {
     /// TODO split out anon user session into third case where we: (?)
     /// - show login controls, load default entities
     if(this.session != null && this.session.user_id != this.config.anon_user){
-      this.session.validate(this.node, function(result){
-        if(result.error){
+      this.session.validate(this.node, function(response){
+        if(response.error){
           _this._session_invalid(invalid_cb);
         }else{
+          _this.session.user = response.result;
           _this._session_validated(validated_cb);
         }
       });
@@ -38,18 +39,19 @@ Omega.UI.SessionValidator = {
   },
 
   _session_validated : function(cb){
-    this.nav.show_logout_controls();
-    this.canvas.controls.missions_button.show();
+    if(this.nav) this.nav.show_logout_controls();
+    if(this.canvas) this.canvas.controls.missions_button.show();
 
     /// refresh entity container, no effect if hidden / entity doesn't belong
     /// to user, else entity controls will now be shown
-    this.canvas.entity_container.refresh();
+    if(this.canvas) this.canvas.entity_container.refresh();
 
     /// setup callback handlers
     this._handle_events();
 
     /// track user events
-    this.track_user_events(this.session.user_id);
+    if(this.track_user_events) /// XXX
+      this.track_user_events(this.session.user_id);
 
     if(cb) cb();
   },
@@ -59,7 +61,7 @@ Omega.UI.SessionValidator = {
 
     if(_this.session) _this.session.clear_cookies();
     _this.session = null;
-    this.nav.show_login_controls();
+    if(this.nav) this.nav.show_login_controls();
 
     // login as anon
     var anon = new Omega.User({id : this.config.anon_user,
@@ -79,6 +81,8 @@ Omega.UI.SessionValidator = {
 
   /// Helper to register handlers for all supported events
   _handle_events : function(){
+    if(!this.command_tracker) return;
+
     var events =
       Omega.UI.CommandTracker.prototype.motel_events.
         concat(Omega.UI.CommandTracker.prototype.manufactured_events).

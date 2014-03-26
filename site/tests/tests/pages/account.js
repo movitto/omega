@@ -1,139 +1,28 @@
 pavlov.specify("Omega.Pages.Account", function(){
 describe("Omega.Pages.Account", function(){
   var page;
+
   before(function(){
     page = new Omega.Pages.Account();
   });
 
   after(function(){
-    if(Omega.Session.restore_from_cookie.restore) Omega.Session.restore_from_cookie.restore();
   });
 
-  it("initializes local config", function(){
+  it("has a copy of the Omega config", function(){
     assert(page.config).equals(Omega.Config);
   });
 
-  it("inititalizes local node", function(){
+  it("has a node", function(){
     assert(page.node).isOfType(Omega.Node);
   });
 
-  it("initializes account info dialog", function(){
+  it("has an account info dialog instance", function(){
     assert(page.dialog).isOfType(Omega.UI.AccountDialog);
   });
 
-  it("initializes account info details", function(){
+  it("has an account info details instance", function(){
     assert(page.details).isOfType(Omega.UI.AccountDetails);
-  });
-
-  it("restores session from cookie", function(){
-    var restore_from_cookie = sinon.spy(Omega.Session, 'restore_from_cookie');
-    var acct = new Omega.Pages.Account();
-    sinon.assert.called(restore_from_cookie);
-  });
-
-  it("validates sessions", function(){
-    var session = new Omega.Session();
-    sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-
-    var validate = sinon.spy(session, 'validate');
-    var acct = new Omega.Pages.Account();
-    sinon.assert.calledWith(validate, acct.node, sinon.match.func);
-  });
-
-  describe("session validated", function(){
-    var acct, session, validate_cb, user;
-
-    before(function(){
-      session = new Omega.Session();
-      sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-      var validate = sinon.spy(session, 'validate');
-      acct = new Omega.Pages.Account();
-      validate_cb = validate.getCall(0).args[1];
-
-      user = new Omega.User({id : 'user', email : 'u@s.er'});
-    });
-
-    after(function(){
-      if(Omega.Ship.owned_by.restore) Omega.Ship.owned_by.restore();
-      if(Omega.Station.owned_by.restore) Omega.Station.owned_by.restore();
-      if(Omega.Stat.get.restore) Omega.Stat.get.restore();
-    });
-
-    it("populates account info details container", function(){
-      var username = sinon.spy(acct.details, 'username');
-      var email    = sinon.spy(acct.details, 'email');
-      var gravatar = sinon.spy(acct.details, 'gravatar');
-      validate_cb({result : user});
-      sinon.assert.calledWith(username, 'user');
-      sinon.assert.calledWith(email,    'u@s.er');
-      sinon.assert.calledWith(gravatar, 'u@s.er');
-    });
-
-    it("retrieves ships owned by user", function(){
-      var owned_by = sinon.spy(Omega.Ship, 'owned_by');
-      validate_cb({result : user});
-      sinon.assert.calledWith(owned_by, session.user_id, acct.node, sinon.match.func);
-    });
-
-    describe("retrieve ships callback", function(){
-      it("processes_entities with ships retrieved", function(){
-        var owned_by = sinon.spy(Omega.Ship, 'owned_by');
-        validate_cb({result : user});
-        var owned_by_cb = owned_by.getCall(0).args[2];
-        var process_entities = sinon.spy(acct, 'process_entities');
-        var ships = [new Omega.Ship()];
-        owned_by_cb(ships);
-        sinon.assert.calledWith(process_entities, ships);
-      })
-    });
-
-    it("retrieves stations owned by user", function(){
-      var owned_by = sinon.spy(Omega.Station, 'owned_by');
-      validate_cb({result : user});
-      sinon.assert.calledWith(owned_by, session.user_id, acct.node, sinon.match.func);
-    });
-
-    describe("retrieve stations callback", function(){
-      it("processes_entities with ships retrieved", function(){
-        var owned_by = sinon.spy(Omega.Station, 'owned_by');
-        validate_cb({result : user});
-        var owned_by_cb = owned_by.getCall(0).args[2];
-        var process_entities = sinon.spy(acct, 'process_entities');
-        var stations = [new Omega.Station()];
-        owned_by_cb(stations);
-        sinon.assert.calledWith(process_entities, stations);
-      });
-    });
-
-    it("retrieves user stats", function(){
-      var get_stat = sinon.spy(Omega.Stat, 'get');
-      validate_cb({result : user});
-      sinon.assert.calledWith(get_stat, 'users_with_most', ['entities', 10], acct.node, sinon.match.func);
-    });
-
-    describe("retrieve stats callback", function(){
-      it("invokes processes_stat with stats retrieved", function(){
-        var get_stat = sinon.spy(Omega.Stat, 'get');
-        validate_cb({result : user});
-        var get_stat_cb = get_stat.getCall(0).args[3];
-        var process_stat = sinon.spy(acct, 'process_stat');
-        var stat = new Omega.Stat({value : []});
-        get_stat_cb(stat);
-        sinon.assert.calledWith(process_stat, stat);
-      })
-    });
-  });
-
-  describe("invalid session", function(){
-    it("clears session", function(){
-      session = new Omega.Session();
-      sinon.stub(Omega.Session, 'restore_from_cookie').returns(session);
-      var validate = sinon.spy(session, 'validate');
-      var acct = new Omega.Pages.Account();
-      validate_cb = validate.getCall(0).args[1];
-      validate_cb({error : {}})
-      assert(acct.session).isNull();
-    })
   });
 
   describe("#wire_up", function(){
@@ -144,28 +33,141 @@ describe("Omega.Pages.Account", function(){
     });
   });
 
+  describe("#start", function(){
+    before(function(){
+      sinon.stub(page, 'validate_session');
+    });
+
+    it("validates session", function(){
+      page.start();
+      sinon.assert.called(page.validate_session);
+    });
+
+    describe("on session validation", function(){
+      it("invokes _valid_session", function(){
+        sinon.stub(page, '_valid_session');
+        page.start();
+
+        var validated_cb = page.validate_session.getCall(0).args[0];
+        validated_cb();
+        sinon.assert.called(page._valid_session);
+      });
+    });
+  });
+
+  describe("#_valid_session", function(){
+    before(function(){
+      page.session = new Omega.Session({user : Omega.Gen.user()});
+      sinon.stub(Omega.Ship, 'owned_by');
+      sinon.stub(Omega.Station, 'owned_by');
+      sinon.stub(Omega.Stat, 'get');
+    });
+
+    after(function(){
+      Omega.Ship.owned_by.restore();
+      Omega.Station.owned_by.restore();
+      Omega.Stat.get.restore();
+    });
+
+    it("sets details user", function(){
+      sinon.stub(page.details, 'set');
+      page._valid_session();
+      sinon.assert.calledWith(page.details.set, page.session.user);
+    });
+
+    it("loads ships owned by user", function(){
+      page._valid_session();
+      sinon.assert.calledWith(Omega.Ship.owned_by, page.session.user.id,
+                              page.node, sinon.match.func);
+    });
+
+    it("processes loaded ships", function(){
+      var ships = [Omega.Gen.ship()];
+      page._valid_session();
+      sinon.stub(page, 'process_entities');
+      Omega.Ship.owned_by.omega_callback()(ships);
+      sinon.assert.calledWith(page.process_entities, ships);
+    });
+
+    it("loads stations owned by user", function(){
+      page._valid_session();
+      sinon.assert.calledWith(Omega.Station.owned_by, page.session.user.id,
+                              page.node, sinon.match.func);
+    });
+
+    it("processes loaded stations", function(){
+      var stations = [Omega.Gen.station()];
+      page._valid_session();
+      sinon.stub(page, 'process_entities');
+      Omega.Station.owned_by.omega_callback()(stations);
+      sinon.assert.calledWith(page.process_entities, stations);
+    });
+
+    it("retrieves users_with_most entities stat", function(){
+      page._valid_session();
+      sinon.assert.calledWith(Omega.Stat.get, 'users_with_most',
+                              ['entities', 10], page.node, sinon.match.func);
+    });
+
+    it("process stat retrieved", function(){
+      var stat = {};
+      page._valid_session();
+      sinon.stub(page, 'process_stat');
+      Omega.Stat.get.omega_callback()(stat);
+      sinon.assert.calledWith(page.process_stat, stat);
+    });
+  })
+
   describe("#process_entities", function(){
     it("processes each entity", function(){
       var entities = [new Omega.Ship(), new Omega.Station()];
-      var process_entity = sinon.spy(page, 'process_entity')
+      sinon.spy(page, 'process_entity')
       page.process_entities(entities);
-      sinon.assert.calledWith(process_entity, entities[0]);
-      sinon.assert.calledWith(process_entity, entities[1]);
+      sinon.assert.calledWith(page.process_entity, entities[0]);
+      sinon.assert.calledWith(page.process_entity, entities[1]);
     });
   });
 
   describe("#process_entity", function(){
     it("adds entity to account info entity details", function(){
-      var add_entity = sinon.spy(page.details, 'entity');
+      sinon.spy(page.details, 'entity');
       var ship = new Omega.Ship();
       page.process_entity(ship);
-      sinon.assert.calledWith(add_entity, ship);
+      sinon.assert.calledWith(page.details.entity, ship);
     });
   });
 
-  //describe("#process_stats", function(){
-  //  describe("local user is in stats", function(){
-  //    it("adds badge to account info badges") // NIY
-  //  })
-  //});
+  describe("#process_stat", function(){
+    describe("session user in stat result list", function(){
+      var result;
+
+      before(function(){
+        page.session = new Omega.Session({user_id : 'user1'});
+        result = {stat  : {id : 'stat1', description : 'statd'},
+                  value : ['userA1', page.session.user_id]};
+      });
+
+      it("adds badge to account details", function(){
+        sinon.stub(page.details, 'add_badge');
+        page.process_stat(result);
+        sinon.assert.calledWith(page.details.add_badge, 'stat1', 'statd', 1);
+      });
+    });
+
+    describe("session user not in stat result list", function(){
+      var result;
+
+      before(function(){
+        page.session = new Omega.Session({user_id : 'user1'});
+        result = {stat  : {id : 'stat1', description : 'statd'},
+                  value : ['userA1']};
+      });
+
+      it("does not add badge to account details", function(){
+        sinon.stub(page.details, 'add_badge');
+        page.process_stat(result);
+        sinon.assert.notCalled(page.details.add_badge);
+      });
+    });
+  });
 });});

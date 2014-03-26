@@ -64,6 +64,12 @@ describe("Omega.UI.SessionValidator", function(){
           Omega.Session.restore_from_cookie.restore();
         })
 
+        it("sets session.user", function(){
+          var user = Omega.Gen.user();
+          validate_cb.apply(null, [{result : user}]);
+          assert(session.user).equals(user);
+        });
+
         it("invokes session_validated", function(){
           validate_cb.apply(null, [{}]);
           sinon.assert.called(session_valid);

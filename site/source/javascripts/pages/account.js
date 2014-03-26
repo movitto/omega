@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/session_validator"
+
 //= require "ui/pages/account_details"
 //= require "ui/pages/account_dialog"
 
@@ -17,33 +19,6 @@ Omega.Pages.Account = function(){
   this.node    = new Omega.Node(this.config);
   this.dialog  = new Omega.UI.AccountDialog();
   this.details = new Omega.UI.AccountDetails({page : this});
-
-  var _this = this;
-  this.session = Omega.Session.restore_from_cookie();
-  if(this.session != null){
-    this.session.validate(this.node, function(response){
-      if(response.error){
-        _this.session = null;
-        /// TODO redirect to index?
-      }else{
-        var user = response.result;
-        _this.details.username(user.id);
-        _this.details.email(user.email);
-        _this.details.gravatar(user.email);
-
-        /// load entities owned by user
-        Omega.Ship.owned_by(_this.session.user_id, _this.node,
-          function(ships) { _this.process_entities(ships); });
-        Omega.Station.owned_by(_this.session.user_id, _this.node,
-          function(stations) { _this.process_entities(stations); });
-
-        /// load user stats
-        /// TODO configurable stats
-        Omega.Stat.get('users_with_most', ['entities', 10], _this.node,
-          function(stat_result) { _this.process_stat(stat_result); });
-      }
-    });
-  }
 };
 
 Omega.Pages.Account.prototype = {
@@ -53,6 +28,31 @@ Omega.Pages.Account.prototype = {
     $('#account_info_clear_notices').on('click', function(){
       new Omega.UI.SplashScreen().clear_notices();
     });
+  },
+
+  start : function(){
+    var _this = this;
+    this.validate_session(
+      function(){ _this._valid_session(); }, /// validated
+      function(){}                           /// invalid - TODO redirect to index?
+    );
+  },
+
+  _valid_session : function(){
+    var _this = this;
+    var user  = this.session.user;
+    this.details.set(user);
+
+    /// load entities owned by user
+    Omega.Ship.owned_by(user.id, this.node,
+      function(ships) { _this.process_entities(ships); });
+    Omega.Station.owned_by(user.id, this.node,
+      function(stations) { _this.process_entities(stations); });
+
+    /// load user stats
+    /// TODO configurable stats
+    Omega.Stat.get('users_with_most', ['entities', 10], this.node,
+      function(stat_result) { _this.process_stat(stat_result); });
   },
 
   process_entities : function(entities){
@@ -79,9 +79,12 @@ Omega.Pages.Account.prototype = {
   }
 };
 
+$.extend(Omega.Pages.Account.prototype, Omega.UI.SessionValidator);
+
 $(document).ready(function(){
   if(Omega.Test) return;
 
   var account = new Omega.Pages.Account();
   account.wire_up();
+  account.start();
 });

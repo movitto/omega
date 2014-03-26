@@ -77,6 +77,34 @@ describe("Omega.Pages.AccountDetails", function(){
     });
   });
 
+  describe("#set", function(){
+    it("sets username from user.id", function(){
+      var user = Omega.Gen.user();
+      details.set(user);
+      assert($('#account_info_username input').val()).equals(user.id);
+    });
+
+    it("sets username from user.email", function(){
+      var user = Omega.Gen.user();
+      user.email = 'foo@bar.com';
+      details.set(user);
+      assert($('#account_info_email input').val()).equals('foo@bar.com');
+    });
+
+    it("sets gravatar from user.email", function(){
+      var user = Omega.Gen.user();
+      user.email = 'foo@bar.com';
+      details.set(user);
+      var gravatar = $('#account_logo img');
+      var expected = 'http://gravatar.com/avatar/' +
+                      md5('foo@bar.com') + '?s=175';
+      assert(gravatar.length).equals(1);
+      assert(gravatar.attr('src')).equals(expected);
+      assert(gravatar.attr('alt')).equals('gravatar');
+      assert(gravatar.attr('title')).equals('gravatar');
+    });
+  });
+
   describe("#username", function(){
     it("sets account info username", function(){
       details.username('foobar');
@@ -116,9 +144,18 @@ describe("Omega.Pages.AccountDetails", function(){
     });
   });
 
-  //describe("#gravatar", function(){
-    //it("sets account info gravatar"); // NIY
-  //});
+  describe("#gravatar", function(){
+    it("sets account info gravatar", function(){
+      details.gravatar('foo@bar.com');
+      var gravatar = $('#account_logo img');
+      var expected = 'http://gravatar.com/avatar/' +
+                      md5('foo@bar.com') + '?s=175';
+      assert(gravatar.length).equals(1);
+      assert(gravatar.attr('src')).equals(expected);
+      assert(gravatar.attr('alt')).equals('gravatar');
+      assert(gravatar.attr('title')).equals('gravatar');
+    });
+  });
 
   describe("#entities", function(){
     it("appends ships to account info ships container", function(){
@@ -164,8 +201,19 @@ describe("Omega.Pages.AccountDetails", function(){
     });
   });
 
-  //describe("#add_badge", function(){
-  //  it("adds badge to account info badges") // NIY
-  //});
+  describe("#add_badge", function(){
+    it("adds badge to account info badges", function(){
+      var expected = 'http://localhost'+ 
+                     Omega.Config.url_prefix +
+                     '/images/badges/badge1.png';
+      $('#account_info_badges').html('');
+      details.add_badge('badge1', 'badged', 5);
+      var badges = $('#account_info_badges div');
+      assert(badges.length).equals(1);
+      assert(badges.attr('class')).equals('badge');
+      assert(badges.css('background-image')).equals('url("'+expected+'")');
+      assert(badges.text()).equals('badged: 6');
+    });
+  });
 });});
 

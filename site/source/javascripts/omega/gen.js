@@ -18,6 +18,12 @@ Omega.Gen = {
     return Omega.Gen._next_id;
   },
 
+  user : function(opts){
+    if(!opts) opts = {};
+    if(!opts.id) opts.id = 'user' + this.next_id();
+    return new Omega.User(opts);
+  },
+
   random_loc : function(opts){
     if(!opts) opts = {};
     var minx = opts['min_x'] || opts['min'] || 0;

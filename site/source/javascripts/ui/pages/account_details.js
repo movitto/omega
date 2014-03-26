@@ -37,6 +37,13 @@ Omega.UI.AccountDetails.prototype = {
     }
   },
 
+  /// set fields from specified user
+  set : function(user){
+    this.username(user.id);
+    this.email(user.email);
+    this.gravatar(user.email);
+  },
+
   /// get/set username
   username : function(val){
     var container = $('#account_info_username input');
