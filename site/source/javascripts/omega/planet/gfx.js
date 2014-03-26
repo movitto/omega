@@ -49,6 +49,7 @@ Omega.PlanetGfx = {
     this.mesh.omega_entity = this;
     this.mesh.material =
       new Omega.PlanetMaterial.load(config, color, event_cb);
+    this.tracker_obj = new THREE.Object3D();
     this.update_gfx();
 
     this._calc_orbit();
@@ -56,12 +57,13 @@ Omega.PlanetGfx = {
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.last_moved = new Date();
-    this.components = [this.mesh.tmesh, this.orbit_line.line];
+    this.components = [this.tracker_obj, this.mesh.tmesh, this.orbit_line.line];
   },
 
   /// Update local system graphics on core entity changes
   update_gfx : function(){
     this.mesh.update();
+    this.tracker_obj.position.set(this.location.x, this.location.y, this.location.z);
   },
 
   /// Run local system graphics effects

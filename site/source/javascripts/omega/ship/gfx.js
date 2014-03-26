@@ -139,6 +139,9 @@ Omega.ShipGfx = {
     this.smoke.omega_entity = this;
     this.components.push(this.smoke.particles.mesh);
 
+    this.tracker_obj = new THREE.Object3D();
+    this.components.push(this.tracker_obj);
+
     this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
 
     this.mesh = {update : function(){},
@@ -201,6 +204,10 @@ Omega.ShipGfx = {
     this.attack_vector.update();
     this.mining_vector.update();
     this.smoke.update();
+
+    this.tracker_obj.position.set(this.location.x,
+                                  this.location.y,
+                                  this.location.z);
   },
 
   /// Update graphics on attack events

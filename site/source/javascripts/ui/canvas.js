@@ -48,7 +48,6 @@ Omega.UI.Canvas.prototype = {
     var click_duration = 500, timestamp = null;
     this.canvas.mousedown(function(evnt){
       timestamp = new Date();
-      _this.disable_following();
     });
 
     this.canvas.mouseup(function(evnt) {
@@ -56,8 +55,6 @@ Omega.UI.Canvas.prototype = {
         timestamp = null;
         _this._canvas_clicked(evnt);
       }
-
-      _this.enable_following();
     })
 
     /// when mouse leaves canvas, trigger up event
@@ -272,6 +269,8 @@ Omega.UI.Canvas.prototype = {
     this.cam_controls.object.position.set(default_position[0],
                                           default_position[1],
                                           default_position[2]);
+
+	  this.cam_controls.target = new THREE.Vector3();
     this.cam_controls.target.set(default_target[0],
                                  default_target[1],
                                  default_target[2]);
@@ -287,7 +286,6 @@ Omega.UI.Canvas.prototype = {
     var _this = this;
     requestAnimationFrame(function() { _this.render(); });
     this._detect_hover();
-    this._cam_follow();
   },
 
   // Render scene (used internally, no need to invoke manually)
@@ -303,6 +301,7 @@ Omega.UI.Canvas.prototype = {
   set_scene_root : function(root){
     var old_root = this.root;
     this.clear();
+    this.reset_cam();
     this.root    = root;
     var children = root.children;
     for(var c = 0; c < children.length; c++)
@@ -318,8 +317,12 @@ Omega.UI.Canvas.prototype = {
   },
 
   // Focus the scene camera on the specified location
-  focus_on : function(loc){
-    this.cam_controls.target.set(loc.x,loc.y,loc.z);
+  focus_on : function(pos){
+    if(pos.json_class == 'Motel::Location')
+      this.cam_controls.target.set(pos.x,pos.y,pos.z);
+    else
+      this.cam_controls.target = pos;
+
     this.cam_controls.update();
   },
 
@@ -389,56 +392,24 @@ Omega.UI.Canvas.prototype = {
     return this.entities.indexOf(entity_id) != -1;
   },
 
-  _update_following_dir : function(){
-    if(!this.following_loc) return;
-    var pos = this.cam_controls.object.position;
-    this.following_dir  = this.following_loc.direction_to(pos.x, pos.y, pos.z);
-    this.following_dist = this.following_loc.distance_from(pos.x, pos.y, pos.z);
-    if(this.following_dist > 500) this.following_dist = 450;
+  /// return bool indicating if cam is following component
+  is_following : function(component){
+    return this.following_component == component;
   },
 
   /// instruct canvas cam to follow location
-  follow : function(loc){
-    this.following_loc = loc;
+  follow : function(component){
+    if(this.following_component) this.stop_following();
+    this.following_component = component;
+    component.add(this.cam);
   },
 
   /// instruct canvas cam to stop following location
   stop_following : function(){
-    this.following_loc = null
+    if(this.following_component)
+      this.following_component.remove(this.cam);
+    this.following_component = null
   },
-
-  /// Disable canvas cam following
-  disable_following : function(){
-    if(!this.tfollowing_loc)
-      this.tfollowing_loc = this.following_loc;
-    this.following_loc    = null;
-    this.following_dir    = null;
-  },
-
-  /// Enable canvas cam following
-  enable_following : function(){
-    if(this.tfollowing_loc)
-      this.following_loc = this.tfollowing_loc;
-    this.tfollowing_loc  = null;
-    this._update_following_dir();
-  },
-
-  _cam_follow : function(){
-    if(!this.following_loc) return;
-    if(!this.following_dir) this._update_following_dir();
-
-    this.cam_controls.target.set(this.following_loc.x,
-                                 this.following_loc.y,
-                                 this.following_loc.z);
-
-    var pos  = this.cam_controls.object.position;
-    pos.set(this.following_loc.x + this.following_dir[0] * this.following_dist,
-            this.following_loc.y + this.following_dir[1] * this.following_dist,
-            this.following_loc.z + this.following_dir[2] * this.following_dist);
-
-    this.cam_controls.update();
-    return;
-  }
 };
 
 /// Event callback which may be registered to trigger animation

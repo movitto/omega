@@ -77,32 +77,40 @@ Omega.ShipCommands = {
   },
 
   _follow_cmd : function(page){
+    //if(this.__follow_cmd) return this.__follow_cmd; // TODO
+
     var _this = this;
     var start = 'follow';
     var stop  = 'stop following';
 
-    var following = (page.canvas.following_loc == this.location);
+    var following = page.canvas.is_following(this.tracker_obj);
     var cmd = $('<a>', {href : '#',
                         text : following ? stop : start});
 
     cmd.click(function(evnt){
-      var following = (page.canvas.following_loc == _this.location);
+      var following = page.canvas.is_following(_this.tracker_obj);
 
       if(following){
         page.canvas.stop_following();
         cmd.text(start);
 
       }else{
-        page.canvas.follow(_this.location);
+        page.canvas.reset_cam();
+        page.canvas.cam.position.set(150, 150, 150);
+        page.canvas.follow(_this.tracker_obj);
+        page.canvas.cam_controls.update();
         cmd.text(stop);
 
       };
     });
 
+    this.__follow_cmd = cmd;
     return cmd;
   },
 
   _create_commands : function(page){
+    //if(this.__commands) return this.__commands;
+
     var _this = this;
     var commands = [];
     for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
@@ -123,6 +131,7 @@ Omega.ShipCommands = {
       commands.push(cmd);
     }
 
+    this.__commands = commands;
     return commands;
   }
 };
