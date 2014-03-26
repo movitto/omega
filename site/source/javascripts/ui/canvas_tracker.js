@@ -23,6 +23,7 @@ Omega.UI.CanvasTracker = {
   /// Return type of entity & entity to autoload, nil if not set
   _default_root : function(){
     var id = this._default_root_id();
+    if(!id) return null;
 
     var entity = null;
     if(id == 'random'){

@@ -6,6 +6,7 @@
 
 Omega.UI.CanvasControlsList = function(parameters){
   this.div_id = null;
+  this.has_mouse = false;
   $.extend(this, parameters)
 };
 
@@ -14,17 +15,17 @@ Omega.UI.CanvasControlsList.prototype = {
   _run_effects : true,
 
   wire_up : function(){
-    /// FIXME if div_id not set on init,
-    /// these will be invalid (also in other components)
-    /// (implement setter for div_id?)
+    /// XXX make sure div_id is set on init
     var _this = this;
     this.component().on('mouseenter',
       function(evnt){
+        _this.has_mouse = true;
         _this.stop();
         _this.show();
       });
     this.component().on('mouseleave',
       function(evnt){
+        _this.has_mouse = false;
         _this.hide();
       });
   },
@@ -80,21 +81,25 @@ Omega.UI.CanvasControlsList.prototype = {
 
   _repeat : function(){
     var _this = this;
+    $(this.title()).css('color', 'red');
     $(this.title()).delay(200).fadeOut('slow').
                     delay(50).fadeIn('slow',
       function(){
+        $(_this.title()).css('color', '');
         if(_this._run_effects)
           _this._repeat();
       });
   },
 
   start : function(){
+    if(this.has_mouse) return;
     this._repeat();
   },
 
   stop : function(){
     $(this.title()).stop();
     $(this.title()).css('opacity', 1);
+    $(this.title()).css('color', '');
     Omega.UI.CanvasControlsList.prototype._run_effects = false;
   }
 };
