@@ -318,11 +318,7 @@ Omega.UI.Canvas.prototype = {
 
   // Focus the scene camera on the specified location
   focus_on : function(pos){
-    if(pos.json_class == 'Motel::Location')
-      this.cam_controls.target.set(pos.x,pos.y,pos.z);
-    else
-      this.cam_controls.target = pos;
-
+    this.cam_controls.target.set(pos.x,pos.y,pos.z);
     this.cam_controls.update();
   },
 

@@ -101,6 +101,7 @@ Omega.Pages.Title.prototype = {
     if(this.current_scene)
       this.current_scene.stop(this);
     this.current_scene = scene;
+    this.canvas.reset_cam();
     scene.run(this);
   }
 };
