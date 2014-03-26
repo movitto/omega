@@ -17,7 +17,7 @@ Omega.Pages.Confirm.prototype = {
     return window.location;
   },
   redirect_to : function(value){
-    window.locaiton = value;
+    window.location = value;
   },
 
   registration_code : function(){
