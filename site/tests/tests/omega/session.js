@@ -33,8 +33,8 @@ describe("Omega.Session", function(){
       it("does nothing", function(){
         var s = new Omega.Session({id : 'session1', user_id: 'foo'});
         s.set_cookies();
-        assert($.cookie('omega-session')).isNull();
-        assert($.cookie('omega-user')).isNull();
+        assert($.cookie('omega-session')).isUndefined();
+        assert($.cookie('omega-user')).isUndefined();
       });
     });
   });
@@ -49,8 +49,8 @@ describe("Omega.Session", function(){
       $.cookie('omega-user', 'foo');
 
       session.clear_cookies();
-      assert($.cookie('omega-session')).isNull();
-      assert($.cookie('omega-user')).isNull();
+      assert($.cookie('omega-session')).isUndefined();
+      assert($.cookie('omega-user')).isUndefined();
     });
 
     describe("cookies are disabled", function(){
@@ -209,8 +209,8 @@ describe("Omega.Session", function(){
     });
 
     it("returns null", function(){
-      $.cookie('omega-user', null);
-      $.cookie('omega-session', null);
+      $.removeCookie('omega-user');
+      $.removeCookie('omega-session');
       assert(Omega.Session.restore_from_cookie()).equals(null);
     });
   });

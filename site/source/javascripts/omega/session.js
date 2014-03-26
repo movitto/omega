@@ -31,8 +31,8 @@ Omega.Session.prototype = {
    */
   clear_cookies : function(){
     if(Omega.Session.cookies_enabled){
-      $.cookie('omega-session', null);
-      $.cookie('omega-user',    null);
+      $.removeCookie('omega-session');
+      $.removeCookie('omega-user');
     }
   },
 
