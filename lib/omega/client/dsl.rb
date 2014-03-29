@@ -417,6 +417,24 @@ module Omega
         gate
       end
 
+      # Helper to create interconnections between a series of systems
+      #
+      # @param [Array<Cosmos::Entities::SolarSystem>] array of systems to
+      # create gates inbetween
+      # @return [Cosmos::Entities::JumpGate] jump gate created
+      def interconnect(*systems)
+        systems = systems.first if systems.size == 1 &&
+                                   systems.first.is_a?(Array)
+        systems.shuffle!
+        0.upto(systems.length - 2) do |i|
+          # TODO how to specify location
+          # TODO alternate interconn 'types' or algorithms to join
+          # various systesms
+          jump_gate systems[i], systems[i+1]
+          jump_gate systems[i+1], systems[i]
+        end
+      end
+
       ########################################################################
 
       # Return station with the specified id if it exists, else
