@@ -139,7 +139,8 @@ Omega.UI.CanvasTracker = {
   /// Add system to locations list if not present
   _add_nav_system : function(system){
     if(!this.canvas.controls.locations_list.has(system.id)){
-      var sitem = {id: system.id, text: system.name, data: system};
+      var sitem = {id: system.id, text: system.name,
+                   data: system, index: 1};
       this.canvas.controls.locations_list.add(sitem);
     }
   },
@@ -147,7 +148,8 @@ Omega.UI.CanvasTracker = {
   /// Add galaxy to locations list if no present
   _add_nav_galaxy : function(galaxy){
     if(!this.canvas.controls.locations_list.has(galaxy.id)){
-      var gitem = {id: galaxy.id, text: galaxy.name, data: galaxy};
+      var gitem = {id: galaxy.id, text: galaxy.name,
+                   data: galaxy, color : 'blue'};
       this.canvas.controls.locations_list.add(gitem);
     }
   },
