@@ -65,6 +65,7 @@ Omega.UI.CanvasControlsList.prototype = {
     var element = $('<li/>', {text: item['text']});
     element.data('id', item['id']);
     element.data('item', item['data']);
+    element.css('color', item['color'] || 'black');
     this.list().append(element);
 
     /// start effect when adding first element
