@@ -284,8 +284,7 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created asteroids
       # @return [Array<Cosmos::Entities::Asteroid>] asteroids created
       def asteroid_belt(args={}, &bl)
-        # TODO make # of asteroids configurable
-        scale = 30
+        scale = args[:scale] || 30
 
         p,e = args[:p],args[:e]
         direction = args[:direction]
