@@ -66,7 +66,17 @@ Omega.UI.CanvasControlsList.prototype = {
     element.data('id', item['id']);
     element.data('item', item['data']);
     element.css('color', item['color'] || 'black');
-    this.list().append(element);
+
+    if(!!!item['index']) item['index'] = 0;
+    element.data('index', item['index']);
+    var item = $.grep(this.list().children(),
+                      function(c){
+                        return $(c).data('index') > item['index'];
+                      })[0];
+    if(item)
+      element.insertBefore($(item));
+    else
+      this.list().append(element);
 
     /// start effect when adding first element
     if(this.children().length == 1 && this.title()) this.start();
