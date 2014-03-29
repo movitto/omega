@@ -15,9 +15,9 @@ include Motel::MovementStrategies
 
 RJR::Logger.log_level= ::Logger::INFO
 
-# TODO env/other var specifying which transport used?
+# TODO env/other var specifying which transport used, node_id, & other params?
 require 'rjr/nodes/tcp'
-dsl.rjr_node = RJR::Nodes::TCP.new(:node_id =>    'seeder',
-                                   :broker  => 'localhost',
+dsl.rjr_node = RJR::Nodes::TCP.new(:node_id =>    'client',
+                                   :host    => 'localhost',
                                    :port    =>      '9090')
 #dsl.rjr_node.endpoint = 'jsonrpc://localhost:8181'
