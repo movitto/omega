@@ -43,4 +43,10 @@ names.each do |uid|
        :type         => :mining,
        :solar_system => user_system,
        :location     => ship_loc
+
+  ship "#{uid}-corvette1",
+       :user_id      => uid,
+       :type         => :corvette,
+       :solar_system => user_system,
+       :location     => ship_loc
 end

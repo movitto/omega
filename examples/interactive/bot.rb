@@ -10,7 +10,6 @@ require 'omega/client/boilerplate'
 
 Trackable.node.rjr_node = dsl.rjr_node
 
-#users = ['Anubis', 'Aten', 'Horus', 'Imhotep', 'Ptah']
 uid = ARGV.shift
 
 login uid, uid
@@ -19,7 +18,7 @@ login uid, uid
 
 Factory.owned_by(uid).each { |factory|
   factory.handle(:construction_complete) { |f,evnt,st,entity|
-    entity.start_bot
+    Miner.get(entity.id).start_bot
   }
 
   factory.entity_type 'miner'

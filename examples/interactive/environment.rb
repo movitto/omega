@@ -4,16 +4,22 @@ require 'omega/client/boilerplate'
 login 'admin', 'nimda'
 
 def system_loc
-  # TODO generate within galaxy bounds, more y variance
+  # TODO more organized / algorithmic system positioning
+  # (still w/ some random variance)
   rand_loc(:min => 1000, :max => 2500, :max_y => 250, :min_y => 0)
 end
 
 def system_asteroids
   e =  rand *  0.6 + 0.2
   p = (rand * 4500 + 2000).floor
-  # TODO add resources to asteroids
   asteroid_belt :e => e, :p => p, :scale => 10,
-                :direction => random_axis(:orthogonal_to => [0,1,0])
+                :direction => random_axis(:orthogonal_to => [0,1,0]) do
+    @asteroids.each { |ast| asteroid_resources(ast) }
+  end
+end
+
+def asteroid_resources(ast)
+  resource :resource => rand_resource, :asteroid => ast, :quantity => 500
 end
 
 def system_planets
@@ -60,6 +66,7 @@ galaxy 'Omega Centauri' do
   virgo    = create_system 'Virgo'
   pices    = create_system 'Pices'
 
+  # TODO set jump gate locations
   interconnect hercules, leo, orion, libra, hydra, cetus, dorado
   interconnect grus, lepus, canis, ara, aquila, aries
   interconnect scorpius, cyngus, kepler, vela, lyra, draco, virgo, pices
