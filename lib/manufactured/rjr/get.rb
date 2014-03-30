@@ -14,16 +14,23 @@ get_entities = proc { |*args|
     :of_type       => proc { |e, t| e.class.to_s  == t },
     :owned_by      => proc { |e, o| e.user_id     == o },
     :with_location => proc { |e, l| e.location.id == l },
-    :under         => proc { |e, p| e.system_id   == p }
+    :under         => proc { |e, p| e.system_id   == p },
+    :select        => proc { |e, v| true }
   filters.unshift proc { |e| !e.kind_of?(Omega::Server::Command) }
   filters.unshift proc { |e| !e.kind_of?(Omega::Server::Event) &&
                              !e.kind_of?(Omega::Server::EventHandler) }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
-  # update entities locations from motel
-  entities.each { |e|
+  entities.map! { |e|
+    # update entities locations from motel
     e.location =
-      node.invoke 'motel::get_location', 'with_id', e.location.id
+      node.invoke 'motel::get_location',
+                  'with_id', e.location.id,
+                  'children', false
+
+    # only include specified properties
+    args.include?('select') ?
+      filter_properties(e, :allow => args[args.index('select') + 1]) : e
   }
 
   # if id or location id is specified, return single entity

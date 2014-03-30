@@ -16,7 +16,8 @@ get_entities = proc { |*args|
     :of_type       => proc { |e, type| e.class.to_s == type },
     :with_location => proc { |e, l|    e.location.id == (l.is_a?(Motel::Location) ? l.id : l) },
     :children      => proc { |e, v|    true }, # TODO rename to with_children ?
-    :recursive     => proc { |e, v|    true }
+    :recursive     => proc { |e, v|    true },
+    :select        => proc { |e, v| true }
   entities = registry.entities { |e| filters.all? { |f| f.call(e) }}
 
   # filters which apply to children/descendents of
@@ -24,8 +25,8 @@ get_entities = proc { |*args|
   include_children   = !args.include?('children')  || args[args.index('children')  + 1]
   recursive_children = !args.include?('recursive') || args[args.index('recursive') + 1]
 
-  # update entities' locations & children's
-  entities.each { |entity|
+  entities.map! { |entity|
+    # update entities' locations & children's
     entity.location = node.invoke('motel::get_location',
                                   'with_id',   entity.location.id,
                                   'children',  include_children,
@@ -53,6 +54,11 @@ get_entities = proc { |*args|
         entity.children[i] = entity.children[i].id
       }
     end
+
+    # only include properties specified by the user
+    args.include?('select') ?
+      filter_properties(entity, :allow => args[args.index('select') + 1]) :
+      entity
   }
 
   # if id of entity is specified, only return single entity
