@@ -14,6 +14,8 @@
 /// TODO account option where user can setup
 ///      uri's to stream background audio from
 
+/// TODO framerate config on accounts page (slider)
+
 Omega.Pages.Account = function(){
   this.config  = Omega.Config;
   this.node    = new Omega.Node(this.config);

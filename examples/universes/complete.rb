@@ -5,6 +5,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 # TODO replace random axis + rand locations
+# TODO update to new omega dsl / api
 
 require 'rubygems'
 

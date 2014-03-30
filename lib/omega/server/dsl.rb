@@ -125,8 +125,10 @@ module Omega
           # copy allowed attributes over
           filter[:allow].each { |a|
             if is_hash
+              # TODO ensure data key strings include a before interning
               ndata[a.intern] = data[a.intern] || data[a.to_s]
             else
+              # TODO ensure a.responds to a before interning
               ndata.send("#{a}=".intern, data.send(a.intern))
             end
           }
