@@ -3,6 +3,7 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/json_parser'
 require 'rjr/nodes/easy'
 require 'omega/server/registry'
 
@@ -24,7 +25,7 @@ class ProxyEntity
     ret = nil
     old_entity = nil
     @registry.safe_exec { |entities|
-      old_entity = RJR.parse_json(@entity.to_json)
+      old_entity = RJR::JSONParser.parse(@entity.to_json)
       ret = @entity.send(name, *args, &block)
     }
     # TODO only invoke if entity changed?

@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'time'
-require 'json'
+require 'rjr/json_parser'
 require 'motel/movement_strategy'
 require 'motel/common'
 require 'omega/common'
@@ -406,7 +406,7 @@ class Location
 
    # Return clone of location
    def clone
-     RJR.parse_json self.to_json
+     RJR::JSONParser.parse self.to_json
    end
 
    # Create a minimal valid location with id

@@ -3,6 +3,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'rjr/json_parser'
+
 module Omega
 module Server
 
@@ -135,7 +137,7 @@ class PeriodicEvent < HandledEvent
   # Handle event, invoke template and schedule another
   def handle_event
     # copy template event
-    nevent = RJR.parse_json @template_event.to_json
+    nevent = RJR::JSONParser.parse @template_event.to_json
 
     # add event to registry to be run
     registry << nevent
