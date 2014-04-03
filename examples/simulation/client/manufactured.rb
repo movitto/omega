@@ -7,6 +7,8 @@
 # rjr-client doesn't have any means to log the user in if privileges
 # are required to view/modify entities
 
+# TODO update to new RJR HasMessages api (and motel client definitions)
+
 require 'omega'
 
 include RJR::MessageMixins

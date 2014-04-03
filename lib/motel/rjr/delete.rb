@@ -1,14 +1,9 @@
 # motel::delete_location rjr definition
 #
-# XXX don't like 'delete' operations, but this is required
-# for the time being by other subsystems, eventually this
-# should be removed when alternative solution is implemented.
-#
-# TODO Perhaps simply mark the package as retired, move to
-# another queue, or similar
-#
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+
+# TODO option to disable this rjr method
 
 require 'motel/rjr/init'
 
