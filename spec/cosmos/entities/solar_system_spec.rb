@@ -115,7 +115,7 @@ describe SolarSystem do
   describe "#json_create" do
     it "returns solar system from json format" do
       j = '{"json_class":"Cosmos::Entities::SolarSystem","data":{"id":"solar_system1","name":"solar_system1","location":{"json_class":"Motel::Location","data":{"id":null,"x":50.0,"y":null,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[{"json_class":"Cosmos::Entities::Planet","data":{"id":"planet23","name":"planet23","location":{"json_class":"Motel::Location","data":{"id":10089,"x":-273,"y":-655,"z":432,"orientation_x":0,"orientation_y":0,"orientation_z":1,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[],"metadata":{},"parent_id":"solar_system1","color":"AABBCC","size":55}}],"metadata":{},"parent_id":"galaxy12","background":0}}'
-      s = RJR.parse_json(j)
+      s = RJR::JSONParser.parse(j)
 
       s.class.should == Cosmos::Entities::SolarSystem
       s.name.should == 'solar_system1'

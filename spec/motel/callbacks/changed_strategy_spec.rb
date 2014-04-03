@@ -70,7 +70,7 @@ describe ChangedStrategy do
   describe "#json_create" do
     it "returns callback from json format" do
       j = '{"json_class":"Motel::Callbacks::ChangedStrategy","data":{"endpoint_id":"baz","orig_ms":{"json_class":"Motel::MovementStrategies::Linear","data":{"step_delay":1,"speed":null,"dx":1.0,"dy":0.0,"dz":0.0,"rot_theta":0,"rot_x":0,"rot_y":0,"rot_z":1}}}}'
-      cb = RJR.parse_json(j)
+      cb = RJR::JSONParser.parse(j)
 
       cb.class.should == Motel::Callbacks::ChangedStrategy
       cb.endpoint_id.should == "baz"

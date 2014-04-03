@@ -228,7 +228,7 @@ describe Elliptical do
   describe "#json_create" do
     it "returns elliptical from json format" do
       j = '{"data":{"dmajy":0,"speed":42,"dmajz":0,"relative_to":"center","dminx":0,"e":0.5,"dminy":1,"p":420,"step_delay":21,"dminz":0,"dmajx":1},"json_class":"Motel::MovementStrategies::Elliptical"}'
-      m = RJR.parse_json(j)
+      m = RJR::JSONParser.parse(j)
 
       m.class.should == Motel::MovementStrategies::Elliptical
       m.step_delay.should == 21

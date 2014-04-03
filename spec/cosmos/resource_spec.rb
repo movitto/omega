@@ -110,7 +110,7 @@ describe Resource do
   describe "#json_create" do
     it "returns resource from json format" do
       j = '{"json_class":"Cosmos::Resource","data":{"id":"metal-titanium","quantity":50,"entity_id":"ast1"}}'
-      r = ::RJR.parse_json(j)
+      r = ::RJR::JSONParser.parse(j)
 
       r.class.should == Cosmos::Resource
       r.id.should == 'metal-titanium'

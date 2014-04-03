@@ -127,7 +127,7 @@ describe Movement do
   describe "#json_create" do
     it "returns callback from json format" do
       j = '{"json_class":"Motel::Callbacks::Movement","data":{"endpoint_id":"baz","min_distance":10,"min_x":5,"min_y":0,"min_z":0}}'
-      cb = RJR.parse_json(j)
+      cb = RJR::JSONParser.parse(j)
 
       cb.class.should == Motel::Callbacks::Movement
       cb.endpoint_id.should == "baz"

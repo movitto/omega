@@ -118,7 +118,7 @@ describe Rotation do
   describe "#json_create" do
     it "returns callback from json format" do
       j = '{"json_class":"Motel::Callbacks::Rotation","data":{"endpoint_id":"baz","rot_theta":3.14,"axis_x":1,"axis_y":0,"axis_z":0}}'
-      cb = RJR.parse_json(j)
+      cb = RJR::JSONParser.parse(j)
 
       cb.class.should == Motel::Callbacks::Rotation
       cb.endpoint_id.should == "baz"

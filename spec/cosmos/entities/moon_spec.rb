@@ -58,7 +58,7 @@ describe Moon do
   describe "#json_create" do
     it "returns moon from json format" do
       j = '{"data":{"name":"moon1","location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Moon"}'
-      m = RJR.parse_json(j)
+      m = RJR::JSONParser.parse(j)
 
       m.class.should == Cosmos::Entities::Moon
       m.name.should == 'moon1'

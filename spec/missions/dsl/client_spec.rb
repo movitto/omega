@@ -95,7 +95,7 @@ module Client
     describe "#json_create" do
       it "returns proxy from json format" do
         j = '{"json_class":"Missions::DSL::Client::Proxy","data":{"dsl_category":"Query","dsl_method":"check_mining_quantity","params":[42]}}'
-        p = ::RJR.parse_json(j)
+        p = ::RJR::JSONParser.parse(j)
 
         p.class.should == Missions::DSL::Client::Proxy
         p.dsl_category.should == 'Query'

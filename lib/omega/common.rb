@@ -42,6 +42,11 @@ class Object
     }
   end
 
+  def eigenclass
+    class << self
+      self
+    end
+  end
 end
 
 class Array

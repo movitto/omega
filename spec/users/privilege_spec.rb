@@ -46,7 +46,7 @@ describe Privilege do
   describe "#json_create" do
     it "should return privilege from json" do
       j = '{"data":{"entity_id":"e1","id":"p1"},"json_class":"Users::Privilege"}'
-      p = ::RJR.parse_json(j)
+      p = ::RJR::JSONParser.parse(j)
 
       p.class.should == Users::Privilege
       p.id.should == "p1"

@@ -659,7 +659,7 @@ describe Mission do
     it "returns mission from json format" do
       t = Time.parse('2013-03-10 15:33:41 -0400')
       j = '{"json_class":"Missions::Mission","data":{"id":"mission123","title":"test_mission","description":"test_missiond","creator_id":"user42","assigned_to_id":"user43","timeout":500,"assigned_time":"'+t.to_s+'","requirements":["req1"],"assignment_callbacks":[],"victory_conditions":["vco1"],"victory_callbacks":["vca1"],"failure_callbacks":["fc1"],"victorious":true,"failed":true}}'
-      m = ::RJR.parse_json(j)
+      m = ::RJR::JSONParser.parse(j)
 
       m.class.should == Missions::Mission
       m.id.should == 'mission123'

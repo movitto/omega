@@ -140,7 +140,7 @@ describe PopulateResource do
     t = Time.parse('2013-03-10 15:33:41 -0400')
     j = '{"json_class":"Missions::Events::PopulateResource","data":{"id":"pre123","timestamp":"2013-03-10 15:33:41 -0400","handlers":["cb1"],"resource":"res1","entity":"random","quantity":123,"from_entities":["ent2","ent3"],"from_resources":["res2","res3"]}}'
 
-    event = ::RJR.parse_json(j)
+    event = ::RJR::JSONParser.parse(j)
     event.class.should == Missions::Events::PopulateResource
     event.id.should == 'pre123'
     event.timestamp.should == t

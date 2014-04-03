@@ -157,7 +157,7 @@ describe Command do
     it "returns command from json format" do
       t = Time.parse '2013-06-16 09:07:19 -0400'
       j = '{"json_class":"Omega::Server::Command","data":{"id":"foo","exec_rate":5,"ran_first_hooks":false,"last_ran_at":"'+t.to_s+'"}}'
-      c = RJR.parse_json j
+      c = RJR::JSONParser.parse j
 
       c.should be_an_instance_of(Command)
       c.id.should == 'foo'

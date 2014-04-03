@@ -30,7 +30,7 @@ describe "SProc" do
 
   it "should be convertable from json" do
     j = '{"json_class":"SProc","data":{"sblock":"proc { (1 + 2) }"}}'
-    s = RJR.parse_json(j)
+    s = RJR::JSONParser.parse(j)
 
     s.class.should == SProc
     s.sblock.should == "proc { (1 + 2) }"

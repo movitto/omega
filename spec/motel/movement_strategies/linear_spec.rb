@@ -246,7 +246,7 @@ describe Linear do
   describe "#json_create" do
     it "returns linear from json format" do
       j = '{"json_class":"Motel::MovementStrategies::Linear","data":{"speed":15,"stop_distance":150,"dx":1,"dy":0,"step_delay":20,"dz":0,"rot_theta":5.14,"rot_x":-1,"rot_y":0,"rot_z":0}}'
-      m = RJR.parse_json(j)
+      m = RJR::JSONParser.parse(j)
 
       m.class.should == Motel::MovementStrategies::Linear
       m.step_delay.should == 20

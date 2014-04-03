@@ -51,7 +51,7 @@ describe MovementStrategy do
   describe "#json_create" do
     it "should return movement strategy from json" do
       j = '{"json_class":"Motel::MovementStrategy","data":{"step_delay":20}}'
-      m = ::RJR.parse_json(j)
+      m = ::RJR::JSONParser.parse(j)
 
       m.should be_an_instance_of(MovementStrategy)
       m.step_delay.should == 20

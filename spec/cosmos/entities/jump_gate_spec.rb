@@ -136,7 +136,7 @@ describe JumpGate do
   describe "#json_create" do
     it "returns jump_gate from json format" do
       j = '{"data":{"solar_system":null,"endpoint":null,"location":{"data":{"parent_id":null,"z":null,"restrict_view":true,"x":50,"restrict_modify":true,"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"id":null,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::JumpGate"}'
-      g = RJR.parse_json(j)
+      g = RJR::JSONParser.parse(j)
 
       g.class.should == Cosmos::Entities::JumpGate
       g.location.x.should  == 50

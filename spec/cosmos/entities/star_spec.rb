@@ -75,7 +75,7 @@ describe Star do
   describe "#json_create" do
     it "returns star from json format" do
       j = '{"data":{"color":"FFFF00","size":49,"name":"star1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"z":null,"parent_id":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true,"y":null},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Star"}'
-      s = RJR.parse_json(j)
+      s = RJR::JSONParser.parse(j)
 
       s.class.should == Cosmos::Entities::Star
       s.name.should == 'star1'

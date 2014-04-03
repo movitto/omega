@@ -169,7 +169,7 @@ describe Attribute do
   describe "#json_create" do
     it "returns user from json format" do
       j = '{"json_class":"Users::Attribute","data":{"type_id":"test_attribute","progression":0.64,"level":50}}'
-      a = ::RJR.parse_json(j)
+      a = ::RJR::JSONParser.parse(j)
 
       a.class.should == Attribute
       a.type.should == OmegaTest::Attribute

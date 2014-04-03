@@ -172,7 +172,7 @@ describe ShieldRefresh do
   describe "#json_create" do
     it "returns command from json format" do
       j = '{"json_class":"Manufactured::Commands::ShieldRefresh","data":{"attack_cmd":{"json_class":"Manufactured::Commands::Attack","data":{"attacker":null,"defender":null,"id":"attack-cmd-","exec_rate":null,"ran_first_hooks":false,"last_ran_at":null}},"entity":{"json_class":"Manufactured::Ship","data":{"id":10008,"user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"id":"10008","exec_rate":null,"ran_first_hooks":false,"last_ran_at":null}}'
-      c = RJR.parse_json j
+      c = RJR::JSONParser.parse j
 
       c.should be_an_instance_of(ShieldRefresh)
       c.entity.should be_an_instance_of(Manufactured::Ship)

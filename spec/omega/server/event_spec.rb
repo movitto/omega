@@ -109,7 +109,7 @@ describe Event do
     it "return event from json format" do
       t = Time.parse('2013-03-10 15:33:41 -0400')
       j = '{"json_class":"Omega::Server::Event","data":{"id":"event321","timestamp":"2013-03-10 15:33:41 -0400","handlers":["cb1"]}}'
-      e = RJR.parse_json(j)
+      e = RJR::JSONParser.parse(j)
 
       e.class.should == Omega::Server::Event
       e.id.should == 'event321'
@@ -206,7 +206,7 @@ describe PeriodicEvent do
     it "return event from json format" do
       j = '{"json_class":"Omega::Server::PeriodicEvent","data":{"id":"","timestamp":null,"callbacks":[""],"interval":500,"template_event":"foo"}}'
 
-      event = RJR.parse_json(j)
+      event = RJR::JSONParser.parse(j)
       event.class.should == PeriodicEvent
       event.interval.should == 500
       event.template_event.should == "foo"
@@ -302,7 +302,7 @@ describe EventHandler do
     it "return event from json format" do
       j = '{"json_class":"Omega::Server::EventHandler","data":{"event_id":"foo","handlers":["bar"]}}'
 
-      handler = RJR.parse_json(j)
+      handler = RJR::JSONParser.parse(j)
       handler.class.should == EventHandler
       handler.event_id.should == 'foo'
       handler.handlers.should == ['bar']

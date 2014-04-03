@@ -118,7 +118,7 @@ describe Loot do
   describe "#json_create" do
     it "returns loot from json format" do
       j = '{"json_class":"Manufactured::Loot","data":{"id":"loot1","location":{"json_class":"Motel::Location","data":{"id":20,"x":0,"y":-15.0,"z":0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"movement_callbacks":[],"proximity_callbacks":[]}},"system_id":"system1","resources":{"metal-titanium":100}}}'
-      l = ::RJR.parse_json(j)
+      l = ::RJR::JSONParser.parse(j)
 
       l.class.should == Manufactured::Loot
       l.id.should == "loot1"

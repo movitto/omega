@@ -69,7 +69,7 @@ describe Planet do
   describe "#json_create" do
     it "returns planet from json format" do
       j = '{"json_class":"Cosmos::Entities::Planet","data":{"id":"planet1","name":"planet1","location":{"json_class":"Motel::Location","data":{"id":null,"x":50.0,"y":null,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[{"json_class":"Cosmos::Entities::Moon","data":{"id":"moon1","name":"moon1","location":{"json_class":"Motel::Location","data":{"id":10000,"x":759,"y":-771,"z":-817,"orientation_x":0,"orientation_y":0,"orientation_z":1,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"children":[],"metadata":{},"parent_id":"planet1"}}],"metadata":{},"parent_id":null,"color":"fe58cd","size":51}}'
-      p = RJR.parse_json(j)
+      p = RJR::JSONParser.parse(j)
 
       p.class.should == Cosmos::Entities::Planet
       p.name.should == 'planet1'
