@@ -5,7 +5,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'rjr/errors'
+# TODO extract helpers, split into seperate modules
+
 require 'rjr/common'
 require 'motel/rjr/init'
 require 'motel/callbacks/movement'
@@ -126,7 +127,7 @@ track_handler = proc { |*args|
       ::RJR::Logger.warn "loc #{loc.id} #{cb.rjr_event} callback permission error #{e}"
       err = true
 
-    rescue ::RJR::Errors::ConnectionError => e
+    rescue Omega::ConnectionError => e
       ::RJR::Logger.warn "#{loc.id} #{cb.rjr_event} client disconnected"
       err = true
 

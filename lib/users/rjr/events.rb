@@ -35,7 +35,7 @@ subscribe_to = proc { |event_type|
       ::RJR::Logger.warn "users event #{event_type} handler permission error #{e}"
       err = true
 
-    rescue ::RJR::Errors::ConnectionError => e
+    rescue Omega::ConnectionError => e
       ::RJR::Logger.warn "users event #{event_type} client disconnected #{e}"
       err = true
       # also entity.callbacks associated w/ @rjr_headers['session_id'] ?

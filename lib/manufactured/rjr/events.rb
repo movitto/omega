@@ -65,7 +65,7 @@ def subscribe_to_subsystem_event(event_type, endpoint_id, *event_args)
       err_msg = "manufactured event #{event_type} " \
                 "handler permission error #{e}"
 
-    rescue ::RJR::Errors::ConnectionError => e
+    rescue Omega::ConnectionError => e
           err = true
       err_msg = "manufactured event #{event_type} " \
                 "client disconnected #{e}"
@@ -118,7 +118,7 @@ def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
       ::RJR::Logger.warn "entity #{entity.id} callback permission error #{e}"
       err = true
 
-    rescue ::RJR::Errors::ConnectionError => e
+    rescue Omega::ConnectionError => e
       ::RJR::Logger.warn "entity #{entity.id} client disconnected #{e}"
       err = true
       # also entity.callbacks associated w/ @rjr_headers['session_id'] ?

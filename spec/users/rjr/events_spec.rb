@@ -87,7 +87,7 @@ module Users::RJR
       context "connection error during notification" do
         it "deletes handler from registry" do
           add_privilege @login_role, 'view', 'users_events'
-          @n.should_receive(:notify).and_raise(::RJR::Errors::ConnectionError)
+          @n.should_receive(:notify).and_raise(Omega::ConnectionError)
           lambda{
             @handler.invoke @event
           }.should change{@registry.entities.size}.by(-1)

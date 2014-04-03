@@ -117,7 +117,7 @@ module Manufactured::RJR
       context "connection error during notification" do
         it "removes handler from registry" do
           add_privilege @login_role, 'view', 'manufactured_entities'
-          @n.should_receive(:notify).and_raise(::RJR::Errors::ConnectionError)
+          @n.should_receive(:notify).and_raise(Omega::ConnectionError)
           lambda{
             @eh.invoke @event
           }.should change{@registry.entities.size}.by(-1)
@@ -194,7 +194,7 @@ module Manufactured::RJR
       context "connection error during notification" do
         it "removes callback from entity" do
           add_privilege @login_role, 'view', 'manufactured_entities'
-          @n.should_receive(:notify).and_raise(::RJR::Errors::ConnectionError)
+          @n.should_receive(:notify).and_raise(Omega::ConnectionError)
           lambda{
             @cb.invoke @rsh
           }.should change{@rsh.callbacks.size}.by(-1)

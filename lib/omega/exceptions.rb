@@ -41,4 +41,11 @@ class ValidationError < BaseError
   end
 end
 
+# Raise if a problem occurs w/ a connection
+class ConnectionError < BaseError
+  def initialize(msg)
+    super(msg)
+  end
+end
+
 end # module Omega
