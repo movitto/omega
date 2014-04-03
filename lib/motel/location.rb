@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'time'
-require 'rjr/json_parser'
+require 'rjr/util/json_parser'
 require 'motel/movement_strategy'
 require 'motel/common'
 require 'omega/common'

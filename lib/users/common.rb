@@ -5,9 +5,6 @@
 # Copyright (C) 2012-2013 Mo Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# include logger dependencies
-require 'logger'
-
 module Users
 
 # Generate and return a random string of the specified length

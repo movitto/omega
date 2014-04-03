@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/rjr/init'
-require 'rjr/common' # for logger
 
 module Motel::RJR
 # update location specified by id

@@ -178,7 +178,7 @@ accessible administrative methods") do
 
   # add various debugging mechanisms
   if RJR::Logger.debug?
-    multi_node.dispatcher.add_module('rjr/inspect')
+    multi_node.dispatcher.add_module('rjr/util/inspect')
     multi_node.dispatcher.add_module('users/rjr/inspect')
     multi_node.dispatcher.add_module('motel/rjr/inspect')
     multi_node.dispatcher.add_module('cosmos/rjr/inspect')

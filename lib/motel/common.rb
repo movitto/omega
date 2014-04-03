@@ -5,9 +5,6 @@
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# include logger dependencies
-require 'logger'
-
 module Motel
 
 LOCATION_EVENTS = [:movement, :rotation, :proximity,

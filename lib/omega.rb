@@ -10,6 +10,9 @@ module Omega ; end
 
 # TODO update
 
+# TODO remove references to rjr/common where not needed
+require 'rjr/util/logger'
+
 require 'users/user'
 require 'users/role'
 require 'users/session'
