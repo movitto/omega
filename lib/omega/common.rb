@@ -71,6 +71,18 @@ class String
   def modulize
     self.split('::')[0..-2].join('::')
   end
+
+  # Taken from activesupport inflector
+  def constantize
+    names = self.split('::')
+    names.shift if names.empty? || names.first.empty?
+
+    constant = Object
+    names.each do |name|
+      constant = constant.const_defined?(name) ? constant.const_get(name) : constant.const_missing(name)
+    end
+    constant
+  end
 end
 
 require 'enumerator'
@@ -115,5 +127,18 @@ class Module
       }
     }
     nil
+  end
+
+  # The following two were taken from ActiveSupport/CoreExtensions/Module
+  def parent_name
+    unless defined? @parent_name
+      @parent_name = name =~ /::[^:]+\Z/ ? $`.freeze : nil
+    end
+    @parent_name
+  end
+
+  # See comment in parent_name above
+  def parent
+    parent_name ? parent_name.constantize : Object
   end
 end

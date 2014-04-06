@@ -9,23 +9,6 @@ require 'manufactured/events'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "subsystem_event?" do
-    include Manufactured::RJR
-
-    context "Manufactured::Event type" do
-      it "returns true" do
-        event_type = Manufactured::Events::SystemJump::TYPE.to_s
-        subsystem_event?(event_type).should be_true
-      end
-    end
-
-    context "anything else" do
-      it "returns false" do
-        subsystem_event?(42).should be_false
-      end
-    end
-  end
-
   describe "subsystem_entity?" do
     include Manufactured::RJR
 
@@ -237,6 +220,8 @@ module Manufactured::RJR
       setup_manufactured :EVENTS_METHODS
       @sh = create(:valid_ship)
       @rsh = @registry.proxy_for &with_id(@sh.id)
+
+      @s.stub(:rjr_env) { Manufactured::RJR }
     end
 
     context "rjr transport is not persistent" do
@@ -335,6 +320,8 @@ module Manufactured::RJR
 
       @registry << Manufactured::EventHandler.new(:event_type  => 'system_jump',
                                                   :endpoint_id => @n.node_id)
+
+      @s.stub(:rjr_env) { Manufactured::RJR }
     end
 
     context "invalid source node" do

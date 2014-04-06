@@ -5,18 +5,11 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/common'
+require 'manufactured/events'
 require 'manufactured/event_handler'
 require 'manufactured/rjr/init'
 
 module Manufactured::RJR
-
-# Bool indicating if specified event is in manufactured events namespace
-# TODO move to omega server dsl (?)
-def subsystem_event?(event_type)
-  Manufactured::Events.module_classes.any? { |evnt_class|
-    evnt_class::TYPE.to_s == event_type.to_s
-  }
-end
 
 # Bool indicating if specified entity is a subsystem entity.
 # *note* right now we're not considering Loot to be here as those

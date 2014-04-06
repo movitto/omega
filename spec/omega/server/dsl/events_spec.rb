@@ -6,7 +6,7 @@
 require 'spec_helper'
 require 'omega/server/dsl/events'
 
-#require 'missions/event_handler'
+require 'manufactured/events'
 
 module Omega
 module Server
@@ -172,6 +172,31 @@ describe DSL do
     it "subscribes to node closed event"
     context "on node closed" do
       it "invokes registered callback"
+    end
+  end
+
+  describe "#subsystem" do
+    it "returns subsystem request is running in" do
+      should_receive(:rjr_env).and_return(Omega::Server)
+      subsystem.should == Omega
+    end
+  end
+
+  describe "#subsystem_event?" do
+    context "specified event is found in subsystem events" do
+      it "returns true" do
+        event = Manufactured::Events.constants.first
+        event = Manufactured::Events.const_get(event)
+        should_receive(:subsystem).and_return(Manufactured)
+        subsystem_event?(event::TYPE).should be_true
+      end
+    end
+
+    context "specified event is not found in subsystem events" do
+      it "returns false" do
+        should_receive(:subsystem).and_return(Manufactured)
+        subsystem_event?('invalid').should be_false
+      end
     end
   end
 end # describe DSL
