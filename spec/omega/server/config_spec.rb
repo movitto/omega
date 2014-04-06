@@ -40,7 +40,7 @@ describe Omega::Config do
 
   it "should set config on specified classes" do
     conf  = Omega::Config.new
-    receiver = mock(Object, :set_config => conf)
+    receiver = double(Object, :set_config => conf)
     conf.set_config([receiver])
   end
 end

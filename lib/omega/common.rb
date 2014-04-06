@@ -3,6 +3,8 @@
 # Copyright (C) 2011-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO rename to core_ext
+
 class Object
   def numeric?
     self.kind_of?(Numeric)
