@@ -33,9 +33,9 @@ module Manufactured::RJR
       st = create(:valid_station)
 
       @s.node.should_receive(:invoke).
-         with('motel::get_location', 'with_id', sh.location.id)
+         with('motel::get_location', 'with_id', sh.location.id, 'children', false)
       @s.node.should_receive(:invoke).
-         with('motel::get_location', 'with_id', st.location.id)
+         with('motel::get_location', 'with_id', st.location.id, 'children', false)
       @s.get_entities
     end
 

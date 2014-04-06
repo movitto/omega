@@ -400,7 +400,7 @@ describe Stats do
     context "entities" do
       it "returns system ids sorted by number of entities in them" do
         @node.should_receive(:invoke).
-              with('manufactured::get_entities').
+              with('manufactured::get_entities', 'select', ['system_id']).
               and_return(@entities)
         @node.should_receive(:invoke).at_least(:once).and_return([])
 
@@ -412,10 +412,13 @@ describe Stats do
         sys2 = build(:solar_system)
 
         @node.should_receive(:invoke).
-              with('manufactured::get_entities').and_return([])
+              with('manufactured::get_entities',
+                   'select', ['system_id']).
+              and_return([])
         @node.should_receive(:invoke).
               with('cosmos::get_entities', 'of_type',
-                   'Cosmos::Entities::SolarSystem', 'children', false).
+                   'Cosmos::Entities::SolarSystem', 'children', false,
+                   'select', ['id']).
               and_return([sys1, sys2])
 
         @stat.generate('entities').value.should == [sys1.id, sys2.id]
@@ -425,7 +428,7 @@ describe Stats do
     context "num to return not specified" do
       it "returns array of all system ids" do
         @node.should_receive(:invoke).
-              with('manufactured::get_entities').
+              with('manufactured::get_entities', 'select', ['system_id']).
               and_return(@entities)
         @node.should_receive(:invoke).at_least(:once).and_return([])
 
@@ -436,7 +439,7 @@ describe Stats do
     context "num to return specified" do
       it "returns array of first n user ids" do
         @node.should_receive(:invoke).
-              with('manufactured::get_entities').
+              with('manufactured::get_entities', 'select', ['system_id']).
               and_return(@entities)
         @node.should_receive(:invoke).at_least(:once).and_return([])
 
