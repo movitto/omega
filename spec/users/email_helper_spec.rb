@@ -22,7 +22,7 @@ module Users::RJR
           EmailHelper.smtp_host = 'foobar'
           EmailHelper.smtp_from_address = 'f@rom'
           EmailHelper.email_enabled = true
-          smtp = stub(Object)
+          smtp = double(Object)
           smtp.should_receive(:send_message).
                  with("msg", "f@rom", "t@o")
           Net::SMTP.should_receive(:start).with('foobar').and_yield(smtp)

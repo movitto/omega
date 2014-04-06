@@ -18,14 +18,14 @@ module Omega::Client
   describe HasLocation do
     before(:each) do
       @h = OmegaTest::HasLocation.new
-      @h.entity = stub(Object, :location => stub(Object))
-      @h.entity.location.stub(:id).and_return(42)
+      @h.entity = double(Object, :location => double(Object))
 
       OmegaTest::HasLocation.node.rjr_node = @n
     end
 
     describe "#location" do
       it "retrieves location from server" do
+        @h.entity.location.should_receive(:id).and_return(42)
         @h.node.should_receive(:invoke).
                 with('motel::get_location', 'with_id', 42).and_return(:loc)
         @h.location.should == :loc
@@ -37,12 +37,14 @@ module Omega::Client
     end
 
     it "creates subscribes client to motel::track_movement" do
+      @h.entity.location.should_receive(:id).and_return(42)
       @h.node.should_receive(:invoke).
               with('motel::track_movement', 42, 10)
       @h.handle(:movement, 10)
     end
 
     it "creates handles motel::on_movement notifications" do
+      @h.entity.location.should_receive(:id).and_return(42)
       @h.node.should_receive(:invoke).
               with('motel::track_movement', 42, 10)
       @h.handle(:movement, 10)

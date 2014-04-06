@@ -40,7 +40,7 @@ module Users::RJR
     context "recaptcha not valid" do
       it "raises ArgumentError" do
         Users::RJR.recaptcha_enabled = true
-        http = stub(Object)
+        http = double(Object)
         http.should_receive(:body_str).and_return("false anything else")
         Curl::Easy.should_receive(:http_post).and_return(http)
 

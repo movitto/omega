@@ -68,7 +68,7 @@ module Omega::Client
 
     describe "#method_missing" do
       it "dispatches everything to tracked entity" do
-        e = stub(:Object)
+        e = double(:Object)
         e.should_receive :foobar
         @t.entity = e
         @t.foobar
@@ -179,7 +179,7 @@ module Omega::Client
       end
 
       it "registers subscription base setup method" do
-        e = stub(Object)
+        e = double(Object)
         e.should_receive(:id).and_return(42)
         @t.entity = e
 
@@ -206,7 +206,7 @@ module Omega::Client
 
       context "notification handler invoked" do
         before(:each) do
-          e = stub(Object)
+          e = double(Object)
           @t.entity = e
         end
 

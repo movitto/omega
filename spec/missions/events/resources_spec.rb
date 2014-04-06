@@ -25,7 +25,7 @@ describe PopulateResource do
         @e.resource = :random
 
         rs = [1,2,3]
-        @e.stub!(:rand).with(3).and_return(1)
+        @e.should_receive(:rand).with(3).and_return(1)
         rs.should_receive(:[]).with(1).and_return(@r)
         @e.from_resources = rs
 
@@ -41,7 +41,7 @@ describe PopulateResource do
         @e.entity = :random
 
         as = [1,2,3]
-        @e.stub!(:rand).with(3).and_return(1)
+        @e.should_receive(:rand).with(3).and_return(1)
         as.should_receive(:[]).with(1).and_return(@a)
         @e.from_entities = as
 
@@ -56,7 +56,7 @@ describe PopulateResource do
         Missions::RJR.node.should_receive(:invoke) # stub out invoke
 
         @e.quantity = :random
-        @e.stub!(:rand).
+        @e.should_receive(:rand).
                with(PopulateResource::DEFAULT_QUANTITY).
                and_return(42)
 

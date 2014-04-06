@@ -126,8 +126,8 @@ module Omega::Client
 
     describe "#solar_system" do
       it "retrieves system from the server" do
-        @i.entity = stub(Object)
-        @i.entity.stub(:parent_id).and_return('system1')
+        @i.entity = double(Object)
+        @i.entity.should_receive(:parent_id).and_return('system1')
         SolarSystem.should_receive(:cached).with('system1')
         @i.solar_system
       end
@@ -252,7 +252,7 @@ module Omega::Client
     describe "#stop_moving" do
       before(:each) do
         @l = build(:location)
-        @i.stub(:id).and_return(42)
+        @i.should_receive(:id).at_least(:once).and_return(42)
       end
 
       it "invokes manufactured::stop_entity" do

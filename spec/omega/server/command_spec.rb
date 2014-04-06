@@ -170,8 +170,8 @@ end # describe Command
 describe CommandHelpers do
   before(:each) do
     @ch = OpenStruct.new.extend(CommandHelpers)
-    @ch.registry = stub()
-    @ch.node = stub()
+    @ch.registry = double()
+    @ch.node = double()
   end
 
   describe "#update_registry" do
@@ -193,12 +193,12 @@ describe CommandHelpers do
 
   describe "run callbacks" do
     it "runs callbacks on registry entity" do
-      e1 = stub(:id => 42)
-      e2 = stub(:id => 43)
+      e1 = double(:id => 42)
+      e2 = double(:id => 43)
       @ch.registry.should_receive(:safe_exec).and_yield([e1,e2])
 
       e1.should_receive(:run_callbacks).with(:abc)
-      entity = stub(:id => 42)
+      entity = double(:id => 42)
       @ch.run_callbacks entity, :abc
     end
   end
