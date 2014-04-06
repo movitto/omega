@@ -246,7 +246,7 @@ describe DSL do
   end
 
   describe "#check_attribute", :rjr => true do
-    MAL = Users::Attributes::MissionAgentLevel.id
+    mal = Users::Attributes::MissionAgentLevel.id
 
     before(:each) do
       # login so as to be able to access user attributes
@@ -263,34 +263,34 @@ describe DSL do
       it "returns false" do
         check_attribute(:node    => @n,
                         :user_id => @anon.id,
-                        :attribute_id => MAL).should be_false
+                        :attribute_id => mal).should be_false
       end
     end
 
     context "user has attribute" do
       it "returns true" do
-        add_attribute @anon.id, MAL, 6
+        add_attribute @anon.id, mal, 6
         check_attribute(:node    => @n,
                         :user_id => @anon.id,
-                        :attribute_id => MAL).should be_true
+                        :attribute_id => mal).should be_true
       end
     end
 
     it "takes optional level to check" do
-      add_attribute @anon.id, MAL, 6
+      add_attribute @anon.id, mal, 6
       check_attribute(:node    => @n,
                       :user_id => @anon.id,
-                      :attribute_id => MAL,
+                      :attribute_id => mal,
                       :level   => 10).should be_false
       check_attribute(:node    => @n,
                       :user_id => @anon.id,
-                      :attribute_id => MAL,
+                      :attribute_id => mal,
                       :level   => 5).should be_true
     end
   end
 
   describe "#require_attribute", :rjr => true do
-    MAL = Users::Attributes::MissionAgentLevel.id
+    mal = Users::Attributes::MissionAgentLevel.id
 
     before(:each) do
       # login so as to be able to access user attributes
@@ -308,35 +308,35 @@ describe DSL do
         lambda {
           require_attribute(:node    => @n,
                             :user_id => @anon.id,
-                            :attribute_id => MAL)
+                            :attribute_id => mal)
         }.should raise_error(PermissionError)
       end
     end
 
     context "user has attribute" do
       it "does not raise error" do
-        add_attribute @anon.id, MAL, 6
+        add_attribute @anon.id, mal, 6
         lambda {
           require_attribute(:node    => @n,
                             :user_id => @anon.id,
-                            :attribute_id => MAL)
+                            :attribute_id => mal)
         }.should_not raise_error
       end
     end
 
     it "takes optional level to check" do
-      add_attribute @anon.id, MAL, 6
+      add_attribute @anon.id, mal, 6
       lambda {
         require_attribute(:node    => @n,
                           :user_id => @anon.id,
-                          :attribute_id => MAL,
+                          :attribute_id => mal,
                           :level   => 10)
       }.should raise_error(PermissionError)
 
       lambda {
         require_attribute(:node    => @n,
                           :user_id => @anon.id,
-                          :attribute_id => MAL,
+                          :attribute_id => mal,
                           :level   => 5)
       }.should_not raise_error
     end
