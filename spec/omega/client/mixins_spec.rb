@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO split along module lines
+
 require 'ostruct'
 require 'spec_helper'
 require 'omega/client/mixins'
