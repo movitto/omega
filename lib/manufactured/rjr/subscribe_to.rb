@@ -39,7 +39,7 @@ module Manufactured::RJR
       entity_id, event_type = *args
 
       entity = registry.entity &with_id(entity_id)
-      raise DataNotFound, entity_id unless subsystem_entity?(entity)
+      raise DataNotFound, entity_id unless subscribable_entity?(entity)
 
       subscribe_to_entity_event entity_id, event_type, endpoint_id
 

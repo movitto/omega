@@ -4,6 +4,8 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO split up into seperate modules
+
 require 'omega/server/proxy'
 require 'manufactured/rjr/init'
 require 'manufactured/events/system_jump'

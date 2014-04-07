@@ -25,7 +25,7 @@ module Manufactured::RJR
 
       # retrieve/validate entity
       entity = registry.entity &with_id(entity_id)
-      raise DataNotFound, entity_id unless subsystem_entity?(entity)
+      raise DataNotFound, entity_id unless subscribable_entity?(entity)
 
       # require view on entity
       require_privilege :registry => user_registry, :any =>

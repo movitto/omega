@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'manufactured/rjr/subscribe_to/subsystem_events'
+require 'manufactured/events/system_jump'
 
 module Manufactured::RJR
   describe "#subscribe_to_subsystem_event", :rjr => true do
@@ -47,6 +48,7 @@ module Manufactured::RJR
         # need to setup the required rjr context manually
         @rjr_callback = @n
         @rjr_headers  = @n.message_headers
+        should_receive(:rjr_env).at_least(:once).and_return(Manufactured::RJR)
       end
 
       context "insufficient permissions on an event arg" do
