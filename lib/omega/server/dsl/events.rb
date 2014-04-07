@@ -97,24 +97,6 @@ module Omega
           cb.call(node)
         }
       end
-
-      # Return subsystem which request is running in.
-      #
-      # Extracts from rjr environment, assumes all Omega
-      # RJR requests are served in the <subsystem>::RJR
-      # environment.
-      #
-      # TODO move into another dsl module?
-      def subsystem
-        rjr_env.parent
-      end
-
-      # Return bool indicating if event type corresponds to a subsystem event
-      def subsystem_event?(event_type)
-        subsystem::Events.module_classes.any? { |event_class|
-          event_class::TYPE.to_s == event_type.to_s
-        }
-      end
     end # module DSL
   end # module Server
 end # module Omega
