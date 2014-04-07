@@ -3,14 +3,6 @@
 # Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# FIXME resolve entity state transition edge cases:
-#       (perhaps centralized mechanism here?)
-# ship states:
-#  docked/attacking/defendending/mining/
-#  transferring/collecting/moving/jumping/alive/dead
-# station states:
-#  transferring/constructing/jumping/with ships docked
-
 require 'omega/server/registry'
 require 'omega/server/command'
 require 'manufactured/ship'
