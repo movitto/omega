@@ -7,6 +7,7 @@ require 'rjr/common'
 require 'users/session'
 require 'omega/server/registry'
 require 'omega/server/event'
+require 'omega/server/event_handler'
 
 module Users
 

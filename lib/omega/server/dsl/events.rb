@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/server/event_handler'
+
 module Omega
   module Server
     module DSL

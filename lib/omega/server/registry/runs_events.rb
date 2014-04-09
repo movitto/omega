@@ -4,6 +4,8 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/server/event'
+require 'omega/server/events'
+require 'omega/server/event_handler'
 
 module Omega
 module Server

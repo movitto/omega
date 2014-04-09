@@ -5,6 +5,7 @@
 
 require 'omega/server/registry'
 require 'omega/server/event'
+require 'omega/server/event_handler'
 
 require 'missions/rjr/init'
 require 'missions/mission'

@@ -6,6 +6,7 @@
 require 'omega'
 require 'omega/client/node'
 require 'omega/resources'
+require 'omega/server/events/periodic'
 
 module Omega
   module Client
