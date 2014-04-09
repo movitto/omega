@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 require 'omega'
-require 'omega/client/entities/ship'
+require 'omega/client/entities/miner'
 require 'omega/client/entities/station'
 
 include Omega::Client

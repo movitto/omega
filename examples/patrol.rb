@@ -8,7 +8,7 @@ require 'colored'
 
 require 'omega'
 require 'omega/client/dsl'
-require 'omega/client/entities/ship'
+require 'omega/client/entities/corvette'
 require 'omega/client/entities/user'
 require 'rjr/nodes/tcp'
 
