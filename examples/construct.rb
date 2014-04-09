@@ -9,7 +9,7 @@ require 'colored'
 
 require 'omega'
 require 'omega/client/dsl'
-require 'omega/client/entities/station'
+require 'omega/client/entities/factory'
 require 'rjr/nodes/tcp'
 
 include Omega::Client::DSL

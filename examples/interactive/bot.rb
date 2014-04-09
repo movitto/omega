@@ -2,7 +2,7 @@
 
 require 'omega'
 require 'omega/client/entities/miner'
-require 'omega/client/entities/station'
+require 'omega/client/entities/factory'
 
 include Omega::Client
 
