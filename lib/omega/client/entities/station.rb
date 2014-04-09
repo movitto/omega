@@ -5,7 +5,8 @@
 
 require 'omega/client/mixins'
 require 'omega/client/entities/location'
-require 'omega/client/entities/cosmos'
+require 'omega/client/entities/in_system'
+require 'omega/client/entities/has_cargo'
 require 'manufactured/station'
 
 module Omega

@@ -14,7 +14,7 @@ require 'active_support/core_ext/string/filters'
 
 require 'omega'
 require 'omega/client/entities/user'
-require 'omega/client/entities/cosmos'
+require 'omega/client/entities/galaxy'
 require 'omega/client/entities/ship'
 require 'omega/client/entities/station'
 require 'rjr/nodes/amqp'

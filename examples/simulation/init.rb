@@ -9,7 +9,7 @@
 require 'rubygems'
 
 require 'omega/client/dsl'
-require 'omega/client/entities/cosmos'
+require 'omega/client/entities/solar_system'
 require 'rjr/nodes/amqp'
 require 'motel/location'
 require 'motel/movement_strategies/elliptical'
