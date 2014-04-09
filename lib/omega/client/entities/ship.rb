@@ -3,13 +3,6 @@
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-# TODO event rate throttling mechanisms:
-#   - after threshold only process 1 out of every n events in raise_event
-#   - flush queue if max events reached in raise_event
-#   - delay new request until events go below threshold in invoke_request
-#   - stop running actions on server side until queue is completed, then restart
-#   - overwrite pending entity events w/ new events of the same type
-
 require 'omega/client/mixins'
 require 'omega/client/entities/location'
 require 'omega/client/entities/cosmos'
