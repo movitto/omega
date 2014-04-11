@@ -15,6 +15,7 @@ module Omega
     # Omega client Manufactured::Ship tracker
     class Ship
       include Trackable
+      include TrackEvents
       include TrackEntity
       include TrackState
       include HasLocation

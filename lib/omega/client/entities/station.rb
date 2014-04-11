@@ -14,6 +14,7 @@ module Omega
     # Omega client Manufactured::Station tracker
     class Station
       include Trackable
+      include TrackEvents
       include TrackEntity
       include HasLocation
       include InSystem

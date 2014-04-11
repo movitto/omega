@@ -10,6 +10,7 @@ require 'omega/client/entities/location'
 module OmegaTest
   class HasLocation
     include Omega::Client::Trackable
+    include Omega::Client::TrackEvents
     include Omega::Client::HasLocation
   end
 end

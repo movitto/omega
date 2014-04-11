@@ -10,6 +10,7 @@ require 'omega/client/entities/has_cargo'
 module OmegaTest
   class HasCargo
     include Omega::Client::Trackable
+    include Omega::Client::TrackEvents
     include Omega::Client::HasCargo
   end
 end

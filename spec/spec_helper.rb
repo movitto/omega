@@ -347,6 +347,7 @@ module OmegaTest
 
   class Trackable
     include Omega::Client::Trackable
+    include Omega::Client::TrackEvents
     include Omega::Client::TrackState
     include Omega::Client::TrackEntity
     entity_type Manufactured::Ship
@@ -378,6 +379,7 @@ module OmegaTest
 
   class Trackable1
     include Omega::Client::Trackable
+    include Omega::Client::TrackEvents
     include Omega::Client::TrackEntity
     entity_type Manufactured::Station
     get_method "manufactured::get_entity"

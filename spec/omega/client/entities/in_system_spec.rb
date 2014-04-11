@@ -11,6 +11,7 @@ require 'omega/client/entities/station'
 module OmegaTest
   class InSystem
     include Omega::Client::Trackable
+    include Omega::Client::TrackEvents
     include Omega::Client::InSystem
   end
 end
