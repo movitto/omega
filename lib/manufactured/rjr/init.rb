@@ -168,6 +168,8 @@ def dispatch_manufactured_rjr_init(dispatcher)
   rjr.node.dispatcher = dispatcher
   rjr.node.dispatcher.env /manufactured::.*/, Manufactured::RJR
   rjr.node.dispatcher.add_module('manufactured/rjr/create')
+  rjr.node.dispatcher.add_module('manufactured/rjr/construct')
+  rjr.node.dispatcher.add_module('manufactured/rjr/validate')
   rjr.node.dispatcher.add_module('manufactured/rjr/get')
   rjr.node.dispatcher.add_module('manufactured/rjr/state')
   rjr.node.dispatcher.add_module('manufactured/rjr/subscribe_to')

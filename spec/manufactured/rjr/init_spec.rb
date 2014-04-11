@@ -176,6 +176,8 @@ module Manufactured::RJR
 
     it "adds manufactured rjr modules to dispatcher" do
       @d.should_receive(:add_module).with('manufactured/rjr/create')
+      @d.should_receive(:add_module).with('manufactured/rjr/construct')
+      @d.should_receive(:add_module).with('manufactured/rjr/validate')
       @d.should_receive(:add_module).with('manufactured/rjr/get')
       @d.should_receive(:add_module).with('manufactured/rjr/state')
       @d.should_receive(:add_module).with('manufactured/rjr/subscribe_to')
