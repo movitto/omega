@@ -50,8 +50,8 @@ module Omega::Client
       end
 
       it "starts listening for destroyed_by events" do
+        @c.should_receive(:handle).with(:destroyed_by)
         @c.start_bot
-        @c.handles?(:destroyed_by).should be_true
       end
 
       it "starts patrol route" do

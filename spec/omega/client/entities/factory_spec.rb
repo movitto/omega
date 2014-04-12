@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'omega/client/entities/factory'
+require 'omega/client/entities/solar_system'
 
 module Omega::Client
   describe Factory, :rjr => true do

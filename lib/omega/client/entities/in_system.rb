@@ -3,8 +3,6 @@
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'omega/client/entities/solar_system'
-
 module Omega
   module Client
     # Include the InSystem module in classes to define
@@ -28,6 +26,9 @@ module Omega
       #
       # @return [Cosmos::Entities::SolarSystem]
       def solar_system
+        # XXX don't like having require here,
+        # but avoids a load time circular dep
+        require 'omega/client/entities/solar_system'
         SolarSystem.cached(self.entity.parent_id)
       end
 
