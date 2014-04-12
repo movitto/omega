@@ -99,7 +99,11 @@ module Manufactured::RJR
       d.handlers.keys.should include("manufactured::remove_callbacks")
     end
 
-    it "adds manufactured::unsubscribe to dispatcher"
+    it "adds manufactured::unsubscribe to dispatcher" do
+      d = ::RJR::Dispatcher.new
+      dispatch_manufactured_rjr_remove_callbacks(d)
+      d.handles?('manufactured::unsubscribe').should be_true
+    end
   end
 
 end # module Manufactured::RJR

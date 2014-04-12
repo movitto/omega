@@ -5,6 +5,7 @@
 
 require 'spec_helper'
 require 'omega/server/dsl/events'
+require 'omega/server/dsl/events'
 
 module Omega
 module Server
@@ -167,9 +168,23 @@ describe DSL do
   end
 
   describe "#handle_node_closed" do
-    it "subscribes to node closed event"
+    before(:each) do
+      @node = RJR::Node.new
+    end
+
+    it "subscribes to node closed event" do
+      @node.should_receive(:on).with(:closed)
+      handle_node_closed @node
+    end
+
     context "on node closed" do
-      it "invokes registered callback"
+      it "invokes registered callback" do
+        cb = proc {}
+        handle_node_closed @node, &cb
+
+        cb.should_receive(:call).with(@node)
+        node.send :connection_event, :closed
+      end
     end
   end
 end # describe DSL

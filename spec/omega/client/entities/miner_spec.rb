@@ -71,7 +71,12 @@ module Omega::Client
         @r.mine @rs
       end
 
-      it "updates local entity"
+      it "updates local entity" do
+        sh = create(:ship)
+        @n.should_receive(:invoke).and_return(sh)
+        @r.mine @rs
+        @r.entity.should == sh
+      end
     end
 
     describe "#start_bot" do
@@ -80,7 +85,11 @@ module Omega::Client
         @r = Miner.get(s.id)
       end
 
-      it "starts listening for resource_collected events"
+      it "starts listening for resource_collected events" do
+        @r.should_receive(:handle).with(:resource_collected)
+        @r.should_receive(:handle).at_least(:once)
+        @r.start_bot
+      end
 
       it "adds mining stopped handler" do
         @r.event_handlers[:mining_stopped].size.should == 0
@@ -120,8 +129,29 @@ module Omega::Client
       end
 
       context "station is nil" do
-        it "raises :no_stations event"
-        it "returns"
+        before(:each) do
+          @r.should_receive(:closest).with(:station).and_return([])
+        end
+
+        it "raises :no_stations event" do
+          @r.should_receive(:raise_event).with(:no_stations)
+          @r.offload_resources
+        end
+
+        it "does not transfer" do
+          @r.should_not_receive(:transfer_all_to)
+          @r.offload_resources
+        end
+
+        it "does not select target" do
+          @r.should_not_receive(:select_target)
+          @r.offload_resources
+        end
+
+        it "does not move" do
+          @r.should_not_receive(:move)
+          @r.offload_resources
+        end
       end
 
       context "closest station is within transfer distance" do

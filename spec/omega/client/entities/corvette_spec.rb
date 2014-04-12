@@ -49,7 +49,10 @@ module Omega::Client
         @c = Corvette.get(c.id)
       end
 
-      it "starts listening for destroyed_by events"
+      it "starts listening for destroyed_by events" do
+        @c.start_bot
+        @c.handles?(:destroyed_by).should be_true
+      end
 
       it "starts patrol route" do
         @c.should_receive(:patrol_route)
