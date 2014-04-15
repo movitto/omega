@@ -8,14 +8,6 @@ require 'manufactured/rjr/create'
 require 'rjr/dispatcher'
 
 module Manufactured::RJR
-  describe "#validate_user_attributes" do
-    context "user has maximum number of entities" do
-      it "returns false"
-    end
-
-    it "returns true"
-  end
-
   describe "#create_entity", :rjr => true do
     include Omega::Server::DSL # for with_id below
 
@@ -83,7 +75,20 @@ module Manufactured::RJR
       end
 
       context "user has maximum number of entities" do
-        it "raises PermissionError"
+        it "raises PermissionError" do
+          enable_attributes {
+            s = build_ship
+
+            attr = Users::Attributes::EntityManagementLevel
+            Users::RJR.registry.safe_exec { |entities|
+              entities.find(&with_id(s.user_id)).attribute(attr.id).level = 0
+            }
+
+            lambda {
+              @s.create_entity(s)
+            }.should raise_error(PermissionError)
+          }
+        end
       end
 
       [[:movement_speed,   Users::Attributes::PilotLevel.id   ],

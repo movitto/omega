@@ -343,7 +343,8 @@ class Ship
                          :transfer_distance    => 200,
                          :collection_distance  => 300,
                          :shield_level         =>   0,
-                         :hp                   => nil
+                         :hp                   => nil,
+                         :distance_moved       =>   0
 
     @location.orientation = [0,0,1] if @location.orientation == [nil, nil, nil]
     @location.movement_strategy =
@@ -541,6 +542,7 @@ class Ship
          :type => type, :size => size,
          :hp => @hp, :shield_level => @shield_level,
          :max_hp => @max_hp, :max_shield_level => @max_shield_level,
+         :distance_moved => @distance_moved,
          :cargo_capacity => @cargo_capacity,
          :attack_distance => @attack_distance,
          :mining_distance => @mining_distance,

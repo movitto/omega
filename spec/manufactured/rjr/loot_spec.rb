@@ -122,7 +122,14 @@ module Manufactured::RJR
         end
       end
 
-      it "updates loot collected user attribute"
+      it "updates loot collected user attribute" do
+        enable_attributes {
+          @s.collect_loot @sh.id, @lt.id
+          Users::RJR.registry.entity(&with_id(@sh.user_id)).
+            attribute(Users::Attributes::LootCollected.id).
+            total.should == @rs.quantity
+        }
+      end
 
       it "returns ship" do
         r = @s.collect_loot @sh.id, @lt.id

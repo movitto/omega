@@ -5,13 +5,12 @@
 
 require 'spec_helper'
 require 'omega/client/entities/corvette'
+require 'omega/client/entities/solar_system'
 
 module Omega::Client
   describe Corvette, :rjr => true do
     before(:each) do
       Omega::Client::Corvette.node.rjr_node = @n
-      @m = Omega::Client::Corvette.new
-
       setup_manufactured(nil, reload_super_admin)
     end
 
@@ -26,7 +25,23 @@ module Omega::Client
     end
 
     context "initialization" do
-      it "starts async corvette proximity checker"
+      before(:each) do
+        @c = Omega::Client::Corvette.new
+        @orig = @c.class.class_variable_get(:@@proximity_thread)
+        @c.class.class_variable_set(:@@proximity_thread, nil)
+      end
+
+      after(:each) do
+        @c.class.class_variable_set(:@@proximity_thread, @c)
+      end
+
+      it "starts async corvette proximity checker" do
+        t = Object.new
+        Thread.should_receive(:new).and_return(t)
+        @c.class.send :init_entity, @c
+        @c.class.class_variable_get(:@@proximity_thread).should == t
+      end
+
       it "periodically checks proximity for all local corvettes"
     end
 
@@ -65,8 +80,8 @@ module Omega::Client
         @sys1 = create(:solar_system)
         @sys2 = create(:solar_system)
         @sys3 = create(:solar_system)
-        jg1 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys2)
-        jg2 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys3)
+        @jg1 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys2)
+        @jg2 = create(:jump_gate, :solar_system => @sys1, :endpoint => @sys3)
 
         c = create(:valid_ship, :type => :corvette, :solar_system => @sys1)
         @c = Corvette.get(c.id)
@@ -99,15 +114,60 @@ module Omega::Client
       end
 
       context "no jump gates to systems not visited found twice in a row" do
-        it "raises patrol_err event"
-        it "returns, terminating patrol route"
+        it "raises patrol_err event" do
+          @c.solar_system.should_receive(:jump_gates).twice.and_return([])
+          @c.should_receive(:raise_event).with(:patrol_err)
+          @c.patrol_route
+          @c.instance_variable_get(:@patrol_err).should be_true
+        end
+
+        it "returns, terminating patrol route" do
+          @c.solar_system.should_receive(:jump_gates).twice.and_return([])
+          @c.should_receive(:patrol_route).twice.and_call_original
+          @c.patrol_route
+        end
       end
 
-      it "raises selected_system event"
+      it "raises selected_system event" do
+        @c.should_receive(:raise_event).with { |e,s,j|
+          e.should == :selected_system
+          s.should == @sys2.id
+          j.id.should == @jg1.id
+        }
+        @c.patrol_route
+      end
+
+      it "clears patrol err" do
+        @c.instance_variable_set(:@patrol_err, true)
+        @c.patrol_route
+        @c.instance_variable_get(:@patrol_err).should be_false
+      end
 
       context "jump gate within triggering distance" do
-        it "jumps to next system"
-        it "continues patrol route"
+        it "jumps to next system" do
+          @c.location = @jg1.location
+          @c.should_receive(:jump_to).
+            with(Omega::Client::SolarSystem.cached(@sys2.id)).
+            and_raise(Exception) # XXX raise exception to prevent partol_route recursion
+          begin
+            @c.patrol_route
+          rescue Exception
+          end
+        end
+
+        it "continues patrol route" do
+          @c.location = @jg1.location
+          @c.should_receive(:patrol_route).once.and_call_original
+          @c.stub(:jump_to) {
+            @c.rspec_reset
+            @c.should_receive(:patrol_route).
+              and_raise(Exception) # XXX raise exception to prevent infinite recursion
+          }
+          begin
+            @c.patrol_route
+          rescue Exception
+          end
+        end
       end
 
       context "jump gate not within triggering distance" do
@@ -139,7 +199,10 @@ module Omega::Client
         @c = Corvette.get(c.id)
       end
 
-      it "retrieves entities in same system as ship"
+      it "retrieves entities in same system as ship" do
+        @c.solar_system.should_receive(:entities).and_return([])
+        @c.check_proximity
+      end
 
       context "ship beloning to other user within attacking distance" do
         before(:each) do
@@ -149,8 +212,20 @@ module Omega::Client
                                    :location => l, :solar_system => @c.solar_system)
         end
 
-        context "already attacking or not alive" do
-          it "skips attack"
+        context "already attacking" do
+          it "skips attack" do
+            @c.should_receive(:attacking?).and_return(true)
+            @c.should_not_receive(:attack)
+            @c.check_proximity
+          end
+        end
+
+        context "not alive" do
+          it "skips attack" do
+            @c.should_receive(:alive?).and_return(false)
+            @c.should_not_receive(:attack)
+            @c.check_proximity
+          end
         end
 
         it "stops moving" do
@@ -164,7 +239,11 @@ module Omega::Client
         end
 
         context "already handling attacked_stop" do
-          it "does not register another attacked_stop handler"
+          it "does not register another attacked_stop handler" do
+            @c.instance_variable_set(:@check_proximity_handler, true)
+            @c.should_not_receive(:handle)
+            @c.check_proximity
+          end
         end
 
         it "attacks ship" do

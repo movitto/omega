@@ -10,7 +10,6 @@ module Omega::Client
   describe Miner, :rjr => true do
     before(:each) do
       Omega::Client::Miner.node.rjr_node = @n
-      @m = Omega::Client::Miner.new
 
       setup_manufactured(nil, reload_super_admin)
     end
@@ -22,6 +21,90 @@ module Omega::Client
         r = Miner.get_all
         r.size.should == 1
         r.first.id.should == s1.id
+      end
+    end
+
+    describe "resource_collected event" do
+      before(:each) do
+        @m = Omega::Client::Miner.new
+        @m.entity = build(:ship)
+      end
+
+      it "subscribes to manufactured::subscribe_to event" do
+        @m.node.should_receive(:invoke).
+          with('manufactured::subscribe_to', @m.id, :resource_collected)
+        @m.handle(:resource_collected)
+      end
+
+      it "listens for manufactured::event_occurred event" do
+        @m.node.stub(:invoke)
+        @m.node.should_receive(:handle).with('manufactured::event_occurred')
+        @m.handle(:resource_collected)
+      end
+
+      it "adds resources to local entity" do
+        res = build(:resource)
+        @m.node.stub(:invoke)
+        @m.handle(:resource_collected)
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['resource_collected', @m, res, 50]
+        @m.resources.size.should == 1
+        @m.resources.first.should == res
+      end
+
+      it "matches 'resource_collected <entity_id>'" do
+        res = build(:resource)
+        @m.node.stub(:invoke)
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['foo_bar', @m, res, 50]
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['resource_collected', build(:ship), res, 50]
+        @m.resources.should be_empty
+      end
+    end
+
+    describe "mining_stopped event" do
+      before(:each) do
+        @m = Omega::Client::Miner.new
+        @m.entity = build(:ship)
+      end
+
+      it "subscribes to manufactured::subscribe_to event" do
+        @m.node.should_receive(:invoke).
+          with('manufactured::subscribe_to', @m.id, :mining_stopped)
+        @m.handle(:mining_stopped)
+      end
+
+      it "listens for manufactured::event_occurred event" do
+        @m.node.stub(:invoke)
+        @m.node.should_receive(:handle).with('manufactured::event_occurred')
+        @m.handle(:mining_stopped)
+      end
+
+      it "invokes entity.stop_mining" do
+        res = build(:resource)
+        @m.node.stub(:invoke)
+        @m.handle(:mining_stopped)
+        @m.entity.should_receive(:stop_mining)
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['mining_stopped', @m]
+      end
+
+      it "matches 'mining_stopped <entity_id>'" do
+        res = build(:resource)
+        @m.node.stub(:invoke)
+        @m.handle(:mining_stopped)
+        @m.entity.should_not_receive(:stop_mining)
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['foo_bar', @m]
+        @m.node.rjr_node.dispatcher.dispatch \
+          :rjr_method => 'manufactured::event_occurred',
+          :rjr_method_args => ['mining_stopped', build(:ship)]
       end
     end
 
@@ -60,10 +143,6 @@ module Omega::Client
         s = create(:valid_ship, :type => :mining)
         @rs = create(:resource)
         @r = Miner.get(s.id)
-      end
-
-      context "resource collected" do
-        it "TODO"
       end
 
       it "invokes manufactured::start_mining" do
@@ -164,11 +243,30 @@ module Omega::Client
         end
 
         context "error during transfer" do
-          it "refreshes stations"
-          it "retries resource offloading twice"
+          it "refreshes stations" do
+            s = create(:valid_station, :location => @r.location)
+            @r.should_receive(:closest).with(:station).at_least(:once).and_return([s])
+            @r.should_receive(:transfer_all_to).at_least(:once).and_raise(Exception)
+            Omega::Client::Station.should_receive(:refresh).at_least(:once)
+            @r.offload_resources
+          end
+
+          it "retries resource offloading twice" do
+            s = create(:valid_station, :location => @r.location)
+            @r.should_receive(:closest).with(:station).at_least(:once).and_return([s])
+            @r.should_receive(:transfer_all_to).at_least(:once).and_raise(Exception)
+            @r.should_receive(:offload_resources).exactly(3).times.and_call_original
+            @r.offload_resources
+          end
+
           context "all transfer retries fail" do
-            it "raises transfer_err event"
-            it "returns"
+            it "raises transfer_err event" do
+              s = create(:valid_station, :location => @r.location)
+              @r.should_receive(:closest).with(:station).at_least(:once).and_return([s])
+              @r.should_receive(:transfer_all_to).at_least(:once).and_raise(Exception)
+              @r.should_receive(:raise_event).with(:transfer_err, s)
+              @r.offload_resources
+            end
           end
         end
 
@@ -215,10 +313,6 @@ module Omega::Client
           @r.should_receive(:select_target)
           @r.raise_event(:movement)
         end
-      end
-
-      context "error during resource transfer" do
-        it "retries offload_resources"
       end
     end
 

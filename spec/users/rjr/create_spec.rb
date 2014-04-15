@@ -86,7 +86,12 @@ module Users::RJR
       end
     end
 
-    it "sets up base user attributes"
+    it "sets up base user attributes" do
+      new_user = build(:user)
+      @s.create_user(new_user)
+      @registry.entity(&with_id(new_user.id)).
+        attribute(Attributes::EntityManagementLevel.id).total.should == 5
+    end
 
     it "creates new user and user-role in registry" do
       new_user = build(:user)

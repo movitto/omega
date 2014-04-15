@@ -77,6 +77,8 @@ module Manufactured::RJR
   end
 
   describe "#motel_event", :rjr => true do
+    include Omega::Server::DSL # for with_id below
+
     before(:each) do
       setup_manufactured  :CALLBACK_METHODS
 
@@ -100,7 +102,19 @@ module Manufactured::RJR
       end
     end
 
-    it "updates use DistanceTravelled attribute"
+    it "updates use DistanceTravelled attribute" do
+      enable_attributes {
+        ms = Motel::MovementStrategies::Linear.new :speed => 1
+        @sh.distance_moved = 500.1
+        @sh.location.movement_strategy = ms
+        @registry.update @sh, &with_id(@sh.id)
+
+        @s.motel_event @sh.location
+        Users::RJR.registry.entity(&with_id(@sh.user_id)).
+          attribute(Users::Attributes::DistanceTravelled.id).
+          total.should == 500.1
+      }
+    end
 
     it "sets next movement strategy" do
       lin = Motel::MovementStrategies::Linear.new :speed => 1

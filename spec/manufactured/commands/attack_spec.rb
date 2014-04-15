@@ -183,7 +183,14 @@ describe Attack, :rjr => true do
         @a.last_hook
       end
 
-      it "adds new entity destroyed event to registry"
+      it "adds new entity destroyed event to registry" do
+        lambda {
+          @a.last_hook
+        }.should change{@registry.entities.size}.by(1)
+        event = @registry.entities.last
+        event.should be_an_instance_of(Manufactured::Events::EntityDestroyed)
+        event.entity.id.should == @a.defender.id
+      end
 
       context "defender has cargo" do
         before(:each) do

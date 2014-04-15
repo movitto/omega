@@ -333,6 +333,8 @@ describe Mining, :rjr => true do
   end
 
   describe "#run!" do
+    include Omega::Server::DSL # for with_id below
+
     before(:each) do
       setup_manufactured
 
@@ -390,7 +392,14 @@ describe Mining, :rjr => true do
       @m.run!
     end
 
-    it "updates resources collected user attribute"
+    it "updates resources collected user attribute" do
+      enable_attributes {
+        @m.run!
+        Users::RJR.registry.entity(&with_id(@s.user_id)).
+          attribute(Users::Attributes::ResourcesCollected.id).
+          total.should == @s.mining_quantity
+      }
+    end
   end
 
   describe "#remove?" do

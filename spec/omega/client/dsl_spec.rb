@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO split up along client dsl module boundries
+
 require 'spec_helper'
 require 'omega/client/dsl'
 
@@ -478,7 +480,16 @@ describe DSL, :rjr => true do
     end
 
     describe "#join" do
-      it "joins worker threads"
+      it "joins worker threads" do
+        worker1 = Object.new
+        worker2 = Object.new
+        @b.workers << worker1
+        @b.workers << worker2
+
+        worker1.should_receive(:join)
+        worker2.should_receive(:join)
+        @b.join
+      end
     end
 
     describe "#run" do
@@ -486,9 +497,22 @@ describe DSL, :rjr => true do
         it "runs block in new workers thread"
       end
 
-      it "sets instance variables"
-      it "runs block"
-      it "unsets instance variables"
+      it "sets instance variables from specified attrs" do
+        bl = proc { @foo.should == :bar }
+        @b.run [], :foo => :bar, &bl
+      end
+
+      it "resets specified instance variables" do
+        @b.run [], :foo => :bar
+        @b.instance_variable_get(:@foo).should be_nil
+      end
+
+      it "runs block" do
+        called = false
+        bl = proc { called = true}
+        @b.run [], &bl
+        called.should be_true
+      end
     end
   end
 

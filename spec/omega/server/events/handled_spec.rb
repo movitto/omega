@@ -9,7 +9,19 @@ require 'omega/server/events/handled'
 module Omega
 module Server
   describe HandledEvent do
-    it "TODO"
+    it "adds handle_event to event handlers" do
+      event = HandledEvent.new
+      event.handlers.size.should == 1
+      event.should_receive(:handle_event)
+      event.invoke
+    end
+
+    describe "#handlers_json" do
+      it "excludes handle_event from handlers" do
+        event = HandledEvent.new
+        event.handlers_json.should == {:handlers => []}
+      end
+    end
   end
 end # module Server
 end # module Omega

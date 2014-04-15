@@ -79,8 +79,6 @@ module Omega::Client
     end
 
     describe "#start_construction" do
-      it "generates new id"
-
       context "station cannot construct entity" do
         it "does nothing" do
           @f.should_receive(:can_construct?).and_return(false)
@@ -95,6 +93,12 @@ module Omega::Client
           @f.should_receive :construct
           @f.start_construction
         end
+      end
+
+      it "generates new id" do
+        @f.should_receive(:can_construct?).and_return(true)
+        @f.should_receive(:construct).with { |e| e[:id].should =~ UUID_PATTERN }
+        @f.start_construction
       end
     end
 
@@ -130,7 +134,29 @@ module Omega::Client
     end
 
     describe "#construction_args" do
-      it "generates construction arguments from entity type"
+      context "entity type is 'factory'" do
+        it "returns manufacturing station init args" do
+          expected = {:entity_type => 'Station', :type  => :manufacturing}
+          @f.entity_type 'factory'
+          @f.construction_args.should == expected
+        end
+      end
+
+      context "entity type is 'miner'" do
+        it "returns mining init args" do
+          expected = {:entity_type => 'Ship', :type  => :mining}
+          @f.entity_type 'miner'
+          @f.construction_args.should == expected
+        end
+      end
+
+      context "entity type is 'corvette'" do
+        it "returns corvette init args" do
+          expected = {:entity_type => 'Ship', :type  => :corvette}
+          @f.entity_type 'corvette'
+          @f.construction_args.should == expected
+        end
+      end
     end
   end
 end # module Omega::Client

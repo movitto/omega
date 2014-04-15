@@ -15,7 +15,11 @@ module Omega::Client
 
     describe "#destroyed" do
       context "entity not alive" do
-        it "clears event handlers"
+        it "clears event handlers" do
+          @s.should_receive(:clear_handlers)
+          @s.class.send :init_entity, @s
+          @s.set_state(:destroyed)
+        end
       end
     end
 
@@ -47,7 +51,15 @@ module Omega::Client
         @s.collect_loot(l)
       end
 
-      it "updates local entity"
+      it "updates local entity" do
+        s = build(:ship)
+        @s.stub(:id).and_return(42)
+        @s.node.should_receive(:invoke).and_return(s)
+
+        l = build(:loot)
+        @s.collect_loot(l)
+        @s.entity.should == s
+      end
     end
   end # describe Ship
 end # module Omega::Client
