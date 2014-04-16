@@ -88,8 +88,11 @@ Omega.OrbitHelpers = {
     this.rot_axis = {};
     this.rot_axis.angle = Omega.Math.abwn(nmaj[0],  nmaj[1],  nmaj[2],
                                           ms.dmajx, ms.dmajy, ms.dmajz);
-    this.rot_axis.axis = Omega.Math.cp(nmaj[0],  nmaj[1],  nmaj[2],
-                                       ms.dmajx, ms.dmajy, ms.dmajz);
+    if(this.rot_axis.angle == 0)
+      this.rot_axis.axis = [0,1,0];
+    else
+      this.rot_axis.axis = Omega.Math.cp(nmaj[0],  nmaj[1],  nmaj[2],
+                                         ms.dmajx, ms.dmajy, ms.dmajz);
     this.rot_axis.axis = Omega.Math.nrml(this.rot_axis.axis[0],
                                          this.rot_axis.axis[1],
                                          this.rot_axis.axis[2]);

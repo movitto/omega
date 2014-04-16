@@ -270,9 +270,12 @@ Omega.Math = {
   
     // axis rotation
     var nmaj = rot(1,0,0,ab1,ax1[0],ax1[1],ax1[2]);
-    var ab2 = abwn(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
-    var ax2 = cp(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
-        ax2 = nrml(ax2[0],ax2[1],ax2[2]);
+    var ab2  = abwn(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+
+             var ax2;
+    if(ab2 == 0) ax2 = [0,1,0];
+    else         ax2 = cp(nmaj[0],nmaj[1],nmaj[2],ms.dmajx,ms.dmajy,ms.dmajz);
+                 ax2 = nrml(ax2[0],ax2[1],ax2[2]);
 
     // path
     for(var i = 0; i < 2 * Math.PI; i += (Math.PI / 180)){

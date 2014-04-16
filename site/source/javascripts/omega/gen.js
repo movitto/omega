@@ -61,16 +61,14 @@ Omega.Gen = {
                      opts);
   },
 
-  asteroid_belt : function(ms){
+  asteroid_belt : function(ms, num){
     var locs  = [];
+    if(!num) num = 30;
     var path  = Omega.Math.elliptical_path(ms);
-    var nlocs = Math.floor(path.length / 30);
-    for(var l = 0; l < 30; l++){
-      var pp  = path[nlocs * l];
-      locs.push(Omega.Gen.loc_from_coords(pp));
-    }
-
-    return Omega.Gen.asteroid_field(ui, locs);
+    var scale = Math.floor(path.length / num);
+    for(var l = 0; l < num; l++)
+      locs.push(new Omega.Location().set(path[scale * l]));
+    return Omega.Gen.asteroid_field(locs);
   },
 
   asteroid_field : function(locations){

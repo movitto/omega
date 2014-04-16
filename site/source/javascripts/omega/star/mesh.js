@@ -34,9 +34,11 @@ Omega.StarMesh.prototype = {
 };
 
 Omega.StarGeometry = {
+  radius : 750,
+
   load : function(){
     /// each star instance should override radius in the geometry instance
-    var radius = 750, segments = 32, rings = 32;
-    return new THREE.SphereGeometry(radius, segments, rings);
+    var segments = 32, rings = 32;
+    return new THREE.SphereGeometry(this.radius, segments, rings);
   }
 }

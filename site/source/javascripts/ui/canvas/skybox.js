@@ -17,13 +17,13 @@ Omega.UI.CanvasSkybox = function(parameters){
 
 Omega.UI.CanvasSkybox.prototype = {
   id : 'canvas_skybox',
+  size : 32768,
 
   load_gfx : function(){
     if(typeof(Omega.UI.CanvasSkybox.gfx) !== 'undefined') return;
     Omega.UI.CanvasSkybox.gfx = {};
 
-    var size = 32768;
-    var geo  = new THREE.CubeGeometry(size, size, size, 7, 7, 7);
+    var geo  = new THREE.CubeGeometry(this.size, this.size, this.size, 7, 7, 7);
 
     var shader = $.extend(true, {}, THREE.ShaderLib["cube"]); // deep copy needed
     var material = new THREE.ShaderMaterial({
