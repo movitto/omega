@@ -25,7 +25,9 @@ Omega.UI.CanvasEntitiesManager = {
   },
 
   // Add specified entity to scene
-  add : function(entity){
+  add : function(entity, scene){
+    if(typeof(scene) === "undefined") scene = this.scene;
+
     /// XXX hacky but works for now:
     var _this = this;
     entity.sceneReload = function(evnt) { 
@@ -36,9 +38,7 @@ Omega.UI.CanvasEntitiesManager = {
 
     entity.init_gfx(this.page.config, function(evnt){ _this._init_gfx(); });
     for(var cc = 0; cc < entity.components.length; cc++)
-      this.scene.add(entity.components[cc]);
-    for(var cc = 0; cc < entity.shader_components.length; cc++)
-      this.shader_scene.add(entity.shader_components[cc]);
+      scene.add(entity.components[cc]);
 
     if(this.page.effects_player)
       this.page.effects_player.add(entity);
@@ -46,11 +46,11 @@ Omega.UI.CanvasEntitiesManager = {
   },
 
   // Remove specified entity from scene
-  remove : function(entity){
+  remove : function(entity, scene){
+    if(typeof(scene) === "undefined") scene = this.scene;
+
     for(var cc = 0; cc < entity.components.length; cc++)
-      this.scene.remove(entity.components[cc]);
-    for(var cc = 0; cc < entity.shader_components.length; cc++)
-      this.shader_scene.remove(entity.shader_components[cc]);
+      scene.remove(entity.components[cc]);
 
     /// remove event listener
     entity.removeEventListener('loaded_mesh', entity.sceneReload);
@@ -62,27 +62,30 @@ Omega.UI.CanvasEntitiesManager = {
   },
 
   // Remove entity from scene, invoke callback, readd entity to scene
-  reload : function(entity, cb){
+  reload : function(entity, scene, cb){
+    if(typeof(scene) === "undefined")
+      scene = this.scene;
+    else if(typeof(cb) === "undefined" && typeof(scene) === "function"){
+      cb = scene;
+      scene = this.scene;
+    }
+
     var in_scene = this.has(entity.id);
-    this.remove(entity);
+    this.remove(entity, scene);
     if(cb) cb(entity);
-    if(in_scene) this.add(entity);
+    if(in_scene) this.add(entity, scene);
   },
 
   // Clear entities from the scene
-  clear : function(){
+  clear : function(scene){
+    if(typeof(scene) === "undefined") scene = this.scene;
+
     this.root = null;
     this.entities = [];
     this.following_loc = null;
-    var scene_components =
-      this.scene ? this.scene.getDescendants() : [];
-    var shader_scene_components =
-      this.shader_scene ? this.shader_scene.getDescendants() : [];
-
+    var scene_components = scene ? scene.getDescendants() : [];
     for(var c = 0; c < scene_components.length; c++)
-      this.scene.remove(scene_components[c]);
-    for(var c = 0; c < shader_scene_components.length; c++)
-      this.shader_scene.remove(shader_scene_components[c]);
+      scene.remove(scene_components[c]);
   },
 
   /// return bool indicating if canvas has entity

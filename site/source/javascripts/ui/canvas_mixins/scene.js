@@ -7,13 +7,39 @@
 //= require 'vendor/stats.min'
 
 Omega.UI.CanvasSceneManager = {
-  /// Setup Canvas 3D operations
-  //
-  /// TODO simplify, currently don't need shader scene & bloom pass,
-  ///      simplifies alot of things
-  setup : function(){
-    var _this    = this;
+  render_params : {
+	  minFilter     : THREE.LinearFilter,
+    magFilter     : THREE.LinearFilter,
+    format        : THREE.RGBFormat,
+    stencilBuffer : false
+  },
 
+  ui_props : {
+    wpadding : 22,
+    hpadding : 26
+  },
+
+  cam_props : {
+    min_distance :   100,
+    max_distance : 14000
+  },
+
+  render_stats : true,
+
+  /// Setup Canvas 3D operations
+  setup : function(){
+    this._setup_stats();
+    this._setup_scenes();
+    this._setup_renderer();
+    this._setup_cams();
+    this._setup_components();
+
+    THREEx.WindowResize(this.renderer, this.cam,
+                        this.ui_props.wpadding,
+                        this.ui_props.hpadding);
+  },
+
+  _setup_stats : function(){
     if(this.render_stats){
       this.stats = new Stats();
       this.stats.setMode(0);
@@ -22,70 +48,50 @@ Omega.UI.CanvasSceneManager = {
     }else{
       this.stats = {update : function(){}};
     }
+  },
 
-    this.scene = new THREE.Scene();
-    this.shader_scene = new THREE.Scene();
+  _setup_scenes : function(){
+    this.scene    = new THREE.Scene();
+    this.skyScene = new THREE.Scene();
+  },
 
-    /// TODO configurable renderer:
-    //this.renderer = new THREE.CanvasRenderer({canvas: });
-    this.renderer = new THREE.WebGLRenderer({antialias : true});
-
+  _setup_renderer : function(){
     var sw = window.innerWidth  - this.ui_props.wpadding,
         sh = window.innerHeight - this.ui_props.hpadding;
+
+    this.renderer = new THREE.WebGLRenderer({antialias : true});
     this.renderer.setSize(sw, sh);
-
-	  this.renderTarget =
-      new THREE.WebGLRenderTarget(sw, sh, this.render_params);
-
-    this.composer =
-      new THREE.EffectComposer(this.renderer, this.renderTarget);
-    this.shader_composer =
-      new THREE.EffectComposer(this.renderer, this.renderTarget);
-
-    this.canvas.append(this.renderer.domElement);
-
-    var aspect = sw / sh;
-    if(isNaN(aspect)) aspect = 1;
-
-    // TODO configuable camera
-    //this.cam = new THREE.OrthographicCamera(-500, 500, 500, -500, -1000, 1000);
-    this.cam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
-
-    this.shader_cam = this.cam.clone();
-    this.shader_cam.position = this.cam.position;
-    this.shader_cam.rotation = this.cam.rotation;
-
-    // TODO configurable controls
-    //this.cam_controls = new THREE.TrackballControls(cam);
-    this.cam_controls = new THREE.OrbitControls(this.cam);
-    this.cam_controls.minDistance =   100;
-    //this.cam_controls.maxDistance = 14000;
-    this.cam_controls.addEventListener('change', function(){ _this.render(); });
-
-    // TODO clear existing passes?
-    var render_pass         = new THREE.RenderPass(this.scene, this.cam);
-    var shader_render_pass  = new THREE.RenderPass(this.shader_scene, this.shader_cam);
-    var bloom_pass          = new THREE.BloomPass(1.25);
-    //var film_pass           = new THREE.FilmPass(0.35, 0.95, 2048, false);
-
-    this.blender_pass       = new THREE.ShaderPass(THREE.AdditiveBlendShader, "tDiffuse1" );
-    this.blender_pass.uniforms[ 'tDiffuse2' ].value = this.shader_composer.renderTarget2;
-    this.blender_pass.renderToScreen = true;
-
-    this.shader_composer.addPass(shader_render_pass);
-    this.composer.addPass(render_pass);
-    //this.composer.addPass(bloom_pass);
-    this.composer.addPass(this.blender_pass);
 
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 0.0);
 
+    this.canvas.append(this.renderer.domElement);
+  },
+
+  _setup_cams : function(){
+    var sw = window.innerWidth  - this.ui_props.wpadding,
+        sh = window.innerHeight - this.ui_props.hpadding;
+    var aspect = sw / sh;
+    if(isNaN(aspect)) aspect = 1;
+
+    this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
+    this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
+
+    this._setup_cam_controls();
+  },
+
+  _setup_cam_controls : function(){
+    var _this = this;
+    this.cam_controls = new THREE.OrbitControls(this.cam);
+    this.cam_controls.minDistance = this.cam_props.min_distance;
+    this.cam_controls.maxDistance = this.cam_props.max_distance;;
+    this.cam_controls.addEventListener('change', function(){ _this.render(); });
     this.cam_controls.domElement = this.renderer.domElement;
     this.reset_cam();
+  },
 
-    THREEx.WindowResize(this.renderer, this.cam,
-                        this.ui_props.wpadding, this.ui_props.hpadding);
-
+  _setup_components : function(){
+    var _this = this;
     this.skybox.init_gfx();
     this.axis.init_gfx();
     this.star_dust.init_gfx(this.page.config, function(){ _this._init_gfx(); });
@@ -105,9 +111,11 @@ Omega.UI.CanvasSceneManager = {
   // Render scene (used internally, no need to invoke manually)
   render : function(){
     this.renderer.clear();
-    this.shader_composer.render();
-    this.composer.render();
+    this.skyCam.rotation.setFromRotationMatrix(
+      new THREE.Matrix4().extractRotation(this.cam.matrixWorld ),
+      this.skyCam.eulerOrder);
+    this.renderer.render(this.skyScene, this.skyCam);
+    this.renderer.render(this.scene, this.cam);
     this.stats.update();
-    //this.renderer.render(this.scene, this.cam);
   }
 };

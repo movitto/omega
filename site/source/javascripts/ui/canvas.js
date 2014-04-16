@@ -40,20 +40,6 @@ Omega.UI.Canvas = function(parameters){
 };
 
 Omega.UI.Canvas.prototype = {
-  render_params : {
-	  minFilter     : THREE.LinearFilter,
-    magFilter     : THREE.LinearFilter,
-    format        : THREE.RGBFormat,
-    stencilBuffer : false
-  },
-
-  ui_props : {
-    wpadding : 22,
-    hpadding : 26
-  },
-
-  render_stats : true,
-
   /// Wire up canvas DOM component
   wire_up : function(){
     this.wire_up_mouse();

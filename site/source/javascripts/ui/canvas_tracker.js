@@ -85,7 +85,7 @@ Omega.UI.CanvasTracker = {
 
     /// add skybox to scene
     if(!this.canvas.has(this.canvas.skybox.id))
-      this.canvas.add(this.canvas.skybox);
+      this.canvas.add(this.canvas.skybox, this.skyScene);
 
     /// add star dust to scene
     if(!this.canvas.has(this.canvas.star_dust.id))

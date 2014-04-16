@@ -121,14 +121,7 @@ describe("Omega.UI.Canvas", function(){
     it("has a renderer", function(){
       var canvas = Omega.Test.Canvas();
       assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
-      assert(canvas.renderTarget).isOfType(THREE.WebGLRenderTarget);
     });
-
-    it("has two effects composers", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.composer).isOfType(THREE.EffectComposer);
-      assert(canvas.shader_composer).isOfType(THREE.EffectComposer);
-    })
 
     it("has a perspective camera", function(){
       var canvas = Omega.Test.Canvas();
@@ -138,21 +131,6 @@ describe("Omega.UI.Canvas", function(){
     it("has orbit controls", function(){
       var canvas = Omega.Test.Canvas();
       assert(canvas.cam_controls).isOfType(THREE.OrbitControls);
-    });
-
-    it("adds render pass to shader composer", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.shader_composer.passes.length).equals(1);
-      assert(canvas.shader_composer.passes[0]).isOfType(THREE.RenderPass);
-    })
-
-    it("adds a render/shader passes to composer", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.composer.passes.length).equals(2);
-      assert(canvas.composer.passes[0]).isOfType(THREE.RenderPass);
-      assert(canvas.composer.passes[1]).isOfType(THREE.ShaderPass);
-      //assert(canvas.composer.passes[1]); // TODO verify ShaderPass pulls in ShaderComposer via AdditiveBlending
-      assert(canvas.composer.passes[1].renderToScreen).isTrue();
     });
 
     it("sets camera controls dom element to renderer dom element", function(){
@@ -355,13 +333,6 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.scene.getDescendants()).includes(mesh);
     });
 
-    it("adds entity shader components to shader scene", function(){
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({shader_components: [mesh]});
-      canvas.add(star);
-      assert(canvas.shader_scene.getDescendants()).includes(mesh);
-    });
-
     it("wires up loaded_mesh event handler", function(){
       var star   = new Omega.Star({});
       assert(star).doesNotHandleEvent('loaded_mesh');
@@ -415,14 +386,6 @@ describe("Omega.UI.Canvas", function(){
       canvas.add(star);
       canvas.remove(star);
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh);
-    });
-
-    it("removes entity shader components from shader scene", function(){
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({shader_components: [mesh]});
-      canvas.add(star);
-      canvas.remove(star);
-      assert(canvas.shader_scene.getDescendants()).doesNotInclude(mesh);
     });
 
     it("removes loaded_mesh event handler", function(){
@@ -509,16 +472,15 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.entities).isSameAs([]);
     });
 
-    it("clears all components from all scenes", function(){
+    it("clears all components from scene", function(){
       var mesh1  = new THREE.Mesh();
       var mesh2  = new THREE.Mesh();
-      var star   = new Omega.Star({components        : [mesh1],
-                                   shader_components : [mesh2]});
+      var star   = new Omega.Star({components : [mesh1]});
+
       var canvas = Omega.Test.Canvas();
       canvas.add(star);
       canvas.clear();
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh1);
-      assert(canvas.shader_scene.getDescendants()).doesNotInclude(mesh2);
     });
   });
 
