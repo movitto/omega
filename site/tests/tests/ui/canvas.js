@@ -1,3 +1,4 @@
+/// TODO split into seperate modules along mixin boundries
 pavlov.specify("Omega.UI.Canvas", function(){
 describe("Omega.UI.Canvas", function(){
   var canvas;
