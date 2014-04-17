@@ -11,7 +11,16 @@
  * Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/constraint"
+
 Omega.Gen = {
+  init : function(config, cb){
+    var constraints_url = "http://" + config.http_host +
+                          config.url_prefix +
+                          config.constraints;
+    Omega.Constraint.load(constraints_url, cb);
+  },
+
   next_id : function(){
     if(!Omega.Gen._next_id) Omega.Gen._next_id = 0;
     Omega.Gen._next_id += 1;
@@ -61,13 +70,19 @@ Omega.Gen = {
                      opts);
   },
 
-  asteroid_belt : function(ms, num){
+  asteroid_belt : function(opts){
+    if(!opts)     opts     = {};
+    if(!opts.num) opts.num = 30;
+    if(!opts.ms)  opts.ms  = this.orbit_ms({'for' : 'asteroid_belt'});
+
     var locs  = [];
-    if(!num) num = 30;
+    var ms    = opts.ms;
+    var num   = opts.num;
     var path  = Omega.Math.elliptical_path(ms);
     var scale = Math.floor(path.length / num);
     for(var l = 0; l < num; l++)
       locs.push(new Omega.Location().set(path[scale * l]));
+
     return Omega.Gen.asteroid_field(locs);
   },
 
@@ -82,13 +97,14 @@ Omega.Gen = {
   },
 
   asteroid : function(opts){
-    if(!opts) opts = {};
+    if(!opts)    opts = {};
     if(!opts.id) opts.id = 'ast' + this.next_id();
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location){
+      var loc = Omega.Constraint.gen('asteroid', 'position');
+          loc = Omega.Constraint.rand_invert(loc);
+      opts.location = new Omega.Location(loc);
+    }
+
     return new Omega.Asteroid(opts);
   },
 
@@ -96,14 +112,12 @@ Omega.Gen = {
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'jg' + this.next_id();
     if(!opts.trigger_distance) opts.trigger_distance = 300;
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
-    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
-    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
-    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
+    if(!opts.location){
+      var loc = Omega.Constraint.gen('system_entity', 'position');
+          loc = Omega.Constraint.rand_invert(loc);
+      opts.location = new Omega.Location(loc);
+    }
+
     return new Omega.JumpGate(opts);
   },
 
@@ -113,17 +127,14 @@ Omega.Gen = {
     if(!opts.type) opts.type = 'corvette';
     if(!opts.hp) opts.hp = 10;
     if(!opts.max_hp) opts.max_hp = 10;
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
-    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
-    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
-    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
-    if(!opts.location.movement_strategy)
+    if(!opts.location){
+      var loc = Omega.Constraint.gen('system_entity', 'position');
+          loc = Omega.Constraint.rand_invert(loc);
+      opts.location = new Omega.Location(loc);
+      opts.location.set_orientation(0,0,1);
       opts.location.movement_strategy =
-        {json_class : 'Motel::MovementStrategies::Stopped'};
+        {json_class : 'Motel::MovementStrategies::Stopped'}
+    }
 
     return new Omega.Ship(opts);
   },
@@ -132,17 +143,13 @@ Omega.Gen = {
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'station' + this.next_id();
     if(!opts.type) opts.type = 'manufacturing';
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
-    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
-    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
-    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
-    if(!opts.location.movement_strategy)
+    if(!opts.location){
+      var loc = Omega.Constraint.gen('system_entity', 'position');
+          loc = Omega.Constraint.rand_invert(loc);
+      opts.location = new Omega.Location(loc);
       opts.location.movement_strategy =
-        {json_class : 'Motel::MovementStrategies::Stopped'};
+        {json_class : 'Motel::MovementStrategies::Stopped'}
+    }
 
     return new Omega.Station(opts);
   },
@@ -164,11 +171,9 @@ Omega.Gen = {
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'galaxy' + this.next_id();
 
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location){
+      opts.location = new Omega.Location({x:0,y:0,z:0});
+    }
 
     return new Omega.Galaxy(opts);
   },
@@ -176,20 +181,34 @@ Omega.Gen = {
   solar_system : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'system' + this.next_id();
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
+    if(!opts.location){
+      var loc = Omega.Constraint.gen('system', 'position');
+          loc = Omega.Constraint.rand_invert(loc);
+      opts.location = new Omega.Location(loc);
+    }
 
     return new Omega.SolarSystem(opts);
   },
 
   orbit_ms : function(opts){
     if(!opts) opts = {};
+
     var ms = {e : 0, p : 10, speed: 1.57,
-              dmajx: 0, dmajy : 1, dmajz : 0,
+              dmajx: 1, dmajy : 0, dmajz : 0,
               dminx: 0, dminy : 0, dminz : 1};
+
+    if(opts['for']){
+      var entity = opts['for'];
+      var e = Omega.Constraint.gen(entity, 'e');
+      if(e) opts.e = e;
+
+      var p = Omega.Constraint.gen(entity, 'p');
+      if(p) opts.p = p;
+
+      var speed = Omega.Constraint.gen(entity, 'speed');
+      if(speed) opts.speed = speed;
+    }
+
     $.extend(ms, opts);
     return ms;
   },
@@ -197,16 +216,15 @@ Omega.Gen = {
   planet : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'planet' + this.next_id();
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
-    if(!opts.location.orientation_x) opts.location.orientation_x = 0;
-    if(!opts.location.orientation_y) opts.location.orientation_y = 0;
-    if(!opts.location.orientation_z) opts.location.orientation_z = 1;
+    if(!opts.size) opts.size = Omega.Constraint.gen('planet', 'size');
+    if(!opts.color) opts.color = Omega.Constraint.gen('planet', 'color')
+    if(!opts.location){
+      var loc_opts = {x: 0, y: 0, z: 0};
+      opts.location = new Omega.Location(loc_opts);
+      opts.location.set_orientation(0,0,1);
+    }
     if(!opts.location.movement_strategy)
-      opts.location.movement_strategy = this.orbit_ms();
+      opts.location.movement_strategy = this.orbit_ms({'for' : 'planet'});
 
     return new Omega.Planet(opts);
   },
@@ -214,13 +232,13 @@ Omega.Gen = {
   star : function(opts){
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'star' + this.next_id();
-    if(!opts.location)
-      opts.location = new Omega.Location();
-    if(!opts.location.x) opts.location.x = 0;
-    if(!opts.location.y) opts.location.y = 0;
-    if(!opts.location.z) opts.location.z = 0;
-    if(!opts.location.movement_strategy)
-      {json_class : 'Motel::MovementStrategies::Stopped'};
+    if(!opts.size) opts.size = Omega.Constraint.gen('star', 'size');
+
+    if(!opts.location){
+      var loc_opts = {x: 0, y: 0, z: 0, movement_strategy:
+                     {json_class : 'Motel::MovementStrategies::Stopped'}};
+      opts.location = new Omega.Location(loc_opts);
+    }
 
     return new Omega.Star(opts);
   },

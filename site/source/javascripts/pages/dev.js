@@ -39,13 +39,15 @@ Omega.Pages.Dev.prototype = {
     this.canvas.cam.position.set(1500, 1500, 1500);
     this.canvas.focus_on({x:0,y:0,z:0});
 
-    this.custom_operations();
+    Omega.Gen.init(this.config, function(){
+      _this.custom_operations();
+    });
 
     var light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
     this.canvas.scene.add(light);
 
     this.canvas.skybox.set(1, this.config, function(){_this.canvas.animate();})
-    this.canvas.add(this.canvas.skybox);
+    this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
 
     this.canvas.animate();
   },

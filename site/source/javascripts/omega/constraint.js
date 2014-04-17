@@ -20,6 +20,9 @@ Omega.Constraint = {
 
   _get : function(target){
     var current = this._json;
+    if(!current)
+      throw "Entity constraints are null, call Omega.Constraint.load(url, cb)";
+
     for(var t = 0; t < target.length; t++){
       current = current[target[t]];
       if(typeof(current) === "undefined") return null;

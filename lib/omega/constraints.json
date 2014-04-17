@@ -1,19 +1,19 @@
 {
   "system": {
-    "position":          { "x" : 0, "y" : 0, "z" : 0 },
-    "positionDeviation": { "x" : 0, "y" : 0, "z" : 0 },
+    "position":          { "x" : 4000, "y" : 1000, "z" : 4000 },
+    "positionDeviation": { "x" : 3000, "y" :  750, "z" : 3000 },
     "positionScale": {
-      "min":             { "x" : 0, "y" : 0, "z" : 0},
-      "max":             { "x" : 0, "y" : 0, "z" : 0}
+      "min":             { "x" : 1000, "y" :   0, "z" : 1000},
+      "max":             { "x" : 2500, "y" : 250, "z" : 2500}
     }
   },
 
   "star": {
-    "size":           0,
-    "sizeDeviation":  0,
+    "size":           1000000,
+    "sizeDeviation":   700000,
     "sizeScale": {
-      "min":          0,
-      "max":          0
+      "min":          200,
+      "max":          300
     }
   },
 
@@ -27,23 +27,23 @@
   },
 
   "asteroid_belt" : {
-    "p":              0,
-    "pDeviation":     0,
+    "p":              1862500000,
+    "pDeviation":     1812500000,
     "pScale": {
-      "min":          0,
-      "max":          0
+      "min":          1000,
+      "max":          5000
     },
 
-    "e":              0,
-    "eDeviation":     0
+    "e":              0.18,
+    "eDeviation":     0.16
   },
 
   "planet": {
-    "size":          0,
-    "sizeDeviation": 0,
+    "size":           100000,
+    "sizeDeviation":   70000,
     "sizeScale": {
-      "min":          0,
-      "max":          0
+      "min":          20,
+      "max":          30
     },
 
     "p":              3700000000,
@@ -53,16 +53,22 @@
       "max":          10000
     },
 
-    "e":             0.13,
-    "eDeviation":    0.07
+    "e":              0.13,
+    "eDeviation":     0.07,
+
+    "speed":          0.02,
+    "speedDeviation": 0.01,
+
+    "color":          2,
+    "colorDeviation": 2
   },
 
   "system_entity": {
-    "position":          { "x" : 0, "y" : 0, "z" : 0 },
-    "positionDeviation": { "x" : 0, "y" : 0, "z" : 0 },
+    "position":          { "x" : 5000000, "y" : 100, "z" : 5000000 },
+    "positionDeviation": { "x" : 4999000, "y" : 100, "z" : 4999000 },
     "positionScale": {
-      "min":             { "x" : 0, "y" : 0, "z" : 0},
-      "max":             { "x" : 0, "y" : 0, "z" : 0}
+      "min":             { "x" : 2000, "y" :   0, "z" : 2000},
+      "max":             { "x" : 6000, "y" : 100, "z" : 6000}
     }
   }
 }
