@@ -1,0 +1,68 @@
+{
+  "system": {
+    "position":          { "x" : 0, "y" : 0, "z" : 0 },
+    "positionDeviation": { "x" : 0, "y" : 0, "z" : 0 },
+    "positionScale": {
+      "min":             { "x" : 0, "y" : 0, "z" : 0},
+      "max":             { "x" : 0, "y" : 0, "z" : 0}
+    }
+  },
+
+  "star": {
+    "size":           0,
+    "sizeDeviation":  0,
+    "sizeScale": {
+      "min":          0,
+      "max":          0
+    }
+  },
+
+  "asteroid": {
+    "position":          { "x" : 200000000, "y" :  50, "z" : 200000000 },
+    "positionDeviation": { "x" : 100000000, "y" :  50, "z" : 100000000 },
+    "positionScale": {
+      "min":             { "x" : 2000, "y" :   0, "z" : 2000},
+      "max":             { "x" : 6000, "y" : 100, "z" : 6000}
+    }
+  },
+
+  "asteroid_belt" : {
+    "p":              0,
+    "pDeviation":     0,
+    "pScale": {
+      "min":          0,
+      "max":          0
+    },
+
+    "e":              0,
+    "eDeviation":     0
+  },
+
+  "planet": {
+    "size":          0,
+    "sizeDeviation": 0,
+    "sizeScale": {
+      "min":          0,
+      "max":          0
+    },
+
+    "p":              3700000000,
+    "pDeviation":     3650000000,
+    "pScale": {
+      "min":          1000,
+      "max":          10000
+    },
+
+    "e":             0.13,
+    "eDeviation":    0.07
+  },
+
+  "system_entity": {
+    "position":          { "x" : 0, "y" : 0, "z" : 0 },
+    "positionDeviation": { "x" : 0, "y" : 0, "z" : 0 },
+    "positionScale": {
+      "min":             { "x" : 0, "y" : 0, "z" : 0},
+      "max":             { "x" : 0, "y" : 0, "z" : 0}
+    }
+  }
+}
