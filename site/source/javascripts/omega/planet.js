@@ -10,7 +10,7 @@
 //= require 'omega/planet/gfx'
 
 Omega.Planet = function(parameters){
-  this.color = '000000';
+  this.type = 0,
   this.components = [];
   this.shader_components = [];
   $.extend(this, parameters);
@@ -34,17 +34,8 @@ Omega.Planet.prototype = {
             name       : this.name,
             location   : this.location ? this.location.toJSON() : null,
             parent_id  : this.parent_id,
-            color      : this.color,
+            type       : this.type,
             size       : this.size};
-  },
-
-  /// Return the color as an integer.
-  ///
-  /// Since planets are represented graphically via a specified number of
-  /// textures, we only need to support that many planet "colors" and thus
-  /// we mod (%) the Omega Planet color via that value here
-  colori : function(){
-    return parseInt('0x' + this.color) % this._num_textures;
   },
 
   /// Follow planets with camera on click

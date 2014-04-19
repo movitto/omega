@@ -1,8 +1,8 @@
 pavlov.specify("Omega.Star", function(){
 describe("Omega.Star", function(){
-  it("parses color into int", function(){
-    var star = new Omega.Star({color: 'ABABAB'});
-    assert(star.color_int).equals(0xABABAB);
+  it("parses type(color) into int", function(){
+    var star = new Omega.Star({type: 'ABABAB'});
+    assert(star.type_int).equals(0xABABAB);
   });
 
   describe("#toJSON", function(){
@@ -11,7 +11,7 @@ describe("Omega.Star", function(){
                  name        : 'st1n',
                  parent_id   : 'sys1',
                  location    : new Omega.Location({id : 'st1l'}),
-                 color       : 'ABABAB',
+                 type        : 'ABABAB',
                  size        : 100};
 
       var ost  = new Omega.Star(st);
@@ -106,8 +106,8 @@ describe("Omega.Star", function(){
       assert(star.light.position.toArray()).equals(100, -100, 200);
     });
 
-    it("sets light color", function(){
-      var star = new Omega.Star({color: 'ABABCC'});
+    it("sets light type ", function(){
+      var star = new Omega.Star({type : 'ABABCC'});
       star.init_gfx();
       assert(star.light.color.getHex()).equals(0xABABCC);
     });

@@ -217,7 +217,7 @@ Omega.Gen = {
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'planet' + this.next_id();
     if(!opts.size) opts.size = Omega.Constraint.gen('planet', 'size');
-    if(!opts.color) opts.color = Omega.Constraint.gen('planet', 'color')
+    if(!opts.type) opts.type = Math.floor(Omega.Constraint.gen('planet', 'type'));
     if(!opts.location){
       var loc_opts = {x: 0, y: 0, z: 0};
       opts.location = new Omega.Location(loc_opts);

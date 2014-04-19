@@ -37,7 +37,7 @@ Omega.StarGfx = {
 
     this.light = Omega.Star.gfx.light.clone();
     this.light.position = this.mesh.tmesh.position;
-    this.light.color.setHex(this.color_int);
+    this.light.color.setHex(this.type_int);
 
     this.components = [this.glow.tglow, this.mesh.tmesh, this.light];
     this.update_gfx();

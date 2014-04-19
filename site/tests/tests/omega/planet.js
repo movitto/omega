@@ -25,7 +25,7 @@ describe("Omega.Planet", function(){
                  name        : 'pl1n',
                  parent_id   : 'sys1',
                  location    : new Omega.Location({id : 'pl1l'}),
-                 color       : 'ABABAB',
+                 type        :   0,
                  size        : 100};
 
       var opl  = new Omega.Planet(pl);
@@ -34,23 +34,6 @@ describe("Omega.Planet", function(){
       pl.json_class  = opl.json_class;
       pl.location    = pl.location.toJSON();
       assert(json).isSameAs(pl);
-    });
-  });
-
-  describe("#colori", function(){
-    it("returns modulated integer color", function(){
-      var planet = Omega.Gen.planet();
-      planet.color = '000000';
-      assert(planet.colori()).equals(0);
-
-      planet.color = '000001';
-      assert(planet.colori()).equals(1);
-
-      planet.color = planet._num_textures;
-      assert(planet.colori()).equals(0);
-
-      planet.color = planet._num_textures + 1;
-      assert(planet.colori()).equals(1);
     });
   });
 

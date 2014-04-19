@@ -1,7 +1,7 @@
 pavlov.specify("Omega.PlanetMesh", function(){
 describe("Omega.PlanetMesh", function(){
   it("has a THREE.Mesh instance", function(){
-    var planet_mesh = new Omega.PlanetMesh({config: Omega.Config, color: 0});
+    var planet_mesh = new Omega.PlanetMesh({config: Omega.Config, type: 0});
     assert(planet_mesh.tmesh).isOfType(THREE.Mesh);
     assert(planet_mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
     assert(planet_mesh.tmesh.material).isOfType(THREE.MeshLambertMaterial);
@@ -11,7 +11,7 @@ describe("Omega.PlanetMesh", function(){
 pavlov.specify("Omega.PlanetMaterial", function(){
 describe("Omega.PlanetMaterial", function(){
 describe("#load", function(){
-  it("loads texture corresponding to color", function(){
+  it("loads texture corresponding to type", function(){
     var config   = Omega.Config;
     var basepath = 'http://' + config.http_host   +
                                config.url_prefix  +

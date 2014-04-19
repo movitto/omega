@@ -7,12 +7,12 @@
 Omega.PlanetMesh = function(args){
   if(!args) args = {};
   var config   = args['config'];
-  var color    = args['color'];
+  var type     = args['type'];
   var event_cb = args['event_cb'];
   var tmesh    = args['tmesh'];
 
-  if(config && typeof(color) !== "undefined")
-    this.tmesh = this.init_gfx(config, color, event_cb);
+  if(config && typeof(type) !== "undefined")
+    this.tmesh = this.init_gfx(config, type, event_cb);
   else if(tmesh)
     this.tmesh = tmesh;
 
@@ -41,13 +41,13 @@ Omega.PlanetMesh.prototype = {
                                     this.props.rings);
   },
 
-  _material : function(config, color, event_cb){
-    return Omega.PlanetMaterial.load(config, color, event_cb);
+  _material : function(config, type, event_cb){
+    return Omega.PlanetMaterial.load(config, type, event_cb);
   },
 
-  init_gfx : function(config, color, event_cb){
+  init_gfx : function(config, type, event_cb){
     return new THREE.Mesh(this._geometry(),
-                          this._material(config, color, event_cb));
+                          this._material(config, type, event_cb));
   },
 
   _spin_axis : function(){
@@ -84,9 +84,9 @@ Omega.PlanetMesh.prototype = {
 };
 
 Omega.PlanetMaterial = {
-  load : function(config, color, event_cb){
+  load : function(config, type, event_cb){
     var texture =
-      config.resources['planet' + color].material;
+      config.resources['planet' + type].material;
 
     var path =
       config.url_prefix + config.images_path + texture;

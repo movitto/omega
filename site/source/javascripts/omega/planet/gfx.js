@@ -16,22 +16,21 @@ Omega.PlanetGfx = {
 
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
-    var colori = this.colori();
-    return typeof(Omega.Planet.gfx)         !== 'undefined' &&
-           typeof(Omega.Planet.gfx[colori]) !== 'undefined';
+    return typeof(Omega.Planet.gfx)            !== 'undefined' &&
+           typeof(Omega.Planet.gfx[this.type]) !== 'undefined';
   },
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
     if(this.gfx_loaded()) return;
     Omega.Planet.gfx         = Omega.Planet.gfx || {};
-    var colori               = this.colori();
+    var type                 = this.type;
 
     var gfx                  = {};
     gfx.mesh                 = new Omega.PlanetMesh({config: config,
-                                                     color: colori,
+                                                     type: type,
                                                      event_cb: event_cb});
-    Omega.Planet.gfx[colori] = gfx;
+    Omega.Planet.gfx[type] = gfx;
   },
 
   /// True / false if local system gfx have been initialized
@@ -44,11 +43,11 @@ Omega.PlanetGfx = {
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
-    var color = this.colori();
-    this.mesh = Omega.Planet.gfx[color].mesh.clone();
+    var type = this.type;
+    this.mesh = Omega.Planet.gfx[type].mesh.clone();
     this.mesh.omega_entity = this;
     this.mesh.material =
-      new Omega.PlanetMaterial.load(config, color, event_cb);
+      new Omega.PlanetMaterial.load(config, type, event_cb);
     this.tracker_obj = new THREE.Object3D();
     this.update_gfx();
 

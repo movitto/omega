@@ -40,6 +40,7 @@ describe("Omega.PlanetGfx", function(){
       config   = Omega.Config;
       event_cb = function(){};
       planet   = Omega.Gen.planet();
+      planet.type = 0;
     });
 
     after(function(){
@@ -74,7 +75,7 @@ describe("Omega.PlanetGfx", function(){
       load_material.returns(material);
 
       planet.init_gfx(config, event_cb);
-      sinon.assert.calledWith(load_material, config, planet.colori(), event_cb);
+      sinon.assert.calledWith(load_material, config, planet.type, event_cb);
     });
 
     it("updates graphics", function(){
@@ -118,7 +119,9 @@ describe("Omega.PlanetGfx", function(){
     var pl;
 
     before(function(){
-      pl  = Omega.Gen.planet();
+      loc = new Omega.Location({movement_strategy:
+                                Omega.Gen.orbit_ms({e : 0, p : 10})});
+      pl  = Omega.Gen.planet({location : loc});
       pl.location.set(10,0,0);
       pl.location.movement_strategy.dmajx = 0;
       pl.location.movement_strategy.dmajy = 0;

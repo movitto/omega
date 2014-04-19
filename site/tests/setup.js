@@ -365,7 +365,7 @@ Omega.Test.init = function(){
   var loaded = 0, entities_with_resources = [];
   var start_on_load = function(){
     loaded += 1;
-    if(loaded == entities_with_resources.length)
+    if(loaded == entities_with_resources.length+1)
       QUnit.start();
   };
 
@@ -377,6 +377,8 @@ Omega.Test.init = function(){
 
   for(var e = 0; e < entities_with_resources.length; e++)
     entities_with_resources[e].retrieve_resource('mesh', start_on_load);
+
+  Omega.Gen.init(Omega.Config, start_on_load);
 }
 
 /// should be triggered after QUnit.load

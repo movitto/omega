@@ -65,10 +65,10 @@ Omega.UI.Loader = {
     var processed = [];
     for(var r in config.resources){
       if(r.substr(0,6) == 'planet'){
-        var planet = new Omega.Planet({color: "00000" + r[6]});
-        if(processed.indexOf(planet.colori()) == -1){
+        var planet = new Omega.Planet({type: r[6]});
+        if(processed.indexOf(planet.type) == -1){
           planets.push(planet);
-          processed.push(planet.colori());
+          processed.push(planet.type);
         }
       }
     }
