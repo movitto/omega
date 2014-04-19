@@ -28,7 +28,7 @@ class Config
 
    # Omega classes which define the 'set_config' method taking an instance
    # of Omega::Config containing configuration options to set
-   CONFIG_CLASSES = [Cosmos::RJR, Manufactured::RJR,
+   CONFIG_CLASSES = [Cosmos::Entity, Cosmos::RJR, Manufactured::RJR,
                      Missions::RJR, Stats::RJR,
                      Users::RJR, Users::Registry,
                      Users::EmailHelper, Omega::Server::ProxyNode]

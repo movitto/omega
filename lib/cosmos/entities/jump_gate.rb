@@ -15,16 +15,9 @@ module Entities
 # Primarily interacted with by {Manufactured::Ship} instances who
 # require jump gates to travel inbetween systems
 class JumpGate
-  include Cosmos::Entity
   include Cosmos::SystemEntity
 
   CHILD_TYPES = []
-
-  VALIDATE_SIZE  = proc { |s| true }
-  VALIDATE_COLOR = proc { |c| true }
-
-  RAND_SIZE      = proc { 0        }
-  RAND_COLOR     = proc { ''       }
 
   # ID of system which jump gate connects to
   attr_accessor :endpoint_id
@@ -55,20 +48,32 @@ class JumpGate
                          :trigger_distance => 300  # TODO make default configurable
   end
 
-  # Return boolean indicating if this jump gate is valid.
-  #
-  # Currently tests
-  # * base entity and system entity is valid
-  # * location is not moving
-  # * endpoint is set to a valid Cosmos::SolarSystem
-  # * trigger distance is > 0
+  # Return boolean indicating if this jump gate is valid
   def valid?
     entity_valid? && system_entity_valid? &&
-    @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped) &&
+    endpoint_valid? && trigger_distance_valid?
+  end
+
+  # Return boolean indicating if jump gate location is valid
+  def location_valid?
+    super && @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+  end
+
+  # Return boolean indicating if jump gate endpoint is valid
+  def endpoint_valid?
     !@endpoint_id.nil? &&
-    (@endpoint.nil? || (@endpoint.is_a?(SolarSystem) && @endpoint.valid?)) &&
-    # \@solar_system.name != @endpoint.name &&
+    (@endpoint.nil? || (@endpoint.is_a?(SolarSystem) && @endpoint.valid?))
+    # && \@solar_system.name != @endpoint.name
+  end
+
+  # Return boolean indicating if jump gate trigger distance is valid
+  def trigger_distance_valid?
     @trigger_distance.numeric? && @trigger_distance > 0
+  end
+
+  # Size doesn't currently apply to jump gate, always validate
+  def size_valid?
+    true
   end
 
   # Convert jump gate to human readable string and return it

@@ -60,5 +60,34 @@ module Omega
       deriv = deviation *target
       deriv ? randomize(base, deriv) : base
     end
+
+    def self.max(*target)
+      base  = get *target
+      deriv = deviation *target
+      return base unless deriv
+      return base + deriv if base.numeric?
+      {:x => base['x'] + deriv['x'],
+       :y => base['y'] + deriv['y'],
+       :z => base['z'] + deriv['z']}
+    end
+
+    def self.min(*target)
+      base  = get *target
+      deriv = deviation *target
+      return base unless deriv
+      return base - deriv if base.numeric?
+      {:x => base['x'] - deriv['x'],
+       :y => base['y'] - deriv['y'],
+       :z => base['z'] - deriv['z']}
+    end
+
+    def self.valid?(value, *target)
+      vmax = max(*target)
+      vmin = min(*target)
+      return value <= vmax && value >= vmin if value.numeric?
+      value['x'] <= vmax['x'] && value['x'] >= vmin['x'] &&
+      value['y'] <= vmax['y'] && value['y'] >= vmin['y'] &&
+      value['z'] <= vmax['z'] && value['z'] >= vmin['z']
+    end
   end # module Constraints
 end # module Omega

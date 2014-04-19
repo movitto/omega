@@ -5,6 +5,7 @@
 
 require 'cosmos/entity'
 require 'motel/movement_strategies/elliptical'
+require 'omega/constraints'
 
 module Cosmos
 module Entities
@@ -13,16 +14,9 @@ module Entities
 #
 # Cosmos entity residing in a solar system orbiting a star.
 class Planet
-  include Cosmos::Entity
   include Cosmos::SystemEntity
 
   CHILD_TYPES = ['Moon']
-
-  VALIDATE_SIZE  = proc { |s| (50...60).include?(s)   }
-  VALIDATE_COLOR = proc { |c| c =~ /^[a-fA-F0-9]{6}$/ }
-
-  RAND_SIZE      = proc { rand(10) + 50               }
-  RAND_COLOR     = proc { "%06x" % (rand * 0xffffff)  }
 
   # Alias children to moons
   alias :moons :children
@@ -39,7 +33,18 @@ class Planet
   # * base entity and system entity is valid
   def valid?
     entity_valid? && system_entity_valid?
-    #@location.movement_strategy.is_a?(Motel::MovementStrategies::Elliptical) &&
+    #@location.movement_strategy.is_a?(Motel::MovementStrategies::Elliptical)
+  end
+
+  # Override size_valid? to validate constraints if enabled
+  def size_valid?
+    super && (!enforce_constraints ||
+              Omega::Constraints.valid?(size, 'planet', 'size'))
+  end
+
+  # Override type_valid? to validate constraints if enabled
+  def type_valid?
+    type.is_a?(Integer)
   end
 
   # Return json representation of planet
@@ -54,7 +59,6 @@ class Planet
     p = new(o['data'])
     return p
   end
-
 end # class Planet
 end # module Entities
 end # module Cosmos

@@ -59,8 +59,8 @@
     "speed":          0.02,
     "speedDeviation": 0.01,
 
-    "color":          2,
-    "colorDeviation": 2
+    "type":          2,
+    "typeDeviation": 2
   },
 
   "system_entity": {

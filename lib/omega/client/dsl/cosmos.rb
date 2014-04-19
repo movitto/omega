@@ -5,6 +5,8 @@
 
 require 'omega/resources'
 
+require 'omega/constraints'
+
 module Omega
   module Client
     module DSL
@@ -45,10 +47,19 @@ module Omega
           galaxy = @galaxy || args[:galaxy]
           raise ArgumentError, "galaxy nil" if galaxy.nil?
 
-          # initialize system
+          # initialize system arguments
           sargs = args.merge({:id     => args[:id] || gen_uuid,
                               :name   => name,
                               :galaxy => galaxy})
+
+          # create location if not specified
+          unless sargs[:location]
+            sys_loc = rand_invert constraint('system', 'position')
+            sys_loc = Motel::Location.new(sys_loc)
+            sargs[:location] = sys_loc
+          end
+
+          # initialize system
           sys  = Cosmos::Entities::SolarSystem.new(sargs)
 
           # create system
@@ -60,7 +71,8 @@ module Omega
             # initialize star
             stargs = {:id   => gen_uuid,
                       :name => star_name,
-                      :solar_system => sys}
+                      :solar_system => sys,
+                      :size => constraint('star', 'size')}
             star = Cosmos::Entities::Star.new stargs
 
             RJR::Logger.info "Creating star #{star} under #{sys}"
@@ -110,6 +122,13 @@ module Omega
 
         aargs = args.merge({:id => id, :name => id,
                             :solar_system => system})
+
+        unless aargs[:location]
+          ast_loc = rand_invert constraint('asteroid', 'position')
+          ast_loc = Motel::Location.new(ast_loc)
+          aargs[:location] = ast_loc
+        end
+
         ast = Cosmos::Entities::Asteroid.new(aargs)
 
         RJR::Logger.info "Creating asteroid #{ast} under #{system.name}"
@@ -154,6 +173,9 @@ module Omega
         scale = args[:scale] || 30
 
         p,e = args[:p],args[:e]
+        p = constraint('asteroid_belt', 'p') if p.nil?
+        e = constraint('asteroid_belt', 'e') if e.nil?
+
         direction = args[:direction]
         path = Motel.elliptical_path(p,e,direction)
 
@@ -196,12 +218,26 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created planet
       # @return [Cosmos::Entities::Planet] planet created
       def planet(name, args={}, &bl)
+        # planet must be created under system
         raise ArgumentError, "solar_system is nil" if @solar_system.nil?
 
-        pargs = args.merge({:id => gen_uuid,
-                            :name => name,
+        # initialize planet
+        pargs = args.merge({:id           => gen_uuid,
+                            :name         => name,
                             :solar_system => @solar_system})
+        pargs[:size] = constraint('planet', 'size')      unless pargs[:size]
+        pargs[:type] = constraint('planet', 'type').to_i unless pargs[:type]
         planet = Cosmos::Entities::Planet.new(pargs)
+
+        # create orbit if not specified
+        if planet.location.ms.is_a?(Motel::MovementStrategies::Stopped)
+          p = constraint('planet', 'p')
+          e = constraint('planet', 'e')
+          s = constraint('planet', 'speed')
+          plorbit = orbit(:e => e, :p => p, :speed => s,
+                          :direction => random_axis(:orthogonal_to => [0,1,0]))
+          planet.location.ms = plorbit
+        end
 
         RJR::Logger.info "Creating planet #{planet} under #{@solar_system}"
         invoke 'cosmos::create_entity', planet
@@ -276,6 +312,13 @@ module Omega
                             :name => jid,
                             :solar_system => system,
                             :endpoint => endpoint})
+
+        unless jargs[:location]
+          jg_loc = rand_invert constraint('system_entity', 'position')
+          jg_loc = Motel::Location.new(jg_loc)
+          jargs[:location] = jg_loc
+        end
+
         gate  = Cosmos::Entities::JumpGate.new(jargs)
 
         RJR::Logger.info "Creating gate #{gate} under #{system}"

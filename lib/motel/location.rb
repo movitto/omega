@@ -205,13 +205,28 @@ class Location
    # * orientation is numeric
    # * movement strategy is valid
    def valid?
-     !@id.nil? &&
+     id_valid? && coordinates_valid? &&
+     orientation_valid? && movement_strategy_valid?
+   end
 
-     [@x, @y, @z, @orientation_x,@orientation_y, @orientation_z].
-       all? { |i| i.numeric? } &&
+   # Return bool indicating if id is valid
+   def id_valid?
+     !@id.nil?
+   end
 
-     @movement_strategy.kind_of?(MovementStrategy) &&
-     @movement_strategy.valid?
+   # Return bool indicating if coordatinates are valid
+   def coordinates_valid?
+     [@x, @y, @z].all? { |i| i.numeric? }
+   end
+
+   # Return bool indicating if orientation is valid
+   def orientation_valid?
+     [@orientation_x,@orientation_y, @orientation_z].all? { |i| i.numeric? }
+   end
+
+   # Return bool indicating if movement strategy is valid
+   def movement_strategy_valid?
+     @movement_strategy.kind_of?(MovementStrategy) && @movement_strategy.valid?
    end
 
    # Invoke callbacks for the specified event

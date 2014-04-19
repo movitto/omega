@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+require 'omega/constraints'
+
 module Omega
   module Client
     module DSL
@@ -11,6 +13,16 @@ module Omega
       # @see Motel.gen_uuid
       def gen_uuid
         Motel.gen_uuid
+      end
+
+      # Generate the specified constraint
+      def constraint(*target)
+        Constraints.gen *target
+      end
+
+      # Randomly invert constraint value or values
+      def rand_invert(value)
+        Constraints.rand_invert value
       end
 
       # Generate an return a new random {Cosmos::Resource}

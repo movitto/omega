@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/entity'
+require 'omega/constraints'
 
 module Cosmos
 module Entities
@@ -12,16 +13,11 @@ module Entities
 #
 # Cosmos entity residing in a solar system
 class Star
-  include Cosmos::Entity
   include Cosmos::SystemEntity
 
+  # TODO alias type to color / use to represent color of star
+
   CHILD_TYPES = []
-
-  VALIDATE_SIZE  = proc { |s| (400...550).include?(s) }
-  VALIDATE_COLOR = proc { |c| ['FFFF00'].include?(c)  }
-
-  RAND_SIZE      = proc { rand(150) + 400             }
-  RAND_COLOR     = proc { 'FFFF00'                    }
 
   # Cosmos::Star intializer
   def initialize(args = {})
@@ -30,13 +26,19 @@ class Star
   end
 
   # Return boolean indicating if this star is valid.
-  #
-  # Currently tests
-  # * base entity & system entity is valid
-  # * location is stopped
   def valid?
-    entity_valid? && system_entity_valid? &&
+    entity_valid? && system_entity_valid? && location_valid?
+  end
+
+  # Return bool indiciating if star location is valid
+  def location_valid?
     @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+  end
+
+  # Override size_valid? to validate constraints if enabled
+  def size_valid?
+    super && (!enforce_constraints ||
+              Omega::Constraints.valid?(size, 'star', 'size'))
   end
 
   # Return json representation of star
@@ -51,7 +53,6 @@ class Star
     s = new(o['data'])
     return s
   end
-
 end # class Star
 end # module Entities
 end # module Cosmos

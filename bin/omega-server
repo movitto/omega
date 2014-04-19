@@ -80,16 +80,19 @@ end
 def main()
   # setup cmd line options
   admin_mode = false
+  enforce_constraints = false
   opts = OptionParser.new do |opts|
     opts.on("-h", "--help", "Print help message") do
        puts opts
        exit
     end
 
-    opts.on("-a", "--admin",
-      "Run server in administrative mode, adds a few globally-\
-accessible administrative methods") do
-         admin_mode = true
+    opts.on("-a", "--admin", "Run server in administrative mode") do
+      admin_mode = true
+    end
+
+    opts.on("-c", "--constraints", "Enable entity constraints") do
+      enforce_constraints = true
     end
   end
 
@@ -110,7 +113,8 @@ accessible administrative methods") do
                               :ws_port     =>  8080,
                               :www_port    =>  8888,
                               :tcp_port    => '8181',
-                              :node_types  => ['amqp', 'tcp', 'ws', 'www', 'local']
+                              :node_types  => ['amqp', 'tcp', 'ws', 'www', 'local'],
+                              :constraints => enforce_constraints
 
   required_atts = :node_id, :amqp_broker, :ws_host, :www_host, :tcp_host, :ws_port, :www_port, :tcp_port, :node_types,
                   :admin_user, :admin_pass

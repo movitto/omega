@@ -1,6 +1,6 @@
 # Cosmos Asteroid definition
 #
-# Copyright (C) 2012-2013-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'cosmos/entity'
@@ -14,18 +14,11 @@ module Entities
 # resources through {Cosmos::ResourceSource}. Primarily interacted with
 # by {Manufactured::Ship} to mine the contained resources.
 class Asteroid
-  include Cosmos::Entity
   include Cosmos::SystemEntity
 
   attr_accessor :resources
 
   CHILD_TYPES = []
-
-  VALIDATE_SIZE  = proc { |s| (10...20).include?(s) }
-  VALIDATE_COLOR = proc { |c| c =~ /^[a-fA-F0-9]{6}$/ }
-
-  RAND_SIZE      = proc { rand(10) + 10               }
-  RAND_COLOR     = proc { "%06x" % (rand * 0xffffff)  }
 
   # Cosmos::Asteroid intializer
   def initialize(args = {})
@@ -36,14 +29,23 @@ class Asteroid
   end
 
   # Return boolean indicating if this asteroid is valid.
-  #
-  # Currently tests
-  # * base entity and system entity is valid
-  # * location is not moving
   def valid?
-    entity_valid? && system_entity_valid? &&
-    @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped) &&
+    entity_valid? && system_entity_valid? && resources_valid?
+  end
+
+  # Return bool indiciating if asteroid location is valid
+  def location_valid?
+    super && @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+  end
+
+  # return bool inidicating if resources are valid
+  def resources_valid?
     @resources.all? { |r| r.valid? }
+  end
+
+  # Size doesn't currently apply to asteroid, always validate
+  def size_valid?
+    true
   end
 
   # Return boolean indicating if this asteroid can accept the specified resource.
@@ -89,7 +91,6 @@ class Asteroid
      a = new(o['data'])
      return a
    end
-
 end # class Asteroid
 end # module Entities
 end # module Cosmos

@@ -20,7 +20,16 @@ module Omega
         begin return invoke 'manufactured::get_entity', 'with_id', id
         rescue Exception => e ; end
 
-        st = Manufactured::Station.new(args.merge({:id => id}))
+        stargs = args.merge({:id => id})
+
+        # create location if not specified
+        unless stargs[:location]
+          st_loc = rand_invert constraint('system_entity', 'position')
+          st_loc = Motel::Location.new(st_loc)
+          stargs[:location] = st_loc
+        end
+
+        st = Manufactured::Station.new(stargs)
         dsl.run st, :station => st, &bl
 
         RJR::Logger.info "Creating station #{st}"
@@ -62,7 +71,16 @@ module Omega
         begin return invoke 'manufactured::get_entity', 'with_id', id
         rescue Exception => e ; end
 
-        sh = Manufactured::Ship.new(args.merge({:id => id}))
+        shargs = args.merge({:id => id})
+
+        # create location if not specified
+        unless shargs[:location]
+          sh_loc = rand_invert constraint('system_entity', 'position')
+          sh_loc = Motel::Location.new(sh_loc)
+          shargs[:location] = sh_loc
+        end
+
+        sh = Manufactured::Ship.new(shargs)
         dsl.run sh, :ship => sh, &bl
 
         RJR::Logger.info "Creating ship #{sh}"
