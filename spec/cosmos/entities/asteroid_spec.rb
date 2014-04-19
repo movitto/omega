@@ -50,9 +50,8 @@ describe Asteroid do
     context "location not stopped" do
       it "returns false" do
         a = Asteroid.new
-        a.should_receive(:entity_valid?).and_return(true)
-        a.should_receive(:system_entity_valid?).and_return(true)
         a.location.movement_strategy = Motel::MovementStrategies::Linear.new
+        a.location_valid?.should be_false
         a.should_not be_valid
       end
     end
@@ -135,14 +134,14 @@ describe Asteroid do
 
   describe "#to_json" do
     it "returns asteroid in json format" do
-      a = Asteroid.new :name => 'asteroid1', :color => 'brown', :size => 50,
+      a = Asteroid.new :name => 'asteroid1', :type => 'brown', :size => 50,
                        :location => Motel::Location.new(:x => 50)
       a.set_resource Cosmos::Resource.new :id => 'metal-steel', :quantity => 50
 
       j = a.to_json
       j.should include('"json_class":"Cosmos::Entities::Asteroid"')
       j.should include('"name":"asteroid1"')
-      j.should include('"color":"brown"')
+      j.should include('"type":"brown"')
       j.should include('"size":50')
       j.should include('"resources":[{"json_class":"Cosmos::Resource"')
       j.should include('"id":"metal-steel"')
@@ -154,12 +153,12 @@ describe Asteroid do
 
   describe "#json_create" do
     it "returns asteroid from json format" do
-      j = '{"data":{"color":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Asteroid"}'
+      j = '{"data":{"type":"brown","size":50,"name":"asteroid1","location":{"data":{"movement_strategy":{"data":{"step_delay":1},"json_class":"Motel::MovementStrategies::Stopped"},"parent_id":null,"y":null,"z":null,"x":50,"restrict_view":true,"id":null,"restrict_modify":true},"json_class":"Motel::Location"}},"json_class":"Cosmos::Entities::Asteroid"}'
       a = RJR::JSONParser.parse(j)
 
       a.class.should == Cosmos::Entities::Asteroid
       a.name.should == 'asteroid1'
-      a.color.should == 'brown'
+      a.type.should == 'brown'
       a.size.should == 50
       a.location.x.should  == 50
     end

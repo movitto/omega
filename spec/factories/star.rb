@@ -9,7 +9,7 @@ FactoryGirl.define do
       sequence(:id)   {  |n| "star#{n}" }
       sequence(:name) {  |n| "star#{n}" }
       size      450
-      color    'FFFF00'
+      type    'FFFF00'
 
       association :location, :strategy => :build
       solar_system

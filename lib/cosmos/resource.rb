@@ -57,22 +57,29 @@ class Resource
   end
 
   # Return boolean indicating if this resource is valid.
-  #
-  # Ensures:
-  # * id is a valid string
-  # * material_id is in a valid format
-  # * entity_id is not nil
-  # * entity is nil or valid
-  # * quantitiy is numeric
+  # Ensures id, material_id, entity, quantity are valid
   def valid?
-    @id.is_a?(String) && @id != "" &&
+    id_valid? && material_id_valid? && entity_valid? && quantity_valid?
+  end
 
-    @material_id.is_a?(String) &&
-    @material_id =~ /[a-zA-Z0-9]*-[a-zA-Z0-9]*/ &&
+  # Return boolean indicating if id is valid
+  def id_valid?
+    @id.is_a?(String) && @id != ""
+  end
 
-    !@entity_id.nil? &&
-    (@entity.nil? || @entity.valid?) &&
-     @quantity.numeric?
+  # Return boolean indicating if material id is valid
+  def material_id_valid?
+    @material_id.is_a?(String) && @material_id =~ /[a-zA-Z0-9]*-[a-zA-Z0-9]*/
+  end
+
+  # Return boolean indicating if entity is valid
+  def entity_valid?
+    !@entity_id.nil? && (@entity.nil? || @entity.valid?)
+  end
+
+  # Return boolean indicating if quantity is valid
+  def quantity_valid?
+    @quantity.numeric?
   end
 
   # Convert resource to string

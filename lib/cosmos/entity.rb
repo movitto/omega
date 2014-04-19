@@ -100,13 +100,7 @@ module Entity
 
   # Return boolean indicating if entity is valid
   #
-  # Currently tests
-  # * id is set to a valid (non-empty) string
-  # * name is set to a valid (non-empty) string
-  # * location is set to a valid Motel::Location
-  # * parent_id is set if required
-  # * parent is nil or instance of parent type
-  # * children is an array of valid entities of child types
+  # Currently tests id, name, location, parent, and children are valid
   #
   # From default initialization the following needs to be set
   # to valid values to form a valid entity:
@@ -217,58 +211,5 @@ module Entity
      :proxy_to  => @proxy_to
     }
   end
-
 end # module Entity
-
-# Expanded Cosmos Entity which resides in a system and has some
-# basic characteristics.
-module SystemEntity
-  include Entity
-
-  PARENT_TYPE = 'SolarSystem'
-
-  # {Cosmos::SolarSystem} parent of the entity
-  alias :solar_system :parent
-  alias :solar_system= :parent=
-  alias :system_id  :parent_id
-  alias :system_id= :parent_id=
-
-  # Size of entity
-  attr_accessor :size
-
-  # Type of entity, optional entity-specific classification
-  attr_accessor :type
-
-  def init_system_entity(args={})
-    attr_from_args args, :size         => nil,
-                         :type         => nil,
-                         :solar_system => @parent
-  end
-
-  # Return boolean indicating if system_entity is valid
-  #
-  # Currently tests
-  # * size is valid
-  # * type is valid
-  def system_entity_valid?
-    size_valid? && type_valid?
-  end
-
-  # Return bool indicating if size is valid
-  def size_valid?
-    @size.numeric?
-  end
-
-  # Return bool indicating if type is valid,
-  # subclasses should override if appropriate
-  def type_valid?
-    true
-  end
-
-  # Return system entity json attributes
-  def system_entity_json
-    {:type => @type, :size => @size}
-  end
-end
-
 end # module Cosmos

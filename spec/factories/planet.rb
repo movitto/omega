@@ -9,7 +9,7 @@ FactoryGirl.define do
       sequence(:id)   {  |n| "planet#{n}" }
       sequence(:name) {  |n| "planet#{n}" }
       size      55
-      color    'AABBCC'
+      type       0
 
       association :location, :strategy => :build
       solar_system

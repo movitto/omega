@@ -1,6 +1,6 @@
-# entity module tests
+# Cosmos Entity Module Tests
 #
-# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2010-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
@@ -381,69 +381,4 @@ describe Entity do
     end
   end
 end # module Entity
-
-describe SystemEntity do
-  before(:each) do
-    @e = OmegaTest::CosmosSystemEntity.new
-  end
-
-  describe "#init_system_entity" do
-    it "uses rand generates to set default system entity values" do
-      OmegaTest::CosmosSystemEntity::RAND_SIZE.should_receive(:call).and_return(4)
-      OmegaTest::CosmosSystemEntity::RAND_COLOR.should_receive(:call).and_return(5)
-      @e.init_system_entity
-      @e.size.should == 4
-      @e.color.should == 5
-    end
-
-    it "sets system entity values" do
-      @e.init_system_entity :size => :foo, :color => :bar
-      @e.size.should == :foo
-      @e.color.should == :bar
-    end
-  end
-
-  describe "#system_entity_valid?" do
-    it "invokes validate_size to validate size" do
-      @e.size = 5
-      OmegaTest::CosmosSystemEntity::VALIDATE_SIZE.should_receive(:call).with(5)
-      @e.system_entity_valid?
-    end
-
-    it "invokes validate_color to validate color" do
-      @e.size = 5
-      @e.color = 'c'
-      OmegaTest::CosmosSystemEntity::VALIDATE_COLOR.should_receive(:call).with('c')
-      @e.system_entity_valid?
-    end
-
-    context "invalid size" do
-      it "returns false" do
-        @e.size = nil
-        @e.system_entity_valid?.should be_false
-
-        @e.size = 5
-        OmegaTest::CosmosSystemEntity::VALIDATE_SIZE.should_receive(:call).and_return(false)
-        @e.system_entity_valid?.should be_false
-      end
-    end
-
-    context "invalid color" do
-      it "returns false" do
-        @e.size = 5
-        @e.color = 'c'
-        OmegaTest::CosmosSystemEntity::VALIDATE_COLOR.should_receive(:call).and_return(false)
-        @e.system_entity_valid?.should be_false
-      end
-    end
-  end
-
-  describe "#system_entity_json" do
-    it "returns systemenvironment entity json attributes" do
-      @e.size = 4
-      @e.color = 5
-      @e.system_entity_json.should == {:color => 5, :size => 4}
-    end
-  end
-end # describe SystemEntity
 end # module Cosmos

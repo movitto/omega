@@ -3,7 +3,7 @@
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'cosmos/entity'
+require 'cosmos/system_entity'
 
 module Cosmos
 module Entities
@@ -35,7 +35,8 @@ class Asteroid
 
   # Return bool indiciating if asteroid location is valid
   def location_valid?
-    super && @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
+    super &&
+    @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
   end
 
   # return bool inidicating if resources are valid

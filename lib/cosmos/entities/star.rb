@@ -3,7 +3,7 @@
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
-require 'cosmos/entity'
+require 'cosmos/system_entity'
 require 'omega/constraints'
 
 module Cosmos
@@ -27,11 +27,12 @@ class Star
 
   # Return boolean indicating if this star is valid.
   def valid?
-    entity_valid? && system_entity_valid? && location_valid?
+    entity_valid? && system_entity_valid?
   end
 
   # Return bool indiciating if star location is valid
   def location_valid?
+    super &&
     @location.movement_strategy.is_a?(Motel::MovementStrategies::Stopped)
   end
 

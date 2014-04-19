@@ -44,9 +44,8 @@ describe Star do
     context "location not stopped" do
       it "returns false" do
         s = Star.new
-        s.should_receive(:entity_valid?).and_return(true)
-        s.should_receive(:system_entity_valid?).and_return(true)
         s.location.movement_strategy = Motel::MovementStrategies::Linear.new
+        s.location_valid?.should be_false
         s.should_not be_valid
       end
     end

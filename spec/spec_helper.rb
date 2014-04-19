@@ -339,10 +339,6 @@ module OmegaTest
 
   class CosmosSystemEntity < CosmosEntity
     include Cosmos::SystemEntity
-    VALIDATE_SIZE  = proc { |v| true }
-    VALIDATE_COLOR = proc { |v| true }
-    RAND_SIZE      = proc { }
-    RAND_COLOR     = proc { }
   end
 
   class Trackable
