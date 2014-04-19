@@ -47,6 +47,36 @@ describe Planet do
       p.should_receive(:system_entity_valid?).and_return(true)
       p.should be_valid
     end
+
+    context "constraints are enabled" do
+      before(:each) do
+        @orig_constraints = Cosmos::Entity.enforce_constraints
+        Cosmos::Entity.enforce_constraints = true
+      end
+
+      after(:each) do
+        Cosmos::Entity.enforce_constraints = @orig_constraints
+      end
+
+      context "planet size is within constraints" do
+        it "returns true" do
+          p = Planet.new
+          p.should_receive(:entity_valid?).and_return(true)
+          p.size = Omega::Constraints.gen('planet', 'size')
+          p.should_receive(:type_valid?).and_return(true)
+          p.should be_valid
+        end
+      end
+
+      context "planet size exceeds constraints" do
+        it "returns false" do
+          p = Planet.new
+          p.should_receive(:entity_valid?).and_return(true)
+          p.size = Omega::Constraints.max('planet', 'size') + 1
+          p.should_not be_valid
+        end
+      end
+    end
   end
 
   describe "#to_json" do

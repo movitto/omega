@@ -186,7 +186,7 @@ module Omega
           locs << Motel::Location.new(:x => p[0], :y => p[1], :z => p[2])
         }
 
-        asteroid_field(:locations => locs, &bl)
+        asteroid_field(args.merge({:locations => locs}), &bl)
       end
 
       # Set new resource on an asteroid and return it.
@@ -218,13 +218,15 @@ module Omega
       # @param [Callable] bl option callback block parameter to call w/ the newly created planet
       # @return [Cosmos::Entities::Planet] planet created
       def planet(name, args={}, &bl)
+        system = @solar_system || args[:solar_system]
+
         # planet must be created under system
-        raise ArgumentError, "solar_system is nil" if @solar_system.nil?
+        raise ArgumentError, "solar_system is nil" if system.nil?
 
         # initialize planet
         pargs = args.merge({:id           => gen_uuid,
                             :name         => name,
-                            :solar_system => @solar_system})
+                            :solar_system => system})
         pargs[:size] = constraint('planet', 'size')      unless pargs[:size]
         pargs[:type] = constraint('planet', 'type').to_i unless pargs[:type]
         planet = Cosmos::Entities::Planet.new(pargs)
@@ -239,7 +241,7 @@ module Omega
           planet.location.ms = plorbit
         end
 
-        RJR::Logger.info "Creating planet #{planet} under #{@solar_system}"
+        RJR::Logger.info "Creating planet #{planet} under #{system}"
         invoke 'cosmos::create_entity', planet
 
         dsl.run planet, :planet => planet, &bl

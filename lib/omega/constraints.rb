@@ -47,7 +47,7 @@ module Omega
     end
 
     def self.rand_invert(value)
-      return value * coin_flip ? 1 : -1 if value.numeric?
+      return value * (coin_flip ? 1 : -1) if value.numeric?
 
       nx = coin_flip ? 1 : -1
       ny = coin_flip ? 1 : -1
@@ -66,9 +66,9 @@ module Omega
       deriv = deviation *target
       return base unless deriv
       return base + deriv if base.numeric?
-      {:x => base['x'] + deriv['x'],
-       :y => base['y'] + deriv['y'],
-       :z => base['z'] + deriv['z']}
+      {'x' => base['x'] + deriv['x'],
+       'y' => base['y'] + deriv['y'],
+       'z' => base['z'] + deriv['z']}
     end
 
     def self.min(*target)
@@ -76,9 +76,9 @@ module Omega
       deriv = deviation *target
       return base unless deriv
       return base - deriv if base.numeric?
-      {:x => base['x'] - deriv['x'],
-       :y => base['y'] - deriv['y'],
-       :z => base['z'] - deriv['z']}
+      {'x' => base['x'] - deriv['x'],
+       'y' => base['y'] - deriv['y'],
+       'z' => base['z'] - deriv['z']}
     end
 
     def self.valid?(value, *target)

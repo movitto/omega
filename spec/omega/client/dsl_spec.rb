@@ -152,6 +152,18 @@ describe DSL, :rjr => true do
         Cosmos::RJR.registry.entity(&with_id(s.id)).should_not be_nil
       end
 
+      context "system location not specified" do
+        it "generates position from constraints" do
+          g = galaxy('ngal1')
+          s = system('system1', 'star1', :galaxy => g)
+          s.location.should be_an_instance_of(Motel::Location)
+          Constraints.valid?({'x' => s.location.x.abs,
+                              'y' => s.location.y.abs,
+                              'z' => s.location.z.abs,
+                              }, 'system', 'position').should be_true
+        end
+      end
+
       it "creates star" do
         s = nil
         galaxy('ngal1') { |g|
@@ -161,6 +173,15 @@ describe DSL, :rjr => true do
         st.should_not be_nil
         st.should be_an_instance_of(Cosmos::Entities::Star)
         st.parent_id.should == s.id
+      end
+
+      context "star size not specified" do
+        it "generates size from constraints" do
+          g = galaxy('ngal1')
+          s = system('system1', 'star1', :galaxy => g)
+          st = Cosmos::RJR.registry.entity { |e| e.name == 'star1'}
+          Constraints.valid?(st.size, 'star', 'size').should be_true
+        end
       end
 
       context "no galaxy is set" do
@@ -198,6 +219,19 @@ describe DSL, :rjr => true do
       }
       a.should be_an_instance_of(Cosmos::Entities::Asteroid)
       Cosmos::RJR.registry.entity(&with_id(a.id)).should_not be_nil
+    end
+
+    context "asteroid location not specified" do
+      it "generates position from constraints" do
+        g = galaxy('ngal1')
+        s = system('system1', 'star1', :galaxy => g)
+        a = asteroid('nast1', :solar_system => s)
+        a.location.should be_an_instance_of(Motel::Location)
+        Constraints.valid?({'x' => a.location.x.abs,
+                            'y' => a.location.y.abs,
+                            'z' => a.location.z.abs,
+                            }, 'asteroid', 'position').should be_true
+      end
     end
 
     context "@system is nil" do
@@ -257,6 +291,26 @@ describe DSL, :rjr => true do
       asts.all? { |a| a.class == Cosmos::Entities::Asteroid }.should be_true
       # TODO verify asteroids are evenly spaced out on elliptical path & exist on server
     end
+
+    context "e/p not specified" do
+      it "generates from constraints" do
+        d = Motel.random_axis
+        g = galaxy('ngal1')
+        s = system('system1', 'star1', :galaxy => g)
+        Motel.should_receive(:elliptical_path).with{ |p,e,dir|
+          Constraints.valid?(p, 'asteroid_belt', 'p')
+          Constraints.valid?(e, 'asteroid_belt', 'e')
+          dir.should == d
+        }.and_call_original
+
+        asteroid_belt(:direction => d, :solar_system => s)
+      end
+    end
+
+    context "p not specified" do
+      it "generates from constraints" do
+      end
+    end
   end
 
   describe "#resource" do
@@ -298,6 +352,35 @@ describe DSL, :rjr => true do
       }
       p.should be_an_instance_of(Cosmos::Entities::Planet)
       Cosmos::RJR.registry.entity(&with_id(p.id)).should_not be_nil
+    end
+
+    context "size not specified" do
+      it "generates from constraints" do
+        g = galaxy('ngal1')
+        s = system('system1', 'star1', :galaxy => g)
+        p = planet('pl1', :solar_system => s)
+        Constraints.valid?(p.size, 'planet', 'size').should be_true
+      end
+    end
+
+    context "type not specified" do
+      it "generates from constraints" do
+        g = galaxy('ngal1')
+        s = system('system1', 'star1', :galaxy => g)
+        p = planet('pl1', :solar_system => s)
+        Constraints.valid?(p.type, 'planet', 'type').should be_true
+      end
+    end
+
+    context "movement strategy not specified" do
+      it "generates elliptical orbit from constraints" do
+        g = galaxy('ngal1')
+        s = system('system1', 'star1', :galaxy => g)
+        p = planet('pl1', :solar_system => s)
+        Constraints.valid?(p.location.ms.e, 'planet', 'e').should be_true
+        Constraints.valid?(p.location.ms.p, 'planet', 'p').should be_true
+        Constraints.valid?(p.location.ms.speed, 'planet', 'speed').should be_true
+      end
     end
 
     context "@solar_system is nil" do
@@ -364,6 +447,20 @@ describe DSL, :rjr => true do
       jg.endpoint_id.should == s2.id
       Cosmos::RJR.registry.entity(&with_id(jg.id)).should_not be_nil
     end
+
+    context "location not specified" do
+      it "generates from constraints" do
+        g = galaxy('ngal1')
+        s1 = system('system1', 'star1', :galaxy => g)
+        s2 = system('system2', 'star2', :galaxy => g)
+        jg = jump_gate s1, s2
+        jg.location.should be_an_instance_of(Motel::Location)
+        Constraints.valid?({'x' => jg.location.x.abs,
+                            'y' => jg.location.y.abs,
+                            'z' => jg.location.z.abs,
+                            }, 'system_entity', 'position').should be_true
+      end
+    end
   end
 
   describe "#station" do
@@ -385,6 +482,19 @@ describe DSL, :rjr => true do
         s.should be_an_instance_of(Manufactured::Station)
         s.id.should == 'st1'
         Manufactured::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+      end
+
+      context "location not specified" do
+        it "generates from constraints" do
+          s = station('st1', :type => :manufacturing,
+                      :user_id => create(:user).id,
+                      :solar_system => create(:solar_system))
+          s.location.should be_an_instance_of(Motel::Location)
+          Constraints.valid?({'x' => s.location.x.abs,
+                              'y' => s.location.y.abs,
+                              'z' => s.location.z.abs,
+                             }, 'system_entity', 'position').should be_true
+        end
       end
     end
   end
@@ -408,6 +518,19 @@ describe DSL, :rjr => true do
         s.should be_an_instance_of(Manufactured::Ship)
         s.id.should == 'sh1'
         Manufactured::RJR.registry.entity(&with_id(s.id)).should_not be_nil
+      end
+
+      context "location not specified" do
+        it "generates from constraints" do
+          s = ship('sh1', :type => :frigate,
+                   :user_id => create(:user).id,
+                   :solar_system => create(:solar_system))
+          s.location.should be_an_instance_of(Motel::Location)
+          Constraints.valid?({'x' => s.location.x.abs,
+                              'y' => s.location.y.abs,
+                              'z' => s.location.z.abs,
+                             }, 'system_entity', 'position').should be_true
+        end
       end
     end
   end
