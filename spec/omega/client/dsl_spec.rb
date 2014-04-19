@@ -184,6 +184,15 @@ describe DSL, :rjr => true do
         end
       end
 
+      context "star type not specified" do
+        it "generates type from constraints" do
+          g = galaxy('ngal1')
+          s = system('system1', 'star1', :galaxy => g)
+          st = Cosmos::RJR.registry.entity { |e| e.name == 'star1'}
+          Constraints.valid?(st.type, 'star', 'type').should be_true
+        end
+      end
+
       context "no galaxy is set" do
         it "raises ArgumentError" do
           lambda {

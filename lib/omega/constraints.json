@@ -14,7 +14,9 @@
     "sizeScale": {
       "min":          200,
       "max":          300
-    }
+    },
+
+    "type": "rgb"
   },
 
   "asteroid": {

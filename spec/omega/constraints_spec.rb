@@ -23,6 +23,22 @@ describe Constraints do
   end
 
   describe "#randomize" do
+    context "base is 'rgb'" do
+      it "generates random rgb value" do
+        r1 = Constraints.randomize("rgb")
+        r2 = Constraints.randomize("rgb")
+        r1.should_not == r2
+        r1.should =~ /^[a-fA-F0-9]{6}$/ 
+        r2.should =~ /^[a-fA-F0-9]{6}$/ 
+      end
+    end
+
+    context "deviation is not set" do
+      it "returns base" do
+        Constraints.randomize(5).should == 5
+      end
+    end
+
     it "generates random value between base target and +/- deviation" do
       r1 = Constraints.randomize(5, 3)
       r2 = Constraints.randomize(5, 3)
@@ -73,21 +89,11 @@ describe Constraints do
   end
 
   describe "#gen" do
-    context "deviation set" do
-      it "returns randomize constraint" do
-        Constraints.should_receive(:get).with('a').and_return(42)
-        Constraints.should_receive(:deviation).with('a').and_return(24)
-        Constraints.should_receive(:randomize).with(42, 24).and_return(25)
-        Constraints.gen('a').should == 25
-      end
-    end
-
-    context "deviation not set" do
-      it "returns target constraint" do
-        Constraints.should_receive(:get).with('a').and_return(42)
-        Constraints.should_receive(:deviation).with('a').and_return(nil)
-        Constraints.gen('a').should == 42
-      end
+    it "returns randomize constraint" do
+      Constraints.should_receive(:get).with('a').and_return(42)
+      Constraints.should_receive(:deviation).with('a').and_return(24)
+      Constraints.should_receive(:randomize).with(42, 24).and_return(25)
+      Constraints.gen('a').should == 25
     end
   end
 
@@ -108,6 +114,22 @@ describe Constraints do
   end
 
   describe "#valid?" do
+    context "base is 'rgb'" do
+      context "value is rgb string" do
+        it "returns true" do
+          Constraints.should_receive(:get).with('a').and_return('rgb')
+          Constraints.valid?('ABABAB', 'a').should be_true
+        end
+      end
+
+      context "value is not a rgb string" do
+        it "returns false" do
+          Constraints.should_receive(:get).with('a').and_return('rgb')
+          Constraints.valid?('foobar', 'a').should be_false
+        end
+      end
+    end
+
     context "value is between min/max target bounds" do
       it "return true" do
         Constraints.should_receive(:max).with('a').and_return(10)

@@ -15,7 +15,9 @@ module Entities
 class Star
   include Cosmos::SystemEntity
 
-  # TODO alias type to color / use to represent color of star
+  # Alias type to rgb color
+  alias :color  :type
+  alias :color= :type=
 
   CHILD_TYPES = []
 
@@ -40,6 +42,12 @@ class Star
   def size_valid?
     super && (!enforce_constraints ||
               Omega::Constraints.valid?(size, 'star', 'size'))
+  end
+
+  # Override type_valid? to validate type is
+  def type_valid?
+    type.is_a?(String) && (!enforce_constraints ||
+                           Omega::Constraints.valid?(type, 'star', 'type'))
   end
 
   # Return json representation of star

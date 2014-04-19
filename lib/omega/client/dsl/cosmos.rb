@@ -72,7 +72,8 @@ module Omega
             stargs = {:id   => gen_uuid,
                       :name => star_name,
                       :solar_system => sys,
-                      :size => constraint('star', 'size')}
+                      :size => constraint('star', 'size'),
+                      :type => constraint('star', 'type')}
             star = Cosmos::Entities::Star.new stargs
 
             RJR::Logger.info "Creating star #{star} under #{sys}"

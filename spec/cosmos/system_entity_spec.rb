@@ -28,7 +28,7 @@ describe SystemEntity do
       end
     end
 
-    context "invalid color" do
+    context "invalid type" do
       it "returns false" do
         @e.should_receive(:size_valid?).and_return(true)
         @e.should_receive(:type_valid?).and_return(false)
@@ -36,7 +36,7 @@ describe SystemEntity do
       end
     end
 
-    context "valid size and color" do
+    context "valid size and type" do
       it "returns true" do
         @e.should_receive(:size_valid?).and_return(true)
         @e.should_receive(:type_valid?).and_return(true)

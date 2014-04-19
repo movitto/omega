@@ -56,7 +56,9 @@ describe Star do
       s.should_receive(:system_entity_valid?).and_return(true)
       s.should be_valid
     end
+  end
 
+  describe "#size_valid?" do
     context "constraints are enabled" do
       before(:each) do
         @orig_constraints = Cosmos::Entity.enforce_constraints
@@ -70,19 +72,60 @@ describe Star do
       context "star size is within constraints" do
         it "returns true" do
           s = Star.new
-          s.should_receive(:entity_valid?).and_return(true)
           s.size = Omega::Constraints.gen('star', 'size')
-          s.should_receive(:type_valid?).and_return(true)
-          s.should be_valid
+          s.size_valid?.should be_true
         end
       end
 
       context "star size exceeds constraints" do
         it "returns false" do
           s = Star.new
-          s.should_receive(:entity_valid?).and_return(true)
           s.size = Omega::Constraints.max('star', 'size') + 1
-          s.should_not be_valid
+          s.size_valid?.should be_false
+        end
+      end
+    end
+  end
+
+  describe "#type_valid?" do
+    context "type is a string" do
+      it "returns true" do
+        s = Star.new :type => '0'
+        s.type_valid?.should be_true
+      end
+    end
+
+    context "type is not a string" do
+      it "returns false" do
+        s = Star.new :type => 0
+        s.type_valid?.should be_false
+      end
+    end
+
+    context "constraints enabled" do
+      before(:each) do
+        @orig_constraints = Cosmos::Entity.enforce_constraints
+        Cosmos::Entity.enforce_constraints = true
+      end
+
+      after(:each) do
+        Cosmos::Entity.enforce_constraints = @orig_constraints
+      end
+
+
+      context "type satisfies constraints" do
+        it "returns true" do
+          s = Star.new
+          s.type = Omega::Constraints.gen('star', 'type')
+          s.type_valid?.should be_true
+        end
+      end
+
+      context "type does not satisfy constraints" do
+        it "returns false" do
+          s = Star.new
+          s.type = 'invalid'
+          s.type_valid?.should be_false
         end
       end
     end

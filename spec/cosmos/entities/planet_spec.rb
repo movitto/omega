@@ -47,7 +47,9 @@ describe Planet do
       p.should_receive(:system_entity_valid?).and_return(true)
       p.should be_valid
     end
+  end
 
+  describe "#size_valid?" do
     context "constraints are enabled" do
       before(:each) do
         @orig_constraints = Cosmos::Entity.enforce_constraints
@@ -61,20 +63,33 @@ describe Planet do
       context "planet size is within constraints" do
         it "returns true" do
           p = Planet.new
-          p.should_receive(:entity_valid?).and_return(true)
           p.size = Omega::Constraints.gen('planet', 'size')
-          p.should_receive(:type_valid?).and_return(true)
-          p.should be_valid
+          p.size_valid?.should be_true
         end
       end
 
       context "planet size exceeds constraints" do
         it "returns false" do
           p = Planet.new
-          p.should_receive(:entity_valid?).and_return(true)
           p.size = Omega::Constraints.max('planet', 'size') + 1
-          p.should_not be_valid
+          p.size_valid?.should be_false
         end
+      end
+    end
+  end
+
+  describe "#type_valid?" do
+    context "type is an integer" do
+      it "returns true" do
+        p = Planet.new :type => 0
+        p.type_valid?.should be_true
+      end
+    end
+
+    context "type is not an integer" do
+      it "returns false" do
+        p = Planet.new :type => '0'
+        p.type_valid?.should be_false
       end
     end
   end
