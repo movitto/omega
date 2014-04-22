@@ -57,8 +57,7 @@ Omega.JumpGateParticles.prototype = {
   update : function(){
     if(!this.particles) return;
 
-    var entity = this.omega_entity;
-    var loc    = entity.location;
+    var loc = this.omega_entity.scene_location();
     this.particles.emitters[0].position.
       set(loc.x + this.offset[0],
           loc.y + this.offset[1],

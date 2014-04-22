@@ -45,7 +45,7 @@ Omega.ShipSmokeEffect.prototype = {
 
   _update_emitter : function(){
     var entity = this.omega_entity;
-    var loc    = entity.location;
+    var loc    = entity.scene_location();
 
     var rand = Math.random() * 25;
     this._emitter().position.set(loc.x + rand, loc.y + 10, loc.z + rand);

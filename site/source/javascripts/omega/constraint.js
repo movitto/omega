@@ -39,14 +39,6 @@ Omega.Constraint = {
     return this._get(targetD)
   },
 
-  _get_scale : function(target){
-    var targetS = target.slice(0);
-    var field   = targetS[targetS.length-1];
-    var scale   = field + 'Scale';
-    targetS[targetS.length-1] = scale;
-    return this._get(targetS)
-  },
-
   _coin_flip : function(){
     return (Math.floor(Math.random() * 2) == 0);
   },
@@ -66,28 +58,6 @@ Omega.Constraint = {
     return base + Math.random() * deviation * n;
   },
 
-  _scale : function(adjusted, base, deviation, scale){
-    var min = scale.min;
-    var max = scale.max;
-
-    if(typeof(base) === "object"){
-      var minbx = base.x - deviation.x;
-      var minby = base.y - deviation.y;
-      var minbz = base.z - deviation.z;
-      var percentx = (adjusted.x - minbx) / (2*deviation.x);
-      var percenty = (adjusted.y - minby) / (2*deviation.y);
-      var percentz = (adjusted.z - minbz) / (2*deviation.z);
-      return {x: min.x + percentx * (max.x - min.x),
-              y: min.y + percenty * (max.y - min.y),
-              z: min.z + percentz * (max.z - min.z)};
-    }
-
-    var minb = base - deviation;
-    var percent = (adjusted - minb) / (2*deviation);
-
-    return min + percent * (max - min);
-  },
-
   rand_invert : function(value){
     if(typeof(value) === "object"){
       var nx = this._coin_flip() ? 1 : -1;
@@ -104,14 +74,60 @@ Omega.Constraint = {
     var target    = Array.prototype.slice.call(arguments);
     var base      = this._get(target);
     var deviation = this._get_deviation(target);
-    var scale     = this._get_scale(target);
     var adjusted  = base;
 
     if(deviation)
       adjusted = this._randomize(base, deviation);
-    if(deviation && scale)
-      adjusted = this._scale(adjusted, base, deviation, scale);
 
     return adjusted;
+  },
+
+  _max : function(target){
+    var base      = this._get(target);
+    var deviation = this._get_deviation(target);
+    if(!deviation) return base;
+
+    if(typeof(base) === "object"){
+      return {'x' : base['x'] + deviation['x'],
+              'y' : base['y'] + deviation['y'],
+              'z' : base['z'] + deviation['z']};
+    }
+
+    return base + deviation;
+  },
+
+  _min : function(target){
+    var base      = this._get(target);
+    var deviation = this._get_deviation(target);
+    if(!deviation) return base;
+
+    if(typeof(base) === "object"){
+      return {'x' : base['x'] - deviation['x'],
+              'y' : base['y'] - deviation['y'],
+              'z' : base['z'] - deviation['z']};
+    }
+
+    return base - deviation;
+  },
+
+  valid : function(){
+    var args      = Array.prototype.slice.call(arguments);
+    var current   = args.shift();
+    var base      = this._get(args);
+    var deviation = this._get_deviation(args);
+
+    if(!deviation)
+      return current == base;
+
+    var max = this._max(args);
+    var min = this._min(args);
+
+    if(typeof(base) === "object"){
+      return current['x'] <= max['x'] && current['x'] >= min['x'] &&
+             current['y'] <= max['y'] && current['y'] >= min['y'] &&
+             current['z'] <= max['z'] && current['z'] >= min['z'];
+    }
+
+    return current <= max && current >= min;
   }
 };

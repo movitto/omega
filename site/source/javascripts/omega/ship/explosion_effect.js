@@ -82,7 +82,7 @@ Omega.ShipExplosionEffect.prototype = {
   },
 
   _trigger_position : function(){
-    var loc = this.omega_entity.attacking.location;
+    var loc = this.omega_entity.attacking.scene_location();
 
     // rand distance within certain max area around ship
     var area = 50; // TODO parameterize size

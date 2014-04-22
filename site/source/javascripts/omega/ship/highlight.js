@@ -34,15 +34,5 @@ Omega.ShipHighlightEffects.prototype = {
                                 highlight_props.rot_y,
                                 highlight_props.rot_z);
     return highlight_mesh;
-  },
-
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
-    this.mesh.position.set(loc.x, loc.y, loc.z);
-
-    var props = this.highlight_props;
-    var pv = new THREE.Vector3(props.x, props.y, props.z);
-    this.mesh.position.add(pv);
   }
 }

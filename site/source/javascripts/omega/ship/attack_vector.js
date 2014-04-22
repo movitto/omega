@@ -88,7 +88,7 @@ Omega.ShipAttackVector.prototype = {
     if(new_loc){
       this._target_loc = new_loc.clone();
 
-      var loc  = this.omega_entity.location;
+      var loc  = this.omega_entity.scene_location();
       var dist = loc.distance_from(new_loc.x, new_loc.y, new_loc.z);
       var vel  = dist/this.particle_age;
       var dx   = (new_loc.x - loc.x) / dist * vel;
@@ -121,7 +121,7 @@ Omega.ShipAttackVector.prototype = {
   },
 
   update_target_loc : function(){
-    this.target_loc(this.target().location);
+    this.target_loc(this.target().scene_location());
   },
 
   alive : function(){

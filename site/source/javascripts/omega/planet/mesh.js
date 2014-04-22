@@ -56,7 +56,7 @@ Omega.PlanetMesh.prototype = {
     /// XXX intentionally swapping axis y/z here,
     /// We should generate a unique orientation orthogonal to
     /// orbital axis (or at a slight angle off that) on planet creation
-    var loc  = this.omega_entity.location;
+    var loc  = this.omega_entity.scene_location();
     var axis = new THREE.Vector3(loc.orientation_x,
                                  loc.orientation_z,
                                  loc.orientation_y).normalize()
@@ -67,7 +67,7 @@ Omega.PlanetMesh.prototype = {
   update : function(){
     if(!this.tmesh) return; /// TODO remove conditional
     var entity = this.omega_entity;
-    var loc    = entity.location;
+    var loc    = entity.scene_location();
 
     this.tmesh.position.set(loc.x, loc.y, loc.z);
                             

@@ -87,21 +87,6 @@ Omega.has_listener_for = function(obj, evnt){
          obj._listeners[evnt].length > 0;
 };
   
-// Update three component with specified rotation axis/matrix
-Omega.set_rotation = function(component, rotation){
-  if(rotation.constructor == THREE.Matrix4){
-    var nrot = rotation.clone();
-    nrot.multiply(component.matrix);
-    component.rotation.setFromRotationMatrix(nrot);
-
-  }else{
-    component.rotation.set(rotation[0], rotation[1], rotation[2]);
-    component.matrix.makeRotationFromEuler(component.rotation);
-
-  }
-  return component;
-};
-
 // Update particle emitter velocity with specified rotation axis/matrix
 Omega.set_emitter_velocity = function(emitter, rotation){
   if(rotation.constructor == THREE.Matrix4){

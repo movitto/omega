@@ -82,7 +82,7 @@ Omega.ShipTrails.prototype = {
 
   _update_emitter : function(e){
     var entity        = this.omega_entity;
-    var loc           = entity.location;
+    var loc           = entity.scene_location();
     var config_trail  = this.config_trails[e];
     var emitter       = this.particles.emitters[e];
 
@@ -95,8 +95,6 @@ Omega.ShipTrails.prototype = {
 
     /// rotate emitter velocity to match location orientation
     emitter.velocity = this._particle_velocity();
-    if(entity.mesh)
-      Omega.set_emitter_velocity(emitter, entity.mesh.base_rotation);
     Omega.set_emitter_velocity(emitter, loc.rotation_matrix());
     emitter.velocity.multiplyScalar(this.particle_speed);
   },

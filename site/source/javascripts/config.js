@@ -32,6 +32,9 @@ Omega.Config = {
 
   //default_root      : 'random',
 
+  // scale_system, set to false/null to disable
+  scale_system : 100000,
+
   // event tracking
   ship_movement     :          10,
   ship_rotation     :        0.01,
@@ -60,7 +63,6 @@ Omega.Config = {
                        'scale'    : [90, 90, 40],
                        'rotation' : [1.57,3.14,0]},
 
-    /// TODO remove ship rotation, not currently needed
     'ships'        : {
       'mining'       : { 'material' : '/textures/hull.png',
                          'geometry' : '/meshes/Agasicles/agasicles.json',

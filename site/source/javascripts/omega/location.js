@@ -124,6 +124,12 @@ Omega.Location.prototype = {
     return [this.x - x, this.y - y, this.z - z];
   },
 
+  // Return array containing this location's coordinates divided by
+  // specified scalar
+  divide : function(scalar){
+    return [this.x / scalar, this.y / scalar, this.z / scalar];
+  },
+
   /// Returns the unit direction vector from this location's
   /// coords to the specified coords
   direction_to : function(x, y, z){
@@ -152,6 +158,12 @@ Omega.Location.prototype = {
                      Math.pow(this.y - y, 2) +
                      Math.pow(this.z - z, 2));
   },
+
+  // Return absolute length of location
+  length : function(){
+    return this.distance_from(0,0,0);
+  },
+
 
   /// Boolean indicating if location is not moving
   is_stopped : function(){

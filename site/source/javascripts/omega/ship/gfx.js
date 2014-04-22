@@ -28,6 +28,11 @@ Omega.ShipGfx = {
   /// template mesh, mesh, and particle texture
   async_gfx : 3,
 
+  // Returns location which to render gfx components, overridable
+  scene_location : function(){
+    return this.location;
+  },
+
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.Ship.gfx) !== 'undefined' &&
@@ -83,14 +88,18 @@ Omega.ShipGfx = {
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
-
     this.components = [];
+
+    this.position_tracker = new THREE.Object3D();
+    this.tracker = new THREE.Object3D();
+    this.components.push(this.position_tracker);
+    this.position_tracker.add(this.tracker);
 
     /// TODO change highlight mesh material if ship doesn't belong to user
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
     if(this.include_highlight)
-      this.components.push(this.highlight.mesh);
+      this.position_tracker.add(this.highlight.mesh);
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
@@ -103,6 +112,7 @@ Omega.ShipGfx = {
     this.attack_vector =
       Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
     this.attack_vector.omega_entity = this;
+    this.attack_vector.set_position(this.position_tracker.position);
     this.components.push(this.attack_vector.particles.mesh);
 
     this.mining_vector =
@@ -123,10 +133,11 @@ Omega.ShipGfx = {
     this.hp_bar.bar.init_gfx(config, event_cb);
     if(this.include_hp_bar)
       for(var c = 0; c < this.hp_bar.bar.components.length; c++)
-        this.components.push(this.hp_bar.bar.components[c]);
+        this.position_tracker.add(this.hp_bar.bar.components[c]);
 
     this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
+    this.destruction.set_position(this.position_tracker.position);
     this.components.push(this.destruction.particles.mesh);
 
     this.destruction_audio = Omega.Ship.gfx[this.type].destruction_audio;
@@ -138,9 +149,6 @@ Omega.ShipGfx = {
     this.smoke = Omega.Ship.gfx[this.type].smoke.clone();
     this.smoke.omega_entity = this;
     this.components.push(this.smoke.particles.mesh);
-
-    this.tracker_obj = new THREE.Object3D();
-    this.components.push(this.tracker_obj);
 
     this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
 
@@ -161,10 +169,7 @@ Omega.ShipGfx = {
         _this.mesh.tmesh.add(_this.trajectory2.mesh);
       }
 
-      _this.attack_vector.set_position(_this.mesh.tmesh.position);
-      _this.destruction.set_position(_this.mesh.tmesh.position)
-
-      _this.components.push(_this.mesh.tmesh);
+      _this.tracker.add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
     });
@@ -179,6 +184,7 @@ Omega.ShipGfx = {
     if(!from.components || from.components.length == 0) return;
     this.components        = from.components;
     this.shader_components = from.shader_components;
+    this.scene_location    = from.scene_location;
     this.mesh              = from.mesh;
     this.highlight         = from.highlight;
     this.lamps             = from.lamps;
@@ -197,17 +203,14 @@ Omega.ShipGfx = {
 
   /// Update ship graphics on movement events
   update_gfx : function(){
-    this.mesh.update();
-    this.highlight.update();
-    this.hp_bar.update();
+    var loc = this.scene_location();
+    this.position_tracker.position.set(loc.x, loc.y, loc.z);
+    this.tracker.rotation.setFromRotationMatrix(this.location.rotation_matrix());
+
     this.trails.update();
     this.attack_vector.update();
     this.mining_vector.update();
     this.smoke.update();
-
-    this.tracker_obj.position.set(this.location.x,
-                                  this.location.y,
-                                  this.location.z);
   },
 
   /// Update graphics on attack events

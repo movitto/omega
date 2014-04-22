@@ -74,7 +74,7 @@ Omega.ShipMiningVector.prototype = {
   _no_velocity_update : function(){},
 
   _update_emitter_velocity : function(){
-    var loc = this.omega_entity.location;
+    var loc = this.omega_entity.scene_location();
 
     for(var e = 0; e < this.num_emitters; e++){
       var emitter = this.particles.emitters[e];

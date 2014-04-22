@@ -83,12 +83,12 @@ Omega.ShipCommands = {
     var start = 'follow';
     var stop  = 'stop following';
 
-    var following = page.canvas.is_following(this.tracker_obj);
+    var following = page.canvas.is_following(this.position_tracker);
     var cmd = $('<a>', {href : '#',
                         text : following ? stop : start});
 
     cmd.click(function(evnt){
-      var following = page.canvas.is_following(_this.tracker_obj);
+      var following = page.canvas.is_following(_this.position_tracker);
 
       if(following){
         page.canvas.stop_following();
@@ -97,7 +97,7 @@ Omega.ShipCommands = {
       }else{
         page.canvas.reset_cam();
         page.canvas.cam.position.set(150, 150, 150);
-        page.canvas.follow(_this.tracker_obj);
+        page.canvas.follow(_this.position_tracker);
         page.canvas.cam_controls.update();
         cmd.text(stop);
 

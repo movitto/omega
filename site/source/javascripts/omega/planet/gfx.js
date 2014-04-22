@@ -14,6 +14,11 @@ Omega.PlanetGfx = {
 
   async_gfx : 1,
 
+  // Returns location which to render gfx components, overridable
+  scene_location : function(){
+    return this.location;
+  },
+
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.Planet.gfx)            !== 'undefined' &&
@@ -48,7 +53,7 @@ Omega.PlanetGfx = {
     this.mesh.omega_entity = this;
     this.mesh.material =
       new Omega.PlanetMaterial.load(config, type, event_cb);
-    this.tracker_obj = new THREE.Object3D();
+    this.position_tracker = new THREE.Object3D();
     this.update_gfx();
 
     this._calc_orbit();
@@ -56,13 +61,15 @@ Omega.PlanetGfx = {
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.last_moved = new Date();
-    this.components = [this.tracker_obj, this.mesh.tmesh, this.orbit_line.line];
+    this.components = [this.position_tracker, this.mesh.tmesh, this.orbit_line.line];
   },
 
   /// Update local system graphics on core entity changes
   update_gfx : function(){
     this.mesh.update();
-    this.tracker_obj.position.set(this.location.x, this.location.y, this.location.z);
+
+    var loc = this.scene_location();
+    this.position_tracker.position.set(loc.x, loc.y, loc.z);
   },
 
   /// Run local system graphics effects

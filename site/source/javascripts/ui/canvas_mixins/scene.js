@@ -21,7 +21,7 @@ Omega.UI.CanvasSceneManager = {
 
   cam_props : {
     min_distance :   100,
-    max_distance : 14000
+    max_distance : 20000
   },
 
   render_stats : true,
@@ -111,9 +111,12 @@ Omega.UI.CanvasSceneManager = {
   // Render scene (used internally, no need to invoke manually)
   render : function(){
     this.renderer.clear();
+
+    /// apply cam rotations to sky cam (but not translations)
     this.skyCam.rotation.setFromRotationMatrix(
       new THREE.Matrix4().extractRotation(this.cam.matrixWorld ),
       this.skyCam.eulerOrder);
+
     this.renderer.render(this.skyScene, this.skyCam);
     this.renderer.render(this.scene, this.cam);
     this.stats.update();

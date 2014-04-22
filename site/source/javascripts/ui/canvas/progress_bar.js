@@ -54,13 +54,6 @@ Omega.UI.CanvasProgressBar.prototype = {
     this.components = [this.component1, this.component2];
   },
 
-  set_position : function(loc){
-    /// assuming progress bar coordinates is centered on location,
-    /// negative vertex values are allowed
-    this.component1.position.set(loc.x, loc.y, loc.z);
-    this.component2.position.set(loc.x, loc.y, loc.z);
-  },
-
   update : function(percentage){
     var comp1len = percentage * this.length;
     var comp2len = this.length - comp1len;

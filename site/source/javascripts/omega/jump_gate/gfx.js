@@ -13,6 +13,11 @@
 Omega.JumpGateGfx = {
   async_gfx : 3,
 
+  // Returns location which to render gfx components, overridable
+  scene_location : function(){
+    return this.location;
+  },
+
   // True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.JumpGate.gfx) !== 'undefined';
@@ -83,7 +88,7 @@ Omega.JumpGateGfx = {
   },
 
   update_gfx : function(){
-    if(!this.location) return;
+    if(!this.scene_location()) return;
 
     if(this.mesh)      this.mesh.update();
     if(this.particles) this.particles.update();

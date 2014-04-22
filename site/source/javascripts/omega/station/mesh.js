@@ -44,7 +44,7 @@ Omega.StationMesh.prototype = {
 
   update : function(){
     var entity = this.omega_entity;
-    var loc    =   entity.location;
+    var loc    =   entity.scene_location();
 
     /// set mesh position
     this.tmesh.position.set(loc.x, loc.y, loc.z);

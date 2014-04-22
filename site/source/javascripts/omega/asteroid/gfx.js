@@ -8,6 +8,11 @@
 
 // Asteroid GFX Mixin
 Omega.AsteroidGfx = {
+  // Returns location which to render gfx components, overridable
+  scene_location : function(){
+    return this.location;
+  },
+
   load_gfx : function(config, event_cb){
     if(typeof(Omega.Asteroid.gfx) !== 'undefined') return;
     var gfx = {};
@@ -34,8 +39,8 @@ Omega.AsteroidGfx = {
   },
 
   update_gfx : function(){
-    if(this.location)
-      this.mesh.tmesh.position.add(this.location.vector());
+    var loc = this.scene_location();
+    this.mesh.tmesh.position.set(loc.x, loc.y, loc.z);
   },
 
   run_effects : function(){}

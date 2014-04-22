@@ -73,19 +73,24 @@ Omega.UI.CanvasTracker = {
     this.canvas.entity_container.hide();
 
     /// remove galaxy particle effects from canvas scene
-    if(old_root && old_root.json_class == 'Cosmos::Entities::Galaxy')
-      this.canvas.remove(old_root);
+    if(old_root)
+      if(old_root.json_class == 'Cosmos::Entities::Galaxy')
+        this.canvas.remove(old_root);
+      else if(old_root.json_class == 'Cosmos::Entities::SolarSystem')
+        this._unscale_system(old_root)
 
     /// add galaxy particle effects to canvas scene
     if(root.json_class == 'Cosmos::Entities::Galaxy')
       this.canvas.add(root);
+    else if(root.json_class == 'Cosmos::Entities::SolarSystem')
+      this._scale_system(root);
 
     /// set scene background
     this.canvas.skybox.set(root.bg);
 
     /// add skybox to scene
     if(!this.canvas.has(this.canvas.skybox.id))
-      this.canvas.add(this.canvas.skybox, this.skyScene);
+      this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
 
     /// add star dust to scene
     if(!this.canvas.has(this.canvas.star_dust.id))
@@ -151,6 +156,42 @@ Omega.UI.CanvasTracker = {
       var gitem = {id: galaxy.id, text: galaxy.name,
                    data: galaxy, color : 'blue'};
       this.canvas.controls.locations_list.add(gitem);
+    }
+  },
+
+  _scale_system : function(system){
+    if(!this.config.scale_system) return;
+
+    var scale = this.config.scale_system;
+    var children = system.children;
+    for(var c = 0; c < children.length; c++){
+      if(children[c].scene_location){
+        /// backup original scene_location generator
+        children[c]._scene_location = children[c].scene_location;
+
+        /// override scene location to scale all entities
+        children[c].scene_location = function(){
+          return this.location.clone().set(this.location.divide(scale));
+        };
+      }
+
+      /// scale orbit components
+      if(children[c].orbit)
+        children[c].orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
+    }
+  },
+
+  _unscale_system : function(system){
+    if(!this.config.scale_system) return;
+
+    var children = system.children;
+    for(var c = 0; c < children.length; c++){
+      if(children[c]._scene_location){
+        children[c].scene_location  = children[c]._scene_location;
+        children[c]._scene_location = null;
+      }
+
+      if(children[c].orbit) children[c].orbit_line.line.scale.set(1, 1, 1);
     }
   },
 

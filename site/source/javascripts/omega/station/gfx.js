@@ -14,6 +14,11 @@
 Omega.StationGfx = {
   async_gfx : 2,
 
+  // Returns location which to render gfx components, overridable
+  scene_location : function(){
+    return this.location;
+  },
+
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.Station.gfx) !== 'undefined' &&
@@ -50,7 +55,6 @@ Omega.StationGfx = {
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
-
     this.components = [];
 
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
@@ -87,6 +91,7 @@ Omega.StationGfx = {
     if(!from.components || from.components.length == 0) return;
     this.components        = from.components;
     this.shader_components = from.shader_components;
+    this.scene_location    = from.scene_location;
     this.mesh              = from.mesh;
     this.highlight         = from.highlight;
     this.lamps             = from.lamps;

@@ -49,6 +49,10 @@ Omega.Gen = {
     return new Omega.Location({x: x, y: y, z: z});
   },
 
+  random_vector : function(){
+    return Omega.Math.nrml(Math.random(), Math.random(), Math.random());
+  },
+
   elliptical_ms : function(enrml, opts){
     /// generate major axis such that maj . enrml = 0
     var tx   = Math.random();
@@ -155,8 +159,9 @@ Omega.Gen = {
   },
 
   linear_ms : function(opts){
-    var ms = {json_class : 'Motel::MovementStrategies::Linear',
-              speed : 1, dx : 0, dy : 0, dz : 1};
+    var dir = this.random_vector();
+    var ms  = {json_class : 'Motel::MovementStrategies::Linear',
+               speed : 1, dx : dir[0], dy : dir[1], dz : dir[2]};
     $.extend(ms, opts);
     return ms;
   },

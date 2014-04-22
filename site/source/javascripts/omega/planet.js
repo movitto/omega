@@ -41,7 +41,7 @@ Omega.Planet.prototype = {
   /// Follow planets with camera on click
   clicked_in : function(canvas){
     canvas.cam.position.set(500, 500, 500);
-    canvas.follow(this.tracker_obj);
+    canvas.follow(this.position_tracker);
     canvas.cam_controls.update();
   }
 };
