@@ -3,17 +3,10 @@ require 'omega/client/boilerplate'
 
 login 'admin', 'nimda'
 
-def system_loc
-  # TODO more organized / algorithmic system positioning
-  # (still w/ some random variance)
-  rand_loc(:min => 1000, :max => 2500, :max_y => 250, :min_y => 0)
-end
-
 def system_asteroids
   e =  rand *  0.6 + 0.2
   p = (rand * 4500 + 2000).floor
-  asteroid_belt :e => e, :p => p, :scale => 10,
-                :direction => random_axis(:orthogonal_to => [0,1,0]) do
+  asteroid_belt do
     @asteroids.each { |ast| asteroid_resources(ast) }
   end
 end
@@ -28,14 +21,12 @@ def system_planets
     e =  rand * 0.4 + 0.3
     p = (rand * 4000 + 1000).floor
     s =  rand * 0.03 + 0.001
-    planet "#{@solar_system.name}#{i}", :movement_strategy =>
-      orbit(:e => e, :p => p, :speed => s,
-            :direction => random_axis(:orthogonal_to => [0,1,0]))
+    planet "#{@solar_system.name}#{i}"
   end
 end
 
 def create_system(name)
-  system name, "HD#{(rand*5000).floor}", :location => system_loc do
+  system name, "HD#{(rand*5000).floor}" do
     system_asteroids
     system_planets
   end

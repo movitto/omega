@@ -31,7 +31,7 @@ u = user USER_NAME, PASSWORD do |u|
 end
 
 starting_system = system(STARTING_SYSTEM)
-starting_loc    = rand_loc(:max => 2000, :min => 1000)
+starting_loc    = Location.new rand_invert(constraint('system_entity', 'position'))
 
 station(USER_NAME + "-manufacturing-station1") do |station|
   station.type         = :manufacturing
@@ -45,12 +45,12 @@ ship(USER_NAME + "-mining-ship1") do |ship|
   ship.type         = :mining
   ship.user_id      = USER_NAME
   ship.solar_system = starting_system
-  ship.location     = starting_loc + [100, 100, 100]
+  ship.location     = starting_loc + [50000000, 50000000, 50000000]
 end
 
 ship(USER_NAME + "-corvette-ship1") do |ship|
   ship.type         = :corvette
   ship.user_id      = USER_NAME
   ship.solar_system = starting_system
-  ship.location     = starting_loc + [-100, -100, -100]
+  ship.location     = starting_loc + [-50000000, -50000000, -50000000]
 end

@@ -36,7 +36,7 @@ Omega.Config = {
   scale_system : 100000,
 
   // event tracking
-  ship_movement     :          10,
+  ship_movement     :   100000000,
   ship_rotation     :        0.01,
   station_movement  :          50,
 
