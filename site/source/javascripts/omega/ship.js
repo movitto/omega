@@ -25,6 +25,19 @@ Omega.Ship.prototype = {
 
   json_class : 'Manufactured::Ship',
 
+  /// Update ship's mutable properties from other
+  update : function(ship){
+    this.hp             = ship.hp;
+    this.shield_level   = ship.shield_level;
+    this.distance_moved = ship.distance_moved;
+    this.docked_at_id   = ship.docked_at_id;
+    this.attacking_id   = ship.attacking_id;
+    this.mining         = ship.mining;
+    this.resources      = ship.resources;
+    this.system_id = this.parent_id = ship.system_id;
+    this.location.update(ship.location);
+  },
+
   /// Return clone of this ship
   clone : function(){
      var cloned = new Omega.Location();

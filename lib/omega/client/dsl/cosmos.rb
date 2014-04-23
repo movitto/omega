@@ -151,6 +151,14 @@ module Omega
       def asteroid_field(args={}, &bl)
         locs = args[:locations] || []
 
+        if args[:num] && locs.size < args[:num]
+          locs.size.upto(args[:num]-1) do
+            ast_loc = rand_invert constraint('asteroid', 'position')
+            ast_loc = Motel::Location.new(ast_loc)
+            locs << ast_loc
+          end
+        end
+
         asts =
           locs.collect { |loc|
             id = gen_uuid
@@ -177,7 +185,7 @@ module Omega
         p = constraint('asteroid_belt', 'p') if p.nil?
         e = constraint('asteroid_belt', 'e') if e.nil?
 
-        direction = args[:direction]
+        direction = args[:direction] || random_axis(:orthogonal_to => [0,1,0])
         path = Motel.elliptical_path(p,e,direction)
 
         num  = path.size / scale
@@ -320,6 +328,10 @@ module Omega
           jg_loc = rand_invert constraint('system_entity', 'position')
           jg_loc = Motel::Location.new(jg_loc)
           jargs[:location] = jg_loc
+        end
+
+        unless jargs[:trigger_distance]
+          jargs[:trigger_distance] = constraint('jump_gate', 'triggerDistance')
         end
 
         gate  = Cosmos::Entities::JumpGate.new(jargs)

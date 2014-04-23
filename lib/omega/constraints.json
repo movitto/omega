@@ -43,6 +43,10 @@
 
   "system_entity": {
     "position":          { "x" : 500000000, "y" : 100, "z" : 500000000 },
-    "positionDeviation": { "x" : 499900000, "y" : 100, "z" : 499900000 }
+    "positionDeviation": { "x" : 350000000, "y" : 100, "z" : 499900000 }
+  },
+
+  "jump_gate" : {
+    "triggerDistance" : 500000000
   }
 }

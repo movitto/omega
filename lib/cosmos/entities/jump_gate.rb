@@ -45,7 +45,7 @@ class JumpGate
     init_system_entity(args)
     attr_from_args args, :endpoint_id      => nil,
                          :endpoint         => nil,
-                         :trigger_distance => 300  # TODO make default configurable
+                         :trigger_distance =>   1
   end
 
   # Return boolean indicating if this jump gate is valid

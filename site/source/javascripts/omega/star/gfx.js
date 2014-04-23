@@ -24,6 +24,11 @@ Omega.StarGfx = {
     Omega.Star.gfx = gfx;
   },
 
+  /// True / false if system gfx have been initialized
+  gfx_initialized : function(){
+    return !!(this._gfx_initialized);
+  },
+
   init_gfx : function(config, event_cb){
     if(this.components.length > 0) return; /// return if already initialized
     this.load_gfx(config, event_cb);
@@ -41,6 +46,7 @@ Omega.StarGfx = {
 
     this.components = [this.glow.tglow, this.mesh.tmesh, this.light];
     this.update_gfx();
+    this._gfx_initialized = true;
   },
 
   update_gfx : function(){

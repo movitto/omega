@@ -24,6 +24,13 @@ Omega.Station.prototype = {
   constructor: Omega.Station,
   json_class : 'Manufactured::Station',
 
+  /// Update station's properties from other
+  update : function(station){
+    this.resources = station.resources;
+    this.system_id = this.parent_id = station.system_id;
+    this.location.update(station.location);
+  },
+
   /// Return bool indicating if station belongs to the specified user
   belongs_to_user : function(user_id){
     return this.user_id == user_id;

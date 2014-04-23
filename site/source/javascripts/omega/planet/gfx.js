@@ -38,9 +38,9 @@ Omega.PlanetGfx = {
     Omega.Planet.gfx[type] = gfx;
   },
 
-  /// True / false if local system gfx have been initialized
+  /// True / false if local planet gfx have been initialized
   gfx_initialized : function(){
-    return this.components.length > 0;
+    return !!(this._gfx_initialized);
   },
 
   /// Intiialize local system graphics
@@ -62,6 +62,7 @@ Omega.PlanetGfx = {
 
     this.last_moved = new Date();
     this.components = [this.position_tracker, this.mesh.tmesh, this.orbit_line.line];
+    this._gfx_initialized = true;
   },
 
   /// Update local system graphics on core entity changes

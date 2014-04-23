@@ -62,12 +62,6 @@ Omega.UI.CanvasTracker = {
         old_root = change.old_root;
 
     var entities = this.entity_map(root);
-    this.track_system_events(root);
-    this.track_scene_entities(root, entities);
-    this.sync_scene_entities(root, entities, function(retrieved){
-      _this._process_retrieved_scene_entities(retrieved, entities);
-    });
-    this.sync_scene_planets(root);
 
     /// unselect currently selected entity (if any)
     this.canvas.entity_container.hide();
@@ -76,14 +70,25 @@ Omega.UI.CanvasTracker = {
     if(old_root)
       if(old_root.json_class == 'Cosmos::Entities::Galaxy')
         this.canvas.remove(old_root);
-      else if(old_root.json_class == 'Cosmos::Entities::SolarSystem')
+
+      else if(old_root.json_class == 'Cosmos::Entities::SolarSystem'){
+        this.stop_tracking_system_events();
+        this.stop_tracking_scene_entities(entities);
         this._unscale_system(old_root)
+        //this._unscale_system_entities(old_root);
+      }
 
     /// add galaxy particle effects to canvas scene
     if(root.json_class == 'Cosmos::Entities::Galaxy')
       this.canvas.add(root);
-    else if(root.json_class == 'Cosmos::Entities::SolarSystem')
+    else if(root.json_class == 'Cosmos::Entities::SolarSystem'){
+      this.track_system_events(root);
       this._scale_system(root);
+      this.sync_scene_planets(root);
+      this.sync_scene_entities(root, entities, function(retrieved){
+        _this.process_entities(retrieved);
+      });
+    }
 
     /// set scene background
     this.canvas.skybox.set(root.bg);
@@ -97,44 +102,8 @@ Omega.UI.CanvasTracker = {
       this.canvas.add(this.canvas.star_dust);
   },
 
-  /// Callback invoked when we retrieve entities on scene changes
-  _process_retrieved_scene_entities : function(entities, entity_map){
-    for(var e = 0; e < entities.length; e++){
-      this._process_retrieved_scene_entity(entities[e], entity_map);
-    }
-  },
-
-  /// Process individual entities on scene changes
-  _process_retrieved_scene_entity : function(entity, entity_map){
-    entity.update_system(this.entity(entity.system_id));
-
-    var local      = this.entity(entity.id);
-    var user_owned = this.session != null ?
-                       entity.user_id == this.session.user_id : false;
-    var same_scene = this.canvas.root && this.canvas.root.id == entity.system_id;
-    var in_scene   = this.canvas.has(entity.id);
-    var tracking   = $.grep(entity_map.start_tracking, function(track_entity){
-                       return track_entity.id == entity.id; })[0] != null;
-
-    /// same assumption as in _scene_change above, that
-    /// user owned entities are already being tracked
-    if(!user_owned){
-      this._store_entity(entity);
-
-      if(entity.alive()){
-        if(same_scene && !in_scene)
-          this.canvas.add(entity);
-        if(!tracking)
-          this.track_entity(entity);
-
-        this._add_nav_entity(entity);
-      }
-    }
-  },
-
   /// Add entity to entities list if not present
   _add_nav_entity : function(entity){
-    /// TODO skip if not alive?
     if(!this.canvas.controls.entities_list.has(entity.id)){
       var item = {id: entity.id, text: entity.id, data: entity};
       this.canvas.controls.entities_list.add(item);
@@ -162,46 +131,58 @@ Omega.UI.CanvasTracker = {
   _scale_system : function(system){
     if(!this.config.scale_system) return;
 
-    var scale = this.config.scale_system;
     var children = system.children;
-    for(var c = 0; c < children.length; c++){
-      if(children[c].scene_location){
-        /// backup original scene_location generator
-        children[c]._scene_location = children[c].scene_location;
+    for(var c = 0; c < children.length; c++)
+      this._scale_entity(children[c]);
 
-        /// override scene location to scale all entities
-        children[c].scene_location = function(){
-          return this.location.clone().set(this.location.divide(scale));
-        };
-      }
+    var manu = this.manu_entities();
+    for(var c = 0; c < manu.length; c++)
+      this._scale_entity(manu[c]);
+  },
 
-      /// scale orbit components
-      if(children[c].orbit)
-        children[c].orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
+  _scale_entity : function(entity){
+    var scale = this.config.scale_system;
+    if(entity.scene_location){
+      /// backup original scene_location generator
+      entity._scene_location = entity.scene_location;
+
+      /// override scene location to scale all entities
+      entity.scene_location = function(){
+        return this.location.clone().set(this.location.divide(scale));
+      };
     }
+
+    /// scale orbit components
+    if(entity.orbit)
+      entity.orbit_line.line.scale.set(1/scale, 1/scale, 1/scale);
+
+    if(entity.gfx_initialized()) entity.update_gfx();
   },
 
   _unscale_system : function(system){
     if(!this.config.scale_system) return;
 
     var children = system.children;
-    for(var c = 0; c < children.length; c++){
-      if(children[c]._scene_location){
-        children[c].scene_location  = children[c]._scene_location;
-        children[c]._scene_location = null;
-      }
+    for(var c = 0; c < children.length; c++)
+      this._unscale_entity(children[c]);
+  },
 
-      if(children[c].orbit) children[c].orbit_line.line.scale.set(1, 1, 1);
+  _unscale_entity : function(entity){
+    if(entity._scene_location){
+      entity.scene_location  = entity._scene_location;
+      entity._scene_location = null;
     }
+
+    if(entity.orbit) entity.orbit_line.line.scale.set(1, 1, 1);
   },
 
   /// Store entity in registry, copying locally-initialized
   /// attributes from original entity
   _store_entity : function(entity){
     var local = this.entity(entity.id);
-    if(local) entity.cp_gfx(local);
-    this.entity(entity.id, entity);
-
+    if(local) local.update(entity);
+    else this.entity(entity.id, entity);
+    return local || entity;
   },
 
   /// Process entities retrieved from server
@@ -223,17 +204,34 @@ Omega.UI.CanvasTracker = {
 
   /// Process entity retrieved from server
   process_entity : function(entity){
-    /// store entity locally
-    this._store_entity(entity);
+    var user_owned = this.session != null &&
+                     entity.user_id == this.session.user_id;
 
-    /// add to navigation
-    this._add_nav_entity(entity);
+    var same_scene = this.canvas.root &&
+                     this.canvas.root.id == entity.system_id;
+
+    var in_scene   = this.canvas.has(entity.id);
+
+    /// store entity locally
+    entity = this._store_entity(entity);
 
     /// load system entity is in
     this._load_entity_system(entity);
 
-    /// start tracking entity
-    this.track_entity(entity);
+    if(entity.alive()){
+      /// add to navigation
+      this._add_nav_entity(entity);
+
+      /// add to scene if appropriate
+      if(same_scene && !in_scene){
+        this.canvas.add(entity);
+        this._scale_entity(entity)
+      }
+
+      /// start tracking entity
+      /// TODO only if not already tracking
+      if(user_owned || same_scene) this.track_entity(entity);
+    }
   },
 
   /// Update references to/from system

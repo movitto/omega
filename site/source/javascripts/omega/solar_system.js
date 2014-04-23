@@ -103,18 +103,15 @@ Omega.SolarSystem.prototype = {
     });
   },
 
-  /// Return bool indiciating if system has a jg to the specified endpoint
-  has_gate_to : function(endpoint_id){
-    return $.grep(this.jump_gates(), function(jg){
-             return jg.endpoint_id == endpoint_id;
+  /// Return bool indiciating if system has a interconn to the specified endpoint
+  has_interconn_to : function(endpoint_id){
+    return $.grep(this.interconns, function(endpoint){
+             return endpoint.id == endpoint_id;
            }).length > 0;
   },
 
-  /// Add placeholder jump gate until system children is loaded
-  add_gate_to : function(endpoint){
-    var gate = new Omega.JumpGate({endpoint_id : endpoint.id,
-                                   endpoint    : endpoint});
-    this.children.push(gate);
+  /// Add system to local interconnects
+  add_interconn_to : function(endpoint){
     this.interconns.add(endpoint);
   },
 
@@ -130,7 +127,9 @@ Omega.SolarSystem.prototype = {
 
       if(system != null){
         gate.endpoint = system;
-        this.interconns.add(system);
+
+        if(!this.has_interconn_to(gate.endpoint_id))
+          this.add_interconn_to(system);
       }
     }
   },

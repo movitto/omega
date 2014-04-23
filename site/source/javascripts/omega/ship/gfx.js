@@ -81,7 +81,7 @@ Omega.ShipGfx = {
 
   /// True / false if ship gfx have been initialized
   gfx_initialized : function(){
-    return this.components.length > 0;
+    return !!(this._gfx_initialized);
   },
 
   /// Intiialize ship graphics
@@ -172,33 +172,12 @@ Omega.ShipGfx = {
       _this.tracker.add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
+      _this._gfx_initialized = true;
     });
 
     this.last_moved = new Date();
     this.update_gfx();
     this.update_movement_effects();
-  },
-
-  cp_gfx : function(from){
-    /// return if not initialized
-    if(!from.components || from.components.length == 0) return;
-    this.components        = from.components;
-    this.shader_components = from.shader_components;
-    this.scene_location    = from.scene_location;
-    this.mesh              = from.mesh;
-    this.highlight         = from.highlight;
-    this.lamps             = from.lamps;
-    this.trails            = from.trails;
-    this.attack_vector     = from.attack_vector;
-    this.mining_vector     = from.mining_vector;
-    this.trajectory1       = from.trajectory1;
-    this.trajectory2       = from.trajectory2;
-    this.hp_bar            = from.hp_bar;
-    this.destruction       = from.destruction;
-    this.destruction_audio = from.destruction_audio;
-    this.explosions        = from.explosions;
-    this.smoke             = from.smoke;
-    this.mining_audio      = from.mining_audio;
   },
 
   /// Update ship graphics on movement events

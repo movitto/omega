@@ -30,7 +30,6 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
     _this.page.process_entity(entity);
     if(_this.page.canvas.is_root(entity.system_id)){
       _this.page.audio_controls.play(pstation.construction_audio);
-      _this.page.canvas.add(entity);
     }
   });
 

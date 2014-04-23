@@ -47,9 +47,9 @@ Omega.StationGfx = {
     });
   },
 
-  /// True / false if ship gfx have been initialized
+  /// True / false if station gfx have been initialized
   gfx_initialized : function(){
-    return this.components.length > 0;
+    return !!(this._gfx_initialized);
   },
 
   init_gfx : function(config, event_cb){
@@ -80,23 +80,11 @@ Omega.StationGfx = {
       _this.components.push(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
+      _this._gfx_initialized = true;
     });
 
     this.last_moved = new Date();
     this.update_gfx();
-  },
-
-  cp_gfx : function(from){
-    /// return if not initialized
-    if(!from.components || from.components.length == 0) return;
-    this.components        = from.components;
-    this.shader_components = from.shader_components;
-    this.scene_location    = from.scene_location;
-    this.mesh              = from.mesh;
-    this.highlight         = from.highlight;
-    this.lamps             = from.lamps;
-    this.construction_bar  = from.construction_bar;
-    this.construction_audio = from.construction_audio;
   },
 
   update_gfx : function(){

@@ -92,6 +92,7 @@ Omega.ShipCommands = {
 
       if(following){
         page.canvas.stop_following();
+        page.canvas.reset_cam();
         cmd.text(start);
 
       }else{

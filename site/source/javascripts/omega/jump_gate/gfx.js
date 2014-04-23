@@ -44,7 +44,7 @@ Omega.JumpGateGfx = {
 
   // True / false if local system gfx have been initialized
   gfx_initialized : function(){
-    return this.components.length > 0;
+    return !!(this._gfx_initialized);
   },
 
   // Intiialize local jump gate graphics
@@ -75,6 +75,7 @@ Omega.JumpGateGfx = {
       _this.components.push(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
+      _this._gfx_initialized = true;
     });
 
     this.update_gfx();

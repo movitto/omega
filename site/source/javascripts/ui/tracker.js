@@ -33,28 +33,22 @@ Omega.UI.Tracker = {
       $.grep(entities.manu, function(entity){
         return !entity.belongs_to_user(_this.session.user_id);
       });
-    entities.in_root = $.grep(entities.manu, function(entity){
-      return entity.system_id == root.id;
-    });
-    entities.not_in_root = $.grep(entities.manu, function(entity){
-      return entity.system_id != root.id;
-    });
-    entities.stop_tracking = $.grep(entities.not_in_root, function(entity){
-      /// stop tracking entities not in scene
-      return entities.not_user_owned.indexOf(entity) != -1;
-    });
-    entities.start_tracking = $.grep(entities.in_root, function(entity){
-      /// track entities in scene
-      return entities.not_user_owned.indexOf(entity) != -1;
+    entities.stop_tracking = $.grep(entities.manu, function(entity){
+      /// stop tracking entities not-user owned entities not in scene
+      return entities.not_user_owned.indexOf(entity) != -1 &&
+             entity.system_id != root.id;
     });
     return entities;
   },
 
   /// Track cosmos-level system-wide events
   track_system_events : function(root){
-    this.node.ws_invoke('manufactured::unsubscribe',  'system_jump');
-    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
     this.node.ws_invoke('manufactured::subscribe_to', 'system_jump', 'to', root.id);
+  },
+
+  // Stop tracking cosmos-level system wide events
+  stop_tracking_system_events : function(){
+    this.node.ws_invoke('manufactured::unsubscribe',  'system_jump');
   },
 
   /// Stop tracking manu entities in scene
@@ -65,21 +59,8 @@ Omega.UI.Tracker = {
     }
   },
 
-  /// Start tracking manu entities in scene
-  track_scene_entities : function(root, entities){
-    this.stop_tracking_scene_entities(entities);
-    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
-
-    for(var e = 0; e < entities.start_tracking.length; e++){
-      var entity = entities.start_tracking[e];
-      this.track_entity(entity);
-    }
-  },
-
   /// Refresh latest scene planet location from server
   sync_scene_planets : function(root){
-    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
-
     var planets = root.planets();
     for(var p = 0; p < planets.length; p++){
       this._sync_scene_planet(root, planets[p]);
@@ -105,14 +86,6 @@ Omega.UI.Tracker = {
 
   /// Synchronize entities in system from server
   sync_scene_entities : function(root, entities, cb){
-    if(root.json_class != "Cosmos::Entities::SolarSystem") return;
-
-    for(var e = 0; e < entities.in_root.length; e++){
-      var entity = entities.in_root[e];
-      if(entity.alive() && !this.canvas.has(entity.id))
-        this.canvas.add(entity);
-    }
-
     /// retrieve all entities in the current system
     Omega.Ship.under(root.id, this.node, cb);
     Omega.Station.under(root.id, this.node, cb);

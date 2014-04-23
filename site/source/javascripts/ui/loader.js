@@ -53,6 +53,7 @@ Omega.UI.Loader = {
       new Omega.Galaxy(),
       new Omega.Star(),
       new Omega.JumpGate(),
+      new Omega.Asteroid()
     ];
 
     entities.concat(this._planets_to_preload(config));
@@ -300,8 +301,8 @@ Omega.UI.Loader = {
           var endpoint = $.grep(galaxy.children,
                                 function(c){ return c.id == endpoint_id; })[0];
 
-          if(!system.has_gate_to(endpoint_id)){
-              system.add_gate_to(endpoint);
+          if(!system.has_interconn_to(endpoint_id)){
+              system.add_interconn_to(endpoint);
           }
         }
       };

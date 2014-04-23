@@ -41,5 +41,14 @@ Omega.UI.Registry.prototype = {
       return c.json_class &&
              c.json_class == 'Cosmos::Entities::Galaxy';
     });
+  },
+
+  /// return array of all manu entities in registry
+  manu_entities : function(){
+    return $.grep(this.all_entities(), function(c){
+      return  c.json_class &&
+             (c.json_class == 'Manufactured::Ship' ||
+              c.json_class == 'Manufactured::Station');
+    });
   }
 };

@@ -21,7 +21,6 @@ Omega.Callbacks.system_jump = function(event, evnt_args){
 
   if(in_root){
     this.page.process_entity(pentity);
-    this.page.canvas.add(pentity);
   }else{
     this.page.entity(pentity.id, pentity);
   }
