@@ -33,6 +33,20 @@ Omega.ShipGfx = {
     return this.location;
   },
 
+  // Returns 3D object tracking ship position
+  position_tracker : function(){
+    if(!this._position_tracker)
+      this._position_tracker = new THREE.Object3D();
+    return this._position_tracker;
+  },
+
+  // Returns 3D object tracking ship location
+  location_tracker : function(){
+    if(!this._location_tracker)
+      this._location_tracker = new THREE.Object3D();
+    return this._location_tracker;
+  },
+
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.Ship.gfx) !== 'undefined' &&
@@ -90,16 +104,14 @@ Omega.ShipGfx = {
     this.load_gfx(config, event_cb);
     this.components = [];
 
-    this.position_tracker = new THREE.Object3D();
-    this.tracker = new THREE.Object3D();
-    this.components.push(this.position_tracker);
-    this.position_tracker.add(this.tracker);
+    this.components.push(this.position_tracker());
+    this.position_tracker().add(this.location_tracker());
 
     /// TODO change highlight mesh material if ship doesn't belong to user
     this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
     if(this.include_highlight)
-      this.position_tracker.add(this.highlight.mesh);
+      this.position_tracker().add(this.highlight.mesh);
 
     this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
@@ -112,7 +124,7 @@ Omega.ShipGfx = {
     this.attack_vector =
       Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
     this.attack_vector.omega_entity = this;
-    this.attack_vector.set_position(this.position_tracker.position);
+    this.attack_vector.set_position(this.position_tracker().position);
     this.components.push(this.attack_vector.particles.mesh);
 
     this.mining_vector =
@@ -133,11 +145,11 @@ Omega.ShipGfx = {
     this.hp_bar.bar.init_gfx(config, event_cb);
     if(this.include_hp_bar)
       for(var c = 0; c < this.hp_bar.bar.components.length; c++)
-        this.position_tracker.add(this.hp_bar.bar.components[c]);
+        this.position_tracker().add(this.hp_bar.bar.components[c]);
 
     this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
     this.destruction.omega_entity = this;
-    this.destruction.set_position(this.position_tracker.position);
+    this.destruction.set_position(this.position_tracker().position);
     this.components.push(this.destruction.particles.mesh);
 
     this.destruction_audio = Omega.Ship.gfx[this.type].destruction_audio;
@@ -169,7 +181,7 @@ Omega.ShipGfx = {
         _this.mesh.tmesh.add(_this.trajectory2.mesh);
       }
 
-      _this.tracker.add(_this.mesh.tmesh);
+      _this.location_tracker().add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
       _this._gfx_initialized = true;
@@ -183,8 +195,8 @@ Omega.ShipGfx = {
   /// Update ship graphics on movement events
   update_gfx : function(){
     var loc = this.scene_location();
-    this.position_tracker.position.set(loc.x, loc.y, loc.z);
-    this.tracker.rotation.setFromRotationMatrix(this.location.rotation_matrix());
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
+    this.location_tracker().rotation.setFromRotationMatrix(this.location.rotation_matrix());
 
     this.trails.update();
     this.attack_vector.update();
@@ -239,6 +251,7 @@ Omega.ShipGfx = {
 
     this.update_gfx();
     this.last_moved = now;
+    this.dispatchEvent({type : 'movement', data : this});
   },
 
   _run_rotation_movement : function(page, elapsed){
@@ -258,6 +271,7 @@ Omega.ShipGfx = {
 
     this.update_gfx();
     this.last_moved = now;
+    this.dispatchEvent({type : 'movement', data : this});
   },
 
   _run_follow_movement : function(page){
@@ -293,8 +307,10 @@ Omega.ShipGfx = {
       loc.z += move_distance * dz;
     }
 
+    /// TODO move into if block above
     this.update_gfx();
     this.last_moved = now;
+    this.dispatchEvent({type : 'movement', data : this});
   },
 
   _no_movement : function(){},

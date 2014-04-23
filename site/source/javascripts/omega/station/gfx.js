@@ -12,11 +12,20 @@
 
 // Station GFX Mixin
 Omega.StationGfx = {
+  include_highlight : true,
+
   async_gfx : 2,
 
   // Returns location which to render gfx components, overridable
   scene_location : function(){
     return this.location;
+  },
+
+  // Returns 3D object tracking station position
+  position_tracker : function(){
+    if(!this._position_tracker)
+      this._position_tracker = new THREE.Object3D();
+    return this._position_tracker;
   },
 
   /// True/False if shared gfx are loaded
@@ -47,18 +56,28 @@ Omega.StationGfx = {
     });
   },
 
+  /// True / false if station gfx are being initialized
+  gfx_initializing : function(){
+    return !this.gfx_initialized() &&
+            this.components.indexOf(this.position_tracker()) != -1;
+  },
+
   /// True / false if station gfx have been initialized
   gfx_initialized : function(){
     return !!(this._gfx_initialized);
   },
 
   init_gfx : function(config, event_cb){
-    if(this.gfx_initialized()) return;
+    if(this.gfx_initialized() || this.gfx_initializing()) return;
     this.load_gfx(config, event_cb);
     this.components = [];
 
+    this.components.push(this.position_tracker());
+
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
+    if(this.include_highlight)
+      this.position_tracker().add(this.highlight_mesh);
 
     this.lamps = Omega.Station.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;
@@ -74,10 +93,11 @@ Omega.StationGfx = {
     Omega.StationMesh.load(this.type, function(mesh){
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
-      _this.mesh.tmesh.add(_this.highlight.mesh);
+
       for(var l = 0; l < _this.lamps.olamps.length; l++)
         _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
-      _this.components.push(_this.mesh.tmesh);
+
+      _this.position_tracker().add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
       _this._gfx_initialized = true;
@@ -88,7 +108,8 @@ Omega.StationGfx = {
   },
 
   update_gfx : function(){
-    if(this.mesh) this.mesh.update();
+    var loc = this.scene_location();
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
 
     if(this.location.is_stopped()){
       if(this._has_orbit_line())
@@ -122,11 +143,11 @@ Omega.StationGfx = {
     this._orbit_angle += dist;
     this._set_orbit_angle(this._orbit_angle);
     this.last_moved = now;
-    this.mesh.update();
+    this.update_gfx();
   },
 
   run_effects : function(){
-    this.lamps.run_effects();
+    if(this.lamps) this.lamps.run_effects();
     this._run_movement_effects();
   }
 };

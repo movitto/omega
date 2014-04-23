@@ -40,14 +40,6 @@ Omega.StationMesh.prototype = {
     return new THREE.Vector3(this.base_position[0],
                              this.base_position[1],
                              this.base_position[2])
-  },
-
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    =   entity.scene_location();
-
-    /// set mesh position
-    this.tmesh.position.set(loc.x, loc.y, loc.z);
   }
 };
 

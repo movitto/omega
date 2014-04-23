@@ -51,19 +51,19 @@ Omega.StationConstructionGfxHelpers = {
   _has_construction_bar : function(){
     if(!this.mesh) return false;
     var component   = this.construction_bar.bar.components[0];
-    var descendants = this.mesh.tmesh.getDescendants();
+    var descendants = this.position_tracker().getDescendants();
     return descendants.indexOf(component) != -1;
   },
 
   _add_construction_bar : function(){
     if(!this.mesh) return;
     for(var c = 0; c < this.construction_bar.bar.components.length; c++)
-      this.mesh.tmesh.add(this.construction_bar.bar.components[c]);
+      this.position_tracker().add(this.construction_bar.bar.components[c]);
   },
 
   _rm_construction_bar : function(){
     if(!this.mesh) return;
     for(var c = 0; c < this.construction_bar.bar.components.length; c++)
-      this.mesh.tmesh.remove(this.construction_bar.bar.components[c]);
+      this.position_tracker().remove(this.construction_bar.bar.components[c]);
   }
 };

@@ -192,9 +192,9 @@ Omega.Location.prototype = {
   /* Convert location to short, human readable string
    */
   to_s : function(){
-    return Omega.Math.round_to(this.x, 2) + "/" +
-           Omega.Math.round_to(this.y, 2) + "/" +
-           Omega.Math.round_to(this.z, 2);
+    return this.x.toExponential(2) + "/" +
+           this.y.toExponential(2) + "/" +
+           this.z.toExponential(2);
   },
 
   /* Convert orientation to short, human readable string

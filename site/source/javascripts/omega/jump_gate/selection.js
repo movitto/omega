@@ -9,7 +9,8 @@ Omega.JumpGateSelectionMaterial = function(){
     new THREE.MeshBasicMaterial({color       : 0xffffff,
                                  transparent :     true,
                                  depthWrite  :    false,
-                                 opacity     :      0.1});
+                                 opacity     :      0.1,
+                                 side        : THREE.DoubleSide});
 };
 
 Omega.JumpGateSelection = function(args){

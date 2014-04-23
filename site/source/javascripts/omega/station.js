@@ -65,6 +65,12 @@ Omega.Station.prototype = {
     }
   },
 
+  clicked_in : function(canvas){
+    var ac = canvas.page.audio_controls;
+    ac.play(ac.effects.click);
+    canvas.follow_entity(this);
+  },
+
   selected : function(page){
     if(this.mesh && this.mesh.tmesh)
       this.mesh.tmesh.material.emissive.setHex(0xff0000);
@@ -76,6 +82,7 @@ Omega.Station.prototype = {
   }
 };
 
+THREE.EventDispatcher.prototype.apply( Omega.Station.prototype );
 Omega.UI.ResourceLoader.prototype.apply( Omega.Station.prototype );
 $.extend(Omega.Station.prototype, Omega.StationCommands);
 $.extend(Omega.Station.prototype, Omega.StationInteraction);

@@ -6,10 +6,6 @@
 
 Omega.UI.CanvasEntityContainer = function(parameters){
   this.entity = null;
-
-  /// need handle to canvas to
-  /// - access page to lookup entity data
-  /// - refresh entities in scene
   this.canvas = null;
 
   $.extend(this, parameters);
@@ -26,6 +22,8 @@ Omega.UI.CanvasEntityContainer.prototype = {
 
   wire_up : function(){
     var _this = this;
+
+    /// hide entity container on 'close' click
     $(this.close_id).off('click');
     $(this.close_id).on('click',
       function(evnt){
@@ -39,47 +37,103 @@ Omega.UI.CanvasEntityContainer.prototype = {
          _this.hide();
     });
 
+    /// hide by default
     this.hide();
   },
 
   hide : function(){
-    if(this.entity && this.entity.unselected)
-      this.entity.unselected(this.canvas.page);
+    if(this.entity){
+      /// call 'unselected' callback
+      if(this.entity.unselected) this.entity.unselected(this.canvas.page);
 
+      /// remove refresh callbacks
+      this._remove_entity_callbacks();
+    }
+
+    /// clear entity
     this.entity = null;
-    $(this.contents_id).html('');
+
+    /// clear & hide dom
+    this._clear_dom();
     $(this.div_id).hide();
   },
 
-  show : function(entity, refreshing){
-    this.hide(); // clears / unselects previous entity if any
-    this.entity = entity;
+  _clear_dom : function(){
+    $(this.contents_id).html('');
+  },
 
+  show : function(entity){
     var _this = this;
-    if(entity.retrieve_details)
-      entity.retrieve_details(this.canvas.page, function(details){
-        _this.append(details);
-      });
 
+    // clears / unselects previous entity if any
+    this.hide();
+
+    /// set entity & details
+    this.entity = entity;
+    this._set_entity_details();
+
+    /// invoke selected callback
     if(entity.selected) entity.selected(this.canvas.page);
+
+    /// wire up refresh callbacks
+    this._add_entity_callbacks();
+
+    /// show dom
     $(this.div_id).show();
 
-    if(!refreshing)
-      $(this.div_id).focus();
+    /// set focus on dom
+    $(this.div_id).focus();
   },
 
   append : function(text){
     $(this.contents_id).append(text);
   },
 
+  _set_entity_details : function(){
+    /// append entity details to container
+    var _this = this;
+    if(this.entity.retrieve_details)
+      this.entity.retrieve_details(this.canvas.page,
+        function(details){ _this.append(details); });
+  },
+
+  _init_entity_callbacks : function(){
+    var _this = this;
+    if(!this.entity._refresh_entity_container)
+      this.entity._refresh_entity_container = function(){ _this.refresh(); };
+  },
+
+  _remove_entity_callbacks : function(){
+    this._init_entity_callbacks();
+
+    if(this.entity.refresh_details_on){
+      for(var cb = 0; cb < this.entity.refresh_details_on.length; cb++){
+        this.entity.removeEventListener(this.entity.refresh_details_on[cb],
+                                        this.entity._refresh_entity_container);
+      }
+    }
+  },
+
+  _add_entity_callbacks : function(){
+    this._init_entity_callbacks();
+
+    if(this.entity.refresh_details_on){
+      for(var cb = 0; cb < this.entity.refresh_details_on.length; cb++){
+        this.entity.addEventListener(this.entity.refresh_details_on[cb],
+                                     this.entity._refresh_entity_container);
+      }
+    }
+  },
+
   refresh : function(){
     if(this.entity){
-      /// refresh entity from page if we can
-      if(this.canvas && this.canvas.page)
-        this.entity = this.canvas.page.entity(this.entity.id);
+      if(this.entity.refresh_details){
+        this.entity.refresh_details();
 
-      /// reshow entity
-      this.show(this.entity, true);
+      }else{
+        this._clear_dom();
+        this._set_entity_details();
+      }
     }
   }
 };

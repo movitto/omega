@@ -48,11 +48,6 @@ Omega.UI.CanvasControls.prototype = {
           if(!_this.canvas.root || _this.canvas.root.id != item.solar_system.id)
             _this.canvas.set_scene_root(item.solar_system);
 
-          var loc = item.scene_location();
-          _this.canvas.cam.position.set(loc.x + (loc.x > 0 ? 500 : -500),
-                                        loc.y + (loc.y > 0 ? 500 : -500),
-                                        loc.z + (loc.z > 0 ? 500 : -500));
-          _this.canvas.focus_on(loc);
           _this.canvas._clicked_entity(item);
         });
       })

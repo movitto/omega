@@ -27,5 +27,5 @@ Omega.Callbacks.motel = function(evnt, event_args){
     });
   }
 
-  this.page.canvas.entity_container.refresh();
+  entity.dispatchEvent({type : 'movement', data : entity});
 };

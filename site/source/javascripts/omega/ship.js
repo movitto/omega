@@ -84,7 +84,8 @@ Omega.Ship.prototype = {
 
   clicked_in : function(canvas){
     var ac = canvas.page.audio_controls;
-    if(ac) ac.play(ac.effects.click);
+    ac.play(ac.effects.click);
+    canvas.follow_entity(this);
   },
 
   selected : function(page){
@@ -98,6 +99,7 @@ Omega.Ship.prototype = {
   }
 };
 
+THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );
 Omega.UI.ResourceLoader.prototype.apply( Omega.Ship.prototype );
 $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);

@@ -5,8 +5,9 @@
  */
 
 Omega.ShipCommands = {
-  /// see omega/ship/commands.js for retrieve_details implementation
   has_details : true,
+
+  refresh_details_on : ['movement'],
 
   cmds : [
     { id      : 'ship_move_',
@@ -49,67 +50,7 @@ Omega.ShipCommands = {
       handler : '_select_mining_target'    }],
 
 
-  retrieve_details : function(page, details_cb){
-    var title = 'Ship: ' + this.id;
-    var loc   = '@ ' + this.location.to_s();
-    var orien = '> ' + this.location.orientation_s();
-    var hp    = 'HP: ' + this.hp;
-    var type  = 'Type: ' + this.type;
-    var follow = this._follow_cmd(page);
-
-    var resources = ['Resources:'];
-    for(var r = 0; r < this.resources.length; r++){
-      var resource = this.resources[r];
-      resources.push(resource.quantity + ' of ' + resource.material_id);
-    }
-
-    var details = [title, loc, orien, hp, type].concat(resources);
-    for(var d = 0; d < details.length; d++) details[d] += '<br/>';
-    details.push(follow);
-    /// details.length == 7 + ship.resources.length here
-
-    if(page.session && this.belongs_to_user(page.session.user_id)){
-      var cmds = this._create_commands(page);
-      details = details.concat(cmds);
-    }
-
-    details_cb(details);
-  },
-
-  _follow_cmd : function(page){
-    //if(this.__follow_cmd) return this.__follow_cmd; // TODO
-
-    var _this = this;
-    var start = 'follow';
-    var stop  = 'stop following';
-
-    var following = page.canvas.is_following(this.position_tracker);
-    var cmd = $('<a>', {href : '#',
-                        text : following ? stop : start});
-
-    cmd.click(function(evnt){
-      var following = page.canvas.is_following(_this.position_tracker);
-
-      if(following){
-        page.canvas.stop_following();
-        page.canvas.reset_cam();
-        cmd.text(start);
-
-      }else{
-        page.canvas.reset_cam();
-        page.canvas.cam.position.set(150, 150, 150);
-        page.canvas.follow(_this.position_tracker);
-        page.canvas.cam_controls.update();
-        cmd.text(stop);
-
-      };
-    });
-
-    this.__follow_cmd = cmd;
-    return cmd;
-  },
-
-  _create_commands : function(page){
+  _command_details : function(page){
     //if(this.__commands) return this.__commands;
 
     var _this = this;
@@ -134,5 +75,68 @@ Omega.ShipCommands = {
 
     this.__commands = commands;
     return commands;
+  },
+
+  _title_details : function(){
+    var title_text = 'Ship: ' + this.id;
+    var title = $('<div/>', {id : 'ship_title', text : title_text});
+    return title;
+  },
+
+  _loc_details : function(){
+    var loc_text = '@ ' + this.location.to_s();
+    var loc = $('<div/>', {id : 'ship_loc', text : loc_text});
+    return loc;
+  },
+
+  _orientation_details : function(){
+    var orien_text = '> ' + this.location.orientation_s();
+    var orien = $('<div/>', {id : 'ship_orientation', text : orien_text});
+    return orien;
+  },
+
+  _hp_details : function(){
+    var hp_text = 'HP: ' + this.hp;
+    var hp = $('<div/>', {id : 'ship_hp', text : hp_text});
+    return hp;
+  },
+
+  _type_details : function(){
+    var type_text = 'Type: ' + this.type;
+    var type = $('<div/>', {id : 'ship_type', text : type_text});
+    return type;
+  },
+
+  _resource_details : function(){
+    var resources = $('<div/>', {id : 'ship_resources', text : 'Resources:'});
+    for(var r = 0; r < this.resources.length; r++){
+      var resource = this.resources[r];
+      resources.append(resource.quantity + ' of ' + resource.material_id);
+    }
+    return resources;
+  },
+
+  retrieve_details : function(page, details_cb){
+    var details = [this._title_details(),
+                   this._loc_details(),
+                   this._orientation_details(),
+                   this._hp_details(),
+                   this._type_details()].
+            concat(this._resource_details());
+
+    if(page.session && this.belongs_to_user(page.session.user_id)){
+      var cmds = this._command_details(page);
+      details = details.concat(cmds);
+    }
+
+    details_cb(details);
+  },
+
+  /// Simply refresh mutable entity properties
+  refresh_details : function(){
+    $('#ship_loc').html(this._loc_details().html());
+    $('#ship_orientation').html(this._orientation_details().html());
+    $('#ship_hp').html(this._hp_details().html());
+    $('#ship_resources').html(this._resource_details().html());
   }
 };

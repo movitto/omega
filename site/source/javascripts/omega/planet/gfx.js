@@ -19,6 +19,13 @@ Omega.PlanetGfx = {
     return this.location;
   },
 
+  // Returns position tracker, 3D object automatically update w/ planet position
+  position_tracker : function(){
+    if(!this._position_tracker)
+      this._position_tracker = new THREE.Object3D();
+    return this._position_tracker;
+  },
+
   /// True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.Planet.gfx)            !== 'undefined' &&
@@ -53,7 +60,6 @@ Omega.PlanetGfx = {
     this.mesh.omega_entity = this;
     this.mesh.material =
       new Omega.PlanetMaterial.load(config, type, event_cb);
-    this.position_tracker = new THREE.Object3D();
     this.update_gfx();
 
     this._calc_orbit();
@@ -61,7 +67,7 @@ Omega.PlanetGfx = {
     this.orbit_line = new Omega.OrbitLine({orbit: this.orbit});
 
     this.last_moved = new Date();
-    this.components = [this.position_tracker, this.mesh.tmesh, this.orbit_line.line];
+    this.components = [this.position_tracker(), this.mesh.tmesh, this.orbit_line.line];
     this._gfx_initialized = true;
   },
 
@@ -70,7 +76,7 @@ Omega.PlanetGfx = {
     this.mesh.update();
 
     var loc = this.scene_location();
-    this.position_tracker.position.set(loc.x, loc.y, loc.z);
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
   },
 
   /// Run local system graphics effects

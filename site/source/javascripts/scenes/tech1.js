@@ -31,7 +31,7 @@ Omega.Scenes.Tech1.prototype = {
   /// initialize scene camera
   _init_cam : function(page){
     page.canvas.cam.position.set(2500, 2500, -2500);
-    page.canvas.follow(this.setting.ships[3].position_tracker);
+    page.canvas.follow(this.setting.ships[3].position_tracker());
     page.canvas.cam_controls.update();
 
     this.transition = new THREE.Vector3(10, 10, -10);
