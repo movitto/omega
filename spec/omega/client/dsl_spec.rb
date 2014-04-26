@@ -278,6 +278,26 @@ describe DSL, :rjr => true do
       Cosmos::RJR.registry.entity(&with_id(asts.first.id)).should_not be_nil
       Cosmos::RJR.registry.entity(&with_id(asts.last.id)).should_not be_nil
     end
+
+    context "num locations specified" do
+      it "creates locations to match num" do
+        galaxy('ngal1') { |g|
+          system('system1') { |s|
+            asteroid_field(:num => 2) { |as|
+              as.size.should == 2
+              loc1 = {'x' => as.first.location.x,
+                      'y' => as.first.location.y,
+                      'z' => as.first.location.z}
+              loc2 = {'x' => as.last.location.x,
+                      'y' => as.last.location.y,
+                      'z' => as.last.location.z}
+              Constraints.valid?(loc1, 'asteroid', 'position').should == true
+              Constraints.valid?(loc2,  'asteroid', 'position').should == true
+            }
+          }
+        }
+      end
+    end
   end
 
   describe "#asteroid_belt" do
@@ -468,6 +488,17 @@ describe DSL, :rjr => true do
                             'y' => jg.location.y.abs,
                             'z' => jg.location.z.abs,
                             }, 'system_entity', 'position').should be_true
+      end
+    end
+
+    context "trigger distance not specified" do
+      it "generates from constraints" do
+        g = galaxy('ngal1')
+        s1 = system('system1', 'star1', :galaxy => g)
+        s2 = system('system2', 'star2', :galaxy => g)
+        jg = jump_gate s1, s2
+        Constraints.valid?(jg.trigger_distance, 'jump_gate', 'trigger_distance').
+                    should be_true
       end
     end
   end

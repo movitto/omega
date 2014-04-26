@@ -20,7 +20,7 @@ module Omega::Client
 
     describe "#validation" do
       it "ensures station.type == :manufacturing" do
-        s = create(:valid_station, :type => :research)
+        s = create(:valid_station, :type => :science)
         r = Factory.get_all
         r.size.should == 1
         r.first.id.should == @f.id

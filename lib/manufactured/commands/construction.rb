@@ -80,7 +80,7 @@ class Construction < Omega::Server::Command
 
     t = Time.now
     @start_time ||= Time.now
-    const_time = @entity.class.construction_time(@entity.type)
+    const_time = @entity.class.construction_time
     total_time = t - @start_time
 
     self.completed = (total_time >= const_time)

@@ -32,7 +32,6 @@ module Entity
     Entity.enforce_constraints
   end
 
-
   # Unique id of the entity
   attr_accessor :id
 

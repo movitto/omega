@@ -28,6 +28,7 @@ module Manufactured::RJR
       @jg   = create(:jump_gate,
                      :solar_system => @sys,
                      :endpoint => @nsys,
+                     :trigger_distance => 500,
                      :location => build(:location,
                                         :coordinates => [0,0,0]))
       @rjg  = Cosmos::RJR.registry.safe_exec { |es| es.find &with_id(@jg.id) }

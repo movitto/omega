@@ -47,6 +47,60 @@
   },
 
   "jump_gate" : {
-    "triggerDistance" : 500000000
+    "trigger_distance" : 500000000
+  },
+
+  "ship" : {
+    "types" : ["frigate",  "transport", "escort", "destroyer", "bomber",
+               "corvette", "battlecruiser", "exploration", "mining"],
+
+    "mining_types" : ["mining"],
+
+    "attack_types" : ["escort", "destroyer", "bomber",
+                      "corvette", "battlecruiser"],
+
+    "sizes" : {"frigate" : 35, "transport" : 25, "escort" : 20,
+               "destroyer" : 30, "bomber" : 25, "corvette" : 25,
+               "battlecruiser" : 35, "exploration" : 23, "mining" : 25},
+
+    "movement_speed"      : 10000000,
+    "rotation_speed"      : 0.098174,
+    "attack_distance"     :      400,
+    "attack_rate"         :      0.5,
+    "damage_dealt"        :        2,
+    "max_hp"              :       25,
+    "max_shield_level"    :       10,
+    "shield_refresh_rate" :        1,
+    "mining_rate"         :     0.10,
+    "mining_quantity"     :       20,
+    "mining_distance"     :      400,
+    "cargo_capacity"      :      100,
+    "transfer_distance"   :      200,
+    "collection_distance" :      300,
+    "construction_cost"   :      100,
+    "construction_time"   :        5
+  },
+
+  "station" : {
+    "types" : ["defense", "offense", "mining", "exploration", "science",
+               "technology", "manufacturing", "commerce"],
+
+    "factory_types" : ["manufacturing"],
+
+    "sizes" : {"defense" : 35, "offense" : 35, "mining" : 27,
+               "exploration" : 20, "science" : 20, "technology" : 20,
+               "manufacturing" : 40, "commerce" : 30},
+
+    "docking_distance"      :   200,
+    "transfer_distance"     :   200,
+    "construction_distance" :   300,
+    "cargo_capacity"        : 10000,
+    "construction_cost"     :   100,
+    "construction_time"     :    10
+  },
+
+  "loot" : {
+    "cargo_capacity"    : 100,
+    "transfer_distance" : 25
   }
 }

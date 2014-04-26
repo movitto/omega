@@ -331,7 +331,7 @@ module Omega
         end
 
         unless jargs[:trigger_distance]
-          jargs[:trigger_distance] = constraint('jump_gate', 'triggerDistance')
+          jargs[:trigger_distance] = constraint('jump_gate', 'trigger_distance')
         end
 
         gate  = Cosmos::Entities::JumpGate.new(jargs)

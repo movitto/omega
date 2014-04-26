@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO split up along module boundries
+
 require 'spec_helper'
 require 'manufactured/ship'
 require 'motel/movement_strategies/linear'
@@ -10,7 +12,7 @@ require 'omega/server/callback'
 
 module Manufactured
 describe Ship do
-  describe "#type-" do
+  describe "#type=" do
     it "sets type" do
       s = Ship.new
       s.type = :frigate
@@ -23,18 +25,57 @@ describe Ship do
       s.type.should == :frigate
     end
 
-    it "does not convert invalid type" do
-      s = Ship.new
-      s.type = 'foobar'
-      s.type.should == nil
-    end
-
-    it "sets size" do
-      s = Ship.new
-      s.type = :frigate
-      s.size.should == Ship::SIZES[:frigate]
+    context "invalid type specified" do
+      it "raises an ArugmentError" do
+        s = Ship.new
+        lambda{
+          s.type = 'foobar'
+        }.should raise_error(ArgumentError)
+      end
     end
   end
+
+  describe "#size" do
+    it "returns size corresponding to ship type" do
+      s = Ship.new :type => :frigate
+      s.size.should == Ship.sizes[:frigate]
+    end
+  end
+
+  describe "#hp=" do
+    it "sets hp" do
+      s = Ship.new
+      s.hp = 1
+      s.hp.should == 1
+    end
+
+    context "setting hp greater than max" do
+      it "raises an ArgumentError" do
+        s = Ship.new
+        lambda{
+          s.hp = Ship.get_constraint('max_hp') + 5
+        }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  describe "#shield_level=" do
+    it "sets shield_level" do
+      s = Ship.new
+      s.shield_level = 1
+      s.shield_level.should == 1
+    end
+
+    context "setting hp greater than max" do
+      it "raises an ArgumentError" do
+        s = Ship.new
+        lambda{
+          s.shield_level = Ship.get_constraint('max_shield_level') + 5
+        }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
 
   describe "#run_callbacks" do
     before(:each) do
@@ -109,10 +150,11 @@ describe Ship do
       s.mining.should be_nil
       s.solar_system.should be_nil
       s.system_id.should be_nil
-      s.cargo_capacity.should == 100
-      s.transfer_distance.should == 200
-      s.collection_distance.should == 300
-      s.shield_level.should == 0
+      s.cargo_capacity.should == Ship.get_constraint('cargo_capacity')
+      s.transfer_distance.should == Ship.get_constraint('transfer_distance')
+      s.collection_distance.should == Ship.get_constraint('collection_distance')
+      s.hp.should == Ship.get_constraint('max_hp')
+      s.shield_level.should == Ship.get_constraint('max_shield_level')
 
       s.location.should be_an_instance_of(Motel::Location)
       s.location.coordinates.should == [0,0,1]
@@ -136,11 +178,7 @@ describe Ship do
                    :mining              =>   m,
                    :solar_system        => sys,
                    :location            =>   l,
-                   :cargo_capacity      => 500,
-                   :transfer_distance   => 100,
-                   :collection_distance => 200,
-                   :shield_level        => 50
-
+                   :shield_level        => 5
       s.id.should == 'ship1'
       s.user_id.should == 'user1'
       s.type.should == :frigate
@@ -152,10 +190,16 @@ describe Ship do
       s.solar_system.should == sys
       s.system_id.should == sys.id
       s.location.should == l
-      s.cargo_capacity.should == 500
-      s.transfer_distance.should == 100
-      s.collection_distance.should == 200
-      s.shield_level.should == 50
+      s.shield_level.should == 5
+    end
+
+    it "does not set non-writable attributes" do
+      s = Ship.new :cargo_capacity      => 500,
+                   :transfer_distance   => 100,
+                   :collection_distance => 200
+      s.cargo_capacity.should == Ship.get_constraint('cargo_capacity')
+      s.transfer_distance.should == Ship.get_constraint('transfer_distance')
+      s.collection_distance.should == Ship.get_constraint('collection_distance')
     end
 
     context "location orientation specified" do
@@ -172,31 +216,19 @@ describe Ship do
         s.location.movement_strategy.should == ms
       end
     end
-
-    it "sets type based attributes" do
-      Ship.should_receive(:base_hp).with(:corvette).at_least(:twice).and_return(50)
-      Ship.should_receive(:base_hp).with(:mining).at_least(:twice).and_return(100)
-      s1 = Ship.new :type => :corvette
-      s2 = Ship.new :type => :mining
-      s1.hp.should == 50
-      s1.max_hp.should == 50
-      s2.hp.should == 100
-      s2.max_hp.should == 100
-      # TODO test other type based attrs
-    end
   end
 
   describe "#update" do
     it "updates ship hp" do
       sh = Ship.new
-      sh.update Ship.new(:hp => 50)
-      sh.hp.should == 50
+      sh.update Ship.new(:hp => 5)
+      sh.hp.should == 5
     end
 
     it "updates ship shield level" do
       sh = Ship.new
-      sh.update Ship.new(:shield_level => 50)
-      sh.shield_level.should == 50
+      sh.update Ship.new(:shield_level => 5)
+      sh.shield_level.should == 5
     end
 
     it "updates ship distance moved" do
@@ -305,9 +337,6 @@ describe Ship do
 
     context "type is invalid" do
       it "returns false" do
-        @s.type = 'fooz'
-        @s.should_not be_valid
-
         @s.type = nil
         @s.should_not be_valid
       end
@@ -316,13 +345,6 @@ describe Ship do
     context "type is invalid" do
       it "returns false" do
         @s.type = nil
-        @s.should_not be_valid
-      end
-    end
-
-    context "size is invalid" do
-      it "returns false" do
-        @s.size = 512
         @s.should_not be_valid
       end
     end
@@ -381,13 +403,6 @@ describe Ship do
     context "resources are invalid" do
       it "returns false" do
         @s.resources = ['false']
-        @s.should_not be_valid
-      end
-    end
-
-    context "shield level is invalid" do
-      it "returns false" do
-        @s.shield_level = 25
         @s.should_not be_valid
       end
     end
@@ -682,8 +697,8 @@ describe Ship do
       location= Motel::Location.new :id => 20, :y => -15
       s = Manufactured::Ship.new(:id => 'ship42', :user_id => 420,
                                  :type => :frigate,
-                                 :hp   => 500,
-                                 :shield_level => 20,
+                                 :hp   => 5,
+                                 :shield_level => 2,
                                  :solar_system => sys,
                                  :location => location)
 
@@ -702,9 +717,9 @@ describe Ship do
       j.should include('"user_id":420')
       j.should include('"type":"frigate"')
       j.should include('"size":35')
-      j.should include('"hp":500')
+      j.should include('"hp":5')
       j.should include('"max_hp":25')
-      j.should include('"shield_level":20')
+      j.should include('"shield_level":2')
       j.should include('"max_shield_level":10')
       j.should include('"docked_at_id":"station42"')
       j.should include('"json_class":"Cosmos::Resource"')
@@ -720,16 +735,16 @@ describe Ship do
 
   describe "#json_create" do
     it "returns ship from json format" do
-      j = '{"json_class":"Manufactured::Ship","data":{"id":"ship42","user_id":420,"type":"frigate","size":35,"hp":500,"shield_level":20,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":null,"type":"offense","size":35,"errors":{},"docking_distance":200,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0,"y":0,"z":0,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_name":null,"resources":{}}},"attacking":{"json_class":"Manufactured::Ship","data":{"id":"ship52","user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":1.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"mining":{"json_class":"Cosmos::Resource","data":{"id":"res1","quantity":0,"entity_id":null}},"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":10000,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[]}}'
+      j = '{"json_class":"Manufactured::Ship","data":{"id":"ship42","user_id":420,"type":"frigate","size":35,"hp":5,"shield_level":2,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":{"json_class":"Manufactured::Station","data":{"id":"station42","user_id":null,"type":"offense","size":35,"errors":{},"docking_distance":200,"location":{"json_class":"Motel::Location","data":{"id":null,"x":0,"y":0,"z":0,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_name":null,"resources":{}}},"attacking":{"json_class":"Manufactured::Ship","data":{"id":"ship52","user_id":null,"type":null,"size":null,"hp":25,"shield_level":0,"cargo_capacity":100,"attack_distance":100,"mining_distance":100,"docked_at":null,"attacking":null,"mining":null,"location":{"json_class":"Motel::Location","data":{"id":null,"x":1.0,"y":0.0,"z":1.0,"orientation_x":1.0,"orientation_y":0.0,"orientation_z":0.0,"restrict_view":true,"restrict_modify":true,"parent_id":null,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":null,"resources":[],"callbacks":[]}},"mining":{"json_class":"Cosmos::Resource","data":{"id":"res1","quantity":0,"entity_id":null}},"location":{"json_class":"Motel::Location","data":{"id":20,"x":null,"y":-15.0,"z":null,"orientation_x":null,"orientation_y":null,"orientation_z":null,"restrict_view":true,"restrict_modify":true,"parent_id":10000,"children":[],"movement_strategy":{"json_class":"Motel::MovementStrategies::Stopped","data":{"step_delay":1}},"callbacks":{},"last_moved_at":null}},"system_id":"system1","resources":[]}}'
       s = ::RJR::JSONParser.parse(j)
 
       s.class.should == Manufactured::Ship
       s.id.should == "ship42"
       s.user_id.should == 420
       s.type.should == :frigate
-      s.size.should == Ship::SIZES[:frigate]
-      s.hp.should == 500
-      s.shield_level.should == 20
+      s.size.should == Ship.sizes[:frigate]
+      s.hp.should == 5
+      s.shield_level.should == 2
       s.location.should_not be_nil
       s.location.y.should == -15
       s.system_id.should == 'system1'

@@ -86,7 +86,7 @@ describe ShieldRefresh do
 
     context "shield level less than max" do
       it "returns true" do
-        sh = build(:ship, :hp => 50, :shield_level => 5, :max_shield_level => 50)
+        sh = build(:ship, :hp => 5, :shield_level => 5)
         s = ShieldRefresh.new :entity => sh
         s.should_run?.should be_true
       end
@@ -107,8 +107,6 @@ describe ShieldRefresh do
     context "shield is less than maximum" do
       before(:each) do
         @sh.shield_level = 5
-        @sh.max_shield_level = 10
-        @sh.shield_refresh_rate = 1
       end
 
       it "increases shield level" do
@@ -139,7 +137,7 @@ describe ShieldRefresh do
     context "shield not at max level" do
       it "returns false" do
         ac = Attack.new
-        sh = build(:ship, :shield_level => 10, :max_shield_level => 20)
+        sh = build(:ship, :shield_level => 1)
         s = ShieldRefresh.new :attack_cmd => ac, :entity => sh
         ac.should_receive(:remove?).and_return(true)
         s.remove?.should be_false
@@ -148,7 +146,7 @@ describe ShieldRefresh do
 
     it "returns true" do
       ac = Attack.new
-      sh = build(:ship, :shield_level => 10, :max_shield_level => 10)
+      sh = build(:ship, :shield_level => 10)
       s = ShieldRefresh.new :attack_cmd => ac, :entity => sh
       ac.should_receive(:remove?).and_return(true)
       s.remove?.should be_true

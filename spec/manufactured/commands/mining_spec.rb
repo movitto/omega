@@ -47,7 +47,7 @@ describe Mining, :rjr => true do
     context "ship mining quantity < ship cargo space and resource quantity" do
       it "sets quantity to ship mining quantity" do
         m = Mining.new :resource => build(:resource),
-                       :ship     => build(:ship, :mining_quantity => 10)
+                       :ship     => build(:ship)
         r = m.send(:gen_resource)
         r.quantity.should == m.ship.mining_quantity
       end
@@ -56,7 +56,7 @@ describe Mining, :rjr => true do
     context "resource quantity < ship cargo space and ship mining quantity" do
       it "sets quantity to resource quantity" do
         m = Mining.new :resource => build(:resource, :quantity => 5),
-                       :ship     => build(:ship, :mining_quantity => 10)
+                       :ship     => build(:ship)
         r = m.send(:gen_resource)
         r.quantity.should == m.resource.quantity
       end
@@ -64,9 +64,10 @@ describe Mining, :rjr => true do
 
     context "ship cargo space < resource quantity and ship mining quantity" do
       it "sets quantity to ship cargo space" do
-        m = Mining.new :resource => build(:resource, :quantity => 15),
-                       :ship     => build(:ship, :mining_quantity => 10,
-                                                 :cargo_capacity => 5)
+        m = Mining.new :resource => build(:resource, :quantity => 1500),
+                       :ship     => build(:ship)
+        m.ship.should_receive(:mining_quantity).
+               at_least(:once).and_return(m.ship.cargo_capacity + 100)
         r = m.send(:gen_resource)
         r.quantity.should == m.ship.cargo_capacity
       end
@@ -338,8 +339,8 @@ describe Mining, :rjr => true do
     before(:each) do
       setup_manufactured
 
-      @s = create(:valid_ship, :mining_quantity => 5)
-      @r = create(:resource, :quantity => 10)
+      @s = create(:valid_ship)
+      @r = create(:resource, :quantity => @s.mining_quantity + 5)
       @m = Mining.new :ship => @s, :resource => @r
 
       @rsh = @registry.safe_exec { |es| es.find { |e| e.id == @s.id } }
@@ -361,7 +362,7 @@ describe Mining, :rjr => true do
     it "adds mining quantity to ship" do
       @m.run!
       @s.resources.first.id.should == @r.id
-      @s.resources.first.quantity.should == 5
+      @s.resources.first.quantity.should == @s.mining_quantity
     end
 
     context "resource has < ships mining quantity" do
@@ -380,9 +381,10 @@ describe Mining, :rjr => true do
 
     context "exception after resource removed but before added" do
       it "adds resource back to entity" do
+        q = @r.quantity
         @s.should_receive(:add_resource).and_raise(Exception)
         @m.run!
-        @r.quantity.should == 10
+        @r.quantity.should == q
       end
     end
 

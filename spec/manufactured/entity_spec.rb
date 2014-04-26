@@ -3,6 +3,8 @@
 # Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO split up along module boundries
+
 require 'ostruct'
 require 'spec_helper'
 require 'manufactured/ship'
@@ -10,15 +12,9 @@ require 'motel/movement_strategies/linear'
 
 module Manufactured::Entity
 describe InSystem do
-  def build_entity
-    e = OpenStruct.new
-    e.extend(InSystem)
-    e.location = build(:location)
-    e
-  end
-
   before(:each) do
-    @e = build_entity
+    # XXX test through ship
+    @e = build(:ship)
   end
 
   describe "#location=" do
@@ -62,19 +58,9 @@ describe InSystem do
 end # describe InSystem
 
 describe HasCargo do
-  def build_entity
-    e = OpenStruct.new
-    e.extend(HasCargo)
-    e.id = rand
-    e.resources = []
-    e.cargo_capacity = 100
-    e.location = build(:location)
-    e.eigenclass.send(:define_method, :alive?) { true }
-    e
-  end
-
   before(:each) do
-    @e = build_entity
+    # XXX test through station
+    @e = build(:station)
   end
 
   describe "#resources_valid?" do
@@ -210,12 +196,10 @@ describe HasCargo do
     before(:each) do
       @sys1  = build(:solar_system)
       @sys2  = build(:solar_system)
-      @e1    = build_entity
+      @e1    = build(:station)
 
       @e.location.parent = @sys1.location
       @e1.location.parent = @sys1.location
-
-      @e.transfer_distance = 100
 
       @res = Cosmos::Resource.new :id => 'metal-titanium', :quantity => 50
       @e.add_resource(@res)
@@ -275,7 +259,7 @@ describe HasCargo do
 
     context "cargo capacity would be exceeded" do
       it "returns false" do
-        @r.quantity = 500
+        @r.quantity = 500000
         @e.can_accept?(@r).should be_false
       end
     end

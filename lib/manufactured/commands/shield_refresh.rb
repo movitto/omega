@@ -67,9 +67,11 @@ class ShieldRefresh < Omega::Server::Command
     @last_ran_at ||= Time.now
     if @entity.shield_level < @entity.max_shield_level
       pips =  (Time.now - @last_ran_at) * @entity.shield_refresh_rate
-      @entity.shield_level += pips
-      @entity.shield_level =
-        entity.max_shield_level if entity.shield_level > entity.max_shield_level
+      new_shield_level = @entity.shield_level + pips
+
+      exceeded         = new_shield_level > entity.max_shield_level
+      new_shield_level = entity.max_shield_level if exceeded
+      entity.shield_level = new_shield_level
     end
 
     # set last_ran_at after time check

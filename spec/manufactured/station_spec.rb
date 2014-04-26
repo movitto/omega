@@ -14,8 +14,8 @@ describe Station do
   describe "#type" do
     it "sets type" do
       s = Station.new
-      s.type = :frigate
-      s.type.should == :frigate
+      s.type = :manufacturing
+      s.type.should == :manufacturing
     end
 
     it "converts type" do
@@ -24,16 +24,20 @@ describe Station do
       s.type.should == :offense
     end
 
-    it "does not convert invalid type" do
-      s = Station.new
-      s.type = 'foobar'
-      s.type.should == nil
+    context "invalid type specified" do
+      it "raises ArgumentError" do
+        s = Station.new
+        lambda{
+          s.type = 'foobar'
+        }.should raise_error(ArgumentError)
+      end
     end
+  end
 
-    it "sets size" do
-      s = Station.new
-      s.type = :offense
-      s.size.should == Station::SIZES[:offense]
+  describe "#size" do
+    it "returns size corresponding to station type" do
+      s = Station.new :type => :manufacturing
+      s.size.should == Station.sizes[:manufacturing]
     end
   end
 
@@ -108,18 +112,15 @@ describe Station do
       r = build(:resource)
       sys = build(:solar_system)
       l = build(:location)
-      s = Station.new :id                  => 'ship1',
-                   :user_id             => 'user1',
-                   :type                => 'manufacturing',
-                   :callbacks           => [ :foo , :bar ],
-                   :resources           => [r],
-                   :solar_system        => sys,
-                   :location            =>   l,
-                   :cargo_capacity      => 500,
-                   :transfer_distance   => 100,
-                   :construction_distance => 200
+      s = Station.new :id                  => 'station1',
+                      :user_id             => 'user1',
+                      :type                => 'manufacturing',
+                      :callbacks           => [ :foo , :bar ],
+                      :resources           => [r],
+                      :solar_system        => sys,
+                      :location            =>   l
 
-      s.id.should == 'ship1'
+      s.id.should == 'station1'
       s.user_id.should == 'user1'
       s.type.should == :manufacturing
       s.callbacks.should == [:foo, :bar]
@@ -127,9 +128,17 @@ describe Station do
       s.solar_system.should == sys
       s.system_id.should == sys.id
       s.location.should == l
-      s.cargo_capacity.should == 500
-      s.transfer_distance.should == 100
-      s.construction_distance.should == 200
+    end
+
+    it "does not set non-writable attributes" do
+      s = Station.new :id                  => 'station1',
+                      :cargo_capacity      => 500,
+                      :transfer_distance   => 100,
+                      :construction_distance => 200
+
+      s.cargo_capacity.should == Station.get_constraint('cargo_capacity')
+      s.transfer_distance.should == Station.get_constraint('transfer_distance')
+      s.construction_distance.should == Station.get_constraint('construction_distance')
     end
 
     context "location orientation specified" do
@@ -190,24 +199,7 @@ describe Station do
 
     context "type is invalid" do
       it "returns false" do
-        @s.type = 'fooz'
-        @s.should_not be_valid
-
         @s.type = nil
-        @s.should_not be_valid
-      end
-    end
-
-    context "type is invalid" do
-      it "returns false" do
-        @s.type = nil
-        @s.should_not be_valid
-      end
-    end
-
-    context "size is invalid" do
-      it "returns false" do
-        @s.size = 512
         @s.should_not be_valid
       end
     end

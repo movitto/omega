@@ -130,7 +130,7 @@ module Manufactured::RJR
           os  = create(:valid_ship)
           @sh = build_ship
           # invalid entity:
-          @sh.max_shield_level = 5 ; @sh.shield_level = 10
+          @sh.should_receive(:valid?).and_return(false)
         end
 
         it "raises OperationError" do

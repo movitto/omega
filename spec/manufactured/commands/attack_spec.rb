@@ -276,15 +276,15 @@ describe Attack, :rjr => true do
     end
 
     it "reduces defender shield level" do
-      @e1.damage_dealt = 5
-      @e2.shield_level = 10
+      dd = @e1.damage_dealt
+      sl = @e2.shield_level
       @a.run!
-      @e2.shield_level.should == 5
+      @e2.shield_level.should == sl - dd
     end
 
     context "shield level < damage dealt" do
       before(:each) do
-        @e1.damage_dealt = 10
+        @e1.should_receive(:damage_dealt).at_least(:once).and_return(10)
         @e2.shield_level = 5
         @e2.hp = 10
       end
@@ -302,7 +302,7 @@ describe Attack, :rjr => true do
 
     context "defender hp < 0" do
       it "sets defender hp 0" do
-        @e1.damage_dealt = 5
+        @e1.should_receive(:damage_dealt).at_least(:once).and_return(5)
         @e2.shield_level = 0
         @e2.hp = 4
         @a.run!
@@ -312,7 +312,7 @@ describe Attack, :rjr => true do
 
     context "defender hp == 0" do
       it "sets defender destroyed by" do
-        @e1.damage_dealt = 5
+        @e1.should_receive(:damage_dealt).at_least(:once).and_return(5)
         @e2.shield_level = 0
         @e2.hp = 4
         @a.run!
