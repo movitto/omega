@@ -110,6 +110,7 @@ Omega.UI.CanvasSceneManager = {
 
   // Render scene (used internally, no need to invoke manually)
   render : function(){
+    /// clear renderer
     this.renderer.clear();
 
     /// apply cam rotations to sky cam (but not translations)
@@ -117,8 +118,19 @@ Omega.UI.CanvasSceneManager = {
       new THREE.Matrix4().extractRotation(this.cam.matrixWorld ),
       this.skyCam.eulerOrder);
 
+    /// invoke 'rendered_in' callbacks on scene descendants
+    var children = this.scene.getDescendants();
+    for(var c = 0; c < children.length; c++){
+      var child = children[c];
+      if(child.omega_obj && child.omega_obj.rendered_in)
+        child.omega_obj.rendered_in(this, child);
+    }
+
+    /// render actual scenes
     this.renderer.render(this.skyScene, this.skyCam);
     this.renderer.render(this.scene, this.cam);
+
+    /// render stats
     this.stats.update();
   }
 };

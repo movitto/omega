@@ -17,10 +17,10 @@ Omega.ShipTrails = function(args){
 };
 
 Omega.ShipTrails.prototype = {
-  particles_per_second :  50,
-  plane                :   5,
-  lifespan             :   1,
-  particle_speed       :   1,
+  particles_per_second :   200,
+  plane                :     7,
+  lifespan             :   0.3,
+  particle_speed       :     1,
 
   _particle_velocity : function(){
     if(this.__particle_velocity) return this.__particle_velocity;
@@ -39,10 +39,10 @@ Omega.ShipTrails.prototype = {
   _particle_emitter : function(){
     return new ShaderParticleEmitter({
       positionSpread     : new THREE.Vector3(this.plane, this.plane, 0),
-      colorStart         : new THREE.Color(0xFFFFFF),
-      colorEnd           : new THREE.Color(0xFFFFFF),
+      colorStart         : new THREE.Color('red'),
+      colorEnd           : new THREE.Color('yellow'),
       sizeStart          :   20,
-      sizeEnd            :   20,
+      sizeEnd            :   10,
       opacityStart       :    1,
       opacityEnd         :    0,
       velocity           : this._particle_velocity(),

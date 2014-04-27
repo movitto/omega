@@ -99,7 +99,7 @@ Omega.UI.CanvasTracker = {
 
     /// add star dust to scene
     if(!this.canvas.has(this.canvas.star_dust.id))
-      this.canvas.add(this.canvas.star_dust);
+      this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
   },
 
   /// Add entity to entities list if not present

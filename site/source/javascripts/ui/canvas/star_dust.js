@@ -12,7 +12,7 @@ Omega.UI.CanvasStarDust = function(parameters){
 
 Omega.UI.CanvasStarDust.prototype = {
   id : 'star_dust',
-  size : 10000,
+  size : 1000,
 
   load_gfx : function(config, event_cb){
     if(typeof(Omega.UI.CanvasStarDust.gfx) !== 'undefined') return;
@@ -27,16 +27,16 @@ Omega.UI.CanvasStarDust.prototype = {
     var particleEmitter =
       new ShaderParticleEmitter({
         positionSpread: new THREE.Vector3(this.size, this.size, this.size),
-        acceleration:   new THREE.Vector3(0, 0, 10),
-        velocity:       new THREE.Vector3(0, 0, 10),
+        acceleration:   new THREE.Vector3(0, 0, 0),
+        velocity:       new THREE.Vector3(0, 0, 0),
         colorStart:     new THREE.Color('white'),
         colorEnd:       new THREE.Color('white'),
-        sizeStart:          50,
-        sizeEnd:           150,
-        opacityStart:        0,
-        opacityMiddle:       1,
-        opacityEnd:          0,
-        particlesPerSecond: 50
+        sizeStart:            2,
+        sizeEnd:              5,
+        opacityStart:         0,
+        opacityMiddle:        1,
+        opacityEnd:           0,
+        particlesPerSecond: 350
     });
 
     // Add the emitter to the group.

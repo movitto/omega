@@ -52,6 +52,8 @@ Omega.UI.CanvasProgressBar.prototype = {
     this.component1  = new THREE.Line(geo1, mat1);
     this.component2  = new THREE.Line(geo2, mat2);
     this.components = [this.component1, this.component2];
+
+    this.component1.omega_obj = this.component2.omega_obj = this;
   },
 
   update : function(percentage){
@@ -77,6 +79,11 @@ Omega.UI.CanvasProgressBar.prototype = {
                                            component1 : this.component1,
                                            component2 : this.component2,
                                            vertices   : this.vertices});
+  },
+
+  /// canvas scene 'rendered_in' callback
+  rendered_in : function(canvas, component){
+    component.lookAt(canvas.cam.position);
   }
 };
 
