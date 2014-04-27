@@ -32,7 +32,7 @@ module Entity
 
     # Return dock attributes in json format
     def docks_json
-      {:docking_distance => @docking_distance}
+      {:docking_distance => docking_distance}
     end
   end # module HasDocks
 end # module Entity

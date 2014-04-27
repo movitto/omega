@@ -41,7 +41,7 @@ Omega.Config = {
   station_movement  :          50,
 
   //movement
-  movement_offset   : {min : 50, max: 100},
+  movement_offset   : {min : 5000000, max: 10000000},
   follow_distance   : 100,
 
   // stats

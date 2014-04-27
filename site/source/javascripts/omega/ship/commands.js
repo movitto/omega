@@ -77,6 +77,12 @@ Omega.ShipCommands = {
     return commands;
   },
 
+  _command_details_wrapper : function(page){
+    var cmds_container =
+      $('<div/>', {id : 'ship_cmds'}).append(this._command_details(page));
+    return cmds_container;
+  },
+
   _title_details : function(){
     var title_text = 'Ship: ' + this.id;
     var title = $('<div/>', {id : 'ship_title', text : title_text});
@@ -124,10 +130,8 @@ Omega.ShipCommands = {
                    this._type_details()].
             concat(this._resource_details());
 
-    if(page.session && this.belongs_to_user(page.session.user_id)){
-      var cmds = this._command_details(page);
-      details = details.concat(cmds);
-    }
+    if(page.session && this.belongs_to_user(page.session.user_id))
+      details = details.concat(this._command_details_wrapper(page));
 
     details_cb(details);
   },
@@ -138,5 +142,12 @@ Omega.ShipCommands = {
     $('#ship_orientation').html(this._orientation_details().html());
     $('#ship_hp').html(this._hp_details().html());
     $('#ship_resources').html(this._resource_details().html());
+  },
+
+  // refresh commands
+  refresh_cmds : function(page){
+    var ship_cmds = $('#ship_cmds');
+    ship_cmds.html('');
+    ship_cmds.append(this._command_details(page));
   }
 };

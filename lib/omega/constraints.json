@@ -65,7 +65,7 @@
 
     "movement_speed"      : 10000000,
     "rotation_speed"      : 0.098174,
-    "attack_distance"     :      400,
+    "attack_distance"     : 40000000,
     "attack_rate"         :      0.5,
     "damage_dealt"        :        2,
     "max_hp"              :       25,
@@ -73,10 +73,10 @@
     "shield_refresh_rate" :        1,
     "mining_rate"         :     0.10,
     "mining_quantity"     :       20,
-    "mining_distance"     :      400,
+    "mining_distance"     : 40000000,
     "cargo_capacity"      :      100,
-    "transfer_distance"   :      200,
-    "collection_distance" :      300,
+    "transfer_distance"   : 20000000,
+    "collection_distance" : 30000000,
     "construction_cost"   :      100,
     "construction_time"   :        5
   },
@@ -91,16 +91,16 @@
                "exploration" : 20, "science" : 20, "technology" : 20,
                "manufacturing" : 40, "commerce" : 30},
 
-    "docking_distance"      :   200,
-    "transfer_distance"     :   200,
-    "construction_distance" :   300,
-    "cargo_capacity"        : 10000,
-    "construction_cost"     :   100,
-    "construction_time"     :    10
+    "docking_distance"      :   20000000,
+    "transfer_distance"     :   20000000,
+    "construction_distance" :    3000000,
+    "cargo_capacity"        :      10000,
+    "construction_cost"     :        100,
+    "construction_time"     :         10
   },
 
   "loot" : {
     "cargo_capacity"    : 100,
-    "transfer_distance" : 25
+    "transfer_distance" : 25000000
   }
 }

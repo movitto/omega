@@ -62,8 +62,8 @@ module Entity
     def can_mine?(resource, quantity=resource.quantity)
       # TODO eventually filter per specific resource mining capabilities
        type == :mining && !self.docked? && alive? &&
-      (@location.parent_id == resource.entity.location.parent_id) &&
-      (@location - resource.entity.location) <= mining_distance &&
+      (location.parent_id == resource.entity.location.parent_id) &&
+      (location - resource.entity.location) <= mining_distance &&
       (cargo_quantity + quantity) <= cargo_capacity
     end
 
@@ -80,8 +80,8 @@ module Entity
 
     # Return mining attributes in json format
     def mining_json
-      {:mining_distance => @mining_distance,
-       :mining          => @mining}
+      {:mining_distance => mining_distance,
+       :mining          => mining}
     end
   end # module MiningCapabilities
 end # module Entity

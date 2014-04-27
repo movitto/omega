@@ -151,9 +151,9 @@ module Entity
 
     # Return cargo attributes in json format
     def cargo_json
-      {:cargo_capacity    => @cargo_capacity,
-       :transfer_distance => @transfer_distance,
-       :resources         => @resources}
+      {:cargo_capacity    => cargo_capacity,
+       :transfer_distance => transfer_distance,
+       :resources         => resources}
     end
   end # module HasCargo
 end # module Entity

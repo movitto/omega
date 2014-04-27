@@ -54,6 +54,7 @@ Omega.ShipDockingInteractions = {
       _this.update_gfx();
     });
     page.canvas.entity_container.refresh();
+    this.refresh_cmds(page);
   },
 
   /// Invoke ship undock operation
@@ -85,5 +86,6 @@ Omega.ShipDockingInteractions = {
       _this.update_gfx();
     });
     page.canvas.entity_container.refresh();
+    this.refresh_cmds(page);
   }
 };
