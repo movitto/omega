@@ -23,22 +23,6 @@ def mission_timeout
   1200 # = 20 min
 end
 
-def entity_loc
-  rand_loc :min => 1000, :max => 3000
-end
-
-def system_loc
-  rand_loc :min => 1000, :max => 2250, :min_y => 0, :max_y => 50
-end
-
-def jg_loc
-  rand_loc(:min => 2000, :max => 3000)
-end
-
-def ast_loc
-  rand_loc(:max => 5000, :min => 2500, :min_y => 0, :max_y => 50)
-end
-
 def gen_asts
   0.upto(5){
     asteroid gen_uuid, :location => ast_loc do |ast|

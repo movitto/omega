@@ -10,6 +10,8 @@ require 'rjr/nodes/local'
 RJR::Logger.log_level = ::Logger::DEBUG
 RJR::Logger.add_filter proc { |m| !(m =~ /.*moving location.*/ ) }
 
+Omega::Config.load.set_config
+
 server_node = RJR::Nodes::TCP.new   :node_id    => 'universe1',
                                     :host       => 'localhost',
                                     :port       =>  8889

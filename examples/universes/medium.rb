@@ -4,34 +4,12 @@
 # Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+
 require 'omega/client/boilerplate'
 
 login 'admin',  'nimda'
 
 ########################## define some helpers to gen data for this universe
-
-def sys_loc
-  rand_loc :min => 1000, :max => 2250, :min_y => 0, :max_y => 50
-end
-
-def ast_loc
-   rand_loc(:max => 5000, :min => 2500, :min_y => 0, :max_y => 50)
-end
-
-def jg_loc
-  rand_loc(:min => 2000, :max => 3000)
-end
-
-def orbital_plane
-  [0, 1, 0]
-end
-
-def planet_orbit
-  rand_orbit :min_e => 0.2,   :max_e => 0.7,
-             :min_p => 2500,  :max_p => 4500,
-             :min_s => 0.002, :max_s => 0.007,
-             :direction => random_axis(:orthogonal_to => orbital_plane)
-end
 
 def moon_locs(pl)
   {:min => pl.size * 1.5, :max => pl.size * 2.3}
@@ -44,7 +22,7 @@ end
 ######################### universe itself
 
 galaxy 'Zeus' do |g|
-  athena = system 'Athena', 'HR1925', :location => sys_loc do |sys|
+  athena = system 'Athena', 'HR1925' do |sys|
 
     planet 'Posseidon', :ms => planet_orbit do |pl|
       moons ['Posseidon I',   'Posseidon II',
@@ -65,13 +43,13 @@ galaxy 'Zeus' do |g|
     end
 
     0.upto(15){
-      asteroid gen_uuid, :location => ast_loc do |ast|
+      asteroid gen_uuid do |ast|
         resource :resource => rand_resource, :quantity => 500
       end
     }
   end
 
-  aphrodite = system 'Aphrodite', 'V866', :location => sys_loc do |sys|
+  aphrodite = system 'Aphrodite', 'V866' do |sys|
     planet 'Xenon',     :ms => planet_orbit
     planet 'Aesop',     :ms => planet_orbit
     planet 'Cleopatra', :ms => planet_orbit
@@ -80,13 +58,13 @@ galaxy 'Zeus' do |g|
     planet 'Heracules', :ms => planet_orbit
 
     0.upto(15){
-      asteroid gen_uuid, :location => ast_loc do |ast|
+      asteroid gen_uuid do |ast|
         resource :resource => rand_resource, :quantity => 500
       end
     }
   end
 
-  theodosia = system 'Theodosia', 'ST9098', :location => sys_loc do |sys|
+  theodosia = system 'Theodosia', 'ST9098' do |sys|
     planet 'Eukleides', :ms => planet_orbit
     planet 'Phoibe',    :ms => planet_orbit do |pl|
       moons ['Phiobe V', 'Phiobe VI'], :locations => moon_locs(pl)
@@ -114,7 +92,7 @@ galaxy 'Zeus' do |g|
   end
 
   # for this system we specify specific orbits of planet / do not randomly gen
-  nike = system 'Nike', 'QR1515', :location => sys_loc do |sys|
+  nike = system 'Nike', 'QR1515' do |sys|
     [['Nike I',    {:e => 0.12,  :p => 1510, :speed => 0.039}],
      ['Nike II',   {:e => 0.94,  :p => 1436, :speed => 0.004}],
      ['Nike III',  {:e => 0.42,  :p => 1290, :speed => 0.009}],
@@ -130,7 +108,7 @@ galaxy 'Zeus' do |g|
      }
   end
 
-  philo = system 'Philo', 'HU1792', :location => sys_loc do |sys|
+  philo = system 'Philo', 'HU1792' do |sys|
     planet 'Theophila', :ms => planet_orbit do |pl|
       moons ['Theophila X', 'Theophila XI',
              'Theophila XII'], :locations => moon_locs(pl)
@@ -145,19 +123,19 @@ galaxy 'Zeus' do |g|
     end
 
     0.upto(15){
-      asteroid gen_uuid, :location => ast_loc do |ast|
+      asteroid gen_uuid do |ast|
         resource :resource => rand_resource, :quantity => 500
       end
     }
   end
 
-  aphroditus = system 'Aphroditus', 'V867', :location => sys_loc do |sys|
+  aphroditus = system 'Aphroditus', 'V867' do |sys|
     planet 'Xenux', :ms => planet_orbit
     planet 'Aesou', :ms => planet_orbit
   end
 
   # another system which we specify specific planet orbits
-  irene = system 'Irene', 'HZ1279', :location => sys_loc do |sys|
+  irene = system 'Irene', 'HZ1279' do |sys|
     [['Irene I',   {:e => 0.29, :p => 1280, :speed => 0.037}],
      ['Irene II',  {:e => 0.40, :p => 1038, :speed => 0.04 }],
      ['Korinna',   {:e => 0.71, :p => 1502, :speed => 0.033}],
@@ -168,23 +146,23 @@ galaxy 'Zeus' do |g|
      }
   end
 
-  jump_gate athena,     aphrodite,  :location => jg_loc
-  jump_gate athena,     philo,      :location => jg_loc
-  jump_gate aphrodite,  athena,     :location => jg_loc
-  jump_gate aphrodite,  philo,      :location => jg_loc
-  jump_gate philo,      aphrodite,  :location => jg_loc
-  jump_gate philo,      theodosia,  :location => jg_loc
-  jump_gate theodosia,  philo,      :location => jg_loc
-  jump_gate aphrodite,  nike,       :location => jg_loc
-  jump_gate nike,       aphrodite,  :location => jg_loc
-  jump_gate athena,     aphroditus, :location => jg_loc
-  jump_gate aphroditus, irene,      :location => jg_loc
-  jump_gate irene,      theodosia,  :location => jg_loc
+  jump_gate athena,     aphrodite
+  jump_gate athena,     philo
+  jump_gate aphrodite,  athena
+  jump_gate aphrodite,  philo
+  jump_gate philo,      aphrodite
+  jump_gate philo,      theodosia
+  jump_gate theodosia,  philo
+  jump_gate aphrodite,  nike
+  jump_gate nike,       aphrodite
+  jump_gate athena,     aphroditus
+  jump_gate aphroditus, irene
+  jump_gate irene,      theodosia
 end
 
 
 galaxy 'Hera' do |g|
-  agathon = system 'Agathon', 'JJ7192', :location => sys_loc do |sys|
+  agathon = system 'Agathon', 'JJ7192' do |sys|
     planet 'Tychon', :ms => planet_orbit do |pl|
       moons ['Tychon I', 'Tychon II'], :locations => moon_locs(pl)
     end
@@ -204,14 +182,14 @@ galaxy 'Hera' do |g|
     end
 
     0.upto(15){
-      asteroid gen_uuid, :location => ast_loc do |ast|
+      asteroid gen_uuid do |ast|
         resource :resource => rand_resource, :quantity => 500
       end
     }
   end
 
   # another system which we specify specific planet orbits
-  isocrates = system 'Isocrates', 'IL9091', :location => sys_loc do |sys|
+  isocrates = system 'Isocrates', 'IL9091' do |sys|
     [['Isocrates I',   {:e => 0.42, :p => 1380, :speed => 0.063}],
      ['Isocrates II',  {:e => 0.42, :p => 1338, :speed => 0.051}],
      ['Isocrates III', {:e => 0.42, :p => 1163, :speed => 0.033}]].each { |name, ms|
@@ -220,15 +198,15 @@ galaxy 'Hera' do |g|
      }
   end
 
-  thais = system 'Thais', 'QR1021', :location => sys_loc do |sys|
+  thais = system 'Thais', 'QR1021' do |sys|
     planet 'Rhode', :ms => planet_orbit
   end
 
-  timon = system 'Timon', 'FZ6675', :location => sys_loc
-  zoe   = system 'Zoe',   'FR7751', :location => sys_loc
-  myron = system 'Myron', 'RZ9901', :location => sys_loc
+  timon = system 'Timon', 'FZ6675'
+  zoe   = system 'Zoe',   'FR7751'
+  myron = system 'Myron', 'RZ9901'
 
-  lysander = system 'Lysander', 'V21', :location => sys_loc do |sys|
+  lysander = system 'Lysander', 'V21' do |sys|
     planet 'Lysandra', :ms => planet_orbit do |pl|
       moons ['Lysandra I', 'Lysandra II'], :locations => moon_locs(pl)
     end
@@ -242,16 +220,16 @@ galaxy 'Hera' do |g|
     end
   end
 
-  pelagia = system 'Pelagia', 'HR1001', :location => sys_loc do |sys|
+  pelagia = system 'Pelagia', 'HR1001' do |sys|
     planet 'Iason',     :ms => planet_orbit
     planet 'Dionysius', :ms => planet_orbit
   end
 
-  pericles = system 'Pericles', 'ST5309', :location => sys_loc
-  sophia   = system 'Sophia',   'ST5310', :location => sys_loc
-  theodora = system 'Theodora', 'ST5311', :location => sys_loc
+  pericles = system 'Pericles', 'ST5309'
+  sophia   = system 'Sophia',   'ST5310'
+  theodora = system 'Theodora', 'ST5311'
 
-  tycho = system 'Tycho', 'Q931', :location => sys_loc do |sys|
+  tycho = system 'Tycho', 'Q931' do |sys|
     planet 'Agape', :ms => planet_orbit do |pl|
       moons ['Agape I', 'Agape II'], :locations => moon_locs(pl)
     end
@@ -268,20 +246,20 @@ galaxy 'Hera' do |g|
     end
   end
 
-  stephanos = system 'Stephanos', 'ST111', :location => sys_loc
+  stephanos = system 'Stephanos', 'ST111'
 
-  jump_gate agathon,   thais,     :location => jg_loc
-  jump_gate thais,     timon,     :location => jg_loc
-  jump_gate timon,     zoe,       :location => jg_loc
-  jump_gate zoe,       myron,     :location => jg_loc
-  jump_gate myron,     lysander,  :location => jg_loc
-  jump_gate lysander,  pelagia,   :location => jg_loc
-  jump_gate pelagia,   pericles,  :location => jg_loc
-  jump_gate pericles,  sophia,    :location => jg_loc
-  jump_gate sophia,    theodora,  :location => jg_loc
-  jump_gate theodora,  tycho,     :location => jg_loc
-  jump_gate tycho,     stephanos, :location => jg_loc
-  jump_gate stephanos, agathon,   :location => jg_loc
-  jump_gate stephanos, isocrates, :location => jg_loc
-  jump_gate isocrates, stephanos, :location => jg_loc
+  jump_gate agathon,   thais
+  jump_gate thais,     timon
+  jump_gate timon,     zoe
+  jump_gate zoe,       myron
+  jump_gate myron,     lysander
+  jump_gate lysander,  pelagia
+  jump_gate pelagia,   pericles
+  jump_gate pericles,  sophia
+  jump_gate sophia,    theodora
+  jump_gate theodora,  tycho
+  jump_gate tycho,     stephanos
+  jump_gate stephanos, agathon
+  jump_gate stephanos, isocrates
+  jump_gate isocrates, stephanos
 end

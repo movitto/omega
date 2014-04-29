@@ -27,8 +27,7 @@ login 'admin', 'nimda'
 
 galaxy 'Zeus' do |g|
   $athena = system 'Athena', 'HR1925',
-                   :id => 'Athena',
-                   :location => loc(620,-720,230)
+                   :id => 'Athena'
 end
 
 logout
@@ -40,16 +39,14 @@ login 'admin', 'nimda'
 
 galaxy 'Hera' do |g|
   $agathon = system 'Agathon', 'JJ7192',
-                    :id => 'Agathon',
-                    :location => loc(-88,219,499)
+                    :id => 'Agathon'
 end
 
 proxied_system $athena.id, 'universe1',
                :name     => $athena.name,
                :location => $athena.location
 
-$gate_to_athena = jump_gate $agathon, $athena,
-                         :location => loc(-275,76,286)
+$gate_to_athena = jump_gate $agathon, $athena
 
 logout
 
@@ -62,8 +59,7 @@ proxied_system $agathon.id, 'universe2',
                :name     => $agathon.name,
                :location => $agathon.location
 
-$gate_to_agathon = jump_gate $athena, $agathon,
-                          :location => loc(-275,-176,286)
+$gate_to_agathon = jump_gate $athena, $agathon
 
 user 'player', 'reylap' do |u|
   role :regular_user
@@ -73,7 +69,6 @@ ship("player-corvette-ship1") do |ship|
   ship.type     = :corvette
   ship.user_id  = 'player'
   ship.solar_system = system('Athena')
-  ship.location = loc(-250, -150, 220)
 end
 
 #############################
@@ -90,6 +85,7 @@ end
 def log_player_into(server)
   logout
   Omega::Client::Trackable.node.endpoint = server
+  dsl.node.endpoint = server
   login 'player', 'reylap'
 end
 

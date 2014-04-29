@@ -4,6 +4,9 @@
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
+# TODO locations should be generated/randomized within constraints on
+# server side execution of hook (or in followup hook)
+
 require 'omega'
 require 'omega/client/dsl'
 require 'missions/dsl'
@@ -22,19 +25,19 @@ create_corvette =
   missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Ship',
                          :type => 'corvette', :solar_system => STARTING_SYSTEM,
-                         :location => rand_location(:max => 2000))
+                         :location => system_entity_loc)
 
 create_miner =
   missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Ship',
                          :type => 'mining', :solar_system => STARTING_SYSTEM,
-                         :location => rand_location(:max => 2000))
+                         :location => system_entity_loc)
 
 create_station =
   missions_event_handler('registered_user', :on_event_create_entity,
                          :entity_type => 'Manufactured::Station',
                          :type => 'manufacturing', :solar_system => STARTING_SYSTEM,
-                         :location => rand_location(:max => 2000))
+                         :location => system_entity_loc)
 
 setup_role =
   missions_event_handler('registered_user', :on_event_add_role,

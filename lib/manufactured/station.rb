@@ -20,6 +20,7 @@ class Station
   include Manufactured::Entity::HasCallbacks
   include Manufactured::Entity::HasDocks
   include Manufactured::Entity::ConstructionCapabilities
+  extend Manufactured::Entity::Constructable
 
   # Station initializer
   # @param [Hash] args hash of options to initialize station with, accepts

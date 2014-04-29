@@ -15,16 +15,6 @@ module Omega
         Motel.gen_uuid
       end
 
-      # Generate the specified constraint
-      def constraint(*target)
-        Constraints.gen *target
-      end
-
-      # Randomly invert constraint value or values
-      def rand_invert(value)
-        Constraints.rand_invert value
-      end
-
       # Generate an return a new random {Cosmos::Resource}
       #
       # @see Omega::Resources.rand_resource
@@ -47,8 +37,14 @@ module Omega
       end
       alias :rand_axis :random_axis
 
+      # Negate the specified coords
+      def neg(*coords)
+        coords.collect { |c| c * -1 }
+      end
+
       # Utility wrapper to simply return a new location
-      def loc(x,y,z)
+      def loc(x,y=nil,z=nil)
+        return Motel::Location.new(x)if x.is_a?(Hash) && y.nil? && z.nil?
         Motel::Location.new :x => x, :y => y, :z => z
       end
 

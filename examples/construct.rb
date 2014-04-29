@@ -26,20 +26,20 @@ login 'admin', 'nimda'
 
 ####################### create environment
 galaxy 'Zeus' do |g|
-  system 'Athena',    'HR1925', :location => rand_location
-  system 'Aphrodite', 'V866',   :location => rand_location
-  system 'Philo',     'HU1792', :location => rand_location
+  system 'Athena',    'HR1925'
+  system 'Aphrodite', 'V866'
+  system 'Philo',     'HU1792'
 end
 
 athena    = system('Athena')
 aphrodite = system('Aphrodite')
 philo     = system('Philo')
 
-jump_gate athena,    aphrodite, :location => rand_location
-jump_gate athena,    philo,     :location => rand_location
-jump_gate aphrodite, athena,    :location => rand_location
-jump_gate aphrodite, philo,     :location => rand_location
-jump_gate philo,     aphrodite, :location => rand_location
+jump_gate athena,    aphrodite
+jump_gate athena,    philo
+jump_gate aphrodite, athena
+jump_gate aphrodite, philo
+jump_gate philo,     aphrodite
 
 ####################### create user
 
@@ -55,7 +55,6 @@ station("player-manufacturing-station#{$i}") do |station|
   station.type     = :manufacturing
   station.user_id  = 'player'
   station.solar_system = athena
-  station.location = Location.new(:x => 100,  :y=> 100,  :z => 100)
 end
 
 ####################### logout admin / login player

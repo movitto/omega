@@ -26,7 +26,7 @@ login 'admin', 'nimda'
 
 ####################### create environment
 galaxy 'Zeus' do |g|
-  system 'Athena', 'HR1925', :location => Location.new(:x => 240, :y => -360, :z => 110) do |sys|
+  system 'Athena', 'HR1925' do |sys|
   end
 end
 
@@ -44,20 +44,20 @@ end
 
 ####################### create ships
 
-ship("player-corvette-ship1") do |ship|
-  ship.type     = :corvette
-  ship.user_id  = 'player'
-  ship.solar_system = starting_system
-  ship.location = Location.new(:x => -150,  :y=> 0,  :z => -150)
-end
+corvette =
+  ship("player-corvette-ship1") do |ship|
+    ship.type     = :corvette
+    ship.user_id  = 'player'
+    ship.solar_system = starting_system
+  end
 
 miner =
   ship("enemy-miner-ship1") do |ship|
     ship.type     = :mining
     ship.user_id  = 'enemy'
     ship.solar_system = starting_system
-    ship.location = Location.new(:x => -140,  :y=> 0,  :z => -140)
     ship.add_resource Cosmos::Resource.new(:id=> 'metal-steel', :quantity=> 50)
+    ship.location = corvette.location + [1000, 1000, 1000]
   end
 
 # TODO logout admin / login player ?

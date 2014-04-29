@@ -16,7 +16,6 @@ include Motel
 include Omega::Client::DSL
 
 CORVETTES = 5
-SIZE = 300
 
 #RJR::Logger.log_level = ::Logger::INFO
 
@@ -28,20 +27,20 @@ login 'admin', 'nimda'
 ####################### create environment
 
 galaxy 'Zeus' do |g|
-  system 'Athena',    'HR1925', :location => rand_location(:max => SIZE)
-  system 'Aphrodite', 'V866',   :location => rand_location(:max => SIZE)
-  system 'Philo',     'HU1792', :location => rand_location(:max => SIZE)
+  system 'Athena',    'HR1925'
+  system 'Aphrodite', 'V866'
+  system 'Philo',     'HU1792'
 end
 
 athena    = system('Athena')
 aphrodite = system('Aphrodite')
 philo     = system('Philo')
 
-jump_gate athena,    aphrodite, :location => rand_location(:max => SIZE)
-jump_gate athena,    philo,     :location => rand_location(:max => SIZE)
-jump_gate aphrodite, athena,    :location => rand_location(:max => SIZE)
-jump_gate aphrodite, philo,     :location => rand_location(:max => SIZE)
-jump_gate philo,     aphrodite, :location => rand_location(:max => SIZE)
+jump_gate athena,    aphrodite
+jump_gate athena,    philo
+jump_gate aphrodite, athena
+jump_gate aphrodite, philo
+jump_gate philo,     aphrodite
 
 ####################### create users
 
@@ -67,14 +66,12 @@ end
     ship.type         = :corvette
     ship.user_id      = 'player'
     ship.solar_system = starting_system
-    ship.location     = rand_location(:max => SIZE)
   end
 
   ship("enemy-corvette#{i}") do |ship|
     ship.type         = :corvette
     ship.user_id      = 'enemy'
     ship.solar_system = starting_system
-    ship.location     = rand_location(:max => SIZE)
   end
 end
 

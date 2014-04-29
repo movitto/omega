@@ -16,7 +16,6 @@ include Motel
 include Omega::Client::DSL
 
 MINERS = 5
-SIZE = 300
 
 #RJR::Logger.log_level = ::Logger::INFO
 
@@ -28,12 +27,12 @@ login 'admin', 'nimda'
 ####################### create environment
 
 galaxy 'Zeus' do |g|
-  system 'Athena', 'HR1925', :location => rand_location(:max => SIZE) do |sys|
-    asteroid gen_uuid, :location => rand_location(:max => SIZE) do |ast|
+  system 'Athena', 'HR1925' do |sys|
+    asteroid gen_uuid do |ast|
       resource :resource => rand_resource, :quantity => 5000 
     end
 
-    asteroid gen_uuid, :location => rand_location(:max => SIZE) do |ast|
+    asteroid gen_uuid do |ast|
       resource :resource => rand_resource, :quantity => 5000 
       resource :resource => rand_resource, :quantity => 5000 
     end
@@ -55,7 +54,6 @@ end
     ship.type         = :mining
     ship.user_id      = 'player'
     ship.solar_system = starting_system
-    ship.location     = rand_location(:max => SIZE)
   end
 end
 
@@ -63,7 +61,6 @@ station("player-station1") do |station|
   station.type     = :manufacturing
   station.user_id  = 'player'
   station.solar_system = starting_system
-  station.location = rand_location(:max => SIZE)
 end
 
 # TODO logout admin / login player ?

@@ -25,6 +25,8 @@ login 'admin', 'nimda'
 STARTING_SYSTEMS = ARGV.collect { |s| system(s) }
 def rand_system ; STARTING_SYSTEMS.sample ; end
 
+entity_distance = [1000, 1000, 1000]
+
 ##################################################### users
 
 ceasar   = user 'Ceasar',       'rasaec',       :npc => true
@@ -53,63 +55,57 @@ tamora   = user 'tamora',       'aromat',       :npc => true
 
 castle_macbeth =
   station('castle-macbeth', :user_id => 'Macbeth', :type => :defense,
-          :solar_system => rand_system,
-          :location     => Motel::Location.new(:x => -950, :y => 450, :z => -750))
+          :solar_system => rand_system)
 
 macbeth_ship =
   ship('macbeth-ship', :user_id => 'Macbeth', :type => :destroyer,
        :system_id => castle_macbeth.system_id,
-       :location     => Motel::Location.new(:x => -960, :y => 460, :z => -760))
+       :location  => castle_macbeth.location + entity_distance)
 dock(macbeth_ship.id, castle_macbeth.id) if macbeth_ship.docked_at_id.nil?
 
 elsinore =
   station('elsinore', :user_id => 'Hamlet', :type => :mining,
-          :solar_system => rand_system, 
-          :location     => Motel::Location.new(:x => 928, :y => -67, :z => 102))
+          :solar_system => rand_system)
 
 hamlet_ship =
   ship('hamlet-ship', :user_id => 'Hamlet', :type => :corvette,
        :system_id => elsinore.system_id,
-       :location     => Motel::Location.new(:x => 920, :y => -59, :z => 100))
+       :location  => elsinore.location + entity_distance)
 dock(hamlet_ship.id, elsinore.id) if hamlet_ship.docked_at_id.nil?
 
 cyprus =
   station('cyprus', :user_id => 'Othello', :type => :commerce,
-          :solar_system => rand_system, 
-          :location     => Motel::Location.new(:x => -1950, :y => 1718, :z => 418))
+          :solar_system => rand_system)
 
 othello_ship =
   ship('othello-ship', :user_id => 'Othello', :type => :battlecruiser,
        :system_id => cyprus.system_id,
-       :location     => Motel::Location.new(:x => -1975, :y => 1710, :z => 420))
+       :location  => cyprus.location + entity_distance)
 dock(othello_ship.id, cyprus.id) if othello_ship.docked_at_id.nil?
 
 rome =
   station('rome', :user_id => 'Ceasar', :type => :commerce,
-          :solar_system => rand_system, 
-          :location     => Motel::Location.new(:x => 250, :y => 250, :z => 250))
+          :solar_system => rand_system)
 
 octavius_ship =
   ship('octavius-ship', :user_id => 'Octavius', :type => :exploration,
        :system_id => rome.system_id,
-       :location     => Motel::Location.new(:x => 270, :y => 290, :z => 270))
+       :location  => rome.location + entity_distance)
 dock(octavius_ship.id, rome.id) if octavius_ship.docked_at_id.nil?
 
 titus_ship =
   ship('titus-ship', :user_id => 'Titus', :type => :bomber,
        :system_id => rome.system_id,
-       :location     => Motel::Location.new(:x => 230, :y => 270, :z => 230))
+       :location  => rome.location + neg(*entity_distance))
 dock(titus_ship.id, rome.id) if titus_ship.docked_at_id.nil?
 
 penglai =
   station('penglai', :user_id => 'Shennong', :type => :science,
-          :solar_system => rand_system, 
-          :location     => Motel::Location.new(:x => 2950, :y => 2950, :z => 2950))
+          :solar_system => rand_system)
 
 youdu =
   station('youdu', :user_id => 'Shennong', :type => :technology,
-          :solar_system => rand_system, 
-          :location     => Motel::Location.new(:x => -1950, :y => -1950, :z => -1950))
+          :solar_system => rand_system)
 
 ##################################################### attack missions
 
@@ -117,35 +113,30 @@ youdu =
   :description => 'Macbeth needs you to assassinate Duncan, are you up to the task!?',
   :creator     =>  macbeth,
   :opponent    =>  duncan,
-  :location    =>  Motel::Location.random(:max => 2000),
   :reward      => 'metal-steel' },
 
  {:title       => 'Take Claudius Down',
   :description => 'The time for vengance is at hand, help Hamlet seek retribution for his father',
   :creator     =>  hamlet,
   :opponent    =>  claudius,
-  :location    =>  Motel::Location.random(:max => 2000),
   :reward      => 'metal-steel' },
 
  {:title       => 'Put an End to Iago',
   :description => 'Alas Iago succeeded with his evil schemes, but he needs to be punished for his acts.',
   :creator     =>  othello,
   :opponent    =>  iago,
-  :location    =>  Motel::Location.random(:max => 2000),
   :reward      => 'metal-steel' },
 
  {:title       => 'Eliminate Marcus Antonius',
   :description => 'Help Octavius defeat Mark Antony to consolidate power and form the empire',
   :creator     => octavius,
   :opponent    => marcus,
-  :location    =>  Motel::Location.random(:max => 2000),
   :reward      => 'metal-steel' },
 
  {:title       => 'Finish off Tamora',
   :description => 'The bloodshed has gone on for too long, put an end to the Queen of the Goths',
   :creator     => titus,
   :opponent    => tamora,
-  :location    =>  Motel::Location.random(:max => 2000),
   :reward      => 'metal-steel' }
 
 ].each { |msn|
@@ -163,7 +154,7 @@ mission gen_uuid, :title => msn[:title],
       :type     => :corvette, # TODO autodefend on attack
       :user_id  => msn[:opponent].id,
       :solar_system => rand_system,
-      :location    => msn[:location]),
+      :location    => ship_loc),
      Assignment.schedule_expiration_events,
      Assignment.subscribe_to(es, "destroyed_by",
                              Event.create_victory_event)],
@@ -208,7 +199,7 @@ mission mid, :title => "Collect #{q1} of #{type}-#{name}",
        Query.user_ships(:type => :mining )), # FIXME misses any mining ships created after assignment
      Assignment.create_asteroid(mid + '-asteroid',
       :solar_system => rand_system,
-      :location => Motel::Location.random(:max => 2000)),
+      :location => ast_loc),
      Assignment.create_resource(mid + '-asteroid',
                                 :material_id => "#{type}-#{name}",
                                 :quantity    => q1),
@@ -282,7 +273,7 @@ mission gen_uuid, :title => "Scavange #{q3} of #{type}-#{name}",
         :type     => :corvette, # TODO autodefend on attack
         :user_id  => chiyou.id,
         :solar_system => rand_system,
-        :location    => rand_location,
+        :location    => ship_loc,
         :cargo_capacity => q3)
     } +
     [Assignment.add_resource(eid,

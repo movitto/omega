@@ -31,7 +31,7 @@ u = user USER_NAME, PASSWORD do |u|
 end
 
 starting_system = system(STARTING_SYSTEM)
-starting_loc    = Location.new rand_invert(constraint('system_entity', 'position'))
+starting_loc    = loc(rand_invert(constraint('system_entity', 'position')))
 
 station(USER_NAME + "-manufacturing-station1") do |station|
   station.type         = :manufacturing

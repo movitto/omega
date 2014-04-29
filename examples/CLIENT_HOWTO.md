@@ -27,10 +27,6 @@ A typical workflow would be to
   process exists (if killed they can be resumed from where
   they last left off by simply running them again)
 
-The examples/runner.sh provides a high level wrapper script
-encapsulating this workflow for a simple universe / one user/bot
-example.
-
 The examples/bot_test.rb script can be used in conjunction with
 the bin/util/omega-monitor utility to view bot operations at a
 high level interface using ncurses.
@@ -47,11 +43,9 @@ functionality:
 * construct.rb - demonstrates constructing an entity using a station
   and waiting until construction is complete
 * loot.rb - demonstrates attacking a ship and collecting loot
-
-## Integration Tests
-
-examples/simulation provides scripts / plugins which is used to
-do integration / stress tests on the omega server.
+* mining.rb - demonstrates a continuous mining operation with miners
+  and a factory
+* patrol.rb - demonstrates an inter-system patrol route
 
 ## Writing your own client
 

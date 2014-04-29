@@ -4,6 +4,7 @@
 # Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/client/entities/station'
+require 'omega/client/entities/solar_system'
 
 module Omega
   module Client

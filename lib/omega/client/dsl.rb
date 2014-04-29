@@ -6,6 +6,7 @@
 require 'omega'
 require 'omega/client/dsl/base'
 require 'omega/client/dsl/util'
+require 'omega/client/dsl/constraints'
 require 'omega/client/dsl/users'
 require 'omega/client/dsl/cosmos'
 require 'omega/client/dsl/manufactured'
