@@ -22,6 +22,8 @@ Omega.UI.CanvasCameraManager = {
                                  default_target[1],
                                  default_target[2]);
     this.cam_controls.update();
+
+    this.entity_container.hide();
   },
 
   // Focus the scene camera on the specified location

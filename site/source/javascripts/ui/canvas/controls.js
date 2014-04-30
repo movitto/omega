@@ -11,7 +11,6 @@ Omega.UI.CanvasControls = function(parameters){
   this.entities_list    = new Omega.UI.CanvasControlsList({  div_id : '#entities_list'  });
   this.controls         = $('#canvas_controls');
   this.missions_button  = $('#missions_button');
-  this.cam_reset        = $('#cam_reset');
   this.toggle_axis      = $('#toggle_axis input')
 
   /// need handle to canvas to
@@ -55,11 +54,6 @@ Omega.UI.CanvasControls.prototype = {
     this.missions_button.on('click',
       function(evnt){
         _this._missions_button_click();
-      });
-
-    this.cam_reset.on('click',
-      function(evnt){
-        _this.canvas.reset_cam();
       });
 
     this.toggle_axis.on('click',
