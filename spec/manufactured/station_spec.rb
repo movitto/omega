@@ -98,10 +98,10 @@ describe Station do
       s.resources.should == []
       s.solar_system.should be_nil
       s.system_id.should be_nil
-      s.docking_distance.should == 200
-      s.cargo_capacity.should == 10000
-      s.transfer_distance.should == 200
-      s.construction_distance.should == 300
+      s.docking_distance.should == Station.get_constraint('docking_distance')
+      s.cargo_capacity.should == Station.get_constraint('cargo_capacity')
+      s.transfer_distance.should == Station.get_constraint('transfer_distance')
+      s.construction_distance.should == Station.get_constraint('construction_distance')
 
       s.location.should be_an_instance_of(Motel::Location)
       s.location.coordinates.should == [0,0,1]
@@ -234,7 +234,7 @@ describe Station do
 
     context "ship/station too far away" do
       it "returns false" do
-        @sh.location.x = 500
+        @sh.location.x = @st.docking_distance + 1
         @st.dockable?(@sh).should be_false
       end
     end

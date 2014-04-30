@@ -198,6 +198,8 @@ module Omega::Client
         s = create(:valid_ship, :type => :mining,
                    :location => build(:location, :x => 0, :y => 0, :z => 0))
         @r = Miner.get(s.id)
+
+        @dd = Manufactured::Station.get_constraint('docking_distance')
       end
 
       it "selects closest station" do
@@ -280,14 +282,14 @@ module Omega::Client
       end
 
       it "moves to closest station" do
-        s = create(:valid_station, :location => @r.location + [10000,0,0])
+        s = create(:valid_station, :location => @r.location + [@dd,0,0])
         @r.should_receive(:closest).with(:station).and_return([s])
         @r.should_receive(:move_to).with(:destination => s)
         @r.offload_resources
       end
 
       it "raises moving_to event" do
-        s = create(:valid_station, :location => @r.location + [10000,0,0])
+        s = create(:valid_station, :location => @r.location + [@dd,0,0])
         @r.should_receive(:closest).with(:station).and_return([s])
         @r.should_receive(:raise_event).with(:moving_to, s)
         @r.offload_resources
@@ -295,7 +297,7 @@ module Omega::Client
 
       context "arrived at closest station" do
         it "transfers resources" do
-          s = create(:valid_station, :location => @r.location + [10000,0,0])
+          s = create(:valid_station, :location => @r.location + [@dd,0,0])
           @r.should_receive(:closest).with(:station).twice.and_return([s])
           @r.offload_resources
           s.location.x = 0
@@ -305,7 +307,7 @@ module Omega::Client
         end
 
         it "selects mining target" do
-          s = create(:valid_station, :location => @r.location + [10000,0,0])
+          s = create(:valid_station, :location => @r.location + [@dd,0,0])
           @r.should_receive(:closest).with(:station).twice.and_return([s])
           @r.offload_resources
           s.location.x = 0

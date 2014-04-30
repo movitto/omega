@@ -447,7 +447,7 @@ describe Ship do
 
     context "ship/station too far away" do
       it "returns false" do
-        @sh.location.x = 500
+        @sh.location.x = @st.docking_distance + 1
         @sh.can_dock_at?(@st).should be_false
       end
     end
@@ -493,7 +493,7 @@ describe Ship do
 
     context "ships too far away" do
       it "returns false" do
-        @sh1.location.x = 500
+        @sh1.location.x = @sh1.attack_distance + 1
         @sh1.can_attack?(@sh2).should be_false
       end
     end
@@ -556,7 +556,7 @@ describe Ship do
 
     context "ship/resource too far away" do
       it "returns false" do
-        @sh.location.x = 5000
+        @sh.location.x = @sh.mining_distance + 1
         @sh.can_mine?(@r, @q).should be_false
       end
     end
