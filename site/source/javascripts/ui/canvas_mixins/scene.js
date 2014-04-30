@@ -55,6 +55,10 @@ Omega.UI.CanvasSceneManager = {
     this.skyScene = new THREE.Scene();
   },
 
+  descendants : function(){
+    return this.scene.getDescendants().concat(this.skyScene.getDescendants());
+  },
+
   _setup_renderer : function(){
     var sw = window.innerWidth  - this.ui_props.wpadding,
         sh = window.innerHeight - this.ui_props.hpadding;

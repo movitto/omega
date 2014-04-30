@@ -82,12 +82,11 @@ Omega.UI.CanvasMouseHandler = {
     }
   },
 
-  /// TODO also need to detect unhovered
   _detect_hover : function(){
     if(!this.mouse_x || !this.mouse_y) return;
 
     var        ray = this._picking_ray(this.mouse_x, this.mouse_y);
-    var intersects = ray.intersectObjects(this.scene.getDescendants());
+    var intersects = ray.intersectObjects(this.descendants());
     if(intersects.length > 0){
       var obj = intersects[0].object.omega_obj;
       var entity = obj ? obj.omega_entity : null;
