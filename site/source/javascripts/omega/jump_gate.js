@@ -51,6 +51,10 @@ Omega.JumpGate.prototype = {
     this.mesh.tmesh.remove(this.selection.tmesh);
   },
 
+  clicked_in : function(canvas){
+    canvas.follow_entity(this);
+  },
+
   selected : function(page){
     var _this = this;
     page.canvas.reload(this, function(){

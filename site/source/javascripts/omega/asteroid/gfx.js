@@ -15,6 +15,13 @@ Omega.AsteroidGfx = {
     return this.location;
   },
 
+  // Returns position tracker, 3D object automatically update w/ planet position
+  position_tracker : function(){
+    if(!this._position_tracker)
+      this._position_tracker = new THREE.Object3D();
+    return this._position_tracker;
+  },
+
   /// True / false if station gfx have been preloaded
   gfx_loaded : function(){
     return !!(Omega.Asteroid.gfx);
@@ -49,16 +56,18 @@ Omega.AsteroidGfx = {
     Omega.AsteroidMesh.load(mesh_num, function(mesh){
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
-      _this.components = [_this.mesh.tmesh];
+      _this.position_tracker().add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh',  _this.mesh);
       _this._gfx_initialized = true;
     });
+
+    this.components = [this.position_tracker()];
   },
 
   update_gfx : function(){
     var loc = this.scene_location();
-    this.mesh.tmesh.position.set(loc.x, loc.y, loc.z);
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
   },
 
   run_effects : function(){}

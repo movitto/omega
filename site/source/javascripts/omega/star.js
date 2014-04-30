@@ -30,6 +30,10 @@ Omega.Star.prototype = {
             parent_id  : this.parent_id,
             type       : this.type,
             size       : this.size};
+  },
+
+  clicked_in : function(canvas){
+    canvas.reset_cam();
   }
 };
 

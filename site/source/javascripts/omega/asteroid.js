@@ -30,6 +30,10 @@ Omega.Asteroid.prototype = {
             parent_id  : this.parent_id,
             color      : this.color,
             size       : this.size};
+  },
+
+  clicked_in : function(canvas){
+    canvas.follow_entity(this);
   }
 };
 

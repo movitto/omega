@@ -9,15 +9,17 @@ Omega.StarMesh = function(args){
   var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  if(config && event_cb)
+  if(config && event_cb){
     this.tmesh = this.init_gfx(config, event_cb);
-  //this.tmesh.omega_obj = this;
+    this.tmesh.omega_obj = this;
+  }
 };
 
 Omega.StarMesh.prototype = {
   clone : function(){
     var smesh   = new Omega.StarMesh();
     smesh.tmesh = this.tmesh.clone(); 
+    smesh.tmesh.omega_obj = smesh;
     return smesh;
   },
 

@@ -38,12 +38,6 @@ Omega.JumpGateMesh.prototype = {
     return mesh;
   },
 
-  update : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.scene_location();
-    this.tmesh.position.set(loc.x, loc.y, loc.z);
-  },
-
   run_effects : function(){
     var elapsed = this.clock.getDelta();
     this.tmesh.rotation.z += Math.PI / 30 * elapsed;

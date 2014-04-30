@@ -18,6 +18,13 @@ Omega.JumpGateGfx = {
     return this.location;
   },
 
+  // Returns position tracker, 3D object automatically update w/ planet position
+  position_tracker : function(){
+    if(!this._position_tracker)
+      this._position_tracker = new THREE.Object3D();
+    return this._position_tracker;
+  },
+
   // True/False if shared gfx are loaded
   gfx_loaded : function(){
     return typeof(Omega.JumpGate.gfx) !== 'undefined';
@@ -64,20 +71,18 @@ Omega.JumpGateGfx = {
     this.selection = Omega.JumpGateSelection.for_jg(this);
     this.selection.omega_entity = this;
 
-    this.mesh = {update: function(){},
-                 run_effects : function(){}}
-
     var _this = this;
     Omega.JumpGateMesh.load(config, function(mesh){
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
       _this.mesh.tmesh.add(_this.lamp.olamp.component);
-      _this.components.push(_this.mesh.tmesh);
+      _this.position_tracker().add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
       _this._gfx_initialized = true;
     });
 
+    this.components.push(this.position_tracker());
     this.update_gfx();
   },
 
@@ -91,7 +96,9 @@ Omega.JumpGateGfx = {
   update_gfx : function(){
     if(!this.scene_location()) return;
 
-    if(this.mesh)      this.mesh.update();
+    var loc = this.scene_location();
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
+
     if(this.particles) this.particles.update();
   }
 }
