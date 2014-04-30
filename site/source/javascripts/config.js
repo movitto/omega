@@ -59,9 +59,11 @@ Omega.Config = {
     'planet3'      : { 'material' : '/textures/planet3.png' },
     'planet4'      : { 'material' : '/textures/planet4.png' },
     'asteroid'     : { 'material' : '/textures/asteroid01.png',
-                       'geometry' : '/meshes/asteroids1.json',
-                       'scale'    : [90, 90, 40],
-                       'rotation' : [1.57,3.14,0]},
+                       'geometry' : ['/meshes/asteroids1.json',
+                                     '/meshes/asteroids2.json',
+                                     '/meshes/asteroids3.json',
+                                     '/meshes/asteroids4.json',
+                                     '/meshes/asteroids5.json']},
 
     'ships'        : {
       'mining'       : { 'material' : '/textures/hull.png',

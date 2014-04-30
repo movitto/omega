@@ -17,8 +17,8 @@
   },
 
   "asteroid_belt" : {
-    "p":              200000000,
-    "pDeviation":     100000000,
+    "p":              750000000,
+    "pDeviation":     250000000,
 
     "e":              0.18,
     "eDeviation":     0.16
@@ -28,8 +28,8 @@
     "size":           100000,
     "sizeDeviation":   70000,
 
-    "p":              1000000000,
-    "pDeviation":      950000000,
+    "p":               750000000,
+    "pDeviation":      450000000,
 
     "e":              0.13,
     "eDeviation":     0.07,

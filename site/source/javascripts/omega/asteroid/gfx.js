@@ -15,15 +15,21 @@ Omega.AsteroidGfx = {
     return this.location;
   },
 
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Asteroid.gfx) !== 'undefined') return;
-    var gfx = {};
-    Omega.Asteroid.gfx = gfx;
+  /// True / false if station gfx have been preloaded
+  gfx_loaded : function(){
+    return !!(Omega.Asteroid.gfx);
+  },
 
-    Omega.AsteroidMesh.load_template(config, function(mesh){
-      gfx.mesh = mesh;
+  load_gfx : function(config, event_cb){
+    if(this.gfx_loaded()) return;
+    var gfx = {};
+
+    Omega.AsteroidMesh.load_templates(config, function(templates){
+      gfx.meshes = templates;
       if(event_cb) event_cb();
-    })
+    });
+
+    Omega.Asteroid.gfx = gfx;
   },
 
   /// True / false if station gfx have been initialized
@@ -32,11 +38,15 @@ Omega.AsteroidGfx = {
   },
 
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
+    /// pick a random mesh from those available
+    var num_meshes = Omega.Asteroid.gfx.meshes.length;
+    var mesh_num   = Math.floor(Math.random() * num_meshes);
+
     var _this = this;
-    Omega.AsteroidMesh.load(function(mesh){
+    Omega.AsteroidMesh.load(mesh_num, function(mesh){
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
       _this.components = [_this.mesh.tmesh];

@@ -24,7 +24,7 @@ Omega.PlanetMesh = function(args){
 
 Omega.PlanetMesh.prototype = {
   props : {
-    radius : 75, segments : 32, rings : 32
+    radius : 150, segments : 32, rings : 32
   },
 
   valid : function(){

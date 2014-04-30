@@ -20,40 +20,42 @@ Omega.AsteroidMesh.prototype = {
   }
 };
 
-/// async template mesh loader
-Omega.AsteroidMesh.load_template = function(config, cb){
+// Async Asteroid template meshes loader
+Omega.AsteroidMesh.load_templates = function(config, cb){
   var texture_path    = config.url_prefix + config.images_path +
                         config.resources.asteroid.material;
-  var geometry_path   = config.url_prefix + config.images_path +
-                        config.resources.asteroid.geometry;
+  var geometry_paths  = config.resources.asteroid.geometry;
   var geometry_prefix = config.url_prefix + config.images_path +
                         config.meshes_path;
-  var rotation        = config.resources.asteroid.rotation;
-  var scale           = config.resources.asteroid.scale;
 
   var texture         = THREE.ImageUtils.loadTexture(texture_path, {});
   var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });
 
-  Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
-    var mesh  = new THREE.Mesh(mesh_geometry, mesh_material);
-    var amesh = new Omega.AsteroidMesh({mesh: mesh});
+  var loaded_templates = [];
 
-    if(scale) mesh.scale.set(scale[0], scale[1], scale[2]);
-      
-    if(rotation){
-      mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
-      mesh.matrix.makeRotationFromEuler(mesh.rotation);
-    }
+  for(var g = 0; g < geometry_paths.length; g++){
+    var geometry_path = config.url_prefix + config.images_path +
+                        geometry_paths[g];
+    Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
+      var mesh  = new THREE.Mesh(mesh_geometry, mesh_material);
+      var amesh = new Omega.AsteroidMesh({mesh: mesh});
+      loaded_templates.push(amesh);
 
-    cb(amesh);
-    Omega.Asteroid.prototype.loaded_resource('template_mesh', amesh);
-  }, geometry_prefix);
+      var all_loaded = loaded_templates.length == geometry_paths.length;
+      if(all_loaded){
+        cb(loaded_templates);
+        Omega.Asteroid.prototype.loaded_resource('template_meshes',
+                                                 loaded_templates);
+      }
+    }, geometry_prefix);
+  }
 };
 
-/// async mesh loader
-Omega.AsteroidMesh.load = function(cb){
-  Omega.Asteroid.prototype.retrieve_resource('template_mesh',
-    function(template_mesh){
+// Async Asteroid mesh loader
+Omega.AsteroidMesh.load = function(num, cb){
+  Omega.Asteroid.prototype.retrieve_resource('template_meshes',
+    function(template_meshes){
+      var template_mesh = template_meshes[num];
       cb(template_mesh.clone());
     });
 };
