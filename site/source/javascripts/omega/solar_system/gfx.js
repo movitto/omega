@@ -5,8 +5,9 @@
  */
 
 //= require "omega/solar_system/mesh"
-//= require "omega/solar_system/plane"
 //= require "omega/solar_system/text"
+//= require "omega/solar_system/plane"
+//= require "omega/solar_system/audio"
 //= require "omega/solar_system/interconn"
 
 // Solar System GFX Mixin
@@ -27,6 +28,7 @@ Omega.SolarSystemGfx = {
     gfx.plane             = new Omega.SolarSystemPlane({config:   config,
                                                         event_cb: event_cb});
     gfx.text_material     = new Omega.SolarSystemTextMaterial();
+    gfx.audio_effects     = new Omega.SolarSystemAudioEffects({config: config});
     Omega.SolarSystem.gfx = gfx;
   },
 
@@ -46,14 +48,15 @@ Omega.SolarSystemGfx = {
     this.plane = Omega.SolarSystem.gfx.plane.clone();
     this.plane.omega_entity = this;
 
-    /// text geometry needs to be created on system by system basis
     this.text = new Omega.SolarSystemText(this.title())
     this.text.omega_entity = this;
 
-    /// interconnects pre-created on system by system basis, init gfx here
+    this.audio_effects = Omega.SolarSystem.gfx.audio_effects;
+
     this.interconns.init_gfx(config, event_cb);
   
-    this.components = [this.plane.tmesh, this.text.text, this.interconns.particles.mesh];
+    this.components =
+      [this.plane.tmesh, this.text.text, this.interconns.particles.mesh];
   
     this.interconns.unqueue();
     this.update_gfx();

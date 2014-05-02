@@ -95,6 +95,8 @@ Omega.Config = {
 
   audio : {
     'click'        : {'src' : 'effects_click_wav'},
+    'system_hover' : {'src' : 'effects_system_hover_wav'},
+    'system_click' : {'src' : 'effects_system_click_ogg'},
     'construction' : {'src' : 'effects_construct_wav'},
     'destruction'  : {'src' : 'effects_destruction_wav'},
     'mining'       : {'src' : 'effects_mining2_wav'},

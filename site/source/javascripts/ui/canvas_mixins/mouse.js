@@ -91,10 +91,14 @@ Omega.UI.CanvasMouseHandler = {
       var obj = intersects[0].object.omega_obj;
       var entity = obj ? obj.omega_entity : null;
       if(entity){
+        var first_hover = this._hovered_entity != entity;
+        this._hover_num = first_hover ? 1 : (this._hover_num + 1);
         this._hovered_entity = entity;
-        this._hovered_over(entity);
+        this._hovered_over(entity, this._hover_num);
+
       }else if(this._hovered_entity){
         this._unhovered_over(this._hovered_entity);
+        this._hover_num = 0;
         this._hovered_entity = null;
       }
     }
@@ -114,8 +118,8 @@ Omega.UI.CanvasMouseHandler = {
     }
   },
 
-  _hovered_over : function(entity){
-    if(entity.on_hover) entity.on_hover(this);
+  _hovered_over : function(entity, hover_num){
+    if(entity.on_hover) entity.on_hover(this, hover_num);
     entity.dispatchEvent({type: 'hover'});
   },
 

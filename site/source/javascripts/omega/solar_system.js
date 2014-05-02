@@ -136,6 +136,9 @@ Omega.SolarSystem.prototype = {
 
   /// Set scene root to system whenever clicked in scene
   clicked_in : function(canvas){
+    canvas.page.audio_controls.stop();
+    canvas.page.audio_controls.play(this.audio_effects, 'click');
+
     var _this = this;
     this.refresh(canvas.page.node, function(){
       canvas.set_scene_root(_this);
@@ -157,7 +160,12 @@ Omega.SolarSystem.prototype = {
     this.components.splice(index, 1);
   },
 
-  on_hover : function(canvas){
+  on_hover : function(canvas, hover_num){
+    if(hover_num == 1){
+      canvas.page.audio_controls.stop();
+      canvas.page.audio_controls.play(this.audio_effects, 'hover');
+    }
+
     var _this = this;
     canvas.reload(this, function(){
       if(!_this._has_hover_sphere())

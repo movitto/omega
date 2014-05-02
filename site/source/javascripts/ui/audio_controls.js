@@ -57,11 +57,14 @@ Omega.UI.AudioControls.prototype = {
   },
 
   /// Play specified audio target w/ controls
-  play : function(target){
+  play : function(){
     if(this.disabled) return;
-    if(target) this.current = target;
 
-    this.current.play();
+    var params = Array.prototype.slice.call(arguments);
+    var target = params.shift();
+
+    if(target) this.current = target;
+    this.current.play.apply(this.current, params);
   },
 
   /// Stop playing audio
