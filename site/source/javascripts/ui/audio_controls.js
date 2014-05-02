@@ -18,7 +18,9 @@ Omega.UI.AudioControls = function(parameters){
 
   /// central / shared audio effects
   if(this.page)
-    this.effects = {click : new Omega.ClickAudioEffect(this.page.config)};
+    this.effects = {  click :        new Omega.ClickAudioEffect(this.page.config),
+                    command :      new Omega.CommandAudioEffect(this.page.config),
+               confirmation : new Omega.ConfirmationAudioEffect(this.page.config)};
   else
     this.effects = {};
 

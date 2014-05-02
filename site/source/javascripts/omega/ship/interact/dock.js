@@ -50,11 +50,12 @@ Omega.ShipDockingInteractions = {
     this.dialog().hide();
     this.docked_at = station;
     this.docked_at_id = station.id;
-    page.canvas.reload(_this, function(){
+    page.canvas.reload(this, function(){
       _this.update_gfx();
     });
     page.canvas.entity_container.refresh();
     this.refresh_cmds(page);
+    page.audio_controls.play(this.docking_audio);
   },
 
   /// Invoke ship undock operation

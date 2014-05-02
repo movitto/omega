@@ -11,14 +11,22 @@ Omega.ShipTransferInteractions = {
 
     /// XXX assuming we are transferring to the docked station
     var station_id = this.docked_at_id;
-    for(var r = 0; r < this.resources.length; r++){
+    var resources  = this.resources.length;
+    var responses  = 0;
+
+    for(var r = 0; r < resources; r++){
       page.node.http_invoke('manufactured::transfer_resource',
         this.id, station_id, this.resources[r],
           function(response){
+            responses += 1;
+
             if(response.error)
               _this._transfer_failed(response);
             else
               _this._transfer_success(response, page);
+
+            if(responses == resources)
+              _this._transfer_complete(page);
           });
     }
   },
@@ -46,5 +54,10 @@ Omega.ShipTransferInteractions = {
       _this.update_gfx();
     });
     page.canvas.entity_container.refresh();
+  },
+
+  /// Internal callback invoked on transfer completion
+  _transfer_complete : function(page){
+    page.audio_controls.play(page.audio_controls.effects.confirmation);
   }
 }

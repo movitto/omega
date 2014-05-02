@@ -67,6 +67,8 @@ Omega.ShipCommands = {
       cmd.data('ship', this);
       cmd.data('handler', cmd_data.handler)
       cmd.click(function(evnt){
+        page.audio_controls.play(page.audio_controls.effects.command);
+
         var handler = $(evnt.currentTarget).data('handler');
         _this[handler](page);
       });
