@@ -13,6 +13,7 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
   var pstation = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == station.id; })[0];
 
+  pstation._constructing = false;
   pstation.construction_percent = 0;
   pstation.resources = station.resources;
   pstation._update_resources();
@@ -29,7 +30,7 @@ Omega.Callbacks.construction_complete = function(event, evnt_args){
   Omega.Ship.get(constructed.id, this.page.node, function(entity){
     _this.page.process_entity(entity);
     if(_this.page.canvas.is_root(entity.system_id)){
-      _this.page.audio_controls.play(pstation.construction_audio);
+      _this.page.audio_controls.play(pstation.construction_audio, 'complete');
     }
   });
 

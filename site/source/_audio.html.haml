@@ -9,7 +9,14 @@
 
 #audio_list
   - audio_assets.each do |audio|
+    - audio_id = audio.gsub(/[\/\.]/, "_")
+    - audio_loop_id = audio_id + "_loop"
+
     = audio_tag(audio, :preload  => "none",
                        :autoplay => false,
                        :controls => false,
-                       :id => audio.gsub(/[\/\.]/, "_"))
+                       :id       => audio_id)
+    = audio_tag(audio, :preload  => "none",
+                       :autoplay => false,
+                       :controls => false,
+                       :id       => audio_loop_id)

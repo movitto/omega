@@ -27,7 +27,10 @@ Omega.StationInteraction = {
         concat(this._construct_properties());
 
     var cb = function(response){
-               if(response.error) _this._construct_failed(response);
+               if(response.error)
+                 _this._construct_failed(response);
+               else
+                 _this._construct_success(response, page);
              };
     construct_args.push(cb)
 
@@ -38,5 +41,10 @@ Omega.StationInteraction = {
     this.dialog().title = 'Construction Error';
     this.dialog().show_error_dialog();
     this.dialog().append_error(response.error.message);
+  },
+
+  _construct_success : function(response, page){
+    this._constructing = true;
+    page.audio_controls.play(this.construction_audio, 'started');
   }
 }

@@ -83,6 +83,8 @@ Omega.ShipMovementInteractions = {
     page.canvas.reload(this, function(){
       _this.update_gfx();
     });
+    page.audio_controls.play(page.audio_controls.effects.confirmation);
+    page.audio_controls.play(this.movement_audio);
   },
 
   /// Invoke ship follow command

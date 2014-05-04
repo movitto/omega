@@ -59,6 +59,11 @@ Omega.Ship.prototype = {
     return this.hp / this.max_hp;
   },
 
+  /// Return bool indicating if ship is mining
+  is_mining : function(){
+    return !!(this.mining);
+  },
+
   /// Update this ship's system
   update_system : function(new_system){
     this.solar_system   = new_system;
@@ -77,25 +82,29 @@ Omega.Ship.prototype = {
     if(this.resources){
       for(var r = 0; r < this.resources.length; r++){
         var res = this.resources[r];
-        if(res.data)  $.extend(res, res.data);
+        if(res.data) $.extend(res, res.data);
       }
     }
   },
 
   clicked_in : function(canvas){
-    var ac = canvas.page.audio_controls;
-    ac.play(ac.effects.click);
+    canvas.page.audio_controls.play(canvas.page.audio_controls.effects.click);
     canvas.follow_entity(this);
   },
 
   selected : function(page){
-    if(this.mesh && this.mesh.tmesh)
-      this.mesh.tmesh.material.emissive.setHex(0xff0000);
+    if(this.is_mining())
+      page.audio_controls.play(this.mining_audio);
+    else if(!this.location.is_stopped())
+      page.audio_controls.play(this.movement_audio);
+
+    this.mesh.tmesh.material.emissive.setHex(0xff0000);
   },
 
   unselected : function(page){
-    if(this.mesh && this.mesh.tmesh)
-      this.mesh.tmesh.material.emissive.setHex(0);
+    page.audio_controls.stop([this.mining_audio, this.movement_audio]);
+
+    this.mesh.tmesh.material.emissive.setHex(0);
   }
 };
 

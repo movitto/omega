@@ -96,13 +96,19 @@ Omega.Config = {
   audio : {
     'click'        : {'src' : 'effects_click_wav'},
     'command'      : {'src' : 'effects_command_wav'},
+    'trigger'      : {'src' : 'effects_trigger_wav'},
     'confirmation' : {'src' : 'effects_confirmation_wav'},
     'system_hover' : {'src' : 'effects_system_hover_wav'},
     'system_click' : {'src' : 'effects_system_click_ogg'},
-    'construction' : {'src' : 'effects_construct_wav'},
     'dock'         : {'src' : 'effects_dock_wav'},
     'destruction'  : {'src' : 'effects_destruction_wav'},
-    'mining'       : {'src' : 'effects_mining2_wav'},
+    'mining'       : {'src' : 'effects_mining_ogg'},
+    'mining_completed'       : {'src' : 'effects_mining_completed_wav'},
+    'construction_started'   : {'src' : 'effects_construct_start_ogg'},
+    'construction_completed' : {'src' : 'effects_construct_complete_wav'},
+    'start_attack'           : {'src' : 'effects_start_attack_wav'},
+    'epic'                   : {'src' : 'effects_epic_wav'},
+    'movement'               : {'src' : 'effects_movement_wav', 'loop' : true},
 
     'scenes' :
       {'intro' : { 'bg'     : {'src' : 'scenes_intro_bg_wav'},

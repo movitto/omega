@@ -14,6 +14,7 @@ Omega.Callbacks.partial_construction = function(event, evnt_args){
   var pstation = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == station.id; })[0];
 
+  pstation._constructing = true;
   pstation.construction_percent = percent;
   if(this.page.canvas.is_root(pstation.parent_id)){
     this.page.canvas.reload(pstation, function(){

@@ -42,6 +42,11 @@ Omega.Station.prototype = {
     return true;
   },
 
+  /// Return bool indicating if station is constructing
+  is_constructing : function(){
+    return !!(this._constructing);
+  },
+
   /// Update this station's system
   update_system : function(new_system){
     this.solar_system = new_system;
@@ -72,13 +77,13 @@ Omega.Station.prototype = {
   },
 
   selected : function(page){
-    if(this.mesh && this.mesh.tmesh)
-      this.mesh.tmesh.material.emissive.setHex(0xff0000);
+    if(this.is_constructing())
+      page.audio_controls.play(this.construction_audio, 'started');
+    this.mesh.tmesh.material.emissive.setHex(0xff0000);
   },
 
   unselected : function(page){
-    if(this.mesh && this.mesh.tmesh)
-      this.mesh.tmesh.material.emissive.setHex(0);
+    this.mesh.tmesh.material.emissive.setHex(0);
   }
 };
 

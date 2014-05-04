@@ -17,14 +17,23 @@ Omega.Callbacks.motel = function(evnt, event_args){
   // update last moved
   entity.last_moved = new Date();
 
+  var was_stopped = entity.location.is_stopped();
   entity.location.update(new_loc);
+  var is_stopped = entity.location.is_stopped();
 
   if(entity.update_movement_effects) entity.update_movement_effects();
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){
+      /// FIXME check to see if entity gfx fully initialized
       entity.update_gfx();
     });
+
+    if(!was_stopped && is_stopped){
+      this.page.audio_controls.play(this.page.audio_controls.effects.epic);
+      if(entity.movement_audio)
+        this.page.audio_controls.stop(entity.movement_audio);
+    }
   }
 
   entity.dispatchEvent({type : 'movement', data : entity});

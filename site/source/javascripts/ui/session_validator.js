@@ -44,6 +44,7 @@ Omega.UI.SessionValidator = {
 
     /// refresh entity container, no effect if hidden / entity doesn't belong
     /// to user, else entity controls will now be shown
+    /// FIXME need to refresh commands
     if(this.canvas) this.canvas.entity_container.refresh();
 
     /// setup callback handlers

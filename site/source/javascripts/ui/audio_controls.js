@@ -20,7 +20,8 @@ Omega.UI.AudioControls = function(parameters){
   if(this.page)
     this.effects = {  click :        new Omega.ClickAudioEffect(this.page.config),
                     command :      new Omega.CommandAudioEffect(this.page.config),
-               confirmation : new Omega.ConfirmationAudioEffect(this.page.config)};
+               confirmation : new Omega.ConfirmationAudioEffect(this.page.config),
+                       epic : new Omega.EpicAudioEffect(this.page.config)};
   else
     this.effects = {};
 
@@ -60,6 +61,7 @@ Omega.UI.AudioControls.prototype = {
 
   /// Play specified audio target w/ controls
   play : function(){
+    /// TODO set volume to 0 on disabling / 1 on enabling but still play
     if(this.disabled) return;
 
     var params = Array.prototype.slice.call(arguments);
@@ -70,8 +72,16 @@ Omega.UI.AudioControls.prototype = {
   },
 
   /// Stop playing audio
-  stop : function(){
+  stop : function(target){
+    if($.isArray(target)){
+      for(var t = 0; t < target.length; t++)
+        this.stop(target[t]);
+      return;
+    }
+
+    if(!target) target = this.current;
+
     /// TODO option to stop d/l of media
-    if(this.current) this.current.pause();
+    if(target) target.pause();
   }
 };

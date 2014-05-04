@@ -7,9 +7,7 @@
 //= require "ui/audio/base"
 
 Omega.ShipDockingAudioEffect = function(args){
-  if(!args) args = {};
-  var config = args['config'];
-  this.audio = config.audio['dock'];
+  this.audio = args.config.audio['dock'];
 };
 
 $.extend(Omega.ShipDockingAudioEffect.prototype, Omega.BaseAudioEffect);

@@ -8,6 +8,7 @@
 //= require 'omega/jump_gate/lamp'
 //= require 'omega/jump_gate/particles'
 //= require 'omega/jump_gate/selection'
+//= require 'omega/jump_gate/trigger_audio'
 
 // JumpGate GFX Mixin
 Omega.JumpGateGfx = {
@@ -42,6 +43,7 @@ Omega.JumpGateGfx = {
     gfx.particles      = new Omega.JumpGateParticles({config: config,
                                                       event_cb: event_cb});
     gfx.selection_material = new Omega.JumpGateSelectionMaterial();
+    gfx.trigger_audio = new Omega.JumpGateTriggerAudioEffect({config: config});
 
     Omega.JumpGateMesh.load_template(config, function(mesh){
       gfx.mesh = mesh;
@@ -70,6 +72,8 @@ Omega.JumpGateGfx = {
 
     this.selection = Omega.JumpGateSelection.for_jg(this);
     this.selection.omega_entity = this;
+
+    this.trigger_audio = Omega.JumpGate.gfx.trigger_audio;
 
     var _this = this;
     Omega.JumpGateMesh.load(config, function(mesh){

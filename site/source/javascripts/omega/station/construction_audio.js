@@ -1,27 +1,15 @@
 /* Omega Station Construction Audio Effect
  *
- * TODO should be station construction complete audio effect
- *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/audio/base"
+
 Omega.StationConstructionAudioEffect = function(args){
-  if(!args) args = {};
-  var config = args['config'];
-  this.audio = config.audio['construction'];
+  this.started  = args.config.audio['construction_started'];
+  this.complete = args.config.audio['construction_completed'];
 };
 
-Omega.StationConstructionAudioEffect.prototype = {
-  dom : function(){
-    return $('#' + this.audio.src)[0];
-  },
-
-  play : function(){
-    this.dom().play();
-  },
-
-  pause : function(){
-    this.dom().pause();
-  },
-};
+$.extend(Omega.StationConstructionAudioEffect.prototype,
+         Omega.BaseAudioEffect);

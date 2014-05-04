@@ -13,6 +13,7 @@ Omega.Callbacks.construction_failed = function(event, evnt_args){
   var pstation = $.grep(this.page.all_entities(),
                         function(entity){ return entity.id == station.id; })[0];
 
+  pstation._constructing = false;
   pstation.construction_percent = 0;
   pstation.resources = station.resources;
   pstation._update_resources();

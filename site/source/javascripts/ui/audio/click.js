@@ -8,16 +8,4 @@ Omega.ClickAudioEffect = function(config){
   this.audio = config.audio['click'];
 };
 
-Omega.ClickAudioEffect.prototype = {
-  dom : function(){
-    return $('#' + this.audio.src)[0];
-  },
-
-  play : function(){
-    this.dom().play();
-  },
-
-  pause : function(){
-    this.dom().pause();
-  }
-};
+$.extend(Omega.ClickAudioEffect.prototype, Omega.BaseAudioEffect);

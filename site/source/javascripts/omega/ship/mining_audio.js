@@ -1,25 +1,19 @@
-/* Omega Ship Mining Audio Effect
+/* Omega Ship Mining Audio Effects
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/audio/base"
+
 Omega.ShipMiningAudioEffect = function(args){
-  if(!args) args = {};
-  var config = args['config'];
-  this.audio = config.audio['mining'];
+  this.audio = args.config.audio['mining'];
 };
 
-Omega.ShipMiningAudioEffect.prototype = {
-  dom : function(){
-    return $('#' + this.audio.src)[0];
-  },
+$.extend(Omega.ShipMiningAudioEffect.prototype, Omega.BaseAudioEffect);
 
-  play : function(){
-    this.dom().play();
-  },
-
-  pause : function(){
-    this.dom().pause();
-  },
+Omega.ShipMiningCompletedAudioEffect = function(args){
+  this.audio = args.config.audio['mining_completed'];
 };
+
+$.extend(Omega.ShipMiningCompletedAudioEffect.prototype, Omega.BaseAudioEffect);

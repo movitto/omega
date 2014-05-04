@@ -54,6 +54,7 @@ Omega.JumpGateCommands = {
             }else{
               ship.system_id = _this.endpoint_id;
               page.canvas.remove(ship);
+              page.audio_controls.play(_this.trigger_audio);
             }
           });
        })(ship);

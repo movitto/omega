@@ -8,16 +8,4 @@ Omega.CommandAudioEffect = function(config){
   this.audio = config.audio['command'];
 };
 
-Omega.CommandAudioEffect.prototype = {
-  dom : function(){
-    return $('#' + this.audio.src)[0];
-  },
-
-  play : function(){
-    this.dom().play();
-  },
-
-  pause : function(){
-    this.dom().pause();
-  }
-};
+$.extend(Omega.CommandAudioEffect.prototype, Omega.BaseAudioEffect);

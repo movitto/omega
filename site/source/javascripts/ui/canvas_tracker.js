@@ -231,6 +231,8 @@ Omega.UI.CanvasTracker = {
       /// start tracking entity
       /// TODO only if not already tracking
       if(user_owned || same_scene) this.track_entity(entity);
+
+      /// TODO if user owned, init_gfx
     }
   },
 
