@@ -129,6 +129,7 @@ class Mining < Omega::Server::Command
 
   def last_hook
     @ship.stop_mining
+    update_registry(@ship)
 
     reason = ''
     r = gen_resource
