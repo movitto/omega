@@ -45,12 +45,12 @@ ship(USER_NAME + "-mining-ship1") do |ship|
   ship.type         = :mining
   ship.user_id      = USER_NAME
   ship.solar_system = starting_system
-  ship.location     = starting_loc + [50000000, 50000000, 50000000]
+  ship.location     = starting_loc + [50000000, -50000000, 50000000]
 end
 
 ship(USER_NAME + "-corvette-ship1") do |ship|
   ship.type         = :corvette
   ship.user_id      = USER_NAME
   ship.solar_system = starting_system
-  ship.location     = starting_loc + [-50000000, -50000000, -50000000]
+  ship.location     = starting_loc + [-50000000, 50000000, -50000000]
 end
