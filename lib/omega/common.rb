@@ -35,12 +35,15 @@ class Object
   end
 
   def update_from(old, *attrs)
+    opts = attrs.last.is_a?(Hash) ? attrs.pop : {}
+    opts[:skip_nil] = true unless opts.has_key?(:skip_nil)
+
     attrs.each { |attr|
       getter = attr.intern
       setter = "#{attr}=".intern
       v  = old.send(:[], getter) if old.respond_to?(:[])
       v  = old.send(getter)      if old.respond_to?(getter)
-      self.send(setter, v)       unless v.nil?
+      self.send(setter, v)       unless opts[:skip_nil] && v.nil?
     }
   end
 
