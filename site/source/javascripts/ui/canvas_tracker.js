@@ -67,7 +67,7 @@ Omega.UI.CanvasTracker = {
     this.canvas.entity_container.hide();
 
     /// remove galaxy particle effects from canvas scene
-    if(old_root)
+    if(old_root){
       if(old_root.json_class == 'Cosmos::Entities::Galaxy')
         this.canvas.remove(old_root);
 
@@ -77,6 +77,10 @@ Omega.UI.CanvasTracker = {
         this._unscale_system(old_root)
         //this._unscale_system_entities(old_root);
       }
+
+    }else{
+      this.audio_controls.play(this.audio_controls.effects.background);
+    }
 
     /// add galaxy particle effects to canvas scene
     if(root.json_class == 'Cosmos::Entities::Galaxy')
