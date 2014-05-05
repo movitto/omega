@@ -276,3 +276,18 @@ Omega.Math = {
     return path;
   }
 };
+
+/// Omega fullscreen helpers
+Omega.fullscreen = {
+  request : function(element){
+     if(element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+    } else if(element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
+  }
+};

@@ -54,6 +54,16 @@ Omega.Pages.Index.prototype = {
     this.status_indicator.follow_node(this.node, 'loading');
 
     this.effects_player.wire_up();
+    this._wire_up_fullscreen();
+  },
+
+  /// switch to fullscreen on ctrl-f or ctrl-F
+  _wire_up_fullscreen : function(){
+    $(document).keypress(function(evnt){
+      var F = 70, f = 102;
+      if(evnt.ctrlKey == 1 && (evnt.which == F || evnt.which == f))
+        Omega.fullscreen.request(document.documentElement);
+    });
   },
 
   /// cleanup index page operations

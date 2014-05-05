@@ -79,6 +79,7 @@ Omega.UI.CanvasTracker = {
       }
 
     }else{
+      /// TODO add option to toggle background audio in account preferences
       this.audio_controls.play(this.audio_controls.effects.background);
     }
 
