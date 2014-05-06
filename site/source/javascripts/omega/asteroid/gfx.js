@@ -49,7 +49,7 @@ Omega.AsteroidGfx = {
     this.load_gfx(config, event_cb);
 
     /// pick a random mesh from those available
-    var num_meshes = Omega.Asteroid.gfx.meshes.length;
+    var num_meshes = config.resources.asteroid.geometry.length;
     var mesh_num   = Math.floor(Math.random() * num_meshes);
 
     var _this = this;

@@ -18,6 +18,11 @@ Omega.Scenes.IntroAudio.prototype = {
     return $('#' + this.audio2.src)[0];
   },
 
+  set_volume : function(volume){
+    this.dom1().volume = volume;
+    this.dom2().volume = volume;
+  },
+
   _played1 : function(){
     if(!this.first){
       this.first = true;

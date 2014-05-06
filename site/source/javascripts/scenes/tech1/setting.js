@@ -9,66 +9,118 @@
 //= require 'omega/gen'
 
 Omega.Scenes.Tech1Setting = function(config){
-  var star   = Omega.Gen.star();
-
-  var asteroids = [];
-  for(var a = 0; a < 10; a++){
-    var asteroid = Omega.Gen.asteroid()
-    asteroid.location = Omega.Gen.random_loc({min :  -6000,   max : 6000,
-                                              min_y : -200, max_y : 200});
-    asteroids.push(asteroid);
-  }
-
-  this.system = Omega.Gen.solar_system();
-  this.system.children = [star].concat(asteroids);
-
-  this.station = Omega.Gen.station();
-  this.station.location.set(5000, 0, 5000);
-
-  this.ships = [];
-  for(var s = 0; s < 4; s++){
-    var type = 'corvette';
-    if(s == 0)
-      type = 'mining'
-    else if(s == 3)
-      type = 'transport';
-
-    var ship = Omega.Gen.ship({type : type});
-    ship.include_hp_bar    = false;
-    ship.include_highlight = false;
-    this.ships.push(ship);
-  }
-
-  this.ships[0].location.set(3000, 0, 3000);
-  var dir0 = this.ships[0].location.direction_to(5000, 0, 5000);
-  this.ships[0].location.set_orientation(dir0);
-  this.ships[0].location.movement_strategy =
-    Omega.Gen.linear_ms({dx: dir0[0], dy: dir0[1], dz: dir0[2], speed: 20});
-
-  this.ships[1].location.set(2200, 0, 2700);
-  var dir1 = this.ships[1].location.direction_to(4200, 0, 4700);
-  this.ships[1].location.set_orientation(dir1);
-  this.ships[1].location.movement_strategy =
-    Omega.Gen.linear_ms({dx: dir1[0], dy: dir1[1], dz: dir1[2], speed: 20});
-
-  this.ships[2].location.set(2700, 0, 2200);
-  var dir2 = this.ships[2].location.direction_to(4700, 0, 4200);
-  this.ships[2].location.set_orientation(dir2);
-  this.ships[2].location.movement_strategy =
-    Omega.Gen.linear_ms({dx: dir2[0], dy: dir2[1], dz: dir2[2], speed: 20});
-
-  this.ships[3].location.set(2000, 0, 2000);
-  var dir3 = this.ships[3].location.direction_to(5000, 0, 5000);
-  this.ships[3].location.set_orientation(dir3);
-  this.ships[3].location.movement_strategy =
-    Omega.Gen.linear_ms({dx: dir3[0], dy: dir3[1], dz: dir3[2], speed: 20});
-
-  this.axis   = new Omega.UI.CanvasAxis();
-  this.skybox = new Omega.UI.CanvasSkybox();
 };
 
 Omega.Scenes.Tech1Setting.prototype = {
+  _star : function(){
+    return Omega.Gen.star();
+  },
+
+  _asteroids : function(){
+    var asteroids = [];
+    for(var a = 0; a < 10; a++){
+      var asteroid = Omega.Gen.asteroid()
+      asteroid.location = Omega.Gen.random_loc({min :  -6000,   max : 6000,
+                                                min_y : -200, max_y : 200});
+      asteroids.push(asteroid);
+    }
+    return asteroids;
+  },
+
+  _system : function(){
+    return Omega.Gen.solar_system();
+  },
+
+  _station : function(){
+    var station = Omega.Gen.station();
+    station.location.set(5000, 0, 5000);
+    return station;
+  },
+
+  _base_ship : function(type){
+    var ship = Omega.Gen.ship({type : type});
+    ship.include_hp_bar    = false;
+    ship.include_highlight = false;
+    return ship;
+  },
+
+  _ship1 : function(){
+    var ship = this._base_ship('mining');
+    ship.location.set(3000, 0, 3000);
+
+    var dir = ship.location.direction_to(5000, 0, 5000);
+    ship.location.set_orientation(dir);
+
+    var ms = Omega.Gen.linear_ms({dx: dir[0], dy: dir[1],
+                                  dz: dir[2], speed: 20});
+    ship.location.movement_strategy = ms;
+
+    return ship;
+  },
+
+  _ship2 : function(){
+    var ship = this._base_ship('corvette');
+    ship.location.set(2200, 0, 2700);
+
+    var dir = ship.location.direction_to(4200, 0, 4700);
+    ship.location.set_orientation(dir);
+
+    var ms = Omega.Gen.linear_ms({dx: dir[0], dy: dir[1],
+                                  dz: dir[2], speed: 20});
+    ship.location.movement_strategy = ms;
+
+    return ship;
+  },
+
+  _ship3 : function(){
+    var ship = this._base_ship('corvette');
+    ship.location.set(2700, 0, 2200);
+
+    var dir = ship.location.direction_to(4700, 0, 4200);
+    ship.location.set_orientation(dir);
+
+    var ms = Omega.Gen.linear_ms({dx: dir[0], dy: dir[1],
+                                  dz: dir[2], speed: 20});
+    ship.location.movement_strategy = ms;
+
+    return ship;
+  },
+
+  _ship4 : function(){
+    var ship = this._base_ship('transport');
+    ship.location.set(2000, 0, 2000);
+
+    var dir = ship.location.direction_to(5000, 0, 5000);
+    ship.location.set_orientation(dir);
+
+    var ms = Omega.Gen.linear_ms({dx: dir[0], dy: dir[1],
+                                  dz: dir[2], speed: 20});
+    ship.location.movement_strategy = ms;
+
+    return ship;
+  },
+
+  _ships : function(){
+    return [this._ship1(), this._ship2(), this._ship3(), this._ship4()];
+  },
+
+  load : function(config, cb){
+    var _this = this;
+    Omega.Gen.init(config, function(){
+      _this.system = _this._system();
+      _this.system.children = [_this._star()].concat(_this._asteroids());
+
+      _this.station = _this._station();
+      _this.ships   = _this._ships();
+
+      _this.axis   = new Omega.UI.CanvasAxis();
+      _this.skybox = new Omega.UI.CanvasSkybox();
+      cb();
+    });
+  },
+
   scene_components : function(){
-    return [this.skybox, this.axis, this.station].concat(this.ships);
+    /// skybox should be added to skyscene
+    return [this.axis, this.station].concat(this.ships);
   }
 };

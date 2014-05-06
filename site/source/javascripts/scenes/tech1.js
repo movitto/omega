@@ -16,6 +16,11 @@ Omega.Scenes.Tech1 = function(config){
 Omega.Scenes.Tech1.prototype = {
   id : 'tech1',
 
+  /// load scene components
+  _load_scene : function(page, cb){
+    this.setting.load(page.config, cb);
+  },
+
   /// setup scene components
   _setup_scene : function(page){
     page.canvas.set_scene_root(this.setting.system);
@@ -23,6 +28,8 @@ Omega.Scenes.Tech1.prototype = {
     for(var s = 0; s < scene_components.length; s++){
       page.canvas.add(scene_components[s]);
     }
+
+    page.canvas.add(this.setting.skybox, page.canvas.skyScene);
 
     this.setting.skybox.set(2, Omega.Config,
       Omega.UI.Canvas.trigger_animation(page.canvas))
@@ -67,12 +74,15 @@ Omega.Scenes.Tech1.prototype = {
 
   /// run scene
   run : function(page){
-    this._setup_scene(page);
-    this._init_cam(page);
-    this._create_timers(page);
+    var _this = this;
+    this._load_scene(page, function(){
+      _this._setup_scene(page);
+      _this._init_cam(page);
+      _this._create_timers(page);
 
-    page.audio_controls.play(this.audio);
-    this.effects_timer.play();
+      page.audio_controls.play(_this.audio);
+      _this.effects_timer.play();
+    });
   },
 
   /// stop scene

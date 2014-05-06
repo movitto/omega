@@ -13,6 +13,10 @@ Omega.Scenes.Tech1Audio.prototype = {
     return $('#' + this.audio1.src)[0];
   },
 
+  set_volume : function(volume){
+    this.dom().volume = volume;
+  },
+
   play : function(){
     this.dom().play();
   },
