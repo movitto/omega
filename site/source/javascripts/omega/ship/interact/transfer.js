@@ -53,7 +53,7 @@ Omega.ShipTransferInteractions = {
     page.canvas.reload(_this, function(){
       _this.update_gfx();
     });
-    page.canvas.entity_container.refresh();
+    this.refresh_details();
   },
 
   /// Internal callback invoked on transfer completion

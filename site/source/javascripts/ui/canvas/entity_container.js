@@ -101,6 +101,8 @@ Omega.UI.CanvasEntityContainer.prototype = {
     var _this = this;
     if(!this.entity._refresh_entity_container)
       this.entity._refresh_entity_container = function(){ _this.refresh(); };
+    if(!this.entity._refresh_entity_container_details)
+      this.entity._refresh_entity_container_details = function(){ _this.refresh_details(); };
   },
 
   _remove_entity_callbacks : function(){
@@ -120,20 +122,23 @@ Omega.UI.CanvasEntityContainer.prototype = {
     if(this.entity.refresh_details_on){
       for(var cb = 0; cb < this.entity.refresh_details_on.length; cb++){
         this.entity.addEventListener(this.entity.refresh_details_on[cb],
-                                     this.entity._refresh_entity_container);
+                                     this.entity._refresh_entity_container_details);
       }
     }
   },
 
-  refresh : function(){
-    if(this.entity){
-      if(this.entity.refresh_details){
-        this.entity.refresh_details();
+  refresh_details : function(){
+    if(this.entity && this.entity.refresh_details)
+      this.entity.refresh_details();
+  },
 
-      }else{
-        this._clear_dom();
-        this._set_entity_details();
-      }
-    }
+  refresh_cmds : function(){
+    if(this.entity && this.entity.refresh_cmds)
+      this.entity.refresh_cmds(this.canvas.page);
+  },
+
+  refresh : function(){
+    this.refresh_details();
+    this.refresh_cmds();
   }
 };

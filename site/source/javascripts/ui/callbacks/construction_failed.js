@@ -27,5 +27,5 @@ Omega.Callbacks.construction_failed = function(event, evnt_args){
 
   /// TODO should pop up dialog or similar w/ reason for failure
 
-  this.page.canvas.entity_container.refresh();
+  this.page.canvas.entity_container.refresh_details();
 };

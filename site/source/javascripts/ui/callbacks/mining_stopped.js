@@ -27,5 +27,5 @@ Omega.Callbacks.mining_stopped = function(event, event_args){
     });
   }
 
-  this.page.canvas.entity_container.refresh();
+  this.page.canvas.entity_container.refresh_details();
 };

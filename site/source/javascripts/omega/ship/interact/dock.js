@@ -53,7 +53,6 @@ Omega.ShipDockingInteractions = {
     page.canvas.reload(this, function(){
       _this.update_gfx();
     });
-    page.canvas.entity_container.refresh();
     this.refresh_cmds(page);
     page.audio_controls.play(this.docking_audio);
   },
@@ -86,7 +85,6 @@ Omega.ShipDockingInteractions = {
     page.canvas.reload(_this, function(){
       _this.update_gfx();
     });
-    page.canvas.entity_container.refresh();
     this.refresh_cmds(page);
   }
 };

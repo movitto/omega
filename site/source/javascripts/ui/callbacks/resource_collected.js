@@ -26,5 +26,5 @@ Omega.Callbacks.resource_collected = function(event, event_args){
     });
   }
 
-  this.page.canvas.entity_container.refresh();
+  this.page.canvas.entity_container.refresh_details();
 };
