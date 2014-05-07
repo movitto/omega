@@ -93,7 +93,7 @@
 
     "docking_distance"      :   20000000,
     "transfer_distance"     :   20000000,
-    "construction_distance" :    3000000,
+    "construction_distance" :   20000000,
     "cargo_capacity"        :      10000,
     "construction_cost"     :        100,
     "construction_time"     :         10
