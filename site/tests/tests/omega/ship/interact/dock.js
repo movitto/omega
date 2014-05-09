@@ -145,13 +145,11 @@ describe("Omega.ShipDockInteractions", function(){
       response = {result : Omega.Gen.ship({docked_at : station})};
 
       sinon.stub(page.canvas, 'reload');
-      sinon.spy(page.canvas.entity_container, 'refresh');
       sinon.stub(ship.dialog(), 'hide');
     });
 
     after(function(){
       page.canvas.reload.restore();
-      page.canvas.entity_container.refresh.restore();
       ship.dialog().hide.restore();
     });
 
@@ -182,9 +180,10 @@ describe("Omega.ShipDockInteractions", function(){
       sinon.assert.called(ship.update_gfx);
     });
 
-    it("refreshes entity container", function(){
+    it("refreshes ship commands", function(){
+      sinon.spy(ship, 'refresh_cmds');
       ship._dock_success(response, page, station);
-      sinon.assert.called(page.canvas.entity_container.refresh);
+      sinon.assert.called(ship.refresh_cmds);
     });
   });
 
@@ -267,12 +266,10 @@ describe("Omega.ShipDockInteractions", function(){
       response = {result : Omega.Gen.ship({})};
 
       sinon.stub(page.canvas, 'reload');
-      sinon.spy(page.canvas.entity_container, 'refresh');
     });
 
     after(function(){
       page.canvas.reload.restore();
-      page.canvas.entity_container.refresh.restore();
     });
 
     it("clears ship docked_at entity", function(){
@@ -297,9 +294,10 @@ describe("Omega.ShipDockInteractions", function(){
       sinon.assert.called(ship.update_gfx);
     });
 
-    it("refreshes entity container", function(){
+    it("refreshes ship commands", function(){
+      sinon.spy(ship, 'refresh_cmds');
       ship._undock_success(response, page);
-      sinon.assert.called(page.canvas.entity_container.refresh);
+      sinon.assert.called(ship.refresh_cmds);
     });
   });
 });});

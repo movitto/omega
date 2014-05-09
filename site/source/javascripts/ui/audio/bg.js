@@ -30,9 +30,11 @@ Omega.BackgroundAudio .prototype = {
     for(var n = 0; n < this.num; n++){
       var effect = $.extend({}, Omega.BaseAudioEffect);
       effect.audio = {src : 'bg_bg' + n + '_wav', loop : true};
-      effect.dom().addEventListener('ended', function(){
-        _this._effect_ended();
-      }, false);
+      if(effect.dom()){
+        effect.dom().addEventListener('ended', function(){
+          _this._effect_ended();
+        }, false);
+      }
       this.effects.push(effect);
     }
   },

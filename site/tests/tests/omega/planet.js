@@ -41,17 +41,17 @@ describe("Omega.Planet", function(){
     var page;
     before(function(){
       page = Omega.Test.Page();
-      sinon.stub(page.canvas, 'follow');
+      sinon.stub(page.canvas, 'follow_entity');
     });
 
     after(function(){
-      page.canvas.follow.restore();
+      page.canvas.follow_entity.restore();
     });
 
     it("follows planet w/ canvas camera", function(){
       var planet = Omega.Gen.planet();
       planet.clicked_in(page.canvas);
-      sinon.assert.calledWith(page.canvas.follow, planet.tracker_obj);
+      sinon.assert.calledWith(page.canvas.follow_entity, planet);
     });
   });
 });}); // Omega.Planet

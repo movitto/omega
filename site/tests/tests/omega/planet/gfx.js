@@ -96,9 +96,9 @@ describe("Omega.PlanetGfx", function(){
       // TODO verify orbit line init w/ planet's orbit
     });
 
-    it("adds mesh and orbit mesh to planet scene components", function(){
+    it("adds tracker, mesh, and orbit mesh to planet scene components", function(){
       planet.init_gfx(config, event_cb);
-      assert(planet.components[0]).equals(planet.tracker_obj);
+      assert(planet.components[0]).equals(planet.position_tracker());
       assert(planet.components[1]).equals(planet.mesh.tmesh);
       assert(planet.components[2]).equals(planet.orbit_line.line);
     });

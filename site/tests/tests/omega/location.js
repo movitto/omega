@@ -70,7 +70,7 @@ describe("Omega.Location", function(){
   describe("#to_s", function(){
     it("returns location coordinates in string format", function(){
       var loc = new Omega.Location({x:11, y:22, z:-3});
-      assert(loc.to_s()).equals('11/22/-3');
+      assert(loc.to_s()).equals('1.10e+1/2.20e+1/-3.00e+0');
     });
   });
 

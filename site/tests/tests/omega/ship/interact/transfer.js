@@ -109,12 +109,10 @@ describe("Omega.ShipTransferInteractions", function(){
       response = {result : [nship, nstation]};
 
       sinon.stub(page.canvas, 'reload');
-      sinon.stub(page.canvas.entity_container, 'refresh');
     });
 
     after(function(){
       page.canvas.reload.restore();
-      page.canvas.entity_container.refresh.restore();
     });
 
     it("updates ship resources", function(){
@@ -140,9 +138,10 @@ describe("Omega.ShipTransferInteractions", function(){
       sinon.assert.called(ship.update_gfx);
     });
 
-    it("refreshes entity container", function(){
+    it("refreshes ship details", function(){
+      sinon.stub(ship, 'refresh_details');
       ship._transfer_success(response, page);
-      sinon.assert.called(page.canvas.entity_container.refresh);
+      sinon.assert.called(ship.refresh_details);
     });
   });
 });});

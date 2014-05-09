@@ -8,7 +8,6 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page.canvas, 'reload');
-        sinon.stub(page.canvas.entity_container, 'refresh');
 
         tracker = new Omega.UI.CommandTracker({page : page});
 
@@ -30,7 +29,6 @@ describe("Omega.UI.CommandTracker", function(){
 
       after(function(){
         page.canvas.reload.restore();
-        page.canvas.entity_container.refresh.restore();
       });
 
       it("updates entity location", function(){
@@ -64,9 +62,9 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.called(ship.update_gfx);
       });
 
-      it("refreshes entity container", function(){
-        tracker._callbacks_motel_event('motel::on_movement', eargs);
-        sinon.assert.called(page.canvas.entity_container.refresh);
+      describe("ship was moving and now is stopped", function(){
+        //it("plays 'epic' audio effect"); /// NIY
+        //it("stops playing ship movement audio"); /// NIY
       });
     });
   });

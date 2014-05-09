@@ -7,7 +7,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       before(function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
-        sinon.stub(page.canvas.entity_container, 'refresh');
+        sinon.stub(page.canvas.entity_container, 'refresh_details');
         sinon.stub(page.canvas, 'reload');
 
         tracker = new Omega.UI.CommandTracker({page : page});
@@ -25,7 +25,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       after(function(){
         page.canvas.reload.restore();
-        page.canvas.entity_container.refresh.restore();
+        page.canvas.entity_container.refresh_details.restore();
       });
 
       it("sets station construction percentage to 0", function(){
@@ -45,9 +45,9 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.calledWith(page.canvas.reload, station, sinon.match.func);
       });
 
-      it("refreshes the entity container", function(){
+      it("refreshes the entity container details", function(){
         tracker._callbacks_construction_failed("manufactured::event_occurred", eargs);
-        sinon.assert.called(page.canvas.entity_container.refresh);
+        sinon.assert.called(page.canvas.entity_container.refresh_details);
       });
     });
   });

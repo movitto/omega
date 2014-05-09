@@ -20,7 +20,7 @@ describe("Omega.JumpGateCommands", function(){
 
     it("invokes details cb with jg endpoint id, location, and trigger command", function(){
       var text = 'Jump Gate to system2<br/>'  +
-                 '@ 100/-200/50.57<br/><br/>';
+                 '@ 1.00e+2/-2.00e+2/5.06e+1<br/><br/>';
 
       jg.retrieve_details(page, details_cb);
       sinon.assert.called(details_cb);

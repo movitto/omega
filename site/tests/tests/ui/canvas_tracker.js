@@ -146,10 +146,12 @@ describe("Omega.UI.CanvasTracker", function(){
 
       sinon.stub(page, 'entity_map').returns(entity_map);
       sinon.stub(page, 'track_system_events');
-      sinon.stub(page, 'track_scene_entities');
+      sinon.stub(page, 'stop_tracking_system_events');
+      sinon.stub(page, 'stop_tracking_scene_entities');
       sinon.stub(page, 'sync_scene_entities');
-      sinon.stub(page, '_process_retrieved_scene_entities');
+      sinon.stub(page, 'process_entities');
       sinon.stub(page, 'sync_scene_planets');
+      sinon.stub(page, '_scale_system');
 
       sinon.stub(page.canvas, 'remove');
       sinon.stub(page.canvas, 'add');
@@ -168,10 +170,14 @@ describe("Omega.UI.CanvasTracker", function(){
       sinon.assert.calledWith(page.track_system_events, change.root);
     });
 
-    it("starts tracking scene entities", function(){
+    it("stops tracking old system events", function(){
+      page.scene_change(change);
+      sinon.assert.calledWith(page.stop_tracking_system_events);
+    });
+
+    it("stops tracking old scene entities", function(){
       page.scene_change(change)
-      sinon.assert.calledWith(page.track_scene_entities,
-                              change.root, entity_map);
+      sinon.assert.calledWith(page.stop_tracking_scene_entities, entity_map);
     });
 
     it("syncs scene entities", function(){
@@ -184,8 +190,7 @@ describe("Omega.UI.CanvasTracker", function(){
       var retrieved = {};
       page.scene_change(change)
       page.sync_scene_entities.omega_callback()(retrieved);
-      sinon.assert.calledWith(page._process_retrieved_scene_entities,
-                              retrieved, entity_map);
+      sinon.assert.calledWith(page.process_entities, retrieved);
     });
 
     it("syncs scene planets", function(){
@@ -222,120 +227,6 @@ describe("Omega.UI.CanvasTracker", function(){
     it("adds star dust to scene", function(){
       page.scene_change(change);
       sinon.assert.calledWith(page.canvas.add, page.canvas.star_dust);
-    });
-  });
-
-  describe("#_process_retrieved_scene_entities", function(){
-    before(function(){
-      sinon.stub(Omega.UI.CanvasTracker, '_process_retrieved_scene_entity')
-    });
-
-    after(function(){
-      Omega.UI.CanvasTracker._process_retrieved_scene_entity.restore();
-    });
-
-    it("processes each retrieved scene entity individually", function(){
-      var entities = [Omega.Gen.ship(), Omega.Gen.station()];
-      var entity_map = {};
-      Omega.UI.CanvasTracker._process_retrieved_scene_entities(entities, entity_map)
-      sinon.assert.calledWith(Omega.UI.CanvasTracker.
-                                _process_retrieved_scene_entity,
-                              entities[0], entity_map);
-      sinon.assert.calledWith(Omega.UI.CanvasTracker.
-                                _process_retrieved_scene_entity,
-                              entities[1], entity_map);
-    })
-  });
-
-  describe("#_process_retrieved_scene_entity", function(){
-    var page, entity_map;
-
-    before(function(){
-      page = $.extend({config: Omega.Config,
-                       node : new Omega.Node()},
-                       new Omega.UI.Registry(), Omega.UI.CanvasTracker);
-      page.canvas  = new Omega.UI.Canvas();
-      page.canvas.page = page;
-      page.session = new Omega.Session({user_id : 'user42'}); 
-      entity_map   = {start_tracking : []};
-    });
-
-    it("sets entity solar system", function(){
-      var system = Omega.Gen.solar_system();
-      page.entity(system.id, system);
-      var ship = Omega.Gen.ship({system_id : system.id});
-      sinon.spy(ship, 'update_system');
-      page._process_retrieved_scene_entity(ship, entity_map);
-      sinon.assert.calledWith(ship.update_system, system);
-    });
-
-    describe("user owns entity", function(){
-      it("skips entity", function(){
-        var ship = Omega.Gen.ship({user_id : page.session.user_id});
-        page._process_retrieved_scene_entity(ship, entity_map);
-        assert(page.entity(ship.id)).isUndefined();
-      })
-    });
-
-    it("stores entity", function(){
-      var ship = Omega.Gen.ship();
-      sinon.stub(page, '_store_entity');
-      page._process_retrieved_scene_entity(ship, entity_map);
-      sinon.assert.calledWith(page._store_entity, ship);
-    });
-
-    describe("entity is not alive", function(){
-      var ship;
-
-      before(function(){
-        ship = Omega.Gen.ship();
-        ship.hp = 0;
-      });
-
-      it("does not add to canvas", function(){
-        sinon.stub(page.canvas, 'add');
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.notCalled(page.canvas.add);
-      });
-
-      it("does not track entity", function(){
-        sinon.stub(page, 'track_entity');
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.notCalled(page.track_entity);
-      });
-
-      it("does not add to navigation", function(){
-        sinon.stub(page, '_add_nav_entity');
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.notCalled(page._add_nav_entity);
-      });
-    });
-
-    describe("entity is alive", function(){
-      var ship;
-
-      before(function(){
-        page.canvas.root = Omega.Gen.solar_system();
-        ship = Omega.Gen.ship({system_id : page.canvas.root.id});
-        sinon.stub(page.canvas, 'add');
-        sinon.spy(page, 'track_entity');
-        sinon.stub(page, '_add_nav_entity');
-      });
-
-      it("adds entity to scene", function(){
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.calledWith(page.canvas.add, ship);
-      })
-
-      it("starts tracking entity", function(){
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.calledWith(page.track_entity, ship);
-      })
-
-      it("adds entity to navigation", function(){
-        page._process_retrieved_scene_entity(ship, entity_map);
-        sinon.assert.calledWith(page._add_nav_entity, ship);
-      });
     });
   });
 
@@ -417,12 +308,12 @@ describe("Omega.UI.CanvasTracker", function(){
     });
 
     describe("prexisting local entity", function(){
-      it("copies gfx from local entity", function(){
+      it("updates local entity", function(){
         var local = Omega.Gen.ship();
         page.entity(entity.id, local);
-        sinon.stub(entity, 'cp_gfx');
+        sinon.stub(local, 'update');
         page._store_entity(entity);
-        sinon.assert.calledWith(entity.cp_gfx, local);
+        sinon.assert.calledWith(local.update, entity);
       });
     });
 
@@ -498,39 +389,58 @@ describe("Omega.UI.CanvasTracker", function(){
     var entity;
 
     before(function(){
-      entity = Omega.Gen.ship();
-      sinon.stub(Omega.UI.CanvasTracker, '_store_entity');
-      sinon.stub(Omega.UI.CanvasTracker, '_add_nav_entity');
-      sinon.stub(Omega.UI.CanvasTracker, '_load_entity_system');
-      sinon.stub(Omega.UI.CanvasTracker, 'track_entity');
+      page   = $.extend({canvas : Omega.Test.Canvas()},
+                        Omega.UI.CanvasTracker);
+      page.canvas.root = Omega.Gen.solar_system();
+      entity = Omega.Gen.ship({system_id : page.canvas.root.id});
+
+      sinon.stub(page, '_store_entity').returns(entity);
+      sinon.stub(page, '_add_nav_entity');
+      sinon.stub(page, '_load_entity_system');
+      sinon.stub(page, 'track_entity');
+      sinon.stub(page, '_scale_entity');
+      sinon.stub(page.canvas, 'add');
     });
 
     after(function(){
-      Omega.UI.CanvasTracker._store_entity.restore();
-      Omega.UI.CanvasTracker._add_nav_entity.restore();
-      Omega.UI.CanvasTracker._load_entity_system.restore();
-      Omega.UI.CanvasTracker.track_entity.restore();
+      page.canvas.add.restore();
     });
 
     it("stores entity in registry", function(){
-      Omega.UI.CanvasTracker.process_entity(entity);
-      sinon.assert.calledWith(Omega.UI.CanvasTracker._store_entity, entity);
+      page.process_entity(entity);
+      sinon.assert.calledWith(page._store_entity, entity);
     });
 
     it("adds entities to entities_list", function(){
-      Omega.UI.CanvasTracker.process_entity(entity);
-      sinon.assert.calledWith(Omega.UI.CanvasTracker._add_nav_entity, entity);
+      page.process_entity(entity);
+      sinon.assert.calledWith(page._add_nav_entity, entity);
     });
 
-    it("retrieves systems entities are in", function(){
-      Omega.UI.CanvasTracker.process_entity(entity);
-      sinon.assert.calledWith(Omega.UI.CanvasTracker._load_entity_system, entity);
+    it("retrieves system entity is in", function(){
+      page.process_entity(entity);
+      sinon.assert.calledWith(page._load_entity_system, entity);
     });
+
+    //it("adds entity to canvas") /// NIY
+    //it("scales entity"); /// NIY
 
     it("tracks entity", function(){
-      Omega.UI.CanvasTracker.process_entity(entity);
-      sinon.assert.calledWith(Omega.UI.CanvasTracker.track_entity, entity);
+      page.process_entity(entity);
+      sinon.assert.calledWith(page.track_entity, entity);
     });
+
+    //describe("entity is not alive", function(){
+    //  var ship;
+
+    //  before(function(){
+    //    ship = Omega.Gen.ship();
+    //    ship.hp = 0;
+    //  });
+
+    //  //it("does not add to canvas"); // NIY
+    //  //it("does not track entity") /// NIY
+    //  //it("does not add to navigation") /// NIY
+    //});
   });
 
   describe("#_update_system_references", function(){

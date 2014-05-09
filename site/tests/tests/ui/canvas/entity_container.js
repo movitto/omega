@@ -59,7 +59,8 @@ describe("Omega.UI.CanvasEntityContainer", function(){
   describe("#hide", function(){
     var ship;
     before(function(){
-      ship = new Omega.Ship({location : new Omega.Location()});
+      ship = Omega.Gen.ship();
+      ship.init_gfx(Omega.Config);
       container.show(ship);
     });
 
@@ -92,7 +93,8 @@ describe("Omega.UI.CanvasEntityContainer", function(){
     var ship;
 
     before(function(){
-      ship = new Omega.Ship({location : new Omega.Location()});
+      ship = Omega.Gen.ship();
+      ship.init_gfx(Omega.Config);
     });
 
     it("hides entity container", function(){
@@ -152,39 +154,40 @@ describe("Omega.UI.CanvasEntityContainer", function(){
     });
   });
 
-  describe("#refresh", function(){
-    var entity;
+  describe("#refresh_details", function(){
     before(function(){
-      entity = {id : 'e1'};
-      canvas.page.entity(entity.id, entity);
+      container.entity = {refresh_details : sinon.spy()};
     });
 
-    after(function(){
-      canvas.page.entity(entity.id, null);
-    });
-
-    it("refreshes entity from page", function(){
-      container.show(entity);
-      var entity2 = {}
-      canvas.page.entity(entity.id, entity2);
-      container.refresh();
-      assert(container.entity).equals(entity2);
-    });
-
-    it("reshows scene with current entity", function(){
-      container.show(entity);
-
-      var show = sinon.spy(container, 'show');
-      container.refresh();
-      sinon.assert.calledWith(show, entity);
+    it("refreshes entity details", function(){
+      container.refresh_details();
+      sinon.assert.called(container.entity.refresh_details);
     });
 
     describe("local entity not set", function(){
       it("does nothing", function(){
-        var show = sinon.spy(container, 'show');
-        container.refresh();
-        sinon.assert.notCalled(show);
+        entity = container.entity;
+        container.entity = null;
+        container.refresh_details();
+        sinon.assert.notCalled(entity.refresh_details);
       });
+    });
+  });
+
+  describe("#refresh_cmds", function(){
+  });
+
+  describe("#refresh", function(){
+    it("refreshes details", function(){
+      sinon.spy(container, 'refresh_details');
+      container.refresh();
+      sinon.assert.called(container.refresh_details);
+    });
+
+    it("refreshes commands", function(){
+      sinon.spy(container, 'refresh_cmds');
+      container.refresh();
+      sinon.assert.called(container.refresh_cmds);
     });
   });
 });});

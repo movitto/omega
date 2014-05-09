@@ -20,6 +20,8 @@ Omega.BaseAudioEffect = {
   },
 
   set_volume : function(volume){
+    if(!this.dom()) return;
+
     this.dom().volume = volume;
     this.loop_dom().volume = volume;
   },
@@ -53,11 +55,15 @@ Omega.BaseAudioEffect = {
 
   play : function(target){
     if(target) this.set(target);
+    if(!this.dom()) return;
+
     if(this.should_loop()) this._setup_loop();
     this._play_element(this.dom());
   },
 
   pause : function(){
+    if(!this.dom()) return;
+
     this.dom().pause();
     this.loop_dom().pause();
   },

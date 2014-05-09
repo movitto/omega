@@ -71,11 +71,11 @@ describe("Omega.JumpGateGfx", function(){
       assert(jg.mesh).equals(mesh);
     });
 
-    it("sets mesh position", function(){
+    it("sets position tracker position", function(){
       jg.init_gfx(Omega.Config);
-      assert(jg.mesh.tmesh.position.x).equals(100);
-      assert(jg.mesh.tmesh.position.y).equals(-100);
-      assert(jg.mesh.tmesh.position.z).equals(200);
+      assert(jg.position_tracker().position.x).equals(100);
+      assert(jg.position_tracker().position.y).equals(-100);
+      assert(jg.position_tracker().position.z).equals(200);
     });
 
     it("sets mesh.omega_entity", function(){
@@ -83,9 +83,9 @@ describe("Omega.JumpGateGfx", function(){
       assert(jg.mesh.omega_entity).equals(jg);
     });
 
-    it("adds mesh to components", function(){
+    it("adds mesh to position tracker", function(){
       jg.init_gfx(Omega.Config);
-      assert(jg.components).includes(jg.mesh.tmesh);
+      assert(jg.position_tracker().getDescendants()).includes(jg.mesh.tmesh);
     });
 
     it("adds lamp to mesh", function(){
@@ -136,9 +136,10 @@ describe("Omega.JumpGateGfx", function(){
 
     /// it("sets selection sphere radius") NIY
 
-    it("adds particles to jump gate scene components", function(){
+    it("adds particles and position tracker to jump gate scene components", function(){
       jg.init_gfx(Omega.Config);
       assert(jg.components).includes(jg.particles.particles.mesh);
+      assert(jg.components).includes(jg.position_tracker());
     });
   });
 

@@ -8,7 +8,6 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page, 'process_entity');
-        sinon.stub(page.canvas, 'add');
 
         tracker = new Omega.UI.CommandTracker({page : page});
 
@@ -23,10 +22,6 @@ describe("Omega.UI.CommandTracker", function(){
                                   system_id : nsys.id});
 
         eargs = ['system_jump', ejumped, esystem];
-      });
-
-      after(function(){
-        page.canvas.add.restore();
       });
 
       it("updates entity system", function(){
@@ -52,12 +47,6 @@ describe("Omega.UI.CommandTracker", function(){
           page.entities = [jumped, psys];
           tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
           sinon.assert.calledWith(page.process_entity, jumped);
-        });
-
-        it("adds entity to canvas", function(){
-          page.entities = [jumped, psys];
-          tracker._callbacks_system_jump("manufactured::event_occurred", eargs);
-          sinon.assert.calledWith(page.canvas.add, jumped);
         });
       });
     });

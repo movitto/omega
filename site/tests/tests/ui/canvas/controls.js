@@ -23,10 +23,6 @@ describe("Omega.UI.CanvasControls", function(){
     assert(controls.missions_button.selector).equals('#missions_button');
   });
 
-  it('has a cam reset button', function(){
-    assert(controls.cam_reset.selector).equals('#cam_reset');
-  });
-
   it('has a reference to canvas the controls control', function(){
     assert(controls.canvas).equals(canvas);
   });
@@ -57,13 +53,6 @@ describe("Omega.UI.CanvasControls", function(){
       assert(controls.missions_button).doesNotHandle('click');
       controls.wire_up();
       assert(controls.missions_button).handles('click');
-    });
-
-    it("registers canvas reset button event handler", function(){
-      var controls = new Omega.UI.CanvasControls();
-      assert(controls.cam_reset).doesNotHandle('click');
-      controls.wire_up();
-      assert(controls.cam_reset).handles('click');
     });
 
     it("registers toggle axis click event handlers", function(){
@@ -124,25 +113,6 @@ describe("Omega.UI.CanvasControls", function(){
     });
   });
   
-  describe("#canvas_reset button clicked", function(){
-    before(function(){
-      canvas = Omega.Test.Canvas();
-      controls = new Omega.UI.CanvasControls({canvas: canvas});
-      controls.wire_up();
-    });
-
-    after(function(){
-      Omega.Test.clear_events();
-      if(canvas.reset_cam.restore) canvas.reset_cam.restore();
-    });
-
-    it("invokes canvas.reset_cam()", function(){
-      sinon.spy(canvas, 'reset_cam');
-      controls.cam_reset.click();
-      sinon.assert.called(canvas.reset_cam);
-    });
-  })
-
   describe("#toggle_axis input clicked", function(){
     before(function(){
       canvas = Omega.Test.Canvas();
@@ -217,6 +187,7 @@ describe("Omega.UI.CanvasControls", function(){
     before(function(){
       system = new Omega.SolarSystem({id: 'system1'});
       ship   = new Omega.Ship({id: 'ship1',
+                               type : 'corvette',
                                solar_system: system,
                                location: new Omega.Location({x:100, y:200, z:-100})});
       controls.locations_list.add({id: system.id,
@@ -261,14 +232,10 @@ describe("Omega.UI.CanvasControls", function(){
         sinon.assert.calledWith(canvas.set_scene_root, ship.solar_system);
       });
 
-      it("sets camera position to proximity of entity", function(){
+      it("initializes entity gfx", function(){
+        sinon.spy(ship, 'init_gfx');
         refresh_cb();
-        assert(canvas.cam.position.toArray()).isSameAs([600, 700, -600]);
-      });
-
-      it("focuses canvas scene camera on clicked entity's location", function(){
-        refresh_cb();
-        sinon.assert.calledWith(focus_stub, ship.location);
+        sinon.assert.called(ship.init_gfx);
       });
 
       it("invokes canvas._clicked_entity with entity", function(){

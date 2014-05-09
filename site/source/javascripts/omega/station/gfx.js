@@ -77,7 +77,7 @@ Omega.StationGfx = {
     this.highlight = Omega.Station.gfx[this.type].highlight.clone();
     this.highlight.omega_entity = this;
     if(this.include_highlight)
-      this.position_tracker().add(this.highlight_mesh);
+      this.position_tracker().add(this.highlight.mesh);
 
     this.lamps = Omega.Station.gfx[this.type].lamps.clone();
     this.lamps.omega_entity = this;

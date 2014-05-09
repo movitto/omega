@@ -73,6 +73,7 @@ Omega.UI.AudioControls.prototype = {
     var target = params.shift();
 
     if(target) this.current = target;
+    if(!this.current) return;
     this.current.play.apply(this.current, params);
     this.current.set_volume(this.volume);
   },

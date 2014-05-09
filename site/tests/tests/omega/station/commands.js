@@ -19,26 +19,28 @@ describe("Omega.StationCommands", function(){
       page.restore_session();
     });
 
-    it("invokes details cb with station id, location, resources and construction command", function(){
-      var text = ['Station: station1<br/>',
-                  '@ 99/-2/100<br/>'      ,
-                  'Resources:<br/>'       ,
-                  '50 of gold<br/>'       ,
-                  '25 of ruby<br/>'      ];
+    it("invokes details cb with station id, location, and resources", function(){
+      var text = ['Station: station1',
+                  '@ 9.90e+1/-2.00e+0/1.00e+2',
+                  'Resources: 50 of gold 25 of ruby'];
 
       station.retrieve_details(page, details_cb);
       sinon.assert.called(details_cb);
 
       var details = details_cb.getCall(0).args[0];
-      assert(details[0]).equals(text[0]);
-      assert(details[1]).equals(text[1]);
-      assert(details[2]).equals(text[2]);
-      assert(details[3]).equals(text[3]);
-      assert(details[4]).equals(text[4]);
-      var cmd = details[5];
-      assert(cmd[0].id).equals('station_construct_station1');
-      assert(cmd[0].className).equals('station_construct details_command');
-      assert(cmd.text()).equals('construct');
+      assert(details[0].text()).equals(text[0]);
+      assert(details[1].text()).equals(text[1]);
+      assert(details[2].text()).equals(text[2]);
+    });
+
+    it("invokes details cb with station commands", function(){
+      station.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+
+      var cmd = details[3].children()[0];
+      assert(cmd.id).equals('station_construct_station1');
+      assert(cmd.className).equals('station_construct details_command');
+      assert($(cmd).text()).equals('construct');
     });
 
     it("sets station in construction command data", function(){
@@ -49,9 +51,8 @@ describe("Omega.StationCommands", function(){
 
     it("handles construction command click event", function(){
       station.retrieve_details(page, details_cb);
-      var construct = details_cb.getCall(0).args[0][5];
-      assert(construct).handles('click');
+      var construct = details_cb.getCall(0).args[0][3].children()[0];
+      assert($(construct)).handles('click');
     });
   });
-
 });});

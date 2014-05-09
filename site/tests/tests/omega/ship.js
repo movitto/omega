@@ -98,13 +98,22 @@ describe("Omega.Ship", function(){
   });
 
   describe("#clicked_in", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas.page.audio_controls, 'play');
+    });
+
+    after(function(){
+      canvas.page.audio_controls.play.restore();
+    });
+
     it("plays clicked audio effect", function(){
       var ship = new Omega.Ship();
-      var canvas = {page : {audio_controls :
-                             {play : sinon.stub(),
-                              effects : {click : 'click'}}}};
       ship.clicked_in(canvas);
-      sinon.assert.calledWith(canvas.page.audio_controls.play, 'click');
+      sinon.assert.calledWith(canvas.page.audio_controls.play,
+                              canvas.page.audio_controls.effects.click);
     });
   });
 

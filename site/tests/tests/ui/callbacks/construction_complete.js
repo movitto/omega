@@ -10,9 +10,8 @@ describe("Omega.UI.CommandTracker", function(){
 
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page, 'process_entity');
-        sinon.stub(page.canvas, 'add');
         sinon.stub(page.canvas, 'reload');
-        sinon.stub(page.canvas.entity_container, 'refresh');
+        sinon.stub(page.canvas.entity_container, 'refresh_details');
 
         page.audio_controls = new Omega.UI.AudioControls({page: page});
         page.audio_controls.disabled = true;
@@ -36,9 +35,8 @@ describe("Omega.UI.CommandTracker", function(){
 
       after(function(){
         Omega.Ship.get.restore();
-        page.canvas.add.restore();
         page.canvas.reload.restore();
-        page.canvas.entity_container.refresh.restore();
+        page.canvas.entity_container.refresh_details.restore();
       });
 
       it("sets station construction percent to 0", function(){
@@ -84,16 +82,9 @@ describe("Omega.UI.CommandTracker", function(){
                                 station.construction_audio);
       });
 
-      it("adds constructed entity to canvas scene", function(){
+      it("refreshes the entity container details", function(){
         tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-        var retrieved = new Omega.Ship({system_id : 'sys1'});
-        Omega.Ship.get.omega_callback()(retrieved);
-        sinon.assert.calledWith(page.canvas.add, retrieved);
-      });
-
-      it("refreshes the entity container", function(){
-        tracker._callbacks_construction_complete("manufactured::event_occurred", eargs);
-        sinon.assert.called(page.canvas.entity_container.refresh);
+        sinon.assert.called(page.canvas.entity_container.refresh_details);
       });
     });
   });

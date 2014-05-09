@@ -47,6 +47,7 @@ Omega.UI.CanvasCameraManager = {
   // high level helper to follow an entity assuming
   // it has a 'position_tracker'
   follow_entity : function(entity){
+    if(!this.cam || !this.cam_controls) return;
     if(this.is_following(entity.position_tracker())) return;
 
     this.cam.position.set(500, 500, 500);

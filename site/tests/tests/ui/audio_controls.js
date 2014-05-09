@@ -34,28 +34,26 @@ describe("Omega.UI.AudioControls", function(){
     });
 
     //describe("disabled is true", function(){ /// NIY
+    //  it("sets volume to 0")
     //  it("sets mute background", function(){)
     //});
 
     //describe("disabled is false", function(){ /// NIY
+    //  it("sets volume to 1")
     //  it("sets unmute background")
     //});
   });
+
+  //describe("#set_volume", function(){
+    //it("sets volume of currently playing element") /// NIY
+  //});
 
   describe("#play", function(){
     var ac, audio;
 
     before(function(){
       ac = new Omega.UI.AudioControls();
-      audio = {play : sinon.stub()};
-    });
-
-    describe("player is disabled", function(){
-      it("does not play audio", function(){
-        ac.disabled = true;
-        ac.play(audio);
-        sinon.assert.notCalled(audio.play);
-      });
+      audio = {play : sinon.stub(), set_volume : sinon.stub()};
     });
 
     describe("track specified", function(){

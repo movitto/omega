@@ -105,7 +105,7 @@ Omega.SolarSystem.prototype = {
 
   /// Return bool indiciating if system has a interconn to the specified endpoint
   has_interconn_to : function(endpoint_id){
-    return $.grep(this.interconns, function(endpoint){
+    return $.grep(this.interconns.endpoints, function(endpoint){
              return endpoint.id == endpoint_id;
            }).length > 0;
   },

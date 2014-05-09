@@ -23,7 +23,7 @@ Omega.StationCommands = {
     var resources = $('<div/>', {id : 'station_resources', text : 'Resources:'});
     for(var r = 0; r < this.resources.length; r++){
       var resource = this.resources[r];
-      resources.append(resource.quantity + ' of ' + resource.material_id);
+      resources.append(' ' + resource.quantity + ' of ' + resource.material_id);
     }
     return resources;
   },
@@ -48,8 +48,8 @@ Omega.StationCommands = {
     /// TODO also construction percentage
     var details = [this._title_details(),
                    this._loc_details()].
-            concat(this._resource_details()).
-            concat([this._command_details_wrapper()]);
+           concat([this._resource_details(),
+                   this._command_details_wrapper()]);
 
     if(page.session && this.belongs_to_user(page.session.user_id))
       details[details.length-1].append(this._command_details(page));

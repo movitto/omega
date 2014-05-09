@@ -179,45 +179,31 @@ describe("Omega.SolarSystem", function(){
     });
   });
 
-  describe("#has_gate_to", function(){
+  describe("#has_interconn_to", function(){
     describe("system has gate to specified endpoint", function(){
       it("returns true", function(){
         var system = Omega.Gen.solar_system();
-        var gate   = Omega.Gen.jump_gate({endpoint_id : 'endpoint'});
-        system.children = [gate];
-        assert(system.has_gate_to('endpoint')).isTrue();
+        var target = Omega.Gen.solar_system({id : 'endpoint'});
+        system.interconns.endpoints = [target];
+        assert(system.has_interconn_to('endpoint')).isTrue();
       });
     });
 
     describe("system does not have gate to specified endpoint", function(){
       it("returns false", function(){
         var system = Omega.Gen.solar_system();
-        assert(system.has_gate_to('endpoint')).isFalse();
+        assert(system.has_interconn_to('endpoint')).isFalse();
       });
     });
   });
 
-  describe("#add_gate_to", function(){
-    it("adds child jump gate to specified endpoint", function(){
-      var system   = Omega.Gen.solar_system();
-      var endpoint = Omega.Gen.solar_system();
-
-      assert(system.children.length).equals(0);
-      system.add_gate_to(endpoint);
-      assert(system.children.length).equals(1);
-
-      var gate = system.children[0];
-      assert(gate).isOfType(Omega.JumpGate);
-      assert(gate.endpoint_id).equals(endpoint.id);
-      assert(gate.endpoint).equals(endpoint);
-    });
-
+  describe("#add_interconn_to", function(){
     it("adds interconnection to endpoint", function(){
       var system   = Omega.Gen.solar_system();
       var endpoint = Omega.Gen.solar_system();
 
       sinon.stub(system.interconns, 'add');
-      system.add_gate_to(endpoint);
+      system.add_interconn_to(endpoint);
       sinon.assert.calledWith(system.interconns.add, endpoint);
     });
   });

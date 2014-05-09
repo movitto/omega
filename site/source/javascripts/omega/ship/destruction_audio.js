@@ -45,7 +45,9 @@ Omega.ShipDestructionAudioEffect.prototype = {
   },
 
   _play_dom : function(n){
-    this.dom()[n].play();;
+    if(!this.dom() || !this.dom()[n]) return;
+
+    this.dom()[n].play();
   },
 
   _pause_dom : function(){
@@ -59,6 +61,14 @@ Omega.ShipDestructionAudioEffect.prototype = {
 
     this.iteration++;
     if(this.iteration == this.num) this.timer.stop();
+  },
+
+  set_volume : function(volume){
+    var dom = this.dom();
+    if(!dom || dom.length == 0) return;
+
+    for(var n = 0; n < dom.length; n++)
+      dom[n].volume = volume;
   },
 
   play : function(){

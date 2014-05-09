@@ -95,11 +95,11 @@ describe("Omega.StationGfx", function(){
       assert(station.mesh).equals(cloned);
     });
 
-    it("sets mesh position", function(){
+    it("sets position tracker position", function(){
       station.init_gfx(Omega.Config);
-      assert(station.mesh.tmesh.position.x).equals(100);
-      assert(station.mesh.tmesh.position.y).equals(-100);
-      assert(station.mesh.tmesh.position.z).equals(200);
+      assert(station.position_tracker().position.x).equals(100);
+      assert(station.position_tracker().position.y).equals(-100);
+      assert(station.position_tracker().position.z).equals(200);
     });
 
     it("sets mesh omega_entity", function(){
@@ -107,9 +107,9 @@ describe("Omega.StationGfx", function(){
       assert(station.mesh.omega_entity).equals(station);
     });
 
-    it("adds mesh to components", function(){
+    it("adds position tracker to components", function(){
       station.init_gfx(Omega.Config);
-      assert(station.components).includes(station.mesh.tmesh);
+      assert(station.components).includes(station.position_tracker());
     });
 
     it("clones Station highlight effects", function(){
@@ -141,18 +141,36 @@ describe("Omega.StationGfx", function(){
       assert(station.construction_bar).equals(bar);
     });
 
-    it("sets scene components to station mesh", function(){
+    it("adds mesh to position tracker", function(){
       station.init_gfx(Omega.Config);
-      assert(station.components).includes(station.mesh.tmesh);
+      var descendents = station.position_tracker().getDescendants();
+      assert(descendents).includes(station.mesh.tmesh);
     });
 
-    it("adds hightlight / lamps to mesh", function(){
+    describe("station.include_highlight is false", function(){
+      it("does not add highlight to position tracker", function(){
+        station.include_highlight = false;
+        station.init_gfx(Omega.Config);
+        var descendents = station.position_tracker().getDescendants();
+        assert(descendents).doesNotInclude(station.highlight_mesh);
+      });
+    });
+
+    describe("station.include_highlight is true", function(){
+      it("adds highlight to position tracker", function(){
+        station.include_highlight = true;
+        station.init_gfx(Omega.Config);
+        var descendents = station.position_tracker().getDescendants();
+        assert(descendents).includes(station.highlight.mesh);
+      });
+    });
+
+    it("adds lamps to mesh", function(){
       station.init_gfx(Omega.Config);
       var descendents = station.mesh.tmesh.getDescendants();
-      assert(descendents).includes(station.highlight.mesh);
       for(var l = 0; l < station.lamps.olamps.length; l++)
         assert(descendents).includes(station.lamps.olamps[l].component);
-    })
+    });
   });
 
   describe("#run_effects", function(){
@@ -167,48 +185,6 @@ describe("Omega.StationGfx", function(){
 
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
-    });
-  });
-
-  describe("#cp_gfx", function(){
-    var orig;
-    before(function(){
-      orig = {components        : 'components',
-              shader_components : 'shader_components',
-              mesh              : 'mesh',
-              highlight         : 'highlight',
-              lamps             : 'lamps',
-              construction_bar  : 'construction_bar'}
-    });
-
-    it("copies station scene components", function(){
-      station.cp_gfx(orig);
-      assert(station.components).equals(orig.components);
-    });
-
-    it("copies station shader scene components", function(){
-      station.cp_gfx(orig);
-      assert(station.shader_components).equals(orig.shader_components);
-    });
-
-    it("copies station mesh", function(){
-      station.cp_gfx(orig);
-      assert(station.mesh).equals(orig.mesh);
-    });
-
-    it("copies station highlight", function(){
-      station.cp_gfx(orig);
-      assert(station.highlight).equals(orig.highlight);
-    });
-
-    it("copies station lamps", function(){
-      station.cp_gfx(orig);
-      assert(station.lamps).equals(orig.lamps);
-    });
-
-    it("copies station construction bar", function(){
-      station.cp_gfx(orig);
-      assert(station.construction_bar).equals(orig.construction_bar);
     });
   });
 

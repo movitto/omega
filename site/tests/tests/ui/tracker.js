@@ -50,25 +50,11 @@ describe("Omega.UI.Tracker", function(){
         isSameAs([ship3, ship4, station2, station3]);
     });
 
-    it("returns registry entities in current root", function(){
-      assert(page.entity_map(system).in_root).
-        isSameAs([ship1, ship3, station3]);
-    });
-
-    it("returns registry entities not in current root", function(){
-      assert(page.entity_map(system).not_in_root).
-        isSameAs([ship2, ship4, station1, station2]);
-    });
-
-    it("returns registry entities to start tracking (not user owned)", function(){
-      assert(page.entity_map(system).stop_tracking).
-        isSameAs([ship4, station2]);
-    });
-
-    it("returns registry entities to stop tracking (not user owned)", function(){
-      assert(page.entity_map(system).start_tracking).
-        isSameAs([ship3, station3]);
-    });
+//// TODO
+    //it("returns registry entities to stop tracking (not user owned, not in current root)", function(){
+    //  assert(page.entity_map(system).start_tracking).
+    //    isSameAs([ship3, station3]);
+    //});
   });
 
   describe("#track_system_events", function(){
@@ -79,17 +65,25 @@ describe("Omega.UI.Tracker", function(){
       sinon.stub(page.node, 'ws_invoke');
     });
 
-    it("unsubscribes to system_jump events", function(){
-      page.track_system_events(system);
-      sinon.assert.calledWith(page.node.ws_invoke,
-                              'manufactured::unsubscribe', 'system_jump');
-    });
-
     it("subscribes to system_jump events to new scene root", function(){
       page.track_system_events(system);
       sinon.assert.calledWith(page.node.ws_invoke,
                               'manufactured::subscribe_to',
                               'system_jump', 'to', system.id);
+    });
+  });
+
+  describe("#stop_tracking_system_events", function(){
+    var page;
+    before(function(){
+      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      sinon.stub(page.node, 'ws_invoke');
+    });
+
+    it("unsubscribes to system_jump events", function(){
+      page.stop_tracking_system_events();
+      sinon.assert.calledWith(page.node.ws_invoke,
+                              'manufactured::unsubscribe', 'system_jump');
     });
   });
 
@@ -115,43 +109,6 @@ describe("Omega.UI.Tracker", function(){
     });
   });
 
-  describe("#track_scene_entities", function(){
-    var system, ship, station, entities;
-    before(function(){
-      system   = Omega.Gen.solar_system();
-      ship     = Omega.Gen.ship();
-      station  = Omega.Gen.station();
-      entities = {start_tracking : [ship, station]};
-
-      sinon.stub(Omega.UI.Tracker, 'stop_tracking_scene_entities');
-      sinon.stub(Omega.UI.Tracker, 'track_entity');
-    });
-
-    after(function(){
-      Omega.UI.Tracker.stop_tracking_scene_entities.restore();
-      Omega.UI.Tracker.track_entity.restore();
-    });
-
-    it("stops tracking specified entities", function(){
-      Omega.UI.Tracker.track_scene_entities(system, entities);
-      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_scene_entities,
-                              entities);
-    });
-
-    it("starts tracking specified entities", function(){
-      Omega.UI.Tracker.track_scene_entities(system, entities);
-      sinon.assert.called(Omega.UI.Tracker.track_entity, ship);
-      sinon.assert.called(Omega.UI.Tracker.track_entity, station);
-    });
-
-    describe("root entity is not a solar system", function(){
-      it("does not track any entities", function(){
-        Omega.UI.Tracker.track_scene_entities(Omega.Gen.galaxy(), entities);
-        sinon.assert.notCalled(Omega.UI.Tracker.track_entity);
-      });
-    });
-  });
-
   describe("#sync_scene_planets", function(){
     var page, system;
     var response;
@@ -169,13 +126,6 @@ describe("Omega.UI.Tracker", function(){
       sinon.stub(page.node, 'http_invoke');
 
       response = {result : Omega.Gen.planet().location};
-    });
-
-    describe("root entity is not a solar system", function(){
-      it("does not update planets", function(){
-        page.sync_scene_planets(Omega.Gen.galaxy());
-        sinon.assert.notCalled(page.node.http_invoke);
-      });
     });
 
     it("updates planet locations", function(){
@@ -238,32 +188,6 @@ describe("Omega.UI.Tracker", function(){
     after(function(){
       Omega.Ship.under.restore();
       Omega.Station.under.restore();
-    });
-
-    describe("not changing scene to system", function(){
-      it("does nothing / just returns", function(){
-        page.sync_scene_entities(Omega.Gen.galaxy(), entities);
-        sinon.assert.notCalled(page.canvas.add);
-      });
-    });
-
-    it("adds alive entities not in root to canvas scene", function(){
-      page.sync_scene_entities(system, entities);
-      sinon.assert.calledWith(page.canvas.add, ship);
-      sinon.assert.calledWith(page.canvas.add, station);
-    });
-
-    it("does not add entities not alive to canvas scene", function(){
-      sinon.stub(ship, 'alive').returns(false);
-      sinon.stub(station, 'alive').returns(false);
-      page.sync_scene_entities(system, entities);
-      sinon.assert.notCalled(page.canvas.add);
-    });
-
-    it("does not add entities in root to canvas scene", function(){
-      sinon.stub(page.canvas, 'has').returns(true);
-      page.sync_scene_entities(system, entities);
-      sinon.assert.notCalled(page.canvas.add);
     });
 
     it("retrieves all ships under root", function(){

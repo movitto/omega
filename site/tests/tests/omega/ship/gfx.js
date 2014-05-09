@@ -158,9 +158,35 @@ describe("Omega.ShipGfx", function(){
       sinon.assert.called(ship.update_gfx);
     });
 
-    it("adds mesh to components", function(){
+    it("adds position tracker to components", function(){
       ship.init_gfx(Omega.Config);
-      assert(ship.components).includes(ship.mesh.tmesh);
+      assert(ship.components).includes(ship.position_tracker());
+    });
+
+    it("adds location tracker to position tracker", function(){
+      ship.init_gfx(Omega.Config);
+      assert(ship.position_tracker().getDescendants()).
+        includes(ship.location_tracker());
+    });
+
+    it("adds mesh to location tracker", function(){
+      ship.init_gfx(Omega.Config);
+      assert(ship.location_tracker().getDescendants()).
+        includes(ship.mesh.tmesh);
+    });
+
+    it("add highlight effects to position tracker", function(){
+      ship.init_gfx(Omega.Config);
+      assert(ship.position_tracker().getDescendants()).
+        includes(ship.highlight.mesh);
+    });
+
+    it("adds hp bar to position tracker", function(){
+      ship.init_gfx(Omega.Config);
+      assert(ship.position_tracker().getDescendants()).
+        includes(ship.hp_bar.bar.component1);
+      assert(ship.position_tracker().getDescendants()).
+        includes(ship.hp_bar.bar.component2);
     });
 
     it("clones Ship highlight effects", function(){
@@ -231,17 +257,15 @@ describe("Omega.ShipGfx", function(){
       assert(ship.hp_bar).equals(hp_bar);
     });
 
-    it("sets scene components to ship mesh, attack_vector, mining_vector, destruction, explosions, smoke, highlight, and hp bar", function(){
+    it("sets scene components to ship position tracker, trails, attack_vector, mining_vector, destruction, explosions, and smoke", function(){
       ship.init_gfx(Omega.Config);
-      assert(ship.components).includes(ship.mesh.tmesh);
+      assert(ship.components).includes(ship.position_tracker());
+      assert(ship.components).includes(ship.trails.particles.mesh);
       assert(ship.components).includes(ship.attack_vector.particles.mesh);
       assert(ship.components).includes(ship.mining_vector.particles.mesh);
       assert(ship.components).includes(ship.destruction.particles.mesh);
       assert(ship.components).includes(ship.explosions.particles.mesh);
       assert(ship.components).includes(ship.smoke.particles.mesh);
-      assert(ship.components).includes(ship.highlight.mesh);
-      assert(ship.components).includes(ship.hp_bar.bar.component1);
-      assert(ship.components).includes(ship.hp_bar.bar.component2);
     });
 
     it("adds lamps to mesh", function(){
@@ -255,75 +279,6 @@ describe("Omega.ShipGfx", function(){
       sinon.spy(ship, 'update_gfx');
       ship.init_gfx(Omega.Config);
       sinon.assert.called(ship.update_gfx);
-    });
-  });
-
-  describe("#cp_gfx", function(){
-    var orig, ship;
-    before(function(){
-      orig = {components        : 'components',
-              shader_components : 'shader_components',
-              mesh              : 'mesh',
-              highlight         : 'highlight',
-              lamps             : 'lamp',
-              trails            : 'trails',
-              attack_vector     : 'attack_vector',
-              mining_vector     : 'mining_vector',
-              trajectory1       : 'trajectory1',
-              trajectory2       : 'trajectory2',
-              hp_bar            : 'hp_bar' };
-      ship = new Omega.Ship();
-    });
-
-    it("copies components from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.components).equals(orig.components);
-    });
-
-    it("copies shader components from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.shader_components).equals(orig.shader_components);
-    });
-
-    it("copies mesh from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.mesh).equals(orig.mesh);
-    });
-
-    it("copies highlight from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.highlight).equals(orig.highlight);
-    });
-
-    it("copies lamps from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.lamps).equals(orig.lamps);
-    });
-
-    it("copies trails from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.trails).equals(orig.trails);
-    });
-
-    it("copies attack_vector from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.attack_vector).equals(orig.attack_vector);
-    });
-
-    it("copies mining_vector from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.mining_vector).equals(orig.mining_vector);
-    });
-
-    it("copies trajectories from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.trajectory1).equals(orig.trajectory1);
-      assert(ship.trajectory2).equals(orig.trajectory2);
-    });
-
-    it("copies hp bar from specified entity", function(){
-      ship.cp_gfx(orig);
-      assert(ship.hp_bar).equals(orig.hp_bar);
     });
   });
 
@@ -357,10 +312,27 @@ describe("Omega.ShipGfx", function(){
       ship.init_gfx(Omega.Config);
     });
 
-    it("updates mesh", function(){
-      var update = sinon.spy(ship.mesh, 'update');
+    it("updates position tracker", function(){
+      sinon.spy(ship.position_tracker().position, 'set');
       ship.update_gfx();
-      sinon.assert.called(update);
+      sinon.assert.calledWith(ship.position_tracker().position.set,
+                              ship.location.x,
+                              ship.location.y,
+                              ship.location.z);
+    });
+
+    it("updates location tracker", function(){
+      var matrix = new THREE.Matrix4();
+      sinon.stub(ship.location, 'rotation_matrix').returns(matrix);
+      sinon.spy(ship.location_tracker().rotation, 'setFromRotationMatrix');
+      ship.update_gfx();
+      sinon.assert.calledWith(ship.location_tracker().rotation.setFromRotationMatrix, matrix);
+    });
+
+    it("updates trails", function(){
+      sinon.stub(ship.trails, 'update');
+      ship.update_gfx();
+      sinon.assert.called(ship.trails.update);
     });
 
     it("updates command vectors", function(){
@@ -369,6 +341,12 @@ describe("Omega.ShipGfx", function(){
       ship.update_gfx();
       sinon.assert.called(update_attack);
       sinon.assert.called(update_mining);
+    });
+
+    it("updates smoke", function(){
+      sinon.stub(ship.smoke, 'update');
+      ship.update_gfx();
+      sinon.assert.called(ship.smoke.update);
     });
   });
 });});

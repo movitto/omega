@@ -27,56 +27,35 @@ describe("Omega.ShipCommands", function(){
     });
 
     it("invokes details cb with ship properties", function(){
-      var text = ['Ship: ship1<br/>',
-                  '@ 99/-2/100<br/>',
-                  '> 0/0/1<br/>',
-                  'HP: 42<br/>',
-                  'Type: corvette<br/>',
-                  'Resources:<br/>',
-                  '50 of gold<br/>',
-                  '25 of ruby<br/>'];
+      var text = ['Ship: ship1',
+                  '@ 9.90e+1/-2.00e+0/1.00e+2',
+                  '> 0/0/1',
+                  'HP: 42',
+                  'Type: corvette',
+                  'Resources: 50 of gold 25 of ruby'];
 
       ship.retrieve_details(page, details_cb);
       sinon.assert.called(details_cb);
 
       var details = details_cb.getCall(0).args[0];
-      assert(details[0]).equals(text[0]);
-      assert(details[1]).equals(text[1]);
-      assert(details[2]).equals(text[2]);
-      assert(details[3]).equals(text[3]);
-      assert(details[4]).equals(text[4]);
-      assert(details[5]).equals(text[5]);
-      assert(details[6]).equals(text[6]);
+      assert(details[0].text()).equals(text[0]);
+      assert(details[1].text()).equals(text[1]);
+      assert(details[2].text()).equals(text[2]);
+      assert(details[3].text()).equals(text[3]);
+      assert(details[4].text()).equals(text[4]);
+      assert(details[5].text()).equals(text[5]);
     });
 
     it("invokes details with commands", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
-      assert(details[8].html()).equals('follow');
-
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
         var cmd = Omega.Ship.prototype.cmds[c];
-        var detail_cmd = details[9+c];
-        assert(detail_cmd[0].id).equals(cmd.id + ship.id);
-        assert(detail_cmd[0].className).equals(cmd.class);
-        assert(detail_cmd.html()).equals(cmd.text);
+        var detail_cmd = details[6].children()[c];
+        assert(detail_cmd.id).equals(cmd.id + ship.id);
+        assert(detail_cmd.className).equals(cmd.class);
+        assert($(detail_cmd).html()).equals(cmd.text);
       }
-    });
-
-    describe("canvas camera following ship", function(){
-      before(function(){
-        page.canvas.follow(ship.tracker_obj);
-      });
-
-      after(function(){
-        page.canvas.stop_following();
-      });
-
-      it("displays 'stop following' text", function(){
-        ship.retrieve_details(page, details_cb);
-        var details = details_cb.getCall(0).args[0];
-        assert(details[8].html()).equals('stop following');
-      });
     });
 
     describe("ship does not belong to user", function(){
@@ -84,7 +63,8 @@ describe("Omega.ShipCommands", function(){
         ship.user_id = 'user2';
         ship.retrieve_details(page, details_cb);
         var details = details_cb.getCall(0).args[0];
-        assert(details.length).equals(9);
+        assert(details.length).equals(7);
+        assert(details[6].children().length).equals(0);
       });
     });
 
@@ -93,9 +73,9 @@ describe("Omega.ShipCommands", function(){
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
         var cmd = Omega.Ship.prototype.cmds[c];
-        var detail_cmd = details[9+c];
-        var display = (!cmd.display || cmd.display(ship)) ? 'block' : 'none';
-        assert(detail_cmd.css('display')).equals(display);
+        var detail_cmd = details[6].children()[c];
+        var display = (!cmd.display || cmd.display(ship)) ? 'inline' : 'none';
+        assert($(detail_cmd).css('display')).equals(display);
       }
     });
 
@@ -144,8 +124,8 @@ describe("Omega.ShipCommands", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[9+c];
-        assert(detail_cmd.data('ship')).equals(ship);;
+        var detail_cmd = details[6].children()[c];
+        assert($(detail_cmd).data('ship')).equals(ship);;
       }
     });
 
@@ -153,8 +133,8 @@ describe("Omega.ShipCommands", function(){
       ship.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
       for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
-        var detail_cmd = details[9+c];
-        assert(detail_cmd).handles('click');
+        var detail_cmd = details[6].children()[c];
+        assert($(detail_cmd)).handles('click');
       }
     });
 
@@ -167,7 +147,7 @@ describe("Omega.ShipCommands", function(){
         for(var c = 0; c < Omega.Ship.prototype.cmds.length; c++){
           var scmd = Omega.Ship.prototype.cmds[c];
           stubs.push(sinon.stub(ship, scmd['handler']));
-          cmds.push(details[9+c]);
+          cmds.push(details[6].children()[c]);
         }
 
         $('#qunit-fixture').append(cmds);
@@ -175,68 +155,6 @@ describe("Omega.ShipCommands", function(){
           cmds[c].click();
         for(var s = 0; s < stubs.length; s++)
           sinon.assert.calledWith(stubs[s], page);
-      });
-    });
-
-    it("wires up follow command click event", function(){
-      ship.retrieve_details(page, details_cb);
-      var details = details_cb.getCall(0).args[0];
-      var follow  = details[8];
-
-      assert(follow).handles('click');
-    });
-
-    describe("on follow command click", function(){
-      var follow;
-
-      before(function(){
-        sinon.stub(page.canvas, 'follow');
-
-        ship.retrieve_details(page, details_cb);
-        var details = details_cb.getCall(0).args[0];
-        follow  = details[8];
-      });
-
-      after(function(){
-        page.canvas.follow.restore();
-      });
-
-      it("starts following entity location with canvas camera", function(){
-        follow.click();
-        sinon.assert.calledWith(page.canvas.follow);
-      });
-
-      it("sets command text to 'unfollow'", function(){
-        follow.click();
-        assert(follow.text()).equals('stop following');
-      });
-    });
-
-    describe("on unfollow", function(){
-      var follow;
-
-      before(function(){
-        page.canvas.follow(ship.tracker_obj);
-        sinon.stub(page.canvas, 'stop_following');
-
-        ship.retrieve_details(page, details_cb);
-        var details = details_cb.getCall(0).args[0];
-        follow  = details[8];
-      });
-
-      after(function(){
-        page.canvas.stop_following.restore();
-        page.canvas.stop_following();
-      });
-
-      it("stops canvas camera following", function(){
-        follow.click();
-        sinon.assert.calledWith(page.canvas.stop_following);
-      });
-
-      it("sets command text to 'follow", function(){
-        follow.click();
-        assert(follow.text()).equals('follow');
       });
     });
   });

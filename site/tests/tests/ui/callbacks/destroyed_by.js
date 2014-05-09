@@ -10,9 +10,6 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas, 'remove');
 
-        page.audio_controls = new Omega.UI.AudioControls({page: page});
-        page.audio_controls.disabled = true;
-
         tracker = new Omega.UI.CommandTracker({page : page});
 
         var system = new Omega.SolarSystem({id : 'system1'});
