@@ -19,6 +19,68 @@ describe("Omega.Ship", function(){
 
   //it("updates resources"); /// NIY test update_resources is invoked
 
+  describe("#update", function(){
+    var from;
+
+    before(function(){
+      from = Omega.Gen.ship();
+    });
+
+    it("updates ship hp", function(){
+      ship.update(from);
+      assert(ship.hp).equals(from.hp);
+    });
+
+    it("updates ship shield level", function(){
+      ship.update(from);
+      assert(ship.shield_level).equals(from.shield_level);
+    });
+
+    it("updates ship distance moved", function(){
+      ship.update(from);
+      assert(ship.distance_moved).equals(from.distance_moved);
+    });
+
+    it("updates ship docked_at_id", function(){
+      ship.update(from);
+      assert(ship.docked_at_id).equals(from.docked_at);
+    });
+
+    it("updates ship attacking_id", function(){
+      ship.update(from);
+      assert(ship.attacking_id).equals(from.attacking_id);
+    });
+
+    it("updates ship mining", function(){
+      ship.update(from);
+      assert(ship.mining).equals(from.mining);
+    });
+
+    it("updates ship resources", function(){
+      ship.update(from);
+      assert(ship.resources).equals(from.resources);
+    });
+
+    it("updates ship system_id/parent_id", function(){
+      ship.update(from);
+      assert(ship.system_id).equals(from.system_id);
+      assert(ship.parent_id).equals(from.parent_id);
+    });
+
+    it("updates ship location", function(){
+      sinon.spy(ship.location, 'update');
+      ship.update(from);
+      sinon.assert.calledWith(ship.location.update, from.location);
+    });
+  });
+
+  describe("#clone", function(){
+    it("returns cloned copy of ship", function(){
+      cloned = ship.clone();
+      assert(cloned).isSameAs(ship);
+    });
+  });
+
   describe("#belongs_to_user", function(){
     it("returns bool indicating if ship belongs to user", function(){
       ship.user_id = 'user1';
@@ -39,6 +101,29 @@ describe("Omega.Ship", function(){
       it("returns false", function(){
         var ship = new Omega.Ship({hp:0});
         assert(ship.alive()).isFalse();
+      });
+    });
+  });
+
+  describe("#hpp", function(){
+    it("returns hp percentage", function(){
+      ship.hp = 5;
+      ship.max_hp = 10;
+      assert(ship.hpp()).equals(0.5);
+    });
+  });
+
+  describe("#is_mining", function(){
+    describe("ship is mining", function(){
+      it("returns true", function(){
+        ship.mining = {};
+        assert(ship.is_mining()).isTrue();
+      });
+    });
+
+    describe("ship is not mining", function(){
+      it("returns false", function(){
+        assert(ship.is_mining()).isFalse();
       });
     });
   });
@@ -103,10 +188,12 @@ describe("Omega.Ship", function(){
     before(function(){
       canvas = Omega.Test.Canvas();
       sinon.stub(canvas.page.audio_controls, 'play');
+      sinon.stub(canvas, 'follow_entity');
     });
 
     after(function(){
       canvas.page.audio_controls.play.restore();
+      canvas.follow_entity.restore();
     });
 
     it("plays clicked audio effect", function(){
@@ -115,20 +202,75 @@ describe("Omega.Ship", function(){
       sinon.assert.calledWith(canvas.page.audio_controls.play,
                               canvas.page.audio_controls.effects.click);
     });
-  });
 
-  describe("#selected", function(){
-    it("sets mesh material emissive", function(){
-      var ship = Omega.Test.Canvas.Entities().ship;
-      ship.selected(Omega.Test.Page());
-      assert(ship.mesh.tmesh.material.emissive.getHex()).equals(0xff0000);
+    it("instructs canvas to follow ship entity", function(){
+      var ship = new Omega.Ship();
+      ship.clicked_in(canvas);
+      sinon.assert.calledWith(canvas.follow_entity, ship);
     });
   });
 
+  describe("#selected", function(){
+    var ship, page;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+      ship.init_gfx(Omega.Config);
+
+      page = Omega.Test.Page();
+      sinon.stub(page.audio_controls, 'play');
+    });
+
+    after(function(){
+      page.audio_controls.play.restore();
+    });
+
+    it("sets mesh material emissive", function(){
+      ship.selected(page);
+      assert(ship.mesh.tmesh.material.emissive.getHex()).equals(0xff0000);
+    });
+
+    describe("ship is mining", function(){
+      it("plays ship mining audio", function(){
+        sinon.stub(ship, 'is_mining').returns(true);
+        ship.selected(page);
+        sinon.assert.calledWith(page.audio_controls.play, ship.mining_audio);
+      });
+    });
+
+    describe("ship is not stopped", function(){
+      it("plays ship movement audio", function(){
+        sinon.stub(ship, 'is_mining').returns(false);
+        sinon.stub(ship.location, 'is_stopped').returns(false);
+        ship.selected(page);
+        sinon.assert.calledWith(page.audio_controls.play, ship.movement_audio);
+      });
+    })
+  });
+
   describe("#unselected", function(){
+    var ship, page;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+      ship.init_gfx(Omega.Config);
+
+      page = Omega.Test.Page();
+      sinon.stub(page.audio_controls, 'stop');
+    });
+
+    after(function(){
+      page.audio_controls.stop.restore();
+    });
+
+    it("stops ship mining and movement audio", function(){
+      ship.unselected(page);
+      sinon.assert.calledWith(page.audio_controls.stop,
+                              [ship.mining_audio, ship.movement_audio]);
+    });
+
     it("resets mesh material emissive", function(){
-      var ship = Omega.Test.Canvas.Entities().ship;
-      ship.unselected(Omega.Test.Page());
+      ship.unselected(page);
       assert(ship.mesh.tmesh.material.emissive.getHex()).equals(0);
     })
   });

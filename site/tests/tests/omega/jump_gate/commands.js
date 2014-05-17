@@ -112,7 +112,7 @@ describe("Omega.JumpGateCommands", function(){
         Omega.UI.Dialog.remove();
       });
 
-      describe("error during commend", function(){
+      describe("error during command", function(){
         before(function(){
           sinon.stub(jg.dialog(), 'show_error_dialog');
           sinon.spy(jg.dialog(), 'append_error');
@@ -155,6 +155,12 @@ describe("Omega.JumpGateCommands", function(){
           var spy = sinon.spy(page.canvas, 'remove');
           handler(success_response);
           sinon.assert.calledWith(spy, ship1);
+        });
+
+        it("plays jump gate trigger audio", function(){
+          sinon.spy(page.audio_controls, 'play');
+          handler(success_response);
+          sinon.assert.calledWith(page.audio_controls.play, jg.trigger_audio);
         });
       });
     });

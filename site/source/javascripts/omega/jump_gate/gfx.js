@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
 //= require 'omega/jump_gate/mesh'
 //= require 'omega/jump_gate/lamp'
 //= require 'omega/jump_gate/particles'
@@ -13,23 +14,6 @@
 // JumpGate GFX Mixin
 Omega.JumpGateGfx = {
   async_gfx : 3,
-
-  // Returns location which to render gfx components, overridable
-  scene_location : function(){
-    return this.location;
-  },
-
-  // Returns position tracker, 3D object automatically update w/ planet position
-  position_tracker : function(){
-    if(!this._position_tracker)
-      this._position_tracker = new THREE.Object3D();
-    return this._position_tracker;
-  },
-
-  // True/False if shared gfx are loaded
-  gfx_loaded : function(){
-    return typeof(Omega.JumpGate.gfx) !== 'undefined';
-  },
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
@@ -49,11 +33,8 @@ Omega.JumpGateGfx = {
       gfx.mesh = mesh;
       if(event_cb) event_cb();
     });
-  },
 
-  // True / false if local system gfx have been initialized
-  gfx_initialized : function(){
-    return !!(this._gfx_initialized);
+    this._loaded_gfx();
   },
 
   // Intiialize local jump gate graphics
@@ -106,3 +87,5 @@ Omega.JumpGateGfx = {
     if(this.particles) this.particles.update();
   }
 }
+
+$.extend(Omega.JumpGateGfx, Omega.EntityGfx);

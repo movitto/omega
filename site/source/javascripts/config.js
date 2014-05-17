@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO remove config parameters from all calls, just use Omega.Config
+
 Omega.Config = {
   // uri & paths
   http_host         : 'localhost',

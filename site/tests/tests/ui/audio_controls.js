@@ -45,6 +45,7 @@ describe("Omega.UI.AudioControls", function(){
   });
 
   //describe("#set_volume", function(){
+    //it("sets local volume");
     //it("sets volume of currently playing element") /// NIY
   //});
 
@@ -78,15 +79,40 @@ describe("Omega.UI.AudioControls", function(){
       ac.play();
       sinon.assert.called(audio.play);
     });
+
+    it("sets track volume to local volume", function(){
+      ac.volume = 0.23;
+      ac.play(audio);
+      sinon.assert.called(audio.set_volume, ac.volume);
+    });
   });
 
   describe("#stop", function(){
+    var ac
+    
+    before(function(){
+      ac = new Omega.UI.AudioControls();
+    });
+
     it("stops current track", function(){
       var audio = {pause : sinon.stub()};
-      ac = new Omega.UI.AudioControls();
       ac.current = audio;
       ac.stop();
       sinon.assert.called(audio.pause);
+    });
+
+    it("stops the specified track", function(){
+      var audio = {pause : sinon.stub()};
+      ac.stop(audio);
+      sinon.assert.called(audio.pause);
+    });
+
+    it("stops the specified tracks", function(){
+      var audio1 = {pause : sinon.stub()};
+      var audio2 = {pause : sinon.stub()};
+      ac.stop([audio1, audio2]);
+      sinon.assert.called(audio1.pause);
+      sinon.assert.called(audio2.pause);
     });
   });
 });});

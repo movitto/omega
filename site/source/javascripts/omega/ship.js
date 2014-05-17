@@ -40,7 +40,7 @@ Omega.Ship.prototype = {
 
   /// Return clone of this ship
   clone : function(){
-     var cloned = new Omega.Location();
+     var cloned = new Omega.Ship();
      return $.extend(true, cloned, this); /// deep copy
   },
 

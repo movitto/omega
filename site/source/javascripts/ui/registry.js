@@ -13,6 +13,11 @@ Omega.UI.Registry = function(parameters){
 };
 
 Omega.UI.Registry.prototype = {
+  /// clear all entities
+  clear_entities : function(){
+    this.entities = {};
+  },
+
   /// entity getter / setter
   /// specify id of entity to get & optional new value to set
   entity : function(){

@@ -22,9 +22,8 @@
 //= require "ui/splash"
 
 Omega.Pages.Index = function(){
-  this.config  = Omega.Config;
-  this.node    = new Omega.Node(this.config);
-
+  this.config           = Omega.Config;
+  this.node             = new Omega.Node(this.config);
   this.command_tracker  = new Omega.UI.CommandTracker({page : this})
   this.effects_player   = new Omega.UI.EffectsPlayer({page : this});
   this.dialog           = new Omega.UI.IndexDialog({page : this});
@@ -43,16 +42,8 @@ Omega.Pages.Index.prototype = {
     this.splash.wire_up();
     this.canvas.wire_up();
     this.audio_controls.wire_up();
-
-    /// handle scene changes
-    var _this = this;
-    if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
-      this.canvas.addEventListener('set_scene_root',
-        function(change){ _this.scene_change(change.data); })
-
-    /// wire up status_indicator
+    this.handle_scene_changes();
     this.status_indicator.follow_node(this.node, 'loading');
-
     this.effects_player.wire_up();
     this._wire_up_fullscreen();
   },
@@ -106,7 +97,7 @@ Omega.Pages.Index.prototype = {
       Omega.UI.Loader.load_default_systems(_this,
         function(solar_system) {
           _this.process_system(solar_system);
-          /// FIXME should be invoked after we get all default systems
+          /// FIXME should be invoked after we get _all_ default systems
           if(_this._should_autoload_root())
             _this.autoload_root();
         });

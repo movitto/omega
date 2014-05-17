@@ -9,10 +9,12 @@ describe("Omega.StationInteraction", function(){
 
       page = Omega.Test.Page();
       sinon.stub(page.node, 'http_invoke');
+      sinon.stub(page.audio_controls, 'play');
     });
 
     after(function(){
       page.node.http_invoke.restore();
+      page.audio_controls.play.restore();
     });
 
     it("invokes manufactured::construct_entity", function(){
@@ -69,6 +71,19 @@ describe("Omega.StationInteraction", function(){
           handler(error_response);
           sinon.assert.calledWith(station.dialog().append_error, 'construct_error');
           assert($('#command_error').html()).equals('construct_error');
+        });
+      });
+
+      describe("successful response", function(){
+        it("sets constructing true", function(){
+          handler(success_response);
+          assert(station._constructing).isTrue();
+        });
+
+        it("plays 'started' construction audio", function(){
+          handler(success_response);
+          sinon.assert.calledWith(page.audio_controls.play,
+                                  station.construction_audio, 'started');
         });
       });
     });

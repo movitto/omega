@@ -130,6 +130,7 @@ describe("Omega.UI.CanvasTracker", function(){
   });
 
   describe("#scene_change", function(){
+//// TODO update
     var page, system, old_system, change, entity_map;
     var orig_page;
 
@@ -230,6 +231,30 @@ describe("Omega.UI.CanvasTracker", function(){
     });
   });
 
+  describe("#handle_scene_changes", function(){
+    var page;
+
+    before(function(){
+      page = $.extend({canvas : new Omega.UI.Canvas()}, Omega.UI.CanvasTracker);
+    });
+
+    it("wires up canvas scene change", function(){
+      assert(page.canvas._listeners).isUndefined();
+      page.handle_scene_changes();
+      assert(page.canvas._listeners['set_scene_root'].length).equals(1);
+    });
+
+    describe("on canvas scene change", function(){
+      it("invokes page.scene_change", function(){
+        page.handle_scene_changes();
+        var scene_changed_cb = page.canvas._listeners['set_scene_root'][0];
+        var scene_change = sinon.stub(page, 'scene_change');
+        scene_changed_cb({data: 'change'});
+        sinon.assert.calledWith(scene_change, 'change')
+      });
+    })
+  });
+
   describe("#_add_nav_entity", function(){
     var page, ship;
 
@@ -296,6 +321,114 @@ describe("Omega.UI.CanvasTracker", function(){
         page._add_nav_system(galaxy);
         assert(page.canvas.controls.locations_list.list().length).equals(1);
       });
+    });
+  });
+
+  describe("#_scale_system", function(){
+    var page, system;
+
+    before(function(){
+      page = $.extend({config : Omega.Config}, new Omega.UI.Registry(),
+                                               Omega.UI.CanvasTracker);
+      system = Omega.Gen.solar_system();
+    });
+
+    it("scales system children", function(){
+      system.children = [Omega.Gen.star()];
+      sinon.stub(page, '_scale_entity');
+      page._scale_system(system);
+      sinon.assert.calledWith(page._scale_entity, system.children[0]);
+    });
+
+    it("scales manu entities", function(){
+      var entities = [Omega.Gen.ship()];
+      sinon.stub(page, 'manu_entities').returns(entities);
+      sinon.stub(page, '_scale_entity');
+      page._scale_system(system);
+      sinon.assert.calledWith(page._scale_entity, entities[0]);
+    });
+  });
+
+  describe("#_scale_entity", function(){
+    var entity, page;
+
+    before(function(){
+      entity = Omega.Gen.ship();
+      page = $.extend({config : Omega.Config}, new Omega.UI.Registry(),
+                                               Omega.UI.CanvasTracker);
+    });
+
+    it("scales entity scene location", function(){
+      var sl = entity.scene_location;
+      page._scale_entity(entity);
+      assert(entity._scene_location).equals(sl);
+      entity.location.set(100, 100, 200);
+      assert(entity.scene_location().coordinates()).
+        isSameAs([100/Omega.Config.scale_system,
+                  100/Omega.Config.scale_system,
+                  200/Omega.Config.scale_system]);
+    });
+
+    it("scales entity orbit", function(){
+      entity.orbit = [];
+      entity.orbit_line = new Omega.OrbitLine({orbit : entity.orbit});
+      page._scale_entity(entity);
+      assert(entity.orbit_line.line.scale.x).equals(1/Omega.Config.scale_system);
+      assert(entity.orbit_line.line.scale.y).equals(1/Omega.Config.scale_system);
+      assert(entity.orbit_line.line.scale.z).equals(1/Omega.Config.scale_system);
+    });
+
+    it("updates entity graphics", function(){
+      sinon.stub(entity, 'gfx_initialized').returns(true);
+      sinon.stub(entity, 'update_gfx');
+      page._scale_entity(entity);
+      sinon.assert.called(entity.update_gfx);
+    });
+  });
+
+  describe("#_unscale_system", function(){
+    var system, page;
+
+    before(function(){
+      page = $.extend({config : Omega.Config}, new Omega.UI.Registry(),
+                                               Omega.UI.CanvasTracker);
+      system = Omega.Gen.solar_system();
+    });
+
+    it("unscales system children", function(){
+      system.children = [Omega.Gen.star()];
+      sinon.stub(page, "_unscale_entity");
+      page._unscale_system(system);
+      sinon.assert.calledWith(page._unscale_entity, system.children[0]);
+    });
+  });
+
+  describe("#_unscale_entity", function(){
+    var entity, page;
+
+    before(function(){
+      entity = Omega.Gen.ship();
+      page = $.extend({config : Omega.Config}, new Omega.UI.Registry(),
+                                               Omega.UI.CanvasTracker);
+    });
+
+    it("unscales entity scene location", function(){
+      page._scale_entity(entity);
+
+      var sl = entity._scene_location;
+      page._unscale_entity(entity);
+      assert(entity._scene_location).isNull();
+      assert(entity.scene_location).equals(sl);
+    });
+
+    it("unscales entity orbit", function(){
+      entity.orbit = [];
+      entity.orbit_line = new Omega.OrbitLine({orbit : entity.orbit});
+      page._scale_entity(entity);
+      page._unscale_entity(entity);
+      assert(entity.orbit_line.line.scale.x).equals(1);
+      assert(entity.orbit_line.line.scale.y).equals(1);
+      assert(entity.orbit_line.line.scale.z).equals(1);
     });
   });
 
@@ -386,6 +519,7 @@ describe("Omega.UI.CanvasTracker", function(){
   });
 
   describe("#process_entity", function(){
+/// TODO update
     var entity;
 
     before(function(){

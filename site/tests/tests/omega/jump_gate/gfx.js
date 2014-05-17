@@ -9,17 +9,20 @@ describe("Omega.JumpGateGfx", function(){
   });
 
   describe("#load_gfx", function(){
-    describe("graphics are initialized", function(){
-      var orig_gfx;
+    var orig_gfx;
 
+    before(function(){
+      orig_gfx = Omega.JumpGate.gfx;
+    });
+
+    after(function(){
+      Omega.JumpGate.gfx = orig_gfx;
+    });
+
+    describe("graphics are loaded", function(){
       before(function(){
-        orig_gfx = Omega.JumpGate.gfx;
         Omega.JumpGate.gfx = null;
         sinon.stub(jg, 'gfx_loaded').returns(true);
-      })
-
-      after(function(){
-        Omega.JumpGate.gfx = orig_gfx;
       });
 
       it("does nothing / just returns", function(){
@@ -43,6 +46,18 @@ describe("Omega.JumpGateGfx", function(){
     it("creates selection material for JumpGate", function(){
       assert(Omega.JumpGate.gfx.selection_material).
         isOfType(Omega.JumpGateSelectionMaterial);
+    });
+
+    it("creates audio effect for JumpGate triggering", function(){
+      assert(Omega.JumpGate.gfx.trigger_audio).
+        isOfType(Omega.JumpGateTriggerAudioEffect);
+    });
+
+    it("invokes _loaded_gfx", function(){
+      sinon.stub(jg, 'gfx_loaded').returns(false);
+      sinon.stub(jg, '_loaded_gfx');
+      jg.load_gfx(Omega.Config);
+      sinon.assert.called(jg._loaded_gfx);
     });
   });
 
@@ -134,6 +149,11 @@ describe("Omega.JumpGateGfx", function(){
         isSameAs([0,0,0]);
     });
 
+    it("creates local reference to jump gate triggering audio", function(){
+      jg.init_gfx(Omega.Config);
+      assert(jg.trigger_audio).equals(Omega.JumpGate.gfx.trigger_audio);
+    });
+
     /// it("sets selection sphere radius") NIY
 
     it("adds particles and position tracker to jump gate scene components", function(){
@@ -141,18 +161,53 @@ describe("Omega.JumpGateGfx", function(){
       assert(jg.components).includes(jg.particles.particles.mesh);
       assert(jg.components).includes(jg.position_tracker());
     });
+
+    it("updates gfx", function(){
+      sinon.spy(jg, 'update_gfx');
+      jg.init_gfx(Omega.Config);
+      sinon.assert.called(jg.update_gfx);
+    });
+  });
+
+  describe("#update_gfx", function(){
+    it("updates position tracker location using scene location", function(){
+      jg.init_gfx(Omega.Config);
+      jg.update_gfx();
+
+      var pos = jg.position_tracker().position;
+      assert(pos.x).equals( 100);
+      assert(pos.y).equals(-100);
+      assert(pos.z).equals( 200);
+    });
+
+    it("updates particles", function(){
+      jg.init_gfx(Omega.Config);
+      sinon.stub(jg.particles, 'update');
+      jg.update_gfx();
+      sinon.assert.called(jg.particles.update);
+    });
   });
 
   describe("#run_effects", function(){
     it("runs lamp effects", function(){
-      Omega.Test.Canvas.Entities();
-      var jg = new Omega.JumpGate({});
       jg.init_gfx(Omega.Config);
-      var run_effects = sinon.spy(jg.lamp, 'run_effects');
+      sinon.spy(jg.lamp, 'run_effects');
       jg.run_effects();
-      sinon.assert.called(run_effects);
+      sinon.assert.called(jg.lamp.run_effects);
     });
 
-    //it("updates particles") // NIY
+    it("runs particles effects", function(){
+      jg.init_gfx(Omega.Config);
+      sinon.spy(jg.particles, 'run_effects');
+      jg.run_effects();
+      sinon.assert.called(jg.particles.run_effects);
+    });
+
+    it("runs mesh effects", function(){
+      jg.init_gfx(Omega.Config);
+      sinon.spy(jg.mesh, 'run_effects');
+      jg.run_effects();
+      sinon.assert.called(jg.mesh.run_effects);
+    });
   });
 });});

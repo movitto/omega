@@ -57,61 +57,169 @@ describe("Omega.UI.Canvas", function(){
     });
   });
 
-///TODO uncomment?
-//  describe("user clicks canvas", function(){
-//    describe("user clicked on entity in scene", function(){
-//      it("invokes canvas._clicked_entity");
-//    });
-//  });
-//
-//  describe("#_clicked_entity", function(){
-//    describe("entity has details", function(){
-//      it("shows entity in entity container");
-//    });
-//
-//    it("invokes clicked_in method on entity");
-//
-//    it("raises click event on entity", async(function(){
-//      var mesh1  = new THREE.Mesh(new THREE.SphereGeometry(1000, 100, 100),
-//                                  new THREE.MeshBasicMaterial({color: 0xABABAB}));
-//      var mesh2  = mesh1.clone();
-//      mesh1.position.set(1000, 0, 0);
-//      mesh2.position.set(0, 0, 0);
-//
-//      mesh1.omega_entity = new Omega.Ship({id: 'sh1'});
-//      mesh2.omega_entity = new Omega.Ship({id: 'sh2'});
-//
-//      var spy1 = sinon.spy();
-//      var spy2 = sinon.spy();
-//      mesh1.omega_entity.addEventListener('click', spy1);
-//      mesh2.omega_entity.addEventListener('click', spy2);
-//
-//      var canvas = Omega.Test.Canvas();
-//      canvas.scene.add(mesh1);
-//      canvas.scene.add(mesh2);
-//
-//      var side = canvas.canvas.offset().left - canvas.canvas.width();
-//      canvas.canvas.css({right: $(document).width() - side});
-//      canvas.canvas.show();
-//      canvas.animate();
-//on_animation(canvas, function(){
-//
-//// TODO wait for animation?
-//
-//    var evnt = new jQuery.Event("click");
-//    evnt.pageX = canvas.canvas.offset().left + canvas.canvas.width()/2;
-//    evnt.pageY = canvas.canvas.offset().top  + canvas.canvas.height()/2;
-//console.log(evnt)
-//// TODO incorrect position?
-//    canvas.canvas.trigger(evnt);
-//    //sinon.assert.calledWith(spy2, {type: 'click'})
-//    //sinon.assert.notCalled(spy1);
-//    start();
-//
-//});
-//    }));
-//  });
+  //describe("canvas clicked", function(){
+  //  it("invokes _canvas_clicked"); // NIY
+  //});
 
+  //describe("mouse leaves canvas area", function(){
+  //  it("triggers mouse up event"); // NIY
+  //});
+
+  //describe("mouse moves in canvas area", function(){
+  //  it("updates mouse coordinates"); // NIY
+  //});
+
+  // NIY
+  //describe("canvas clicked", function(){
+  //  describe("click does not intersect omega entity", function(){
+  //    it("does nothing")
+  //  })
+
+  //  describe("left click", function(){
+  //    it("invokes _clicked_entity w/ clicked entity");
+  //  })
+
+  //  describe("right click", function(){
+  //    it("invokes _rclicked_entity w/ clicked entity")
+  //  });
+  //});
+
+  //describe("#detect hover", function(){
+  //  describe("mouse coordinates do not intersect omega entity", function(){
+  //    describe("previously hovering over entity", function(){
+  //      it("invokes _unhovered_over w/ previously hovered entity")
+  //      it("sets hover num to 0")
+  //      it("clears hovered entity")
+  //    });
+
+  //    describe("not previously hovering over entity", function(){
+  //      it("does nothing");
+  //    });
+  //  });
+
+  //  describe("mouse coordinates intersect omega entity", function(){
+  //    it("sets hovered entity")
+  //    describe("hovering over a new entity", function(){
+  //      it("sets hover num to 1")
+  //    });
+  //    describe("still hovering over same entity", function(){
+  //      it("increments hover num")
+  //    });
+
+  //    it("invokes _hovered_over with entity")
+  //  });
+  //});
+
+  describe("#_clicked_entity", function(){
+    var entity;
+
+    before(function(){
+      entity = Omega.Gen.ship();
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas.entity_container, 'show');
+    });
+
+    after(function(){
+      canvas.entity_container.show.restore();
+    });
+
+    describe("entity has details", function(){
+      it("shows entity container", function(){
+        canvas._clicked_entity(entity);
+        sinon.assert.calledWith(canvas.entity_container.show, entity);
+      });
+    });
+
+    it("invokes entity clicked_in callback", function(){
+      sinon.stub(entity, 'clicked_in');
+      canvas._clicked_entity(entity);
+      sinon.assert.calledWith(entity.clicked_in, canvas);
+    });
+
+    it("dispatches 'click' event to entity", function(){
+      var cb = sinon.spy();
+      entity.addEventListener('click', cb);
+      canvas._clicked_entity(entity);
+      sinon.assert.called(cb);
+    });
+  });
+
+  describe("#_rclicked_entity", function(){
+    var orig_entity, entity, canvas;
+
+    before(function(){
+      entity = Omega.Gen.ship();
+      canvas = Omega.Test.Canvas();
+
+      orig_entity = canvas.entity_container.entity;
+      canvas.entity_container.entity = entity;
+    });
+
+    after(function(){
+      canvas.entity_container.entity = orig_entity;
+    });
+
+    it("invokes selected context_action callback", function(){
+      sinon.stub(entity, 'context_action');
+      canvas._rclicked_entity(entity);
+      sinon.assert.calledWith(entity.context_action, entity, canvas.page);
+    })
+
+    it("dispatch rclick event to entity", function(){
+      var cb = sinon.spy();
+      entity.addEventListener('rclick', cb);
+      canvas._rclicked_entity(entity);
+      sinon.assert.called(cb);
+    });
+  });
+
+  describe("#_hovered_over", function(){
+    var entity, canvas;
+
+    before(function(){
+      entity = Omega.Gen.solar_system();
+      canvas = Omega.Test.Canvas();
+    });
+
+    it("invokes entity.on_hover callback", function(){
+      sinon.stub(entity, 'on_hover');
+      canvas._hovered_over(entity, 2);
+      sinon.assert.calledWith(entity.on_hover, canvas, 2);
+    });
+
+    it("dispatches hover event to entity", function(){
+      var cb = sinon.spy();
+      sinon.stub(entity, 'on_hover'); /// stub out on_hover
+      entity.addEventListener('hover', cb);
+      canvas._hovered_over(entity, 2);
+      sinon.assert.called(cb);
+    });
+  });
+
+  describe("#_unhovered_over", function(){
+    var entity, canvas;
+
+    before(function(){
+      entity = Omega.Gen.solar_system();
+      canvas = Omega.Test.Canvas();
+    });
+
+    it("invokes entity.on_unhover callback", function(){
+      sinon.stub(entity, 'on_unhover');
+      canvas._unhovered_over(entity);
+      sinon.assert.calledWith(entity.on_unhover, canvas);
+    });
+
+    it("dispatches unhover event to entity", function(){
+      var cb = sinon.spy();
+      sinon.stub(entity, 'on_unhover'); /// stub out on_hover
+      entity.addEventListener('unhover', cb);
+      canvas._unhovered_over(entity);
+      sinon.assert.called(cb);
+    });
+  });
+
+  /// TODO update
   describe("canvas after #setup", function(){
     it("has a scene", function(){
       var canvas = Omega.Test.Canvas();
@@ -165,6 +273,94 @@ describe("Omega.UI.Canvas", function(){
     });
   });
 
+  describe("#descendants", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+    });
+
+    it("returns descendants in all scenes", function(){
+      var mesh1 = new THREE.Mesh();
+      var mesh2 = new THREE.Mesh();
+      canvas.scene.add(mesh1);
+      canvas.skyScene.add(mesh2);
+      assert(canvas.descendants()).isSameAs([mesh1, mesh2]);
+    });
+  });
+
+  describe("#animate", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas, '_detect_hover');
+    });
+
+    after(function(){
+      canvas._detect_hover.restore();
+    });
+
+    ///it("requests an animation frame"); /// NIY
+    ///it("renderes the scene"); /// NIY
+
+    it("invokes mouse hover detection/update mechanism", function(){
+      canvas.animate();
+      sinon.assert.called(canvas._detect_hover);
+    });
+  });
+
+  describe("#render", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas.renderer, 'clear');
+      sinon.stub(canvas.renderer, 'render');
+      sinon.stub(canvas.stats, 'update');
+      sinon.stub(canvas.scene, 'getDescendants').returns([new THREE.Mesh()]);
+    });
+
+    after(function(){
+      canvas.renderer.clear.restore();
+      canvas.renderer.render.restore();
+      canvas.stats.update.restore();
+      canvas.scene.getDescendants.restore();
+    });
+
+    it("clears renderer", function(){
+      canvas.render();
+      sinon.assert.called(canvas.renderer.clear);
+    });
+
+    //it("sets sky scene camera rotation from scene camera rotation"); // NIY
+
+    it("invokes 'rendered_in' callbacks in scene children omega objects", function(){
+      var entity = new Omega.UI.CanvasProgressBar();
+      sinon.stub(entity, 'rendered_in');
+
+      canvas.scene.getDescendants()[0].omega_obj = entity;
+      canvas.render();
+      sinon.assert.calledWith(entity.rendered_in, canvas,
+                              canvas.scene.getDescendants()[0]);
+    });
+
+    it("renders sky scene", function(){
+      canvas.render();
+      sinon.assert.calledWith(canvas.renderer.render, canvas.skyScene, canvas.skyCam);
+    });
+
+    it("renders regular scene", function(){
+      canvas.render();
+      sinon.assert.calledWith(canvas.renderer.render, canvas.scene, canvas.cam);
+    });
+
+    it("updates stats", function(){
+      canvas.render();
+      sinon.assert.called(canvas.stats.update);
+    });
+  });
+
   describe("#reset_cam", function(){
     var canvas, controls;
 
@@ -200,6 +396,12 @@ describe("Omega.UI.Canvas", function(){
       canvas.reset_cam();
       sinon.assert.called(update);
     });
+
+    it("hides entity container", function(){
+      sinon.spy(canvas.entity_container, 'hide');
+      canvas.reset_cam();
+      sinon.assert.called(canvas.entity_container.hide);
+    });
   });
 
   describe("#set_scene_root", function(){
@@ -220,6 +422,13 @@ describe("Omega.UI.Canvas", function(){
       canvas.set_scene_root(system);
       sinon.assert.called(clear);
     });
+
+    it("resets the cam", function(){
+      var system = new Omega.SolarSystem({});
+      sinon.spy(canvas, 'reset_cam');
+      canvas.set_scene_root(system);
+      sinon.assert.called(canvas.reset_cam);
+    });
     
     it("sets root entity", function(){
       var system = new Omega.SolarSystem({});
@@ -238,6 +447,13 @@ describe("Omega.UI.Canvas", function(){
       sinon.assert.calledWith(spy, sinon.match.instanceOf(Omega.Planet));
       assert(spy.getCall(0).args[0].id).equals(1);
       assert(spy.getCall(1).args[0].id).equals(2);
+    });
+
+    it("animates the scene", function(){
+      var system = new Omega.SolarSystem({});
+      sinon.spy(canvas, 'animate');
+      canvas.set_scene_root(system);
+      sinon.assert.called(canvas.animate);
     });
 
     it("raises set_scene_root event", function(){
@@ -329,8 +545,18 @@ describe("Omega.UI.Canvas", function(){
     it("adds entity components to scene", function(){
       var mesh   = new THREE.Mesh();
       var star   = new Omega.Star({components: [mesh]});
+      sinon.stub(star, 'init_gfx'); /// stub out init_gfx
       canvas.add(star);
       assert(canvas.scene.getDescendants()).includes(mesh);
+    });
+
+    it("adds entity components to specified scene", function(){
+      var scene  = new THREE.Scene();
+      var mesh   = new THREE.Mesh();
+      var star   = new Omega.Star({components: [mesh]});
+      sinon.stub(star, 'init_gfx'); /// stub out init_gfx
+      canvas.add(star, scene);
+      assert(scene.getDescendants()).includes(mesh);
     });
 
     it("wires up loaded_mesh event handler", function(){
@@ -388,6 +614,15 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh);
     });
 
+    it("removes entity components from specified scene", function(){
+      var scene  = new THREE.Scene();
+      var mesh   = new THREE.Mesh();
+      var star   = new Omega.Star({components: [mesh]});
+      canvas.add(star, scene);
+      canvas.remove(star, scene);
+      assert(scene.getDescendants()).doesNotInclude(mesh);
+    });
+
     it("removes loaded_mesh event handler", function(){
       var star   = new Omega.Star({});
       canvas.add(star);
@@ -433,6 +668,13 @@ describe("Omega.UI.Canvas", function(){
       sinon.assert.calledWith(remove, jg);
     });
 
+    it("removes entity from specified canvas scene", function(){
+      var scene = new THREE.Scene();
+      sinon.spy(canvas, 'remove');
+      canvas.reload(jg, scene);
+      sinon.assert.calledWith(canvas.remove, jg, scene);
+    });
+
     it("invokes callback with entity", function(){
       var cb = sinon.spy();
       canvas.reload(jg, cb);
@@ -443,6 +685,13 @@ describe("Omega.UI.Canvas", function(){
       var add = sinon.spy(canvas, 'add');
       canvas.reload(jg);
       sinon.assert.calledWith(add, jg);
+    });
+
+    it("adds entity to specified canvas scene", function(){
+      var scene = new THREE.Scene();
+      var add = sinon.spy(canvas, 'add');
+      canvas.reload(jg, scene);
+      sinon.assert.calledWith(add, jg, scene);
     });
 
 /// FIXME:

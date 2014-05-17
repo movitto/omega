@@ -1,3 +1,4 @@
+/// TODO split out into multiple files along module boundries
 pavlov.specify("Omega.Star", function(){
 describe("Omega.Star", function(){
   it("parses type(color) into int", function(){
@@ -21,6 +22,10 @@ describe("Omega.Star", function(){
       st.location    = st.location.toJSON();
       assert(json).isSameAs(st);
     });
+  });
+
+  describe("#clicked_in", function(){
+    it("resets canvas cam");
   });
 
   describe("#load_gfx", function(){

@@ -107,6 +107,14 @@ Omega.UI.CanvasTracker = {
       this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
   },
 
+  // Wire up scene change handler
+  handle_scene_changes : function(){
+    var _this = this;
+    if(!Omega.has_listener_for(this.canvas, 'set_scene_root'))
+      this.canvas.addEventListener('set_scene_root',
+        function(change){ _this.scene_change(change.data); })
+  },
+
   /// Add entity to entities list if not present
   _add_nav_entity : function(entity){
     if(!this.canvas.controls.entities_list.has(entity.id)){
@@ -170,6 +178,7 @@ Omega.UI.CanvasTracker = {
     var children = system.children;
     for(var c = 0; c < children.length; c++)
       this._unscale_entity(children[c]);
+    /// TODO unscale manu entities
   },
 
   _unscale_entity : function(entity){

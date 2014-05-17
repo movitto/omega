@@ -70,15 +70,21 @@ describe("Omega.UI.CanvasEntityContainer", function(){
       sinon.assert.calledWith(unselected, canvas.page);
     });
 
+    it("removes entity container callbacks", function(){
+      sinon.stub(container, '_remove_entity_callbacks');
+      container.hide();
+      sinon.assert.called(container._remove_entity_callbacks);
+    });
+
     it("clears local entity", function(){
       container.hide();
       assert(container.entity).isNull();
     });
 
-    it("clears container contents", function(){
-      $(container.contents_id).html('foobar');
+    it("clears dom", function(){
+      sinon.spy(container, '_clear_dom');
       container.hide();
-      assert($(container.contents_id).html()).equals('');
+      sinon.assert.called(container._clear_dom);
     });
 
     it("hides dom element", function(){
@@ -86,6 +92,14 @@ describe("Omega.UI.CanvasEntityContainer", function(){
       assert($(container.div_id)).isVisible();
       container.hide();
       assert($(container.div_id)).isHidden();
+    });
+  });
+
+  describe("#_clear_dom", function(){
+    it("clears container contents", function(){
+      $(container.contents_id).html('foobar');
+      container._clear_dom();
+      assert($(container.contents_id).html()).equals('');
     });
   });
 
@@ -108,30 +122,22 @@ describe("Omega.UI.CanvasEntityContainer", function(){
       assert(container.entity).equals(ship);
     });
 
-    it("retrieves entity details", function(){
-      var retrieve_details = sinon.spy(ship, 'retrieve_details');
+    it("sets entity details", function(){
+      sinon.spy(container, '_set_entity_details');
       container.show(ship);
-      sinon.assert.calledWith(retrieve_details, canvas.page, sinon.match.func);
-    });
-
-    describe("entity_details callback", function(){
-      it("appends details to entity container", function(){
-        var retrieve_details = sinon.stub(ship, 'retrieve_details');
-        container.show(ship);
-
-        var append = sinon.spy(container, 'append');
-        var details_cb = retrieve_details.getCall(0).args[1];
-        details_cb('details');
-
-        sinon.assert.calledWith(append, 'details');
-        assert($(container.contents_id).html()).equals('details');
-      });
-    });
+      sinon.assert.called(container._set_entity_details);
+    })
 
     it("invokes entity selected callback", function(){
       var selected = sinon.spy(ship, 'selected');
       container.show(ship);
       sinon.assert.calledWith(selected, canvas.page);
+    });
+
+    it("adds entity container callbacks", function(){
+      sinon.spy(container, '_add_entity_callbacks');
+      container.show(ship);
+      sinon.assert.called(container._add_entity_callbacks);
     });
 
     it("shows entity container", function(){
@@ -154,6 +160,89 @@ describe("Omega.UI.CanvasEntityContainer", function(){
     });
   });
 
+  describe("#_set_entity_details", function(){
+    var ship;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+      ship.init_gfx(Omega.Config);
+    });
+
+    it("retrieves entity details", function(){
+      sinon.spy(ship, 'retrieve_details');
+      container.show(ship);
+      sinon.assert.calledWith(ship.retrieve_details,
+                              canvas.page, sinon.match.func);
+    });
+
+    describe("entity_details callback", function(){
+      it("appends details to entity container", function(){
+        sinon.stub(ship, 'retrieve_details');
+        container.show(ship);
+
+        sinon.spy(container, 'append');
+        var details_cb = ship.retrieve_details.omega_callback();
+        details_cb('details');
+
+        sinon.assert.calledWith(container.append, 'details');
+        assert($(container.contents_id).html()).equals('details');
+      });
+    });
+  });
+
+  describe("#_init_entity_callbacks", function(){
+    var ship;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+    });
+
+    it("defines refresh entity container handler for entity", function(){
+      container.entity = ship;
+      container._init_entity_callbacks();
+      assert(ship._refresh_entity_container).isNotNull();
+    });
+
+    it("defines refresh entity container details handler for entity", function(){
+      container.entity = ship;
+      container._init_entity_callbacks();
+      assert(ship._refresh_entity_container_details).isNotNull();
+    });
+  });
+
+  describe("#_remove_entity_callbacks", function(){
+    var ship;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+    });
+
+    it("removes refresh container handler for entity 'refresh_details_on' events", function(){
+      container.entity = ship;
+      container._add_entity_callbacks();
+      sinon.stub(ship, 'removeEventListener');
+      container._remove_entity_callbacks();
+      for(var cb = 0; cb < ship.refresh_details_on.length; cb++)
+        sinon.assert.called(ship.removeEventListener,
+                            ship.refresh_details_on[cb]);
+    });
+  });
+
+  describe("#_add_entity_callbacks", function(){
+    var ship;
+
+    before(function(){
+      ship = Omega.Gen.ship();
+    });
+
+    it("adds refresh container callback to entity 'refresh_details_on' events handler", function(){
+      container.entity = ship;
+      container._add_entity_callbacks();
+      for(var cb = 0; cb < ship.refresh_details_on.length; cb++)
+        assert(ship).handlesEvent(ship.refresh_details_on[cb]);
+    });
+  });
+
   describe("#refresh_details", function(){
     before(function(){
       container.entity = {refresh_details : sinon.spy()};
@@ -166,7 +255,7 @@ describe("Omega.UI.CanvasEntityContainer", function(){
 
     describe("local entity not set", function(){
       it("does nothing", function(){
-        entity = container.entity;
+        var entity = container.entity;
         container.entity = null;
         container.refresh_details();
         sinon.assert.notCalled(entity.refresh_details);
@@ -175,6 +264,12 @@ describe("Omega.UI.CanvasEntityContainer", function(){
   });
 
   describe("#refresh_cmds", function(){
+    it("refreshes entity commands", function(){
+      container.entity = Omega.Gen.ship();
+      sinon.spy(container.entity, 'refresh_cmds');
+      container.refresh_cmds();
+      sinon.assert.calledWith(container.entity.refresh_cmds, canvas.page);
+    });
   });
 
   describe("#refresh", function(){

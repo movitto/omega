@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
 //= require "omega/solar_system/mesh"
 //= require "omega/solar_system/text"
 //= require "omega/solar_system/plane"
@@ -13,11 +14,6 @@
 // Solar System GFX Mixin
 Omega.SolarSystemGfx = {
   async_gfx : 2,
-
-  // True/False if shared gfx are loaded
-  gfx_loaded : function(){
-    return typeof(Omega.SolarSystem.gfx) !== 'undefined';
-  },
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
@@ -30,11 +26,7 @@ Omega.SolarSystemGfx = {
     gfx.text_material     = new Omega.SolarSystemTextMaterial();
     gfx.audio_effects     = new Omega.SolarSystemAudioEffects({config: config});
     Omega.SolarSystem.gfx = gfx;
-  },
-
-  // True / false if local system gfx have been initialized
-  gfx_initialized : function(){
-    return this.components.length > 0;
+    this._loaded_gfx();
   },
 
   // Initialize local system graphics
@@ -58,6 +50,7 @@ Omega.SolarSystemGfx = {
     this.components =
       [this.plane.tmesh, this.text.text, this.interconns.particles.mesh];
   
+    this._gfx_initialized = true;
     this.interconns.unqueue();
     this.update_gfx();
   },
@@ -75,3 +68,5 @@ Omega.SolarSystemGfx = {
     this.interconns.run_effects();
   }
 };
+
+$.extend(Omega.SolarSystemGfx, Omega.EntityGfx);

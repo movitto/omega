@@ -182,11 +182,13 @@ describe("Omega.ShipMiningInteractions", function(){
 
       sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');
+      sinon.stub(page.audio_controls, 'play');
     });
 
     after(function(){
       ship.dialog().hide.restore();
       page.canvas.reload.restore();
+      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){
@@ -209,6 +211,11 @@ describe("Omega.ShipMiningInteractions", function(){
       sinon.spy(ship, 'update_gfx');
       page.canvas.reload.omega_callback()();
       sinon.assert.called(ship.update_gfx);
+    });
+
+    it("plays ship mining audio effect", function(){
+      ship._mining_success(response, page, resource, asteroid);
+      sinon.assert.calledWith(page.audio_controls.play, ship.mining_audio);
     });
   });
 });});

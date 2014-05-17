@@ -54,7 +54,7 @@ describe("Omega.UI.CommandTracker", function(){
           tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);
           sinon.assert.notCalled(page.canvas.reload);
         });
-      })
+      });
 
       it("reloads entity in scene", function(){
         tracker._callbacks_resource_collected("manufactured::event_occurred", eargs);

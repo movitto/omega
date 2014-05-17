@@ -59,6 +59,20 @@ describe("Omega.ShipTransferInteractions", function(){
           response_cb(response);
           sinon.assert.calledWith(ship._transfer_success, response, page);
         });
+
+        describe("all resources transfered", function(){
+          it("invokes _transfer_complete", function(){
+            var estation = Omega.Gen.station();
+            var eship = Omega.Gen.ship();
+            var response = {result : [eship, estation]};
+            sinon.stub(ship, '_transfer_success'); // stub out transfer_success
+            sinon.stub(ship, '_transfer_complete');
+            response_cb(response);
+            sinon.assert.notCalled(ship._transfer_complete);
+            response_cb(response);
+            sinon.assert.calledWith(ship._transfer_complete, page);
+          });
+        });
       });
     });
   });
@@ -142,6 +156,36 @@ describe("Omega.ShipTransferInteractions", function(){
       sinon.stub(ship, 'refresh_details');
       ship._transfer_success(response, page);
       sinon.assert.called(ship.refresh_details);
+    });
+  });
+
+  describe("#_transfer_complete", function(){
+    var station;
+    var nstation, nship, response;
+
+    before(function(){
+      station = new Omega.Station();
+      ship.docked_at = station;
+
+      var resource1 = {data : {material_id : 'silver'}};
+      var resource2 = new Omega.Resource();
+
+      nstation = new Omega.Station({resources : [resource1]});
+      nship    = new Omega.Ship({docked_at : nstation,
+                                 resources : [resource2]});
+      response = {result : [nship, nstation]};
+
+      sinon.stub(page.audio_controls, 'play');
+    });
+
+    after(function(){
+      page.audio_controls.play.restore();
+    });
+
+    it("plays confirmation effect audio", function(){
+      ship._transfer_complete(page);
+      sinon.assert.calledWith(page.audio_controls.play,
+                              page.audio_controls.effects.confirmation);
     });
   });
 });});

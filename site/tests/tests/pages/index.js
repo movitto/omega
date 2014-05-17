@@ -10,24 +10,9 @@ describe("Omega.Pages.Index", function(){
     assert(index.node).isOfType(Omega.Node);
   });
 
-  it("has an entities registry", function(){
-    var index = new Omega.Pages.Index();
-    assert(index.entities).isNotNull(); /// XXX
-  });
-
   it("has a command tracker", function(){
     var index = new Omega.Pages.Index();
     assert(index.command_tracker).isOfType(Omega.UI.CommandTracker);
-  });
-
-  it("has a status indicator", function(){
-    var index = new Omega.Pages.Index();
-    assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
-  });
-
-  it("has audio controls", function(){
-    var index = new Omega.Pages.Index();
-    assert(index.audio_controls).isOfType(Omega.UI.AudioControls);
   });
 
   it("has an effects player", function(){
@@ -53,6 +38,16 @@ describe("Omega.Pages.Index", function(){
     assert(index.canvas).isOfType(Omega.UI.Canvas);
   });
 
+  it("has a status indicator", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.status_indicator).isOfType(Omega.UI.StatusIndicator);
+  });
+
+  it("has audio controls", function(){
+    var index = new Omega.Pages.Index();
+    assert(index.audio_controls).isOfType(Omega.UI.AudioControls);
+  });
+
   it("has a splash screen", function(){
     var index = new Omega.Pages.Index();
     assert(index.splash).isOfType(Omega.UI.SplashScreen);
@@ -70,6 +65,8 @@ describe("Omega.Pages.Index", function(){
       sinon.stub(index.splash, 'wire_up');
       sinon.stub(index.effects_player, 'wire_up');
       sinon.stub(index.dialog, 'follow_node');
+      sinon.stub(index, 'handle_scene_changes');
+      sinon.stub(index, '_wire_up_fullscreen');
     });
 
     it("wires up navigation", function(){
@@ -87,19 +84,14 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(index.dialog.follow_node, index.node);
     });
 
-    it("wires up canvas", function(){
-      index.wire_up();
-      sinon.assert.called(index.canvas.wire_up);
-    });
-
     it("wires up splash", function(){
       index.wire_up();
       sinon.assert.called(index.splash.wire_up);
     });
 
-    it("wires up effects_player", function(){
+    it("wires up canvas", function(){
       index.wire_up();
-      sinon.assert.called(index.effects_player.wire_up);
+      sinon.assert.called(index.canvas.wire_up);
     });
 
     it("wires up audio controls", function(){
@@ -107,26 +99,69 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.called(index.audio_controls.wire_up);
     });
 
-    it("wires up canvas scene change", function(){
-      assert(index.canvas._listeners).isUndefined();
+    it("handles scene changes", function(){
       index.wire_up();
-      assert(index.canvas._listeners['set_scene_root'].length).equals(1);
+      sinon.assert.called(index.handle_scene_changes);
     });
-
-    describe("on canvas scene change", function(){
-      it("invokes page.scene_change", function(){
-        index.wire_up();
-        var scene_changed_cb = index.canvas._listeners['set_scene_root'][0];
-        var scene_change = sinon.stub(index, 'scene_change');
-        scene_changed_cb({data: 'change'});
-        sinon.assert.calledWith(scene_change, 'change')
-      });
-    })
 
     it("instructs status indicator to follow node", function(){
       var spy   = sinon.spy(index.status_indicator, 'follow_node');
       index.wire_up();
       sinon.assert.calledWith(spy, index.node);
+    });
+
+    it("wires up effects_player", function(){
+      index.wire_up();
+      sinon.assert.called(index.effects_player.wire_up);
+    });
+
+    it("wires up fullscreen controls", function(){
+      index.wire_up();
+      sinon.assert.called(index._wire_up_fullscreen);
+    });
+  });
+
+  describe("#_wire_up_fullscreen", function(){
+    var index;
+
+    before(function(){
+      index = new Omega.Pages.Index();
+      sinon.stub(Omega.fullscreen, 'request');
+    });
+
+    after(function(){
+      Omega.fullscreen.request.restore();
+    });
+
+    it("handles document keypresses", function(){
+      assert($(document)).doesNotHandle('keypress');
+      index._wire_up_fullscreen();
+      assert($(document)).handles('keypress');
+    });
+
+    describe("ctrl-F keyPress triggered", function(){
+      it("requests full screen", function(){
+        index._wire_up_fullscreen();
+        $(document).trigger(jQuery.Event('keypress', {which : 70, ctrlKey : 1}));
+        sinon.assert.calledWith(Omega.fullscreen.request, document.documentElement);
+      });
+    });
+
+    describe("ctrl-f keyPress triggered", function(){
+      it("requests full screen", function(){
+        index._wire_up_fullscreen();
+        $(document).trigger(jQuery.Event('keypress', {which : 102, ctrlKey : 1}));
+        sinon.assert.calledWith(Omega.fullscreen.request, document.documentElement);
+      });
+    });
+
+    describe("other keypress triggered", function(){
+      it("does not request fullscreen", function(){
+        index._wire_up_fullscreen();
+        $(document).trigger(jQuery.Event('keypress', {which : 102}));
+        $(document).trigger(jQuery.Event('keypress', {which : 105, ctrlKey : 1}));
+        sinon.assert.notCalled(Omega.fullscreen.request);
+      });
     });
   });
 
@@ -288,7 +323,7 @@ describe("Omega.Pages.Index", function(){
       sinon.assert.calledWith(load_universe, index, sinon.match.func);
     });
 
-    it("loads default entities", function(){
+    it("loads default systems", function(){
       index._invalid_session();
       var load_cb = load_universe.getCall(0).args[1];
       load_cb();

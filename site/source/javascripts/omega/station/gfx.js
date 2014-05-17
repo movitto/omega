@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
+
 //= require 'omega/station/mesh'
 //= require 'omega/station/highlight'
 //= require 'omega/station/lamps'
@@ -16,27 +18,9 @@ Omega.StationGfx = {
 
   async_gfx : 2,
 
-  // Returns location which to render gfx components, overridable
-  scene_location : function(){
-    return this.location;
-  },
-
-  // Returns 3D object tracking station position
-  position_tracker : function(){
-    if(!this._position_tracker)
-      this._position_tracker = new THREE.Object3D();
-    return this._position_tracker;
-  },
-
-  /// True/False if shared gfx are loaded
-  gfx_loaded : function(){
-    return typeof(Omega.Station.gfx) !== 'undefined' &&
-           typeof(Omega.Station.gfx[this.type]) !== 'undefined';
-  },
-
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
-    if(this.gfx_loaded()) return;
+    if(this.gfx_loaded(this.type)) return;
     Omega.Station.gfx    = Omega.Station.gfx || {};
 
     var gfx              = {};
@@ -54,21 +38,13 @@ Omega.StationGfx = {
       gfx.mesh = mesh;
       if(event_cb) event_cb();
     });
-  },
 
-  /// True / false if station gfx are being initialized
-  gfx_initializing : function(){
-    return !this.gfx_initialized() &&
-            this.components.indexOf(this.position_tracker()) != -1;
-  },
-
-  /// True / false if station gfx have been initialized
-  gfx_initialized : function(){
-    return !!(this._gfx_initialized);
+    this._loaded_gfx(this.type);
   },
 
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized() || this.gfx_initializing()) return;
+    this._gfx_initializing = true;
     this.load_gfx(config, event_cb);
     this.components = [];
 
@@ -100,7 +76,8 @@ Omega.StationGfx = {
       _this.position_tracker().add(_this.mesh.tmesh);
       _this.update_gfx();
       _this.loaded_resource('mesh', _this.mesh);
-      _this._gfx_initialized = true;
+      _this._gfx_initializing = false;
+      _this._gfx_initialized  = true;
     });
 
     this.last_moved = new Date();
@@ -154,5 +131,5 @@ Omega.StationGfx = {
 
 Omega.StationGfx._run_movement_effects = Omega.StationGfx._run_movement;
 
-Omega.StationGfx =
-  $.extend(Omega.StationGfx, Omega.StationConstructionGfxHelpers);
+$.extend(Omega.StationGfx, Omega.StationConstructionGfxHelpers);
+$.extend(Omega.StationGfx, Omega.EntityGfx);

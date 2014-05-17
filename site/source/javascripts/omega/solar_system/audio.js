@@ -37,10 +37,16 @@ Omega.SolarSystemAudioEffects.prototype = {
   },
 
   pause : function(){
-    this.hover_dom().currentTime = 0;
+    if(this.hover_dom().currentTime)
+      this.hover_dom().currentTime = 0;
     this.hover_dom().pause();
 
     //this.click_dom().currentTime = 0;
     //this.click_dom().pause();
+  },
+
+  set_volume : function(volume){
+    this.hover_dom().set_volume = volume;
+    this.click_dom().set_volume = volume;
   }
 };

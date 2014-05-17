@@ -145,11 +145,13 @@ describe("Omega.ShipDockInteractions", function(){
       response = {result : Omega.Gen.ship({docked_at : station})};
 
       sinon.stub(page.canvas, 'reload');
+      sinon.stub(page.audio_controls, 'play');
       sinon.stub(ship.dialog(), 'hide');
     });
 
     after(function(){
       page.canvas.reload.restore();
+      page.audio_controls.play.restore();
       ship.dialog().hide.restore();
     });
 
@@ -184,6 +186,11 @@ describe("Omega.ShipDockInteractions", function(){
       sinon.spy(ship, 'refresh_cmds');
       ship._dock_success(response, page, station);
       sinon.assert.called(ship.refresh_cmds);
+    });
+
+    it("plays ship docking audio", function(){
+      ship._dock_success(response, page, station);
+      sinon.assert.calledWith(page.audio_controls.play, ship.docking_audio);
     });
   });
 

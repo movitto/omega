@@ -4,28 +4,13 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
 //= require "omega/asteroid/mesh"
 
 // Asteroid GFX Mixin
 Omega.AsteroidGfx = {
+  /// TODO update to include increased # of ast meshes
   async_gfx : 1,
-
-  // Returns location which to render gfx components, overridable
-  scene_location : function(){
-    return this.location;
-  },
-
-  // Returns position tracker, 3D object automatically update w/ planet position
-  position_tracker : function(){
-    if(!this._position_tracker)
-      this._position_tracker = new THREE.Object3D();
-    return this._position_tracker;
-  },
-
-  /// True / false if station gfx have been preloaded
-  gfx_loaded : function(){
-    return !!(Omega.Asteroid.gfx);
-  },
 
   load_gfx : function(config, event_cb){
     if(this.gfx_loaded()) return;
@@ -37,11 +22,7 @@ Omega.AsteroidGfx = {
     });
 
     Omega.Asteroid.gfx = gfx;
-  },
-
-  /// True / false if station gfx have been initialized
-  gfx_initialized : function(){
-    return !!(this._gfx_initialized);
+    this._loaded_gfx();
   },
 
   init_gfx : function(config, event_cb){
@@ -72,3 +53,5 @@ Omega.AsteroidGfx = {
 
   run_effects : function(){}
 };
+
+$.extend(Omega.AsteroidGfx, Omega.EntityGfx);

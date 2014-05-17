@@ -19,6 +19,32 @@ describe("Omega.Station", function(){
 
   //it("updates resources"); /// NIY test update_resources is invoked
 
+  describe("#update", function(){
+    var from;
+
+    before(function(){
+      from = Omega.Gen.station();
+    });
+
+    it("updates station resources", function(){
+      from.resources = {'res' : 'sources'};
+      station.update(from);
+      assert(station.resources).equals(from.resources);
+    });
+
+    it("updates station system_id / parent_id", function(){
+      station.update(from);
+      assert(station.system_id).equals(from.system_id);
+      assert(station.parent_id).equals(from.system_id);
+    });
+
+    it("updates location", function(){
+      sinon.stub(station.location, 'update');
+      station.update(from);
+      sinon.assert.calledWith(station.location.update, from.location);
+    });
+  });
+
   describe("#belongs_to_user", function(){
     it("returns bool indicating if station belongs to user", function(){
       station.user_id = 'user1';
@@ -30,6 +56,21 @@ describe("Omega.Station", function(){
   describe("#alive", function(){
     it("returns true", function(){
       assert(new Omega.Station().alive()).isTrue();
+    });
+  });
+
+  describe("#is_constructing", function(){
+    describe("station is constructing", function(){
+      it("returns true", function(){
+        station._constructing = true;
+        assert(station.is_constructing()).isTrue();
+      });
+    });
+
+    describe("station is not constructing", function(){
+      it("returns false", function(){
+        assert(station.is_constructing()).isFalse();
+      });
     });
   });
 
@@ -88,10 +129,55 @@ describe("Omega.Station", function(){
     });
   });
 
+  describe("#clicked_in", function(){
+    var canvas;
+
+    before(function(){
+      canvas = Omega.Test.Canvas();
+      sinon.stub(canvas.page.audio_controls, 'play');
+      sinon.stub(canvas, 'follow_entity');
+    });
+
+    after(function(){
+      canvas.page.audio_controls.play.restore();
+      canvas.follow_entity.restore();
+    });
+
+    it("plays clicked effect", function(){
+      station.clicked_in(canvas);
+      sinon.assert.calledWith(canvas.page.audio_controls.play,
+                              canvas.page.audio_controls.effects.click);
+    });
+
+    it("instructs canvas to follow station entity", function(){
+      station.clicked_in(canvas);
+      sinon.assert.calledWith(canvas.follow_entity, station);
+    });
+  });
+
   describe("#selected", function(){
+    var page, station;
+
+    before(function(){
+      page = Omega.Test.Page();
+      sinon.stub(page.audio_controls, 'play');
+
+      station = Omega.Test.Canvas.Entities().station;
+    });
+
+    after(function(){
+      page.audio_controls.play.restore();
+    });
+
+    it("plays construction started audio", function(){
+      sinon.stub(station, 'is_constructing').returns(true);
+      station.selected(page);
+      sinon.assert.calledWith(page.audio_controls.play,
+                              station.construction_audio, 'started');
+    });
+
     it("sets mesh material emissive", function(){
-      var station = Omega.Test.Canvas.Entities().station;
-      station.selected(Omega.Test.Page());
+      station.selected(page);
       assert(station.mesh.tmesh.material.emissive.getHex()).equals(0xff0000);
     });
   });

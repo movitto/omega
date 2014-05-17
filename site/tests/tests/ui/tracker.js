@@ -50,7 +50,7 @@ describe("Omega.UI.Tracker", function(){
         isSameAs([ship3, ship4, station2, station3]);
     });
 
-//// TODO
+  //// TODO
     //it("returns registry entities to stop tracking (not user owned, not in current root)", function(){
     //  assert(page.entity_map(system).start_tracking).
     //    isSameAs([ship3, station3]);

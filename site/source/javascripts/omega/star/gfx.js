@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
 //= require "omega/star/mesh"
 //= require "omega/star/glow"
 //= require "omega/star/light"
@@ -14,7 +15,7 @@ Omega.StarGfx = {
   async_gfx : 1,
 
   load_gfx : function(config, event_cb){
-    if(typeof(Omega.Star.gfx) !== 'undefined') return;
+    if(this.gfx_loaded()) return;
     var gfx = {};
 
     gfx.mesh  = new Omega.StarMesh({config: config, event_cb: event_cb});
@@ -22,15 +23,11 @@ Omega.StarGfx = {
     gfx.light = new Omega.StarLight();
 
     Omega.Star.gfx = gfx;
-  },
-
-  /// True / false if system gfx have been initialized
-  gfx_initialized : function(){
-    return !!(this._gfx_initialized);
+    this._loaded_gfx();
   },
 
   init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
+    if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
     /// TODO scale mesh to match this radius
@@ -58,3 +55,5 @@ Omega.StarGfx = {
 
   run_effects : function(){}
 };
+
+$.extend(Omega.StarGfx, Omega.EntityGfx);

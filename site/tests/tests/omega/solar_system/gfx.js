@@ -9,17 +9,20 @@ describe("Omega.SolarSystemGfx", function(){
   });
 
   describe("#load_gfx", function(){
-    describe("graphics are loaded", function(){
-      var orig_gfx;
+    var orig_gfx;
 
+    before(function(){
+      orig_gfx = Omega.SolarSystem.gfx;
+    });
+
+    after(function(){
+      Omega.SolarSystem.gfx = orig_gfx;
+    });
+
+    describe("graphics are loaded", function(){
       before(function(){
-        orig_gfx = Omega.SolarSystem.gfx;
         Omega.SolarSystem.gfx = null;
         sinon.stub(system, 'gfx_loaded').returns(true);
-      });
-
-      after(function(){
-        Omega.SolarSystem.gfx = orig_gfx;
       });
 
       it("does nothing / just returns", function(){
@@ -34,6 +37,18 @@ describe("Omega.SolarSystemGfx", function(){
 
     it("creates plane for solar system", function(){
       assert(Omega.SolarSystem.gfx.plane).isOfType(Omega.SolarSystemPlane);
+    });
+
+    it("creates audio effects for solar system", function(){
+      assert(Omega.SolarSystem.gfx.audio_effects).
+          isOfType(Omega.SolarSystemAudioEffects);
+    });
+
+    it("invokes _loaded_gfx", function(){
+      sinon.stub(system, 'gfx_loaded').returns(false);
+      sinon.stub(system, '_loaded_gfx');
+      system.load_gfx(Omega.Config);
+      sinon.assert.called(system._loaded_gfx);
     });
   });
 
@@ -90,6 +105,11 @@ describe("Omega.SolarSystemGfx", function(){
       system.init_gfx(Omega.Config);
       assert(system.text.text.position.toArray()).isSameAs([50, 110, -75]);
     });
+
+    it("creates local reference to solar system audio", function(){
+      system.init_gfx(Omega.Config);
+      assert(system.audio_effects).equals(Omega.SolarSystem.gfx.audio_effects);
+    });
     
     it("adds plane, text, particles to solar system scene components", function(){
       system.init_gfx(Omega.Config);
@@ -105,7 +125,34 @@ describe("Omega.SolarSystemGfx", function(){
     })
   });
 
+  describe("#update_gfx", function(){
+    it("updates mesh", function(){
+      system.init_gfx(Omega.Config);
+      sinon.stub(system.mesh, 'update');
+      system.update_gfx();
+      sinon.assert.called(system.mesh.update);
+    });
+
+    it("updates plane", function(){
+      system.init_gfx(Omega.Config);
+      sinon.stub(system.plane, 'update');
+      system.update_gfx();
+      sinon.assert.called(system.plane.update);
+    });
+
+    it("updates text", function(){
+      system.init_gfx(Omega.Config);
+      sinon.stub(system.text, 'update');
+      system.update_gfx();
+      sinon.assert.called(system.text.update);
+    });
+  });
+
   describe("#run_effects", function(){
-    //it("updates interconnect particles") // NIY
+    it("updates interconnect particles", function(){
+      sinon.stub(system.interconns, 'run_effects');
+      system.run_effects();
+      sinon.assert.calledWith(system.interconns.run_effects);
+    });
   });
 });});

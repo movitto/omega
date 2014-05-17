@@ -1,3 +1,4 @@
+/// TODO split tests into seperate files along module boundries, add missing tests
 pavlov.specify("Omega.Asteroid", function(){
 describe("Omega.Asteroid", function(){
   it("converts location", function(){
@@ -22,6 +23,25 @@ describe("Omega.Asteroid", function(){
       ast.json_class = oast.json_class;
       ast.location = ast.location.toJSON();
       assert(json).isSameAs(ast);
+    });
+  });
+
+  describe("#clicked_in", function(){
+    var ast, page;
+
+    before(function(){
+      ast = new Omega.Asteroid();
+      page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+      sinon.stub(page.canvas, 'follow_entity');
+    });
+
+    after(function(){
+      page.canvas.follow_entity.restore();
+    });
+
+    it("instructs canvas to follow asteroid entity", function(){
+      ast.clicked_in(page.canvas);
+      sinon.assert.calledWith(page.canvas.follow_entity, ast);
     });
   });
 
@@ -189,4 +209,16 @@ describe("Omega.Asteroid", function(){
     });
   });
 
+  describe("#update_gfx", function(){
+    it("updates position tracker location using scene location", function(){
+      var ast = Omega.Gen.asteroid();
+      ast.location.set(50, -42.2, 1);
+      ast.update_gfx();
+
+      var pos = ast.position_tracker().position;
+      assert(pos.x).equals(50);
+      assert(pos.y).equals(-42.2);
+      assert(pos.z).equals(1);
+    });
+  });
 });}); // Omega.Asteroid

@@ -135,17 +135,19 @@ describe("Omega.ShipAttackInteractions", function(){
     var nship, tgt, response;
 
     before(function(){
-     sinon.stub(ship.dialog(), 'hide');
-     sinon.stub(page.canvas, 'reload');
+      sinon.stub(ship.dialog(), 'hide');
+      sinon.stub(page.canvas, 'reload');
+      sinon.stub(page.audio_controls, 'play');
 
-     tgt      = Omega.Gen.ship();
-     nship    = Omega.Gen.ship();
-     response = {result : nship};
+      tgt      = Omega.Gen.ship();
+      nship    = Omega.Gen.ship();
+      response = {result : nship};
     });
 
     after(function(){
       ship.dialog().hide.restore();
       page.canvas.reload.restore();
+      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){
@@ -168,6 +170,12 @@ describe("Omega.ShipAttackInteractions", function(){
       sinon.spy(ship, 'update_gfx');
       page.canvas.reload.omega_callback()();
       sinon.assert.called(ship.update_gfx);
+    });
+
+    it("plays start_attack ship combat audio", function(){
+      ship._attack_success(response, page, tgt);
+      sinon.assert.calledWith(page.audio_controls.play,
+                              ship.combat_audio, 'start_attack');
     });
   });
 });});

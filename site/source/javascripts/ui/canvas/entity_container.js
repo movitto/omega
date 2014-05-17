@@ -111,7 +111,7 @@ Omega.UI.CanvasEntityContainer.prototype = {
     if(this.entity.refresh_details_on){
       for(var cb = 0; cb < this.entity.refresh_details_on.length; cb++){
         this.entity.removeEventListener(this.entity.refresh_details_on[cb],
-                                        this.entity._refresh_entity_container);
+                                        this.entity._refresh_entity_container_details);
       }
     }
   },

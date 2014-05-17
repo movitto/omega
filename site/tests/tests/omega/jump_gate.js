@@ -50,6 +50,56 @@ describe("Omega.JumpGate", function(){
     });
   });
 
+  describe("#_has_selection_sphere", function(){
+    describe("selection sphere is a child of jg scene mesh", function(){
+      it("returns true", function(){
+        jg.init_gfx(Omega.Config);
+        jg._add_selection_sphere();
+        assert(jg._has_selection_sphere()).isTrue();
+      });
+    });
+
+    describe("selection sphere is not a child of jg scene mesh", function(){
+      it("returns false", function(){
+        jg.init_gfx(Omega.Config);
+        assert(jg._has_selection_sphere()).isFalse();
+      });
+    });
+  });
+
+  describe("#_add_selection_sphere", function(){
+    it("adds selection sphere as a child of the scene mesh", function(){
+      jg.init_gfx(Omega.Config);
+      assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+      jg._add_selection_sphere();
+      assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
+    });
+  });
+
+  describe("#_rm_selection_sphere", function(){
+    it("removes selection sphere from scene mesh children", function(){
+      jg.init_gfx(Omega.Config);
+      jg._add_selection_sphere();
+      jg._rm_selection_sphere();
+      assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+    });
+  });
+
+  describe("#clicked_in", function(){
+    before(function(){
+      sinon.stub(page.canvas, 'follow_entity');
+    });
+
+    after(function(){
+      page.canvas.follow_entity.restore();
+    });
+
+    it("instructs canvas to follow jg entity", function(){
+      jg.clicked_in(page.canvas);
+      sinon.assert.calledWith(page.canvas.follow_entity, jg);
+    });
+  });
+
   describe("#selected", function(){
     it("reloads jg in scene", function(){
       jg.init_gfx(Omega.Config);

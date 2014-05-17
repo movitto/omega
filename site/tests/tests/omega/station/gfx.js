@@ -42,7 +42,15 @@ describe("Omega.StationGfx", function(){
       assert(Omega.Station.gfx[station.type].lamps).isOfType(Omega.StationLamps);
     });
 
-    // it("creates progress bar for station construction"); // NIY
+    it("creates progress bar for station construction", function(){
+      assert(Omega.Station.gfx[station.type].construction_bar).
+        isOfType(Omega.StationConstructionBar);
+    });
+
+    it("creates station construction audio instance", function(){
+      assert(Omega.Station.gfx[station.type].construction_audio).
+        isOfType(Omega.StationConstructionAudioEffect);
+    });
   });
 
   describe("#init_gfx", function(){
@@ -171,6 +179,118 @@ describe("Omega.StationGfx", function(){
       for(var l = 0; l < station.lamps.olamps.length; l++)
         assert(descendents).includes(station.lamps.olamps[l].component);
     });
+
+    it("creates local reference to station construction audio", function(){
+      station.init_gfx(Omega.Config);
+      assert(station.construction_audio).
+        equals(Omega.Station.gfx[station.type].construction_audio);
+    });
+  });
+
+  describe("#update_gfx", function(){
+    it("sets position tracker location from scene location", function(){
+      var loc = new Omega.Location();
+      loc.set(-123, 234, -321);
+      sinon.stub(station, 'scene_location').returns(loc);
+
+      station.update_gfx();
+      var position = station.position_tracker().position;
+      assert(position.x).equals(-123);
+      assert(position.y).equals(234);
+      assert(position.z).equals(-321);
+    });
+
+    describe("station is stopped", function(){
+      before(function(){
+        sinon.stub(station.location, 'is_stopped').returns(true);
+      });
+
+      it("removes orbit line", function(){
+        sinon.stub(station, '_has_orbit_line').returns(true);
+        sinon.stub(station, '_rm_orbit_line');
+        station.update_gfx();
+        sinon.assert.called(station._rm_orbit_line);
+      });
+
+      it("resets run movement method", function(){
+        station.update_gfx();
+        assert(station._run_movement_effects).equals(station._run_movement);
+      });
+    });
+
+    describe("station is not stopped", function(){
+      before(function(){
+        sinon.stub(station.location, 'is_stopped').returns(false);
+        sinon.stub(station, '_has_orbit_line').returns(false);
+      });
+
+      it("calculates orbit", function(){
+        sinon.spy(station, '_calc_orbit');
+        station.update_gfx();
+        sinon.assert.called(station._calc_orbit);
+      });
+
+      it("calculates current orbit angle", function(){
+        sinon.spy(station, '_current_orbit_angle');
+        station.update_gfx();
+        sinon.assert.called(station._current_orbit_angle);
+      });
+
+      it("Adds orbit line", function(){
+        sinon.spy(station, '_add_orbit_line');
+        station.update_gfx();
+        sinon.assert.called(station._add_orbit_line);
+      });
+
+      it("sets movement method to orbit movement method", function(){
+        station.init_gfx(Omega.Config);
+        station.update_gfx();
+        assert(station._run_movement_effects).equals(station._run_orbit_movement);
+      });
+    });
+  });
+
+  describe("#update_construction_gfx", function(){
+    it("updates station construction bar", function(){
+      station.init_gfx(Omega.Config);
+      var update = sinon.spy(station.construction_bar, 'update');
+      station.update_construction_gfx();
+      sinon.assert.called(update);
+    });
+  });
+
+  describe("#_run_movement", function(){
+    it("does nothing / does not move station", function(){
+      var coordinates = station.location.coordinates();
+      station._run_movement();
+      assert(station.location.coordinates()).isSameAs(coordinates);
+    });
+  });
+
+  describe("#_run_orbit_movement", function(){
+    it("updates station orbit angle", function(){
+      station.last_moved = new Date(new Date() - 1000); // last moved 1s ago
+      station.location.movement_strategy = {speed : 1.57};
+      station._orbit_angle = 0;
+      sinon.stub(station, 'update_gfx'); /// stub out update gfx
+      sinon.stub(station, '_set_orbit_angle');
+      station._run_orbit_movement();
+      assert(station._orbit_angle).equals(1.57);
+      sinon.assert.calledWith(station._set_orbit_angle, 1.57);
+    });
+
+    it("sets last moved", function(){
+      sinon.stub(station, '_set_orbit_angle'); /// stub out set_orbit_angle
+      station._run_orbit_movement();
+      assert(station.last_moved).isNotNull();
+    });
+
+    it("updates station gfx", function(){
+      sinon.stub(station, '_set_orbit_angle'); /// stub out set_orbit_angle
+      sinon.stub(station, 'update_gfx');
+      station._run_orbit_movement();
+      sinon.assert.called(station.update_gfx);
+    });
   });
 
   describe("#run_effects", function(){
@@ -186,15 +306,11 @@ describe("Omega.StationGfx", function(){
       for(var s = 0; s < spies.length; s++)
         sinon.assert.called(spies[s]);
     });
-  });
 
-  describe("#update_construction_gfx", function(){
-    it("updates station construction bar", function(){
-      station.init_gfx(Omega.Config);
-      var update = sinon.spy(station.construction_bar, 'update');
-      station.update_construction_gfx();
-      sinon.assert.called(update);
+    it("runs movement effects", function(){
+      sinon.stub(station, '_run_movement_effects');
+      station.run_effects();
+      sinon.assert.called(station._run_movement_effects);
     });
   });
-
 });});

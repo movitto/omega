@@ -214,11 +214,13 @@ describe("Omega.ShipMovementInteractions", function(){
       response = {result : nship};
       sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');
+      sinon.stub(page.audio_controls, 'play');
     })
 
     after(function(){
       ship.dialog().hide.restore();
       page.canvas.reload.restore();
+      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){
@@ -241,6 +243,18 @@ describe("Omega.ShipMovementInteractions", function(){
       ship._move_success(response, page);
       page.canvas.reload.omega_callback()();
       sinon.assert.called(ship.update_gfx);
+    });
+
+    it("plays confirmation audio", function(){
+      ship._move_success(response, page);
+      sinon.assert.calledWith(page.audio_controls.play,
+                              page.audio_controls.effects.confirmation);
+    });
+
+    it("starting playing ship movement audio", function(){
+      ship._move_success(response, page);
+      sinon.assert.calledWith(page.audio_controls.play,
+                              ship.movement_audio);
     });
   });
 

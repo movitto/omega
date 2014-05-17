@@ -12,6 +12,9 @@ describe("Omega.UI.CanvasControlsList", function(){
   })
 
   describe("mouse enter event", function(){
+    //it("sets has mouse true"); /// NIY
+    //it("stops list effects"); /// NIY
+
     it("shows child ul", function(){
       list.component().mouseenter();
       assert(list.list()).isVisible();
@@ -19,6 +22,8 @@ describe("Omega.UI.CanvasControlsList", function(){
   });
 
   describe("mouse leave event", function(){
+    //it("sets has mouse false"); /// NIY
+
     it("hides child ul", function(){
       list.component().mouseenter();
       list.component().mouseleave();
@@ -44,6 +49,10 @@ describe("Omega.UI.CanvasControlsList", function(){
       assert(list.children().length).equals(1);
       assert(list.children()[0].id).equals('c1');
     });
+  });
+
+  describe("#title", function(){
+    //it("returns first non-ul dom component under list"); /// NIY
   });
 
   describe("#clear", function(){
@@ -78,6 +87,10 @@ describe("Omega.UI.CanvasControlsList", function(){
       assert(list.list().children('li').length).equals(1);
     });
 
+    //describe("item index is specified", function(){
+    //  it("adds new li to list before other li's with higher indices"); /// NIY
+    //});
+
     it("sets li text to item text", function(){
       var item = {text: 'item1'}
       list.add(item)
@@ -95,6 +108,12 @@ describe("Omega.UI.CanvasControlsList", function(){
       list.add(item)
       assert($(list.list().children('li')[0]).data('item')).equals(item['data']);
     });
+
+    //it("sets item color in li css"); /// NIY
+
+    //describe("list has title and we're adding first element", function(){
+      //it("starts list effect") /// NIY
+    //});
   });
 
   describe("#show", function(){
@@ -112,4 +131,24 @@ describe("Omega.UI.CanvasControlsList", function(){
       assert($('#locations_list ul')).isHidden();
     });
   });
+
+  //describe("#_repeat", function(){ /// NIY
+  //  it("flashes list title");
+  //  it("periodically repeats effect")
+  //  describe("this._run_effects is false", function(){
+  //    it("does not repeat effects");
+  //  });
+  //});
+
+  //describe("#start", function(){ /// NIY
+  //  it("starts repeating effect loop");
+  //  describe("list has mouse focus", function(){
+  //    it("does not start effect loop");
+  //  });
+  //});
+
+  //describe("#stop", function(){ /// NIY
+  //  it("clears title effects");
+  //  it("sets _run_effects to false")
+  //});
 });});

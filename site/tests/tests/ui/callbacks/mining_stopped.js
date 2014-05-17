@@ -8,7 +8,7 @@ describe("Omega.UI.CommandTracker", function(){
       before(function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page.canvas, 'reload');
-        sinon.stub(page.canvas.entity_container, 'refresh');
+        sinon.stub(page.canvas.entity_container, 'refresh_details');
 
         var system = new Omega.SolarSystem({id : 'system1'});
         page.canvas.set_scene_root(system);
@@ -30,7 +30,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       after(function(){
         page.canvas.reload.restore();
-        page.canvas.entity_container.refresh.restore();
+        page.canvas.entity_container.refresh_details.restore();
       });
 
       it("clears entity mining target", function(){
@@ -63,9 +63,9 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.assert.called(ship.update_gfx);
       });
 
-      it("refreshes entity container", function(){
+      it("refreshes entity container details", function(){
         tracker._callbacks_mining_stopped("manufactured::event_occurred", eargs);
-        sinon.assert.called(page.canvas.entity_container.refresh);
+        sinon.assert.called(page.canvas.entity_container.refresh_details);
       });
     });
   });

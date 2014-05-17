@@ -1,5 +1,16 @@
 pavlov.specify("Omega.UI.Registry", function(){
 describe("Omega.UI.Registry", function(){
+  describe("#clear_entities", function(){
+    it("clears all entities", function(){
+      var registry = new Omega.UI.Registry();
+      var foo = {};
+      registry.entity('foo', foo);
+      registry.clear_entities();
+      assert(registry.entity('foo')).isUndefined();
+      assert(registry.entities).isSameAs({});
+    });
+  })
+
   describe("#entity", function(){
     it("gets/sets entity", function(){
       var registry = new Omega.UI.Registry();

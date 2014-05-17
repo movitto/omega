@@ -55,4 +55,54 @@ describe("Omega.StationCommands", function(){
       assert($(construct)).handles('click');
     });
   });
+
+  describe("#refresh_details", function(){
+    var station, details_cb, page;
+
+    before(function(){
+      station = Omega.Gen.station();
+      details_cb = sinon.spy();
+      page = Omega.Test.Page();
+
+      station.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      $('#qunit-fixture').append(details);
+    });
+
+    it("refreshes station location details", function(){
+      var element = '<div>foo</div>';
+      sinon.stub(station, '_loc_details').returns($(element));
+      station.refresh_details();
+      assert($('#station_loc').html()).equals('foo');
+    });
+
+    it("refreshes station resource details", function(){
+      var element = '<div>foo</div>';
+      sinon.stub(station, '_resource_details').returns($(element));
+      station.refresh_details();
+      assert($('#station_resources').html()).equals('foo');
+    });
+  });
+
+  describe("#refresh_cmds", function(){
+    var station, details_cb, page;
+
+    before(function(){
+      station = Omega.Gen.station();
+      details_cb = sinon.spy();
+      page = Omega.Test.Page();
+
+      station.retrieve_details(page, details_cb);
+      var details = details_cb.getCall(0).args[0];
+      $('#qunit-fixture').append(details);
+    });
+
+    it("refreshes station commands", function(){
+      var element = '<div>foo</div>';
+      sinon.stub(station, '_command_details').returns($(element));
+      station.refresh_cmds(page);
+      assert($('#station_cmds').html()).equals(element);
+      sinon.assert.calledWith(station._command_details, page);
+    });
+  });
 });});

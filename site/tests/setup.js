@@ -163,6 +163,9 @@ function before_each(details){
 function after_all(details){
   /// clear cookies
   Omega.Session.prototype.clear_cookies();
+
+  Omega.Test.Canvas().clear();
+  Omega.Test.Canvas().clear(Omega.Test.Canvas().skyScene);
 }
 
 QUnit.moduleStart(before_all);
