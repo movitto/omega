@@ -9,7 +9,7 @@ Omega.SolarSystemInterconns = function(){
 };
 
 Omega.SolarSystemInterconns.prototype = {
-  age : 3,
+  age : 5.0,
 
   _line_material : function(){
     if(this.__line_material) return this.__line_material;
@@ -35,7 +35,7 @@ Omega.SolarSystemInterconns.prototype = {
     var path    = config.url_prefix + config.images_path + '/particle.png';
     var texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
 
-    return new ShaderParticleGroup({
+    return new SPE.Group({
       texture:    texture,
       blending:   THREE.AdditiveBlending,
       maxAge:     this.age
@@ -53,16 +53,16 @@ Omega.SolarSystemInterconns.prototype = {
     var dz = (eloc.z - loc.z) / this.age;
     var velocity = new THREE.Vector3(dx, dy, dz);
 
-    var emitter = new ShaderParticleEmitter({
+    var emitter = new SPE.Emitter({
       position           : loc.vector(),
       velocity           : velocity,
       colorStart         : new THREE.Color(0xFF0000),
       colorEnd           : new THREE.Color(0xFF0000),
-      sizeStart          :  150,
-      sizeEnd            :  150,
+      sizeStart          :  250,
+      sizeEnd            :  250,
       opacityStart       :    1,
       opacityEnd         :    1,
-      particlesPerSecond :  0.5,
+      particleCount      :    1.0
     });
 
     return emitter;

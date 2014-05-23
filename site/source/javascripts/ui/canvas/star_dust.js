@@ -18,25 +18,25 @@ Omega.UI.CanvasStarDust.prototype = {
     if(typeof(Omega.UI.CanvasStarDust.gfx) !== 'undefined') return;
 
     var particle_path = config.url_prefix + config.images_path + "/smokeparticle.png";
-    var particleGroup = new ShaderParticleGroup({
+    var particleGroup = new SPE.Group({
       texture: THREE.ImageUtils.loadTexture(particle_path, {}, event_cb),
       maxAge: 2,
       blending: THREE.AdditiveBlending
     });
 
     var particleEmitter =
-      new ShaderParticleEmitter({
+      new SPE.Emitter({
         positionSpread: new THREE.Vector3(this.size, this.size, this.size),
         acceleration:   new THREE.Vector3(0, 0, 0),
         velocity:       new THREE.Vector3(0, 0, 0),
         colorStart:     new THREE.Color('white'),
         colorEnd:       new THREE.Color('white'),
-        sizeStart:            2,
-        sizeEnd:              5,
+        sizeStart:            7,
+        sizeEnd:              10,
         opacityStart:         0,
         opacityMiddle:        1,
         opacityEnd:           0,
-        particlesPerSecond: 350
+        particleCount : 1000
     });
 
     // Add the emitter to the group.
