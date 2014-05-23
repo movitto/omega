@@ -144,7 +144,7 @@ SPE.utils = {
         return vec ;
     },
 
-    randomVector3OnSpiral: function( base, radius, radiusSpread, radiusScale, radiusSpreadClamp, radiusMax, spiralSkew, spiralRotation ){
+    randomVector3OnSpiral: function( base, radius, radiusSpread, radiusScale, radiusSpreadClamp, radiusMax, spiralSkew, spiralRotation, maxBuldge ){
         var rand = Math.random,
             t = 6.2832 * rand(),
             rand = Math.abs( this._randomFloat( radius, radiusSpread ) );
@@ -172,7 +172,10 @@ SPE.utils = {
             vec.multiply( radiusScale );
         }
 
-        vec.z = (Math.random() - 0.5 ) * Math.pow(0.9975, vec.length()) * 100;
+        if(vec.length() < radiusMax / 3)
+          vec.z = (Math.random() - 0.5 ) * maxBuldge;
+        else
+          vec.z = (Math.random() - 0.5 ) * maxBuldge/vec.length();
 
         vec.add( base );
         return vec;
@@ -328,7 +331,7 @@ SPE.utils = {
         v.add( base );
     },
 
-    randomizeExistingVector3OnSpiral: function( v, base, radius, radiusSpread, radiusScale, radiusSpreadClamp, radiusMax, spiralSkew, spiralRotation ) {
+    randomizeExistingVector3OnSpiral: function( v, base, radius, radiusSpread, radiusScale, radiusSpreadClamp, radiusMax, spiralSkew, spiralRotation, maxBuldge ) {
         /// generate vertex in mostly same manner as disk...
         var rand = Math.random,
             t = 6.2832 * rand(),
@@ -361,7 +364,10 @@ SPE.utils = {
 
         /// randomize z position for buldge in center
         /// TODO parameterize height
-        v.z = (Math.random() - 0.5 ) * Math.pow(0.9975, v.length()) * 100;
+        if(v.length() < radiusMax / 4)
+          v.z = 0;
+        else
+          v.z = (Math.random() - 0.5 ) * maxBuldge/v.length();
 
         v.add( base );
     },
@@ -570,7 +576,7 @@ SPE.Group.prototype = {
                 velocity[i]         = that._randomVelocityVector3OnSphere( vertices[i], emitter.position, emitter.speed, emitter.speedSpread );
 
             }else if(emitter.type === 'spiral') {
-                vertices[i]         = that._randomVector3OnSpiral( emitter.position,  emitter.radius, emitter.radiusSpread, emitter.radiusScale, emitter.radiusSpreadClamp, emitter.radiusMax, emitter.spiralSkew, emitter.spiralRotation );
+                vertices[i]         = that._randomVector3OnSpiral( emitter.position,  emitter.radius, emitter.radiusSpread, emitter.radiusScale, emitter.radiusSpreadClamp, emitter.radiusMax, emitter.spiralSkew, emitter.spiralRotation, emitter.maxBuldge );
                 velocity[i]         = that._randomVelocityVector3OnSpiral( vertices[i], emitter.position, emitter.speed, emitter.speedSpread, emitter.radiusMax );
 
             }else {
@@ -1005,6 +1011,7 @@ SPE.Emitter = function( options ) {
     /// These properties are only used when this.type === 'spiral'
     that.spiralSkew             = parseFloat( typeof options.spiralSkew === 'number' ? options.spiralSkew : 1.0 );
     that.spiralRotation         = parseFloat( typeof options.spiralRotation === 'number' ? options.spiralRotation : 1.0 );
+    that.maxBuldge              = parseFloat( typeof options.maxBuldge === 'number' ? options.maxBuldge : 0.0 );
 
     // Sizes
     that.sizeStart              = parseFloat( typeof options.sizeStart === 'number' ? options.sizeStart : 1.0 );
@@ -1144,7 +1151,7 @@ SPE.Emitter.prototype = {
         else if( type === 'spiral') {
             that._randomizeExistingVector3OnSpiral( particlePosition, that.position, that.radius,
                                                     that.radiusSpread, that.radiusScale, that.radiusSpreadClamp,
-                                                    that.radiusMax, that.spiralSkew, that.spiralRotation );
+                                                    that.radiusMax, that.spiralSkew, that.spiralRotation, that.maxBuldge );
             that._randomizeExistingVelocityVector3OnSpiral( particleVelocity, that.position, particlePosition,
                                                             that.speed, that.speedSpread, that.radiusMax );
         }
