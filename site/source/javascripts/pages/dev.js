@@ -54,8 +54,10 @@ Omega.Pages.Dev.prototype = {
     var light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
     this.canvas.scene.add(light);
 
-    this.canvas.skybox.set(1, this.config, function(){_this.canvas.animate();})
+    var bg = Math.floor(Math.random() * Omega._num_backgrounds) + 1;
+    this.canvas.skybox.set(bg, this.config, function(){_this.canvas.animate();})
     this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
+    this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
 
     this.canvas.animate();
   },
