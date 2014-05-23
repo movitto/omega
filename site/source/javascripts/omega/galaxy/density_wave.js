@@ -15,75 +15,129 @@ Omega.GalaxyDensityWave = function(args){
 };
 
 Omega.GalaxyDensityWave.prototype = {
-  _star_group : function(config, event_cb){
-    return new ShaderParticleGroup({
-      texture: Omega.load_galaxy_particles(config, event_cb, 'stars'),
-      maxAge: 2,
-      blending: THREE.AdditiveBlending
+  _star_group : function(age, config, event_cb){
+    return new SPE.Group({
+      texture  : Omega.load_galaxy_particles(config, event_cb, 'stars'),
+      maxAge   : age,
+      blending : THREE.AdditiveBlending
     });
   },
 
   _cloud_group : function(config, event_cb){
-    return new ShaderParticleGroup({
-      texture: Omega.load_galaxy_particles(config, event_cb, 'clouds'),
-      maxAge: 10,
-      blending: THREE.AdditiveBlending
+    return new SPE.Group({
+      texture  : Omega.load_galaxy_particles(config, event_cb, 'clouds'),
+      maxAge   : 10,
+      blending : THREE.AdditiveBlending
     });
   },
 
-  _star_emitter : function(){
-    return new ShaderParticleEmitter({
+  _star_emitter : function(spiral, speed){
+    return new SPE.Emitter({
       type           : 'spiral',
-      spiralSkew     : 1.4,
-      spiralRotation : 1.4,
-      position     : new THREE.Vector3(0, 0, 0),
-      radius       : 1000,
-      radiusSpread : 9000,
-      radiusScale  :  150,
-      speed        :  25,
-      colorStart   : new THREE.Color('yellow'),
-      colorEnd     : new THREE.Color('white'),
-      sizeStart    : 175.0,
-      //sizeStartSpread : 1,
-      //sizeEnd      : 800,
-      opacityStart  : 0,
-      opacityMiddle : 1,
-      opacityEnd    : 0,
-      particlesPerSecond: 2500
+      spiralSkew     :  spiral,
+      spiralRotation :  spiral,
+      maxBuldge      :  5000000,
+      position       : new THREE.Vector3(0, 0, 0),
+      radius         :  3250,
+      radiusSpread   :  5000,
+      speed          : speed,
+      colorStart     : new THREE.Color('yellow'),
+      colorEnd       : new THREE.Color('white'),
+      sizeStart      : 375.0,
+      opacityStart   :     0,
+      opacityMiddle  :     1,
+      opacityEnd     :     0,
+      particleCount  :   500
     });
   },
 
-  _cloud_emitter : function(){
-    return new ShaderParticleEmitter({
+  _cloud_emitter : function(spiral){
+    return new SPE.Emitter({
       type           : 'spiral',
-      spiralSkew     :  1.4,
-      spiralRotation :  1.4,
-      radius         : 1000,
-      radiusSpread   : 9000,
-      radiusScale    :  150,
-      speed          :    5,
+      spiralSkew     :  spiral,
+      spiralRotation :  spiral,
+      radius         :    5000,
+      radiusSpread   :    4000,
+      speed          :      15,
       position       : new THREE.Vector3(0, 0, 0),
       positionSpread : new THREE.Vector3(5000, 0, 5000),
-      colorStart     : new THREE.Color('blue'),
-      colorEnd       : new THREE.Color('white'),
-      sizeStart      : 1250,
-      sizeSpread     :  100,
-      opacityStart   :    0,
-      opacityMiddle  : 0.05,
-      opacityEnd     :    0,
-      particlesPerSecond : 200
+      colorStart     : new THREE.Color(0x3399FF),
+      colorEnd       : new THREE.Color(0x33CCFF),
+      sizeStart      :    4500,
+      sizeSpread     :    1000,
+      opacityStart   :       0,
+      opacityMiddle  :    0.10,
+      opacityEnd     :       0,
+      particleCount  :     500
+    });
+  },
+
+  _base_emitter : function(){
+    return new SPE.Emitter({
+      type           :  'disk',
+      radius         :    4000,
+      radiusSpread   :    6000,
+      sizeStart      :    8000,
+      sizeSpread     :    1000,
+      opacityStart   :       0,
+      opacityMiddle  :    0.05,
+      opacityEnd     :       0,
+      particleCount  :     500,
+      position       : new THREE.Vector3(0, 0, 0),
+      positionSpread : new THREE.Vector3(5000, 0, 5000),
+      colorStart     : new THREE.Color(0x3399FF),
+      colorEnd       : new THREE.Color(0x3366FF)
     });
   },
 
   init_gfx : function(config, event_cb){
-    var sgroup   = this._star_group(config, event_cb);
-    var semitter = this._star_emitter();
-    sgroup.addEmitter(semitter);
-    this.stars = sgroup;
+    this.clock = new THREE.Clock();
 
-    var cgroup   = this._cloud_group(config, event_cb);
-    var cemitter = this._cloud_emitter();
-    cgroup.addEmitter(cemitter);
-    this.clouds = cgroup;
+    this.stars1  = this._star_group(2, config, event_cb);
+    this.stars2  = this._star_group(4, config, event_cb);
+    this.clouds1 = this._cloud_group(config, event_cb);
+    this.clouds2 = this._cloud_group(config, event_cb);
+    this.base    = this._cloud_group(config, event_cb);
+
+    var semitter = this._star_emitter(1.4, 25);
+    this.stars1.addEmitter(semitter);
+
+    semitter = this._star_emitter(1.6, 40);
+    this.stars2.addEmitter(semitter);
+
+    semitter = this._star_emitter(1.8, 15);
+    this.stars2.addEmitter(semitter);
+
+    var cemitter = this._cloud_emitter(1.4);
+    this.clouds1.addEmitter(cemitter);
+
+    cemitter = this._cloud_emitter(1.6);
+    this.clouds2.addEmitter(cemitter);
+
+    var bemitter = this._base_emitter();
+    this.base.addEmitter(bemitter);
+  },
+
+  set_rotation : function(x, y, z){
+    this.stars1.mesh.rotation.set(x, y, z);
+    this.stars2.mesh.rotation.set(x, y, z);
+    this.clouds1.mesh.rotation.set(x, y, z);
+    this.clouds2.mesh.rotation.set(x, y, z);
+    this.base.mesh.rotation.set(x, y, z);
+  },
+
+  run_effects : function(){
+    var delta = this.clock.getDelta();
+    this.stars1.tick(delta);
+    this.stars2.tick(delta);
+    this.clouds1.tick(delta);
+    this.clouds2.tick(delta);
+    this.base.tick(delta);
+  },
+
+  components : function(){
+    return [this.stars1.mesh,  this.stars2.mesh,
+            this.clouds1.mesh, this.clouds2.mesh,
+            this.base.mesh];
   }
 };

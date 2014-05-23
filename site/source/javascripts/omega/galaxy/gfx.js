@@ -5,6 +5,7 @@
  */
 
 //= require "omega/galaxy/density_wave"
+//= require "omega/galaxy/center"
 
 // Galaxy GFX Mixin
 Omega.GalaxyGfx = {
@@ -17,6 +18,10 @@ Omega.GalaxyGfx = {
                                                      event_cb: event_cb});
     gfx.density_wave2 = new Omega.GalaxyDensityWave({config: config,
                                                      event_cb: event_cb});
+    gfx.density_wave1.set_rotation(1.57,0,0);
+    gfx.density_wave2.set_rotation(1.57,0,1.57);
+
+    gfx.center = new Omega.GalaxyCenter()
   },
 
   init_gfx : function(config, event_cb){
@@ -25,25 +30,15 @@ Omega.GalaxyGfx = {
 
     this.density_wave1 = Omega.Galaxy.gfx.density_wave1;
     this.density_wave2 = Omega.Galaxy.gfx.density_wave2;
+    this.center        = Omega.Galaxy.gfx.center;
 
-    this.density_wave1.stars.mesh.rotation.set(1.57,0,0);
-    this.density_wave2.stars.mesh.rotation.set(1.57,0,1.57);
-    this.density_wave1.clouds.mesh.rotation.set(1.57,0,0);
-    this.density_wave2.clouds.mesh.rotation.set(1.57,0,1.57);
-
-    this.components = [this.density_wave1.stars.mesh,
-                       this.density_wave2.stars.mesh,
-                       this.density_wave1.clouds.mesh,
-                       this.density_wave2.clouds.mesh];
-
-    this.clock = new THREE.Clock();
+    this.components = this.density_wave1.components().
+               concat(this.density_wave2.components()).
+               concat(this.center.components());
   },
 
   run_effects : function(){
-    var delta = this.clock.getDelta();
-    this.density_wave1.stars.tick(delta);
-    this.density_wave2.stars.tick(delta);
-    this.density_wave1.clouds.tick(delta);
-    this.density_wave2.clouds.tick(delta);
+    this.density_wave1.run_effects();
+    this.density_wave2.run_effects();
   }
 };
