@@ -541,10 +541,10 @@ SPE.Group.prototype = {
         var that = this;
 
         if( emitter.duration ) {
-            emitter.particlesPerSecond = emitter.particleCount / (that.maxAge < emitter.duration ? that.maxAge : emitter.duration) | 0;
+            emitter.particlesPerSecond = emitter.particleCount / (that.maxAge < emitter.duration ? that.maxAge : emitter.duration) || 0;
         }
         else {
-            emitter.particlesPerSecond = emitter.particleCount / that.maxAge | 0
+            emitter.particlesPerSecond = emitter.particleCount / that.maxAge || 0
         }
 
         var vertices            = that.geometry.vertices,
