@@ -120,7 +120,7 @@ Omega.UI.CanvasSceneManager = {
     /// apply cam rotations to sky cam (but not translations)
     this.skyCam.rotation.setFromRotationMatrix(
       new THREE.Matrix4().extractRotation(this.cam.matrixWorld ),
-      this.skyCam.eulerOrder);
+      this.skyCam.rotation.order);
 
     /// invoke 'rendered_in' callbacks on scene descendants
     var children = this.scene.getDescendants();
