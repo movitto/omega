@@ -20,7 +20,7 @@ Omega.ShipDestructionEffect.prototype = {
   },
 
   _explosion_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       type:             'sphere',
       positionSpread:   new THREE.Vector3(10, 10, 10),
       radius:              1,
@@ -40,7 +40,7 @@ Omega.ShipDestructionEffect.prototype = {
   },
 
   _shockwave_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       type :           'disk',
       position: new THREE.Vector3(0, 0, 0),
       radius:               5,
@@ -62,7 +62,7 @@ Omega.ShipDestructionEffect.prototype = {
     var particle_texture =
       Omega.load_ship_particles(config, event_cb, 'destruction');
 
-    return new ShaderParticleGroup({
+    return new SPE.Group({
         texture:  particle_texture,
         maxAge:   5,
         blending: THREE.AdditiveBlending

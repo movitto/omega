@@ -21,7 +21,7 @@ Omega.ShipMiningVector.prototype = {
 
   _particle_group : function(config, event_cb){
     /// TODO mining-specific particle
-    return new ShaderParticleGroup({
+    return new SPE.Group({
       texture:    Omega.load_ship_particles(config, event_cb),
       maxAge:     this.particle_age,
       blending:   THREE.AdditiveBlending
@@ -29,7 +29,7 @@ Omega.ShipMiningVector.prototype = {
   },
 
   _particle_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       colorStart    : new THREE.Color(0x5a555a),
       colorEnd      : new THREE.Color(0x5a555a),
       sizeStart     : this.particle_size,

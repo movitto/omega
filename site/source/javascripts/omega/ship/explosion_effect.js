@@ -50,7 +50,7 @@ Omega.ShipExplosionEffect.prototype = {
     var particle_texture =
       Omega.load_ship_particles(config, event_cb, 'explosion');
 
-    return new ShaderParticleGroup({
+    return new SPE.Group({
         texture:  particle_texture,
         maxAge:   0.5,
         blending: THREE.AdditiveBlending

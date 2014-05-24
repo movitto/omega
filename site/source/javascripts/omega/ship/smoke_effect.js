@@ -52,7 +52,7 @@ Omega.ShipSmokeEffect.prototype = {
   },
 
   _particle_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       positionSpread     : new THREE.Vector3(this.plane, 0, this.plane),
       colorStart         : new THREE.Color(0x663300),
       colorEnd           : new THREE.Color(0x666666),
@@ -69,7 +69,7 @@ Omega.ShipSmokeEffect.prototype = {
   _particle_group : function(config, event_cb){
     var particle_texture = Omega.load_ship_particles(config, event_cb, 'smoke');
 
-    return new ShaderParticleGroup({
+    return new SPE.Group({
         texture:  particle_texture,
         maxAge:   this.lifespan,
         blending: THREE.AdditiveBlending

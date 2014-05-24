@@ -19,7 +19,7 @@ Omega.ShipAttackVector.prototype = {
   particle_size        : 30,
 
   _particle_group : function(config, event_cb){
-    return new ShaderParticleGroup({
+    return new SPE.Group({
       texture:    Omega.load_ship_particles(config, event_cb),
       maxAge:     this.particle_age,
       blending:   THREE.AdditiveBlending
@@ -27,7 +27,7 @@ Omega.ShipAttackVector.prototype = {
   },
 
   _particle_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       colorStart    : new THREE.Color(0xFF0000),
       colorEnd      : new THREE.Color(0xFF0000),
       sizeStart     : this.particle_size,

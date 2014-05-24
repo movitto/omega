@@ -22,7 +22,7 @@ Omega.JumpGateParticles.prototype = {
     var particle_path = config.url_prefix + config.images_path + "/particle.png";
     var texture       = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
 
-    return new ShaderParticleGroup({
+    return new SPE.Group({
       texture:  texture,
       maxAge:   this.lifespan,
       blending: THREE.AdditiveBlending
@@ -30,7 +30,7 @@ Omega.JumpGateParticles.prototype = {
   },
 
   _particle_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       positionSpread     : new THREE.Vector3(this.plane, this.plane, 0),
       colorStart         : new THREE.Color(0x0000FF),
       colorEnd           : new THREE.Color(0x0000FF),

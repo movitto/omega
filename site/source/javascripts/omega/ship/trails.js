@@ -29,7 +29,7 @@ Omega.ShipTrails.prototype = {
   },
 
   _particle_group : function(config, event_cb){
-    return new ShaderParticleGroup({
+    return new SPE.Group({
       texture:    Omega.load_ship_particles(config, event_cb),
       maxAge:     this.lifespan,
       blending:   THREE.AdditiveBlending
@@ -37,7 +37,7 @@ Omega.ShipTrails.prototype = {
   },
 
   _particle_emitter : function(){
-    return new ShaderParticleEmitter({
+    return new SPE.Emitter({
       positionSpread     : new THREE.Vector3(this.plane, this.plane, 0),
       colorStart         : new THREE.Color('red'),
       colorEnd           : new THREE.Color('yellow'),
