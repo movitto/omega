@@ -1,7 +1,7 @@
 {
   "system": {
-    "position":          { "x" : 3000, "y" : 100, "z" : 3000 },
-    "positionDeviation": { "x" : 2000, "y" :   0, "z" : 2000 }
+    "position":          { "x" : 1500, "y" : 100, "z" : 1500 },
+    "positionDeviation": { "x" : 1000, "y" :   0, "z" : 1000 }
   },
 
   "star": {

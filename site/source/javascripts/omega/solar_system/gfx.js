@@ -10,6 +10,7 @@
 //= require "omega/solar_system/plane"
 //= require "omega/solar_system/audio"
 //= require "omega/solar_system/interconn"
+//= require "omega/solar_system/particles"
 
 // Solar System GFX Mixin
 Omega.SolarSystemGfx = {
@@ -25,6 +26,8 @@ Omega.SolarSystemGfx = {
                                                         event_cb: event_cb});
     gfx.text_material     = new Omega.SolarSystemTextMaterial();
     gfx.audio_effects     = new Omega.SolarSystemAudioEffects({config: config});
+    gfx.particles         = new Omega.SolarSystemParticles({config : config,
+                                                            event_cb : event_cb});
     Omega.SolarSystem.gfx = gfx;
     this._loaded_gfx();
   },
@@ -45,11 +48,15 @@ Omega.SolarSystemGfx = {
 
     this.audio_effects = Omega.SolarSystem.gfx.audio_effects;
 
+    this.particles = Omega.SolarSystem.gfx.particles.clone(config, event_cb);
+    this.particles.omega_entity = this;
+
     this.interconns.init_gfx(config, event_cb);
   
-    this.components =
-      [this.plane.tmesh, this.text.text, this.interconns.particles.mesh];
-  
+    this.components = [this.plane.tmesh, this.text.text,
+                       this.interconns.particles.mesh,
+                       this.particles.particles.mesh];
+
     this._gfx_initialized = true;
     this.interconns.unqueue();
     this.update_gfx();
@@ -61,11 +68,13 @@ Omega.SolarSystemGfx = {
     if(this.mesh)  this.mesh.update();
     if(this.plane) this.plane.update();
     if(this.text)  this.text.update();
+    if(this.particles) this.particles.update();
   },
 
   // Run local system graphics effects
   run_effects : function(){
     this.interconns.run_effects();
+    this.particles.run_effects();
   }
 };
 
