@@ -52,10 +52,13 @@ Omega.SolarSystemGfx = {
     this.particles.omega_entity = this;
 
     this.interconns.init_gfx(config, event_cb);
-  
-    this.components = [this.plane.tmesh, this.text.text,
-                       this.interconns.particles.mesh,
-                       this.particles.particles.mesh];
+
+    this.position_tracker().add(this.plane.tmesh);
+    this.position_tracker().add(this.text.text);
+
+    this.components = [this.position_tracker()].
+                        concat(this.interconns.components()).
+                        concat(this.particles.components());
 
     this._gfx_initialized = true;
     this.interconns.unqueue();
@@ -64,11 +67,11 @@ Omega.SolarSystemGfx = {
 
   // Update local system graphics on core entity changes
   update_gfx : function(){
-    if(!this.location) return;
-    if(this.mesh)  this.mesh.update();
-    if(this.plane) this.plane.update();
-    if(this.text)  this.text.update();
-    if(this.particles) this.particles.update();
+    var loc = this.scene_location();
+    this.position_tracker().position.set(loc.x, loc.y, loc.z);
+
+    this.particles.update();
+    this.interconns.update();
   },
 
   // Run local system graphics effects

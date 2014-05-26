@@ -120,7 +120,13 @@ Omega.Location.prototype = {
   /// Return array containing the difference between location's coordinates
   /// and the specified coordiantes
   sub : function(x, y, z){
-    /// TODO also support vector & loc params, return corresponding obj
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }
+
     return [this.x - x, this.y - y, this.z - z];
   },
 

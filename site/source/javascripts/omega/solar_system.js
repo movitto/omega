@@ -148,16 +148,16 @@ Omega.SolarSystem.prototype = {
   /// TODO move these methods to omega/solar_system/mesh
 
   _has_hover_sphere : function(){
-    return $.inArray(this.mesh.tmesh, this.components) != -1;
+    var descendants = this.position_tracker().getDescendants();
+    return descendants.indexOf(this.mesh.tmesh) != -1;
   },
 
   _add_hover_sphere : function(){
-    this.components.push(this.mesh.tmesh);
+    this.position_tracker().add(this.mesh.tmesh);
   },
 
   _rm_hover_sphere : function(){
-    var index = $.inArray(this.mesh.tmesh, this.components);
-    this.components.splice(index, 1);
+    this.position_tracker().remove(this.mesh.tmesh);
   },
 
   on_hover : function(canvas, hover_num){

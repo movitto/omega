@@ -18,12 +18,13 @@ Omega.SolarSystemInterconns.prototype = {
   },
 
   _line_geo : function(endpoint){
-    var entity = this.omega_entity;
-    var loc    = entity.location;
+    var loc  = this.omega_entity.scene_location();
+    var eloc = endpoint.scene_location();
+    var diff = eloc.sub(loc.coordinates());
 
     var geometry = new THREE.Geometry();
-    geometry.vertices.push(loc.vector());
-    geometry.vertices.push(endpoint.location.vector());
+    geometry.vertices.push(new THREE.Vector3(0,0,0));
+    geometry.vertices.push(new THREE.Vector3(diff[0], diff[1], diff[2]));
     return geometry;
   },
 
@@ -44,10 +45,10 @@ Omega.SolarSystemInterconns.prototype = {
 
   _particle_emitter : function(endpoint){
     var entity = this.omega_entity;
-    var loc    = entity.location;
+    var loc    = entity.scene_location();
 
     /// set emitter velocity / particle properties
-    var eloc = endpoint.location;
+    var eloc = endpoint.scene_location();
     var dx = (eloc.x - loc.x) / this.age;
     var dy = (eloc.y - loc.y) / this.age;
     var dz = (eloc.z - loc.z) / this.age;
@@ -73,6 +74,10 @@ Omega.SolarSystemInterconns.prototype = {
     this.clock = new THREE.Clock();
   },
 
+  components : function(){
+    return [this.particles.mesh];
+  },
+
   _queue : function(endpoint){
     if(!this._queued) this._queued= [];
     this._queued.push(endpoint);
@@ -96,10 +101,14 @@ Omega.SolarSystemInterconns.prototype = {
 
     this.endpoints.push(endpoint);
     this.particles.addEmitter(this._particle_emitter(endpoint));
-    entity.components.push(this._line(endpoint));
+    entity.position_tracker().add(this._line(endpoint));
   },
 
   run_effects : function(){
     this.particles.tick(this.clock.getDelta());
+  },
+
+  update : function(){
+    /// TODO refresh emitter from entity & endpoint scene locations
   }
 };

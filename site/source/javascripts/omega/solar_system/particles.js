@@ -52,6 +52,10 @@ Omega.SolarSystemParticles.prototype = {
     this.clock = new THREE.Clock();
   },
 
+  components : function(){
+    return [this.particles.mesh];
+  },
+
   clone : function(config, event_cb){
     return new Omega.SolarSystemParticles({config: config, event_cb: event_cb});
   },
@@ -59,7 +63,7 @@ Omega.SolarSystemParticles.prototype = {
   update : function(){
     if(!this.particles) return;
 
-    var loc = this.omega_entity.location;
+    var loc = this.omega_entity.scene_location();
     this.particles.emitters[0].position.set(loc.x, loc.y, loc.z);
   },
 
