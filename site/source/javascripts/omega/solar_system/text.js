@@ -45,5 +45,9 @@ Omega.SolarSystemText.prototype = {
     var entity = this.omega_entity;
     var loc    = entity.location;
     this.text.position.set(loc.x, loc.y + 50, loc.z);
+  },
+
+  rendered_in : function(canvas, component){
+    component.lookAt(canvas.cam.position);
   }
 };
