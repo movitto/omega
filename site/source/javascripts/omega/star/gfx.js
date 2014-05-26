@@ -18,9 +18,10 @@ Omega.StarGfx = {
     if(this.gfx_loaded()) return;
     var gfx = {};
 
-    gfx.mesh  = new Omega.StarMesh({config: config, event_cb: event_cb});
-    gfx.glow  = new Omega.StarGlow();
-    gfx.light = new Omega.StarLight();
+    gfx.meshes = Omega.StarMesh.for_types({config   : config,
+                                           event_cb : event_cb});
+    gfx.glow   = new Omega.StarGlow();
+    gfx.light  = new Omega.StarLight();
 
     Omega.Star.gfx = gfx;
     this._loaded_gfx();
@@ -30,7 +31,8 @@ Omega.StarGfx = {
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
-    this.mesh = Omega.Star.gfx.mesh.clone();
+    this.mesh = Omega.StarMesh.for_type(this.type,
+                                        Omega.Star.gfx.meshes).clone();
     this.mesh.omega_entity = this;
 
     this.glow = Omega.Star.gfx.glow.clone();
