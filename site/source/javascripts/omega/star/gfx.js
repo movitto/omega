@@ -30,7 +30,6 @@ Omega.StarGfx = {
     if(this.gfx_initialized()) return;
     this.load_gfx(config, event_cb);
 
-    /// TODO scale mesh to match this radius
     this.mesh = Omega.Star.gfx.mesh.clone();
     this.mesh.omega_entity = this;
 
@@ -42,17 +41,11 @@ Omega.StarGfx = {
     this.light.color.setHex(this.type_int);
 
     this.components = [this.glow.tglow, this.mesh.tmesh, this.light];
-    this.update_gfx();
     this._gfx_initialized = true;
   },
 
-  update_gfx : function(){
-    if(!this.location) return;
-
-    this.mesh.tmesh.position.
-        set(this.location.x, this.location.y, this.location.z);
-  },
-
+  /// Not current needed for star, for api compatability
+  update_gfx : function(){},
   run_effects : function(){}
 };
 

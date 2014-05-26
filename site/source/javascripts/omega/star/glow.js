@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/star/geometry"
+
 Omega.StarGlow = function(args){
   if(!args) args = {}
   this.tglow = args['glow'] || this.init_gfx();

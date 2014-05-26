@@ -4,43 +4,43 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/star/geometry"
+
 Omega.StarMesh = function(args){
   if(!args) args = {};
   var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  if(config && event_cb){
-    this.tmesh = this.init_gfx(config, event_cb);
-    this.tmesh.omega_obj = this;
-  }
+  if(config) this.init_gfx(config, event_cb);
 };
 
 Omega.StarMesh.prototype = {
   clone : function(){
-    var smesh   = new Omega.StarMesh();
-    smesh.tmesh = this.tmesh.clone(); 
-    smesh.tmesh.omega_obj = smesh;
+    var smesh = new Omega.StarMesh();
+    smesh.cp_gfx(this);
     return smesh;
   },
 
-  init_gfx : function(config, event_cb){
-    var mesh_geo     = Omega.StarGeometry.load();
+  _texture : function(config, event_cb){
     var texture_path = config.url_prefix + config.images_path +
                        config.resources.star.texture;
-    var texture      = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
-    var material     = new THREE.MeshBasicMaterial({map : texture});
+    return THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  },
 
-    var mesh = new THREE.Mesh(mesh_geo, material);
-    return mesh;
+  _material : function(texture){
+    return new THREE.MeshBasicMaterial({map : texture});
+  },
+
+  init_gfx : function(config, event_cb){
+    var geo = Omega.StarGeometry.load();
+    var mat = this._material(this._texture(config, event_cb));
+
+    this.tmesh = new THREE.Mesh(geo, mat);
+    this.tmesh.omega_obj = this;
+  },
+
+  cp_gfx : function(from){
+    this.tmesh = from.tmesh.clone();
+    this.tmesh.omega_obj = this;
   }
 };
-
-Omega.StarGeometry = {
-  radius : 750,
-
-  load : function(){
-    /// each star instance should override radius in the geometry instance
-    var segments = 32, rings = 32;
-    return new THREE.SphereGeometry(this.radius, segments, rings);
-  }
-}
