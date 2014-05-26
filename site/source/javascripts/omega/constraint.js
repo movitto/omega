@@ -44,6 +44,11 @@ Omega.Constraint = {
   },
 
   _randomize : function(base, deviation){
+    if(base == 'rgb') /// random hex string
+      return Math.floor(Math.random()*16777215).toString(16);
+
+    if(!deviation) return base;
+
     if(typeof(base) === "object"){
       var nx = this._coin_flip() ? 1 : -1;
       var ny = this._coin_flip() ? 1 : -1;
@@ -51,7 +56,6 @@ Omega.Constraint = {
       return {x: base.x + Math.random() * deviation.x * nx,
               y: base.y + Math.random() * deviation.y * ny,
               z: base.z + Math.random() * deviation.z * nz};
-
     }
 
     var n = this._coin_flip() ? 1 : -1;
@@ -74,12 +78,7 @@ Omega.Constraint = {
     var target    = Array.prototype.slice.call(arguments);
     var base      = this._get(target);
     var deviation = this._get_deviation(target);
-    var adjusted  = base;
-
-    if(deviation)
-      adjusted = this._randomize(base, deviation);
-
-    return adjusted;
+    return this._randomize(base, deviation);
   },
 
   _max : function(target){
@@ -116,8 +115,8 @@ Omega.Constraint = {
     var base      = this._get(args);
     var deviation = this._get_deviation(args);
 
-    if(!deviation)
-      return current == base;
+    if(base == 'rgb') return new RegExp("^[a-fA-F0-9]{6}$").test(base);
+    if(!deviation) return current == base;
 
     var max = this._max(args);
     var min = this._min(args);

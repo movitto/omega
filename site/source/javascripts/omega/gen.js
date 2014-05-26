@@ -238,6 +238,7 @@ Omega.Gen = {
     if(!opts) opts = {};
     if(!opts.id) opts.id = 'star' + this.next_id();
     if(!opts.size) opts.size = Omega.Constraint.gen('star', 'size');
+    if(!opts.type) opts.type = Omega.Constraint.gen('star', 'type');
 
     if(!opts.location){
       var loc_opts = {x: 0, y: 0, z: 0, movement_strategy:
