@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
+//= require "omega/planet/axis"
 //= require "omega/planet/mesh"
 
 // Planet Gfx Mixin
@@ -14,52 +16,45 @@ Omega.PlanetGfx = {
 
   async_gfx : 1,
 
-  // Returns location which to render gfx components, overridable
-  scene_location : function(){
-    return this.location;
-  },
-
-  // Returns position tracker, 3D object automatically update w/ planet position
-  position_tracker : function(){
-    if(!this._position_tracker)
-      this._position_tracker = new THREE.Object3D();
-    return this._position_tracker;
-  },
-
-  /// True/False if shared gfx are loaded
-  gfx_loaded : function(){
-    return typeof(Omega.Planet.gfx)            !== 'undefined' &&
-           typeof(Omega.Planet.gfx[this.type]) !== 'undefined';
-  },
+  include_axis : true,
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
     if(this.gfx_loaded()) return;
     Omega.Planet.gfx         = Omega.Planet.gfx || {};
-    var type                 = this.type;
 
     var gfx                  = {};
     gfx.mesh                 = new Omega.PlanetMesh({config: config,
-                                                     type: type,
+                                                     type: this.type,
                                                      event_cb: event_cb});
-    Omega.Planet.gfx[type] = gfx;
-  },
+    gfx.axis                 = new Omega.PlanetAxis();
 
-  /// True / false if local planet gfx have been initialized
-  gfx_initialized : function(){
-    return !!(this._gfx_initialized);
+    Omega.Planet.gfx[this.type]   = gfx;
+    this._loaded_gfx(this.type);
   },
 
   /// Intiialize local system graphics
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
+    this._gfx_initializing = true;
     this.load_gfx(config, event_cb);
 
-    var type = this.type;
-    this.mesh = Omega.Planet.gfx[type].mesh.clone();
+    this.mesh = Omega.Planet.gfx[this.type].mesh.clone();
     this.mesh.omega_entity = this;
     this.mesh.material =
-      new Omega.PlanetMaterial.load(config, type, event_cb);
+      new Omega.PlanetMaterial.load(config, this.type, event_cb);
+
+    var orientation = this.location.orientation();
+    this.axis = Omega.Planet.gfx[this.type].axis.clone();
+    this.axis.set_orientation(orientation[0],
+                              orientation[1],
+                              orientation[2]);
+    this.axis.omega_entity = this;
+    if(this.include_axis)
+      this.position_tracker().add(this.axis.mesh);
+
+    this.spin_scale = (Math.random() * 0.75) + 0.5;
+
     this.update_gfx();
 
     this._calc_orbit();
@@ -68,7 +63,8 @@ Omega.PlanetGfx = {
 
     this.last_moved = new Date();
     this.components = [this.position_tracker(), this.mesh.tmesh, this.orbit_line.line];
-    this._gfx_initialized = true;
+    this._gfx_initializing = false;
+    this._gfx_initialized  = true;
   },
 
   /// Update local system graphics on core entity changes
@@ -90,9 +86,11 @@ Omega.PlanetGfx = {
     this._set_orbit_angle(this._orbit_angle);
 
     // spin the planet
-    this.mesh.spin(elapsed / 2);
+    this.mesh.spin(elapsed / 2 * this.spin_scale);
 
     this.update_gfx();
     this.last_moved = curr;
   }
 }
+
+$.extend(Omega.PlanetGfx, Omega.EntityGfx);

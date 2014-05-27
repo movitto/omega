@@ -250,6 +250,11 @@ module Omega
           planet.location.ms = plorbit
         end
 
+        # randomize orientation (spin axis)
+        orientation = rand_invert constraint('planet', 'orientation')
+        planet.location.orientation =
+          [orientation['x'], orientation['y'], orientation['z']]
+
         RJR::Logger.info "Creating planet #{planet} under #{system}"
         invoke 'cosmos::create_entity', planet
 

@@ -226,7 +226,15 @@ Omega.Gen = {
     if(!opts.location){
       var loc_opts = {x: 0, y: 0, z: 0};
       opts.location = new Omega.Location(loc_opts);
-      opts.location.set_orientation(0,0,1);
+
+      var orientation = Omega.Constraint.gen('planet', 'orientation');
+          orientation = Omega.Constraint.rand_invert(orientation);
+          orientation = Omega.Math.nrml(orientation.x,
+                                        orientation.y,
+                                        orientation.z);
+          opts.location.set_orientation(orientation[0],
+                                        orientation[1],
+                                        orientation[2]);
     }
     if(!opts.location.movement_strategy)
       opts.location.movement_strategy = this.orbit_ms({'for' : 'planet'});

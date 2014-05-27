@@ -54,8 +54,7 @@ Omega.PlanetMesh.prototype = {
     if(this.__spin_axis) return this.__spin_axis;
 
     /// XXX intentionally swapping axis y/z here,
-    /// We should generate a unique orientation orthogonal to
-    /// orbital axis (or at a slight angle off that) on planet creation
+    /// (also see note in planet/axis#set_orientation)
     var loc  = this.omega_entity.scene_location();
     var axis = new THREE.Vector3(loc.orientation_x,
                                  loc.orientation_z,
