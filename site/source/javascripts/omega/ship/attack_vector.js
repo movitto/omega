@@ -15,7 +15,7 @@ Omega.ShipAttackVector = function(args){
 
 Omega.ShipAttackVector.prototype = {
   particle_age         : 2,
-  particles_per_second : 0.5,
+  particle_count       : 1,
   particle_size        : 30,
 
   _particle_group : function(config, event_cb){
@@ -35,7 +35,7 @@ Omega.ShipAttackVector.prototype = {
       opacityStart  : 0.75,
       opacityEnd    : 0.75,
       velocity      : new THREE.Vector3(0, 0, 1),
-      particlesPerSecond : this.particles_per_second,
+      particleCount : this.particle_count,
       alive         : 0
     });
   },

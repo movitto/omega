@@ -31,7 +31,7 @@ Omega.ShipExplosionEffect.prototype = {
       colorStart:       new THREE.Color('yellow'),
       colorStartSpread: new THREE.Vector3(0, 10, 0),
       colorEnd:         new THREE.Color('red'),
-      particleCount:    1000,
+      particleCount:     100,
       alive:               0,
       duration:         0.05
     };
