@@ -141,6 +141,11 @@ class Elliptical < MovementStrategy
         return
      end
 
+     # TODO validation / adjustment & theta computation / updating below
+     # results in alot of redundant calls (recomputing theta & coords).
+     # Optimize here or in new movement strategy that doesn't check
+     # constraint / stores theta internally / etc
+
      # make sure location is on ellipse
      unless location_valid? loc
         cx,cy,cz = closest_coordinates loc

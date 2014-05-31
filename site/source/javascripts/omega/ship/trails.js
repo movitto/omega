@@ -17,7 +17,6 @@ Omega.ShipTrails = function(args){
 };
 
 Omega.ShipTrails.prototype = {
-  particles_per_second :   200,
   plane                :     7,
   lifespan             :   0.3,
   particle_speed       :     1,
@@ -46,7 +45,7 @@ Omega.ShipTrails.prototype = {
       opacityStart       :    1,
       opacityEnd         :    0,
       velocity           : this._particle_velocity(),
-      particlesPerSecond : this.particles_per_second,
+      particleCount      :  100,
       alive              :    0,
     });
   },

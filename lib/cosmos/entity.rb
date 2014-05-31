@@ -72,7 +72,7 @@ module Entity
   # Additional metadata associated with entity,
   attr_accessor :metadata
 
-  # Cosmos::Entity intializer
+  # Cosmos::Entity initializer
   #
   # @param [Hash] args hash of options to initialize entity with
   # @option args [String] :id,'id' unqiue id to assign to the entity

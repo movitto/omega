@@ -25,7 +25,6 @@ Omega.Callbacks.motel = function(evnt, event_args){
 
   if(this.page.canvas.is_root(entity.parent_id)){
     this.page.canvas.reload(entity, function(){
-      /// FIXME check to see if entity gfx fully initialized
       entity.update_gfx();
     });
 
