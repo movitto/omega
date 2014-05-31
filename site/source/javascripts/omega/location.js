@@ -112,6 +112,26 @@ Omega.Location.prototype = {
     return this;
   },
 
+  /// Return axis angle between location's orientation and specified coordinate
+  orientation_difference : function(x, y, z){
+    var dx = x - this.x;
+    var dy = y - this.y;
+    var dz = z - this.z;
+    if(dx == 0 && dy == 0 && dz == 0) return [NaN, NaN, NaN];
+
+    var nrml  = Omega.Math.nrml(dx, dy, dz);
+    var angle = Omega.Math.abwn(this.orientation_x,
+                                this.orientation_y,
+                                this.orientation_z,
+                                nrml[0], nrml[1], nrml[2]);
+    var axis  = Omega.Math.cp(this.orientation_x,
+                              this.orientation_y,
+                              this.orientation_z,
+                              nrml[0], nrml[1], nrml[2]);
+        axis  = Omega.Math.nrml(axis[0], axis[1], axis[2]);
+    return [angle].concat(axis);
+  },
+
   /// Return array containing this location's coordinates plus specified values
   add : function(x, y ,z){
     return [this.x + x, this.y + y, this.z + z];
@@ -170,13 +190,19 @@ Omega.Location.prototype = {
     return this.distance_from(0,0,0);
   },
 
+  /// Boolean indicating if location is on target
+  on_target : function(){
+    if(!this.tracking) return true;
+    var min_distance = Omega.Config.follow_distance;
+    return this.distance_from(this.tracking) <= min_distance;
+  },
 
   /// Boolean indicating if location is not moving
   is_stopped : function(){
     return !!(this.movement_strategy) &&
-           (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped'   ||
-           (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'    &&
-           !this.movement_strategy.adjusting_bearing && this.movement_strategy.on_target));
+      (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped' ||
+      (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'  &&
+       this.on_target()));
   },
 
   /// Boolean indicating if location if moving using specified ms type

@@ -265,24 +265,28 @@ Omega.ShipGfx = {
     var now     = new Date();
     var elapsed = now - this.last_moved;
 
-    if(this.location.movement_strategy.point_to_target)
-      this._run_rotation_movement(page, elapsed);
-
-    if(this.location.movement_strategy.adjusting_bearing)
-      return;
-
     var loc = this.location;
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
-    var tracked_loc = tracked.location;
+    loc.tracking = tracked.location; /// TODO need to clear tracking somewhere
 
-    var dx = tracked_loc.x - loc.x;
-    var dy = tracked_loc.y - loc.y;
-    var dz = tracked_loc.z - loc.z;
-    var distance = loc.distance_from(tracked_loc);
-    var min_distance = Omega.Config.follow_distance;
+    /// XXX rotation / linear movement here more or less corresponds
+    ///     to logic in MovementStrategies::Follow#move
+    var orientation_difference =
+      this.location.orientation_difference(loc.tracking.x,
+                                           loc.tracking.y,
+                                           loc.tracking.z)
+    var facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 32);
+    if(this.location.movement_strategy.point_to_target && !facing_target)
+      this._run_rotation_movement(page, elapsed);
 
-    //Take into account client/server sync
-    if (distance >= min_distance && !loc.movement_strategy.on_target){
+
+    facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 8);
+    if (!loc.on_target() && facing_target){
+      var dx = loc.tracking.x - this.location.x;
+      var dy = loc.tracking.y - this.location.y;
+      var dz = loc.tracking.z - this.location.z;
+      var distance = this.location.distance_from(loc.tracking);
+
       dx = dx / distance;
       dy = dy / distance;
       dz = dz / distance;
@@ -292,6 +296,8 @@ Omega.ShipGfx = {
       loc.x += move_distance * dx;
       loc.y += move_distance * dy;
       loc.z += move_distance * dz;
+    }else{
+      this.update_movement_effects();
     }
 
     /// TODO move into if block above

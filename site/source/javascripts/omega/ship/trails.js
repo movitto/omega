@@ -115,15 +115,7 @@ Omega.ShipTrails.prototype = {
   },
 
   update_state : function(){
-    var loc = this.omega_entity.location;
-    var stopped   = loc.is_stopped();
-    var follow    = loc.is_moving('follow');
-    var on_target = !!(loc.movement_strategy) &&
-                    loc.movement_strategy.on_target;
-    var adjusting = !!(loc.movement_strategy) &&
-                    loc.movement_strategy.adjusting_bearing;
-
-    if(stopped || (follow && (on_target || adjusting)))
+    if(this.omega_entity.location.is_stopped())
       this.disable();
     else
       this.enable();

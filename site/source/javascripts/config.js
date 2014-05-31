@@ -44,7 +44,7 @@ Omega.Config = {
 
   //movement
   movement_offset   : {min : 5000000, max: 10000000},
-  follow_distance   : 100,
+  follow_distance   : 15000000, /// a little more than ship movement speed
 
   // stats
   stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],

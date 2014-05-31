@@ -25,12 +25,6 @@ class Follow < MovementStrategy
 
   include Rotatable
 
-   # [Boolean] Indicates if we are close enough to the target to stop
-   attr_reader :on_target
-
-   # [Boolean] Indicates if we have stopped to face the target
-   attr_reader :adjusting_bearing
-
    # [String] ID of location which is being tracked
    attr_reader :tracked_location_id
 
@@ -73,8 +67,6 @@ class Follow < MovementStrategy
                           :point_to_target         => false,
                           :rotation_speed          => 1
      # If we have to point to the target, do so before moving
-     @adjusting_bearing = @point_to_target
-     @on_target = false # Asume we haven't arrived at the target at first
      init_rotation
      super(args)
    end
@@ -110,36 +102,23 @@ class Follow < MovementStrategy
      ::RJR::Logger.debug "moving location #{loc.id} via follow movement strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     distance_to_cover  = loc - tl
+     # Calculate orientation difference
+     od = loc.orientation_difference(*tl.coordinates)
+     facing_target = od.first.abs <= (Math::PI / 32)
 
-     @on_target = distance_to_cover <= @distance
-
-     if @point_to_target
-       # Calculate orientation difference
-       # TODO separate this logic into helper
-       od = loc.orientation_difference(*tl.coordinates)
-       if od.first.abs > (Math::PI / 32)
-         # TODO right now this makes sure we can move and change rotation
-         # at the same time. In the future, we should probably do some math 
-         # to figure out intercept trajectories
-         @adjusting_bearing = true if @on_target
-         init_rotation :rot_theta =>  od[0] * @rotation_speed,
-                       :rot_x     =>  od[1],
-                       :rot_y     =>  od[2],
-                       :rot_z     =>  od[3]
-         if valid_rotation?
-           rotate loc, elapsed_seconds
-         end
-       else
-         @adjusting_bearing = false
-       end
+     # TODO separate this logic into helper
+     if @point_to_target && !facing_target
+       # FIXME rotation seems to be slow
+       init_rotation :rot_theta =>  @rotation_speed,
+                     :rot_x     =>  od[1],
+                     :rot_y     =>  od[2],
+                     :rot_z     =>  od[3]
+       rotate loc, elapsed_seconds if valid_rotation?
      end
 
-     if @on_target || @adjusting_bearing
-       #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
-       # TODO orbit the location or similar?
-
-     else
+     distance_to_cover  = loc - tl
+     facing_target = od.first.abs <= (Math::PI / 8)
+     if (distance_to_cover > @distance) && facing_target
        # calculate direction of tracked location
        dx = (tl.x - loc.x) / distance_to_cover
        dy = (tl.y - loc.y) / distance_to_cover
@@ -151,6 +130,10 @@ class Follow < MovementStrategy
        loc.x += distance * dx
        loc.y += distance * dy
        loc.z += distance * dz
+
+     else
+       #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
+       # TODO orbit the location or similar?
      end
    end
 
@@ -163,8 +146,6 @@ class Follow < MovementStrategy
                          :distance            => distance,
                          :point_to_target     => point_to_target,
                          :rotation_speed      => rotation_speed,
-                         :on_target           => on_target,
-                         :adjusting_bearing   => adjusting_bearing
                        }.merge(rotation_json)
      }.to_json(*a)
    end
