@@ -95,7 +95,15 @@ Omega.Config = {
       'manufacturing' : { 'material' : '/meshes/research1.png',
                           'geometry' : '/meshes/research.json',
                           'lamps' : [[15, 0x0000ff, [0,   40, 0]],
-                                     [15, 0x0000ff, [0, -300, 0]]]}}
+                                     [15, 0x0000ff, [0, -300, 0]]]},
+      'commerce' : { 'material' : '/meshes/medical.png',
+                     'geometry' : '/meshes/medical.json',
+                     'lamps' : [[15, 0x0000ff, [0,   90, 0]],
+                                [15, 0x0000ff, [0,  -90, 0]]]},
+
+      'mining' : { 'material' : '/meshes/mining.png',
+                   'geometry' : '/meshes/mining.json'}
+    }
   },
 
   audio : {
