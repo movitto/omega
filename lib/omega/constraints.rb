@@ -37,7 +37,7 @@ module Omega
     end
 
     def self.randomize(base, deviation=nil)
-      return "%06x" % (rand * 0xffffff) if base == "rgb"
+      return base.sample if base.is_a?(Array)
       return base unless deviation
       return base + rand * deviation * (coin_flip ? 1 : -1) if base.numeric?
 
@@ -86,7 +86,7 @@ module Omega
 
     def self.valid?(value, *target)
       base = get *target
-      return value =~ /^[a-fA-F0-9]{6}$/ if base == "rgb"
+      return base.include?(value) if base.is_a?(Array)
 
       vmax = max(*target)
       vmin = min(*target)

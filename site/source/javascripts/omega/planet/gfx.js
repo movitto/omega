@@ -12,7 +12,7 @@
 
 Omega.PlanetGfx = {
   /// TODO: centralize number of planet textures / make configurable
-  _num_textures : 4,
+  _num_textures : 7,
 
   async_gfx : 1,
 

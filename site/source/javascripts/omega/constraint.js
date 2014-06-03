@@ -5,6 +5,10 @@
  */
 
 Omega.Constraint = {
+  url : function(config){
+    return "http://" + config.http_host + config.url_prefix + config.constraints;
+  },
+
   load : function(url, cb){
     if(url){
       var _this = this;
@@ -44,9 +48,7 @@ Omega.Constraint = {
   },
 
   _randomize : function(base, deviation){
-    if(base == 'rgb') /// random hex string
-      return Math.floor(Math.random()*16777215).toString(16);
-
+    if($.isArray(base)) return base[Math.floor(Math.random()*base.length)];
     if(!deviation) return base;
 
     if(typeof(base) === "object"){
@@ -115,7 +117,7 @@ Omega.Constraint = {
     var base      = this._get(args);
     var deviation = this._get_deviation(args);
 
-    if(base == 'rgb') return new RegExp("^[a-fA-F0-9]{6}$").test(base);
+    if($.isArray(base)) return base.indexOf(current) != -1;
     if(!deviation) return current == base;
 
     var max = this._max(args);

@@ -4,6 +4,9 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO just load one 'base' star texture / tint it to star colors
+/// TODO dynamic texture / mesh (eg an 'active' star)
+
 //= require "omega/star/geometry"
 
 Omega.StarMesh = function(args){
@@ -16,9 +19,6 @@ Omega.StarMesh = function(args){
 };
 
 Omega.StarMesh.prototype = {
-  /// TODO support more granular / 'blended' types
-  types : ['0000FF', '00FF00', 'FF0000'],
-
   clone : function(){
     var smesh = new Omega.StarMesh();
     smesh.cp_gfx(this);
@@ -54,29 +54,17 @@ Omega.StarMesh.prototype = {
 
 Omega.StarMesh.for_types = function(args){
   var meshes = [];
-  for(var t = 0; t < Omega.StarMesh.prototype.types.length; t++){
-    var type = Omega.StarMesh.prototype.types[t];
+  var types = Omega.Constraint._get(['star', 'type']);
+  for(var t = 0; t < types.length; t++){
+    var type = types[t];
     meshes.push(new Omega.StarMesh($.extend({type : type}, args)));
   }
   return meshes;
 }
 
 Omega.StarMesh.for_type = function(type, meshes){
-  var rgb = parseInt(type, 16);
-  var r = (rgb >> 16) & 255;
-  var g = (rgb >> 8) & 255;
-  var b = rgb & 255;
-
-  var strongest = 'FF0000';
-  if(g > r && g > b)
-    strongest = '00FF00';
-  else if(b > r && b > g)
-    strongest = '0000FF';
-
-  for(var m = 0; m < meshes.length; m++){
-    if(meshes[m].type == strongest)
+  for(var m = 0; m < meshes.length; m++)
+    if(meshes[m].type == type)
       return meshes[m];
-  }
-
   return null;
 };

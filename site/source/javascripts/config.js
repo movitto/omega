@@ -53,8 +53,8 @@ Omega.Config = {
   resources    : {
     'solar_system' : { 'material' : '/solar_system1.png'},
 
-    'star'         : { 'base_texture'  : '/textures/sun-',
-                       'extension'     : 'jpg' },
+    'star'         : { 'base_texture'  : '/textures/stars/sun-',
+                       'extension' : 'jpg'},
 
     'jump_gate'    : { 'material' : '/meshes/wormhole_generator/generatormap.jpg',
                        'geometry' : '/meshes/wormhole_generator/wormhole_generator.json'},
@@ -63,6 +63,8 @@ Omega.Config = {
     'planet2'      : { 'material' : '/textures/planet2.png' },
     'planet3'      : { 'material' : '/textures/planet3.png' },
     'planet4'      : { 'material' : '/textures/planet4.png' },
+    'planet5'      : { 'material' : '/textures/planet5.png' },
+    'planet6'      : { 'material' : '/textures/planet6.png' },
     'asteroid'     : { 'material' : '/textures/asteroid01.png',
                        'geometry' : ['/meshes/asteroids1.json',
                                      '/meshes/asteroids2.json',

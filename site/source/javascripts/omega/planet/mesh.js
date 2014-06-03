@@ -46,6 +46,7 @@ Omega.PlanetMesh.prototype = {
   },
 
   init_gfx : function(config, type, event_cb){
+    /// FIXME need to rotate material texture to line up w/ spin_axis
     return new THREE.Mesh(this._geometry(),
                           this._material(config, type, event_cb));
   },

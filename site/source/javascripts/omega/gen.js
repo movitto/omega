@@ -15,10 +15,7 @@
 
 Omega.Gen = {
   init : function(config, cb){
-    var constraints_url = "http://" + config.http_host +
-                          config.url_prefix +
-                          config.constraints;
-    Omega.Constraint.load(constraints_url, cb);
+    Omega.Constraint.load(Omega.Constraint.url(config), cb);
   },
 
   next_id : function(){

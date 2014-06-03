@@ -8,7 +8,8 @@
     "size":           1000000,
     "sizeDeviation":   700000,
 
-    "type": "rgb"
+    "type": ["0000FF", "0077FF", "FFFF00",
+             "FF7700", "FF0000", "FFFFCC", "FFFFFF"]
   },
 
   "asteroid": {

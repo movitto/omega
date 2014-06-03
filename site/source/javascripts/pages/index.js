@@ -21,6 +21,8 @@
 
 //= require "ui/splash"
 
+//= require "omega/constraint"
+
 Omega.Pages.Index = function(){
   this.config           = Omega.Config;
   this.node             = new Omega.Node(this.config);
@@ -117,7 +119,9 @@ $(document).ready(function(){
 
   /// immediately start preloading missing resources
   Omega.UI.Loader.status_indicator = index.status_indicator;
-  Omega.UI.Loader.preload();
+  Omega.Constraint.load(Omega.Constraint.url(index.config), function(){
+    Omega.UI.Loader.preload();
+  });
 
   /// wire up / startup ui
   index.wire_up();

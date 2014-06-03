@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO solar flares
+
 //= require "omega/entity/gfx"
 //= require "omega/star/mesh"
 //= require "omega/star/glow"
@@ -37,6 +39,7 @@ Omega.StarGfx = {
 
     this.glow = Omega.Star.gfx.glow.clone();
     this.glow.tglow.position = this.mesh.tmesh.position;
+    this.glow.set_color(this.type_int);
 
     this.light = Omega.Star.gfx.light.clone();
     this.light.position = this.mesh.tmesh.position;
