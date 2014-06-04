@@ -131,5 +131,14 @@ Omega.Config = {
        'tech1' : { 'bg'     : {'src' : 'scenes_tech1_bg_wav'}}},
 
     'backgrounds' : 5
+  },
+
+  locale : {
+    'Cosmos::Entities::Galaxy'      : 'Galaxy',
+    'Cosmos::Entities::SolarSystem' : 'System',
+    'Cosmos::Entities::Star'        : 'Star',
+    'Cosmos::Entities::Planet'      : 'Planet',
+    'Cosmos::Entities::Asteroid'    : 'Asteroid',
+    'Cosmos::Entities::JumpGate'    : 'Jump Gate'
   }
 };

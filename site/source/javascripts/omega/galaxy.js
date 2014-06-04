@@ -84,6 +84,10 @@ Omega.Galaxy.prototype = {
     });
   },
 
+  clicked_in : function(canvas){
+    canvas.reset_cam();
+  },
+
   /// Set galaxy children from entities list
   set_children_from : function(entities){
     var systems = this.children;

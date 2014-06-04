@@ -105,8 +105,8 @@ Omega.UI.CanvasMouseHandler = {
   },
 
   _clicked_entity : function(entity){
-    if(entity.has_details) this.entity_container.show(entity);
     if(entity.clicked_in) entity.clicked_in(this);
+    if(entity.has_details) this.entity_container.show(entity);
     entity.dispatchEvent({type: 'click'});
   },
 

@@ -85,6 +85,10 @@ Omega.UI.CanvasEntityContainer.prototype = {
     $(this.div_id).focus();
   },
 
+  is_selected : function(entity){
+    return this.entity == entity;
+  },
+
   append : function(text){
     $(this.contents_id).append(text);
   },

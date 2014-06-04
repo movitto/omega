@@ -24,6 +24,7 @@ Omega.GalaxyCenter.prototype = {
 
   init_gfx : function(){
     this.mesh = new THREE.Mesh(this._geometry(), this._material());
+    this.mesh.omega_obj = this;
   },
 
   components : function(){

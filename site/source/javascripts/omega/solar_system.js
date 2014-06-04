@@ -5,6 +5,7 @@
  */
 
 //= require "omega/solar_system/gfx"
+//= require "omega/solar_system/info"
 
 Omega.SolarSystem = function(parameters){
   this.components = [];
@@ -136,6 +137,19 @@ Omega.SolarSystem.prototype = {
 
   /// Set scene root to system whenever clicked in scene
   clicked_in : function(canvas){
+    /// TODO cleanup
+    if(!canvas.entity_container.is_selected(this)){
+      canvas.follow_entity(this);
+
+      var _this = this;
+      /// TODO also retrieve / display manu entities in system
+      this.refresh(canvas.page.node, function(){
+        _this.refresh_details();
+      });
+
+      return;
+    }
+
     canvas.page.audio_controls.stop();
     canvas.page.audio_controls.play(this.audio_effects, 'click');
 
@@ -183,6 +197,7 @@ Omega.SolarSystem.prototype = {
 };
 
 $.extend(Omega.SolarSystem.prototype, Omega.SolarSystemGfx);
+$.extend(Omega.SolarSystem.prototype, Omega.SolarSystemInfo);
 
 // return the solar system with the specified id
 Omega.SolarSystem.with_id = function(id, node, opts, cb){

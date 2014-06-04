@@ -31,6 +31,7 @@ Omega.GalaxyGfx = {
     this.density_wave1 = Omega.Galaxy.gfx.density_wave1;
     this.density_wave2 = Omega.Galaxy.gfx.density_wave2;
     this.center        = Omega.Galaxy.gfx.center;
+    this.center.omega_entity = this;
 
     this.components = this.density_wave1.components().
                concat(this.density_wave2.components()).
