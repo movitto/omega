@@ -79,9 +79,9 @@ describe("Omega.SolarSystemGfx", function(){
       assert(system.mesh.omega_entity).equals(system);
     });
 
-    it("sets mesh position", function(){
+    it("sets position tracker position", function(){
       system.init_gfx(Omega.Config);
-      assert(system.mesh.tmesh.position.toArray()).isSameAs([50, 60, -75]);
+      assert(system.position_tracker().position.toArray()).isSameAs([50, 60, -75]);
     });
 
     it("clones SolarSystem plane", function(){
@@ -91,9 +91,9 @@ describe("Omega.SolarSystemGfx", function(){
       assert(system.plane).equals(plane);
     });
 
-    it("sets plane position", function(){
+    it("adds plane to position tracker", function(){
       system.init_gfx(Omega.Config);
-      assert(system.plane.tmesh.position.toArray()).isSameAs([50, 60, -75]);
+      assert(system.position_tracker().children).includes(system.plane.tmesh);
     });
 
     it("creates text for solar system", function(){
@@ -101,9 +101,9 @@ describe("Omega.SolarSystemGfx", function(){
       assert(system.text).isOfType(Omega.SolarSystemText);
     });
 
-    it("sets text position", function(){
+    it("adds text to position tracker", function(){
       system.init_gfx(Omega.Config);
-      assert(system.text.text.position.toArray()).isSameAs([50, 110, -75]);
+      assert(system.position_tracker().children).includes(system.text.text);
     });
 
     it("creates local reference to solar system audio", function(){
@@ -111,11 +111,11 @@ describe("Omega.SolarSystemGfx", function(){
       assert(system.audio_effects).equals(Omega.SolarSystem.gfx.audio_effects);
     });
     
-    it("adds plane, text, particles to solar system scene components", function(){
+    it("adds position tracker, particles to solar system scene components", function(){
       system.init_gfx(Omega.Config);
-      assert(system.components).isSameAs([system.plane.tmesh,
-                                          system.text.text,
-                                          system.interconns.particles.mesh]);
+      assert(system.components).isSameAs([system.position_tracker(),
+                                          system.interconns.particles.mesh,
+                                          system.particles.particles.mesh]);
     });
 
     it("unqueues interconnections", function(){
@@ -126,33 +126,43 @@ describe("Omega.SolarSystemGfx", function(){
   });
 
   describe("#update_gfx", function(){
-    it("updates mesh", function(){
+    it("sets position tracker position", function(){
       system.init_gfx(Omega.Config);
-      sinon.stub(system.mesh, 'update');
+      system.location.set(100, -200, 300);
       system.update_gfx();
-      sinon.assert.called(system.mesh.update);
+      assert(system.position_tracker().position.x).equals(100);
+      assert(system.position_tracker().position.y).equals(-200);
+      assert(system.position_tracker().position.z).equals(300);
     });
 
-    it("updates plane", function(){
+    it("updates particles", function(){
       system.init_gfx(Omega.Config);
-      sinon.stub(system.plane, 'update');
+      sinon.stub(system.particles, 'update');
       system.update_gfx();
-      sinon.assert.called(system.plane.update);
+      sinon.assert.called(system.particles.update);
     });
 
-    it("updates text", function(){
+    it("updates interconns", function(){
       system.init_gfx(Omega.Config);
-      sinon.stub(system.text, 'update');
+      sinon.stub(system.interconns, 'update');
       system.update_gfx();
-      sinon.assert.called(system.text.update);
+      sinon.assert.called(system.interconns.update);
     });
   });
 
   describe("#run_effects", function(){
-    it("updates interconnect particles", function(){
+    it("runs interconnect effects", function(){
+      system.init_gfx(Omega.Config);
       sinon.stub(system.interconns, 'run_effects');
       system.run_effects();
       sinon.assert.calledWith(system.interconns.run_effects);
+    });
+
+    it("runs particles effects", function(){
+      system.init_gfx(Omega.Config);
+      sinon.stub(system.particles, 'run_effects');
+      system.run_effects();
+      sinon.assert.calledWith(system.particles.run_effects);
     });
   });
 });});

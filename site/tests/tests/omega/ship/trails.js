@@ -4,7 +4,7 @@ describe("Omega.ShipTrails", function(){
     var type = 'corvette';
     var conf = Omega.Config.resources.ships[type].trails;
     var trails = new Omega.ShipTrails({config: Omega.Config, type: type});
-    assert(trails.particles).isOfType(ShaderParticleGroup);
+    assert(trails.particles).isOfType(SPE.Group);
     assert(trails.particles.emitters.length).equals(conf.length);
   });
 

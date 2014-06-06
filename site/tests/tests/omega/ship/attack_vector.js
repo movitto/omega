@@ -2,7 +2,7 @@ pavlov.specify("Omega.ShipAttackVector", function(){
 describe("Omega.ShipAttackVector", function(){
   it("has a SPE Group instance", function(){
     var vector = new Omega.ShipAttackVector({config: Omega.Config});
-    assert(vector.particles).isOfType(ShaderParticleGroup);
+    assert(vector.particles).isOfType(SPE.Group);
     assert(vector.particles.emitters.length).equals(1);
   });
 

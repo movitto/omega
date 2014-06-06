@@ -23,16 +23,6 @@ describe Constraints do
   end
 
   describe "#randomize" do
-    context "base is 'rgb'" do
-      it "generates random rgb value" do
-        r1 = Constraints.randomize("rgb")
-        r2 = Constraints.randomize("rgb")
-        r1.should_not == r2
-        r1.should =~ /^[a-fA-F0-9]{6}$/ 
-        r2.should =~ /^[a-fA-F0-9]{6}$/ 
-      end
-    end
-
     context "deviation is not set" do
       it "returns base" do
         Constraints.randomize(5).should == 5
@@ -114,22 +104,6 @@ describe Constraints do
   end
 
   describe "#valid?" do
-    context "base is 'rgb'" do
-      context "value is rgb string" do
-        it "returns true" do
-          Constraints.should_receive(:get).with('a').and_return('rgb')
-          Constraints.valid?('ABABAB', 'a').should be_true
-        end
-      end
-
-      context "value is not a rgb string" do
-        it "returns false" do
-          Constraints.should_receive(:get).with('a').and_return('rgb')
-          Constraints.valid?('foobar', 'a').should be_false
-        end
-      end
-    end
-
     context "value is between min/max target bounds" do
       it "return true" do
         Constraints.should_receive(:max).with('a').and_return(10)

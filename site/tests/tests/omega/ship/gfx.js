@@ -565,11 +565,13 @@ describe("Omega.ShipGfx", function(){
 
     before(function(){
       tracked = Omega.Gen.ship();
+      tracked.location.set(0, 0, 0);
 
       ship.init_gfx(Omega.Config);
       ship.location.movement_strategy = 
         {json_class : 'Motel::MovementStrategies::Follow',
          tracked_location_id : tracked.id};
+      ship.location.set(Omega.Config.follow_distance + 100, 0, 0);
 
       page = Omega.Test.Page();
       page.entity(tracked.id, tracked);
@@ -589,22 +591,21 @@ describe("Omega.ShipGfx", function(){
       });
     });
 
-    describe("ship is adjusting bearing", function(){
-      it("just returns / does nothing", function(){
-        ship.location.movement_strategy.adjusting_bearing = true;
-        var spy = sinon.spy();
-        ship.addEventListener('movement', spy);
+    describe("ship is not facing target", function(){
+      it("does not move ship", function(){
+        ship.location.movement_strategy.point_to_target = false;
+        ship.location.set_orientation(1, 0, 0);
+
+        var orig = ship.location.coordinates();
         ship._run_follow_movement(page);
-        sinon.assert.notCalled(spy);
+        assert(ship.location.coordinates()).isSameAs(orig);
       });
     });
 
     describe("ship is not on target && further away than min follow distance", function(){
       it("moves ship towards target", function(){
         var coordinates = ship.location.coordinates();
-        tracked.location.set(ship.location.add(Omega.Config.follow_distance,
-                                               Omega.Config.follow_distance,
-                                               Omega.Config.follow_distance));
+        ship.location.set_orientation(-1, 0, 0);
 
         var dist = ship.location.distance_from(tracked.location);
         var dx   = (tracked.location.x - ship.location.x) / dist;

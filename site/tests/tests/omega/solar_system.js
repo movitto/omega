@@ -238,12 +238,28 @@ describe("Omega.SolarSystem", function(){
           canvas.page.node, sinon.match.func);
     });
 
-    it("sets canvas scene root", function(){
-      sinon.stub(system, 'refresh');
-      sinon.stub(canvas, 'set_scene_root');
-      system.clicked_in(canvas);
-      system.refresh.omega_callback()();
-      sinon.assert.calledWith(canvas.set_scene_root, system);
+    describe("solar system not selected", function(){
+      it("refreshes entity details", function(){
+        sinon.stub(system, 'refresh');
+        sinon.stub(canvas.entity_container, 'is_selected').returns(false);
+
+        sinon.stub(system, 'refresh_details');
+        system.clicked_in(canvas);
+        system.refresh.omega_callback()();
+        sinon.assert.calledWith(system.refresh_details);
+      });
+    });
+
+    describe("solar system selected", function(){
+      it("sets canvas scene root", function(){
+        sinon.stub(system, 'refresh');
+        sinon.stub(canvas.entity_container, 'is_selected').returns(true);
+
+        sinon.stub(canvas, 'set_scene_root');
+        system.clicked_in(canvas);
+        system.refresh.omega_callback()();
+        sinon.assert.calledWith(canvas.set_scene_root, system);
+      });
     });
   });
 

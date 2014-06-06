@@ -369,20 +369,20 @@ Omega.Test.init = function(){
   var loaded = 0, entities_with_resources = [];
   var start_on_load = function(){
     loaded += 1;
-    if(loaded == entities_with_resources.length+1)
+    if(loaded == entities_with_resources.length)
       QUnit.start();
   };
 
-  var entities = Omega.Test.Canvas.Entities();
-  for(var e in entities){
-    if(entities[e].retrieve_resource)
-      entities_with_resources.push(entities[e]);
-  }
+  Omega.Gen.init(Omega.Config, function(){
+    var entities = Omega.Test.Canvas.Entities();
+    for(var e in entities){
+      if(entities[e].retrieve_resource)
+        entities_with_resources.push(entities[e]);
+    }
 
-  for(var e = 0; e < entities_with_resources.length; e++)
-    entities_with_resources[e].retrieve_resource('mesh', start_on_load);
-
-  Omega.Gen.init(Omega.Config, start_on_load);
+    for(var e = 0; e < entities_with_resources.length; e++)
+      entities_with_resources[e].retrieve_resource('mesh', start_on_load);
+  });
 }
 
 /// should be triggered after QUnit.load

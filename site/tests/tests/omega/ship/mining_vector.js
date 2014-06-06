@@ -2,7 +2,7 @@ pavlov.specify("Omega.ShipMiningVector", function(){
 describe("Omega.ShipMiningVector", function(){
   it("has a SPE Group instance", function(){
     var vector = new Omega.ShipMiningVector({config: Omega.Config});
-    assert(vector.particles).isOfType(ShaderParticleGroup);
+    assert(vector.particles).isOfType(SPE.Group);
     assert(vector.particles.emitters.length).
       equals(Omega.ShipMiningVector.prototype.num_emitters);
   });

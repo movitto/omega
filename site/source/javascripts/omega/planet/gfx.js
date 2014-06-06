@@ -20,7 +20,7 @@ Omega.PlanetGfx = {
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
-    if(this.gfx_loaded()) return;
+    if(this.gfx_loaded(this.type)) return;
     Omega.Planet.gfx         = Omega.Planet.gfx || {};
 
     var gfx                  = {};

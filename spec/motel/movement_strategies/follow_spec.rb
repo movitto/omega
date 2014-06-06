@@ -152,9 +152,15 @@ describe Follow do
     it "moves location in direction towards target by speed * elapsed time" do
       p   = Motel::Location.new
       l1 = Motel::Location.new(:id => 1, :parent => p,
-                               :x => 20, :y => 0, :z => 0)
+                               :x => 20, :y => 0, :z => 0,
+                               :orientation_x => -1,
+                               :orientation_y =>  0,
+                               :orientation_z =>  0)
       l2 = Motel::Location.new(:id => 2, :parent => p,
-                               :x => 0,  :y => 0, :z => 0)
+                               :x => 0,  :y => 0, :z => 0,
+                               :orientation_x => 1,
+                               :orientation_y => 0,
+                               :orientation_z => 0)
 
       follow = Follow.new :tracked_location_id => l2.id,
                           :distance => 10, :speed => 5

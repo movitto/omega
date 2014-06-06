@@ -92,12 +92,12 @@ describe("Omega.SolarSystemInterconns", function(){
 
       //it("sets particle velocity on emitter"); // NIY
 
-      it("adds new line component to omega_entity gfx components", function(){
+      it("adds new line component to omega_entity galaxy position tracker", function(){
         var line = new THREE.Line();
         sinon.stub(interconns, '_line').returns(line);
         interconns.add(endpoint)
-        assert(interconns.omega_entity.components.length).equals(1)
-        assert(interconns.omega_entity.components[0]).equals(line);
+        assert(interconns.omega_entity.position_tracker().children.length).equals(1)
+        assert(interconns.omega_entity.position_tracker().children[0]).equals(line);
       });
     });
   });
