@@ -1,7 +1,7 @@
 /* Omega Star Mesh
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 /// TODO just load one 'base' star texture / tint it to star colors

@@ -2,7 +2,7 @@
 # motel::track_stops rjr definitions
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/rjr/init'
 require 'motel/rjr/track/callback_for'

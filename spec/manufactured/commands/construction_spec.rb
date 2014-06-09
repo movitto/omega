@@ -1,7 +1,7 @@
 # Construction Command tests
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'spec_helper'
 require 'manufactured/commands/construction'

@@ -2,7 +2,7 @@
 # Registers some example hooks with an omega-server
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # TODO locations should be generated/randomized within constraints on
 # server side execution of hook (or in followup hook)

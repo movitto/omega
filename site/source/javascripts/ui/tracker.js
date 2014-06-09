@@ -1,7 +1,7 @@
 /* Omega JS Tracker
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 /// Entity Tracker mixin, add to classes & use to track scene and user entities

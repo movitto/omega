@@ -1,7 +1,7 @@
 # The Linear MovementStrategy model definition
 #
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'rjr/common'
 require 'motel/common'

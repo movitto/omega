@@ -1,7 +1,7 @@
 # missions::subscribe_to, missions::unsubscribe rjr definitions
 #
 # Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'missions/rjr/init'
 

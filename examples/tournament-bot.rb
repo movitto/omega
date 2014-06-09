@@ -3,7 +3,7 @@
 # A simple opponent bot to play against in the tournament simulation
 #
 # Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'optparse'
 

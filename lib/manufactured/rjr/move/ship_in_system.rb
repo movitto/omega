@@ -1,7 +1,7 @@
 # manufactured::move ship in system helper
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 module Manufactured::RJR
   # Move a ship in a single system

@@ -1,7 +1,7 @@
 /* Omega Ship Graphics
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 //= require "omega/entity/gfx"
@@ -278,7 +278,6 @@ Omega.ShipGfx = {
     var facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 32);
     if(this.location.movement_strategy.point_to_target && !facing_target)
       this._run_rotation_movement(page, elapsed);
-
 
     facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 8);
     if (!loc.on_target() && facing_target){

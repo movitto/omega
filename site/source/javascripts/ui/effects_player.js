@@ -3,7 +3,7 @@
  * Implements the traditional 'game loop' for the Omega JS UI
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 /// TODO disable scene entity effects if not in camera view

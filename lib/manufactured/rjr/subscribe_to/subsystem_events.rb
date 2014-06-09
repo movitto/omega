@@ -1,7 +1,7 @@
 # manufactured::subscribe_to subsystem_event helpers
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'manufactured/event_handler'
 require 'manufactured/rjr/subscribe_to/helpers'

@@ -1,7 +1,7 @@
 # manufactured::move entity in system helper
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'manufactured/rjr/move/ship_in_system'
 require 'manufactured/rjr/move/station_in_system'

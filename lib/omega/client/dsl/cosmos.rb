@@ -1,7 +1,7 @@
 # Omega Client DSL Cosmos Interface
 #
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # TODO other system / interconnect helpers to generate 'patterns' of connected
 # systems in a procedural way, such as systems interconnected in a linear / star

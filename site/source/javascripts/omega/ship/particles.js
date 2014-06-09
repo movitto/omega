@@ -1,7 +1,7 @@
 /* Omega Ship Particles
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 Omega.load_ship_particles = function(config, event_cb, particles_id){

@@ -1,7 +1,7 @@
 # Serializable Procedure
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # sourcify use has been removed from the main app for security reasons
 # but is used in the test suite for convenience purposes

@@ -1,7 +1,7 @@
 # cosmos::create_entity rjr definition
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # TODO add cosmos subsystem events, add event for cosmos entity creation
 # (subscribe to immediately in web client in all cases)

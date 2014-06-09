@@ -1,7 +1,7 @@
 # manufactured::move entity_in_system helper specs
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # TODO split tests out into ship / station in_system modules
 

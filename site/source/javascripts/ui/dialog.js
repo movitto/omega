@@ -1,7 +1,7 @@
 /* Omega JS Base Dialog UI Component
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
- *  Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 Omega.UI.Dialog = function(parameters){
   this.div_id    = '#omega_dialog';

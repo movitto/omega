@@ -1,7 +1,7 @@
 # Omega Client Factory Tracker
 #
 # Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/client/entities/station'
 require 'omega/client/entities/solar_system'

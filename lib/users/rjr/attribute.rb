@@ -1,7 +1,7 @@
 # users::update_attribute, users::has_attribute? rjr definitions
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'users/rjr/init'
 

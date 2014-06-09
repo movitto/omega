@@ -3,7 +3,7 @@
 # Things that don't fit elsewhere
 #
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 module Motel
 

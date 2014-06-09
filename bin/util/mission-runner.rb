@@ -13,7 +13,7 @@
 # Also if user attributes are disabled, related checks will fail (see TODO below)
 #
 # Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # TODO make sure this stays in sync w/ the missions & omega dsls
 

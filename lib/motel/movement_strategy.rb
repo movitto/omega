@@ -1,7 +1,7 @@
 # The MovementStrategy entity
 #
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/common'
 require 'motel/location'

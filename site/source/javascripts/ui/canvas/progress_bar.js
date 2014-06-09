@@ -1,7 +1,7 @@
 /* Omega JS Canvas ProgressBar Scene Component
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
- * Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+ * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 /// Make sure to specify

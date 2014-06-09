@@ -1,7 +1,7 @@
 # manufactured::subscribe_to entity_event helpers
 #
 # Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
-# Licensed under the AGPLv3+ http://www.gnu.org/licenses/agpl.txt
+# Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 module Manufactured::RJR
   def subscribe_to_entity_event(entity_id, event_type, endpoint_id)
