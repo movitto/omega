@@ -83,8 +83,8 @@ class Location
      case(scope)
      when :create
        base_attrs + coordinates_attrs + orientation_attrs +
-                      scoped_heirarchy_attrs(scope) || [] +
-              scoped_movement_strategy_attrs(scope) || []
+                     (scoped_heirarchy_attrs(scope) || []) +
+             (scoped_movement_strategy_attrs(scope) || [])
      end
    end
 

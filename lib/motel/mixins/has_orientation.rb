@@ -79,8 +79,8 @@ module HasOrientation
 
   # Return orientation in string format
   def orientation_str
-    (orx.numeric? ? orx.round_to(2).to_s : "") + ","
-    (ory.numeric? ? ory.round_to(2).to_s : "") + ","
+    (orx.numeric? ? orx.round_to(2).to_s : "") + "," +
+    (ory.numeric? ? ory.round_to(2).to_s : "") + "," +
     (orz.numeric? ? orz.round_to(2).to_s : "")
   end
 end # module HasOrientation

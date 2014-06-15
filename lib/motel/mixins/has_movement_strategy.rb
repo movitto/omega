@@ -4,7 +4,6 @@
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'motel/movement_strategy'
-require 'motel/movement_strategies/stopped'
 
 module Motel
 
