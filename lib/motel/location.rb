@@ -3,11 +3,10 @@
 # Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
-require 'time'
 require 'rjr/util/json_parser'
-require 'motel/movement_strategy'
-require 'motel/common'
 require 'omega/common'
+
+require 'motel/mixins'
 
 module Motel
 
@@ -27,172 +26,42 @@ module Motel
 # method is invoked by the {Motel::Runner} with the location instance
 # on every run cycle.
 class Location
-
-   # ID of location
-   attr_accessor :id
-
-   # ID of location's parent
-   attr_accessor :parent_id
-
-   # Set location's parent_id
-   #
-   # (nullifies parent if changing)
-   # @param [Integer] parent_id new parent id to set
-   def parent_id=(parent_id)
-     @parent = nil if parent_id != @parent_id
-     @parent_id = parent_id
-   end
-
-   # Coordinates relative to location's parent
-   attr_accessor :x, :y, :z
-
-   # [Motel::Location] parent location
-   attr_accessor :parent
-
-   # [Array<Motel::Location>] child locations
-   attr_accessor :children
-
-   # Set location's parent
-   #
-   # (also sets parent_id accordingly)
-   # @param [Motel::Location] new_parent new parent to set on location
-   def parent=(new_parent)
-     @parent = new_parent
-     @parent_id = @parent.nil? ? nil : @parent.id
-   end
-
-   # Unit vector corresponding to Orientation of the location
-   attr_accessor :orientation_x, :orientation_y, :orientation_z
-   alias :orx :orientation_x
-   alias :orx= :orientation_x=
-   alias :ory :orientation_y
-   alias :ory= :orientation_y=
-   alias :orz :orientation_z
-   alias :orz= :orientation_z=
-
-   # [Motel::MovementStrategy] Movement strategy through which to move location
-   attr_accessor :movement_strategy
-   alias :ms :movement_strategy
-   alias :ms= :movement_strategy=
-
-   # true/false indicating if movement strategy is stopped
-   def stopped?
-     self.movement_strategy == Motel::MovementStrategies::Stopped.instance
-   end
-
-  # Next movement strategy, optionally used to register
-  # a movement strategy which to set next
-  attr_accessor :next_movement_strategy
-
-
-   # [Hash<String, Motel::Callback>] Callbacks to be invoked on various events
-   attr_accessor :callbacks
-
-   # Boolean flag indicating if permission checks
-   # should restrict access to this location
-   attr_accessor :restrict_view
-
-   # Boolean flag indicating if permission checks
-   # should restrict modification of this location
-   attr_accessor :restrict_modify
-
-   # Time the location was last moved.
-   # Used internally in the motel subsystem
-   attr_accessor :last_moved_at
-
-  # Distance moved since the last reset
-  attr_accessor :distance_moved
-
-  # Angle rotated since the last reset
-  attr_accessor :angle_rotated
-
-  # Resets attributes used to internally track location
-  def reset_tracked_attributes
-    @distance_moved = 0
-    @angle_rotated  = 0
-  end
+  include BaseAttrs
+  include InHeirarchy
+  include HasCoordinates
+  include HasOrientation
+  include HasMovementStrategy
+  include EventDispatcher
+  include Trackable
+  include Generators
 
   # Location initializer
-  # @param [Hash] args hash of options to initialize location with
-  # @option args [Integer] :id,'id' id to assign to the location
-  # @option args [Integer] :parent_id,'parent_id' parent_id to assign to the location
-  # @option args [Motel::Location] :parent,'parent' parent location to assign to the location
-  # @option args [Array<Motel::Location>] :children,'children' child locations to assign to the location
-  # @option args [Integer,Float] :x,'x' x coodinate of location
-  # @option args [Integer,Float] :y,'y' y coodinate of location
-  # @option args [Integer,Float] :z,'z' z coodinate of location
-  # @option args [Integer,Float] :orientation_x,'orientation_x' orientation_x coodinate of location
-  # @option args [Integer,Float] :orientation_y,'orientation_y' orientation_y coodinate of location
-  # @option args [Integer,Float] :orientation_z,'orientation_z' orientation_z coodinate of location
-  # @option args [Motel::MovementStrategy] :movement_strategy,'movement_strategy' movement strategy to assign to location
-  # @option args [Hash<String,Motel::Callbacks> :callbacks,'callbacks' hash of events/callbacks to assign to location
-  # @option args [true,false] :restrict_view,'restrict_view' whether or not access to this location is restricted
-  # @option args [true,false] :restrict_modify,'restrict_modify' whether or not modifications to this location is restricted
+  # @param [Hash] args hash of options to initialize location with, accepts
+  #   key/value pairs corresponding to all mutable location attributes
    def initialize(args = {})
       reset_tracked_attributes
 
-      @x, @y, @z = *(args[:coordinates] || args['coordinates'] || [])
+      base_attrs_from_args args
+      coordinates_from_args args
+      orientation_from_args args
+      movement_strategy_from_args args
+      callbacks_from_args args
+      heirarchy_from_args args
+      trackable_state_from_args args
+   end
 
-      @orientation_x, @orientation_y, @orientation_z =
-        *(args[:orientation] || args['orientation'] || [])
-
-      # default to the stopped movement strategy
-      attr_from_args args,
-        :movement_strategy => MovementStrategies::Stopped.instance,
-        :next_movement_strategy => nil,
-        :callbacks         => Hash.new { |h,k| h[k] = [] },
-        :children          => [],
-        :parent            => nil,
-        :parent_id         => nil,
-        :id                => nil,
-        :x                 => @x,
-        :y                 => @y,
-        :z                 => @z,
-        :orientation_x     => @orientation_x,
-        :orientation_y     => @orientation_y,
-        :orientation_z     => @orientation_z,
-        :orx               => @orientation_x,
-        :ory               => @orientation_y,
-        :orz               => @orientation_z,
-        :distance_moved    => @distance_moved,
-        :angle_rotated     => @angle_rotated,
-        :restrict_view     => true,
-        :restrict_modify   => true,
-        :last_moved_at     => nil
-
-      self.last_moved_at = Time.parse(self.last_moved_at) if self.last_moved_at.is_a?(String)
-
-      # convert string callback keys into symbols
-      callbacks.keys.each { |k|
-        # ensure string correspond's to
-        # valid callback type before interning
-        if k.is_a?(String)
-          if LOCATION_EVENTS.collect { |e| e.to_s }.include?(k)
-            callbacks[k.intern] = callbacks[k]
-            callbacks.delete(k)
-          else
-            raise ArgumentError, "invalid callback specified"
-          end
-        end
-      }
-
-      # no parsing errors will be raised (invalid conversions will be set to 0),
-      # TODO use alternate conversions / raise error ?
-      [:@x, :@y, :@z,
-       :@orientation_x, :@orientation_y, :@orientation_z].each { |p|
-        v = self.instance_variable_get(p)
-        self.instance_variable_set(p, v.to_f) unless v.nil?
-      }
+   # Return all updatable attributes
+   def updatable_attrs
+     updatable_base_attrs      + coordinates_attrs +
+     updatable_heirarchy_attrs + orientation_attrs +
+     updatable_trackable_attrs + movement_strategy_attrs
    end
 
    # Update this location's attributes from other location
    #
    # @param [Motel::Location] location location from which to copy values from
    def update(location)
-      update_from(location, :x, :y, :z, :parent, :parent_id,
-                            :orientation_x, :orientation_y, :orientation_z,
-                            :movement_strategy, :next_movement_strategy,
-                            :restrict_view, :restrict_modify, :last_moved_at)
+      update_from(location, *updatable_attrs)
    end
 
    # Validate the location's properties
@@ -209,208 +78,26 @@ class Location
      orientation_valid? && movement_strategy_valid?
    end
 
-   # Return bool indicating if id is valid
-   def id_valid?
-     !@id.nil?
-   end
-
-   # Return bool indicating if coordatinates are valid
-   def coordinates_valid?
-     [@x, @y, @z].all? { |i| i.numeric? }
-   end
-
-   # Return bool indicating if orientation is valid
-   def orientation_valid?
-     [@orientation_x,@orientation_y, @orientation_z].all? { |i| i.numeric? }
-   end
-
-   # Return bool indicating if movement strategy is valid
-   def movement_strategy_valid?
-     @movement_strategy.kind_of?(MovementStrategy) && @movement_strategy.valid?
-   end
-
-   # Invoke callbacks for the specified event
-   def raise_event(evnt, *args)
-     @callbacks[evnt].each { |cb|
-       cb.invoke self, *args if cb.should_invoke? self, *args
-     } if @callbacks.has_key?(evnt)
-   end
-
-   # Return this location's coordinates in an array
-   #
-   # @return [Array<Float,Float,Float>] array containing this
-   # location's x,y,z coordinates
-   def coordinates
-     [@x, @y, @z]
-   end
-   alias :coords :coordinates
-
-   # Set this location's coordiatnes
-   def coordinates=(*c)
-     c.flatten! if c.first.is_a?(Array)
-     @x, @y, @z = *c
-   end
-   alias :coords= :coordinates=
-
-   # Return abs scalar value of location's coordinates
-   def scalar
-     Math.sqrt(@x**2 + @y**2 + @z**2)
-   end
-   alias :abs :scalar
-
-   # Return this location's orientation in an array
-   def orientation
-     [@orientation_x, @orientation_y, @orientation_z]
-   end
-
-   # Set this location's orientation
-   def orientation=(*o)
-     o.flatten! if o.first.is_a?(Array)
-     @orientation_x, @orientation_y, @orientation_z = *o
-   end
-
-   # Return boolean indicating if location is oriented towards the specified coordinate
-   def oriented_towards?(x, y, z)
-     orientation_difference(x, y, z).first == 0
-   end
-
-   # Return axis angle between location's orientation and the specified coordinate.
-   def orientation_difference(x, y, z)
-     dx = x - @x ; dy = y - @y ; dz = z - @z
-     raise ArgumentError if dx == 0 && dy == 0 && dz == 0
-     #return [0, 0, 0, 1] if dx == 0 && dy == 0 && dz == 0
-     Motel.axis_angle(orx, ory, orz, dx, dy, dz)
-   end
-
-   # Return the root location on this location's heirarchy tree
-   #
-   # @return [Motel::Location]
-   def root
-     return self if parent.nil?
-     return parent.root
-   end
-
-   # Traverse all chilren recursively, calling specified block for each
-   #
-   # @param [Callable] bl block to call with each child location as a param (recursively)
-   def each_child(&bl)
-      children.each { |child|
-         if bl.arity == 1
-           bl.call child
-         elsif bl.arity == 2
-           bl.call self, child
-         end
-         child.each_child &bl
-      }
-   end
-
-   # Add new child to location
-   #
-   # @param [Motel::Location] child location to add under this one
-   def add_child(child)
-     @children << child unless @children.include?(child)
-   end
-
-   # Remove child from location
-   #
-   # @param [Motel::Location,Integer] child child location to move or its string id
-   def remove_child(child)
-     @children.reject!{ |ch| ch == child || ch.id == child }
-   end
-
-   # Return the absolute 'x' value of this location,
-   # eg the sum of the x value of this location and that of all its parents
-   def total_x
-     return 0 if parent.nil?
-     return parent.total_x + x
-   end
-
-   # Return the absolute 'y' value of this location,
-   # eg the sum of the y value of this location and that of all its parents
-   def total_y
-     return 0 if parent.nil?
-     return parent.total_y + y
-   end
-
-   # Return the absolute 'z' value of this location,
-   # eg the sum of the z value of this location and that of all its parents
-   def total_z
-     return 0 if parent.nil?
-     return parent.total_z + z
-   end
-
-   # Return the distance between this location and specified other
-   #
-   # @param [Motel::Location] location which to calculate distance to
-   # @return [Float] distance to the specified location
-   #
-   # @example
-   #   loc1 = Motel::Location.new :x => 100
-   #   loc2 = Motel::Location.new :x => 200
-   #   loc1 - loc2    # => 100
-   #   loc2 - loc1    # => 100
-   def -(location)
-     dx = x - location.x
-     dy = y - location.y
-     dz = z - location.z
-     Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
-   end
-
-   # Add specified quantities to each coordinate component and return new location
-   #
-   # @param [Array<Integer,Integer,Integer>,Array<Float,Float,Float>] values values to add to x,y,z coordinates respectively
-   # @return [Motel::Location] new location with coordinates corresponding to those locally plus the specified values
-   #
-   # @example
-   #   loc = Motel::Location.new(:id => 42, :x => 100, :y => -100, :z => -200)
-   #   loc2 = loc + [100, 100, 100]
-   #   loc2   # => loc-(200, 0, -100)
-   #   loc    # => loc-42(100, -100, -200)
-   def +(values)
-     loc = Location.new
-     loc.update(self)
-     loc.x += values[0]
-     loc.y += values[1]
-     loc.z += values[2]
-     loc
-   end
-
    # Convert location to json representation and return it
    def to_json(*a)
-     {
-       'json_class' => self.class.name,
-       'data'       =>
-         {:id => id,
-          :distance_moved => distance_moved,
-          :angle_rotated  => angle_rotated,
-          :x => x, :y => y, :z => z,
-          :orientation_x => orientation_x,
-          :orientation_y => orientation_y,
-          :orientation_z => orientation_z,
-          :restrict_view => restrict_view, :restrict_modify => restrict_modify,
-          :parent_id => parent_id,
-          :children  => children,
-          :movement_strategy => movement_strategy,
-          :next_movement_strategy => next_movement_strategy,
-          :callbacks => callbacks,
-          :last_moved_at =>
-            last_moved_at.nil? ? nil : last_moved_at.strftime("%d %b %Y %H:%M:%S.%5N")}
+     { 'json_class' => self.class.name,
+       'data'       => base_json.merge(coordinates_json).
+                                 merge(trackable_json).
+                                 merge(orientation_json).
+                                 merge(heirarchy_json).
+                                 merge(movement_strategy_json).
+                                 merge(callbacks_json)
      }.to_json(*a)
    end
 
    # Convert location to human readable string and return it
    def to_s
-     s = "loc##{id}" +
-         "(@#{parent_id.nil? ? nil : parent_id[0...8]}"
-     if coordinates.size == 3 && coordinates.all?{ |c| c.numeric? }
-       s += ":#{x.round_to(2)},#{y.round_to(2)},#{z.round_to(2)}"
-     end
-     if orientation.size == 3 && orientation.all? { |o| o.numeric? }
-       s += ">#{orx.round_to(2)},#{ory.round_to(2)},#{orz.round_to(2)}"
-     end
-     s += " via #{movement_strategy}"
-     s += ")"
-     s
+     attr_str =       parent_id_str   +
+                ':' + coordinates_str +
+                '>' + orientation_str +
+                " via #{movement_strategy}"
+
+     "loc##{id}(#{attr_str})"
    end
 
    # Create new location from json representation
@@ -423,50 +110,5 @@ class Location
    def clone
      RJR::JSONParser.parse self.to_json
    end
-
-   # Create a minimal valid location with id
-   def self.basic(id)
-     Location.new :coordinates => [0,0,0], :orientation => [0,0,1], :id => id
-   end
-
-   # Create a random location and return it.
-   # @param [Hash] args optional hash of args containing limits to the randomization
-   # @option args [Float] :max,'max' max value of the x,y,z coordinates
-   # @option args [Float] :min,'min' min value of the x,y,z coordinates
-   # @option args [Float] :max_x,'max_x' max value of the x coordinate
-   # @option args [Float] :max_y,'max_y' max value of the y coordinate
-   # @option args [Float] :max_z,'max_z' max value of the z coordinate
-   # @option args [Float] :min_x,'min_x' max value of the x coordinate
-   # @option args [Float] :min_y,'min_y' max value of the y coordinate
-   # @option args [Float] :min_z,'min_z' max value of the z coordinate
-   def self.random(args = {})
-     max_x = max_y = max_z = nil
-     max_x = max_y = max_z = args[:max] if args.has_key?(:max)
-     max_x = args[:max_x] if args.has_key?(:max_x)
-     max_y = args[:max_y] if args.has_key?(:max_y)
-     max_z = args[:max_z] if args.has_key?(:max_z)
-
-     min_x = min_y = min_z = 0
-     min_x = min_y = min_z = args[:min] if args.has_key?(:min)
-     min_x = args[:min_x] if args.has_key?(:min_x)
-     min_y = args[:min_y] if args.has_key?(:min_y)
-     min_z = args[:min_z] if args.has_key?(:min_z)
-
-     # TODO this is a little weird w/ the semantics of the 'min'
-     # arguments, at some point look into changing this
-     nx = rand(2) == 0 ? -1 : 1
-     ny = rand(2) == 0 ? -1 : 1
-     nz = rand(2) == 0 ? -1 : 1
-
-     new_x = ((min_x.nil? ? 0 : min_x) + (max_x.nil? ? rand : rand(max_x - min_x))) * nx
-     new_y = ((min_y.nil? ? 0 : min_y) + (max_y.nil? ? rand : rand(max_y - min_y))) * ny
-     new_z = ((min_z.nil? ? 0 : min_z) + (max_z.nil? ? rand : rand(max_z - min_z))) * nz
-     new_args = {:coordinates => [new_x,new_y,new_z], :orientation => [0,0,1]}.merge args
-
-     loc = Location.new new_args
-     return loc
-   end
-
-end
-
+end # class Location
 end # module Motel
