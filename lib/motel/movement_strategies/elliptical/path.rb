@@ -3,9 +3,6 @@
 # Copyright (C) 2010-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
-# TODO cache calculated orbit properties / set in constructor /
-#      return in json / filter in :get scope
-
 module Motel
 module MovementStrategies
 module EllipticalPath
@@ -28,7 +25,15 @@ module EllipticalPath
     attr_from_args args,
       :e           => nil,
       :p           => nil,
-      :relative_to => Elliptical::CENTER
+      :relative_to => Elliptical::CENTER,
+
+      # see note in scoped_path_attrs
+      :a           => nil,
+      :b           => nil,
+      :le          => nil
+
+      center_from_args args
+      focus_from_args args
   end
 
   # Return boolean indicating eccentricity is valid
@@ -52,61 +57,101 @@ module EllipticalPath
   end
 
   # Return path attributes
-  def path_attrs
-    [:e, :p, :relative_to]
+  def scoped_path_attrs(scope)
+    case(scope)
+
+    # These are only path attributes accessible through rjr interface
+    # (for both retrieval / creation). Other attributes are specified
+    # in json / accepted in constructor to optimize internal use in
+    # elliptical movement operations
+    when :create, :get
+      [:e, :p, :relative_to]
+    end
   end
 
   # Return path attributes in json format
   def path_json
     {:e => e, :p => p,
-     :relative_to => relative_to}
+     :relative_to => relative_to,
+
+     # see note in scoped_path_attrs
+     :a => a, :b => b, :le => le,
+     :center => center,
+     :focus => focus}
   end
 
-  private
-  ### internal helper movement methods
+  attr_accessor :a, :b
 
   # return the a,b intercepts of the ellipse
   # p = a(1 - e^2) = b^2 / a
   # e = sqrt(1 - (b/a)^2)
   def intercepts
-    a = p / (1 - e**2)
-    b = Math.sqrt(p * a)
-    return a,b
+    @a ||= p / (1 - e**2)
+    @b ||= Math.sqrt(p * @a)
+    return @a,@b
   end
+
+  attr_accessor :le
 
   # return the linear eccentricity of the ellipse
   # le = sqrt(a^2 - b^2)
   def linear_eccentricity
     a,b = intercepts
-    Math.sqrt(a**2 - b**2);
+    @le ||= Math.sqrt(a**2 - b**2);
+  end
+
+  attr_accessor :centerX, :centerY, :centerZ
+
+  # Initialize center from args
+  def center_from_args(args)
+    if relative_to == Elliptical::CENTER
+      @centerX = @centerY = @centerZ = 0
+
+    elsif args.has_key?(:center)
+      @centerX, @centerY, @centerZ = *args[:center]
+
+    elsif args.has_key?('center')
+      @centerX, @centerY, @centerZ = *args['center']
+    end
   end
 
   # return the coordinates of the center position
   # C = (-direction_major) * le
   def center
-    return 0,0,0 if relative_to == Elliptical::CENTER
-
     a,b = intercepts
     le  = linear_eccentricity
 
-    centerX = -1 * dmajx * le;
-    centerY = -1 * dmajy * le;
-    centerZ = -1 * dmajz * le;
-    return centerX, centerY, centerZ
+    @centerX ||= -1 * dmajx * le
+    @centerY ||= -1 * dmajy * le
+    @centerZ ||= -1 * dmajz * le
+    return @centerX, @centerY, @centerZ
   end
+
+  # Initialize focus from args
+  def focus_from_args(args)
+    if relative_to == Elliptical::FOCI
+      @focusX = @focusY = @focusZ = 0
+
+    elsif args.has_key?(:focus)
+      @focusX, @focusY, @focusZ = *args[:focus]
+
+    elsif args.has_key?('focus')
+      @focusX, @focusY, @focusZ = *args['focus']
+    end
+  end
+
+  attr_accessor :focusX, :focusY, :focusZ
 
   # return the coordinates of a focus position
   # F = direction_major * le
   def focus
-    return 0,0,0 if relative_to == Elliptical::FOCI
-
     a,b = intercepts
     le  = linear_eccentricity
 
-    focusX = dmajx * le;
-    focusY = dmajy * le;
-    focusZ = dmajz * le;
-    return focusX, focusY, focusZ
+    @focusX ||= dmajx * le
+    @focusY ||= dmajy * le
+    @focusZ ||= dmajz * le
+    return @focusX, @focusY, @focusZ
   end
 end # module EllipticalPath
 end # module MovementStrategies

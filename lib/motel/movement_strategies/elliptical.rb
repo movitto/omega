@@ -63,8 +63,9 @@ class Elliptical < MovementStrategy
   # Return attributes by scope
   def scoped_attrs(scope)
     case(scope)
-    when :get
-      base_attrs + movement_attrs + path_attrs + axis_attrs
+    when :create, :get
+      base_attrs + movement_attrs + axis_attrs +
+      scoped_path_attrs(scope)
     end
   end
 
