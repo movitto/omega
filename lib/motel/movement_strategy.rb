@@ -48,11 +48,16 @@ class MovementStrategy
      "movement_strategy-#{self.class.to_s}"
    end
 
+   # Return base movement strategy attributes in json format
+   def base_json
+     { :step_delay => step_delay }
+   end
+
    # Convert movement strategy to json representation and return it
    def to_json(*a)
      {
        'json_class' => self.class.name,
-       'data'       => { :step_delay => step_delay }
+       'data'       => base_json
      }.to_json(*a)
    end
 
