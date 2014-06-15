@@ -67,6 +67,12 @@ module EllipticalAxis
     dmaj_valid? && dmin_valid? && axis_orthogonal?
   end
 
+  # Return axis attributes in json format
+  def axis_attrs
+    [:dmajx, :dmajy, :dmajz,
+     :dminx, :dminy, :dminz]
+  end
+
   # Return axis attributes in json fomrat
   def axis_json
     {:dmajx => dmajx,

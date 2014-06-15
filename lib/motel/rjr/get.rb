@@ -74,7 +74,7 @@ get_location = proc { |*args|
 
   end
 
-  locs
+  filter_properties locs, :scope => :get
 }
 
 GET_METHODS = { :get_location => get_location }

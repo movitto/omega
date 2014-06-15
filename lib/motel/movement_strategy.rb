@@ -48,6 +48,11 @@ class MovementStrategy
      "movement_strategy-#{self.class.to_s}"
    end
 
+   # Return base attributes
+   def base_attrs
+     [:step_delay]
+   end
+
    # Return base movement strategy attributes in json format
    def base_json
      { :step_delay => step_delay }

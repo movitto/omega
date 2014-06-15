@@ -24,6 +24,14 @@ module HasMovementStrategy
     [:movement_strategy, :next_movement_strategy]
   end
 
+  # Return movement strategy attributes by scope
+  def scoped_movement_strategy_attrs(scope)
+    case(scope)
+    when :create then
+      [:movement_strategy]
+    end
+  end
+
   # Initialize default movement strategy / movement strategy from arguments
   def movement_strategy_from_args(args)
     attr_from_args args,

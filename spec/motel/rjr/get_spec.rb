@@ -32,6 +32,17 @@ module Motel::RJR
       s.collect { |e| e.id }.should == i
     end
 
+    it "filters location(s) properties returned" do
+      l1 = build(:location, :restrict_view => false)
+      l2 = build(:location, :restrict_view => false)
+      l3 = build(:location)
+      Motel::RJR.registry.should_receive(:entities).and_return([l1, l2])
+      @s.should_receive(:filter_properties).
+         with([l1, l2], :scope => :get).and_return([l3])
+      s = @s.get_location
+      s.should == [l3]
+    end
+
     context "location id specified" do
       context "entity not found" do
         it "raises DataNotFound" do

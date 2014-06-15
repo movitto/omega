@@ -83,10 +83,23 @@ module InHeirarchy
     @children.reject!{ |ch| ch == child || ch.id == child }
   end
 
+  # Return heirarchy json attributes
+  def heirarchy_json_attrs
+    [:parent_id, :children]
+  end
+
   # Return heirarchy properties in json format
   def heirarchy_json
     {:parent_id => parent_id,
      :children  => children}
+  end
+
+  # Return scoped heirarchy attributes
+  def scoped_heirarchy_attrs(scope)
+    case(scope)
+    when :create then
+      [:parent_id]
+    end
   end
 
   # Return parent_id in string format

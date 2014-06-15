@@ -19,6 +19,11 @@ module Trackable
   # Used internally in the motel subsystem
   attr_accessor :last_moved_at
 
+  # Return all trackable attributes
+  def trackable_attrs
+    [:distance_moved, :angle_rotated, :last_moved_at]
+  end
+
   # Return updatable trackable attributes
   def updatable_trackable_attrs
     [:last_moved_at]

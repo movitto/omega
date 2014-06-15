@@ -60,6 +60,14 @@ class Elliptical < MovementStrategy
     axis_valid? && path_valid? && speed_valid?
   end
 
+  # Return attributes by scope
+  def scoped_attrs(scope)
+    case(scope)
+    when :get
+      base_attrs + movement_attrs + path_attrs + axis_attrs
+    end
+  end
+
   # Convert movement strategy to json representation and return it
   def to_json(*a)
     { 'json_class' => self.class.name,

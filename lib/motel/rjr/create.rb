@@ -17,11 +17,7 @@ create_location = proc { |loc|
   raise ValidationError, loc unless loc.is_a?(Motel::Location) && loc.valid?
 
   # filter properties not able to be set by user
-  loc = filter_properties(loc, :allow =>
-          [:id, :parent_id, :restrict_view, :restrict_modify,
-           :x, :y, :z,
-           :orientation_x, :orientation_y, :orientation_z,
-           :movement_strategy])
+  loc = filter_properties(loc, :scope => :create)
 
   # TODO option to generate id here (run by default if id is not set)
 

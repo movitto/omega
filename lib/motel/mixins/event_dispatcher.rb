@@ -10,6 +10,11 @@ module EventDispatcher
   # [Hash<String, Motel::Callback>] Callbacks to be invoked on various events
   attr_accessor :callbacks
 
+  # Return all callbacks attributes
+  def callbacks_attrs
+    [:callbacks]
+  end
+
   # Initialize default callbacks / callbacks from args
   def callbacks_from_args(args)
     attr_from_args args, :callbacks => Hash.new { |h,k| h[k] = [] }

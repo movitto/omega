@@ -27,6 +27,11 @@ module BaseAttrs
       :restrict_modify   => true
   end
 
+  # Return base attributes
+  def base_attrs
+    [:id, :restrict_view, :restrict_modify]
+  end
+
   # Return updatable base attributes
   def updatable_base_attrs
     [:restrict_view, :restrict_modify]

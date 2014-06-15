@@ -24,6 +24,11 @@ module EllipticalMovement
     @speed.numeric? && @speed > 0
   end
 
+  # Return movement attributes
+  def movement_attrs
+    [:speed]
+  end
+
   # Return movement attributes in json format
   def movement_json
     {:speed => speed}

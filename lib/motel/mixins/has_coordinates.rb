@@ -118,7 +118,7 @@ module HasCoordinates
   end
 
   # Return coordinates in string format
-  def coordiantes_str
+  def coordinates_str
     (x.numeric? ? x.round_to(2).to_s : "") + ","
     (y.numeric? ? y.round_to(2).to_s : "") + ","
     (z.numeric? ? z.round_to(2).to_s : "")

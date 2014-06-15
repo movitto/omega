@@ -8,29 +8,61 @@ module Omega
     module DSL
       # Filter properties able / not able to be set by the end user
       def filter_properties(data, filter = {})
-        is_hash = data.is_a?(Hash)
-        ndata   = is_hash ? {} : data.class.new
+        filter[:allow]  = Array[filter[:allow]].flatten if filter[:allow]
+        filter[:reject] = Array[filter[:reject]].flatten if filter[:reject]
+
+        return data.collect { |item|
+                 filter_properties(item, filter)
+               } if data.is_a?(Array)
+
+        data.is_a?(Hash) ? filter_hash_properties(data, filter) :
+                            filter_obj_properties(data, filter)
+      end
+
+      # Filter hash properties able / not able to be set by the end user
+      def filter_hash_properties(data, filter = {})
+        ndata = {}
+
         if filter[:allow]
-          filter[:allow] = [filter[:allow]] unless filter[:allow].is_a?(Array)
-          # copy allowed attributes over
           filter[:allow].each { |a|
-            if is_hash
-              # TODO ensure data key strings include a before interning
-              ndata[a.intern] = data[a.intern] || data[a.to_s]
-            else
-              # TODO ensure a.responds to a before interning
-              ndata.send("#{a}=".intern, data.send(a.intern))
-            end
+            # TODO ensure data key strings include a before interning
+            ndata[a.intern] = data[a.intern] || data[a.to_s]
           }
 
-        else
-          # TODO copy all attributes over
-
+        #else # TODO
         end
 
-        # if filter[:reject] TODO
+        ndata
+      end
 
-        return ndata
+      # Filter obj properties able/not able to be set by the end user
+      def filter_obj_properties(data, filter = {})
+        ndata = data.class.new
+        if filter[:allow]
+          filter[:allow].each { |attr|
+            # TODO ensure a.responds_to attr before interning
+            ndata.send("#{attr}=".intern, data.send(attr.intern))
+          }
+
+        elsif filter[:scope]
+          has_scoped_attrs = data.respond_to?(:scoped_attrs)
+          scoped_attrs = data.scoped_attrs(filter[:scope]) if has_scoped_attrs
+
+          (scoped_attrs || data.json_attrs).each { |attr|
+            val = data.send(attr.intern)
+            has_scoped_attrs = val.respond_to?(:scoped_attrs)
+            val = filter_obj_properties(val, filter) if has_scoped_attrs
+            ndata.send("#{attr}=".intern, val)
+          }
+
+        #elsif data.respond_to?(:json_attrs)
+        #  data.json_attrs.each { |attr|
+        #    reject = filter.has_key?(:reject) && filter[:reject].include?(attr)
+        #    ndata.send("#{attr}=".intern, data.send(attr.intern)) unless reject
+        #  }
+        end
+
+        ndata
       end
 
       # Return a list of filters constructed from the specified args

@@ -3,7 +3,8 @@
 # Copyright (C) 2010-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
-# TODO cache calculated orbit properties / set in constructor / return in json
+# TODO cache calculated orbit properties / set in constructor /
+#      return in json / filter in :get scope
 
 module Motel
 module MovementStrategies
@@ -48,6 +49,11 @@ module EllipticalPath
   # Return boolean indicating path is valid
   def path_valid?
     e_valid? && p_valid? && relative_to_valid?
+  end
+
+  # Return path attributes
+  def path_attrs
+    [:e, :p, :relative_to]
   end
 
   # Return path attributes in json format

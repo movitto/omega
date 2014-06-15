@@ -1,6 +1,6 @@
 # The Location entity
 #
-# Copyright (C) 2010-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2010-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'rjr/util/json_parser'
@@ -76,6 +76,24 @@ class Location
    def valid?
      id_valid? && coordinates_valid? &&
      orientation_valid? && movement_strategy_valid?
+   end
+
+   # Return attributes by scope
+   def scoped_attrs(scope)
+     case(scope)
+     when :create
+       base_attrs + coordinates_attrs + orientation_attrs +
+                      scoped_heirarchy_attrs(scope) || [] +
+              scoped_movement_strategy_attrs(scope) || []
+     end
+   end
+
+   # Return all json attributes
+   def json_attrs
+     base_attrs           + coordinates_attrs +
+     heirarchy_json_attrs + orientation_attrs +
+     trackable_attrs      + movement_strategy_attrs +
+     callbacks_attrs
    end
 
    # Convert location to json representation and return it
