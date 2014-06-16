@@ -168,7 +168,7 @@ Omega.UI.SplashContent = {
                "The '<b>Loading Resources</b>' icon in the lower left " +
                "will dissapear when all content is loaded"},
     welcome :
-      {title : "Welcome to the Omegaverse",
+      {title : "Welcome to the Megaverse",
        text  : "<h3>New User? Need Help? See the <a style='color: blue;'"+
                " href='https://github.com/movitto/omega/wiki/Using-the-Web-UI'>Tutorial</a>!</h3>"}
   },

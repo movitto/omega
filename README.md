@@ -7,11 +7,11 @@ protocol.
 This allows the most users and developers to access the universe and control
 ships / stations / other entities in via many mechanisms.
 
-You can see an instance running on the Omegaverse at
-[omegaverse.info](http://omegaverse.info)
+You can see an instance running on the Megaverse at
+[megaverse.net](http://megaverse.net)
 
 For a quick user tutorial see [this](http://github.com/movitto/omega/wiki/Tutorial).
-To run your own node on the Omegaverse see the
+To run your own node on the Megaverse see the
 [install](http://github.com/movitto/omega/wiki/Install) document.
 
 See the [wiki](http://github.com/movitto/omega/wiki) for many other
@@ -66,7 +66,7 @@ more details.
 The Omega Project also comes with an interactive web frontend based on
 WebGL (via [three.js](http://threejs.org/)) and
 [middleman](http://middlemanapp.com/). This is a completely optional component,
-an Omegaverse node will run just fine w/out it, but if installed provides
+an Megaverse node will run just fine w/out it, but if installed provides
 a rich view to the node(s) which its configured for.
 
 See the [Web UI](http://github.com/movitto/omega/wiki/Web-UI) and

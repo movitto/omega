@@ -15,7 +15,7 @@ describe("Omega.Pages.Confirm", function(){ /// NIY
   describe("#registration_code", function(){
     it("returns registration code from the url", function(){
       /// stub out call to window.location
-      var url = sinon.stub(page, 'url').returns('http://omegaverse.info/confirm.html?rc=123456');
+      var url = sinon.stub(page, 'url').returns('http://megaverse.info/confirm.html?rc=123456');
       assert(page.registration_code()).equals('123456');
     });
   });
