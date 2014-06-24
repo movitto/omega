@@ -6,8 +6,6 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO disable scene entity effects if not in camera view
-
 Omega.UI.EffectsPlayer = function(parameters){
   this.entities = [];
   this.skipped_interval = null;
@@ -33,7 +31,7 @@ Omega.UI.EffectsPlayer = function(parameters){
 
   /// Replace above with the following to
   /// disable constant frame rate enforcement
-  //this._run_effects = this._run_strict_effects;
+  //this._run_effects = this._run_lax_effects;
 };
 
 Omega.UI.EffectsPlayer.prototype = {
