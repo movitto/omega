@@ -64,7 +64,8 @@ Omega.UI.CanvasSceneManager = {
     var sw = window.innerWidth  - this.ui_props.wpadding,
         sh = window.innerHeight - this.ui_props.hpadding;
 
-    this.renderer = new THREE.WebGLRenderer({antialias : true});
+    this.renderer = new THREE.WebGLRenderer({antialias : true,
+                                             preserveDrawingBuffer: true});
     this.renderer.setSize(sw, sh);
 
     this.renderer.autoClear = false;
