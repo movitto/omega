@@ -5,7 +5,6 @@
  */
 
 //= require "omega/galaxy/density_wave"
-//= require "omega/galaxy/center"
 
 // Galaxy GFX Mixin
 Omega.GalaxyGfx = {
@@ -14,14 +13,14 @@ Omega.GalaxyGfx = {
     var gfx = {};
     Omega.Galaxy.gfx = gfx;
 
-    gfx.density_wave1 = new Omega.GalaxyDensityWave({config: config,
-                                                     event_cb: event_cb});
-    gfx.density_wave2 = new Omega.GalaxyDensityWave({config: config,
-                                                     event_cb: event_cb});
-    gfx.density_wave1.set_rotation(1.57,0,0);
-    gfx.density_wave2.set_rotation(1.57,0,1.57);
-
-    gfx.center = new Omega.GalaxyCenter()
+    gfx.density_wave1 = new Omega.GalaxyDensityWave({config   : config,
+                                                     event_cb : event_cb,
+                                                     type     : 'stars'});
+    gfx.density_wave2 = new Omega.GalaxyDensityWave({config   : config,
+                                                     event_cb : event_cb,
+                                                     type     : 'clouds',
+                                                     colorStart : 0x3399FF,
+                                                     colorEnd : 0x33FFC2});
   },
 
   init_gfx : function(config, event_cb){
@@ -30,12 +29,10 @@ Omega.GalaxyGfx = {
 
     this.density_wave1 = Omega.Galaxy.gfx.density_wave1;
     this.density_wave2 = Omega.Galaxy.gfx.density_wave2;
-    this.center        = Omega.Galaxy.gfx.center;
-    this.center.omega_entity = this;
 
-    this.components = this.density_wave1.components().
-               concat(this.density_wave2.components()).
-               concat(this.center.components());
+    /// order of components here affects rendering
+    this.components = this.density_wave2.components().
+               concat(this.density_wave1.components());
   },
 
   run_effects : function(){
