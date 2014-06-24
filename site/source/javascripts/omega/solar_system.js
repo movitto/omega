@@ -16,8 +16,8 @@ Omega.SolarSystem = function(parameters){
 
   this.bg = Omega.str_to_bg(this.id);
 
-  this.children = Omega.convert_entities(this.children);
-  this.location = Omega.convert_entity(this.location)
+  this.children = Omega.convert.entities(this.children);
+  this.location = Omega.convert.entity(this.location)
 
   this.interconns = new Omega.SolarSystemInterconns();
   this.interconns.omega_entity = this;

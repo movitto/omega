@@ -17,40 +17,6 @@ Omega.EntityClasses = function(){
   return Omega._EntityClasses;
 }
 
-/// Convert entities from server side representation
-Omega.convert_entities = function(entities){
-  var result = [];
-  for(var e = 0; e < entities.length; e++){
-    result.push(Omega.convert_entity(entities[e]));
-  }
-  return result;
-};
-
-// Convert a single entity from server side representation
-Omega.convert_entity = function(entity){
-  if(entity == null) return null;
-  if(typeof(entity) === "string") return entity;
-
-  var converted = null
-  var entities = Omega.EntityClasses();
-  for(var c = 0; c < entities.length; c++){
-    var cls = entities[c];
-    // match based on json_class
-    if(cls.prototype.json_class == entity.json_class){
-      // skip if already converted
-      if(entity.constructor == cls)
-        converted = entity;
-      else if(entity.data)
-        converted = new cls(entity.data);
-      else
-        converted = new cls(entity);
-      break;
-    }
-  }
-
-  return converted;
-};
-
 /// Return bool indicating if entity is an Omega entity
 Omega.is_omega_entity = function(entity){
   var entity_classes = Omega.EntityClasses();
@@ -274,6 +240,63 @@ Omega.Math = {
     }
   
     return path;
+  }
+};
+
+/// Omega Conversion Module
+Omega.convert = {
+  /// Convert entities from server side representation
+  entities : function(entities){
+    var result = [];
+    for(var e = 0; e < entities.length; e++){
+      result.push(Omega.convert.entity(entities[e]));
+    }
+    return result;
+  },
+
+  /// Convert a single entity from server side representation
+  entity : function(entity){
+    if(entity == null) return null;
+    if(typeof(entity) === "string") return entity;
+
+    var converted = null
+    var entities = Omega.EntityClasses();
+    for(var c = 0; c < entities.length; c++){
+      var cls = entities[c];
+      // match based on json_class
+      if(cls.prototype.json_class == entity.json_class){
+        // skip if already converted
+        if(entity.constructor == cls)
+          converted = entity;
+        else if(entity.data)
+          converted = new cls(entity.data);
+        else
+          converted = new cls(entity);
+        break;
+      }
+    }
+
+    return converted;
+  },
+
+  hex2rgb : function(hex){
+		var r = ( hex >> 16 & 255 ) / 255;
+		var g = ( hex >> 8 & 255 ) / 255;
+		var b = ( hex & 255 ) / 255;
+    return {r : r, g : g, b : b};
+  },
+
+  rgb2hex : function(r, g, b){
+    if((typeof(r) === "array" || typeof(r) === "object") && !g && !b){
+      if(typeof(r.r) !== "undefined"){
+        g = r.g; b = r.b; r = r.r;
+
+      }else if(r.length == 3){
+        g = r[1]; b = r[2]; r = r[0];
+      }
+    }
+
+		return ( r * 255 ) << 16 ^ ( g * 255 ) << 8 ^ ( b * 255 );
   }
 };
 

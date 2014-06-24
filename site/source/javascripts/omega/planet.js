@@ -15,7 +15,7 @@ Omega.Planet = function(parameters){
   this.shader_components = [];
   $.extend(this, parameters);
 
-  this.location = Omega.convert_entity(this.location)
+  this.location = Omega.convert.entity(this.location)
 };
 
 Omega.Planet.prototype = {

@@ -14,7 +14,7 @@ Omega.Star = function(parameters){
   $.extend(this, parameters);
 
   this.type_int = parseInt('0x' + this.type);
-  this.location = Omega.convert_entity(this.location)
+  this.location = Omega.convert.entity(this.location)
 };
 
 Omega.Star.prototype = {
