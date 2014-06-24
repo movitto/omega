@@ -110,7 +110,7 @@ class Location
 
    # Convert location to human readable string and return it
    def to_s
-     attr_str =       parent_id_str   +
+     attr_str = '@' + parent_id_str   +
                 ':' + coordinates_str +
                 '>' + orientation_str +
                 " via #{movement_strategy}"
