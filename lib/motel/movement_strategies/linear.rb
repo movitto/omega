@@ -39,8 +39,6 @@ class Linear < MovementStrategy
    # @option args [Float] :dy coordinate of direction vector
    # @option args [Float] :dz z coordinate of direction vector
    # @option args [Float] :speed speed to assign to movement strategy
-   # @raise [Motel::InvalidMovementStrategy]
-   # if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil,
                           :stop_distance => nil

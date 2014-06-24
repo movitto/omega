@@ -60,7 +60,6 @@ class Follow < MovementStrategy
    # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
    # @option args [Float] :speed,'speed' speed to assign to the movement strategy
    # @option args [Boolean] :point_to_target, define if we should rotate to face the target
-   # @raise [Motel::InvalidMovementStrategy] if movement strategy is not valid (see {#valid?})
    def initialize(args = {})
      attr_from_args args, :distance => nil, :speed => nil,
                           :tracked_location_id     => nil,
