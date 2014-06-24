@@ -22,7 +22,7 @@ Omega.UI.CanvasSceneManager = {
   /// TODO different constraints depending on scene root type
   cam_props : {
     min_distance :   100,
-    max_distance : 20000
+    max_distance : 50000
   },
 
   render_stats : true,

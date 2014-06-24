@@ -5,12 +5,16 @@
  */
 
 Omega.UI.CanvasCameraManager = {
+  default_position_for : function(entity){
+    return entity ? this.page.config.cam.position[entity.json_class] : [0,0,0];
+  },
+
   // Reset camera to original position
   reset_cam : function(){
     if(!this.cam || !this.cam_controls) return;
 
     this.stop_following();
-    var default_position = this.page.config.cam.position;
+    var default_position = this.default_position_for(this.root);
     var default_target   = this.page.config.cam.target;
 
     this.cam_controls.object.position.set(default_position[0],

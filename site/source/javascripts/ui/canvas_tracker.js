@@ -83,26 +83,27 @@ Omega.UI.CanvasTracker = {
       this.audio_controls.play(this.audio_controls.effects.background);
     }
 
-    /// add galaxy particle effects to canvas scene
-    if(root.json_class == 'Cosmos::Entities::Galaxy')
+    if(root.json_class == 'Cosmos::Entities::Galaxy'){
+      /// adds galaxy particle effects to canvas scene
       this.canvas.add(root);
-    else if(root.json_class == 'Cosmos::Entities::SolarSystem'){
+
+      if(this.canvas.has(this.canvas.skybox.id))
+        this.canvas.remove(this.canvas.skybox, this.canvas.skyScene);
+
+    }else if(root.json_class == 'Cosmos::Entities::SolarSystem'){
       this.track_system_events(root);
       this._scale_system(root);
       this.sync_scene_planets(root);
       this.sync_scene_entities(root, entities, function(retrieved){
         _this.process_entities(retrieved);
       });
+
+      this.canvas.skybox.set(root.bg);
+
+      if(!this.canvas.has(this.canvas.skybox.id))
+        this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
     }
 
-    /// set scene background
-    this.canvas.skybox.set(root.bg);
-
-    /// add skybox to scene
-    if(!this.canvas.has(this.canvas.skybox.id))
-      this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
-
-    /// add star dust to scene
     if(!this.canvas.has(this.canvas.star_dust.id))
       this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
   },
