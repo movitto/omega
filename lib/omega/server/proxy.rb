@@ -23,13 +23,14 @@ class ProxyEntity
 
   def method_missing(name, *args, &block)
     ret = nil
-    old_entity = nil
+    orig = cloned = nil
     @registry.safe_exec { |entities|
-      old_entity = RJR::JSONParser.parse(@entity.to_json)
+      orig = RJR::JSONParser.parse(@entity.to_json)
       ret = @entity.send(name, *args, &block)
+      cloned = RJR::JSONParser.parse(@entity.to_json)
     }
     # TODO only invoke if entity changed?
-    @registry.raise_event(:updated, @entity, old_entity)
+    @registry.raise_event(:updated, cloned, orig)
     ret
   end
 end
@@ -97,7 +98,5 @@ class ProxyNode
     @rjr_node.notify @dst, *args
   end
 end
-
-
 end # module Server
 end # module Omega

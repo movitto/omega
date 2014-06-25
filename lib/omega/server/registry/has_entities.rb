@@ -52,7 +52,7 @@ module Registry
 
     # Return first entity which selector proc returns true
     def entity(&select)
-      self.entities(&select).first
+      entities(&select).first
     end
 
     # Clear all entities tracked by local registry
@@ -73,14 +73,16 @@ module Registry
     # Raises :added event on self w/ entity
     def <<(entity)
       init_registry
-      add = false
+      added  = false
+      cloned = nil
       @lock.synchronize {
-        add = @validation_methods.all? { |v| v.call(@entities, entity) }
-        @entities << entity if add
+        added = @validation_methods.all? { |v| v.call(@entities, entity) }
+        @entities << entity if added
+        cloned = RJR::JSONParser.parse(entity.to_json)
       }
 
-      self.raise_event(:added, entity) if add
-      return add
+      raise_event(:added, cloned) if added
+      added
     end
 
     # Remove entity from local registry. Entity removed
@@ -95,8 +97,8 @@ module Registry
         delete = !entity.nil?
         @entities.delete(entity) if delete
       }
-      self.raise_event(:deleted, entity) if delete
-      return delete
+      raise_event(:deleted, entity) if delete
+      delete
     end
 
     # Update entity in local registry.
@@ -110,26 +112,24 @@ module Registry
     def update(entity, &selector)
       # TODO default selector ? (such as with_id)
       init_registry
-      rentity = nil
-      old_entity = nil
+      orig = cloned = nil
+      found = false
       @lock.synchronize {
         # select entity from registry
         rentity = @entities.find &selector
+        found   = !rentity.nil?
 
-        unless rentity.nil?
-          # copy it
-          old_entity = RJR::JSONParser.parse(rentity.to_json)
-
-          # update it
+        if found
+          orig = RJR::JSONParser.parse(rentity.to_json)
           rentity.update(entity)
+          cloned = RJR::JSONParser.parse(rentity.to_json)
         end
-
       }
 
       # TODO make sure proxy operations are kept in sync w/ update operations
       #   (see proxy_for below and ProxyEntity definition)
-      self.raise_event(:updated, rentity, old_entity) unless rentity.nil?
-      return !rentity.nil?
+      raise_event(:updated, cloned, orig) if found
+      found
     end
   end # module HasEntities
 end # module Registry

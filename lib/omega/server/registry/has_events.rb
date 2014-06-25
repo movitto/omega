@@ -22,14 +22,17 @@ module Registry
       }
     end
 
+    # Return handles for the specified event
+    def handlers_for(event)
+      @lock.synchronize {
+        @event_handlers[event] if @event_handlers.key?(event)
+      }
+    end
+
     # Raises specified event, invoking registered handlers
     def raise_event(event, *params)
       init_registry
-      handlers = []
-      @lock.synchronize{
-        handlers =
-          @event_handlers[event] if @event_handlers.has_key?(event)
-      }
+      handlers = handlers_for(event)
       handlers.each { |h| h.call *params }
       nil
     end
