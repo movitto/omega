@@ -6,7 +6,7 @@
 require 'rjr/util/json_parser'
 require 'omega/common'
 
-require 'motel/mixins'
+require 'motel/mixins/location'
 
 module Motel
 

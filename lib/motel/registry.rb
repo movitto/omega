@@ -1,6 +1,6 @@
 # Motel Registry tracks all locations
 #
-# Copyright (C) 2012-2013 Mohammed Morsi <mo@morsi.org>
+# Copyright (C) 2012-2014 Mohammed Morsi <mo@morsi.org>
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 # FIXME create id if missing
@@ -8,6 +8,7 @@
 require 'rjr/common'
 require 'omega/server/registry'
 require 'omega/server/callback'
+require 'motel/mixins/registry'
 require 'motel/movement_strategies/follow'
 require 'motel/movement_strategies/stopped'
 
@@ -17,171 +18,50 @@ module Motel
 # mechanism to run locations in the system.
 class Registry
   include Omega::Server::Registry
+  include Motel::RunsLocations
+  include Motel::AdjustsHeirarchy
+  include Motel::SanitizesLocations
 
-  private
+  # validate location ids are unique before creating
+  def init_validations
+    validation_callback { |entities, e|
+      e.is_a?(Location) && !entities.collect { |l| l.id }.include?(e.id)
+    }
+  end
 
-  def run_location(loc, elapsed)
-    ::RJR::Logger.debug "runner moving location #{loc}"
+  def init_callbacks
+    # perform a few sanity checks on location / update any attributes needing it
+    on(:added)   { |loc| sanitize_location(loc)}
+    on(:updated) { |loc,oloc| sanitize_location(loc,oloc)}
 
-    begin
-      old_coords, old_orientation = nil, nil
-      changing = stopping = false
+    # setup parent when entity is added or updated
+    on(:added)   { |loc| adjust_heirarchry(loc) }
+    on(:updated) { |loc,oloc| adjust_heirarchry(loc,oloc) }
+  end
 
-      # operate on registry entity so that retrieval, movement,
-      # and storage are atomic on latest location (which
-      # may also be updated with motel::update_location)
-      self.safe_exec { |locs|
-        loc = locs.find { |l| l.id == loc.id }
-
-        old_coords,old_orientation = loc.coordinates,loc.orientation
-
-        loc.movement_strategy.move loc, elapsed
-        loc.last_moved_at = Time.now
-
-        if loc.movement_strategy.change?(loc)
-          # TODO s/next_movement_strategy/next_movement_strategies, allow
-          # a queue of movement strategies to be set
-          loc.movement_strategy = loc.next_movement_strategy
-          loc.next_movement_strategy = Motel::MovementStrategies::Stopped.instance
-          changing = true
-          stopping = loc.movement_strategy == Motel::MovementStrategies::Stopped.instance
-          loc.reset_tracked_attributes
-
-        end
+  # run registry events on locations
+  def init_events
+    LOCATION_EVENTS.each { |e|
+      on(e) { |loc, *args|
+        @lock.synchronize{
+          rloc = @entities.find { |e| e.id == loc.id }
+          rloc.raise_event(e, *args)
+        }
       }
-
-      # invoke movement and rotation callbacks
-      # TODO invoke these async so as not to hold up the runner
-      self.raise_event(:movement, loc, *old_coords)
-      self.raise_event(:rotation, loc, *old_orientation)
-      self.raise_event(:changed_strategy, loc) if changing
-      self.raise_event(:stopped,          loc) if stopping
-
-    rescue Exception => e
-      ::RJR::Logger.warn "error running location/callbacks for #{loc.id}: #{e.to_s}"
-      ::RJR::Logger.warn e.backtrace
-    end
-  end
-
-  def run_locations
-    moved = []; delay = nil
-    self.entities { |loc| !loc.ms.is_a?(MovementStrategies::Stopped) }.
-         each { |loc|
-      sdelay = loc.movement_strategy.step_delay
-      elapsed = loc.last_moved_at.nil? ? sdelay + 1 :
-                Time.now - loc.last_moved_at
-
-      if elapsed > sdelay
-        moved << loc
-        run_location(loc, elapsed)
-
-      else
-        remaining = sdelay - elapsed
-        delay = remaining if delay.nil? || remaining < delay
-
-      end
-    }
-
-    # invoke all proximity_callbacks afterwards
-    moved.each { |loc|
-      begin
-        self.raise_event :proximity, loc
-      rescue Exception => e
-        ::RJR::Logger.warn "error running proximity callbacks: #{e.to_s}"
-      end
-    }
-
-    delay
-  end
-
-  def adjust_heirarchry(nloc, oloc=nil)
-    @lock.synchronize{
-      rloc = @entities.find { |e| e.id == nloc.id }
-
-      nparent =
-        @entities.find { |l|
-          l.id == nloc.parent_id
-        } unless nloc.parent_id.nil?
-
-      oparent = oloc.nil? || oloc.parent_id.nil? ?
-                                             nil :
-                  @entities.find { |l| l.id == oloc.parent_id }
-
-      if oparent != nparent
-        oparent.remove_child(rloc) unless oparent.nil?
-
-        # TODO if nparent.nil? throw error?
-        nparent.add_child(rloc) unless nparent.nil?
-        rloc.parent = nparent
-      end
-
     }
   end
-
-  def check_location(nloc, oloc=nil)
-    changing = stopping = false
-    @lock.synchronize{
-      # if follow movement strategy, update location from tracked_location_id
-      if nloc.ms.is_a?(MovementStrategies::Follow)
-        nloc.ms.tracked_location =
-          @entities.find { |l|
-            l.id == nloc.ms.tracked_location_id
-          }
-      end
-
-      # if changing movement strategy
-      if !oloc.nil? && oloc.ms != nloc.ms
-        changing = true
-
-        # if changing to stopped movement strategy
-        stopping = nloc.ms.is_a?(MovementStrategies::Stopped)
-
-        # reset last moved at
-        nloc.last_moved_at = nil
-        nloc.reset_tracked_attributes
-      end
-    }
-
-    self.raise_event(:changed_strategy, nloc) if changing
-    self.raise_event(:stopped, nloc) if stopping
-  end
-
-  public
 
   def initialize
     init_registry
 
     exclude_from_backup Omega::Server::Callback
 
-    # validate location ids are unique before creating
-    self.validation_callback { |r,e|
-      e.is_a?(Location) &&
-
-      !r.collect { |l| l.id }.include?(e.id)
-    }
-
-    # perform a few sanity checks on location / update any attributes needing it
-    on(:added)   { |loc| check_location(loc)}
-    on(:updated) { |loc,oloc| check_location(loc,oloc)}
-
-    # setup parent when entity is added or updated
-    on(:added)   { |loc| adjust_heirarchry(loc) }
-    on(:updated) { |loc,oloc| adjust_heirarchry(loc,oloc) }
-
-    # setup location callbacks
-    LOCATION_EVENTS.each { |e|
-      on(e) { |loc, *args|
-        @lock.synchronize{
-          # run event on registry location
-          rloc = @entities.find { |e| e.id == loc.id }
-          rloc.raise_event(e, *args)
-        }
-      }
-    }
+    init_validations
+    init_callbacks
+    init_events
 
     # start location runner
     run { run_locations }
   end
-
 end # class Registry
 end # module motel
