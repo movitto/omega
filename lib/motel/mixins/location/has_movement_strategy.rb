@@ -53,5 +53,15 @@ module HasMovementStrategy
     {:movement_strategy => movement_strategy,
      :next_movement_strategy => next_movement_strategy}
   end
+
+  # True/false indicating if location should be moved.
+  def should_move?
+    last_moved_at.nil? || time_since_movement > movement_strategy.step_delay
+  end
+
+  # Remaining time we have until next movement
+  def time_until_movement
+    movement_strategy.step_delay - (time_since_movement || 0)
+  end
 end # module HasMovementStrategy
 end # module Motel

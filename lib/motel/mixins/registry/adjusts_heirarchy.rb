@@ -5,28 +5,21 @@
 
 module Motel
 module AdjustsHeirarchy
+  # Setup parent when entity is added or updated.
   def adjust_heirarchry(nloc, oloc=nil)
-    @lock.synchronize{
-      rloc = @entities.find { |e| e.id == nloc.id }
+    nparent = @entities.find { |l|
+                l.id == nloc.parent_id
+              } unless nloc.parent_id.nil?
 
-      nparent =
-        @entities.find { |l|
-          l.id == nloc.parent_id
-        } unless nloc.parent_id.nil?
+    oparent = @entities.find { |l|
+                l.id == oloc.parent_id
+              } unless oloc.nil? || oloc.parent_id.nil?
 
-      oparent = oloc.nil? || oloc.parent_id.nil? ?
-                                             nil :
-                  @entities.find { |l| l.id == oloc.parent_id }
-
-      if oparent != nparent
-        oparent.remove_child(rloc) unless oparent.nil?
-
-        # TODO if nparent.nil? throw error?
-        nparent.add_child(rloc) unless nparent.nil?
-        rloc.parent = nparent
-      end
-
-    }
+    if oparent != nparent
+      oparent.remove_child(nloc) unless oparent.nil?
+      nparent.add_child(nloc)    unless nparent.nil?
+      nloc.parent = nparent
+    end
   end
 end # module AdjustsHeirarchy
 end # module Motel

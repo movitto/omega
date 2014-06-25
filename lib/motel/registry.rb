@@ -5,12 +5,9 @@
 
 # FIXME create id if missing
 
-require 'rjr/common'
 require 'omega/server/registry'
 require 'omega/server/callback'
 require 'motel/mixins/registry'
-require 'motel/movement_strategies/follow'
-require 'motel/movement_strategies/stopped'
 
 module Motel
 
@@ -22,45 +19,40 @@ class Registry
   include Motel::AdjustsHeirarchy
   include Motel::SanitizesLocations
 
-  # validate location ids are unique before creating
+  # Validate location ids are unique before creating
   def init_validations
-    validation_callback { |entities, e|
-      e.is_a?(Location) && !entities.collect { |l| l.id }.include?(e.id)
+    validation_callback { |entities, check|
+      entity_ids = entities.collect { |loc| loc.id }
+      check.is_a?(Location) && !entity_ids.include?(check.id)
     }
   end
 
+  # Wire up event callbacks
   def init_callbacks
-    # perform a few sanity checks on location / update any attributes needing it
-    on(:added)   { |loc| sanitize_location(loc)}
-    on(:updated) { |loc,oloc| sanitize_location(loc,oloc)}
+    on(:added)   { |loc|
+      @lock.synchronize {
+        rloc = @entities.find { |entity| entity.id == loc.id }
+        sanitize_location(rloc)
+        adjust_heirarchry(rloc)
+      }
+    }
 
-    # setup parent when entity is added or updated
-    on(:added)   { |loc| adjust_heirarchry(loc) }
-    on(:updated) { |loc,oloc| adjust_heirarchry(loc,oloc) }
-  end
-
-  # run registry events on locations
-  def init_events
-    LOCATION_EVENTS.each { |e|
-      on(e) { |loc, *args|
-        @lock.synchronize{
-          rloc = @entities.find { |e| e.id == loc.id }
-          rloc.raise_event(e, *args)
-        }
+    on(:updated) { |loc, oloc|
+      @lock.synchronize {
+        rloc = @entities.find { |entity| entity.id == loc.id }
+        sanitize_location(rloc, oloc)
+        adjust_heirarchry(rloc, oloc)
       }
     }
   end
 
   def initialize
     init_registry
+    init_validations
+    init_callbacks
 
     exclude_from_backup Omega::Server::Callback
 
-    init_validations
-    init_callbacks
-    init_events
-
-    # start location runner
     run { run_locations }
   end
 end # class Registry

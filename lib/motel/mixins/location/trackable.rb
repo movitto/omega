@@ -55,5 +55,10 @@ module Trackable
   def last_moved_str
     last_moved_at.strftime("%d %b %Y %H:%M:%S.%5N")
   end
+
+  # Return time since last movement
+  def time_since_movement
+    last_moved_at.nil? ? nil : (Time.now - last_moved_at)
+  end
 end # module Trackable
 end # module Motel
