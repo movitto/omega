@@ -43,9 +43,14 @@ module MovementStrategies
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
     def rotate(loc, elapsed_seconds)
-      # update location's orientation
-      # TODO if loc.angle_rotated + angle_rotated > stop_angle only move by  stop_angle - loc.angle_rotated
+      # new angle to rotate
       angle_rotated = @rot_theta * elapsed_seconds
+
+      # stop at stop angle
+      total_rotated = loc.angle_rotated + angle_rotated
+      angle_rotated = (stop_angle - loc.angle_rotated) if stop_angle && total_rotated > stop_angle
+
+      # update location's orientation
       nor =
         Motel.rotate(loc.orx, loc.ory, loc.orz,
                      angle_rotated,
