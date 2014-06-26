@@ -145,6 +145,7 @@ def main()
   multi_node = RJR::Nodes::Multi.new :nodes => nodes
 
   # setup logging
+  # TODO periodic log rotations or similar
   RJR::Logger.log_level = config[:log_level] || ::Logger::INFO
   if !RJR::Logger.debug?
     # filter out various log messages

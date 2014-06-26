@@ -20,4 +20,7 @@ require 'rjr/nodes/tcp'
 dsl.rjr_node = RJR::Nodes::TCP.new(:node_id =>    'client',
                                    :host    => 'localhost',
                                    :port    =>      '9090')
-#dsl.rjr_node.endpoint = 'jsonrpc://localhost:8181'
+
+# if omega is running on non-default host/port, uncomment & set here
+# TODO read from config?
+#dsl.node.endpoint = 'jsonrpc://localhost:8181'

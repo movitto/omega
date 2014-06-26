@@ -4,6 +4,8 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO style w/ transparent bg
+
 Omega.UI.CanvasEntityContainer = function(parameters){
   this.entity = null;
   this.canvas = null;

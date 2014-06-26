@@ -55,7 +55,7 @@ module RunsLocations
     register_location_event loc, :rotation, *orig_orientation
 
     if loc.movement_strategy.change?(loc)
-      # TODO allow a queue of movement strategies to be set
+      # TODO allow a queue of movement strategies to be set (loc.ms = loc.ms.next_ms)
       loc.movement_strategy = loc.next_movement_strategy
       loc.next_movement_strategy = Motel::MovementStrategies::Stopped.instance
 

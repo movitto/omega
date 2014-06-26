@@ -218,7 +218,7 @@ Omega.ShipGfx = {
     else if(this.location.is_moving('follow'))
       this._run_movement = this._run_follow_movement;
     else if(this.location.is_moving('rotate'))
-      this._run_movement = this._run_rotation_movement
+      this._run_movement = this._run_rotation_movement;
     else if(this.location.is_stopped())
       this._run_movement = this._no_movement;
 

@@ -19,7 +19,7 @@ node_types: ['amqp', 'tcp', 'ws', 'www', 'local']
 
 amqp_broker: 'localhost'
 
-tcp_host: 'localhost'
+tcp_host: 'localhost' # fixme allow multiple hosts, ports (localhost, omegaverse.info, etc)
 tcp_port: 8181
 
 ws_host: 'localhost'

@@ -43,6 +43,8 @@ create_user = proc { |user|
   # store user
   added = registry << user
 
+  # TODO config option to propagate user creation to proxied server nodes
+
   # if unable to add, delete role and raise err
   if !added
     registry.delete &with_id(role.id)
