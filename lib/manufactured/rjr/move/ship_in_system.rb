@@ -24,7 +24,8 @@ module Manufactured::RJR
       Motel::MovementStrategies::Linear.new :dx => dx/distance,
                                             :dy => dy/distance,
                                             :dz => dz/distance,
-                                            :speed => entity.movement_speed
+                                            :speed => entity.movement_speed,
+                                            :stop_distance => distance
   
     # calculate the orientation difference
     od = entity.location.orientation_difference(*loc.coordinates)
@@ -46,13 +47,15 @@ module Manufactured::RJR
           :rot_theta => (od[0] * entity.rotation_speed),
           :rot_x     =>  od[1],
           :rot_y     =>  od[2],
-          :rot_z     =>  od[3]
+          :rot_z     =>  od[3],
+          :stop_angle => od[0]
   
       # register rotation w/ location, linear as next movement strategy
       entity.location.movement_strategy = rotate
       entity.location.next_movement_strategy = linear
   
       # track location rotation
+      od[0] -= 0.01
       node.invoke('motel::track_rotation', entity.location.id, *od)
     end
   

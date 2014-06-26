@@ -126,16 +126,6 @@ module Manufactured::RJR
         entity.distance_moved = 0
       end
 
-      # update movement strategy
-      old = loc.movement_strategy
-      stopped = Motel::MovementStrategies::Stopped.instance
-      loc.movement_strategy =
-        loc.next_movement_strategy || stopped
-      loc.next_movement_strategy = stopped
-
-      # update location
-      node.invoke('motel::update_location', loc)
-
       # remove callbacks if changing movement strategy
       if old != loc.movement_strategy
         if old.is_a?(Motel::MovementStrategies::Linear)
