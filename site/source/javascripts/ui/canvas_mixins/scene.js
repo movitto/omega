@@ -14,11 +14,6 @@ Omega.UI.CanvasSceneManager = {
     stencilBuffer : false
   },
 
-  ui_props : {
-    wpadding : 22,
-    hpadding : 26
-  },
-
   /// TODO different constraints depending on scene root type
   cam_props : {
     min_distance :   100,
@@ -35,9 +30,7 @@ Omega.UI.CanvasSceneManager = {
     this._setup_cams();
     this._setup_components();
 
-    THREEx.WindowResize(this.renderer, this.cam,
-                        this.ui_props.wpadding,
-                        this.ui_props.hpadding);
+    THREEx.WindowResize(this.renderer, this.cam);
   },
 
   _setup_stats : function(){
@@ -61,8 +54,8 @@ Omega.UI.CanvasSceneManager = {
   },
 
   _setup_renderer : function(){
-    var sw = window.innerWidth  - this.ui_props.wpadding,
-        sh = window.innerHeight - this.ui_props.hpadding;
+    var sw = window.innerWidth;
+        sh = window.innerHeight;
 
     this.renderer = new THREE.WebGLRenderer({antialias : true,
                                              preserveDrawingBuffer: true});
@@ -75,8 +68,8 @@ Omega.UI.CanvasSceneManager = {
   },
 
   _setup_cams : function(){
-    var sw = window.innerWidth  - this.ui_props.wpadding,
-        sh = window.innerHeight - this.ui_props.hpadding;
+    var sw = window.innerWidth;
+        sh = window.innerHeight;
     var aspect = sw / sh;
     if(isNaN(aspect)) aspect = 1;
 

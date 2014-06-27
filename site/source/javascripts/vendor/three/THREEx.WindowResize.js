@@ -12,11 +12,6 @@
 // ```windowResize.stop()```
 // # Code
 
-// modified to introduce padding variable
-//   -mmorsi
-
-//
-
 /** @namespace */
 var THREEx	= THREEx 		|| {};
 
@@ -26,13 +21,10 @@ var THREEx	= THREEx 		|| {};
  * @param {Object} renderer the renderer to update
  * @param {Object} Camera the camera to update
 */
-THREEx.WindowResize	= function(renderer, camera, wpadding, hpadding){
-  if(wpadding == null || typeof(wpadding) === 'undefined') wpadding = 0;
-  if(hpadding == null || typeof(hpadding) === 'undefined') hpadding = 0;
-
+THREEx.WindowResize	= function(renderer, camera){
 	var callback	= function(){
-    var width  = window.innerWidth  - wpadding;
-    var height = window.innerHeight - hpadding;
+    var width  = window.innerWidth;
+    var height = window.innerHeight;
 
 		// notify the renderer of the size change
 		renderer.setSize(width, height);
