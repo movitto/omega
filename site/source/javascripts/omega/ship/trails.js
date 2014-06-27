@@ -17,19 +17,19 @@ Omega.ShipTrails = function(args){
 };
 
 Omega.ShipTrails.prototype = {
-  plane                :     7,
-  lifespan             :   0.3,
+  plane                :     1,
+  lifespan             :     1,
   particle_speed       :     1,
 
   _particle_velocity : function(){
     if(this.__particle_velocity) return this.__particle_velocity;
-    this.__particle_velocity = new THREE.Vector3(0, 0, -this.particle_speed);
+    this.__particle_velocity = new THREE.Vector3(0, 0, 0);
     return this.__particle_velocity;
   },
 
   _particle_group : function(config, event_cb){
     return new SPE.Group({
-      texture:    Omega.load_ship_particles(config, event_cb),
+      texture:    Omega.load_ship_particles(config, event_cb, 'trails'),
       maxAge:     this.lifespan,
       blending:   THREE.AdditiveBlending
     });
@@ -37,16 +37,17 @@ Omega.ShipTrails.prototype = {
 
   _particle_emitter : function(){
     return new SPE.Emitter({
-      positionSpread     : new THREE.Vector3(this.plane, this.plane, 0),
-      colorStart         : new THREE.Color('red'),
-      colorEnd           : new THREE.Color('yellow'),
-      sizeStart          :   20,
-      sizeEnd            :   10,
+      positionSpread     : new THREE.Vector3(0, 0, 1),
+      colorStart         : new THREE.Color(0x000000),
+      colorEnd           : new THREE.Color(0x00FFFF),
+      sizeStart          :   40,
+      sizeEnd            :    5,
       opacityStart       :    1,
       opacityEnd         :    0,
       velocity           : this._particle_velocity(),
-      particleCount      :  100,
-      alive              :    0,
+      speed              : this.particle_speed,
+      particleCount      :  2000,
+      alive              :    0
     });
   },
 
