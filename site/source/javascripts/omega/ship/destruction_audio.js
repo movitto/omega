@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO subclass from base audio
+
 Omega.ShipDestructionAudioEffect = function(args){
   if(!args) args = {};
   var config = args['config'];

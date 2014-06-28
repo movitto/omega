@@ -48,16 +48,30 @@ Omega.BaseAudioEffect = {
     }, false);
   },
 
+  _setup_end : function(ended_cb){
+    if(this.__setup_end) return;
+    this.__setup_end = true;
+
+    this.dom().addEventListener('ended', function(){ ended_cb(); });
+  },
+
   _play_element : function(element){
     if(element.currentTime) element.currentTime = 0;
     element.play();
   },
 
-  play : function(target){
+  play : function(target, ended_cb){
+    if(typeof(target) === "function"){
+      ended_cb = target;
+      target   = null;
+    }
+
     if(target) this.set(target);
     if(!this.dom()) return;
 
     if(this.should_loop()) this._setup_loop();
+    else this._setup_end(ended_cb);
+
     this._play_element(this.dom());
   },
 

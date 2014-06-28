@@ -150,8 +150,7 @@ Omega.SolarSystem.prototype = {
       return;
     }
 
-    canvas.page.audio_controls.stop();
-    canvas.page.audio_controls.play(this.audio_effects, 'click');
+    canvas.page.audio_controls.play(this.click_audio);
 
     var _this = this;
     this.refresh(canvas.page.node, function(){
@@ -176,8 +175,7 @@ Omega.SolarSystem.prototype = {
 
   on_hover : function(canvas, hover_num){
     if(hover_num == 1){
-      canvas.page.audio_controls.stop(this.audio_effects);
-      canvas.page.audio_controls.play(this.audio_effects, 'hover');
+      canvas.page.audio_controls.play(this.hover_audio);
     }
 
     var _this = this;

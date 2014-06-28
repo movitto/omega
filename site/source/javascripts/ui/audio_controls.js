@@ -8,7 +8,7 @@
 
 Omega.UI.AudioControls = function(parameters){
   this.volume  = 1;
-  this.current = null;
+  this.playing = [];
   this.disabled = false;
 
   /// need handle to page audio controls is on to
@@ -63,19 +63,24 @@ Omega.UI.AudioControls.prototype = {
 
   set_volume : function(volume){
     this.volume = volume;
-    if(!this.current) return;
-    this.current.set_volume(volume);
+    for(var p = 0; p < this.playing.length; p++)
+      this.playing[p].set_volume(volume);
   },
 
   /// Play specified audio target w/ controls
   play : function(){
+    var _this  = this;
     var params = Array.prototype.slice.call(arguments);
     var target = params.shift();
+    if(!target) return;
 
-    if(target) this.current = target;
-    if(!this.current) return;
-    this.current.play.apply(this.current, params);
-    this.current.set_volume(this.volume);
+    /// Setup ended cb to cleanup after completed
+    var ended_cb = function(){ _this.stop(target) }
+    params.push(ended_cb);
+
+    this.playing.push(target);
+    target.play.apply(target, params);
+    target.set_volume(this.volume);
   },
 
   /// Stop playing audio
@@ -86,9 +91,11 @@ Omega.UI.AudioControls.prototype = {
       return;
     }
 
-    if(!target) target = this.current;
+    if(!target) return;
+
+    this.playing.splice(this.playing.indexOf(target), 1);
 
     /// TODO option to stop d/l of media
-    if(target) target.pause();
+    target.pause();
   }
 };

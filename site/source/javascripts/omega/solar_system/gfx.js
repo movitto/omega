@@ -25,7 +25,8 @@ Omega.SolarSystemGfx = {
     gfx.plane             = new Omega.SolarSystemPlane({config:   config,
                                                         event_cb: event_cb});
     gfx.text_material     = new Omega.SolarSystemTextMaterial();
-    gfx.audio_effects     = new Omega.SolarSystemAudioEffects({config: config});
+    gfx.hover_audio       = new Omega.SolarSystemHoverAudioEffect({config: config});
+    gfx.click_audio       = new Omega.SolarSystemClickAudioEffect({config: config});
     gfx.particles         = new Omega.SolarSystemParticles({config : config,
                                                             event_cb : event_cb});
     Omega.SolarSystem.gfx = gfx;
@@ -46,7 +47,8 @@ Omega.SolarSystemGfx = {
     this.text = new Omega.SolarSystemText(this.title())
     this.text.omega_entity = this;
 
-    this.audio_effects = Omega.SolarSystem.gfx.audio_effects;
+    this.hover_audio = Omega.SolarSystem.gfx.hover_audio;
+    this.click_audio = Omega.SolarSystem.gfx.click_audio;
 
     this.particles = Omega.SolarSystem.gfx.particles.clone(config, event_cb);
     this.particles.omega_entity = this;
