@@ -18,7 +18,8 @@ class Registry
 
   private
 
-  def check_mission(mission)
+  # Perform a few sanity checks on mission / update missing attributes
+  def sanitize_mission(mission)
     @lock.synchronize {
       # retrieve registry mission
       rmission = @entities.find { |m|
@@ -27,34 +28,38 @@ class Registry
 
       # resolve creator if missing
       if !rmission.creator_id.nil? && rmission.creator.nil?
-        mission.creator =
+        rmission.creator =
           Missions::RJR::node.invoke('users::get_entity',
                                      'with_id', mission.creator_id)
       end
 
       # resolve assigned to if missing
       if !rmission.assigned_to_id.nil? && rmission.assigned_to.nil?
-        mission.assigned_to =
+        rmission.assigned_to =
           Missions::RJR::node.invoke('users::get_entity',
                                      'with_id', rmission.assigned_to_id)
       end
     }
   end
 
-  public
+  def init_callbacks
+    on(:added)   { |m|
+      sanitize_mission(m) if m.is_a?(Mission)
+    }
+  end
 
   # Initialize the Missions::Registry
   def initialize
     init_registry
+    init_callbacks
 
     exclude_from_backup Omega::Server::EventHandler
-
-    # perform a few sanity checks on mission / update missing attributes
-    on(:added)   { |m|    check_mission(m)    if m.is_a?(Mission) }
 
     # run local events
     run { run_events }
   end
+
+  public
 
   # Override registry restore operation
   def restore(io)
@@ -66,6 +71,5 @@ class Registry
                each   { |m| m.restore_callbacks }
     }
   end
-
 end # class Registry
 end # module Missions

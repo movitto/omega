@@ -131,6 +131,7 @@ class Location
 
    # Return boolean indicating if this location is equal to other
    def ==(other)
+     other.is_a?(Location)   &&
      base_attrs_eql?(other)  && coordinates_eql?(other)       &&
      orientation_eql?(other) && movement_strategy_eql?(other) &&
      callbacks_eql?(other)   && heirarchy_eql?(other)         &&

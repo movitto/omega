@@ -16,7 +16,9 @@ describe Registry do
         u = build(:user)
         m = Mission.new :id => 'foobar', :creator_id => u.id
 
-        Missions::RJR::node.should_receive(:invoke).with('users::get_entity', 'with_id', u.id).and_return(u)
+        Missions::RJR::node.should_receive(:invoke)
+                           .with('users::get_entity', 'with_id', u.id)
+                           .and_return(u)
 
         r = Registry.new
         r << m
