@@ -57,26 +57,15 @@ describe("Omega.UI.AudioControls", function(){
       audio = {play : sinon.stub(), set_volume : sinon.stub()};
     });
 
-    describe("track specified", function(){
-      it("sets current track", function(){
-        ac.disabled = false;
-        ac.play(audio);
-        assert(ac.current).equals(audio);
-      })
-
-      it("plays track", function(){
-        ac.disabled = false;
-        ac.play(audio);
-        sinon.assert.called(audio.play);
-      });
-    });
-
-    it("plays current track", function(){
+    it("adds track to playing list", function(){
       ac.disabled = false;
       ac.play(audio);
-      sinon.assert.called(audio.play);
-      audio.play.reset();
-      ac.play();
+      assert(ac.playing).includes(audio);
+    })
+
+    it("plays track", function(){
+      ac.disabled = false;
+      ac.play(audio);
       sinon.assert.called(audio.play);
     });
 
@@ -92,13 +81,6 @@ describe("Omega.UI.AudioControls", function(){
     
     before(function(){
       ac = new Omega.UI.AudioControls();
-    });
-
-    it("stops current track", function(){
-      var audio = {pause : sinon.stub()};
-      ac.current = audio;
-      ac.stop();
-      sinon.assert.called(audio.pause);
     });
 
     it("stops the specified track", function(){

@@ -1,11 +1,5 @@
 pavlov.specify("Omega.Galaxy", function(){
 describe("Omega.Galaxy", function(){
-  it("sets background", function(){
-    var galaxy = new Omega.Galaxy({background : 1});
-    assert(galaxy.bg).equals(1);
-  });
-
-
   describe("#child", function(){
     it("returns solar system child w/ the specified id", function(){
       var system = new Omega.SolarSystem();
@@ -184,30 +178,9 @@ describe("Omega.Galaxy", function(){
       Omega.Test.Canvas.Entities();
 
       assert(Omega.Galaxy.gfx.density_wave1).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave1.stars1).isOfType(SPE.Group);
-      assert(Omega.Galaxy.gfx.density_wave1.stars1.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave1.stars1.emitters[0]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.stars1.emitters[0].type).equals('spiral')
-      assert(Omega.Galaxy.gfx.density_wave1.stars2).isOfType(SPE.Group);
-      assert(Omega.Galaxy.gfx.density_wave1.stars2.emitters.length).equals(2);
-      assert(Omega.Galaxy.gfx.density_wave1.stars2.emitters[0]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.stars2.emitters[0].type).equals('spiral')
-      assert(Omega.Galaxy.gfx.density_wave1.stars2.emitters[1]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.stars2.emitters[1].type).equals('spiral')
-      assert(Omega.Galaxy.gfx.density_wave1.clouds1).isOfType(SPE.Group);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds1.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds1.emitters[0]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds1.emitters[0].type).equals('spiral')
-      assert(Omega.Galaxy.gfx.density_wave1.clouds2).isOfType(SPE.Group);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds2.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds2.emitters[0]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.clouds2.emitters[0].type).equals('spiral')
-      assert(Omega.Galaxy.gfx.density_wave1.base).isOfType(SPE.Group);
-      assert(Omega.Galaxy.gfx.density_wave1.base.emitters.length).equals(1);
-      assert(Omega.Galaxy.gfx.density_wave1.base.emitters[0]).isOfType(SPE.Emitter);
-      assert(Omega.Galaxy.gfx.density_wave1.base.emitters[0].type).equals('disk')
-
+      assert(Omega.Galaxy.gfx.density_wave1.type).equals('stars');
       assert(Omega.Galaxy.gfx.density_wave2).isOfType(Omega.GalaxyDensityWave);
+      assert(Omega.Galaxy.gfx.density_wave2.type).equals('clouds');
     });
   });
 
@@ -236,17 +209,8 @@ describe("Omega.Galaxy", function(){
       var galaxy = new Omega.Galaxy();
       galaxy.init_gfx();
 
-      var expected = [galaxy.density_wave1.stars1.mesh,
-                      galaxy.density_wave1.stars2.mesh,
-                      galaxy.density_wave1.clouds1.mesh,
-                      galaxy.density_wave1.clouds2.mesh,
-                      galaxy.density_wave1.base.mesh,
-                      galaxy.density_wave2.stars1.mesh,
-                      galaxy.density_wave2.stars2.mesh,
-                      galaxy.density_wave2.clouds1.mesh,
-                      galaxy.density_wave2.clouds2.mesh,
-                      galaxy.density_wave2.base.mesh,
-                      galaxy.center.mesh];
+      var expected = [galaxy.density_wave2.particles,
+                      galaxy.density_wave1.particles];
 
       assert(galaxy.components).isSameAs(expected);
     });

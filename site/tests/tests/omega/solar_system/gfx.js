@@ -40,8 +40,10 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("creates audio effects for solar system", function(){
-      assert(Omega.SolarSystem.gfx.audio_effects).
-          isOfType(Omega.SolarSystemAudioEffects);
+      assert(Omega.SolarSystem.gfx.hover_audio).
+          isOfType(Omega.SolarSystemHoverAudioEffect);
+      assert(Omega.SolarSystem.gfx.click_audio).
+          isOfType(Omega.SolarSystemClickAudioEffect);
     });
 
     it("invokes _loaded_gfx", function(){

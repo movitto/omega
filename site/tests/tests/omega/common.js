@@ -1,10 +1,10 @@
 pavlov.specify("Omega", function(){
 describe("Omega", function(){
-  describe("#convert_entities", function(){
+  describe("#convert.entities", function(){
     it("converts each entity", function(){
       var entities = [{json_class: 'Cosmos::Entities::Star',   id: 'star1'},
                       {json_class: 'Cosmos::Entities::Planet', id: 'pl1'}];
-      var new_entities = Omega.convert_entities(entities);
+      var new_entities = Omega.convert.entities(entities);
       assert(new_entities.length).equals(2);
       assert(new_entities[0]).isOfType(Omega.Star);
       assert(new_entities[0].id).equals('star1');
@@ -13,10 +13,10 @@ describe("Omega", function(){
     });
   });
 
-  describe("#convert_entity", function(){
+  describe("#convert.entity", function(){
     it("returns js instance of class corresponding to entity", function(){
       var ship = {json_class : 'Manufactured::Ship', id: 'ship1'};
-      var converted = Omega.convert_entity(ship);
+      var converted = Omega.convert.entity(ship);
       assert(converted).isOfType(Omega.Ship);
       assert(converted.id).equals('ship1');
     });
@@ -24,7 +24,7 @@ describe("Omega", function(){
     describe("json entity passed in", function(){
       it("returns js instances converted from json data", function(){
         var json = {json_class : 'Motel::Location', data : {x : 10, y : 10, z: -42}};
-        var converted = Omega.convert_entity(json);
+        var converted = Omega.convert.entity(json);
         assert(converted).isOfType(Omega.Location);
         assert(converted.x).equals(10);
         assert(converted.y).equals(10);
@@ -35,7 +35,7 @@ describe("Omega", function(){
     describe("js entity passed in", function(){
       it("returns the entity", function(){
         var ship = new Omega.Ship({id : 'ship1'});
-        var converted = Omega.convert_entity(ship);
+        var converted = Omega.convert.entity(ship);
         assert(ship).isSameAs(ship);
       });
     });

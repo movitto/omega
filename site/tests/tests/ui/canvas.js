@@ -221,6 +221,11 @@ describe("Omega.UI.Canvas", function(){
 
   /// TODO update
   describe("canvas after #setup", function(){
+    after(function(){
+      if(Omega.Test.Canvas().reset_cam.restore)
+        Omega.Test.Canvas().reset_cam.restore();
+    });
+
     it("has a scene", function(){
       var canvas = Omega.Test.Canvas();
       assert(canvas.scene).isOfType(THREE.Scene);
@@ -246,11 +251,11 @@ describe("Omega.UI.Canvas", function(){
       assert(canvas.cam_controls.domElement).equals(canvas.renderer.domElement);
     });
 
-    it("sets camera controls position", function(){
+    it("resets cam", function(){
       var canvas = Omega.Test.Canvas();
-      assert(canvas.cam_controls.object.position.x).close(Omega.Config.cam.position[0], 0.01);
-      assert(canvas.cam_controls.object.position.y).close(Omega.Config.cam.position[1], 0.01);
-      assert(canvas.cam_controls.object.position.z).close(Omega.Config.cam.position[2], 0.01);
+      sinon.spy(canvas, 'reset_cam');
+      canvas.setup();
+      sinon.assert.called(canvas.reset_cam);
     });
 
     it("sets camera controls target", function(){
@@ -375,10 +380,12 @@ describe("Omega.UI.Canvas", function(){
 
     it("sets camera controls position", function(){
       controls.object.position.set(100,100,100);
+      canvas.root = Omega.Gen.solar_system();
+      var position = canvas.default_position_for(canvas.root);
       canvas.reset_cam();
-      assert(controls.object.position.x).close(Omega.Config.cam.position[0], 0.01);
-      assert(controls.object.position.y).close(Omega.Config.cam.position[1], 0.01);
-      assert(controls.object.position.z).close(Omega.Config.cam.position[2], 0.01);
+      assert(controls.object.position.x).close(position[0], 0.01);
+      assert(controls.object.position.y).close(position[1], 0.01);
+      assert(controls.object.position.z).close(position[2], 0.01);
     });
 
     it("sets camera controls target", function(){
