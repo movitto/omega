@@ -8,7 +8,8 @@ require 'manufactured/rjr/subscribe_to/helpers'
 
 module Manufactured::RJR
   def subscribe_to_subsystem_event(event_type, endpoint_id, *event_args)
-    handler = Manufactured::EventHandler.new :event_type  => event_type,
+    handler = Manufactured::EventHandler.new :id          => gen_uuid,
+                                             :event_type  => event_type,
                                              :endpoint_id => endpoint_id,
                                              :event_args  => event_args,
                                              :persist     => true

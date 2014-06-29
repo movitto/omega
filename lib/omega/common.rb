@@ -5,6 +5,12 @@
 
 # TODO rename to core_ext
 
+# XXX now 3rd place this is copied
+def gen_uuid
+  ["%02x"*4, "%02x"*2, "%02x"*2, "%02x"*2, "%02x"*6].join("-") %
+      Array.new(16) {|x| rand(0xff) }
+end
+
 class Object
   def numeric?
     self.kind_of?(Numeric)

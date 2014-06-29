@@ -79,17 +79,17 @@ module Registry
     private
 
     # remove any duplicate event handlers,
-    # keeping the specified one
+    # keeping the specified one (as matched by id)
     def sanitize_event_handlers(event_handler)
       @lock.synchronize {
         handlers = @entities.select { |h|
           h.kind_of?(Omega::Server::EventHandler) &&
           (h.event_id.nil?   || h.event_id   == event_handler.event_id)   &&
           (h.event_type.nil? || h.event_type == event_handler.event_type) &&
-          h.endpoint_id == event_handler.endpoint_id
+          h.endpoint_id == event_handler.endpoint_id &&
+          h.id != event_handler.id
         }
 
-        handlers.delete(event_handler)
         @entities -= handlers
       }
     end

@@ -16,6 +16,7 @@ subscribe_to = proc { |event_type|
 
   # create a new persistent event handler to send notifications back to client
   handler = Omega::Server::EventHandler.new
+  handler.id = gen_uuid
   handler.endpoint_id = @rjr_headers['source_node']
   handler.persist = true
   handler.event_type  = event_type

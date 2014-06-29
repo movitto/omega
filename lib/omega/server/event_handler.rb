@@ -8,6 +8,9 @@ module Server
   # Encapsulates a handler which to be invoked on a future event,
   # or one not already created
   class EventHandler
+    # Unique id of event handler
+    attr_accessor :id
+
     # Event ID which to look for
     attr_accessor :event_id
 
@@ -24,7 +27,8 @@ module Server
     attr_accessor :endpoint_id
 
     def initialize(args = {}, &block)
-      attr_from_args args, :event_id => nil,
+      attr_from_args args, :id => nil,
+                           :event_id => nil,
                            :event_type => nil,
                            :handlers => [block].compact,
                            :persist  => false,
@@ -55,7 +59,8 @@ module Server
 
     # Return event handler json data
     def json_data
-      {:event_id    => event_id,
+      {:id          => id,
+       :event_id    => event_id,
        :event_type  => event_type,
        :persist     => persist,
        :endpoint_id => endpoint_id}.merge(handlers_json)
