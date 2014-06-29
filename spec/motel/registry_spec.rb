@@ -99,8 +99,8 @@ describe Registry do
 
     context "changing movement strategy" do
       it "raises changed_strategy event" do
-        l   = build(:location)
-        r    = Registry.new
+        l = build(:location)
+        r = Registry.new
         l.movement_strategy = MovementStrategies::Linear.new :speed => 5
         r << l
 
@@ -108,11 +108,7 @@ describe Registry do
         l1.update l
         l1.movement_strategy = MovementStrategies::Rotate.new
 
-        r.should_receive(:raise_event).
-          with(:changed_strategy,
-               an_instance_of(Location)).
-          and_call_original
-        r.should_receive(:raise_event).once.and_call_original # :updated
+        l.should_receive(:raise_event).with(:changed_strategy).and_call_original
         r.update(l1, &with_id(l.id))
       end
 
@@ -155,32 +151,11 @@ describe Registry do
           l1.update l
           l1.movement_strategy = MovementStrategies::Stopped.instance
 
-          r.should_receive(:update).and_call_original
-          r.should_receive(:raise_event).
-            with(:updated,
-                 an_instance_of(Location),
-                 an_instance_of(Location)).and_call_original
-          r.should_receive(:raise_event).
-            with(:changed_strategy,
-                 an_instance_of(Location)).and_call_original
-          r.should_receive(:raise_event).
-            with(:stopped, an_instance_of(Location))
+          l.should_receive(:raise_event).with(:changed_strategy)
+          l.should_receive(:raise_event).with(:stopped)
           r.update(l1, &with_id(l.id))
         end
       end
-    end
-  end
-
-  context "location event raised" do
-    it "reraises event on location" do
-      l1 = Location.new :id => 1
-      l2 = Location.new :id => 1
-      r = Registry.new
-      r << l1
-      LOCATION_EVENTS.each { |e|
-        l1.should_receive(:raise_event).with(e, "#{e}_arg")
-        r.raise_event(e, l2, "#{e}_arg")
-      }
     end
   end
 
@@ -240,18 +215,17 @@ describe Registry do
         before(:each) do
           @rl = @r.safe_exec { |es| es.find &with_id(@l.id) }
           @rl.movement_strategy.should_receive(:change?).and_return(true)
+
+          @ms = Motel::MovementStrategies::Rotate.new
+          @rl.next_movement_strategy = @ms
         end
 
         it "sets movement strategy to next movement strategy" do
-          @ms = Motel::MovementStrategies::Rotate.new
-          @rl.next_movement_strategy = @ms
           @r.send :run_locations
           @rl.movement_strategy.should == @ms
         end
 
         it "sets next movement strategy to stopped" do
-          @ms = Motel::MovementStrategies::Rotate.new
-          @rl.next_movement_strategy = @ms
           @r.send :run_locations
           @rl.next_movement_strategy.should == Motel::MovementStrategies::Stopped.instance
         end
@@ -262,29 +236,31 @@ describe Registry do
         end
 
         it "invokes changed_strategy callbacks" do
-          @r.should_receive(:raise_event).with(:changed_strategy, an_instance_of(Location))
-          @r.should_receive(:raise_event).at_least(:twice)
+          @l.should_receive(:raise_event).with(:changed_strategy)
+          @l.should_receive(:raise_event).at_least(:twice)
           @r.send :run_locations
         end
 
         context "movement strategy changed to stopped" do
           it 'invokes stopped callbacks' do
             @l.next_movement_strategy = Motel::MovementStrategies::Stopped.instance
-            @r.should_receive(:raise_event).with(:stopped, an_instance_of(Location))
-            @r.should_receive(:raise_event).at_least(:twice)
+            @l.should_receive(:raise_event).with(:stopped)
+            @l.should_receive(:raise_event).at_least(:twice)
             @r.send :run_locations
           end
         end
       end
 
       it "raises movement event" do
-        @r.should_receive(:raise_event).with(:movement, an_instance_of(Location), nil, nil, nil)
+        @l.should_receive(:raise_event).with(:movement, nil, nil, nil)
+        @l.should_receive(:raise_event).at_least(:once) # stub out :rotation, any others
         @run_method.call
       end
 
       it "raises rotation event" do
-        @r.should_receive(:raise_event).with(:movement, an_instance_of(Location), nil, nil, nil)
-        @r.should_receive(:raise_event).with(:rotation, an_instance_of(Location), nil, nil, nil)
+        @l.should_receive(:raise_event)
+          .with(:rotation, nil, nil, nil)
+        @l.should_receive(:raise_event).at_least(:once) # stub out :movement, other
         @run_method.call
       end
     end
@@ -315,11 +291,17 @@ describe Registry do
     end
 
     it "raises proximity events" do
-      @r << build(:location,
+      l1 = build(:location,
                   :movement_strategy => Motel::MovementStrategies::Linear.new)
-      @r << build(:location,
+      l2 = build(:location,
                   :movement_strategy => Motel::MovementStrategies::Linear.new)
-      @r.should_receive(:raise_event).with(:proximity, an_instance_of(Location)).twice
+
+      @r << l1
+      @r << l2
+      l1.should_receive(:raise_event).with(:proximity)
+      l2.should_receive(:raise_event).with(:proximity)
+      l1.should_receive(:raise_event).at_least(:once)
+      l2.should_receive(:raise_event).at_least(:once)
       @run_method.call
     end
   end

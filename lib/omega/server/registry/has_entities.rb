@@ -77,8 +77,10 @@ module Registry
       cloned = nil
       @lock.synchronize {
         added = @validation_methods.all? { |v| v.call(@entities, entity) }
-        @entities << entity if added
-        cloned = RJR::JSONParser.parse(entity.to_json)
+        if added
+          @entities << entity
+          cloned = RJR::JSONParser.parse(entity.to_json)
+        end
       }
 
       raise_event(:added, cloned) if added

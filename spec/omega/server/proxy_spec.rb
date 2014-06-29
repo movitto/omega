@@ -34,7 +34,8 @@ describe ProxyEntity do
     @r.should_receive(:raise_event).
        with{ |*a|
          a[0].should == :updated
-         a[1].should == @e
+         a[1].should be_an_instance_of(Motel::Location)
+         a[1].id.should == @e.id
          a[2].should be_an_instance_of(Motel::Location)
          a[2].id.should == @e.id
        }

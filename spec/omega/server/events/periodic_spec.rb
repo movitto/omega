@@ -20,7 +20,7 @@ module Server
 
     describe "#handle_event" do
       it "copies template event" do
-        @e.should_receive(:to_json).and_call_original
+        @e.should_receive(:to_json).at_least(:once).and_call_original
         @p.send(:handle_event)
       end
 

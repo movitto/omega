@@ -15,34 +15,35 @@ module Registry
     before(:each) do
       @registry = Object.new
       @registry.extend(Registry)
+
+      @e1 = {'foo' => 'bar'}
+      @e2 = {'bar' => 'foo'}
     end
 
     describe "#proxies_for" do
       it "returns proxy entities for entities retrieved by the specified selector" do
-        e1 = Object.new
-        e2 = Object.new
-        @registry << e1
-        @registry << e2
-        e1.stub(:to_json).and_return('{}')
-        e2.stub(:to_json).and_return('{}')
+        @e1 = {'foo' => 'bar'}
+        @e2 = {'bar' => 'foo'}
+        @registry << @e1
+        @registry << @e2
+        @e1.stub(:to_json).and_return('{}')
+        @e2.stub(:to_json).and_return('{}')
         p = @registry.proxies_for { |e| true }
         p.should be_an_instance_of(Array)
         p.size.should == 2
-        p.should == [e1, e2]
+        p.should == [@e1, @e2]
       end
     end
 
     describe "#proxy_for" do
       it "returns proxy entity for entity retrieved by the specified selector" do
-        e1 = Object.new
-        e2 = Object.new
-        @registry << e1
-        @registry << e2
-        e1.stub(:to_json).and_return('{}')
-        e2.stub(:to_json).and_return('{}')
+        @registry << @e1
+        @registry << @e2
+        @e1.stub(:to_json).and_return('{}')
+        @e2.stub(:to_json).and_return('{}')
         p = @registry.proxy_for { |e| true }
         #p.should be_an_instance_of(ProxyEntity) # TODO
-        p.should == e1
+        p.should == @e1
       end
 
       context "entity not found" do

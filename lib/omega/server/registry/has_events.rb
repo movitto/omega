@@ -25,7 +25,7 @@ module Registry
     # Return handles for the specified event
     def handlers_for(event)
       @lock.synchronize {
-        @event_handlers[event] if @event_handlers.key?(event)
+        @event_handlers[event] || []
       }
     end
 

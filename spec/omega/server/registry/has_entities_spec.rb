@@ -16,58 +16,59 @@ module Registry
     before(:each) do
       @registry = Object.new
       @registry.extend(Registry)
+
+      @obj1 = { 'foo' => 'bar' }
+      @obj2 = { 'bar' => 'foo' }
+      @obj3 = { 'oof' => 'ah' }
     end
 
     describe "#entities" do
       it "returns all entities" do
-        @registry << 1
-        @registry << 2
-        @registry.entities.should == [1, 2]
+        @registry << @obj1
+        @registry << @obj2
+        @registry.entities.should == [@obj1, @obj2]
       end
 
       it "returns entities matching criteria" do
-        @registry << 5
-        @registry << 10
-        @registry.entities { |e| e > 6 }.should == [10]
+        @registry << @obj1
+        @registry << @obj2
+        @registry.entities { |e| e.has_key?('foo') }.should == [@obj1]
       end
 
       it "returns the copies of entities" do
-        obj = { 'foo' => 'bar' }
-        @registry << obj
+        @registry << @obj1
         e = @registry.entities
 
         # test values are same but objects are not
-        e.first.should == obj
-        e.first.should_not equal(obj)
+        e.first.should == @obj1
+        e.first.should_not equal(@obj1)
       end
 
       it "invokes retrieval on each entity" do
-        @registry << OpenStruct.new(:id => 21)
-        @registry << OpenStruct.new(:id => 42)
-        e1 = @registry.safe_exec { |es| es.find { |i| i.id == 21 }}
-        e2 = @registry.safe_exec { |es| es.find { |i| i.id == 42 }}
+        @registry << @obj1
+        @registry << @obj2
 
-        @registry.retrieval.should_receive(:call).with(e1)
-        @registry.retrieval.should_receive(:call).with(e2)
+        @registry.retrieval.should_receive(:call).with(@obj1)
+        @registry.retrieval.should_receive(:call).with(@obj2)
         e = @registry.entities
       end
     end
 
     describe "#entity" do
       it "returns first matching result" do
-        @registry << 1
-        @registry << 2
-        @registry << 3
-        selector = proc { |e| e % 2 != 0 }
+        @registry << @obj1
+        @registry << @obj2
+        @registry << @obj3
+        selector = proc { |e| e.object_id ==  @obj2.object_id }
         v = @registry.entity &selector
-        v.should == 1
+        v.should == @obj2
       end
     end
 
     describe "#clear!" do
       it "empties entities list" do
-        @registry << 1
-        @registry << 2
+        @registry << @obj1
+        @registry << @obj2
         @registry.clear!
         @registry.entities.should be_empty
       end
@@ -81,25 +82,25 @@ module Registry
 
       context "validation not set" do
         it "adds entity" do
-          @registry << 1
-          @registry << 1
-          @registry.entities.should == [1, 1]
+          @registry << @obj1
+          @registry << @obj1
+          @registry.entities.should == [@obj1, @obj1]
         end
 
         it "returns true" do
-          @registry.<<(1).should be_true
-          @registry.<<(1).should be_true
+          @registry.<<(@obj1).should be_true
+          @registry.<<(@obj1).should be_true
         end
 
         it "raises added event" do
-          @registry << 1
-          @added.should == 1
+          @registry << @obj1
+          @added.should == @obj1
 
-          @registry << 2
-          @added.should == 2
+          @registry << @obj2
+          @added.should == @obj2
 
-          @registry << 1
-          @added.should == 1
+          @registry << @obj1
+          @added.should == @obj1
         end
       end
 
@@ -112,46 +113,46 @@ module Registry
 
         context "validation passes" do
           it "adds entity" do
-            @registry << 1
-            @registry << 2
-            @registry.entities.should == [1,2]
+            @registry << @obj1
+            @registry << @obj2
+            @registry.entities.should == [@obj1,@obj2]
           end
 
           it "returns true" do
-            @registry.<<(1).should be_true
-            @registry.<<(2).should be_true
+            @registry.<<(@obj1).should be_true
+            @registry.<<(@obj2).should be_true
           end
 
           it "raises added event" do
-            @registry << 1
-            @added.should == 1
+            @registry << @obj1
+            @added.should == @obj1
 
-            @registry << 2
-            @added.should == 2
+            @registry << @obj2
+            @added.should == @obj2
           end
         end
 
         context "validation fails" do
           it "doesn't add the entity" do
-            @registry << 1
-            @registry << 1
-            @registry.entities.should == [1]
+            @registry << @obj1
+            @registry << @obj1
+            @registry.entities.should == [@obj1]
           end
 
           it "returns false" do
-            @registry.<<(1).should be_true
-            @registry.<<(1).should be_false
+            @registry.<<(@obj1).should be_true
+            @registry.<<(@obj1).should be_false
           end
 
           it "doesn't raise added event" do
-            @registry << 1
-            @added.should == 1
+            @registry << @obj1
+            @added.should == @obj1
 
-            @registry << 2
-            @added.should == 2
+            @registry << @obj2
+            @added.should == @obj2
 
-            @registry << 1
-            @added.should == 2
+            @registry << @obj1
+            @added.should == @obj2
           end
         end
       end
@@ -170,17 +171,17 @@ module Registry
 
         context "all validations passes" do
           it "adds entity" do
-            @registry << 1
-            @registry.entities.should == [1]
+            @registry << @obj1
+            @registry.entities.should == [@obj1]
           end
 
           it "returns true" do
-            @registry.<<(1).should be_true
+            @registry.<<(@obj1).should be_true
           end
 
           it "raises added event" do
-            @registry << 1
-            @added.should == 1
+            @registry << @obj1
+            @added.should == @obj1
           end
         end
 
@@ -190,16 +191,16 @@ module Registry
           end
 
           it "doesn't add the entity" do
-            @registry << 1
+            @registry << @obj1
             @registry.entities.should == []
           end
 
           it "returns false" do
-            @registry.<<(1).should be_false
+            @registry.<<(@obj1).should be_false
           end
 
           it "doesn't raise added event" do
-            @registry << 1
+            @registry << @obj1
             @added.should be_nil
           end
         end
@@ -208,24 +209,24 @@ module Registry
 
     describe "#delete" do
       it "deletes first entity matching selector" do
-        @registry << 1
-        @registry << 2
-        @registry << 3
-        @registry.delete { |e| e % 2 != 0 }
-        @registry.entities.should_not include(1)
-        @registry.entities.should include(2)
-        @registry.entities.should include(3)
+        @registry << @obj1
+        @registry << @obj2
+        @registry << @obj3
+        @registry.delete { |e| e.object_id == @obj3.object_id }
+        @registry.entities.should include(@obj1)
+        @registry.entities.should include(@obj2)
+        @registry.entities.should_not include(@obj3)
       end
 
       context "entity deleted" do
         it "raises :deleted event" do
-          @registry << 1
-          @registry.should_receive(:raise_event).with(:deleted, 1)
+          @registry << @obj1
+          @registry.should_receive(:raise_event).with(:deleted, @obj1)
           @registry.delete
         end
 
         it "returns true" do
-          @registry << 1
+          @registry << @obj1
           @registry.delete.should be_true
         end
       end
