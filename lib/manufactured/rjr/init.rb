@@ -126,6 +126,8 @@ module Manufactured::RJR
         entity.distance_moved = 0
       end
 
+      old = oloc.movement_strategy
+
       # remove callbacks if changing movement strategy
       if old != loc.movement_strategy
         if old.is_a?(Motel::MovementStrategies::Linear)
