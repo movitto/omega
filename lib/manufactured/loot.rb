@@ -7,7 +7,7 @@ require 'cosmos/registry'
 require 'cosmos/entities/solar_system'
 
 require 'omega/constraints'
-require 'manufactured/entity_mixins'
+require 'manufactured/mixins/entity'
 
 module Manufactured
 

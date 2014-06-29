@@ -4,7 +4,7 @@
 # Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
 
 require 'omega/constraints'
-require 'manufactured/entity_mixins'
+require 'manufactured/mixins/entity'
 
 module Manufactured
 
