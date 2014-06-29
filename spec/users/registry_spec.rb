@@ -85,11 +85,14 @@ describe Registry do
   context "adding event handler" do
     it "enforces unique event/endpoint" do
       r = Registry.new
-      h1 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+      h1 = Omega::Server::EventHandler.new :id => 'handler1',
+                                           :event_type => 'registered_user',
                                            :endpoint_id => 'node1'
-      h2 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+      h2 = Omega::Server::EventHandler.new :id => 'handler2',
+                                           :event_type => 'registered_user',
                                            :endpoint_id => 'node1'
-      h3 = Omega::Server::EventHandler.new :event_type => 'registered_user',
+      h3 = Omega::Server::EventHandler.new :id => 'handler3',
+                                           :event_type => 'registered_user',
                                            :endpoint_id => 'node2'
       r << h1
       r << h2
@@ -254,7 +257,7 @@ describe Registry do
       @r  = Registry.new
       @p1 = Privilege.new :id => 'modify', :entity_id => 'users'
       @p2 = Privilege.new :id => 'view'
-      @ro = Role.new :privileges => [@p1, @p2]
+      @ro = Role.new :id => 'role42', :privileges => [@p1, @p2]
       @u  = User.new :id => 'user1', :roles => [@ro]
       @r  << @ro
       @r  << @u
