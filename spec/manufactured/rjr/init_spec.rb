@@ -116,38 +116,17 @@ module Manufactured::RJR
       }
     end
 
-    it "sets next movement strategy" do
-      lin = Motel::MovementStrategies::Linear.new :speed => 1
-      @sh.location.next_movement_strategy = lin
-      @s.motel_event @sh.location
-      @sh.location.movement_strategy.should == lin
-    end
-
-    context "next movement strategy is nil" do
-      it "sets movement strategy to stopped" do
-        lin = Motel::MovementStrategies::Linear.new :speed => 1
-        @sh.location.movement_strategy = lin
-        @s.motel_event @sh.location
-        @sh.location.movement_strategy.should == Motel::MovementStrategies::Stopped.instance
-      end
-    end
-
-    it "sets next movement strategy to stopped" do
-      lin = Motel::MovementStrategies::Linear.new :speed => 1
-      @sh.location.next_movement_strategy = lin
-      @s.motel_event @sh.location
-      @sh.location.next_movement_strategy.should == Motel::MovementStrategies::Stopped.instance
-    end
-
     context "movement strategy different" do
       context "old movement strategy is linear" do
         it "removes motel movement callbacks" do
           lin = Motel::MovementStrategies::Linear.new :speed => 1
           @sh.location.movement_strategy = lin
+          @registry.update @sh, &with_id(@sh.id)
+
           @s.node.should_receive(:invoke).
              with('motel::remove_callbacks', @sh.id, :movement)
           @s.node.should_receive(:invoke)
-          @s.motel_event @sh.location
+          @s.motel_event Motel::Location.new :id => @sh.location.id
         end
       end
 
@@ -155,19 +134,19 @@ module Manufactured::RJR
         it "removes motel rotation callbacks" do
           rot = Motel::MovementStrategies::Rotate.new
           @sh.location.movement_strategy = rot
+          @registry.update @sh, &with_id(@sh.id)
+
           @s.node.should_receive(:invoke).
              with('motel::remove_callbacks', @sh.id, :rotation)
-          @s.node.should_receive(:invoke)
-          @s.motel_event @sh.location
+          @s.motel_event Motel::Location.new :id => @sh.location.id
         end
       end
     end
 
     it "updates entity with location" do
-      @s.node.should_receive(:invoke).
-         with('motel::update_location', @sh.location)
-      #@s.node.should_receive(:invoke)
-      @s.motel_event @sh.location
+      loc = build(:location, :id => @sh.location.id)
+      @s.motel_event loc
+      @registry.entity(&with_id(@sh.id)).location.should == loc
     end
 
     it "returns nil" do

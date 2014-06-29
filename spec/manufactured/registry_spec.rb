@@ -48,8 +48,11 @@ describe Registry do
   context "adding command" do
     it "runs check_command" do
       r = Registry.new
-      c = Omega::Server::Command.new
-      r.should_receive(:check_command).with(c)
+      c = Omega::Server::Command.new :id => 'foobar'
+      r.should_receive(:check_command).with { |cmd|
+        cmd.should be_an_instance_of(Omega::Server::Command)
+        cmd.id.should == 'foobar'
+      }
       r << c
     end
   end
@@ -62,11 +65,14 @@ describe Registry do
   context "adding event handler" do
     it "enforces unique event/endpoint" do
       r = Registry.new
-      h1 = Omega::Server::EventHandler.new :event_type => 'system_jump',
+      h1 = Omega::Server::EventHandler.new :id => 'handler1',
+                                           :event_type => 'system_jump',
                                            :endpoint_id => 'node1'
-      h2 = Omega::Server::EventHandler.new :event_type => 'system_jump',
+      h2 = Omega::Server::EventHandler.new :id => 'handler2',
+                                           :event_type => 'system_jump',
                                            :endpoint_id => 'node1'
-      h3 = Omega::Server::EventHandler.new :event_type => 'system_jump',
+      h3 = Omega::Server::EventHandler.new :id => 'handler3',
+                                           :event_type => 'system_jump',
                                            :endpoint_id => 'node2'
       r << h1
       r << h2
