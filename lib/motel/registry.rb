@@ -19,6 +19,8 @@ class Registry
   include Motel::AdjustsHeirarchy
   include Motel::SanitizesLocations
 
+  private
+
   # Validate location ids are unique before creating
   def init_validations
     validation_callback { |entities, check|

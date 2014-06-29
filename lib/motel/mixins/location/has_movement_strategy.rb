@@ -33,6 +33,7 @@ module HasMovementStrategy
 
   # Initialize default movement strategy / movement strategy from arguments
   def movement_strategy_from_args(args)
+    # default to the stopped movement strategy
     attr_from_args args,
       :movement_strategy      => MovementStrategies::Stopped.instance,
       :next_movement_strategy => nil

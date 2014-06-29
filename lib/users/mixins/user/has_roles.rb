@@ -82,7 +82,7 @@ module HasRoles
 
   # Return roles in json format
   def roles_json
-    {roles => :roles}
+    {:roles => roles}
   end
 end # module HasRoles
 end # module Users

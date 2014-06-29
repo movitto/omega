@@ -30,6 +30,8 @@ class Registry
   # Time attack thread sleeps between event cycles
   POLL_DELAY = 0.5 # TODO make configurable?
 
+  private
+
   def init_validations
     validation_callback { |entities, check|
       check.kind_of?(Omega::Server::Command) ||

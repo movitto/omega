@@ -20,7 +20,6 @@ module BaseAttrs
 
   # Initialize default base attributes / base attributes from arguments
   def base_attrs_from_args(args)
-    # default to the stopped movement strategy
     attr_from_args args,
       :id                => nil,
       :restrict_view     => true,

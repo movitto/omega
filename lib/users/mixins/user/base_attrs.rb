@@ -34,7 +34,10 @@ module BaseAttrs
     attr_from_args args, :id        => nil,
                          :email     => nil,
                          :permenant => false,
-                         :npc       => false
+                         :npc       => false,
+                         :created_at       => nil,
+                         :last_modified_at => nil,
+                         :last_login_at    => nil
   end
 
   # Update base attributes from other user
@@ -59,7 +62,9 @@ module BaseAttrs
 
   # Return base attributes in json format
   def base_json
-    {:id => id, :email => email, :permenant => permenant, :npc => npc}
+    {:id => id, :email => email, :permenant => permenant, :npc => npc,
+     :created_at => created_at, :last_modified_at => last_modified_at,
+     :last_login_at => last_login_at }
   end
 end # module BaseAttrs
 end # module Users
