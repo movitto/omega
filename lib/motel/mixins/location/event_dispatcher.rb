@@ -45,5 +45,10 @@ module EventDispatcher
   def callbacks_json
     {:callbacks => callbacks}
   end
+
+  # Return bool indicating if callbacks are equal to other's
+  def callbacks_eql?(other)
+    callbacks == other.callbacks
+  end
 end # module EventDispatcher
 end # module Motel

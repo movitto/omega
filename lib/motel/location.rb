@@ -128,5 +128,13 @@ class Location
    def clone
      RJR::JSONParser.parse self.to_json
    end
+
+   # Return boolean indicating if this location is equal to other
+   def ==(other)
+     base_attrs_eql?(other)  && coordinates_eql?(other)       &&
+     orientation_eql?(other) && movement_strategy_eql?(other) &&
+     callbacks_eql?(other)   && heirarchy_eql?(other)         &&
+     trackable_state_eql?(other)
+   end
 end # class Location
 end # module Motel

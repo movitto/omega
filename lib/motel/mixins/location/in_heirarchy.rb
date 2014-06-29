@@ -106,5 +106,10 @@ module InHeirarchy
   def parent_id_str
     parent_id.nil? ? "" : parent_id[0...8]
   end
+
+  # Return bool indicating if heirarchy attributes are equal to other's
+  def heirarchy_eql?(other)
+    parent_id == other.parent_id # TODO compare parent and children?
+  end
 end # module InHeirarchy
 end # module Motel

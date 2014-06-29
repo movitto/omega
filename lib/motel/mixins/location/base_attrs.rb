@@ -48,5 +48,12 @@ module BaseAttrs
      :restrict_view   => restrict_view,
      :restrict_modify => restrict_modify}
   end
+
+  # Return bool indicating if base attributes are equal to other's
+  def base_attrs_eql?(other)
+    id == other.id &&
+    restrict_view   == other.restrict_view &&
+    restrict_modify == other.restrict_modify
+  end
 end # module BaseAttrs
 end # module Motel

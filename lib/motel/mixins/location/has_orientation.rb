@@ -83,5 +83,10 @@ module HasOrientation
     (ory.numeric? ? ory.round_to(2).to_s : "") + "," +
     (orz.numeric? ? orz.round_to(2).to_s : "")
   end
+
+  # Return bool indicating if orientation is equal to other's
+  def orientation_eql?(other)
+    orx == other.orx && ory == other.ory && orz == other.orz
+  end
 end # module HasOrientation
 end # module Motel

@@ -63,5 +63,10 @@ module HasMovementStrategy
   def time_until_movement
     movement_strategy.step_delay - (time_since_movement || 0)
   end
+
+  # Return bool indicating if movement strategy is equal to other's
+  def movement_strategy_eql?(other)
+    movement_strategy == other.movement_strategy
+  end
 end # module HasMovementStrategy
 end # module Motel

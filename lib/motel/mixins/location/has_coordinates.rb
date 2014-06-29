@@ -123,5 +123,10 @@ module HasCoordinates
     (y.numeric? ? y.round_to(2).to_s : "") + "," +
     (z.numeric? ? z.round_to(2).to_s : "")
   end
+
+  # Return bool indicating if coordinates are equal to other's
+  def coordinates_eql?(other)
+    x == other.x && y == other.y && z == other.z
+  end
 end # module HasCoordinates
 end # module Motel

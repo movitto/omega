@@ -60,5 +60,12 @@ module Trackable
   def time_since_movement
     last_moved_at.nil? ? nil : (Time.now - last_moved_at)
   end
+
+  # Return bool indicating if trackable stategy is equal to other's
+  def trackable_state_eql?(other)
+    distance_moved == other.distance_moved &&
+    angle_rotated  == other.angle_rotated  &&
+    last_moved_at  == other.last_moved_at
+  end
 end # module Trackable
 end # module Motel
