@@ -24,6 +24,8 @@ Omega.UI.CanvasSceneManager = {
 
   /// Setup Canvas 3D operations
   setup : function(){
+    if(!this.detect_webgl()) return;
+
     this._setup_stats();
     this._setup_scenes();
     this._setup_renderer();
@@ -31,6 +33,10 @@ Omega.UI.CanvasSceneManager = {
     this._setup_components();
 
     THREEx.WindowResize(this.renderer, this.cam);
+  },
+
+  detect_webgl : function(){
+    return Detector.webgl;
   },
 
   _setup_stats : function(){

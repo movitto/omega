@@ -66,6 +66,12 @@ Omega.Pages.Index.prototype = {
   },
 
   start : function(){
+    if(!this.canvas.detect_webgl()){
+      var msg = 'A WebGL capable browser is currently required';
+      this.dialog.show_critical_err_dialog('WebGL Required', msg);
+      return;
+    }
+
     this.effects_player.start();
     this.splash.start();
 
