@@ -1,3 +1,4 @@
+/// NIY
 pavlov.specify("Omega.BaseAudioEffect", function(){
 describe("Omega.BaseAudioEffect", function(){
   describe("#dom", function(){
@@ -39,6 +40,17 @@ describe("Omega.BaseAudioEffect", function(){
     });
   });
 
+  describe("#_setup_end", function(){
+    describe("already setup loop", function(){
+      it("does nothing / just returns");
+    });
+
+    it("listens for dom element ended event");
+    describe("dom element ended", function(){
+      it("invokes specified callback");
+    });
+  });
+
   describe("#_play_element", function(){
     it("sets element time to 0");
     it("plays element");
@@ -51,6 +63,10 @@ describe("Omega.BaseAudioEffect", function(){
 
     describe("should_loop returns true", function(){
       it("sets up audio loop");
+    });
+
+    describe("should_loop returns false", function(){
+      it("sets up end callback");
     });
 
     it("plays dom element");

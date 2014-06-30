@@ -136,7 +136,9 @@ describe("Omega.UI.CanvasTracker", function(){
 
     before(function(){
       page = $.extend({canvas : Omega.Test.Canvas(),
-                       config : Omega.Config}, Omega.UI.CanvasTracker);
+                       config : Omega.Config,
+                       audio_controls : new Omega.UI.AudioControls()},
+                       Omega.UI.CanvasTracker);
       orig_page = page.canvas.page;
       page.canvas.page = page;
 
@@ -153,6 +155,8 @@ describe("Omega.UI.CanvasTracker", function(){
       sinon.stub(page, 'process_entities');
       sinon.stub(page, 'sync_scene_planets');
       sinon.stub(page, '_scale_system');
+      sinon.stub(page, '_unscale_system');
+      sinon.stub(page.audio_controls, 'play');
 
       sinon.stub(page.canvas, 'remove');
       sinon.stub(page.canvas, 'add');
@@ -166,37 +170,61 @@ describe("Omega.UI.CanvasTracker", function(){
       page.canvas.skybox.set.restore();
     });
 
-    it("starts tracking system events", function(){
-      page.scene_change(change);
-      sinon.assert.calledWith(page.track_system_events, change.root);
-    });
+    describe("changing scene to system", function(){
+      it("starts tracking system events", function(){
+        page.scene_change(change);
+        sinon.assert.calledWith(page.track_system_events, change.root);
+      });
 
-    it("stops tracking old system events", function(){
-      page.scene_change(change);
-      sinon.assert.calledWith(page.stop_tracking_system_events);
-    });
+      it("processes sync'd scene entities", function(){
+        var retrieved = {};
+        page.scene_change(change)
+        page.sync_scene_entities.omega_callback()(retrieved);
+        sinon.assert.calledWith(page.process_entities, retrieved);
+      });
 
-    it("stops tracking old scene entities", function(){
-      page.scene_change(change)
-      sinon.assert.calledWith(page.stop_tracking_scene_entities, entity_map);
-    });
+      it("scales system", function(){
+        page.scene_change(change)
+        sinon.assert.calledWith(page._scale_system, change.root);
+      });
 
-    it("syncs scene entities", function(){
-      page.scene_change(change)
-      sinon.assert.calledWith(page.sync_scene_entities,
-                              change.root, entity_map);
-    });
+      it("syncs scene planets", function(){
+        page.scene_change(change);
+        sinon.assert.calledWith(page.sync_scene_planets, change.root);
+      });
 
-    it("processes sync'd scene entities", function(){
-      var retrieved = {};
-      page.scene_change(change)
-      page.sync_scene_entities.omega_callback()(retrieved);
-      sinon.assert.calledWith(page.process_entities, retrieved);
-    });
+      it("syncs scene entities", function(){
+        page.scene_change(change)
+        sinon.assert.calledWith(page.sync_scene_entities,
+                                change.root, entity_map);
+      });
 
-    it("syncs scene planets", function(){
-      page.scene_change(change);
-      sinon.assert.calledWith(page.sync_scene_planets, change.root);
+      it("sets scene skybox background", function(){
+        page.scene_change(change);
+        sinon.assert.calledWith(page.canvas.skybox.set, change.root.bg);
+      });
+
+      it("adds skybox to scene", function(){
+        page.scene_change(change);
+        sinon.assert.calledWith(page.canvas.add, page.canvas.skybox);
+      });
+    })
+
+    describe("changing scene from system", function(){
+      it("stops tracking old system events", function(){
+        page.scene_change(change);
+        sinon.assert.calledWith(page.stop_tracking_system_events);
+      });
+
+      it("stops tracking old scene entities", function(){
+        page.scene_change(change)
+        sinon.assert.calledWith(page.stop_tracking_scene_entities, entity_map);
+      });
+
+      it("unscales system", function(){
+        page.scene_change(change)
+        sinon.assert.calledWith(page._unscale_system, change.old_root);
+      });
     });
 
     describe("changing scene from galaxy", function(){
@@ -215,14 +243,13 @@ describe("Omega.UI.CanvasTracker", function(){
       });
     });
 
-    it("sets scene skybox background", function(){
-      page.scene_change(change);
-      sinon.assert.calledWith(page.canvas.skybox.set, change.root.bg);
-    });
-
-    it("adds skybox to scene", function(){
-      page.scene_change(change);
-      sinon.assert.calledWith(page.canvas.add, page.canvas.skybox);
+    describe("no existing old scene root", function(){
+      it("starts playing background audio", function(){
+        change.old_root = null;
+        page.scene_change(change);
+        sinon.assert.calledWith(page.audio_controls.play,
+                                page.audio_controls.effects.background);
+      });
     });
 
     it("adds star dust to scene", function(){

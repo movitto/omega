@@ -46,6 +46,11 @@ describe("Omega.SolarSystemGfx", function(){
           isOfType(Omega.SolarSystemClickAudioEffect);
     });
 
+    it("creates particles for solar system", function(){
+      assert(Omega.SolarSystem.gfx.particles).
+        isOfType(Omega.SolarSystemParticles);
+    });
+
     it("invokes _loaded_gfx", function(){
       sinon.stub(system, 'gfx_loaded').returns(false);
       sinon.stub(system, '_loaded_gfx');
@@ -55,12 +60,22 @@ describe("Omega.SolarSystemGfx", function(){
   });
 
   describe("#init_gfx", function(){
-    after(function(){
-      if(Omega.SolarSystem.gfx.mesh.clone.restore)
-        Omega.SolarSystem.gfx.mesh.clone.restore();
+    var mesh, plane, particles;
 
-      if(Omega.SolarSystem.gfx.plane.clone.restore)
-        Omega.SolarSystem.gfx.plane.clone.restore();
+    before(function(){
+      mesh = new Omega.SolarSystemMesh();
+      plane = new Omega.SolarSystemPlane({config: Omega.Config});
+      particles = new Omega.SolarSystemParticles({config: Omega.Config});
+
+      sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
+      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(plane);
+      sinon.stub(Omega.SolarSystem.gfx.particles, 'clone').returns(particles);
+    });
+
+    after(function(){
+      Omega.SolarSystem.gfx.mesh.clone.restore();
+      Omega.SolarSystem.gfx.plane.clone.restore();
+      Omega.SolarSystem.gfx.particles.clone.restore();
     });
 
     it("loads system gfx", function(){
@@ -70,8 +85,6 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("clones SolarSystem mesh", function(){
-      var mesh = new Omega.SolarSystemMesh();
-      sinon.stub(Omega.SolarSystem.gfx.mesh, 'clone').returns(mesh);
       system.init_gfx(Omega.Config);
       assert(system.mesh).equals(mesh);
     });
@@ -87,8 +100,6 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("clones SolarSystem plane", function(){
-      var plane = new Omega.SolarSystemPlane({config: Omega.Config});
-      sinon.stub(Omega.SolarSystem.gfx.plane, 'clone').returns(plane);
       system.init_gfx(Omega.Config);
       assert(system.plane).equals(plane);
     });
@@ -111,6 +122,11 @@ describe("Omega.SolarSystemGfx", function(){
     it("creates local reference to solar system audio", function(){
       system.init_gfx(Omega.Config);
       assert(system.audio_effects).equals(Omega.SolarSystem.gfx.audio_effects);
+    });
+
+    it("clones SolarSystem particles", function(){
+      system.init_gfx(Omega.Config);
+      assert(system.particles).equals(particles);
     });
     
     it("adds position tracker, particles to solar system scene components", function(){

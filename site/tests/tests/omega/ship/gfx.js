@@ -115,7 +115,7 @@ describe("Omega.ShipGfx", function(){
         isOfType(Omega.ShipCombatAudioEffect);
     });
 
-    it("creates movement audio audio for ship", function(){
+    it("creates movement audio for ship", function(){
       var ship = Omega.Test.Canvas.Entities().ship;
       assert(Omega.Ship.gfx[ship.type].movement_audio).
         isOfType(Omega.ShipMovementAudioEffect);
@@ -627,6 +627,15 @@ describe("Omega.ShipGfx", function(){
         tracked.location.set(coordinates);
         ship._run_follow_movement(page);
         assert(ship.location.coordinates()).isSameAs(coordinates);
+      });
+    });
+
+    describe("ship is on target", function(){
+      it("updates movement effects", function(){
+        sinon.stub(ship.location, 'on_target').returns(true);
+        sinon.spy(ship, 'update_movement_effects');
+        ship._run_follow_movement(page);
+        sinon.assert.called(ship.update_movement_effects);
       });
     });
 

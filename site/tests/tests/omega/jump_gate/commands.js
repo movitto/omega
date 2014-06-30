@@ -142,8 +142,14 @@ describe("Omega.JumpGateCommands", function(){
       })
 
       describe("successful command response", function(){
+        before(function(){
+          sinon.spy(page.canvas, 'remove');
+          sinon.spy(page.audio_controls, 'play');
+        });
+
         after(function(){
-          if(page.canvas.remove.restore) page.canvas.remove.restore();
+          page.canvas.remove.restore();
+          page.audio_controls.play.restore();
         });
 
         it("sets new system on registry ship", function(){
@@ -152,13 +158,11 @@ describe("Omega.JumpGateCommands", function(){
         });
 
         it("removes ship from canvas scene", function(){
-          var spy = sinon.spy(page.canvas, 'remove');
           handler(success_response);
-          sinon.assert.calledWith(spy, ship1);
+          sinon.assert.calledWith(page.canvas.remove, ship1);
         });
 
         it("plays jump gate trigger audio", function(){
-          sinon.spy(page.audio_controls, 'play');
           handler(success_response);
           sinon.assert.calledWith(page.audio_controls.play, jg.trigger_audio);
         });

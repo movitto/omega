@@ -33,4 +33,32 @@ describe("Omega.ShipTrails", function(){
     //  trails.update();
     //});
   });
+
+  describe("#update_state", function(){
+    var trails;
+
+    before(function(){
+      trails = new Omega.ShipTrails({config: Omega.Config,
+                                     type: 'corvette'});
+      trails.omega_entity = Omega.Gen.ship();
+    });
+
+    describe("omega entity is stopped", function(){
+      it("disables emitter", function(){
+        sinon.stub(trails.omega_entity.location, 'is_stopped').returns(true);
+        sinon.stub(trails, 'disable');
+        trails.update_state();
+        sinon.assert.called(trails.disable);
+      });
+    });
+
+    describe("omega entity is not stopped", function(){
+      it("enables emitter", function(){
+        sinon.stub(trails.omega_entity.location, 'is_stopped').returns(false);
+        sinon.stub(trails, 'enable');
+        trails.update_state();
+        sinon.assert.called(trails.enable);
+      });
+    });
+  });
 });}); // Omega.ShipTrails

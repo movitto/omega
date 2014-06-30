@@ -46,7 +46,7 @@ describe("Omega.UI.AudioControls", function(){
 
   //describe("#set_volume", function(){
     //it("sets local volume");
-    //it("sets volume of currently playing element") /// NIY
+    //it("sets volume of currently playing elements") /// NIY
   //});
 
   describe("#play", function(){
@@ -69,6 +69,22 @@ describe("Omega.UI.AudioControls", function(){
       sinon.assert.called(audio.play);
     });
 
+    it("specifies track ended callback", function(){
+      ac.disabled = false;
+      ac.play(audio);
+      sinon.assert.calledWith(audio.play, sinon.match.func);
+    });
+
+    describe("track ended", function(){
+      it("stops playing track", function(){
+        ac.disabled = false;
+        ac.play(audio);
+        sinon.stub(ac, 'stop')
+        audio.play.omega_callback()();
+        sinon.assert.calledWith(ac.stop, audio);
+      })
+    })
+
     it("sets track volume to local volume", function(){
       ac.volume = 0.23;
       ac.play(audio);
@@ -81,6 +97,13 @@ describe("Omega.UI.AudioControls", function(){
     
     before(function(){
       ac = new Omega.UI.AudioControls();
+    });
+
+    it("removes track from playing list", function(){
+      var audio = {pause : sinon.stub()};
+      ac.playing = [audio];
+      ac.stop(audio);
+      assert(ac.playing).doesNotInclude(audio);
     });
 
     it("stops the specified track", function(){

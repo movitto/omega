@@ -1,6 +1,6 @@
 pavlov.specify("Omega", function(){
 describe("Omega", function(){
-  describe("#convert.entities", function(){
+  describe("convert#entities", function(){
     it("converts each entity", function(){
       var entities = [{json_class: 'Cosmos::Entities::Star',   id: 'star1'},
                       {json_class: 'Cosmos::Entities::Planet', id: 'pl1'}];
@@ -13,7 +13,7 @@ describe("Omega", function(){
     });
   });
 
-  describe("#convert.entity", function(){
+  describe("convert#entity", function(){
     it("returns js instance of class corresponding to entity", function(){
       var ship = {json_class : 'Manufactured::Ship', id: 'ship1'};
       var converted = Omega.convert.entity(ship);
@@ -38,6 +38,27 @@ describe("Omega", function(){
         var converted = Omega.convert.entity(ship);
         assert(ship).isSameAs(ship);
       });
+    });
+  });
+
+  describe("convert#hex2rgb", function(){
+    it("returns rgb components of specified hex", function(){
+      var result = Omega.convert.hex2rgb(0xFA120B);
+      assert(result.r).equals(0xFA/255);
+      assert(result.g).equals(0x12/255);
+      assert(result.b).equals(0x0B/255);
+    });
+  });
+
+  describe("convert#rgb2hex", function(){
+    it("returns hex from rgb components", function(){
+      var result = Omega.convert.rgb2hex({r : 0xAF/255, g : 0x21/255, b : 0xB0/255});
+      assert(result).equals(0xAF21B0);
+    });
+
+    it("returns hex from rgb components array", function(){
+      var result = Omega.convert.rgb2hex([0xAF/255, 0x21/255, 0xB0/255]);
+      assert(result).equals(0xAF21B0);
     });
   });
 

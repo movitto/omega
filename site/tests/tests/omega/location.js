@@ -153,6 +153,10 @@ describe("Omega.Location", function(){
     });
   });
 
+  //describe("#orientation_difference", function(){
+    //it("returns axis angle between orientation and specified coordinate"); // NIY
+  //});
+
   describe("#add", function(){
     it("adds/returns coordinates + values", function(){
       var loc = new Omega.Location({x:10,y:9,z:-8});
@@ -206,6 +210,34 @@ describe("Omega.Location", function(){
     });
   });
 
+  describe("#on_target", function(){
+    describe("not tracking anything", function(){
+      it("returns true", function(){
+        var loc = new Omega.Location();
+        assert(loc.on_target()).isTrue();
+      });
+    });
+
+    describe("location is less than min distance from target", function(){
+      it("returns true", function(){
+        var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
+        var loc2 = new Omega.Location({x : Omega.Config.follow_distance - 1,
+                                       y : 0, z : 0});
+        loc1.tracking = loc2;
+        assert(loc1.on_target()).isTrue();
+      });
+    });
+    describe("location is greater than min distance from target", function(){
+      it("returns false", function(){
+        var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
+        var loc2 = new Omega.Location({x : Omega.Config.follow_distance * 2,
+                                       y : 0, z : 0});
+        loc1.tracking = loc2;
+        assert(loc1.on_target()).isFalse();
+      });
+    });
+  });
+
   describe("#is_stopped", function(){
     describe("location movement strategy is stopped", function(){
       it("returns true", function(){
@@ -215,11 +247,11 @@ describe("Omega.Location", function(){
       });
     });
 
-    describe("location movement strategy is folow, on target, & not adjusting bearing", function(){
+    describe("location movement strategy is folow & on target", function(){
       it("return true", function(){
         var loc = new Omega.Location({movement_strategy :
-                   {json_class : 'Motel::MovementStrategies::Follow',
-                    adjusting_bearing : false, on_target : true}});
+                   {json_class : 'Motel::MovementStrategies::Follow'}});
+        sinon.stub(loc, 'on_target').returns(true);
         assert(loc.is_stopped()).isTrue();
       });
     });
