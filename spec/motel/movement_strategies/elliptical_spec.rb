@@ -80,6 +80,13 @@ describe Elliptical do
       e = Elliptical.new :direction => [[10,0,0],[0,-5,0]]
       e.direction.should == [1,0,0,0,-1,0]
     end
+
+    it "sets cached elliptical properties" do
+      e = Elliptical.new :a => 10, :b => 20, :le => 1000
+      e.a.should == 10
+      e.b.should == 20
+      e.le.should == 1000
+    end
   end
 
   describe "#valid?" do
@@ -243,6 +250,29 @@ describe Elliptical do
       m.dminy.should == 1
       m.dminz.should == 0
     end
+  end
+
+  it "returns cached elliptical properties in json" do
+      m = Elliptical.new :a => 10, :b => 20, :le => 1000
+
+      j = m.to_json
+      j.should include('"a":10')
+      j.should include('"b":20')
+      j.should include('"le":1000')
+  end
+
+  it "excludes cached elliptical properties from :create scope" do
+    m = Elliptical.new
+    m.scoped_attrs(:create).should_not include(:a)
+    m.scoped_attrs(:create).should_not include(:b)
+    m.scoped_attrs(:create).should_not include(:le)
+  end
+
+  it "excludes cached elliptical properties from :get scope" do
+    m = Elliptical.new
+    m.scoped_attrs(:get).should_not include(:a)
+    m.scoped_attrs(:get).should_not include(:b)
+    m.scoped_attrs(:get).should_not include(:le)
   end
 
   describe "#random" do

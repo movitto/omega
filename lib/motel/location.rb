@@ -126,7 +126,7 @@ class Location
 
    # Return clone of location
    def clone
-     RJR::JSONParser.parse self.to_json
+     ::RJR::JSONParser.parse self.to_json
    end
 
    # Return boolean indicating if this location is equal to other

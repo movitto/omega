@@ -63,6 +63,8 @@ module Manufactured::RJR
         @sh.location.movement_strategy.dx.should == -1
         @sh.location.movement_strategy.dy.should == 0
         @sh.location.movement_strategy.dz.should == 0
+        @sh.location.movement_strategy.speed.should == @sh.movement_speed
+        @sh.location.movement_strategy.stop_distance.should == 100
       end
     end
 
@@ -76,6 +78,8 @@ module Manufactured::RJR
         move_entity_in_system(@sh, @l)
         @sh.location.movement_strategy.
           should be_an_instance_of(Motel::MovementStrategies::Rotate)
+        @sh.location.movement_strategy.rot_theta.should == Math::PI * @sh.rotation_speed
+        @sh.location.movement_strategy.stop_angle.should == Math::PI
       end
 
       it "sets next movement strategy to move entity towards destination" do

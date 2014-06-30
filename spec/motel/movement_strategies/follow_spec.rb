@@ -133,7 +133,35 @@ describe Follow do
       end
     end
 
-    context "tracked location is <= distance away" do
+    context "point_to_target is true and location not facing tracked location" do
+      before(:each) do
+        p2 = build(:location)
+        l2 = build(:location, :x => @l.x + 100)
+        l2.parent = @p
+        @follow = Follow.new :tracked_location_id => l2.id,
+                             :distance => 10, :speed => 5,
+                             :point_to_target => true,
+                             :rotation_speed => 1.00
+        @follow.tracked_location = l2
+      end
+
+      it "sets rotational params from orientation difference axis-angle" do
+        @l.should_receive(:orientation_difference).and_return([Math::PI/4, 0, 1, 0])
+        @follow.should_receive(:init_rotation)
+               .with(:rot_theta => @follow.rotation_speed,
+                     :rot_x     => 0,
+                     :rot_y     => 1,
+                     :rot_z     => 0)
+        @follow.move @l, 1
+      end
+
+      it "rotates location" do
+        @follow.should_receive(:rotate).with(@l, 1)
+        @follow.move @l, 1
+      end
+    end
+
+    context "tracked location is <= distance away and facing target" do
       it "does not move location" do
         l2 = build(:location)
         l2.parent = @p

@@ -12,6 +12,7 @@ module Server
     describe "#initialize" do
       it "sets defaults" do
         eh = EventHandler.new
+        eh.id.should be_nil
         eh.event_id.should be_nil
         eh.event_type.should be_nil
         eh.handlers.should == []
@@ -21,10 +22,12 @@ module Server
 
       it "sets attributes" do
         h = proc {}
-        eh = EventHandler.new :event_id    => :foo,
+        eh = EventHandler.new :id          => 'eh',
+                              :event_id    => :foo,
                               :event_type  => :foo_type,
                               :persist     => true,
                               :endpoint_id => 'eh', &h
+        eh.id.should == 'eh'
         eh.event_id.should == :foo
         eh.event_type.should == :foo_type
         eh.handlers.should == [h]
@@ -78,12 +81,13 @@ module Server
 
     describe "#to_json" do
       it "returns handler in json format" do
-        handler = EventHandler.new :event_id => :foo, :handlers => [:bar],
+        handler = EventHandler.new :id => 'eh', :event_id => :foo, :handlers => [:bar],
                                    :persist => true, :endpoint_id => 'eid',
                                    :event_type => :foo_type
 
         j = handler.to_json
         j.should include('"json_class":"Omega::Server::EventHandler"')
+        j.should include('"id":"eh"')
         j.should include('"event_id":"foo"')
         j.should include('"event_type":"foo_type"')
         j.should include('"handlers":["bar"]')
@@ -94,10 +98,11 @@ module Server
 
     describe "#json_create" do
       it "return event from json format" do
-        j = '{"json_class":"Omega::Server::EventHandler","data":{"event_id":"foo","handlers":["bar"]}}'
+        j = '{"json_class":"Omega::Server::EventHandler","data":{"id":"eh", "event_id":"foo","handlers":["bar"]}}'
 
         handler = RJR::JSONParser.parse(j)
         handler.class.should == EventHandler
+        handler.id.should == 'eh'
         handler.event_id.should == 'foo'
         handler.handlers.should == ['bar']
       end

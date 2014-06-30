@@ -562,6 +562,111 @@ describe Location do
     end
   end
 
+  describe "clone" do
+    it "returns new copy of location" do
+      l1 = build(:location)
+      l2 = l1.clone
+      l1.should == l2
+      l1.should_not equal(l2)
+    end
+  end
+
+  describe "#==" do
+    context "other is not a location" do
+      it "returns false" do
+        Location.new.should_not == 42
+      end
+    end
+
+    context "base attributes are different" do
+      it "returns false" do
+        l1 = Location.new :id => 1
+        l2 = Location.new :id => 2
+        l1.should_not == l2
+
+        l1 = Location.new :restrict_view => true
+        l2 = Location.new :restrict_view => false
+        l1.should_not == l2
+
+        l1 = Location.new :restrict_modify => true
+        l2 = Location.new :restrict_modify => false
+        l1.should_not == l2
+      end
+    end
+
+    context "coordinates are different" do
+      it "returns false" do
+        l1 = Location.new :x => 1
+        l2 = Location.new :x => 2
+        l1.should_not == l2
+
+        l1 = Location.new :y => 1
+        l2 = Location.new :y => 2
+        l1.should_not == l2
+
+        l1 = Location.new :z => 1
+        l2 = Location.new :z => 2
+        l1.should_not == l2
+      end
+    end
+
+    context "orientations are different" do
+      it "returns false" do
+        l1 = Location.new :orx => 1
+        l2 = Location.new :orx => 0
+        l1.should_not == l2
+
+        l1 = Location.new :ory => 1
+        l2 = Location.new :ory => 0
+        l1.should_not == l2
+
+        l1 = Location.new :orz => 1
+        l2 = Location.new :orz => 0
+        l1.should_not == l2
+      end
+    end
+
+    context "movement strategy is different" do
+      it "returns false" do
+        l1 = Location.new :movement_strategy => MovementStrategies::Linear.new
+        l2 = Location.new
+        l1.should_not == l2
+      end
+    end
+
+    context "callbacks are different" do
+      it "returns false" do
+        l1 = Location.new :callbacks => {:movement => proc {}}
+        l2 = Location.new
+        l1.should_not == l2
+      end
+    end
+
+    context "heirarchy is different" do
+      it "returns false" do
+        l1 = Location.new :parent_id => 'l4'
+        l2 = Location.new :parent_id => 'l5'
+        l1.should_not == l2
+      end
+    end
+
+    context "trackable state is different" do
+      it "returns false" do
+        l1 = Location.new :distance_moved =>  50
+        l2 = Location.new :distance_moved => 150
+        l1.should_not == l2
+
+        l1 = Location.new :angle_rotated =>  50
+        l2 = Location.new :angle_rotated => 150
+        l1.should_not == l2
+      end
+    end
+
+    it "returns true" do
+      Location.new.should == Location.new
+    end
+  end
+
   describe "#basic" do
     it "returns new minimal location" do
       l = Location.basic(123)

@@ -48,7 +48,8 @@ module MovementStrategies
 
       # stop at stop angle
       total_rotated = loc.angle_rotated + angle_rotated
-      angle_rotated = (stop_angle - loc.angle_rotated) if stop_angle && total_rotated > stop_angle
+      exceeds_stop  = stop_angle && total_rotated > stop_angle
+      angle_rotated = (stop_angle - loc.angle_rotated) if exceeds_stop
 
       # update location's orientation
       nor =

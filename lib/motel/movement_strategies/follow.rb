@@ -117,7 +117,7 @@ class Follow < MovementStrategy
 
      distance_to_cover  = loc - tl
      facing_target = od.first.abs <= (Math::PI / 8)
-     if (distance_to_cover > @distance) && facing_target
+     if (distance_to_cover > @distance) && (!@point_to_target || facing_target)
        # calculate direction of tracked location
        dx = (tl.x - loc.x) / distance_to_cover
        dy = (tl.y - loc.y) / distance_to_cover

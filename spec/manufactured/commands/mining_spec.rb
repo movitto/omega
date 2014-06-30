@@ -226,6 +226,11 @@ describe Mining, :rjr => true do
       @m.last_hook
     end
 
+    it "saves ship in registry" do
+      @m.should_receive(:update_registry).with(@sh)
+      @m.after_hook
+    end
+
     it "runs mining_stopped callbacks" do
       # generate distance exceeded reason
       @r.entity.solar_system = build(:solar_system)

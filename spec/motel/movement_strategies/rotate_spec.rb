@@ -109,6 +109,16 @@ describe Rotatable do
       rot.move l, 1
       l.angle_rotated.should == 1.57
     end
+
+    context "total rotation angle will exceed stop angle" do
+      it "only rotates location up to stop angle" do
+        rot = Rotate.new :rot_theta  => 1.57, :step_delay => 5,
+                         :stop_angle => 1.23
+        l = Motel::Location.new :orientation => [1,0,0]
+        rot.move l, 1
+        l.angle_rotated.should == 1.23
+      end
+    end
   end
 
 end # describe Rotatable
