@@ -50,8 +50,6 @@ Omega.AsteroidGfx = {
     var loc = this.scene_location();
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
   },
-
-  run_effects : function(){}
 };
 
 $.extend(Omega.AsteroidGfx, Omega.EntityGfx);

@@ -43,18 +43,19 @@ Omega.Scenes.Tech2Setting.prototype = {
     return ship;
   },
 
-  _ship1 : function(){
-    var ship = this._base_ship('mining');
-    return ship;
-  },
 
-  _ship2 : function(){
-    var ship = this._base_ship('corvette');
-    return ship;
-  },
 
   _ships : function(){
-    return [this._ship1(), this._ship2()];
+    var mining   = 3;
+    var corvette = 5;
+
+    var ships = [];
+    for(var m = 0; m < mining; m++)
+      ships.push(this._base_ship('mining'));
+    for(var c = 0; c < corvette; c++)
+      ships.push(this._base_ship('corvette'));
+
+    return ships;
   },
 
   load : function(config, cb){

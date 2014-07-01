@@ -58,6 +58,8 @@ Omega.UI.CanvasStarDust.prototype = {
     this.clock = new THREE.Clock();
   },
 
+  has_effects : function(){ return true; },
+
   run_effects : function(){
     Omega.UI.CanvasStarDust.gfx.group.tick(this.clock.getDelta());
   }

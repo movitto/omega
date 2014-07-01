@@ -42,7 +42,7 @@ Omega.Scenes.IntroTitle.prototype = {
     this.shader_components = [];
   },
 
-  run_effects : function(){}
+  has_effects : function(){ return false; }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Scenes.IntroTitle.prototype );

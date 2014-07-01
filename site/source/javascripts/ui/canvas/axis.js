@@ -54,7 +54,7 @@ Omega.UI.CanvasAxis.prototype = {
     return mesh;
   },
 
-  run_effects : function(){}
+  has_effects : function(){ return false; }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasAxis.prototype );

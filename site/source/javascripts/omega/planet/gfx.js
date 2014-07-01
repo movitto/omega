@@ -33,7 +33,7 @@ Omega.PlanetGfx = {
     this._loaded_gfx(this.type);
   },
 
-  /// Intiialize local system graphics
+  /// Initialize local planet graphics
   init_gfx : function(config, event_cb){
     if(this.gfx_initialized()) return;
     this._gfx_initializing = true;

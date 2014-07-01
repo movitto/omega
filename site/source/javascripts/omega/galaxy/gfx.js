@@ -35,6 +35,8 @@ Omega.GalaxyGfx = {
                concat(this.density_wave1.components());
   },
 
+  has_effects : function(){ return true; },
+
   run_effects : function(){
     this.density_wave1.run_effects();
     this.density_wave2.run_effects();

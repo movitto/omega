@@ -60,7 +60,7 @@ Omega.UI.CanvasSkybox.prototype = {
       THREE.ImageUtils.loadTextureCube(materials, {}, event_cb);
   },
 
-  run_effects : function(){}
+  has_effects : function(){ return false; }
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasSkybox.prototype );

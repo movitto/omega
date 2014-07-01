@@ -49,9 +49,8 @@ Omega.StarGfx = {
     this._gfx_initialized = true;
   },
 
-  /// Not current needed for star, for api compatability
-  update_gfx : function(){},
-  run_effects : function(){}
+  /// For api compatability
+  update_gfx : function(){}
 };
 
 $.extend(Omega.StarGfx, Omega.EntityGfx);

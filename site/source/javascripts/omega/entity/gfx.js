@@ -70,5 +70,10 @@ Omega.EntityGfx = {
   /// True / false if gfx are being initialized
   gfx_initializing : function(){
     return !this.gfx_initialized() && !!(this._gfx_initializing);
+  },
+
+  /// True / false if entity has effects
+  has_effects : function(){
+    return !!(this.run_effects);
   }
 }; // Omega.EntityGfx

@@ -40,7 +40,7 @@ Omega.UI.CanvasEntitiesManager = {
     for(var cc = 0; cc < entity.components.length; cc++)
       scene.add(entity.components[cc]);
 
-    if(this.page.effects_player)
+    if(this.page.effects_player && entity.has_effects())
       this.page.effects_player.add(entity);
     this.entities.push(entity.id);
   },
@@ -55,7 +55,7 @@ Omega.UI.CanvasEntitiesManager = {
     /// remove event listener
     entity.removeEventListener('loaded_mesh', entity.sceneReload);
 
-    if(this.page.effects_player)
+    if(this.page.effects_player && entity.has_effects())
       this.page.effects_player.remove(entity.id);
     var index = this.entities.indexOf(entity.id);
     if(index != -1) this.entities.splice(index, 1);
