@@ -98,9 +98,8 @@ module Registry
       th =
         Thread.new(lp){ |lp|
           until @terminate
-            sl = lp.call
-            sl ||= @loop_poll
-            sleep sl
+            delay = lp.call || @loop_poll
+            sleep delay
           end
 
           @lock.synchronize { @workers.delete(th) }

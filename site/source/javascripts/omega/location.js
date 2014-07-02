@@ -41,6 +41,9 @@ Omega.Location.prototype = {
     this.orientation_y = loc.orientation_y;
     this.orientation_z = loc.orientation_z;
     this.parent_id = loc.parent_id;
+    this.last_moved_at = loc.last_moved_at;
+    this.angle_rotated = loc.angle_rotated;
+    this.distance_moved = loc.distance_moved;
     this.update_ms(loc.movement_strategy);
   },
 

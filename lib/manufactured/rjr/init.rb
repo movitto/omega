@@ -100,53 +100,6 @@ module Manufactured::RJR
   def self.reset
     Manufactured::RJR.registry.clear!
   end
-
-  ######################################## Callback methods
-
-  # callback to track_movement and track_rotation in move_entity
-  #
-  # FIXME while this is being processed entity may have rotated/moved
-  # additional times, any way to correct this?
-  # (perhaps option in motel to pause location after a particular
-  #  callback is invoked, until a method is invoked to start it again)
-  motel_event = proc { |loc|
-    raise PermissionError, "invalid client" unless is_node?(::RJR::Nodes::Local)
-    #raise ValidationError, "not a location" unless loc.is_a?(Motel::Location)
-
-    # retrieve registry entity / location
-    entity = registry.entity { |e| e.is_a?(Ship) && e.location.id == loc.id }
-    unless entity.nil?
-      oloc = entity.location
-
-      # update user attributes
-      if(oloc.movement_strategy.is_a?(Motel::MovementStrategies::Linear))
-        node.invoke('users::update_attribute', entity.user_id,
-                    Users::Attributes::DistanceTravelled.id,
-                    entity.distance_moved)
-        entity.distance_moved = 0
-      end
-
-      old = oloc.movement_strategy
-
-      # remove callbacks if changing movement strategy
-      if old != loc.movement_strategy
-        if old.is_a?(Motel::MovementStrategies::Linear)
-          node.invoke('motel::remove_callbacks', loc.id, :movement)
-        elsif old.is_a?(Motel::MovementStrategies::Rotate)
-          node.invoke('motel::remove_callbacks', loc.id, :rotation)
-        end
-      end
-
-      # update the entity in the registry
-      entity.location = loc
-      registry.update(entity, &with_id(entity.id))
-    end
-
-    nil
-  }
-
-  CALLBACK_METHODS = { :motel_event => motel_event }
-
 end # module Manufactured::RJR
 
 ######################################## Dispatch init
@@ -174,6 +127,7 @@ def dispatch_manufactured_rjr_init(dispatcher)
   rjr.node.dispatcher.add_module('manufactured/rjr/mining')
   rjr.node.dispatcher.add_module('manufactured/rjr/attack')
   rjr.node.dispatcher.add_module('manufactured/rjr/loot')
+  rjr.node.dispatcher.add_module('manufactured/rjr/motel_callback')
   rjr.node.message_headers['source_node'] = 'manufactured'
 
   # create manufactured user
@@ -189,11 +143,4 @@ def dispatch_manufactured_rjr_init(dispatcher)
   # log the manufactured user in
   session = rjr.node.invoke('users::login', rjr.user)
   rjr.node.message_headers['session_id'] = session.id
-
-  # add callback for motel events, override environment it runs in
-  m = Manufactured::RJR::CALLBACK_METHODS
-  rjr.node.dispatcher.handle(['motel::on_movement', 'motel::on_rotation'],
-                             &m[:motel_event])
-  rjr.node.dispatcher.env ['motel::on_movement', 'motel::on_rotation'],
-                          Manufactured::RJR
 end

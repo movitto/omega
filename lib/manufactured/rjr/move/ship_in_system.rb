@@ -13,49 +13,27 @@ module Manufactured::RJR
     raise OperationError, "#{entity} docked"   unless !entity.docked?
   
     # calculate distance to move along each access
-    dx = loc.x - entity.location.x
-    dy = loc.y - entity.location.y
-    dz = loc.z - entity.location.z
     distance = loc - entity.location
     raise OperationError, "#{entity} at location" if distance < 1
-  
-    # Create linear movement strategy w/ movement trajectory
-    linear =
-      Motel::MovementStrategies::Linear.new :dx => dx/distance,
-                                            :dy => dy/distance,
-                                            :dz => dz/distance,
-                                            :speed => entity.movement_speed,
-                                            :stop_distance => distance
-  
+
     # calculate the orientation difference
     od = entity.location.orientation_difference(*loc.coordinates)
-  
-    # TODO introduce point_to_target flag in Linear movement strategy
-    # (similar to Follow) & use here, removing the need for the follow distinction
-  
-    # if we are close enough to correct orientation,
-    # register linear movement strategy with entity
-    if od.first.abs < (Math::PI / 32)
-      entity.location.movement_strategy = linear
-  
-    # if we need to adjust orientation before moving,
-    # register rotation movement strategy w/ entity
-    else
-      # create the rotation movement strategy
-      rotate =
-        Motel::MovementStrategies::Rotate.new \
-          :rot_theta => (od[0] * entity.rotation_speed),
-          :rot_x     =>  od[1],
-          :rot_y     =>  od[2],
-          :rot_z     =>  od[3],
-          :stop_angle => od[0]
-  
-      # register rotation w/ location, linear as next movement strategy
-      entity.location.movement_strategy = rotate
-      entity.location.next_movement_strategy = linear
-  
-      # track location rotation
-      od[0] -= 0.01
+
+    # Create linear movement strategy w/ movement trajectory
+    stopped = Motel::MovementStrategies::Stopped.instance
+    linear  = Motel::MovementStrategies::Linear.new :dorientation  => true,
+                                                    :stop_distance => distance,
+                                                    :speed         => entity.movement_speed
+    entity.location.movement_strategy      = linear
+    entity.location.next_movement_strategy = stopped
+
+    if od.first.abs > (Math::PI / 32)
+      entity.location.ms.rot_theta  = od[0] * entity.rotation_speed
+      entity.location.ms.rot_x      = od[1]
+      entity.location.ms.rot_y      = od[2]
+      entity.location.ms.rot_z      = od[3]
+      entity.location.ms.stop_angle = od[0]
+
       node.invoke('motel::track_rotation', entity.location.id, *od)
     end
   

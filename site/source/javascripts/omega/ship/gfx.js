@@ -227,14 +227,18 @@ Omega.ShipGfx = {
 
   ///////////////////////////////////////////////// effects
 
-  _run_linear_movement : function(){
+  _run_linear_movement : function(page){
     var now     = new Date();
     var elapsed = now - this.last_moved;
 
+    this._run_rotation_movement(page, elapsed);
+
+    /// TODO stop at stop_distance if set
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
-    this.location.x += this.location.movement_strategy.dx * dist;
-    this.location.y += this.location.movement_strategy.dy * dist;
-    this.location.z += this.location.movement_strategy.dz * dist;
+    this.location.x += this.location.orientation_x * dist;
+    this.location.y += this.location.orientation_y * dist;
+    this.location.z += this.location.orientation_z * dist;
+    this.location.distance_moved += dist;
 
     this.update_gfx();
     this.last_moved = now;
@@ -244,7 +248,14 @@ Omega.ShipGfx = {
   _run_rotation_movement : function(page, elapsed){
     var now     = new Date();
         elapsed = elapsed || (now - this.last_moved);
+
     var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
+
+    if(this.location.movement_strategy.stop_angle &&
+       this.location.angle_rotated + dist > this.location.movement_strategy.stop_angle)
+         return;
+    this.location.angle_rotated += dist;
+
     var new_or = Omega.Math.rot(this.location.orientation_x,
                                 this.location.orientation_y,
                                 this.location.orientation_z,
@@ -276,20 +287,21 @@ Omega.ShipGfx = {
                                            loc.tracking.y,
                                            loc.tracking.z)
     var facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 32);
-    if(this.location.movement_strategy.point_to_target && !facing_target)
+    if(this.location.movement_strategy.point_to_target && !facing_target){
+      this.location.movement_strategy.rot_x = orientation_difference[1];
+      this.location.movement_strategy.rot_y = orientation_difference[2];
+      this.location.movement_strategy.rot_z = orientation_difference[3];
+
       this._run_rotation_movement(page, elapsed);
+    }
 
-    facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 8);
-    if (!loc.on_target() && facing_target){
-      var dx = loc.tracking.x - this.location.x;
-      var dy = loc.tracking.y - this.location.y;
-      var dz = loc.tracking.z - this.location.z;
+    if (!loc.on_target()){
+      var orientation = loc.orientation();
+      var dx = orientation[0];
+      var dy = orientation[1];
+      var dz = orientation[2];
+
       var distance = this.location.distance_from(loc.tracking);
-
-      dx = dx / distance;
-      dy = dy / distance;
-      dz = dz / distance;
-
       var move_distance = loc.movement_strategy.speed * elapsed / 1000;
 
       loc.x += move_distance * dx;

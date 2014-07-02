@@ -36,7 +36,7 @@ module HasMovementStrategy
     # default to the stopped movement strategy
     attr_from_args args,
       :movement_strategy      => MovementStrategies::Stopped.instance,
-      :next_movement_strategy => nil
+      :next_movement_strategy => nil # TODO default to stopped ?
   end
 
   # true/false indicating if movement strategy is stopped

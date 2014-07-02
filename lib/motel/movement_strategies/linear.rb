@@ -24,6 +24,10 @@ class Linear < MovementStrategy
    # Unit vector corresponding to the linear movement direction
    attr_accessor :dx, :dy, :dz
 
+   # Boolean indicating movement should be in direction of
+   # location's orientation
+   attr_accessor :dorientation
+
    # Distance the location moves per second
    attr_accessor :speed
 
@@ -41,7 +45,8 @@ class Linear < MovementStrategy
    # @option args [Float] :speed speed to assign to movement strategy
    def initialize(args = {})
      attr_from_args args, :dx => 1, :dy => 0, :dz => 0, :speed => nil,
-                          :stop_distance => nil
+                          :stop_distance => nil,
+                          :dorientation => false
      init_rotation(args)
      super(args)
 
@@ -66,8 +71,16 @@ class Linear < MovementStrategy
    # Returns true if we've moved more than specified distance or
    # change_due_to_rotation? returns true
    def change?(loc)
-     change_due_to_rotation?(loc) ||
+     #change_due_to_rotation?(loc) || # TODO option to enable changing due to rotation
      (!stop_distance.nil? && loc.distance_moved >= stop_distance)
+   end
+
+   # Update direction of movement from location if appropriate
+   def update_dir_from(loc)
+     return unless @dorientation
+     @dx = loc.orx
+     @dy = loc.ory
+     @dz = loc.orz
    end
 
    # Implementation of {Motel::MovementStrategy#move}
@@ -80,18 +93,17 @@ class Linear < MovementStrategy
      ::RJR::Logger.debug \
        "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
 
-     # calculate distance and update x,y,z accordingly
-     distance = speed * elapsed_seconds
+     rotate(loc, elapsed_seconds)
+     update_dir_from(loc)
+
+     distance     = speed * elapsed_seconds
+     exceeds_stop = (loc.distance_moved + distance) > stop_distance
+     distance     = (stop_distance - loc.distance_moved) if exceeds_stop
 
      loc.x += distance * dx
      loc.y += distance * dy
      loc.z += distance * dz
      loc.distance_moved += distance
-
-     # skip rotation if orientation is not set
-     unless loc.orientation.any? { |lo| lo.nil? }
-       rotate(loc, elapsed_seconds)
-     end
    end
 
    # Convert movement strategy to json representation and return it
@@ -102,7 +114,8 @@ class Linear < MovementStrategy
                          :stop_distance => stop_distance,
                          :dx => dx,
                          :dy => dy,
-                         :dz => dz }.merge(rotation_json)
+                         :dz => dz,
+                         :dorientation => dorientation }.merge(rotation_json)
      }.to_json(*a)
    end
 

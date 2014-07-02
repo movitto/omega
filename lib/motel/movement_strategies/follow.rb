@@ -105,9 +105,7 @@ class Follow < MovementStrategy
      od = loc.orientation_difference(*tl.coordinates)
      facing_target = od.first.abs <= (Math::PI / 32)
 
-     # TODO separate this logic into helper
      if @point_to_target && !facing_target
-       # FIXME rotation seems to be slow
        init_rotation :rot_theta =>  @rotation_speed,
                      :rot_x     =>  od[1],
                      :rot_y     =>  od[2],
@@ -115,13 +113,17 @@ class Follow < MovementStrategy
        rotate loc, elapsed_seconds if valid_rotation?
      end
 
-     distance_to_cover  = loc - tl
-     facing_target = od.first.abs <= (Math::PI / 8)
-     if (distance_to_cover > @distance) && (!@point_to_target || facing_target)
+     distance_to_cover = loc - tl
+     if distance_to_cover > @distance
        # calculate direction of tracked location
-       dx = (tl.x - loc.x) / distance_to_cover
-       dy = (tl.y - loc.y) / distance_to_cover
-       dz = (tl.z - loc.z) / distance_to_cover
+       if @point_to_target
+         dx, dy, dz = loc.orientation
+
+       else
+         dx = (tl.x - loc.x) / distance_to_cover
+         dy = (tl.y - loc.y) / distance_to_cover
+         dz = (tl.z - loc.z) / distance_to_cover
+       end
 
        # calculate distance and update x,y,z accordingly
        distance = speed * elapsed_seconds
