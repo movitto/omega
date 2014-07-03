@@ -21,10 +21,10 @@ module Entity
     # @!group Movement Properties
 
     # Distance ship travels during a single movement cycle
-    constrained_attr :movement_speed
+    constrained_attr(:movement_speed, :intern => true) { |speeds| speeds[type] || speeds[:default] }
 
     # Max angle ship can rotate in a single movmeent cycle
-    constrained_attr :rotation_speed
+    constrained_attr(:rotation_speed, :intern => true) { |speeds| speeds[type] || speeds[:default] }
 
     # @!endgroup
 

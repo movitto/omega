@@ -28,7 +28,7 @@ module Entity
                             :intern     =>   true
 
     # Size of the entity
-    constrained_attr(:size, :intern     => :true,
+    constrained_attr(:size, :intern     => true,
                             :constraint => :sizes) { |sizes| sizes[type] }
 
     # Initialize base attributes from args
