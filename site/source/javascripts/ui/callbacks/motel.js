@@ -6,6 +6,9 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO incorporate global network latency calculation & use to
+/// adjust locs & strategies here
+
 Omega.Callbacks.motel = function(evnt, event_args){
   var entity = $.grep(this.page.all_entities(), function(entity){
                  return entity.location &&

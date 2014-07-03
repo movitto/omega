@@ -154,6 +154,25 @@ Omega.UI.Loader = {
       });
   },
 
+  /// Retrieve server lag via timestamp stat
+  load_lag : function(page, retrieval_cb){
+    var num_queries = 3;
+    var delays = [];
+
+    for(var n = 0; n < num_queries; n++){
+      var client_time = new Date().getTime();
+      Omega.Stat.get('universe_timestamp', null, page.node,
+        function(stat_result){
+          var server_time = stat_result.value * 1000;
+          delays.push(server_time - client_time);
+
+          /// TODO average out lag, throwing away extremes
+          if(delays.length == num_queries)
+            retrieval_cb(delays);
+      });
+    }
+  },
+
   _load_page_system : function(system_id, page, retrieval_cb){
     var system = page.entity(system_id);
     if(!system) return null;

@@ -17,6 +17,7 @@ def self.register_stat(stat)
 end
 
 require 'stats/stat'
+require 'stats/registry/timestamp'
 require 'stats/registry/universe_id'
 require 'stats/registry/num_of'
 require 'stats/registry/users_with_most'
