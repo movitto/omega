@@ -69,9 +69,25 @@
 
     "movement_speed"      : {"corvette" : 30000000, "default" : 10000000},
     "rotation_speed"      : {"corvette" :     0.25, "default" : 0.098174},
-    "attack_distance"     : 40000000,
-    "attack_rate"         :      0.5,
-    "damage_dealt"        :        2,
+
+    "weapons_classes"     : {
+      "escort"        :  "light_artillery",
+      "destroyer"     :  "heavy_artillery",
+      "bomber"        :  "light_missiles",
+      "corvette"      :  "light_artillery",
+      "battlecruiser" :  "heavy_missiles"
+    },
+
+    "attack_distances"    : {"light_artillery" :  10000000,
+                             "heavy_artillery" : 100000000,
+                             "default"         :  40000000},
+    "attack_rates"        : {"light_artillery" :         2,
+                             "heavy_artillery" :         0.25,
+                             "default"         :         0.5},
+    "damage_dealt"        : {"light_artillery" :         0.5,
+                             "heavy_artillery" :         5,
+                             "default"         :         2},
+
     "max_hp"              :       25,
     "max_shield_level"    :       10,
     "shield_refresh_rate" :        1,

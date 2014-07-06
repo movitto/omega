@@ -21,14 +21,28 @@ module Entity
 
     # @!group Attack/Defense Properties
 
+    # General weapon category, modifies other attack attributes
+    constrained_attr(:weapons_class, :intern => true,
+                     :constraint => :weapons_classes) { |classes|
+                       classes.has_key?(type) ? classes[type].intern : nil
+                     }
+
     # Max distance ship may be for a target to attack it
-    constrained_attr :attack_distance
+    constrained_attr(:attack_distance, :intern => true,
+                     :constraint => :attack_distances) { |distances|
+                       distances[weapons_class] || distances[:default]
+                     }
 
     # Number of attacks per second ship can launch
-    constrained_attr :attack_rate
+    constrained_attr(:attack_rate, :intern => true,
+                     :constraint => :attack_rates) { |rates|
+                       rates[weapons_class] || rates[:default]
+                     }
 
     # Damage ship deals per hit
-    constrained_attr :damage_dealt
+    constrained_attr(:damage_dealt, :intern => true) { |damage|
+                       damage[weapons_class] || damage[:default]
+                     }
 
     # Max hp the ship can have
     constrained_attr :max_hp
