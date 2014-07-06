@@ -11,6 +11,7 @@
 //= require "omega/ship/highlight"
 //= require "omega/ship/lamps"
 //= require "omega/ship/trails"
+//= require "omega/ship/visited"
 //= require "omega/ship/attack_vector"
 //= require "omega/ship/mining_vector"
 //= require "omega/ship/trajectory"
@@ -48,6 +49,8 @@ Omega.ShipGfx = {
                                                            type: this.type});
     gfx.trails        =            new Omega.ShipTrails({config: config,
                                                            type: this.type,
+                                                       event_cb: event_cb});
+    gfx.visited_route =      new Omega.ShipVisitedRoute({config: config,
                                                        event_cb: event_cb});
     gfx.attack_vector =      new Omega.ShipAttackVector({config: config,
                                                        event_cb: event_cb});
@@ -102,6 +105,10 @@ Omega.ShipGfx = {
     this.trails = Omega.Ship.gfx[this.type].trails.clone(config, this.type, event_cb);
     this.trails.omega_entity = this;
     if(this.trails.particles) this.components.push(this.trails.particles.mesh);
+
+    this.visited_route = Omega.Ship.gfx[this.type].visited_route.clone();
+    this.visited_route.omega_entity = this;
+    this.components.push(this.visited_route.line);
 
     this.attack_vector =
       Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
@@ -324,6 +331,7 @@ Omega.ShipGfx = {
     this._run_movement(page);
     this.lamps.run_effects();
     this.trails.run_effects();
+    this.visited_route.run_effects();
 
     this.attack_vector.run_effects();
     this.mining_vector.run_effects();
