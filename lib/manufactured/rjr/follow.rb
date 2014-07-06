@@ -49,11 +49,11 @@ module Manufactured::RJR
     # set the movement strategy, update the location
     entity.location.movement_strategy =
       Motel::MovementStrategies::Follow.new :distance => distance,
-                                  :speed => entity.movement_speed,
-                       :tracked_location_id => target.location.id,
-                                         :point_to_target => true,
-                         :rotation_speed => entity.rotation_speed
-  
+                                               :speed => entity.movement_speed,
+                                 :tracked_location_id => target.location.id,
+                                     :point_to_target => true,
+                                           :rot_theta => entity.rotation_speed
+
     node.invoke('motel::update_location', entity.location)
   
     # return the entity

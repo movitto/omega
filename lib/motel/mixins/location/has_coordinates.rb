@@ -87,9 +87,14 @@ module HasCoordinates
   #   loc1 - loc2    # => 100
   #   loc2 - loc1    # => 100
   def -(location)
-    dx = x - location.x
-    dy = y - location.y
-    dz = z - location.z
+    distance_from location.x, location.y, location.z
+  end
+
+  # Return the distance between this location and the specified point
+  def distance_from(cx, cy, cz)
+    dx = x - cx
+    dy = y - cy
+    dz = z - cz
     Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
   end
 

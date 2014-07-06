@@ -6,10 +6,10 @@
 require 'omega/common'
 require 'motel/movement_strategy'
 
-require 'motel/movement_strategies/elliptical/axis'
-require 'motel/movement_strategies/elliptical/path'
-require 'motel/movement_strategies/elliptical/movement'
-require 'motel/movement_strategies/elliptical/generators'
+require 'motel/mixins/elliptical/axis'
+require 'motel/mixins/elliptical/path'
+require 'motel/mixins/elliptical/movement'
+require 'motel/mixins/elliptical/generators'
 
 module Motel
 module MovementStrategies

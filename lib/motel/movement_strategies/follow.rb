@@ -5,7 +5,7 @@
 
 require 'motel/common'
 require 'motel/movement_strategy'
-require 'motel/movement_strategies/rotate'
+require 'motel/mixins/movement_strategy'
 
 require 'rjr/common'
 
@@ -22,53 +22,25 @@ module MovementStrategies
 #
 # To be valid, specify tracked_location_id, distance, and speed
 class Follow < MovementStrategy
-
+  include LinearMovement
   include Rotatable
+  include TracksLocation
 
-   # [String] ID of location which is being tracked
-   attr_reader :tracked_location_id
+  # Define if we should rotate to face target
+  attr_accessor :point_to_target
 
-   # [Motel::Location] location being tracked
-   attr_reader :tracked_location
-
-   def tracked_location_id=(val)
-     @tracked_location_id = val
-   end
-
-   def tracked_location=(val)
-     @tracked_location = val
-     @tracked_location_id = val.id
-   end
-
-   # Distance away from tracked location to try to maintain
-   attr_accessor :distance
-
-   # Distance the location moves per second (when moving)
-   attr_accessor :speed
-
-   # Define if we should rotate to face target
-   attr_accessor :point_to_target
-
-   # Optional - Rotation speed
-   attr_accessor :rotation_speed
-
-   # Motel::MovementStrategies::Follow initializer
-   #
-   # @param [Hash] args hash of options to initialize the follow movement strategy with
-   # @option args [Integer] :tracked_location_id,'tracked_location_id' id of the location to track
-   # @option args [Integer] :tracked_location,'tracked_location' handle to the location to track
-   # @option args [Float] :distance,'distance' distance away from the tracked location to try to maintain
-   # @option args [Float] :speed,'speed' speed to assign to the movement strategy
-   # @option args [Boolean] :point_to_target, define if we should rotate to face the target
-   def initialize(args = {})
-     attr_from_args args, :distance => nil, :speed => nil,
-                          :tracked_location_id     => nil,
-                          :point_to_target         => false,
-                          :rotation_speed          => 1
-     # If we have to point to the target, do so before moving
-     init_rotation
-     super(args)
-   end
+  # Motel::MovementStrategies::Follow initializer
+  #
+  # @param [Hash] args hash of options to initialize the follow
+  #   movement strategy with, accepts key/value pairs corresponding
+  #   to all mutable attributes
+  def initialize(args = {})
+    attr_from_args args, :point_to_target => false
+    linear_attrs_from_args(args)
+    trackable_attrs_from_args(args)
+    init_rotation(args)
+    super(args)
+  end
 
    # Return boolean indicating if this movement strategy is valid
    #
@@ -80,80 +52,63 @@ class Follow < MovementStrategy
    # * speed is a valid numeric > 0
    # * distance is a valid numeric > 0
    def valid?
-     !@tracked_location_id.nil? &&
-     @speed.numeric? && @speed > 0 &&
-     @distance.numeric? && @distance > 0
+     tracked_attrs_valid? && speed_valid?
    end
 
    # Implementation of {Motel::MovementStrategy#move}
    def move(loc, elapsed_seconds)
-     unless valid? && !tracked_location.nil?
-       ::RJR::Logger.warn "follow movement strategy not valid, not proceeding with move"
+     unless valid? && has_tracked_location?
+       ::RJR::Logger.warn "follow strategy not valid, not proceeding with move"
        return
      end
 
-     tl = tracked_location
-     unless tl.parent_id == loc.parent_id
-       ::RJR::Logger.warn "follow movement strategy is set to track location with different parent than the one being moved"
+     unless same_system?(loc)
+       ::RJR::Logger.warn "follow strategy system mismatch"
        return
      end
 
-     ::RJR::Logger.debug "moving location #{loc.id} via follow movement strategy " +
+     ::RJR::Logger.debug "moving location #{loc.id} via follow strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     # Calculate orientation difference
-     od = loc.orientation_difference(*tl.coordinates)
-     facing_target = od.first.abs <= (Math::PI / 32)
-
-     if @point_to_target && !facing_target
-       init_rotation :rot_theta =>  @rotation_speed,
-                     :rot_x     =>  od[1],
-                     :rot_y     =>  od[2],
-                     :rot_z     =>  od[3]
-       rotate loc, elapsed_seconds if valid_rotation?
+     if @point_to_target && !facing_target?(loc)
+       rotate_towards_target(loc, elapsed_seconds)
      end
 
-     distance_to_cover = loc - tl
+     distance_to_cover = distance_from(loc)
      if distance_to_cover > @distance
        # calculate direction of tracked location
        if @point_to_target
-         dx, dy, dz = loc.orientation
+         update_dir_from(loc)
 
        else
+         tl = tracked_location
          dx = (tl.x - loc.x) / distance_to_cover
          dy = (tl.y - loc.y) / distance_to_cover
          dz = (tl.z - loc.z) / distance_to_cover
        end
 
-       # calculate distance and update x,y,z accordingly
-       distance = speed * elapsed_seconds
-
-       loc.x += distance * dx
-       loc.y += distance * dy
-       loc.z += distance * dz
+       move_linear(loc, elapsed_seconds)
 
      else
        #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
-       # TODO orbit the location or similar?
+       # FIXME if target is stationary: orbit, else match speed
      end
    end
 
    # Convert movement strategy to json representation and return it
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :step_delay => step_delay,
-                         :speed => speed,
-                         :tracked_location_id => tracked_location_id,
-                         :distance            => distance,
-                         :point_to_target     => point_to_target,
-                         :rotation_speed      => rotation_speed,
-                       }.merge(rotation_json)
+       'data'       => { :step_delay      => step_delay,
+                         :point_to_target => point_to_target,
+                       }.merge(trackable_json)
+                        .merge(rotation_json)
+                        .merge(linear_json)
      }.to_json(*a)
    end
 
    # Convert movement strategy to human readable string and return it
    def to_s
-     "follow-(#{@tracked_location_id} at #{@distance})"
+     "follow-(#{tracked_location_id} at #{distance})"
    end
 end
 
