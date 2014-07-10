@@ -12,8 +12,8 @@ module SanitizesLocations
   def sanitize_location(nloc, oloc=nil)
     changing = stopping = false
 
-    # if follow movement strategy, update location from tracked_location_id
-    if nloc.ms.is_a?(MovementStrategies::Follow)
+    # update location from tracked_location_id
+    if nloc.ms.class.ancestors.include?(Motel::MovementStrategies::TracksLocation)
       tracked = @entities.find { |l| l.id == nloc.ms.tracked_location_id }
       nloc.ms.tracked_location = tracked
     end

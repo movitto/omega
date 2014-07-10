@@ -9,6 +9,8 @@ require 'omega/server/registry'
 require 'omega/server/callback'
 require 'motel/mixins/registry'
 
+require 'motel/movement_strategies'
+
 module Motel
 
 # Motel::Registry is a singleton class/object which acts as the primary

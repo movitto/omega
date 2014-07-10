@@ -135,6 +135,42 @@ Omega.Location.prototype = {
     return [angle].concat(axis);
   },
 
+  /// Move location linearily by specified distance in
+  /// direction of orientation
+  //
+  /// TODO stop at stop_distance if set
+  move_linear : function(distance){
+    var orientation = this.orientation();
+    var dx = orientation[0];
+    var dy = orientation[1];
+    var dz = orientation[2];
+
+    this.x += distance * dx;
+    this.y += distance * dy;
+    this.z += distance * dz;
+    this.distance_moved += distance;
+  },
+
+  /// Rotate orientation by parameters in movement strategy
+  rotate_orientation : function(angle){
+    var stop      = this.movement_strategy.stop_angle;
+    var projected = this.angle_rotated + angle;
+    if(stop && projected > stop) return;
+    this.angle_rotated += angle;
+
+    var new_or = Omega.Math.rot(this.orientation_x,
+                                this.orientation_y,
+                                this.orientation_z,
+                                angle,
+                                this.movement_strategy.rot_x,
+                                this.movement_strategy.rot_y,
+                                this.movement_strategy.rot_z);
+
+    this.orientation_x = new_or[0];
+    this.orientation_y = new_or[1];
+    this.orientation_z = new_or[2];
+  },
+
   /// Return array containing this location's coordinates plus specified values
   add : function(x, y ,z){
     return [this.x + x, this.y + y, this.z + z];
@@ -193,11 +229,33 @@ Omega.Location.prototype = {
     return this.distance_from(0,0,0);
   },
 
+  /// TODO need to clear tracking somewhere
+  set_tracking : function(location){
+    this.tracking = location;
+  },
+
   /// Boolean indicating if location is on target
   on_target : function(){
     if(!this.tracking) return true;
-    var min_distance = Omega.Config.follow_distance;
-    return this.distance_from(this.tracking) <= min_distance;
+    return this.distance_from(this.tracking) <= this.movement_strategy.distance;
+  },
+
+  /// Boolean indicating if location is facing target
+  facing_target : function(){
+    var diff = this.orientation_difference(this.tracking.x,
+                                           this.tracking.y,
+                                           this.tracking.z);
+    return Math.abs(diff[0]) <= (Math.PI / 32);
+  },
+
+  /// Update movement strategy so as to rotate towards target
+  face_target : function(){
+    var diff = this.orientation_difference(this.tracking.x,
+                                           this.tracking.y,
+                                           this.tracking.z);
+    this.movement_strategy.rot_x = diff[1];
+    this.movement_strategy.rot_y = diff[2];
+    this.movement_strategy.rot_z = diff[3];
   },
 
   /// Boolean indicating if location is not moving
@@ -266,6 +324,7 @@ Omega.MovementStrategies = {
     stopped : 'Motel::MovementStrategies::Stopped',
     linear  : 'Motel::MovementStrategies::Linear',
     rotate  : 'Motel::MovementStrategies::Rotate',
-    follow  : 'Motel::MovementStrategies::Follow'
+    follow  : 'Motel::MovementStrategies::Follow',
+    figure8 : 'Motel::MovementStrategies::Figure8'
   }
 };

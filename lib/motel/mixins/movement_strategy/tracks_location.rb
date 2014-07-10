@@ -31,9 +31,14 @@ module MovementStrategies
     # Distance away from tracked location to try to maintain
     attr_accessor :distance
 
+    # Max tolerance location orientation can be from facing target
+    attr_accessor :orientation_tolerance
+
     # Instantiate tracked attributes from arguments
     def trackable_attrs_from_args(args)
-      attr_from_args args, :distance => nil,  :tracked_location_id => nil
+      attr_from_args args, :distance              => nil,
+                           :tracked_location_id   => nil,
+                           :orientation_tolerance => Math::PI / 32
     end
 
     # Return bool indicating if tracked attributes are valid
@@ -59,6 +64,13 @@ module MovementStrategies
       loc.distance_from(*tracked_location.coordinates)
     end
 
+    # Near target
+    #
+    # Assumes class including this module also includes LinearMovement
+    def near_target?(loc)
+      distance_from(loc) <= distance
+    end
+
     # Return orientation difference between specified location and tracked location
     def orientation_difference(loc)
       loc.orientation_difference(*tracked_location.coordinates)
@@ -66,7 +78,7 @@ module MovementStrategies
 
     # Return bool indicating if specified location is facing tracked location
     def facing_target?(loc)
-     orientation_difference(loc).first.abs <= (Math::PI / 32)
+     orientation_difference(loc).first.abs <= orientation_tolerance
     end
 
     # Rotate specified location towards target.
@@ -79,6 +91,20 @@ module MovementStrategies
                      :rot_y     => od[2],
                      :rot_z     => od[3]
        rotate loc, elapsed_seconds if valid_rotation?
+    end
+
+    # Rotate specified location away from target
+    #
+    # Same assumtion as w/ rotate_towards_target above
+    def rotate_away_from_target(loc, elapsed_seconds)
+       od = orientation_difference(loc)
+       init_rotation :rot_theta => rot_theta,
+                     :rot_x     => od[1],
+                     :rot_y     => od[2],
+                     :rot_z     => od[3]
+       self.rot_theta *= -1
+       rotate loc, elapsed_seconds if valid_rotation?
+       self.rot_theta *= -1
     end
   end # module TracksLocation
 end # module MovementStrategies

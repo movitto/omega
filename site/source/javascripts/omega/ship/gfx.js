@@ -226,6 +226,8 @@ Omega.ShipGfx = {
       this._run_movement = this._run_follow_movement;
     else if(this.location.is_moving('rotate'))
       this._run_movement = this._run_rotation_movement;
+    else if(this.location.is_moving('figure8'))
+      this._run_movement = this._run_figure8_movement;
     else if(this.location.is_stopped())
       this._run_movement = this._no_movement;
 
@@ -240,12 +242,8 @@ Omega.ShipGfx = {
 
     this._run_rotation_movement(page, elapsed);
 
-    /// TODO stop at stop_distance if set
     var dist = this.location.movement_strategy.speed * elapsed / 1000;
-    this.location.x += this.location.orientation_x * dist;
-    this.location.y += this.location.orientation_y * dist;
-    this.location.z += this.location.orientation_z * dist;
-    this.location.distance_moved += dist;
+    this.location.move_linear(dist);
 
     this.update_gfx();
     this.last_moved = now;
@@ -257,22 +255,7 @@ Omega.ShipGfx = {
         elapsed = elapsed || (now - this.last_moved);
 
     var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
-
-    if(this.location.movement_strategy.stop_angle &&
-       this.location.angle_rotated + dist > this.location.movement_strategy.stop_angle)
-         return;
-    this.location.angle_rotated += dist;
-
-    var new_or = Omega.Math.rot(this.location.orientation_x,
-                                this.location.orientation_y,
-                                this.location.orientation_z,
-                                dist,
-                                this.location.movement_strategy.rot_x,
-                                this.location.movement_strategy.rot_y,
-                                this.location.movement_strategy.rot_z);
-    this.location.orientation_x = new_or[0];
-    this.location.orientation_y = new_or[1];
-    this.location.orientation_z = new_or[2];
+    this.location.rotate_orientation(dist);
 
     this.update_gfx();
     this.last_moved = now;
@@ -285,40 +268,52 @@ Omega.ShipGfx = {
 
     var loc = this.location;
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
-    loc.tracking = tracked.location; /// TODO need to clear tracking somewhere
+    loc.set_tracking(tracked.location);
 
-    /// XXX rotation / linear movement here more or less corresponds
-    ///     to logic in MovementStrategies::Follow#move
-    var orientation_difference =
-      this.location.orientation_difference(loc.tracking.x,
-                                           loc.tracking.y,
-                                           loc.tracking.z)
-    var facing_target = Math.abs(orientation_difference[0]) <= (Math.PI / 32);
-    if(this.location.movement_strategy.point_to_target && !facing_target){
-      this.location.movement_strategy.rot_x = orientation_difference[1];
-      this.location.movement_strategy.rot_y = orientation_difference[2];
-      this.location.movement_strategy.rot_z = orientation_difference[3];
-
+    var point_to_target = loc.movement_strategy.point_to_target;
+    var facing_target   = loc.facing_target();
+    if(point_to_target && !facing_target){
+      loc.face_target();
       this._run_rotation_movement(page, elapsed);
     }
 
     if (!loc.on_target()){
-      var orientation = loc.orientation();
-      var dx = orientation[0];
-      var dy = orientation[1];
-      var dz = orientation[2];
+      var dist = loc.movement_strategy.speed * elapsed / 1000;
+      loc.move_linear(dist);
 
-      var distance = this.location.distance_from(loc.tracking);
-      var move_distance = loc.movement_strategy.speed * elapsed / 1000;
-
-      loc.x += move_distance * dx;
-      loc.y += move_distance * dy;
-      loc.z += move_distance * dz;
     }else{
       this.update_movement_effects();
     }
 
     /// TODO move into if block above
+    this.update_gfx();
+    this.last_moved = now;
+    this.dispatchEvent({type : 'movement', data : this});
+  },
+
+  _run_figure8_movement : function(page){
+    var now     = new Date();
+    var elapsed = now - this.last_moved;
+
+    var loc = this.location;
+    var tracked = page.entity(loc.movement_strategy.tracked_location_id);
+    loc.set_tracking(tracked.location);
+
+    /// TODO leverage rotating & inverted flags
+    var near_target   = loc.on_target();
+    var facing_target = loc.facing_target();
+    if(!near_target && !this.rotating)
+      this.rotating = true;
+    if(this.rotating && !facing_target){
+      loc.face_target();
+      this._run_rotation_movement(page, elapsed);
+    }else{
+      this.rotating = false;
+    }
+
+    var dist = loc.movement_strategy.speed * elapsed / 1000;
+    loc.move_linear(dist);
+
     this.update_gfx();
     this.last_moved = now;
     this.dispatchEvent({type : 'movement', data : this});
