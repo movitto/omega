@@ -6,9 +6,7 @@
 require 'omega/common'
 require 'motel/movement_strategy'
 
-require 'motel/mixins/elliptical/axis'
-require 'motel/mixins/elliptical/path'
-require 'motel/mixins/elliptical/movement'
+require 'motel/mixins/elliptical'
 require 'motel/mixins/elliptical/generators'
 
 module Motel
@@ -67,6 +65,17 @@ class Elliptical < MovementStrategy
       base_attrs + movement_attrs + axis_attrs +
       scoped_path_attrs(scope)
     end
+  end
+
+  # Implementation of {Motel::MovementStrategy#move}
+  def move(loc, elapsed_seconds)
+    # make sure this movement strategy is valid
+    unless valid?
+       ::RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
+       return
+    end
+
+    move_elliptical(loc, elapsed_seconds)
   end
 
   # Convert movement strategy to json representation and return it

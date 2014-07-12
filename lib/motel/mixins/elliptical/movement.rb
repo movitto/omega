@@ -34,19 +34,8 @@ module EllipticalMovement
     {:speed => speed}
   end
 
-  # Implementation of {Motel::MovementStrategy#move}
-  def move(loc, elapsed_seconds)
-    # make sure this movement strategy is valid
-    unless valid?
-       ::RJR::Logger.warn "elliptical movement strategy not valid, not proceeding with move"
-       return
-    end
-
-    # TODO validation / adjustment & theta computation / updating below
-    # results in alot of redundant calls (recomputing theta & coords).
-    # Optimize here or in new movement strategy that doesn't check
-    # constraint / stores theta internally / etc
-
+  # Move location along elliptical path
+  def move_elliptical(loc, elapsed_seconds)
     # make sure location is on ellipse
     unless location_valid? loc
        cx,cy,cz = closest_coordinates loc
