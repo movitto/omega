@@ -110,6 +110,8 @@ Omega.ShipGfx = {
     this.visited_route.omega_entity = this;
     this.components.push(this.visited_route.line);
 
+    /// TODO different attack effects depending on weapons class
+    /// TODO config option to set weapon(s) originating coordinates on mesh on per-ship-type basis
     this.attack_vector =
       Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
     this.attack_vector.omega_entity = this;
@@ -250,11 +252,13 @@ Omega.ShipGfx = {
     this.dispatchEvent({type : 'movement', data : this});
   },
 
-  _run_rotation_movement : function(page, elapsed){
+  _run_rotation_movement : function(page, elapsed, invert){
     var now     = new Date();
         elapsed = elapsed || (now - this.last_moved);
 
-    var dist = this.location.movement_strategy.rot_theta * elapsed / 1000;
+    var rot_theta = invert ? (this.location.movement_strategy.rot_theta * -1) :
+                              this.location.movement_strategy.rot_theta
+    var dist = rot_theta * elapsed / 1000;
     this.location.rotate_orientation(dist);
 
     this.update_gfx();
@@ -270,19 +274,28 @@ Omega.ShipGfx = {
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
     loc.set_tracking(tracked.location);
 
-    var point_to_target = loc.movement_strategy.point_to_target;
-    var facing_target   = loc.facing_target();
-    if(point_to_target && !facing_target){
-      loc.face_target();
-      this._run_rotation_movement(page, elapsed);
-    }
+    var within_distance = loc.on_target();
+    var target_moving   = !!(tracked.location.movement_strategy.speed);
+    var slower_target   = target_moving && (tracked.location.movement_strategy.speed < loc.movement_strategy.speed);
+    var adjust_speed    = within_distance && slower_target;
+    var facing_target   = loc.facing_target(Math.PI / 32);
+    var facing_tangent  = loc.facing_target_tangent(Math.PI / 32);
 
-    if (!loc.on_target()){
-      var dist = loc.movement_strategy.speed * elapsed / 1000;
+    if(!within_distance || target_moving){
+      if(!facing_target){
+        loc.face_target();
+        this._run_rotation_movement(page, elapsed);
+      }
+
+      var speed = adjust_speed ? tracked.location.movement_strategy.speed :
+                                 loc.movement_strategy.speed;
+      var dist  = speed * elapsed / 1000;
       loc.move_linear(dist);
 
-    }else{
-      this.update_movement_effects();
+    }else if(!target_moving){
+      if(!facing_tangent) this._run_rotation_movement(page, elapsed, true);
+      var dist  = loc.movement_strategy.speed * elapsed / 1000;
+      loc.move_linear(dist);
     }
 
     /// TODO move into if block above
@@ -301,7 +314,7 @@ Omega.ShipGfx = {
 
     /// TODO leverage rotating & inverted flags
     var near_target   = loc.on_target();
-    var facing_target = loc.facing_target();
+    var facing_target = loc.facing_target(Math.PI / 64);
     if(!near_target && !this.rotating)
       this.rotating = true;
     if(this.rotating && !facing_target){

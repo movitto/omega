@@ -241,11 +241,11 @@ Omega.Location.prototype = {
   },
 
   /// Boolean indicating if location is facing target
-  facing_target : function(){
+  facing_target : function(tolerance){
     var diff = this.orientation_difference(this.tracking.x,
                                            this.tracking.y,
                                            this.tracking.z);
-    return Math.abs(diff[0]) <= (Math.PI / 32);
+    return Math.abs(diff[0]) <= tolerance;
   },
 
   /// Update movement strategy so as to rotate towards target
@@ -258,12 +258,18 @@ Omega.Location.prototype = {
     this.movement_strategy.rot_z = diff[3];
   },
 
+  /// Bool indicating if location is facing target tangent
+  facing_target_tangent : function(tolerance){
+    var diff = this.orientation_difference(this.tracking.x,
+                                           this.tracking.y,
+                                           this.tracking.z);
+    return Math.abs(Math.abs(diff[0]) - Math.PI / 2) <= tolerance;
+  },
+
   /// Boolean indicating if location is not moving
   is_stopped : function(){
     return !!(this.movement_strategy) &&
-      (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped' ||
-      (this.movement_strategy.json_class == 'Motel::MovementStrategies::Follow'  &&
-       this.on_target()));
+      (this.movement_strategy.json_class == 'Motel::MovementStrategies::Stopped');
   },
 
   /// Boolean indicating if location if moving using specified ms type

@@ -26,16 +26,12 @@ class Follow < MovementStrategy
   include Rotatable
   include TracksLocation
 
-  # Define if we should rotate to face target
-  attr_accessor :point_to_target
-
   # Motel::MovementStrategies::Follow initializer
   #
   # @param [Hash] args hash of options to initialize the follow
   #   movement strategy with, accepts key/value pairs corresponding
   #   to all mutable attributes
   def initialize(args = {})
-    attr_from_args args, :point_to_target => false
     linear_attrs_from_args(args)
     trackable_attrs_from_args(args)
     init_rotation(args)
@@ -70,39 +66,37 @@ class Follow < MovementStrategy
      ::RJR::Logger.debug "moving location #{loc.id} via follow strategy " +
                   "#{speed} #{tracked_location_id } at #{distance}"
 
-     if @point_to_target && !facing_target?(loc)
-       rotate_towards_target(loc, elapsed_seconds)
-     end
-
      distance_to_cover = distance_from(loc)
-     if distance_to_cover > @distance
-       # calculate direction of tracked location
-       if @point_to_target
-         update_dir_from(loc)
+     within_distance   = distance_to_cover <= @distance
+     target_moving     = tracked_location.ms.class.ancestors.include?(Motel::MovementStrategies::LinearMovement)
+     slower_target     = tracked_location.ms.speed < speed if target_moving
+     adjust_speed      = within_distance && slower_target
 
-       else
-         tl = tracked_location
-         dx = (tl.x - loc.x) / distance_to_cover
-         dy = (tl.y - loc.y) / distance_to_cover
-         dz = (tl.z - loc.z) / distance_to_cover
-       end
+     if !within_distance || target_moving
+       rotate_towards_target(loc, elapsed_seconds) if !facing_target?(loc)
+       update_dir_from(loc)
+
+       orig_speed   = self.speed
+       self.speed   = tracked_location.ms.speed if adjust_speed
 
        move_linear(loc, elapsed_seconds)
 
-     else
-       #::RJR::Logger.warn "#{location} within #{@distance} of #{tl}"
-       # FIXME if target is stationary: orbit, else match speed
+       self.speed   = orig_speed if adjust_speed
+
+     elsif !target_moving # @move_while_in_vicinity
+       # TODO replace w/ rotate_towards_target_tangent ?
+       rotate_away_from_target(loc, elapsed_seconds) unless facing_target_tangent?(loc)
+       update_dir_from(loc)
+       move_linear(loc, elapsed_seconds)
      end
    end
 
    # Convert movement strategy to json representation and return it
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :step_delay      => step_delay,
-                         :point_to_target => point_to_target,
-                       }.merge(trackable_json)
-                        .merge(rotation_json)
-                        .merge(linear_json)
+       'data'       => { :step_delay => step_delay}.merge(trackable_json)
+                                                   .merge(rotation_json)
+                                                   .merge(linear_json)
      }.to_json(*a)
    end
 

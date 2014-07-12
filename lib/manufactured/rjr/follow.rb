@@ -51,7 +51,6 @@ module Manufactured::RJR
       Motel::MovementStrategies::Follow.new :distance => distance,
                                                :speed => entity.movement_speed,
                                  :tracked_location_id => target.location.id,
-                                     :point_to_target => true,
                                            :rot_theta => entity.rotation_speed
 
     node.invoke('motel::update_location', entity.location)

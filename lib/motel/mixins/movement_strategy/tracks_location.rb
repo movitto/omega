@@ -81,6 +81,12 @@ module MovementStrategies
      orientation_difference(loc).first.abs <= orientation_tolerance
     end
 
+    # Return bool indicating if specified location if facing direction
+    # tangential to target
+    def facing_target_tangent?(loc)
+      (orientation_difference(loc).first.abs - Math::PI / 2).abs <=  orientation_tolerance
+    end
+
     # Rotate specified location towards target.
     #
     # Assumes class including this module also includes Rotatable
