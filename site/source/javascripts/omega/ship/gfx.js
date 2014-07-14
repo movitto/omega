@@ -324,7 +324,9 @@ Omega.ShipGfx = {
       this.rotating = false;
     }
 
-    var dist = loc.movement_strategy.speed * elapsed / 1000;
+    var speed = this.rotating ? loc.movement_strategy.speed / 2 :
+                                loc.movement_strategy.speed;
+    var dist = speed * elapsed / 1000;
     loc.move_linear(dist);
 
     this.update_gfx();

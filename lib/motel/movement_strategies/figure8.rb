@@ -73,7 +73,12 @@ class Figure8 < MovementStrategy
     end
 
     update_dir_from(loc)
+
+    self.speed /= 2 if @rotating
+
     move_linear(loc, elapsed_seconds)
+
+    self.speed *= 2 if @rotating
   end
 
   def to_json(*a)
