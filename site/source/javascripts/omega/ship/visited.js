@@ -16,7 +16,7 @@ Omega.ShipVisitedRoute = function(args){
 
 Omega.ShipVisitedRoute.prototype = {
   color    : 0xAAAAAA,
-  num      : 10,
+  num      : 1000,
   min_distance : 100,
 
   clone : function(){

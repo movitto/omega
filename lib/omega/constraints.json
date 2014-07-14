@@ -78,8 +78,8 @@
       "battlecruiser" :  "heavy_missiles"
     },
 
-    "attack_distances"    : {"light_artillery" :  10000000,
-                             "heavy_artillery" : 100000000,
+    "attack_distances"    : {"light_artillery" :  100000000,
+                             "heavy_artillery" : 1000000000,
                              "default"         :  40000000},
     "attack_rates"        : {"light_artillery" :         2,
                              "heavy_artillery" :         0.25,
