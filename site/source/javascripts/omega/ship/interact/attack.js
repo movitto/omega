@@ -35,6 +35,7 @@ Omega.ShipAttackInteractions = {
         else
           _this._attack_success(response, page, target);
       });
+    this._move_for_attack(page, target);
   },
 
   /// Interal callback invoked on attack failure
@@ -53,5 +54,27 @@ Omega.ShipAttackInteractions = {
       _this.update_gfx();
     });
     page.audio_controls.play(this.combat_audio, 'start_attack');
+  },
+
+  /// Internal helper to set attacker movement
+  _move_for_attack : function(page, target){
+    var _this;
+    var distance = Omega.Config.follow_distance;
+    var strategy = this.weapons_class_type() == 'light' ? 'figure8' : 'follow';
+    page.node.http_invoke('manufactured::follow_entity',
+                          this.id, target.id, distance, strategy,
+      function(response){
+        if(response.error)
+          _this._attack_movement_failed(response);
+        else
+          _this._attack_movement_success(response);
+      });
+  },
+
+  /// TODO
+  _attack_movement_failed : function(response){
+  },
+
+  _attack_movement_success : function(response){
   }
 };

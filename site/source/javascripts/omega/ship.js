@@ -18,6 +18,7 @@ Omega.Ship = function(parameters){
   this.parent_id = this.system_id;
   this.location = Omega.convert.entity(this.location)
   this._update_resources();
+  this._update_weapons_class();
 };
 
 Omega.Ship.prototype = {
@@ -85,6 +86,15 @@ Omega.Ship.prototype = {
         if(res.data) $.extend(res, res.data);
       }
     }
+  },
+
+  _update_weapons_class : function(){
+    this.weapons_class = Omega.Constraint.gen('ship', 'weapons_classes', this.type);
+  },
+
+  weapons_class_type : function(){
+    if(!this.weapons_class) return "";
+    return this.weapons_class.substr(0, 5);
   },
 
   clicked_in : function(canvas){
