@@ -5,10 +5,16 @@
 
 module Manufactured::RJR
   # follow entity, keeping specified distance away, and also pointing to it
-  follow_entity = proc { |id, target_id, distance|
+  follow_entity = proc { |*args|
+    id             = args[0]
+    target_id      = args[1]
+    distance       = args[2]
+    strategy       = args[3] || :follow
+    strategy_class = Motel.strategy_class_for strategy
+
     # ensure different entity id's specified
     raise ArgumentError, "#{id} == #{target_id}" if id == target_id
-  
+
     # retrieve entities from registry, validate
     entity = registry.entity &with_id(id)
     target = registry.entity &with_id(target_id)
@@ -19,6 +25,9 @@ module Manufactured::RJR
   
     # ensure valid distance specified
     raise ArgumentError, distance unless distance.numeric? && distance > 0
+
+    # validate strategy class
+    raise ArgumentError, strategy if strategy_class.nil?
   
     # require modify on follower, view on followee
     require_privilege :registry => user_registry, :any =>
@@ -48,10 +57,10 @@ module Manufactured::RJR
   
     # set the movement strategy, update the location
     entity.location.movement_strategy =
-      Motel::MovementStrategies::Follow.new :distance => distance,
-                                               :speed => entity.movement_speed,
-                                 :tracked_location_id => target.location.id,
-                                           :rot_theta => entity.rotation_speed
+         strategy_class.new :distance => distance,
+                               :speed => entity.movement_speed,
+                 :tracked_location_id => target.location.id,
+                           :rot_theta => entity.rotation_speed
 
     node.invoke('motel::update_location', entity.location)
   
