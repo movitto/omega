@@ -92,6 +92,7 @@ Omega.Ship.prototype = {
     this.weapons_class = Omega.Constraint.gen('ship', 'weapons_classes', this.type);
   },
 
+  /// TODO should be 'weapons_class_scale' (type comes after scale in weapons_class)
   weapons_class_type : function(){
     if(!this.weapons_class) return "";
     return this.weapons_class.substr(0, 5);

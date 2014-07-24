@@ -77,7 +77,7 @@ Omega.ShipExplosionEffect.prototype = {
 
   interval : function(){
     if(this._interval) return this._interval;
-    this._interval = Omega.ShipAttackVector.prototype.particle_age;
+    this._interval = Omega.ShipArtillery.prototype.particle_age;
     return this._interval;
   },
 
