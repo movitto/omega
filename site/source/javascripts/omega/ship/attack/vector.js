@@ -17,7 +17,7 @@ Omega.ShipAttackVector = function(args){
   if(line)
     this.line = line;
 
-  this.clear_target_update();
+  this.disable_target_update();
 };
 
 Omega.ShipAttackVector.prototype = {

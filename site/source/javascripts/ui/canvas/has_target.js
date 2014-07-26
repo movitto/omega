@@ -9,11 +9,11 @@ Omega.UI.HasTarget = function(){};
 /// Subclasses should implement
 /// - target defining target
 Omega.UI.HasTarget.prototype = {
-  clear_target_update : function(){
+  disable_target_update : function(){
     this._update_target_loc = function(){}
   },
 
-  set_target_update : function(){
+  enable_target_update : function(){
     this._update_target_loc = function(){
       if(this.target_loc_needs_update())
         this.update_target_loc();
@@ -27,12 +27,12 @@ Omega.UI.HasTarget.prototype = {
   update_state : function(){
     if(this.has_target()){
       this.enable();
-      this.set_target_update();
+      this.enable_target_update();
       this.update();
 
     }else{
       this.disable();
-      this.clear_target_update();
+      this.disable_target_update();
     }
   },
 

@@ -4,6 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/canvas/particles/base"
 //= require "ui/canvas/particles/targeted"
 
 /// TODO track 'attacked_by' (array on entities in ship) in attack events,
@@ -13,6 +14,8 @@ Omega.ShipMissiles = function(args){
   if(!args) args = {};
   var config   = args['config'];
   var event_cb = args['event_cb'];
+
+  this.disable_target_update();
   this.init_particles(config, event_cb);
 };
 
@@ -52,4 +55,5 @@ Omega.ShipMissiles.prototype = {
   }
 };
 
+$.extend(Omega.ShipMissiles.prototype, Omega.UI.BaseParticles.prototype);
 $.extend(Omega.ShipMissiles.prototype, Omega.UI.TargetedParticles.prototype);
