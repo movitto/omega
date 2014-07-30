@@ -5,8 +5,8 @@
  */
 
 Omega.ShipGfxLoader = {
-  /// template mesh, mesh, and particle texture
-  async_gfx : 3,
+  /// template mesh, mesh, template missiles, missiles, and particle texture
+  async_gfx : 5,
 
   /// Load shared graphics resources
   load_gfx : function(config, event_cb){
@@ -30,8 +30,6 @@ Omega.ShipGfxLoader = {
                                                        event_cb: event_cb});
     gfx.artillery     =         new Omega.ShipArtillery({config: config,
                                                        event_cb: event_cb});
-    gfx.missiles      =          new Omega.ShipMissiles({config: config,
-                                                       event_cb: event_cb});
     gfx.mining_vector =      new Omega.ShipMiningVector({config: config,
                                                        event_cb: event_cb});
     gfx.trajectory1   =         new Omega.ShipTrajectory({color: 0x0000FF,
@@ -54,6 +52,11 @@ Omega.ShipGfxLoader = {
 
     Omega.ShipMesh.load_template(config, this.type, function(mesh){
       gfx.mesh = mesh;
+      if(event_cb) event_cb();
+    });
+
+    Omega.ShipMissiles.load_template(config, this.type, function(missiles){
+      gfx.missiles = missiles;
       if(event_cb) event_cb();
     });
 

@@ -13,7 +13,7 @@ Omega.ShipGfxUpdater = {
 
     this.trails.update();
     this.attack_vector.update();
-    this.attack_component.update();
+    this.attack_component().update();
     this.mining_vector.update();
     this.smoke.update();
   },
@@ -22,8 +22,8 @@ Omega.ShipGfxUpdater = {
   update_attack_gfx : function(){
     this.attack_vector.update_state();
     this.attack_vector.update();
-    this.attack_component.update_state();
-    this.attack_component.update();
+    this.attack_component().update_state();
+    this.attack_component().update();
     this.explosions.update_state();
   },
 

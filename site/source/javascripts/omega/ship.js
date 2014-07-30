@@ -98,6 +98,25 @@ Omega.Ship.prototype = {
     return this.weapons_class.substr(0, 5);
   },
 
+  added_to : function(canvas, scene){
+    /// XXX store canvas / scene for later usage
+    this.canvas = canvas;
+    this.scene  = scene;
+  },
+
+  /// trigger canvas reload
+  //
+  /// XXX don't like having this at this level, will be looking
+  ///  to refactor this at some point at some point
+  reload_in_scene : function(cb){
+    this.canvas.reload(this, this.scene, cb);
+  },
+
+  removed_from : function(canvas, scene){
+    this.canvas = null;
+    this.scene  = null;
+  },
+
   clicked_in : function(canvas){
     canvas.page.audio_controls.play(canvas.page.audio_controls.effects.click);
     canvas.follow_entity(this);

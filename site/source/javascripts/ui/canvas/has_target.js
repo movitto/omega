@@ -4,10 +4,14 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// TODO update target_loc upon target movement / remove here
+
 Omega.UI.HasTarget = function(){};
 
 /// Subclasses should implement
 /// - target defining target
+/// - enable/disable methods toggling component if target is present
+/// - update_target_loc to update component when target location moves
 Omega.UI.HasTarget.prototype = {
   disable_target_update : function(){
     this._update_target_loc = function(){}

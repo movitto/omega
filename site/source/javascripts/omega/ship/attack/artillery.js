@@ -8,8 +8,7 @@
 //= require "ui/canvas/particles/targeted"
 //= require "ui/canvas/particles/staggered"
 
-/// TODO track 'attacked_by' (array on entities in ship) in attack events,
-/// update target_loc upon defender movement / remove here
+/// TODO track 'attacked_by' (array on entities in ship) in attack events ?
 
 Omega.ShipArtillery = function(args){
   if(!args) args = {};
@@ -26,6 +25,10 @@ Omega.ShipArtillery.prototype = {
   particle_age         : 1,
   particle_count       : 5,
   particle_size        : 30,
+
+  interval : function(){
+    return this.particle_age / this.num_emitters;
+  },
 
   _particle_group : function(config, event_cb){
     return new SPE.Group({

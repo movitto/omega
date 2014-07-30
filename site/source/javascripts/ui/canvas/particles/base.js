@@ -26,6 +26,10 @@ Omega.UI.BaseParticles.prototype = {
     this.clock = new THREE.Clock();
   },
 
+  component : function(){
+    return this.particles.mesh;
+  },
+
   set_position : function(position){
     this.particles.mesh.position = position;
   },

@@ -12,7 +12,7 @@ Omega.ShipGfxEffects = {
     this.trails.run_effects();
     this.visited_route.run_effects();
 
-    this.attack_component.run_effects();
+    this.attack_component().run_effects();
     this.mining_vector.run_effects();
     this.explosions.run_effects();
     this.destruction.run_effects();

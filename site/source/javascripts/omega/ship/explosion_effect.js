@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+/// Explosion Effect is applied to Ship's target, the entity which it is
+/// attacking upon attack mechanisms (artillery, missiles) arrival
 Omega.ShipExplosionEffect = function(args){
   if(!args) args = {};
   var config = args['config'];
@@ -11,9 +13,13 @@ Omega.ShipExplosionEffect = function(args){
 
   this.init_gfx(config, event_cb);
   this._run_effects = this._no_trigger_effect;
+
+  this.auto_trigger = false;
 };
 
 Omega.ShipExplosionEffect.prototype = {
+  default_interval : 5,
+
   /// TODO make sure to add enough emitters to pool to cover all ships
   num_emitters : 500,
 
@@ -40,7 +46,7 @@ Omega.ShipExplosionEffect.prototype = {
   update_state : function(){
     var entity = this.omega_entity;
 
-    if(entity.attacking)
+    if(entity.attacking && this.auto_trigger)
       this._run_effects = this._trigger_effect;
     else
       this._run_effects = this._no_trigger_effect;
@@ -75,10 +81,8 @@ Omega.ShipExplosionEffect.prototype = {
     return nexplosion;
   },
 
-  interval : function(){
-    if(this._interval) return this._interval;
-    this._interval = Omega.ShipArtillery.prototype.particle_age / Omega.ShipArtillery.prototype.num_emitters;
-    return this._interval;
+  _interval : function(){
+    return this.interval || this.default_interval;
   },
 
   _trigger_position : function(){
@@ -96,16 +100,21 @@ Omega.ShipExplosionEffect.prototype = {
    /// TODO could be potentially furthur optimized by scheduling
    /// tigger_effect to be run at specified interval async instead
    /// of relying on this conditional here
-   if(this.clock.getElapsedTime() < this.interval()) return;
+   if(this.clock.getElapsedTime() < this._interval()) return;
 
     /// reset clock
     this.clock = new THREE.Clock();
 
-    this.particles.triggerPoolEmitter(1, this._trigger_position());
+    this.trigger();
   },
 
   _no_trigger_effect : function(){
     /// intentionally empty (see update above)
+  },
+
+  /// manually trigger effect
+  trigger : function(){
+    this.particles.triggerPoolEmitter(1, this._trigger_position());
   },
 
   run_effects : function(){

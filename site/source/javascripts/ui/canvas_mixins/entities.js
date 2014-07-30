@@ -35,6 +35,8 @@ Omega.UI.CanvasEntitiesManager = {
         _this.reload(entity);
     };
     entity.addEventListener('loaded_mesh', entity.sceneReload);
+    /// XXX TODO also need to add/remove event listeners for other
+    /// loaded events (such as missile meshes and such)
 
     entity.init_gfx(this.page.config, function(evnt){ _this._init_gfx(); });
     for(var cc = 0; cc < entity.components.length; cc++)
@@ -43,6 +45,8 @@ Omega.UI.CanvasEntitiesManager = {
     if(this.page.effects_player && entity.has_effects())
       this.page.effects_player.add(entity);
     this.entities.push(entity.id);
+
+    if(entity.added_to) entity.added_to(this, scene);
   },
 
   // Remove specified entity from scene
@@ -59,6 +63,8 @@ Omega.UI.CanvasEntitiesManager = {
       this.page.effects_player.remove(entity.id);
     var index = this.entities.indexOf(entity.id);
     if(index != -1) this.entities.splice(index, 1);
+
+    if(entity.removed_from) entity.removed_from(this, scene);
   },
 
   // Remove entity from scene, invoke callback, readd entity to scene

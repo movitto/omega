@@ -45,15 +45,9 @@ Omega.ShipGfxInitializer = {
     this.attack_vector.omega_entity = this;
     this.attack_vector.set_position(this.position_tracker().position);
 
-    var attack_component  = this.attack_component_for(this.weapons_class_type());
-    if(attack_component){
-      this.attack_component = attack_component.clone(config, event_cb);
-      this.attack_component.omega_entity = this;
-      this.attack_component.set_position(this.position_tracker().position);
-      this.components.push(this.attack_component.particles.mesh);
-    }else{
-      this.attack_component = new Omega.EntityGfxStub();
-    }
+    this.artillery = Omega.Ship.gfx[this.type].artillery.clone(config, event_cb);
+    this.artillery.omega_entity = this;
+    this.artillery.set_position(this.position_tracker().position);
 
     this.mining_vector =
       Omega.Ship.gfx[this.type].mining_vector.clone(config, event_cb);
@@ -96,11 +90,16 @@ Omega.ShipGfxInitializer = {
     this.docking_audio = Omega.Ship.gfx[this.type].docking_audio;
     this.mining_completed_audio = Omega.Ship.gfx[this.type].mining_completed_audio;
 
-    this.mesh = {update : function(){},
-                 run_effects : function(){},
-                 base_rotation : [0,0,0]};
+    if(this.attack_component() == this.artillery){
+      this.components.push(this.attack_component().component());
+      this.explosions.interval = this.artillery.interval();
+      this.explosions.auto_trigger = true;
+    }
 
-    var _this = this;
+    var _this     = this;
+    this.mesh     = Omega.EntityGfxStub.instance();
+    this.missiles = Omega.EntityGfxStub.instance();
+
     Omega.ShipMesh.load(this.type, function(mesh){
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
@@ -120,17 +119,22 @@ Omega.ShipGfxInitializer = {
       _this._gfx_initialized  = true;
     });
 
+    Omega.ShipMissiles.load(this.type, function(missiles){
+      _this.missiles = missiles;
+      _this.missiles.omega_entity = _this;
+    });
+
     this.last_moved = new Date();
     this.update_gfx();
     this.update_movement_effects();
   },
 
   /// Return the attack corresponent corresponding to the specified weapons class
-  attack_component_for : function(weapons_class_type){
-    switch(weapons_class_type){
-      case "light": return Omega.Ship.gfx[this.type].artillery;
-      case "heavy": return Omega.Ship.gfx[this.type].missiles;
+  attack_component : function(){
+    switch(this.weapons_class_type()){
+      case "light": return this.artillery;
+      case "heavy": return this.missiles;
     }
-    return null;
+    return Omega.EntityGfxStub.instance();
   }
 };

@@ -12,8 +12,14 @@ Omega.EntityGfxStub = function(){
 };
 
 Omega.EntityGfxStub.prototype = {
-  update       : function(){},
-  update_state : function(){},
-  run_effects  : function(){},
-  set_position : function(){}
+  set_position  : function(){},
+  update        : function(){},
+  update_state  : function(){},
+  run_effects   : function(){}
 };
+
+Omega.EntityGfxStub.instance = function(){
+  if(this._instance) return this._instance;
+  this._instance = new Omega.EntityGfxStub();
+  return this._instance;
+}

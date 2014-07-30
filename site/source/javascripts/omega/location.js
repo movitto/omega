@@ -73,6 +73,10 @@ Omega.Location.prototype = {
       y = x[1];
       z = x[2];
       x = x[0];
+    }else if(x.json_class == 'Motel::Location'){
+      z = x.z;
+      y = x.y;
+      x = x.x;
     }
 
     this.x = x;
@@ -107,6 +111,10 @@ Omega.Location.prototype = {
       y = x[1];
       z = x[2];
       x = x[0];
+    }else if(x.json_class == 'Motel::Location' || x.constructor == THREE.Vector3){
+      z = x.z;
+      y = x.y;
+      x = x.x;
     }
 
     this.orientation_x = x;
@@ -308,11 +316,15 @@ Omega.Location.prototype = {
   /// between location's orientation and base cartesion
   /// orientation we're using
   rotation_matrix : function(){
-    var axis = Omega.Math.cp(0, 0, 1,
+    var cart_x = Omega.Math.CARTESIAN_ORIENTATION[0];
+    var cart_y = Omega.Math.CARTESIAN_ORIENTATION[1];
+    var cart_z = Omega.Math.CARTESIAN_ORIENTATION[2];
+
+    var axis = Omega.Math.cp(cart_x, cart_y, cart_z,
                              this.orientation_x,
                              this.orientation_y,
                              this.orientation_z);
-    var angle = Omega.Math.abwn(0, 0, 1,
+    var angle = Omega.Math.abwn(cart_x, cart_y, cart_z,
                                 this.orientation_x,
                                 this.orientation_y,
                                 this.orientation_z);

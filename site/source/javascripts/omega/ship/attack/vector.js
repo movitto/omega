@@ -53,8 +53,8 @@ Omega.ShipAttackVector.prototype = {
 
   disable : function(){
     var index = this.omega_entity.components.indexOf(this.line);
-    if(index != -1) this.oemga_entity.components.splice(index, 1);
-  },
+    if(index != -1) this.omega_entity.components.splice(index, 1);
+  }
 };
 
 $.extend(Omega.ShipAttackVector.prototype, Omega.UI.HasTarget.prototype);
