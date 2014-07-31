@@ -4,75 +4,23 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/canvas/particles/base"
+//= require "ui/canvas/particles/updatable"
+
 Omega.ShipTrails = function(args){
   if(!args) args = {};
   var config   = args['config'];
   var type     = args['type'];
   var event_cb = args['event_cb'];
 
-  if(config && type)
-    this.init_particles(config, type, event_cb);
-  else
-    this.disable_updates();
+  this.disable_updates();
+  this.load_config_particles(config, type);
+  this.init_particles(config, event_cb);
 };
 
 Omega.ShipTrails.prototype = {
-  plane                :     1,
   lifespan             :     1,
   particle_speed       :     1,
-
-  _particle_velocity : function(){
-    if(this.__particle_velocity) return this.__particle_velocity;
-    this.__particle_velocity = new THREE.Vector3(0, 0, 0);
-    return this.__particle_velocity;
-  },
-
-  _particle_group : function(config, event_cb){
-    return new SPE.Group({
-      texture:    Omega.load_ship_particles(config, event_cb, 'trails'),
-      maxAge:     this.lifespan,
-      blending:   THREE.AdditiveBlending
-    });
-  },
-
-  _particle_emitter : function(){
-    return new SPE.Emitter({
-      positionSpread     : new THREE.Vector3(0, 0, 1),
-      colorStart         : new THREE.Color(0x000000),
-      colorEnd           : new THREE.Color(0x00FFFF),
-      sizeStart          :   40,
-      sizeEnd            :    5,
-      opacityStart       :    1,
-      opacityEnd         :    0,
-      velocity           : this._particle_velocity(),
-      speed              : this.particle_speed,
-      particleCount      :  2000,
-      alive              :    0
-    });
-  },
-
-  init_particles : function(config, type, event_cb){
-    this.config_trails = config.resources.ships[type].trails;
-    if(!this.config_trails){
-      this.disable_updates();
-      return;
-    }
-
-    this.clock     = new THREE.Clock();
-    this.particles = this._particle_group(config, event_cb);
-
-    for(var t = 0; t < this.config_trails.length; t++){
-      /// replace config array w/ vector
-      var config_trail = this.config_trails[t];
-      if(config_trail.constructor != THREE.Vector3)
-        this.config_trails[t] =
-          new THREE.Vector3(config_trail[0], config_trail[1], config_trail[2]);
-
-      /// create new emitter add to group
-      var emitter = this._particle_emitter();
-      this.particles.addEmitter(emitter);
-    }
-  },
 
   clone : function(config, type, event_cb){
     return new Omega.ShipTrails({config: config,
@@ -80,68 +28,81 @@ Omega.ShipTrails.prototype = {
                                  event_cb: event_cb});
   },
 
-  _update_emitter : function(e){
-    var entity        = this.omega_entity;
-    var loc           = entity.scene_location();
-    var config_trail  = this.config_trails[e];
-    var emitter       = this.particles.emitters[e];
+  load_config_particles : function(config, type){
+    this.config_trails = config.resources.ships[type].trails;
+    if(!this.config_trails){
+      this.num_emitters = 0;
+      return;
+    }
+    this.config_trails = this.config_trails.slice(0);
 
-    /// keep emitter position in sync w/ location
+    for(var t = 0; t < this.config_trails.length; t++){
+      this.config_trails[t] = new THREE.Vector3(this.config_trails[t][0],
+                                                this.config_trails[t][1],
+                                                this.config_trails[t][2]);
+    }
+    this.num_emitters = this.config_trails.length;
+  },
+
+  _particle_group : function(config, event_cb){
+    return new SPE.Group({
+      maxAge   : this.lifespan,
+      blending : THREE.AdditiveBlending,
+      texture  : Omega.load_ship_particles(config, event_cb, 'trails')
+    });
+  },
+
+  _particle_emitter : function(){
+    return new SPE.Emitter({
+      alive           :    0,
+      particleCount   : 2000,
+      sizeStart       :   40,
+      sizeEnd         :    5,
+      opacityStart    :    1,
+      opacityEnd      :    0,
+      colorStart      : new THREE.Color(0x000000),
+      colorEnd        : new THREE.Color(0x00FFFF),
+      positionSpread  : new THREE.Vector3(0, 0, 1),
+      speed           : this.particle_speed
+    });
+  },
+
+  _update_emitters : function(e){
+    for(var t = 0; t < this._num_emitters(); t++)
+      this._update_emitter(t);
+  },
+
+  /// keep emitter position in sync w/ location
+  sync_emitter_position : function(e){
+    var loc          = this.omega_entity.scene_location();
+    var config_trail = this.config_trails[e];
+    var emitter      = this.particles.emitters[e];
+
     emitter.position.set(loc.x, loc.y, loc.z);
     emitter.position.add(config_trail);
     Omega.temp_translate(emitter, loc, function(temitter){
       Omega.rotate_position(temitter, loc.rotation_matrix());
     });
+  },
 
-    /// rotate emitter velocity to match location orientation
-    emitter.velocity = this._particle_velocity();
+  /// rotate emitter velocity to match location orientation
+  sync_emitter_orientation : function(e){
+    var loc     = this.omega_entity.scene_location();
+    var emitter = this.particles.emitters[e];
+
     Omega.set_emitter_velocity(emitter, loc.rotation_matrix());
     emitter.velocity.multiplyScalar(this.particle_speed);
   },
 
-  disable_updates : function(){
-    this.update = this._disabled_update;
+  _update_emitter : function(e){
+    this.sync_emitter_position(e);
+    this.sync_emitter_orientation(e);
   },
 
-  enable_updates : function(){
-    this.update = this._enabled_update;
-  },
-
-  _disabled_update : function(){},
-
-  _enabled_update : function(){
-    for(var t = 0; t < this.config_trails.length; t++)
-      this._update_emitter(t);
-  },
-
-  update_state : function(){
-    if(this.omega_entity.location.is_stopped())
-      this.disable();
-    else
-      this.enable();
-  },
-
-  enable : function(){
-    if(!this.particles) return;
-    this.enable_updates();
-    for(var e = 0; e < this.particles.emitters.length; e++)
-      this.particles.emitters[e].alive = true;
-  },
-
-  disable : function(){
-    if(!this.particles) return;
-    this.disable_updates();
-    for(var e = 0; e < this.particles.emitters.length; e++){
-      this.particles.emitters[e].alive = false;
-      this.particles.emitters[e].reset();
-    }
-  },
-
-  run_effects : function(){
-    /// FIXME should implement enable/disable effects similar to updates above
-    if(this.particles)
-      this.particles.tick(this.clock.getDelta());
+  enabled_state : function(){
+    return this.num_emitters > 0 && !this.omega_entity.location.is_stopped()
   }
 };
 
-Omega.ShipTrails.prototype.update = Omega.ShipTrails.prototype._disabled_update;
+$.extend(Omega.ShipTrails.prototype, Omega.UI.BaseParticles.prototype);
+$.extend(Omega.ShipTrails.prototype, Omega.UI.UpdatableParticles.prototype);

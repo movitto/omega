@@ -25,6 +25,7 @@ Omega.ShipGfxMovement = {
 
     var rot_theta = invert ? (this.location.movement_strategy.rot_theta * -1) :
                               this.location.movement_strategy.rot_theta
+    if(!rot_theta) return;
     var dist = rot_theta * elapsed / 1000;
     this.location.rotate_orientation(dist);
 
