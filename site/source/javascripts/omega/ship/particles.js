@@ -25,6 +25,9 @@ Omega.load_ship_particles = function(config, event_cb, particles_id){
     case 'artillery':
       particle_path += '/artillery.png';
       break;
+    case 'missile':
+      particle_path += '/bullet-particle.png';
+      break;
     default:
       particle_path += '/particle.png';
   }

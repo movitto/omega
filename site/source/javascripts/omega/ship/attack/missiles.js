@@ -10,9 +10,16 @@
 
 Omega.ShipMissiles = function(args){
   if(!args) args = {};
+  var config   = args['config'];
+  var event_cb = args['event_cb'];
   var template = args['template'];
 
   if(template) this.template = template;
+
+  /// store for use in missile creation later
+  if(config)   this.config   = config;
+  if(event_cb) this.event_cb = event_cb;
+
   this.missiles = [];
   this.disable_target_update();
 }
@@ -28,19 +35,22 @@ Omega.ShipMissiles.prototype = {
 
   launch : function(){
     this.launched_at = new Date();
-    var missile = this.template.clone();
+    var missile = this.template.clone(this.config, this.event_cb);
     missile.set_source(this.omega_entity);
     missile.set_target(this.target());
     this.missiles.push(missile);
 
     var _this = this;
     this.omega_entity.reload_in_scene(function(){
-      _this.omega_entity.components.push(missile.component());
+      var missile_components = missile.components();
+      for(var c = 0; c < missile_components.length; c++)
+        _this.omega_entity.components.push(missile_components[c]);
     });
   },
 
   clone : function(config, event_cb){
-    return new Omega.ShipMissiles({template : this.template.clone()});
+    return new Omega.ShipMissiles({config : config, event_cb : event_cb,
+                                   template : this.template.clone()});
   },
 
   target : function(){
@@ -64,8 +74,11 @@ Omega.ShipMissiles.prototype = {
   remove : function(missile){
     var _this = this;
     this.omega_entity.reload_in_scene(function(){
-      var index = _this.omega_entity.components.indexOf(missile.component());
-      if(index != -1) _this.omega_entity.components.splice(index, 1);
+      var missile_components = missile.components();
+      for(var c = 0; c < missile_components.length; c++){
+        var index = _this.omega_entity.components.indexOf(missile_components[c]);
+        if(index != -1) _this.omega_entity.components.splice(index, 1);
+      }
     });
 
     this.missiles.splice(this.missiles.indexOf(missile), 1);
@@ -89,7 +102,7 @@ Omega.ShipMissiles.prototype = {
 /// Async template missiles loader
 Omega.ShipMissiles.load_template = function(config, type, cb){
   Omega.ShipMissile.load_template(config, type, function(missile){
-    var missiles = new Omega.ShipMissiles({template: missile});
+    var missiles = new Omega.ShipMissiles({config: config, template: missile});
     cb(missiles);
     Omega.Ship.prototype.loaded_resource('template_missiles_' + type, missiles);
   });
