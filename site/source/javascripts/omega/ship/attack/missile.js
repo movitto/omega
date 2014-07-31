@@ -35,7 +35,6 @@ Omega.ShipMissile.prototype = {
   _particle_group : function(config, event_cb){
     return new SPE.Group({
       maxAge   : this.particle_age,
-      depthTest: false,
       texture  : Omega.load_ship_particles(config, event_cb, 'missile')
     });
   },

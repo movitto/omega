@@ -63,7 +63,8 @@ Omega.ShipTrails.prototype = {
       colorStart      : new THREE.Color(0x000000),
       colorEnd        : new THREE.Color(0x00FFFF),
       positionSpread  : new THREE.Vector3(0, 0, 1),
-      speed           : this.particle_speed
+      speed           : this.particle_speed,
+      angleAlignVelocity : true
     });
   },
 
