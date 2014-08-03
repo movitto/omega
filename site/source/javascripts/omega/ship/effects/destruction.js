@@ -6,12 +6,13 @@
 
 /// TODO add debris
 
+//= require "ui/particles"
+
 Omega.ShipDestructionEffect = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  this.init_gfx(config, event_cb);
+  this.init_gfx(event_cb);
 };
 
 Omega.ShipDestructionEffect.prototype = {
@@ -58,20 +59,19 @@ Omega.ShipDestructionEffect.prototype = {
     });
   },
 
-  _particle_group : function(config, event_cb){
-    var particle_texture =
-      Omega.load_ship_particles(config, event_cb, 'destruction');
+  _particle_group : function(event_cb){
+    var particle_texture = Omega.UI.Particles.load('ship.destruction', event_cb);
 
     return new SPE.Group({
-        texture:  particle_texture,
-        maxAge:   5,
-        blending: THREE.AdditiveBlending
+        texture  : particle_texture,
+        maxAge   : 5,
+        blending : THREE.AdditiveBlending
       });
   },
 
 
-  init_gfx : function(config, event_cb){
-    this.particles = this._particle_group(config, event_cb);
+  init_gfx : function(event_cb){
+    this.particles = this._particle_group(event_cb);
     this.particles.addEmitter(this._explosion_emitter());
     this.particles.addEmitter(this._shockwave_emitter());
     this.particles.mesh.rotation.x = 1.57;
@@ -80,8 +80,8 @@ Omega.ShipDestructionEffect.prototype = {
     this.particle_clock = new THREE.Clock();
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipDestructionEffect({config: config, event_cb: event_cb});
+  clone : function(){
+    return new Omega.ShipDestructionEffect();
   },
 
   run_effects : function(){

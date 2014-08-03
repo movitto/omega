@@ -39,7 +39,7 @@ Omega.UI.EffectsPlayer.prototype = {
   ///   50 = 20fps
   ///   20 = 50fps
   ///   10 = 100fps
-  interval  : 20,
+  interval  : 50,
   max_skips :  5,
 
   /// Set to null to update all entities on every cycle

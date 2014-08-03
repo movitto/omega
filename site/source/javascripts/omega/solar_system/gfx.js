@@ -16,51 +16,90 @@
 Omega.SolarSystemGfx = {
   async_gfx : 2,
 
-  /// Load shared graphics resources
-  load_gfx : function(config, event_cb){
-    if(this.gfx_loaded()) return;
+  _load_mesh : function(){
+    this._store_resource('mesh', new Omega.SolarSystemMesh());
+  },
 
-    var gfx = {};
-    gfx.mesh              = new Omega.SolarSystemMesh();
-    gfx.plane             = new Omega.SolarSystemPlane({config:   config,
-                                                        event_cb: event_cb});
-    gfx.text_material     = new Omega.SolarSystemTextMaterial();
-    gfx.hover_audio       = new Omega.SolarSystemHoverAudioEffect({config: config});
-    gfx.click_audio       = new Omega.SolarSystemClickAudioEffect({config: config});
-    gfx.particles         = new Omega.SolarSystemParticles({config : config,
-                                                            event_cb : event_cb});
-    Omega.SolarSystem.gfx = gfx;
+  _load_plane : function(event_cb){
+    this._store_resource('plane', new Omega.SolarSystemPlane({event_cb: event_cb}));
+  },
+
+  _load_text : function(){
+    this._store_resource('text_material', new Omega.SolarSystemTextMaterial());
+  },
+
+  _load_audio : function(){
+    this._store_resource('hover_audio', new Omega.SolarSystemHoverAudioEffect());
+    this._store_resource('click_audio', new Omega.SolarSystemClickAudioEffect());
+  },
+
+  _load_particles : function(event_cb){
+    this._store_resource('particles',  new Omega.SolarSystemParticles({event_cb : event_cb}));
+  },
+
+  /// Load shared graphics resources
+  load_gfx : function(event_cb){
+    if(this.gfx_loaded()) return;
+    this._load_mesh();
+    this._load_plane(event_cb);
+    this._load_text();
+    this._load_audio();
+    this._load_particles(event_cb);
     this._loaded_gfx();
   },
 
-  // Initialize local system graphics
-  init_gfx : function(config, event_cb){
-    if(this.gfx_initialized()) return;
-    this.load_gfx(config, event_cb);
-
-    this.mesh = Omega.SolarSystem.gfx.mesh.clone();
+  _init_mesh : function(){
+    this.mesh = this._retrieve_resource('mesh').clone();
     this.mesh.omega_entity = this;
-  
-    this.plane = Omega.SolarSystem.gfx.plane.clone();
+  },
+
+  _init_plane : function(){
+    this.plane = this._retrieve_resource('plane').clone();
     this.plane.omega_entity = this;
+  },
 
-    this.text = new Omega.SolarSystemText(this.title())
+  _init_text : function(){
+    var material = this._retrieve_resource('text_material').material;
+    this.text = new Omega.SolarSystemText({text: this.title(), material: material})
     this.text.omega_entity = this;
+  },
 
-    this.hover_audio = Omega.SolarSystem.gfx.hover_audio;
-    this.click_audio = Omega.SolarSystem.gfx.click_audio;
+  _init_audio : function(){
+    this.hover_audio = this._retrieve_resource('hover_audio');
+    this.click_audio = this._retrieve_resource('click_audio');
+  },
 
-    this.particles = Omega.SolarSystem.gfx.particles.clone(config, event_cb);
+  _init_particles : function(){
+    this.particles = this._retrieve_resource('particles').clone();
     this.particles.omega_entity = this;
+  },
 
-    this.interconns.init_gfx(config, event_cb);
+  _init_interconns : function(){
+    this.interconns.init_gfx(event_cb);
+  },
 
+  _init_components : function(){
     this.position_tracker().add(this.plane.tmesh);
     this.position_tracker().add(this.text.text);
 
     this.components = [this.position_tracker()].
                         concat(this.interconns.components()).
                         concat(this.particles.components());
+
+  },
+
+  // Initialize local system graphics
+  init_gfx : function(event_cb){
+    if(this.gfx_initialized()) return;
+    this.load_gfx(event_cb);
+
+    this._init_mesh();
+    this._init_plane();
+    this._init_text();
+    this._init_audio();
+    this._init_particles();
+    this._init_interconns(event_cb);
+    this._init_components();
 
     this._gfx_initialized = true;
     this.interconns.unqueue();

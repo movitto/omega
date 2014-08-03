@@ -4,12 +4,13 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 Omega.ShipMiningVector = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  this.init_gfx(config, event_cb);
+  this.init_gfx(event_cb);
   this._update_velocity = this._no_velocity_update;
 };
 
@@ -19,10 +20,10 @@ Omega.ShipMiningVector.prototype = {
   particles_per_second :   1,
   particle_size        :  50,
 
-  _particle_group : function(config, event_cb){
+  _particle_group : function(event_cb){
     /// TODO mining-specific particle
     return new SPE.Group({
-      texture:    Omega.load_ship_particles(config, event_cb),
+      texture:    Omega.UI.Particles.load('ship', event_cb),
       maxAge:     this.particle_age,
       blending:   THREE.AdditiveBlending
     });
@@ -42,8 +43,8 @@ Omega.ShipMiningVector.prototype = {
     });
   },
 
-  init_gfx : function(config, event_cb){
-    var group    = this._particle_group(config, event_cb);
+  init_gfx : function(event_cb){
+    var group    = this._particle_group(event_cb);
     var emitters = [];
     for(var e = 0; e < this.num_emitters; e++)
       group.addEmitter(this._particle_emitter());
@@ -51,8 +52,8 @@ Omega.ShipMiningVector.prototype = {
     this.clock = new THREE.Clock();
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipMiningVector({config: config, event_cb: event_cb});
+  clone : function(){
+    return new Omega.ShipMiningVector();
   },
 
   update : function(){

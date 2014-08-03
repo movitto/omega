@@ -13,14 +13,13 @@
 //= require "omega/gen"
 
 Omega.Pages.Dev = function(){
-  this.config  = Omega.Config;
-  this.node    = new Omega.Node(this.config);
+  this.node    = new Omega.Node();
   this.entities = {};
 
   this.canvas  = new Omega.UI.Canvas({page: this});
   this.effects_player = new Omega.UI.EffectsPlayer({page: this});
   this.command_tracker= new Omega.UI.CommandTracker({page : this})
-  this.audio_controls = new Omega.UI.AudioControls({page : this});
+  this.audio_controls = new Omega.UI.AudioControls();
 };
 
 Omega.Pages.Dev.prototype = {
@@ -47,7 +46,7 @@ Omega.Pages.Dev.prototype = {
     this.canvas.cam.position.set(1500, 1500, 1500);
     this.canvas.focus_on({x:0,y:0,z:0});
 
-    Omega.Gen.init(this.config, function(){
+    Omega.Gen.init(function(){
       _this.custom_operations();
     });
 
@@ -55,7 +54,7 @@ Omega.Pages.Dev.prototype = {
     this.canvas.scene.add(light);
 
     var bg = Math.floor(Math.random() * Omega._num_backgrounds) + 1;
-    this.canvas.skybox.set(bg, this.config, function(){_this.canvas.animate();})
+    this.canvas.skybox.set(bg, function(){_this.canvas.animate();})
     this.canvas.add(this.canvas.skybox, this.canvas.skyScene);
     this.canvas.add(this.canvas.star_dust, this.canvas.skyScene);
 

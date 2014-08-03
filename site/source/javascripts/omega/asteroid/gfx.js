@@ -9,41 +9,54 @@
 
 // Asteroid GFX Mixin
 Omega.AsteroidGfx = {
-  /// TODO update to include increased # of ast meshes
   async_gfx : 1,
 
-  load_gfx : function(config, event_cb){
+  _load_material : function(event_cb){
+    this._store_resource('mesh_material', new Omega.AsteroidMeshMaterial({event_cb : event_cb}));
+  },
+
+  _load_geometries : function(event_cb){
+    var resource = 'asteroid.meshes';
+    var geometry_paths  = Omega.AsteroidMesh.geometry_paths();
+    Omega.UI.ResourceLoader.load(resource, geometry_paths, event_cb);
+  },
+
+  load_gfx : function(event_cb){
     if(this.gfx_loaded()) return;
-    var gfx = {};
-
-    Omega.AsteroidMesh.load_templates(config, function(templates){
-      gfx.meshes = templates;
-      if(event_cb) event_cb();
-    });
-
-    Omega.Asteroid.gfx = gfx;
+    this._load_material(event_cb);
+    this._load_geometries(event_cb);
     this._loaded_gfx();
   },
 
-  init_gfx : function(config, event_cb){
-    if(this.gfx_initialized()) return;
-    this.load_gfx(config, event_cb);
-
+  init_mesh : function(){
     /// pick a random mesh from those available
-    var num_meshes = config.resources.asteroid.geometry.length;
+    var num_meshes = Omega.AsteroidMesh.geometry_paths()[0].length;
     var mesh_num   = Math.floor(Math.random() * num_meshes);
 
     var _this = this;
-    Omega.AsteroidMesh.load(mesh_num, function(mesh){
+    Omega.UI.ResourceLoader.retrieve('asteroid.meshes', function(geometries){
+      var material = _this._retrieve_resource('mesh_material').material;
+      var geometry = geometries[mesh_num];
+      var mesh = new Omega.AsteroidMesh({material: material, geometry: geometry});
+
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
       _this.position_tracker().add(_this.mesh.tmesh);
+
       _this.update_gfx();
-      _this.loaded_resource('mesh',  _this.mesh);
       _this._gfx_initialized = true;
     });
+  },
 
+  init_components : function(){
     this.components = [this.position_tracker()];
+  },
+
+  init_gfx : function(event_cb){
+    if(this.gfx_initialized()) return;
+    this.load_gfx(event_cb);
+    this.init_mesh();
+    this.init_components();
   },
 
   update_gfx : function(){

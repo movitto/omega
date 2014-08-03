@@ -6,8 +6,8 @@
 
 //= require "ui/audio/base"
 
-Omega.EpicAudioEffect = function(config){
-  this.audio = config.audio['epic'];
+Omega.EpicAudioEffect = function(){
+  this.audio = Omega.Config.audio['epic'];
 };
 
 $.extend(Omega.EpicAudioEffect.prototype, Omega.BaseAudioEffect);

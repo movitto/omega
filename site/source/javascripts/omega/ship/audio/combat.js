@@ -6,8 +6,8 @@
 
 //= require "ui/audio/base"
 
-Omega.ShipCombatAudioEffect = function(args){
-  this.start_attack = args.config.audio['start_attack'];
+Omega.ShipCombatAudioEffect = function(){
+  this.start_attack = Omega.Config.audio['start_attack'];
 };
 
 $.extend(Omega.ShipCombatAudioEffect.prototype, Omega.BaseAudioEffect);

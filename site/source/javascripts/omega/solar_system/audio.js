@@ -6,14 +6,14 @@
 
 //= require "ui/audio/base"
 
-Omega.SolarSystemHoverAudioEffect = function(args){
-  this.audio = args.config.audio['system_hover'];
+Omega.SolarSystemHoverAudioEffect = function(){
+  this.audio = Omega.Config.audio['system_hover'];
 };
 
 $.extend(Omega.SolarSystemHoverAudioEffect.prototype, Omega.BaseAudioEffect);
 
-Omega.SolarSystemClickAudioEffect = function(args){
-  this.audio = args.config.audio['system_click'];
+Omega.SolarSystemClickAudioEffect = function(){
+  this.audio = Omega.Config.audio['system_click'];
 };
 
 $.extend(Omega.SolarSystemClickAudioEffect.prototype, Omega.BaseAudioEffect);

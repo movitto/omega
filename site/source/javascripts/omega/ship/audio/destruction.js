@@ -6,10 +6,8 @@
 
 /// TODO subclass from base audio
 
-Omega.ShipDestructionAudioEffect = function(args){
-  if(!args) args = {};
-  var config = args['config'];
-  this.audio = config.audio['destruction'];
+Omega.ShipDestructionAudioEffect = function(){
+  this.audio = Omega.Config.audio['destruction'];
 };
 
 Omega.ShipDestructionAudioEffect.prototype = {

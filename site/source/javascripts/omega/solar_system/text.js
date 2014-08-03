@@ -7,17 +7,21 @@
 //= require "vendor/reality_hyper_regular.typeface"
 
 Omega.SolarSystemTextMaterial = function(){
-  this.material = this.init_gfx();
+  this.material = this._material();
 };
 
 Omega.SolarSystemTextMaterial.prototype = {
-  init_gfx : function(){
+  _material : function(){
     return new THREE.MeshBasicMaterial({ color: 0x3366FF, overdraw: true  });
   }
 };
 
-Omega.SolarSystemText = function(text){
-  this.text = this.init_gfx(text);
+Omega.SolarSystemText = function(args){
+  if(!args) args = {};
+  var text = args['text'];
+  var material = args['material'];
+
+  this.text = this._text(text, material);
   this.text.omega_obj = this;
 };
 
@@ -36,8 +40,7 @@ Omega.SolarSystemText.prototype = {
     return geo;
   },
 
-  init_gfx : function(text){
-    var material = Omega.SolarSystem.gfx.text_material.material;
+  _text : function(text, material){
     return new THREE.Mesh(this._geometry(text), material);
   },
 

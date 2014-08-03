@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 //= require "ui/canvas/particles/base"
 //= require "ui/canvas/particles/targeted"
 //= require "ui/canvas/particles/staggered"
@@ -12,11 +14,10 @@
 
 Omega.ShipArtillery = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
   this.disable_target_update();
-  this.init_particles(config, event_cb);
+  this.init_particles(event_cb);
 };
 
 Omega.ShipArtillery.prototype = {
@@ -30,15 +31,15 @@ Omega.ShipArtillery.prototype = {
     return this.particle_age / this.num_emitters;
   },
 
-  _particle_group : function(config, event_cb){
+  _particle_group : function(event_cb){
     return new SPE.Group({
-      texture:    Omega.load_ship_particles(config, event_cb, 'artillery'),
+      texture:    Omega.UI.Particles.load('ship.artillery', event_cb),
       maxAge:     this.particle_age,
       blending:   THREE.AdditiveBlending,
     });
   },
 
-  _particle_emitter : function(config, event_cb, num){
+  _particle_emitter : function(num){
     var position = num == 0 ? 20 : -20;
 
     return new SPE.Emitter({
@@ -56,8 +57,8 @@ Omega.ShipArtillery.prototype = {
     });
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipArtillery({config: config, event_cb: event_cb});
+  clone : function(){
+    return new Omega.ShipArtillery();
   },
 
   target : function(){

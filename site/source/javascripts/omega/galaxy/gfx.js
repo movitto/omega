@@ -4,41 +4,59 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/entity/gfx"
 //= require "omega/galaxy/density_wave"
 
 // Galaxy GFX Mixin
 Omega.GalaxyGfx = {
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.Galaxy.gfx) !== 'undefined') return;
-    var gfx = {};
-    Omega.Galaxy.gfx = gfx;
-
-    gfx.density_wave1 = new Omega.GalaxyDensityWave({config   : config,
-                                                     event_cb : event_cb,
-                                                     type     : 'stars'});
-    gfx.density_wave2 = new Omega.GalaxyDensityWave({config   : config,
-                                                     event_cb : event_cb,
-                                                     type     : 'clouds',
-                                                     colorStart : 0x3399FF,
-                                                     colorEnd : 0x33FFC2});
+  _stars : function(event_cb){
+    return new Omega.GalaxyDensityWave({event_cb   : event_cb,
+                                        type       : 'stars'});
   },
 
-  init_gfx : function(config, event_cb){
-    if(this.components.length > 0) return; /// return if already initialized
-    this.load_gfx(config, event_cb);
+  _clouds : function(event_cb){
+    return new Omega.GalaxyDensityWave({event_cb   : event_cb,
+                                        type       : 'clouds',
+                                        colorStart : 0x3399FF,
+                                        colorEnd   : 0x33FFC2});
 
-    this.density_wave1 = Omega.Galaxy.gfx.density_wave1;
-    this.density_wave2 = Omega.Galaxy.gfx.density_wave2;
+  },
+
+  _load_components : function(event_cb){
+    this._store_resource('stars', this._stars(event_cb));
+    this._store_resource('clouds', this._clouds(event_cb));
+  },
+
+  load_gfx : function(event_cb){
+    if(this.gfx_loaded()) return;
+    this._load_components(event_cb);
+    this._loaded_gfx();
+  },
+
+  _init_components : function(){
+    this.stars  = this._retrieve_resource('stars');
+    this.clouds = this._retrieve_resource('clouds');
 
     /// order of components here affects rendering
-    this.components = this.density_wave2.components().
-               concat(this.density_wave1.components());
+    this.components = this.clouds.components().
+               concat(this.stars.components());
   },
 
-  has_effects : function(){ return true; },
+  init_gfx : function(event_cb){
+    if(this.gfx_initialized()) return;
+    this._gfx_initializing = true;
+    this.load_gfx(event_cb);
+
+    this._init_components();
+
+    this._gfx_initializing = false;
+    this._gfx_initialized  = true;
+  },
 
   run_effects : function(){
-    this.density_wave1.run_effects();
-    this.density_wave2.run_effects();
+    this.stars.run_effects();
+    this.clouds.run_effects();
   }
 };
+
+$.extend(Omega.GalaxyGfx, Omega.EntityGfx);

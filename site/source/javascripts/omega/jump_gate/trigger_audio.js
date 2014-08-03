@@ -8,8 +8,7 @@
 
 Omega.JumpGateTriggerAudioEffect = function(args){
   if(!args) args = {};
-  var config = args['config'];
-  this.audio = config.audio['trigger'];
+  this.audio = Omega.Config.audio['trigger'];
 };
 
 $.extend(Omega.JumpGateTriggerAudioEffect.prototype, Omega.BaseAudioEffect);

@@ -8,9 +8,9 @@
 //= require "scenes/tech1/audio"
 //= require "scenes/tech1/setting"
 
-Omega.Scenes.Tech1 = function(config){
-  this.audio   = new Omega.Scenes.Tech1Audio(config);
-  this.setting = new Omega.Scenes.Tech1Setting(config);
+Omega.Scenes.Tech1 = function(){
+  this.audio   = new Omega.Scenes.Tech1Audio();
+  this.setting = new Omega.Scenes.Tech1Setting();
 };
 
 Omega.Scenes.Tech1.prototype = {
@@ -18,7 +18,7 @@ Omega.Scenes.Tech1.prototype = {
 
   /// load scene components
   _load_scene : function(page, cb){
-    this.setting.load(page.config, cb);
+    this.setting.load(cb);
   },
 
   /// setup scene components
@@ -30,9 +30,7 @@ Omega.Scenes.Tech1.prototype = {
     }
 
     page.canvas.add(this.setting.skybox, page.canvas.skyScene);
-
-    this.setting.skybox.set(2, Omega.Config,
-      Omega.UI.Canvas.trigger_animation(page.canvas))
+    this.setting.skybox.set(2, Omega.UI.Canvas.trigger_animation(page.canvas));
   },
 
   /// initialize scene camera

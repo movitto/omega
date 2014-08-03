@@ -4,9 +4,9 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.Scenes.IntroAudio = function(config){
-  this.audio1 = config.audio.scenes['intro']['bg'];
-  this.audio2 = config.audio.scenes['intro']['thud'];
+Omega.Scenes.IntroAudio = function(){
+  this.audio1 = Omega.Config.audio.scenes['intro']['bg'];
+  this.audio2 = Omega.Config.audio.scenes['intro']['thud'];
 };
 
 Omega.Scenes.IntroAudio.prototype = {

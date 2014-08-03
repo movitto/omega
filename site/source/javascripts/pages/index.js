@@ -24,15 +24,14 @@
 //= require "omega/constraint"
 
 Omega.Pages.Index = function(){
-  this.config           = Omega.Config;
-  this.node             = new Omega.Node(this.config);
+  this.node             = new Omega.Node();
   this.command_tracker  = new Omega.UI.CommandTracker({page : this})
   this.effects_player   = new Omega.UI.EffectsPlayer({page : this});
   this.dialog           = new Omega.UI.IndexDialog({page : this});
   this.nav              = new    Omega.UI.IndexNav({page : this});
   this.canvas           = new       Omega.UI.Canvas({page: this});
-  this.status_indicator = new Omega.UI.StatusIndicator({page : this});
-  this.audio_controls   = new Omega.UI.AudioControls({page : this});
+  this.status_indicator = new Omega.UI.StatusIndicator();
+  this.audio_controls   = new Omega.UI.AudioControls();
   this.splash           = new Omega.UI.SplashScreen({page : this});
 };
 
@@ -125,7 +124,7 @@ $(document).ready(function(){
 
   /// immediately start preloading missing resources
   Omega.UI.Loader.status_indicator = index.status_indicator;
-  Omega.Constraint.load(Omega.Constraint.url(index.config), function(){
+  Omega.Constraint.load(Omega.Constraint.url(), function(){
     Omega.UI.Loader.preload();
   });
 

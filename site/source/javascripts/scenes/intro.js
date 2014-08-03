@@ -7,8 +7,8 @@
 //= require "scenes/intro/audio"
 //= require "scenes/intro/title"
 
-Omega.Scenes.Intro = function(config){
-  this.audio = new Omega.Scenes.IntroAudio(config);
+Omega.Scenes.Intro = function(){
+  this.audio = new Omega.Scenes.IntroAudio();
   this.title = new Omega.Scenes.IntroTitle("THE OMEGAVERSE");
 };
 

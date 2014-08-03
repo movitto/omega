@@ -12,10 +12,9 @@
 Omega.StarMesh = function(args){
   if(!args) args = {};
   var type     = args['type'];
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  if(config && type) this.init_gfx(type, config, event_cb);
+  if(type) this.init_gfx(type, event_cb);
 };
 
 Omega.StarMesh.prototype = {
@@ -25,10 +24,10 @@ Omega.StarMesh.prototype = {
     return smesh;
   },
 
-  _texture : function(type, config, event_cb){
-    var texture_path = config.url_prefix + config.images_path +
-                       config.resources.star.base_texture + type +
-                       '.' + config.resources.star.extension;
+  _texture : function(type, event_cb){
+    var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
+                       Omega.Config.resources.star.base_texture + type +
+                       '.' + Omega.Config.resources.star.extension;
     return THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
   },
 
@@ -36,11 +35,11 @@ Omega.StarMesh.prototype = {
     return new THREE.MeshBasicMaterial({map : texture});
   },
 
-  init_gfx : function(type, config, event_cb){
+  init_gfx : function(type, event_cb){
     this.type = type;
 
     var geo = Omega.StarGeometry.load();
-    var mat = this._material(this._texture(type, config, event_cb));
+    var mat = this._material(this._texture(type, event_cb));
 
     this.tmesh = new THREE.Mesh(geo, mat);
     this.tmesh.omega_obj = this;
@@ -50,21 +49,4 @@ Omega.StarMesh.prototype = {
     this.tmesh = from.tmesh.clone();
     this.tmesh.omega_obj = this;
   }
-};
-
-Omega.StarMesh.for_types = function(args){
-  var meshes = [];
-  var types = Omega.Constraint._get(['star', 'type']);
-  for(var t = 0; t < types.length; t++){
-    var type = types[t];
-    meshes.push(new Omega.StarMesh($.extend({type : type}, args)));
-  }
-  return meshes;
-}
-
-Omega.StarMesh.for_type = function(type, meshes){
-  for(var m = 0; m < meshes.length; m++)
-    if(meshes[m].type == type)
-      return meshes[m];
-  return null;
 };

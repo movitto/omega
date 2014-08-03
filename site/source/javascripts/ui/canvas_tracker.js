@@ -15,8 +15,8 @@ Omega.UI.CanvasTracker = {
   _default_root_id : function(){
     var url = $.url(window.location);
     var id  = url.param('root');
-    if(!id && this.config && this.config.default_root)
-      id = this.config.default_root;
+    if(!id && Omega.Config && Omega.Config.default_root)
+      id = Omega.Config.default_root;
     return id;
   },
 
@@ -143,7 +143,7 @@ Omega.UI.CanvasTracker = {
   },
 
   _scale_system : function(system){
-    if(!this.config.scale_system) return;
+    if(!Omega.Config.scale_system) return;
 
     var children = system.children;
     for(var c = 0; c < children.length; c++)
@@ -155,7 +155,7 @@ Omega.UI.CanvasTracker = {
   },
 
   _scale_entity : function(entity){
-    var scale = this.config.scale_system;
+    var scale = Omega.Config.scale_system;
     if(entity.scene_location){
       /// backup original scene_location generator
       entity._scene_location = entity.scene_location;
@@ -174,7 +174,7 @@ Omega.UI.CanvasTracker = {
   },
 
   _unscale_system : function(system){
-    if(!this.config.scale_system) return;
+    if(!Omega.Config.scale_system) return;
 
     var children = system.children;
     for(var c = 0; c < children.length; c++)

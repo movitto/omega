@@ -6,12 +6,26 @@
 
 //= require "ui/loader"
 
+Omega.AsteroidMeshMaterial = function(args){
+  if(!args) args = {};
+  var event_cb = args['event_cb'];
+
+  var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
+                     Omega.Config.resources.asteroid.material;
+
+  var texture      = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  this.material = new THREE.MeshLambertMaterial({ map: texture });
+};
+
 Omega.AsteroidMesh = function(args){
   if(!args) args = {};
-  var mesh = args['mesh'];
+  var mesh     = args['mesh'];
+  var material = args['material'];
+  var geometry = args['geometry'];
 
-  this.tmesh = mesh;
-  mesh.omega_obj = this;
+  if(mesh) this.tmesh = mesh;
+  else if(material && geometry) this.tmesh = new THREE.Mesh(geometry, material);
+  this.tmesh.omega_obj = this;
 };
 
 Omega.AsteroidMesh.prototype = {
@@ -20,42 +34,12 @@ Omega.AsteroidMesh.prototype = {
   }
 };
 
-// Async Asteroid template meshes loader
-Omega.AsteroidMesh.load_templates = function(config, cb){
-  var texture_path    = config.url_prefix + config.images_path +
-                        config.resources.asteroid.material;
-  var geometry_paths  = config.resources.asteroid.geometry;
-  var geometry_prefix = config.url_prefix + config.images_path +
-                        config.meshes_path;
+Omega.AsteroidMesh.geometry_paths = function(){
+  var geometry_paths = Omega.Config.resources.asteroid.geometry.slice(0);
+  for(var g = 0; g < geometry_paths.length; g++)
+    geometry_paths[g] = Omega.Config.url_prefix + Omega.Config.images_path + geometry_paths[g];
 
-  var texture         = THREE.ImageUtils.loadTexture(texture_path, {});
-  var mesh_material   = new THREE.MeshLambertMaterial({ map: texture });
-
-  var loaded_templates = [];
-
-  for(var g = 0; g < geometry_paths.length; g++){
-    var geometry_path = config.url_prefix + config.images_path +
-                        geometry_paths[g];
-    Omega.UI.Loader.json().load(geometry_path, function(mesh_geometry){
-      var mesh  = new THREE.Mesh(mesh_geometry, mesh_material);
-      var amesh = new Omega.AsteroidMesh({mesh: mesh});
-      loaded_templates.push(amesh);
-
-      var all_loaded = loaded_templates.length == geometry_paths.length;
-      if(all_loaded){
-        cb(loaded_templates);
-        Omega.Asteroid.prototype.loaded_resource('template_meshes',
-                                                 loaded_templates);
-      }
-    }, geometry_prefix);
-  }
-};
-
-// Async Asteroid mesh loader
-Omega.AsteroidMesh.load = function(num, cb){
-  Omega.Asteroid.prototype.retrieve_resource('template_meshes',
-    function(template_meshes){
-      var template_mesh = template_meshes[num];
-      cb(template_mesh.clone());
-    });
+  var geometry_prefix = Omega.Config.url_prefix + Omega.Config.images_path +
+                        Omega.Config.meshes_path;
+  return [geometry_paths, geometry_prefix]; 
 };

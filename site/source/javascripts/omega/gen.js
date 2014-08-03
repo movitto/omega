@@ -14,8 +14,8 @@
 //= require "omega/constraint"
 
 Omega.Gen = {
-  init : function(config, cb){
-    Omega.Constraint.load(Omega.Constraint.url(config), cb);
+  init : function(cb){
+    Omega.Constraint.load(Omega.Constraint.url(), cb);
   },
 
   next_id : function(){

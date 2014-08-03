@@ -24,11 +24,10 @@
 
 Omega.Pages.Embeded = function(){
   this.entities       = {};
-  this.config         = Omega.Config;
-  this.node           = new Omega.Node(this.config);
+  this.node           = new Omega.Node();
   this.canvas         = new Omega.UI.Canvas({page: this});
   this.effects_player = new Omega.UI.EffectsPlayer({page: this});
-  this.audio_controls = new Omega.UI.AudioControls({page : this});
+  this.audio_controls = new Omega.UI.AudioControls();
 }
 
 Omega.Pages.Embeded.prototype = {

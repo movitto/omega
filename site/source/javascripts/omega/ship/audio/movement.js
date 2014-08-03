@@ -6,8 +6,8 @@
 
 //= require "ui/audio/base"
 
-Omega.ShipMovementAudioEffect = function(args){
-  this.audio = args.config.audio['movement'];
+Omega.ShipMovementAudioEffect = function(){
+  this.audio = Omega.Config.audio['movement'];
 };
 
 $.extend(Omega.ShipMovementAudioEffect.prototype, Omega.BaseAudioEffect);

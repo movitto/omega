@@ -6,8 +6,8 @@
 
 //= require "ui/audio/base"
 
-Omega.ConfirmationAudioEffect = function(config){
-  this.audio = config.audio['confirmation'];
+Omega.ConfirmationAudioEffect = function(){
+  this.audio = Omega.Config.audio['confirmation'];
 };
 
 $.extend(Omega.ConfirmationAudioEffect.prototype, Omega.BaseAudioEffect);

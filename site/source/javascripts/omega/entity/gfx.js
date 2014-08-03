@@ -25,41 +25,63 @@ Omega.EntityGfx = {
     return this._location_tracker;
   },
 
-  // Return graphics tracker for local entity class & optional
-  // specified type, initializing if it doesn't exist
-  _gfx_tracker : function(type){
-    if(typeof(Omega.EntityGfx._tracker) == "undefined")
-      Omega.EntityGfx._tracker = {};
-    var gfx = Omega.EntityGfx._tracker;
+  _has_type : function(){
+    return !!(this.type);
+  },
 
-    var no_type = typeof(type) === "undefined";
-    if(typeof(gfx[this.json_class]) == "undefined"){
-      if(no_type)
-        gfx[this.json_class] = false;
-      else
-        gfx[this.json_class] = {type : false}
+  _no_type : function(){
+    return !this._has_type();
+  },
 
-    }else if(!no_type && typeof(gfx[this.json_class][type]) == "undefined")
-      gfx[this.json_class][type] = false;
+  // Return graphics tracker for local entity class & optional type,
+  // initializing if it doesn't exist
+  _gfx_tracker : function(){
+    var gfx = Omega.EntityGfx._tracker = Omega.EntityGfx._tracker ||
+                                         {loaded : {}, resources : {}};
+
+    if(this._has_type()){
+      gfx['loaded'][this.json_class]               = gfx['loaded'][this.json_class] || {};
+      gfx['loaded'][this.json_class][this.type]    = gfx['loaded'][this.json_class][this.type] || false;
+      gfx['resources'][this.json_class]            = gfx['resources'][this.json_class] || {};
+      gfx['resources'][this.json_class][this.type] = gfx['resources'][this.json_class][this.type] || {};
+
+    }else{
+      gfx['loaded'][this.json_class]               = gfx['loaded'][this.json_class] || false;
+      gfx['resources'][this.json_class]            = gfx['resources'][this.json_class] || {};
+    }
 
     return gfx;
   },
 
   /// True / false if entity gfx have been preloaded
-  gfx_loaded : function(type){
-    var gfx = this._gfx_tracker(type);
-    if(typeof(type) == "undefined")
-      return !!(gfx[this.json_class]);
-    return !!(gfx[this.json_class][type]);
+  gfx_loaded : function(){
+    var gfx = this._gfx_tracker();
+    if(this._no_type())
+      return !!(gfx['loaded'][this.json_class]);
+    return !!(gfx['loaded'][this.json_class][this.type]);
   },
 
   // Set loaded_gfx true
-  _loaded_gfx : function(type){
-    var gfx = this._gfx_tracker(type);
-    if(typeof(type) == "undefined")
-      gfx[this.json_class] = true;
+  _loaded_gfx : function(){
+    var gfx = this._gfx_tracker();
+    if(this._no_type())
+      gfx['loaded'][this.json_class] = true;
     else
-      gfx[this.json_class][type] = true;
+      gfx['loaded'][this.json_class][this.type] = true;
+  },
+
+  /// store specified resource
+  _store_resource : function(id, resource){
+    var gfx = this._gfx_tracker()['resources'][this.json_class];
+    if(this._has_type()) gfx[this.type][id] = resource;
+    else gfx[id] = resource;
+  },
+
+  /// retrieve specified resource
+  _retrieve_resource : function(id){
+    var gfx = this._gfx_tracker()['resources'][this.json_class];
+    if(this._has_type()) return gfx[this.type][id];
+    return gfx[id];
   },
 
   /// True / false if gfx have been initialized
@@ -77,3 +99,5 @@ Omega.EntityGfx = {
     return !!(this.run_effects);
   }
 }; // Omega.EntityGfx
+
+THREE.EventDispatcher.prototype.apply( Omega.EntityGfx );

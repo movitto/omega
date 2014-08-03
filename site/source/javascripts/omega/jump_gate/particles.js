@@ -4,28 +4,26 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 Omega.JumpGateParticles = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  if(config) this.init_particles(config, event_cb);
+  this.init_particles(event_cb);
 };
 
 Omega.JumpGateParticles.prototype = {
-  plane    :            10,
-  lifespan :            20,
-  velocity :           -15,
+  plane    :         10,
+  lifespan :         20,
+  velocity :        -15,
   offset   : [0, 0, 75],
 
-  _particle_group : function(config, event_cb){
-    var particle_path = config.url_prefix + config.images_path + "/particle.png";
-    var texture       = THREE.ImageUtils.loadTexture(particle_path, {}, event_cb);
-
+  _particle_group : function(event_cb){
     return new SPE.Group({
-      texture:  texture,
-      maxAge:   this.lifespan,
-      blending: THREE.AdditiveBlending
+      texture  : Omega.UI.Particles.load('jump_gate', event_cb),
+      maxAge   : this.lifespan,
+      blending : THREE.AdditiveBlending
     });
   },
 
@@ -44,14 +42,14 @@ Omega.JumpGateParticles.prototype = {
     });
   },
 
-  init_particles : function(config, event_cb){
-    this.particles = this._particle_group(config, event_cb);
+  init_particles : function(event_cb){
+    this.particles = this._particle_group(event_cb);
     this.particles.addEmitter(this._particle_emitter());
     this.clock = new THREE.Clock();
   },
 
-  clone : function(config, event_cb){
-    return new Omega.JumpGateParticles({config: config, event_cb: event_cb});
+  clone : function(){
+    return new Omega.JumpGateParticles();
   },
 
   update : function(){

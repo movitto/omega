@@ -139,7 +139,6 @@ Omega.Ship.prototype = {
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );
-Omega.UI.ResourceLoader.prototype.apply( Omega.Ship.prototype );
 $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
 $.extend(Omega.Ship.prototype, Omega.ShipGfx);

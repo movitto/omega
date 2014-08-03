@@ -14,11 +14,11 @@ Omega.UI.BaseParticles.prototype = {
     return this.num_emitters || 1;
   },
 
-  init_particles : function(config, event_cb){
-    var group   = this._particle_group(config, event_cb);
+  init_particles : function(event_cb){
+    var group   = this._particle_group(event_cb);
 
     for(var e = 0; e < this._num_emitters(); e++){
-      var emitter = this._particle_emitter(config, event_cb, e);
+      var emitter = this._particle_emitter(e);
       group.addEmitter(emitter);
     }
 

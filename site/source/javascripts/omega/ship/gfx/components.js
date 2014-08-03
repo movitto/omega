@@ -4,8 +4,6 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/ship/particles"
-
 //= require "omega/ship/components/highlight"
 //= require "omega/ship/components/hp_bar"
 //= require "omega/ship/components/lamps"

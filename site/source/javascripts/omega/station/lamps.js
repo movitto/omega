@@ -6,18 +6,15 @@
 
 Omega.StationLamps = function(args){
   if(!args) args = {};
-  var config = args['config'];
   var type   = args['type'];
 
-  if(config && type)
-    this.olamps = this.init_lamps(config, type);
-  else
-    this.olamps = [];
+  if(type) this.olamps = this._lamps(type);
+  else     this.olamps = [];
 }
 
 Omega.StationLamps.prototype = {
-  init_lamps : function(config, type){
-    var lamps  = config.resources.stations[type].lamps;
+  _lamps : function(type){
+    var lamps  = Omega.Config.resources.stations[type].lamps;
     var olamps = [];
     if(lamps){
       for(var l = 0; l < lamps.length; l++){

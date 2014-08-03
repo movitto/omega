@@ -4,14 +4,15 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 /// Explosion Effect is applied to Ship's target, the entity which it is
 /// attacking upon attack mechanisms (artillery, missiles) arrival
 Omega.ShipExplosionEffect = function(args){
   if(!args) args = {};
-  var config = args['config'];
   var event_cb = args['event_cb'];
 
-  this.init_gfx(config, event_cb);
+  this.init_gfx(event_cb);
   this._run_effects = this._no_trigger_effect;
 
   this.auto_trigger = false;
@@ -52,19 +53,17 @@ Omega.ShipExplosionEffect.prototype = {
       this._run_effects = this._no_trigger_effect;
   },
 
-  _particle_group : function(config, event_cb){
-    var particle_texture =
-      Omega.load_ship_particles(config, event_cb, 'explosion');
-
+  _particle_group : function(event_cb){
+    var particle_texture = Omega.UI.Particles.load('ship.explosion', event_cb);
     return new SPE.Group({
-        texture:  particle_texture,
-        maxAge:   0.5,
-        blending: THREE.AdditiveBlending
+        texture  : particle_texture,
+        maxAge   : 0.5,
+        blending : THREE.AdditiveBlending
       });
   },
 
-  init_gfx : function(config, event_cb){
-    this.particles = this._particle_group(config, event_cb);
+  init_gfx : function(event_cb){
+    this.particles = this._particle_group(event_cb);
     this.particles.addPool(this.num_emitters, this._emitter_settings(), false);
 
     /// used to update particle effects

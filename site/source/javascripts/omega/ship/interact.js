@@ -15,7 +15,7 @@ Omega.ShipInteraction = {
     if(!page.session || !this.belongs_to_user(page.session.user_id)) return;
 
     if(this._should_move_to(entity)){
-      var offset = page.config.movement_offset;
+      var offset = Omega.Config.movement_offset;
           offset = (Math.random() * (offset.max - offset.min)) + offset.min;
       this._move(page, entity.location.x + offset,
                        entity.location.y + offset,

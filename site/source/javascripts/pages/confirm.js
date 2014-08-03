@@ -7,8 +7,7 @@
 //= require "vendor/purl"
 
 Omega.Pages.Confirm = function(){
-  this.config  = Omega.Config;
-  this.node    = new Omega.Node(this.config);
+  this.node    = new Omega.Node();
 };
 
 Omega.Pages.Confirm.prototype = {
@@ -36,8 +35,8 @@ Omega.Pages.Confirm.prototype = {
     /// XXX
     alert("Done... redirecting");
 
-    var host   = this.config.http_host;
-    var prefix = this.config.url_prefix;
+    var host   = Omega.Config.http_host;
+    var prefix = Omega.Config.url_prefix;
     this.redirect_to('http://'+host+prefix);
   }
 };

@@ -6,9 +6,7 @@
 
 Omega.Pages.Stats = function(){
   this.stat_results = {};
-
-  this.config  = Omega.Config;
-  this.node    = new Omega.Node(this.config);
+  this.node    = new Omega.Node();
 }
 
 Omega.Pages.Stats.prototype = {
@@ -19,8 +17,8 @@ Omega.Pages.Stats.prototype = {
     Omega.Session.cookies_enabled = false;
 
     /// login anon user
-    var anon = new Omega.User({id       : this.config.anon_user,
-                               password : this.config.anon_pass});
+    var anon = new Omega.User({id       : Omega.Config.anon_user,
+                               password : Omega.Config.anon_pass});
     Omega.Session.login(anon, this.node, cb);
   },
 
@@ -34,8 +32,8 @@ Omega.Pages.Stats.prototype = {
 
   retrieve_stats : function(){
     var _this = this;
-    for(var s = 0; s < this.config.stats.length; s++){
-      var stat      = this.config.stats[s];
+    for(var s = 0; s < Omega.Config.stats.length; s++){
+      var stat      = Omega.Config.stats[s];
       var stat_id   = stat[0];
       var stat_args = stat[1];
       Omega.Stat.get(stat_id, stat_args, this.node,

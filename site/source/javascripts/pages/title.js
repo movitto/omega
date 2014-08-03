@@ -19,21 +19,20 @@
 
 Omega.Pages.Title = function(){
   this.entities       = {};
-  this.config         = Omega.Config;
-  this.node           = new Omega.Node(this.config);
+  this.node           = new Omega.Node();
   this.canvas         = new Omega.UI.Canvas({page: this});
   this.effects_player = new Omega.UI.EffectsPlayer({page: this});
-  this.audio_controls = new Omega.UI.AudioControls({page : this});
+  this.audio_controls = new Omega.UI.AudioControls();
 
   var intro = {id    : 'intro',
                text  : 'Intro',
-               scene : new Omega.Scenes.Intro(this.config)};
+               scene : new Omega.Scenes.Intro()};
   var tech1 = {id    : 'tech1',
                text  : 'tech demo1',
-               scene : new Omega.Scenes.Tech1(this.config)};
+               scene : new Omega.Scenes.Tech1()};
   var tech2 = {id    : 'tech2',
                text  : 'tech demo2',
-               scene : new Omega.Scenes.Tech2(this.config)};
+               scene : new Omega.Scenes.Tech2()};
   this.cutscenes = [intro, tech1, tech2];
 };
 

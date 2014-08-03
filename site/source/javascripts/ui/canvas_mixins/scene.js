@@ -99,7 +99,7 @@ Omega.UI.CanvasSceneManager = {
     var _this = this;
     this.skybox.init_gfx();
     this.axis.init_gfx();
-    this.star_dust.init_gfx(this.page.config, function(){ _this._init_gfx(); });
+    this.star_dust.init_gfx(function(){ _this._init_gfx(); });
   },
 
   _init_gfx : function(){

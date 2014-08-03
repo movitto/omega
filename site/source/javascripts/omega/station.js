@@ -88,7 +88,6 @@ Omega.Station.prototype = {
 };
 
 THREE.EventDispatcher.prototype.apply( Omega.Station.prototype );
-Omega.UI.ResourceLoader.prototype.apply( Omega.Station.prototype );
 $.extend(Omega.Station.prototype, Omega.StationCommands);
 $.extend(Omega.Station.prototype, Omega.StationInteraction);
 $.extend(Omega.Station.prototype, Omega.StationGfx);

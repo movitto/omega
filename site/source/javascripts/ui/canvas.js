@@ -24,7 +24,7 @@ Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.CanvasControls({canvas: this});
   this.dialog           = new Omega.UI.CanvasDialog({canvas: this});
   this.entity_container = new Omega.UI.CanvasEntityContainer({canvas : this});
-  this.skybox           = new Omega.UI.CanvasSkybox({canvas: this});
+  this.skybox           = new Omega.UI.CanvasSkybox({});
   this.axis             = new Omega.UI.CanvasAxis();
   this.star_dust        = new Omega.UI.CanvasStarDust();
   this.canvas           = $('#omega_canvas');
@@ -33,7 +33,6 @@ Omega.UI.Canvas = function(parameters){
 
   /// need handle to page the canvas is on to
   /// - lookup missions
-  /// - access entity config
   this.page = null;
 
   $.extend(this, parameters);

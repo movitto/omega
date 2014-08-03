@@ -6,9 +6,9 @@
 
 //= require "ui/audio/base"
 
-Omega.StationConstructionAudioEffect = function(args){
-  this.started  = args.config.audio['construction_started'];
-  this.complete = args.config.audio['construction_completed'];
+Omega.StationConstructionAudioEffect = function(){
+  this.started  = Omega.Config.audio['construction_started'];
+  this.complete = Omega.Config.audio['construction_completed'];
 };
 
 $.extend(Omega.StationConstructionAudioEffect.prototype,

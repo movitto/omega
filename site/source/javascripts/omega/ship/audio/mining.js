@@ -6,14 +6,14 @@
 
 //= require "ui/audio/base"
 
-Omega.ShipMiningAudioEffect = function(args){
-  this.audio = args.config.audio['mining'];
+Omega.ShipMiningAudioEffect = function(){
+  this.audio = Omega.Config.audio['mining'];
 };
 
 $.extend(Omega.ShipMiningAudioEffect.prototype, Omega.BaseAudioEffect);
 
-Omega.ShipMiningCompletedAudioEffect = function(args){
-  this.audio = args.config.audio['mining_completed'];
+Omega.ShipMiningCompletedAudioEffect = function(){
+  this.audio = Omega.Config.audio['mining_completed'];
 };
 
 $.extend(Omega.ShipMiningCompletedAudioEffect.prototype, Omega.BaseAudioEffect);

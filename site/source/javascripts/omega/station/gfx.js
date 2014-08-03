@@ -18,68 +18,105 @@ Omega.StationGfx = {
 
   async_gfx : 2,
 
-  /// Load shared graphics resources
-  load_gfx : function(config, event_cb){
-    if(this.gfx_loaded(this.type)) return;
-    Omega.Station.gfx    = Omega.Station.gfx || {};
-
-    var gfx              = {};
-    gfx.highlight        = new Omega.StationHighlightEffects();
-    gfx.construction_bar = new Omega.StationConstructionBar();
-    gfx.mesh_material    = new Omega.StationMeshMaterial({config   : config,
-                                                          type     : this.type,
-                                                          event_cb : event_cb});
-    gfx.lamps            =          new Omega.StationLamps({config : config,
-                                                              type : this.type});
-    gfx.construction_audio = new Omega.StationConstructionAudioEffect({config: config});
-    Omega.Station.gfx[this.type] = gfx;
-
-    Omega.StationMesh.load_template(config, this.type, function(mesh){
-      gfx.mesh = mesh;
-      if(event_cb) event_cb();
-    });
-
-    this._loaded_gfx(this.type);
+  _load_highlight : function(){
+    this._store_resource('highlight', new Omega.StationHighlightEffects());
   },
 
-  init_gfx : function(config, event_cb){
-    if(this.gfx_initialized() || this.gfx_initializing()) return;
-    this._gfx_initializing = true;
-    this.load_gfx(config, event_cb);
-    this.components = [];
+  _load_construction_bar : function(){
+    this._store_resource('construction_bar', new Omega.StationConstructionBar());
+  },
 
-    this.components.push(this.position_tracker());
+  _load_mesh : function(event_cb){
+    var material = new Omega.StationMeshMaterial({type : this.type, event_cb : event_cb});
+    this._store_resource('mesh_material', material);
 
-    this.highlight = Omega.Station.gfx[this.type].highlight.clone();
+    var mesh_resource = 'station.' + this.type + '.mesh_geometry';
+    var mesh_geometry = Omega.StationMesh.geometry_for(this.type);
+    Omega.UI.ResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+  },
+
+  _load_lamps : function(){
+    var lamps = new Omega.StationLamps({type : this.type});
+    this._store_resource('lamps', lamps);
+  },
+
+  _load_audio : function(){
+    var audio = new Omega.StationConstructionAudioEffect();
+    this._store_resource('construction_audio', audio);
+  },
+
+  /// Load shared graphics resources
+  load_gfx : function(event_cb){
+    if(this.gfx_loaded()) return;
+    this._load_highlight();
+    this._load_construction_bar();
+    this._load_lamps();
+    this._load_audio();
+    this._load_mesh(event_cb);
+    this._loaded_gfx();
+  },
+
+  _init_components : function(){
+    this.components = [this.position_tracker()];
+  },
+
+  _init_highlight : function(){
+    this.highlight = this._retrieve_resource('highlight').clone();
     this.highlight.omega_entity = this;
-    if(this.include_highlight)
-      this.position_tracker().add(this.highlight.mesh);
+    if(this.include_highlight) this.position_tracker().add(this.highlight.mesh);
+  },
 
-    this.lamps = Omega.Station.gfx[this.type].lamps.clone();
+  _init_lamps : function(){
+    this.lamps = this._retrieve_resource('lamps').clone();
     this.lamps.omega_entity = this;
     this.lamps.init_gfx();
+  },
 
-    this.construction_bar = Omega.Station.gfx[this.type].construction_bar.clone();
+  _init_construction_bar : function(){
+    this.construction_bar = this._retrieve_resource('construction_bar').clone();
     this.construction_bar.omega_entity = this;
-    this.construction_bar.bar.init_gfx(config, event_cb);
+    this.construction_bar.bar.init_gfx();
+  },
 
-    this.construction_audio = Omega.Station.gfx[this.type].construction_audio;
+  _init_audio : function(){
+    this.construction_audio = this._retrieve_resource('construction_audio');
+  },
 
+  _add_lamp_components : function(){
+    for(var l = 0; l < this.lamps.olamps.length; l++)
+      this.mesh.tmesh.add(this.lamps.olamps[l].component);
+  },
+
+  _init_mesh : function(){
     var _this = this;
-    Omega.StationMesh.load(this.type, function(mesh){
+    var mesh_geometry = 'station.' + this.type + '.mesh_geometry';
+    Omega.UI.ResourceLoader.retrieve(mesh_geometry, function(geometry){
+      var material = _this._retrieve_resource('mesh_material');
+      var mesh = new Omega.ShipMesh({material: material.clone(),
+                                     geometry: geometry.clone()});
+
+      _this.mesh = mesh;
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
-
-      for(var l = 0; l < _this.lamps.olamps.length; l++)
-        _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
-
+      _this._add_lamp_components();
       _this.position_tracker().add(_this.mesh.tmesh);
+
       _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
       _this._gfx_initializing = false;
       _this._gfx_initialized  = true;
     });
+  },
 
+  init_gfx : function(event_cb){
+    if(this.gfx_initialized() || this.gfx_initializing()) return;
+    this._gfx_initializing = true;
+    this.load_gfx(event_cb);
+    this._init_components();
+    this._init_highlight();
+    this._init_lamps();
+    this._init_construction_bar();
+    this._init_audio();
+    this._init_mesh();
     this.last_moved = new Date();
     this.update_gfx();
   },
@@ -89,8 +126,7 @@ Omega.StationGfx = {
     this.position_tracker().position.set(loc.x, loc.y, loc.z);
 
     if(this.location.is_stopped()){
-      if(this._has_orbit_line())
-        this._rm_orbit_line();
+      if(this._has_orbit_line()) this._rm_orbit_line();
       this._run_movement_effects = this._run_movement;
 
     }else{

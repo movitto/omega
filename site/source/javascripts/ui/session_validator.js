@@ -12,7 +12,6 @@
 ///   - has a node property   (Omega.Node instance)
 ///   - has a canvas property (Omega.UI.canvas instance)
 ///   - has a command tracker property (Omega.UI.CommandTracker instance)
-///   - has a config property (Omega.Config)
 ///   - has a nav property
 ///   - optionally has a session property (Omega.Session instance)
 Omega.UI.SessionValidator = {
@@ -24,7 +23,7 @@ Omega.UI.SessionValidator = {
     this.session = Omega.Session.restore_from_cookie();
     /// TODO split out anon user session into third case where we: (?)
     /// - show login controls, load default entities
-    if(this.session != null && this.session.user_id != this.config.anon_user){
+    if(this.session != null && this.session.user_id != Omega.Config.anon_user){
       this.session.validate(this.node, function(response){
         if(response.error){
           _this._session_invalid(invalid_cb);
@@ -64,8 +63,8 @@ Omega.UI.SessionValidator = {
     if(this.nav) this.nav.show_login_controls();
 
     // login as anon
-    var anon = new Omega.User({id : this.config.anon_user,
-                               password : this.config.anon_pass});
+    var anon = new Omega.User({id : Omega.Config.anon_user,
+                               password : Omega.Config.anon_pass});
     Omega.Session.login(anon, this.node, function(result){
       if(result.error){
         //_this.dialog.show_critical_error_dialog();
@@ -93,14 +92,14 @@ Omega.UI.SessionValidator = {
 
   /// Return bool indicating if an autologin user is configured
   _should_autologin : function(){
-    return !!(this.config.autologin);
+    return !!(Omega.Config.autologin);
   },
 
   /// Autologin configured user
   autologin : function(cb){
     var _this = this;
-    var un    = this.config.autologin[0];
-    var pass  = this.config.autologin[1];
+    var un    = Omega.Config.autologin[0];
+    var pass  = Omega.Config.autologin[1];
     var user  = new Omega.User({id : un, password: pass});
     Omega.Session.login(user, this.node, function(result){
       /// assuming autologin will always success or err is handled elsewhere

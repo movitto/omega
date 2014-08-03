@@ -17,10 +17,9 @@
 /// TODO framerate config on accounts page (slider)
 
 Omega.Pages.Account = function(){
-  this.config  = Omega.Config;
-  this.node    = new Omega.Node(this.config);
+  this.node    = new Omega.Node();
   this.dialog  = new Omega.UI.AccountDialog();
-  this.details = new Omega.UI.AccountDetails({page : this});
+  this.details = new Omega.UI.AccountDetails();
 };
 
 Omega.Pages.Account.prototype = {

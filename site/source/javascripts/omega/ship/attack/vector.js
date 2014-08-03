@@ -8,20 +8,15 @@
 
 Omega.ShipAttackVector = function(args){
   if(!args) args = {};
-  var config   = args['config'];
-  var event_cb = args['event_cb'];
   var line     = args['line'];
 
-  if(config)
-    this.init_gfx(config, event_cb);
-  if(line)
-    this.line = line;
-
+  if(line) this.line = line;
+  else     this.init_gfx();
   this.disable_target_update();
 };
 
 Omega.ShipAttackVector.prototype = {
-  init_gfx : function(config, event_cb){
+  init_gfx : function(){
     var mat = new THREE.LineBasicMaterial({color : 0xFF0000});
     var geo = new THREE.Geometry();
     geo.vertices.push(new THREE.Vector3(0, 0, 0));

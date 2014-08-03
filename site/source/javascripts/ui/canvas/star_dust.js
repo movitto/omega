@@ -4,6 +4,8 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 Omega.UI.CanvasStarDust = function(parameters){
   this.components = [];
   this.shader_components = [];
@@ -14,46 +16,43 @@ Omega.UI.CanvasStarDust.prototype = {
   id : 'star_dust',
   size : 1000,
 
-  load_gfx : function(config, event_cb){
-    if(typeof(Omega.UI.CanvasStarDust.gfx) !== 'undefined') return;
-
-    var particle_path = config.url_prefix + config.images_path + "/smokeparticle.png";
-    var particleGroup = new SPE.Group({
-      texture: THREE.ImageUtils.loadTexture(particle_path, {}, event_cb),
-      maxAge: 2,
-      blending: THREE.AdditiveBlending
+  _particle_group : function(event_cb){
+    return new SPE.Group({
+      texture  : Omega.UI.Particles.load('star_dust', event_cb),
+      maxAge   : 2,
+      blending : THREE.AdditiveBlending
     });
-
-    var particleEmitter =
-      new SPE.Emitter({
-        positionSpread: new THREE.Vector3(this.size, this.size, this.size),
-        acceleration:   new THREE.Vector3(0, 0, 0),
-        velocity:       new THREE.Vector3(0, 0, 0),
-        colorStart:     new THREE.Color('white'),
-        colorEnd:       new THREE.Color('white'),
-        sizeStart:            7,
-        sizeEnd:              10,
-        opacityStart:         0,
-        opacityMiddle:        1,
-        opacityEnd:           0,
-        particleCount : 1000
-    });
-
-    // Add the emitter to the group.
-    particleGroup.addEmitter( particleEmitter );
-
-    Omega.UI.CanvasStarDust.gfx = {
-      group   : particleGroup,
-      emitter : particleEmitter
-    };
   },
 
-  init_gfx : function(config, event_cb){
+  _particle_emitter : function(){
+    return new SPE.Emitter({
+      positionSpread : new THREE.Vector3(this.size, this.size, this.size),
+      acceleration   : new THREE.Vector3(0, 0, 0),
+      velocity       : new THREE.Vector3(0, 0, 0),
+      colorStart     : new THREE.Color('white'),
+      colorEnd       : new THREE.Color('white'),
+      sizeStart      :    7,
+      sizeEnd        :   10,
+      opacityStart   :    0,
+      opacityMiddle  :    1,
+      opacityEnd     :    0,
+      particleCount  : 1000 });
+  },
+
+  load_gfx : function(event_cb){
+    if(typeof(Omega.UI.CanvasStarDust.gfx) !== 'undefined') return;
+
+    this.particles = this._particle_group(event_cb);
+    var emitter = this._particle_emitter();
+    this.particles.addEmitter(emitter);
+  },
+
+  init_gfx : function(event_cb){
     if(this.components.length > 0) return;
-    this.load_gfx(config, event_cb);
+    this.load_gfx(event_cb);
 
     /// just reference it, assuming we're only going to need the one instance
-    this.components.push(Omega.UI.CanvasStarDust.gfx.group.mesh);
+    this.components.push(this.particles.mesh);
 
     this.clock = new THREE.Clock();
   },
@@ -61,7 +60,7 @@ Omega.UI.CanvasStarDust.prototype = {
   has_effects : function(){ return true; },
 
   run_effects : function(){
-    Omega.UI.CanvasStarDust.gfx.group.tick(this.clock.getDelta());
+    this.particles.tick(this.clock.getDelta());
   }
 };
 

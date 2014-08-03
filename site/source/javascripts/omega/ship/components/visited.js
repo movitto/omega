@@ -6,12 +6,9 @@
 
 Omega.ShipVisitedRoute = function(args){
   if(!args) args = {};
-  var config   = args['config'];
-  var event_cb = args['event_cb'];
-  if(args['line'])
-    this.line = args['line'];
-  else
-    this.init_gfx();
+
+  if(args['line']) this.line = args['line'];
+  else this.init_gfx();
 };
 
 Omega.ShipVisitedRoute.prototype = {

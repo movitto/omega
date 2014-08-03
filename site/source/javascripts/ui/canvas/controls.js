@@ -47,8 +47,7 @@ Omega.UI.CanvasControls.prototype = {
           if(!_this.canvas.root || _this.canvas.root.id != item.solar_system.id)
             _this.canvas.set_scene_root(item.solar_system);
 
-          item.init_gfx(_this.canvas.page.config,
-                        function() { _this.canvas._init_gfx(); });
+          item.init_gfx(function() { _this.canvas._init_gfx(); });
 
           _this.canvas._clicked_entity(item);
         });

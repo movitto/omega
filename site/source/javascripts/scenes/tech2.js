@@ -7,8 +7,8 @@
 //= require "scenes/common"
 //= require "scenes/tech2/setting"
 
-Omega.Scenes.Tech2 = function(config){
-  this.setting = new Omega.Scenes.Tech2Setting(config);
+Omega.Scenes.Tech2 = function(){
+  this.setting = new Omega.Scenes.Tech2Setting();
 };
 
 Omega.Scenes.Tech2.prototype = {
@@ -16,16 +16,14 @@ Omega.Scenes.Tech2.prototype = {
 
   /// load scene components
   _load_scene : function(page, cb){
-    this.setting.load(page.config, cb);
+    this.setting.load(cb);
   },
 
   /// setup scene components
   _setup_scene : function(page){
     page.canvas.set_scene_root(this.setting.system);
     page.canvas.add(this.setting.skybox, page.canvas.skyScene);
-
-    this.setting.skybox.set(1, Omega.Config,
-      Omega.UI.Canvas.trigger_animation(page.canvas))
+    this.setting.skybox.set(1, Omega.UI.Canvas.trigger_animation(page.canvas));
   },
 
   /// initialize scene camera

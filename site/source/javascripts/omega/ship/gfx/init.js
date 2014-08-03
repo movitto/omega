@@ -11,179 +11,207 @@ Omega.ShipGfxInitializer = {
   include_highlight : true,
   include_hp_bar    : true,
 
-  init_components : function(){
+  _init_stubs : function(){
+    /// stub out asynchronously loaded components until they are available
+    this.mesh = Omega.EntityGfxStub.instance();
+    this.missiles = Omega.EntityGfxStub.instance();
+  },
+
+  _init_components : function(){
     this.components = [];
     this.components.push(this.position_tracker());
     this.position_tracker().add(this.location_tracker());
   },
 
-  init_highlight : function(){
+  _init_highlight : function(){
     /// TODO change highlight mesh material if ship doesn't belong to user
-    this.highlight = Omega.Ship.gfx[this.type].highlight.clone();
+    this.highlight = this._retrieve_resource('highlight').clone();
     this.highlight.omega_entity = this;
     if(this.include_highlight)
       this.position_tracker().add(this.highlight.mesh);
   },
 
-  init_lamps : function(){
-    this.lamps = Omega.Ship.gfx[this.type].lamps.clone();
+  _init_lamps : function(){
+    this.lamps = this._retrieve_resource('lamps').clone();
     this.lamps.omega_entity = this;
     this.lamps.init_gfx();
   },
 
-  init_trails : function(config, event_cb){
-    this.trails = Omega.Ship.gfx[this.type].trails.clone(config, this.type, event_cb);
+  _init_trails : function(){
+    this.trails = this._retrieve_resource('trails').clone();
     this.trails.omega_entity = this;
     if(this.trails.particles) this.components.push(this.trails.particles.mesh);
   },
 
-  init_visited_route : function(){
-    this.visited_route = Omega.Ship.gfx[this.type].visited_route.clone();
+  _init_visited_route : function(){
+    this.visited_route = this._retrieve_resource('visited_route').clone();
     this.visited_route.omega_entity = this;
     this.components.push(this.visited_route.line);
   },
 
-  init_attack_vector : function(config, event_cb){
-    /// TODO config option to set weapon(s) originating coordinates on mesh on per-ship-type basis
-    this.attack_vector =
-      Omega.Ship.gfx[this.type].attack_vector.clone(config, event_cb);
+  _init_attack_vector : function(){
+    /// TODO config option to set weapon(s) originating coordinates
+    /// on ship mesh on per-ship-type basis
+    this.attack_vector = this._retrieve_resource('attack_vector').clone();
     this.attack_vector.omega_entity = this;
     this.attack_vector.set_position(this.position_tracker().position);
   },
 
-  init_artillery : function(config, event_cb){
-    this.artillery = Omega.Ship.gfx[this.type].artillery.clone(config, event_cb);
+  _init_artillery : function(){
+    this.artillery = this._retrieve_resource('artillery').clone(); /// *
     this.artillery.omega_entity = this;
     this.artillery.set_position(this.position_tracker().position);
   },
 
-  init_mining_vector : function(config, event_cb){
-    this.mining_vector =
-      Omega.Ship.gfx[this.type].mining_vector.clone(config, event_cb);
+  _init_mining_vector : function(){
+    this.mining_vector = this._retrieve_resource('mining_vector').clone(); /// *
     this.mining_vector.omega_entity = this;
     this.components.push(this.mining_vector.particles.mesh);
   },
 
-  init_trajectory : function(){
-    this.trajectory1 = Omega.Ship.gfx[this.type].trajectory1.clone();
+  _init_trajectory : function(){
+    this.trajectory1 = this._retrieve_resource('trajectory1').clone();
     this.trajectory1.omega_entity = this;
     this.trajectory1.update();
 
-    this.trajectory2 = Omega.Ship.gfx[this.type].trajectory2.clone();
+    this.trajectory2 = this._retrieve_resource('trajectory2').clone();
     this.trajectory2.omega_entity = this;
     this.trajectory2.update();
   },
 
-  init_hp_bar : function(config, event_cb){
-    this.hp_bar = Omega.Ship.gfx[this.type].hp_bar.clone();
+  _init_hp_bar : function(){
+    this.hp_bar = this._retrieve_resource('hp_bar').clone();
     this.hp_bar.omega_entity = this;
-    this.hp_bar.bar.init_gfx(config, event_cb);
+    this.hp_bar.bar.init_gfx();
     if(this.include_hp_bar)
       for(var c = 0; c < this.hp_bar.bar.components.length; c++)
         this.position_tracker().add(this.hp_bar.bar.components[c]);
   },
 
-  init_destruction : function(config, event_cb){
-    this.destruction = Omega.Ship.gfx[this.type].destruction.clone(config, event_cb);
+  _init_destruction : function(){
+    this.destruction = this._retrieve_resource('destruction').clone();
     this.destruction.omega_entity = this;
     this.destruction.set_position(this.position_tracker().position);
     this.components.push(this.destruction.particles.mesh);
   },
 
-  init_audio : function(){
-    this.destruction_audio = Omega.Ship.gfx[this.type].destruction_audio;
-    this.combat_audio = Omega.Ship.gfx[this.type].combat_audio;
-    this.movement_audio = Omega.Ship.gfx[this.type].movement_audio;
-    this.mining_audio = Omega.Ship.gfx[this.type].mining_audio;
-    this.docking_audio = Omega.Ship.gfx[this.type].docking_audio;
-    this.mining_completed_audio = Omega.Ship.gfx[this.type].mining_completed_audio;
-
+  _init_audio : function(){
+    this.destruction_audio      = this._retreive_resource('destruction_audio');
+    this.combat_audio           = this._retrieve_resource('combat_audio');
+    this.movement_audio         = this._retrieve_resource('movement_audio');
+    this.mining_audio           = this._retrieve_resource('mining_audio');
+    this.docking_audio          = this._retrieve_resource('docking_audio');
+    this.mining_completed_audio = this._retrieve_resource('mining_completed_audio');
   },
 
-  init_explosions : function(){
-    this.explosions = Omega.Ship.gfx[this.type].explosions.for_ship(this);
+  _init_explosions : function(){
+    this.explosions = this._retrieve_resource('explosions').for_ship(this);
     this.explosions.omega_entity = this;
     this.components.push(this.explosions.particles.mesh);
   },
 
-  init_smoke : function(){
-    this.smoke = Omega.Ship.gfx[this.type].smoke.clone();
+  _init_smoke : function(){
+    this.smoke = this._retrieve_resource('smoke').clone();
     this.smoke.omega_entity = this;
     this.components.push(this.smoke.particles.mesh);
   },
 
-  init_mesh : function(){
-    var _this     = this;
-    this.mesh     = Omega.EntityGfxStub.instance();
+  _add_lamp_components : function(){
+    for(var l = 0; l < this.lamps.olamps.length; l++)
+      this.mesh.tmesh.add(this.lamps.olamps[l].component);
+  },
 
-    Omega.ShipMesh.load(this.type, function(mesh){
+  _add_trajectory_components : function(){
+    if(this.debug_gfx){
+      this.mesh.tmesh.add(this.trajectory1.mesh);
+      this.mesh.tmesh.add(this.trajectory2.mesh);
+    }
+  },
+
+  _init_mesh : function(){
+    var _this = this;
+
+    var mesh_geometry = 'ship.' + this.type + '.mesh_geometry';
+    Omega.UI.ResourceLoader.retrieve(mesh_geometry, function(geometry){
+      var material = _this._retrieve_resource('mesh_material');
+      var mesh = new Omega.ShipMesh({material: material.clone(),
+                                     geometry: geometry.clone()});
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
-
-      for(var l = 0; l < _this.lamps.olamps.length; l++)
-        _this.mesh.tmesh.add(_this.lamps.olamps[l].component);
-
-      if(_this.debug_gfx){
-        _this.mesh.tmesh.add(_this.trajectory1.mesh);
-        _this.mesh.tmesh.add(_this.trajectory2.mesh);
-      }
-
+      _this._add_lamp_components();
+      _this._add_trajectory_components();
       _this.location_tracker().add(_this.mesh.tmesh);
+
       _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
-      _this._gfx_initializing = false;
-      _this._gfx_initialized  = true;
+      _this.mesh_init = true;
+      _this._finish_init();
     });
   },
 
-  init_missiles : function(){
+  _init_missiles : function(){
     var _this     = this;
-    this.missiles = Omega.EntityGfxStub.instance();
 
-    Omega.ShipMissiles.load(this.type, function(missiles){
+    var missile_geometry = 'ship.' + this.type + '.missile_geometry';
+    Omega.UI.ResourceLoader.retrieve(missile_geometry, function(geometry){
+      var material = new THREE.MeshBasicMaterial({color : 0x000000});
+      var template = new Omega.ShipMissile({geometry: geometry.clone(),
+                                            material: material});
+      var missiles = new Omega.ShipMissiles({template: template});
+
       _this.missiles = missiles;
       _this.missiles.omega_entity = _this;
+
+      _this.missiles_init = true;
+      _this._finish_init();
     });
   },
 
-  wire_up_artillery : function(){
+  _finish_init : function(){
+    if(this.mesh_init && this.missiles_init){
+      this._gfx_initializing = false;
+      this._gfx_initialized  = true;
+    }
+  },
+
+  _wire_up_artillery : function(){
     this.components.push(this.attack_component().component());
     this.explosions.interval = this.artillery.interval();
     this.explosions.auto_trigger = true;
   },
 
   /// Intiialize ship graphics
-  init_gfx : function(config, event_cb){
+  init_gfx : function(event_cb){
     if(this.gfx_initialized()) return;
     this._gfx_initializing = true;
-    this.load_gfx(config, event_cb);
+    this.load_gfx(event_cb);
 
-    this.init_components();
-    this.init_highlight();
-    this.init_lamps();
-    this.init_trails(config, event_cb);
-    this.init_visited_route();
-    this.init_attack_vector(config, event_cb);
-    this.init_artillery(config, event_cb);
-    this.init_mining_vector(config, event_cb);
-    this.init_trajectory();
-    this.init_hp_bar(config, event_cb);
-    this.init_destruction();
-    this.init_explosions();
-    this.init_smoke();
+    this._init_stubs();
+    this._init_components();
+    this._init_highlight();
+    this._init_lamps();
+    this._init_trails();
+    this._init_visited_route();
+    this._init_attack_vector();
+    this._init_artillery();
+    this._init_mining_vector();
+    this._init_trajectory();
+    this._init_hp_bar();
+    this._init_destruction();
+    this._init_explosions();
+    this._init_smoke();
 
     if(this.attack_component() == this.artillery)
-      this.wire_up_artillery();
+      this._wire_up_artillery();
 
-    this.init_mesh();
-    this.init_missiles();
+    this._init_mesh();
+    this._init_missiles();
 
     this.last_moved = new Date();
     this.update_gfx();
     this.update_movement_effects();
   },
 
-  /// Return the attack corresponent corresponding to the specified weapons class
+  /// Return the attack component corresponding to the specified weapons class
   attack_component : function(){
     switch(this.weapons_class_type()){
       case "light": return this.artillery;

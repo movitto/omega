@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 Omega.SolarSystemInterconns = function(){
   this.endpoints = [];
 };
@@ -32,12 +34,9 @@ Omega.SolarSystemInterconns.prototype = {
     return new THREE.Line(this._line_geo(endpoint), this._line_material());
   },
 
-  _particle_group : function(config, event_cb){
-    var path    = config.url_prefix + config.images_path + '/particle.png';
-    var texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
-
+  _particle_group : function(event_cb){
     return new SPE.Group({
-      texture:    texture,
+      texture:    Omega.UI.Particles.load('solar_system', event_cb),
       blending:   THREE.AdditiveBlending,
       maxAge:     this.age
     });
@@ -69,8 +68,8 @@ Omega.SolarSystemInterconns.prototype = {
     return emitter;
   },
 
-  init_gfx : function(config, event_cb){
-    this.particles = this._particle_group(config, event_cb);
+  init_gfx : function(event_cb){
+    this.particles = this._particle_group(event_cb);
     this.clock = new THREE.Clock();
   },
 

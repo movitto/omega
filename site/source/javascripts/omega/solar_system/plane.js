@@ -6,14 +6,13 @@
 
 Omega.SolarSystemPlane = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
   var tmesh    = args['tmesh'];
 
-  if(config)
-    this.tmesh = this.init_gfx(config, event_cb);
-  else if(tmesh)
+  if(tmesh)
     this.tmesh = tmesh;
+  else
+    this.tmesh = this._mesh(event_cb);
 
   if(this.tmesh)
     this.tmesh.omega_obj = this;
@@ -34,9 +33,9 @@ Omega.SolarSystemPlane.prototype = {
     this.tmesh.position.set(loc.x, loc.y, loc.z);
   },
 
-  _material : function(config, event_cb){
-    var texture_path = config.url_prefix + config.images_path +
-                       config.resources.solar_system.material;
+  _material : function(event_cb){
+    var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
+                       Omega.Config.resources.solar_system.material;
 
     var texture   = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
     var material  = new THREE.MeshBasicMaterial({map: texture, alphaTest: 0.5});
@@ -49,9 +48,9 @@ Omega.SolarSystemPlane.prototype = {
     return new THREE.PlaneGeometry(100, 100);
   },
 
-  init_gfx : function(config, event_cb){
+  _mesh : function(event_cb){
     var geo  = this._geometry();
-    var mat  = this._material(config, event_cb);
+    var mat  = this._material(event_cb);
 
     var mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = 1.57;

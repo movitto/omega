@@ -5,61 +5,57 @@
  */
 
 Omega.ShipGfxLoader = {
-  /// template mesh, mesh, template missiles, missiles, and particle texture
-  async_gfx : 5,
+  /// geometry, missile geometry
+  async_gfx : 2,
+
+  _load_components : function(event_cb){
+    this._store_resource('hp_bar',            new Omega.ShipHpBar());
+    this._store_resource('highlight',         new Omega.ShipHighlightEffects());
+    this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));
+    this._store_resource('lamps',             new Omega.ShipLamps({type: this.type}));
+    this._store_resource('trails',            new Omega.ShipTrails({type: this.type}));
+    this._store_resource('visited_route',     new Omega.ShipVisitedRoute());
+    this._store_resource('attack_vector',     new Omega.ShipAttackVector());
+    this._store_resource('artillery',         new Omega.ShipArtillery());
+    this._store_resource('mining_vector',     new Omega.ShipMiningVector());
+    this._store_resource('trajectory1',       new Omega.ShipTrajectory({color: 0x0000FF, direction: 'primary'}));
+    this._store_resource('trajectory2',       new Omega.ShipTrajectory({color: 0x00FF00, direction: 'secondary'}));
+  },
+
+  _load_effects : function(){
+    this._store_resource('destruction',       new Omega.ShipDestructionEffect());
+    this._store_resource('explosions',        new Omega.ShipExplosionEffect());
+    this._store_resource('smoke',             new Omega.ShipSmokeEffect());
+  },
+
+  _load_audio : function(){
+    this._store_resource('docking_audio',     new Omega.ShipDockingAudioEffect());
+    this._store_resource('mining_audio',      new Omega.ShipMiningAudioEffect());
+    this._store_resource('destruction_audio', new Omega.ShipDestructionAudioEffect());
+    this._store_resource('mining_completed',  new Omega.ShipMiningCompletedAudioEffect());
+    this._store_resource('combat_audio',      new Omega.ShipCombatAudioEffect());
+    this._store_resource('movement_audio',    new Omega.ShipMovementAudioEffect());
+  },
+
+  _load_geometries : function(event_cb){
+    var _this = this;
+
+    var mesh_resource = 'ship.' + this.type + '.mesh_geometry';
+    var mesh_geometry = Omega.ShipMesh.geometry_for(this.type);
+    Omega.UI.ResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+
+    var missile_resource = 'ship.' + this.type + '.missile_geometry';
+    var missile_geometry = Omega.ShipMissile.geometry_for(this.type);
+    Omega.UI.ResourceLoader.load(missile_resource, missile_geometry, event_cb);
+  },
 
   /// Load shared graphics resources
-  load_gfx : function(config, event_cb){
-    if(this.gfx_loaded(this.type)) return;
-    Omega.Ship.gfx    = Omega.Ship.gfx || {};
-
-    var gfx           =      {};
-    gfx.hp_bar        =      new Omega.ShipHpBar();
-    gfx.highlight     =      new Omega.ShipHighlightEffects();
-    gfx.mesh_material =      new Omega.ShipMeshMaterial({config: config,
-                                                           type: this.type,
-                                                       event_cb: event_cb});
-    gfx.lamps         =             new Omega.ShipLamps({config: config,
-                                                           type: this.type});
-    gfx.trails        =            new Omega.ShipTrails({config: config,
-                                                           type: this.type,
-                                                       event_cb: event_cb});
-    gfx.visited_route =      new Omega.ShipVisitedRoute({config: config,
-                                                       event_cb: event_cb});
-    gfx.attack_vector =      new Omega.ShipAttackVector({config: config,
-                                                       event_cb: event_cb});
-    gfx.artillery     =         new Omega.ShipArtillery({config: config,
-                                                       event_cb: event_cb});
-    gfx.mining_vector =      new Omega.ShipMiningVector({config: config,
-                                                       event_cb: event_cb});
-    gfx.trajectory1   =         new Omega.ShipTrajectory({color: 0x0000FF,
-                                                      direction: 'primary'});
-    gfx.trajectory2   =         new Omega.ShipTrajectory({color: 0x00FF00,
-                                                      direction: 'secondary'});
-    gfx.destruction   = new Omega.ShipDestructionEffect({config: config,
-                                                       event_cb: event_cb});
-    gfx.explosions    =   new Omega.ShipExplosionEffect({config: config,
-                                                       event_cb: event_cb});
-    gfx.smoke         =       new Omega.ShipSmokeEffect({config: config,
-                                                       event_cb: event_cb});
-    gfx.docking_audio     = new Omega.ShipDockingAudioEffect({config: config});
-    gfx.mining_audio      = new Omega.ShipMiningAudioEffect({config: config});
-    gfx.destruction_audio = new Omega.ShipDestructionAudioEffect({config: config});
-    gfx.mining_completed_audio = new Omega.ShipMiningCompletedAudioEffect({config: config});
-    gfx.combat_audio = new Omega.ShipCombatAudioEffect({config: config});
-    gfx.movement_audio = new Omega.ShipMovementAudioEffect({config: config});
-    Omega.Ship.gfx[this.type] = gfx;
-
-    Omega.ShipMesh.load_template(config, this.type, function(mesh){
-      gfx.mesh = mesh;
-      if(event_cb) event_cb();
-    });
-
-    Omega.ShipMissiles.load_template(config, this.type, function(missiles){
-      gfx.missiles = missiles;
-      if(event_cb) event_cb();
-    });
-
-    this._loaded_gfx(this.type);
+  load_gfx : function(event_cb){
+    if(this.gfx_loaded()) return;
+    this._load_components(event_cb);
+    this._load_effects();
+    this._load_audio();
+    this._load_geometries(event_cb);
+    this._loaded_gfx();
   }
 };

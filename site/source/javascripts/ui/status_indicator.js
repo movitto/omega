@@ -8,10 +8,6 @@ Omega.UI.StatusIndicator = function(parameters){
   /// stack of states which are currently set
   this.states =  [];
 
-  /// need handle to page the indicator is on to
-  /// - access entity config
-  this.page = null;
-
   $.extend(this, parameters);
 };
 
@@ -30,7 +26,7 @@ Omega.UI.StatusIndicator.prototype = {
       return;
     }
 
-    var url = this.page.config.url_prefix + this.page.config.images_path +
+    var url = Omega.Config.url_prefix + Omega.Config.images_path +
               '/status/' + new_bg + '.png';
     this.component().css('background', 'url("' + url + '") no-repeat');
   },

@@ -9,7 +9,6 @@ Omega.UI.IndexDialog = function(parameters){
   /// - submit login via node
   /// - set the page session
   /// - update the page nav
-  /// - retrieve recaptcha from page config
   /// - submit registration via node
   this.page = null;
 
@@ -67,7 +66,7 @@ Omega.UI.IndexDialog.prototype = {
     this.title   = 'Register';
     this.div_id  = '#register_dialog';
 
-    Recaptcha.create(this.page.config.recaptcha_pub, 'omega_recaptcha',
+    Recaptcha.create(Omega.Config.recaptcha_pub, 'omega_recaptcha',
       { theme: "red", callback: Recaptcha.focus_response_field});
 
     this.show();

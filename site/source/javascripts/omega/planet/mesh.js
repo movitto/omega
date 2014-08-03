@@ -6,19 +6,14 @@
 
 Omega.PlanetMesh = function(args){
   if(!args) args = {};
-  var config   = args['config'];
+  var tmesh    = args['tmesh'];
   var type     = args['type'];
   var event_cb = args['event_cb'];
-  var tmesh    = args['tmesh'];
 
-  if(config && typeof(type) !== "undefined")
-    this.tmesh = this.init_gfx(config, type, event_cb);
-  else if(tmesh)
-    this.tmesh = tmesh;
+  if(tmesh) this.tmesh = tmesh;
+  else      this.tmesh = this._mesh(type, event_cb);
 
-  if(this.tmesh)
-    this.tmesh.omega_obj = this;
-
+  if(this.tmesh) this.tmesh.omega_obj = this;
   this.spin_angle = 0;
 };
 
@@ -41,14 +36,14 @@ Omega.PlanetMesh.prototype = {
                                     this.props.rings);
   },
 
-  _material : function(config, type, event_cb){
-    return Omega.PlanetMaterial.load(config, type, event_cb);
+  _material : function(type, event_cb){
+    return Omega.PlanetMaterial.load(type, event_cb);
   },
 
-  init_gfx : function(config, type, event_cb){
+  _mesh : function(type, event_cb){
     /// FIXME need to rotate material texture to line up w/ spin_axis
     return new THREE.Mesh(this._geometry(),
-                          this._material(config, type, event_cb));
+                          this._material(type, event_cb));
   },
 
   _spin_axis : function(){
@@ -84,16 +79,10 @@ Omega.PlanetMesh.prototype = {
 };
 
 Omega.PlanetMaterial = {
-  load : function(config, type, event_cb){
-    var texture =
-      config.resources['planet' + type].material;
-
-    var path =
-      config.url_prefix + config.images_path + texture;
-
-    var sphere_texture =
-      THREE.ImageUtils.loadTexture(path, {}, event_cb);
-
+  load : function(type, event_cb){
+    var texture = Omega.Config.resources['planet' + type].material;
+    var path = Omega.Config.url_prefix + Omega.Config.images_path + texture;
+    var sphere_texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
     return new THREE.MeshLambertMaterial({map: sphere_texture});
   }
 };

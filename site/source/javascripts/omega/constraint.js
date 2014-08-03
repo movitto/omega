@@ -5,8 +5,8 @@
  */
 
 Omega.Constraint = {
-  url : function(config){
-    return "http://" + config.http_host + config.url_prefix + config.constraints;
+  url : function(){
+    return "http://" + Omega.Config.http_host + Omega.Config.url_prefix + Omega.Config.constraints;
   },
 
   load : function(url, cb){

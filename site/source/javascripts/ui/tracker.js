@@ -109,8 +109,8 @@ Omega.UI.Tracker = {
 
   /// Track all ship motel and manu callbacks
   track_ship : function(entity){
-    var distance = this.config.ship_movement;
-    var rotation = this.config.ship_rotation;
+    var distance = Omega.Config.ship_movement;
+    var rotation = Omega.Config.ship_rotation;
 
     /// track strategy,stops,movement,rotation
     this.node.ws_invoke('motel::track_strategy', entity.location.id);
@@ -136,7 +136,7 @@ Omega.UI.Tracker = {
 
   /// Track all station motel and manu callbacks
   track_station : function(entity){
-    var distance = this.config.ship_movement;
+    var distance = Omega.Config.ship_movement;
 
     /// track strategy,movement
     this.node.ws_invoke('motel::track_strategy', entity.location.id);

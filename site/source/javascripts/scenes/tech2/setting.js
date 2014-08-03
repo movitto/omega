@@ -7,7 +7,7 @@
 //= require 'ui/canvas/skybox'
 //= require 'omega/gen'
 
-Omega.Scenes.Tech2Setting = function(config){
+Omega.Scenes.Tech2Setting = function(){
 };
 
 Omega.Scenes.Tech2Setting.prototype = {
@@ -58,9 +58,9 @@ Omega.Scenes.Tech2Setting.prototype = {
     return ships;
   },
 
-  load : function(config, cb){
+  load : function(cb){
     var _this = this;
-    Omega.Gen.init(config, function(){
+    Omega.Gen.init(function(){
       _this.system = _this._system();
       _this.ships  = _this._ships();
       _this.system.children = [_this._star()].concat(_this._asteroids()).

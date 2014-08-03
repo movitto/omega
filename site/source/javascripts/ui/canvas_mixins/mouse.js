@@ -85,6 +85,7 @@ Omega.UI.CanvasMouseHandler = {
   _detect_hover : function(){
     if(!this.mouse_x || !this.mouse_y) return;
 
+    var   hovering = false;
     var        ray = this._picking_ray(this.mouse_x, this.mouse_y);
     var intersects = ray.intersectObjects(this.descendants());
     if(intersects.length > 0){
@@ -95,12 +96,14 @@ Omega.UI.CanvasMouseHandler = {
         this._hover_num = first_hover ? 1 : (this._hover_num + 1);
         this._hovered_entity = entity;
         this._hovered_over(entity, this._hover_num);
-
-      }else if(this._hovered_entity){
-        this._unhovered_over(this._hovered_entity);
-        this._hover_num = 0;
-        this._hovered_entity = null;
+        hovering = true;
       }
+    }
+
+    if(!hovering && this._hovered_entity){
+      this._unhovered_over(this._hovered_entity);
+      this._hover_num = 0;
+      this._hovered_entity = null;
     }
   },
 

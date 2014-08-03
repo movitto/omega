@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.BackgroundAudio = function(config){
-  this.num = config.audio.backgrounds;
+Omega.BackgroundAudio = function(){
+  this.num = Omega.Config.audio.backgrounds;
   this.effects = [];
 
   this.current = 0;

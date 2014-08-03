@@ -70,6 +70,5 @@ Omega.JumpGate.prototype = {
   },
 };
 
-Omega.UI.ResourceLoader.prototype.apply(Omega.JumpGate.prototype);
 $.extend(Omega.JumpGate.prototype, Omega.JumpGateGfx);
 $.extend(Omega.JumpGate.prototype, Omega.JumpGateCommands);

@@ -4,12 +4,13 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 Omega.ShipSmokeEffect = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
 
-  this.init_gfx(config, event_cb);
+  this.init_gfx(event_cb);
   this._update = this._no_update;
 };
 
@@ -66,24 +67,24 @@ Omega.ShipSmokeEffect.prototype = {
     });
   },
 
-  _particle_group : function(config, event_cb){
-    var particle_texture = Omega.load_ship_particles(config, event_cb, 'smoke');
+  _particle_group : function(event_cb){
+    var particle_texture = Omega.UI.Particles.load('ship.smoke', event_cb);
 
     return new SPE.Group({
-        texture:  particle_texture,
-        maxAge:   this.lifespan,
-        blending: THREE.AdditiveBlending
-      });
+      texture  : particle_texture,
+      maxAge   : this.lifespan,
+      blending : THREE.AdditiveBlending
+    });
   },
 
-  init_gfx : function(config, event_cb){
-    this.particles = this._particle_group(config, event_cb);
+  init_gfx : function(event_cb){
+    this.particles = this._particle_group(event_cb);
     this.particles.addEmitter(this._particle_emitter());
     this.clock = new THREE.Clock();
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipSmokeEffect({config: config, event_cb: event_cb});
+  clone : function(){
+    return new Omega.ShipSmokeEffect();
   },
 
   enable : function(){

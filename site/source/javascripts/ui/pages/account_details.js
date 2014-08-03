@@ -8,10 +8,6 @@
 //= require 'vendor/md5'
 
 Omega.UI.AccountDetails = function(parameters){
-  /// need handle to page to
-  /// - access config
-  this.page = null;
-
   $.extend(this, parameters);
 };
 
@@ -113,7 +109,7 @@ Omega.UI.AccountDetails.prototype = {
   /// add a badge to account into page
   add_badge : function(id, description, rank){
     var badges = $('#account_info_badges');
-    var url    = this.page.config.url_prefix + '/images/badges/' + id + '.png';
+    var url    = Omega.Config.url_prefix + '/images/badges/' + id + '.png';
     var badge  = $('<div />',
       {class : 'badge',
        style : "background: url('"+url+"');",

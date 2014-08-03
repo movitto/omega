@@ -10,22 +10,14 @@ Omega.UI.AudioControls = function(parameters){
   this.volume  = 1;
   this.playing = [];
   this.disabled = false;
-
-  /// need handle to page audio controls is on to
-  /// - access audio config
-  this.page = null;
-
   $.extend(this, parameters);
 
   /// central / shared audio effects
-  if(this.page)
-    this.effects = {  click :        new Omega.ClickAudioEffect(this.page.config),
-                    command :      new Omega.CommandAudioEffect(this.page.config),
-               confirmation : new Omega.ConfirmationAudioEffect(this.page.config),
-                       epic : new Omega.EpicAudioEffect(this.page.config),
-                 background : new Omega.BackgroundAudio(this.page.config)};
-  else
-    this.effects = {};
+  this.effects = {  click : new Omega.ClickAudioEffect(),
+                  command : new Omega.CommandAudioEffect(),
+             confirmation : new Omega.ConfirmationAudioEffect(),
+                     epic : new Omega.EpicAudioEffect(),
+               background : new Omega.BackgroundAudio()};
 
   /// disable controls by default
   this.toggle();
@@ -48,9 +40,8 @@ Omega.UI.AudioControls.prototype = {
     this.disabled = !this.disabled;
     this.set_volume(this.disabled ? 0 : 1);
 
-    if(!this.page) return;
-    var url        = this.page.config.url_prefix +
-                     this.page.config.images_path + '/icons/';
+    var url        = Omega.Config.url_prefix +
+                     Omega.Config.images_path + '/icons/';
     var mute_img   = url + 'audio-mute.png';
     var unmute_img = url + 'audio-unmute.png';
     var mute       = $('#mute_audio');

@@ -28,17 +28,8 @@ Omega.UI.CanvasEntitiesManager = {
   add : function(entity, scene){
     if(typeof(scene) === "undefined") scene = this.scene;
 
-    /// XXX hacky but works for now:
     var _this = this;
-    entity.sceneReload = function(evnt) { 
-      if(entity.mesh == evnt.data && _this.has(entity.id))
-        _this.reload(entity);
-    };
-    entity.addEventListener('loaded_mesh', entity.sceneReload);
-    /// XXX TODO also need to add/remove event listeners for other
-    /// loaded events (such as missile meshes and such)
-
-    entity.init_gfx(this.page.config, function(evnt){ _this._init_gfx(); });
+    entity.init_gfx(function(evnt){ _this._init_gfx(); });
     for(var cc = 0; cc < entity.components.length; cc++)
       scene.add(entity.components[cc]);
 

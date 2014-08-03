@@ -7,11 +7,6 @@
 Omega.UI.CanvasSkybox = function(parameters){
   this.components        = [];
   this.shader_components = [];
-
-  /// need handle to canvas to:
-  /// - access config
-  this.canvas = null;
-
   $.extend(this, parameters);
 };
 
@@ -46,10 +41,9 @@ Omega.UI.CanvasSkybox.prototype = {
     this.components = [this.mesh];
   },
 
-  set: function(bg, config, event_cb){
+  set: function(bg, event_cb){
     var format = 'png';
-    if(!config) config = this.canvas.page.config;
-    var path   = config.url_prefix + config.images_path + '/skybox/skybox' + bg + '/';
+    var path   = Omega.Config.url_prefix + Omega.Config.images_path + '/skybox/skybox' + bg + '/';
     var materials = [
       path + 'px.' + format, path + 'nx.' + format,
       path + 'pz.' + format, path + 'nz.' + format,

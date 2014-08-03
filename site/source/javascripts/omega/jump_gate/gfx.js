@@ -15,59 +15,80 @@
 Omega.JumpGateGfx = {
   async_gfx : 3,
 
+  _load_components : function(event_cb){
+    this._store_resource('mesh_material',      new Omega.JumpGateMeshMaterial({event_cb: event_cb}));
+    this._store_resource('lamp',               new Omega.JumpGateLamp());
+    this._store_resource('particles',          new Omega.JumpGateParticles({event_cb: event_cb}));
+    this._store_resource('selection_material', new Omega.JumpGateSelectionMaterial());
+    this._store_resource('trigger_audio',      new Omega.JumpGateTriggerAudioEffect({}));
+  },
+
+  _load_geometry : function(event_cb){
+    var geo_resource  = 'jump_gate.geometry';
+    var mesh_geometry = Omega.JumpGateMesh.geometry();
+    Omega.UI.ResourceLoader.load(geo_resource, mesh_geometry, event_cb);
+  },
+
   /// Load shared graphics resources
-  load_gfx : function(config, event_cb){
+  load_gfx : function(event_cb){
     if(this.gfx_loaded()) return;
-
-    var gfx            = {};
-    Omega.JumpGate.gfx = gfx;
-    gfx.mesh_material  = new Omega.JumpGateMeshMaterial({config: config,
-                                                         event_cb: event_cb});
-    gfx.lamp           = new Omega.JumpGateLamp();
-    gfx.particles      = new Omega.JumpGateParticles({config: config,
-                                                      event_cb: event_cb});
-    gfx.selection_material = new Omega.JumpGateSelectionMaterial();
-    gfx.trigger_audio = new Omega.JumpGateTriggerAudioEffect({config: config});
-
-    Omega.JumpGateMesh.load_template(config, function(mesh){
-      gfx.mesh = mesh;
-      if(event_cb) event_cb();
-    });
-
+    this._load_components(event_cb);
+    this._load_geometry(event_cb);
     this._loaded_gfx();
   },
 
-  // Intiialize local jump gate graphics
-  init_gfx : function(config, event_cb){
-    if(this.gfx_initialized()) return;
-    this.load_gfx(config, event_cb);
-    this.components = [];
+  _init_components : function(){
+    this.components = [this.position_tracker()];
+  },
 
-    this.lamp = Omega.JumpGate.gfx.lamp.clone();
+  _init_lamps : function(){
+    this.lamp = this._retrieve_resource('lamp').clone();
     this.lamp.omega_entity = this;
     this.lamp.olamp.init_gfx();
+  },
 
-    this.particles = Omega.JumpGate.gfx.particles.clone(config, event_cb);
+  _init_particles : function(){
+    this.particles = this._retrieve_resource('particles').clone();
     this.particles.omega_entity = this;
     this.components.push(this.particles.particles.mesh);
+  },
 
-    this.selection = Omega.JumpGateSelection.for_jg(this);
+  _init_selection : function(){
+    var material = this._retrieve_resource('selection_material').material;
+    this.selection = Omega.JumpGateSelection.for_jg(this, material);
     this.selection.omega_entity = this;
+  },
 
-    this.trigger_audio = Omega.JumpGate.gfx.trigger_audio;
+  _init_audio : function(){
+    this.trigger_audio = this._retrieve_resource('trigger_audio');
+  },
 
+  _init_mesh : function(){
     var _this = this;
-    Omega.JumpGateMesh.load(config, function(mesh){
+    Omega.UI.ResourceLoader.retrieve('jump_gate.geometry', function(geometry){
+      var material = _this._retrieve_resource('mesh_material').material;
+      var mesh     = new Omega.JumpGateMesh({geometry : geometry,
+                                             material : material});
       _this.mesh = mesh;
       _this.mesh.omega_entity = _this;
       _this.mesh.tmesh.add(_this.lamp.olamp.component);
       _this.position_tracker().add(_this.mesh.tmesh);
+
       _this.update_gfx();
-      _this.loaded_resource('mesh', _this.mesh);
       _this._gfx_initialized = true;
     });
+  },
 
-    this.components.push(this.position_tracker());
+  // Intiialize local jump gate graphics
+  init_gfx : function(event_cb){
+    if(this.gfx_initialized()) return;
+    this.load_gfx(event_cb);
+    this._init_components();
+    this._init_lamps();
+    this._init_particles();
+    this._init_selection();
+    this._init_audio();
+    this._init_mesh();
     this.update_gfx();
   },
 

@@ -37,6 +37,5 @@ Omega.Asteroid.prototype = {
   }
 };
 
-Omega.UI.ResourceLoader.prototype.apply(Omega.Asteroid.prototype);
 $.extend(Omega.Asteroid.prototype, Omega.AsteroidCommands);
 $.extend(Omega.Asteroid.prototype, Omega.AsteroidGfx);

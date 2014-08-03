@@ -4,22 +4,28 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "ui/particles"
+
 //= require "ui/canvas/has_target"
 
 Omega.ShipMissile = function(args){
   if(!args) args = {};
-  var config   = args['config'];
   var event_cb = args['event_cb'];
   var mesh     = args['mesh'];
+  var material = args['material'];
+  var geometry = args['geometry'];
 
-  this.mesh     = mesh;
+
+  if(mesh)                       this.mesh = mesh;
+  else if(material && geometry)  this.mesh = new THREE.Mesh(geometry, material);
+
   this.location = new Omega.Location({movement_strategy : { distance : this.arrival_distance}});
   this.clock    = new THREE.Clock();
-  this.init_particles(config, event_cb);
+  this.init_particles(event_cb);
 };
 
 Omega.ShipMissile.prototype = {
-  speed           : 300000,
+  speed           : 100000,
   rot_theta       : 0.35,
   theta_tolerance : Math.PI / 32,
   launch_distance :  500,
@@ -32,10 +38,10 @@ Omega.ShipMissile.prototype = {
     return [this.mesh, this.particles.mesh];
   },
 
-  _particle_group : function(config, event_cb){
+  _particle_group : function(event_cb){
     return new SPE.Group({
       maxAge   : this.particle_age,
-      texture  : Omega.load_ship_particles(config, event_cb, 'missile')
+      texture  : Omega.UI.Particles.load('ship.missile', event_cb)
     });
   },
 
@@ -55,9 +61,8 @@ Omega.ShipMissile.prototype = {
     });
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipMissile({config: config, event_cb : event_cb,
-                                  mesh : this.mesh.clone()});
+  clone : function(){
+    return new Omega.ShipMissile({mesh : this.mesh.clone()});
   },
 
   set_source : function(source){
@@ -138,28 +143,10 @@ Omega.ShipMissile.prototype = {
 
 $.extend(Omega.ShipMissile.prototype, Omega.UI.BaseParticles.prototype);
 
-/// Async template missile loader
-Omega.ShipMissile.load_template = function(config, type, cb){
-  var geometry_path   = config.url_prefix + config.images_path +
-                        config.resources.missile.geometry;
-  var geometry_prefix = config.url_prefix + config.images_path +
-                        config.meshes_path;
-
-  Omega.UI.Loader.json().load(geometry_path, function(missile_geometry){
-    var material = new THREE.MeshBasicMaterial({color : 0x000000});
-    var mesh     = new THREE.Mesh(missile_geometry, material);
-    var missile  = new Omega.ShipMissile({config: config, mesh : mesh});
-
-    cb(missile);
-    Omega.Ship.prototype.loaded_resource('template_missile_' + type, missile);
-  }, geometry_prefix);
-};
-
-/// Async missile loader
-Omega.ShipMissile.load = function(type, cb){
-  Omega.Ship.prototype.retrieve_resource('template_missile_' + type,
-    function(template_missile){
-      var missile = template_missile.clone();
-      cb(missile);
-    });
+Omega.ShipMissile.geometry_for = function(type, cb){
+  var geometry_path   = Omega.Config.url_prefix + Omega.Config.images_path +
+                        Omega.Config.resources.missile.geometry;
+  var geometry_prefix = Omega.Config.url_prefix + Omega.Config.images_path +
+                        Omega.Config.meshes_path;
+  return [geometry_path, geometry_prefix];
 };

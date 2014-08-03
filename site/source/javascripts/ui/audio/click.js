@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ClickAudioEffect = function(config){
-  this.audio = config.audio['click'];
+Omega.ClickAudioEffect = function(){
+  this.audio = Omega.Config.audio['click'];
 };
 
 $.extend(Omega.ClickAudioEffect.prototype, Omega.BaseAudioEffect);

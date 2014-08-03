@@ -10,15 +10,9 @@
 
 Omega.ShipMissiles = function(args){
   if(!args) args = {};
-  var config   = args['config'];
-  var event_cb = args['event_cb'];
   var template = args['template'];
 
   if(template) this.template = template;
-
-  /// store for use in missile creation later
-  if(config)   this.config   = config;
-  if(event_cb) this.event_cb = event_cb;
 
   this.missiles = [];
   this.disable_target_update();
@@ -35,7 +29,7 @@ Omega.ShipMissiles.prototype = {
 
   launch : function(){
     this.launched_at = new Date();
-    var missile = this.template.clone(this.config, this.event_cb);
+    var missile = this.template.clone();
     missile.set_source(this.omega_entity);
     missile.set_target(this.target());
     this.missiles.push(missile);
@@ -48,9 +42,8 @@ Omega.ShipMissiles.prototype = {
     });
   },
 
-  clone : function(config, event_cb){
-    return new Omega.ShipMissiles({config : config, event_cb : event_cb,
-                                   template : this.template.clone()});
+  clone : function(){
+    return new Omega.ShipMissiles({template : this.template.clone()});
   },
 
   target : function(){
@@ -97,24 +90,6 @@ Omega.ShipMissiles.prototype = {
       }
     }
   }
-};
-
-/// Async template missiles loader
-Omega.ShipMissiles.load_template = function(config, type, cb){
-  Omega.ShipMissile.load_template(config, type, function(missile){
-    var missiles = new Omega.ShipMissiles({config: config, template: missile});
-    cb(missiles);
-    Omega.Ship.prototype.loaded_resource('template_missiles_' + type, missiles);
-  });
-};
-
-/// Async missiles loader
-Omega.ShipMissiles.load = function(type, cb){
-  Omega.Ship.prototype.retrieve_resource('template_missiles_' + type,
-    function(template_missiles){
-      var missiles = template_missiles.clone();
-      cb(missiles);
-    });
 };
 
 $.extend(Omega.ShipMissiles.prototype, Omega.UI.HasTarget.prototype);

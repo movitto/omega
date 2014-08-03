@@ -4,19 +4,18 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/galaxy/particles"
+//= require "ui/particles"
 
 Omega.GalaxyDensityWave = function(args){
   if(!args) args = {};
-  config   = args['config'];
   event_cb = args['event_cb'];
 
-  this.type  = args['type'];
-  this.angle = args['angle'] || 0;
+  this.type       = args['type'];
+  this.angle      = args['angle'] || 0;
   this.colorStart = args['colorStart'];
-  this.colorEnd = args['colorEnd'];
+  this.colorEnd   = args['colorEnd'];
 
-  this.init_gfx(config, event_cb);
+  this.init_gfx(event_cb);
 };
 
 Omega.GalaxyDensityWave.prototype = {
@@ -121,10 +120,10 @@ Omega.GalaxyDensityWave.prototype = {
     return vec;
   },
 
-  _material : function(config, event_cb){
+  _material : function(event_cb){
     return new THREE.ParticleBasicMaterial({
       size        : this._size(),
-      map         : Omega.load_galaxy_particles(config, event_cb, this.type),
+      map         : Omega.UI.Particles.load('galaxy.' + this.type, event_cb),
       depthWrite  : false,
       transparent : true,
       opacity     : this._opacity(),
@@ -151,9 +150,9 @@ Omega.GalaxyDensityWave.prototype = {
     return particles;
   },
 
-  init_gfx : function(config, event_cb){
+  init_gfx : function(event_cb){
     this.particles = new THREE.ParticleSystem(this._geometry(),
-                                              this._material(config, event_cb));
+                                              this._material(event_cb));
   },
 
   /// rotate mesh

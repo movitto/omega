@@ -39,3 +39,7 @@ Omega.Star.prototype = {
 
 THREE.EventDispatcher.prototype.apply( Omega.Star.prototype );
 $.extend(Omega.Star.prototype, Omega.StarGfx);
+
+Omega.Star.types = function(){
+  return Omega.Constraint._get(['star', 'type']);
+};

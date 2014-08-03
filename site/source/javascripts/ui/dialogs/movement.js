@@ -50,7 +50,7 @@ Omega.UI.MovementDialog = {
     dest_selection.change(function(evnt){ //wiring onChange to the select element
       /// generate new coords a random offset from location
       var loc = $(evnt.currentTarget).find(":selected").data('location');
-      var offset = page.config.movement_offset;
+      var offset = Omega.Config.movement_offset;
           offset = (Math.random() * (offset.max - offset.min)) + offset.min;
       entity._move(page, loc.x + offset, loc.y + offset, loc.z + offset);
     });
