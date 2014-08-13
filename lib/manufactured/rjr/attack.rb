@@ -29,7 +29,6 @@ attack_entity = proc { |attacker_id, defender_id|
     [{:privilege => 'view', :entity => "manufactured_entity-#{defender.id}"},
      {:privilege => 'view', :entity => 'manufactured_entities'}]
 
-
   # create new attack command, add to registry
   atk = Commands::Attack.new :attacker  => attacker, :defender  => defender
   registry << atk

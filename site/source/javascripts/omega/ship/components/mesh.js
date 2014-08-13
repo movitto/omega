@@ -14,7 +14,7 @@ Omega.ShipMeshMaterial = function(args){
 
   var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
 
-  $.extend(this, new THREE.MeshLambertMaterial({map: texture, overdraw: true}));
+  this.material = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
 };
 
 Omega.ShipMesh = function(args){

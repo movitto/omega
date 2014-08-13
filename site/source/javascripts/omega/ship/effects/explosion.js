@@ -84,10 +84,10 @@ Omega.ShipExplosionEffect.prototype = {
     return this.interval || this.default_interval;
   },
 
+  /// Default pos is rand distance within certain max area around target ship
   _trigger_position : function(){
     var loc = this.omega_entity.attacking.scene_location();
 
-    // rand distance within certain max area around ship
     var area = 50; // TODO parameterize size
     var px = loc.x + (area * Math.random() - (area/2));
     var py = loc.y + (area * Math.random() - (area/2));
@@ -112,8 +112,8 @@ Omega.ShipExplosionEffect.prototype = {
   },
 
   /// manually trigger effect
-  trigger : function(){
-    this.particles.triggerPoolEmitter(1, this._trigger_position());
+  trigger : function(position){
+    this.particles.triggerPoolEmitter(1, position || this._trigger_position());
   },
 
   run_effects : function(){

@@ -34,10 +34,7 @@ Omega.UI.BaseParticles.prototype = {
     this.particles.mesh.position = position;
   },
 
-  set_velocity : function(dist, dx, dy, dz){
-    var vel = dist/this.particle_age;
-    dx *= vel; dy *= vel; dz *= vel;
-
+  set_velocity : function(dx, dy, dz){
     for(var e = 0; e < this._num_emitters(); e++)
       this.particles.emitters[e].velocity.set(dx, dy, dz);
   },

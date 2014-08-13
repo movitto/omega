@@ -4,11 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.ShipVisitedRoute = function(args){
-  if(!args) args = {};
-
-  if(args['line']) this.line = args['line'];
-  else this.init_gfx();
+Omega.ShipVisitedRoute = function(){
+  this.init_gfx();
 };
 
 Omega.ShipVisitedRoute.prototype = {
@@ -17,7 +14,7 @@ Omega.ShipVisitedRoute.prototype = {
   min_distance : 100,
 
   clone : function(){
-    return new Omega.ShipVisitedRoute({line : this.line.clone()});
+    return new Omega.ShipVisitedRoute();
   },
 
   _geometry : function(){

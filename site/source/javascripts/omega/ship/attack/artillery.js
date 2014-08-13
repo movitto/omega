@@ -4,68 +4,65 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/particles"
-
-//= require "ui/canvas/particles/base"
-//= require "ui/canvas/particles/targeted"
-//= require "ui/canvas/particles/staggered"
+//= require "omega/ship/attack/launcher"
 
 /// TODO track 'attacked_by' (array on entities in ship) in attack events ?
 
 Omega.ShipArtillery = function(args){
-  if(!args) args = {};
-  var event_cb = args['event_cb'];
-
-  this.disable_target_update();
-  this.init_particles(event_cb);
+  this.init_launcher(args);
 };
 
 Omega.ShipArtillery.prototype = {
-  num_emitters         : 2,
-  emitter_interval     : 0.75,
-  particle_age         : 1,
-  particle_count       : 5,
-  particle_size        : 30,
+  interval : 0.15,
 
-  interval : function(){
-    return this.particle_age / this.num_emitters;
-  },
+  /// TODO from config
+  offsets : [[50, 0, 0], [-50, 0, 0]],
 
-  _particle_group : function(event_cb){
-    return new SPE.Group({
-      texture:    Omega.UI.Particles.load('ship.artillery', event_cb),
-      maxAge:     this.particle_age,
-      blending:   THREE.AdditiveBlending,
-    });
-  },
+  _next_offset : function(){
+    if(typeof(this.current_offset) === "undefined" ||
+       this.current_offset == this.offsets.length-1)
+      this.current_offset = 0;
+    else
+      this.current_offset += 1;
 
-  _particle_emitter : function(num){
-    var position = num == 0 ? 20 : -20;
-
-    return new SPE.Emitter({
-      colorStart    : new THREE.Color(0xFFCC00),
-      colorEnd      : new THREE.Color(0xFFCC00),
-      sizeStart     : this.particle_size,
-      sizeEnd       : this.particle_size,
-      position      : new THREE.Vector3(position, 0, 0),
-      opacityStart  : 0.75,
-      opacityEnd    : 0.75,
-      angleAlignVelocity : true,
-      velocity      : new THREE.Vector3(0, 0, 1),
-      particleCount : this.particle_count,
-      alive         : 0
-    });
+    var offset  = this.offsets[this.current_offset];
+    return new THREE.Vector3().set(offset[0], offset[1], offset[2]);
   },
 
   clone : function(){
-    return new Omega.ShipArtillery();
+    return new Omega.ShipArtillery({template : this.template.clone()});
   },
 
-  target : function(){
-    return this.omega_entity.attacking;
+  should_explode : function(projectile){
+    return this.has_target() && projectile.near_target();
+  },
+
+  should_remove : function(projectile){
+    return (this.has_target() && projectile.near_target()) ||
+            projectile.exceeds_distance();
   }
 };
 
-$.extend(Omega.ShipArtillery.prototype, Omega.UI.BaseParticles.prototype);
-$.extend(Omega.ShipArtillery.prototype, Omega.UI.TargetedParticles.prototype);
-$.extend(Omega.ShipArtillery.prototype, Omega.UI.StaggeredParticles.prototype);
+$.extend(Omega.ShipArtillery.prototype, Omega.ShipAttackLauncher);
+
+Omega.ShipArtillery.prototype._should_launch =
+  Omega.ShipArtillery.prototype.should_launch;
+
+/// Override should_launch to only attack if facing target
+Omega.ShipArtillery.prototype.should_launch = function(){
+  var facing_target = !!(this.target()) &&
+                      this.omega_entity.location.facing(this.target().location, Math.PI / 32);
+  return this._should_launch() && facing_target;
+};
+
+Omega.ShipArtillery.prototype.__init_projectile =
+  Omega.ShipArtillery.prototype._init_projectile;
+
+/// Override projectile initialization to set cycled offset
+Omega.ShipArtillery.prototype._init_projectile = function(){
+  var projectile = this.__init_projectile();
+  var offset = this._next_offset();
+  offset.applyMatrix4(this.omega_entity.location.rotation_matrix());
+  projectile.location.add(offset);
+  return projectile;
+};

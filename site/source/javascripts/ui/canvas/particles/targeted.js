@@ -12,12 +12,11 @@ Omega.UI.TargetedParticles.prototype = {
   update_target_loc : function(){
     this.target_loc(this.target().scene_location());
 
-    /// TODO incorporate new_loc's movement trajectory into this
-    /// (eg shoot 'ahead' of ship)
     var dist = this.get_distance();
+    var speed = dist/this.particle_age;
     var dir  = this.get_direction();
-    var dx = dir[0]; var dy = dir[1]; var dz = dir[2];
-    this.set_velocity(dist, dx, dy, dz);
+    var dx = speed * dir[0]; var dy = speed * dir[1]; var dz = speed * dir[2];
+    this.set_velocity(dx, dy, dz);
   }
 };
 

@@ -6,12 +6,8 @@
 
 //= require "ui/canvas/has_target"
 
-Omega.ShipAttackVector = function(args){
-  if(!args) args = {};
-  var line     = args['line'];
-
-  if(line) this.line = line;
-  else     this.init_gfx();
+Omega.ShipAttackVector = function(){
+  this.init_gfx();
   this.disable_target_update();
 };
 
@@ -29,7 +25,7 @@ Omega.ShipAttackVector.prototype = {
   },
 
   clone : function(){
-    return new Omega.ShipAttackVector({line : this.line.clone()});
+    return new Omega.ShipAttackVector();
   },
 
   target : function(){
@@ -39,11 +35,17 @@ Omega.ShipAttackVector.prototype = {
   update_target_loc : function(){
     var new_loc = this.target().scene_location();
     this.target_loc(new_loc);
-    this.line.geometry.vertices[1].set(new_loc.x, new_loc.y, new_loc.z);
+
+    var loc = this.omega_entity.scene_location()
+    var dir  = loc.direction_to(new_loc.x, new_loc.y, new_loc.z);
+    var dist = loc.distance_from(new_loc.x, new_loc.y, new_loc.z);
+    this.line.geometry.vertices[1].set(dir[0] * dist, dir[1] * dist, dir[2] * dist);
+    this.line.geometry.verticesNeedUpdate = true;
   },
 
   enable : function(){
-    this.omega_entity.components.push(this.line);
+    var index = this.omega_entity.components.indexOf(this.line);
+    if(index == -1) this.omega_entity.components.push(this.line);
   },
 
   disable : function(){

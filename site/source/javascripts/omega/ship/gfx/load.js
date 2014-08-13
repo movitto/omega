@@ -4,22 +4,34 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "omega/ship/attack/shell"
+//= require "omega/ship/attack/missile"
+
 Omega.ShipGfxLoader = {
   /// geometry, missile geometry
   async_gfx : 2,
 
+  _load_textures : function(event_cb){
+    this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));
+  },
+
+  _load_artillery : function(event_cb){
+    var material = new Omega.ShipShellMaterial({event_cb : event_cb}).material;
+    var template = Omega.ShipShell.template({material : material});
+    this._store_resource('artillery',         new Omega.ShipArtillery({template : template}));
+  },
+
   _load_components : function(event_cb){
     this._store_resource('hp_bar',            new Omega.ShipHpBar());
     this._store_resource('highlight',         new Omega.ShipHighlightEffects());
-    this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));
     this._store_resource('lamps',             new Omega.ShipLamps({type: this.type}));
     this._store_resource('trails',            new Omega.ShipTrails({type: this.type}));
     this._store_resource('visited_route',     new Omega.ShipVisitedRoute());
     this._store_resource('attack_vector',     new Omega.ShipAttackVector());
-    this._store_resource('artillery',         new Omega.ShipArtillery());
     this._store_resource('mining_vector',     new Omega.ShipMiningVector());
     this._store_resource('trajectory1',       new Omega.ShipTrajectory({color: 0x0000FF, direction: 'primary'}));
     this._store_resource('trajectory2',       new Omega.ShipTrajectory({color: 0x00FF00, direction: 'secondary'}));
+    this._load_artillery(event_cb);
   },
 
   _load_effects : function(){
@@ -55,6 +67,7 @@ Omega.ShipGfxLoader = {
     this._load_components(event_cb);
     this._load_effects();
     this._load_audio();
+    this._load_textures(event_cb);
     this._load_geometries(event_cb);
     this._loaded_gfx();
   }

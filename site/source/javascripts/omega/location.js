@@ -128,7 +128,7 @@ Omega.Location.prototype = {
     var dx = x - this.x;
     var dy = y - this.y;
     var dz = z - this.z;
-    if(dx == 0 && dy == 0 && dz == 0) return [NaN, NaN, NaN];
+    if(dx == 0 && dy == 0 && dz == 0) return [NaN, NaN, NaN, NaN];
 
     var nrml  = Omega.Math.nrml(dx, dy, dz);
     var angle = Omega.Math.abwn(this.orientation_x,
@@ -179,9 +179,23 @@ Omega.Location.prototype = {
     this.orientation_z = new_or[2];
   },
 
-  /// Return array containing this location's coordinates plus specified values
-  add : function(x, y ,z){
-    return [this.x + x, this.y + y, this.z + z];
+  /// Add specified values to location's coordinates
+  add : function(x, y, z){
+    if((typeof(x) === "array" || typeof(x) === "object") &&
+       x.length == 3 && !y && !z){
+      y = x[1];
+      z = x[2];
+      x = x[0];
+    }else if(x.json_class == 'Motel::Location' || x.constructor == THREE.Vector3){
+      z = x.z;
+      y = x.y;
+      x = x.x;
+    }
+
+    this.x += x;
+    this.y += y;
+    this.z += z;
+    return this;
   },
 
   /// Return array containing the difference between location's coordinates
@@ -248,6 +262,19 @@ Omega.Location.prototype = {
     return this.distance_from(this.tracking) <= this.movement_strategy.distance;
   },
 
+  /// Return unit direction vector from this location's coords to specified coords
+  direction_to_target : function(){
+    return this.direction_to(this.tracking.x,
+                             this.tracking.y,
+                             this.tracking.z);
+  },
+
+  /// Boolean indicating if location is facing specified location
+  facing : function(location, tolerance){
+    var diff = this.orientation_difference(location.x, location.y, location.z);
+    return Math.abs(diff[0]) <= tolerance;
+  },
+
   /// Boolean indicating if location is facing target
   facing_target : function(tolerance){
     var diff = this.orientation_difference(this.tracking.x,
@@ -261,9 +288,15 @@ Omega.Location.prototype = {
     var diff = this.orientation_difference(this.tracking.x,
                                            this.tracking.y,
                                            this.tracking.z);
-    this.movement_strategy.rot_x = diff[1];
-    this.movement_strategy.rot_y = diff[2];
-    this.movement_strategy.rot_z = diff[3];
+    if(isNaN(diff[0]) || isNaN(diff[1])){
+      this.movement_strategy.rot_x = 0;
+      this.movement_strategy.rot_y = 0;
+      this.movement_strategy.rot_z = 1;
+    }else{
+      this.movement_strategy.rot_x = diff[1];
+      this.movement_strategy.rot_y = diff[2];
+      this.movement_strategy.rot_z = diff[3];
+    }
   },
 
   /// Bool indicating if location is facing target tangent

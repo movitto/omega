@@ -132,6 +132,7 @@ Omega.Gen = {
       var loc = Omega.Constraint.gen('system_entity', 'position');
           loc = Omega.Constraint.rand_invert(loc);
       opts.location = new Omega.Location(loc);
+      opts.location.id = opts.id;
       opts.location.set_orientation(0,0,1);
       opts.location.movement_strategy =
         {json_class : 'Motel::MovementStrategies::Stopped'}
@@ -148,6 +149,7 @@ Omega.Gen = {
       var loc = Omega.Constraint.gen('system_entity', 'position');
           loc = Omega.Constraint.rand_invert(loc);
       opts.location = new Omega.Location(loc);
+      opts.location.id = opts.id;
       opts.location.movement_strategy =
         {json_class : 'Motel::MovementStrategies::Stopped'}
     }
@@ -165,6 +167,17 @@ Omega.Gen = {
 
   stopped_ms : function(opts){
     var ms = {json_class : 'Motel::MovementStrategies::Stopped'};
+    $.extend(ms, opts);
+    return ms;
+  },
+
+  /// Client should set valid tracked_location_id in opts
+  ///  (should resolved to entity in page registry)
+  figure8_ms : function(opts){
+    var dir = this.random_vector();
+    var ms  = {json_class : 'Motel::MovementStrategies::Figure8',
+               speed : 1, dx : dir[0], dy : dir[1], dz : dir[2],
+               rot_theta : 0.25 };
     $.extend(ms, opts);
     return ms;
   },

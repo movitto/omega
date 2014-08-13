@@ -31,7 +31,7 @@ Omega.UI.Particles = {
       case 'ship.smoke'       : return this._load_texture('cloudparticle',   event_cb);
       case 'ship.trails'      :
       case 'ship.artillery'   :
-      case 'ship.missile'     : return this._load_texture('bullet-particle', event_cb);
+      case 'ship.missile'     :
       case 'ship'             : return this._load_texture('particle',        event_cb);
     };
     return null;

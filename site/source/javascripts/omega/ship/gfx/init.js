@@ -50,21 +50,18 @@ Omega.ShipGfxInitializer = {
   },
 
   _init_attack_vector : function(){
-    /// TODO config option to set weapon(s) originating coordinates
-    /// on ship mesh on per-ship-type basis
     this.attack_vector = this._retrieve_resource('attack_vector').clone();
     this.attack_vector.omega_entity = this;
     this.attack_vector.set_position(this.position_tracker().position);
   },
 
   _init_artillery : function(){
-    this.artillery = this._retrieve_resource('artillery').clone(); /// *
+    this.artillery = this._retrieve_resource('artillery').clone();
     this.artillery.omega_entity = this;
-    this.artillery.set_position(this.position_tracker().position);
   },
 
   _init_mining_vector : function(){
-    this.mining_vector = this._retrieve_resource('mining_vector').clone(); /// *
+    this.mining_vector = this._retrieve_resource('mining_vector').clone();
     this.mining_vector.omega_entity = this;
     this.components.push(this.mining_vector.particles.mesh);
   },
@@ -133,7 +130,7 @@ Omega.ShipGfxInitializer = {
 
     var mesh_geometry = 'ship.' + this.type + '.mesh_geometry';
     Omega.UI.ResourceLoader.retrieve(mesh_geometry, function(geometry){
-      var material = _this._retrieve_resource('mesh_material');
+      var material = _this._retrieve_resource('mesh_material').material;
       var mesh = new Omega.ShipMesh({material: material.clone(),
                                      geometry: geometry.clone()});
       _this.mesh = mesh;
@@ -173,12 +170,6 @@ Omega.ShipGfxInitializer = {
     }
   },
 
-  _wire_up_artillery : function(){
-    this.components.push(this.attack_component().component());
-    this.explosions.interval = this.artillery.interval();
-    this.explosions.auto_trigger = true;
-  },
-
   /// Intiialize ship graphics
   init_gfx : function(event_cb){
     if(this.gfx_initialized()) return;
@@ -199,9 +190,6 @@ Omega.ShipGfxInitializer = {
     this._init_destruction();
     this._init_explosions();
     this._init_smoke();
-
-    if(this.attack_component() == this.artillery)
-      this._wire_up_artillery();
 
     this._init_mesh();
     this._init_missiles();

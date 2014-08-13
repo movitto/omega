@@ -17,9 +17,9 @@ Omega.UI.CanvasAxis.prototype = {
   load_gfx : function(){
     if(typeof(Omega.UI.CanvasAxis.gfx) !== 'undefined') return;
     Omega.UI.CanvasAxis.gfx = {
-      xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000),
-      yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00),
-      xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF),
+      xy : this._new_axis(this._new_v(-this.size, 0, 0), this._new_v(this.size, 0, 0), 0xFF0000), /// red
+      yz : this._new_axis(this._new_v(0, -this.size, 0), this._new_v(0, this.size, 0), 0x00FF00), /// green
+      xz : this._new_axis(this._new_v(0, 0, -this.size), this._new_v(0, 0, this.size), 0x0000FF), /// blue
       distances1 : this._new_marker(3000, 40),
       distances2 : this._new_marker(2000, 20),
       distances3 : this._new_marker(1000, 20)

@@ -58,8 +58,8 @@ Omega.ShipAttackInteractions = {
 
   /// Internal helper to set attacker movement
   _move_for_attack : function(page, target){
-    var _this;
-    var distance = Omega.Config.follow_distance;
+    var _this = this;
+    var distance = this.attack_distance / 2;
     var strategy = this.weapons_class_type() == 'light' ? 'figure8' : 'follow';
     page.node.http_invoke('manufactured::follow_entity',
                           this.id, target.id, distance, strategy,

@@ -5,38 +5,30 @@
  */
 
 //= require "ui/particles"
+//= require "ui/canvas/particles/base"
 
-//= require "ui/canvas/has_target"
+//= require "omega/ship/attack/projectile"
 
 Omega.ShipMissile = function(args){
   if(!args) args = {};
   var event_cb = args['event_cb'];
-  var mesh     = args['mesh'];
-  var material = args['material'];
-  var geometry = args['geometry'];
 
-
-  if(mesh)                       this.mesh = mesh;
-  else if(material && geometry)  this.mesh = new THREE.Mesh(geometry, material);
-
-  this.location = new Omega.Location({movement_strategy : { distance : this.arrival_distance}});
-  this.clock    = new THREE.Clock();
+  this.init_projectile(args);
   this.init_particles(event_cb);
+
+  /// offset particles so they are emerging from end of missile, not middle
+  this.particles.mesh.position.set(0, 0, -50);
+  this.mesh.add(this.particles.mesh);
 };
 
 Omega.ShipMissile.prototype = {
-  speed           : 100000,
-  rot_theta       : 0.35,
-  theta_tolerance : Math.PI / 32,
-  launch_distance :  500,
-  arrival_distance:   50,
+  speed            : 1000000,
+  rot_theta        : 0.55,
+  theta_tolerance  : Math.PI / 32,
+  launch_distance  :  250,
+  arrival_distance :   50,
 
-  particle_age    :     1,
-  particle_speed  :     1,
-
-  components : function(){
-    return [this.mesh, this.particles.mesh];
-  },
+  particle_age     :     1,
 
   _particle_group : function(event_cb){
     return new SPE.Group({
@@ -56,36 +48,16 @@ Omega.ShipMissile.prototype = {
       colorStart      : new THREE.Color(0xAB0000),
       colorEnd        : new THREE.Color(0xFF0000),
       positionSpread  : new THREE.Vector3(0, 0, 1),
-      speed           : this.particle_speed,
-      angleAlignVelocity : true
+      velocity        : new THREE.Vector3(0, 0, -50)
     });
+  },
+
+  components : function(){
+    return [this.mesh];
   },
 
   clone : function(){
     return new Omega.ShipMissile({mesh : this.mesh.clone()});
-  },
-
-  set_source : function(source){
-    this.source = source;
-
-    this.location.set(source.location);
-    this.location.set_orientation(this.launch_dir());
-
-    this.align_particles();
-  },
-
-  set_target : function(target){
-    this.target = target;
-    this.location.set_tracking(target.scene_location());
-  },
-
-  near_target : function(){
-    return this.location.on_target();
-  },
-
-  launching : function(){
-    return !this.launched &&
-            this.location.distance_from(this.source.location) < this.launch_distance;
   },
 
   /// Perpendicular to original omega_entity orientation
@@ -98,49 +70,21 @@ Omega.ShipMissile.prototype = {
     return this._launch_dir;
   },
 
-  explode : function(){
-    this.source.explosions.trigger();
-  },
-
-  align_particles : function(){
-    var _this = this;
-
-    /// offset particles so they are emerging from end of missile, not middle
-    var offset = new THREE.Vector3(0, 0, -50);
-        offset.applyMatrix4(this.location.rotation_matrix());
-
-    this.particles.emitters[0].position.set(this.location.x + offset.x,
-                                            this.location.y + offset.y,
-                                            this.location.z + offset.z)
-    this.set_velocity(this.particle_age, this.location.orientation_x,
-                                         this.location.orientation_y,
-                                         this.location.orientation_z);
-  },
-
   move_to_target : function(){
     var delta = this.clock.getDelta();
-    if(!this.launching()){
-      if(!this.launched) this.location.face_target();
-      this.launched = true;
-
-      var rot_angle = this.rot_theta * delta;
-      if(!this.location.facing_target(this.theta_tolerance))
-        this.location.rotate_orientation(rot_angle);
-    }
-
-    var distance = this.speed * delta / 1000;
-    this.location.move_linear(distance);
-
-    this.align_particles();
     this.particles.tick(delta);
 
-    this.mesh.rotation.setFromRotationMatrix(this.location.rotation_matrix());
-    this.mesh.position.set(this.location.x,
-                           this.location.y,
-                           this.location.z);
+    if(!this.launching()){
+      if(!this.launched) this._mark_launched();
+      this._face_target(delta);
+    }
+
+    this._move_linear(delta);
+    this._update_component();
   }
 };
 
+$.extend(Omega.ShipMissile.prototype, Omega.ShipProjectile);
 $.extend(Omega.ShipMissile.prototype, Omega.UI.BaseParticles.prototype);
 
 Omega.ShipMissile.geometry_for = function(type, cb){

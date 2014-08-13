@@ -87,10 +87,11 @@ class Attack < Omega::Server::Command
 
   def last_hook
     @attacker.stop_attacking
+    ::RJR::Logger.info "#{@attacker.id} stopped attacking #{@defender.id}"
 
     # check if defender has been destroyed
     if @defender.hp == 0
-      ::RJR::Logger.debug "#{@attacker.id} destroyed #{@defender.id}"
+      ::RJR::Logger.info "#{@attacker.id} destroyed #{@defender.id}"
 
       # update ship's movement strategy to stopped
       @defender.location.movement_strategy = Motel::MovementStrategies::Stopped.instance

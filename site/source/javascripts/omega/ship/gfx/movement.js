@@ -80,7 +80,7 @@ Omega.ShipGfxMovement = {
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
     loc.set_tracking(tracked.location);
 
-    /// TODO leverage rotating & inverted flags
+    /// TODO set / leverage inverted flags
     var near_target   = loc.on_target();
     var facing_target = loc.facing_target(Math.PI / 64);
     if(!near_target && !this.rotating)
