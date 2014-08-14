@@ -16,8 +16,8 @@
 //= require "ui/canvas"
 //= require "ui/audio_controls"
 
-//= require "ui/pages/index_nav"
-//= require "ui/pages/index_dialog"
+//= require "pages/index/nav"
+//= require "pages/index/dialog"
 
 //= require "ui/splash"
 

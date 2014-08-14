@@ -6,8 +6,8 @@
 
 //= require "ui/session_validator"
 
-//= require "ui/pages/account_details"
-//= require "ui/pages/account_dialog"
+//= require "pages/account/details"
+//= require "pages/account/dialog"
 
 //= require "ui/splash"
 
