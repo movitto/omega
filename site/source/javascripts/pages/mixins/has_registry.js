@@ -1,4 +1,4 @@
-/* Omega JS Entity Registry
+/* Omega Page Registry Mixin
  *
  * Provides simple mechanism to store / track entities in memory
  *
@@ -6,13 +6,11 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.Registry = function(parameters){
-  this.entities = {};
+Omega.Pages.HasRegistry = {
+  init_registry : function(){
+    this.clear_entities();
+  },
 
-  $.extend(this, parameters);
-};
-
-Omega.UI.Registry.prototype = {
   /// clear all entities
   clear_entities : function(){
     this.entities = {};
@@ -55,5 +53,33 @@ Omega.UI.Registry.prototype = {
              (c.json_class == 'Manufactured::Ship' ||
               c.json_class == 'Manufactured::Station');
     });
-  }
+  },
+
+  /// Generate a map of entities to be manipulated in variousw
+  /// ways depending on their properties.
+  //
+  /// Assuming user owned entities are always tracked,
+  /// and do not to be manipulated here
+  entity_map : function(root){
+    var _this = this;
+    var entities = {};
+    entities.manu = $.grep(this.all_entities(), function(entity){
+      return (entity.json_class == 'Manufactured::Ship' ||
+              entity.json_class == 'Manufactured::Station');
+    });
+    entities.user_owned = this.session == null ? [] :
+      $.grep(entities.manu, function(entity){
+        return entity.belongs_to_user(_this.session.user_id);
+      });
+    entities.not_user_owned = this.session == null ? entities.manu :
+      $.grep(entities.manu, function(entity){
+        return !entity.belongs_to_user(_this.session.user_id);
+      });
+    entities.stop_tracking = $.grep(entities.manu, function(entity){
+      /// stop tracking entities not-user owned entities not in scene
+      return entities.not_user_owned.indexOf(entity) != -1 &&
+             entity.system_id != root.id;
+    });
+    return entities;
+  },
 };

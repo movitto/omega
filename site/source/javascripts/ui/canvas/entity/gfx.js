@@ -1,11 +1,11 @@
-/* Omega Base Entity Graphics
+/* Omega Base Canvas Entity Graphics
  *
  * Copyright (C) 2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-// Base Entity GFX Mixin
-Omega.EntityGfx = {
+// Base Canvas Entity GFX Mixin
+Omega.UI.CanvasEntityGfx = {
   /// Returns location which to render gfx components, overridable
   scene_location : function(){
     return this.location;
@@ -36,8 +36,9 @@ Omega.EntityGfx = {
   // Return graphics tracker for local entity class & optional type,
   // initializing if it doesn't exist
   _gfx_tracker : function(){
-    var gfx = Omega.EntityGfx._tracker = Omega.EntityGfx._tracker ||
-                                         {loaded : {}, resources : {}};
+    var gfx = Omega.UI.CanvasEntityGfx._tracker =
+              Omega.UI.CanvasEntityGfx._tracker ||
+              {loaded : {}, resources : {}};
 
     if(this._has_type()){
       gfx['loaded'][this.json_class]               = gfx['loaded'][this.json_class] || {};
@@ -100,4 +101,4 @@ Omega.EntityGfx = {
   }
 }; // Omega.EntityGfx
 
-THREE.EventDispatcher.prototype.apply( Omega.EntityGfx );
+THREE.EventDispatcher.prototype.apply( Omega.UI.CanvasEntityGfx );

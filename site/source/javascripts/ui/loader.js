@@ -9,7 +9,7 @@
 //= require "omega/stat"
 
 /// Provides high level operations to load resources and data
-/// from various locations
+/// from various locations.
 Omega.UI.Loader = {
   placeholder : 'PLACEHOLDER',
   status_indicator : null,

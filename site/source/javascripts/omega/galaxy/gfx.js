@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require "omega/galaxy/density_wave"
 
 // Galaxy GFX Mixin
@@ -59,4 +59,4 @@ Omega.GalaxyGfx = {
   }
 };
 
-$.extend(Omega.GalaxyGfx, Omega.EntityGfx);
+$.extend(Omega.GalaxyGfx, Omega.UI.CanvasEntityGfx);

@@ -6,44 +6,20 @@
 
 //= require "vendor/purl"
 
+//= require "pages/mixins/base"
+//= require "pages/mixins/redirect"
+//= require "pages/confirm/registration""
+
 Omega.Pages.Confirm = function(){
-  this.node    = new Omega.Node();
+  this.init_page();
 };
 
-Omega.Pages.Confirm.prototype = {
-  /// XXX needed to stub out get/set window location in test suite
-  url : function(){
-    return window.location;
-  },
-  redirect_to : function(value){
-    window.location = value;
-  },
-
-  registration_code : function(){
-    var url = $.url(this.url());
-    return url.param('rc');
-  },
-
-  confirm_registration : function(){
-    var _this = this
-    var code = this.registration_code();
-    this.node.http_invoke('users::confirm_register', code,
-      function(response){ _this._registration_response(); });
-  },
-
-  _registration_response : function(){
-    /// XXX
-    alert("Done... redirecting");
-
-    var host   = Omega.Config.http_host;
-    var prefix = Omega.Config.url_prefix;
-    this.redirect_to('http://'+host+prefix);
-  }
-};
+$.extend(Omega.Pages.Confirm.prototype, Omega.Pages.Base);
+$.extend(Omega.Pages.Confirm.prototype, Omega.Pages.Redirect);
+$.extend(Omega.Pages.Confirm.prototype, Omega.Pages.ConfirmRegistration);
 
 $(document).ready(function(){
   if(Omega.Test) return;
 
-  var dev = new Omega.Pages.Confirm();
-  dev.confirm_registration();
+  new Omega.Pages.Confirm().confirm_registration();
 });

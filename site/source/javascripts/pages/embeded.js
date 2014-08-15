@@ -17,36 +17,28 @@
 //= require "omega/common"
 //= require "config"
 
-//= require "ui/registry"
-//= require "ui/canvas"
-//= require "ui/effects_player"
-//= require "ui/audio_controls"
+//= require "pages/mixins/base"
+//= require "pages/mixins/has_registry"
+//= require "pages/mixins/has_canvas"
+//= require "pages/mixins/has_audio"
 
+//= require "pages/embedded/init"
+//= require "pages/embedded/runner"
+
+/// Include Omega in your web page by including embedded.js in your DOM and running:
+///   var page = new Omega.Pages.Embedded();
+///   page.wire_up().start();
 Omega.Pages.Embeded = function(){
-  this.entities       = {};
-  this.node           = new Omega.Node();
-  this.canvas         = new Omega.UI.Canvas({page: this});
-  this.effects_player = new Omega.UI.EffectsPlayer({page: this});
-  this.audio_controls = new Omega.UI.AudioControls();
+  this.init_page();
+  this.init_registry();
+  this.init_canvas();
+  this.init_audio();
 }
 
-Omega.Pages.Embeded.prototype = {
-  wire_up : function(){
-    this.canvas.wire_up();
-    this.effects_player.wire_up();
-    this.audio_controls.wire_up();
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.Base);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasRegistry);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasCanvas);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasAudio);
 
-    /// audio disabled by default
-    //this.audio_controls.toggle();
-  },
-
-  start : function(){
-    this.effects_player.start();
-  },
-
-  setup : function(){
-    this.canvas.setup();
-  }
-}
-
-$.extend(Omega.Pages.Embeded.prototype, new Omega.UI.Registry());
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.EmbeddedInitializer);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.EmbeddedRunner);

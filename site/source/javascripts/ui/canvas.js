@@ -7,18 +7,14 @@
 //= require "ui/canvas/dialog"
 //= require "ui/canvas/controls"
 //= require "ui/canvas/entity_container"
-//= require "ui/canvas/skybox"
-//= require "ui/canvas/axis"
-//= require "ui/canvas/star_dust"
+//= require "ui/canvas/components/skybox"
+//= require "ui/canvas/components/axis"
+//= require "ui/canvas/components/star_dust"
 
-//= require "ui/canvas_mixins/mouse"
-//= require "ui/canvas_mixins/scene"
-//= require "ui/canvas_mixins/entities"
-//= require "ui/canvas_mixins/cam"
-
-// TODO remove these two from here (?)
-//= require 'ui/canvas/lamp'
-//= require 'ui/canvas/progress_bar'
+//= require "ui/canvas/mixins/mouse"
+//= require "ui/canvas/mixins/scene"
+//= require "ui/canvas/mixins/entities"
+//= require "ui/canvas/mixins/cam"
 
 Omega.UI.Canvas = function(parameters){
   this.controls         = new Omega.UI.CanvasControls({canvas: this});

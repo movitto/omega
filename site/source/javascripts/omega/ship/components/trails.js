@@ -6,8 +6,8 @@
 
 //= require "ui/particles"
 
-//= require "ui/canvas/particles/base"
-//= require "ui/canvas/particles/updatable"
+//= require "ui/canvas/components/particles/base"
+//= require "ui/canvas/components/particles/updatable"
 
 Omega.ShipTrails = function(args){
   if(!args) args = {};

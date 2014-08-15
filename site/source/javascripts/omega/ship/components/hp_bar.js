@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require 'ui/canvas/components/progress_bar'
+
 Omega.ShipHpBar = function(args){
   if(!args) args = {};
   this.bar = args['bar'] || this.load_bar();

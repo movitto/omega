@@ -6,115 +6,51 @@
 
 /// TODO auto-logout on session timeout
 
-//= require "ui/registry"
-//= require "ui/canvas_tracker"
-//= require "ui/command_tracker"
-//= require "ui/session_validator"
+//= require "pages/mixins/base"
+//= require "pages/mixins/has_registry"
+//= require "pages/mixins/has_canvas"
+//= require "pages/mixins/has_audio"
 
-//= require "ui/effects_player"
-//= require "ui/status_indicator"
-//= require "ui/canvas"
-//= require "ui/audio_controls"
+//= require "pages/mixins/event_handler"
+//= require "pages/mixins/scene_tracker"
 
-//= require "pages/index/nav"
-//= require "pages/index/dialog"
+//= require "pages/mixins/validates_session"
+//= require "pages/mixins/autologin"
+//= require "pages/mixins/root_autoloader"
 
-//= require "ui/splash"
+//= require "pages/index/init"
+//= require "pages/index/runner"
+//= require "pages/index/session"
+//= require "pages/index/entity_processor"
+//= require "pages/index/unload"
 
 //= require "omega/constraint"
 
 Omega.Pages.Index = function(){
-  this.node             = new Omega.Node();
-  this.command_tracker  = new Omega.UI.CommandTracker({page : this})
-  this.effects_player   = new Omega.UI.EffectsPlayer({page : this});
-  this.dialog           = new Omega.UI.IndexDialog({page : this});
-  this.nav              = new    Omega.UI.IndexNav({page : this});
-  this.canvas           = new       Omega.UI.Canvas({page: this});
-  this.status_indicator = new Omega.UI.StatusIndicator();
-  this.audio_controls   = new Omega.UI.AudioControls();
-  this.splash           = new Omega.UI.SplashScreen({page : this});
+  this.init_page();
+  this.init_registry();
+  this.init_canvas();
+  this.init_audio();
+  this.init_index();
 };
 
-Omega.Pages.Index.prototype = {
-  wire_up : function(){
-    this.nav.wire_up();
-    this.dialog.wire_up();
-    this.dialog.follow_node(this.node);
-    this.splash.wire_up();
-    this.canvas.wire_up();
-    this.audio_controls.wire_up();
-    this.handle_scene_changes();
-    this.status_indicator.follow_node(this.node, 'loading');
-    this.effects_player.wire_up();
-    this._wire_up_fullscreen();
-  },
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.Base);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.HasRegistry);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.HasCanvas);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.HasAudio);
 
-  /// switch to fullscreen on ctrl-f or ctrl-F
-  _wire_up_fullscreen : function(){
-    $(document).keypress(function(evnt){
-      var F = 70, f = 102;
-      if(evnt.ctrlKey == 1 && (evnt.which == F || evnt.which == f))
-        Omega.fullscreen.request(document.documentElement);
-    });
-  },
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.EventHandler);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.SceneTracker);
 
-  /// cleanup index page operations
-  unload : function(){
-    this.unloading = true;
-    this.node.close();
-  },
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.ValidatesSession);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.Autologin);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.RootAutoloader);
 
-  start : function(){
-    if(!this.canvas.detect_webgl()){
-      var msg = 'A WebGL capable browser is currently required';
-      this.dialog.show_critical_err_dialog('WebGL Required', msg);
-      return;
-    }
-
-    this.effects_player.start();
-    this.splash.start();
-
-    var _this = this;
-    if(this._should_autologin()){
-      this.autologin(function() { _this._valid_session(); });
-
-    }else{
-      this.validate_session(
-        function(){ _this._valid_session();   }, // validated
-        function(){ _this._invalid_session(); }  // invalid
-      );
-    }
-  },
-
-  _valid_session : function(){
-    var _this = this;
-    Omega.UI.Loader.load_universe(this, function(){
-      Omega.UI.Loader.load_user_entities(_this.session.user_id, _this.node,
-        function(entities) {
-          _this.process_entities(entities);
-          if(_this._should_autoload_root())
-            _this.autoload_root();
-        });
-    });
-  },
-
-  _invalid_session : function(){
-    var _this = this;
-    Omega.UI.Loader.load_universe(this, function(){
-      Omega.UI.Loader.load_default_systems(_this,
-        function(solar_system) {
-          _this.process_system(solar_system);
-          /// FIXME should be invoked after we get _all_ default systems
-          if(_this._should_autoload_root())
-            _this.autoload_root();
-        });
-    });
-  }
-};
-
-$.extend(Omega.Pages.Index.prototype, new Omega.UI.Registry());
-$.extend(Omega.Pages.Index.prototype, Omega.UI.CanvasTracker);
-$.extend(Omega.Pages.Index.prototype, Omega.UI.SessionValidator);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.IndexInitializer);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.IndexRunner);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.IndexSession);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.IndexEntityProcessor);
+$.extend(Omega.Pages.Index.prototype, Omega.Pages.IndexUnloader);
 
 $(document).ready(function(){
   if(Omega.Test) return;
@@ -130,7 +66,6 @@ $(document).ready(function(){
 
   /// wire up / startup ui
   index.wire_up();
-  index.canvas.setup();
   index.start();
 
   $(window).on('beforeunload', function(){

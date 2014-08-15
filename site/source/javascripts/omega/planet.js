@@ -6,7 +6,7 @@
 
 // TODO also load planet moons
 
-//= require 'ui/canvas/orbit'
+//= require 'ui/canvas/components/orbit'
 //= require 'omega/planet/gfx'
 
 Omega.Planet = function(parameters){

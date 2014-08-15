@@ -28,7 +28,7 @@
 //= require "omega/stat"
 
 //= require "ui/loader"
-//= require "ui/resource_loader"
+//= require "ui/async_resource_loader"
 
 //= require "omega/resource"
 //= require "omega/galaxy"

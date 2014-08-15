@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 
 //= require 'omega/station/mesh'
 //= require 'omega/station/highlight'
@@ -32,7 +32,7 @@ Omega.StationGfx = {
 
     var mesh_resource = 'station.' + this.type + '.mesh_geometry';
     var mesh_geometry = Omega.StationMesh.geometry_for(this.type);
-    Omega.UI.ResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+    Omega.UI.AsyncResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
   },
 
   _load_lamps : function(){
@@ -90,7 +90,7 @@ Omega.StationGfx = {
   _init_mesh : function(){
     var _this = this;
     var mesh_geometry = 'station.' + this.type + '.mesh_geometry';
-    Omega.UI.ResourceLoader.retrieve(mesh_geometry, function(geometry){
+    Omega.UI.AsyncResourceLoader.retrieve(mesh_geometry, function(geometry){
       var material = _this._retrieve_resource('mesh_material');
       var mesh = new Omega.ShipMesh({material: material.clone(),
                                      geometry: geometry.clone()});
@@ -168,4 +168,4 @@ Omega.StationGfx = {
 Omega.StationGfx._run_movement_effects = Omega.StationGfx._run_movement;
 
 $.extend(Omega.StationGfx, Omega.StationConstructionGfxHelpers);
-$.extend(Omega.StationGfx, Omega.EntityGfx);
+$.extend(Omega.StationGfx, Omega.UI.CanvasEntityGfx);

@@ -1,11 +1,11 @@
-/* Omega JS Index Nav UI Component
+/* Omega JS Index Page Nav Component
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
 // TODO rename to Omega.Pages.Index.Nav ? (same w/ Dialog below)
-Omega.UI.IndexNav = function(parameters){
+Omega.Pages.IndexNav = function(parameters){
   this.register_link = $('#register_link');
   this.login_link    = $('#login_link');
   this.logout_link   = $('#logout_link');
@@ -20,7 +20,7 @@ Omega.UI.IndexNav = function(parameters){
   $.extend(this, parameters);
 };
 
-Omega.UI.IndexNav.prototype = {
+Omega.Pages.IndexNav.prototype = {
   wire_up : function(){
     var _this = this;
     this.login_link.click(function(evnt)   {    _this._login_clicked(evnt); });

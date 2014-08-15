@@ -1,11 +1,10 @@
-/* Omega JS Resource Loader
+/* Omega JS Async Resource Loader
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-/// TODO rename to AsyncResourceLoader
-Omega.UI.ResourceLoader = {
+Omega.UI.AsyncResourceLoader = {
   _resources : function(){
     if(this.__resources) return this.__resources;
     this.__resources = {};
@@ -78,4 +77,4 @@ Omega.UI.ResourceLoader = {
   }
 };
 
-THREE.EventDispatcher.prototype.apply( Omega.UI.ResourceLoader );
+THREE.EventDispatcher.prototype.apply( Omega.UI.AsyncResourceLoader );

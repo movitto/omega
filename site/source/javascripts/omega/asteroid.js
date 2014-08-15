@@ -7,8 +7,6 @@
 //= require "omega/asteroid/commands"
 //= require "omega/asteroid/gfx"
 
-//= require 'ui/resource_loader'
-
 Omega.Asteroid = function(parameters){
   this.components = [];
   this.shader_components = [];

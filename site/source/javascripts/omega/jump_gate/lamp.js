@@ -4,6 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require 'ui/canvas/components/lamp'
+
 Omega.JumpGateLamp = function(){
   /// omega lamps
   this.olamp = this.init_lamp();

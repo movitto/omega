@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require "omega/planet/axis"
 //= require "omega/planet/mesh"
 
@@ -103,4 +103,4 @@ Omega.PlanetGfx = {
   }
 }
 
-$.extend(Omega.PlanetGfx, Omega.EntityGfx);
+$.extend(Omega.PlanetGfx, Omega.UI.CanvasEntityGfx);

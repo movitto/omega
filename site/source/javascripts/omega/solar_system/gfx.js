@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require "omega/solar_system/mesh"
 //= require "omega/solar_system/text"
 //= require "omega/solar_system/plane"
@@ -122,4 +122,4 @@ Omega.SolarSystemGfx = {
   }
 };
 
-$.extend(Omega.SolarSystemGfx, Omega.EntityGfx);
+$.extend(Omega.SolarSystemGfx, Omega.UI.CanvasEntityGfx);

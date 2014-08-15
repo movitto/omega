@@ -17,6 +17,7 @@ Omega.Callbacks.attacked_stop = function(event, event_args){
   if(pattacker == null || pdefender == null) return;
   pattacker.attacking = null;
 
+  /// TODO stop movement
   if(this.page.canvas.is_root(pattacker.parent_id)){
     this.page.canvas.reload(pattacker, function(){
       pattacker.update_attack_gfx();

@@ -4,65 +4,22 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require "pages/mixins/base"
+
+//= require "pages/stats/init"
+//= require "pages/stats/session"
+//= require "pages/stats/runner"
+
 Omega.Pages.Stats = function(){
-  this.stat_results = {};
-  this.node    = new Omega.Node();
+  this.init_page();
+  this.init_stats();
 }
 
-Omega.Pages.Stats.prototype = {
-  interval : 3000,
+$.extend(Omega.Pages.Stats.prototype, Omega.Pages.Base);
 
-  login : function(cb){
-    /// XXX disable session cookies globally
-    Omega.Session.cookies_enabled = false;
-
-    /// login anon user
-    var anon = new Omega.User({id       : Omega.Config.anon_user,
-                               password : Omega.Config.anon_pass});
-    Omega.Session.login(anon, this.node, cb);
-  },
-
-  start : function(){
-    var _this = this;
-    this.stats_timer =
-      $.timer(function(){
-        _this.retrieve_stats();
-      }, Omega.Pages.Stats.prototype.interval, true);
-  },
-
-  retrieve_stats : function(){
-    var _this = this;
-    for(var s = 0; s < Omega.Config.stats.length; s++){
-      var stat      = Omega.Config.stats[s];
-      var stat_id   = stat[0];
-      var stat_args = stat[1];
-      Omega.Stat.get(stat_id, stat_args, this.node,
-        function(stat_result){
-          if(stat_result){
-            _this.update_stats(stat_result);
-            _this.refresh_stats();
-          }
-        });
-    }
-  },
-
-  update_stats : function(stat_result){
-    var stat = stat_result.stat;
-    this.stat_results[stat.stat_id] = stat_result;
-  },
-
-  refresh_stats : function(){
-    var container = $('#stats ul');
-    container.html('');
-    for(var s in this.stat_results){
-      var stat_result = this.stat_results[s];
-      var stat = stat_result.stat;
-      var stat_txt = stat.description + ": " + stat_result.value;
-      var stat_li  = $("<li/>", {text : stat_txt});
-      container.append(stat_li);
-    }
-  }
-}
+$.extend(Omega.Pages.Stats.prototype, Omega.Pages.StatsInitializer);
+$.extend(Omega.Pages.Stats.prototype, Omega.Pages.StatsSession);
+$.extend(Omega.Pages.Stats.prototype, Omega.Pages.StatsRunner);
 
 $(document).ready(function(){
   if(Omega.Test) return;

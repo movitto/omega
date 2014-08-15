@@ -5,7 +5,7 @@
  */
 
 //= require "ui/particles"
-//= require "ui/canvas/particles/base"
+//= require "ui/canvas/components/particles/base"
 
 //= require "omega/ship/attack/projectile"
 

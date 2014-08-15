@@ -4,7 +4,7 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/canvas/has_target"
+//= require "ui/canvas/components/has_target"
 
 Omega.UI.TargetedParticles = function(){};
 

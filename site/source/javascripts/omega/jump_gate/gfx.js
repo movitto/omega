@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require 'omega/jump_gate/mesh'
 //= require 'omega/jump_gate/lamp'
 //= require 'omega/jump_gate/particles'
@@ -26,7 +26,7 @@ Omega.JumpGateGfx = {
   _load_geometry : function(event_cb){
     var geo_resource  = 'jump_gate.geometry';
     var mesh_geometry = Omega.JumpGateMesh.geometry();
-    Omega.UI.ResourceLoader.load(geo_resource, mesh_geometry, event_cb);
+    Omega.UI.AsyncResourceLoader.load(geo_resource, mesh_geometry, event_cb);
   },
 
   /// Load shared graphics resources
@@ -65,7 +65,7 @@ Omega.JumpGateGfx = {
 
   _init_mesh : function(){
     var _this = this;
-    Omega.UI.ResourceLoader.retrieve('jump_gate.geometry', function(geometry){
+    Omega.UI.AsyncResourceLoader.retrieve('jump_gate.geometry', function(geometry){
       var material = _this._retrieve_resource('mesh_material').material;
       var mesh     = new Omega.JumpGateMesh({geometry : geometry,
                                              material : material});
@@ -109,4 +109,4 @@ Omega.JumpGateGfx = {
   }
 }
 
-$.extend(Omega.JumpGateGfx, Omega.EntityGfx);
+$.extend(Omega.JumpGateGfx, Omega.UI.CanvasEntityGfx);

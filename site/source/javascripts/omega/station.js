@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require 'ui/canvas/orbit'
+//= require 'ui/canvas/components/orbit'
 //= require "omega/station/commands"
 //= require "omega/station/interact"
 //= require "omega/station/gfx"

@@ -54,11 +54,11 @@ Omega.ShipGfxLoader = {
 
     var mesh_resource = 'ship.' + this.type + '.mesh_geometry';
     var mesh_geometry = Omega.ShipMesh.geometry_for(this.type);
-    Omega.UI.ResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+    Omega.UI.AsyncResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
 
     var missile_resource = 'ship.' + this.type + '.missile_geometry';
     var missile_geometry = Omega.ShipMissile.geometry_for(this.type);
-    Omega.UI.ResourceLoader.load(missile_resource, missile_geometry, event_cb);
+    Omega.UI.AsyncResourceLoader.load(missile_resource, missile_geometry, event_cb);
   },
 
   /// Load shared graphics resources

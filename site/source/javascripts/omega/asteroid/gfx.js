@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require "omega/asteroid/mesh"
 
 // Asteroid GFX Mixin
@@ -18,7 +18,7 @@ Omega.AsteroidGfx = {
   _load_geometries : function(event_cb){
     var resource = 'asteroid.meshes';
     var geometry_paths  = Omega.AsteroidMesh.geometry_paths();
-    Omega.UI.ResourceLoader.load(resource, geometry_paths, event_cb);
+    Omega.UI.AsyncResourceLoader.load(resource, geometry_paths, event_cb);
   },
 
   load_gfx : function(event_cb){
@@ -34,7 +34,7 @@ Omega.AsteroidGfx = {
     var mesh_num   = Math.floor(Math.random() * num_meshes);
 
     var _this = this;
-    Omega.UI.ResourceLoader.retrieve('asteroid.meshes', function(geometries){
+    Omega.UI.AsyncResourceLoader.retrieve('asteroid.meshes', function(geometries){
       var material = _this._retrieve_resource('mesh_material').material;
       var geometry = geometries[mesh_num];
       var mesh = new Omega.AsteroidMesh({material: material, geometry: geometry});
@@ -65,4 +65,4 @@ Omega.AsteroidGfx = {
   },
 };
 
-$.extend(Omega.AsteroidGfx, Omega.EntityGfx);
+$.extend(Omega.AsteroidGfx, Omega.UI.CanvasEntityGfx);

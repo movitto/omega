@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx_stub"
+//= require "ui/canvas/entity/gfx_stub"
 
 Omega.ShipGfxInitializer = {
   debug_gfx : false,
@@ -13,8 +13,8 @@ Omega.ShipGfxInitializer = {
 
   _init_stubs : function(){
     /// stub out asynchronously loaded components until they are available
-    this.mesh = Omega.EntityGfxStub.instance();
-    this.missiles = Omega.EntityGfxStub.instance();
+    this.mesh = Omega.UI.CanvasEntityGfxStub.instance();
+    this.missiles = Omega.UI.CanvasEntityGfxStub.instance();
   },
 
   _init_components : function(){
@@ -129,7 +129,7 @@ Omega.ShipGfxInitializer = {
     var _this = this;
 
     var mesh_geometry = 'ship.' + this.type + '.mesh_geometry';
-    Omega.UI.ResourceLoader.retrieve(mesh_geometry, function(geometry){
+    Omega.UI.AsyncResourceLoader.retrieve(mesh_geometry, function(geometry){
       var material = _this._retrieve_resource('mesh_material').material;
       var mesh = new Omega.ShipMesh({material: material.clone(),
                                      geometry: geometry.clone()});
@@ -149,7 +149,7 @@ Omega.ShipGfxInitializer = {
     var _this     = this;
 
     var missile_geometry = 'ship.' + this.type + '.missile_geometry';
-    Omega.UI.ResourceLoader.retrieve(missile_geometry, function(geometry){
+    Omega.UI.AsyncResourceLoader.retrieve(missile_geometry, function(geometry){
       var material = new THREE.MeshBasicMaterial({color : 0x000000});
       var template = new Omega.ShipMissile({geometry: geometry.clone(),
                                             material: material});
@@ -205,6 +205,6 @@ Omega.ShipGfxInitializer = {
       case "light": return this.artillery;
       case "heavy": return this.missiles;
     }
-    return Omega.EntityGfxStub.instance();
+    return Omega.UI.CanvasEntityGfxStub.instance();
   }
 };

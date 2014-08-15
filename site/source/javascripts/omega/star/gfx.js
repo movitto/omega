@@ -6,7 +6,7 @@
 
 /// TODO solar flares
 
-//= require "omega/entity/gfx"
+//= require "ui/canvas/entity/gfx"
 //= require "omega/star/mesh"
 //= require "omega/star/glow"
 //= require "omega/star/light"
@@ -71,4 +71,4 @@ Omega.StarGfx = {
   update_gfx : function(){}
 };
 
-$.extend(Omega.StarGfx, Omega.EntityGfx);
+$.extend(Omega.StarGfx, Omega.UI.CanvasEntityGfx);

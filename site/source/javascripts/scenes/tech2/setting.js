@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require 'ui/canvas/skybox'
+//= require 'ui/canvas/components/skybox'
 //= require 'omega/gen'
 
 Omega.Scenes.Tech2Setting = function(){

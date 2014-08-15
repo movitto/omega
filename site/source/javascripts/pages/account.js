@@ -4,12 +4,13 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/session_validator"
+//= require "pages/mixins/base"
+//= require "pages/mixins/validates_session"
 
-//= require "pages/account/details"
-//= require "pages/account/dialog"
-
-//= require "ui/splash"
+//= require_tree "pages/account/init"
+//= require_tree "pages/account/runner"
+//= require_tree "pages/account/session"
+//= require_tree "pages/account/entity_processor"
 
 /// TODO account option where user can setup
 ///      uri's to stream background audio from
@@ -17,70 +18,17 @@
 /// TODO framerate config on accounts page (slider)
 
 Omega.Pages.Account = function(){
-  this.node    = new Omega.Node();
-  this.dialog  = new Omega.UI.AccountDialog();
-  this.details = new Omega.UI.AccountDetails();
+  this.init_page();
+  this.init_account();
 };
 
-Omega.Pages.Account.prototype = {
-  wire_up : function(){
-    this.details.wire_up();
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.Base);
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.ValidatesSession);
 
-    $('#account_info_clear_notices').on('click', function(){
-      new Omega.UI.SplashScreen().clear_notices();
-    });
-  },
-
-  start : function(){
-    var _this = this;
-    this.validate_session(
-      function(){ _this._valid_session(); }, /// validated
-      function(){}                           /// invalid - TODO redirect to index?
-    );
-  },
-
-  _valid_session : function(){
-    var _this = this;
-    var user  = this.session.user;
-    this.details.set(user);
-
-    /// load entities owned by user
-    Omega.Ship.owned_by(user.id, this.node,
-      function(ships) { _this.process_entities(ships); });
-    Omega.Station.owned_by(user.id, this.node,
-      function(stations) { _this.process_entities(stations); });
-
-    /// load user stats
-    /// TODO configurable stats
-    Omega.Stat.get('users_with_most', ['entities', 10], this.node,
-      function(stat_result) { _this.process_stat(stat_result); });
-  },
-
-  process_entities : function(entities){
-    for(var e = 0; e < entities.length; e++){
-      var entity = entities[e];
-      this.process_entity(entity);
-    }
-  },
-
-  process_entity : function(entity){
-    this.details.entity(entity);
-  },
-
-  process_stat : function(stat_result){
-    if(stat_result == null) return;
-    var stat = stat_result.stat;
-    for(var v = 0; v < stat_result.value.length; v++){
-      var value = stat_result.value[v];
-      if(value == this.session.user_id){
-        this.details.add_badge(stat.id, stat.description, v)
-        break;
-      }
-    }
-  }
-};
-
-$.extend(Omega.Pages.Account.prototype, Omega.UI.SessionValidator);
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.AccountInitializer);
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.AccountRunner);
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.AccountSession);
+$.extend(Omega.Pages.Account.prototype, Omega.Pages.AccountEntityProcessor);
 
 $(document).ready(function(){
   if(Omega.Test) return;

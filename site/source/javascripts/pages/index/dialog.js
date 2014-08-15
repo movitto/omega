@@ -1,10 +1,10 @@
-/* Omega JS Index Dialog UI Component
+/* Omega JS Index Page Dialog Component
  *
  * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.IndexDialog = function(parameters){
+Omega.Pages.IndexDialog = function(parameters){
   /// need handle to page to
   /// - submit login via node
   /// - set the page session
@@ -19,7 +19,7 @@ Omega.UI.IndexDialog = function(parameters){
   this.register_button = $('#register_button');
 };
 
-Omega.UI.IndexDialog.prototype = {
+Omega.Pages.IndexDialog.prototype = {
   wire_up : function(){
     var _this = this;
     for(var l = 0; l < this.login_fields.length; l++)
@@ -137,5 +137,4 @@ Omega.UI.IndexDialog.prototype = {
   }
 };
 
-$.extend(Omega.UI.IndexDialog.prototype,
-         new Omega.UI.Dialog());
+$.extend(Omega.Pages.IndexDialog.prototype, new Omega.UI.Dialog());

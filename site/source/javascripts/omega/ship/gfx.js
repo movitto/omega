@@ -4,8 +4,8 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/entity/gfx"
-//
+//= require "ui/canvas/entity/gfx"
+
 //= require "omega/ship/gfx/components"
 //= require "omega/ship/gfx/load"
 //= require "omega/ship/gfx/init"
@@ -16,7 +16,7 @@
 // Ship GFX Mixin
 Omega.ShipGfx = {};
 
-$.extend(Omega.ShipGfx, Omega.EntityGfx);
+$.extend(Omega.ShipGfx, Omega.UI.CanvasEntityGfx);
 $.extend(Omega.ShipGfx, Omega.ShipGfxLoader);
 $.extend(Omega.ShipGfx, Omega.ShipGfxInitializer);
 $.extend(Omega.ShipGfx, Omega.ShipGfxUpdater);

@@ -1,33 +1,25 @@
-/* Omega JS Command Tracker
+/* Omega JS Callback Handler
  *
- * Copyright (C) 2013 Mohammed Morsi <mo@morsi.org>
+ * Copyright (C) 2013-2014 Mohammed Morsi <mo@morsi.org>
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
+//= require 'ui/callback_handler'
+
 //= require_tree './callbacks'
 
-Omega.UI.CommandTracker = function(parameters){
-  this.handling = [];
-
-  /// need handle to page to
-  /// - register and clear rpc handlers with node
-  /// - retrieve/update entities
-  /// - process new entities
-  /// - refresh entities in canvas scene
-  /// - refresh canvas entity container
-  this.page = null;
-
-  $.extend(this, parameters);
+Omega.CallbackHandler = function(parameters){
+  this.init_handlers(parameters);
 };
 
-Omega.UI.CommandTracker.prototype = {
+Omega.CallbackHandler.prototype = {
   /// Supported server side events
-  motel_events        : ['motel::on_movement',
-                         'motel::on_rotation',
-                         'motel::changed_strategy',
-                         'motel::location_stopped'],
+  motel_events        : [       'motel::on_movement',
+                                'motel::on_rotation',
+                                'motel::changed_strategy',
+                                'motel::location_stopped'],
   manufactured_events : ['manufactured::event_occurred'],
-  missions_events : ['missions::event_occurred'],
+  missions_events     : [    'missions::event_occurred'],
 
   /// See 'callbacks' dir for specific event handling
   _callbacks_motel_event           : Omega.Callbacks.motel,
@@ -44,6 +36,11 @@ Omega.UI.CommandTracker.prototype = {
   _callbacks_system_jump           : Omega.Callbacks.system_jump,
   _callbacks_mission_victory       : Omega.Callbacks.mission_victory,
   _callbacks_mission_failed        : Omega.Callbacks.mission_failed,
+
+  all_events : function(){
+    return this.motel_events.concat(this.manufactured_events)
+                            .concat(this.missions_events);
+  },
 
   /// Maps server side event notifications to local callback invokations
   _msg_received : function(evnt, event_args){
@@ -99,20 +96,11 @@ Omega.UI.CommandTracker.prototype = {
         this._callbacks_mission_failed(evnt, event_args);
       }
     }
-  },
-
-  /// Track specified server event,
-  /// invoking callback configured above on receiving
-  track : function(evnt){
-    if(this.handling.indexOf(evnt) != -1) return;
-    this.handling.push(evnt);
-
-    var _this = this;
-    this.page.node.addEventListener(evnt, function(node_evnt){
-      var args = [];
-      for(var a = 0; a < node_evnt.data.length; a++)
-        args.push(node_evnt.data[a]);
-      _this._msg_received(evnt, args);
-    });
   }
+};
+
+$.extend(Omega.CallbackHandler.prototype, Omega.UI.CallbackHandler);
+
+Omega.CallbackHandler.all_events = function(){
+  return Omega.CallbackHandler.prototype.all_events();
 };

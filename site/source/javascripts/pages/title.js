@@ -7,114 +7,38 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "ui/registry"
-//= require "ui/canvas"
-//= require "ui/effects_player"
-//= require "ui/audio_controls"
+//= require "pages/mixins/base"
+//= require "pages/mixins/has_registry"
+//= require "pages/mixins/has_canvas"
+//= require "pages/mixins/has_audio"
+
+//= require "pages/title/init"
+//= require "pages/title/dom"
+//= require "pages/title/runner"
+//= require "pages/title/autoplay"
+
 //= require "omega/gen"
 
-//= require "vendor/purl"
-
-//= require_tree "../scenes"
-
 Omega.Pages.Title = function(){
-  this.entities       = {};
-  this.node           = new Omega.Node();
-  this.canvas         = new Omega.UI.Canvas({page: this});
-  this.effects_player = new Omega.UI.EffectsPlayer({page: this});
-  this.audio_controls = new Omega.UI.AudioControls();
-
-  var intro = {id    : 'intro',
-               text  : 'Intro',
-               scene : new Omega.Scenes.Intro()};
-  var tech1 = {id    : 'tech1',
-               text  : 'tech demo1',
-               scene : new Omega.Scenes.Tech1()};
-  var tech2 = {id    : 'tech2',
-               text  : 'tech demo2',
-               scene : new Omega.Scenes.Tech2()};
-  this.cutscenes = [intro, tech1, tech2];
+  this.init_page();
+  this.init_registry();
+  this.init_canvas();
+  this.init_audio();
+  this.init_title();
 };
 
-Omega.Pages.Title.prototype = {
-  cutscene_control : function(){
-    return $('#cutscene_control');
-  },
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.Base);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.HasRegistry);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.HasCanvas);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.HasAudio);
 
-  cutscene_menu : function(){
-    return $('#cutscene_menu');
-  },
-
-  scene_id : function(){
-    var url = $.url(window.location);
-    return url.param('autoplay');
-  },
-
-  wire_up : function(){
-    this.canvas.wire_up();
-    this.effects_player.wire_up();
-    this.audio_controls.wire_up();
-
-    /// enable audio by default
-    this.audio_controls.toggle();
-
-    var _this = this;
-    this.cutscene_control().on('click', function(){
-      _this.cutscene_menu().toggle();
-    });
-
-    this.cutscene_menu().on('click', '.cutscene_menu_item',
-      function(evnt){
-        var cutscene = $(evnt.currentTarget).data('cutscene');
-        _this.play(cutscene.scene);
-      });
-  },
-
-  start : function(){
-    this.effects_player.start();
-
-    /// play scene specified in url
-    var scene_id = this.scene_id();
-    if(scene_id){
-      for(var s = 0; s < this.cutscenes.length; s++){
-        var cutscene = this.cutscenes[s];
-        if(cutscene.id == scene_id){
-          this.play(cutscene.scene);
-          break;
-        }
-      }
-    }
-  },
-
-  setup : function(){
-    this.canvas.setup();
-
-    /// add cuscenes to menu
-    for(var c = 0; c < this.cutscenes.length; c++){
-      var cutscene  = this.cutscenes[c];
-      var menu_item = $("<div>", {class : 'cutscene_menu_item',
-                                  text  :  cutscene.text});
-      menu_item.data('cutscene', cutscene);
-      this.cutscene_menu().append(menu_item);
-    }
-  },
-
-  play : function(scene){
-    if(this.current_scene)
-      this.current_scene.stop(this);
-    this.current_scene = scene;
-    this.canvas.reset_cam();
-    scene.run(this);
-  }
-};
-
-$.extend(Omega.Pages.Title.prototype, new Omega.UI.Registry());
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.TitleInitializer);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.TitleDOM);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.TitleRunner);
+$.extend(Omega.Pages.Title.prototype, Omega.Pages.TitleAutoplay);
 
 $(document).ready(function(){
   if(Omega.Test) return;
 
-  var dev = new Omega.Pages.Title();
-  dev.wire_up();
-  dev.setup();
-  dev.start();
+  new Omega.Pages.Title().wire_up().start();
 });
