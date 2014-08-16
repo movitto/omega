@@ -7,7 +7,7 @@
 /// TODO just load one 'base' star texture / tint it to star colors
 /// TODO dynamic texture / mesh (eg an 'active' star)
 
-//= require "omega/star/geometry"
+//= require "omega/star/components/geometry"
 
 Omega.StarMesh = function(args){
   if(!args) args = {};

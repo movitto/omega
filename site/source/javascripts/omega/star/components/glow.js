@@ -4,7 +4,7 @@
  *  Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-//= require "omega/star/geometry"
+//= require "omega/star/components/geometry"
 
 Omega.StarGlow = function(args){
   if(!args) args = {}

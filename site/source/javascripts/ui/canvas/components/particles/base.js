@@ -11,7 +11,7 @@ Omega.UI.BaseParticles = function(){};
 /// - _particle_emitter defining emitter
 Omega.UI.BaseParticles.prototype = {
   _num_emitters : function(){
-    return this.num_emitters || 1;
+    return typeof(this.num_emitters) !== "undefined" ? this.num_emitters : 1;
   },
 
   init_particles : function(event_cb){
