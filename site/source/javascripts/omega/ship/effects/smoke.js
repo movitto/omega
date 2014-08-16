@@ -11,58 +11,41 @@ Omega.ShipSmokeEffect = function(args){
   var event_cb = args['event_cb'];
 
   this.init_gfx(event_cb);
-  this._update = this._no_update;
 };
 
 Omega.ShipSmokeEffect.prototype = {
-  plane    :  15,
-  velocity :  50,
-  pps      :  150,
-  lifespan :   1,
+  plane    :  5,
+  velocity :  5,
+  count    :  500,
+  lifespan :  5,
 
   _emitter : function(){
     return this.particles.emitters[0];
   },
 
-  update : function(){
-    this._update();
-  },
-
   update_state : function(){
     var entity = this.omega_entity;
 
-    if(entity.hpp() < 0.5){
-      this._update = this._update_emitter;
-      this._update();
+    if(entity.hpp() < 0.5)
       this.enable();
-    }else{
-      this._update = this._no_update;
+    else
       this.disable();
-    }
-  },
-
-  _no_update : function(){
-  },
-
-  _update_emitter : function(){
-    var entity = this.omega_entity;
-    var loc    = entity.scene_location();
-
-    var rand = Math.random() * 25;
-    this._emitter().position.set(loc.x + rand, loc.y + 10, loc.z + rand);
   },
 
   _particle_emitter : function(){
+    var rand = Math.random() * 10;
+
     return new SPE.Emitter({
+      position           : new THREE.Vector3(rand, rand, rand),
       positionSpread     : new THREE.Vector3(this.plane, 0, this.plane),
-      colorStart         : new THREE.Color(0x663300),
-      colorEnd           : new THREE.Color(0x666666),
+      colorStart         : new THREE.Color(0x666666),
+      colorEnd           : new THREE.Color(0x663300),
       sizeStart          :   20,
-      sizeEnd            :   20,
+      sizeEnd            :    1,
       opacityStart       : 0.75,
       opacityEnd         : 0.75,
       velocity           : new THREE.Vector3(0, this.velocity, 0),
-      particlesPerSecond :  this.pps,
+      particleCount      :  this.count,
       alive              :    0,
     });
   },

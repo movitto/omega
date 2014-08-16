@@ -21,8 +21,8 @@ Omega.ShipTrails = function(args){
 };
 
 Omega.ShipTrails.prototype = {
-  lifespan             :     1,
-  particle_speed       :     1,
+  lifespan             : 0.5,
+  particle_speed       : 50,
 
   clone : function(){
     return new Omega.ShipTrails({type: this.type});
@@ -52,53 +52,25 @@ Omega.ShipTrails.prototype = {
     });
   },
 
-  _particle_emitter : function(){
+  _particle_emitter : function(num){
+    var position = this.config_trails[num];
+
     return new SPE.Emitter({
+      position        : position,
       alive           :    0,
       particleCount   : 2000,
-      sizeStart       :   40,
-      sizeEnd         :    5,
+      sizeStart       :   30,
+      sizeEnd         :   10,
       opacityStart    :    1,
       opacityEnd      :    0,
       colorStart      : new THREE.Color(0x000000),
-      colorEnd        : new THREE.Color(0x00FFFF),
+      colorEnd        : new THREE.Color(0xFF0000),
       positionSpread  : new THREE.Vector3(0, 0, 1),
-      speed           : this.particle_speed,
-      angleAlignVelocity : true
+      velocity        : new THREE.Vector3(0, 0, -this.particle_speed)
     });
   },
 
-  _update_emitters : function(e){
-    for(var t = 0; t < this._num_emitters(); t++)
-      this._update_emitter(t);
-  },
-
-  /// keep emitter position in sync w/ location
-  sync_emitter_position : function(e){
-    var loc          = this.omega_entity.scene_location();
-    var config_trail = this.config_trails[e];
-    var emitter      = this.particles.emitters[e];
-
-    emitter.position.set(loc.x, loc.y, loc.z);
-    emitter.position.add(config_trail);
-    Omega.temp_translate(emitter, loc, function(temitter){
-      Omega.rotate_position(temitter, loc.rotation_matrix());
-    });
-  },
-
-  /// rotate emitter velocity to match location orientation
-  sync_emitter_orientation : function(e){
-    var loc     = this.omega_entity.scene_location();
-    var emitter = this.particles.emitters[e];
-
-    Omega.set_emitter_velocity(emitter, loc.rotation_matrix());
-    emitter.velocity.multiplyScalar(this.particle_speed);
-  },
-
-  _update_emitter : function(e){
-    this.sync_emitter_position(e);
-    this.sync_emitter_orientation(e);
-  },
+  _update_emitters : function(){},
 
   enabled_state : function(){
     return this.num_emitters > 0 && !this.omega_entity.location.is_stopped()

@@ -40,7 +40,7 @@ Omega.ShipGfxInitializer = {
   _init_trails : function(){
     this.trails = this._retrieve_resource('trails').clone();
     this.trails.omega_entity = this;
-    if(this.trails.particles) this.components.push(this.trails.particles.mesh);
+    this.location_tracker().add(this.trails.particles.mesh);
   },
 
   _init_visited_route : function(){
@@ -110,7 +110,7 @@ Omega.ShipGfxInitializer = {
   _init_smoke : function(){
     this.smoke = this._retrieve_resource('smoke').clone();
     this.smoke.omega_entity = this;
-    this.components.push(this.smoke.particles.mesh);
+    this.position_tracker().add(this.smoke.particles.mesh);
   },
 
   _add_lamp_components : function(){
