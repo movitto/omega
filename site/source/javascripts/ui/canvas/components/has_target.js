@@ -6,13 +6,11 @@
 
 /// TODO update target_loc upon target movement / remove here
 
-Omega.UI.HasTarget = function(){};
-
 /// Subclasses should implement
 /// - target defining target
 /// - enable/disable methods toggling component if target is present
 /// - update_target_loc to update component when target location moves
-Omega.UI.HasTarget.prototype = {
+Omega.UI.HasTarget = {
   disable_target_update : function(){
     this._update_target_loc = function(){}
   },

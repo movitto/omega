@@ -57,6 +57,7 @@ Omega.UI.CanvasProgressBar.prototype = {
   },
 
   update : function(percentage){
+console.log('p ' + percentage)
     var comp1len = percentage * this.length;
     var comp2len = this.length - comp1len;
     var border = percentage < 0.5 ?

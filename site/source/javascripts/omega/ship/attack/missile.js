@@ -85,7 +85,7 @@ Omega.ShipMissile.prototype = {
 };
 
 $.extend(Omega.ShipMissile.prototype, Omega.ShipProjectile);
-$.extend(Omega.ShipMissile.prototype, Omega.UI.BaseParticles.prototype);
+$.extend(Omega.ShipMissile.prototype, Omega.UI.BaseParticles);
 
 Omega.ShipMissile.geometry_for = function(type, cb){
   var geometry_path   = Omega.Config.url_prefix + Omega.Config.images_path +

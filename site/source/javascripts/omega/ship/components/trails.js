@@ -77,5 +77,5 @@ Omega.ShipTrails.prototype = {
   }
 };
 
-$.extend(Omega.ShipTrails.prototype, Omega.UI.BaseParticles.prototype);
-$.extend(Omega.ShipTrails.prototype, Omega.UI.UpdatableParticles.prototype);
+$.extend(Omega.ShipTrails.prototype, Omega.UI.BaseParticles);
+$.extend(Omega.ShipTrails.prototype, Omega.UI.UpdatableParticles);

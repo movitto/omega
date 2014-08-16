@@ -95,4 +95,4 @@ Omega.ShipAttackLauncher = {
   }
 };
 
-$.extend(Omega.ShipAttackLauncher, Omega.UI.HasTarget.prototype);
+$.extend(Omega.ShipAttackLauncher, Omega.UI.HasTarget);

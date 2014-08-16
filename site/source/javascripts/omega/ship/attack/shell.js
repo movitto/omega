@@ -100,7 +100,7 @@ Omega.ShipShell.prototype = {
 };
 
 $.extend(Omega.ShipShell.prototype, Omega.ShipProjectile);
-$.extend(Omega.ShipShell.prototype, Omega.UI.BaseParticles.prototype);
+$.extend(Omega.ShipShell.prototype, Omega.UI.BaseParticles);
 
 Omega.ShipShell.prototype._set_source =
   Omega.ShipShell.prototype.set_source;

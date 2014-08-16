@@ -4,12 +4,10 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.BaseParticles = function(){};
-
 /// Subclasses should implement
 /// - _particle_group defining group
 /// - _particle_emitter defining emitter
-Omega.UI.BaseParticles.prototype = {
+Omega.UI.BaseParticles = {
   _num_emitters : function(){
     return typeof(this.num_emitters) !== "undefined" ? this.num_emitters : 1;
   },

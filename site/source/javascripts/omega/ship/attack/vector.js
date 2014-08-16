@@ -54,4 +54,4 @@ Omega.ShipAttackVector.prototype = {
   }
 };
 
-$.extend(Omega.ShipAttackVector.prototype, Omega.UI.HasTarget.prototype);
+$.extend(Omega.ShipAttackVector.prototype, Omega.UI.HasTarget);

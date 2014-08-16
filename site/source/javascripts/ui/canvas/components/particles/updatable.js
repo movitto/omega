@@ -4,12 +4,10 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.UpdatableParticles = function(){};
-
 /// Subclasses should implement:
 /// - _update_emitters : updating the emitters as necessary when updates are enabled
 /// - enabled_state    : returning bool indicating if pariticle component is in enabled state
-Omega.UI.UpdatableParticles.prototype = {
+Omega.UI.UpdatableParticles = {
   disable_updates : function(){
     this.update = this._disabled_update;
   },
@@ -36,5 +34,4 @@ Omega.UI.UpdatableParticles.prototype = {
   }
 };
 
-Omega.UI.UpdatableParticles.prototype.update =
-  Omega.UI.UpdatableParticles.prototype._disabled_update;
+Omega.UI.UpdatableParticles.update = Omega.UI.UpdatableParticles._disabled_update;
