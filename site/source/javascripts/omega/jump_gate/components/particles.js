@@ -45,21 +45,17 @@ Omega.JumpGateParticles.prototype = {
   init_particles : function(event_cb){
     this.particles = this._particle_group(event_cb);
     this.particles.addEmitter(this._particle_emitter());
+    this.particles.mesh.position.set(this.offset[0], this.offset[1], this.offset[2]);
+
     this.clock = new THREE.Clock();
+  },
+
+  component : function(){
+    return this.particles.mesh;
   },
 
   clone : function(){
     return new Omega.JumpGateParticles();
-  },
-
-  update : function(){
-    if(!this.particles) return;
-
-    var loc = this.omega_entity.scene_location();
-    this.particles.emitters[0].position.
-      set(loc.x + this.offset[0],
-          loc.y + this.offset[1],
-          loc.z + this.offset[2]);
   },
 
   run_effects : function(){

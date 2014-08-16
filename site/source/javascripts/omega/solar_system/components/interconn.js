@@ -36,9 +36,9 @@ Omega.SolarSystemInterconns.prototype = {
 
   _particle_group : function(event_cb){
     return new SPE.Group({
-      texture:    Omega.UI.Particles.load('solar_system', event_cb),
-      blending:   THREE.AdditiveBlending,
-      maxAge:     this.age
+      texture  : Omega.UI.Particles.load('solar_system', event_cb),
+      blending : THREE.AdditiveBlending,
+      maxAge   : this.age
     });
   },
 
@@ -46,23 +46,26 @@ Omega.SolarSystemInterconns.prototype = {
     var entity = this.omega_entity;
     var loc    = entity.scene_location();
 
+
     /// set emitter velocity / particle properties
     var eloc = endpoint.scene_location();
-    var dx = (eloc.x - loc.x) / this.age;
-    var dy = (eloc.y - loc.y) / this.age;
-    var dz = (eloc.z - loc.z) / this.age;
+    var distance = loc.distance_from(eloc);
+    var speed = distance / this.age;
+
+    var dx = (eloc.x - loc.x) / distance * speed;
+    var dy = (eloc.y - loc.y) / distance * speed;
+    var dz = (eloc.z - loc.z) / distance * speed;
     var velocity = new THREE.Vector3(dx, dy, dz);
 
     var emitter = new SPE.Emitter({
-      position           : loc.vector(),
-      velocity           : velocity,
-      colorStart         : new THREE.Color(0xFF0000),
-      colorEnd           : new THREE.Color(0xFF0000),
-      sizeStart          :  250,
-      sizeEnd            :  250,
-      opacityStart       :    1,
-      opacityEnd         :    1,
-      particleCount      :    1.0
+      velocity      : velocity,
+      colorStart    : new THREE.Color(0xFF0000),
+      colorEnd      : new THREE.Color(0xFF0000),
+      sizeStart     :  250,
+      sizeEnd       :  250,
+      opacityStart  :    1,
+      opacityEnd    :    1,
+      particleCount :    1.0
     });
 
     return emitter;
@@ -73,8 +76,8 @@ Omega.SolarSystemInterconns.prototype = {
     this.clock = new THREE.Clock();
   },
 
-  components : function(){
-    return [this.particles.mesh];
+  component : function(){
+    return this.particles.mesh;
   },
 
   _queue : function(endpoint){
@@ -105,9 +108,5 @@ Omega.SolarSystemInterconns.prototype = {
 
   run_effects : function(){
     this.particles.tick(this.clock.getDelta());
-  },
-
-  update : function(){
-    /// TODO refresh emitter from entity & endpoint scene locations
   }
 };

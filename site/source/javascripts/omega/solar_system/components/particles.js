@@ -48,8 +48,8 @@ Omega.SolarSystemParticles.prototype = {
     this.clock = new THREE.Clock();
   },
 
-  components : function(){
-    return [this.particles.mesh];
+  component : function(){
+    return this.particles.mesh;
   },
 
   clone : function(){

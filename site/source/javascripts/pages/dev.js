@@ -32,6 +32,9 @@ $.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasCanvas);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.HasAudio);
 $.extend(Omega.Pages.Dev.prototype, Omega.Pages.SceneTracker);
 
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.DevInitializer);
+$.extend(Omega.Pages.Dev.prototype, Omega.Pages.DevRunner);
+
 $(document).ready(function(){
   new Omega.Pages.Dev().wire_up().start();
 });
