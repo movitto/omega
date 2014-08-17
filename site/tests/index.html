@@ -37,15 +37,12 @@
   <!-- omega core -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/version.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/resource_loader.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/async_resource_loader.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callback_handler.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/loader.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/tracker.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas_tracker.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/registry.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/session_validator.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/common.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/config.js"></script>
 
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/common.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/node.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/user.js"></script>
@@ -53,22 +50,22 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/resource.js"></script>
 
   <!-- server callbacks -->
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/attacked.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/attacked_stop.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/construction_complete.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/construction_failed.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/defended.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/defended_stop.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/destroyed_by.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/mining_stopped.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/motel.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/partial_construction.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/resource_collected.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/callbacks/system_jump.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/attacked.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/attacked_stop.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/construction_complete.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/construction_failed.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/defended.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/defended_stop.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/destroyed_by.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/mining_stopped.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/motel.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/partial_construction.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/resource_collected.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/callbacks/system_jump.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/entity_tracker.js"></script>
 
   <!-- omega ui -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialog.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/command_tracker.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/error.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/movement.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/dialogs/attack.js"></script>
@@ -80,16 +77,19 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls_list.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/controls.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/entity_container.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/skybox.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/axis.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/star_dust.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/lamp.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/progress_bar.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/orbit.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas_mixins/mouse.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas_mixins/scene.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas_mixins/entities.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas_mixins/cam.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/has_target.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/skybox.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/axis.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/star_dust.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/lamp.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/progress_bar.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/orbit.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/particles/base.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/components/particles/updatable.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/mixins/mouse.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/mixins/scene.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/mixins/entities.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/mixins/cam.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/effects_player.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio/base.js"></script>
@@ -100,27 +100,36 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio/epic.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/audio_controls.js"></script>
 
+  <!-- omega entity base -->
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/particles.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/entity/gfx.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/canvas/entity/gfx_stub.js"></script>
+
   <!-- omega entities -->
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/entity/gfx.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/particles.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/density_wave.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/center.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/galaxy.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/particles.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/interconn.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/mesh.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/plane.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/text.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/info.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/audio/click.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/audio/hover.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/components/interconn.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/components/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/components/plane.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/components/text.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/components/particles.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/gfx/load.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/gfx/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/gfx/update.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/gfx/effects.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/gfx.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system/info.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/solar_system.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/components/geometry.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/components/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/components/glow.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/components/light.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/gfx/load.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/gfx/init.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/gfx.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/geometry.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/mesh.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/glow.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star/light.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/star.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/planet/axis.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/planet/mesh.js"></script>
@@ -131,11 +140,15 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/asteroid/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/asteroid.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/commands.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/selection.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/particles.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/lamp.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/mesh.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/trigger_audio.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/audio/trigger.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/components/selection.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/components/lamp.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/components/particles.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/components/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/gfx/load.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/gfx/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/gfx/update.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/gfx/effects.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/jump_gate.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/commands.js"></script>
@@ -145,32 +158,47 @@
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/interact/transfer.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/interact/mining.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/interact.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/mesh.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/highlight.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack_vector.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/destruction.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/explosion_effect.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/smoke_effect.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/destruction_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/mining_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/docking_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/combat_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/movement_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/hp_bar.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/lamps.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/mining_vector.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/particles.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/trails.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/trajectory.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/vector.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/projectile.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/launcher.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/missile.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/shell.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/missiles.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/attack/artillery.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/effects/destruction.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/effects/explosion.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/effects/smoke.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/audio/destruction.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/audio/mining.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/audio/docking.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/audio/combat.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/audio/movement.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/highlight.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/hp_bar.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/lamps.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/mining_vector.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/trails.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/trajectory.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/components/visited.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx/load.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx/update.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx/movement.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx/effects.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/ship.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/commands.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/interact.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/construction_bar.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/construction_audio.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/mesh.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/highlight.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/lamps.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/audio/construction.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/components/construction_bar.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/components/mesh.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/components/highlight.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/components/lamps.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/gfx/load.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/gfx/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/gfx/update.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/gfx/effects.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/station.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/mission.js"></script>
@@ -178,18 +206,47 @@
 
   <!-- omega pages -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/splash.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/pages/index_nav.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/pages/index_dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/autologin.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/base.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/event_handler.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/has_audio.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/has_canvas.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/has_registry.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/redirect.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/root_autoloader.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/scene_tracker.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/mixins/validates_session.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/nav.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/entity_processor.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/runner.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/session.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index/unload.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/index.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/pages/account_details.js"></script>
-  <script type="text/javascript" src="http://localhost/omega-test/javascripts/ui/pages/account_dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/details.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/dialog.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/entity_processor.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/runner.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account/session.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/account.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/stats/init.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/stats/login.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/stats/runner.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/stats.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/confirm/registration.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/pages/confirm.js"></script>
 
   <!-- test setup -->
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/constraint.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/javascripts/omega/gen.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/assertions.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/matcher.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/spy.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/hooks.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/page.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/setup/util.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/setup.js"></script>
 
   <!-- actual tests -->
