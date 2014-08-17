@@ -1,5 +1,7 @@
 // Test helper
 
+/// TODO rename to run.js
+
 // NIY = Not Implemented Yet
 // Specs will fails if stubbed out but not implemented, so
 // tests commented out but marked w/ 'NIY' should be implemented later
@@ -15,7 +17,6 @@ Omega.Test.init = function(){
   Omega.Gen.init(function(){
     entities = Omega.Test.Canvas.Entities(function(){
       current += 1;
-console.log(current + '/' + total)
       if(current == total)
         QUnit.start();
     });

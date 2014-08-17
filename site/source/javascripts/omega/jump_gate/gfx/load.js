@@ -18,7 +18,7 @@ Omega.JumpGateGfxLoader = {
   _load_geometry : function(event_cb){
     var geo_resource  = 'jump_gate.geometry';
     var mesh_geometry = Omega.JumpGateMesh.geometry();
-    Omega.UI.AsyncResourceLoader.load(geo_resource, mesh_geometry, event_cb);
+    this._load_async_resource(geo_resource, mesh_geometry, event_cb);
   },
 
   /// Load shared graphics resources

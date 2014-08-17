@@ -8,6 +8,7 @@ describe("Omega.JumpGateParticles", function(){
 
   it("has a Omega.JumpGateParticles instance", function(){
     assert(gate_particles.particles.mesh).isOfType(THREE.ParticleSystem);
+    assert(gate_particles.particles.mesh.position.toArray()).isSameAs(gate_particles.offset);
   });
 
   describe("#clone", function(){
@@ -15,20 +16,6 @@ describe("Omega.JumpGateParticles", function(){
       var cloned = gate_particles.clone(Omega.Config);
       assert(cloned).isOfType(Omega.JumpGateParticles);
       assert(cloned).isNotEqualTo(gate_particles);
-    });
-  });
-
-  describe("#update", function(){
-    it("sets emitter position to jump gate scene location + offset", function(){
-      var jg = Omega.Gen.jump_gate();
-      jg.location.set(-100, 200, 300);
-      gate_particles.omega_entity = jg;
-      gate_particles.update();
-
-      var pos = gate_particles.particles.emitters[0].position;
-      assert(pos.x).equals(-100 + gate_particles.offset[0]);
-      assert(pos.y).equals( 200 + gate_particles.offset[1]);
-      assert(pos.z).equals( 300 + gate_particles.offset[2]);
     });
   });
 

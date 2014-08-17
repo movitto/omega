@@ -1,62 +1,48 @@
 /// Test Mixin usage through Planet
 pavlov.specify("Omega.PlanetGfx", function(){
 describe("Omega.PlanetGfx", function(){
-  var planet;
-
-  before(function(){
-    planet = new Omega.Planet();
-  });
-
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
-      var orig_gfx;
-
-      before(function(){
-        orig_gfx = Omega.Planet.gfx;
-        Omega.Planet.gfx = null;
-        sinon.stub(planet, 'gfx_loaded').returns(true)
-      });
-
-      after(function(){
-        Omega.Planet.gfx = orig_gfx;
-      });
-
       it("does nothing / just returns", function(){
-        planet.load_gfx(Omega.Config);
-        assert(Omega.Planet.gfx).isNull();
+        var planet = new Omega.Planet();
+        sinon.stub(planet, 'gfx_loaded').returns(true)
+        sinon.spy(planet, '_loaded_gfx');
+        planet.load_gfx();
+        sinon.assert.notCalled(planet._loaded_gfx);
       });
     });
 
     it("creates mesh for Planet", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Planet.gfx[0].mesh).isOfType(Omega.PlanetMesh);
+      var planet = Omega.Test.Canvas.Entities()['planet'];
+      var mesh   = planet._retrieve_resource('mesh');
+      assert(mesh).isOfType(Omega.PlanetMesh);
     });
 
     it("creates axis for Planet", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Planet.gfx[0].axis).isOfType(Omega.PlanetAxis);
+      var planet = Omega.Test.Canvas.Entities()['planet'];
+      var axis   = planet._retrieve_resource('axis');
+      assert(axis).isOfType(Omega.PlanetAxis);
     });
   });
 
   describe("#init_gfx", function(){
-    var config, event_cb, planet, mesh, axis;
+    var event_cb, planet, mesh, axis;
 
     before(function(){
-      config   = Omega.Config;
       event_cb = function(){};
       planet   = Omega.Gen.planet();
       planet.type = 0;
 
-      mesh = new Omega.PlanetMesh();
-      sinon.stub(Omega.Planet.gfx[0].mesh, 'clone').returns(mesh);
+      mesh = new Omega.PlanetMesh({type : 0});
+      sinon.stub(planet._retrieve_resource('mesh'), 'clone').returns(mesh);
 
       axis = new Omega.PlanetAxis();
-      sinon.stub(Omega.Planet.gfx[0].axis, 'clone').returns(axis);
+      sinon.stub(planet._retrieve_resource('axis'), 'clone').returns(axis);
     });
 
     after(function(){
-      Omega.Planet.gfx[0].mesh.clone.restore();
-      Omega.Planet.gfx[0].axis.clone.restore();
+      planet._retrieve_resource('mesh').clone.restore();
+      planet._retrieve_resource('axis').clone.restore();
 
       if(Omega.PlanetMaterial.load.restore)
         Omega.PlanetMaterial.load.restore();
@@ -64,17 +50,17 @@ describe("Omega.PlanetGfx", function(){
 
     it("loads planet gfx", function(){
       sinon.spy(planet, 'load_gfx');
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       sinon.assert.called(planet.load_gfx);
     });
 
     it("clones Planet mesh", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.mesh).equals(mesh);
     });
 
     it("sets mesh omega_entity", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.mesh.omega_entity).equals(planet);
     });
 
@@ -83,53 +69,53 @@ describe("Omega.PlanetGfx", function(){
       var load_material = sinon.stub(Omega.PlanetMaterial, 'load');
       load_material.returns(material);
 
-      planet.init_gfx(config, event_cb);
-      sinon.assert.calledWith(load_material, config, planet.type, event_cb);
+      planet.init_gfx(event_cb);
+      sinon.assert.calledWith(load_material, planet.type, event_cb);
     });
 
     it("clones Planet axis", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.axis).equals(axis);
     });
 
     it("sets axis orientation", function(){
       sinon.stub(planet.location, 'orientation').returns([0,1,0]);
       sinon.stub(axis, 'set_orientation');
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       sinon.assert.calledWith(axis.set_orientation, 0, 1, 0);
     });
 
     it("generates random spin scale", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.spin_scale).isLessThan(1.25);
       assert(planet.spin_scale).isGreaterThan(0.5);
     });
 
     it("updates graphics", function(){
       sinon.spy(planet, 'update_gfx');
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       sinon.assert.called(planet.update_gfx);
     });
 
     it("clacs planet orbit", function(){
       sinon.spy(planet, '_calc_orbit');
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       sinon.assert.called(planet._calc_orbit);
     });
 
     it("creates orbit line", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.orbit_line).isOfType(Omega.OrbitLine);
       // TODO verify orbit line init w/ planet's orbit
     });
 
     it("sets last moved", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.last_moved).isNotNull();
     });
 
     it("adds tracker, mesh, and orbit mesh to planet scene components", function(){
-      planet.init_gfx(config, event_cb);
+      planet.init_gfx(event_cb);
       assert(planet.components[0]).equals(planet.position_tracker());
       assert(planet.components[1]).equals(planet.mesh.tmesh);
       assert(planet.components[2]).equals(planet.orbit_line.line);
@@ -162,7 +148,7 @@ describe("Omega.PlanetGfx", function(){
       pl.location.movement_strategy.dminy = 1;
       pl.location.movement_strategy.dminz = 0;
 
-      pl.init_gfx(Omega.Config);
+      pl.init_gfx();
     });
 
     it("moves planet", function(){

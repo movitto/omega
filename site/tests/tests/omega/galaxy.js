@@ -157,30 +157,27 @@ describe("Omega.Galaxy", function(){
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
-      var orig;
-
-      before(function(){
-        orig = Omega.Galaxy.gfx;
-      })
-
-      after(function(){
-        Omega.Galaxy.gfx = orig;
-      });
-
       it("does nothing / just returns", function(){
-        Omega.Galaxy.gfx = {density_wave1 : null};
-        new Omega.Galaxy().load_gfx();
-        assert(Omega.Galaxy.gfx.density_wave1).isNull();
+        var galaxy = new Omega.Galaxy();
+        sinon.stub(galaxy, 'gfx_loaded').returns(true);
+        sinon.spy(galaxy, '_loaded_gfx');
+        galaxy.load_gfx();
+        sinon.assert.notCalled(galaxy._loaded_gfx);
       });
     });
 
-    it("creates particle systems for galaxy", function(){
-      Omega.Test.Canvas.Entities();
+    it("creates stars for galaxy", function(){
+      var galaxy = Omega.Test.Canvas.Entities()['galaxy'];
+      var stars  = galaxy._retrieve_resource('stars');
+      assert(stars).isOfType(Omega.GalaxyDensityWave);
+      assert(stars.type).equals('stars');
+    });
 
-      assert(Omega.Galaxy.gfx.density_wave1).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave1.type).equals('stars');
-      assert(Omega.Galaxy.gfx.density_wave2).isOfType(Omega.GalaxyDensityWave);
-      assert(Omega.Galaxy.gfx.density_wave2.type).equals('clouds');
+    it("creates clouds for galaxy", function(){
+      var galaxy = Omega.Test.Canvas.Entities()['galaxy'];
+      var clouds = galaxy._retrieve_resource('clouds');
+      assert(clouds).isOfType(Omega.GalaxyDensityWave);
+      assert(clouds.type).equals('clouds');
     });
   });
 
@@ -199,19 +196,17 @@ describe("Omega.Galaxy", function(){
 
     it("references Galaxy density_waves", function(){
       var galaxy = new Omega.Galaxy();
-      var mesh = new THREE.Mesh();
       galaxy.init_gfx();
-      assert(galaxy.density_wave1).equals(Omega.Galaxy.gfx.density_wave1);
-      assert(galaxy.density_wave2).equals(Omega.Galaxy.gfx.density_wave2);
+      var stars = galaxy._retrieve_resource('stars');
+      var clouds = galaxy._retrieve_resource('clouds');
+      assert(galaxy.stars).equals(stars);
+      assert(galaxy.clouds).equals(clouds);
     });
 
     it("adds particle system to galaxy scene components", function(){
       var galaxy = new Omega.Galaxy();
       galaxy.init_gfx();
-
-      var expected = [galaxy.density_wave2.particles,
-                      galaxy.density_wave1.particles];
-
+      var expected = [galaxy.clouds.particles, galaxy.stars.particles];
       assert(galaxy.components).isSameAs(expected);
     });
   });

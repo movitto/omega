@@ -12,16 +12,15 @@ pavlov.specify("Omega.PlanetMaterial", function(){
 describe("Omega.PlanetMaterial", function(){
 describe("#load", function(){
   it("loads texture corresponding to type", function(){
-    var config   = Omega.Config;
-    var basepath = 'http://' + config.http_host   +
-                               config.url_prefix  +
-                               config.images_path +
+    var basepath = 'http://' + Omega.Config.http_host   +
+                               Omega.Config.url_prefix  +
+                               Omega.Config.images_path +
                                '/textures/planet';
 
-    var mat = Omega.PlanetMaterial.load(config, 0, function(){});
+    var mat = Omega.PlanetMaterial.load(0, function(){});
     assert(mat.map.image.src).equals(basepath + '0.png');
 
-    mat = Omega.PlanetMaterial.load(config, 1, function(){});
+    mat = Omega.PlanetMaterial.load(1, function(){});
     assert(mat.map.image.src).equals(basepath + '1.png');
   });
 });

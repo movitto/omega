@@ -85,6 +85,16 @@ Omega.UI.CanvasEntityGfx = {
     return gfx[id];
   },
 
+  /// load specified async resource
+  _load_async_resource : function(id, resource, cb){
+    Omega.UI.AsyncResourceLoader.load(id, resource, cb);
+  },
+
+  /// retrieve specified async resource
+  _retrieve_async_resource : function(id, cb){
+    Omega.UI.AsyncResourceLoader.retrieve(id, cb);
+  },
+
   /// True / false if gfx have been initialized
   gfx_initialized : function(){
     return !!(this._gfx_initialized);

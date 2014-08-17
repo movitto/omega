@@ -161,7 +161,8 @@ describe("Omega.Location", function(){
     it("adds/returns coordinates + values", function(){
       var loc = new Omega.Location({x:10,y:9,z:-8});
       var result = loc.add(10, -5, 3);
-      assert(result).isSameAs([20, 4, -5]);
+      assert(result).isOfType(Omega.Location);
+      assert(result.coordinates()).isSameAs([20, 4, -5]);
     });
   });
 
@@ -221,8 +222,8 @@ describe("Omega.Location", function(){
     describe("location is less than min distance from target", function(){
       it("returns true", function(){
         var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
-        var loc2 = new Omega.Location({x : Omega.Config.follow_distance - 1,
-                                       y : 0, z : 0});
+            loc1.movement_strategy = {distance : 10};
+        var loc2 = new Omega.Location({x : 9, y : 0, z : 0});
         loc1.tracking = loc2;
         assert(loc1.on_target()).isTrue();
       });
@@ -230,8 +231,8 @@ describe("Omega.Location", function(){
     describe("location is greater than min distance from target", function(){
       it("returns false", function(){
         var loc1 = new Omega.Location({x : 0, y : 0, z : 0});
-        var loc2 = new Omega.Location({x : Omega.Config.follow_distance * 2,
-                                       y : 0, z : 0});
+            loc1.movement_strategy = {distance : 10};
+        var loc2 = new Omega.Location({x : 20, y : 0, z : 0});
         loc1.tracking = loc2;
         assert(loc1.on_target()).isFalse();
       });
@@ -243,15 +244,6 @@ describe("Omega.Location", function(){
       it("returns true", function(){
         var loc = new Omega.Location({movement_strategy :
                    {json_class : 'Motel::MovementStrategies::Stopped'}});
-        assert(loc.is_stopped()).isTrue();
-      });
-    });
-
-    describe("location movement strategy is folow & on target", function(){
-      it("return true", function(){
-        var loc = new Omega.Location({movement_strategy :
-                   {json_class : 'Motel::MovementStrategies::Follow'}});
-        sinon.stub(loc, 'on_target').returns(true);
         assert(loc.is_stopped()).isTrue();
       });
     });

@@ -40,7 +40,7 @@ Omega.Pages.IndexSession = {
     this.nav.show_login_controls();
 
     this._login_anon(function(){
-      Omega.UI.Loader.load_universe(this, function(){
+      Omega.UI.Loader.load_universe(_this, function(){
         Omega.UI.Loader.load_default_systems(_this,
           function(solar_system) {
             _this.process_system(solar_system);
@@ -53,6 +53,8 @@ Omega.Pages.IndexSession = {
   },
 
   _login_anon : function(cb){
+    var _this = this;
+
     // login as anon
     var anon = new Omega.User({id : Omega.Config.anon_user,
                                password : Omega.Config.anon_pass});

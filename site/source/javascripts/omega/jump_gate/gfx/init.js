@@ -18,6 +18,7 @@ Omega.JumpGateGfxInitializer = {
   _init_particles : function(){
     this.particles = this._retrieve_resource('particles').clone();
     this.particles.omega_entity = this;
+    this.position_tracker().add(this.particles.component());
   },
 
   _init_selection : function(){
@@ -32,7 +33,7 @@ Omega.JumpGateGfxInitializer = {
 
   _init_mesh : function(){
     var _this = this;
-    Omega.UI.AsyncResourceLoader.retrieve('jump_gate.geometry', function(geometry){
+    this._retrieve_async_resource('jump_gate.geometry', function(geometry){
       var material = _this._retrieve_resource('mesh_material').material;
       var mesh     = new Omega.JumpGateMesh({geometry : geometry,
                                              material : material});
@@ -40,7 +41,6 @@ Omega.JumpGateGfxInitializer = {
       _this.mesh.omega_entity = _this;
       _this.mesh.tmesh.add(_this.lamp.olamp.component);
       _this.position_tracker().add(_this.mesh.tmesh);
-      _this.position_tracker().add(_this.particles.component());
 
       _this.update_gfx();
       _this._gfx_initialized = true;

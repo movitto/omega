@@ -10,4 +10,3 @@ sinon.spy.omega_callback = function(n){
       return args[a];
   return null;
 };
-
