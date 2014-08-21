@@ -9,14 +9,12 @@ Omega.StationMeshMaterial = function(args){
   var type     = args['type'];
   var event_cb = args['event_cb'];
 
-  var texture_path =
-    Omega.Config.url_prefix + Omega.Config.images_path +
-    Omega.Config.resources.stations[type].material;
+  var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
+                     Omega.Config.resources.stations[type].material;
 
-  var texture =
-    THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
 
-  $.extend(this, new THREE.MeshLambertMaterial({map: texture, overdraw: true}));
+  this.material = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
 };
 
 Omega.StationMesh = function(args){

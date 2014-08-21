@@ -4,11 +4,11 @@
  * Licensed under the AGPLv3 http://www.gnu.org/licenses/agpl.txt
  */
 
-Omega.UI.AccountDialog = function(parameters){
+Omega.Pages.AccountDialog = function(parameters){
   $.extend(this, parameters);
 };
 
-Omega.UI.AccountDialog.prototype = {
+Omega.Pages.AccountDialog.prototype = {
   show_incorrect_passwords_dialog : function(){
     this.hide();
     this.title = 'Passwords Do Not Match'
@@ -32,5 +32,5 @@ Omega.UI.AccountDialog.prototype = {
   }
 };
 
-$.extend(Omega.UI.AccountDialog.prototype,
+$.extend(Omega.Pages.AccountDialog.prototype,
          new Omega.UI.Dialog());

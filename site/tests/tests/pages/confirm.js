@@ -9,7 +9,7 @@ describe("Omega.Pages.Confirm", function(){ /// NIY
   /// TODO somehow stub out window.location so 'url' and 'redirect_to' can be tested?
 
   it("loads config", function(){
-    assert(page.config).equals(Omega.Config);
+    assert(page.config).equals();
   });
 
   describe("#registration_code", function(){

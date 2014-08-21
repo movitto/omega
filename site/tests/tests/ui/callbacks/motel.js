@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#motel_event", function(){
       var page, tracker;
@@ -11,7 +11,7 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.stub(page.audio_controls, 'play');
         sinon.stub(page.audio_controls, 'stop');
 
-        tracker = new Omega.UI.CommandTracker({page : page});
+        tracker = new Omega.CallbackHandler({page: page});
 
         var system = new Omega.SolarSystem({id : 'system1'});
         page.canvas.set_scene_root(system);
@@ -75,7 +75,7 @@ describe("Omega.UI.CommandTracker", function(){
 
       describe("entity was moving and now is stopped", function(){
         before(function(){
-          ship.init_gfx(Omega.Config);
+          ship.init_gfx();
           ship.location.movement_strategy.json_class =
             'Motel::MovementStrategies::Linear';
         });

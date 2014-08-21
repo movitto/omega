@@ -21,7 +21,7 @@ Omega.StationGfxLoader = {
 
     var mesh_resource = 'station.' + this.type + '.mesh_geometry';
     var mesh_geometry = Omega.StationMesh.geometry_for(this.type);
-    Omega.UI.AsyncResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+    this._load_async_resource(mesh_resource, mesh_geometry, event_cb);
   },
 
   _load_lamps : function(){

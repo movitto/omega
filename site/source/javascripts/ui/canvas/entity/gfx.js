@@ -92,7 +92,7 @@ Omega.UI.CanvasEntityGfx = {
 
   /// retrieve specified async resource
   _retrieve_async_resource : function(id, cb){
-    Omega.UI.AsyncResourceLoader.retrieve(id, cb);
+    return Omega.UI.AsyncResourceLoader.retrieve(id, cb);
   },
 
   /// True / false if gfx have been initialized

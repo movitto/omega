@@ -14,7 +14,7 @@ Omega.AsteroidGfxLoader = {
   _load_geometries : function(event_cb){
     var resource = 'asteroid.meshes';
     var geometry_paths  = Omega.AsteroidMesh.geometry_paths();
-    Omega.UI.AsyncResourceLoader.load(resource, geometry_paths, event_cb);
+    this._load_async_resource(resource, geometry_paths, event_cb);
   },
 
   load_gfx : function(event_cb){

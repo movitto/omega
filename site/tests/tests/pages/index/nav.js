@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.IndexNav", function(){
-describe("Omega.UI.IndexNav", function(){
+pavlov.specify("Omega.Pages.IndexNav", function(){
+describe("Omega.Pages.IndexNav", function(){
   var page;
 
   before(function(){
@@ -7,14 +7,14 @@ describe("Omega.UI.IndexNav", function(){
   });
 
   after(function(){
-    if(Omega.UI.IndexNav.prototype.show_login_controls.restore)
-      Omega.UI.IndexNav.prototype.show_login_controls.restore();
-    if(Omega.UI.IndexNav.prototype.show_logout_controls.restore)
-      Omega.UI.IndexNav.prototype.show_logout_controls.restore();
+    if(Omega.Pages.IndexNav.prototype.show_login_controls.restore)
+      Omega.Pages.IndexNav.prototype.show_login_controls.restore();
+    if(Omega.Pages.IndexNav.prototype.show_logout_controls.restore)
+      Omega.Pages.IndexNav.prototype.show_logout_controls.restore();
   });
 
   it("has a handle to page the nav is on", function(){
-    var nav = new Omega.UI.IndexNav({page : page});
+    var nav = new Omega.Pages.IndexNav({page : page});
     assert(nav.page).equals(page);
   });
 
@@ -22,7 +22,7 @@ describe("Omega.UI.IndexNav", function(){
     var nav;
 
     before(function(){
-      nav = new Omega.UI.IndexNav({page : page});
+      nav = new Omega.Pages.IndexNav({page : page});
     });
 
     after(function(){
@@ -52,8 +52,8 @@ describe("Omega.UI.IndexNav", function(){
     var nav;
 
     before(function(){
-      page.dialog  = new Omega.UI.IndexDialog({page: page});
-      nav = new Omega.UI.IndexNav({page : page});
+      page.dialog  = new Omega.Pages.IndexDialog({page: page});
+      nav = new Omega.Pages.IndexNav({page : page});
       nav.wire_up();
     });
 
@@ -62,10 +62,10 @@ describe("Omega.UI.IndexNav", function(){
     });
 
     it("invokes index_dialog.show_login_dialog", function(){
-      page.dialog = new Omega.UI.IndexDialog();
-      var spy = sinon.spy(page.dialog, 'show_login_dialog');
+      page.dialog = new Omega.Pages.IndexDialog();
+      sinon.spy(page.dialog, 'show_login_dialog');
       nav.login_link.click();
-      sinon.assert.called(spy);
+      sinon.assert.called(page.dialog.show_login_dialog);
     });
   });
 
@@ -73,8 +73,8 @@ describe("Omega.UI.IndexNav", function(){
     var nav;
 
     before(function(){
-      page.dialog  = new Omega.UI.IndexDialog({page: page});
-      nav = new Omega.UI.IndexNav({page : page});
+      page.dialog  = new Omega.Pages.IndexDialog({page: page});
+      nav = new Omega.Pages.IndexNav({page : page});
       nav.wire_up();
     });
 
@@ -83,18 +83,18 @@ describe("Omega.UI.IndexNav", function(){
     });
 
     it("invokes index_dialog.show_register_dialog", function(){
-      var spy = sinon.spy(page.dialog, 'show_register_dialog');
+      sinon.spy(page.dialog, 'show_register_dialog');
       nav.register_link.click();
-      sinon.assert.called(spy);
+      sinon.assert.called(page.dialog.show_register_dialog);
     });
   });
 
   describe("user clicks logout link", function(){
-    var nav;
+    var nav, session;
 
     before(function(){
-      page.session = new Omega.Session();
-      nav = new Omega.UI.IndexNav({page : page});
+      page.session = session = new Omega.Session();
+      nav = new Omega.Pages.IndexNav({page : page});
       nav.wire_up();
     });
 
@@ -103,45 +103,45 @@ describe("Omega.UI.IndexNav", function(){
     });
 
     it("invokes session.logout", function(){
-      var spy = sinon.spy(page.session, 'logout');
+      sinon.spy(page.session, 'logout');
       nav.logout_link.click();
-      sinon.assert.called(spy);
+      sinon.assert.called(session.logout);
     });
 
     it("hides the missions button", function(){
-      var hide = sinon.spy(page.canvas.controls.missions_button, 'hide');
+      sinon.spy(page.canvas.controls.missions_button, 'hide');
       nav.logout_link.click();
-      sinon.assert.calledWith(hide);
+      sinon.assert.calledWith(page.canvas.controls.missions_button.hide);
     });
 
-    it("invokes page session_invalid", function(){
-      var session_invalid = sinon.spy(page, '_session_invalid');
+    it("invokes page invalid_session", function(){
+      sinon.spy(page, '_invalid_session');
       nav.logout_link.click();
-      sinon.assert.called(session_invalid);
+      sinon.assert.called(page._invalid_session);
     });
   });
 
   describe("#show_login_controls", function(){
     it("shows the register link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_login_controls();
       assert(nav.register_link).isVisible();
     });
 
     it("shows the login link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_login_controls();
       assert(nav.login_link).isVisible();
     });
 
     it("hides the account link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_login_controls();
       assert(nav.account_link).isHidden();
     });
 
     it("hides the logout link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_login_controls();
       assert(nav.logout_link).isHidden();
     });
@@ -149,25 +149,25 @@ describe("Omega.UI.IndexNav", function(){
 
   describe("#show_logout_controls", function(){
     it("hides the register link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_logout_controls();
       assert(nav.register_link).isHidden();
     });
 
     it("hides the login link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_logout_controls();
       assert(nav.login_link).isHidden();
     });
 
     it("shows the account link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_logout_controls();
       assert(nav.account_link).isVisible();
     });
 
     it("shows the logout link", function(){
-      var nav = new Omega.UI.IndexNav();
+      var nav = new Omega.Pages.IndexNav();
       nav.show_logout_controls();
       assert(nav.logout_link).isVisible();
     });

@@ -6,7 +6,7 @@ describe("Omega.ShipMiningInteractions", function(){
   before(function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
-    ship.init_gfx(Omega.Config)
+    ship.init_gfx()
     page = Omega.Test.Page();
   });
 
@@ -178,8 +178,7 @@ describe("Omega.ShipMiningInteractions", function(){
       ship     = Omega.Gen.ship({type: 'mining', mining: resource});
       response = {result : ship};
 
-      ship.init_gfx(Omega.Config);
-
+      ship.init_gfx();
       sinon.stub(ship.dialog(), 'hide');
       sinon.stub(page.canvas, 'reload');
       sinon.stub(page.audio_controls, 'play');

@@ -88,12 +88,14 @@ describe("Omega.JumpGateGfx", function(){
       sinon.assert.called(jg.load_gfx);
     });
 
-    it("clones JumpGate mesh", function(){
+    it("retrieves JumpGate geometry and creates mesh", function(){
       jg.init_gfx();
       sinon.assert.calledWith(jg._retrieve_async_resource,
                               'jump_gate.geometry', sinon.match.func);
       jg._retrieve_async_resource.omega_callback()(geo);
       assert(jg.mesh).isOfType(Omega.JumpGateMesh);
+      assert(jg.mesh.tmesh.geometry).equals(geo);
+      assert(jg.mesh.tmesh.material).equals(jg._retrieve_resource('mesh_material').material);
     });
 
     it("sets position tracker position", function(){

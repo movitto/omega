@@ -3,7 +3,7 @@ describe("Omega.Pages.AccountDialog", function(){
   var dialog;
 
   before(function(){
-    dialog = new Omega.UI.AccountDialog();
+    dialog = new Omega.Pages.AccountDialog();
   });
 
   after(function(){

@@ -8,7 +8,7 @@ describe("Omega.ShipCommands", function(){
     ship.location.set(99, -2, 100);
     ship.resources = [{material_id : 'gold', quantity : 50},
                       {material_id : 'ruby', quantity : 25}];
-    ship.init_gfx(Omega.Config);
+    ship.init_gfx();
 
     page = Omega.Test.Page();
     orig_session = page.session;

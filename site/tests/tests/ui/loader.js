@@ -4,13 +4,6 @@ describe("Omega.UI.Loader", function(){
     ///it("preloads all configured resources"); NIY
   });
 
-  describe("#json", function(){
-    it("provides singleton THREE.JSONLoader", function(){
-      assert(Omega.UI.Loader.json()).isOfType(THREE.JSONLoader);
-      assert(Omega.UI.Loader.json()).equals(Omega.UI.Loader.json());
-    })
-  });
-
   describe("#clear_universe", function(){
     it("removes local cosmos data", function(){
       $.localStorage.set('omega.cosmos.anything', JSON.stringify('anything'));

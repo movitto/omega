@@ -3,7 +3,7 @@ describe("Omega.JumpGateParticles", function(){
   var gate_particles;
 
   before(function(){
-    gate_particles = new Omega.JumpGateParticles({config: Omega.Config});
+    gate_particles = new Omega.JumpGateParticles({});
   });
 
   it("has a Omega.JumpGateParticles instance", function(){
@@ -13,7 +13,7 @@ describe("Omega.JumpGateParticles", function(){
 
   describe("#clone", function(){
     it("returns new particles instance", function(){
-      var cloned = gate_particles.clone(Omega.Config);
+      var cloned = gate_particles.clone();
       assert(cloned).isOfType(Omega.JumpGateParticles);
       assert(cloned).isNotEqualTo(gate_particles);
     });

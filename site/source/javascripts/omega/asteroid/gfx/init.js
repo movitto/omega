@@ -11,7 +11,7 @@ Omega.AsteroidGfxInitializer = {
     var mesh_num   = Math.floor(Math.random() * num_meshes);
 
     var _this = this;
-    Omega.UI.AsyncResourceLoader.retrieve('asteroid.meshes', function(geometries){
+    this._retrieve_async_resource('asteroid.meshes', function(geometries){
       var material = _this._retrieve_resource('mesh_material').material;
       var geometry = geometries[mesh_num];
       var mesh = new Omega.AsteroidMesh({material: material, geometry: geometry});

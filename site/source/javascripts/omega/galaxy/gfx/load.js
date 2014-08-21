@@ -5,6 +5,8 @@
  */
 
 Omega.GalaxyGfxLoader = {
+  async_gfx : 2,
+
   _stars : function(event_cb){
     return new Omega.GalaxyDensityWave({event_cb   : event_cb,
                                         type       : 'stars'});

@@ -67,13 +67,14 @@ Omega.UI.AsyncResourceLoader = {
 
     var resources = this._resources()
     if(resources[id]){
-      cb(resources[id]);
-      return;
+      if(cb) cb(resources[id]);
+      return resources[id];
     }
 
     this._retrieval_callbacks     = this._retrieval_callbacks || {};
     this._retrieval_callbacks[id] = this._retrieval_callbacks[id] || [];
-    this._retrieval_callbacks[id].push(cb);
+    if(cb) this._retrieval_callbacks[id].push(cb);
+    return null;
   }
 };
 

@@ -125,72 +125,50 @@ describe("Omega.Asteroid", function(){
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
-      var orig;
-
-      before(function(){
-        orig = {gfx: Omega.Asteroid.gfx,
-                mesh: Omega.Asteroid.gfx ? Omega.Asteroid.gfx.mesh : null};
-      })
-
-      after(function(){
-        Omega.Asteroid.gfx = orig.gfx;
-        if(Omega.Asteroid.gfx) Omega.Asteroid.gfx.mesh = orig.mesh;
-      });
-
       it("does nothing / just returns", function(){
-        Omega.Asteroid.gfx = {};
-        Omega.Asteroid.mesh = null;
-        new Omega.Asteroid().load_gfx();
-        assert(Omega.Asteroid.mesh).isNull();
+        var asteroid = new Omega.Asteroid();
+        sinon.stub(asteroid, 'gfx_loaded').returns(true);
+        sinon.spy(asteroid, '_loaded_gfx');
+        asteroid.load_gfx();
+        sinon.assert.notCalled(asteroid._loaded_gfx);
       });
     });
 
-    it("creates mesh for Asteroid", function(){
-      var asteroid = Omega.Test.Canvas.Entities().asteroid;
-      var num = Omega.Config.resources.asteroid.geometry.length;
-      assert(Omega.Asteroid.gfx.meshes.length).equals(num)
-      for(var a = 0; a < num; a++){
-        assert(Omega.Asteroid.gfx.meshes[a]).isOfType(Omega.AsteroidMesh);
-        assert(Omega.Asteroid.gfx.meshes[a].tmesh).isOfType(THREE.Mesh);
-        assert(Omega.Asteroid.gfx.meshes[a].tmesh.material).isOfType(THREE.MeshLambertMaterial);
-        assert(Omega.Asteroid.gfx.meshes[a].tmesh.geometry).isOfType(THREE.Geometry);
-      }
-      /// TODO assert material texture & geometry src path values ?
+    it("loads Asteroid mesh geometries", function(){
+      var event_cb  = function(){};
+      var mesh_geos = Omega.AsteroidMesh.geometry_paths();
+      var asteroid = new Omega.Asteroid();
+      sinon.stub(asteroid, 'gfx_loaded').returns(false);
+      sinon.stub(asteroid, '_load_async_resource');
+      asteroid.load_gfx(event_cb);
+      sinon.assert.calledWith(asteroid._load_async_resource, 'asteroid.meshes', mesh_geos, event_cb);
     });
   });
 
   describe("#init_gfx", function(){
-    before(function(){
-      /// preiinit using test page
-      Omega.Test.Canvas.Entities();
-    });
-
-    after(function(){
-      if(Omega.AsteroidMesh.load.restore) Omega.AsteroidMesh.load.restore();
-    });
-
     it("loads asteroid gfx", function(){
       var ast      = Omega.Gen.asteroid();
       var load_gfx = sinon.spy(ast, 'load_gfx');
-      ast.init_gfx(Omega.Config);
+      ast.init_gfx();
       sinon.assert.called(load_gfx);
     });
 
-    it("clones Asteroid mesh", function(){
-      sinon.stub(Omega.AsteroidMesh, 'load');
+    it("retrieves Asteroid geometry and creates mesh", function(){
       var ast = Omega.Gen.asteroid();
-      ast.init_gfx(Omega.Config);
-      sinon.assert.called(Omega.AsteroidMesh.load);
-
-      var mesh = new THREE.Mesh;
-      Omega.AsteroidMesh.load.omega_callback()(mesh)
-      assert(ast.mesh).equals(mesh);
+      var geos = ast._retrieve_async_resource('asteroid.meshes');
+      sinon.stub(ast, '_retrieve_async_resource');
+      ast.init_gfx();
+      sinon.assert.calledWith(ast._retrieve_async_resource, 'asteroid.meshes', sinon.match.func);
+      ast._retrieve_async_resource.omega_callback()(geos);
+      assert(ast.mesh).isOfType(Omega.AsteroidMesh);
+      assert(ast.mesh.tmesh.material).equals(ast._retrieve_resource('mesh_material').material);
+      assert(geos).includes(ast.mesh.tmesh.geometry);
     });
 
     it("sets position tracker position", function(){
       var loc = new Omega.Location({x: 100, y: -100, z: 200});
       var ast = new Omega.Asteroid({location : loc});
-      ast.init_gfx(Omega.Config);
+      ast.init_gfx();
       assert(ast.position_tracker().position.x).equals(100);
       assert(ast.position_tracker().position.y).equals(-100);
       assert(ast.position_tracker().position.z).equals(200);
@@ -198,13 +176,13 @@ describe("Omega.Asteroid", function(){
 
     it("sets mesh.omega_entity", function(){
       var ast = Omega.Gen.asteroid();
-      ast.init_gfx(Omega.Config);
+      ast.init_gfx();
       assert(ast.mesh.omega_entity).equals(ast);
     });
 
     it("adds position tracker to asteroid scene components", function(){
       var ast = Omega.Gen.asteroid();
-      ast.init_gfx(Omega.Config);
+      ast.init_gfx();
       assert(ast.components).isSameAs([ast.position_tracker()]);
     });
   });

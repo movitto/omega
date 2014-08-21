@@ -6,6 +6,7 @@ Omega.Pages.Test = function(parameters){
   this.node    = new Omega.Node(this.config);
   this.canvas  = new Omega.UI.Canvas({page: this});
   this.audio_controls = new Omega.UI.AudioControls();
+  this.init_registry();
   $.extend(this, parameters);
 }
 

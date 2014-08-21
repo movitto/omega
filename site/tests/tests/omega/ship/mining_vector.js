@@ -1,7 +1,7 @@
 pavlov.specify("Omega.ShipMiningVector", function(){
 describe("Omega.ShipMiningVector", function(){
   it("has a SPE Group instance", function(){
-    var vector = new Omega.ShipMiningVector({config: Omega.Config});
+    var vector = new Omega.ShipMiningVector({});
     assert(vector.particles).isOfType(SPE.Group);
     assert(vector.particles.emitters.length).
       equals(Omega.ShipMiningVector.prototype.num_emitters);
@@ -15,7 +15,7 @@ describe("Omega.ShipMiningVector", function(){
                                 orientation_x : 0,
                                 orientation_y : 0,
                                 orientation_z : 1});
-      vector = new Omega.ShipMiningVector({config: Omega.Config});
+      vector = new Omega.ShipMiningVector({});
       vector.omega_entity = {location : loc};
     });
 

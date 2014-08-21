@@ -111,7 +111,7 @@ Omega.Pages.IndexDialog.prototype = {
       }else{
         _this.hide();
         _this.page.session = result;
-        _this.page._session_validated(function(){ _this.page._valid_session(); });
+        _this.page._valid_session();
       }
     });
   },

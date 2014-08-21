@@ -545,7 +545,7 @@ describe("Omega.UI.Canvas", function(){
       var star   = new Omega.Star({});
       var spy    = sinon.spy(star, 'init_gfx')
       canvas.add(star);
-      sinon.assert.calledWith(spy, canvas.page.config, sinon.match.func);
+      sinon.assert.calledWith(spy, sinon.match.func);
       // TODO verify callback animates scene
     });
 
@@ -566,31 +566,10 @@ describe("Omega.UI.Canvas", function(){
       assert(scene.getDescendants()).includes(mesh);
     });
 
-    it("wires up loaded_mesh event handler", function(){
-      var star   = new Omega.Star({});
-      assert(star).doesNotHandleEvent('loaded_mesh');
-      canvas.add(star);
-      assert(star).handlesEvent('loaded_mesh');
-    });
-
-//FIXME:
-    //describe("on loaded mesh", function(){
-    //  it("reloads entity in scene", function(){
-    //    var mesh   = new THREE.Mesh();
-    //    var ship   = new Omega.Ship({mesh : mesh, type : 'corvette'});
-    //    var canvas = Omega.Test.Canvas();
-    //    canvas.add(ship);
-    //    var on_loaded = ship._listeners['loaded_mesh'][0];
-    //    var reload = sinon.stub(canvas, 'reload');
-    //    on_loaded({data : mesh});
-    //    sinon.assert.calledWith(reload, ship);
-    //  });
-    //});
-
     it("adds entity to effects player", function(){
-      var star   = new Omega.Star({});
-      canvas.add(star);
-      assert(canvas.page.effects_player.has(star.id)).isTrue();
+      var planet   = Omega.Gen.planet();
+      canvas.add(planet);
+      assert(canvas.page.effects_player.has(planet.id)).isTrue();
     });
 
     it("adds entity id to local entities registry", function(){
@@ -628,14 +607,6 @@ describe("Omega.UI.Canvas", function(){
       canvas.add(star, scene);
       canvas.remove(star, scene);
       assert(scene.getDescendants()).doesNotInclude(mesh);
-    });
-
-    it("removes loaded_mesh event handler", function(){
-      var star   = new Omega.Star({});
-      canvas.add(star);
-      assert(star).handlesEvent('loaded_mesh');
-      canvas.remove(star);
-      assert(star).doesNotHandleEvent('loaded_mesh');
     });
 
     it("removes entity from effects player", function(){

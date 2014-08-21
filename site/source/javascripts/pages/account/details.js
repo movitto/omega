@@ -7,11 +7,11 @@
 //= require 'vendor/utf8_encode'
 //= require 'vendor/md5'
 
-Omega.UI.AccountDetails = function(parameters){
+Omega.Pages.AccountDetails = function(parameters){
   $.extend(this, parameters);
 };
 
-Omega.UI.AccountDetails.prototype = {
+Omega.Pages.AccountDetails.prototype = {
   wire_up : function(){
     var _this = this;;
     //$('#account_info_update').die();

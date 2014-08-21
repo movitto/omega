@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#attacked_stop", function(){
       var page, tracker;
@@ -9,7 +9,7 @@ describe("Omega.UI.CommandTracker", function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page.canvas, 'reload');
 
-        tracker = new Omega.UI.CommandTracker({page : page});
+        tracker = new Omega.CallbackHandler({page : page});
 
         var system = new Omega.SolarSystem({id : 'system1'});
         page.canvas.set_scene_root(system);
@@ -19,7 +19,7 @@ describe("Omega.UI.CommandTracker", function(){
         ship   = Omega.Gen.ship({id: 'ship1', system_id : 'system1'});
         eship  = Omega.Gen.ship({id: 'ship1', attacking : etgt});
 
-        ship.init_gfx(Omega.Config);
+        ship.init_gfx();
 
         page.entities = [ship, tgt];
         eargs         = ['attacked_stop', eship, etgt];

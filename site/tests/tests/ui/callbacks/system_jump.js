@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#system_jump", function(){
       var page, tracker;
@@ -9,7 +9,7 @@ describe("Omega.UI.CommandTracker", function(){
         page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
         sinon.stub(page, 'process_entity');
 
-        tracker = new Omega.UI.CommandTracker({page : page});
+        tracker = new Omega.CallbackHandler({page : page});
 
         system  = Omega.Gen.solar_system({id : 'sys1'});
         esystem = Omega.Gen.solar_system({id : 'sys1'});

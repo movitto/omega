@@ -7,7 +7,7 @@ describe("Omega.SolarSystemInterconns", function(){
 
   describe("#init_gfx", function(){
     it("initializes a SPE particle group instance", function(){
-      interconns.init_gfx(Omega.Config);
+      interconns.init_gfx();
       assert(interconns.particles.mesh).isOfType(THREE.ParticleSystem);
     });
   });
@@ -71,7 +71,7 @@ describe("Omega.SolarSystemInterconns", function(){
         sinon.stub(interconns.omega_entity, 'gfx_initialized').returns(true);
         interconns.omega_entity.components = [];
 
-        interconns.init_gfx(Omega.Config);
+        interconns.init_gfx();
         endpoint = new Omega.SolarSystem();
 
         interconns.omega_entity.location = new Omega.Location();

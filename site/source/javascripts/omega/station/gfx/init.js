@@ -41,10 +41,10 @@ Omega.StationGfxInitializer = {
   _init_mesh : function(){
     var _this = this;
     var mesh_geometry = 'station.' + this.type + '.mesh_geometry';
-    Omega.UI.AsyncResourceLoader.retrieve(mesh_geometry, function(geometry){
-      var material = _this._retrieve_resource('mesh_material');
-      var mesh = new Omega.ShipMesh({material: material.clone(),
-                                     geometry: geometry.clone()});
+    this._retrieve_async_resource(mesh_geometry, function(geometry){
+      var material = _this._retrieve_resource('mesh_material').material;
+      var mesh = new Omega.StationMesh({material: material.clone(),
+                                        geometry: geometry.clone()});
 
       _this.mesh = mesh;
       _this.mesh = mesh;

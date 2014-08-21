@@ -21,8 +21,6 @@ Omega.Galaxy.prototype = {
   constructor : Omega.Galaxy,
   json_class  : 'Cosmos::Entities::Galaxy',
 
-  async_gfx : 1,
-
   /// Return child specified by id
   child : function(id){
     return $.grep(this.children, function(c) {

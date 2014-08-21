@@ -53,6 +53,7 @@ Omega.Test = {
 Omega.Test.Page = function(){
   if(typeof($omega_test_page) === "undefined"){
     $omega_test_page = new Omega.Pages.Test();
+    $omega_test_page.init_registry();
     $omega_test_page.canvas.setup();
   }
   return $omega_test_page;

@@ -47,9 +47,6 @@ Omega.UI.CanvasEntitiesManager = {
     for(var cc = 0; cc < entity.components.length; cc++)
       scene.remove(entity.components[cc]);
 
-    /// remove event listener
-    entity.removeEventListener('loaded_mesh', entity.sceneReload);
-
     if(this.page.effects_player && entity.has_effects())
       this.page.effects_player.remove(entity.id);
     var index = this.entities.indexOf(entity.id);

@@ -93,7 +93,7 @@ Omega.ShipGfxInitializer = {
   },
 
   _init_audio : function(){
-    this.destruction_audio      = this._retreive_resource('destruction_audio');
+    this.destruction_audio      = this._retrieve_resource('destruction_audio');
     this.combat_audio           = this._retrieve_resource('combat_audio');
     this.movement_audio         = this._retrieve_resource('movement_audio');
     this.mining_audio           = this._retrieve_resource('mining_audio');
@@ -129,7 +129,7 @@ Omega.ShipGfxInitializer = {
     var _this = this;
 
     var mesh_geometry = 'ship.' + this.type + '.mesh_geometry';
-    Omega.UI.AsyncResourceLoader.retrieve(mesh_geometry, function(geometry){
+    this._retrieve_async_resource(mesh_geometry, function(geometry){
       var material = _this._retrieve_resource('mesh_material').material;
       var mesh = new Omega.ShipMesh({material: material.clone(),
                                      geometry: geometry.clone()});
@@ -139,7 +139,6 @@ Omega.ShipGfxInitializer = {
       _this._add_trajectory_components();
       _this.location_tracker().add(_this.mesh.tmesh);
 
-      _this.update_gfx();
       _this.mesh_init = true;
       _this._finish_init();
     });
@@ -149,7 +148,7 @@ Omega.ShipGfxInitializer = {
     var _this     = this;
 
     var missile_geometry = 'ship.' + this.type + '.missile_geometry';
-    Omega.UI.AsyncResourceLoader.retrieve(missile_geometry, function(geometry){
+    this._retrieve_async_resource(missile_geometry, function(geometry){
       var material = new THREE.MeshBasicMaterial({color : 0x000000});
       var template = new Omega.ShipMissile({geometry: geometry.clone(),
                                             material: material});
@@ -190,6 +189,7 @@ Omega.ShipGfxInitializer = {
     this._init_destruction();
     this._init_explosions();
     this._init_smoke();
+    this._init_audio();
 
     this._init_mesh();
     this._init_missiles();

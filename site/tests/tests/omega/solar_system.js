@@ -268,7 +268,7 @@ describe("Omega.SolarSystem", function(){
 
     before(function(){
       system = Omega.Gen.solar_system();
-      system.init_gfx(Omega.Config);
+      system.init_gfx();
 
       canvas = Omega.Test.Canvas();
       sinon.stub(canvas, 'reload');
@@ -295,7 +295,7 @@ describe("Omega.SolarSystem", function(){
 
     before(function(){
       system = Omega.Gen.solar_system();
-      system.init_gfx(Omega.Config);
+      system.init_gfx();
       system._add_hover_sphere();
 
       canvas = Omega.Test.Canvas();

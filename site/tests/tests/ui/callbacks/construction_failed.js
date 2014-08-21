@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#construction_failed", function(){
       var page, tracker;
@@ -11,7 +11,7 @@ describe("Omega.UI.CommandTracker", function(){
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas, 'animate');
 
-        tracker = new Omega.UI.CommandTracker({page : page});
+        tracker = new Omega.CallbackHandler({page : page});
 
         var system = new Omega.SolarSystem({id : 'sys1'});
         page.canvas.set_scene_root(system);

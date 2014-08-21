@@ -1,7 +1,7 @@
 pavlov.specify("Omega.PlanetMesh", function(){
 describe("Omega.PlanetMesh", function(){
   it("has a THREE.Mesh instance", function(){
-    var planet_mesh = new Omega.PlanetMesh({config: Omega.Config, type: 0});
+    var planet_mesh = new Omega.PlanetMesh({type: 0});
     assert(planet_mesh.tmesh).isOfType(THREE.Mesh);
     assert(planet_mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
     assert(planet_mesh.tmesh.material).isOfType(THREE.MeshLambertMaterial);

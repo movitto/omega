@@ -215,7 +215,7 @@ describe("Omega.Ship", function(){
 
     before(function(){
       ship = Omega.Gen.ship();
-      ship.init_gfx(Omega.Config);
+      ship.init_gfx();
 
       page = Omega.Test.Page();
       sinon.stub(page.audio_controls, 'play');
@@ -253,7 +253,7 @@ describe("Omega.Ship", function(){
 
     before(function(){
       ship = Omega.Gen.ship();
-      ship.init_gfx(Omega.Config);
+      ship.init_gfx();
 
       page = Omega.Test.Page();
       sinon.stub(page.audio_controls, 'stop');

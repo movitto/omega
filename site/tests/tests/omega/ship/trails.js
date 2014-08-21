@@ -3,7 +3,7 @@ describe("Omega.ShipTrails", function(){
   it("has a SPE Group instance", function(){
     var type = 'corvette';
     var conf = Omega.Config.resources.ships[type].trails;
-    var trails = new Omega.ShipTrails({config: Omega.Config, type: type});
+    var trails = new Omega.ShipTrails({type: type});
     assert(trails.particles).isOfType(SPE.Group);
     assert(trails.particles.emitters.length).equals(conf.length);
   });
@@ -17,7 +17,7 @@ describe("Omega.ShipTrails", function(){
                                 orientation_y : 0,
                                 orientation_z : 1});
 
-      trails = new Omega.ShipTrails({config: Omega.Config, type: 'corvette'});
+      trails = new Omega.ShipTrails({type: 'corvette'});
       trails.omega_entity = {location: loc};
     });
 
@@ -38,8 +38,7 @@ describe("Omega.ShipTrails", function(){
     var trails;
 
     before(function(){
-      trails = new Omega.ShipTrails({config: Omega.Config,
-                                     type: 'corvette'});
+      trails = new Omega.ShipTrails({type: 'corvette'});
       trails.omega_entity = Omega.Gen.ship();
     });
 

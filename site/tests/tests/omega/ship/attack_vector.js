@@ -1,9 +1,8 @@
 pavlov.specify("Omega.ShipAttackVector", function(){
 describe("Omega.ShipAttackVector", function(){
-  it("has a SPE Group instance", function(){
-    var vector = new Omega.ShipAttackVector({config: Omega.Config});
-    assert(vector.particles).isOfType(SPE.Group);
-    assert(vector.particles.emitters.length).equals(1);
+  it("has a THREE.Line instance", function(){
+    var vector = new Omega.ShipAttackVector({});
+    assert(vector.line).isOfType(THREE.Line);
   });
 
   describe("#update", function(){
@@ -13,7 +12,7 @@ describe("Omega.ShipAttackVector", function(){
       loc = new Omega.Location();
       loc.set(200, -200, 50);
 
-      vector = new Omega.ShipAttackVector({config: Omega.Config});
+      vector = new Omega.ShipAttackVector({});
       vector.omega_entity = {location : loc};
     });
 

@@ -24,8 +24,8 @@ describe("Omega.Pages.Stats", function(){
       sinon.assert.calledWith(login,
          sinon.match.ofType(Omega.User), page.node);
       var user = login.getCall(0).args[0];
-      assert(user.id).equals(page.config.anon_user)
-      assert(user.password).equals(page.config.anon_pass)
+      assert(user.id).equals(Omega.Config.anon_user)
+      assert(user.password).equals(Omega.Config.anon_pass)
     });
   });
 
@@ -57,13 +57,13 @@ describe("Omega.Pages.Stats", function(){
     var old_stats;
 
     before(function(){
-      old_stats = page.config.stats;
-      page.config.stats = [['stat1', ['stat1args']],
-                           ['stat2', ['stat2args']]];
+      old_stats = Omega.Config.stats;
+      Omega.Config.stats = [['stat1', ['stat1args']],
+                            ['stat2', ['stat2args']]];
     });
 
     after(function(){
-      page.config.stats = old_stats;
+      Omega.Config.stats = old_stats;
       if(Omega.Stat.get.restore) Omega.Stat.get.restore();
     });
 

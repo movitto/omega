@@ -2,7 +2,7 @@ pavlov.specify("Omega.Pages.Index", function(){
 describe("Omega.Pages.Index", function(){
   it("loads config", function(){
     var index = new Omega.Pages.Index();
-    assert(index.config).equals(Omega.Config);
+    assert(index.config).equals();
   });
 
   it("has a node", function(){
@@ -10,9 +10,9 @@ describe("Omega.Pages.Index", function(){
     assert(index.node).isOfType(Omega.Node);
   });
 
-  it("has a command tracker", function(){
+  it("has a callback handler", function(){
     var index = new Omega.Pages.Index();
-    assert(index.command_tracker).isOfType(Omega.UI.CommandTracker);
+    assert(index.callback_handler).isOfType(Omega.CallbackHandler);
   });
 
   it("has an effects player", function(){
@@ -23,13 +23,13 @@ describe("Omega.Pages.Index", function(){
 
   it("has an index dialog", function(){
     var index = new Omega.Pages.Index();
-    assert(index.dialog).isOfType(Omega.UI.IndexDialog);
+    assert(index.dialog).isOfType(Omega.Pages.IndexDialog);
     assert(index.dialog.page).isSameAs(index);
   });
 
   it("has an index nav", function(){
     var index = new Omega.Pages.Index();
-    assert(index.nav).isOfType(Omega.UI.IndexNav);
+    assert(index.nav).isOfType(Omega.Pages.IndexNav);
     assert(index.nav.page).isSameAs(index);
   });
 
@@ -219,26 +219,6 @@ describe("Omega.Pages.Index", function(){
         index.start();
         sinon.assert.called(index.validate_session);
       })
-
-      describe("session valid", function(){
-        it("invokes session valid callback", function(){
-          index.start();
-          var validated_cb = index.validate_session.getCall(0).args[0];
-          sinon.stub(index, '_valid_session');
-          validated_cb();
-          sinon.assert.called(index._valid_session);
-        });
-      });
-
-      describe("session invalid", function(){
-        it("invokes session invalid callback", function(){
-          index.start();
-          var invalid_cb = index.validate_session.getCall(0).args[1];
-          sinon.stub(index, '_invalid_session');
-          invalid_cb();
-          sinon.assert.called(index._invalid_session);
-        });
-      });
     });
   });
 
@@ -257,6 +237,24 @@ describe("Omega.Pages.Index", function(){
     after(function(){
       Omega.UI.Loader.load_universe.restore();
       Omega.UI.Loader.load_user_entities.restore();
+    });
+
+    it("shows logout controls", function(){
+      sinon.spy(index.nav, 'show_logout_controls');
+      index._valid_session();
+      sinon.assert.called(index.nav.show_logout_controls);
+    });
+
+    it("shows the missions button", function(){
+      sinon.spy(index.canvas.controls.missions_button, 'show')
+      index._valid_session();
+      sinon.assert.called(index.canvas.controls.missions_button.show);
+    });
+
+    it("handles events", function(){
+      sinon.spy(index, '_handle_events');
+      index._valid_session();
+      sinon.assert.called(index._handle_events);
     });
 
     it("loads universe id", function(){
@@ -301,15 +299,17 @@ describe("Omega.Pages.Index", function(){
   });
 
   describe("#_invalid_session", function(){
-    var session, index, load_universe, load_default_systems;
+    var session, index;
+
     before(function(){
       index = new Omega.Pages.Index();
       session = new Omega.Session();
       index.session = session;
 
-      /// stub out load universe call
-      load_default_systems = sinon.stub(Omega.UI.Loader, 'load_default_systems');
-      load_universe = sinon.stub(Omega.UI.Loader, 'load_universe');
+      /// stub out calls were testing
+      sinon.stub(index, '_login_anon');
+      sinon.stub(Omega.UI.Loader, 'load_default_systems');
+      sinon.stub(Omega.UI.Loader, 'load_universe');
     });
 
     after(function(){
@@ -318,37 +318,62 @@ describe("Omega.Pages.Index", function(){
       if(Omega.Session.login.restore) Omega.Session.login.restore();
     });
 
+    it("clears session cookies", function(){
+      sinon.spy(session, 'clear_cookies');
+      index._invalid_session();
+      sinon.assert.called(session.clear_cookies);
+    });
+
+    it("nullifies session", function(){
+      index._invalid_session();
+      assert(index.session).isNull();
+    });
+
+    it("shows login controls", function(){
+      sinon.spy(index.nav, 'show_login_controls');
+      index._invalid_session();
+      sinon.assert.called(index.nav.show_login_controls);
+    });
+
+    it("logs anonymous user in", function(){
+      index._invalid_session();
+      sinon.assert.called(index._login_anon);
+    });
+
     it("loads universe id", function(){
       index._invalid_session();
-      sinon.assert.calledWith(load_universe, index, sinon.match.func);
+      index._login_anon.omega_callback()();
+      sinon.assert.calledWith(Omega.UI.Loader.load_universe, index, sinon.match.func);
     });
 
     it("loads default systems", function(){
       index._invalid_session();
-      var load_cb = load_universe.getCall(0).args[1];
-      load_cb();
-      sinon.assert.called(load_default_systems);
+      index._login_anon.omega_callback()();
+      Omega.UI.Loader.load_universe.omega_callback()();
+      sinon.assert.called(Omega.UI.Loader.load_default_systems);
     });
 
     it("processes default systems", function(){
       var sys = Omega.Gen.solar_system();
       index._invalid_session();
-      load_universe.omega_callback()();
+      index._login_anon.omega_callback()();
+      Omega.UI.Loader.load_universe.omega_callback()();
 
       sinon.stub(index, 'process_system');
-      load_default_systems.omega_callback()(sys);
+      Omega.UI.Loader.load_default_systems.omega_callback()(sys);
       sinon.assert.calledWith(index.process_system, sys);
     });
 
     describe("autoload root is set", function(){
       it("autoloads root", function(){
         index._invalid_session();
-        load_universe.omega_callback()();
+        index._login_anon.omega_callback()();
+        Omega.UI.Loader.load_universe.omega_callback()();
 
         sinon.stub(index, 'process_system');
         sinon.stub(index, '_should_autoload_root').returns(true);
         sinon.stub(index, 'autoload_root');
-        load_default_systems.omega_callback()();
+        Omega.UI.Loader.load_default_systems.omega_callback()();
         sinon.assert.called(index.autoload_root);
       });
     });

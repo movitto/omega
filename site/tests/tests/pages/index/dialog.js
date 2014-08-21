@@ -1,10 +1,10 @@
-pavlov.specify("Omega.UI.IndexDialog", function(){
-describe("Omega.UI.IndexDialog", function(){
+pavlov.specify("Omega.Pages.IndexDialog", function(){
+describe("Omega.Pages.IndexDialog", function(){
   var page, dialog;
 
   before(function(){
     page   = new Omega.Pages.Index();
-    dialog = new Omega.UI.IndexDialog({page : page});
+    dialog = new Omega.Pages.IndexDialog({page : page});
   });
 
   after(function(){
@@ -76,33 +76,33 @@ describe("Omega.UI.IndexDialog", function(){
 
   describe("#show_critical_err_dialog", function(){
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_critical_err_dialog();
       sinon.assert.called(spy);
     });
 
     it("displays critical err dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_critical_err_dialog();
       assert(dialog.div_id).equals('#critical_err_dialog');
     });
 
     it("sets the critical error title/message", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_critical_err_dialog('CE', 'Disconnected');
       assert(dialog.title).equals('CE');
       assert($('#critical_err').html()).equals('Disconnected');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_critical_err_dialog();
       assert(dialog.dialog()).isVisible();
     });
 
     it("keeps the dialog open", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var keep_open = sinon.spy(dialog, 'keep_open');
       dialog.show_critical_err_dialog();
       sinon.assert.called(keep_open);
@@ -111,21 +111,21 @@ describe("Omega.UI.IndexDialog", function(){
 
   describe("#show_login_dialog", function(){
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_login_dialog();
       sinon.assert.called(spy);
     });
 
     it("displays login dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_login_dialog();
       assert(dialog.title).equals('Login');
       assert(dialog.div_id).equals('#login_dialog');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_login_dialog();
       assert(dialog.dialog()).isVisible();
     });
@@ -143,7 +143,7 @@ describe("Omega.UI.IndexDialog", function(){
     })
 
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog({page: page});
+      var dialog = new Omega.Pages.IndexDialog({page: page});
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_register_dialog();
       sinon.assert.called(spy);
@@ -151,20 +151,20 @@ describe("Omega.UI.IndexDialog", function(){
 
     it("generates a recaptcha", function(){
       var spy = sinon.spy(Recaptcha, 'create')
-      var dialog = new Omega.UI.IndexDialog({page: page});
+      var dialog = new Omega.Pages.IndexDialog({page: page});
       dialog.show_register_dialog();
-      sinon.assert.calledWith(spy, page.config.recaptcha_pub, "omega_recaptcha")
+      sinon.assert.calledWith(spy, Omega.Config.recaptcha_pub, "omega_recaptcha")
     });
 
     it("displays register dialog", function(){
-      var dialog = new Omega.UI.IndexDialog({page: page});
+      var dialog = new Omega.Pages.IndexDialog({page: page});
       dialog.show_register_dialog();
       assert(dialog.title).equals('Register');
       assert(dialog.div_id).equals('#register_dialog');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog({page: page});
+      var dialog = new Omega.Pages.IndexDialog({page: page});
       dialog.show_register_dialog();
       assert(dialog.dialog()).isVisible();
     });
@@ -172,27 +172,27 @@ describe("Omega.UI.IndexDialog", function(){
 
   describe("#show_login_failed_dialog", function(){
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_login_failed_dialog();
       sinon.assert.called(spy);
     });
 
     it("displays login failed dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_login_failed_dialog();
       assert(dialog.title).equals('Login Failed');
       assert(dialog.div_id).equals('#login_failed_dialog');
     });
 
     it("sets login error", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_login_failed_dialog('invalid credentials');
       assert($('#login_err').html()).equals('Login Failed: invalid credentials');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_login_failed_dialog();
       assert(dialog.dialog()).isVisible();
     });
@@ -200,21 +200,21 @@ describe("Omega.UI.IndexDialog", function(){
 
   describe("#show_registration_submitted_dialog", function(){
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_registration_submitted_dialog();
       sinon.assert.called(spy);
     });
 
     it("displays registration submitted dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_registration_submitted_dialog();
       assert(dialog.title).equals('Registration Submitted');
       assert(dialog.div_id).equals('#registration_submitted_dialog');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_registration_submitted_dialog();
       assert(dialog.dialog()).isVisible();
     });
@@ -222,27 +222,27 @@ describe("Omega.UI.IndexDialog", function(){
 
   describe("#show_registration_failed_dialog", function(){
     it("hides the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       var spy = sinon.spy(dialog, 'hide');
       dialog.show_registration_failed_dialog();
       sinon.assert.called(spy);
     });
 
     it("displays registration failed dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_registration_failed_dialog();
       assert(dialog.title).equals('Registration Failed');
       assert(dialog.div_id).equals('#registration_failed_dialog');
     });
 
     it("sets registration error", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_registration_failed_dialog('invalid email');
       assert($('#registration_err').html()).equals('Failed to create account: invalid email');
     });
 
     it("shows the dialog", function(){
-      var dialog = new Omega.UI.IndexDialog();
+      var dialog = new Omega.Pages.IndexDialog();
       dialog.show_registration_failed_dialog();
       assert(dialog.dialog()).isVisible();
     });
@@ -295,7 +295,7 @@ describe("Omega.UI.IndexDialog", function(){
         session.id = 'foo'
 
         // stub out session validated
-        session_validated = sinon.stub(page, '_session_validated');
+        sinon.stub(page, '_valid_session');
       })
 
       it("hides login dialog", function(){
@@ -310,9 +310,9 @@ describe("Omega.UI.IndexDialog", function(){
         assert(page.session).equals(session);
       });
 
-      it("invokes page.session_validated", function(){
+      it("invokes page._valid_session", function(){
         login_callback.apply(null, [session]);
-        sinon.assert.called(session_validated);
+        sinon.assert.called(page._valid_session);
       })
     });
   });

@@ -60,7 +60,7 @@ describe("Omega.UI.CanvasEntityContainer", function(){
     var ship;
     before(function(){
       ship = Omega.Gen.ship();
-      ship.init_gfx(Omega.Config);
+      ship.init_gfx();
       container.show(ship);
     });
 
@@ -108,7 +108,7 @@ describe("Omega.UI.CanvasEntityContainer", function(){
 
     before(function(){
       ship = Omega.Gen.ship();
-      ship.init_gfx(Omega.Config);
+      ship.init_gfx();
     });
 
     it("hides entity container", function(){
@@ -165,7 +165,7 @@ describe("Omega.UI.CanvasEntityContainer", function(){
 
     before(function(){
       ship = Omega.Gen.ship();
-      ship.init_gfx(Omega.Config);
+      ship.init_gfx();
     });
 
     it("retrieves entity details", function(){

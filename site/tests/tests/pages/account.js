@@ -10,7 +10,7 @@ describe("Omega.Pages.Account", function(){
   });
 
   it("has a copy of the Omega config", function(){
-    assert(page.config).equals(Omega.Config);
+    assert(page.config).equals();
   });
 
   it("has a node", function(){
@@ -18,11 +18,11 @@ describe("Omega.Pages.Account", function(){
   });
 
   it("has an account info dialog instance", function(){
-    assert(page.dialog).isOfType(Omega.UI.AccountDialog);
+    assert(page.dialog).isOfType(Omega.Pages.AccountDialog);
   });
 
   it("has an account info details instance", function(){
-    assert(page.details).isOfType(Omega.UI.AccountDetails);
+    assert(page.details).isOfType(Omega.Pages.AccountDetails);
   });
 
   describe("#wire_up", function(){
@@ -41,17 +41,6 @@ describe("Omega.Pages.Account", function(){
     it("validates session", function(){
       page.start();
       sinon.assert.called(page.validate_session);
-    });
-
-    describe("on session validation", function(){
-      it("invokes _valid_session", function(){
-        sinon.stub(page, '_valid_session');
-        page.start();
-
-        var validated_cb = page.validate_session.getCall(0).args[0];
-        validated_cb();
-        sinon.assert.called(page._valid_session);
-      });
     });
   });
 

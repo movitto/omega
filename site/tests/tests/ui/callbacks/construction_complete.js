@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#construction_complete", function(){
       var page, tracker;
@@ -17,7 +17,7 @@ describe("Omega.UI.CommandTracker", function(){
         page.audio_controls = new Omega.UI.AudioControls({page: page});
         page.audio_controls.disabled = true;
 
-        tracker = new Omega.UI.CommandTracker({page : page});
+        tracker = new Omega.CallbackHandler({page : page});
 
         var system = new Omega.SolarSystem({id : 'sys1'});
         page.canvas.set_scene_root(system);

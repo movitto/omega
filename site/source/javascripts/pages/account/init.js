@@ -11,8 +11,8 @@
 
 Omega.Pages.AccountInitializer = {
   init_account : function(){
-    this.dialog  = new Omega.UI.AccountDialog();
-    this.details = new Omega.UI.AccountDetails();
+    this.dialog  = new Omega.Pages.AccountDialog();
+    this.details = new Omega.Pages.AccountDetails({page : this});
   },
 
   wire_up : function(){

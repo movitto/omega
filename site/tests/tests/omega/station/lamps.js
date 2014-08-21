@@ -2,7 +2,7 @@ pavlov.specify("Omega.StationLamps", function(){
 describe("Omega.StationLamps", function(){
   it("has a Omega.UI.CanavasLamp instance", function(){
     var type = 'manufacturing';
-    var station_lamps = new Omega.StationLamps({config: Omega.Config, type: type});
+    var station_lamps = new Omega.StationLamps({type: type});
 
     assert(station_lamps.olamps.length).
       equals(Omega.Config.resources.stations[type].lamps.length);

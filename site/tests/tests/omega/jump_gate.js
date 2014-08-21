@@ -53,7 +53,7 @@ describe("Omega.JumpGate", function(){
   describe("#_has_selection_sphere", function(){
     describe("selection sphere is a child of jg scene mesh", function(){
       it("returns true", function(){
-        jg.init_gfx(Omega.Config);
+        jg.init_gfx();
         jg._add_selection_sphere();
         assert(jg._has_selection_sphere()).isTrue();
       });
@@ -61,7 +61,7 @@ describe("Omega.JumpGate", function(){
 
     describe("selection sphere is not a child of jg scene mesh", function(){
       it("returns false", function(){
-        jg.init_gfx(Omega.Config);
+        jg.init_gfx();
         assert(jg._has_selection_sphere()).isFalse();
       });
     });
@@ -69,7 +69,7 @@ describe("Omega.JumpGate", function(){
 
   describe("#_add_selection_sphere", function(){
     it("adds selection sphere as a child of the scene mesh", function(){
-      jg.init_gfx(Omega.Config);
+      jg.init_gfx();
       assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
       jg._add_selection_sphere();
       assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
@@ -78,7 +78,7 @@ describe("Omega.JumpGate", function(){
 
   describe("#_rm_selection_sphere", function(){
     it("removes selection sphere from scene mesh children", function(){
-      jg.init_gfx(Omega.Config);
+      jg.init_gfx();
       jg._add_selection_sphere();
       jg._rm_selection_sphere();
       assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
@@ -102,7 +102,7 @@ describe("Omega.JumpGate", function(){
 
   describe("#selected", function(){
     it("reloads jg in scene", function(){
-      jg.init_gfx(Omega.Config);
+      jg.init_gfx();
       var reload = sinon.spy(page.canvas, 'reload');
       jg.selected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
@@ -110,7 +110,7 @@ describe("Omega.JumpGate", function(){
 
     describe("reload callback", function(){
       it("adds selection sphere to jg mesh", function(){
-        jg.init_gfx(Omega.Config);
+        jg.init_gfx();
         var reload = sinon.stub(page.canvas, 'reload');
         jg.selected(page);
 
@@ -126,7 +126,7 @@ describe("Omega.JumpGate", function(){
 
   describe("#unselected", function(){
     it("reloads jg in scene", function(){
-      jg.init_gfx(Omega.Config);
+      jg.init_gfx();
       var reload = sinon.spy(page.canvas, 'reload');
       jg.unselected(page);
       sinon.assert.calledWith(reload, jg, sinon.match.func);
@@ -134,7 +134,7 @@ describe("Omega.JumpGate", function(){
 
     describe("reload callback", function(){
       it("removes selection sphere from jg scene components", function(){
-        jg.init_gfx(Omega.Config);
+        jg.init_gfx();
         jg.selected(page);
         assert(jg.mesh.tmesh.getDescendants()).
           includes(jg.selection.tmesh);

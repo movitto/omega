@@ -8,8 +8,8 @@
 //= require "omega/ship/attack/missile"
 
 Omega.ShipGfxLoader = {
-  /// geometry, missile geometry
-  async_gfx : 2,
+  /// mesh material & geometry, shell material, missile geometry
+  async_gfx : 4,
 
   _load_textures : function(event_cb){
     this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));
@@ -41,12 +41,12 @@ Omega.ShipGfxLoader = {
   },
 
   _load_audio : function(){
-    this._store_resource('docking_audio',     new Omega.ShipDockingAudioEffect());
-    this._store_resource('mining_audio',      new Omega.ShipMiningAudioEffect());
-    this._store_resource('destruction_audio', new Omega.ShipDestructionAudioEffect());
-    this._store_resource('mining_completed',  new Omega.ShipMiningCompletedAudioEffect());
-    this._store_resource('combat_audio',      new Omega.ShipCombatAudioEffect());
-    this._store_resource('movement_audio',    new Omega.ShipMovementAudioEffect());
+    this._store_resource('docking_audio',           new Omega.ShipDockingAudioEffect());
+    this._store_resource('mining_audio',            new Omega.ShipMiningAudioEffect());
+    this._store_resource('destruction_audio',       new Omega.ShipDestructionAudioEffect());
+    this._store_resource('mining_completed_audio',  new Omega.ShipMiningCompletedAudioEffect());
+    this._store_resource('combat_audio',            new Omega.ShipCombatAudioEffect());
+    this._store_resource('movement_audio',          new Omega.ShipMovementAudioEffect());
   },
 
   _load_geometries : function(event_cb){
@@ -54,11 +54,11 @@ Omega.ShipGfxLoader = {
 
     var mesh_resource = 'ship.' + this.type + '.mesh_geometry';
     var mesh_geometry = Omega.ShipMesh.geometry_for(this.type);
-    Omega.UI.AsyncResourceLoader.load(mesh_resource, mesh_geometry, event_cb);
+    this._load_async_resource(mesh_resource, mesh_geometry, event_cb);
 
     var missile_resource = 'ship.' + this.type + '.missile_geometry';
     var missile_geometry = Omega.ShipMissile.geometry_for(this.type);
-    Omega.UI.AsyncResourceLoader.load(missile_resource, missile_geometry, event_cb);
+    this._load_async_resource(missile_resource, missile_geometry, event_cb);
   },
 
   /// Load shared graphics resources

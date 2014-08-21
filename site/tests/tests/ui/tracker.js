@@ -1,66 +1,10 @@
 // TODO test independently (currently testing through index page mixin)
-pavlov.specify("Omega.UI.Tracker", function(){
-describe("Omega.UI.Tracker", function(){
-  describe("#entity_map", function(){
-    var page, system, other_system;
-    var ship1, ship2, ship3, ship4;
-    var station1, station2, station3;
-
-    before(function(){
-      system = Omega.Gen.solar_system();
-      other_system = Omega.Gen.solar_system();
-
-      page = $.extend({canvas : new Omega.UI.Canvas()},
-                      Omega.UI.Tracker, new Omega.UI.Registry());
-      page.canvas.root = Omega.Gen.solar_system({id : system.id})
-      page.session = new Omega.Session({user_id : 'user42'});
-
-      ship1 = Omega.Gen.ship({user_id   : 'user42',
-                              system_id : system.id});
-      ship2 = Omega.Gen.ship({user_id   : 'user42',
-                              system_id : other_system.id});
-      ship3 = Omega.Gen.ship({user_id   : 'user43',
-                              system_id : system.id});
-      ship4 = Omega.Gen.ship({user_id   : 'user43',
-                              system_id : other_system.id});
-
-      station1 = Omega.Gen.station({user_id   : 'user42',
-                                    system_id : other_system.id});
-      station2 = Omega.Gen.station({user_id   : 'user43',
-                                    system_id : other_system.id});
-      station3 = Omega.Gen.station({user_id   : 'user43',
-                                    system_id : system.id});
-
-      var entities = [ship1, ship2, ship3, ship4, station1, station2, station3];
-      for(var e = 0; e < entities.length; e++)
-        page.entity(entities[e].id, entities[e]);
-    });
-
-    it("returns all manu registry entities", function(){
-      assert(page.entity_map(system).manu).isSameAs(page.all_entities());
-    });
-
-    it("returns registry entities owned by current user", function(){
-      assert(page.entity_map(system).user_owned).
-        isSameAs([ship1, ship2, station1]);
-    });
-
-    it("returns registry entities not owned by current user", function(){
-      assert(page.entity_map(system).not_user_owned).
-        isSameAs([ship3, ship4, station2, station3]);
-    });
-
-  //// TODO
-    //it("returns registry entities to stop tracking (not user owned, not in current root)", function(){
-    //  assert(page.entity_map(system).start_tracking).
-    //    isSameAs([ship3, station3]);
-    //});
-  });
-
+pavlov.specify("Omega.EntityTracker", function(){
+describe("Omega.EntityTracker", function(){
   describe("#track_system_events", function(){
     var page, system;
     before(function(){
-      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       system = Omega.Gen.solar_system();
       sinon.stub(page.node, 'ws_invoke');
     });
@@ -76,7 +20,7 @@ describe("Omega.UI.Tracker", function(){
   describe("#stop_tracking_system_events", function(){
     var page;
     before(function(){
-      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       sinon.stub(page.node, 'ws_invoke');
     });
 
@@ -95,17 +39,17 @@ describe("Omega.UI.Tracker", function(){
       station = Omega.Gen.ship();
       entities = {stop_tracking : [ship, station]};
 
-      sinon.stub(Omega.UI.Tracker, 'stop_tracking_entity');
+      sinon.stub(Omega.EntityTracker, 'stop_tracking_entity');
     });
 
     after(function(){
-      Omega.UI.Tracker.stop_tracking_entity.restore();
+      Omega.EntityTracker.stop_tracking_entity.restore();
     });
 
     it("stops tracking specified entities", function(){
-      Omega.UI.Tracker.stop_tracking_scene_entities(entities);
-      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_entity, ship);
-      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_entity, station);
+      Omega.EntityTracker.stop_tracking_scene_entities(entities);
+      sinon.assert.calledWith(Omega.EntityTracker.stop_tracking_entity, ship);
+      sinon.assert.calledWith(Omega.EntityTracker.stop_tracking_entity, station);
     });
   });
 
@@ -119,7 +63,7 @@ describe("Omega.UI.Tracker", function(){
       system  = Omega.Gen.solar_system({children : [planet1, planet2]});
 
       page = $.extend({node : new Omega.Node(),
-                       canvas : new Omega.UI.Canvas()}, Omega.UI.Tracker);
+                       canvas : new Omega.UI.Canvas()}, Omega.EntityTracker);
       page.canvas.root = system;
 
       sinon.stub(page.canvas, 'reload');
@@ -173,7 +117,7 @@ describe("Omega.UI.Tracker", function(){
 
     before(function(){
       page = $.extend({node : new Omega.Node(),
-                       canvas : new Omega.UI.Canvas()}, Omega.UI.Tracker);
+                       canvas : new Omega.UI.Canvas()}, Omega.EntityTracker);
 
       system   = Omega.Gen.solar_system();
       ship     = Omega.Gen.ship();
@@ -205,43 +149,43 @@ describe("Omega.UI.Tracker", function(){
 
   describe("#track_entity", function(){
     before(function(){
-      sinon.stub(Omega.UI.Tracker, 'track_ship');
-      sinon.stub(Omega.UI.Tracker, 'track_station');
+      sinon.stub(Omega.EntityTracker, 'track_ship');
+      sinon.stub(Omega.EntityTracker, 'track_station');
     });
 
     after(function(){
-      Omega.UI.Tracker.track_ship.restore();
-      Omega.UI.Tracker.track_station.restore();
+      Omega.EntityTracker.track_ship.restore();
+      Omega.EntityTracker.track_station.restore();
     });
 
     it("tracks specified ship/station", function(){
       var ship = Omega.Gen.ship();
       var station = Omega.Gen.station();
-      Omega.UI.Tracker.track_entity(ship);
-      Omega.UI.Tracker.track_entity(station);
-      sinon.assert.calledWith(Omega.UI.Tracker.track_ship, ship);
-      sinon.assert.calledWith(Omega.UI.Tracker.track_station, station);
+      Omega.EntityTracker.track_entity(ship);
+      Omega.EntityTracker.track_entity(station);
+      sinon.assert.calledWith(Omega.EntityTracker.track_ship, ship);
+      sinon.assert.calledWith(Omega.EntityTracker.track_station, station);
     });
   });
 
   describe("#stop_tracking_entity", function(){
     before(function(){
-      sinon.stub(Omega.UI.Tracker, 'stop_tracking_ship');
-      sinon.stub(Omega.UI.Tracker, 'stop_tracking_station');
+      sinon.stub(Omega.EntityTracker, 'stop_tracking_ship');
+      sinon.stub(Omega.EntityTracker, 'stop_tracking_station');
     });
 
     after(function(){
-      Omega.UI.Tracker.stop_tracking_ship.restore();
-      Omega.UI.Tracker.stop_tracking_station.restore();
+      Omega.EntityTracker.stop_tracking_ship.restore();
+      Omega.EntityTracker.stop_tracking_station.restore();
     });
 
     it("stops tracking specified ship/station", function(){
       var ship = Omega.Gen.ship();
       var station = Omega.Gen.station();
-      Omega.UI.Tracker.stop_tracking_entity(ship);
-      Omega.UI.Tracker.stop_tracking_entity(station);
-      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_ship, ship);
-      sinon.assert.calledWith(Omega.UI.Tracker.stop_tracking_station, station);
+      Omega.EntityTracker.stop_tracking_entity(ship);
+      Omega.EntityTracker.stop_tracking_entity(station);
+      sinon.assert.calledWith(Omega.EntityTracker.stop_tracking_ship, ship);
+      sinon.assert.calledWith(Omega.EntityTracker.stop_tracking_station, station);
     });
   })
 
@@ -249,8 +193,7 @@ describe("Omega.UI.Tracker", function(){
     var page, ship;
 
     before(function(){
-      page = $.extend({config: Omega.Config,
-                       node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       ship = Omega.Gen.ship();
       sinon.stub(page.node, 'ws_invoke');
     });
@@ -271,14 +214,14 @@ describe("Omega.UI.Tracker", function(){
       page.track_ship(ship);
       sinon.assert.calledWith(page.node.ws_invoke,
                               'motel::track_movement',
-                              ship.location.id, page.config.ship_movement);
+                              ship.location.id, Omega.Config.ship_movement);
     });
 
     it("invokes motel::track_rotation", function(){
       page.track_ship(ship);
       sinon.assert.calledWith(page.node.ws_invoke,
                               'motel::track_rotation',
-                              ship.location.id, page.config.ship_rotation);
+                              ship.location.id, Omega.Config.ship_rotation);
     });
 
     it("invokes motel::subscribe_to resource_collected", function(){
@@ -335,7 +278,7 @@ describe("Omega.UI.Tracker", function(){
     var page, ship;
 
     before(function(){
-      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       ship = Omega.Gen.ship();
       sinon.stub(page.node, 'ws_invoke');
     });
@@ -357,8 +300,7 @@ describe("Omega.UI.Tracker", function(){
     var page, station;
 
     before(function(){
-      page = $.extend({node : new Omega.Node(),
-                       config : Omega.Config}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       station = Omega.Gen.station();
       sinon.stub(page.node, 'ws_invoke');
     });
@@ -389,7 +331,7 @@ describe("Omega.UI.Tracker", function(){
     var page, station;
 
     before(function(){
-      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       station = Omega.Gen.station();
       sinon.stub(page.node, 'ws_invoke');
     });
@@ -405,7 +347,7 @@ describe("Omega.UI.Tracker", function(){
     var page, station;
 
     before(function(){
-      page = $.extend({node : new Omega.Node()}, Omega.UI.Tracker);
+      page = $.extend({node : new Omega.Node()}, Omega.EntityTracker);
       sinon.stub(page.node, 'ws_invoke');
     });
 

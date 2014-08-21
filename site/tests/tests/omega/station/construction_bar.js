@@ -4,7 +4,7 @@ describe("Omega.StationConstructionBar", function(){
     var construction_bar, station;
     before(function(){
       station = Omega.Gen.station();
-      station.init_gfx(Omega.Config);
+      station.init_gfx();
 
       construction_bar = station.construction_bar;
     });

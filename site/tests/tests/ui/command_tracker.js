@@ -1,5 +1,5 @@
-pavlov.specify("Omega.UI.CommandTracker", function(){
-describe("Omega.UI.CommandTracker", function(){
+pavlov.specify("Omega.CallbackHandler", function(){
+describe("Omega.CallbackHandler", function(){
   var page, tracker, canvas_reload, canvas_add;
 
   before(function(){
@@ -9,7 +9,7 @@ describe("Omega.UI.CommandTracker", function(){
     page.audio_controls = new Omega.UI.AudioControls({page: page});
     page.audio_controls.disabled = true;
     page.canvas.set_scene_root(new Omega.SolarSystem({id : 'system1'}))
-    tracker = new Omega.UI.CommandTracker({page : page});
+    tracker = new Omega.CallbackHandler({page : page});
 
     /// stub these out so we don't have to load gfx
     canvas_reload = sinon.stub(page.canvas, 'reload');
