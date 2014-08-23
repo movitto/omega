@@ -1,5 +1,6 @@
 pavlov.specify("Omega.UI.CanvasDialog", function(){
 describe("Omega.UI.CanvasDialog", function(){
+  var dialog;
   var user_id  = 'user1';
   var node     = new Omega.Node();
   var session  = new Omega.Session({user_id: user_id});

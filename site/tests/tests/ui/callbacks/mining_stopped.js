@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var ship, eship, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
+        page = new Omega.Pages.Test();
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas.entity_container, 'refresh_details');
 

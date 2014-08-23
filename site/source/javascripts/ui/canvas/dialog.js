@@ -27,6 +27,7 @@ Omega.UI.CanvasDialog.prototype = {
   },
 
   show_missions_dialog : function(missions){
+    var assigned   = [];
     var unassigned = [];
     var victorious = [];
     var failed     = [];

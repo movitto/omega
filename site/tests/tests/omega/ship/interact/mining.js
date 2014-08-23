@@ -110,6 +110,8 @@ describe("Omega.ShipMiningInteractions", function(){
       before(function(){
         ship._start_mining(page, evnt);
         response_cb = page.node.http_invoke.omega_callback();
+
+        sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       });
 
       describe("on failure", function(){

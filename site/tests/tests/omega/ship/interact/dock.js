@@ -62,6 +62,7 @@ describe("Omega.ShipDockInteractions", function(){
       evnt.currentTarget = $('<span/>');
       evnt.currentTarget.data('station', station);
 
+      sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       sinon.stub(page.node, 'http_invoke');
     });
 
@@ -202,6 +203,8 @@ describe("Omega.ShipDockInteractions", function(){
       before(function(){
         ship._undock(page);
         response_cb = page.node.http_invoke.omega_callback();
+
+        sinon.stub(page.canvas, 'reload'); // stub out canvas reload
       });
 
       describe("on failure", function(){

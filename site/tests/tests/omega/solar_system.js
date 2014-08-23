@@ -79,7 +79,7 @@ describe("Omega.SolarSystem", function(){
   });
 
   describe("#update", function(){
-    var system,  star,  planet,
+    var system,  star,  planet, nplanet,
         nsystem, nstar, nast;
 
     before(function(){

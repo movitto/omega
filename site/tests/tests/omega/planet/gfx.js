@@ -125,7 +125,7 @@ describe("Omega.PlanetGfx", function(){
   });
 
   describe("#run_effects", function(){
-    var pl;
+    var pl, loc;
 
     before(function(){
       loc = new Omega.Location({movement_strategy:

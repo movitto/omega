@@ -1,13 +1,11 @@
 pavlov.specify("Omega.JumpGate", function(){
 describe("Omega.JumpGate", function(){
-  var jg, page;
+  var jg;
 
   before(function(){
     jg = Omega.Gen.jump_gate();
     jg.endpoint_id = 'system2';
     jg.location.set(100, -200, 50.5678)
-
-    page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
   });
 
   it("converts location", function(){
@@ -82,12 +80,11 @@ describe("Omega.JumpGate", function(){
   });
 
   describe("#clicked_in", function(){
-    before(function(){
-      sinon.stub(page.canvas, 'follow_entity');
-    });
+    var page;
 
-    after(function(){
-      page.canvas.follow_entity.restore();
+    before(function(){
+      page = new Omega.Pages.Test();
+      sinon.stub(page.canvas, 'follow_entity');
     });
 
     it("instructs canvas to follow jg entity", function(){
@@ -97,51 +94,67 @@ describe("Omega.JumpGate", function(){
   });
 
   describe("#selected", function(){
+    var page;
+
+    before(function(){
+      page = Omega.Test.page();
+      sinon.stub(page.canvas, 'follow_entity');
+      sinon.stub(page.canvas, 'reload');
+    });
+
+    after(function(){
+      page.canvas.follow_entity.restore();
+      page.canvas.reload.restore();
+    });
+
     it("reloads jg in scene", function(){
       jg.init_gfx();
-      var reload = sinon.spy(page.canvas, 'reload');
       jg.selected(page);
-      sinon.assert.calledWith(reload, jg, sinon.match.func);
+      sinon.assert.calledWith(page.canvas.reload, jg, sinon.match.func);
     });
 
     describe("reload callback", function(){
       it("adds selection sphere to jg mesh", function(){
         jg.init_gfx();
-        var reload = sinon.stub(page.canvas, 'reload');
         jg.selected(page);
 
-        var during_reload = reload.getCall(0).args[1];
-        assert(jg.mesh.tmesh.getDescendants()).
-          doesNotInclude(jg.selection.tmesh);
-        during_reload();
-        assert(jg.mesh.tmesh.getDescendants()).
-          includes(jg.selection.tmesh);
+        assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
+        page.canvas.reload.omega_callback()();
+        assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
       });
     });
   });
 
   describe("#unselected", function(){
+    var page;
+
+    before(function(){
+      page = Omega.Test.page();
+      sinon.stub(page.canvas, 'reload');
+    });
+
+    after(function(){
+      page.canvas.reload.restore();
+    });
+
+
     it("reloads jg in scene", function(){
       jg.init_gfx();
-      var reload = sinon.spy(page.canvas, 'reload');
       jg.unselected(page);
-      sinon.assert.calledWith(reload, jg, sinon.match.func);
+      sinon.assert.calledWith(page.canvas.reload, jg, sinon.match.func);
     });
 
     describe("reload callback", function(){
       it("removes selection sphere from jg scene components", function(){
         jg.init_gfx();
         jg.selected(page);
-        assert(jg.mesh.tmesh.getDescendants()).
-          includes(jg.selection.tmesh);
+        page.canvas.reload.omega_callback()();
+        assert(jg.mesh.tmesh.getDescendants()).includes(jg.selection.tmesh);
 
-        var reload = sinon.spy(page.canvas, 'reload');
+        page.canvas.reload.reset();
         jg.unselected(page);
-
-        var during_reload = reload.getCall(0).args[1];
-        during_reload();
-        assert(jg.mesh.tmesh.getDescendants()).
-          doesNotInclude(jg.selection.tmesh);
+        page.canvas.reload.omega_callback()();
+        assert(jg.mesh.tmesh.getDescendants()).doesNotInclude(jg.selection.tmesh);
       });
     });
   });

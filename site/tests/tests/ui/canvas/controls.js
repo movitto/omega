@@ -4,7 +4,7 @@ describe("Omega.UI.CanvasControls", function(){
   
   before(function(){
     page     = new Omega.Pages.Test();
-    canvas   = new Omega.UI.Canvas({page: page});
+    canvas   = page.canvas;
     controls = new Omega.UI.CanvasControls({canvas: canvas});
   });
 
@@ -114,7 +114,11 @@ describe("Omega.UI.CanvasControls", function(){
   
   describe("#toggle_axis input clicked", function(){
     before(function(){
-      canvas = new Omega.UI.Canvas();
+      // stub out canvas calls
+      sinon.stub(canvas, 'add');
+      sinon.stub(canvas, 'remove');
+      sinon.stub(canvas, 'animate');
+
       controls = new Omega.UI.CanvasControls({canvas: canvas});
       controls.wire_up();
     });
@@ -125,21 +129,17 @@ describe("Omega.UI.CanvasControls", function(){
 
     describe("input is checked", function(){
       it("adds axis to canvas scene", function(){
-        controls.toggle_axis.attr('checked', false);
+        controls.toggle_axis.prop('checked', false);
         controls.toggle_axis.click();
-        assert(canvas.scene.getDescendants()).includes(canvas.axis.components[0]);
-        assert(canvas.scene.getDescendants()).includes(canvas.axis.components[1]);
-        assert(canvas.scene.getDescendants()).includes(canvas.axis.components[2]);
+        sinon.assert.calledWith(canvas.add, canvas.axis);
       });
     });
 
     describe("input is not checked", function(){
       it("removes axis from canvas scene", function(){
-        controls.toggle_axis.attr('checked', true);
+        controls.toggle_axis.prop('checked', true);
         controls.toggle_axis.click();
-        assert(canvas.scene.getDescendants()).doesNotInclude(canvas.axis.xy);
-        assert(canvas.scene.getDescendants()).doesNotInclude(canvas.axis.xz);
-        assert(canvas.scene.getDescendants()).doesNotInclude(canvas.axis.yz);
+        sinon.assert.calledWith(canvas.remove, canvas.axis);
       });
     });
 

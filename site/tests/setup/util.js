@@ -9,19 +9,9 @@ Omega.Test = {
     return handlers;
   },
 
-
   /// remove all event handlers
   clear_events : function(){
     $('body *').off();
-  },
-
-  /// wait until animation
-  on_animation : function(canvas, cb){
-    canvas.old_render = canvas.render;
-    canvas.render = function(){
-      canvas.old_render();
-      cb(canvas);
-    };
   },
 
   /// disable jquery dialog
@@ -85,5 +75,16 @@ Omega.Test = {
     this._create_entities();
     this._init_entities(event_cb);
     return this._test_entities;
+  },
+
+  page : function(){
+    if(this._page) return this._page;
+    this._page = new Omega.Pages.Test();
+    this._page.canvas.init_gl();
+    return this._page;
+  },
+
+  canvas : function(){
+    return this.page().canvas;
   }
 };

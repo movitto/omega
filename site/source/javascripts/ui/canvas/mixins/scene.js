@@ -23,7 +23,7 @@ Omega.UI.CanvasSceneManager = {
   render_stats : true,
 
   /// init Canvas 3D operations
-  _init_canvas : function(){
+  init_gl : function(){
     if(!this.detect_webgl()) return;
 
     this._init_stats();
@@ -31,6 +31,7 @@ Omega.UI.CanvasSceneManager = {
     this._init_renderer();
     this._init_cams();
     this._init_components();
+    return this;
   },
 
   detect_webgl : function(){
@@ -108,6 +109,8 @@ Omega.UI.CanvasSceneManager = {
     this.canvas.append(this.renderer.domElement);
 
     THREEx.WindowResize(this.renderer, this.cam);
+
+    return this;
   },
 
   // Request animation frame

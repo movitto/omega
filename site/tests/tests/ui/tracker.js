@@ -54,7 +54,7 @@ describe("Omega.EntityTracker", function(){
   });
 
   describe("#sync_scene_planets", function(){
-    var page, system;
+    var page, system, planet1, planet2;
     var response;
 
     before(function(){

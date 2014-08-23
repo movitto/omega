@@ -9,7 +9,7 @@ describe("Omega.SolarSystemText", function(){
 
   describe("#rendered_in", function(){
     it("updates text to always face cam", function(){
-      var canvas = new Omega.UI.Canvas();
+      var canvas = Omega.Test.canvas();
       var system_text = new Omega.SolarSystemText("system1");
       sinon.stub(system_text.text, 'lookAt');
       system_text.rendered_in(canvas, system_text.text);

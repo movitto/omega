@@ -25,7 +25,7 @@ describe("Omega.UI.CanvasSkybox", function(){
     });
 
     it("creates mesh for skybox", function(){
-      var canvas = new Omega.UI.Canvas();
+      var canvas = Omega.Test.canvas();
       assert(canvas.skybox.mesh).isOfType(THREE.Mesh);
       assert(canvas.skybox.mesh.geometry).isOfType(THREE.CubeGeometry);
       assert(canvas.skybox.mesh.material).isOfType(THREE.ShaderMaterial);

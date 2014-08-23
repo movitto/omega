@@ -76,7 +76,7 @@ describe("Omega.Ship", function(){
 
   describe("#clone", function(){
     it("returns cloned copy of ship", function(){
-      cloned = ship.clone();
+      var cloned = ship.clone();
       assert(cloned).isSameAs(ship);
     });
   });

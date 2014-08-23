@@ -1,6 +1,4 @@
-// Test helper
-
-/// TODO rename to run.js
+// Test runner
 
 // NIY = Not Implemented Yet
 // Specs will fails if stubbed out but not implemented, so

@@ -3,10 +3,10 @@ describe("Omega.CallbackHandler", function(){
   describe("callbacks", function(){
     describe("#system_jump", function(){
       var page, tracker;
-      var jumped, system, ejumped, estation, eargs, nsys, psys;
+      var jumped, system, esystem, ejumped, estation, eargs, nsys, psys;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
+        page = new Omega.Pages.Test();
         sinon.stub(page, 'process_entity');
 
         tracker = new Omega.CallbackHandler({page : page});

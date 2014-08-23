@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
+        page = new Omega.Pages.Test();
         sinon.stub(page.canvas, 'reload');
 
         var system = new Omega.SolarSystem({id : 'system1'});
