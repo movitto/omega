@@ -7,7 +7,7 @@ describe("Omega.JumpGateCommands", function(){
     jg = Omega.Gen.jump_gate({id : 'jg1', endpoint_id : 'system2'});
     jg.location.set(100, -200, 50.57);
 
-    page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+    page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
   });
 
   describe("#retrieve_details", function(){
@@ -145,11 +145,6 @@ describe("Omega.JumpGateCommands", function(){
         before(function(){
           sinon.spy(page.canvas, 'remove');
           sinon.spy(page.audio_controls, 'play');
-        });
-
-        after(function(){
-          page.canvas.remove.restore();
-          page.audio_controls.play.restore();
         });
 
         it("sets new system on registry ship", function(){

@@ -3,8 +3,10 @@ describe("Omega.UI.CanvasDialog", function(){
   var user_id  = 'user1';
   var node     = new Omega.Node();
   var session  = new Omega.Session({user_id: user_id});
-  var page     = new Omega.Pages.Test({node: node, session: session});
+  var page     = new Omega.Pages.Test({node: node});
   var canvas   = new Omega.UI.Canvas({page: page});
+
+  page.session = session;
 
   // TODO factory pattern
   var mission1 = new Omega.Mission({title: 'mission1',
@@ -57,30 +59,31 @@ describe("Omega.UI.CanvasDialog", function(){
 
   describe("#show_missions_dialog", function(){
     it("hides dialog", function(){
-      var spy = sinon.spy(dialog, 'hide');
+      sinon.spy(dialog, 'hide');
       dialog.show_missions_dialog({});
-      sinon.assert.called(spy);
+      sinon.assert.called(dialog.hide);
     });
 
     describe("user has active mission", function(){
       it("shows assigned mission dialog", function(){
-        var spy = sinon.spy(dialog, 'show_assigned_mission_dialog');
+        sinon.spy(dialog, 'show_assigned_mission_dialog');
         dialog.show_missions_dialog(missions_responses['active']);
-        sinon.assert.calledWith(spy, mission1);
+        sinon.assert.calledWith(dialog.show_assigned_mission_dialog, mission1);
       });
 
     describe("user does not have active mission", function(){
       it("shows mission list dialog", function(){
-        var spy = sinon.spy(dialog, 'show_missions_list_dialog');
+        sinon.spy(dialog, 'show_missions_list_dialog');
         dialog.show_missions_dialog(missions_responses['inactive']);
-        sinon.assert.calledWith(spy, unassigned_missions, victorious_missions, failed_missions);
+        sinon.assert.calledWith(dialog.show_missions_list_dialog,
+                                unassigned_missions, victorious_missions, failed_missions);
       });
     });
 
     it("shows dialog", function(){
-      var spy = sinon.spy(dialog, 'show');
+      sinon.spy(dialog, 'show');
       dialog.show_missions_dialog({});
-      sinon.assert.called(spy);
+      sinon.assert.called(dialog.show);
     });
   });
 
@@ -132,23 +135,24 @@ describe("Omega.UI.CanvasDialog", function(){
     })
 
     it("invokes missions.assign_to", function(){
-      var spy = sinon.spy(mission, 'assign_to');
+      sinon.spy(mission, 'assign_to');
       $('.assign_mission')[0].click();
-      sinon.assert.calledWith(spy, session.user_id, dialog.canvas.page.node, sinon.match.func);
+      sinon.assert.calledWith(mission.assign_to,
+                              session.user_id, dialog.canvas.page.node, sinon.match.func);
     });
 
     it("invokes assign_mission_clicked", function(){
-      var spy = sinon.spy(mission, 'assign_to');
+      sinon.spy(mission, 'assign_to');
       var element = $('.assign_mission')[0];
       $(element).data('mission', mission);
       element.click();
-      assign_cb = spy.getCall(0).args[2];
+      assign_cb = mission.assign_to.getCall(0).args[2];
 
       var response = {};
-      spy = sinon.spy(dialog, '_assign_mission_clicked');
+      sinon.spy(dialog, '_assign_mission_clicked');
       assign_cb(response)
 
-      sinon.assert.calledWith(spy, response);
+      sinon.assert.calledWith(dialog._assign_mission_clicked, response);
     });
 
     describe("missions::assign response", function(){
@@ -159,16 +163,16 @@ describe("Omega.UI.CanvasDialog", function(){
         });
 
         it("shows dialog", function(){
-          var spy = sinon.spy(dialog, 'show');
+          sinon.spy(dialog, 'show');
           dialog._assign_mission_clicked({error: {}});
-          sinon.assert.called(spy);
+          sinon.assert.called(dialog.show);
         });
       });
 
       it("hides dialog", function(){
-        var spy = sinon.spy(dialog, 'hide');
+        sinon.spy(dialog, 'hide');
         dialog._assign_mission_clicked({});
-        sinon.assert.called(spy);
+        sinon.assert.called(dialog.hide);
       });
     });
   });

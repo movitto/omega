@@ -269,7 +269,6 @@
 
   <!-- actual tests -->
   <script type="text/javascript" src="http://localhost/omega-test/tests/ui/canvas/orbit.js"></script>
-
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/common.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/node.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/session.js"></script>
@@ -295,6 +294,7 @@
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/jump_gate/gfx.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/jump_gate.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/asteroid.js"></script>
+  <script type="text/javascript" src="http://localhost/omega-test/tests/omega/star.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/ship/commands.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/ship/interact/move.js"></script>
   <script type="text/javascript" src="http://localhost/omega-test/tests/omega/ship/interact/attack.js"></script>
@@ -377,59 +377,38 @@
 
   <!-- some test data -->
   <!-- TODO remove these shaders ? -->
-  <script id="fragmentShaderLava" type="x-shader/x-vertex">
-    uniform float time;
-    uniform vec2 resolution;
-    
-    uniform float fogDensity;
-    uniform vec3 fogColor;
-    
-    uniform sampler2D texture1;
-    uniform sampler2D texture2;
-    
-    varying vec2 vUv;
-    
-    void main( void ) {
-      vec2 position = -1.0 + 2.0 * vUv;
-    
-      vec4 noise = texture2D( texture1, vUv );
-      vec2 T1 = vUv + vec2( 1.5, -1.5 ) * time  *0.02;
-      vec2 T2 = vUv + vec2( -0.5, 2.0 ) * time * 0.01;
-    
-      T1.x += noise.x * 2.0;
-      T1.y += noise.y * 2.0;
-      T2.x -= noise.y * 0.2;
-      T2.y += noise.z * 0.2;
-    
-      float p = texture2D( texture1, T1 * 2.0 ).a;
-    
-      vec4 color = texture2D( texture2, T2 * 2.0 );
-      vec4 temp = color * ( vec4( p, p, p, p ) * 2.0 ) + ( color * color - 0.1 );
-    
-      if( temp.r > 1.0 ){ temp.bg += clamp( temp.r - 2.0, 0.0, 100.0 ); }
-      if( temp.g > 1.0 ){ temp.rb += temp.g - 1.0; }
-      if( temp.b > 1.0 ){ temp.rg += temp.b - 1.0; }
-    
-      gl_FragColor = temp;
-    
-      float depth = gl_FragCoord.z / gl_FragCoord.w;
-      const float LOG2 = 1.442695;
-      float fogFactor = exp2( - fogDensity * fogDensity * depth * depth * LOG2 );
-      fogFactor = 1.0 - clamp( fogFactor, 0.0, 1.0 );
-    
-      gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+  <script id="fragmentShaderStar" type="x-shader/x-fragment">
+    uniform float c;
+    uniform float p;
+
+    uniform float r;
+    uniform float g;
+    uniform float b;
+
+    varying vec3 vNormal;
+    varying float dist;
+    void main()
+    {
+        /// TODO randomize fade in/out of glow
+        vec4 cp = viewMatrix * vec4(cameraPosition,0.0);
+        vec3 cpn = normalize(cp.xyz);
+        float intensity = pow( c - dot(vNormal, cpn), p) / dist;
+        gl_FragColor = vec4( r, g, b, 1.0 ) * intensity;
     }
   </script>
 
-  <script id="vertexShaderLava" type="x-shader/x-vertex">
-    uniform vec2 uvScale;
-    varying vec2 vUv;
-    
+  <script id="vertexShaderStar" type="x-shader/x-vertex">
+    varying vec3 vNormal;
+    varying float dist;
     void main()
     {
-      vUv = uvScale * uv;
-      vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-      gl_Position = projectionMatrix * mvPosition;
+        vec4 nPos       = vec4( position, 1.0 );
+        vec4 mvPosition = modelViewMatrix * nPos;
+
+        dist         = -mvPosition.z / 5000.0;
+        vNormal      = normalize( normalMatrix * normal );
+
+        gl_Position = projectionMatrix * mvPosition;
     }
   </script>
 </head>

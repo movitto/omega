@@ -14,6 +14,7 @@ Omega.JumpGateMeshMaterial = function(args){
   var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
   texture.wrapS     = texture.wrapT    = THREE.RepeatWrapping;
   texture.repeat.x  = texture.repeat.y = 5;
+  texture.omega_id  = 'jump_gate.material';
 
   this.material = new THREE.MeshLambertMaterial({ map: texture });
 };

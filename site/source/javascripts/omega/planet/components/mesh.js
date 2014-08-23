@@ -83,6 +83,7 @@ Omega.PlanetMaterial = {
     var texture = Omega.Config.resources['planet' + type].material;
     var path = Omega.Config.url_prefix + Omega.Config.images_path + texture;
     var sphere_texture = THREE.ImageUtils.loadTexture(path, {}, event_cb);
+    sphere_texture.omega_id = 'planet.' + type + '.material';
     return new THREE.MeshLambertMaterial({map: sphere_texture});
   }
 };

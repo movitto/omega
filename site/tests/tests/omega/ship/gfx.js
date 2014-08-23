@@ -40,37 +40,37 @@ describe("Omega.ShipGfx", function(){
     });
 
     it("creates highlight effects for Ship", function(){
-      var ship = Omega.Test.Canvas.Entities()['ship'];
+      var ship = Omega.Test.entities()['ship'];
       var highlight = ship._retrieve_resource('highlight');
       assert(highlight).isOfType(Omega.ShipHighlightEffects);
     });
 
     it("creates lamps for Ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var lamps = ship._retrieve_resource('lamps');
       assert(lamps).isOfType(Omega.ShipLamps);
     });
 
     it("creates trails for Ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var trails = ship._retrieve_resource('trails');
       assert(trails).isOfType(Omega.ShipTrails);
     });
 
     it("creates attack vector for Ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var av = ship._retrieve_resource('attack_vector');
       assert(av).isOfType(Omega.ShipAttackVector);
     });
 
     it("creates mining vector for Ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var mv = ship._retrieve_resource('mining_vector');
       assert(mv).isOfType(Omega.ShipMiningVector);
     });
 
     it("creates trajectory vectors for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var t1 = ship._retrieve_resource('trajectory1');
       var t2 = ship._retrieve_resource('trajectory2');
       assert(t1).isOfType(Omega.ShipTrajectory);
@@ -78,67 +78,67 @@ describe("Omega.ShipGfx", function(){
     });
 
     it("creates progress bar for ship hp", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var hp = ship._retrieve_resource('hp_bar');
       assert(hp).isOfType(Omega.ShipHpBar);
     });
 
     it("creates visited route for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var visited = ship._retrieve_resource('visited_route');
       assert(visited).isOfType(Omega.ShipVisitedRoute);
     });
 
     it("creates destruction effects for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var destruction = ship._retrieve_resource('destruction');
       assert(destruction).isOfType(Omega.ShipDestructionEffect);
     });
 
     it("creates explosion effects for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var explosions = ship._retrieve_resource('explosions');
       assert(explosions).isOfType(Omega.ShipExplosionEffect);
     });
 
     it("creates smoke effects for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var smoke = ship._retrieve_resource('smoke');
       assert(smoke).isOfType(Omega.ShipSmokeEffect);
     });
 
     it("creates docking audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('docking_audio');
       assert(audio).isOfType(Omega.ShipDockingAudioEffect);
     });
 
     it("creates mining audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('mining_audio');
       assert(audio).isOfType(Omega.ShipMiningAudioEffect);
     });
 
     it("creates destruction audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('destruction_audio');
       assert(audio).isOfType(Omega.ShipDestructionAudioEffect);
     });
 
     it("creates mining completed audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('mining_completed_audio');
       assert(audio).isOfType(Omega.ShipMiningCompletedAudioEffect);
     });
 
     it("creates combat audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('combat_audio');
       assert(audio).isOfType(Omega.ShipCombatAudioEffect);
     });
 
     it("creates movement audio for ship", function(){
-      var ship  = Omega.Test.Canvas.Entities()['ship'];
+      var ship  = Omega.Test.entities()['ship'];
       var audio = ship._retrieve_resource('movement_audio');
       assert(audio).isOfType(Omega.ShipMovementAudioEffect);
     });
@@ -147,7 +147,7 @@ describe("Omega.ShipGfx", function(){
   describe("#init_gfx", function(){
     var type = 'corvette';
     var ship, geo, highlight, lamps, trails, visited, attack_vector, mining_vector,
-              trajectory1, trajectory2, hp_bar, destruction, explosions, smoke;
+              trajectory1, trajectory2, hp_bar, destruction, explosions, smoke, material;
 
     before(function(){
       ship          = Omega.Gen.ship({type: type});
@@ -164,6 +164,7 @@ describe("Omega.ShipGfx", function(){
       destruction   = new Omega.ShipDestructionEffect();
       explosions    = new Omega.ShipExplosionEffect();
       smoke         = new Omega.ShipSmokeEffect();
+      material      = new THREE.MeshBasicMaterial();
       sinon.stub(ship, '_retrieve_async_resource');
       sinon.stub(ship._retrieve_resource('highlight'),      'clone').returns(highlight);
       sinon.stub(ship._retrieve_resource('lamps'),          'clone').returns(lamps);
@@ -177,6 +178,7 @@ describe("Omega.ShipGfx", function(){
       sinon.stub(ship._retrieve_resource('destruction'),    'clone').returns(destruction);
       sinon.stub(ship._retrieve_resource('smoke'),          'clone').returns(smoke);
       sinon.stub(ship._retrieve_resource('explosions'),     'for_ship').returns(explosions);
+      sinon.stub(ship._retrieve_resource('mesh_material').material, 'clone').returns(material);
     });
 
     after(function(){
@@ -190,8 +192,9 @@ describe("Omega.ShipGfx", function(){
       ship._retrieve_resource('trajectory2').clone.restore();
       ship._retrieve_resource('hp_bar').clone.restore();
       ship._retrieve_resource('destruction').clone.restore();
-      ship._retrieve_resource('explosions').for_ship.restore();
       ship._retrieve_resource('smoke').clone.restore();
+      ship._retrieve_resource('explosions').for_ship.restore();
+      ship._retrieve_resource('mesh_material').material.clone.restore();
     });
 
     it("loads ship gfx", function(){
@@ -204,10 +207,6 @@ describe("Omega.ShipGfx", function(){
       var cloned_geo = new THREE.Geometry();
       sinon.stub(geo, 'clone').returns(cloned_geo);
 
-      var mat = ship._retrieve_resource('mesh_material').material;
-      var cloned_mat = new THREE.MeshBasicMaterial();
-      sinon.stub(mat, 'clone').returns(cloned_mat);
-
       ship.init_gfx();
       sinon.assert.calledWith(ship._retrieve_async_resource,
                               'ship.'+type+'.mesh_geometry', sinon.match.func);
@@ -216,7 +215,7 @@ describe("Omega.ShipGfx", function(){
       ship._retrieve_async_resource.omega_callback()(geo);
       assert(ship.mesh).isOfType(Omega.ShipMesh);
       assert(ship.mesh.tmesh.geometry).equals(cloned_geo);
-      assert(ship.mesh.tmesh.material).equals(cloned_mat);
+      assert(ship.mesh.tmesh.material).equals(material);
     });
 
     it("sets mesh omega_entity", function(){
@@ -557,7 +556,7 @@ describe("Omega.ShipGfx", function(){
       ship.init_gfx();
       ship.location.set_orientation(1, 0, 0);
       ship.location.movement_strategy = {rot_x : 0, rot_y : 0, rot_z : 1, rot_theta : Math.PI/2};
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
     });
 
     it("rotates ship according to rotation strategy", function(){
@@ -603,12 +602,8 @@ describe("Omega.ShipGfx", function(){
          distance : distance};
       ship.location.set(distance + 100, 0, 0);
 
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       page.entity(tracked.id, tracked);
-    });
-
-    after(function(){
-      page.clear_entities();
     });
 
     describe("ship is orienting itself towards target", function(){

@@ -40,12 +40,8 @@ describe("Omega.Planet", function(){
   describe("#clicked_in", function(){
     var page;
     before(function(){
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       sinon.stub(page.canvas, 'follow_entity');
-    });
-
-    after(function(){
-      page.canvas.follow_entity.restore();
     });
 
     it("follows planet w/ canvas camera", function(){

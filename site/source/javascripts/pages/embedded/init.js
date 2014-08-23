@@ -13,7 +13,7 @@ Omega.Pages.EmbeddedInitializer = {
     /// audio disabled by default
     //this.audio_controls.toggle();
 
-    this.canvas.setup();
+    this.canvas.append();
     return this;
   }
 };

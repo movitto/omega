@@ -10,13 +10,8 @@ describe("Omega.ShipCommands", function(){
                       {material_id : 'ruby', quantity : 25}];
     ship.init_gfx();
 
-    page = Omega.Test.Page();
-    orig_session = page.session;
+    page = new Omega.Pages.Test();
     page.session = new Omega.Session({user_id : 'user1'});
-  });
-
-  after(function(){
-    page.session = orig_session;
   });
 
   describe("#retrieve_details", function(){

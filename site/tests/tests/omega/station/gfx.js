@@ -31,25 +31,25 @@ describe("Omega.StationGfx", function(){
     });
 
     it("creates highlight effects for Station", function(){
-      var station = Omega.Test.Canvas.Entities()['station'];
+      var station = Omega.Test.entities()['station'];
       var highlight = station._retrieve_resource('highlight');
       assert(highlight).isOfType(Omega.StationHighlightEffects);
     });
 
     it("creates lamps for Station", function(){
-      var station  = Omega.Test.Canvas.Entities()['station'];
+      var station  = Omega.Test.entities()['station'];
       var lamps = station._retrieve_resource('lamps');
       assert(lamps).isOfType(Omega.StationLamps);
     });
 
     it("creates progress bar for station construction", function(){
-      var station  = Omega.Test.Canvas.Entities()['station'];
+      var station  = Omega.Test.entities()['station'];
       var bar = station._retrieve_resource('construction_bar');
       assert(bar).isOfType(Omega.StationConstructionBar);
     });
 
     it("creates station construction audio instance", function(){
-      var station  = Omega.Test.Canvas.Entities()['station'];
+      var station  = Omega.Test.entities()['station'];
       var audio = station._retrieve_resource('construction_audio');
       assert(audio).isOfType(Omega.StationConstructionAudioEffect);
     });
@@ -57,23 +57,26 @@ describe("Omega.StationGfx", function(){
 
   describe("#init_gfx", function(){
     var type = 'manufacturing';
-    var geo, highlight, lamps, construction_bar;
+    var geo, highlight, lamps, construction_bar, material;
 
     before(function(){
       geo              = new THREE.Geometry();
       highlight        = new Omega.StationHighlightEffects();
       lamps            = new Omega.StationLamps({type : type});
       construction_bar = new Omega.StationConstructionBar();
+      material         = new THREE.MeshBasicMaterial();
       sinon.stub(station, '_retrieve_async_resource');
       sinon.stub(station._retrieve_resource('highlight'),        'clone').returns(highlight);
       sinon.stub(station._retrieve_resource('lamps'),            'clone').returns(lamps);
       sinon.stub(station._retrieve_resource('construction_bar'), 'clone').returns(construction_bar);
+      sinon.stub(station._retrieve_resource('mesh_material').material, 'clone').returns(material);
     });
 
     after(function(){
       station._retrieve_resource('highlight').clone.restore();
       station._retrieve_resource('lamps').clone.restore();
       station._retrieve_resource('construction_bar').clone.restore();
+      station._retrieve_resource('mesh_material').material.clone.restore();
     });
 
     it("loads station gfx", function(){
@@ -86,10 +89,6 @@ describe("Omega.StationGfx", function(){
       var cloned_geo = new THREE.Geometry();
       sinon.stub(geo, 'clone').returns(cloned_geo);
 
-      var mat = station._retrieve_resource('mesh_material').material;
-      var cloned_mat = new THREE.MeshBasicMaterial();
-      sinon.stub(mat, 'clone').returns(cloned_mat);
-
       station.init_gfx();
       sinon.assert.calledWith(station._retrieve_async_resource,
                               'station.'+type+'.mesh_geometry', sinon.match.func);
@@ -97,7 +96,7 @@ describe("Omega.StationGfx", function(){
       station._retrieve_async_resource.omega_callback()(geo);
       assert(station.mesh).isOfType(Omega.StationMesh);
       assert(station.mesh.tmesh.geometry).equals(cloned_geo);
-      assert(station.mesh.tmesh.material).equals(cloned_mat);
+      assert(station.mesh.tmesh.material).equals(material);
     });
 
     it("sets position tracker position", function(){

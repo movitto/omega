@@ -5,7 +5,8 @@
  */
 
 Omega.AsteroidGfxLoader = {
-  async_gfx : 1,
+  /// material + geometries (all loaded w/ one call)
+  async_gfx : 2,
 
   _load_material : function(event_cb){
     this._store_resource('mesh_material', new Omega.AsteroidMeshMaterial({event_cb : event_cb}));

@@ -16,6 +16,8 @@ Omega.ShipShellMaterial = function(args){
   /// TODO from config
   var texture_path = Omega.Config.url_prefix + Omega.Config.images_path + '/photon.png'
   var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  texture.omega_id = 'ship.shell';
+
   this.material = new THREE.MeshBasicMaterial({map         : texture,
                                                side        : THREE.DoubleSide,
                                                transparent : true,

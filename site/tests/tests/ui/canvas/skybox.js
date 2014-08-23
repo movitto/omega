@@ -25,7 +25,7 @@ describe("Omega.UI.CanvasSkybox", function(){
     });
 
     it("creates mesh for skybox", function(){
-      var canvas = Omega.Test.Canvas();
+      var canvas = new Omega.UI.Canvas();
       assert(canvas.skybox.mesh).isOfType(THREE.Mesh);
       assert(canvas.skybox.mesh.geometry).isOfType(THREE.CubeGeometry);
       assert(canvas.skybox.mesh.material).isOfType(THREE.ShaderMaterial);
@@ -49,7 +49,7 @@ describe("Omega.UI.CanvasSkybox", function(){
 
   describe("#set", function(){
     it("sets mesh material to new background", function(){
-      var skybox = new Omega.UI.CanvasSkybox({canvas: Omega.Test.Canvas()});
+      var skybox = new Omega.UI.CanvasSkybox({canvas: new Omega.UI.Canvas()});
       skybox.init_gfx();
       var oldB = skybox.mesh.material.uniforms["tCube"].value;
       skybox.set('galaxy1');

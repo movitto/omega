@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var jumped, system, ejumped, estation, eargs, nsys, psys;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page, 'process_entity');
 
         tracker = new Omega.CallbackHandler({page : page});

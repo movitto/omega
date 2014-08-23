@@ -8,8 +8,9 @@
 //= require "omega/ship/attack/missile"
 
 Omega.ShipGfxLoader = {
-  /// mesh material & geometry, shell material, missile geometry
-  async_gfx : 4,
+  /// mesh material & geometry, shell material, missile geometry +
+  /// particles (explosion, destruction, smoke, trails)
+  async_gfx : 8,
 
   _load_textures : function(event_cb){
     this._store_resource('mesh_material',     new Omega.ShipMeshMaterial({type: this.type, event_cb : event_cb}));
@@ -25,7 +26,7 @@ Omega.ShipGfxLoader = {
     this._store_resource('hp_bar',            new Omega.ShipHpBar());
     this._store_resource('highlight',         new Omega.ShipHighlightEffects());
     this._store_resource('lamps',             new Omega.ShipLamps({type: this.type}));
-    this._store_resource('trails',            new Omega.ShipTrails({type: this.type}));
+    this._store_resource('trails',            new Omega.ShipTrails({type: this.type, event_cb: event_cb}));
     this._store_resource('visited_route',     new Omega.ShipVisitedRoute());
     this._store_resource('attack_vector',     new Omega.ShipAttackVector());
     this._store_resource('mining_vector',     new Omega.ShipMiningVector());
@@ -34,10 +35,10 @@ Omega.ShipGfxLoader = {
     this._load_artillery(event_cb);
   },
 
-  _load_effects : function(){
-    this._store_resource('destruction',       new Omega.ShipDestructionEffect());
-    this._store_resource('explosions',        new Omega.ShipExplosionEffect());
-    this._store_resource('smoke',             new Omega.ShipSmokeEffect());
+  _load_effects : function(event_cb){
+    this._store_resource('destruction',       new Omega.ShipDestructionEffect({event_cb: event_cb}));
+    this._store_resource('explosions',        new Omega.ShipExplosionEffect({event_cb: event_cb}));
+    this._store_resource('smoke',             new Omega.ShipSmokeEffect({event_cb: event_cb}));
   },
 
   _load_audio : function(){
@@ -65,7 +66,7 @@ Omega.ShipGfxLoader = {
   load_gfx : function(event_cb){
     if(this.gfx_loaded()) return;
     this._load_components(event_cb);
-    this._load_effects();
+    this._load_effects(event_cb);
     this._load_audio();
     this._load_textures(event_cb);
     this._load_geometries(event_cb);

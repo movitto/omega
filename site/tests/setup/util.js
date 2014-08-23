@@ -44,31 +44,10 @@ Omega.Test = {
       this.disable_dialogs();
     else
       this.enable_dialogs();
-  }
-};
+  },
 
-// Initializes and returns a singleton page
-// instance for use in the test suite
-// (for use w/ singleton canvas and elsewhere below)
-Omega.Test.Page = function(){
-  if(typeof($omega_test_page) === "undefined"){
-    $omega_test_page = new Omega.Pages.Test();
-    $omega_test_page.init_registry();
-    $omega_test_page.canvas.setup();
-  }
-  return $omega_test_page;
-};
-
-// Return singleton canvas instance for use in the test suite
-Omega.Test.Canvas = function(){
-  return Omega.Test.Page().canvas;
-};
-
-// Same as Test.Canvas above but for various entities
-// which can be rendered to the canvas
-Omega.Test.Canvas.Entities = function(event_cb){
-  if(typeof($omega_test_canvas_entities) === "undefined"){
-    $omega_test_canvas_entities = {
+  _create_entities : function(){
+    this._test_entities = {
       galaxy       : new Omega.Galaxy(),
       solar_system : new Omega.SolarSystem(),
       star         : new Omega.Star(),
@@ -78,21 +57,33 @@ Omega.Test.Canvas.Entities = function(event_cb){
       ship         : new Omega.Ship({type : 'corvette'}), /// TODO other types, and/or a 'test' type w/ its own config
       station      : new Omega.Station({type : 'manufacturing'}) /// TODO other types
     };
-    var page     = Omega.Test.Page();
-    var config   = page.config;
+  },
+
+  _init_entities : function(event_cb){
+    var page = new Omega.Pages.Test();
     if(!event_cb) event_cb = function(){};
-    for(var e in $omega_test_canvas_entities){
-      $omega_test_canvas_entities[e].location = new Omega.Location();
-      $omega_test_canvas_entities[e].location.set(0,0,0);
-      $omega_test_canvas_entities[e].location.set_orientation(0,1,0);
+
+    for(var e in this._test_entities){
+      var entity = this._test_entities[e];
+
+      var loc = new Omega.Location();
+      loc.set(0,0,0);
+      loc.set_orientation(0,1,0);
       if(e == 'planet')
-        $omega_test_canvas_entities[e].location.movement_strategy =
-          Omega.Gen.orbit_ms();
+        loc.movement_strategy = Omega.Gen.orbit_ms();
       else
-        $omega_test_canvas_entities[e].location.movement_strategy =
-          {json_class : 'Motel::MovementStrategies::Stopped'};
-      $omega_test_canvas_entities[e].init_gfx(event_cb);
+        loc.movement_strategy = {json_class : 'Motel::MovementStrategies::Stopped'};
+      entity.location = loc;
+
+      entity.init_gfx(event_cb);
     }
+  },
+
+  entities : function(event_cb){
+    if(typeof(this._test_entities) !== "undefined")
+      return this._test_entities;
+    this._create_entities();
+    this._init_entities(event_cb);
+    return this._test_entities;
   }
-  return $omega_test_canvas_entities;
 };

@@ -2,7 +2,7 @@ pavlov.specify("Omega.UI.StatusIndicator", function(){
 describe("Omega.UI.StatusIndicator", function(){
   var si;
   before(function(){
-    si = new Omega.UI.StatusIndicator({page: Omega.Test.Page()});
+    si = new Omega.UI.StatusIndicator({page: new Omega.Pages.Test()});
   })
 
   describe("#background", function(){

@@ -24,108 +24,80 @@ describe("Omega.Star", function(){
     });
   });
 
-  describe("#clicked_in", function(){
-    it("resets canvas cam");
-  });
+  //describe("#clicked_in", function(){
+  //  it("resets canvas cam"); /// NIY
+  //});
 
   describe("#load_gfx", function(){
     describe("graphics are initialized", function(){
-      var orig;
-
-      before(function(){
-        orig = {gfx: Omega.Star.gfx,
-                mesh: Omega.Star.gfx ? Omega.Star.gfx.mesh : null};
-      })
-
-      after(function(){
-        Omega.Star.gfx = orig.gfx;
-        if(Omega.Star.gfx) Omega.Star.gfx.mesh = orig.mesh;
-      });
-
       it("does nothing / just returns", function(){
-        Omega.Star.gfx = {};
-        Omega.Star.mesh = null;
-        new Omega.Star().load_gfx();
-        assert(Omega.Star.mesh).isNull();
+        var star = new Omega.Star();
+        sinon.stub(star, 'gfx_loaded').returns(true);
+        sinon.spy(star, '_loaded_gfx');
+        star.load_gfx();
+        sinon.assert.notCalled(star._loaded_gfx);
       });
     });
 
     it("creates mesh for Star", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Star.gfx.mesh).isOfType(THREE.Mesh);
-      assert(Omega.Star.gfx.mesh.geometry).isOfType(THREE.SphereGeometry);
-      assert(Omega.Star.gfx.mesh.material).isOfType(THREE.ShaderMaterial);
+      var star = Omega.Test.entities()['star'];
+      var mesh = star._retrieve_resource('mesh');
+      assert(mesh).isOfType(Omega.StarMesh);
+      assert(mesh.tmesh.geometry).isOfType(THREE.SphereGeometry);
+      assert(mesh.tmesh.material).isOfType(THREE.MeshBasicMaterial);
     });
 
     it("creates light for Star", function(){
-      Omega.Test.Canvas.Entities();
-      assert(Omega.Star.gfx.light).isOfType(THREE.PointLight);
+      var star  = Omega.Test.entities()['star'];
+      var light = star.light;
+      assert(light).isOfType(THREE.PointLight);
     });
   });
 
   describe("#init_gfx", function(){
+    var type, star, mesh, light;
+
+    before(function(){
+      type = 'FF7700';
+      mesh  = new Omega.StarMesh({type : type});
+      light = new Omega.StarLight();
+      star  = new Omega.Star({type : type});
+      star.load_gfx();
+      sinon.stub(star._retrieve_resource('mesh'),      'clone').returns(mesh);
+      sinon.stub(star._retrieve_resource('light'),     'clone').returns(light);
+    });
+
     after(function(){
-      if(Omega.Star.gfx){
-        if(Omega.Star.gfx.mesh.clone.restore) Omega.Star.gfx.mesh.clone.restore();
-        if(Omega.Star.gfx.glow.clone.restore) Omega.Star.gfx.glow.clone.restore();
-        if(Omega.Star.gfx.light.clone.restore) Omega.Star.gfx.light.clone.restore();
-      }
+      star._retrieve_resource('mesh').clone.restore();
+      star._retrieve_resource('light').clone.restore();
     });
 
     it("loads star gfx", function(){
-      var star      = new Omega.Star();
-      var load_gfx  = sinon.spy(star, 'load_gfx');
+      sinon.spy(star, 'load_gfx');
       star.init_gfx();
-      sinon.assert.called(load_gfx);
+      sinon.assert.called(star.load_gfx);
     });
 
     it("clones Star mesh", function(){
-      var star = new Omega.Star();
-      var mesh = new THREE.Mesh();
-      sinon.stub(Omega.Star.gfx.mesh.clone).returns(mesh);
       star.init_gfx();
       assert(star.mesh).equals(mesh);
+      assert(star.mesh.omega_entity).equals(star);
     });
-
-    it("sets mesh position", function(){
-      var star = new Omega.Star({location : new Location({x: 100, y: -100, z: 200});});
-      star.init_gfx();
-      assert(star.mesh.position.toArray()).equals(100, -100, 200);
-    });
-
-    it("sets mesh.omega_entity")
-
-    /// it("sets mesh radius") NIY
 
     it("clones Star light", function(){
-      var star = new Omega.Star();
-      var mesh = new THREE.Mesh();
-      sinon.stub(Omega.Star.gfx.light.clone).returns(mesh);
       star.init_gfx();
-      assert(star.light).equals(mesh);
-    });
-
-    it("sets light position", function(){
-      var star = new Omega.Star({location : new Location({x: 100, y: -100, z: 200});});
-      star.init_gfx();
-      assert(star.light.position.toArray()).equals(100, -100, 200);
+      assert(star.light).equals(light);
+      assert(star.light.position).equals(star.mesh.tmesh.position);
     });
 
     it("sets light type ", function(){
-      var star = new Omega.Star({type : 'ABABCC'});
       star.init_gfx();
-      assert(star.light.color.getHex()).equals(0xABABCC);
+      assert(star.light.color.getHex()).equals(parseInt('0x' + type));
     });
 
-    it("adds mesh and light to star scene components", function(){
-      var star = new Omega.Star();
+    it("adds mesh, light, and glow to star scene components", function(){
       star.init_gfx();
-      assert(star.components).equals([star.mesh, star.light]);
+      assert(star.components).isSameAs([star.glow.tglow, star.mesh.tmesh, star.light]);
     });
   });
-
-  describe("#run_effects", function(){
-    it("updates mesh shader material time value")
-  });
-
 });}); // Omega.Star

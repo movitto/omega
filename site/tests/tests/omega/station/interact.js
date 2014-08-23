@@ -7,14 +7,9 @@ describe("Omega.StationInteraction", function(){
     before(function(){
       station = Omega.Gen.station();
 
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       sinon.stub(page.node, 'http_invoke');
       sinon.stub(page.audio_controls, 'play');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
-      page.audio_controls.play.restore();
     });
 
     it("invokes manufactured::construct_entity", function(){

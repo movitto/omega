@@ -22,35 +22,32 @@ Omega.UI.CanvasSceneManager = {
 
   render_stats : true,
 
-  /// Setup Canvas 3D operations
-  setup : function(){
+  /// init Canvas 3D operations
+  _init_canvas : function(){
     if(!this.detect_webgl()) return;
 
-    this._setup_stats();
-    this._setup_scenes();
-    this._setup_renderer();
-    this._setup_cams();
-    this._setup_components();
-
-    THREEx.WindowResize(this.renderer, this.cam);
+    this._init_stats();
+    this._init_scenes();
+    this._init_renderer();
+    this._init_cams();
+    this._init_components();
   },
 
   detect_webgl : function(){
     return Detector.webgl;
   },
 
-  _setup_stats : function(){
+  _init_stats : function(){
     if(this.render_stats){
       this.stats = new Stats();
       this.stats.setMode(0);
-      $('#render_stats').append(this.stats.domElement);
 
     }else{
       this.stats = {update : function(){}};
     }
   },
 
-  _setup_scenes : function(){
+  _init_scenes : function(){
     this.scene    = new THREE.Scene();
     this.skyScene = new THREE.Scene();
   },
@@ -59,7 +56,7 @@ Omega.UI.CanvasSceneManager = {
     return this.scene.getDescendants().concat(this.skyScene.getDescendants());
   },
 
-  _setup_renderer : function(){
+  _init_renderer : function(){
     var sw = window.innerWidth;
         sh = window.innerHeight;
 
@@ -69,11 +66,9 @@ Omega.UI.CanvasSceneManager = {
 
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 0.0);
-
-    this.canvas.append(this.renderer.domElement);
   },
 
-  _setup_cams : function(){
+  _init_cams : function(){
     var sw = window.innerWidth;
         sh = window.innerHeight;
     var aspect = sw / sh;
@@ -82,10 +77,10 @@ Omega.UI.CanvasSceneManager = {
     this.cam    = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
     this.skyCam = new THREE.PerspectiveCamera(75, aspect, 1, 42000 );
 
-    this._setup_cam_controls();
+    this._init_cam_controls();
   },
 
-  _setup_cam_controls : function(){
+  _init_cam_controls : function(){
     var _this = this;
     this.cam_controls = new THREE.OrbitControls(this.cam);
     this.cam_controls.minDistance = this.cam_props.min_distance;
@@ -95,7 +90,7 @@ Omega.UI.CanvasSceneManager = {
     this.reset_cam();
   },
 
-  _setup_components : function(){
+  _init_components : function(){
     var _this = this;
     this.skybox.init_gfx();
     this.axis.init_gfx();
@@ -104,6 +99,15 @@ Omega.UI.CanvasSceneManager = {
 
   _init_gfx : function(){
     this.animate();
+  },
+
+  /// append canvas components to page
+  append : function(){
+    if(this.render_stats) $('#render_stats').append(this.stats.domElement);
+
+    this.canvas.append(this.renderer.domElement);
+
+    THREEx.WindowResize(this.renderer, this.cam);
   },
 
   // Request animation frame

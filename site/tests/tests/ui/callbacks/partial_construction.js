@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var constructing, station, estation, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas, 'animate');
 
@@ -23,11 +23,6 @@ describe("Omega.CallbackHandler", function(){
                                           system_id : 'sys1'});
         page.entities = [station, constructing];
         eargs         = ['partial_construction', estation, constructing, 0.6];
-      });
-
-      after(function(){
-        page.canvas.reload.restore();
-        page.canvas.animate.restore();
       });
 
       it("sets station._constructing to true", function(){

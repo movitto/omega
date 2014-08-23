@@ -14,6 +14,7 @@ Omega.AsteroidMeshMaterial = function(args){
                      Omega.Config.resources.asteroid.material;
 
   var texture      = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  texture.omega_id = 'asteroid.material';
   this.material = new THREE.MeshLambertMaterial({ map: texture });
 };
 

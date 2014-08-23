@@ -7,11 +7,7 @@ describe("Omega.JumpGate", function(){
     jg.endpoint_id = 'system2';
     jg.location.set(100, -200, 50.5678)
 
-    page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
-  });
-
-  after(function(){
-    if(page.canvas.reload.restore) page.canvas.reload.restore();
+    page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
   });
 
   it("converts location", function(){

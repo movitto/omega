@@ -33,56 +33,68 @@ Omega.UI.CanvasEntityGfx = {
     return !this._has_type();
   },
 
-  // Return graphics tracker for local entity class & optional type,
-  // initializing if it doesn't exist
-  _gfx_tracker : function(){
-    var gfx = Omega.UI.CanvasEntityGfx._tracker =
-              Omega.UI.CanvasEntityGfx._tracker ||
-              {loaded : {}, resources : {}};
+  // Return tracker used to manage load states,
+  // initializing it if it doesn't exist
+  _loaded_tracker : function(){
+    var tracker = Omega.UI.CanvasEntityGfx.__loaded_tracker =
+                  Omega.UI.CanvasEntityGfx.__loaded_tracker || {};
 
     if(this._has_type()){
-      gfx['loaded'][this.json_class]               = gfx['loaded'][this.json_class] || {};
-      gfx['loaded'][this.json_class][this.type]    = gfx['loaded'][this.json_class][this.type] || false;
-      gfx['resources'][this.json_class]            = gfx['resources'][this.json_class] || {};
-      gfx['resources'][this.json_class][this.type] = gfx['resources'][this.json_class][this.type] || {};
+      tracker[this.json_class]            = tracker[this.json_class] || {};
+      tracker[this.json_class][this.type] = tracker[this.json_class][this.type] || false;
 
     }else{
-      gfx['loaded'][this.json_class]               = gfx['loaded'][this.json_class] || false;
-      gfx['resources'][this.json_class]            = gfx['resources'][this.json_class] || {};
+      tracker[this.json_class]            = tracker[this.json_class] || false;
     }
 
-    return gfx;
+    return tracker;
+  },
+
+  // Return tracker used to manage resource states,
+  // initializing it if it doesn't exist
+  _resource_tracker : function(){
+    var tracker = Omega.UI.CanvasEntityGfx.__resource_tracker =
+                  Omega.UI.CanvasEntityGfx.__resource_tracker || {};
+
+    if(this._has_type()){
+      tracker[this.json_class]            = tracker[this.json_class] || {};
+      tracker[this.json_class][this.type] = tracker[this.json_class][this.type] || {};
+
+    }else{
+      tracker[this.json_class]            = tracker[this.json_class] || {};
+    }
+
+    return tracker;
   },
 
   /// True / false if entity gfx have been preloaded
   gfx_loaded : function(){
-    var gfx = this._gfx_tracker();
-    if(this._no_type())
-      return !!(gfx['loaded'][this.json_class]);
-    return !!(gfx['loaded'][this.json_class][this.type]);
+    var loaded = this._loaded_tracker();
+    return this._no_type() ? !!(loaded[this.json_class]) :
+                             !!(loaded[this.json_class][this.type]);
   },
 
   // Set loaded_gfx true
   _loaded_gfx : function(){
-    var gfx = this._gfx_tracker();
+    var loaded = this._loaded_tracker();
     if(this._no_type())
-      gfx['loaded'][this.json_class] = true;
+      loaded[this.json_class] = true;
     else
-      gfx['loaded'][this.json_class][this.type] = true;
+      loaded[this.json_class][this.type] = true;
   },
 
   /// store specified resource
   _store_resource : function(id, resource){
-    var gfx = this._gfx_tracker()['resources'][this.json_class];
-    if(this._has_type()) gfx[this.type][id] = resource;
-    else gfx[id] = resource;
+    var resources = this._resource_tracker()[this.json_class];
+    if(this._has_type()) resources[this.type][id] = resource;
+    else resources[id] = resource;
   },
 
   /// retrieve specified resource
   _retrieve_resource : function(id){
-    var gfx = this._gfx_tracker()['resources'][this.json_class];
-    if(this._has_type()) return gfx[this.type][id];
-    return gfx[id];
+    var resources = this._resource_tracker()[this.json_class];
+    if(this._has_type()) return resources[this.type][id];
+    return resources[id];
   },
 
   /// load specified async resource

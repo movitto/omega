@@ -15,19 +15,16 @@ function before_each(details){
   Omega.UI.Loader.clear_universe();
 }
 
-//function after_each(details){
-//}
+function after_each(details){
+}
 
 function after_all(details){
   /// clear cookies
   Omega.Session.prototype.clear_cookies();
-
-  Omega.Test.Canvas().clear();
-  Omega.Test.Canvas().clear(Omega.Test.Canvas().skyScene);
 }
 
 QUnit.moduleStart(before_all);
 QUnit.testStart(before_each);
-//QUnit.testDone(after_each);
+QUnit.testDone(after_each);
 QUnit.moduleDone(after_all);
 

@@ -3,7 +3,8 @@ describe("Omega.UI.CanvasEntityContainer", function(){
   var canvas, container;
 
   before(function(){
-    canvas = Omega.Test.Canvas();
+    canvas = new Omega.UI.Canvas();
+    canvas.page = new Omega.Pages.Test();
     container = new Omega.UI.CanvasEntityContainer({canvas: canvas});
   });
 

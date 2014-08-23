@@ -8,7 +8,7 @@ describe("Omega.CallbackHandler", function(){
       before(function(){
         sinon.stub(Omega.Ship, 'get');
 
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page, 'process_entity');
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas.entity_container, 'refresh_details');
@@ -36,9 +36,6 @@ describe("Omega.CallbackHandler", function(){
 
       after(function(){
         Omega.Ship.get.restore();
-        page.canvas.reload.restore();
-        page.canvas.entity_container.refresh_details.restore();
-        page.canvas.animate.restore();
       });
 
       it("sets station._constructing to false", function(){

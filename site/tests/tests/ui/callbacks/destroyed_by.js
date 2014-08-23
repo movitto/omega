@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.canvas, 'remove');
 
@@ -26,11 +26,6 @@ describe("Omega.CallbackHandler", function(){
         page.entities = [ship, tgt];
         page.canvas.entities = [ship.id, tgt.id];
         eargs         = ['destroyed_by', etgt, eship];
-      });
-
-      after(function(){
-        page.canvas.reload.restore();
-        page.canvas.remove.restore();
       });
 
       it("clears entity attacking target", function(){

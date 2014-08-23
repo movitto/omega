@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var tgt, etgt, ship, eship, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page.canvas, 'reload');
 
         var system = new Omega.SolarSystem({id : 'system1'});
@@ -23,10 +23,6 @@ describe("Omega.CallbackHandler", function(){
 
         page.entities = [ship, tgt];
         eargs         = ['attacked', eship, etgt];
-      });
-
-      after(function(){
-        page.canvas.reload.restore();
       });
 
       it("updates entity attacking target", function(){

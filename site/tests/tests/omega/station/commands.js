@@ -11,12 +11,8 @@ describe("Omega.StationCommands", function(){
                            {quantity : 25, material_id : 'ruby'}];
       details_cb = sinon.spy();
 
-      page = Omega.Test.Page();
-      page.set_session(new Omega.Session({user_id : 'user1'}))
-    });
-
-    after(function(){
-      page.restore_session();
+      page = new Omega.Pages.Test();
+      page.session = new Omega.Session({user_id : 'user1'});
     });
 
     it("invokes details cb with station id, location, and resources", function(){
@@ -62,7 +58,7 @@ describe("Omega.StationCommands", function(){
     before(function(){
       station = Omega.Gen.station();
       details_cb = sinon.spy();
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
 
       station.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];
@@ -90,7 +86,7 @@ describe("Omega.StationCommands", function(){
     before(function(){
       station = Omega.Gen.station();
       details_cb = sinon.spy();
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
 
       station.retrieve_details(page, details_cb);
       var details = details_cb.getCall(0).args[0];

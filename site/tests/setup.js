@@ -15,9 +15,8 @@ Omega.Test.init = function(){
   var total    = 0;
   var entities = null;
   Omega.Gen.init(function(){
-    entities = Omega.Test.Canvas.Entities(function(){
+    entities = Omega.Test.entities(function(){
       current += 1;
-console.log(current + '/' + total)
       if(current == total)
         QUnit.start();
     });

@@ -5,7 +5,8 @@
  */
 
 Omega.SolarSystemGfxLoader = {
-  async_gfx : 2,
+  /// plane texture, particles, interconn particles
+  async_gfx : 3,
 
   _load_mesh : function(){
     this._store_resource('mesh', new Omega.SolarSystemMesh());

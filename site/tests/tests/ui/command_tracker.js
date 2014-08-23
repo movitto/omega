@@ -5,7 +5,7 @@ describe("Omega.CallbackHandler", function(){
   before(function(){
     var node = new Omega.Node();
     page = new Omega.Pages.Test({node : node,
-                                 canvas : Omega.Test.Canvas()});
+                                 canvas : new Omega.UI.Canvas()});
     page.audio_controls = new Omega.UI.AudioControls({page: page});
     page.audio_controls.disabled = true;
     page.canvas.set_scene_root(new Omega.SolarSystem({id : 'system1'}))

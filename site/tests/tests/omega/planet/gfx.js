@@ -13,13 +13,13 @@ describe("Omega.PlanetGfx", function(){
     });
 
     it("creates mesh for Planet", function(){
-      var planet = Omega.Test.Canvas.Entities()['planet'];
+      var planet = Omega.Test.entities()['planet'];
       var mesh   = planet._retrieve_resource('mesh');
       assert(mesh).isOfType(Omega.PlanetMesh);
     });
 
     it("creates axis for Planet", function(){
-      var planet = Omega.Test.Canvas.Entities()['planet'];
+      var planet = Omega.Test.entities()['planet'];
       var axis   = planet._retrieve_resource('axis');
       assert(axis).isOfType(Omega.PlanetAxis);
     });
@@ -62,15 +62,6 @@ describe("Omega.PlanetGfx", function(){
     it("sets mesh omega_entity", function(){
       planet.init_gfx(event_cb);
       assert(planet.mesh.omega_entity).equals(planet);
-    });
-
-    it("loads/sets planet mesh material", function(){
-      var material      = new THREE.Material();
-      var load_material = sinon.stub(Omega.PlanetMaterial, 'load');
-      load_material.returns(material);
-
-      planet.init_gfx(event_cb);
-      sinon.assert.calledWith(load_material, planet.type, event_cb);
     });
 
     it("clones Planet axis", function(){
@@ -124,7 +115,7 @@ describe("Omega.PlanetGfx", function(){
 
   describe("#update_gfx", function(){
     it("sets mesh position from planet location", function(){
-      var planet = Omega.Test.Canvas.Entities().planet;
+      var planet = Omega.Test.entities().planet;
       planet.location = new Omega.Location({x : 20, y : 30, z : -20});
       planet.update_gfx();
       assert(planet.mesh.tmesh.position.x).equals( 20);

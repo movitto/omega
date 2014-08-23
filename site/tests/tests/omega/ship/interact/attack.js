@@ -7,12 +7,12 @@ describe("Omega.ShipAttackInteractions", function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
     ship.init_gfx()
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#attack_targets", function(){
     before(function(){
-      page.set_session(new Omega.Session({user_id : 'user1'}));
+      page.session = new Omega.Session({user_id : 'user1'});
       ship.attack_distance = 50;
 
       /// by default, all will be returned
@@ -27,11 +27,6 @@ describe("Omega.ShipAttackInteractions", function(){
       page.entities[2].location.set(5, 5, 5);         /// within valid distance
       page.entities[3].location.set(1000, 1000, 1000) /// outside valid distance
       page.entities[4].hp = 0;                        /// not alive
-    });
-
-    after(function(){
-      page.restore_session();
-      page.restore_entities();
     });
 
     it("returns all non-user-owned ships in vicinity that are alive", function(){
@@ -61,10 +56,6 @@ describe("Omega.ShipAttackInteractions", function(){
       evnt.currentTarget.data('target', tgt);
 
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufactured::attack_entity with command target", function(){
@@ -146,8 +137,6 @@ describe("Omega.ShipAttackInteractions", function(){
 
     after(function(){
       ship.dialog().hide.restore();
-      page.canvas.reload.restore();
-      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){

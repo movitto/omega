@@ -13,6 +13,7 @@ Omega.ShipMeshMaterial = function(args){
                      Omega.Config.resources.ships[type].material;
 
   var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  texture.omega_id = 'ship.' + type + '.material';
 
   this.material = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
 };

@@ -33,7 +33,7 @@ Omega.UI.CanvasEntitiesManager = {
     for(var cc = 0; cc < entity.components.length; cc++)
       scene.add(entity.components[cc]);
 
-    if(this.page.effects_player && entity.has_effects())
+    if(this.page && this.page.effects_player && entity.has_effects())
       this.page.effects_player.add(entity);
     this.entities.push(entity.id);
 

@@ -1,10 +1,9 @@
 pavlov.specify("Omega.UI.CanvasControls", function(){
 describe("Omega.UI.CanvasControls", function(){
-  var node, page, canvas, controls;
+  var page, canvas, controls;
   
   before(function(){
-    node     = new Omega.Node();
-    page     = new Omega.Pages.Test({node: node});
+    page     = new Omega.Pages.Test();
     canvas   = new Omega.UI.Canvas({page: page});
     controls = new Omega.UI.CanvasControls({canvas: canvas});
   });
@@ -99,7 +98,7 @@ describe("Omega.UI.CanvasControls", function(){
     it("retrieves all missions", function(){
       sinon.spy(Omega.Mission, 'all');
       controls.missions_button.click();
-      sinon.assert.calledWith(Omega.Mission.all, node, sinon.match.func);
+      sinon.assert.calledWith(Omega.Mission.all, page.node, sinon.match.func);
     });
 
     it("shows missions dialog", function(){
@@ -115,7 +114,7 @@ describe("Omega.UI.CanvasControls", function(){
   
   describe("#toggle_axis input clicked", function(){
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       controls = new Omega.UI.CanvasControls({canvas: canvas});
       controls.wire_up();
     });
@@ -169,7 +168,7 @@ describe("Omega.UI.CanvasControls", function(){
     it("refreshes clicked item", function(){
       sinon.stub(system, 'refresh');
       $(controls.locations_list.children()[0]).click();
-      sinon.assert.calledWith(system.refresh, node, sinon.match.func)
+      sinon.assert.calledWith(system.refresh, page.node, sinon.match.func)
     });
 
     it("sets canvas scene root", function(){
@@ -214,7 +213,7 @@ describe("Omega.UI.CanvasControls", function(){
     it("refreshes clicked item system", function(){
       sinon.stub(system, 'refresh');
       $(controls.entities_list.children()[0]).click();
-      sinon.assert.calledWith(system.refresh, node, sinon.match.func)
+      sinon.assert.calledWith(system.refresh, page.node, sinon.match.func)
     });
 
     describe("on system refresh", function(){

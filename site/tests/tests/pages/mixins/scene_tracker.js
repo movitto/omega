@@ -30,7 +30,7 @@ describe("Omega.Pages.SceneTracker", function(){
     var orig_page;
 
     before(function(){
-      page = $.extend({canvas : Omega.Test.Canvas(),
+      page = $.extend({canvas : new Omega.UI.Canvas(),
                        audio_controls : new Omega.UI.AudioControls()},
                        Omega.Pages.SceneTracker, Omega.Pages.HasRegistry);
       page.process_entities = sinon.stub(); /// stub'd out entity processor

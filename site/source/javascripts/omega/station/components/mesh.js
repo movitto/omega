@@ -13,6 +13,7 @@ Omega.StationMeshMaterial = function(args){
                      Omega.Config.resources.stations[type].material;
 
   var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+  texture.omega_id = 'station.' + type + '.material';
 
   this.material = new THREE.MeshLambertMaterial({map: texture, overdraw: true});
 };

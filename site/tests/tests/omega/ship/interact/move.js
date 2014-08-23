@@ -7,7 +7,7 @@ describe("Omega.ShipMovementInteractions", function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
     ship.init_gfx()
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#_should_move_to", function(){
@@ -54,10 +54,6 @@ describe("Omega.ShipMovementInteractions", function(){
       page.entity(station3.id, station3);
     });
 
-    after(function(){
-      page.entities = [];
-    });
-
     it("returns list of stations in the same system as ship", function(){
       assert(ship._stations_in_same_system(page)).isSameAs([station1, station2]);
     });
@@ -76,10 +72,6 @@ describe("Omega.ShipMovementInteractions", function(){
       page.entity(ship3.id, ship3);
     });
 
-    after(function(){
-      page.entities = [];
-    });
-
     it("returns list of ships in the same system as ship", function(){
       assert(ship._ships_in_same_system(page)).isSameAs([ship1, ship2]);
     });
@@ -94,7 +86,7 @@ describe("Omega.ShipMovementInteractions", function(){
     var ship1, station1, asteroid1, jg1;
 
     before(function(){
-      page.set_canvas_root(Omega.Gen.solar_system());
+      page.canvas.root = Omega.Gen.solar_system();
       sinon.stub(ship, '_stations_in_same_system').returns([station1])
       sinon.stub(ship, '_ships_in_same_system').returns([ship1])
       sinon.stub(ship.dialog(), 'show_destination_selection_dialog');
@@ -103,7 +95,6 @@ describe("Omega.ShipMovementInteractions", function(){
     });
 
     after(function(){
-      page.restore_canvas_root();
       ship.dialog().show_destination_selection_dialog.restore();
     });
 
@@ -128,10 +119,6 @@ describe("Omega.ShipMovementInteractions", function(){
   describe("#_move", function(){
     before(function(){
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufactured::move_entity with updated location", function(){
@@ -220,7 +207,6 @@ describe("Omega.ShipMovementInteractions", function(){
     after(function(){
       ship.dialog().hide.restore();
       page.canvas.reload.restore();
-      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){
@@ -261,10 +247,6 @@ describe("Omega.ShipMovementInteractions", function(){
   describe("#follow", function(){
     before(function(){
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufactured::follow_entity", function(){
@@ -350,7 +332,6 @@ describe("Omega.ShipMovementInteractions", function(){
 
     after(function(){
       ship.dialog().hide.restore();
-      page.canvas.reload.restore();
     });
 
     it("hides the dialog", function(){

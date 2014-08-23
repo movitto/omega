@@ -227,8 +227,7 @@ describe("Omega.SolarSystem", function(){
 
     before(function(){
       system = new Omega.SolarSystem();
-      canvas = new Omega.UI.Canvas();
-      canvas.page = Omega.Test.Page();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
     });
 
     it("refreshes the system", function(){
@@ -270,12 +269,8 @@ describe("Omega.SolarSystem", function(){
       system = Omega.Gen.solar_system();
       system.init_gfx();
 
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       sinon.stub(canvas, 'reload');
-    });
-
-    after(function(){
-      canvas.reload.restore();
     });
 
     it("reloads system in scene", function(){
@@ -298,12 +293,8 @@ describe("Omega.SolarSystem", function(){
       system.init_gfx();
       system._add_hover_sphere();
 
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       sinon.stub(canvas, 'reload');
-    });
-
-    after(function(){
-      canvas.reload.restore();
     });
 
     it("reloads system in scene", function(){

@@ -186,14 +186,9 @@ describe("Omega.Ship", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
       sinon.stub(canvas.page.audio_controls, 'play');
       sinon.stub(canvas, 'follow_entity');
-    });
-
-    after(function(){
-      canvas.page.audio_controls.play.restore();
-      canvas.follow_entity.restore();
     });
 
     it("plays clicked audio effect", function(){
@@ -217,12 +212,8 @@ describe("Omega.Ship", function(){
       ship = Omega.Gen.ship();
       ship.init_gfx();
 
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       sinon.stub(page.audio_controls, 'play');
-    });
-
-    after(function(){
-      page.audio_controls.play.restore();
     });
 
     it("sets mesh material emissive", function(){
@@ -255,12 +246,8 @@ describe("Omega.Ship", function(){
       ship = Omega.Gen.ship();
       ship.init_gfx();
 
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       sinon.stub(page.audio_controls, 'stop');
-    });
-
-    after(function(){
-      page.audio_controls.stop.restore();
     });
 
     it("stops ship mining and movement audio", function(){

@@ -7,12 +7,12 @@ describe("Omega.ShipDockInteractions", function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
     ship.init_gfx()
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#_docking_targets", function(){
     before(function(){
-      page.set_session(new Omega.Session({user_id : 'user1'}));
+      page.session = new Omega.Session({user_id : 'user1'});
 
       /// by default, all will be returned
       page.entities = [];
@@ -31,11 +31,6 @@ describe("Omega.ShipDockInteractions", function(){
       page.entities[1].location.set(5, 0, 5);          /// within valid distance
       page.entities[2].user_id = 'user2';              /// other user
       page.entities[3].location.set(1000, 1000, 1000); /// outside valid distance
-    });
-
-    after(function(){
-      page.restore_session();
-      page.restore_entities();
     });
 
     it("returns list of user-owned stations within vicinity of ship", function(){
@@ -68,10 +63,6 @@ describe("Omega.ShipDockInteractions", function(){
       evnt.currentTarget.data('station', station);
 
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufacured::dock with command station", function(){
@@ -199,10 +190,6 @@ describe("Omega.ShipDockInteractions", function(){
       sinon.stub(page.node, 'http_invoke');
     });
 
-    after(function(){
-      page.node.http_invoke.restore();
-    });
-
     it("invokes manufactured::undock", function(){
       ship._undock(page);
       sinon.assert.calledWith(page.node.http_invoke,
@@ -273,10 +260,6 @@ describe("Omega.ShipDockInteractions", function(){
       response = {result : Omega.Gen.ship({})};
 
       sinon.stub(page.canvas, 'reload');
-    });
-
-    after(function(){
-      page.canvas.reload.restore();
     });
 
     it("clears ship docked_at entity", function(){

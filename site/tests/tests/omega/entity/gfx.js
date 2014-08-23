@@ -1,14 +1,15 @@
+/// FIXME internal state getting messed up in this module
 pavlov.specify("Omega.UI.CanvasEntityGfx", function(){
 describe("Omega.UI.CanvasEntityGfx", function(){
-  var orig, entity;
+  var orig_loaded, entity;
 
   before(function(){
-    orig = $.extend({}, Omega.UI.CanvasEntityGfx._tracker, true);
+    orig_loaded = $.extend(true, {}, Omega.UI.CanvasEntityGfx.__loaded_tracker);
     entity = $.extend({}, Omega.UI.CanvasEntityGfx);
   });
 
   after(function(){
-    Omega.UI.CanvasEntityGfx._tracker = orig;
+    Omega.UI.CanvasEntityGfx.__loaded_tracker = orig_loaded;
   });
 
   describe("#scene_location", function(){
@@ -32,20 +33,50 @@ describe("Omega.UI.CanvasEntityGfx", function(){
     });
   });
 
-  describe("#_gfx_tracker", function(){
+  describe("_has_type", function(){
+    describe("entity has type", function(){
+      it("returns true", function(){
+        entity.type = 'foo';
+        assert(entity._has_type()).isTrue();
+      });
+    });
+
+    describe("entity does not have type", function(){
+      it("returns false", function(){
+        assert(entity._has_type()).isFalse();
+      });
+    });
+  });
+
+  describe("_no_type", function(){
+    describe("entity has type", function(){
+      it("returns false", function(){
+        entity.type = 'foo';
+        assert(entity._no_type()).isFalse();
+      });
+    });
+
+    describe("entity does not have type", function(){
+      it("returns true", function(){
+        assert(entity._no_type()).isTrue();
+      });
+    });
+  });
+
+  describe("#_loaded_tracker", function(){
     it("returns singleton gfx tracker", function(){
-      assert(entity._gfx_tracker()).equals(entity._gfx_tracker());
+      assert(entity._loaded_tracker()).equals(entity._loaded_tracker());
     });
 
     it("initializes loaded tracker for local json class to false", function(){
       entity.json_class = 'Foo';
-      assert(entity._gfx_tracker()['loaded']['Foo']).isFalse();
+      assert(entity._loaded_tracker()['Foo']).isFalse();
     });
 
     it("initializes loaded tracker for local json class and specified type to false", function(){
       entity.json_class = 'Foo';
       entity.type = 'Bar';
-      assert(entity._gfx_tracker()['loaded']['Foo']['Bar']).isFalse();
+      assert(entity._loaded_tracker()['Foo']['Bar']).isFalse();
     });
   });
 
@@ -53,8 +84,7 @@ describe("Omega.UI.CanvasEntityGfx", function(){
     describe("entity graphics loaded", function(){
       it("returns true", function(){
         entity.json_class = 'Cosmos::Entities::Asteroid';
-        sinon.stub(entity, '_gfx_tracker')
-             .returns({'loaded':{'Cosmos::Entities::Asteroid' : true}});
+        sinon.stub(entity, '_loaded_tracker').returns({'Cosmos::Entities::Asteroid' : true});
         assert(entity.gfx_loaded()).isTrue();
       });
     });
@@ -63,8 +93,8 @@ describe("Omega.UI.CanvasEntityGfx", function(){
       it("returns true", function(){
         entity.type = 'corvette';
         entity.json_class = 'Manufactured::Ship';
-        sinon.stub(entity, '_gfx_tracker')
-             .returns({'loaded':{'Manufactured::Ship' : {'corvette' : true}}});
+        sinon.stub(entity, '_loaded_tracker')
+             .returns({'Manufactured::Ship' : {'corvette' : true}});
         assert(entity.gfx_loaded()).isTrue();
       });
     });
@@ -72,8 +102,8 @@ describe("Omega.UI.CanvasEntityGfx", function(){
     describe("entity graphics not loaded", function(){
       it("returns false", function(){
         entity.json_class = 'Cosmos::Entities::Asteroid';
-        sinon.stub(entity, '_gfx_tracker')
-             .returns({'loaded':{'Cosmos::Entities::Asteroid' : false}});
+        sinon.stub(entity, '_loaded_tracker')
+             .returns({'Cosmos::Entities::Asteroid' : false});
         assert(entity.gfx_loaded()).isFalse();
       });
     });
@@ -82,8 +112,8 @@ describe("Omega.UI.CanvasEntityGfx", function(){
       it("returns false", function(){
         entity.type = 'corvette';
         entity.json_class = 'Manufactured::Ship';
-        sinon.stub(entity, '_gfx_tracker')
-             .returns({'loaded' : {'Manufactured::Ship' : {'corvette' : false}}});
+        sinon.stub(entity, '_loaded_tracker')
+             .returns({'Manufactured::Ship' : {'corvette' : false}});
         assert(entity.gfx_loaded()).isFalse();
       });
     });
@@ -98,8 +128,9 @@ describe("Omega.UI.CanvasEntityGfx", function(){
 
     it("sets tracker to json class & type true", function(){
       entity.json_class = 'Manufactured::Ship';
-      entity._loaded_gfx('corvette');
-      assert(entity.gfx_loaded('corvette')).isTrue();
+      entity.type = 'corvette'
+      entity._loaded_gfx();
+      assert(entity.gfx_loaded()).isTrue();
     });
   });
 

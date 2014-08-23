@@ -7,7 +7,7 @@ describe("Omega.ShipMiningInteractions", function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
     ship.init_gfx()
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#_mining_targets", function(){
@@ -54,10 +54,6 @@ describe("Omega.ShipMiningInteractions", function(){
       sinon.stub(page.node, 'http_invoke');
     });
 
-    after(function(){
-      page.node.http_invoke.restore();
-    });
-
     it("invokes cosmos::get_resources with target id", function(){
       var ast = Omega.Gen.asteroid();
       ship._refresh_mining_target(ast, page);
@@ -99,10 +95,6 @@ describe("Omega.ShipMiningInteractions", function(){
       evnt.currentTarget.data('asteroid', asteroid);
 
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufactured::start_mining with command resource", function(){
@@ -186,8 +178,6 @@ describe("Omega.ShipMiningInteractions", function(){
 
     after(function(){
       ship.dialog().hide.restore();
-      page.canvas.reload.restore();
-      page.audio_controls.play.restore();
     });
 
     it("hides the dialog", function(){

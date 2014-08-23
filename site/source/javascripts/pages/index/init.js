@@ -32,8 +32,7 @@ Omega.Pages.IndexInitializer = {
     this.status_indicator.follow_node(this.node, 'loading');
     this.effects_player.wire_up();
     this._wire_up_fullscreen();
-
-    this.canvas.setup();
+    this.canvas.append();
   },
 
   /// switch to fullscreen on ctrl-f or ctrl-F

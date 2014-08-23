@@ -28,7 +28,9 @@ Omega.StarMesh.prototype = {
     var texture_path = Omega.Config.url_prefix + Omega.Config.images_path +
                        Omega.Config.resources.star.base_texture + type +
                        '.' + Omega.Config.resources.star.extension;
-    return THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+    var texture = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+    texture.omega_id = 'star.material';
+    return texture;
   },
 
   _material : function(texture){

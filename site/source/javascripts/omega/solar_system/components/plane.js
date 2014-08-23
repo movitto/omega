@@ -38,6 +38,8 @@ Omega.SolarSystemPlane.prototype = {
                        Omega.Config.resources.solar_system.material;
 
     var texture   = THREE.ImageUtils.loadTexture(texture_path, {}, event_cb);
+    texture.omega_id = 'solar_system.plane_material';
+
     var material  = new THREE.MeshBasicMaterial({map: texture, alphaTest: 0.5});
     material.side = THREE.DoubleSide;
 

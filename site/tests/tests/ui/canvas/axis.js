@@ -25,14 +25,14 @@ describe("Omega.UI.CanvasAxis", function(){
     });
 
     it("creates axis lines", function(){
-      var canvas = Omega.Test.Canvas();
+      var canvas = new Omega.UI.Canvas();
       assert(Omega.UI.CanvasAxis.gfx.xy).isOfType(THREE.Line);
       assert(Omega.UI.CanvasAxis.gfx.xz).isOfType(THREE.Line);
       assert(Omega.UI.CanvasAxis.gfx.yz).isOfType(THREE.Line);
     });
 
     it("creates distance markers", function(){
-      var canvas = Omega.Test.Canvas();
+      var canvas = new Omega.UI.Canvas();
       assert(Omega.UI.CanvasAxis.gfx.distances1).isOfType(THREE.Mesh);
       assert(Omega.UI.CanvasAxis.gfx.distances2).isOfType(THREE.Mesh);
       assert(Omega.UI.CanvasAxis.gfx.distances3).isOfType(THREE.Mesh);

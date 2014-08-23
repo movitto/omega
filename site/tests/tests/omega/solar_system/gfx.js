@@ -19,19 +19,19 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("creates mesh for solar system", function(){
-      var system = Omega.Test.Canvas.Entities()['solar_system'];
+      var system = Omega.Test.entities()['solar_system'];
       var mesh   = system._retrieve_resource('mesh');
       assert(mesh).isOfType(Omega.SolarSystemMesh);
     });
 
     it("creates plane for solar system", function(){
-      var system = Omega.Test.Canvas.Entities()['solar_system'];
+      var system = Omega.Test.entities()['solar_system'];
       var plane  = system._retrieve_resource('plane');
       assert(plane).isOfType(Omega.SolarSystemPlane);
     });
 
     it("creates audio effects for solar system", function(){
-      var system = Omega.Test.Canvas.Entities()['solar_system'];
+      var system = Omega.Test.entities()['solar_system'];
       var hover  = system._retrieve_resource('hover_audio');
       var click  = system._retrieve_resource('click_audio');
       assert(hover).isOfType(Omega.SolarSystemHoverAudioEffect);
@@ -39,7 +39,7 @@ describe("Omega.SolarSystemGfx", function(){
     });
 
     it("creates particles for solar system", function(){
-      var system = Omega.Test.Canvas.Entities()['solar_system'];
+      var system = Omega.Test.entities()['solar_system'];
       var particles = system._retrieve_resource('particles');
       assert(particles).isOfType(Omega.SolarSystemParticles);
     });

@@ -28,31 +28,31 @@ describe("Omega.JumpGateGfx", function(){
     });
 
     it("creates mesh material for JumpGate", function(){
-      var jg  = Omega.Test.Canvas.Entities()['jump_gate'];
+      var jg  = Omega.Test.entities()['jump_gate'];
       var mat = jg._retrieve_resource('mesh_material');
       assert(mat).isOfType(Omega.JumpGateMeshMaterial);
     });
 
     it("creates lamp for JumpGate", function(){
-      var jg   = Omega.Test.Canvas.Entities()['jump_gate'];
+      var jg   = Omega.Test.entities()['jump_gate'];
       var lamp = jg._retrieve_resource('lamp');
       assert(lamp).isOfType(Omega.JumpGateLamp);
     });
 
     it("creates particle system for JumpGate", function(){
-      var jg = Omega.Test.Canvas.Entities()['jump_gate'];
+      var jg = Omega.Test.entities()['jump_gate'];
       var particles = jg._retrieve_resource('particles');
       assert(particles).isOfType(Omega.JumpGateParticles);
     });
 
     it("creates selection material for JumpGate", function(){
-      var jg  = Omega.Test.Canvas.Entities()['jump_gate'];
+      var jg  = Omega.Test.entities()['jump_gate'];
       var mat = jg._retrieve_resource('selection_material');
       assert(mat).isOfType(Omega.JumpGateSelectionMaterial);
     });
 
     it("creates audio effect for JumpGate triggering", function(){
-      var jg    = Omega.Test.Canvas.Entities()['jump_gate'];
+      var jg    = Omega.Test.entities()['jump_gate'];
       var audio = jg._retrieve_resource('trigger_audio');
       assert(audio).isOfType(Omega.JumpGateTriggerAudioEffect);
     });

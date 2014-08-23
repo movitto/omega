@@ -9,10 +9,9 @@
 Omega.PlanetGfxInitializer = {
   include_axis  : true,
 
-  _init_mesh : function(event_cb){
+  _init_mesh : function(){
     this.mesh              = this._retrieve_resource('mesh').clone();
     this.mesh.omega_entity = this;
-    this.mesh.material     = new Omega.PlanetMaterial.load(this.type, event_cb);
   },
 
   _init_axis : function(){
@@ -43,7 +42,7 @@ Omega.PlanetGfxInitializer = {
     this._gfx_initializing = true;
     this.load_gfx(event_cb);
 
-    this._init_mesh(event_cb);
+    this._init_mesh();
     this._init_axis();
     this._init_orbit();
     this._init_components();

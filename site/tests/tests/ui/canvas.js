@@ -26,6 +26,42 @@ describe("Omega.UI.Canvas", function(){
     assert(canvas.page).equals(page);
   });
 
+  it("has a scene", function(){
+    assert(canvas.scene).isOfType(THREE.Scene);
+  });
+
+  it("has a renderer", function(){
+    assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
+  });
+
+  it("has a perspective camera", function(){
+    assert(canvas.cam).isOfType(THREE.PerspectiveCamera);
+  });
+
+  it("has orbit controls", function(){
+    assert(canvas.cam_controls).isOfType(THREE.OrbitControls);
+  });
+
+  it("sets camera controls dom element to renderer dom element", function(){
+    assert(canvas.cam_controls.domElement).equals(canvas.renderer.domElement);
+  });
+
+  it("sets camera controls target", function(){
+    assert(canvas.cam_controls.target.x).equals(0);
+    assert(canvas.cam_controls.target.y).equals(0);
+    assert(canvas.cam_controls.target.z).equals(0);
+  });
+
+  // it("resizes renderer & camera on window resize"); // NIY
+
+  it("initializes skybox graphics", function(){
+    assert(canvas.skybox.mesh).isNotNull();
+  });
+
+  it("initializes axis graphics", function(){
+    assert(canvas.axis.mesh).isNotNull();
+  });
+
   describe("#wire_up", function(){
     after(function(){
       Omega.Test.clear_events();
@@ -115,12 +151,8 @@ describe("Omega.UI.Canvas", function(){
 
     before(function(){
       entity = Omega.Gen.ship();
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
       sinon.stub(canvas.entity_container, 'show');
-    });
-
-    after(function(){
-      canvas.entity_container.show.restore();
     });
 
     describe("entity has details", function(){
@@ -149,20 +181,17 @@ describe("Omega.UI.Canvas", function(){
 
     before(function(){
       entity = Omega.Gen.ship();
-      canvas = Omega.Test.Canvas();
+      target = Omega.Gen.ship();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
 
-      orig_entity = canvas.entity_container.entity;
-      canvas.entity_container.entity = entity;
-    });
-
-    after(function(){
-      canvas.entity_container.entity = orig_entity;
+      entity.init_gfx();
+      canvas.entity_container.show(entity)
     });
 
     it("invokes selected context_action callback", function(){
       sinon.stub(entity, 'context_action');
-      canvas._rclicked_entity(entity);
-      sinon.assert.calledWith(entity.context_action, entity, canvas.page);
+      canvas._rclicked_entity(target);
+      sinon.assert.calledWith(entity.context_action, target, canvas.page);
     })
 
     it("dispatch rclick event to entity", function(){
@@ -178,7 +207,7 @@ describe("Omega.UI.Canvas", function(){
 
     before(function(){
       entity = Omega.Gen.solar_system();
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
     });
 
     it("invokes entity.on_hover callback", function(){
@@ -201,7 +230,7 @@ describe("Omega.UI.Canvas", function(){
 
     before(function(){
       entity = Omega.Gen.solar_system();
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
     });
 
     it("invokes entity.on_unhover callback", function(){
@@ -219,70 +248,14 @@ describe("Omega.UI.Canvas", function(){
     });
   });
 
-  /// TODO update
-  describe("canvas after #setup", function(){
-    after(function(){
-      if(Omega.Test.Canvas().reset_cam.restore)
-        Omega.Test.Canvas().reset_cam.restore();
-    });
-
-    it("has a scene", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.scene).isOfType(THREE.Scene);
-    });
-
-    it("has a renderer", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.renderer).isOfType(THREE.WebGLRenderer);
-    });
-
-    it("has a perspective camera", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.cam).isOfType(THREE.PerspectiveCamera);
-    });
-
-    it("has orbit controls", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.cam_controls).isOfType(THREE.OrbitControls);
-    });
-
-    it("sets camera controls dom element to renderer dom element", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.cam_controls.domElement).equals(canvas.renderer.domElement);
-    });
-
-    it("resets cam", function(){
-      var canvas = Omega.Test.Canvas();
-      sinon.spy(canvas, 'reset_cam');
-      canvas.setup();
-      sinon.assert.called(canvas.reset_cam);
-    });
-
-    it("sets camera controls target", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.cam_controls.target.x).equals(0);
-      assert(canvas.cam_controls.target.y).equals(0);
-      assert(canvas.cam_controls.target.z).equals(0);
-    });
-
-    // it("resizes renderer & camera on window resize"); // NIY
-
-    it("initializes skybox graphics", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.skybox.mesh).isNotNull();
-    });
-
-    it("initializes axis graphics", function(){
-      var canvas = Omega.Test.Canvas();
-      assert(canvas.axis.mesh).isNotNull();
-    });
-  });
+  //describe("#append", function(){ /// NIY
+  //})
 
   describe("#descendants", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
     });
 
     it("returns descendants in all scenes", function(){
@@ -298,12 +271,8 @@ describe("Omega.UI.Canvas", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       sinon.stub(canvas, '_detect_hover');
-    });
-
-    after(function(){
-      canvas._detect_hover.restore();
     });
 
     ///it("requests an animation frame"); /// NIY
@@ -319,18 +288,11 @@ describe("Omega.UI.Canvas", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       sinon.stub(canvas.renderer, 'clear');
       sinon.stub(canvas.renderer, 'render');
       sinon.stub(canvas.stats, 'update');
       sinon.stub(canvas.scene, 'getDescendants').returns([new THREE.Mesh()]);
-    });
-
-    after(function(){
-      canvas.renderer.clear.restore();
-      canvas.renderer.render.restore();
-      canvas.stats.update.restore();
-      canvas.scene.getDescendants.restore();
     });
 
     it("clears renderer", function(){
@@ -370,12 +332,8 @@ describe("Omega.UI.Canvas", function(){
     var canvas, controls;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       controls = canvas.cam_controls;
-    });
-
-    after(function(){
-      if(controls.update.restore) controls.update.restore();
     });
 
     it("sets camera controls position", function(){
@@ -389,7 +347,6 @@ describe("Omega.UI.Canvas", function(){
     });
 
     it("sets camera controls target", function(){
-      var canvas = Omega.Test.Canvas();
       controls.target.set(100,100,100);
       canvas.reset_cam();
       assert(controls.target.x).close(0, 0.01);
@@ -398,10 +355,9 @@ describe("Omega.UI.Canvas", function(){
     });
 
     it("updates camera controls", function(){
-      var update = sinon.spy(controls, 'update');
-      var canvas = Omega.Test.Canvas();
+      sinon.spy(controls, 'update');
       canvas.reset_cam();
-      sinon.assert.called(update);
+      sinon.assert.called(controls.update);
     });
 
     it("hides entity container", function(){
@@ -414,14 +370,8 @@ describe("Omega.UI.Canvas", function(){
   describe("#set_scene_root", function(){
     var canvas;
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
     });
-
-    after(function(){
-      if(canvas.clear.restore) canvas.clear.restore();
-      if(canvas.add.restore) canvas.add.restore();
-      canvas.clear();
-    })
 
     it("clears the scene", function(){
       var clear = sinon.spy(canvas, 'clear');
@@ -484,14 +434,10 @@ describe("Omega.UI.Canvas", function(){
     var canvas, system;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       system = new Omega.SolarSystem({id : 42});
       canvas.set_scene_root(system);
     });
-
-    after(function(){
-      Omega.Test.Canvas().clear();
-    })
 
     describe("root entity has specified entity id", function(){
       it("returns true", function(){
@@ -506,13 +452,13 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#focus_on", function(){
-    after(function(){
-      if(Omega.Test.Canvas().cam_controls.update.restore)
-        Omega.Test.Canvas().cam_controls.update.restore();
+    var canvas;
+
+    before(function(){
+      canvas = new Omega.UI.Canvas();
     });
 
     it("sets camera controls target", function(){
-      var canvas = Omega.Test.Canvas();
       canvas.focus_on({x:100,y:-100,z:2100});
       assert(canvas.cam_controls.target.x).equals(100);
       assert(canvas.cam_controls.target.y).equals(-100);
@@ -520,7 +466,6 @@ describe("Omega.UI.Canvas", function(){
     });
 
     it("updates camera controls", function(){
-      var canvas = Omega.Test.Canvas();
       var spy = sinon.spy(canvas.cam_controls, 'update');
       canvas.focus_on({x:100,y:-100,z:2100});
       sinon.assert.called(spy);
@@ -528,52 +473,42 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#add", function(){
-    var canvas;
+    var canvas, star, planet, mesh;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
-      canvas.page.effects_player = new Omega.UI.EffectsPlayer();
-    });
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
+      mesh   = new THREE.Mesh();
+      star   = new Omega.Star({id : 42, components: [mesh]});
+      planet   = Omega.Gen.planet();
 
-    after(function(){
-      Omega.Test.Canvas().clear();
-      Omega.Test.Page().effects_player.clear();
-      if(canvas.reload.restore) canvas.reload.restore();
+      /// stub out init_gfx
+      sinon.stub(star, 'init_gfx');
+      sinon.stub(planet, 'init_gfx');
     });
 
     it("initializes entity graphics", function(){
-      var star   = new Omega.Star({});
-      var spy    = sinon.spy(star, 'init_gfx')
       canvas.add(star);
-      sinon.assert.calledWith(spy, sinon.match.func);
-      // TODO verify callback animates scene
+      sinon.assert.calledWith(star.init_gfx, sinon.match.func);
+      // TODO verify _init_gfx callback
     });
 
     it("adds entity components to scene", function(){
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({components: [mesh]});
-      sinon.stub(star, 'init_gfx'); /// stub out init_gfx
       canvas.add(star);
       assert(canvas.scene.getDescendants()).includes(mesh);
     });
 
     it("adds entity components to specified scene", function(){
       var scene  = new THREE.Scene();
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({components: [mesh]});
-      sinon.stub(star, 'init_gfx'); /// stub out init_gfx
       canvas.add(star, scene);
       assert(scene.getDescendants()).includes(mesh);
     });
 
     it("adds entity to effects player", function(){
-      var planet   = Omega.Gen.planet();
       canvas.add(planet);
       assert(canvas.page.effects_player.has(planet.id)).isTrue();
     });
 
     it("adds entity id to local entities registry", function(){
-      var star   = new Omega.Star({id : 42});
       assert(canvas.entities).doesNotInclude(42);
       canvas.add(star);
       assert(canvas.entities).includes(42);
@@ -581,20 +516,16 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#remove", function(){
-    var canvas;
+    var canvas, star, mesh;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
-      canvas.page.effects_player = new Omega.UI.EffectsPlayer();
-    });
-
-    after(function(){
-      Omega.Test.Canvas().clear
+      mesh   = new THREE.Mesh();
+      star   = new Omega.Star({id : 42, components: [mesh]});
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
+      sinon.stub(star, 'init_gfx'); /// stub out init gfx
     });
 
     it("removes entity components from scene", function(){
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({components: [mesh]});
       canvas.add(star);
       canvas.remove(star);
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh);
@@ -602,22 +533,18 @@ describe("Omega.UI.Canvas", function(){
 
     it("removes entity components from specified scene", function(){
       var scene  = new THREE.Scene();
-      var mesh   = new THREE.Mesh();
-      var star   = new Omega.Star({components: [mesh]});
       canvas.add(star, scene);
       canvas.remove(star, scene);
       assert(scene.getDescendants()).doesNotInclude(mesh);
     });
 
     it("removes entity from effects player", function(){
-      var star   = new Omega.Star({});
       canvas.add(star);
       canvas.remove(star);
       assert(canvas.page.effects_player.has(star.id)).isFalse();
     });
 
     it("removes entity id from local entities registry", function(){
-      var star   = new Omega.Star({id : 42});
       canvas.add(star);
       assert(canvas.entities).includes(42);
       canvas.remove(star);
@@ -629,26 +556,21 @@ describe("Omega.UI.Canvas", function(){
     var jg, canvas;
 
     before(function(){
-      jg = Omega.Test.Canvas.Entities().jump_gate;
-      canvas = Omega.Test.Canvas();
+      jg = new Omega.JumpGate();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
+      sinon.stub(jg, 'init_gfx'); /// stub out init gfx
       canvas.add(jg);
-    });
-
-    after(function(){
-      if(canvas.remove.restore) canvas.remove.restore();
-      if(canvas.add.restore) canvas.add.restore();
-      Omega.Test.Canvas().clear();
+      sinon.stub(canvas, 'remove');
+      sinon.stub(canvas, 'add');
     });
 
     it("removes entity from canvas", function(){
-      var remove = sinon.spy(canvas, 'remove');
       canvas.reload(jg);
-      sinon.assert.calledWith(remove, jg);
+      sinon.assert.calledWith(canvas.remove, jg);
     });
 
     it("removes entity from specified canvas scene", function(){
       var scene = new THREE.Scene();
-      sinon.spy(canvas, 'remove');
       canvas.reload(jg, scene);
       sinon.assert.calledWith(canvas.remove, jg, scene);
     });
@@ -660,23 +582,21 @@ describe("Omega.UI.Canvas", function(){
     });
 
     it("adds entity to canvas", function(){
-      var add = sinon.spy(canvas, 'add');
       canvas.reload(jg);
-      sinon.assert.calledWith(add, jg);
+      sinon.assert.calledWith(canvas.add, jg);
     });
 
     it("adds entity to specified canvas scene", function(){
       var scene = new THREE.Scene();
-      var add = sinon.spy(canvas, 'add');
       canvas.reload(jg, scene);
-      sinon.assert.calledWith(add, jg, scene);
+      sinon.assert.calledWith(canvas.add, jg, scene);
     });
 
 /// FIXME:
     //describe("entity was not in scene", function(){
     //  it("does not reload entity", function(){
     //    var add = sinon.spy(canvas, 'add');
-    //    star = Omega.Test.Canvas.Entities().star;
+    //    star = Omega.Test.entities().star;
     //    canvas.reload(star);
     //    sinon.assert.notCalled(add);
     //  })
@@ -684,16 +604,20 @@ describe("Omega.UI.Canvas", function(){
   });
 
   describe("#clear", function(){
+    var canvas;
+
+    before(function(){
+      canvas = new Omega.UI.Canvas();
+    });
+
     it("clears root entity", function(){
       var system = new Omega.SolarSystem({});
-      var canvas = Omega.Test.Canvas();
       canvas.set_scene_root(system);
       canvas.clear();
       assert(canvas.root).isNull();
     });
 
     it("clears entities list", function(){
-      var canvas = Omega.Test.Canvas();
       canvas.entities = [42];
       canvas.clear();
       assert(canvas.entities).isSameAs([]);
@@ -704,7 +628,6 @@ describe("Omega.UI.Canvas", function(){
       var mesh2  = new THREE.Mesh();
       var star   = new Omega.Star({components : [mesh1]});
 
-      var canvas = Omega.Test.Canvas();
       canvas.add(star);
       canvas.clear();
       assert(canvas.scene.getDescendants()).doesNotInclude(mesh1);
@@ -715,12 +638,8 @@ describe("Omega.UI.Canvas", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas();
       canvas.entities = [42];
-    });
-
-    after(function(){
-      canvas.clear();
     });
 
     describe("scene has specified entity id", function(){

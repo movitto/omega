@@ -50,7 +50,7 @@ Omega.Pages.TitleInitializer = {
         _this.play(cutscene.scene);
       });
 
-    this.canvas.setup();
+    this.canvas.append();
 
     /// add cuscenes to menu
     for(var c = 0; c < this.cutscenes.length; c++){

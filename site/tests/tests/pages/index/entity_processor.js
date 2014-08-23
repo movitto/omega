@@ -161,7 +161,7 @@ describe("Omega.Pages.IndexEntityProcessor", function(){
     var entity;
 
     before(function(){
-      page   = $.extend({canvas : Omega.Test.Canvas()},
+      page   = $.extend({canvas : new Omega.UI.Canvas()},
                         Omega.Pages.IndexEntityProcessor,
                         Omega.EntityTracker,
                         Omega.Pages.SceneTracker);
@@ -174,10 +174,6 @@ describe("Omega.Pages.IndexEntityProcessor", function(){
       sinon.stub(page, 'track_entity');
       sinon.stub(page, '_scale_entity');
       sinon.stub(page.canvas, 'add');
-    });
-
-    after(function(){
-      page.canvas.add.restore();
     });
 
     it("stores entity in registry", function(){

@@ -31,12 +31,8 @@ describe("Omega.Asteroid", function(){
 
     before(function(){
       ast = new Omega.Asteroid();
-      page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+      page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
       sinon.stub(page.canvas, 'follow_entity');
-    });
-
-    after(function(){
-      page.canvas.follow_entity.restore();
     });
 
     it("instructs canvas to follow asteroid entity", function(){

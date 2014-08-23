@@ -6,7 +6,7 @@ describe("Omega.CallbackHandler", function(){
       var ship, eship, eargs;
 
       before(function(){
-        page = new Omega.Pages.Test({canvas : Omega.Test.Canvas()});
+        page = new Omega.Pages.Test({canvas : new Omega.UI.Canvas()});
         sinon.stub(page.canvas, 'reload');
         sinon.stub(page.audio_controls, 'play');
         sinon.stub(page.audio_controls, 'stop');
@@ -28,12 +28,6 @@ describe("Omega.CallbackHandler", function(){
                                 
         page.entities = [ship];
         eargs         = [eship.location];
-      });
-
-      after(function(){
-        page.canvas.reload.restore();
-        page.audio_controls.play.restore();
-        page.audio_controls.stop.restore();
       });
 
       it("updates entity location", function(){

@@ -167,14 +167,14 @@ describe("Omega.Galaxy", function(){
     });
 
     it("creates stars for galaxy", function(){
-      var galaxy = Omega.Test.Canvas.Entities()['galaxy'];
+      var galaxy = Omega.Test.entities()['galaxy'];
       var stars  = galaxy._retrieve_resource('stars');
       assert(stars).isOfType(Omega.GalaxyDensityWave);
       assert(stars.type).equals('stars');
     });
 
     it("creates clouds for galaxy", function(){
-      var galaxy = Omega.Test.Canvas.Entities()['galaxy'];
+      var galaxy = Omega.Test.entities()['galaxy'];
       var clouds = galaxy._retrieve_resource('clouds');
       assert(clouds).isOfType(Omega.GalaxyDensityWave);
       assert(clouds.type).equals('clouds');
@@ -184,7 +184,7 @@ describe("Omega.Galaxy", function(){
   describe("#init_gfx", function(){
     before(function(){
       /// preiinit using test page
-      Omega.Test.Canvas.Entities();
+      Omega.Test.entities();
     });
 
     it("loads galaxy gfx", function(){

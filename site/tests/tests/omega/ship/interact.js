@@ -6,21 +6,17 @@ describe("Omega.ShipInteraction", function(){
   before(function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#context_action", function(){
     before(function(){
-      page.set_session(new Omega.Session({user_id : 'user1'}));
+      page.session = new Omega.Session({user_id : 'user1'});
       ship.user_id = 'user1';
 
       /// stub out move / follow calls
       sinon.spy(ship, '_move');
       sinon.spy(ship, '_follow');
-    });
-
-    after(function(){
-      page.restore_session();
     });
 
     describe("user not logged in", function(){

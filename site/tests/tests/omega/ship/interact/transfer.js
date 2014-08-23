@@ -7,7 +7,7 @@ describe("Omega.ShipTransferInteractions", function(){
     ship = Omega.Gen.ship();
     ship.location.set(0,0,0);
     ship.init_gfx()
-    page = Omega.Test.Page();
+    page = new Omega.Pages.Test();
   });
 
   describe("#_transfer", function(){
@@ -19,10 +19,6 @@ describe("Omega.ShipTransferInteractions", function(){
       ship.resources = [res1, res2];
 
       sinon.stub(page.node, 'http_invoke');
-    });
-
-    after(function(){
-      page.node.http_invoke.restore();
     });
 
     it("invokes manufactured::transfer_resource with all ship resources", function(){
@@ -125,10 +121,6 @@ describe("Omega.ShipTransferInteractions", function(){
       sinon.stub(page.canvas, 'reload');
     });
 
-    after(function(){
-      page.canvas.reload.restore();
-    });
-
     it("updates ship resources", function(){
       ship._transfer_success(response, page);
       assert(ship.resources).equals(nship.resources);
@@ -176,10 +168,6 @@ describe("Omega.ShipTransferInteractions", function(){
       response = {result : [nship, nstation]};
 
       sinon.stub(page.audio_controls, 'play');
-    });
-
-    after(function(){
-      page.audio_controls.play.restore();
     });
 
     it("plays confirmation effect audio", function(){

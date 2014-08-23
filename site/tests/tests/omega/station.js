@@ -133,14 +133,9 @@ describe("Omega.Station", function(){
     var canvas;
 
     before(function(){
-      canvas = Omega.Test.Canvas();
+      canvas = new Omega.UI.Canvas({page : new Omega.Pages.Test()});
       sinon.stub(canvas.page.audio_controls, 'play');
       sinon.stub(canvas, 'follow_entity');
-    });
-
-    after(function(){
-      canvas.page.audio_controls.play.restore();
-      canvas.follow_entity.restore();
     });
 
     it("plays clicked effect", function(){
@@ -159,14 +154,10 @@ describe("Omega.Station", function(){
     var page, station;
 
     before(function(){
-      page = Omega.Test.Page();
+      page = new Omega.Pages.Test();
       sinon.stub(page.audio_controls, 'play');
 
-      station = Omega.Test.Canvas.Entities().station;
-    });
-
-    after(function(){
-      page.audio_controls.play.restore();
+      station = Omega.Test.entities().station;
     });
 
     it("plays construction started audio", function(){
@@ -184,8 +175,9 @@ describe("Omega.Station", function(){
 
   describe("#unselected", function(){
     it("resets mesh material emissive", function(){
-      var station = Omega.Test.Canvas.Entities().station;
-      station.unselected(Omega.Test.Page());
+      var page = new Omega.Pages.Test();
+      var station = Omega.Test.entities().station;
+      station.unselected(page);
       assert(station.mesh.tmesh.material.emissive.getHex()).equals(0);
     })
   });
