@@ -137,35 +137,4 @@ describe("Omega.CallbackHandler", function(){
       });
     });
   })
-
-  describe("#track", function(){
-    before(function(){
-      page.entities = [];
-    });
-
-    describe("event handler already registered", function(){
-      it("does nothing / just returns", function(){
-        tracker.track("motel::on_rotation");
-        assert(page.node._listeners['motel::on_rotation'].length).equals(1);
-        tracker.track("motel::on_rotation");
-        assert(page.node._listeners['motel::on_rotation'].length).equals(1);
-      });
-    });
-
-    it("adds new node event handler for event", function(){
-      var add_listener = sinon.spy(page.node, 'addEventListener');
-      tracker.track("motel::on_rotation");
-      sinon.assert.calledWith(add_listener, 'motel::on_rotation', sinon.match.func);
-    });
-
-    describe("on event", function(){
-      it("invokes _msg_received", function(){
-        var msg_received = sinon.spy(tracker, "_msg_received");
-        tracker.track("motel::on_rotation");
-        var handler = page.node._listeners['motel::on_rotation'][0];
-        handler({data : ['event_occurred']});
-        sinon.assert.calledWith(msg_received, 'motel::on_rotation', ['event_occurred']);
-      });
-    });
-  }); 
 });});
