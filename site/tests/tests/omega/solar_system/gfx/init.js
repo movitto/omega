@@ -1,55 +1,11 @@
 /// Test Mixin usage through SolarSystem
-pavlov.specify("Omega.SolarSystemGfx", function(){
-describe("Omega.SolarSystemGfx", function(){
+pavlov.specify("Omega.SolarSystemGfxInitializer", function(){
+describe("Omega.SolarSystemGfxInitializer", function(){
   var system;
 
   before(function(){
     system = new Omega.SolarSystem();
     system.location = new Omega.Location({x: 50, y:60, z:-75});
-  });
-
-  describe("#load_gfx", function(){
-    describe("graphics are loaded", function(){
-      it("does nothing / just returns", function(){
-        sinon.stub(system, 'gfx_loaded').returns(true);
-        sinon.spy(system, '_loaded_gfx');
-        system.load_gfx();
-        sinon.assert.notCalled(system._loaded_gfx);
-      });
-    });
-
-    it("creates mesh for solar system", function(){
-      var system = Omega.Test.entities()['solar_system'];
-      var mesh   = system._retrieve_resource('mesh');
-      assert(mesh).isOfType(Omega.SolarSystemMesh);
-    });
-
-    it("creates plane for solar system", function(){
-      var system = Omega.Test.entities()['solar_system'];
-      var plane  = system._retrieve_resource('plane');
-      assert(plane).isOfType(Omega.SolarSystemPlane);
-    });
-
-    it("creates audio effects for solar system", function(){
-      var system = Omega.Test.entities()['solar_system'];
-      var hover  = system._retrieve_resource('hover_audio');
-      var click  = system._retrieve_resource('click_audio');
-      assert(hover).isOfType(Omega.SolarSystemHoverAudioEffect);
-      assert(click).isOfType(Omega.SolarSystemClickAudioEffect);
-    });
-
-    it("creates particles for solar system", function(){
-      var system = Omega.Test.entities()['solar_system'];
-      var particles = system._retrieve_resource('particles');
-      assert(particles).isOfType(Omega.SolarSystemParticles);
-    });
-
-    it("invokes _loaded_gfx", function(){
-      sinon.stub(system, 'gfx_loaded').returns(false);
-      sinon.stub(system, '_loaded_gfx');
-      system.load_gfx();
-      sinon.assert.called(system._loaded_gfx);
-    });
   });
 
   describe("#init_gfx", function(){
@@ -138,32 +94,5 @@ describe("Omega.SolarSystemGfx", function(){
       system.init_gfx();
       sinon.assert.calledWith(system.interconns.unqueue);
     })
-  });
-
-  describe("#update_gfx", function(){
-    it("sets position tracker position", function(){
-      system.init_gfx();
-      system.location.set(100, -200, 300);
-      system.update_gfx();
-      assert(system.position_tracker().position.x).equals(100);
-      assert(system.position_tracker().position.y).equals(-200);
-      assert(system.position_tracker().position.z).equals(300);
-    });
-  });
-
-  describe("#run_effects", function(){
-    it("runs interconnect effects", function(){
-      system.init_gfx();
-      sinon.stub(system.interconns, 'run_effects');
-      system.run_effects();
-      sinon.assert.calledWith(system.interconns.run_effects);
-    });
-
-    it("runs particles effects", function(){
-      system.init_gfx();
-      sinon.stub(system.particles, 'run_effects');
-      system.run_effects();
-      sinon.assert.calledWith(system.particles.run_effects);
-    });
   });
 });});

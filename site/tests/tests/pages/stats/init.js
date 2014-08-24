@@ -6,8 +6,7 @@ describe("Omega.Pages.Stats", function(){
     page = new Omega.Pages.Stats();
   });
 
-  /// base page mixin test
-  it("has a node", function(){
-    assert(page.node).isOfType(Omega.Node);
+  it("initializes stats ", function(){
+    assert(page.stat_results).isSameAs({});
   });
 });});

@@ -155,66 +155,6 @@ describe("Omega.Galaxy", function(){
     });
   });
 
-  describe("#load_gfx", function(){
-    describe("graphics are initialized", function(){
-      it("does nothing / just returns", function(){
-        var galaxy = new Omega.Galaxy();
-        sinon.stub(galaxy, 'gfx_loaded').returns(true);
-        sinon.spy(galaxy, '_loaded_gfx');
-        galaxy.load_gfx();
-        sinon.assert.notCalled(galaxy._loaded_gfx);
-      });
-    });
-
-    it("creates stars for galaxy", function(){
-      var galaxy = Omega.Test.entities()['galaxy'];
-      var stars  = galaxy._retrieve_resource('stars');
-      assert(stars).isOfType(Omega.GalaxyDensityWave);
-      assert(stars.type).equals('stars');
-    });
-
-    it("creates clouds for galaxy", function(){
-      var galaxy = Omega.Test.entities()['galaxy'];
-      var clouds = galaxy._retrieve_resource('clouds');
-      assert(clouds).isOfType(Omega.GalaxyDensityWave);
-      assert(clouds.type).equals('clouds');
-    });
-  });
-
-  describe("#init_gfx", function(){
-    before(function(){
-      /// preiinit using test page
-      Omega.Test.entities();
-    });
-
-    it("loads galaxy gfx", function(){
-      var galaxy    = new Omega.Galaxy();
-      var load_gfx  = sinon.spy(galaxy, 'load_gfx');
-      galaxy.init_gfx();
-      sinon.assert.called(load_gfx);
-    });
-
-    it("references Galaxy density_waves", function(){
-      var galaxy = new Omega.Galaxy();
-      galaxy.init_gfx();
-      var stars = galaxy._retrieve_resource('stars');
-      var clouds = galaxy._retrieve_resource('clouds');
-      assert(galaxy.stars).equals(stars);
-      assert(galaxy.clouds).equals(clouds);
-    });
-
-    it("adds particle system to galaxy scene components", function(){
-      var galaxy = new Omega.Galaxy();
-      galaxy.init_gfx();
-      var expected = [galaxy.clouds.particles, galaxy.stars.particles];
-      assert(galaxy.components).isSameAs(expected);
-    });
-  });
-
-  describe("#run_effects", function(){
-    //it("updates particle system density_wave") // NIY
-  });
-
   describe("#with_id", function(){
     var node, retrieval_cb;
 
