@@ -10,7 +10,6 @@
 //= require "omega/ship/gfx/load"
 //= require "omega/ship/gfx/init"
 //= require "omega/ship/gfx/update"
-//= require "omega/ship/gfx/movement"
 //= require "omega/ship/gfx/effects"
 
 // Ship GFX Mixin
@@ -20,7 +19,6 @@ $.extend(Omega.ShipGfx, Omega.UI.CanvasEntityGfx);
 $.extend(Omega.ShipGfx, Omega.ShipGfxLoader);
 $.extend(Omega.ShipGfx, Omega.ShipGfxInitializer);
 $.extend(Omega.ShipGfx, Omega.ShipGfxUpdater);
-$.extend(Omega.ShipGfx, Omega.ShipGfxMovement);
 $.extend(Omega.ShipGfx, Omega.ShipGfxEffects);
 
 Omega.ShipGfx._run_movement = Omega.ShipGfx._no_movement;

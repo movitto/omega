@@ -7,6 +7,7 @@
 //= require "omega/ship/commands"
 //= require "omega/ship/interact"
 //= require "omega/ship/gfx"
+//= require "omega/ship/movement"
 
 ///
 Omega.Ship = function(parameters){
@@ -142,6 +143,7 @@ THREE.EventDispatcher.prototype.apply( Omega.Ship.prototype );
 $.extend(Omega.Ship.prototype, Omega.ShipCommands);
 $.extend(Omega.Ship.prototype, Omega.ShipInteraction);
 $.extend(Omega.Ship.prototype, Omega.ShipGfx);
+$.extend(Omega.Ship.prototype, Omega.ShipMovement);
 ///
 
 // Return ship with the specified id
