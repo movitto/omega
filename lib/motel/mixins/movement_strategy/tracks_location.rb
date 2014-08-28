@@ -89,13 +89,16 @@ module MovementStrategies
 
     # Rotate specified location towards target.
     #
-    # Assumes class including this module also includes Rotatable
+    # Assumes class including this module also includes Rotatable.
+    # TODO param toggling stop angle ?
     def rotate_towards_target(loc, elapsed_seconds)
        od = orientation_difference(loc)
-       init_rotation :rot_theta => rot_theta,
-                     :rot_x     => od[1],
-                     :rot_y     => od[2],
-                     :rot_z     => od[3]
+       init_rotation :rot_theta  => rot_theta,
+                     :rot_x      => od[1],
+                     :rot_y      => od[2],
+                     :rot_z      => od[3],
+                     :stop_angle => od[0]
+       loc.angle_rotated = 0
        rotate loc, elapsed_seconds if valid_rotation?
     end
 
@@ -104,10 +107,11 @@ module MovementStrategies
     # Same assumtion as w/ rotate_towards_target above
     def rotate_away_from_target(loc, elapsed_seconds)
        od = orientation_difference(loc)
-       init_rotation :rot_theta => rot_theta,
-                     :rot_x     => od[1],
-                     :rot_y     => od[2],
-                     :rot_z     => od[3]
+       init_rotation :rot_theta  => rot_theta,
+                     :rot_x      => od[1],
+                     :rot_y      => od[2],
+                     :rot_z      => od[3],
+                     :stop_angle => Math::PI - od[0]
        self.rot_theta *= -1
        rotate loc, elapsed_seconds if valid_rotation?
        self.rot_theta *= -1
