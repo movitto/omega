@@ -23,6 +23,9 @@ module Entity
     # Distance ship travels during a single movement cycle
     constrained_attr(:movement_speed, :intern => true) { |speeds| speeds[type] || speeds[:default] }
 
+    # Acceleration applied to velocity during each movement cycle
+    constrained_attr(:acceleration,   :intern => true) { |accelerations| accelerations[type] || accelerations[:default] }
+
     # Max angle ship can rotate in a single movmeent cycle
     constrained_attr(:rotation_speed, :intern => true) { |speeds| speeds[type] || speeds[:default] }
 

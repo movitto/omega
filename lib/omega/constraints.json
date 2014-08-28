@@ -67,8 +67,13 @@
                "destroyer" : 30, "bomber" : 25, "corvette" : 25,
                "battlecruiser" : 35, "exploration" : 23, "mining" : 25},
 
-    "movement_speed"      : {"corvette" : 30000000, "default" : 10000000},
-    "rotation_speed"      : {"corvette" :     0.25, "default" : 0.098174},
+    "movement_speed"      : {"corvette" : 30000000,
+                             "default"  : 10000000},
+    "acceleration"        : {"corvette" :  1000000,
+                             "default"  :   300000},
+
+    "rotation_speed"      : {"corvette" :     0.25,
+                             "default"  : 0.098174},
 
     "weapons_classes"     : {
       "escort"        :  "light_artillery",
