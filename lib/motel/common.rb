@@ -97,7 +97,12 @@ def self.angle_between(x1, y1, z1, x2, y2, z2)
   s1 = Math.sqrt(x1**2+y1**2+z1**2)
   s2 = Math.sqrt(x2**2+y2**2+z2**2)
   mag = s1 * s2
-  Math.acos(d/mag)
+  projection = d/mag
+
+  # handle edge cases / out of domain errs
+  projection = projection.round_to(0) unless (-1..1).include?(projection)
+
+  Math.acos(projection)
 end
 
 # Retrieve the axis angle representation of the rotation
