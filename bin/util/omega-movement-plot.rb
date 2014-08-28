@@ -16,6 +16,7 @@ require 'rjr/nodes/tcp'
 
 config           = OpenStruct.new
 config.ids       = []
+config.labels    = []
 config.url       = 'jsonrpc://localhost:8181'
 config.gnuplot   = '/usr/bin/gnuplot'
 config.delay     = 5
@@ -45,8 +46,11 @@ optparse = OptionParser.new do |opts|
     config.delay = d.to_i
   end
 
-  # TODO options to toggle graphs, add labels (at specified coords),
-  # manually set axis' ranges, max points retained, etc
+  opts.on('-l', '--label label,x,y,z', 'add specified label at specified coordinates') do |label|
+    config.labels << label.split(',')
+  end
+
+  # TODO options to toggle graphs, manually set axis' ranges, max points retained, etc
 end
 
 optparse.parse!
@@ -116,7 +120,13 @@ def plot_locations(config)
 
   config.io.puts "set title 'Coordinates'"
   config.io.puts "set style data linespoints"
+
   config.io.puts "set label 1 'center' at 0,0,0"
+  config.labels.each_index do |i|
+    label, x, y, z = *config.labels[i]
+    config.io.puts "set label #{i+1} '#{label}' at #{x},#{y},#{z}"
+  end
+
   config.io.puts "set xrange [#{config.min[0]}:#{config.max[0]}]"
   config.io.puts "set yrange [#{config.min[1]}:#{config.max[1]}]"
   config.io.puts "set zrange [#{config.min[2]}:#{config.max[2]}]"
@@ -124,7 +134,9 @@ def plot_locations(config)
 
   config.io.puts "set title 'Orientation'"
   config.io.puts "set style data points"
-  config.io.puts "unset label 1"
+
+  1.upto(config.labels.size) { |i| config.io.puts "unset label #{i}" }
+
   config.io.puts "set xrange [-1:1]"
   config.io.puts "set yrange [-1:1]"
   config.io.puts "set zrange [-1:1]"
