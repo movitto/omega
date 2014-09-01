@@ -41,6 +41,8 @@ module MovementStrategies
     # as Motel::MovementStrategy#move to update location's
     # orientation after the specified elapsed interval.
     def rotate(loc, elapsed_seconds)
+      # TODO rotational acceleration
+
       # new angle to rotate
       angle_rotated = @rot_theta * elapsed_seconds
 
