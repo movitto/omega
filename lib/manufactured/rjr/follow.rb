@@ -56,11 +56,14 @@ module Manufactured::RJR
     raise OperationError, "#{entity} is docked" if entity.docked?
   
     # set the movement strategy, update the location
-    entity.location.movement_strategy =
-         strategy_class.new :distance => distance,
-                               :speed => entity.movement_speed,
-                 :tracked_location_id => target.location.id,
-                           :rot_theta => entity.rotation_speed
+    strategy_args = {:distance => distance,
+                        :speed => 1,
+                    :max_speed => entity.movement_speed,
+                 :acceleration => entity.acceleration,
+           :acceleration_scale => 3,
+          :tracked_location_id => target.location.id,
+                    :rot_theta => entity.rotation_speed}
+    entity.location.movement_strategy = strategy_class.new strategy_args
 
     node.invoke('motel::update_location', entity.location)
   
