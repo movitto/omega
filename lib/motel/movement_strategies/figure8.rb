@@ -16,6 +16,9 @@ class Figure8 < MovementStrategy
   include Rotatable
   include TracksLocation
 
+  # Scale which linear acceleration should be increased/reduced while location is rotating
+  attr_accessor :acceleration_scale
+
   # Indicates if entity is rotating, used internally
   attr_accessor :rotating
 
@@ -27,7 +30,9 @@ class Figure8 < MovementStrategy
   # @param [Hash] args hash of options to initialize the movement strategy with
   def initialize(args = {})
     default_args = {:orientation_tolerance => Math::PI/64}.merge(args)
-    attr_from_args args, :rotating => false, :inverted => true
+    attr_from_args args, :acceleration_scale => 1,
+                         :rotating    => false,
+                         :inverted    => true
 
     linear_attrs_from_args(default_args)
     trackable_attrs_from_args(default_args)
@@ -72,22 +77,24 @@ class Figure8 < MovementStrategy
       @rotating = false
     end
 
-    update_dir_from(loc)
+    # update and scale acceleration
+    update_acceleration_from(loc)
 
-    self.speed /= 2 if @rotating
+    self.acceleration /= @acceleration_scale if @rotating && acceleration
 
     move_linear(loc, elapsed_seconds)
 
-    self.speed *= 2 if @rotating
+    self.acceleration *= @acceleration_scale if @rotating && acceleration
   end
 
   def to_json(*a)
     { 'json_class' => self.class.name,
-      'data'       => { :step_delay => step_delay,
-                        :rotating   => rotating,
-                        :inverted   => inverted}.merge(trackable_json)
-                                                .merge(rotation_json)
-                                                .merge(linear_json)
+      'data'       => { :step_delay         => step_delay,
+                        :rotating           => rotating,
+                        :inverted           => inverted,
+                        :acceleration_scale => acceleration_scale}.merge(trackable_json)
+                                                                  .merge(rotation_json)
+                                                                  .merge(linear_json)
     }.to_json(*a)
   end
 end # class Figure8

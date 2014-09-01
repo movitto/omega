@@ -74,7 +74,7 @@ class Follow < MovementStrategy
 
      if !within_distance || target_moving
        rotate_towards_target(loc, elapsed_seconds) if !facing_target?(loc)
-       update_dir_from(loc)
+       update_acceleration_from(loc)
 
        orig_speed   = self.speed
        self.speed   = tracked_location.ms.speed if adjust_speed
@@ -86,7 +86,7 @@ class Follow < MovementStrategy
      elsif !target_moving # @move_while_in_vicinity
        # TODO replace w/ rotate_towards_target_tangent ?
        rotate_away_from_target(loc, elapsed_seconds) unless facing_target_tangent?(loc)
-       update_dir_from(loc)
+       update_acceleration_from(loc)
        move_linear(loc, elapsed_seconds)
      end
    end

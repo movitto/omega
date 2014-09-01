@@ -24,13 +24,17 @@ class Linear < MovementStrategy
   # location's orientation
   attr_accessor :dorientation
 
+  # Boolean indicating acceleration should be in direction
+  # of location's orientation
+  attr_accessor :dacceleration
+
   # Motel::MovementStrategies::Linear initializer
   #
   # @param [Hash] args hash of options to initialize the linear movement
   #   strategy with, accepts key/value pairs corresponding to all mutable
   #   attributes.
   def initialize(args = {})
-    attr_from_args args, :dorientation => false
+    attr_from_args args, :dorientation => false, :dacceleration => false
     linear_attrs_from_args(args)
     init_rotation(args)
     super(args)
@@ -67,16 +71,20 @@ class Linear < MovementStrategy
        "moving location #{loc.id} via linear movement strategy #{speed} #{dx}/#{dy}/#{dz}"
 
      rotate(loc, elapsed_seconds)
-     update_dir_from(loc) if @dorientation
+
+     update_dir_from(loc)          if @dorientation
+     update_acceleration_from(loc) if @dacceleration
+
      move_linear(loc, elapsed_seconds)
    end
 
    # Convert movement strategy to json representation and return it
    def to_json(*a)
      { 'json_class' => self.class.name,
-       'data'       => { :step_delay => step_delay,
-                         :dorientation => dorientation }.merge(rotation_json)
-                                                        .merge(linear_json)
+       'data'       => { :step_delay    => step_delay,
+                         :dorientation  => dorientation,
+                         :dacceleration => dacceleration }.merge(rotation_json)
+                                                          .merge(linear_json)
      }.to_json(*a)
    end
 
