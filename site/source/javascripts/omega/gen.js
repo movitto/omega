@@ -160,7 +160,9 @@ Omega.Gen = {
   linear_ms : function(opts){
     var dir = this.random_vector();
     var ms  = {json_class : 'Motel::MovementStrategies::Linear',
-               speed : 1, dx : dir[0], dy : dir[1], dz : dir[2]};
+               speed : 1, acceleration : 1, max_speed : 10,
+               dx : dir[0], dy : dir[1], dz : dir[2],
+               'dacceleration' : true};
     $.extend(ms, opts);
     return ms;
   },

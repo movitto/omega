@@ -10,15 +10,44 @@ Omega.LocationMovement = {
   //
   /// TODO stop at stop_distance if set
   move_linear : function(distance){
-    var orientation = this.orientation();
-    var dx = orientation[0];
-    var dy = orientation[1];
-    var dz = orientation[2];
+    if(this.movement_strategy.acceleration)
+      this.accelerate();
+
+    var dir = this.ms_dir();
+    var dx = dir[0];
+    var dy = dir[1];
+    var dz = dir[2];
 
     this.x += distance * dx;
     this.y += distance * dy;
     this.z += distance * dz;
     this.distance_moved += distance;
+  },
+
+  accelerate : function(){
+    var vdir = this.ms_dir();
+    var dx = vdir[0];
+    var dy = vdir[1];
+    var dz = vdir[2];
+
+    var adir = this.ms_acceleration();
+    var ax = adir[0];
+    var ay = adir[1];
+    var az = adir[2];
+
+    var speed        = this.movement_strategy.speed;
+    var acceleration = this.movement_strategy.acceleration;
+
+    var ndx = dx * speed + ax * acceleration;
+    var ndy = dy * speed + ay * acceleration;
+    var ndz = dz * speed + az * acceleration;
+
+    var nspeed = Math.sqrt(Math.pow(ndx, 2) + Math.pow(ndy, 2) + Math.pow(ndz, 2));
+    var max_speed = this.movement_strategy.max_speed;
+    if(max_speed && nspeed > max_speed) nspeed = max_speed;
+
+    this.movement_strategy.speed = nspeed;
+    this.update_ms_dir(Omega.Math.nrml(ndx, ndy, ndz));
   },
 
   /// Rotate orientation by parameters in movement strategy
@@ -46,11 +75,14 @@ Omega.LocationMovement = {
     var diff = this.orientation_difference(this.tracking.x,
                                            this.tracking.y,
                                            this.tracking.z);
+
     if(isNaN(diff[0]) || isNaN(diff[1])){
       this.movement_strategy.rot_x = 0;
       this.movement_strategy.rot_y = 0;
       this.movement_strategy.rot_z = 1;
+
     }else{
+      /// TODO set stop angle to diff[0] (or Math.PI - diff[0] if 'inverted' option is specified)
       this.movement_strategy.rot_x = diff[1];
       this.movement_strategy.rot_y = diff[2];
       this.movement_strategy.rot_z = diff[3];

@@ -100,7 +100,7 @@ module MovementStrategies
       ndz = dz * speed + az * acceleration
 
       @speed = Math.sqrt(ndx**2 + ndy**2 + ndz**2)
-      @speed = max_speed if speed > max_speed
+      @speed = max_speed if max_speed && speed > max_speed
       @dx, @dy, @dz = Motel::normalize(ndx, ndy, ndz)
     end
 

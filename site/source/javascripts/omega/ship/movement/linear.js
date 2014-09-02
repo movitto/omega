@@ -5,14 +5,23 @@
  */
 
 Omega.ShipLinearMovement = {
+  _move_linear : function(elapsed){
+    var dist = this.location.movement_strategy.speed * elapsed / 1000;
+    this.location.move_linear(dist);
+  },
+
   _run_linear_movement : function(page){
     var now     = new Date();
     var elapsed = now - this.last_moved;
 
-    this._run_rotation_movement(page, elapsed);
+    this._rotate(elapsed);
 
-    var dist = this.location.movement_strategy.speed * elapsed / 1000;
-    this.location.move_linear(dist);
+    if(this.location.movement_strategy.dorientation)
+      this.location.update_ms_dir();
+    if(this.location.movement_strategy.dacceleration)
+      this.location.update_ms_acceleration();
+
+    this._move_linear(elapsed);
 
     this.update_gfx();
     this.last_moved = now;
