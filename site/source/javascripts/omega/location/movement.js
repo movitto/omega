@@ -82,10 +82,28 @@ Omega.LocationMovement = {
       this.movement_strategy.rot_z = 1;
 
     }else{
-      /// TODO set stop angle to diff[0] (or Math.PI - diff[0] if 'inverted' option is specified)
-      this.movement_strategy.rot_x = diff[1];
-      this.movement_strategy.rot_y = diff[2];
-      this.movement_strategy.rot_z = diff[3];
+      this.movement_strategy.stop_angle = diff[0];
+      this.movement_strategy.rot_x      = diff[1];
+      this.movement_strategy.rot_y      = diff[2];
+      this.movement_strategy.rot_z      = diff[3];
+    }
+  },
+
+  face_away_from_target : function(){
+    var diff = this.orientation_difference(this.tracking.x,
+                                           this.tracking.y,
+                                           this.tracking.z);
+
+    if(isNaN(diff[0]) || isNaN(diff[1])){
+      this.movement_strategy.rot_x = 0;
+      this.movement_strategy.rot_y = 0;
+      this.movement_strategy.rot_z = 1;
+
+    }else{
+      this.movement_strategy.stop_angle = Math.PI - diff[0];
+      this.movement_strategy.rot_x      = diff[1];
+      this.movement_strategy.rot_y      = diff[2];
+      this.movement_strategy.rot_z      = diff[3];
     }
   }
 };

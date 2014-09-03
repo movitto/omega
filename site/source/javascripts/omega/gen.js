@@ -160,10 +160,11 @@ Omega.Gen = {
   linear_ms : function(opts){
     var dir = this.random_vector();
     var ms  = {json_class : 'Motel::MovementStrategies::Linear',
-               speed : 1, acceleration : 1, max_speed : 10,
+               speed : 1, acceleration : 1,
                dx : dir[0], dy : dir[1], dz : dir[2],
                'dacceleration' : true};
     $.extend(ms, opts);
+    if(!ms.max_speed) ms.max_speed = ms.speed;
     return ms;
   },
 
@@ -176,10 +177,21 @@ Omega.Gen = {
   /// Client should set valid tracked_location_id in opts
   ///  (should resolved to entity in page registry)
   figure8_ms : function(opts){
-    var dir = this.random_vector();
+    var dir = this.random_vector(); /// generate initial dir to base operations off of
     var ms  = {json_class : 'Motel::MovementStrategies::Figure8',
                speed : 1, dx : dir[0], dy : dir[1], dz : dir[2],
                rot_theta : 0.25 };
+    $.extend(ms, opts);
+    return ms;
+  },
+
+  /// Valid tracked_location_id also needed here as w/ figure8 above
+  follow_ms : function(opts){
+    var dir = this.random_vector();
+    var ms  = {json_class : 'Motel::MovementStrategies::Follow',
+               speed : 1, max_speed : 10, acceleration : 1,
+               dx : dir[0], dy : dir[1], dz : dir[2],
+               distance : 100, rot_theta : 0.25};
     $.extend(ms, opts);
     return ms;
   },

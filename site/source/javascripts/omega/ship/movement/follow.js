@@ -23,8 +23,9 @@ Omega.ShipFollowMovement = {
     if(!within_distance || target_moving){
       if(!facing_target){
         loc.face_target();
-        this._run_rotation_movement(page, elapsed);
+        this._rotate(elapsed);
       }
+      loc.update_ms_acceleration();
 
       var speed = adjust_speed ? tracked.location.movement_strategy.speed :
                                  loc.movement_strategy.speed;
@@ -32,12 +33,14 @@ Omega.ShipFollowMovement = {
       loc.move_linear(dist);
 
     }else if(!target_moving){
-      if(!facing_tangent) this._run_rotation_movement(page, elapsed, true);
-      var dist  = loc.movement_strategy.speed * elapsed / 1000;
-      loc.move_linear(dist);
+      if(!facing_tangent){
+        loc.face_away_from_target();
+        this._rotate(elapsed, true);
+      }
+      loc.update_ms_acceleration();
+      this._move_linear(elapsed);
     }
 
-    /// TODO move into if block above
     this.update_gfx();
     this.last_moved = now;
     this.dispatchEvent({type : 'movement', data : this});
