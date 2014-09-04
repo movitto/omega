@@ -75,5 +75,15 @@ Omega.LocationMovementStrategy = {
     this.movement_strategy.ax = dir[0];
     this.movement_strategy.ay = dir[1];
     this.movement_strategy.az = dir[2];
+  },
+
+  /// Scale acceleration by factor specified by strategy
+  scale_ms_acceleration : function(){
+    this.acceleration /= this.acceleration_scale;
+  },
+
+  /// Unscale acceleration by factor specified by strategy
+  unscale_ms_acceleration : function(){
+    this.acceleration *= this.acceleration_scale;
   }
 };

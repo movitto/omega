@@ -13,22 +13,33 @@ Omega.ShipFigure8Movement = {
     var tracked = page.entity(loc.movement_strategy.tracked_location_id);
     loc.set_tracking(tracked.location);
 
-    /// TODO set / leverage inverted flags
     var near_target   = loc.on_target();
     var facing_target = loc.facing_target(Math.PI / 64);
-    if(!near_target && !this.rotating)
-      this.rotating = true;
-    if(this.rotating && !facing_target){
-      loc.face_target();
-      this._run_rotation_movement(page, elapsed);
-    }else{
-      this.rotating = false;
+    if(!near_target && !loc.movement_strategy.rotating){
+      loc.movement_strategy.rotating = true;
+      loc.movement_strategy.inverted = !loc.movement_strategy.inverted;
     }
 
-    var speed = this.rotating ? loc.movement_strategy.speed / 2 :
-                                loc.movement_strategy.speed;
-    var dist = speed * elapsed / 1000;
-    loc.move_linear(dist);
+    if(loc.movement_strategy.rotating && !facing_target){
+      loc.face_target();
+      this._rotate(elapsed, loc.movement_strategy.inverted);
+
+      if(loc.movement_strategy.inverted)
+        loc.movement_strategy.inverted = false;
+
+    }else{
+      loc.movement_strategy.rotating = false;
+    }
+
+    loc.update_ms_acceleration();
+
+    var should_scale =    loc.movement_strategy.rotating &&
+                       !!(loc.movement_strategy.acceleration);
+    if(should_scale) loc.scale_ms_acceleration();
+
+    this._move_linear(elapsed);
+
+    if(should_scale) loc.unscale_ms_acceleration();
 
     this.update_gfx();
     this.last_moved = now;
