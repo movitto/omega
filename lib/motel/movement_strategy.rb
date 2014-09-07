@@ -25,7 +25,7 @@ class MovementStrategy
    # @param [Hash] args hash of options to initialize movement strategy with
    # @option args [Float,Integer] :step_delay base step delay which runner will wait before moving entity
    def initialize(args = {})
-      attr_from_args args, :step_delay => 0.1
+      attr_from_args args, :step_delay => 0.01
    end
 
    # Validate movement strategy, default to false, must be subclassed

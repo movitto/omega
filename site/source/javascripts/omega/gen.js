@@ -183,7 +183,6 @@ Omega.Gen = {
     var ms  = {json_class : 'Motel::MovementStrategies::Figure8',
                speed : 1, max_speed : 10, acceleration : 1,
                dx : dir[0], dy : dir[1], dz : dir[2],
-               acceleration_scale : 3,
                distance : 100, rot_theta : 0.25 };
     $.extend(ms, opts);
     return ms;

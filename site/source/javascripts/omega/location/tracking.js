@@ -35,11 +35,5 @@ Omega.LocationTracking = {
   facing_target : function(tolerance){
     var diff = this.rotation_to_target();
     return Math.abs(diff[0]) <= tolerance;
-  },
-
-  /// Bool indicating if location is facing target tangent
-  facing_target_tangent : function(tolerance){
-    var diff = this.rotation_to_target();
-    return Math.abs(Math.abs(diff[0]) - Math.PI / 2) <= tolerance;
   }
 };
