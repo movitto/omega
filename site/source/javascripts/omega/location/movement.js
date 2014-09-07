@@ -100,10 +100,9 @@ Omega.LocationMovement = {
     this.rot_dir(rot[1], rot[2], rot[3]);
   },
 
-  face_away_from_target : function(){
+  face_away_from_target : function(max_angle){
     var rot       = this.rotation_to_target();
     var angle     = rot[0];
-    var max_angle = Math.PI/4;
 
     if(angle > max_angle) angle = angle - max_angle;
     else angle = max_angle - angle;

@@ -22,7 +22,7 @@ Omega.ShipFigure8Movement = {
       loc.movement_strategy.evading = false;
     }else{
       if(near_target){
-        if(!loc.movement_strategy.evading) loc.face_away_from_target();
+        if(!loc.movement_strategy.evading) loc.face_away_from_target(Math.PI/4);
         loc.movement_strategy.evading = true;
       }
 

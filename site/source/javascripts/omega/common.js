@@ -122,12 +122,6 @@ Omega.Math = {
     return Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
   },
 
-  center : function(dx, dy, dz, le){
-    return [-1 * dx * le,
-            -1 * dy * le,
-            -1 * dz * le];
-  },
-
   // normalize vector
   nrml : function(x,y,z){
     var l = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
@@ -180,7 +174,7 @@ Omega.Math = {
 
   /// Angle between vectors
   abwn : function(x1, y1, z1, x2, y2, z2){
-    return this.axis_angle(x1, y1, z1, x2, y2, z2)[0];
+    return Omega.Math.axis_angle(x1, y1, z1, x2, y2, z2)[0];
   },
 
   /// Invert the specified axis-angle

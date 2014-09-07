@@ -26,7 +26,7 @@ Omega.UI.CanvasEntityGfx = {
   },
 
   _has_type : function(){
-    return !!(this.type);
+    return typeof(this.type) !== "undefined";
   },
 
   _no_type : function(){

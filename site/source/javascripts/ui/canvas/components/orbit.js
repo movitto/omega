@@ -47,19 +47,29 @@ Omega.OrbitLine.prototype = {
 
 /// Mixin adding helper methods to assist w/ orbits
 Omega.OrbitHelpers = {
+  /// default orbit's focus is at origin
+  _orbit_center : function(){
+    var ms = this.location.movement_strategy;
+    return [-1 * ms.dmajx * this.le,
+            -1 * ms.dmajy * this.le,
+            -1 * ms.dmajz * this.le];
+  },
+
   // orbit calculated on a per-entity basis
   _calc_orbit : function(){
     if(!this.location || !this.location.movement_strategy){
       this.orbit = [];
       return;
     }
+
     var ms = this.location.movement_strategy;
 
     /// base elliptical path properties
     var intercepts = Omega.Math.intercepts(ms.e, ms.p)
-    this.a  = intercepts[0]; this.b = intercepts[1];
-    this.le = Omega.Math.le(this.a, this.b);
-    var center = Omega.Math.center(ms.dmajx, ms.dmajy, ms.dmajz, this.le);
+    this.a     = intercepts[0];
+    this.b     = intercepts[1];
+    this.le    = Omega.Math.le(this.a, this.b);
+    var center = this._orbit_center();
     this.cx = center[0]; this.cy = center[1]; this.cz = center[2];
 
     /// normal vector of orbit axis'

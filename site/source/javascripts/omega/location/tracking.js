@@ -17,6 +17,13 @@ Omega.LocationTracking = {
     return this.distance_from(this.tracking) <= dist;
   },
 
+  // Return distance from target
+  distance_from_target : function(){
+    return this.distance_from(this.tracking.x,
+                              this.tracking.y,
+                              this.tracking.z);
+  },
+
   /// Return unit direction vector from this location's coords to specified coords
   direction_to_target : function(){
     return this.direction_to(this.tracking.x,
@@ -31,9 +38,13 @@ Omega.LocationTracking = {
                             this.tracking.z);
   },
 
+  /// Return angle component of axis-angle rotation to target
+  angle_to_target : function(){
+    return this.rotation_to_target()[0];
+  },
+
   /// Boolean indicating if location is facing target
   facing_target : function(tolerance){
-    var diff = this.rotation_to_target();
-    return Math.abs(diff[0]) <= tolerance;
+    return Math.abs(this.angle_to_target()) <= tolerance;
   }
 };

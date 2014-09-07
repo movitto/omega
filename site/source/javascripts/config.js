@@ -38,12 +38,12 @@ Omega.Config = {
 
   // event tracking
   ship_movement     :    10000000,
-  ship_rotation     :        0.15,
+  ship_rotation     :         0.5,
   station_movement  :          50,
 
   //movement
   movement_offset   : {min : 5000000, max: 10000000},
-  follow_distance   : 150000000, /// a little more than ship movement speed
+  follow_distance   : 500000000,
 
   // stats
   stats             : [['num_of', 'users'], ['users_with_most', 'entities', 10]],
